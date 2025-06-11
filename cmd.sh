@@ -8,3 +8,4 @@ set -x
 # run example script
 
 bash examples/grpo_trainer/run_qwen3-8b.sh
+bash ppo_egs.sh
