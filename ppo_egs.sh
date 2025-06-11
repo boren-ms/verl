@@ -1,7 +1,7 @@
 #!/bin/bahs
 set -x
 # MODEL_ID="Qwen/Qwen3-8B"
-MODEL_ID="${HOME}/data/ckp/hf_models/Qwen2.5-0.5B-Instruct/" 
+MODEL_ID="${HOME}/data/ckp/hf_models/Qwen2.5-0.5B-Instruct" 
 
 
 ppo_PYTHONUNBUFFERED=1 python3 -m verl.trainer.main_ppo \
