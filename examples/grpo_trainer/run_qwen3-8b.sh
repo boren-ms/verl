@@ -3,7 +3,8 @@
 
 set -x
 # MODEL_ID="Qwen/Qwen3-8B"
-MODEL_ID="${HOME}/data/ckp/Qwen/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775" 
+# MODEL_ID="${HOME}/data/ckp/Qwen/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775" 
+MODEL_ID="${HOME}/data/ckp/hf_models/Qwen2.5-0.5B-Instruct/" 
 
 python3 -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
