@@ -3,6 +3,8 @@ set -x
 # MODEL_ID="Qwen/Qwen3-8B"
 MODEL_ID="${HOME}/data/ckp/hf_models/Qwen2.5-0.5B-Instruct"
 
+# login wandb first
+wandb login --relogin --host=https://msaip.wandb.io
 
 ppo_PYTHONUNBUFFERED=1 python3 -m verl.trainer.main_ppo \
     data.train_files=$HOME/data/gsm8k/train.parquet \
@@ -22,7 +24,7 @@ ppo_PYTHONUNBUFFERED=1 python3 -m verl.trainer.main_ppo \
     critic.model.path=${MODEL_ID} \
     critic.ppo_micro_batch_size_per_gpu=4 \
     algorithm.kl_ctrl.kl_coef=0.001 \
-    trainer.logger=['console', 'wandb'] \
+    trainer.logger=['console','wandb'] \
     trainer.val_before_train=False \
     trainer.default_hdfs_dir=null \
     trainer.n_gpus_per_node=1 \
