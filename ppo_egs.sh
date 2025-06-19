@@ -1,4 +1,4 @@
-#!/bin/bahs
+#!/bin/bash
 set -x
 # MODEL_ID="Qwen/Qwen3-8B"
 MODEL_ID="${HOME}/data/ckp/hf_models/Qwen2.5-0.5B-Instruct"
