@@ -1,9 +1,12 @@
 #!/bin/bash
 set -x
 # MODEL_ID="Qwen/Qwen3-8B"
-MODEL_ID="${HOME}/data/ckp/hf_models/Qwen2.5-0.5B-Instruct" 
+# MODEL_NAME=Qwen2.5-0.5B-Instruct" 
+# MODEL_NAME=Phi-4-multimodal-instruct" 
+MODEL_NAME=Phi-4-mini-instruct
+MODEL_ID="${HOME}/data/ckp/hf_models/${MODEL_NAME}" 
 # login wandb first
-wandb login --relogin --host=https://msaip.wandb.io
+# wandb login --relogin --host=https://msaip.wandb.io
 python3 -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
     data.train_files=$HOME/data/gsm8k/train.parquet \
@@ -22,6 +25,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.kl_loss_coef=0.001 \
     actor_rollout_ref.actor.kl_loss_type=low_var_kl \
     actor_rollout_ref.actor.entropy_coeff=0 \
+    actor_rollout_ref.model.trust_remote_code=True \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.actor.fsdp_config.param_offload=False \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
@@ -34,9 +38,9 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     algorithm.use_kl_in_reward=False \
     trainer.critic_warmup=0 \
-    trainer.logger=['console','wandb'] \
+    trainer.logger="[console, wandb]" \
     trainer.project_name='verl_grpo_example_gsm8k' \
-    trainer.experiment_name='qwen3_8b_function_rm' \
+    trainer.experiment_name=${MODEL_NAME} \
     trainer.n_gpus_per_node=8 \
     trainer.nnodes=1 \
     trainer.save_freq=20 \
