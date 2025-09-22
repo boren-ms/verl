@@ -76,7 +76,9 @@ def main_task(config):
     # read dataset. Note that the dataset should directly contain chat template format (e.g., a list of dictionary)
     dataset = pd.read_parquet(config.data.path)
     chat_lst = dataset[config.data.prompt_key].tolist()
-
+    print("Dataset loaded. Total samples: ", len(chat_lst))
+    print("Breakpoint for debug")
+    breakpoint()
     chat_lst = [chat if isinstance(chat, str) else chat.tolist() for chat in chat_lst]
 
     tokenizer.padding_side = "left"
