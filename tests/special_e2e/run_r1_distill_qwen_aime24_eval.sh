@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
-data_path=/home/boren/data/gsm8k/
-model_path=/home/boren/data/ckp/hf_models/
+data_path=/home/boren/data/gsm8k
+model_path=/home/boren/data/ckp/hf_models
 model_id=deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
 huggingface-cli download $model_id --local-dir ${model_path}/${model_id}
 
@@ -19,10 +19,10 @@ model.path=${model_path}/${model_id} \
 rollout.temperature=0.6 \
 rollout.top_p=0.95 \
 rollout.prompt_length=1024 \
-rollout.response_length=32768 \
+rollout.response_length=1024 \
 rollout.tensor_model_parallel_size=1 \
 rollout.gpu_memory_utilization=0.25 \
-rollout.max_num_batched_tokens=65536 \
+rollout.max_num_batched_tokens=10240 \
 rollout.enforce_eager=False \
 rollout.free_cache_engine=True
 
