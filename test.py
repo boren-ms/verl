@@ -5,13 +5,13 @@ from pathlib import Path
 import pandas as pd
 from datasets import Dataset, load_dataset, load_from_disk
 
-data_path = Path("/home/boren/data/gsm8k/test.parquet")
+output_path = Path("/home/boren/data/gsm8k/test.parquet")
 # %%
 # df = pd.read_parquet(data_path)
 # Load local Parquet file as HuggingFace Dataset
-ds = Dataset.from_parquet(str(data_path))
+ds = Dataset.from_parquet(str(output_path))
 ds = ds.take(100)
-new_data_path = data_path.with_stem(data_path.stem + "_h100")
+new_data_path = output_path.with_stem(output_path.stem + "_h100")
 ds.to_parquet(new_data_path)
 df = pd.read_parquet(new_data_path)
 # %%
@@ -47,28 +47,28 @@ print(f"Saving {n} elements to ", top_data_path)
 ds_top.to_parquet(top_data_path)
 
 # %%
-data_path = parquet_path = Path("/home/boren/data/parquet/ls_sc1k_fn1_h100.parquet")
-ds = Dataset.from_parquet(str(data_path))
-print("Loaded from parquet:", ds)
-print(ds[0])
+parquet_path = Path("/home/boren/data/parquet/ls_sc1k_fn1.parquet")
+ds = Dataset.from_parquet(str(parquet_path))
 
 
-# %%
 def update_prompt(x):
     prompt = x["prompt"]
-    for token in ["<|user|>", "<|audio_1|>", "<|end|>", "<|assistant|>"]:
+    for token in ["<|user|>", "<|end|>", "<|assistant|>"]:
         prompt = prompt.replace(token, "").strip()
     return {"prompt": prompt}
 
 
+output_path = parquet_path.with_name(parquet_path.stem + f"_h{n}.parquet")
+# %%
+n = 100
+ds = ds.take(n)
 ds = ds.map(update_prompt)
+print("Updating ", output_path)
+ds.to_parquet(output_path)
 # %%
-print("Updating ", data_path)
-ds.to_parquet(data_path)
 # %%
-data_path = Path("/home/boren/data/outputs/ls_sc1k_fn1_h100/ls_sc1k_fn1_h100.parquet")
-ds = Dataset.from_parquet(str(data_path))
-# %%
+output_path = Path("/home/boren/data/outputs/ls_sc1k_fn1_h100/ls_sc1k_fn1_h100.parquet")
+ds = Dataset.from_parquet(str(output_path))
 from pprint import pprint
 
 print(ds)
@@ -76,15 +76,4 @@ egs = ds[10]
 pprint(egs)
 
 
-# %%
-# require transformers==4.51.3
-from transformers import AutoModelForCausalLM
-
-model_id = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct/"
-model = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    trust_remote_code=True,
-    torch_dtype="auto",
-    _attn_implementation="flash_attention_2",
-)
 # %%
