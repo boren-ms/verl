@@ -59,6 +59,13 @@ def run_generation(config) -> None:
 
     ray.get(main_task.remote(config))
 
+def to_msgs(chat):
+    if isinstance(chat, list):
+        return chat
+    elif isinstance(chat, str):
+        return [{"role": "user", "content": chat}]
+    else:
+        return chat.tolist()
 
 @ray.remote(num_cpus=1)
 def main_task(config):
@@ -75,10 +82,12 @@ def main_task(config):
 
     # read dataset. Note that the dataset should directly contain chat template format (e.g., a list of dictionary)
     dataset = pd.read_parquet(config.data.path)
+    if (n_egs := config.data.get("num_examples", -1)) > 0:
+        dataset = dataset[:n_egs]
     chat_lst = dataset[config.data.prompt_key].tolist()
     print("Dataset loaded. Total samples: ", len(chat_lst))
     # breakpoint()
-    chat_lst = [chat if isinstance(chat, str) else chat.tolist() for chat in chat_lst]
+    chat_lst = [to_msgs(chat) for chat in chat_lst]
 
     tokenizer.padding_side = "left"
     if tokenizer.pad_token is None:
@@ -138,6 +147,7 @@ def main_task(config):
 
             output_lst[n_sample].extend(output_texts)
 
+    # breakpoint()
     # convert output_lst from (n_samples, n_data) to (n_data, n_sampels)
     output_lst = np.array(output_lst, dtype=object)
     output_lst = np.transpose(output_lst, axes=(1, 0)).tolist()

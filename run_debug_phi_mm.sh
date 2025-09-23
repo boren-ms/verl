@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
-data_path=/home/boren/data/gsm8k
+data_path=/home/boren/data/parquet
 model_path=/home/boren/data/ckp/hf_models
-model_id=deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
-huggingface-cli download $model_id --local-dir ${model_path}/${model_id}
+# model_id=deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+# huggingface-cli download $model_id --local-dir ${model_path}/${model_id}
+model_id=Phi-4-multimodal-instruct
 
-output_path=/home/boren/data/outputs/r1_distill_qwen_aime24
+
+test_name=ls_sc1k_fn1_h100.parquet
+output_path=/home/boren/data/outputs/${test_name%.parquet}
 
 python3 -m verl.trainer.main_generation \
 trainer.nnodes=1 \
 trainer.n_gpus_per_node=1 \
-data.path=${data_path}/test_h100.parquet \
-data.prompt_key=question \
+data.path=${data_path}/${test_name} \
+data.prompt_key="prompt" \
 data.batch_size=2 \
 data.n_samples=1 \
-data.output_path=${output_path}/test-output-k1.parquet \
+data.output_path=${output_path}/${test_name} \
 model.path=${model_path}/${model_id} \
++model.trust_remote_code=True \
 rollout.temperature=0.6 \
 rollout.top_p=0.95 \
 rollout.prompt_length=1024 \
