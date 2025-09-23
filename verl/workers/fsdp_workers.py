@@ -288,6 +288,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         from verl.utils.model import get_generation_config, print_model_size, update_model_config
         from verl.utils.torch_dtypes import PrecisionType
 
+        # breakpoint()
         assert role in ["actor", "ref"]
 
         log_gpu_memory_usage(f"Before init {role} from HF AutoModel", logger=logger)
