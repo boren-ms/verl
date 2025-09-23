@@ -4,8 +4,8 @@ data_path=/home/boren/data/parquet
 model_path=/home/boren/data/ckp/hf_models
 # model_id=deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
 # huggingface-cli download $model_id --local-dir ${model_path}/${model_id}
-# model_id=Phi-4-multimodal-instruct
-model_id=Phi-4-mini-instruct
+model_id=Phi-4-multimodal-instruct
+# model_id=Phi-4-mini-instruct
 
 
 test_name=ls_sc1k_fn1_h100.parquet

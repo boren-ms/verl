@@ -741,7 +741,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 fsdp_config = omega_conf_to_dataclass(self.config.actor.fsdp_config)
             else:
                 optim_config = None
-                fsdp_config = FSDPEngineConfig()
+                fsdp_config = FSDPEngineConfig(use_orig_params=True)  # required for model with lora
 
             local_path = copy_to_local(self.config.model.path, use_shm=use_shm)
             (
