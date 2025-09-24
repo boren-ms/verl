@@ -32,8 +32,7 @@ from omegaconf import OmegaConf
 
 from verl import DataProto
 from verl.protocol import pad_dataproto_to_divisor, unpad_dataproto
-from verl.single_controller.ray import (RayClassWithInitArgs, RayResourcePool,
-                                        RayWorkerGroup)
+from verl.single_controller.ray import RayClassWithInitArgs, RayResourcePool, RayWorkerGroup
 from verl.utils import hf_tokenizer
 from verl.utils.fs import copy_to_local
 from verl.utils.hdfs_io import makedirs
@@ -59,6 +58,7 @@ def run_generation(config) -> None:
 
     ray.get(main_task.remote(config))
 
+
 def to_msgs(chat):
     if isinstance(chat, list):
         return chat
@@ -67,13 +67,14 @@ def to_msgs(chat):
     else:
         return chat.tolist()
 
+
 @ray.remote(num_cpus=1)
 def main_task(config):
     pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
     OmegaConf.resolve(config)
 
     local_path = copy_to_local(config.model.path)
-    trust_remote_code = config.data.get("trust_remote_code", False)
+    trust_remote_code = config.model.get("trust_remote_code", False)
     tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code)
 
     if config.rollout.temperature == 0.0:
@@ -107,7 +108,7 @@ def main_task(config):
     apply_chat_template_kwargs = config.data.get("apply_chat_template_kwargs", {})
     num_batch = -(-total_samples // config_batch_size)
     output_lst = [[] for _ in range(config.data.n_samples)]
-
+    # breakpoint()
     for batch_idx in range(num_batch):
         print(f"[{batch_idx + 1}/{num_batch}] Start to process.")
         batch_chat_lst = chat_lst[batch_idx * config_batch_size : (batch_idx + 1) * config_batch_size]
