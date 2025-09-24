@@ -34,6 +34,27 @@ from verl.utils.model import compute_position_id_with_mask
 logger = logging.getLogger(__name__)
 
 
+def dynamic_collate_fn(data_list: list[dict], pad_value=0, left_pad_keys=None) -> dict:
+    """Collate a batch of sample dicts into batched tensors and arrays."""
+    tensors = defaultdict(list)
+    non_tensors = defaultdict(list)
+    left_pad_keys = left_pad_keys or ["input_ids", "attention_mask", "position_ids"]
+    for data in data_list:
+        for key, val in data.items():
+            if isinstance(val, torch.Tensor):
+                tensors[key].append(val)
+            else:
+                non_tensors[key].append(val)
+
+    for key, val in tensors.items():
+        pad_side = "left" if key in left_pad_keys else "right"
+        tensors[key] = verl_F.pad(val, padding_value=pad_value, padding_side=pad_side)
+    for key, val in non_tensors.items():
+        non_tensors[key] = np.array(val, dtype=object)
+
+    return {**tensors, **non_tensors}
+
+
 def collate_fn(data_list: list[dict]) -> dict:
     """
     Collate a batch of sample dicts into batched tensors and arrays.
@@ -120,6 +141,7 @@ class RLHFDataset(Dataset):
         self.audio_key = config.get("audio_key", "audios")
         self.video_key = config.get("video_key", "videos")
         self.max_prompt_length = config.get("max_prompt_length", 1024)
+        self.pad_to_max = config.get("pad_to_max", False)
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "error")
@@ -313,9 +335,12 @@ class RLHFDataset(Dataset):
                 inputs_dict = dict(model_inputs)
                 inputs_dict = remove_empty_tensors(inputs_dict)
                 inputs_dict.pop("second_per_grid_ts", None)
+                if "input_audio_embeds" in inputs_dict:
+                    inputs_dict["input_audio_embeds"] = inputs_dict["input_audio_embeds"].squeeze(0)
                 if "input_audio_embeds" in inputs_dict and inputs_dict.get("audio_attention_mask", None) is None:
                     inputs_dict["audio_attention_mask"] = torch.ones_like(inputs_dict["input_audio_embeds"])
-                row_dict["multi_modal_inputs"] = inputs_dict
+
+                row_dict.update(inputs_dict)
 
         else:
             if self.apply_chat_template_kwargs.get("chat_template") is None:
@@ -329,15 +354,15 @@ class RLHFDataset(Dataset):
             model_inputs = self.tokenizer(raw_prompt, return_tensors="pt", add_special_tokens=False)
             input_ids = model_inputs.pop("input_ids")
             attention_mask = model_inputs.pop("attention_mask")
-
-        input_ids, attention_mask = verl_F.postprocess_data(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            max_length=self.max_prompt_length,
-            pad_token_id=self.tokenizer.pad_token_id,
-            left_pad=True,
-            truncation=self.truncation,
-        )
+        if self.pad_to_max:
+            input_ids, attention_mask = verl_F.postprocess_data(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                max_length=self.max_prompt_length,
+                pad_token_id=self.tokenizer.pad_token_id,
+                left_pad=True,
+                truncation=self.truncation,
+            )
 
         if self.processor is not None and "Qwen2VLImageProcessor" in self.processor.image_processor.__class__.__name__:
             from verl.models.transformers.qwen2_vl import get_rope_index
@@ -418,11 +443,21 @@ def main(data_files: str, tokenizer_path: str, config_path=None):
 
     tokenizer = hf_tokenizer(tokenizer_path, trust_remote_code=True)
     processor = hf_processor(tokenizer_path, trust_remote_code=True)
-    config = OmegaConf.load(config_path) if config_path else {"audio_key": "audio_path"}  # must have for phi4mm
+    config = (
+        OmegaConf.load(config_path)
+        if config_path
+        else {
+            "audio_key": "audio_path",
+            "filter_overlong_prompts": False,
+            "pad_to_max": False,
+        }
+    )  # must have for phi4mm
     dataset = RLHFDataset(data_files, tokenizer, config, processor)
-    print(f"Loaded RLHFDataset with {len(dataset)} samples.")
-    for egs in dataset:
-        print(egs)
+    from torchdata.stateful_dataloader import StatefulDataLoader
+
+    loader = StatefulDataLoader(dataset=dataset, batch_size=2, num_workers=0, collate_fn=dynamic_collate_fn)
+    for batch in loader:
+        print(batch)
         break
 
 

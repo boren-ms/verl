@@ -19,6 +19,7 @@ import math
 from contextlib import contextmanager
 from typing import Optional
 
+import numpy as np
 import torch
 import torch.distributed
 import torch.nn.functional as F
@@ -326,6 +327,37 @@ def pad_sequence_to_length(tensors, max_seq_len, pad_token_id, left_pad=False):
     # (0, max_seq_len - tensors.shape[-1]) means right pad to max_seq_length and no left pad
     pad_tuple = (max_seq_len - tensors.shape[-1], 0) if left_pad else (0, max_seq_len - tensors.shape[-1])
     return F.pad(tensors, pad_tuple, "constant", pad_token_id)
+
+
+def pad(tensors, padding_value=0, padding_side="right", pad_to_multiple_of=None):
+    if not isinstance(tensors[0], torch.Tensor):
+        tensors = [torch.tensor(t) for t in tensors]
+    # Determine the maximum shape for each dimension
+    output_shape = np.max([t.shape for t in tensors], 0).tolist()
+
+    # Apply pad_to_multiple_of to the first (sequence) dimension
+    if pad_to_multiple_of is not None:
+        remainder = output_shape[0] % pad_to_multiple_of
+        if remainder != 0:
+            output_shape[0] += pad_to_multiple_of - remainder
+
+    # Create an output tensor filled with the padding value
+    output = torch.full((len(tensors), *output_shape), padding_value, dtype=tensors[0].dtype, device=tensors[0].device)
+
+    for i, t in enumerate(tensors):
+        if padding_side == "left":
+            seq_start = output_shape[0] - t.shape[0]
+        elif padding_side == "right":
+            seq_start = 0
+        else:
+            raise ValueError("padding_side must be 'left' or 'right'")
+
+        # Define the slices
+        seq_slice = slice(seq_start, seq_start + t.shape[0])
+        slices = (seq_slice,) + tuple(slice(0, s) for s in t.shape[1:])
+        output[i][slices] = t
+
+    return output
 
 
 def postprocess_data(

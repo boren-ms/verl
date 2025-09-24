@@ -10,7 +10,8 @@ model_path=/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 test_name=ls_sc1k_fn1_h100.parquet
 output_path=/home/boren/data/outputs/${test_name%.parquet}
 
-python3 -m verl.trainer.main_generation \
+# python3 -m verl.trainer.main_generation \
+python3 -m verl.trainer.main_gen \
 trainer.nnodes=1 \
 trainer.n_gpus_per_node=1 \
 data.path=${data_path}/${test_name} \
