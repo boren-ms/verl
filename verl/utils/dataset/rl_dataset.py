@@ -65,6 +65,22 @@ def collate_fn(data_list: list[dict]) -> dict:
     return {**tensors, **non_tensors}
 
 
+def to_numpy(x):
+    if isinstance(x, torch.Tensor):
+        return x.numpy()
+    return x
+
+
+def remove_empty_tensors(batch: dict) -> dict:
+    keys_to_remove = []
+    for key, value in batch.items():
+        if isinstance(value, torch.Tensor) and value.numel() == 0:
+            keys_to_remove.append(key)
+    for key in keys_to_remove:
+        batch.pop(key, None)
+    return batch
+
+
 class RLHFDataset(Dataset):
     """
     Load and preprocess RLHF data from Parquet files.
@@ -101,6 +117,7 @@ class RLHFDataset(Dataset):
         self.cache_dir = os.path.expanduser(config.get("cache_dir", "~/.cache/verl/rlhf"))
         self.prompt_key = config.get("prompt_key", "prompt")
         self.image_key = config.get("image_key", "images")
+        self.audio_key = config.get("audio_key", "audios")
         self.video_key = config.get("video_key", "videos")
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.return_raw_chat = config.get("return_raw_chat", False)
@@ -111,6 +128,7 @@ class RLHFDataset(Dataset):
 
         self.num_workers = config.get("filter_overlong_prompts_workers", max(1, os.cpu_count() // 4))
         self.num_workers = min(self.num_workers, os.cpu_count())
+        self.num_workers = None  # for debug
         self.use_shm = config.get("use_shm", False)
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
@@ -120,6 +138,23 @@ class RLHFDataset(Dataset):
 
         self._download()
         self._read_files_and_tokenize()
+
+    def format_dataset(self, dataframe):
+        def format_prompt(example):
+            prompt = example[self.prompt_key]
+            if isinstance(prompt, str):
+                for word in ["<|user|>", "<|end|>", "<|assistant|>"]:
+                    prompt = prompt.replace(word, "")
+                prompt = [{"role": "user", "content": prompt}]
+            output = {self.prompt_key: prompt}
+            if audios := example.get(self.audio_key, None):
+                if not isinstance(audios, list):
+                    audios = [audios]
+                output[self.audio_key] = audios
+            return output
+
+        dataframe = dataframe.map(format_prompt, num_proc=self.num_workers, desc="Formatting prompts")
+        return dataframe
 
     def _download(self, use_origin_parquet=False):
         from verl.utils.fs import copy_to_local
@@ -137,7 +172,7 @@ class RLHFDataset(Dataset):
         self.dataframe: datasets.Dataset = datasets.concatenate_datasets(dataframes)
 
         print(f"dataset len: {len(self.dataframe)}")
-
+        self.dataframe = self.format_dataset(self.dataframe)
         self.dataframe = self.maybe_filter_out_long_prompts(self.dataframe)
 
     def maybe_filter_out_long_prompts(self, dataframe: datasets.Dataset = None):
@@ -148,27 +183,25 @@ class RLHFDataset(Dataset):
             prompt_key = self.prompt_key
             image_key = self.image_key
             video_key = self.video_key
+            audio_key = self.audio_key
 
             if processor is not None:
-                from verl.utils.dataset.vision_utils import process_image, process_video
+                from verl.utils.dataset.vision_utils import process_audio, process_image, process_video
 
                 def doc2len(doc) -> int:
                     messages = self._build_messages(doc)
                     raw_prompt = self.processor.apply_chat_template(
                         messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
                     )
-                    images = (
-                        [process_image(image) for image in doc[image_key]]
-                        if image_key in doc and doc[image_key]
-                        else None
-                    )
-                    videos = (
-                        [process_video(video) for video in doc[video_key]]
-                        if video_key in doc and doc[video_key]
-                        else None
-                    )
+                    fn_kwargs = {"text": [raw_prompt]}
+                    if image_key in doc and doc[image_key]:
+                        fn_kwargs["images"] = [process_image(image) for image in doc[image_key]]
+                    if video_key in doc and doc[video_key]:
+                        fn_kwargs["videos"] = [process_video(video) for video in doc[video_key]]
+                    if audio_key in doc and doc[audio_key]:
+                        fn_kwargs["audios"] = [process_audio(audio) for audio in doc[audio_key]]
 
-                    return len(processor(text=[raw_prompt], images=images, videos=videos)["input_ids"][0])
+                    return len(processor(**fn_kwargs)["input_ids"][0])
 
             else:
 
@@ -238,41 +271,32 @@ class RLHFDataset(Dataset):
                 messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
             )
             multi_modal_data = {}
-
-            images = None
+            fn_kwargs = {"text": [raw_prompt]}
             row_dict_images = row_dict.pop(self.image_key, None)
             if row_dict_images:
                 images = [process_image(image) for image in row_dict_images]
-
+                fn_kwargs["images"] = images
                 # due to the image key is "image" instead of "images" in vllm, we need to use "image" here
                 # link: https://github.com/vllm-project/vllm/blob/3c545c0c3b98ee642373a308197d750d0e449403/vllm/multimodal/parse.py#L205
                 multi_modal_data["image"] = images
 
-            videos = None
             row_dict_videos = row_dict.pop(self.video_key, None)
             if row_dict_videos:
                 videos = [process_video(video) for video in row_dict_videos]
-
+                fn_kwargs["videos"] = videos
                 # due to the video key is "video" instead of "videos" in vllm, we need to use "video" here
                 # link: https://github.com/vllm-project/vllm/blob/3c545c0c3b98ee642373a308197d750d0e449403/vllm/multimodal/parse.py#L205
                 multi_modal_data["video"] = [video.numpy() for video in videos]
 
-            audios = None
             row_dict_audios = row_dict.pop(self.audio_key, None)
             if row_dict_audios:
                 audios = [process_audio(audio) for audio in row_dict_audios]
-
+                fn_kwargs["audios"] = audios
                 # due to the audio key is "audio" instead of "audios" in vllm, we need to use "audio" here
                 # link: https://github.com/vllm-project/vllm/blob/3c545c0c3b98ee642373a308197d750d0e449403/vllm/multimodal/parse.py#L205
-                multi_modal_data["audio"] = [audio.numpy() for audio in audios]
+                multi_modal_data["audio"] = [(to_numpy(audio), fs) for (audio, fs) in audios]
 
-            model_inputs = self.processor(
-                text=[raw_prompt],
-                images=images,
-                videos=videos,
-                audios=audios,
-                return_tensors="pt",
-            )
+            model_inputs = self.processor(**fn_kwargs, return_tensors="pt")
 
             input_ids = model_inputs.pop("input_ids")
             attention_mask = model_inputs.pop("attention_mask")
@@ -286,10 +310,12 @@ class RLHFDataset(Dataset):
             # We will do batch.union() in the trainer,
             # so we cannot have "multi_modal_inputs" in row_dict if rollout generates new multi_modal_inputs
             if self.return_multi_modal_inputs:
-                row_dict["multi_modal_inputs"] = dict(model_inputs)
-
-                # second_per_grid_ts isn't used for training, just for mrope
-                row_dict["multi_modal_inputs"].pop("second_per_grid_ts", None)
+                inputs_dict = dict(model_inputs)
+                inputs_dict = remove_empty_tensors(inputs_dict)
+                inputs_dict.pop("second_per_grid_ts", None)
+                if "input_audio_embeds" in inputs_dict and inputs_dict.get("audio_attention_mask", None) is None:
+                    inputs_dict["audio_attention_mask"] = torch.ones_like(inputs_dict["input_audio_embeds"])
+                row_dict["multi_modal_inputs"] = inputs_dict
 
         else:
             if self.apply_chat_template_kwargs.get("chat_template") is None:
@@ -380,3 +406,30 @@ class RLHFDataset(Dataset):
             return state
 
         return self.__dict__.copy()
+
+
+def main(data_files: str, tokenizer_path: str, config_path=None):
+    """
+    Example main function to instantiate RLHFDataset from CLI.
+    """
+    from omegaconf import OmegaConf
+
+    from verl.utils import hf_processor, hf_tokenizer
+
+    tokenizer = hf_tokenizer(tokenizer_path, trust_remote_code=True)
+    processor = hf_processor(tokenizer_path, trust_remote_code=True)
+    config = OmegaConf.load(config_path) if config_path else {"audio_key": "audio_path"}  # must have for phi4mm
+    dataset = RLHFDataset(data_files, tokenizer, config, processor)
+    print(f"Loaded RLHFDataset with {len(dataset)} samples.")
+    for egs in dataset:
+        print(egs)
+        break
+
+
+if __name__ == "__main__":
+    # import fire
+    # fire.Fire(main)
+    data_files = "/home/boren/data/parquet/ls_sc1k_fn1_h100.parquet"
+    # data_conf = "/home/boren/data/parquet/data_conf.yaml"
+    tokenizer_path = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct"
+    main(data_files, tokenizer_path)
