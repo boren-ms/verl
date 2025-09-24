@@ -101,7 +101,7 @@ class vLLMRollout(BaseRollout):
             self.sleep_level = 1
         else:
             self.sleep_level = VLLM_SLEEP_LEVEL
-
+        # breakpoint()
         model_path = model_config.local_path
         tokenizer = model_config.tokenizer
         model_hf_config = model_config.hf_config
@@ -203,6 +203,7 @@ class vLLMRollout(BaseRollout):
             enable_prefix_caching=config.enable_prefix_caching,
             trust_remote_code=trust_remote_code,
             seed=config.get("seed", 0),
+            limit_mm_per_prompt={"audio": 1, "image": 0},
             **compilation_config,
             **self.lora_kwargs,
             **engine_kwargs,

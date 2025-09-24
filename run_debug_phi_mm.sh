@@ -32,6 +32,9 @@ rollout.enforce_eager=False \
 +rollout.enable_prefix_caching=False \
 rollout.free_cache_engine=True
 
+# +model.lora_rank=320 \
+# +model.lora_alpha=16 \
+# +model.target_modules=all-linear \
 # python3 -m recipe.r1.main_eval \
 # data.path=${output_path}/test-output-k1.parquet \
 # data.prompt_key=question \
