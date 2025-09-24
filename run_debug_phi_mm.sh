@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
 data_path=/home/boren/data/parquet
-model_path=/home/boren/data/ckp/hf_models
+model_path=/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+# model_id=Phi-4-mini-instruct
 # model_id=deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
 # huggingface-cli download $model_id --local-dir ${model_path}/${model_id}
-model_id=Phi-4-multimodal-instruct
-# model_id=Phi-4-mini-instruct
 
 
 test_name=ls_sc1k_fn1_h100.parquet
@@ -19,7 +18,7 @@ data.prompt_key="prompt" \
 data.batch_size=2 \
 data.n_samples=1 \
 data.output_path=${output_path}/${test_name} \
-model.path=${model_path}/${model_id} \
+model.path=${model_path} \
 +model.trust_remote_code=True \
 rollout.temperature=0.6 \
 rollout.top_p=0.95 \
