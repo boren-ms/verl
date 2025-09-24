@@ -15,9 +15,17 @@
 from io import BytesIO
 from typing import Optional
 
+import numpy as np
 import torch
 from PIL import Image
 from qwen_vl_utils import fetch_image, fetch_video
+
+
+def process_audio(audio_path):
+    """A placeholder function to process audio input."""
+    fs = 16000
+    data = np.zeros(fs * 10, dtype=np.float32)
+    return data, fs
 
 
 def process_image(image: dict | Image.Image) -> Image.Image:

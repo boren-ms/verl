@@ -207,13 +207,15 @@ class RLHFDataset(Dataset):
             for message in messages:
                 content = message["content"]
                 content_list = []
-                segments = re.split("(<image>|<video>)", content)
+                segments = re.split("(<image>|<video>|<audio>)", content)
                 segments = [item for item in segments if item != ""]
                 for segment in segments:
                     if segment == "<image>":
                         content_list.append({"type": "image"})
                     elif segment == "<video>":
                         content_list.append({"type": "video"})
+                    elif segment in ("<audio>", "<|audio_1|>"):
+                        content_list.append({"type": "audio"})
                     else:
                         content_list.append({"type": "text", "text": segment})
 
@@ -230,7 +232,7 @@ class RLHFDataset(Dataset):
         model_inputs = {}
 
         if self.processor is not None:
-            from verl.utils.dataset.vision_utils import process_image, process_video
+            from verl.utils.dataset.vision_utils import process_audio, process_image, process_video
 
             raw_prompt = self.processor.apply_chat_template(
                 messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
@@ -255,7 +257,22 @@ class RLHFDataset(Dataset):
                 # link: https://github.com/vllm-project/vllm/blob/3c545c0c3b98ee642373a308197d750d0e449403/vllm/multimodal/parse.py#L205
                 multi_modal_data["video"] = [video.numpy() for video in videos]
 
-            model_inputs = self.processor(text=[raw_prompt], images=images, videos=videos, return_tensors="pt")
+            audios = None
+            row_dict_audios = row_dict.pop(self.audio_key, None)
+            if row_dict_audios:
+                audios = [process_audio(audio) for audio in row_dict_audios]
+
+                # due to the audio key is "audio" instead of "audios" in vllm, we need to use "audio" here
+                # link: https://github.com/vllm-project/vllm/blob/3c545c0c3b98ee642373a308197d750d0e449403/vllm/multimodal/parse.py#L205
+                multi_modal_data["audio"] = [audio.numpy() for audio in audios]
+
+            model_inputs = self.processor(
+                text=[raw_prompt],
+                images=images,
+                videos=videos,
+                audios=audios,
+                return_tensors="pt",
+            )
 
             input_ids = model_inputs.pop("input_ids")
             attention_mask = model_inputs.pop("attention_mask")
