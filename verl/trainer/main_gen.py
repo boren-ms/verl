@@ -175,14 +175,28 @@ def print_ds_egs(ds, n=5):
 
 
 def calc_wer(ds):
-    import jiwer
+    from jiwer import process_words
+    from jiwer import transforms as tr
+
+    norm = tr.Compose(
+        [
+            tr.ToLowerCase(),
+            tr.ExpandCommonEnglishContractions(),
+            tr.RemovePunctuation(),
+            tr.RemoveKaldiNonWords(),
+            tr.RemoveWhiteSpace(replace_by_space=True),
+            tr.RemoveMultipleSpaces(),
+            tr.Strip(),
+            tr.ReduceToListOfListOfWords(),
+        ]
+    )
 
     n_err = 0
     n_ref = 0
     for sample in ds:
         ref = sample["text"]
         hyp = sample["response"]
-        res = jiwer.process_words(ref, hyp)
+        res = process_words(ref, hyp, norm, norm)
         n_err += res.substitutions + res.deletions + res.insertions
         n_ref += res.substitutions + res.deletions + res.hits
 
