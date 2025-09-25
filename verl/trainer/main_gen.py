@@ -140,17 +140,13 @@ def main_task(config):
 
             output_lst[n_sample].extend(output_texts)
 
-    # breakpoint()
-    output_lst = np.array(output_lst, dtype=object)
-    output_lst = np.transpose(output_lst, axes=(1, 0)).tolist()
-
     # add to the data frame
     output_ds = Dataset.from_dict(
         {
             "prompt": prompts,
             "text": texts,
             "id": ids,
-            "response": output_lst[0],
+            "response": output_lst[0],  # only save the 1st response
         }
     )
 
