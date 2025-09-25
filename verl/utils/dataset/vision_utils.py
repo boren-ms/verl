@@ -13,9 +13,11 @@
 # limitations under the License.
 
 from io import BytesIO
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
+import soundfile as sf
 import torch
 from PIL import Image
 from qwen_vl_utils import fetch_image, fetch_video
@@ -23,8 +25,8 @@ from qwen_vl_utils import fetch_image, fetch_video
 
 def process_audio(audio_path):
     """A placeholder function to process audio input."""
-    fs = 16000
-    data = np.zeros(fs, dtype=np.float32)
+    assert Path(audio_path).exists(), f"Audio file {audio_path} does not exist."
+    data, fs = sf.read(audio_path)
     return data, fs
 
 

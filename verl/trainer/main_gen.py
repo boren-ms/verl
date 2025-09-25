@@ -141,24 +141,57 @@ def main_task(config):
             output_lst[n_sample].extend(output_texts)
 
     # breakpoint()
-    # convert output_lst from (n_samples, n_data) to (n_data, n_sampels)
     output_lst = np.array(output_lst, dtype=object)
     output_lst = np.transpose(output_lst, axes=(1, 0)).tolist()
 
     # add to the data frame
-    dataset = Dataset.from_dict(
+    output_ds = Dataset.from_dict(
         {
-            "prompts": prompts,
+            "prompt": prompts,
             "text": texts,
             "id": ids,
-            "responses": output_lst,
+            "response": output_lst[0],
         }
     )
 
+    print_ds_egs(output_ds, n=1)
+    avg_wer = calc_wer(output_ds)
+    print(f"Avg WER: {avg_wer:.4f}")
     # write to a new parquet
     output_dir = os.path.dirname(config.data.output_path)
     makedirs(output_dir, exist_ok=True)
-    dataset.to_parquet(config.data.output_path)
+
+    print(f"Writing results to {config.data.output_path}")
+
+    output_ds.to_parquet(config.data.output_path)
+
+
+def print_ds_egs(ds, n=5):
+    print(f"Printing {n}/{len(ds)} examples")
+    for i, egs in enumerate(ds):
+        print(f"[{i}]id:", egs["id"])
+        print(f"[{i}]prompt:", egs["prompt"])
+        print(f"[{i}]ref:", egs["text"])
+        print(f"[{i}]hyp:", egs["response"])
+        print()
+        if i >= n:
+            break
+
+
+def calc_wer(ds):
+    import jiwer
+
+    n_err = 0
+    n_ref = 0
+    for sample in ds:
+        ref = sample["text"]
+        hyp = sample["response"]
+        res = jiwer.process_words(ref, hyp)
+        n_err += res.substitutions + res.deletions + res.insertions
+        n_ref += res.substitutions + res.deletions + res.hits
+
+    avg_wer = n_err / n_ref if n_ref > 0 else 0.0
+    return avg_wer
 
 
 if __name__ == "__main__":
