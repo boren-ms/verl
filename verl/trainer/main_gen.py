@@ -27,6 +27,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 import uuid
 from pprint import pprint
 
+from datasets import Dataset
 from omegaconf import OmegaConf
 from torchdata.stateful_dataloader import StatefulDataLoader
 
@@ -82,11 +83,12 @@ def main_task(config):
     if config.rollout.temperature == 0.0:
         assert config.data.n_samples == 1, "When temperature=0, n_samples must be 1."
     assert config.data.n_samples >= 1, "n_samples should always >= 1"
-    breakpoint()
+    # breakpoint()
     ds_conf = {
         "audio_key": "audio_path",
         "filter_overlong_prompts": False,
         "pad_to_max": False,
+        "return_full_prompt": True,
     }
     dataset = RLHFDataset(config.data.path, tokenizer, ds_conf, processor)
     print(f"Loaded RLHFDataset with {len(dataset)} samples.")
@@ -106,12 +108,18 @@ def main_task(config):
         device_name=config.trainer.device,
     )
     wg.init_model()
-    breakpoint()
+    # breakpoint()
     # total_samples = len(dataset)
     num_batch = len(dataloader)
     output_lst = [[] for _ in range(config.data.n_samples)]
+    prompts = []
+    texts = []
+    ids = []
 
     for idx, test_data in enumerate(dataloader):
+        prompts.extend(test_data["full_prompts"])
+        texts.extend(test_data["text"])
+        ids.extend(test_data["id"])
         data = DataProto.from_single_dict(test_data)
         if "uid" not in data.non_tensor_batch:
             data.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object)
@@ -138,7 +146,14 @@ def main_task(config):
     output_lst = np.transpose(output_lst, axes=(1, 0)).tolist()
 
     # add to the data frame
-    dataset["responses"] = output_lst
+    dataset = Dataset.from_dict(
+        {
+            "prompts": prompts,
+            "text": texts,
+            "id": ids,
+            "responses": output_lst,
+        }
+    )
 
     # write to a new parquet
     output_dir = os.path.dirname(config.data.output_path)

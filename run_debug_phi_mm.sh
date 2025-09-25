@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
 data_path=/home/boren/data/parquet
-model_path=/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+# model_path=/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+model_path=/home/boren/data/ckp/hf_models/phi4_mm_bias_merged
 # model_id=Phi-4-mini-instruct
 # model_id=deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
 # huggingface-cli download $model_id --local-dir ${model_path}/${model_id}

@@ -67,9 +67,14 @@ print("Updating ", output_path)
 ds.to_parquet(output_path)
 # %%
 # %%
+
+from pathlib import Path
+from pprint import pprint
+
+from datasets import Dataset
+
 output_path = Path("/home/boren/data/outputs/ls_sc1k_fn1_h100/ls_sc1k_fn1_h100.parquet")
 ds = Dataset.from_parquet(str(output_path))
-from pprint import pprint
 
 print(ds)
 egs = ds[10]
