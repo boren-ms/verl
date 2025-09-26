@@ -53,6 +53,7 @@ actor_rollout_ref.actor.use_kl_loss=${use_kl_loss} \
 actor_rollout_ref.actor.kl_loss_coef=${kl_loss_coef} \
 actor_rollout_ref.actor.clip_ratio_low=${clip_ratio_low} \
 actor_rollout_ref.actor.clip_ratio_high=${clip_ratio_high} \
+data.prompt_key="question" \
 data.max_prompt_length=${max_prompt_length} \
 data.max_response_length=${max_response_length} \
 reward_model.overlong_buffer.enable=${enable_overlong_buffer} \

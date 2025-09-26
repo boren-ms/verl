@@ -5,4 +5,16 @@
 # pip install
 # pip uninstall -y trl
 # pip install -e /root/code/trl --no-deps
-uv pip install --system  peft tensorboardX blobfile soundfile more-itertools whisper_normalizer fire backoff
+pip install  torch==2.7.1 peft tensorboardX blobfile soundfile more-itertools whisper_normalizer fire backoff torchvision
+
+# pip install --resume-retries 999 --no-cache-dir torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1
+
+# Install flash-attn-2.7.4.post1, although built with torch2.6, it is compatible with torch2.7
+# https://github.com/Dao-AILab/flash-attention/issues/1644#issuecomment-2899396361
+# ABI_FLAG=$(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')") && \
+# URL="https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abi${ABI_FLAG}-cp310-cp310-linux_x86_64.whl" && \
+# FILE="flash_attn-2.7.4.post1+cu12torch2.6cxx11abi${ABI_FLAG}-cp310-cp310-linux_x86_64.whl" && \
+# wget -nv "${URL}" && \
+# pip install --no-cache-dir "${FILE}"
+
+# Fix packages
