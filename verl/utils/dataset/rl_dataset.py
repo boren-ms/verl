@@ -141,7 +141,7 @@ class RLHFDataset(Dataset):
         self.audio_key = config.get("audio_key", "audios")
         self.video_key = config.get("video_key", "videos")
         self.max_prompt_length = config.get("max_prompt_length", 1024)
-        self.pad_to_max = config.get("pad_to_max", False)
+        self.pad_to_max = config.get("pad_to_max", True)
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "error")

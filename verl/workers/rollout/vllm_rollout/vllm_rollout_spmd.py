@@ -203,7 +203,7 @@ class vLLMRollout(BaseRollout):
             enable_prefix_caching=config.enable_prefix_caching,
             trust_remote_code=trust_remote_code,
             seed=config.get("seed", 0),
-            limit_mm_per_prompt={"audio": 1, "image": 0},
+            # limit_mm_per_prompt={"audio": 1, "image": 0},
             **compilation_config,
             **self.lora_kwargs,
             **engine_kwargs,

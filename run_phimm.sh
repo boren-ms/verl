@@ -17,6 +17,7 @@ trainer.nnodes=1 \
 trainer.n_gpus_per_node=1 \
 data.path=${data_path}/${test_name} \
 data.prompt_key="prompt" \
+data.pad_to_max=False \ # use dynamic padding
 data.batch_size=2 \
 data.n_samples=1 \
 data.output_path=${output_path}/${test_name} \

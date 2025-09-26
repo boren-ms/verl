@@ -2,11 +2,17 @@
 set -xeuo pipefail
 
 NUM_GPUS=${NUM_GPUS:-1}
-HOME=/home/boren/
+HOME=/home/boren
 # MODEL_ID=${MODEL_ID:-Qwen/Qwen2.5-0.5B-Instruct}
 # MODEL_PATH=${MODEL_PATH:-${HOME}/models/${MODEL_ID}}
 MODEL_PATH=/home/boren/data/ckp/hf_models/Qwen2.5-0.5B-Instruct
 #huggingface-cli download "${MODEL_ID}" --local-dir "${MODEL_PATH}"
+
+
+# prepare data
+# python3 examples/data_preprocess/gsm8k.py --local_save_dir /home/boren/data/parquet/gsm8k
+train_data="${HOME}/data/parquet/gsm8k/train.parquet"
+test_data="${HOME}/data/parquet/gsm8k/test.parquet"
 
 adv_estimator=grpo
 
@@ -40,11 +46,12 @@ train_prompt_bsz=$((train_prompt_mini_bsz * 2)) # 4 * b * n / g
 
 gen_prompt_bsz=$((train_prompt_bsz * 4))
 
+
 # exp_name="$(basename "${MODEL_ID,,}")-dapo-minimal"
 exp_name="Qwen2.5-0.5B-Instruct-dapo-minimal"
 python3 -m recipe.dapo.main_dapo \
-data.train_files="${HOME}/data/gsm8k/train.parquet" \
-data.val_files="${HOME}/data/gsm8k/test.parquet" \
+data.train_files="${train_data}" \
+data.val_files="${test_data}" \
 reward_model.reward_manager=dapo \
 algorithm.adv_estimator=${adv_estimator} \
 algorithm.use_kl_in_reward=${use_kl_in_reward} \
@@ -53,7 +60,7 @@ actor_rollout_ref.actor.use_kl_loss=${use_kl_loss} \
 actor_rollout_ref.actor.kl_loss_coef=${kl_loss_coef} \
 actor_rollout_ref.actor.clip_ratio_low=${clip_ratio_low} \
 actor_rollout_ref.actor.clip_ratio_high=${clip_ratio_high} \
-data.prompt_key="question" \
+data.prompt_key="prompt" \
 data.max_prompt_length=${max_prompt_length} \
 data.max_response_length=${max_response_length} \
 reward_model.overlong_buffer.enable=${enable_overlong_buffer} \
