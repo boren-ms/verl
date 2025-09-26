@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
 
-NUM_GPUS=${NUM_GPUS:-8}
+NUM_GPUS=${NUM_GPUS:-1}
 HOME=/home/boren/
 # MODEL_ID=${MODEL_ID:-Qwen/Qwen2.5-0.5B-Instruct}
 # MODEL_PATH=${MODEL_PATH:-${HOME}/models/${MODEL_ID}}
@@ -75,9 +75,9 @@ actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=${train_traj_micro_bsz_per_
 actor_rollout_ref.actor.fsdp_config.param_offload=False \
 actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
 actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=${train_traj_micro_bsz_per_gpu} \
-actor_rollout_ref.rollout.tensor_model_parallel_size=2 \
+actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
 actor_rollout_ref.rollout.name=vllm \
-actor_rollout_ref.rollout.gpu_memory_utilization=0.8 \
+actor_rollout_ref.rollout.gpu_memory_utilization=0.25 \
 actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=${train_traj_micro_bsz_per_gpu} \
 actor_rollout_ref.ref.fsdp_config.param_offload=True \
 trainer.logger=console \

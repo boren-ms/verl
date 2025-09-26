@@ -1,0 +1,84 @@
+[user]
+	email = boren@microsoft.com
+	name = Bo Ren
+[alias]
+    st = status
+    sd = diff --diff-filter=D --name-only
+    dd = "! f() { git sd |xargs git rm ; } ; f"
+    ci = commit -v
+    rt = remote
+    cm = commit -m
+    cam = commit -a -m
+    path = ls-tree --full-name --name-only HEAD 
+    bl = blame 
+    mysh = "! echo $SHELL"
+    test ="! f() { rev=${1-$(git rev-parse HEAD)}; shift $(($#>0?1:0)); echo ${rev} $@; }; f"
+    df = "! f() { rev=${1-$(git rev-parse HEAD)}; shift $(($#>0?1:0)); git difftool ${rev} $@;}; f"
+    dfc = "! f() { rev=${1-$(git rev-parse HEAD)}; shift $(($#>0?1:0)); git difftool ${rev}^..${rev} $@;} ; f"
+    br = branch
+    bp = "! f() { for b in $(git br -r | grep -v HEAD);do echo -e $(git show --format='%ci %cr' $b | head -n 1) \\t$b; done | sort -r;}; f"
+    co = checkout
+    cod = "! f() { rev=${1-$(git rev-parse HEAD)}; shift $(($#>0?1:0)); git diff --name-only ${rev}^..${rev} $@ |xargs -I{} git co ${rev} -- {} ; } ; f "
+    hist = "log --pretty=format:\"%Cred%h%Creset % | %s%Cgreen%d%Creset %C(bold blue)[%an]\" --graph --date=short -n 10"
+    ls = "log --graph --pretty=format:'%Cred%h%Creset |%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit -n10"
+    ll = "!git ls --numstat -5"
+    la = "log --all  --decorate --pretty=format:\"%C(auto)%h %Creset%C(bold blue)%<(15)%an%Creset %C(green)(%ar)%Creset - %C(yellow)%d%Creset %s\" -n 10"
+    log-df = "! f() { rev=${2-$(git rev-parse HEAD)}; shift $(($#>0?1:0)); git ls ${rev}~$1..${rev} $@ ;}; f"
+    log-diff = "! f() { rev=${2-$(git rev-parse HEAD)}; shift $(($#>0?1:0)); git ll ${rev}~$1..${rev} $@ ;}; f"
+    ld = "! git log-diff 1 "
+    ld1 = "! git log-diff 2 "
+    ld2 = "! git log-diff 3 "
+    ld3 = "! git log-diff 4 "
+
+    l0= "!git ll -1"
+    l1= "!git ll -2"
+    l2= "!git ll -3"
+    l3= "!git ll -4"
+    rh = reset --hard
+    rs  = reset --soft
+    r = reset --mixed 
+    cp = cherry-pick
+    cr = cherry
+    cy = "!git ls --cherry-pick --left-right"
+    cyl = "!git ls --cherry-pick --left-only"
+    cyr = "!git ls --cherry-pick --right-only"
+    cyvl = "!git rev-list --cherry-pick --left-only"
+    cyvr = "!git rev-list --cherry-pick --right-only"
+    squash = "!squash_commits"
+
+    mg = merge    
+    ms = merge --squash
+    cdn = clean -dn
+    cdf = clean -df
+[push]
+	default = current
+[pull]
+	default = current
+[core]
+	excludesfile = /home/boren/.gitignore_global
+        fileMode = false
+[diff]
+        tool = vscode
+        guitool = vscode
+        
+[difftool "vscode"]
+	cmd = "code --wait --diff \"$LOCAL\" \"$REMOTE\""
+[difftool "ediff"]
+        cmd = ~/.bash/ediff.sh $LOCAL $REMOTE
+
+[merge]
+        tool = vscode
+[rebase]
+        tool = vscode
+[mergetool "vscode"]
+    cmd = "code --wait \"$MERGED\""
+[mergetool "ediff"]
+        cmd = ~/.bash/ediff.sh $LOCAL $REMOTE $MERGED $BASE
+        trustExitCode = true
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+[sequence]
+	editor = code

@@ -3,7 +3,8 @@
 set -x
 # reference: https://verl.readthedocs.io/en/latest/start/install.html
 # image=verlai/verl:app-verl0.5-vllm0.9.1-mcore0.12.2-te2.2
-image=verlai/verl:base-verl0.5-cu126-cudnn9.8-torch2.7.1-fa2.7.4
+# image=verlai/verl:base-verl0.5-cu126-cudnn9.8-torch2.7.1-fa2.7.4
+image=verlai/verl:app-verl0.5-transformers4.55.4-vllm0.10.0-mcore0.13.0-te2.2
 name=boren_verl
 # docker pull $image
 # docker create --runtime=nvidia --gpus all --net=host --shm-size="10g" --cap-add=SYS_ADMIN -v /home/boren:/home/boren -v /datablob1:/datablob1 --name ${name} ${image} sleep infinity
