@@ -365,7 +365,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                     actor_module_class = AutoModelForCausalLM
                 else:
                     actor_module_class = AutoModel
-
+            # breakpoint()
             actor_module = actor_module_class.from_pretrained(
                 pretrained_model_name_or_path=local_path,
                 torch_dtype=torch_dtype,
@@ -498,6 +498,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 "shard_placement_fn": get_shard_placement_fn(fsdp_size=self.device_mesh.shape[-1]),
             }
             full_state = actor_module.state_dict()
+            # breakpoint()
             apply_fsdp2(actor_module, fsdp_kwargs, fsdp_config)
             fsdp2_load_full_state_dict(actor_module, full_state, fsdp_mesh, cpu_offload)
             actor_module_fsdp = actor_module
@@ -726,6 +727,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     def init_model(self):
         from verl.workers.actor import DataParallelPPOActor
 
+        # breakpoint()
         # This is used to import external_lib into the huggingface systems
         import_external_libs(self.config.model.get("external_lib", None))
 

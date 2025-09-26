@@ -39,11 +39,11 @@ enable_filter_groups=True
 filter_groups_metric=seq_reward
 max_num_gen_batches=10
 
-train_traj_micro_bsz_per_gpu=2 # b
+train_traj_micro_bsz_per_gpu=1 # b
 n_resp_per_prompt=4 # g
 
 train_traj_micro_bsz=$((train_traj_micro_bsz_per_gpu * NUM_GPUS)) # b * n
-train_traj_mini_bsz=$((train_traj_micro_bsz * 2)) # 2 * b * n
+train_traj_mini_bsz=$((train_traj_micro_bsz * 1)) # 2 * b * n
 train_prompt_mini_bsz=$((train_traj_mini_bsz * n_resp_per_prompt)) # 2 * b * n / g
 train_prompt_bsz=$((train_prompt_mini_bsz * 2)) # 4 * b * n / g
 
@@ -51,7 +51,7 @@ gen_prompt_bsz=$((train_prompt_bsz * 4))
 
 
 # exp_name="$(basename "${MODEL_ID,,}")-dapo-minimal"
-exp_name="Qwen2.5-0.5B-Instruct-dapo-minimal"
+exp_name="phi4mm-dapo-minimal"
 python3 -m recipe.dapo.main_dapo \
 data.train_files="${train_data}" \
 data.val_files="${test_data}" \
@@ -64,11 +64,13 @@ actor_rollout_ref.actor.kl_loss_coef=${kl_loss_coef} \
 actor_rollout_ref.actor.clip_ratio_low=${clip_ratio_low} \
 actor_rollout_ref.actor.clip_ratio_high=${clip_ratio_high} \
 data.prompt_key="prompt" \
+data.trust_remote_code=True \
 data.max_prompt_length=${max_prompt_length} \
 data.max_response_length=${max_response_length} \
 reward_model.overlong_buffer.enable=${enable_overlong_buffer} \
 reward_model.overlong_buffer.len=${overlong_buffer_len} \
 reward_model.overlong_buffer.penalty_factor=${overlong_penalty_factor} \
+reward_model.model.trust_remote_code=True \
 actor_rollout_ref.actor.loss_agg_mode=${loss_agg_mode} \
 data.train_batch_size=${train_prompt_bsz} \
 data.gen_batch_size=${gen_prompt_bsz} \
@@ -79,12 +81,15 @@ actor_rollout_ref.model.path="${MODEL_PATH}" \
 actor_rollout_ref.model.trust_remote_code=True \
 actor_rollout_ref.actor.optim.lr=1e-6 \
 actor_rollout_ref.model.use_remove_padding=True \
-actor_rollout_ref.model.use_fused_kernels=True \
+actor_rollout_ref.model.use_fused_kernels=False \ # buggy for phi4mm, need to check on  patch_forward_with_backends
 actor_rollout_ref.rollout.n=${n_resp_per_prompt} \
 actor_rollout_ref.actor.ppo_mini_batch_size=${train_prompt_mini_bsz} \
 actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=${train_traj_micro_bsz_per_gpu} \
 actor_rollout_ref.actor.fsdp_config.param_offload=False \
 actor_rollout_ref.actor.fsdp_config.optimizer_offload=False \
+actor_rollout_ref.actor.fsdp_config.use_orig_params=True \
+actor_rollout_ref.actor.strategy=fsdp2 \
+actor_rollout_ref.ref.strategy=fsdp2 \
 actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=${train_traj_micro_bsz_per_gpu} \
 actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
 actor_rollout_ref.rollout.name=vllm \

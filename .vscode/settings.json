@@ -1,9 +1,6 @@
 {
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": "always",
-        }
     },
     "files.associations": {
         "array": "cpp",
@@ -12,5 +9,5 @@
         "utility": "cpp"
     },
     "iis.configDir": "",
-    "pylint.enabled": false
+    "pylint.enabled": false,
 }

@@ -4,8 +4,9 @@
 # pip install torch==2.6.0 flash-attn
 # pip install
 # pip uninstall -y trl
-# pip install -e /root/code/trl --no-deps
-pip install  torch==2.7.1 peft tensorboardX blobfile soundfile more-itertools whisper_normalizer fire backoff torchvision
+pip install  --no-deps -e .
+pip install  peft tensorboardX blobfile soundfile more-itertools whisper_normalizer fire backoff torchvision
+apt install lsof
 
 # pip install --resume-retries 999 --no-cache-dir torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1
 

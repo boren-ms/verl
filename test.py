@@ -82,6 +82,26 @@ ds = Dataset.from_parquet(str(output_path))
 print(ds)
 egs = ds[10]
 pprint(egs)
+# %%
 
+
+# %%
+import transformers
+from transformers import AutoModelForCausalLM
+import vllm
+from pathlib import Path
+
+print("vLLM:", getattr(vllm, "__version__", "?"))
+print("Transformers:", transformers.__version__)
+
+# %%# %%
+# %%
+model_id = Path("/home/boren/data/ckp/hf_models/phi4_mm_bias_merged/")
+model = AutoModelForCausalLM.from_pretrained(
+    str(model_id),
+    trust_remote_code=True,
+    torch_dtype="auto",
+    _attn_implementation="flash_attention_2",
+)
 
 # %%
