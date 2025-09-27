@@ -10,7 +10,7 @@ test_data="${HOME}/data/parquet/ls_clean_sc1k_fn1_h100.parquet"
 
 
 python3 -m recipe.dapo.main_dapo \
---config-name dapo_phimm_ls_lora \
+--config-name dapo_phimm_ls \
 data.train_files="${train_data}" \
 data.val_files="${test_data}" \
 actor_rollout_ref.model.path="${MODEL_PATH}"
