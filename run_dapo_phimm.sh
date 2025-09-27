@@ -14,8 +14,11 @@ MODEL_PATH=/home/boren/data/ckp/hf_models/phi4_mm_bias_merged
 
 # prepare data
 # python3 examples/data_preprocess/gsm8k.py --local_save_dir /home/boren/data/parquet/gsm8k
-train_data="${HOME}/data/parquet/gsm8k/train.parquet"
-test_data="${HOME}/data/parquet/gsm8k/test.parquet"
+# train_data="${HOME}/data/parquet/gsm8k/train.parquet"
+# test_data="${HOME}/data/parquet/gsm8k/test.parquet"
+
+train_data="${HOME}/data/parquet/ls_sc1k_fn1.parquet"
+test_data="${HOME}/data/parquet/ls_sc1k_fn1_h100.parquet"
 
 adv_estimator=grpo
 
@@ -65,6 +68,7 @@ actor_rollout_ref.actor.clip_ratio_low=${clip_ratio_low} \
 actor_rollout_ref.actor.clip_ratio_high=${clip_ratio_high} \
 data.prompt_key="prompt" \
 data.trust_remote_code=True \
++data.pad_to_max=False \
 data.max_prompt_length=${max_prompt_length} \
 data.max_response_length=${max_response_length} \
 reward_model.overlong_buffer.enable=${enable_overlong_buffer} \

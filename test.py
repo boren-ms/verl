@@ -73,10 +73,10 @@ from pprint import pprint
 
 from datasets import Dataset
 
-# output_path = Path("/home/boren/data/outputs/ls_sc1k_fn1_h100/ls_sc1k_fn1_h100.parquet")
 output_path = Path("/home/boren/data/parquet/dapo-math-17k.parquet")
 output_path = Path("/home/boren/data/parquet/aime-2024.parquet")
 output_path = Path("/home/boren/data/parquet/gsm8k/train.parquet")
+output_path = Path("/home/boren/data/parquet/ls_sc1k_fn1_h100.parquet")
 
 ds = Dataset.from_parquet(str(output_path))
 

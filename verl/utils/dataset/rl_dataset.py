@@ -173,6 +173,12 @@ class RLHFDataset(Dataset):
                 if not isinstance(audios, list):
                     audios = [audios]
                 output[self.audio_key] = audios
+            output["reward_model"] = {"ground_truth": example.get("text", "")}
+            output["extra_info"] = {
+                "id": example.get("id", 0),
+                "keywords": example.get("keywords", []),
+            }
+            output["data_source"] = "asr"
             return output
 
         dataframe = dataframe.map(format_prompt, num_proc=self.num_workers, desc="Formatting prompts")

@@ -338,6 +338,10 @@ class RayPPOTrainer:
         if self.config.algorithm.use_kl_in_reward:
             self.kl_ctrl_in_reward = core_algos.get_kl_controller(self.config.algorithm.kl_ctrl)
 
+        from verl.utils.dataset.rl_dataset import dynamic_collate_fn
+
+        collate_fn = None if self.config.data.get("pad_to_max", True) else dynamic_collate_fn
+
         self._create_dataloader(train_dataset, val_dataset, collate_fn, train_sampler)
 
     def _create_dataloader(self, train_dataset, val_dataset, collate_fn, train_sampler: Optional[Sampler]):
