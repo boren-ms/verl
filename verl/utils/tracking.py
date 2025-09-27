@@ -61,11 +61,15 @@ class Tracking:
         self.logger = {}
 
         if "tracking" in default_backend or "wandb" in default_backend:
-            import wandb
+            import os, wandb
 
+            # breakpoint()
             settings = None
             if config and config["trainer"].get("wandb_proxy", None):
                 settings = wandb.Settings(https_proxy=config["trainer"]["wandb_proxy"])
+            wandb_api_key = os.environ.get("WANDB_API_KEY", config["trainer"].get("wandb_api_key", None))
+            if not wandb.api.api_key:
+                wandb.login(key=wandb_api_key)
             wandb.init(project=project_name, name=experiment_name, config=config, settings=settings)
             self.logger["wandb"] = wandb
 
