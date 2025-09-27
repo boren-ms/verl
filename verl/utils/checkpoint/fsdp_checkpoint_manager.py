@@ -256,7 +256,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
         if self.rank == 0:
             # Save HF tokenizer/processor and model config on rank 0 to huggingface/ directory, no matter whether
             # huggingface model is requested to be saved or not.
-
+            # breakpoint()
             if fsdp_version(self.model) == 1:
                 unwrap_model = self.model._fsdp_wrapped_module
             else:
