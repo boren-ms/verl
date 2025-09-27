@@ -141,7 +141,8 @@ class RLHFDataset(Dataset):
         self.audio_key = config.get("audio_key", "audios")
         self.video_key = config.get("video_key", "videos")
         self.max_prompt_length = config.get("max_prompt_length", 1024)
-        self.pad_to_max = config.get("pad_to_max", True)
+        self.asr_dataset = config.get("asr_dataset", False)
+        self.pad_to_max = config.get("pad_to_max", not self.asr_dataset)
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "error")
@@ -161,7 +162,7 @@ class RLHFDataset(Dataset):
         self._download()
         self._read_files_and_tokenize()
 
-    def format_dataset(self, dataframe):
+    def format_asr_dataset(self, dataframe):
         def format_prompt(example):
             prompt = example[self.prompt_key]
             if isinstance(prompt, str):
@@ -181,7 +182,7 @@ class RLHFDataset(Dataset):
             output["data_source"] = "asr"
             return output
 
-        dataframe = dataframe.map(format_prompt, num_proc=self.num_workers, desc="Formatting prompts")
+        dataframe = dataframe.map(format_prompt, num_proc=self.num_workers, desc="ASR Formatting")
         return dataframe
 
     def _download(self, use_origin_parquet=False):
@@ -200,7 +201,8 @@ class RLHFDataset(Dataset):
         self.dataframe: datasets.Dataset = datasets.concatenate_datasets(dataframes)
 
         print(f"dataset len: {len(self.dataframe)}")
-        self.dataframe = self.format_dataset(self.dataframe)
+        if self.asr_dataset:
+            self.dataframe = self.format_asr_dataset(self.dataframe)
         self.dataframe = self.maybe_filter_out_long_prompts(self.dataframe)
 
     def maybe_filter_out_long_prompts(self, dataframe: datasets.Dataset = None):
@@ -454,8 +456,10 @@ def main(data_files: str, tokenizer_path: str, config_path=None):
         if config_path
         else {
             "audio_key": "audio_path",
-            "filter_overlong_prompts": False,
-            "pad_to_max": False,
+            "asr_dataset": True,
+            # "filter_overlong_prompts": False,
+            "max_prompt_length": 1024,
+            "max_response_length": 2048,
         }
     )  # must have for phi4mm
     dataset = RLHFDataset(data_files, tokenizer, config, processor)
@@ -473,4 +477,5 @@ if __name__ == "__main__":
     data_files = "/home/boren/data/parquet/ls_sc1k_fn1_h100.parquet"
     # data_conf = "/home/boren/data/parquet/data_conf.yaml"
     tokenizer_path = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct"
+    tokenizer_path = "/home/boren/data/ckp/hf_models/phi4_mm_bias_merged"
     main(data_files, tokenizer_path)

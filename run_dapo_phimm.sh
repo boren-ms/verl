@@ -17,8 +17,8 @@ MODEL_PATH=/home/boren/data/ckp/hf_models/phi4_mm_bias_merged
 # train_data="${HOME}/data/parquet/gsm8k/train.parquet"
 # test_data="${HOME}/data/parquet/gsm8k/test.parquet"
 
-train_data="${HOME}/data/parquet/ls_sc1k_fn1.parquet"
-test_data="${HOME}/data/parquet/ls_sc1k_fn1_h100.parquet"
+train_data="${HOME}/data/parquet/ls_clean_sc1k_fn1.parquet"
+test_data="${HOME}/data/parquet/ls_clean_sc1k_fn1_h100.parquet"
 
 adv_estimator=grpo
 
@@ -67,6 +67,8 @@ actor_rollout_ref.actor.kl_loss_coef=${kl_loss_coef} \
 actor_rollout_ref.actor.clip_ratio_low=${clip_ratio_low} \
 actor_rollout_ref.actor.clip_ratio_high=${clip_ratio_high} \
 data.prompt_key="prompt" \
++data.asr_dataset=True \
++data.audio_key="audio_path" \
 data.trust_remote_code=True \
 data.max_prompt_length=${max_prompt_length} \
 data.max_response_length=${max_response_length} \

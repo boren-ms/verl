@@ -259,6 +259,15 @@ def compute_advantage(
     return data
 
 
+def get_collate_fn(dataset, collate_fn=None):
+    if collate_fn is not None:
+        return collate_fn
+    from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
+    from verl.utils.dataset.rl_dataset import dynamic_collate_fn
+
+    return default_collate_fn if dataset.pad_to_max else dynamic_collate_fn
+
+
 class RayPPOTrainer:
     """Distributed PPO trainer using Ray for scalable reinforcement learning.
 
@@ -337,11 +346,7 @@ class RayPPOTrainer:
         # kl loss control currently not suppoorted
         if self.config.algorithm.use_kl_in_reward:
             self.kl_ctrl_in_reward = core_algos.get_kl_controller(self.config.algorithm.kl_ctrl)
-
-        from verl.utils.dataset.rl_dataset import dynamic_collate_fn
-
-        collate_fn = None if self.config.data.get("pad_to_max", True) else dynamic_collate_fn
-
+        # breakpoint()
         self._create_dataloader(train_dataset, val_dataset, collate_fn, train_sampler)
 
     def _create_dataloader(self, train_dataset, val_dataset, collate_fn, train_sampler: Optional[Sampler]):
@@ -363,10 +368,6 @@ class RayPPOTrainer:
 
         if train_sampler is None:
             train_sampler = create_rl_sampler(self.config.data, self.train_dataset)
-        if collate_fn is None:
-            from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
-
-            collate_fn = default_collate_fn
 
         num_workers = self.config.data["dataloader_num_workers"]
 
@@ -375,7 +376,7 @@ class RayPPOTrainer:
             batch_size=self.config.data.get("gen_batch_size", self.config.data.train_batch_size),
             num_workers=num_workers,
             drop_last=True,
-            collate_fn=collate_fn,
+            collate_fn=get_collate_fn(self.train_dataset, collate_fn),
             sampler=train_sampler,
         )
 
@@ -389,7 +390,7 @@ class RayPPOTrainer:
             num_workers=num_workers,
             shuffle=self.config.data.get("validation_shuffle", True),
             drop_last=False,
-            collate_fn=collate_fn,
+            collate_fn=get_collate_fn(self.val_dataset, collate_fn),
         )
 
         assert len(self.train_dataloader) >= 1, "Train dataloader is empty!"
