@@ -35,4 +35,4 @@ def calc_wer(hyp, ref):
 def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for Speech Recognition."""
     # breakpoint()
-    return calc_wer(solution_str, ground_truth)
+    return 0 - calc_wer(solution_str, ground_truth)
