@@ -5,7 +5,8 @@ NUM_GPUS=${NUM_GPUS:-1}
 HOME=/home/boren
 MODEL_PATH=/home/boren/data/ckp/hf_models/phi4_mm_bias_merged
 
-train_data="${HOME}/data/parquet/ls_clean_sc1k_fn1.parquet"
+# train_data="${HOME}/data/parquet/ls_clean_sc1k_fn1.parquet"
+train_data="${HOME}/data/parquet/ls_clean_sc1k_fn1_h100.parquet"
 test_data="${HOME}/data/parquet/ls_clean_sc1k_fn1_h100.parquet"
 
 
