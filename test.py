@@ -105,4 +105,32 @@ model = AutoModelForCausalLM.from_pretrained(
     _attn_implementation="flash_attention_2",
 )
 
+
+# %%
+# Convert config to regular Python types before creating PEFT model
+from peft import LoraConfig, get_peft_model
+
+lora_config = {
+    "task_type": "CAUSAL_LM",
+    "r": 32,
+    "lora_alpha": 32,
+    # "target_modules": "all-linear",
+    "target_modules": "model.layers",
+    # "target_modules": ".*qkv_proj.*",
+    # "target_modules": "(qkv_proj|o_proj|gate_up_proj|down_proj)",
+    # "target_modules": [
+    #     "qkv_proj",
+    #     "o_proj",
+    #     "gate_up_proj",
+    #     "down_proj",
+    # ],
+    "bias": "none",
+}
+peft_model = get_peft_model(model, LoraConfig(**lora_config))
+
+# %%
+with open("peft_v1.log", "w") as f:
+    for name, param in peft_model.named_parameters():
+        print(f"{name}: {param.shape}", file=f)
+
 # %%

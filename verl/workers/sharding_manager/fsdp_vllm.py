@@ -340,9 +340,9 @@ class FSDPVLLMShardingManager(BaseShardingManager):
 
                 updated_params = {replace_lora_wrapper(k): v for k, v in updated_params.items()}
 
-        from verl.utils.vllm.patch import patch_vllm_moe_model_weight_loader
+        from verl.utils.vllm.patch import patch_vllm_model
 
-        patch_vllm_moe_model_weight_loader(model)
+        patch_vllm_model(model)
         device = get_device_id()  # used when fsdp2 set cpu_offload_policy
         loaded_params = model.load_weights(
             (

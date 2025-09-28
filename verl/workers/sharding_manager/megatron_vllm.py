@@ -169,9 +169,9 @@ class MegatronVLLMShardingManager(BaseShardingManager):
                     self.layer_name_mapping,
                 )
             model = self.model_runner.model
-            from verl.utils.vllm.patch import patch_vllm_moe_model_weight_loader
+            from verl.utils.vllm.patch import patch_vllm_model
 
-            patch_vllm_moe_model_weight_loader(model)
+            patch_vllm_model(model)
             loaded_params = model.load_weights(per_tensor_param)
             info = f"vLLM load weights, loaded_params: {len(loaded_params)}"
             logger.info(info)

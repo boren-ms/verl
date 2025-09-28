@@ -88,9 +88,9 @@ class ActorRolloutRefWorker(ARRWorker):
             inference_model = (
                 self.rollout.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner.model
             )
-            from verl.utils.vllm.patch import patch_vllm_moe_model_weight_loader
+            from verl.utils.vllm.patch import patch_vllm_model
 
-            patch_vllm_moe_model_weight_loader(inference_model)
+            patch_vllm_model(inference_model)
         for key, shape, dtype in self._weights_info:
             if self._is_actor:
                 weight_key, weight = next(params_generator)

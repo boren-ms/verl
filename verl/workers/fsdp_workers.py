@@ -409,6 +409,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                     "exclude_modules": convert_to_regular_types(self.config.model.exclude_modules),
                     "bias": "none",
                 }
+                # breakpoint()
                 actor_module = get_peft_model(actor_module, LoraConfig(**lora_config))
 
         self.use_orig_params = fsdp_config.get("use_orig_params", False)

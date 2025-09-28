@@ -434,6 +434,7 @@ class vLLMRollout(BaseRollout):
         Args:
             weights: A generator that yields the name of the weight tensor and the tensor itself.
         """
+        # breakpoint()
         peft_config, base_sync_done = kwargs.get("peft_config", None), kwargs.get("base_sync_done", False)
         if peft_config and base_sync_done:
             lora_int_id = int(time.time_ns() % 0x7FFFFFFF)
@@ -447,10 +448,10 @@ class vLLMRollout(BaseRollout):
             self.inference_engine.llm_engine.add_lora(lora_reqest)
             logger.info(f"vLLM load weights, loaded_params: {len(weights)}")
         else:
-            from verl.utils.vllm.patch import patch_vllm_moe_model_weight_loader
+            from verl.utils.vllm.patch import patch_vllm_model
 
             model = self.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner.model
-            patch_vllm_moe_model_weight_loader(model)
+            patch_vllm_model(model)
             model.load_weights(weights)
 
 
@@ -579,10 +580,10 @@ class vLLMAsyncRollout(BaseRollout):
         Args:
             weights: A generator that yields the name of the weight tensor and the tensor itself.
         """
-        from verl.utils.vllm.patch import patch_vllm_moe_model_weight_loader
+        from verl.utils.vllm.patch import patch_vllm_model
 
         model = self.inference_engine.worker.model_runner.model
-        patch_vllm_moe_model_weight_loader(model)
+        patch_vllm_model(model)
         model.load_weights(weights)
 
     def generate_sequences(self, prompts: DataProto) -> DataProto:

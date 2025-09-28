@@ -53,6 +53,31 @@ except ImportError:
     pass
 
 
+def patch_vllm_phi4mm(model):
+    from vllm.model_executor.models.phi4mm import Phi4MMForCausalLM
+    from vllm.model_executor.models.utils import WeightsMapper
+
+    if not isinstance(model, Phi4MMForCausalLM):
+        return
+
+    model.hf_to_vllm_mapper = WeightsMapper(
+        # orig_to_new_substr={
+        #     "base_layer.": "",
+        # },
+        orig_to_new_prefix={
+            "model.embed_tokens_extend.audio_embed.audio_projection.vision.": "embed_tokens_extend.audio_projection_for_vision.",
+            "model.embed_tokens_extend.audio_embed.audio_projection.speech.": "embed_tokens_extend.audio_projection.",
+            "model.embed_tokens_extend.audio_embed.": "embed_tokens_extend.",
+            "model.embed_tokens_extend.image_embed.": "vision_encoder.",
+        },
+    )
+
+
+def patch_vllm_model(model):
+    patch_vllm_phi4mm(model)
+    patch_vllm_moe_model_weight_loader(model)
+
+
 def patch_vllm_moe_model_weight_loader(model):
     # this is a work around to load the weight of vllm fused moe model
     # it is from a bug from vllm 0.8.2

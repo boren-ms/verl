@@ -9,8 +9,9 @@ defaults:
 actor_rollout_ref:
   model:
     lora_rank: 320
-    lora_alpha: 160
-    target_modules: all-linear
+    lora_alpha: 640
+    # target_modules: "model.layers"
+    target_modules: "((layers.*self_attn\\.(qkv|o)_proj)|(layers.*mlp\\.(gate_up|down)_proj))"
   rollout:
     load_format: safetensors
 trainer:
