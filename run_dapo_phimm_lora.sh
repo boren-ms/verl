@@ -10,7 +10,7 @@ test_data=${HOME}/data/parquet/ls_sc1k_fn1_h100_remote.parquet
 
 
 python3 -m recipe.dapo.main_dapo \
---config-name dapo_phimm_ls_lora \
+--config-name dapo_phimm_lora \
 data.train_files="${train_data}" \
 data.val_files="${test_data}" \
 trainer.n_gpus_per_node="${NUM_GPUS}" \

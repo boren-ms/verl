@@ -77,15 +77,16 @@ trainer:
   experiment_name: dapo-phimm-test
   n_gpus_per_node: 1
   nnodes: 1
-  save_freq: -1
+  save_freq: 20
+  test_freq: 40
   total_epochs: 2
   resume_mode: disable
-  val_before_train: false
-  total_training_steps: 100
+  val_before_train: true
+  total_training_steps: 1000
 
 train_bs: 8
 n_rollout: 4
 gen_bs: 16
-train_files: /home/boren/data/parquet/ls_clean_sc1k_fn1_h100.parquet
-val_files: /home/boren/data/parquet/ls_clean_sc1k_fn1_h100.parquet
-model_path: /home/boren/data/ckp/hf_models/phi4_mm_bias_merged
+train_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
+val_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
+model_path: /root/data/ckp/hf_models/phi4_mm_bias_merged
