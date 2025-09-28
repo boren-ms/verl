@@ -17,7 +17,7 @@ actor_rollout_ref:
     load_format: safetensors
 trainer:
   experiment_name: dapo-phimm-test-lora
-
+  # save_freq: 1
 train_bs: 8
 n_rollout: 5
 gen_bs: 16
