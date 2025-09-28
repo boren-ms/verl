@@ -82,7 +82,7 @@ trainer:
   total_epochs: 2
   resume_mode: disable
   val_before_train: true
-  total_training_steps: 1000
+  total_training_steps: null # disable steps
 
 train_bs: 8
 n_rollout: 4
