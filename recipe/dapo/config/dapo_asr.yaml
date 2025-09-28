@@ -67,9 +67,9 @@ reward_model:
     penalty_factor: 1.0
     log: false
 
-custom_reward_function:
-  path: verl/utils/reward_score/speech_recognition.py
-  name: compute_score
+# custom_reward_function:
+#   path: verl/utils/reward_score/speech_recognition.py
+#   name: compute_score
 
 trainer:
   project_name: verl_asr
