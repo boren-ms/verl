@@ -75,7 +75,7 @@ trainer:
   project_name: verl_asr
   logger: ["console", "wandb"]
   experiment_name: dapo-phimm-test
-  n_gpus_per_node: 1
+  n_gpus_per_node: 8
   nnodes: 1
   save_freq: 20
   test_freq: 40
