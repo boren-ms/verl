@@ -76,13 +76,31 @@ from datasets import Dataset
 output_path = Path("/home/boren/data/parquet/dapo-math-17k.parquet")
 output_path = Path("/home/boren/data/parquet/aime-2024.parquet")
 output_path = Path("/home/boren/data/parquet/gsm8k/train.parquet")
-output_path = Path("/home/boren/data/parquet/ls_sc1k_fn1_h100.parquet")
+# output_path = Path("/root/data/parquet/ls_sc1k_fn1.parquet")
+output_path = Path("/root/data/parquet/ls_clean_sc1k_fn1_h100.parquet")
+# output_path = Path("/root/data/parquet/ls_sc1k_fn1_h100_root.parquet")
 
 ds = Dataset.from_parquet(str(output_path))
 
 print(ds)
 egs = ds[10]
 pprint(egs)
+
+# %%
+src_path = "/home/boren/"
+dst_path = "az://orngcresco/data/boren/"
+
+
+def map_path(egs):
+    return {"audio_path": egs["audio_path"].replace(src_path, dst_path)}
+
+
+ds = ds.map(map_path)
+print(ds)
+egs = ds[10]
+pprint(egs)
+ds.to_parquet(output_path.with_stem(output_path.stem + "_remote"))
+
 # %%
 
 

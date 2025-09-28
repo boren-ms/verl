@@ -16,17 +16,28 @@ from io import BytesIO
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
-import soundfile as sf
 import torch
 from PIL import Image
 from qwen_vl_utils import fetch_image, fetch_video
+import blobfile as bf
+import soundfile as sf
+from cachetools import FIFOCache, cached
+
+
+@cached(FIFOCache(maxsize=100))
+def sf_read(file_path):
+    """Load audio from a file."""
+    # print("Audio file:", file_path)
+    if not bf.exists(file_path):
+        raise FileNotFoundError(f"File {file_path} does not exist.")
+    with bf.BlobFile(file_path, "rb") as f:
+        audio, sr = sf.read(f)
+    return audio, sr
 
 
 def process_audio(audio_path):
     """A placeholder function to process audio input."""
-    assert Path(audio_path).exists(), f"Audio file {audio_path} does not exist."
-    data, fs = sf.read(audio_path)
+    data, fs = sf_read(audio_path)
     return data, fs
 
 

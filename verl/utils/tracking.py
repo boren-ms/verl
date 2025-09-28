@@ -67,9 +67,13 @@ class Tracking:
             settings = None
             if config and config["trainer"].get("wandb_proxy", None):
                 settings = wandb.Settings(https_proxy=config["trainer"]["wandb_proxy"])
-            wandb_api_key = os.environ.get("WANDB_API_KEY", config["trainer"].get("wandb_api_key", None))
             if not wandb.api.api_key:
-                wandb.login(key=wandb_api_key)
+                key = config["trainer"].get("wandb_api_key", None)
+                host = config["trainer"].get("wandb_organization", "https://msaip.wandb.io")
+                key = os.environ.get("WANDB_API_KEY", key)
+                host = os.environ.get("WANDB_ORGANIZATION", host)
+                print("Logging WANDB host:", host)
+                wandb.login(host=host, key=key, relogin=True)
             wandb.init(project=project_name, name=experiment_name, config=config, settings=settings)
             self.logger["wandb"] = wandb
 
