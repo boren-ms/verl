@@ -451,7 +451,8 @@ class vLLMRollout(BaseRollout):
             from verl.utils.vllm.patch import patch_vllm_model
 
             model = self.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner.model
-            patch_vllm_model(model)
+            is_lora = peft_config is not None
+            patch_vllm_model(model, phi4mm=is_lora)
             model.load_weights(weights)
 
 

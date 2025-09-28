@@ -73,9 +73,11 @@ def patch_vllm_phi4mm(model):
     )
 
 
-def patch_vllm_model(model):
-    patch_vllm_phi4mm(model)
-    patch_vllm_moe_model_weight_loader(model)
+def patch_vllm_model(model, phi4mm=True, moe=True):
+    if phi4mm:
+        patch_vllm_phi4mm(model)
+    if moe:
+        patch_vllm_moe_model_weight_loader(model)
 
 
 def patch_vllm_moe_model_weight_loader(model):
