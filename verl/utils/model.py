@@ -170,11 +170,44 @@ def get_model_size(model: nn.Module, scale="auto"):
     return n_params, scale
 
 
-def print_model_size(model: nn.Module, name: str = None):
-    n_params, scale = get_model_size(model, scale="auto")
+# def print_model_size(model: nn.Module, name: str = None):
+#     breakpoint()
+#     n_params, scale = get_model_size(model, scale="auto")
+#     if name is None:
+#         name = model.__class__.__name__
+#     print(f"{name} contains {n_params:.2f}{scale} parameters")
+#     print("Trainable modules (size):")
+#     print_modules(model, trainable=True)
+
+
+def human_readable(num):
+    """Convert a number to human readable format (K, M, G)."""
+    if num >= 1_000_000_000:
+        return f"{num / 1_000_000_000:.2f}G"
+    elif num >= 1_000_000:
+        return f"{num / 1_000_000:.2f}M"
+    elif num >= 1_000:
+        return f"{num / 1_000:.2f}K"
+    else:
+        return str(num)
+
+
+def print_model_size(model, name=None, trainable=True):
+    """List trainable modules in the model and total trainable parameter size."""
     if name is None:
         name = model.__class__.__name__
-    print(f"{name} contains {n_params:.2f}{scale} parameters")
+    print(f"List modules : {name}")
+    n_total = 0
+    n_trainable = 0
+    for name, param in model.named_parameters():
+        n_total += param.numel()
+        if param.requires_grad:
+            n_trainable += param.numel()
+            if trainable:
+                print(f"{name}: {human_readable(param.numel())} trainable")
+    print(f"Total trainable: {human_readable(n_trainable)}")
+    print(f"Total parameter: {human_readable(n_total)}")
+    # return n_total, n_trainable
 
 
 def create_random_mask(

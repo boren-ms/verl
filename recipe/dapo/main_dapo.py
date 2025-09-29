@@ -148,7 +148,7 @@ class TaskRunner:
         reward_fn = load_reward_manager(
             config,
             tokenizer,
-            0,
+            config.data.get("train_num_examine", 0),
             max_resp_len=config.data.max_response_length,
             overlong_buffer_cfg=config.reward_model.overlong_buffer,
         )
@@ -157,7 +157,7 @@ class TaskRunner:
         val_reward_fn = load_reward_manager(
             config,
             tokenizer,
-            1,
+            config.data.get("eval_num_examine", 1),
             max_resp_len=config.data.max_response_length,
             overlong_buffer_cfg=config.reward_model.overlong_buffer,
         )
