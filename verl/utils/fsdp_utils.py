@@ -566,7 +566,7 @@ def fsdp2_clip_grad_norm_(parameters, max_norm, norm_type=2.0, error_if_nonfinit
     return total_norm
 
 
-def layered_summon_lora_params(fsdp_module) -> OrderedDict:
+def layered_summon_lora_params(fsdp_module, lora_name=None) -> OrderedDict:
     from peft.utils.save_and_load import get_peft_model_state_dict
 
     def __prefix_submodules(module, prefix):
@@ -588,6 +588,8 @@ def layered_summon_lora_params(fsdp_module) -> OrderedDict:
         "base_model.model.model.language_model.layers.",
     ]
     peft_model = getattr(fsdp_module, "_fsdp_wrapped_module", fsdp_module)
+    lora_name = lora_name or peft_model.active_adapter
+
     for prefix in prefix_list:
         for name, submodule in __prefix_submodules(fsdp_module, prefix):
             prefix = name.replace("_fsdp_wrapped_module.base_model.model.", "base_model.model.")
@@ -595,7 +597,11 @@ def layered_summon_lora_params(fsdp_module) -> OrderedDict:
                 continue
             if fsdp_version(submodule) > 0:
                 with FSDP.summon_full_params(submodule, writeback=False):
-                    sub_lora_params = get_peft_model_state_dict(peft_model, state_dict=submodule.state_dict())
+                    sub_lora_params = get_peft_model_state_dict(
+                        peft_model,
+                        state_dict=submodule.state_dict(),
+                        adapter_name=lora_name,
+                    )
                     sub_lora_params = {
                         f"{prefix}.{name}": param.full_tensor().detach().cpu()
                         if hasattr(param, "full_tensor")
@@ -608,7 +614,7 @@ def layered_summon_lora_params(fsdp_module) -> OrderedDict:
     return lora_params
 
 
-def collect_lora_params(module: FSDP, layered_summon: bool, base_sync_done: bool) -> OrderedDict:
+def collect_lora_params(module: FSDP, layered_summon: bool, base_sync_done: bool, lora_name=None) -> OrderedDict:
     """
     collect lora params or full params if base model is not ready in vllm
     work with if isinstance(self.module._fsdp_wrapped_module, PeftModel)
@@ -617,6 +623,7 @@ def collect_lora_params(module: FSDP, layered_summon: bool, base_sync_done: bool
 
     lora_params = OrderedDict()
     peft_model = getattr(module, "_fsdp_wrapped_module", module)
+    lora_name = lora_name or peft_model.active_adapter
     if fsdp_version(module) > 0:
         if layered_summon:
             if not base_sync_done:
@@ -628,7 +635,7 @@ def collect_lora_params(module: FSDP, layered_summon: bool, base_sync_done: bool
         else:
             with FSDP.summon_full_params(module, writeback=False):
                 if base_sync_done:
-                    lora_params = get_peft_model_state_dict(peft_model)
+                    lora_params = get_peft_model_state_dict(peft_model, adapter_name=lora_name)
                     lora_params = {
                         name: param.full_tensor().detach().cpu()
                         if hasattr(param, "full_tensor")
@@ -652,7 +659,7 @@ def collect_lora_params(module: FSDP, layered_summon: bool, base_sync_done: bool
             get_torch_device().empty_cache()
     else:
         if base_sync_done:
-            lora_params = get_peft_model_state_dict(peft_model)
+            lora_params = get_peft_model_state_dict(peft_model, adapter_name=lora_name)
         else:
             model = peft_model.base_model.model
             orig_dev = "cpu" if "cpu" in str(next(model.parameters()).device) else get_device_name()

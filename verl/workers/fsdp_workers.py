@@ -409,8 +409,9 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                     "exclude_modules": convert_to_regular_types(self.config.model.exclude_modules),
                     "bias": "none",
                 }
-                # breakpoint()
-                actor_module = get_peft_model(actor_module, LoraConfig(**lora_config))
+
+                lora_name = self.config.model.get("lora_name", "speech")
+                actor_module = get_peft_model(actor_module, LoraConfig(**lora_config), adapter_name=lora_name)
 
         self.use_orig_params = fsdp_config.get("use_orig_params", False)
         if self.config.actor.get("freeze_vision_tower", False):
@@ -626,7 +627,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     async def rollout_mode(self):
         """Context switch hybridengine to rollout mode."""
         aggressive_empty_cache(force_sync=True)
-
+        breakpoint()
         log_gpu_memory_usage("Before load_fsdp_model_to_gpu", logger=logger)
         if self._is_offload_param:
             load_fsdp_model_to_gpu(self.actor_module_fsdp)
@@ -635,7 +636,8 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         peft_config = None
         peft_model = getattr(self.actor_module_fsdp, "_fsdp_wrapped_module", self.actor_module_fsdp)
         if hasattr(peft_model, "peft_config"):  # LoRA
-            peft_config = peft_model.peft_config.get("default", None)
+            lora_name = peft_model.active_adapter or "speech"
+            peft_config = peft_model.peft_config.get(lora_name, None)
             params = collect_lora_params(
                 module=self.actor_module_fsdp,
                 layered_summon=self.config.rollout.get("layered_summon", False),
@@ -690,7 +692,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 (name, param.to(device, non_blocking=True).full_tensor() if isinstance(param, DTensor) else param)
                 for name, param in base_model_params.items()
             )
-            await self.rollout.update_weights(per_tensor_base_params, base_sync_done=False)
+            await self.rollout.update_weights(per_tensor_base_params, peft_config=peft_config, base_sync_done=False)
             del base_model_params, per_tensor_base_params
 
         await self.rollout.update_weights(per_tensor_param, peft_config=peft_config, base_sync_done=self.base_sync_done)
@@ -839,6 +841,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     @register(dispatch_mode=make_nd_compute_dataproto_dispatch_fn(mesh_name="actor"))
     @DistProfiler.annotate(color="red", role="actor_update")
     def update_actor(self, data: DataProto):
+        breakpoint()
         assert self._is_actor
         if self._is_offload_param:
             load_fsdp_model_to_gpu(self.actor_module_fsdp)
@@ -1027,7 +1030,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             peft_config = {}
             if dist.get_rank() == 0:
                 os.makedirs(lora_save_path, exist_ok=True)
-                peft_config = asdict(peft_model.peft_config.get("default", {}))
+                peft_config = asdict(peft_model.peft_config.get("speech", {}))
                 peft_config["task_type"] = peft_config["task_type"].value
                 peft_config["peft_type"] = peft_config["peft_type"].value
                 peft_config["target_modules"] = list(peft_config["target_modules"])
