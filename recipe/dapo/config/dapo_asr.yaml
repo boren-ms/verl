@@ -50,10 +50,11 @@ actor_rollout_ref:
     use_fused_kernels: false
   rollout:
     n: ${n_rollout}
+    max_num_batched_tokens: 16384
     log_prob_micro_batch_size_per_gpu: 1
     tensor_model_parallel_size: 1
     name: vllm
-    gpu_memory_utilization: 0.25
+    gpu_memory_utilization: 0.35
   ref:
     strategy: fsdp2
     log_prob_micro_batch_size_per_gpu: 1
