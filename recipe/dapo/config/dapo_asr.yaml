@@ -81,9 +81,9 @@ trainer:
   experiment_name: dapo-phimm-test
   n_gpus_per_node: 8
   nnodes: 1
-  save_freq: 20
+  save_freq: 40
   test_freq: 40
-  total_epochs: 2
+  total_epochs: 1
   resume_mode: disable
   val_before_train: true
   total_training_steps: null # disable steps

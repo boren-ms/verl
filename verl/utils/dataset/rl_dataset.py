@@ -143,6 +143,7 @@ class RLHFDataset(Dataset):
         self.video_key = config.get("video_key", "videos")
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.asr_dataset = config.get("asr_dataset", False)
+        self.max_examples = config.get("max_examples", -1)
         self.pad_to_max = config.get("pad_to_max", True)
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
@@ -204,6 +205,12 @@ class RLHFDataset(Dataset):
         print(f"dataset len: {len(self.dataframe)}")
         if self.asr_dataset:
             self.dataframe = self.format_asr_dataset(self.dataframe)
+
+        if self.max_examples > 0:
+            n_ds = len(self.dataframe)
+            self.dataframe = self.dataframe.take(min(self.max_examples, n_ds))
+            print(f"Limit dataset: {n_ds} -> {len(self.dataframe)}")
+
         self.dataframe = self.maybe_filter_out_long_prompts(self.dataframe)
 
     def maybe_filter_out_long_prompts(self, dataframe: datasets.Dataset = None):
