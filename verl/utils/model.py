@@ -20,6 +20,7 @@ import re
 import warnings
 from dataclasses import dataclass
 from typing import Optional
+from collections import defaultdict
 
 import numpy as np
 import torch
@@ -40,6 +41,7 @@ from transformers.modeling_outputs import CausalLMOutputWithPast
 
 from verl.models.registry import ModelRegistry
 from verl.utils.import_utils import is_trl_available
+import verl.utils.torch_functional as verl_F
 
 
 class LambdaLayer(nn.Module):
@@ -745,8 +747,9 @@ def extract_multi_modal_inputs(
 
     """
     multi_modal_inputs = {}
-    multi_modal_inputs_collected = {}
+    multi_modal_inputs_collected = defaultdict(list)
     has_image_bound = False
+    has_audio = False
 
     selected_batch_data = batch_data
     if indices is not None:
@@ -755,6 +758,8 @@ def extract_multi_modal_inputs(
     for inputs in selected_batch_data:
         if "image_bound" in inputs:
             has_image_bound = True
+        if "input_audio_embeds" in inputs:
+            has_audio = True
         for key, value in inputs.items():
             if value is not None:
                 if key not in multi_modal_inputs_collected:
@@ -764,6 +769,8 @@ def extract_multi_modal_inputs(
     for key, values in multi_modal_inputs_collected.items():
         if has_image_bound:  # minicpm-o logic
             multi_modal_inputs[key] = values
+        elif has_audio:
+            multi_modal_inputs[key] = verl_F.pad(values).squeeze(-1)
         else:
             multi_modal_inputs[key] = torch.cat(values, dim=0)
 

@@ -15,10 +15,10 @@ python3 -m recipe.dapo.main_dapo \
 data.train_files="${train_data}" \
 data.val_files="${test_data}" \
 trainer.n_gpus_per_node=1 \
-+data.eval_num_examine=10 \
-+data.train_num_examine=10 \
++data.eval_num_examine=5 \
++data.train_num_examine=1 \
 trainer.logger=console \
-train_bs=8 \
+train_bs=4 \
 n_rollout=4 \
-gen_bs=16 \
+gen_bs=4 \
 actor_rollout_ref.model.path="${MODEL_PATH}" 2>&1 | tee ${config_name}.log

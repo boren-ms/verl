@@ -7,9 +7,10 @@ data:
   val_files: ${val_files}
   # prompt_key: prompt
   asr_dataset: true
+  pad_to_max: true # why to dynamic pad
   audio_key: audio_path
   trust_remote_code: true
-  max_prompt_length: 4096
+  max_prompt_length: 8192
   max_response_length: 1024
   train_batch_size: ${train_bs} # 32
   gen_batch_size: ${gen_bs} # 32 * n_rollout

@@ -48,7 +48,8 @@ def dynamic_collate_fn(data_list: list[dict], pad_value=0, left_pad_keys=None) -
 
     for key, val in tensors.items():
         pad_side = "left" if key in left_pad_keys else "right"
-        tensors[key] = verl_F.pad(val, padding_value=pad_value, padding_side=pad_side)
+        value = verl_F.pad(val, padding_value=pad_value, padding_side=pad_side)
+        tensors[key] = value.squeeze(-1)  # squeeze last dim, e.g. (B, L, 1) -> (B, L)
     for key, val in non_tensors.items():
         non_tensors[key] = np.array(val, dtype=object)
 
@@ -142,7 +143,7 @@ class RLHFDataset(Dataset):
         self.video_key = config.get("video_key", "videos")
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.asr_dataset = config.get("asr_dataset", False)
-        self.pad_to_max = config.get("pad_to_max", not self.asr_dataset)
+        self.pad_to_max = config.get("pad_to_max", True)
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "error")
@@ -346,9 +347,13 @@ class RLHFDataset(Dataset):
                 if "input_audio_embeds" in inputs_dict:
                     inputs_dict["input_audio_embeds"] = inputs_dict["input_audio_embeds"].squeeze(0)
                 if "input_audio_embeds" in inputs_dict and inputs_dict.get("audio_attention_mask", None) is None:
-                    inputs_dict["audio_attention_mask"] = torch.ones_like(inputs_dict["input_audio_embeds"])
+                    inputs_dict["audio_attention_mask"] = torch.ones(
+                        inputs_dict["input_audio_embeds"].shape[:-1],
+                        dtype=torch.long,
+                    )
 
-                row_dict.update(inputs_dict)
+                row_dict["multi_modal_inputs"] = inputs_dict
+                # row_dict.update(inputs_dict)
 
         else:
             if self.apply_chat_template_kwargs.get("chat_template") is None:

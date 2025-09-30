@@ -13,6 +13,8 @@ python3 -m recipe.dapo.main_dapo \
 --config-name ${config_name} \
 data.train_files="${train_data}" \
 data.val_files="${test_data}" \
++data.eval_num_examine=5 \
++data.train_num_examine=1 \
 actor_rollout_ref.model.path="${MODEL_PATH}" 2>&1 | tee ${config_name}.log
 
 # trainer.n_gpus_per_node="${NUM_GPUS}"

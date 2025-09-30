@@ -132,14 +132,15 @@ class DAPORewardManager(AbstractRewardManager):
 
             if already_print_data_sources[data_source] < self.num_examine:
                 already_print_data_sources[data_source] += 1
-                print("[prompt]", prompt_str)
-                print("[response]", response_str)
-                print("[ground_truth]", ground_truth)
+                pfx = f"\n[{already_print_data_sources[data_source]}]"
+                print(f"{pfx}[prompt]", prompt_str)
+                print(f"{pfx}[response]", response_str)
+                print(f"{pfx}[ground_truth]", ground_truth)
                 if isinstance(result, dict):
                     for key, value in result.items():
-                        print(f"[{key}]", value)
+                        print(f"{pfx}[{key}]", value)
                 else:
-                    print("[score]", score)
+                    print(f"{pfx}[score]", score)
 
         if return_dict:
             return {
