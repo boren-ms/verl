@@ -35,3 +35,4 @@ fire
 backoff
 wandb
 packaging>=20.0
+qwen_vl_utils

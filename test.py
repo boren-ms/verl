@@ -76,8 +76,8 @@ from datasets import Dataset
 output_path = Path("/home/boren/data/parquet/dapo-math-17k.parquet")
 output_path = Path("/home/boren/data/parquet/aime-2024.parquet")
 output_path = Path("/home/boren/data/parquet/gsm8k/train.parquet")
-# output_path = Path("/root/data/parquet/ls_sc1k_fn1.parquet")
-output_path = Path("/root/data/parquet/ls_clean_sc1k_fn1_h100.parquet")
+output_path = Path("/root/data/parquet/ls_sc1k_fn1.parquet")
+# output_path = Path("/root/data/parquet/ls_clean_sc1k_fn1_h100.parquet")
 # output_path = Path("/root/data/parquet/ls_sc1k_fn1_h100_root.parquet")
 
 ds = Dataset.from_parquet(str(output_path))
