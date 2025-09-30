@@ -10,11 +10,11 @@ data:
   pad_to_max: true # why to dynamic pad
   audio_key: audio_path
   trust_remote_code: true
+  filter_overlong_prompts: true
   max_prompt_length: 8192
   max_response_length: 1024
-  train_batch_size: ${train_bs} # 32
-  gen_batch_size: ${gen_bs} # 32 * n_rollout
-
+  train_batch_size: 8 # 32
+  gen_batch_size: 16 # 32 * n_rollout
 algorithm:
   adv_estimator: grpo
   use_kl_in_reward: false
@@ -33,6 +33,7 @@ actor_rollout_ref:
     clip_ratio_low: 0.2
     clip_ratio_high: 0.28
     loss_agg_mode: token-mean
+    entropy_coeff: 0
     optim:
       lr: 1e-5
       warmup_style: cosine
@@ -49,12 +50,14 @@ actor_rollout_ref:
     use_remove_padding: true
     use_fused_kernels: false
   rollout:
-    n: ${n_rollout}
+    n: 4
     max_num_batched_tokens: 16384
     log_prob_micro_batch_size_per_gpu: 1
     tensor_model_parallel_size: 1
     name: vllm
     gpu_memory_utilization: 0.35
+    rollout:
+    load_format: safetensors
   ref:
     strategy: fsdp2
     log_prob_micro_batch_size_per_gpu: 1
@@ -86,9 +89,6 @@ trainer:
   val_before_train: true
   total_training_steps: null # disable steps
 
-train_bs: 8
-n_rollout: 4
-gen_bs: 16
 train_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
 val_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
 model_path: /root/data/ckp/hf_models/phi4_mm_bias_merged
