@@ -1,0 +1,8 @@
+[32;1mRUN: /home/boren/.openai/bin/brix ssh h-n2-hpe4 -- 'pgrep -fa /launch_'[0m
+12063 python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_hc_fy23q2_tag_entity_cache_zero_e1_bp8_ref_fn1.yaml
+[32;1mRUN: /home/boren/.openai/bin/brix ssh h-n2-wus2 -- 'pgrep -fa /launch_'[0m
+1233476 python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_fy22_info_tag_cache_zero_e1_bp8_ref_fn1.yaml
+[32;1mRUN: /home/boren/.openai/bin/brix ssh h1-n2-wus2 -- 'pgrep -fa /launch_'[0m
+exit status 1
+[32;1mRUN: /home/boren/.openai/bin/brix ssh l-n2-hpe2 -- 'pgrep -fa /launch_'[0m
+116444 python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_hc_tag_entity_cache_zero_e1_bp8_ref_fn1.yaml
