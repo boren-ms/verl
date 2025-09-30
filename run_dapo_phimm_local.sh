@@ -14,11 +14,11 @@ python3 -m recipe.dapo.main_dapo \
 --config-name ${config_name} \
 data.train_files="${train_data}" \
 data.val_files="${test_data}" \
-trainer.n_gpus_per_node=1 \
 +data.eval_num_examine=5 \
 +data.train_num_examine=1 \
+data.train_batch_size=4 \
+data.gen_batch_size=4 \
+actor_rollout_ref.rollout.n=4 \
+trainer.n_gpus_per_node=1 \
 trainer.logger=console \
-train_bs=4 \
-n_rollout=4 \
-gen_bs=4 \
 actor_rollout_ref.model.path="${MODEL_PATH}" 2>&1 | tee ${config_name}.log

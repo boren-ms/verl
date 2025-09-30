@@ -18,9 +18,6 @@ actor_rollout_ref:
 trainer:
   experiment_name: dapo-phimm-test-lora
   # save_freq: 1
-train_bs: 8
-n_rollout: 8
-gen_bs: 16
 train_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
 val_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
 model_path: /root/data/ckp/hf_models/phi4_mm_bias_merged

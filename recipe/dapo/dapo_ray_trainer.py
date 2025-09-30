@@ -379,6 +379,9 @@ class RayDAPOTrainer(RayPPOTrainer):
                 timing_raw = defaultdict(float)  # clear timing
 
                 metrics["train/num_gen_batches"] = num_gen_batches
+                metrics["train/gen_kept_frac"] = num_prompt_in_batch / (
+                    num_gen_batches * self.train_dataloader.batch_size
+                )
                 batch = None
                 num_prompt_in_batch = 0
                 num_gen_batches = 0
