@@ -49,6 +49,8 @@ select = [
     "G",
 ]
 ignore = [
+    # isort found an import in the wrong position
+    "I001", 
     # star imports
     "F405", "F403",
     # lambda expression assignment
