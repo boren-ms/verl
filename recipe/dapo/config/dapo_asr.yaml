@@ -5,6 +5,8 @@ defaults:
 data:
   train_files: ${train_files}
   val_files: ${val_files}
+  custom_cls.path: verl/utils/dataset/audio/rl_dataset.py
+  custom_cls.name: RLHFDataset
   # prompt_key: prompt
   asr_dataset: true
   pad_to_max: true # why to dynamic pad

@@ -129,6 +129,7 @@ class RLHFDataset(Dataset):
     ):
         if not isinstance(data_files, list | ListConfig):
             data_files = [data_files]
+        breakpoint()
 
         self.data_files = copy.deepcopy(data_files)
         self.original_data_files = copy.deepcopy(data_files)  # use for resume
