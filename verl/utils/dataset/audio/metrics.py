@@ -1,6 +1,7 @@
 # %%
 import re
 from collections import deque, Counter
+from collections.abc import Sequence
 from enum import Enum
 from functools import partial
 from itertools import zip_longest
@@ -185,7 +186,9 @@ class EditDistance(object):
                 # Below here both i and j are greater than 0
                 ref = refs[i - 1]
                 hyp = hyps[j - 1]
-                best_score = self.scores_[i - 1][j - 1] + (self.cost(ref, hyp, Code.match) if ref == hyp else self.cost(ref, hyp, Code.substitution))
+                best_score = self.scores_[i - 1][j - 1] + (
+                    self.cost(ref, hyp, Code.match) if ref == hyp else self.cost(ref, hyp, Code.substitution)
+                )
 
                 prev_row = i - 1
                 prev_col = j - 1
@@ -266,7 +269,7 @@ def text_norm(txt, name=None):
     norm = TN_DICT[name]
     if isinstance(txt, str):
         return norm(txt.strip())
-    elif isinstance(txt, list):
+    elif isinstance(txt, Sequence):
         return [norm(x) for x in txt]
     else:
         raise ValueError(f"Unsupported type for text normalization: {type(txt)}. Expected str or list of str.")
@@ -438,7 +441,10 @@ def format_hyp(text, remove_pfx=False):
 def compute_wers(results, tn=None, unit=None, remove_hyp_pfx=False):
     """compute WER, U-WER, and B-WER"""
     # Extract reference and hypothesis pairs from groups
-    refs = {result.get("id", i): format_ref_with_keywords(result["ref"], result.get("keywords", None)) for i, result in enumerate(results)}
+    refs = {
+        result.get("id", i): format_ref_with_keywords(result["ref"], result.get("keywords", None))
+        for i, result in enumerate(results)
+    }
     hyps = {result.get("id", i): format_hyp(result["hyp"], remove_hyp_pfx) for i, result in enumerate(results)}
     # Calculate WER, U-WER, and B-WER
     wer, u_wer, b_wer = calc_errors(refs, hyps, tn=tn, unit=unit)

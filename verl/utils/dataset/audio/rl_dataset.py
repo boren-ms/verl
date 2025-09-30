@@ -1,59 +1,23 @@
-# Copyright 2024 Bytedance Ltd. and/or its affiliates
-# Copyright 2023-2024 SGLang Team
-# Copyright 2025 ModelBest Inc. and/or its affiliates
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import copy
 import logging
-import os
 import re
 from collections import defaultdict
+from collections.abc import Sequence
 from typing import Optional
 
 import datasets
 import numpy as np
 import torch
-from omegaconf import DictConfig, ListConfig
+from omegaconf import DictConfig
+
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer, ProcessorMixin
 
 import verl.utils.torch_functional as verl_F
 from verl.utils.model import compute_position_id_with_mask
+from verl.utils.dataset.audio.dataset import create_audio_dataset
+from verl.utils.dataset.audio.audio_utils import load_audio
 
 logger = logging.getLogger(__name__)
-
-
-def dynamic_collate_fn(data_list: list[dict], pad_value=0, left_pad_keys=None) -> dict:
-    """Collate a batch of sample dicts into batched tensors and arrays."""
-    tensors = defaultdict(list)
-    non_tensors = defaultdict(list)
-    left_pad_keys = left_pad_keys or ["input_ids", "attention_mask", "position_ids"]
-    for data in data_list:
-        for key, val in data.items():
-            if isinstance(val, torch.Tensor):
-                tensors[key].append(val)
-            else:
-                non_tensors[key].append(val)
-
-    for key, val in tensors.items():
-        pad_side = "left" if key in left_pad_keys else "right"
-        value = verl_F.pad(val, padding_value=pad_value, padding_side=pad_side)
-        tensors[key] = value.squeeze(-1)  # squeeze last dim, e.g. (B, L, 1) -> (B, L)
-    for key, val in non_tensors.items():
-        non_tensors[key] = np.array(val, dtype=object)
-
-    return {**tensors, **non_tensors}
 
 
 def collate_fn(data_list: list[dict]) -> dict:
@@ -122,50 +86,43 @@ class RLHFDataset(Dataset):
 
     def __init__(
         self,
-        data_files: str | list[str],
+        data_confs: str | list[str],
         tokenizer: PreTrainedTokenizer,
         config: DictConfig,
         processor: Optional[ProcessorMixin] = None,
     ):
-        if not isinstance(data_files, list | ListConfig):
-            data_files = [data_files]
-        breakpoint()
-
-        self.data_files = copy.deepcopy(data_files)
-        self.original_data_files = copy.deepcopy(data_files)  # use for resume
+        if not isinstance(data_confs, Sequence):
+            data_confs = [data_confs]
+        self.data_confs = data_confs
         self.tokenizer = tokenizer
         self.processor = processor
         self.config = config
 
-        self.cache_dir = os.path.expanduser(config.get("cache_dir", "~/.cache/verl/rlhf"))
+        self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.prompt_key = config.get("prompt_key", "prompt")
         self.image_key = config.get("image_key", "images")
         self.audio_key = config.get("audio_key", "audios")
         self.video_key = config.get("video_key", "videos")
-        self.max_prompt_length = config.get("max_prompt_length", 1024)
-        self.asr_dataset = config.get("asr_dataset", False)
-        self.max_examples = config.get("max_examples", -1)
-        self.pad_to_max = config.get("pad_to_max", True)
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "error")
-        self.filter_overlong_prompts = config.get("filter_overlong_prompts", True)
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
 
-        self.num_workers = config.get("filter_overlong_prompts_workers", max(1, os.cpu_count() // 4))
-        self.num_workers = min(self.num_workers, os.cpu_count())
         self.num_workers = None  # for debug
-        self.use_shm = config.get("use_shm", False)
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
-        self.filter_prompts = config.get("filter_prompts", True)
         self.serialize_dataset = False
         self.return_multi_modal_inputs = config.get("return_multi_modal_inputs", True)
 
-        self._download()
-        self._read_files_and_tokenize()
+        self.ds = self.load_datasets()
 
-    def format_asr_dataset(self, dataframe):
+    def load_datasets(self):
+        data_sets = [create_audio_dataset(**data_conf) for data_conf in self.data_confs]
+        ds = datasets.concatenate_datasets(data_sets)
+        ds = self.format_ds(ds)
+        return ds
+
+    def format_ds(self, ds):
         def format_prompt(example):
             prompt = example[self.prompt_key]
             if isinstance(prompt, str):
@@ -174,7 +131,7 @@ class RLHFDataset(Dataset):
                 prompt = [{"role": "user", "content": prompt}]
             output = {self.prompt_key: prompt}
             if audios := example.get(self.audio_key, None):
-                if not isinstance(audios, list):
+                if not isinstance(audios, Sequence):
                     audios = [audios]
                 output[self.audio_key] = audios
             output["reward_model"] = {"ground_truth": example.get("text", "")}
@@ -185,95 +142,17 @@ class RLHFDataset(Dataset):
             output["data_source"] = "asr"
             return output
 
-        dataframe = dataframe.map(format_prompt, num_proc=self.num_workers, desc="ASR Formatting")
-        return dataframe
-
-    def _download(self, use_origin_parquet=False):
-        from verl.utils.fs import copy_to_local
-
-        data_files = self.data_files if not use_origin_parquet else self.original_data_files
-        for i, parquet_file in enumerate(data_files):
-            self.data_files[i] = copy_to_local(src=parquet_file, cache_dir=self.cache_dir, use_shm=self.use_shm)
-
-    def _read_files_and_tokenize(self):
-        dataframes = []
-        for parquet_file in self.data_files:
-            # read parquet files and cache
-            dataframe = datasets.load_dataset("parquet", data_files=parquet_file)["train"]
-            dataframes.append(dataframe)
-        self.dataframe: datasets.Dataset = datasets.concatenate_datasets(dataframes)
-
-        print(f"Dataset len: {len(self.dataframe)}")
-        if self.max_examples > 0:
-            n_ds = len(self.dataframe)
-            self.dataframe = self.dataframe.take(min(self.max_examples, n_ds))
-            print(f"Limit dataset: {n_ds} -> {len(self.dataframe)}")
-        if self.asr_dataset:
-            self.dataframe = self.format_asr_dataset(self.dataframe)
-
-        self.dataframe = self.maybe_filter_out_long_prompts(self.dataframe)
-
-    def maybe_filter_out_long_prompts(self, dataframe: datasets.Dataset = None):
-        # filter out too long prompts
-        if self.filter_overlong_prompts:
-            tokenizer = self.tokenizer
-            processor = self.processor
-            prompt_key = self.prompt_key
-            image_key = self.image_key
-            video_key = self.video_key
-            audio_key = self.audio_key
-
-            if processor is not None:
-                from verl.utils.dataset.vision_utils import process_audio, process_image, process_video
-
-                def doc2len(doc) -> int:
-                    messages = self._build_messages(doc)
-                    raw_prompt = self.processor.apply_chat_template(
-                        messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
-                    )
-                    fn_kwargs = {"text": [raw_prompt]}
-                    if image_key in doc and doc[image_key]:
-                        fn_kwargs["images"] = [process_image(image) for image in doc[image_key]]
-                    if video_key in doc and doc[video_key]:
-                        fn_kwargs["videos"] = [process_video(video) for video in doc[video_key]]
-                    if audio_key in doc and doc[audio_key]:
-                        fn_kwargs["audios"] = [process_audio(audio) for audio in doc[audio_key]]
-
-                    return len(processor(**fn_kwargs)["input_ids"][0])
-
-            else:
-
-                def doc2len(doc) -> int:
-                    return len(
-                        tokenizer.apply_chat_template(
-                            doc[prompt_key], add_generation_prompt=True, **self.apply_chat_template_kwargs
-                        )
-                    )
-
-            dataframe = dataframe.filter(
-                lambda doc: doc2len(doc) <= self.max_prompt_length,
-                num_proc=self.num_workers,
-                desc=f"Filtering prompts longer than {self.max_prompt_length} tokens",
-            )
-
-            print(f"filter dataset len: {len(dataframe)}")
-        return dataframe
+        ds = ds.map(format_prompt, num_proc=self.num_workers, desc="ASR Formatting")
+        return ds
 
     def resume_dataset_state(self):
-        self.serialize_dataset = not hasattr(self, "original_data_files")
-        # resume dataframe if not it's serialized in data.pt
-        if not self.serialize_dataset:
-            self._download(use_origin_parquet=True)  # download and resume from original parquet files
-            self._read_files_and_tokenize()
-        else:
-            print(r"old dataloader ckpt file is used, please train from scratch for better ckpt performance")
+        pass
 
     def __len__(self):
-        return len(self.dataframe)
+        return len(self.ds)
 
     def _build_messages(self, example: dict):
         messages: list = example.pop(self.prompt_key)
-
         if self.image_key in example or self.video_key in example:
             for message in messages:
                 content = message["content"]
@@ -289,118 +168,52 @@ class RLHFDataset(Dataset):
                         content_list.append({"type": "audio"})
                     else:
                         content_list.append({"type": "text", "text": segment})
-
                 message["content"] = content_list
-
         return messages
 
-    def __getitem__(self, item):
+    def __getitem__(self, i):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
-        row_dict: dict = self.dataframe[item]
+        row_dict: dict = self.ds[i]
         messages = self._build_messages(row_dict)
-        model_inputs = {}
 
-        if self.processor is not None:
-            from verl.utils.dataset.vision_utils import process_audio, process_image, process_video
+        raw_prompt = self.processor.apply_chat_template(
+            messages,
+            add_generation_prompt=True,
+            tokenize=False,
+            **self.apply_chat_template_kwargs,
+        )
 
-            raw_prompt = self.processor.apply_chat_template(
-                messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
-            )
-            multi_modal_data = {}
-            fn_kwargs = {"text": [raw_prompt]}
-            row_dict_images = row_dict.pop(self.image_key, None)
-            if row_dict_images:
-                images = [process_image(image) for image in row_dict_images]
-                fn_kwargs["images"] = images
-                # due to the image key is "image" instead of "images" in vllm, we need to use "image" here
-                # link: https://github.com/vllm-project/vllm/blob/3c545c0c3b98ee642373a308197d750d0e449403/vllm/multimodal/parse.py#L205
-                multi_modal_data["image"] = images
+        audios = [load_audio(row_dict)]
 
-            row_dict_videos = row_dict.pop(self.video_key, None)
-            if row_dict_videos:
-                videos = [process_video(video) for video in row_dict_videos]
-                fn_kwargs["videos"] = videos
-                # due to the video key is "video" instead of "videos" in vllm, we need to use "video" here
-                # link: https://github.com/vllm-project/vllm/blob/3c545c0c3b98ee642373a308197d750d0e449403/vllm/multimodal/parse.py#L205
-                multi_modal_data["video"] = [video.numpy() for video in videos]
+        row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
+        model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
 
-            row_dict_audios = row_dict.pop(self.audio_key, None)
-            if row_dict_audios:
-                audios = [process_audio(audio) for audio in row_dict_audios]
-                fn_kwargs["audios"] = audios
-                # due to the audio key is "audio" instead of "audios" in vllm, we need to use "audio" here
-                # link: https://github.com/vllm-project/vllm/blob/3c545c0c3b98ee642373a308197d750d0e449403/vllm/multimodal/parse.py#L205
-                multi_modal_data["audio"] = [(to_numpy(audio), fs) for (audio, fs) in audios]
-
-            model_inputs = self.processor(**fn_kwargs, return_tensors="pt")
-
-            input_ids = model_inputs.pop("input_ids")
-            attention_mask = model_inputs.pop("attention_mask")
-
-            if "second_per_grid_ts" in model_inputs:
-                model_inputs.pop("second_per_grid_ts")
-
-            # There's a trap here, multi_modal_inputs has to be a dict, not BatchFeature
-            row_dict["multi_modal_data"] = multi_modal_data
-
-            # We will do batch.union() in the trainer,
-            # so we cannot have "multi_modal_inputs" in row_dict if rollout generates new multi_modal_inputs
-            if self.return_multi_modal_inputs:
-                inputs_dict = dict(model_inputs)
-                inputs_dict = remove_empty_tensors(inputs_dict)
-                inputs_dict.pop("second_per_grid_ts", None)
-                if "input_audio_embeds" in inputs_dict:
-                    inputs_dict["input_audio_embeds"] = inputs_dict["input_audio_embeds"].squeeze(0)
-                if "input_audio_embeds" in inputs_dict and inputs_dict.get("audio_attention_mask", None) is None:
-                    inputs_dict["audio_attention_mask"] = torch.ones(
-                        inputs_dict["input_audio_embeds"].shape[:-1],
-                        dtype=torch.long,
-                    )
-
-                row_dict["multi_modal_inputs"] = inputs_dict
-                # row_dict.update(inputs_dict)
-
-        else:
-            if self.apply_chat_template_kwargs.get("chat_template") is None:
-                assert hasattr(self.tokenizer, "chat_template"), (
-                    "chat_template should be provided in apply_chat_template_kwargs or tokenizer config, "
-                    "models like GLM can copy chat_template.jinja from instruct models"
+        if self.return_multi_modal_inputs:
+            inputs_dict = dict(model_inputs)
+            inputs_dict = remove_empty_tensors(inputs_dict)
+            if "input_audio_embeds" in inputs_dict:
+                inputs_dict["input_audio_embeds"] = inputs_dict["input_audio_embeds"].squeeze(0)
+            if "input_audio_embeds" in inputs_dict and inputs_dict.get("audio_attention_mask", None) is None:
+                inputs_dict["audio_attention_mask"] = torch.ones(
+                    inputs_dict["input_audio_embeds"].shape[:-1],
+                    dtype=torch.long,
                 )
-            raw_prompt = self.tokenizer.apply_chat_template(
-                messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
-            )
-            model_inputs = self.tokenizer(raw_prompt, return_tensors="pt", add_special_tokens=False)
-            input_ids = model_inputs.pop("input_ids")
-            attention_mask = model_inputs.pop("attention_mask")
-        if self.pad_to_max:
-            input_ids, attention_mask = verl_F.postprocess_data(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                max_length=self.max_prompt_length,
-                pad_token_id=self.tokenizer.pad_token_id,
-                left_pad=True,
-                truncation=self.truncation,
-            )
+            row_dict["multi_modal_inputs"] = inputs_dict
 
-        if self.processor is not None and "Qwen2VLImageProcessor" in self.processor.image_processor.__class__.__name__:
-            from verl.models.transformers.qwen2_vl import get_rope_index
+        input_ids = model_inputs.pop("input_ids")
+        attention_mask = model_inputs.pop("attention_mask")
+        input_ids, attention_mask = verl_F.postprocess_data(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            max_length=self.max_prompt_length,
+            pad_token_id=self.tokenizer.pad_token_id,
+            left_pad=True,
+            truncation=self.truncation,
+        )
 
-            vision_position_ids = get_rope_index(
-                self.processor,
-                input_ids=input_ids[0],
-                image_grid_thw=model_inputs.get("image_grid_thw"),
-                video_grid_thw=model_inputs.get("video_grid_thw"),
-                second_per_grid_ts=model_inputs.get("second_per_grid_ts"),
-                attention_mask=attention_mask[0],
-            )  # (3, seq_length)
-            valid_mask = attention_mask[0].bool()
-            text_position_ids = torch.ones((1, len(input_ids[0])), dtype=torch.long)
-            text_position_ids[0, valid_mask] = torch.arange(valid_mask.sum().item())
-            position_ids = [torch.cat((text_position_ids, vision_position_ids), dim=0)]  # (1, 4, seq_length)
-        else:
-            position_ids = compute_position_id_with_mask(attention_mask)
+        position_ids = compute_position_id_with_mask(attention_mask)
 
         row_dict["input_ids"] = input_ids[0]
         row_dict["attention_mask"] = attention_mask[0]
@@ -443,17 +256,10 @@ class RLHFDataset(Dataset):
         return row_dict
 
     def __getstate__(self):
-        if not self.serialize_dataset:
-            state = self.__dict__.copy()
-
-            if "dataframe" in state:
-                del state["dataframe"]
-            return state
-
         return self.__dict__.copy()
 
 
-def main(data_files: str, tokenizer_path: str, config_path=None):
+def main(config_path, tokenizer_path, data_files=None):
     """
     Example main function to instantiate RLHFDataset from CLI.
     """
@@ -464,7 +270,7 @@ def main(data_files: str, tokenizer_path: str, config_path=None):
     tokenizer = hf_tokenizer(tokenizer_path, trust_remote_code=True)
     processor = hf_processor(tokenizer_path, trust_remote_code=True)
     config = (
-        OmegaConf.load(config_path)
+        OmegaConf.load(config_path)["data"]
         if config_path
         else {
             "audio_key": "audio_path",
@@ -472,12 +278,15 @@ def main(data_files: str, tokenizer_path: str, config_path=None):
             # "filter_overlong_prompts": False,
             "max_prompt_length": 1024,
             "max_response_length": 2048,
+            "train_files": data_files,
         }
     )  # must have for phi4mm
-    dataset = RLHFDataset(data_files, tokenizer, config, processor)
+    data_files = config.get("train_files", None)
+    data_conf = config.get("train_data", None)
+    dataset = RLHFDataset(data_conf, tokenizer, config, processor)
     from torchdata.stateful_dataloader import StatefulDataLoader
 
-    loader = StatefulDataLoader(dataset=dataset, batch_size=2, num_workers=0, collate_fn=dynamic_collate_fn)
+    loader = StatefulDataLoader(dataset=dataset, batch_size=2, num_workers=0, collate_fn=collate_fn)
     for batch in loader:
         print(batch)
         break
@@ -486,8 +295,9 @@ def main(data_files: str, tokenizer_path: str, config_path=None):
 if __name__ == "__main__":
     # import fire
     # fire.Fire(main)
-    data_files = "/home/boren/data/parquet/ls_sc1k_fn1_h100.parquet"
+    # data_files = "/home/boren/data/parquet/ls_sc1k_fn1_h100.parquet"
     # data_conf = "/home/boren/data/parquet/data_conf.yaml"
     tokenizer_path = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct"
     tokenizer_path = "/home/boren/data/ckp/hf_models/phi4_mm_bias_merged"
-    main(data_files, tokenizer_path)
+    data_yaml = "/home/boren/verl/recipe/dapo/config/audio_data.yaml"
+    main(data_yaml, tokenizer_path)

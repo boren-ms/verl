@@ -13,8 +13,7 @@ import soundfile as sf
 from datasets import Dataset
 from cachetools import FIFOCache, cached
 import blobfile as bf
-from trl.trainer.utils import rank_print
-from trl.scripts.utils import get_values
+from .utils import rank_print, get_values, to_list
 
 
 def parse_data(data, data_type, **kwargs):
@@ -170,13 +169,6 @@ def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int):
                 parsed_data = parse_data(data, chunk_type)
             data_list.append(parsed_data)
     return data_list
-
-
-def to_list(data):
-    """Convert data to a list if it is not already."""
-    if isinstance(data, (list, tuple)):
-        return list(data)
-    return [data]
 
 
 def load_chunk_info(manifest_file, **kwargs):

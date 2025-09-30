@@ -1,0 +1,52 @@
+data:
+    audio_key: "audio_path"
+    asr_dataset: True
+    filter_overlong_prompts: False
+    max_prompt_length: 1024
+    max_response_length: 2048
+
+    train_data:
+        dataset_name: cached
+        cache_path: /home/boren/data/cache_datasets/ls_sc1k_fr01
+        pre_process:
+            num_egs: 100
+            path_map:
+                field: audio_path
+                src_part: /root/data/
+                dst_part: /home/boren/data/
+        biasing:
+            hit_prob: 1
+            bias_prob: 0.8
+            miss_prob: 1
+            context_prob: 1
+            # task_info: 1 # 0 disable, 1 task token, 2 task token + hit words
+            max_piece_len: 1
+            sample_range: [0, 300]
+            sampling_version: v2
+            hit_ratio: [0.9, 1.0]
+            log_interval: 1000 # print biasing every 10000 samples
+            common_word_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
+            common_word_num: 1000
+    # train_data:
+    #     dataset_name: tsv
+    #     # nug_egs: 5000
+    #     # tsv_paths: az://${DATA_STORAGE}/data/boren/data/LibriSpeech/debug.tsv
+    #     # tsv_paths: az://orngscuscresco/data/boren/data/LibriSpeech/debug.tsv
+    #     # tsv_paths: az://orngscuscresco/data/boren/data/LibriSpeech/ls_30k_shuf.tsv
+    #     # tsv_paths: az://orngscuscresco/data/boren/data/LibriSpeech/debug.tsv
+    #     tsv_paths: /home/boren/data/LibriSpeech/debug.tsv
+    #     pre_process:
+    #         output_egs_limit: 50
+    #     # cache_name: auto_train
+    #     num_proc: 1
+    #     add_rare_keywords:
+    #         common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
+    #         common_num: 1000
+    #     add_prompt:
+    #         task: asr
+    #         # forced: True
+    #     post_process:
+    #         input_egs_limit: 100
+    #         filter_by_keywords:
+    #             min_num: 1
+    #         output_egs_limit: 40

@@ -12,7 +12,7 @@ name=boren_verl
 # docker exec -it ${name} bash
 #
 docker stop ${name} && docker rm ${name}
-docker run  --rm -d --gpus all --ipc host  -v /home/boren/data:/home/boren/data -v /home/boren/verl:/home/boren/verl --name ${name} ${image} tail -f /dev/null
+docker run  --rm -d --gpus all --ipc host  -v /home/boren/data:/home/boren/data -v /home/boren/verl:/home/boren/verl -v /home/boren/trl:/home/boren/trl --name ${name} ${image} tail -f /dev/null
 docker exec -it ${name} bash
 
 # git clone https://github.com/volcengine/verl && cd verl

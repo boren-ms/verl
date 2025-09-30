@@ -8,6 +8,7 @@ import fire
 import time
 import blobfile as bf
 import importlib.metadata
+from collections.abc import Sequence
 
 
 def sorted_nodes(nodes):
@@ -16,14 +17,14 @@ def sorted_nodes(nodes):
         return None
     if isinstance(nodes, str):
         nodes = [int(x) for x in nodes.split(",")]
-    if not isinstance(nodes, (list, tuple)):
+    if not isinstance(nodes, Sequence):
         nodes = [nodes]
     return sorted(nodes)
 
 
 def to_list(data):
     """Convert data to a list if it is not already."""
-    if isinstance(data, (list, tuple)):
+    if isinstance(data, Sequence):
         return list(data)
     return [data]
 
@@ -454,7 +455,7 @@ def update_envs(yaml_path):
 
 def run_cmd(cmd, check=True):
     """Run a shell command and print it."""
-    if isinstance(cmd, (list, tuple)):
+    if isinstance(cmd, Sequence):
         cmd = " ".join(cmd)
     print(f"Running: {cmd}")
     ret = subprocess.run(cmd, shell=True, check=check)

@@ -2,8 +2,8 @@
 import os
 import re
 from collections import defaultdict
+from collections.abc import Sequence
 import ast
-import urllib
 import random
 import blobfile as bf
 import pandas as pd
@@ -11,16 +11,14 @@ import string
 from pathlib import Path
 from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
-from trl.scripts.error_simu import ErrorSimulator
-from trl.scripts.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
-from trl.scripts.audio_prompts import get_task_prompt
-from trl.scripts.audio_metrics import text_norm
-from trl.scripts.utils import get_config_path, cache_dir, get_value
-from trl.scripts.ner_dataset import ner_ds
-from trl.scripts.chunk_dataset import get_chunk_manager, create_chunk_datasets, to_list
-from trl.data_utils import sf_read
-from trl.trainer.utils import rank_print
-from trl.scripts.storage_utils import get_path_with_options
+from .error_simu import ErrorSimulator
+from .biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
+from .prompts import get_task_prompt
+from .metrics import text_norm
+from .chunk import get_chunk_manager, create_chunk_datasets
+from .utils import get_config_path, get_value, rank_print, dist_state, all_rank_print, to_list
+from .audio_utils import sf_read
+from .storage_utils import get_path_with_options
 
 prompt_format = "<|user|><|audio_1|>{}<|end|><|assistant|>"
 
@@ -115,7 +113,9 @@ def pop_filter_kwargs(kwargs):
     }
 
 
-def ls_bias_dataset(jsonl_path, bias_key=None, with_gt=False, min_word_len=None, bias_sort=False, tag="*", data_dir=None, **kwargs):
+def ls_bias_dataset(
+    jsonl_path, bias_key=None, with_gt=False, min_word_len=None, bias_sort=False, tag="*", data_dir=None, **kwargs
+):
     """Create a dataset from the given split."""
     ds = jsonl_dataset(jsonl_path, **kwargs)
 
@@ -162,7 +162,17 @@ def chunk_dataset(specs, max_cached_chunk=None, **kwargs):
     return ds
 
 
-def entity_dataset(jsonl_path, max_bias=0, entity_file=None, distractor_file=None, word_bias=False, tag="*", src_dir=None, data_dir=None, **kwargs):
+def entity_dataset(
+    jsonl_path,
+    max_bias=0,
+    entity_file=None,
+    distractor_file=None,
+    word_bias=False,
+    tag="*",
+    src_dir=None,
+    data_dir=None,
+    **kwargs,
+):
     ds = jsonl_dataset(jsonl_path, **kwargs)
     distractors = read_words(distractor_file)
     shared_entities = read_words(entity_file)
@@ -222,7 +232,7 @@ def load_tsv(tsv_file, **kwargs):
 
 def tsv_dataset(tsv_paths, **kwargs):
     """Create a dataset from the given split."""
-    if isinstance(tsv_paths, (list, tuple)):
+    if isinstance(tsv_paths, Sequence):
         ds = concatenate_datasets([load_tsv(tsv_path, **kwargs) for tsv_path in tsv_paths])
     else:
         ds = load_tsv(tsv_paths, **kwargs)
@@ -325,7 +335,7 @@ def simulate_preference(ds, **kwargs):
     error_range = kwargs.pop("error_range", (0.1, 0.25))
     num_rejections = kwargs.pop("num_rejections", 1)
     chat = kwargs.get("chat", False)
-    if not isinstance(error_range, (tuple, list)):
+    if not isinstance(error_range, Sequence):
         error_range = [float(error_range), float(error_range)]
     simulator = ErrorSimulator(**kwargs)
 
@@ -400,7 +410,9 @@ def extract_tags(text):
 
 def add_tag_keywords(ds, **kwargs):
     """Add keywords extracted from tags in the text to the dataset."""
-    src_field = kwargs.get("src_field", "info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw")
+    src_field = kwargs.get(
+        "src_field", "info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw"
+    )
     tgt_field = kwargs.get("tgt_field", "keywords")
 
     def tag_keywords(egs):
@@ -437,7 +449,7 @@ def filter_by_keywords(ds, **kwargs):
     n_egs = len(ds)
     ds = ds.filter(is_enough_keywords, **pop_filter_kwargs(kwargs), desc="Filtering keywords")
     n_left = len(ds)
-    print(f"Filtered dataset: {n_egs} => {n_left} [{n_left/n_egs:.2%}] left")
+    print(f"Filtered dataset: {n_egs} => {n_left} [{n_left / n_egs:.2%}] left")
     return ds
 
 
@@ -450,28 +462,22 @@ def wer_filter_ds(ds, **kwargs):
     def is_good(wer, wer_range=None):
         if wer_range is None or wer is None:
             return True
-        if not isinstance(wer_range, (list, tuple)):
+        if not isinstance(wer_range, Sequence):
             wer_range = [wer_range]
         return wer_range[0] <= wer <= wer_range[-1]
 
     def wer_filter_fn(x):
-        good = is_good(x.get("WER", None), wer_range) and is_good(x.get("BWER", None), bwer_range) and is_good(x.get("UWER", None), uwer_range)
+        good = (
+            is_good(x.get("WER", None), wer_range)
+            and is_good(x.get("BWER", None), bwer_range)
+            and is_good(x.get("UWER", None), uwer_range)
+        )
         return good
 
     n_egs = len(ds)
     ds = ds.filter(wer_filter_fn, **pop_filter_kwargs(kwargs))
     all_rank_print(f"Filtered dataset: {n_egs} to {len(ds)}")
     return ds
-
-
-def all_rank_print(*args, **kwargs):
-    rank_print(*args, main=False, **kwargs)
-
-
-def dist_state():
-    from accelerate import PartialState
-
-    return PartialState()
 
 
 def stream_shuffle(ds, **kwargs):
@@ -663,25 +669,25 @@ def num_gpus():
         return 1
 
 
-def tag_entity(ds, **kwargs):
-    """Tag named entities in the transcription."""
-    src_field = kwargs.get("src_field", "text")
-    tgt_field = kwargs.get("tgt_field", "keywords")
-    model_path = kwargs.get("model_path", None)
-    assert model_path is not None, "model_path must be set for NER model"
-    num_actors = kwargs.get("num_proc", None) or num_gpus()
-    bs = kwargs.get("batch_size", 1000)
-    local_model_path = cache_dir(model_path)
-    print(f"Using NER model: {model_path} [{local_model_path}] with {num_actors} actors, {bs} batch size")
-    ds = ner_ds(
-        ds=ds,
-        model_id=local_model_path,
-        src_field=src_field,
-        tgt_field=tgt_field,
-        bs=bs,
-        n_actors=num_actors,
-    )
-    return ds
+# def tag_entity(ds, **kwargs):
+#     """Tag named entities in the transcription."""
+#     src_field = kwargs.get("src_field", "text")
+#     tgt_field = kwargs.get("tgt_field", "keywords")
+#     model_path = kwargs.get("model_path", None)
+#     assert model_path is not None, "model_path must be set for NER model"
+#     num_actors = kwargs.get("num_proc", None) or num_gpus()
+#     bs = kwargs.get("batch_size", 1000)
+#     local_model_path = cache_dir(model_path)
+#     print(f"Using NER model: {model_path} [{local_model_path}] with {num_actors} actors, {bs} batch size")
+#     ds = ner_ds(
+#         ds=ds,
+#         model_id=local_model_path,
+#         src_field=src_field,
+#         tgt_field=tgt_field,
+#         bs=bs,
+#         n_actors=num_actors,
+#     )
+#     return ds
 
 
 def augment(ds, **kwargs):
@@ -703,8 +709,8 @@ def augment(ds, **kwargs):
         ds = add_rare_keywords(ds, **merge_kwargs(map_kwargs, add_rare_keywords_kwargs))
     if add_tag_keywords_kwargs := kwargs.get("add_tag_keywords", {}):
         ds = add_tag_keywords(ds, **merge_kwargs(map_kwargs, add_tag_keywords_kwargs))
-    if tag_entity_kwargs := kwargs.get("tag_entity", {}):
-        ds = tag_entity(ds, **merge_kwargs(map_kwargs, tag_entity_kwargs))
+    # if tag_entity_kwargs := kwargs.get("tag_entity", {}):
+    #     ds = tag_entity(ds, **merge_kwargs(map_kwargs, tag_entity_kwargs))
     if add_prompt_kwargs := kwargs.get("add_prompt", {}):
         ds = add_prompt(ds, **merge_kwargs(map_kwargs, add_prompt_kwargs))
     if post_process_kwargs := kwargs.get("post_process", {}):
@@ -780,7 +786,7 @@ def create_datasets(config):
     """Create dataset."""
     if config is None:
         return None
-    if isinstance(config, (list, tuple)):
+    if isinstance(config, Sequence):
         datasets = {}
         for i, cfg in enumerate(config):
             nickname = cfg.pop("nickname", f"dataset_{i}")
