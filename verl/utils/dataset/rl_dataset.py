@@ -202,14 +202,13 @@ class RLHFDataset(Dataset):
             dataframes.append(dataframe)
         self.dataframe: datasets.Dataset = datasets.concatenate_datasets(dataframes)
 
-        print(f"dataset len: {len(self.dataframe)}")
-        if self.asr_dataset:
-            self.dataframe = self.format_asr_dataset(self.dataframe)
-
+        print(f"Dataset len: {len(self.dataframe)}")
         if self.max_examples > 0:
             n_ds = len(self.dataframe)
             self.dataframe = self.dataframe.take(min(self.max_examples, n_ds))
             print(f"Limit dataset: {n_ds} -> {len(self.dataframe)}")
+        if self.asr_dataset:
+            self.dataframe = self.format_asr_dataset(self.dataframe)
 
         self.dataframe = self.maybe_filter_out_long_prompts(self.dataframe)
 
