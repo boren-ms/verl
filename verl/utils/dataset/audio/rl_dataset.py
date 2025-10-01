@@ -68,6 +68,7 @@ class RLHFDataset(Dataset):
         self.config = config
 
         self.max_prompt_length = config.get("max_prompt_length", 1024)
+        self.max_audio_dur = config.get("max_audio_dur", 40)
         self.prompt_key = config.get("prompt_key", "prompt")
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
@@ -104,7 +105,7 @@ class RLHFDataset(Dataset):
             **self.apply_chat_template_kwargs,
         )
 
-        audios = [load_audio(row_dict)]
+        audios = [load_audio(row_dict, self.max_audio_dur)]
 
         row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
         model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
