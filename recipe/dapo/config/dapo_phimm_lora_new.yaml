@@ -4,57 +4,13 @@ hydra:
 
 defaults:
   - dapo_asr_new
+  - data/test_audio
   - _self_
+
 data:
-  num_proc: 1
   custom_cls:
     path: verl/utils/dataset/audio/rl_dataset.py
     name: RLHFDataset
-  # val_data:
-  #   - nickname: clean_no
-  #     num_egs: 10
-  #     dataset_name: ls_bias
-  #     jsonl_path: /home/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
-  #   - nickname: clean_no2
-  #     num_egs: 100
-  #     dataset_name: ls_bias
-  #     jsonl_path: /home/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
-  val_data:
-    dataset_name: tsv
-    tsv_paths: /home/boren/data/LibriSpeech/debug.tsv
-    pre_process:
-      output_egs_limit: 50
-    cache_name: auto_val
-    num_proc: 1
-    add_rare_keywords:
-      common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
-      common_num: 1000
-    add_prompt:
-      task: asr
-      # forced: True
-    post_process:
-      input_egs_limit: 100
-      filter_by_keywords:
-        min_num: 1
-      output_egs_limit: 40
-  train_data:
-    dataset_name: tsv
-    tsv_paths: /home/boren/data/LibriSpeech/debug.tsv
-    pre_process:
-      output_egs_limit: 50
-    cache_name: auto_train
-    num_proc: 1
-    add_rare_keywords:
-      common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
-      common_num: 1000
-    add_prompt:
-      task: asr
-      # forced: True
-    post_process:
-      input_egs_limit: 100
-      filter_by_keywords:
-        min_num: 1
-      output_egs_limit: 40
 
 actor_rollout_ref:
   model:

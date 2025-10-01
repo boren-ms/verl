@@ -113,26 +113,7 @@ class RLHFDataset(Dataset):
     def load_datasets(self):
         data_sets = [create_audio_dataset(**data_conf) for data_conf in self.data_confs]
         ds = datasets.concatenate_datasets(data_sets)
-        ds = self.format_ds(ds)
         return ds
-
-    def format_ds(self, ds):
-        def format_prompt(example):
-            prompt = example[self.prompt_key]
-            if isinstance(prompt, str):
-                for word in ["<|user|>", "<|end|>", "<|assistant|>"]:
-                    prompt = prompt.replace(word, "")
-                prompt = [{"role": "user", "content": prompt}]
-            output = {self.prompt_key: prompt}
-            output["reward_model"] = {"ground_truth": example.get("text", "")}
-            output["extra_info"] = {
-                "id": example.get("id", 0),
-                "keywords": example.get("keywords", []),
-            }
-            output["data_source"] = "asr"
-            return output
-
-        return ds.map(format_prompt, num_proc=self.num_proc, desc="ASR Formatting")
 
     def resume_dataset_state(self):
         pass
@@ -269,5 +250,5 @@ if __name__ == "__main__":
     # data_conf = "/home/boren/data/parquet/data_conf.yaml"
     tokenizer_path = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct"
     tokenizer_path = "/home/boren/data/ckp/hf_models/phi4_mm_bias_merged"
-    data_yaml = "/home/boren/verl/recipe/dapo/config/audio_data.yaml"
+    data_yaml = "/home/boren/verl/recipe/dapo/config/data/test_audio.yaml"
     main(data_yaml, tokenizer_path)

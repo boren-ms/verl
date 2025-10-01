@@ -11,14 +11,14 @@ import string
 from pathlib import Path
 from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
-from .error_simu import ErrorSimulator
-from .biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
-from .prompts import get_task_prompt
-from .metrics import text_norm
-from .chunk import get_chunk_manager, create_chunk_datasets
-from .utils import get_config_path, get_value, rank_print, dist_state, all_rank_print, to_list
-from .audio_utils import sf_read
-from .storage_utils import get_path_with_options
+from verl.utils.dataset.audio.error_simu import ErrorSimulator
+from verl.utils.dataset.audio.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
+from verl.utils.dataset.audio.prompts import get_task_prompt
+from verl.utils.dataset.audio.metrics import text_norm
+from verl.utils.dataset.audio.chunk import get_chunk_manager, create_chunk_datasets
+from verl.utils.dataset.audio.utils import get_config_path, get_value, rank_print, dist_state, all_rank_print, to_list
+from verl.utils.dataset.audio.audio_utils import sf_read
+from verl.utils.dataset.audio.storage_utils import get_path_with_options
 
 prompt_format = "<|user|><|audio_1|>{}<|end|><|assistant|>"
 
@@ -94,8 +94,18 @@ def update_dir(data_path, src_dir=None, dst_dir=None):
 
 def get_num_proc(num_proc):
     if num_proc == "auto":
-        num_proc = int(os.cpu_count() / dist_state().num_processes)
+        n_cpu = os.cpu_count()
+        n_proc = max(dist_state().num_processes, 2)
+        num_proc = int(n_cpu / n_proc)
     return num_proc
+
+
+def pop_filter_kwargs(kwargs):
+    output = {}
+    streaming = kwargs.get("streaming", False)
+    if (num_proc := kwargs.pop("num_proc", None)) and not streaming:
+        output["num_proc"] = get_num_proc(num_proc)
+    return output
 
 
 def pop_map_kwargs(kwargs):
@@ -108,13 +118,6 @@ def pop_map_kwargs(kwargs):
     if batch_size := kwargs.pop("batch_size", None):
         output["batch_size"] = batch_size
     return output
-
-
-def pop_filter_kwargs(kwargs):
-    n_cores_per_rank = int(os.cpu_count() / dist_state().num_processes)
-    return {
-        "num_proc": kwargs.pop("num_proc", n_cores_per_rank),
-    }
 
 
 def ls_bias_dataset(
@@ -579,6 +582,46 @@ def filter_long_text(ds, **kwargs):
     return ds
 
 
+def to_user_msg(prompt):
+    if not isinstance(prompt, str):
+        return prompt
+
+    for word in ["<|user|>", "<|end|>", "<|assistant|>"]:
+        prompt = prompt.replace(word, "")
+    return [{"role": "user", "content": prompt}]
+
+
+def verl_format_ds(ds, **kwargs):
+    """Format the dataset for verl training."""
+    prompt_key = kwargs.get("prompt_key", "prompt")
+    extra_keys = kwargs.get("extra_keys", ["id", "keywords"])
+
+    def map_fn(egs):
+        return {
+            prompt_key: to_user_msg(egs[prompt_key]),
+            "reward_model": {"ground_truth": egs.get("text", "")},
+            "extra_info": {key: egs.get(key, None) for key in extra_keys},
+            "data_source": egs.get("data_source", "asr"),
+        }
+
+    col_names = [x for x in ds.column_names if not x.startswith("audio")]
+    map_kwargs = pop_map_kwargs(kwargs)
+    map_kwargs["remove_columns"] = list(set(map_kwargs.get("remove_columns", []) + col_names))
+    ds = ds.map(map_fn, **map_kwargs, desc="RL formatting")
+    return ds
+
+
+def add_field_ds(ds, **kwargs):
+    """Add a new field to the dataset."""
+    fields = kwargs.get("fields", {})
+    assert len(fields) == 1, "Only one field can be added at a time"
+
+    def map_fn(egs):
+        return fields
+
+    return ds.map(map_fn, **pop_map_kwargs(kwargs))
+
+
 def process_ds(ds, **kwargs):
     """Post process the dataset."""
     map_kwargs = pop_map_kwargs(kwargs)
@@ -601,6 +644,10 @@ def process_ds(ds, **kwargs):
         ds = shard_ds(ds, **map_kwargs)
     if output_egs_limit := kwargs.get("output_egs_limit", None):
         ds = limit_ds(ds, egs_limit=output_egs_limit)
+    if add_field_kwargs := kwargs.get("add_field", {}):
+        ds = add_field_ds(ds, **merge_kwargs(map_kwargs, add_field_kwargs))
+    if verl_format_kwargs := kwargs.get("verl_format", {}):
+        ds = verl_format_ds(ds, **merge_kwargs(map_kwargs, verl_format_kwargs))
     return ds
 
 
@@ -692,26 +739,25 @@ def num_gpus():
     else:
         return 1
 
-
-# def tag_entity(ds, **kwargs):
-#     """Tag named entities in the transcription."""
-#     src_field = kwargs.get("src_field", "text")
-#     tgt_field = kwargs.get("tgt_field", "keywords")
-#     model_path = kwargs.get("model_path", None)
-#     assert model_path is not None, "model_path must be set for NER model"
-#     num_actors = kwargs.get("num_proc", None) or num_gpus()
-#     bs = kwargs.get("batch_size", 1000)
-#     local_model_path = cache_dir(model_path)
-#     print(f"Using NER model: {model_path} [{local_model_path}] with {num_actors} actors, {bs} batch size")
-#     ds = ner_ds(
-#         ds=ds,
-#         model_id=local_model_path,
-#         src_field=src_field,
-#         tgt_field=tgt_field,
-#         bs=bs,
-#         n_actors=num_actors,
-#     )
-#     return ds
+    # def tag_entity(ds, **kwargs):
+    #     """Tag named entities in the transcription."""
+    #     src_field = kwargs.get("src_field", "text")
+    #     tgt_field = kwargs.get("tgt_field", "keywords")
+    #     model_path = kwargs.get("model_path", None)
+    #     assert model_path is not None, "model_path must be set for NER model"
+    #     num_actors = kwargs.get("num_proc", None) or num_gpus()
+    #     bs = kwargs.get("batch_size", 1000)
+    #     local_model_path = cache_dir(model_path)
+    #     print(f"Using NER model: {model_path} [{local_model_path}] with {num_actors} actors, {bs} batch size")
+    #     ds = ner_ds(
+    #         ds=ds,
+    #         model_id=local_model_path,
+    #         src_field=src_field,
+    #         tgt_field=tgt_field,
+    #         bs=bs,
+    #         n_actors=num_actors,
+    #     )
+    #     return ds
 
 
 def augment(ds, **kwargs):
@@ -829,12 +875,11 @@ if __name__ == "__main__":
     # dataset = create_dataset(name="openasr", head=2)
     # print(dataset)
     # print(dataset[0]["text"])
-    tsv_path = "/datablob1/users/ruchaofan/wavllm_data/wavllm/converted_path_train_data_4chunk/asr_train_transcribe.tsv"
+    tsv_path = "recipe/dapo/config/data/test_audio.yaml"
     import yaml
 
-    yaml_file = Path("/mnt2/newhome/boren/trl/orng_conf/biasing/debug/dpo_bias_debug_local.yaml")
-    kwargs = yaml.safe_load(yaml_file.read_text())
-    ds = create_audio_dataset(**kwargs["train_data"])
+    kwargs = yaml.safe_load(Path(tsv_path).read_text())["data"]
+    ds = create_datasets(kwargs["val_data"])
     print(ds)
     print(next(iter(ds)))
 
