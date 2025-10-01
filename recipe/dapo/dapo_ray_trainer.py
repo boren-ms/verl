@@ -28,11 +28,12 @@ from tqdm import tqdm
 
 from verl import DataProto
 from verl.trainer.ppo.core_algos import agg_loss
+
+from verl.utils.metric import reduce_metrics
 from verl.trainer.ppo.metric_utils import (
     compute_data_metrics,
     compute_throughout_metrics,
     compute_timing_metrics,
-    reduce_metrics,
 )
 from verl.trainer.ppo.ray_trainer import (
     AdvantageEstimator,

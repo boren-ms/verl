@@ -158,6 +158,8 @@ class RLHFDataset(Dataset):
 
         row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
         model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
+        input_ids = model_inputs.pop("input_ids")
+        attention_mask = model_inputs.pop("attention_mask")
 
         if self.return_multi_modal_inputs:
             inputs_dict = dict(model_inputs)
@@ -171,8 +173,6 @@ class RLHFDataset(Dataset):
                 )
             row_dict["multi_modal_inputs"] = inputs_dict
 
-        input_ids = model_inputs.pop("input_ids")
-        attention_mask = model_inputs.pop("attention_mask")
         input_ids, attention_mask = verl_F.postprocess_data(
             input_ids=input_ids,
             attention_mask=attention_mask,

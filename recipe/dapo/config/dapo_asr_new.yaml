@@ -3,6 +3,8 @@ defaults:
   - _self_
 
 data:
+  train_files: null
+  val_files: null
   trust_remote_code: true
   max_prompt_length: 8192
   train_batch_size: 8 # 32
