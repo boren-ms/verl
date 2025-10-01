@@ -73,7 +73,8 @@ class Tracking:
             host = os.environ.get("WANDB_ORGANIZATION", host)
             print("Logging WANDB host:", host)
             wandb.login(host=host, key=key, relogin=True)  # relogin to make sure the key is used
-            wandb.init(project=project_name, name=experiment_name, config=config, settings=settings)
+            entity = os.environ.get("WANDB_ENTITY", "genai")
+            wandb.init(entity=entity, project=project_name, name=experiment_name, config=config, settings=settings)
             self.logger["wandb"] = wandb
 
         if "trackio" in default_backend:
