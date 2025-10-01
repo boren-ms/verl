@@ -151,32 +151,12 @@ class RLHFDataset(Dataset):
     def __len__(self):
         return len(self.ds)
 
-    def _build_messages(self, example: dict):
-        messages: list = example.pop(self.prompt_key)
-        if self.image_key in example or self.video_key in example:
-            for message in messages:
-                content = message["content"]
-                content_list = []
-                segments = re.split("(<image>|<video>|<audio>)", content)
-                segments = [item for item in segments if item != ""]
-                for segment in segments:
-                    if segment == "<image>":
-                        content_list.append({"type": "image"})
-                    elif segment == "<video>":
-                        content_list.append({"type": "video"})
-                    elif segment in ("<audio>", "<|audio_1|>"):
-                        content_list.append({"type": "audio"})
-                    else:
-                        content_list.append({"type": "text", "text": segment})
-                message["content"] = content_list
-        return messages
-
     def __getitem__(self, i):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
         row_dict: dict = self.ds[i]
-        messages = self._build_messages(row_dict)
+        messages = row_dict[self.prompt_key]
 
         raw_prompt = self.processor.apply_chat_template(
             messages,
