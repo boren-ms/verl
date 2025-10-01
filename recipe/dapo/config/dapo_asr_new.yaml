@@ -9,6 +9,7 @@ data:
   max_prompt_length: 8192
   train_batch_size: 8 # 32
   gen_batch_size: 16 # 32 * n_rollout
+
 algorithm:
   adv_estimator: grpo
   use_kl_in_reward: false
@@ -39,7 +40,7 @@ actor_rollout_ref:
       use_orig_params: true
     strategy: fsdp2
   model:
-    path: ${model_path}
+    path: null
     trust_remote_code: true
     use_remove_padding: true
     use_fused_kernels: false
@@ -82,4 +83,3 @@ trainer:
   val_before_train: true
   total_training_steps: null # disable steps
 
-model_path: /root/data/ckp/hf_models/phi4_mm_bias_merged

@@ -4,7 +4,7 @@ set -xeuo pipefail
 HOME=/home/boren
 MODEL_PATH=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
 
-config_name=dapo_phimm_lora_new
+config_name=dapo_phimm_lora_new_local
 
 python3 -m recipe.dapo.main_dapo \
 --config-name ${config_name} \
