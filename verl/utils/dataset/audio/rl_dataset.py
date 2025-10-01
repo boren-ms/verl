@@ -14,7 +14,7 @@ from transformers import PreTrainedTokenizer, ProcessorMixin
 
 import verl.utils.torch_functional as verl_F
 from verl.utils.model import compute_position_id_with_mask
-from verl.utils.dataset.audio.dataset import create_audio_dataset
+from verl.utils.dataset.audio.dataset import create_audio_dataset, get_num_proc
 from verl.utils.dataset.audio.audio_utils import load_audio
 
 logger = logging.getLogger(__name__)
@@ -100,20 +100,14 @@ class RLHFDataset(Dataset):
 
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.prompt_key = config.get("prompt_key", "prompt")
-        self.image_key = config.get("image_key", "images")
-        self.audio_key = config.get("audio_key", "audios")
-        self.video_key = config.get("video_key", "videos")
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "error")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
-
-        self.num_workers = None  # for debug
+        self.num_proc = get_num_proc(config.get("num_proc", "auto"))
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
-        self.serialize_dataset = False
         self.return_multi_modal_inputs = config.get("return_multi_modal_inputs", True)
-
         self.ds = self.load_datasets()
 
     def load_datasets(self):
@@ -130,10 +124,6 @@ class RLHFDataset(Dataset):
                     prompt = prompt.replace(word, "")
                 prompt = [{"role": "user", "content": prompt}]
             output = {self.prompt_key: prompt}
-            if audios := example.get(self.audio_key, None):
-                if not isinstance(audios, Sequence):
-                    audios = [audios]
-                output[self.audio_key] = audios
             output["reward_model"] = {"ground_truth": example.get("text", "")}
             output["extra_info"] = {
                 "id": example.get("id", 0),
@@ -142,8 +132,7 @@ class RLHFDataset(Dataset):
             output["data_source"] = "asr"
             return output
 
-        ds = ds.map(format_prompt, num_proc=self.num_workers, desc="ASR Formatting")
-        return ds
+        return ds.map(format_prompt, num_proc=self.num_proc, desc="ASR Formatting")
 
     def resume_dataset_state(self):
         pass
@@ -263,6 +252,7 @@ def main(config_path, tokenizer_path, data_files=None):
     )  # must have for phi4mm
     data_files = config.get("train_files", None)
     data_conf = config.get("train_data", None)
+    # data_conf = config.get("val_data", None)
     dataset = RLHFDataset(data_conf, tokenizer, config, processor)
     from torchdata.stateful_dataloader import StatefulDataLoader
 

@@ -265,7 +265,8 @@ def get_collate_fn(dataset, collate_fn=None):
     from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
     from verl.utils.dataset.rl_dataset import dynamic_collate_fn
 
-    return default_collate_fn if dataset.pad_to_max else dynamic_collate_fn
+    pad_to_max = getattr(dataset, "pad_to_max", True)
+    return default_collate_fn if pad_to_max else dynamic_collate_fn
 
 
 class RayPPOTrainer:
@@ -357,13 +358,11 @@ class RayPPOTrainer:
         from verl.trainer.main_ppo import create_rl_dataset, create_rl_sampler
 
         if train_dataset is None:
-            train_dataset = create_rl_dataset(
-                self.config.data.train_files, self.config.data, self.tokenizer, self.processor
-            )
+            train_data = self.config.data.get("train_data", None) or self.config.data.get("train_files", None)
+            train_dataset = create_rl_dataset(train_data, self.config.data, self.tokenizer, self.processor)
         if val_dataset is None:
-            val_dataset = create_rl_dataset(
-                self.config.data.val_files, self.config.data, self.tokenizer, self.processor
-            )
+            val_data = self.config.data.get("val_data", None) or self.config.data.get("val_files", None)
+            val_dataset = create_rl_dataset(val_data, self.config.data, self.tokenizer, self.processor)
         self.train_dataset, self.val_dataset = train_dataset, val_dataset
 
         if train_sampler is None:

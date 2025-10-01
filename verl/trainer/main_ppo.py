@@ -316,11 +316,11 @@ class TaskRunner:
         trainer.fit()
 
 
-def create_rl_dataset(data_paths, data_config, tokenizer, processor, is_train=True):
+def create_rl_dataset(datas, data_config, tokenizer, processor, is_train=True):
     """Create a dataset.
 
     Arguments:
-        data_paths: List of paths to data files.
+        datas: List of datas (files/configs).
         data_config: The data config.
         tokenizer (Tokenizer): The tokenizer.
         processor (Processor): The processor.
@@ -332,6 +332,7 @@ def create_rl_dataset(data_paths, data_config, tokenizer, processor, is_train=Tr
 
     from verl.utils.dataset.rl_dataset import RLHFDataset
 
+    # breakpoint()
     # Check if a custom dataset class is specified in the data configuration
     # and if the path to the custom class is provided
     if "custom_cls" in data_config and data_config.custom_cls.get("path", None) is not None:
@@ -357,7 +358,7 @@ def create_rl_dataset(data_paths, data_config, tokenizer, processor, is_train=Tr
 
     # Instantiate the dataset using the determined dataset class
     dataset = dataset_cls(
-        data_files=data_paths,
+        datas,
         tokenizer=tokenizer,
         processor=processor,
         config=data_config,

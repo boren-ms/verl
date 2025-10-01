@@ -2,9 +2,9 @@
 import os
 import re
 from collections import defaultdict
-from collections.abc import Sequence
 import ast
 import random
+import uuid
 import blobfile as bf
 import pandas as pd
 import string
@@ -92,13 +92,17 @@ def update_dir(data_path, src_dir=None, dst_dir=None):
     return data_path.replace(src_dir, dst_dir) if data_path.startswith(src_dir) else data_path
 
 
+def get_num_proc(num_proc):
+    if num_proc == "auto":
+        num_proc = int(os.cpu_count() / dist_state().num_processes)
+    return num_proc
+
+
 def pop_map_kwargs(kwargs):
     output = {}
     streaming = kwargs.get("streaming", False)
     if (num_proc := kwargs.pop("num_proc", None)) and not streaming:
-        if num_proc == "auto":
-            num_proc = int(os.cpu_count() / dist_state().num_processes)
-        output["num_proc"] = num_proc
+        output["num_proc"] = get_num_proc(num_proc)
     if remove_columns := kwargs.pop("remove_columns", None):
         output["remove_columns"] = remove_columns
     if batch_size := kwargs.pop("batch_size", None):
@@ -216,6 +220,8 @@ def entity_dataset(
 
 def load_tsv(tsv_file, **kwargs):
     """Load a TSV file into a dataset."""
+    # breakpoint()
+
     fs_path, options = get_path_with_options(tsv_file)
     ds = load_dataset(
         "csv",
@@ -232,7 +238,7 @@ def load_tsv(tsv_file, **kwargs):
 
 def tsv_dataset(tsv_paths, **kwargs):
     """Create a dataset from the given split."""
-    if isinstance(tsv_paths, Sequence):
+    if isinstance(tsv_paths, (list, tuple)):
         ds = concatenate_datasets([load_tsv(tsv_path, **kwargs) for tsv_path in tsv_paths])
     else:
         ds = load_tsv(tsv_paths, **kwargs)
@@ -335,7 +341,7 @@ def simulate_preference(ds, **kwargs):
     error_range = kwargs.pop("error_range", (0.1, 0.25))
     num_rejections = kwargs.pop("num_rejections", 1)
     chat = kwargs.get("chat", False)
-    if not isinstance(error_range, Sequence):
+    if not isinstance(error_range, (list, tuple)):
         error_range = [float(error_range), float(error_range)]
     simulator = ErrorSimulator(**kwargs)
 
@@ -462,7 +468,7 @@ def wer_filter_ds(ds, **kwargs):
     def is_good(wer, wer_range=None):
         if wer_range is None or wer is None:
             return True
-        if not isinstance(wer_range, Sequence):
+        if not isinstance(wer_range, (list, tuple)):
             wer_range = [wer_range]
         return wer_range[0] <= wer <= wer_range[-1]
 
@@ -555,6 +561,24 @@ def limit_ds(ds, egs_limit=None):
     return ds
 
 
+def filter_long_text(ds, **kwargs):
+    max_length = kwargs.get("max_length", None)
+    assert max_length is not None, "max_length must be set"
+    tokenizer_path = kwargs.get("tokenizer_path", None)
+    assert tokenizer_path is not None, "tokenizer_path must be set"
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+
+    def filter_fn(example):
+        prompt = example.get("prompt", "").replace("<|audio_1|>", "")
+        ids = tokenizer(prompt, truncation=False)["input_ids"]
+        return len(ids) <= max_length
+
+    ds = ds.filter(filter_fn, **pop_filter_kwargs(kwargs), desc="Filtering long text prompts")
+    return ds
+
+
 def process_ds(ds, **kwargs):
     """Post process the dataset."""
     map_kwargs = pop_map_kwargs(kwargs)
@@ -563,8 +587,8 @@ def process_ds(ds, **kwargs):
     # ds = stream_shuffle(ds, **kwargs)
     if filter_by_keywords_kwargs := kwargs.get("filter_by_keywords", {}):
         ds = filter_by_keywords(ds, **merge_kwargs(map_kwargs, filter_by_keywords_kwargs))
-    if filter_kwargs := kwargs.get("filter", {}):
-        ds = filter_ds(ds, **merge_kwargs(map_kwargs, filter_kwargs))
+    if filter_long_text_kwargs := kwargs.get("filter_long_text", {}):
+        ds = filter_long_text(ds, **merge_kwargs(map_kwargs, filter_long_text_kwargs))
     if wer_filter_kwargs := kwargs.get("wer_filter", {}):
         ds = wer_filter_ds(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
     if path_map_kwargs := kwargs.get("path_map", {}):
@@ -724,8 +748,10 @@ def cache_ds(**kwargs):
         return None, None
     if cache_name.startswith("auto"):
         config_path = get_config_path()  # ensure config path is set
-        assert config_path is not None, "config_path must be set for auto cache_name"
-        cache_name = Path(config_path).stem + cache_name[4:]  # e.g. auto -> config name + rest
+        if config_path is not None:
+            cache_name = Path(config_path).stem + cache_name[4:]  # e.g. auto -> config name + rest
+        else:
+            cache_name = uuid.uuid4().hex + cache_name[4:]
     cache_dir = kwargs.get("cache_dir", Path().home() / "data/cache_datasets")
     cache_path = Path(cache_dir) / cache_name
     ds = load_cached_ds(cache_path)
@@ -786,7 +812,7 @@ def create_datasets(config):
     """Create dataset."""
     if config is None:
         return None
-    if isinstance(config, Sequence):
+    if isinstance(config, (list, tuple)):
         datasets = {}
         for i, cfg in enumerate(config):
             nickname = cfg.pop("nickname", f"dataset_{i}")

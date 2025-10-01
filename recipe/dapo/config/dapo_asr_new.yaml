@@ -3,15 +3,8 @@ defaults:
   - _self_
 
 data:
-  train_files: ${train_files}
-  val_files: ${val_files}
-  asr_dataset: true
-  pad_to_max: true # why to dynamic pad
-  audio_key: audio_path
   trust_remote_code: true
-  filter_overlong_prompts: false # too slow due to load audio
   max_prompt_length: 8192
-  max_response_length: 1024
   train_batch_size: 8 # 32
   gen_batch_size: 16 # 32 * n_rollout
 algorithm:
@@ -87,6 +80,4 @@ trainer:
   val_before_train: true
   total_training_steps: null # disable steps
 
-train_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
-val_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
 model_path: /root/data/ckp/hf_models/phi4_mm_bias_merged
