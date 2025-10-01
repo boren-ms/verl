@@ -39,6 +39,7 @@ actor_rollout_ref:
     optim:
       lr: 1e-5
       warmup_style: cosine
+      min_lr_ratio: 0.0 # min lr = lr * min_lr_ratio
     ppo_mini_batch_size: 4
     ppo_micro_batch_size_per_gpu: 1
     fsdp_config:
