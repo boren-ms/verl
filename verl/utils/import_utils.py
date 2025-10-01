@@ -19,6 +19,7 @@ We assume package availability won't change during runtime.
 import importlib
 import importlib.util
 import os
+from pathlib import Path
 import warnings
 from functools import cache, wraps
 from typing import Optional
@@ -97,6 +98,10 @@ def load_extern_type(file_path: Optional[str], type_name: Optional[str]) -> type
         # or without file:// prefix
         if file_path.startswith("file://"):
             file_path = file_path[7:]
+
+        if not Path(file_path).is_absolute():
+            cur_dir = Path(__file__).parents[3]
+            file_path = str(cur_dir / file_path)
 
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Custom type file '{file_path}' not found.")
