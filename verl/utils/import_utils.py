@@ -100,7 +100,7 @@ def load_extern_type(file_path: Optional[str], type_name: Optional[str]) -> type
             file_path = file_path[7:]
 
         if not Path(file_path).is_absolute():
-            cur_dir = Path(__file__).parents[3]
+            cur_dir = Path(__file__).parents[2]
             file_path = str(cur_dir / file_path)
 
         if not os.path.exists(file_path):
