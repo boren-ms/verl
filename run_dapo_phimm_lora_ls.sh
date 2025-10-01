@@ -2,7 +2,8 @@
 set -xeuo pipefail
 
 HOME=/root
-export DATA_PATH=az://${DATA_STORAGE}/data/boren/data
+# export DATA_PATH=az://${DATA_STORAGE}/data/boren/data
+export DATA_PATH="az://orngcresco/data/boren/data"
 export MODEL_PATH=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
 
 batch_size=128

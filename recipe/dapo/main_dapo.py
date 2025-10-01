@@ -27,6 +27,8 @@ from verl.utils.device import is_cuda_available
 
 from .dapo_ray_trainer import RayDAPOTrainer
 
+ENV_VARS = ["DATA_PATH"]
+
 
 @hydra.main(config_path="config", config_name="dapo_trainer", version_base=None)
 def main(config):
@@ -47,6 +49,7 @@ def run_ppo(config) -> None:
         ray.init(**OmegaConf.to_container(ray_init_kwargs))
 
     try:
+        runtime_env = {"env_vars": {k: os.environ.get(k) for k in ENV_VARS}}
         if (
             is_cuda_available
             and config.global_profiler.tool == "nsys"
@@ -56,9 +59,8 @@ def run_ppo(config) -> None:
             nsight_options = OmegaConf.to_container(
                 config.global_profiler.global_tool_config.nsys.controller_nsight_options
             )
-            runner = TaskRunner.options(runtime_env={"nsight": nsight_options}).remote()
-        else:
-            runner = TaskRunner.remote()
+            runtime_env["nsight"] = nsight_options
+        runner = TaskRunner.options(runtime_env=runtime_env).remote()
         ray.get(runner.run.remote(config))
     finally:
         if ray.is_initialized():
