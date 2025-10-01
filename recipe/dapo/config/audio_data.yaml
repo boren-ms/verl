@@ -1,19 +1,20 @@
 data:
-    audio_key: "audio_path"
-    asr_dataset: True
-    filter_overlong_prompts: False
     max_prompt_length: 1024
     max_response_length: 2048
-
     train_data:
-        dataset_name: cached
-        cache_path: /home/boren/data/cache_datasets/ls_sc1k_fr01
-        pre_process:
-            num_egs: 100
-            path_map:
-                field: audio_path
-                src_part: /root/data/
-                dst_part: /home/boren/data/
+        dataset_name: chunk
+        # max_chunks: 2
+        # max_egs: 30
+        specs: [/home/boren/data/inhouse/data_spec/local_debug.json]
+        # train_data:
+        #     dataset_name: cached
+        #     cache_path: /home/boren/data/cache_datasets/ls_sc1k_fr01
+        # pre_process:
+        #     num_egs: 100
+        #     path_map:
+        #         field: audio_path
+        #         src_part: /root/data/
+        #         dst_part: /home/boren/data/
         biasing:
             hit_prob: 1
             bias_prob: 0.8

@@ -487,7 +487,7 @@ def stream_shuffle(ds, **kwargs):
         num_shards = kwargs.get("num_shards", dist_state().num_processes)  # this is shared with shard_ds
         ds = ds.to_iterable_dataset(num_shards=num_shards)
     num_egs = kwargs.get("num_egs", None)
-    if num_egs is not None:
+    if num_egs is not None and num_egs > len(ds):
         ds = ds.take(num_egs)
     return ds
 
@@ -560,7 +560,7 @@ def process_ds(ds, **kwargs):
     map_kwargs = pop_map_kwargs(kwargs)
     if input_egs_limit := kwargs.get("input_egs_limit", None):
         ds = limit_ds(ds, egs_limit=input_egs_limit)
-    ds = stream_shuffle(ds, **kwargs)
+    # ds = stream_shuffle(ds, **kwargs)
     if filter_by_keywords_kwargs := kwargs.get("filter_by_keywords", {}):
         ds = filter_by_keywords(ds, **merge_kwargs(map_kwargs, filter_by_keywords_kwargs))
     if filter_kwargs := kwargs.get("filter", {}):
