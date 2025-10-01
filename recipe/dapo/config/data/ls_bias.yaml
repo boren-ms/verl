@@ -2,7 +2,7 @@ val_data:
   - nickname: clean_no
     dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
-    data_dir: az://${DATA_STORAGE}/data/boren/data
+    data_dir: ${oc.env:DATA_PATH}
     post_process:
       add_field:
         fields:
@@ -12,7 +12,7 @@ val_data:
   - nickname: other_no
     dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
-    data_dir: az://${DATA_STORAGE}/data/boren/data
+    data_dir: ${oc.env:DATA_PATH}
     post_process:
       add_field:
         fields:
@@ -23,7 +23,7 @@ train_data:
   dataset_name: tsv
   # num_egs: 5000
   # tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/debug.tsv
-  tsv_paths: az://${DATA_STORAGE}/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
+  tsv_paths: ${oc.env:DATA_PATH}/LibriSpeech/asr_train_transcribe.tsv
   biasing:
     buffer_size: 100000
     max_piece_len: 1
@@ -35,7 +35,7 @@ train_data:
     sampling_version: v2
     hit_ratio: [0.9, 1.0]
     log_interval: 10000 # print biasing every 10000 samples
-    common_word_file: az://${DATA_STORAGE}/data/boren/data/librispeech_biasing/words/all_words.count.txt
+    common_word_file: ${oc.env:DATA_PATH}/librispeech_biasing/words/all_words.count.txt
     common_word_num: 1000
   post_process:
     add_field:

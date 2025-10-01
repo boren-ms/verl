@@ -2,7 +2,8 @@
 set -xeuo pipefail
 
 HOME=/home/boren
-MODEL_PATH=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
+export MODEL_PATH=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
+export DATA_PATH=${HOME}/data # used in yamls
 
 config_name=dapo_phimm_lora_new_local
 

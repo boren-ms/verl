@@ -2,23 +2,19 @@
 set -xeuo pipefail
 
 HOME=/root
-model_path=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
-
-train_data=${HOME}/data/parquet/ls_sc1k_fn1_remote.parquet
-test_data=${HOME}/data/parquet/ls_sc1k_fn1_h100_remote.parquet
+export DATA_PATH=az://${DATA_STORAGE}/data/boren/data
+export MODEL_PATH=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
 
 batch_size=128
 
 python3 -m recipe.dapo.main_dapo \
---config-name dapo_phimm_lora \
-data.train_files=${train_data} \
-data.val_files=${test_data} \
+--config-name dapo_phimm_lora_ls \
 data.train_batch_size=${batch_size} \
 data.gen_batch_size=$((batch_size * 3 / 2)) \
 actor_rollout_ref.rollout.n=8 \
 +data.eval_num_examine=5 \
 +data.train_num_examine=1 \
-actor_rollout_ref.model.path=${model_path} \
+actor_rollout_ref.model.path=${MODEL_PATH} \
 actor_rollout_ref.actor.ppo_mini_batch_size=$((batch_size * 8)) \
 actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=${batch_size} \
 actor_rollout_ref.actor.entropy_coeff=0 \
