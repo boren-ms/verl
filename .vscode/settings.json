@@ -12,4 +12,13 @@
     "pylint.enabled": false,
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "python-envs.pythonProjects": [],
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash",
+            "args": [
+                "-l"
+            ]
+        },
+    },
+    "terminal.integrated.defaultProfile.linux": "zsh"
 }

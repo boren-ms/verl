@@ -100,12 +100,7 @@ def get_task_script(task=None, config_file=None):
     """Return the script path for the given task."""
     assert task or config_file, "Either task or config_file must be provided"
     cur_dir = Path(__file__).parent
-    tasks = {
-        "grpo": cur_dir / "trl/scripts/grpo_bias.py",
-        "dpo": cur_dir / "trl/scripts/dpo_bias.py",
-        "sft": cur_dir / "trl/scripts/sft_bias.py",
-        "online_dpo": cur_dir / "trl/scripts/online_dpo_bias.py",  # add alias
-    }
+    tasks = {"dapo": cur_dir / "recipe/dapo/main_dapo.py"}
 
     if not task and config_file:
         name_parts = Path(config_file).parent.name.split("_")
@@ -152,7 +147,14 @@ def main(config_file, task=None, forced=False, acc=None, seed_name=None, nodes=N
     watcher = ray_node.run_output_watcher(output_dir, remote_output_dir, 600)
 
     print(f"Launching training with {config_file}...")
-    ray_node.run(launch_training, str(script_path), str(config_file), output_dir=str(output_dir), acc_config=acc_config, ray_node=ray_node)
+    ray_node.run(
+        launch_training,
+        str(script_path),
+        str(config_file),
+        output_dir=str(output_dir),
+        acc_config=acc_config,
+        ray_node=ray_node,
+    )
     print("Training completed on all nodes.")
 
     print("Launching evaluation on all nodes")
