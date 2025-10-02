@@ -1,23 +1,38 @@
-# Copyright 2024 Bytedance Ltd. and/or its affiliates
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from jiwer import wer
 from jiwer import transforms as tr
+from jiwer import process_words
+from dataclasses import dataclass
 
 
-def calc_wer(hyp, ref):
-    norm = tr.Compose(
+@dataclass
+class Error:
+    S: int  # substitution
+    D: int  # deletion
+    I: int  # insertion
+    H: int  # hit
+
+    @property
+    def total(self):
+        return self.S + self.D + self.H
+
+    @property
+    def count(self):
+        return self.S + self.D + self.I
+
+    @property
+    def accuracy(self):
+        if self.total == 0:
+            return 0.0
+        return self.H / self.total
+
+    @property
+    def wer(self):
+        if self.total == 0:
+            return 0.0
+        return self.count / self.total
+
+
+def measure(hyp, ref, **kwargs):
+    tn = tr.Compose(
         [
             tr.ToLowerCase(),
             tr.ExpandCommonEnglishContractions(),
@@ -29,10 +44,32 @@ def calc_wer(hyp, ref):
             tr.ReduceToListOfListOfWords(),
         ]
     )
-    return wer(ref, hyp, norm, norm)
+    output = process_words(
+        truth=ref,
+        hypothesis=hyp,
+        truth_transform=tn,
+        hypothesis_transform=tn,
+    )
+    return Error(S=output.substitutions, D=output.deletions, I=output.insertions, H=output.hits)
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for Speech Recognition."""
     # breakpoint()
-    return 0 - calc_wer(solution_str, ground_truth)
+    error = measure(solution_str, ground_truth)
+    return 0 - error.wer
+
+
+def wer(solution_str, ground_truth, **kwargs):
+    error = measure(solution_str, ground_truth)
+    return 0 - error.wer
+
+
+def accuracy(solution_str, ground_truth, **kwargs):
+    error = measure(solution_str, ground_truth)
+    return error.accuracy
+
+
+def error_count(solution_str, ground_truth, **kwargs):
+    error = measure(solution_str, ground_truth)
+    return 0 - error.count
