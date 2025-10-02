@@ -53,6 +53,10 @@ def get_config_path(config_path=None):
         config_index = sys.argv.index("--config") + 1
         if config_index < len(sys.argv):
             return Path(sys.argv[config_index]).resolve()
+    if "--config-name" in sys.argv:
+        config_index = sys.argv.index("--config-name") + 1
+        if config_index < len(sys.argv):
+            return Path(sys.argv[config_index])
     return None
 
 

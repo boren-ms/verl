@@ -77,7 +77,7 @@ class TaskRunner:
 
         from verl.utils.fs import copy_to_local
 
-        print(f"TaskRunner hostname: {socket.gethostname()}, PID: {os.getpid()}")
+        print(f"TaskRunner hostname: {socket.gethostname()}, PID: {os.getpid()}, CWD: {os.getcwd()}")
 
         pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
         OmegaConf.resolve(config)
