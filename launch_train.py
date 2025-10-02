@@ -8,8 +8,8 @@ import ray
 import fire
 from ray_tool import (
     RayNode,
-    update_envs,
     get_output_dirs,
+    ORNG_USER,
 )
 from launch_eval import evaluate_model
 
@@ -36,61 +36,36 @@ def get_job_name(config_file, acc_config=None, n_node=1):
 
 
 @ray.remote
-def launch_training(script_path, config_file, output_dir, acc_config=None, ray_node=None):
+def launch_training(script_path, config_file, output_dir):
     """Launch training using the specified YAML config file."""
     config_file = Path(config_file).absolute()
-    ray_node = ray_node or RayNode()
-    n_nodes = ray_node.num_nodes
-
-    job_name = get_job_name(config_file, acc_config, n_nodes)
-    config_file = dup_config_file(config_file, job_name)
-
-    update_envs(config_file)
-
-    cur_dir = Path(__file__).parent
-    os.chdir(cur_dir)
-    print(f"Working Dir: {os.getcwd()}")
-
-    os.makedirs(output_dir, exist_ok=True)
+    config_name = config_file.stem
+    config_path = config_file.parent
     print(f"Using config file: {config_file}")
     print(f"Output directory: {output_dir}")
 
-    head = ray_node.indexs[0]
-    rank = int(os.environ.get("RCALL_INSTANCE_INDEX", "0")) - head
-    num_gpu = int(os.environ.get("RCALL_NUM_GPU", "8"))
-    main_process_ip = ray_node.hostname()
-    main_process_port = 12345
-    acc_args = ["--config_file", str(acc_config)] if acc_config else []
     cmd = [
-        "accelerate",
-        "launch",
-        *acc_args,
-        "--num_processes",
-        str(num_gpu * n_nodes),
-        "--num_machines",
-        str(n_nodes),
-        "--machine_rank",
-        str(rank),
-        "--main_process_ip",
-        str(main_process_ip),
-        "--main_process_port",
-        str(main_process_port),
-        str(script_path),
-        "--config",
-        str(config_file),
-        "--output-dir",
-        str(output_dir),
+        "python3",
+        script_path,
+        "--config-name",
+        config_name,
+        "--config-path",
+        str(config_path),
+        f"trainer.experiment_name=${config_name}",
+        f"trainer.default_local_dir=${output_dir}",
     ]
+    env = {"DATA_PATH": ORNG_USER.data_path()}
 
     rcall_logdir = os.environ.get("RCALL_LOGDIR", os.path.expanduser("~/logs"))
     os.makedirs(rcall_logdir, exist_ok=True)
-    rank_log_file = os.path.join(rcall_logdir, f"{config_file.stem}_rank_{rank}.log")
-    print(f"Logging to {rank_log_file}")
-    with open(rank_log_file, "w") as logf:
+    log_file = os.path.join(rcall_logdir, f"{config_name}.log")
+    print(f"Logging to {log_file}")
+    with open(log_file, "w") as logf:
         logf.write(f"Running {' '.join(cmd)}\n")
+        logf.write(f"Environment Variables:\n {env}")
     # Optionally, printenv could be logged here
-    with open(rank_log_file, "a") as logf:
-        process = subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT)
+    with open(log_file, "a") as logf:
+        process = subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT, env=env)
         process.communicate()
         if process.returncode != 0:
             raise subprocess.CalledProcessError(process.returncode, cmd)
@@ -125,18 +100,16 @@ def get_acc_config(name=None):
     return name_dict.get(name, None)
 
 
-def main(config_file, task=None, forced=False, acc=None, seed_name=None, nodes=None):
+def main(config_file, task=None, forced=False, seed_name=None, nodes=None):
     """Launch the job on all nodes by preparing the environment and data."""
     script_path = get_task_script(task, config_file)
     print(f"Using script: {script_path}")
     ray_node = RayNode(nodes)
 
     config_file = Path(config_file).absolute()
-    acc_config = get_acc_config(acc)
-    job_name = get_job_name(config_file, acc_config, ray_node.num_nodes)
+    job_name = config_file.stem
 
     print(f"Training config: {config_file}")
-    print(f"Accelerate config: {acc_config}")
     print(f"Job name: {job_name}")
     output_dir, remote_output_dir = get_output_dirs(job_name)
     remote_seed_dir = remote_output_dir.replace(job_name, seed_name) if seed_name else remote_output_dir
@@ -147,14 +120,7 @@ def main(config_file, task=None, forced=False, acc=None, seed_name=None, nodes=N
     watcher = ray_node.run_output_watcher(output_dir, remote_output_dir, 600)
 
     print(f"Launching training with {config_file}...")
-    ray_node.run(
-        launch_training,
-        str(script_path),
-        str(config_file),
-        output_dir=str(output_dir),
-        acc_config=acc_config,
-        ray_node=ray_node,
-    )
+    ray_node.run(launch_training, str(script_path), str(config_file), str(output_dir))
     print("Training completed on all nodes.")
 
     print("Launching evaluation on all nodes")
