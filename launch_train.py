@@ -54,8 +54,8 @@ def launch_training(module, config_file, output_dir):
         config_name,
         "--config-path",
         str(config_path),
-        f"trainer.experiment_name=${config_name}",
-        f"trainer.default_local_dir=${output_dir}",
+        f"trainer.experiment_name={config_name}",
+        f"trainer.default_local_dir={output_dir}",
     ]
     env = {"DATA_PATH": ORNG_USER.data_path}
 
