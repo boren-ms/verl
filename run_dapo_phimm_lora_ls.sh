@@ -13,8 +13,6 @@ python3 -m recipe.dapo.main_dapo \
 data.train_batch_size=${batch_size} \
 data.gen_batch_size=$((batch_size * 3 / 2)) \
 actor_rollout_ref.rollout.n=8 \
-+data.eval_num_examine=5 \
-+data.train_num_examine=1 \
 actor_rollout_ref.model.path=${MODEL_PATH} \
 actor_rollout_ref.actor.ppo_mini_batch_size=$((batch_size * 8)) \
 actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=${batch_size} \
