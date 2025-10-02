@@ -68,3 +68,8 @@ def accuracy(solution_str, ground_truth, **kwargs):
 def error_count(solution_str, ground_truth, **kwargs):
     error = measure(solution_str, ground_truth)
     return 0 - error.count
+
+
+def hit_count(solution_str, ground_truth, **kwargs):
+    error = measure(solution_str, ground_truth)
+    return error.H
