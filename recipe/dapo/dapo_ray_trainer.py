@@ -17,6 +17,7 @@ This trainer supports model-agonistic model initialization with huggingface
 """
 
 import os
+import socket
 import uuid
 from collections import defaultdict
 from copy import deepcopy
@@ -72,6 +73,7 @@ class RayDAPOTrainer(RayPPOTrainer):
         self.global_steps = 0
         self.gen_steps = 0
 
+        logger.log(data={"hostname": socket.gethostname()}, step=self.global_steps)
         # load checkpoint before doing anything
         self._load_checkpoint()
 
@@ -379,9 +381,14 @@ class RayDAPOTrainer(RayPPOTrainer):
                 metrics.update(compute_throughout_metrics(batch=batch, timing_raw=timing_raw, n_gpus=n_gpus))
                 timing_raw = defaultdict(float)  # clear timing
 
-                metrics["train/num_gen_batches"] = num_gen_batches
-                metrics["train/gen_kept_frac"] = num_prompt_in_batch / (
-                    num_gen_batches * self.train_dataloader.batch_size
+                gen_kept_frac = num_prompt_in_batch / (num_gen_batches * self.train_dataloader.batch_size)
+                metrics.update(
+                    {
+                        "train/num_gen_batches": num_gen_batches,
+                        "train/gen_kept_frac": gen_kept_frac,
+                        "step": self.global_steps,
+                        "progress": self.global_steps / self.total_training_steps,
+                    }
                 )
                 batch = None
                 num_prompt_in_batch = 0
