@@ -446,7 +446,7 @@ def prepare_env(forced=False):
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
-    run_cmd("bash /root/code/verl/quick_install.sh")
+    run_cmd("bash quick_install.sh")
     print("Environment preparation completed.")
 
 
@@ -521,12 +521,15 @@ def update_envs(yaml_path):
     Path(yaml_path).write_text(expanded_content)
 
 
-def run_cmd(cmd, check=True):
+def run_cmd(cmd, cwd=None, check=True):
     """Run a shell command and print it."""
     if isinstance(cmd, (list, tuple)):
         cmd = " ".join(cmd)
     print(f"Running: {cmd}")
-    ret = subprocess.run(cmd, shell=True, check=check)
+    if not cwd:
+        cwd = str(Path(__file__).parent)
+    print(f"Working Dir: {cwd}")
+    ret = subprocess.run(cmd, shell=True, check=check, cwd=cwd)
     print(f"Cmd: {cmd} returned: {ret.returncode}")
     return ret
 
