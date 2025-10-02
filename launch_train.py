@@ -41,11 +41,13 @@ def launch_training(module, config_file, output_dir):
     config_file = Path(config_file).absolute()
     config_name = config_file.stem
     config_path = config_file.parent
+    os.chdir(str(Path(__file__).parent))
+    print(f"Working Dir: {os.getcwd()}")
     print(f"Using config file: {config_file}")
     print(f"Output directory: {output_dir}")
 
     cmd = [
-        "python3",
+        "/root/.pyenv/versions/3.12.9/bin/python3",
         "-m",
         module,
         "--config-name",

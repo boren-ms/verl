@@ -21,6 +21,7 @@ import socket
 import hydra
 import ray
 from omegaconf import OmegaConf
+from pathlib import Path
 
 from verl.trainer.ppo.reward import load_reward_manager
 from verl.utils.device import is_cuda_available
@@ -67,6 +68,12 @@ def run_ppo(config) -> None:
             ray.shutdown()
 
 
+def reset_cwd():
+    wd = str(Path(__file__).parents[2])
+    os.chdir(wd)
+    print(f"Reset cwd to {wd}")
+
+
 @ray.remote(num_cpus=1)  # please make sure main_task is not scheduled on head
 class TaskRunner:
     def run(self, config):
@@ -77,6 +84,7 @@ class TaskRunner:
 
         from verl.utils.fs import copy_to_local
 
+        reset_cwd()
         print(f"TaskRunner hostname: {socket.gethostname()}, PID: {os.getpid()}, CWD: {os.getcwd()}")
 
         pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
