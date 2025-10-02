@@ -4,7 +4,6 @@ codetiming
 datasets>=4.0.0
 dill
 torch==2.7.1
-flash-attn==2.7.4.post1
 hydra-core
 liger-kernel
 numpy<2.0.0
