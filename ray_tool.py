@@ -373,7 +373,7 @@ def prepare_local_checkpoint(local_dir, remote_dir):
 
 
 @ray.remote
-def prepare_env(forced=False):
+def prepare_env_old(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
     print(f"Preparing environment on node: {hostname}")
@@ -429,6 +429,24 @@ def prepare_env(forced=False):
     run_cmd("pip install --no-deps -e /root/code/verl")
     run_cmd("pip install flash-attn==2.7.4.post1 ")
     run_cmd("apt install lsof")
+    print("Environment preparation completed.")
+
+
+@ray.remote
+def prepare_env(forced=False):
+    """Prepare the environment on each node by installing necessary packages."""
+    hostname = os.uname().nodename
+    print(f"Preparing environment on node: {hostname}")
+    required = [
+        "torch==2.7.1",
+        "ray==2.46.0",
+        "transformers==4.55.4",
+        "vllm==0.10.0",
+    ]
+    if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
+        print(f"Required packages already installed on {hostname}, skipping installation.")
+        return
+    run_cmd("bash /root/code/verl/quick_install.sh")
     print("Environment preparation completed.")
 
 
