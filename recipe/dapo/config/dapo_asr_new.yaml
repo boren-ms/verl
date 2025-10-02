@@ -79,7 +79,7 @@ trainer:
   save_freq: 40
   test_freq: 40
   total_epochs: 1
-  resume_mode: disable
+  resume_mode: auto
   val_before_train: true
   total_training_steps: null # disable steps
 
