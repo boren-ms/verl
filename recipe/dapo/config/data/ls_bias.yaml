@@ -1,22 +1,20 @@
 val_data:
-  - nickname: clean_no
-    dataset_name: ls_bias
+  - dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
     data_dir: ${oc.env:DATA_PATH}
     post_process:
       add_field:
         fields:
-          data_source: bias_asr
+          data_source: clean_no
       verl_format:
         prompt_key: prompt
-  - nickname: other_no
-    dataset_name: ls_bias
+  - dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
     data_dir: ${oc.env:DATA_PATH}
     post_process:
       add_field:
         fields:
-          data_source: bias_asr
+          data_source: other_no
       verl_format:
         prompt_key: prompt
 train_data:
@@ -40,6 +38,6 @@ train_data:
   post_process:
     add_field:
       fields:
-        data_source: bias_asr
+        data_source: asr
     verl_format:
       prompt_key: prompt
