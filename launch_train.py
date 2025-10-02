@@ -41,11 +41,12 @@ def launch_training(module, config_file, output_dir):
     config_file = Path(config_file).absolute()
     config_name = config_file.stem
     config_path = config_file.parent
+    data_path = ORNG_USER.data_path
     os.chdir(str(Path(__file__).parent))
     print(f"Working Dir: {os.getcwd()}")
-    print(f"Using config file: {config_file}")
-    print(f"Output directory: {output_dir}")
-
+    print(f"Config file: {config_file}")
+    print(f"Data Dir: {data_path}")
+    print(f"Output Dir: {output_dir}")
     cmd = [
         "/root/.pyenv/versions/3.12.9/bin/python3",
         "-m",
@@ -57,7 +58,6 @@ def launch_training(module, config_file, output_dir):
         f"trainer.experiment_name={config_name}",
         f"trainer.default_local_dir={output_dir}",
     ]
-    env = {"DATA_PATH": ORNG_USER.data_path}
 
     rcall_logdir = os.environ.get("RCALL_LOGDIR", os.path.expanduser("~/logs"))
     os.makedirs(rcall_logdir, exist_ok=True)
@@ -65,8 +65,12 @@ def launch_training(module, config_file, output_dir):
     print(f"Logging to {log_file}")
     with open(log_file, "w") as logf:
         logf.write(f"Running {' '.join(cmd)}\n")
-        logf.write(f"Environment Variables:\n {env}")
+        logf.write(f"Working Dir: {os.getcwd()}\n")
+        logf.write(f"Output Dir: {output_dir}\n")
+        logf.write(f"Data Dir: {data_path}\n")
     # Optionally, printenv could be logged here
+    env = os.environ.copy()
+    env["DATA_PATH"] = data_path
     with open(log_file, "a") as logf:
         process = subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT, env=env)
         process.communicate()

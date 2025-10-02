@@ -50,7 +50,9 @@ def run_ppo(config) -> None:
         ray.init(**OmegaConf.to_container(ray_init_kwargs))
 
     try:
-        runtime_env = {"env_vars": {k: os.environ.get(k) for k in ENV_VARS}}
+        env_vars = {k: os.environ[k] for k in ENV_VARS}
+        print(f"Passing env vars to workers: {env_vars}")
+        runtime_env = {"env_vars": env_vars}
         if (
             is_cuda_available
             and config.global_profiler.tool == "nsys"
