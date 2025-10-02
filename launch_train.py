@@ -36,7 +36,7 @@ def get_job_name(config_file, acc_config=None, n_node=1):
 
 
 @ray.remote
-def launch_training(script_path, config_file, output_dir):
+def launch_training(module, config_file, output_dir):
     """Launch training using the specified YAML config file."""
     config_file = Path(config_file).absolute()
     config_name = config_file.stem
@@ -46,7 +46,8 @@ def launch_training(script_path, config_file, output_dir):
 
     cmd = [
         "python3",
-        script_path,
+        "-m",
+        module,
         "--config-name",
         config_name,
         "--config-path",
@@ -54,7 +55,7 @@ def launch_training(script_path, config_file, output_dir):
         f"trainer.experiment_name=${config_name}",
         f"trainer.default_local_dir=${output_dir}",
     ]
-    env = {"DATA_PATH": ORNG_USER.data_path()}
+    env = {"DATA_PATH": ORNG_USER.data_path}
 
     rcall_logdir = os.environ.get("RCALL_LOGDIR", os.path.expanduser("~/logs"))
     os.makedirs(rcall_logdir, exist_ok=True)
@@ -71,39 +72,23 @@ def launch_training(script_path, config_file, output_dir):
             raise subprocess.CalledProcessError(process.returncode, cmd)
 
 
-def get_task_script(task=None, config_file=None):
+def get_task_module(task=None, config_file=None):
     """Return the script path for the given task."""
     assert task or config_file, "Either task or config_file must be provided"
-    cur_dir = Path(__file__).parent
-    tasks = {"dapo": cur_dir / "recipe/dapo/main_dapo.py"}
+    tasks = {"dapo": "recipe.dapo.main_dapo"}
 
     if not task and config_file:
         name_parts = Path(config_file).parent.name.split("_")
         name_parts += Path(config_file).stem.split("_")
         task = next((t for t in tasks if t in name_parts), None)
     assert task, "Task must be specified or inferred from config_file"
-    script_path = tasks[task]
-    assert script_path.exists(), f"Script {script_path} does not exist."
-    return script_path
-
-
-def get_acc_config(name=None):
-    """Return the accelerate config file path for the given name."""
-    cwd = Path(__file__).parent
-    name_dict = {
-        "zero1": cwd / "trl/accelerate_configs/zero1.yaml",
-        "zero2": cwd / "trl/accelerate_configs/zero2.yaml",
-        "zero3": cwd / "trl/accelerate_configs/zero3.yaml",
-        "fsdp2": cwd / "trl/accelerate_configs/fsdp2.yaml",
-        "multi": cwd / "trl/accelerate_configs/multi_gpu.yaml",
-    }
-    return name_dict.get(name, None)
+    return tasks[task]
 
 
 def main(config_file, task=None, forced=False, seed_name=None, nodes=None):
     """Launch the job on all nodes by preparing the environment and data."""
-    script_path = get_task_script(task, config_file)
-    print(f"Using script: {script_path}")
+    task_module = get_task_module(task, config_file)
+    print(f"Using script: {task_module}")
     ray_node = RayNode(nodes)
 
     config_file = Path(config_file).absolute()
@@ -120,7 +105,7 @@ def main(config_file, task=None, forced=False, seed_name=None, nodes=None):
     watcher = ray_node.run_output_watcher(output_dir, remote_output_dir, 600)
 
     print(f"Launching training with {config_file}...")
-    ray_node.run(launch_training, str(script_path), str(config_file), str(output_dir))
+    ray_node.run(launch_training, str(task_module), str(config_file), str(output_dir))
     print("Training completed on all nodes.")
 
     print("Launching evaluation on all nodes")
