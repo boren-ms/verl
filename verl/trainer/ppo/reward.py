@@ -19,7 +19,7 @@ import sys
 import warnings
 from functools import partial
 from typing import Any, Optional
-
+from pathlib import Path
 import ray
 import torch
 from omegaconf import DictConfig
@@ -69,6 +69,8 @@ def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
 
     module = sys.modules.get("custom_module", None)
     if module is None:
+        if not Path(file_path).is_absolute():
+            file_path = str(Path(__file__).parents[3] / file_path)
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Reward function file '{file_path}' not found.")
 
