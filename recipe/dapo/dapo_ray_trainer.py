@@ -82,7 +82,7 @@ class RayDAPOTrainer(RayPPOTrainer):
         if self.val_reward_fn is not None and self.config.trainer.get("val_before_train", True):
             val_metrics = self._validate()
             assert val_metrics, f"{val_metrics=}"
-            pprint(f"Initial validation metrics: {val_metrics}")
+            print(f"Initial validation metrics: \n{val_metrics}", flush=True)
             logger.log(data=val_metrics, step=self.global_steps)
             if self.config.trainer.get("val_only", False):
                 return

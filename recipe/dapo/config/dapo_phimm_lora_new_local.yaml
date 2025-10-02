@@ -10,6 +10,11 @@ data:
   custom_cls:
     path: verl/utils/dataset/audio/rl_dataset.py
     name: RLHFDataset
+custom_reward_function:
+  path: verl/utils/reward_score/speech_recognition.py
+  name: compute_score
+  reward_kwargs:
+    beta: 1.0
 
 actor_rollout_ref:
   model:
@@ -19,3 +24,6 @@ actor_rollout_ref:
     exclude_modules: "model.embed_tokens_extend.*" # must have
 trainer:
   experiment_name: dapo-phimm-test-lora-new
+  save_freq: 1000
+  test_freq: 1
+  val_before_train: true

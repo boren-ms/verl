@@ -67,7 +67,7 @@ class DAPORewardManager(AbstractRewardManager):
         reward_extra_info = defaultdict(list)
 
         already_print_data_sources = {}
-
+        # breakpoint()
         for i in range(len(data)):
             data_item = data[i]  # DataProtoItem
 
@@ -132,7 +132,8 @@ class DAPORewardManager(AbstractRewardManager):
 
             if already_print_data_sources[data_source] < self.num_examine:
                 already_print_data_sources[data_source] += 1
-                pfx = f"\n[{already_print_data_sources[data_source]}]"
+                pfx = f"[{already_print_data_sources[data_source]}]"
+                print(f"======{pfx}=====")
                 print(f"{pfx}[prompt]", prompt_str)
                 print(f"{pfx}[response]", response_str)
                 print(f"{pfx}[ground_truth]", ground_truth)

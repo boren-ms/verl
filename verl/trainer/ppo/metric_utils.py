@@ -379,6 +379,28 @@ def calc_maj_val(data: list[dict[str, Any]], vote_key: str, val_key: str) -> flo
     return maj_val
 
 
+def update_var2metric2val(var2metric2val: dict[str, dict[str, float]]):
+    output = var2metric2val.copy()
+    prefixs = {"n_": "p_", "nb_": "pb_", "nu_": "pu_"}
+    for n_pfx, p_pfx in prefixs.items():
+        ref_key = f"{n_pfx}ref"
+        ref_metric2val = var2metric2val.get(ref_key, None)
+        if not ref_metric2val:
+            continue
+        for var_name, metric2val in var2metric2val.items():
+            if not var_name.startswith(n_pfx) or var_name == ref_key:
+                continue
+            pvar_name = var_name.replace(n_pfx, p_pfx)
+            if pvar_name in output:
+                continue
+            for name, val in metric2val.items():
+                ref_val = ref_metric2val.get(name, None)
+                if not ref_val:
+                    continue
+                output[pvar_name][name] = val / ref_val
+    return output
+
+
 def process_validation_metrics(
     data_sources: list[str], sample_uids: list[str], infos_dict: dict[str, list[Any]], seed: int = 42
 ) -> dict[str, dict[str, dict[str, float]]]:

@@ -52,7 +52,19 @@ def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for Speech Recognition."""
     # breakpoint()
     error = measure(solution_str, ground_truth)
-    return 0 - error.wer
+    beta = kwargs.get("beta", 1.0)
+    score = (0 - error.wer) * beta
+    return {
+        "score": score,
+        "wer": error.wer,
+        "acc": error.accuracy,
+        "n_err": error.count,
+        "n_ref": error.total,
+        "n_hit": error.H,
+        "n_del": error.D,
+        "n_ins": error.I,
+        "n_sub": error.S,
+    }
 
 
 def wer(solution_str, ground_truth, **kwargs):
