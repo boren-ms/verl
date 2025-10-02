@@ -44,12 +44,7 @@ def measure(hyp, ref, **kwargs):
             tr.ReduceToListOfListOfWords(),
         ]
     )
-    output = process_words(
-        truth=ref,
-        hypothesis=hyp,
-        truth_transform=tn,
-        hypothesis_transform=tn,
-    )
+    output = process_words(ref, hyp, tn, tn)
     return Error(S=output.substitutions, D=output.deletions, I=output.insertions, H=output.hits)
 
 
