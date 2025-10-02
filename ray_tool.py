@@ -674,7 +674,13 @@ class RayNode:
         print(f"Found {len(self.nodes)} nodes in the cluster:")
         for node in self.nodes:
             print(f" - {node['NodeName']}[{node['NodeManagerAddress']}] (Alive: {node['Alive']})")
+            print(f"   Resources: {node['Resources']}")
         return self.nodes
+
+    def check_gpus(self):
+        """Check GPU availability on all Ray nodes."""
+        print("Cluster resources:", ray.cluster_resources())
+        print("Available resources:", ray.available_resources())
 
     def release_gpus(self):
         """Release GPUs on all Ray nodes."""
