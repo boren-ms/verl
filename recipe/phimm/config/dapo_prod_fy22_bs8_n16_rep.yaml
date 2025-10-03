@@ -3,8 +3,9 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - dapo_asr_new
+  - data/train_data/prod_fy22
+  - data/val_data/entity
   - _self_
-  - data/prod_fy22
 
 data:
   custom_cls:
@@ -44,7 +45,7 @@ actor_rollout_ref:
 trainer:
   experiment_name: phimm-test
   total_epochs: 1
-  nnodes: 2
+  nnodes: 1
 
 batch_size: 8
 gen_batch_size: 16

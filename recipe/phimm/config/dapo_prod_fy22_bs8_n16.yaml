@@ -3,8 +3,9 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - dapo_asr_new
+  - data/train_data/prod_fy22
+  - data/val_data/entity
   - _self_
-  - data/librispeech
 
 data:
   custom_cls:
@@ -18,7 +19,10 @@ custom_reward_function:
   path: recipe/phimm/reward/asr_bias.py
   name: compute_score
   # reward_kwargs:
-  #   beta: 1.0
+  #   beta: 0.85 # score = (1-beta)*WER + beta*B-WER
+  #   choice: "err" # "err", "acc", "wer"
+  #   text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
+  #   unit: word # word (default), char
 actor_rollout_ref:
   model:
     lora_rank: 320
@@ -41,7 +45,6 @@ actor_rollout_ref:
 trainer:
   experiment_name: phimm-test
   total_epochs: 1
-  nnodes: 2
 
-batch_size: 64
-gen_batch_size: 128
+batch_size: 8
+gen_batch_size: 16
