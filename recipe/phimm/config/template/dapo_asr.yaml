@@ -3,17 +3,13 @@ defaults:
   - _self_
 
 data:
-  train_files: ${train_files}
-  val_files: ${val_files}
-  asr_dataset: true
-  pad_to_max: true # why to dynamic pad
-  audio_key: audio_path
+  train_files: null
+  val_files: null
   trust_remote_code: true
-  filter_overlong_prompts: false # too slow due to load audio
   max_prompt_length: 8192
-  max_response_length: 1024
   train_batch_size: 8 # 32
   gen_batch_size: 16 # 32 * n_rollout
+
 algorithm:
   adv_estimator: grpo
   use_kl_in_reward: false
@@ -36,7 +32,6 @@ actor_rollout_ref:
     optim:
       lr: 1e-5
       warmup_style: cosine
-      min_lr_ratio: 0.0 # min lr = lr * min_lr_ratio
     ppo_mini_batch_size: 4
     ppo_micro_batch_size_per_gpu: 1
     fsdp_config:
@@ -45,7 +40,7 @@ actor_rollout_ref:
       use_orig_params: true
     strategy: fsdp2
   model:
-    path: ${model_path}
+    path: null
     trust_remote_code: true
     use_remove_padding: true
     use_fused_kernels: false
@@ -84,10 +79,7 @@ trainer:
   save_freq: 40
   test_freq: 40
   total_epochs: 1
-  resume_mode: disable
+  resume_mode: auto
   val_before_train: true
   total_training_steps: null # disable steps
 
-train_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
-val_files: /root/data/parquet/ls_clean_sc1k_fn1_h100.parquet
-model_path: /root/data/ckp/hf_models/phi4_mm_bias_merged

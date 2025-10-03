@@ -1,0 +1,22 @@
+dataset_name: tsv
+cache_name: auto_train
+tsv_paths: ${oc.env:DATA_PATH}/LibriSpeech/asr_train_transcribe.tsv
+biasing:
+  buffer_size: 100000
+  max_piece_len: 1
+  bias_prob: 0.8
+  hit_prob: 1
+  miss_prob: 1
+  context_prob: 1 # prob for context
+  sample_range: [0, 1000] # all rare words
+  sampling_version: v2
+  hit_ratio: [0.9, 1.0]
+  log_interval: 10000 # print biasing every 10000 samples
+  common_word_file: ${oc.env:DATA_PATH}/librispeech_biasing/words/all_words.count.txt
+  common_word_num: 1000
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

@@ -1,0 +1,64 @@
+- dataset_name: ls_bias
+  jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}
+  cache_name: auto_clean_no
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_no
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}
+  cache_name: auto_other_no
+  post_process:
+    add_field:
+      fields:
+        data_source: other_no
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}
+  cache_name: auto_clean_100
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_100
+    verl_format:
+      prompt_key: prompt
+  bias_key: distractors # distractors
+- dataset_name: ls_bias
+  jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  bias_key: distractors # distractors
+  data_dir: ${oc.env:DATA_PATH}
+  cache_name: auto_other_100
+  post_process:
+    add_field:
+      fields:
+        data_source: other_100
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_500.jsonl
+  bias_key: distractors # distractors
+  data_dir: ${oc.env:DATA_PATH}
+  cache_name: auto_clean_500
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_500
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_500.jsonl
+  bias_key: distractors # distractors
+  data_dir: ${oc.env:DATA_PATH}
+  cache_name: auto_other_500
+  post_process:
+    add_field:
+      fields:
+        data_source: other_500
+    verl_format:
+      prompt_key: prompt

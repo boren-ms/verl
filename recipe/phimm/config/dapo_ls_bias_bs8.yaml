@@ -3,8 +3,9 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - dapo_asr_new
+  - data/train_data/ls_bias
+  - data/val_data/ls_bias
   - _self_
-  - data/librispeech
 
 data:
   custom_cls:

@@ -1,10 +1,12 @@
 hydra:
   searchpath:
+    - file://recipe/phimm/config/template
     - file://verl/trainer/config
 defaults:
-  - dapo_asr_new
+  - dapo_asr
   - _self_
-  - data/test_audio
+  - data/train_data/local
+  - data/val_data/local
 
 data:
   custom_cls:
