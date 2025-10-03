@@ -1,0 +1,20 @@
+- dataset_name: ls_bias
+  jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}
+  cache_name: auto_clean_no
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_no
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}
+  cache_name: auto_other_no
+  post_process:
+    add_field:
+      fields:
+        data_source: other_no
+    verl_format:
+      prompt_key: prompt
