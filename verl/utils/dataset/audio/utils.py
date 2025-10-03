@@ -49,6 +49,8 @@ def get_config_path(config_path=None):
     """Get the config path from command line arguments or environment variables."""
     if config_path:
         return Path(config_path).resolve()
+
+    print("Find config from sys:", sys.argv)
     if "--config" in sys.argv:
         config_index = sys.argv.index("--config") + 1
         if config_index < len(sys.argv):
