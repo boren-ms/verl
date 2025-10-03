@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
 
-HOME=/home/boren
-export MODEL_PATH=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
-export DATA_PATH=${HOME}/data # used in yamls
+export MODEL_PATH=/home/boren/data/ckp/hf_models/phi4_mm_bias_merged
+export DATA_PATH=/home # used in yamls
 
 config_name=dapo_local_test
 
 python3 -m recipe.phimm.main_dapo \
 --config-name ${config_name} \
-+data.eval_num_examine=5 \
-+data.train_num_examine=1 \
 data.train_batch_size=4 \
 data.gen_batch_size=4 \
 actor_rollout_ref.rollout.n=4 \

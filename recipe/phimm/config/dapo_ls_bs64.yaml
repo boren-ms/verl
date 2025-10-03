@@ -1,10 +1,12 @@
 hydra:
   searchpath:
+    - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - dapo_asr_new
+  - dapo_asr
+  - data/train_data/ls_raw
+  - data/val_data/ls_raw
   - _self_
-  - data/librispeech
 
 data:
   custom_cls:

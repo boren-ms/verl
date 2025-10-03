@@ -1,6 +1,6 @@
 hydra:
   searchpath:
-    - file://recipe/phimm/config/template
+    - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
   - dapo_asr
