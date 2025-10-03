@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 from verl.utils.dataset.audio.error_simu import ErrorSimulator
 from verl.utils.dataset.audio.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
 from verl.utils.dataset.audio.prompts import get_task_prompt
-from verl.utils.dataset.audio.metrics import text_norm
+from recipe.phimm.utils.tn import text_norm
 from verl.utils.dataset.audio.chunk import get_chunk_manager, create_chunk_datasets
 from verl.utils.dataset.audio.utils import hash_id, get_value, rank_print, dist_state, all_rank_print, to_list
 from verl.utils.dataset.audio.audio_utils import sf_read

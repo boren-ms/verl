@@ -53,7 +53,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     # breakpoint()
     error = measure(solution_str, ground_truth)
     beta = kwargs.get("beta", 1.0)
-    score = (0 - error.wer) * beta
+    score = (0 - error.count) * beta
     return {
         "score": score,
         "wer": error.wer,

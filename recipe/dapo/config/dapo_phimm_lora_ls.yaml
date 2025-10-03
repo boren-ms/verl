@@ -15,7 +15,7 @@ data:
   train_batch_size: 128
   gen_batch_size: 256
 custom_reward_function:
-  path: verl/utils/reward_score/speech_recognition.py
+  path: recipe/phimm/reward/asr.py
   name: compute_score
   # reward_kwargs:
   #   beta: 1.0

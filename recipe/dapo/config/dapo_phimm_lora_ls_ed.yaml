@@ -12,7 +12,7 @@ data:
     name: RLHFDataset
 
 custom_reward_function:
-  path: verl/utils/reward_score/speech_recognition.py
+  path: recipe/phimm/reward/asr.py
   name: error_count
 
 actor_rollout_ref:

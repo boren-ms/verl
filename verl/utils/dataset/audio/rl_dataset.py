@@ -1,11 +1,8 @@
 import logging
-import re
-from collections import defaultdict
 from collections.abc import Sequence
 from typing import Optional
 
 import datasets
-import numpy as np
 import torch
 from omegaconf import DictConfig
 
@@ -206,8 +203,9 @@ def main(config_path, tokenizer_path, data_files=None):
     # data_conf = config.get("val_data", None)
     dataset = RLHFDataset(data_conf, tokenizer, config, processor)
     from torchdata.stateful_dataloader import StatefulDataLoader
+    from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
 
-    loader = StatefulDataLoader(dataset=dataset, batch_size=2, num_workers=0, collate_fn=collate_fn)
+    loader = StatefulDataLoader(dataset=dataset, batch_size=2, num_workers=0, collate_fn=default_collate_fn)
     for batch in loader:
         print(batch)
         break
