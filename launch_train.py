@@ -35,7 +35,6 @@ def get_job_name(config_file, acc_config=None, n_node=1):
     return "_".join(parts)
 
 
-@ray.remote
 def launch_training(module, config_file, output_dir):
     """Launch training using the specified YAML config file."""
     config_file = Path(config_file).absolute()
@@ -111,7 +110,7 @@ def main(config_file, task=None, forced=False, seed_name=None, nodes=None):
     watcher = ray_node.run_output_watcher(output_dir, remote_output_dir, 600)
 
     print(f"Launching training with {config_file}...")
-    ray_node.run(launch_training, str(task_module), str(config_file), str(output_dir))
+    launch_training(str(task_module), str(config_file), str(output_dir))
     print("Training completed on all nodes.")
 
     print("Launching evaluation on all nodes")
