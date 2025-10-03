@@ -1,7 +1,7 @@
 val_data:
   - dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
-    data_dir: ${oc.env:DATA_PATH}
+    data_dir: ${oc.env:DATA_PATH}/boren/data/
     cache_name: auto_clean_no
     post_process:
       add_field:
@@ -11,7 +11,7 @@ val_data:
         prompt_key: prompt
   - dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
-    data_dir: ${oc.env:DATA_PATH}
+    data_dir: ${oc.env:DATA_PATH}/boren/data/
     cache_name: auto_other_no
     post_process:
       add_field:
@@ -21,7 +21,7 @@ val_data:
         prompt_key: prompt
   - dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
-    data_dir: ${oc.env:DATA_PATH}
+    data_dir: ${oc.env:DATA_PATH}/boren/data/
     cache_name: auto_clean_100
     post_process:
       add_field:
@@ -33,7 +33,7 @@ val_data:
   - dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
     bias_key: distractors # distractors
-    data_dir: ${oc.env:DATA_PATH}
+    data_dir: ${oc.env:DATA_PATH}/boren/data/
     cache_name: auto_other_100
     post_process:
       add_field:
@@ -44,7 +44,7 @@ val_data:
   - dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_500.jsonl
     bias_key: distractors # distractors
-    data_dir: ${oc.env:DATA_PATH}
+    data_dir: ${oc.env:DATA_PATH}/boren/data/
     cache_name: auto_clean_500
     post_process:
       add_field:
@@ -55,7 +55,7 @@ val_data:
   - dataset_name: ls_bias
     jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_500.jsonl
     bias_key: distractors # distractors
-    data_dir: ${oc.env:DATA_PATH}
+    data_dir: ${oc.env:DATA_PATH}/boren/data/
     cache_name: auto_other_500
     post_process:
       add_field:
