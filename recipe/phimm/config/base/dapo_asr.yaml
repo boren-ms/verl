@@ -7,6 +7,7 @@ data:
   val_files: null
   trust_remote_code: true
   max_prompt_length: 8192
+  max_response_length: 1024
   train_batch_size: 8 # 32
   gen_batch_size: 16 # 32 * n_rollout
 
@@ -50,7 +51,6 @@ actor_rollout_ref:
     log_prob_micro_batch_size_per_gpu: 1
     tensor_model_parallel_size: 1
     name: vllm
-    response_length: 1024
     temperature: 1.0
     gpu_memory_utilization: 0.5
     load_format: safetensors
