@@ -16,7 +16,7 @@ from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as bia
 from recipe.phimm.data.prompts import get_task_prompt
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
-from recipe.phimm.utils.shared import hash_id, get_value, rank_print, dist_state, all_rank_print, to_list
+from recipe.phimm.utils.shared import hash_id, get_value, rank_print, dist_state, all_rank_print, to_list, is_list
 from recipe.phimm.utils.audio import sf_read
 from recipe.phimm.utils.storage import get_path_with_options
 
@@ -241,7 +241,7 @@ def load_tsv(tsv_file, **kwargs):
 
 def tsv_dataset(tsv_paths, **kwargs):
     """Create a dataset from the given split."""
-    if isinstance(tsv_paths, (list, tuple)):
+    if is_list(tsv_paths):
         ds = concatenate_datasets([load_tsv(tsv_path, **kwargs) for tsv_path in tsv_paths])
     else:
         ds = load_tsv(tsv_paths, **kwargs)
@@ -344,7 +344,7 @@ def simulate_preference(ds, **kwargs):
     error_range = kwargs.pop("error_range", (0.1, 0.25))
     num_rejections = kwargs.pop("num_rejections", 1)
     chat = kwargs.get("chat", False)
-    if not isinstance(error_range, (list, tuple)):
+    if not is_list(error_range):
         error_range = [float(error_range), float(error_range)]
     simulator = ErrorSimulator(**kwargs)
 
@@ -471,8 +471,7 @@ def wer_filter_ds(ds, **kwargs):
     def is_good(wer, wer_range=None):
         if wer_range is None or wer is None:
             return True
-        if not isinstance(wer_range, (list, tuple)):
-            wer_range = [wer_range]
+        wer_range = to_list(wer_range)
         return wer_range[0] <= wer <= wer_range[-1]
 
     def wer_filter_fn(x):
@@ -854,7 +853,7 @@ def create_datasets(config):
     """Create dataset."""
     if config is None:
         return None
-    if isinstance(config, (list, tuple)):
+    if is_list(config):
         datasets = {}
         for i, cfg in enumerate(config):
             nickname = cfg.pop("nickname", f"dataset_{i}")

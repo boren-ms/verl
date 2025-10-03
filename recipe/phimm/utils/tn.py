@@ -2,6 +2,7 @@
 from whisper_normalizer.english import EnglishTextNormalizer
 from whisper_normalizer.basic import BasicTextNormalizer
 import jiwer.transforms as tr
+from recipe.phimm.utils.shared import is_list
 
 
 class RemovePunctuationExclude(tr.RemovePunctuation):
@@ -73,7 +74,7 @@ def text_norm(txt, name=None):
     norm = TN_DICT[name]
     if isinstance(txt, str):
         return norm(txt.strip())
-    elif isinstance(txt, (list, tuple)):
+    elif is_list(txt):
         return [norm(x) for x in txt]
     else:
         raise ValueError(f"Unsupported type for text normalization: {type(txt)}. Expected str or list of str.")

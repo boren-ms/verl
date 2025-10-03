@@ -22,7 +22,11 @@ def to_list(x, default=None):
     """Convert the input to a list."""
     if x is None:
         return default
-    return x if isinstance(x, (list, tuple)) else [x]
+    return x if is_list(x) else [x]
+
+
+def is_list(obj):
+    return not isinstance(obj, (str, bytes)) and hasattr(obj, "__getitem__")
 
 
 def chkp_index(name, default=-1):
@@ -68,7 +72,7 @@ def get_config_path(config_path=None):
 
 def run_cmd(cmd, check=True):
     """Run a shell command and print it."""
-    if isinstance(cmd, (list, tuple)):
+    if is_list(cmd):
         cmd = " ".join(cmd)
     print(f"Running: {cmd}")
     ret = subprocess.run(cmd, shell=True, check=check)

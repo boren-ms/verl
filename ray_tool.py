@@ -16,16 +16,20 @@ def sorted_nodes(nodes):
         return None
     if isinstance(nodes, str):
         nodes = [int(x) for x in nodes.split(",")]
-    if not isinstance(nodes, (list, tuple)):
+    if not is_list(nodes):
         nodes = [nodes]
     return sorted(nodes)
 
 
 def to_list(data):
     """Convert data to a list if it is not already."""
-    if isinstance(data, (list, tuple)):
+    if is_list(data):
         return list(data)
     return [data]
+
+
+def is_list(obj):
+    return not isinstance(obj, (str, bytes)) and hasattr(obj, "__getitem__")
 
 
 def to_int(value, default=-1):
@@ -523,7 +527,7 @@ def update_envs(yaml_path):
 
 def run_cmd(cmd, cwd=None, check=True):
     """Run a shell command and print it."""
-    if isinstance(cmd, (list, tuple)):
+    if is_list(cmd):
         cmd = " ".join(cmd)
     print(f"Running: {cmd}")
     if not cwd:

@@ -3,7 +3,7 @@ import re
 import random
 from collections import deque
 import blobfile as bf
-from recipe.phimm.utils.shared import to_list
+from recipe.phimm.utils.shared import to_list, is_list
 
 
 def text_norm(word, tn_prob=1.0):
@@ -99,7 +99,7 @@ def get_range(args):
     """range function that accepts multiple arguments."""
     if isinstance(args, int):
         return 0, args
-    elif isinstance(args, (tuple, list)):
+    elif is_list(args):
         return args[0], args[-1]
     raise ValueError(f"Invalid range argument: {args}. Must be int or tuple/list.")
 
