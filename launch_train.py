@@ -40,7 +40,7 @@ def launch_training(module, config_file, output_dir):
     config_file = Path(config_file).absolute()
     config_name = config_file.stem
     config_path = config_file.parent
-    data_path = ORNG_USER.data_path
+    data_path = ORNG_USER.blob_path
     os.chdir(str(Path(__file__).parent))
     print(f"Working Dir: {os.getcwd()}")
     print(f"Config file: {config_file}")

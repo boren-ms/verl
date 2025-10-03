@@ -1,3 +1,4 @@
+project_name: biasing_entity
 train_data:
   dataset_name: cached
   cache_path: ${oc.env:DATA_PATH}/boren/data/cache_datasets/hcv2_fy22_info_tag/
@@ -25,7 +26,7 @@ val_data:
     post_process:
       add_field:
         fields:
-          data_source: clean_no
+          data_source: clean
       verl_format:
         prompt_key: prompt
     dataset_name: ls_bias
@@ -36,7 +37,7 @@ val_data:
     post_process:
       add_field:
         fields:
-          data_source: other_no
+          data_source: other
       verl_format:
         prompt_key: prompt
     dataset_name: ls_bias

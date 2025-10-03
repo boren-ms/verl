@@ -274,7 +274,12 @@ class UserStorage:
     @property
     def home_path(self):
         """Get the storage path based on the region."""
-        return f"az://{self.region_storage}/data/{self.user}"
+        return f"{self.blob_path}/{self.user}"
+
+    @property
+    def blob_path(self):
+        """Get the data storage account based on the region."""
+        return f"az://{self.region_storage}/data"
 
     @property
     def data_path(self):

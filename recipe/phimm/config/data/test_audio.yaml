@@ -1,7 +1,7 @@
 val_data:
   - dataset_name: ls_bias
     num_egs: 10
-    jsonl_path: ${oc.env:DATA_PATH}/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+    jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
     post_process:
       add_field:
         fields:
@@ -11,10 +11,10 @@ val_data:
       path_map:
         field: audio_path
         src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
-        dst_part: ${oc.env:DATA_PATH}/
+        dst_part: ${oc.env:DATA_PATH}/boren/data/
   - dataset_name: ls_bias
     num_egs: 20
-    jsonl_path: ${oc.env:DATA_PATH}/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+    jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
     post_process:
       add_field:
         fields:
@@ -24,17 +24,17 @@ val_data:
       path_map:
         field: audio_path
         src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
-        dst_part: ${oc.env:DATA_PATH}/
+        dst_part: ${oc.env:DATA_PATH}/boren/data/
 train_data:
   dataset_name: tsv
   # nug_egs: 5000
-  tsv_paths: ${oc.env:DATA_PATH}/LibriSpeech/debug.tsv
+  tsv_paths: ${oc.env:DATA_PATH}/boren/data/LibriSpeech/debug.tsv
   pre_process:
     output_egs_limit: 50
   cache_name: auto_train
   num_proc: 1
   add_rare_keywords:
-    common_file: ${oc.env:DATA_PATH}/librispeech_biasing/words/all_words.count.txt
+    common_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_words.count.txt
     common_num: 1000
   add_prompt:
     task: asr
