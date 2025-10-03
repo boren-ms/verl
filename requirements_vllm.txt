@@ -29,7 +29,7 @@ blobfile
 soundfile
 more-itertools
 whisper_normalizer
-jiwer
+jiwer>=4.0.0
 fire
 backoff
 wandb
