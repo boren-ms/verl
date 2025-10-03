@@ -5,12 +5,10 @@ import sys
 from pathlib import Path
 import functools
 import hashlib
-import json
 
 
-def hash_id(d: dict) -> str:
-    serialized = json.dumps(d, sort_keys=True)
-    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+def hash_id(d) -> str:
+    return hashlib.sha256(str(d).encode("utf-8")).hexdigest()
 
 
 def to_int(value, default=-1):
