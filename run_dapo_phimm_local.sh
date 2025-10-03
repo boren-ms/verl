@@ -10,7 +10,7 @@ test_data=${HOME}/data/parquet/ls_clean_sc1k_fn1_h100.parquet
 
 config_name=dapo_phimm_lora
 
-python3 -m recipe.dapo.main_dapo \
+python3 -m recipe.phimm.main_dapo \
 --config-name ${config_name} \
 data.train_files="${train_data}" \
 data.val_files="${test_data}" \

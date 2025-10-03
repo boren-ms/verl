@@ -4,11 +4,11 @@ hydra:
 defaults:
   - dapo_asr_new
   - _self_
-  - data/prod_fy22
+  - data/librispeech
 
 data:
   custom_cls:
-    path: verl/utils/dataset/audio/rl_dataset.py
+    path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
   eval_num_examine: 5
   train_num_examine: 1
@@ -42,5 +42,5 @@ trainer:
   experiment_name: phimm-test
   total_epochs: 1
 
-batch_size: 8
-gen_batch_size: 16
+batch_size: 128
+gen_batch_size: 256

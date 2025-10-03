@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 import blobfile as bf
 import subprocess
 import sys
@@ -23,7 +22,7 @@ def to_list(x, default=None):
     """Convert the input to a list."""
     if x is None:
         return default
-    return x if isinstance(x, Sequence) else [x]
+    return x if isinstance(x, (list, tuple)) else [x]
 
 
 def chkp_index(name, default=-1):
@@ -69,7 +68,7 @@ def get_config_path(config_path=None):
 
 def run_cmd(cmd, check=True):
     """Run a shell command and print it."""
-    if isinstance(cmd, Sequence):
+    if isinstance(cmd, (list, tuple)):
         cmd = " ".join(cmd)
     print(f"Running: {cmd}")
     ret = subprocess.run(cmd, shell=True, check=check)

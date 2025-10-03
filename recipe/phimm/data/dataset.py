@@ -11,14 +11,14 @@ import string
 from pathlib import Path
 from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
-from verl.utils.dataset.audio.error_simu import ErrorSimulator
-from verl.utils.dataset.audio.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
-from verl.utils.dataset.audio.prompts import get_task_prompt
+from recipe.phimm.data.error_simu import ErrorSimulator
+from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
+from recipe.phimm.data.prompts import get_task_prompt
 from recipe.phimm.utils.tn import text_norm
-from verl.utils.dataset.audio.chunk import get_chunk_manager, create_chunk_datasets
-from verl.utils.dataset.audio.utils import hash_id, get_value, rank_print, dist_state, all_rank_print, to_list
-from verl.utils.dataset.audio.audio_utils import sf_read
-from verl.utils.dataset.audio.storage_utils import get_path_with_options
+from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
+from recipe.phimm.utils.shared import hash_id, get_value, rank_print, dist_state, all_rank_print, to_list
+from recipe.phimm.utils.audio import sf_read
+from recipe.phimm.utils.storage import get_path_with_options
 
 prompt_format = "<|user|><|audio_1|>{}<|end|><|assistant|>"
 

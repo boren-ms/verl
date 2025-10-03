@@ -11,8 +11,8 @@ from transformers import PreTrainedTokenizer, ProcessorMixin
 
 import verl.utils.torch_functional as verl_F
 from verl.utils.model import compute_position_id_with_mask
-from verl.utils.dataset.audio.dataset import create_audio_dataset, get_num_proc
-from verl.utils.dataset.audio.audio_utils import load_audio
+from recipe.phimm.data.dataset import create_audio_dataset, get_num_proc
+from recipe.phimm.utils.audio import load_audio
 
 logger = logging.getLogger(__name__)
 

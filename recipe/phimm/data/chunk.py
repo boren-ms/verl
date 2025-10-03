@@ -13,7 +13,7 @@ import soundfile as sf
 from datasets import Dataset
 from cachetools import FIFOCache, cached
 import blobfile as bf
-from .utils import rank_print, get_values, to_list
+from recipe.phimm.utils.shared import rank_print, get_values, to_list
 
 
 def parse_data(data, data_type, **kwargs):

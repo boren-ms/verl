@@ -8,7 +8,7 @@ defaults:
 
 data:
   custom_cls:
-    path: verl/utils/dataset/audio/rl_dataset.py
+    path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
   eval_num_examine: 5
   train_num_examine: 1
@@ -41,6 +41,7 @@ actor_rollout_ref:
 trainer:
   experiment_name: phimm-test
   total_epochs: 1
+  nnodes: 2
 
 batch_size: 64
 gen_batch_size: 128

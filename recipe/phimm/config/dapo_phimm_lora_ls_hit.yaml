@@ -8,7 +8,7 @@ defaults:
 
 data:
   custom_cls:
-    path: verl/utils/dataset/audio/rl_dataset.py
+    path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
 
 custom_reward_function:

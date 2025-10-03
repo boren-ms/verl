@@ -1,7 +1,7 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
 import soundfile as sf
-from .chunk import load_chunk_example
+from recipe.phimm.data.chunk import load_chunk_example
 
 
 @cached(FIFOCache(maxsize=100))

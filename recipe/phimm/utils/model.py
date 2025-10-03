@@ -3,8 +3,6 @@
 # %%
 import re
 import os
-import subprocess
-import sys
 import json
 import wandb
 import blobfile as bf
@@ -67,7 +65,10 @@ def init_model(model_id=None, update_encoder=False, new_lora=None):
             rank_print("Prepare peft model with adapter:", new_lora)
             model = get_speech_peft_model(model, lora_name=new_lora)  # revert peft model
     if update_encoder:
-        layers = [r"^model.embed_tokens_extend.audio_embed.encoder.encoders", r"^model.embed_tokens_extend.audio_embed.audio_projection.speech"]
+        layers = [
+            r"^model.embed_tokens_extend.audio_embed.encoder.encoders",
+            r"^model.embed_tokens_extend.audio_embed.audio_projection.speech",
+        ]
         model = train_modules(model, layers)
     processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
     return model, processor
@@ -97,7 +98,9 @@ class WandbHelper:
         project = self.project_name or os.environ.get("WANDB_PROJECT", "biasing")
         entity = os.environ.get("WANDB_ENTITY", "genai")
 
-        print(f"Run name: {run_name}, Project: {project}, New run: {self.new_run}, Work dir: {self.run_info_file.parent}")
+        print(
+            f"Run name: {run_name}, Project: {project}, New run: {self.new_run}, Work dir: {self.run_info_file.parent}"
+        )
         run_info = {} if self.new_run else self._load_info()
         print("WandB Run Info:", run_info)
         return {
@@ -207,11 +210,11 @@ def print_modules(model, trainable=False, all_rank=False):
 def human_readable(num):
     """Convert a number to human readable format (K, M, G)."""
     if num >= 1_000_000_000:
-        return f"{num/1_000_000_000:.2f}G"
+        return f"{num / 1_000_000_000:.2f}G"
     elif num >= 1_000_000:
-        return f"{num/1_000_000:.2f}M"
+        return f"{num / 1_000_000:.2f}M"
     elif num >= 1_000:
-        return f"{num/1_000:.2f}K"
+        return f"{num / 1_000:.2f}K"
     else:
         return str(num)
 

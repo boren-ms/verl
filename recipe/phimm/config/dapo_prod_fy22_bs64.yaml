@@ -4,16 +4,16 @@ hydra:
 defaults:
   - dapo_asr_new
   - _self_
-  - data/librispeech
+  - data/prod_fy22
 
 data:
   custom_cls:
-    path: verl/utils/dataset/audio/rl_dataset.py
+    path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
   eval_num_examine: 5
   train_num_examine: 1
-  train_batch_size: 128
-  gen_batch_size: 256
+  train_batch_size: ${batch_size}
+  gen_batch_size: ${gen_batch_size}
 custom_reward_function:
   path: recipe/phimm/reward/asr_bias.py
   name: compute_score
@@ -29,15 +29,18 @@ actor_rollout_ref:
     enable_gradient_checkpointing: True
   actor:
     ppo_mini_batch_size: 1024
-    ppo_micro_batch_size_per_gpu: 128
+    ppo_micro_batch_size_per_gpu: ${batch_size}
     entropy_coeff: 0
     optim:
       lr: 1e-5
       min_lr_ratio: 0.1
   rollout:
     n: 8
-    log_prob_micro_batch_size_per_gpu: 128
+    log_prob_micro_batch_size_per_gpu: ${batch_size}
     gpu_memory_utilization: 0.8
 trainer:
   experiment_name: phimm-test
   total_epochs: 1
+
+batch_size: 64
+gen_batch_size: 128

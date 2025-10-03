@@ -80,7 +80,7 @@ def launch_training(module, config_file, output_dir):
 def get_task_module(task=None, config_file=None):
     """Return the script path for the given task."""
     assert task or config_file, "Either task or config_file must be provided"
-    tasks = {"dapo": "recipe.dapo.main_dapo"}
+    tasks = {"dapo": "recipe.phimm.main_dapo"}
 
     if not task and config_file:
         name_parts = Path(config_file).parent.name.split("_")

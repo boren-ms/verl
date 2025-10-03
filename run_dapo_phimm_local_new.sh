@@ -7,7 +7,7 @@ export DATA_PATH=${HOME}/data # used in yamls
 
 config_name=dapo_phimm_lora_new_local
 
-python3 -m recipe.dapo.main_dapo \
+python3 -m recipe.phimm.main_dapo \
 --config-name ${config_name} \
 +data.eval_num_examine=5 \
 +data.train_num_examine=1 \
