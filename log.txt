@@ -1,14 +1,15 @@
 [32;1mRUN: /home/boren/.openai/bin/brix ssh dev-n1-wus2 -- 'pgrep -fa /launch_'[0m
-12792 python3 ./launch_train.py orng_conf/biasing/ls_verify/grpo_ls_m1000_seed_e05_simple_err_t12_n8_bp8_imp5_ref1_sc1k_char_bias5_smp2a_diff1st.yaml
+338905 python3 ./launch_train.py recipe/dapo/config/dapo_ls_bs64.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh h-n1-uks7 -- 'pgrep -fa /launch_'[0m
-exit status 1
+1000787 python3 ./launch_train.py recipe/dapo/config/dapo_ls_bs8.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh h-n2-hpe4 -- 'pgrep -fa /launch_'[0m
 12063 python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_hc_fy23q2_tag_entity_cache_zero_e1_bp8_ref_fn1.yaml
+[32;1mRUN: /home/boren/.openai/bin/brix ssh h-n2-uks7 -- 'pgrep -fa /launch_'[0m
+2669570 python3 ./launch_train.py recipe/dapo/config/dapo_ls_bs64_n16.yaml --nodes 0
+2696137 python3 ./launch_train.py recipe/dapo/config/dapo_ls_bias_bs8.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh h-n2-wus2 -- 'pgrep -fa /launch_'[0m
 1233476 python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_fy22_info_tag_cache_zero_e1_bp8_ref_fn1.yaml
-[32;1mRUN: /home/boren/.openai/bin/brix ssh h1-n2-wus2 -- 'pgrep -fa /launch_'[0m
-2391048 python3 ./launch_train.py orng_conf/biasing/prod_bias/grpo_bias_hc_tag_entity_cache_zero_n8_fn1_bp8_imp5_ref1_sc1k_char_bias5_smp2a_diffmask_1m.yaml --acc zero2
-[32;1mRUN: /home/boren/.openai/bin/brix ssh l-n1-uks7 -- 'pgrep -fa /launch_'[0m
-exit status 1
+[32;1mRUN: /home/boren/.openai/bin/brix ssh h1-n2-hpe4 -- 'pgrep -fa /launch_'[0m
+426081 python3 ./launch_train.py recipe/dapo/config/dapo_ls_bs128_N2.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh l-n2-hpe2 -- 'pgrep -fa /launch_'[0m
 116444 python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_hc_tag_entity_cache_zero_e1_bp8_ref_fn1.yaml
