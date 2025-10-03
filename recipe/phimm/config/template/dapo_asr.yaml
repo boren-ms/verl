@@ -50,7 +50,9 @@ actor_rollout_ref:
     log_prob_micro_batch_size_per_gpu: 1
     tensor_model_parallel_size: 1
     name: vllm
-    gpu_memory_utilization: 0.35
+    response_length: 1024
+    temperature: 1.0
+    gpu_memory_utilization: 0.5
     load_format: safetensors
   ref:
     strategy: fsdp2
