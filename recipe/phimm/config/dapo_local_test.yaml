@@ -12,6 +12,8 @@ data:
   custom_cls:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
+    eval_num_examine: 5
+    train_num_examine: 1
 custom_reward_function:
   # path: recipe/phimm/reward/asr_bias.py
   path: recipe/phimm/reward/asr_bias.py
