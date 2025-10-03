@@ -11,7 +11,7 @@ data:
     path: verl/utils/dataset/audio/rl_dataset.py
     name: RLHFDataset
 custom_reward_function:
-  # path: recipe/phimm/reward/asr.py
+  # path: recipe/phimm/reward/asr_bias.py
   path: recipe/phimm/reward/asr_bias.py
   name: compute_score
   # reward_kwargs:

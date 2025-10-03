@@ -12,7 +12,7 @@ data:
     name: RLHFDataset
 
 custom_reward_function:
-  path: recipe/phimm/reward/asr.py
+  path: recipe/phimm/reward/asr_bias.py
   name: hit_count
 
 actor_rollout_ref:

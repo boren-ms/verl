@@ -15,7 +15,7 @@ data:
   train_batch_size: ${batch_size}
   gen_batch_size: ${gen_batch_size}
 custom_reward_function:
-  path: recipe/phimm/reward/asr.py
+  path: recipe/phimm/reward/asr_bias.py
   name: compute_score
   # reward_kwargs:
   #   beta: 1.0
