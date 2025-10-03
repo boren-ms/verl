@@ -5,7 +5,7 @@ HOME=/home/boren
 export MODEL_PATH=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
 export DATA_PATH=${HOME}/data # used in yamls
 
-config_name=dapo_phimm_lora_new_local
+config_name=dapo_local_test
 
 python3 -m recipe.phimm.main_dapo \
 --config-name ${config_name} \

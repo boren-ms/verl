@@ -30,7 +30,12 @@ actor_rollout_ref:
     exclude_modules: "model.embed_tokens_extend.*" # must have
   rollout:
     gpu_memory_utilization: 0.3
+  actor:
+    loss_agg_mode: seq-mean-token-sum-norm
+    use_kl_loss: False
 
+algorithm:
+  norm_adv_by_std_in_grpo: False
 trainer:
   experiment_name: dapo-phimm-test-lora-new
   save_freq: 1000
