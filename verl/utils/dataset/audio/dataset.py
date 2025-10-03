@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 import ast
 import random
-import uuid
+import socket
 import blobfile as bf
 import pandas as pd
 import string
@@ -16,7 +16,7 @@ from verl.utils.dataset.audio.biasing import PieceSampler, tag_pieces, text_norm
 from verl.utils.dataset.audio.prompts import get_task_prompt
 from verl.utils.dataset.audio.metrics import text_norm
 from verl.utils.dataset.audio.chunk import get_chunk_manager, create_chunk_datasets
-from verl.utils.dataset.audio.utils import get_config_path, get_value, rank_print, dist_state, all_rank_print, to_list
+from verl.utils.dataset.audio.utils import hash_id, get_value, rank_print, dist_state, all_rank_print, to_list
 from verl.utils.dataset.audio.audio_utils import sf_read
 from verl.utils.dataset.audio.storage_utils import get_path_with_options
 
@@ -793,11 +793,7 @@ def cache_ds(**kwargs):
     if cache_name is None:
         return None, None
     if cache_name.startswith("auto"):
-        config_path = get_config_path()  # ensure config path is set
-        if config_path is not None:
-            cache_name = Path(config_path).stem + cache_name[4:]  # e.g. auto -> config name + rest
-        else:
-            cache_name = uuid.uuid4().hex + cache_name[4:]
+        cache_name = f"{socket.gethostname()}{cache_name[4:]}_{hash_id(kwargs)}"
     cache_dir = kwargs.get("cache_dir", Path().home() / "data/cache_datasets")
     cache_path = Path(cache_dir) / cache_name
     ds = load_cached_ds(cache_path)
