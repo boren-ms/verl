@@ -16,10 +16,12 @@ custom_reward_function:
     choice: "err" # "err", "acc", "wer"
     text_norm: simple_with_tag # english (default), identity, lower, basic, simple, simple_with_tag
     unit: char # word (default), char
+
 actor_rollout_ref:
   rollout:
     n: 16
-
+  model:
+    path: /root/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
 data:
   train_batch_size: 8
   gen_batch_size: 16

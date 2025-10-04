@@ -19,7 +19,8 @@ custom_reward_function:
 actor_rollout_ref:
   rollout:
     n: 8
-
+  model:
+    path: /root/data/ckp/hf_models/Phi-4-multimodal-instruct
 data:
   train_batch_size: 8
   gen_batch_size: 16

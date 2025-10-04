@@ -18,6 +18,8 @@ custom_reward_function:
     unit: word # word (default), char
 
 actor_rollout_ref:
+  model:
+    path: /root/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
   rollout:
     n: 16
 
