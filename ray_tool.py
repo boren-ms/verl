@@ -688,8 +688,9 @@ class RayNode:
 
     def check_gpus(self):
         """Check GPU availability on all Ray nodes."""
-        print("Cluster resources:", ray.cluster_resources())
-        print("Available resources:", ray.available_resources())
+        n_total = ray.cluster_resources().get("GPU", 0)
+        n_free = ray.available_resources().get("GPU", 0)
+        print(f"Free GPUs: {n_free}/{n_total}")
 
     def release_gpus(self):
         """Release GPUs on all Ray nodes."""
