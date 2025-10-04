@@ -50,6 +50,7 @@ class HFModelConfig(BaseConfig):
     tokenizer_path: Optional[str] = None
     local_tokenizer_path: Optional[str] = None
 
+    patch_phi4mm: bool = True
     # whether to load tokenizer. This is useful when we only want to load model config
     load_tokenizer: bool = True
 
