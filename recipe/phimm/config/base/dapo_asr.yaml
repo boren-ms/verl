@@ -37,7 +37,7 @@ actor_rollout_ref:
     loss_agg_mode: token-mean
     entropy_coeff: 0
     ppo_micro_batch_size_per_gpu: ${data.train_batch_size}
-    # ppo_mini_batch_size: 1024
+    ppo_mini_batch_size: 1024 # keep it large, use only policy gradient
     optim:
       lr: 1e-5
       warmup_style: cosine
