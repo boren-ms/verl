@@ -317,6 +317,13 @@ def get_score(wer, choice="wer"):
         raise ValueError(f"Unsupported score choice: {choice}")
 
 
+def is_valid(wer, **kwargs):
+    """Check if the WER and error count are within the specified limits."""
+    max_wer = kwargs.get("max_wer", 100)
+    max_err = kwargs.get("max_err", 10000)
+    return wer.wer <= max_wer and wer.n_err <= max_err
+
+
 def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for ASR with keywords."""
     extra_info = kwargs.pop("extra_info", {})
@@ -328,7 +335,11 @@ def compute_score(solution_str, ground_truth, **kwargs):
     )
     beta = kwargs.get("beta", 0.0)
     choice = kwargs.get("choice", "err")
-    score = get_score(wer, choice) * (1 - beta) + get_score(b_wer, choice) * beta
+    score = get_score(wer, choice) + get_score(b_wer, choice) * beta
+
+    if not is_valid(wer, **kwargs):
+        score = -100.0  # penalty for too high WER
+
     return {
         "score": score,
         "n_err": wer.n_err,
