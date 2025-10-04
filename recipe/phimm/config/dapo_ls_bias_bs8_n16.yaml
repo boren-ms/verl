@@ -30,7 +30,7 @@ actor_rollout_ref:
     lora_alpha: 640
     target_modules: "model.layers.*(qkv_proj|o_proj|gate_up_proj|down_proj).*"
     exclude_modules: "model.embed_tokens_extend.*" # must have
-    path: /root/data/ckp/hf_models/phi4_mm_bias_merged
+    path: /root/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
     enable_gradient_checkpointing: True
   actor:
     ppo_mini_batch_size: 1024

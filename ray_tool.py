@@ -477,13 +477,13 @@ def prepare_data(forced=False):
         # "ckp/hf_models/Qwen2.5-0.5B-Instruct",
         # "ckp/hf_models/Qwen2-0.5B-Reward",
         # "ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq_1000",
-        # "ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf",
+        "ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf",
         # "ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf_merged",
         "ckp/hf_models/phi4_mm_bias_merged",
         # "ckp/hf_models/phi4_mm_bias",
         # "ckp/hf_models/Phi4-7b-ASR-2506",
         # "ckp/hf_models/libri_ft_m200_p8_bp6_new_notag_ckp5000",
-        # "ckp/hf_models/phi4-7b-fast-api-s2-final-v4",
+        "ckp/hf_models/phi4-7b-fast-api-s2-final-v4",
         # "ckp/hf_models/Phi4-7b-ASR-2506-v2",
         "ckp/hf_models/Phi-4-multimodal-instruct",
         # "ckp/hf_models/roberta-large-ner-english",  # to tag entities
@@ -493,7 +493,7 @@ def prepare_data(forced=False):
         "librispeech_biasing/ref",
         "LibriSpeech/test-clean",
         "LibriSpeech/test-other",
-        "parquet",
+        # "parquet",
         # "LibriSpeech/train-clean-360/115/122944",
     ]
 
