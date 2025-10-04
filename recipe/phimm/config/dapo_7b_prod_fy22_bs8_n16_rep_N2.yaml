@@ -1,0 +1,31 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - dapo_asr
+  - data/train_data/prod_fy22
+  - data/val_data/entity
+  - _self_
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_bias.py
+  name: compute_score
+  reward_kwargs:
+    beta: 5 # score = WER + beta*B-WER
+    choice: "err" # "err", "acc", "wer"
+    text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
+    unit: word # word (default), char
+
+actor_rollout_ref:
+  model:
+    path: /root/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+  rollout:
+    n: 16
+
+data:
+  max_prompt_length: 7168
+  train_batch_size: 8
+  gen_batch_size: 16
+trainer:
+  nnodes: 2
