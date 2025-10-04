@@ -8,7 +8,7 @@ export MODEL_PATH=${HOME}/data/ckp/hf_models/phi4_mm_bias_merged
 
 batch_size=128
 config_name=dapo_phimm_lora_ls
-python3 -m recipe.phimm.main_dapo \
+python3 -m recipe.phimm.main_asr_dapo \
 --config-name ${config_name} \
 data.train_batch_size=${batch_size} \
 data.gen_batch_size=$((batch_size * 3 / 2)) \
