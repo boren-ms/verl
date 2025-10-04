@@ -10,7 +10,7 @@ data:
   max_response_length: 1024
   train_batch_size: 8 # 32
   gen_batch_size: 16 # 32 * n_rollout
-
+  shuffle: false
 algorithm:
   adv_estimator: grpo
   use_kl_in_reward: false
