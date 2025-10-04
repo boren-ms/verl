@@ -3,8 +3,6 @@ set -xeuo pipefail
 
 config_name=dapo_prod_fy22_bs8_n16_rep
 
-
-export DATA_PATH=az://orngcresco/data
 export OUTPUT_PATH=/root/outputs/${config_name}
 
 python3 -m recipe.phimm.main_asr_dapo \

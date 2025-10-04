@@ -181,6 +181,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         self.ulysses_sharding_manager = FSDPUlyssesShardingManager(self.ulysses_device_mesh)
         self._lora_rank = self.config.model.get("lora_rank", 0)
         self._is_lora = self._lora_rank > 0
+        self._patch_phi4mm = self.config.model.get("patch_phi4mm", True)
 
         self.role = role
         assert self.role in ["actor", "rollout", "ref", "actor_rollout", "actor_rollout_ref"]
@@ -365,13 +366,17 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                     actor_module_class = AutoModelForCausalLM
                 else:
                     actor_module_class = AutoModel
-            # breakpoint()
+            breakpoint()
             actor_module = actor_module_class.from_pretrained(
                 pretrained_model_name_or_path=local_path,
                 torch_dtype=torch_dtype,
                 config=actor_model_config,
                 trust_remote_code=trust_remote_code,
             )
+            if self._patch_phi4mm:
+                from recipe.phimm.utils.model import patch_phi4mm
+
+                actor_module = patch_phi4mm(actor_module)
 
             # Apply Liger kernel to the model if use_liger is set to True
             if use_liger:

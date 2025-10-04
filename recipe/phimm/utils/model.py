@@ -1,3 +1,4 @@
+# %%
 import types
 from contextlib import contextmanager
 from transformers import AutoModelForCausalLM
@@ -125,7 +126,31 @@ def add_adapter_func(obj):
 
 
 def merge_model_adapter(model, lora_name="speech"):
-    model.set_lora_adapter(lora_name)
     model = add_adapter_func(model)
+    model.set_lora_adapter(lora_name)
     model.merge_and_unload()  # merge lora and back to normal Linear
     return model
+
+
+def patch_phi4mm(model, lora_name="speech"):
+    if model.config.model_type in ["phi4mm"]:
+        model = merge_model_adapter(model, lora_name=lora_name)
+        # disable image embed to save memory
+        model.model.embed_tokens_extend.image_embed = None
+    return model
+
+
+# %%
+if __name__ == "__main__":
+    # model_path = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct"
+    model_path = "/home/boren/data/ckp/hf_models/phi4_mm_bias_merged"
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        trust_remote_code=True,
+        torch_dtype="auto",
+        _attn_implementation="flash_attention_2",
+    )
+
+    model = patch_phi4mm(model)
+
+# %%

@@ -5,7 +5,6 @@ set -xeuo pipefail
 export MODEL_PATH=/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 # export MODEL_PATH=/home/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
 # export MODEL_PATH=/home/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
-export DATA_PATH=/home # used in yamls
 
 config_name=dapo_local_test
 
