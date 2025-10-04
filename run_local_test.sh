@@ -7,6 +7,7 @@ export MODEL_PATH=/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 # export MODEL_PATH=/home/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
 config_name=dapo_local_test
+val_before_train=true
 
 python3 -m recipe.phimm.main_asr_dapo \
 --config-name ${config_name} \
@@ -15,4 +16,5 @@ data.gen_batch_size=4 \
 actor_rollout_ref.rollout.n=4 \
 trainer.n_gpus_per_node=1 \
 trainer.logger=console \
+trainer.val_before_train=${val_before_train} \
 actor_rollout_ref.model.path="${MODEL_PATH}" 2>&1 | tee ${config_name}.log
