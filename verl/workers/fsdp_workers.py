@@ -366,7 +366,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                     actor_module_class = AutoModelForCausalLM
                 else:
                     actor_module_class = AutoModel
-            breakpoint()
+            # breakpoint()
             actor_module = actor_module_class.from_pretrained(
                 pretrained_model_name_or_path=local_path,
                 torch_dtype=torch_dtype,
