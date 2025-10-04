@@ -8,12 +8,6 @@ defaults:
   - data/train_data/local
   - data/val_data/local
 
-data:
-  custom_cls:
-    path: recipe/phimm/data/rl_dataset.py
-    name: RLHFDataset
-    eval_num_examine: 5
-    train_num_examine: 1
 custom_reward_function:
   # path: recipe/phimm/reward/asr_bias.py
   path: recipe/phimm/reward/asr_bias.py
@@ -26,11 +20,6 @@ custom_reward_function:
     max_err: 2
 
 actor_rollout_ref:
-  model:
-    lora_rank: 320
-    lora_alpha: 640
-    target_modules: "model.layers.*(qkv_proj|o_proj|gate_up_proj|down_proj).*"
-    exclude_modules: "model.embed_tokens_extend.*" # must have
   rollout:
     gpu_memory_utilization: 0.3
   actor:
@@ -39,6 +28,7 @@ actor_rollout_ref:
 
 algorithm:
   norm_adv_by_std_in_grpo: False
+
 trainer:
   experiment_name: dapo-phimm-test-lora-new
   save_freq: 1000
