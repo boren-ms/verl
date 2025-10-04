@@ -1,8 +1,9 @@
+[32;1mRUN: /home/boren/.openai/bin/brix ssh dev-n1-uks7 -- 'pgrep -fa /launch_'[0m
+9099 python3 ./launch_train.py recipe/phimm/config/dapo_7b_prod_fy22_bs8_n16_rep_sr.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh dev-n1-wus2 -- 'pgrep -fa /launch_'[0m
 3065845 python3 ./launch_train.py recipe/phimm/config/dapo_ls_bias_bs8.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh h-n1-uks7 -- 'pgrep -fa /launch_'[0m
-ssh: connect to host h-n1-uks7-0.rcall.boren.svc.prod-uksouth-7.dev.openai.org port 31338: Connection refused
-exit status 255
+7348 python3 ./launch_train.py recipe/phimm/config/dapo_ls_bs8.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh h-n2-hpe4 -- 'pgrep -fa /launch_'[0m
 12063 python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_hc_fy23q2_tag_entity_cache_zero_e1_bp8_ref_fn1.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh h-n2-uks7 -- 'pgrep -fa /launch_'[0m
