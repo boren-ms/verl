@@ -7,8 +7,9 @@ defaults:
   - data/train_data/prod_fy22
   - data/val_data/entity
   - _self_
-
 data:
+  max_prompt_length: 7168
+  max_response_length: 1024
   custom_cls:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
