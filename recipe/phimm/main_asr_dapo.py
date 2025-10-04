@@ -26,8 +26,16 @@ from pathlib import Path
 from verl.trainer.ppo.reward import load_reward_manager
 from verl.utils.device import is_cuda_available
 from recipe.dapo.dapo_ray_trainer import RayDAPOTrainer
+from recipe.phimm.utils.env import EnvMgr
 
-ENV_VARS = ["DATA_PATH"]
+
+def get_env_vars():
+    env_vars = EnvMgr().envs()
+    required_envs = ["DATA_PATH"]
+    assert all(k in env_vars for k in required_envs), (
+        f"Missing env vars: {[k for k in required_envs if k not in env_vars]}"
+    )
+    return env_vars
 
 
 @hydra.main(config_path="config", config_name="dapo_trainer", version_base=None)
@@ -36,21 +44,28 @@ def main(config):
 
 
 def run_ppo(config) -> None:
+    env_vars = get_env_vars()
+    print(f"Cluster Env: {env_vars}")
     if not ray.is_initialized():
         # this is for local ray cluster
         default_runtime_env = {
-            "env_vars": {"TOKENIZERS_PARALLELISM": "true", "NCCL_DEBUG": "WARN", "VLLM_LOGGING_LEVEL": "WARN"}
+            "env_vars": {
+                "TOKENIZERS_PARALLELISM": "true",
+                "NCCL_DEBUG": "WARN",
+                "VLLM_LOGGING_LEVEL": "WARN",
+                **env_vars,
+            },
+            "working_dir": str(Path(__file__).parents[2]),
         }
         ray_init_kwargs = config.ray_kwargs.get("ray_init", {})
         runtime_env_kwargs = ray_init_kwargs.get("runtime_env", {})
         runtime_env = OmegaConf.merge(default_runtime_env, runtime_env_kwargs)
         ray_init_kwargs = OmegaConf.create({**ray_init_kwargs, "runtime_env": runtime_env})
-        print(f"ray init kwargs: {ray_init_kwargs}")
+        print(f"Ray init kwargs: {ray_init_kwargs}")
         ray.init(**OmegaConf.to_container(ray_init_kwargs))
 
     try:
-        env_vars = {k: os.environ[k] for k in ENV_VARS}
-        print(f"Passing env vars to workers: {env_vars}")
+        print(f"Worker Env: {env_vars}")
         runtime_env = {"env_vars": env_vars}
         if (
             is_cuda_available

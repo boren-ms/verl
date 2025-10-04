@@ -365,30 +365,28 @@ class RayPPOTrainer:
             val_data = self.config.data.get("val_data", None) or self.config.data.get("val_files", None)
             val_dataset = create_rl_dataset(val_data, self.config.data, self.tokenizer, self.processor)
         self.train_dataset, self.val_dataset = train_dataset, val_dataset
-
+        print("Train dataset:", len(self.train_dataset))
+        print("Val dataset:", len(self.val_dataset))
         if train_sampler is None:
             train_sampler = create_rl_sampler(self.config.data, self.train_dataset)
 
         num_workers = self.config.data["dataloader_num_workers"]
-
+        gen_batch_size = self.config.data.get("gen_batch_size", self.config.data.train_batch_size)
         self.train_dataloader = StatefulDataLoader(
             dataset=self.train_dataset,
-            batch_size=self.config.data.get("gen_batch_size", self.config.data.train_batch_size),
+            batch_size=gen_batch_size,
             num_workers=num_workers,
             drop_last=True,
             collate_fn=get_collate_fn(self.train_dataset, collate_fn),
             sampler=train_sampler,
         )
 
-        val_batch_size = self.config.data.val_batch_size  # Prefer config value if set
-        if val_batch_size is None:
-            val_batch_size = len(self.val_dataset)
-
+        val_batch_size = self.config.data.val_batch_size or gen_batch_size
         self.val_dataloader = StatefulDataLoader(
             dataset=self.val_dataset,
             batch_size=val_batch_size,
             num_workers=num_workers,
-            shuffle=self.config.data.get("validation_shuffle", True),
+            shuffle=self.config.data.get("validation_shuffle", False),
             drop_last=False,
             collate_fn=get_collate_fn(self.val_dataset, collate_fn),
         )
