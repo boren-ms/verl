@@ -1,0 +1,1 @@
+# b ssh  l-n1-uks7 'bash -l /root/code/verl/quick_run.sh recipe/phimm/config/dapo_ls_bs64.yaml'

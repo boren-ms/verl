@@ -6,14 +6,15 @@ config_file=$1
 config_base=$(basename "$config_file")
 config_name=${config_base%.*}
 
-pushd "$(dirname "$0")" > /dev/null
+cwd="$(dirname $0)"
+pushd $cwd > /dev/null
 
 echo "[INFO] Installing environment..."
 bash ./quick_install.sh
 
 echo "[INFO] Running ${config_name} ..."
 
-ray job submit --no-wait -- \
+ray job submit --working-dir=${cwd} --no-wait -- \
 python3 -m recipe.phimm.main_asr_dapo \
 --config-name "${config_name}" \
 trainer.experiment_name="${config_name}" \
