@@ -27,6 +27,7 @@ from verl.trainer.ppo.reward import load_reward_manager
 from verl.utils.device import is_cuda_available
 from recipe.dapo.dapo_ray_trainer import RayDAPOTrainer
 from recipe.phimm.utils.env import EnvMgr
+from recipe.phimm.utils.shared import cache_dir
 
 
 def get_env_vars():
@@ -77,6 +78,7 @@ def run_ppo(config) -> None:
                 config.global_profiler.global_tool_config.nsys.controller_nsight_options
             )
             runtime_env["nsight"] = nsight_options
+        EnvMgr().prepare()
         runner = TaskRunner.options(runtime_env=runtime_env).remote()
         ray.get(runner.run.remote(config))
     finally:
@@ -98,8 +100,6 @@ class TaskRunner:
 
         from omegaconf import OmegaConf
 
-        from verl.utils.fs import copy_to_local
-
         reset_cwd()
         print(f"TaskRunner hostname: {socket.gethostname()}, PID: {os.getpid()}, CWD: {os.getcwd()}")
 
@@ -108,7 +108,7 @@ class TaskRunner:
 
         assert config.actor_rollout_ref.model.path is not None, "Please specify the actor model path"
         # download the checkpoint from hdfs
-        local_path = copy_to_local(config.actor_rollout_ref.model.path)
+        local_path = cache_dir(config.actor_rollout_ref.model.path)
 
         # instantiate tokenizer
         from verl.utils import hf_processor, hf_tokenizer

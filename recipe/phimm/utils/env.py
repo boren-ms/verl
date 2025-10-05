@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import socket
+from recipe.phimm.utils.ray_node import RayNode
 
 
 def get_region():
@@ -53,8 +54,7 @@ class OrngEnv(EnvBase):
 
     def prepare(self, forced=False):
         """Prepare the environment by creating necessary directories."""
-        # TODO: implement env preparation
-        pass
+        RayNode().prepare(forced=forced)
 
     @property
     def data_storage(self):
@@ -120,3 +120,7 @@ class EnvMgr:
     def envs(self):
         """Get the environment variables."""
         return self.env.envs()
+
+    def prepare(self, forced=False):
+        """Prepare the environment by creating necessary directories."""
+        self.env.prepare(forced=forced)

@@ -4,6 +4,16 @@ import sys
 from pathlib import Path
 import functools
 import hashlib
+import importlib.metadata
+
+
+def is_package_version(package_name, target_version):
+    """Check if the specified package is installed with the target version."""
+    try:
+        version = importlib.metadata.version(package_name)
+        return version == target_version
+    except importlib.metadata.PackageNotFoundError:
+        return False
 
 
 def hash_id(d) -> str:
@@ -70,12 +80,13 @@ def get_config_path(config_path=None):
     return None
 
 
-def run_cmd(cmd, check=True):
+def run_cmd(cmd, cwd=None, check=True):
     """Run a shell command and print it."""
     if is_list(cmd):
         cmd = " ".join(cmd)
     print(f"Running: {cmd}")
-    ret = subprocess.run(cmd, shell=True, check=check)
+    print(f"Working Dir: {cwd}")
+    ret = subprocess.run(cmd, shell=True, check=check, cwd=cwd)
     print(f"Cmd: {cmd} returned: {ret.returncode}")
     return ret
 
