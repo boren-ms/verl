@@ -21,7 +21,7 @@ actor_rollout_ref:
   rollout:
     n: 16
   model:
-    path: /root/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
 
 data:
   train_batch_size: 8

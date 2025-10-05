@@ -19,7 +19,7 @@ custom_reward_function:
 actor_rollout_ref:
   model:
     patch_phi4mm: false # skip for lora merged
-    path: /root/data/ckp/hf_models/phi4_mm_bias_merged
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4_mm_bias_merged
   rollout:
     n: 8
 

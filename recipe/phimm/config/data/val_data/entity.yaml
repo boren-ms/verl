@@ -6,7 +6,7 @@
       verl_format:
           prompt_key: prompt
   dataset_name: ls_bias
-  jsonl_path: /root/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
   tag: ""
   data_dir: ${oc.env:DATA_PATH}/boren/data/
 - cache_name: auto_other
@@ -17,7 +17,7 @@
       verl_format:
           prompt_key: prompt
   dataset_name: ls_bias
-  jsonl_path: /root/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
   tag: ""
   data_dir: ${oc.env:DATA_PATH}/boren/data/
 - cache_name: auto_entity_Gaming
