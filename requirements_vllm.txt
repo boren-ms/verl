@@ -1,7 +1,7 @@
 # requirements.txt records the full set of dependencies for development
 accelerate
 codetiming
-datasets>=4.0.0
+datasets==4.0.0
 dill
 torch==2.7.1
 hydra-core

@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 import socket
-from recipe.phimm.utils.ray_node import RayNode
 
 
 def get_region():
@@ -23,9 +22,6 @@ class EnvBase:
 
     def envs(self):
         """Get the environment variables."""
-        raise NotImplementedError
-
-    def prepare(self, forced=False):
         raise NotImplementedError
 
 
@@ -51,10 +47,6 @@ class OrngEnv(EnvBase):
             "USER_DATA_PATH": self.user_data_path,
             "USER_OUTPUT_PATH": self.user_output_path,
         }
-
-    def prepare(self, forced=False):
-        """Prepare the environment by creating necessary directories."""
-        RayNode().prepare(forced=forced)
 
     @property
     def data_storage(self):
@@ -103,10 +95,6 @@ class LocalEnv(EnvBase):
             "USER_OUTPUT_PATH": str(self.user_output_path),
         }
 
-    def prepare(self, forced=False):
-        """Prepare the local environment by creating necessary directories."""
-        print("Skipping local env preparation.")
-
 
 class EnvMgr:
     """Class to manage environment variables."""
@@ -120,7 +108,3 @@ class EnvMgr:
     def envs(self):
         """Get the environment variables."""
         return self.env.envs()
-
-    def prepare(self, forced=False):
-        """Prepare the environment by creating necessary directories."""
-        self.env.prepare(forced=forced)

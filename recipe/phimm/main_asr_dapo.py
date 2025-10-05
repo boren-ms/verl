@@ -78,7 +78,6 @@ def run_ppo(config) -> None:
                 config.global_profiler.global_tool_config.nsys.controller_nsight_options
             )
             runtime_env["nsight"] = nsight_options
-        EnvMgr().prepare()
         runner = TaskRunner.options(runtime_env=runtime_env).remote()
         ray.get(runner.run.remote(config))
     finally:
