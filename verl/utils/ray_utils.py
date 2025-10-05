@@ -20,13 +20,21 @@ import os
 from typing import Any, Optional
 
 import ray
+import socket
 
 
-def ray_url():
+def ray_address():
     """Get the Ray dashboard URL."""
     if not ray.is_initialized():
         return None
-    url = ray._private.worker.global_worker.node.address_info["webui_url"]
+    return ray._private.worker.global_worker.node.address_info["webui_url"]
+
+
+def ray_host_url():
+    url = os.environ.get("RAY_ADDRESS", None)
+    if url is None:
+        ip = socket.gethostbyname(socket.gethostname())
+        url = f"{ip}:9209"
     return f"http://{url}"
 
 

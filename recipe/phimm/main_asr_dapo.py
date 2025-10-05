@@ -28,6 +28,7 @@ from verl.utils.device import is_cuda_available
 from recipe.dapo.dapo_ray_trainer import RayDAPOTrainer
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.utils.shared import cache_dir
+from verl.utils.ray_utils import ray_address, ray_host_url
 
 
 def get_env_vars():
@@ -44,6 +45,10 @@ def main(config):
     run_ppo(config)
 
 
+def cwd():
+    return Path(__file__).parents[2]
+
+
 def run_ppo(config) -> None:
     env_vars = get_env_vars()
     print(f"Cluster Env: {env_vars}")
@@ -55,7 +60,8 @@ def run_ppo(config) -> None:
                 "NCCL_DEBUG": "WARN",
                 "VLLM_LOGGING_LEVEL": "WARN",
                 **env_vars,
-            }
+            },
+            "excludes": [str(cwd() / ".git")],
         }
         ray_init_kwargs = config.ray_kwargs.get("ray_init", {})
         runtime_env_kwargs = ray_init_kwargs.get("runtime_env", {})
@@ -65,6 +71,7 @@ def run_ppo(config) -> None:
         ray.init(**OmegaConf.to_container(ray_init_kwargs))
 
     try:
+        env_vars["RAY_ADDRESS"] = ray_address()
         print(f"Worker Env: {env_vars}")
         runtime_env = {"env_vars": env_vars}
         if (
@@ -84,12 +91,6 @@ def run_ppo(config) -> None:
             ray.shutdown()
 
 
-def reset_cwd():
-    wd = str(Path(__file__).parents[2])
-    os.chdir(wd)
-    print(f"Reset cwd to {wd}")
-
-
 @ray.remote(num_cpus=1)  # please make sure main_task is not scheduled on head
 class TaskRunner:
     def run(self, config):
@@ -98,8 +99,8 @@ class TaskRunner:
 
         from omegaconf import OmegaConf
 
-        reset_cwd()
-        print(f"TaskRunner hostname: {socket.gethostname()}, PID: {os.getpid()}, CWD: {os.getcwd()}")
+        os.chdir(str(cwd()))
+        print(f"HostName: {socket.gethostname()}, RAY_HOST: {ray_host_url()}, PID: {os.getpid()}, CWD: {os.getcwd()}")
 
         pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
         OmegaConf.resolve(config)
