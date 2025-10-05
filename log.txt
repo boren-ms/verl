@@ -11,6 +11,8 @@
 388499 python3 ./launch_train.py recipe/phimm/config/dapo_ls_bias_bs8.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh h-n2-wus2 -- 'pgrep -fa /launch_'[0m
 1233476 python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_fy22_info_tag_cache_zero_e1_bp8_ref_fn1.yaml
+[32;1mRUN: /home/boren/.openai/bin/brix ssh h1-n2-hpe4 -- 'pgrep -fa /launch_'[0m
+5856 python3 ./launch_train.py recipe/phimm/config/dapo_7b_prod_fy22_bs8_n16_rep_N2.yaml
 [32;1mRUN: /home/boren/.openai/bin/brix ssh h1-n2-wus2 -- 'pgrep -fa /launch_'[0m
 871732 python3 ./launch_train.py recipe/phimm/config/dapo_ls_bias_bs8_n16_rep.yaml
 871876 python3 ./launch_train.py recipe/phimm/config/dapo_ls_bias_bs8_n16.yaml
