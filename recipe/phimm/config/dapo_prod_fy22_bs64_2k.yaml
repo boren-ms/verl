@@ -4,7 +4,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - dapo_asr
-  - data/train_data/ls_raw
+  - data/train_data/prod_fy22
+  - data/val_data/entity
   - data/val_data/ls_raw
   - _self_
 
@@ -12,15 +13,16 @@ custom_reward_function:
   path: recipe/phimm/reward/asr_bias.py
   name: compute_score
   # reward_kwargs:
-  #   beta: 0.0 # score = (1-beta)*WER + beta*B-WER
-  #   choice: "err" # "err", "acc", "wer"
-  #   text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
-  #   unit: word # word (default), char
+  # beta: 5 # score = WER + beta*B-WER
+  # choice: "err" # "err", "acc", "wer"
+  # text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
+  # unit: word # word (default), char
 actor_rollout_ref:
   rollout:
     n: 8
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 data:
-  train_batch_size: 8
-  gen_batch_size: 16
+  train_batch_size: 64
+  gen_batch_size: 128
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch

@@ -12,11 +12,12 @@ defaults:
 custom_reward_function:
   path: recipe/phimm/reward/asr_bias.py
   name: compute_score
-  # reward_kwargs:
-  # beta: 5 # score = WER + beta*B-WER
-  # choice: "err" # "err", "acc", "wer"
-  # text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
-  # unit: word # word (default), char
+  reward_kwargs:
+    beta: 5 # score = WER + beta*B-WER
+    choice: "err" # "err", "acc", "wer"
+    text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
+    unit: word # word (default), char
+    max_err: 10 # only accept if error count <= max_err
 actor_rollout_ref:
   rollout:
     n: 8

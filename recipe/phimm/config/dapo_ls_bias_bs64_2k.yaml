@@ -4,8 +4,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - dapo_asr
-  - data/train_data/ls_raw
-  - data/val_data/ls_raw
+  - data/train_data/ls_bias
+  - data/val_data/ls_bias
   - _self_
 
 custom_reward_function:
@@ -16,13 +16,16 @@ custom_reward_function:
   #   choice: "err" # "err", "acc", "wer"
   #   text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
   #   unit: word # word (default), char
+
 actor_rollout_ref:
-  model:
-    patch_phi4mm: false # skip for lora merged
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4_mm_bias_merged
   rollout:
     n: 8
+  model:
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
 
 data:
-  train_batch_size: 8
-  gen_batch_size: 16
+  # train_batch_size: ${eval:8*trainer.nnodes*trainer.n_gpus_per_node}
+  # gen_batch_size: ${data.train_batch_size}
+  train_batch_size: 64
+  gen_batch_size: 128
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
