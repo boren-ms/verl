@@ -1,6 +1,6 @@
 #!/bin/bash
 set -xeuo pipefail
-done_file="env.done"
+done_file=".env_done"
 
 if [ ! -f ${done_file} ]; then
     pip install -r requirements_vllm.txt
