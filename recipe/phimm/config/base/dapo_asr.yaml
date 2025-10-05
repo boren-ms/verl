@@ -26,7 +26,7 @@ algorithm:
   filter_groups:
     enable: true
     metric: seq_reward
-    max_num_gen_batches: 10
+    max_num_gen_batches: 100
 
 actor_rollout_ref:
   actor:
