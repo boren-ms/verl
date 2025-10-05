@@ -22,6 +22,14 @@ from typing import Any, Optional
 import ray
 
 
+def ray_url():
+    """Get the Ray dashboard URL."""
+    if not ray.is_initialized():
+        return None
+    url = ray._private.worker.global_worker.node.address_info["webui_url"]
+    return f"http://{url}"
+
+
 def ray_noset_visible_devices(env_vars=os.environ):
     # Refer to
     # https://github.com/ray-project/ray/blob/161849364a784442cc659fb9780f1a6adee85fce/python/ray/_private/accelerators/nvidia_gpu.py#L95-L96

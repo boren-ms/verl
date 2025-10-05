@@ -45,6 +45,7 @@ from verl.trainer.ppo.ray_trainer import (
 )
 from verl.utils.profiler import marked_timer
 from verl.utils.rollout_skip import RolloutSkip
+from verl.utils.ray_utils import ray_url
 
 
 class RayDAPOTrainer(RayPPOTrainer):
@@ -73,7 +74,7 @@ class RayDAPOTrainer(RayPPOTrainer):
         self.global_steps = 0
         self.gen_steps = 0
 
-        logger.log(data={"hostname": socket.gethostname()}, step=self.global_steps)
+        logger.log(data={"hostname": socket.gethostname(), "ray_url": ray_url()}, step=self.global_steps)
         # load checkpoint before doing anything
         self._load_checkpoint()
 
