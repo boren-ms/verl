@@ -55,8 +55,7 @@ def run_ppo(config) -> None:
                 "NCCL_DEBUG": "WARN",
                 "VLLM_LOGGING_LEVEL": "WARN",
                 **env_vars,
-            },
-            "working_dir": str(Path(__file__).parents[2]),
+            }
         }
         ray_init_kwargs = config.ray_kwargs.get("ray_init", {})
         runtime_env_kwargs = ray_init_kwargs.get("runtime_env", {})
@@ -108,6 +107,7 @@ class TaskRunner:
         assert config.actor_rollout_ref.model.path is not None, "Please specify the actor model path"
         # download the checkpoint from hdfs
         local_path = cache_dir(config.actor_rollout_ref.model.path)
+        config.actor_rollout_ref.model.path = local_path
 
         # instantiate tokenizer
         from verl.utils import hf_processor, hf_tokenizer

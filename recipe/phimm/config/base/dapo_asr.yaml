@@ -1,5 +1,6 @@
 defaults:
   - ppo_trainer
+  - ray_env
   - _self_
 
 data:
