@@ -8,7 +8,7 @@ import sys
 
 sys.path.append(str(Path(__file__).parents[3]))
 
-from recipe.phimm.utils.tn import text_norm
+from recipe.phimm.utils.tn import text_norm as text_normalize
 from collections import deque
 
 
@@ -233,7 +233,7 @@ def calc_errors(refs, hyps, tn=None, unit=None):
     for uttid, ref in refs.items():
         if uttid not in hyps:
             continue
-        norm = partial(text_norm, name=tn)
+        norm = partial(text_normalize, name=tn)
         # Normalize reference and hypothesis text
         tn_ref = norm(ref.get("text", ""))
         tn_hyp = norm(hyps[uttid])
@@ -354,9 +354,28 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "wer": wer.wer,
         "u_wer": u_wer.wer,
         "b_wer": b_wer.wer,
-        "acc": wer.acc,
-        "u_acc": u_wer.acc,
-        "b_acc": b_wer.acc,
+        "n_ref": wer.n_ref,
+        "nu_ref": u_wer.n_ref,
+        "nb_ref": b_wer.n_ref,
+    }
+
+
+def eval_score(solution_str, ground_truth, **kwargs):
+    """The scoring function for ASR with keywords."""
+    extra_info = kwargs.pop("extra_info", {})
+    text_norm = kwargs.pop("text_norm", "english")
+    wer, u_wer, b_wer = measure_errors(
+        solution_str,
+        ground_truth,
+        keywords=extra_info.get("keywords", None),
+        text_norm=text_norm,
+        unit="word",
+    )
+    return {
+        "score": wer.n_err,
+        "n_err": wer.n_err,
+        "nu_err": u_wer.n_err,
+        "nb_err": b_wer.n_err,
         "n_ref": wer.n_ref,
         "nu_ref": u_wer.n_ref,
         "nb_ref": b_wer.n_ref,
@@ -376,13 +395,7 @@ if __name__ == "__main__":
     ]
 
     for pair in pairs:
-        result = compute_score(
-            pair["hyp"],
-            pair["ref"],
-            text_norm="simple_with_tag",
-            beta=0.5,
-            choice="wer",
-            unit="char",
-        )
+        result = eval_score(pair["hyp"], pair["ref"])
+
         print(result)
 # %%

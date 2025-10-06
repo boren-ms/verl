@@ -18,6 +18,10 @@ data:
   eval_num_examine: 3
   train_num_examine: 1
 
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_bias.py
+    name: eval_score
 algorithm:
   adv_estimator: grpo
   use_kl_in_reward: false

@@ -2,6 +2,10 @@ defaults:
   - ppo_trainer
   - _self_
 
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_bias.py
+    name: eval_score
 data:
   train_files: null
   val_files: null
