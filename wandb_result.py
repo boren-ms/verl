@@ -77,7 +77,7 @@ def get_run_result(runs, prefix="metric", name=None):
 
 
 class WandbChecker:
-    def __init__(self, entity=None, project=None, metric="metric", dataset=None, excel_dir=None):
+    def __init__(self, entity=None, project=None, metric="val-aux", dataset=None, excel_dir=None):
         self.host = os.environ.get("WANDB_ORGANIZATION", "https://msaip.wandb.io")
         self.entity = entity or os.environ.get("WANDB_ENTITY", "genai")
         self.project = project or os.environ.get("WANDB_PROJECT", "verl_asr")
