@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# %%
 from ray.job_submission import JobSubmissionClient
 import fire
 
@@ -16,9 +17,10 @@ class RayJob:
                 continue
             yield job
 
-    def list(self):
+    def list(self, running=True, submit=False):
         """List running Ray jobs."""
-        jobs = self._jobs(status="RUNNING", submit=True)
+        status = "RUNNING" if running else None
+        jobs = self._jobs(status=status, submit=submit)
         for job in jobs:
             print(job.entrypoint)
 
@@ -34,3 +36,4 @@ class RayJob:
 
 if __name__ == "__main__":
     fire.Fire(RayJob)
+# %%
