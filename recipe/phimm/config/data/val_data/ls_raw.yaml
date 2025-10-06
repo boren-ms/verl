@@ -5,7 +5,7 @@
   post_process:
     add_field:
       fields:
-        data_source: clean_no
+        data_source: clean_0
     verl_format:
       prompt_key: prompt
 - dataset_name: ls_bias
@@ -15,6 +15,6 @@
   post_process:
     add_field:
       fields:
-        data_source: other_no
+        data_source: other_0
     verl_format:
       prompt_key: prompt
