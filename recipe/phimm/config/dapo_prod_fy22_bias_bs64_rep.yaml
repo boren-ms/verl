@@ -5,7 +5,7 @@ hydra:
 defaults:
   - dapo_asr
   - data/train_data/prod_fy22_bias
-  - data/val_data/entity_bias
+  - data/val_data/bias_entity
   - _self_
 
 custom_reward_function:

@@ -2,7 +2,7 @@
   post_process:
       add_field:
           fields:
-              data_source: entity_Gaming
+              data_source: Gaming_100
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
@@ -15,7 +15,7 @@
   post_process:
       add_field:
           fields:
-              data_source: entity_Insurance
+              data_source: Insurance_100
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
@@ -28,7 +28,7 @@
   post_process:
       add_field:
           fields:
-              data_source: entity_K12HigherEdu
+              data_source: K12HigherEdu_100
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
@@ -41,7 +41,7 @@
   post_process:
       add_field:
           fields:
-              data_source: entity_Retail
+              data_source: Retail_100
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
@@ -54,7 +54,7 @@
   post_process:
       add_field:
           fields:
-              data_source: entity_ScienceTech
+              data_source: ScienceTech_100
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
