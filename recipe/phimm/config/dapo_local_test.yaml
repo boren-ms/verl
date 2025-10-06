@@ -32,6 +32,7 @@ algorithm:
 trainer:
   experiment_name: dapo-phimm-test-lora-new
   save_freq: 1000
-  test_freq: 1
+  test_freq: ${trainer.save_freq}
   val_before_train: true
   resume_mode: disable
+  total_training_steps: ${eval:"int(8000/${data.train_batch_size})"}

@@ -99,6 +99,8 @@ class TaskRunner:
 
         from omegaconf import OmegaConf
 
+        OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
+
         os.chdir(str(cwd()))
         print(f"HostName: {socket.gethostname()}, RAY_HOST: {ray_host_url()}, PID: {os.getpid()}, CWD: {os.getcwd()}")
 
