@@ -108,6 +108,7 @@ class TaskRunner:
         assert config.actor_rollout_ref.model.path is not None, "Please specify the actor model path"
         # download the checkpoint from hdfs
         local_path = cache_dir(config.actor_rollout_ref.model.path)
+        local_path = f"{local_path}/"  # ensure it is a directory path
         config.actor_rollout_ref.model.path = local_path
 
         # instantiate tokenizer
