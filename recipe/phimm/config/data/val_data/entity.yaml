@@ -1,10 +1,30 @@
+- dataset_name: ls_bias
+  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  cache_name: auto_clean_no
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_no
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  cache_name: auto_other_no
+  post_process:
+    add_field:
+      fields:
+        data_source: other_no
+    verl_format:
+      prompt_key: prompt
 - cache_name: auto_entity_Gaming
   post_process:
-      add_field:
-          fields:
-              data_source: entity_Gaming
-      verl_format:
-          prompt_key: prompt
+    add_field:
+      fields:
+        data_source: entity_Gaming
+    verl_format:
+      prompt_key: prompt
   dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
@@ -13,11 +33,11 @@
   max_bias: 0
 - cache_name: auto_entity_Insurance
   post_process:
-      add_field:
-          fields:
-              data_source: entity_Insurance
-      verl_format:
-          prompt_key: prompt
+    add_field:
+      fields:
+        data_source: entity_Insurance
+    verl_format:
+      prompt_key: prompt
   dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
@@ -26,11 +46,11 @@
   max_bias: 0
 - cache_name: auto_entity_K12HigherEdu
   post_process:
-      add_field:
-          fields:
-              data_source: entity_K12HigherEdu
-      verl_format:
-          prompt_key: prompt
+    add_field:
+      fields:
+        data_source: entity_K12HigherEdu
+    verl_format:
+      prompt_key: prompt
   dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
@@ -39,11 +59,11 @@
   max_bias: 0
 - cache_name: auto_entity_Retail
   post_process:
-      add_field:
-          fields:
-              data_source: entity_Retail
-      verl_format:
-          prompt_key: prompt
+    add_field:
+      fields:
+        data_source: entity_Retail
+    verl_format:
+      prompt_key: prompt
   dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
@@ -52,11 +72,11 @@
   max_bias: 0
 - cache_name: auto_entity_ScienceTech
   post_process:
-      add_field:
-          fields:
-              data_source: entity_ScienceTech
-      verl_format:
-          prompt_key: prompt
+    add_field:
+      fields:
+        data_source: entity_ScienceTech
+    verl_format:
+      prompt_key: prompt
   dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/

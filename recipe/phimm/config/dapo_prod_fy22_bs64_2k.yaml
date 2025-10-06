@@ -6,7 +6,6 @@ defaults:
   - dapo_asr
   - data/train_data/prod_fy22
   - data/val_data/entity
-  - data/val_data/ls_raw
   - _self_
 
 custom_reward_function:
