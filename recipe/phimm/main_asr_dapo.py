@@ -27,8 +27,8 @@ from verl.trainer.ppo.reward import load_reward_manager
 from verl.utils.device import is_cuda_available
 from recipe.dapo.dapo_ray_trainer import RayDAPOTrainer
 from recipe.phimm.utils.env import EnvMgr
-from recipe.phimm.utils.shared import cache_dir
 from verl.utils.ray_utils import ray_address, ray_host_url
+from verl.utils.fs import copy_to_local
 
 
 def get_env_vars():
@@ -106,10 +106,8 @@ class TaskRunner:
         OmegaConf.resolve(config)
 
         assert config.actor_rollout_ref.model.path is not None, "Please specify the actor model path"
-        # download the checkpoint from hdfs
-        local_path = cache_dir(config.actor_rollout_ref.model.path)
-        local_path = f"{local_path}/"  # ensure it is a directory path
-        config.actor_rollout_ref.model.path = local_path
+        # download the checkpoint from remote azure blob
+        local_path = copy_to_local(config.actor_rollout_ref.model.path)
 
         # instantiate tokenizer
         from verl.utils import hf_processor, hf_tokenizer

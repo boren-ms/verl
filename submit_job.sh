@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -xeuo pipefail
+set -euo pipefail
 
 job_name=$1
 config_file=$2
@@ -17,4 +17,5 @@ if [ "$sync_code" == "true" ]; then
 fi
 
 config_name=$(basename "${config_file%.*}")
+echo "Submitting job to $job_name with config $config_file"
 rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file" | tee "${job_name}_${config_name}.log"

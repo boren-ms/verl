@@ -209,7 +209,11 @@ def copy_to_local(
         str: Local filesystem path to copied resource
     """
     # Save to a local path for persistence.
-    local_path = copy_local_path_from_hdfs(src, cache_dir, filelock, verbose, always_recopy)
+    # local_path = copy_local_path_from_hdfs(src, cache_dir, filelock, verbose, always_recopy)
+    from recipe.phimm.utils.shared import cache_remote_dir
+
+    local_path = cache_remote_dir(src, cache_dir=cache_dir)
+
     # Load into shm to improve efficiency.
     if use_shm:
         return copy_to_shm(local_path)

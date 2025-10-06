@@ -92,13 +92,14 @@ def run_cmd(cmd, cwd=None, check=True):
 
 
 @functools.cache
-def cache_dir(remote_path, local_path=None):
+def cache_remote_dir(remote_path, local_path=None, cache_dir=None):
     """Sync a directory from remote to local."""
     if not remote_path.startswith("az://"):
         return remote_path
 
     if local_path is None:
-        local_path = str(Path.home() / Path(".blobfile", *Path(remote_path).parts[3:]))
+        cache_dir = cache_dir or str(Path.home() / ".blobfile")
+        local_path = str(Path(cache_dir, *Path(remote_path).parts[3:]))
 
     print(f"Syncing {remote_path} to {local_path} ...")
 
