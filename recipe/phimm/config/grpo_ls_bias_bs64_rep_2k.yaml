@@ -17,6 +17,10 @@ custom_reward_function:
     text_norm: simple_with_tag # english (default), identity, lower, basic, simple, simple_with_tag
     unit: char # word (default), char
 
+algorithm:
+  filter_groups:
+    enable: false
+
 actor_rollout_ref:
   rollout:
     n: 8
