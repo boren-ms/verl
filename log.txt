@@ -27,8 +27,10 @@ Host: h1-n2-wus2-0 Ray: http://10.142.66.177:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_prod_fy22_bs64_rep_2k trainer.experiment_name=dapo_prod_fy22_bs64_rep_2k
 
 Host: l-n1-hpe2-0 Ray: http://10.130.153.156:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bias_bs64_rep_2k_n16 trainer.experiment_name=dapo_ls_bias_bs64_rep_2k_n16
 
-Host: l-n1-uks7-0 Ray: http://10.131.100.35:9209
+Host: l-n1-uks7-0 Ray: http://10.131.100.177:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bs64_2k trainer.experiment_name=dapo_ls_bs64_2k
 
 Host: l-n2-hpe2-0 Ray: http://10.130.130.79:9209
 [0] python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_hc_tag_entity_cache_zero_e1_bp8_ref_fn1.yaml

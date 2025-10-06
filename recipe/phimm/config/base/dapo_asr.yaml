@@ -9,7 +9,7 @@ data:
   max_prompt_length: 8192
   max_response_length: 1024
   train_batch_size: 8
-  gen_batch_size: 16
+  gen_batch_size: ${data.train_batch_size}
   val_batch_size: 1024
   shuffle: false
   custom_cls:
