@@ -77,7 +77,7 @@ def get_run_result(runs, prefix="metric", name=None):
 
 
 class WandbChecker:
-    def __init__(self, entity=None, project=None, metric="val-aux", dataset=None, excel_dir=None):
+    def __init__(self, entity=None, project=None, metric="val-aux", dataset=None, excel_dir=None, scale=100.0):
         self.host = os.environ.get("WANDB_ORGANIZATION", "https://msaip.wandb.io")
         self.entity = entity or os.environ.get("WANDB_ENTITY", "genai")
         self.project = project or os.environ.get("WANDB_PROJECT", "verl_asr")
@@ -86,6 +86,7 @@ class WandbChecker:
         wandb.login(host=self.host, key=key, relogin=True)
 
         self.metric = metric
+        self.scale = scale
         self.dataset = dataset.split(",") if isinstance(dataset, str) else dataset
         self.excel_dir = Path(excel_dir) if excel_dir else Path.home() / "wandb_results"
 
@@ -124,6 +125,8 @@ class WandbChecker:
             return
         print(f"Found {len(runs)} runs matching '{run_name}'")
         df = get_run_result(runs, prefix=self.metric, name=self.dataset)
+        if self.scale:
+            df = df * self.scale
         if df is None:
             print(f"No results [{self.metric}] found for runs matching '{run_name}'")
             return None
