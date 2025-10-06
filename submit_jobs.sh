@@ -15,6 +15,6 @@
 # bash submit_job.sh h-n2-wus2 recipe/phimm/config/eval_phimm.yaml & # background job
 # bash submit_job.sh h-n2-wus2 recipe/phimm/config/eval_phimm_bias_sft.yaml & # background job
 # bash submit_job.sh h-n2-wus2 recipe/phimm/config/eval_phimm_7b.yaml & # background job
-bash submit_job.sh h-n2-wus2 recipe/phimm/config/eval_phimm_rlbr.yaml & # background job
-bash submit_job.sh h-n2-wus2 recipe/phimm/config/grpo_ls_bias_bs64_rep_2k.yaml & # background job
+bash submit_job.sh dev1-n1-wus2 recipe/phimm/config/eval_phimm_rlbr.yaml & # background job
+# bash submit_job.sh h-n2-wus2 recipe/phimm/config/grpo_ls_bias_bs64_rep_2k.yaml & # background job
 
