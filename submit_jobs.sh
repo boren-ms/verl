@@ -12,7 +12,9 @@
 # bash submit_job.sh dev-n1-uks7 recipe/phimm/config/dapo_prod_fy22_bs64_2k.yaml &
 # bash submit_job.sh dev-n1-wus2 recipe/phimm/config/dapo_7b_prod_fy22_bs64_rep_2k.yaml &
 # bash submit_job.sh h-n1-uks7 recipe/phimm/config/dapo_rare_fy32q2_bs64_rep.yaml & # background job
-bash submit_job.sh dev1-n1-wus2 recipe/phimm/config/eval_phimm.yaml & # background job
-bash submit_job.sh dev1-n1-wus2 recipe/phimm/config/eval_phimm_bias_sft.yaml & # background job
-bash submit_job.sh dev1-n1-wus2 recipe/phimm/config/eval_phimm_7b.yaml & # background job
+# bash submit_job.sh h-n2-wus2 recipe/phimm/config/eval_phimm.yaml & # background job
+# bash submit_job.sh h-n2-wus2 recipe/phimm/config/eval_phimm_bias_sft.yaml & # background job
+# bash submit_job.sh h-n2-wus2 recipe/phimm/config/eval_phimm_7b.yaml & # background job
+bash submit_job.sh h-n2-wus2 recipe/phimm/config/eval_phimm_rlbr.yaml & # background job
+bash submit_job.sh h-n2-wus2 recipe/phimm/config/grpo_ls_bias_bs64_rep_2k.yaml & # background job
 
