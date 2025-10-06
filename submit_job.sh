@@ -29,4 +29,8 @@ if [ "$dry_run" == "true" ]; then
     echo rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file $val_only"  | tee "${job_name}_${config_name}.log"
     exit 0
 fi
-rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file $val_only" | tee "${job_name}_${config_name}.log"
+
+log_dir=logs/$job_name
+mkdir -p $log_dir
+
+rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file $val_only" | tee "${log_dir}/${config_name}.log"
