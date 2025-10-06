@@ -7,15 +7,29 @@ class RayJob:
     def __init__(self, address="auto"):
         self.client = JobSubmissionClient(address=address)
 
-    def list(self):
-        """List running Ray jobs."""
+    def _jobs(self, status=None, submit=False):
         jobs = self.client.list_jobs()
         for job in jobs:
-            if job.status != "RUNNING":
+            if status and job.status != status:
                 continue
-            if job.submission_id is None:
+            if submit and job.submission_id is None:
                 continue
+            yield job
+
+    def list(self):
+        """List running Ray jobs."""
+        jobs = self._jobs(status="RUNNING", submit=True)
+        for job in jobs:
             print(job.entrypoint)
+
+    def cleanup(self, command=None):
+        """Clean up all stopped Ray jobs."""
+        jobs = self._jobs(status="RUNNING", submit=True)
+        for job in jobs:
+            if command and job.entrypoint.find(command) < 0:
+                continue
+            print(f"Cancel job: {job.entrypoint}")
+            self.client.stop_job(job.job_id)
 
 
 if __name__ == "__main__":
