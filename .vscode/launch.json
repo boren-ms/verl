@@ -13,6 +13,19 @@
             "args": []
         },
         {
+            "name": "wandb_result",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--metric",
+                "val-aux",
+                "search",
+                "dapo_rare_fy32q2_bs64_rep"
+            ]
+        },
+        {
             "name": "main_gen",
             "type": "debugpy",
             "request": "launch",

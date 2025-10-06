@@ -27,6 +27,29 @@ def to_list(x):
     return [x]
 
 
+def to_int(x, default=None):
+    try:
+        return int(x)
+    except (ValueError, TypeError):
+        return default
+
+
+def index2names(index):
+    """Convert index to columns"""
+    items = index.split("/", 2)
+    assert len(items) >= 2, f"Invalid index format: {index}"
+    names = items[0].rsplit("_", 1)
+    metric = items[1]
+    bias = to_int(names[-1])
+    if bias is not None:
+        name = "_".join(names[:-1])
+    else:
+        name = items[0]
+        bias = 0
+    mapping = {"p_err": "WER", "pb_err": "BWER", "pu_err": "UWER"}
+    return pd.Series([name, bias or 0, mapping.get(metric, metric)])
+
+
 def get_run_result(runs, prefix="metric", name=None):
     results = []
     name_pfx = to_list(name)
@@ -43,11 +66,13 @@ def get_run_result(runs, prefix="metric", name=None):
     df.dropna(axis=1, how="all", inplace=True)  # Drop columns with all NaN values
     if df.empty:
         return None
-    df[["dataset", "#bias", "metric"]] = df.index.to_series().str.rsplit("_", n=2, expand=True)
-    df["#bias"] = pd.to_numeric(df["#bias"], errors="coerce").fillna(0).astype(int)  # Convert to int
+    df[["dataset", "bias", "metric"]] = df.index.to_series().apply(index2names)
+    # df["bias"] = pd.to_numeric(df["bias"], errors="coerce").fillna(0).astype(int)  # Convert to int
     df = df[df["metric"].isin(["WER", "BWER", "UWER"])]
-    df = df.sort_values(by=["dataset", "#bias", "metric"], ascending=[True, True, False])
-    df = df.drop(columns=["dataset", "#bias", "metric"])
+    df = df.sort_values(by=["dataset", "bias", "metric"], ascending=[True, True, False])
+    df["name"] = df.apply(lambda x: f"{x['dataset']}/{x['bias']}/{x['metric']}", axis=1)
+    df = df.drop(columns=["dataset", "bias", "metric"])
+    df.set_index("name", inplace=True)
     return df
 
 
