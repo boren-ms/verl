@@ -2,6 +2,12 @@
 import re
 from enum import Enum
 from functools import partial
+from pathlib import Path
+
+import sys
+
+sys.path.append(str(Path(__file__).parents[3]))
+
 from recipe.phimm.utils.tn import text_norm
 from collections import deque
 
@@ -360,8 +366,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
 if __name__ == "__main__":
     pairs = [
         {
-            "hyp": "or of the habits of our people it is quite impossible.",
-            "ref": "or of the habits of *our* people it is quite impossible",
+            "ref": "It's a barn-burner, the best and worst life insurance .",
+            "hyp": "it's a barn burner the best and worst *life insurance*",
         },
         {
             "hyp": "or of the habits of or *people* it is quite impossible.",
@@ -370,6 +376,13 @@ if __name__ == "__main__":
     ]
 
     for pair in pairs:
-        result = compute_score(pair["hyp"], pair["ref"], text_norm="simple_with_tag", beta=0.5, choice="acc")
+        result = compute_score(
+            pair["hyp"],
+            pair["ref"],
+            text_norm="simple_with_tag",
+            beta=0.5,
+            choice="wer",
+            unit="char",
+        )
         print(result)
 # %%
