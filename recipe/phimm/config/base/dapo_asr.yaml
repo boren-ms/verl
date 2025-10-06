@@ -99,4 +99,4 @@ trainer:
   resume_mode: auto
   val_before_train: true
   total_training_steps: null # disable steps
-
+  val_only: False
