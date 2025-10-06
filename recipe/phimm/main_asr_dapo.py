@@ -172,7 +172,9 @@ class TaskRunner:
         if config.algorithm.use_kl_in_reward or config.actor_rollout_ref.actor.use_kl_loss:
             role_worker_mapping[Role.RefPolicy] = ray.remote(ActorRolloutRefWorker)
             mapping[Role.RefPolicy] = global_pool_id
-
+        # breakpoint()
+        if reward_func := config.get("train_reward", {}).get("custom_reward_function", {}):
+            config.custom_reward_function = reward_func
         reward_fn = load_reward_manager(
             config,
             tokenizer,
@@ -181,6 +183,8 @@ class TaskRunner:
             overlong_buffer_cfg=config.reward_model.overlong_buffer,
         )
 
+        if reward_func := config.get("val_reward", {}).get("custom_reward_function", {}):
+            config.custom_reward_function = reward_func
         # Note that we always use function-based RM for validation
         val_reward_fn = load_reward_manager(
             config,

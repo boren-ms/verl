@@ -8,16 +8,29 @@ defaults:
   - data/train_data/local
   - data/val_data/local
 
-custom_reward_function:
-  # path: recipe/phimm/reward/asr_bias.py
-  path: recipe/phimm/reward/asr_bias.py
-  name: compute_score
-  reward_kwargs:
-    beta: 0.0 # score = WER + beta*B-WER
-    choice: "err" # "err", "acc", "wer"
-    text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
-    unit: word # word (default), char
-    max_err: 2
+val_reward:
+  custom_reward_function:
+    # path: recipe/phimm/reward/asr_bias.py
+    path: recipe/phimm/reward/asr_bias.py
+    name: compute_score
+    reward_kwargs:
+      beta: 0.0 # score = WER + beta*B-WER
+      choice: "err" # "err", "acc", "wer"
+      text_norm: english # english (default), identity, lower, basic, simple, simple_with_tag
+      unit: word # word (default), char
+
+train_reward:
+  reward_model:
+    reward_manager: naive #required
+  custom_reward_function:
+    # path: recipe/phimm/reward/asr_bias.py
+    path: recipe/phimm/reward/asr_bias.py
+    name: compute_score
+    reward_kwargs:
+      beta: 0.0 # score = WER + beta*B-WER
+      choice: "err" # "err", "acc", "wer"
+      text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
+      unit: word # word (default), char
 
 actor_rollout_ref:
   rollout:
