@@ -6,6 +6,7 @@ defaults:
   - dapo_asr
   - data/train_data/prod_fy22
   - data/val_data/entity
+  - data/val_data/ls_raw
   - _self_
 
 custom_reward_function:
@@ -16,12 +17,14 @@ custom_reward_function:
     choice: "err" # "err", "acc", "wer"
     text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
     unit: word # word (default), char
-    max_err: 10 # only accept if error count <= max_err
 actor_rollout_ref:
   rollout:
-    n: 16
+    n: 8
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+
 data:
-  train_batch_size: 8
-  gen_batch_size: 16
+  max_prompt_length: 7168
+  train_batch_size: 64
+  gen_batch_size: 128
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
