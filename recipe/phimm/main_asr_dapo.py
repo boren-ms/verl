@@ -40,7 +40,7 @@ def get_env_vars():
     return env_vars
 
 
-@hydra.main(config_path="config", config_name="dapo_trainer", version_base=None)
+@hydra.main(config_path="config", config_name="dapo_local_test", version_base=None)
 def main(config):
     run_ppo(config)
 

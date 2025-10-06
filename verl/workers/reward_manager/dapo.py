@@ -135,6 +135,7 @@ class DAPORewardManager(AbstractRewardManager):
                 pfx = f"[{already_print_data_sources[data_source]}]"
                 print(f"======{pfx}=====")
                 print(f"{pfx}[prompt]", prompt_str)
+                print(f"{pfx}[keywords]", extra_info.get("keywords", None))
                 print(f"{pfx}[response]", response_str)
                 print(f"{pfx}[ground_truth]", ground_truth)
                 if isinstance(result, dict):
