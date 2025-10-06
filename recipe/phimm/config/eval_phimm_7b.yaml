@@ -19,5 +19,5 @@ data:
 
 trainer:
   val_only: True
-  n_gpus_per_node: 1
+  n_gpus_per_node: 2
   nnodes: 1
