@@ -1,0 +1,20 @@
+dataset_name: cached
+cache_path: ${oc.env:DATA_PATH}/boren/data/cache_datasets/stage1_en_asr_hc_fy23q2_tag_entity/
+num_proc: auto
+cache_name: auto_train
+pre_process:
+  path_map:
+    field: audio_chunk
+    src_part: "az://orngwus2cresco/data"
+    dst_part: "${oc.env:DATA_PATH}"
+post_process:
+  filter_by_keywords:
+    min_num: 1
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
+add_prompt:
+  task: rare_asr
+  forced: True
