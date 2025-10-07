@@ -99,4 +99,5 @@ trainer:
   resume_mode: auto
   val_before_train: true
   total_training_steps: null # disable steps
-
+  default_hdfs_dir: ${oc.env:DATA_PATH}/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
+  default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}

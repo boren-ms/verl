@@ -1,3 +1,4 @@
+import uuid
 import blobfile as bf
 import subprocess
 import sys
@@ -92,16 +93,22 @@ def run_cmd(cmd, cwd=None, check=True):
 
 
 @functools.cache
-def cache_remote_dir(remote_path, local_path=None, cache_dir=None):
-    """Sync a directory from remote to local."""
+def cache_remote_path(remote_path, local_path=None, cache_dir=None):
+    """Sync remote to local."""
     if not remote_path.startswith("az://"):
         return remote_path
 
     if local_path is None:
         cache_dir = cache_dir or str(Path.home() / ".blobfile")
-        local_path = str(Path(cache_dir, *Path(remote_path).parts[3:]))
+        local_path = str(Path(cache_dir, str(uuid.uuid4().hex), *Path(remote_path).parts[3:]))
+    if not bf.exists(remote_path):
+        return None
+    if not bf.isdir(remote_path):
+        print(f"Syncing file {remote_path} to {local_path} ...")
+        bf.copy(remote_path, local_path, overwrite=True)
+        return local_path
 
-    print(f"Syncing {remote_path} to {local_path} ...")
+    print(f"Syncing directory {remote_path} to {local_path} ...")
 
     cmd = [
         "bbb",
@@ -113,6 +120,32 @@ def cache_remote_dir(remote_path, local_path=None, cache_dir=None):
     ]
     run_cmd(cmd, check=True)
     return local_path
+
+
+def is_local_path(path):
+    """Check if a path is a local filesystem path."""
+    return not any(path.startswith(scheme) for scheme in ["az://", "hdfs://", "s3://"])
+
+
+def upload_file(local_path, remote_path, overwrite=False):
+    """Upload a file from local to remote storage."""
+    local_mtime = Path(local_path).stat().st_mtime
+    remote_mtime = None
+    if bf.exists(remote_path) and not overwrite:
+        print(f"Remote file {remote_path} already exists, skipping upload.")
+        return
+    try:
+        if bf.exists(remote_path):
+            remote_mtime = bf.stat(remote_path).mtime
+    except Exception as e:
+        print(f"Could not stat remote file {remote_path}: {e}")
+    # Copy if remote does not exist or local is newer
+    if remote_mtime is None or local_mtime > remote_mtime:
+        print(f"Syncing file {local_path} to {remote_path} (local newer or remote missing)")
+        bf.makedirs(bf.dirname(remote_path))
+        bf.copy(local_path, remote_path, overwrite=True)
+    else:
+        print(f"Skipping {local_path}: remote is newer or same.")
 
 
 def get_value(d, key, default=None):

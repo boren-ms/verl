@@ -179,16 +179,17 @@ def find_latest_ckpt_path(path, directory_format="global_step_{}"):
     """
     if path is None:
         return None
+    import blobfile as bf
 
     tracker_file = get_checkpoint_tracker_filename(path)
-    if not os.path.exists(tracker_file):
+    if not bf.exists(tracker_file):
         print(f"Checkpoint tracker file does not exist: {tracker_file}")
         return None
 
-    with open(tracker_file, "rb") as f:
+    with bf.BlobFile(tracker_file, "rb") as f:
         iteration = int(f.read().decode())
     ckpt_path = os.path.join(path, directory_format.format(iteration))
-    if not os.path.exists(ckpt_path):
+    if not bf.exists(ckpt_path):
         print("Checkpoint does not exist: %s", ckpt_path)
         return None
 

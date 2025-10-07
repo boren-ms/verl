@@ -60,6 +60,7 @@ from verl.utils.rollout_skip import RolloutSkip
 from verl.utils.seqlen_balancing import get_seqlen_balanced_partitions, log_seqlen_unbalance
 from verl.utils.torch_functional import masked_mean
 from verl.utils.tracking import ValidationGenerationsLogger
+from verl.utils.fs import copy_to_local, copy_to_remote, path_join
 
 
 @dataclass
@@ -771,19 +772,18 @@ class RayPPOTrainer:
     def _save_checkpoint(self):
         from verl.utils.fs import local_mkdir_safe
 
+        # breakpoint()
+        remote_dir = self.config.trainer.default_hdfs_dir
+        local_dir = self.config.trainer.default_local_dir
+
         # path: given_path + `/global_step_{global_steps}` + `/actor`
-        local_global_step_folder = os.path.join(
-            self.config.trainer.default_local_dir, f"global_step_{self.global_steps}"
-        )
+        global_step_dirname = f"global_step_{self.global_steps}"
+        local_step_folder = path_join(local_dir, global_step_dirname)
+        remote_step_folder = path_join(remote_dir, global_step_dirname)
 
-        print(f"local_global_step_folder: {local_global_step_folder}")
-        actor_local_path = os.path.join(local_global_step_folder, "actor")
-
-        actor_remote_path = (
-            None
-            if self.config.trainer.default_hdfs_dir is None
-            else os.path.join(self.config.trainer.default_hdfs_dir, f"global_step_{self.global_steps}", "actor")
-        )
+        print(f"local_global_step_folder: {local_step_folder}")
+        actor_local_path = path_join(local_step_folder, "actor")
+        actor_remote_path = path_join(remote_step_folder, "actor")
 
         remove_previous_ckpt_in_save = self.config.trainer.get("remove_previous_ckpt_in_save", False)
         if remove_previous_ckpt_in_save:
@@ -803,46 +803,44 @@ class RayPPOTrainer:
         )
 
         if self.use_critic:
-            critic_local_path = os.path.join(local_global_step_folder, "critic")
-            critic_remote_path = (
-                None
-                if self.config.trainer.default_hdfs_dir is None
-                else os.path.join(self.config.trainer.default_hdfs_dir, f"global_step_{self.global_steps}", "critic")
-            )
+            critic_local_path = path_join(local_step_folder, "critic")
+            critic_remote_path = path_join(remote_step_folder, "critic")
             self.critic_wg.save_checkpoint(
                 critic_local_path, critic_remote_path, self.global_steps, max_ckpt_to_keep=max_critic_ckpt_to_keep
             )
 
         # save dataloader
-        local_mkdir_safe(local_global_step_folder)
-        dataloader_local_path = os.path.join(local_global_step_folder, "data.pt")
+        local_mkdir_safe(local_step_folder)
+        dataloader_local_path = path_join(local_step_folder, "data.pt")
         dataloader_state_dict = self.train_dataloader.state_dict()
         torch.save(dataloader_state_dict, dataloader_local_path)
+        copy_to_remote(dataloader_local_path, remote_step_folder)
 
         # latest checkpointed iteration tracker (for atomic usage)
-        local_latest_checkpointed_iteration = os.path.join(
-            self.config.trainer.default_local_dir, "latest_checkpointed_iteration.txt"
-        )
-        with open(local_latest_checkpointed_iteration, "w") as f:
+        local_latest_iteration = path_join(local_dir, "latest_checkpointed_iteration.txt")
+        with open(local_latest_iteration, "w") as f:
             f.write(str(self.global_steps))
+        copy_to_remote(local_latest_iteration, remote_dir)
 
     def _load_checkpoint(self):
         if self.config.trainer.resume_mode == "disable":
             return 0
+        # breakpoint()
+        local_dir = self.config.trainer.default_local_dir  # TODO: check path
+        remote_dir = self.config.trainer.default_hdfs_dir
 
-        # load from hdfs
-        if self.config.trainer.default_hdfs_dir is not None:
-            raise NotImplementedError("load from hdfs is not implemented yet")
-        else:
-            checkpoint_folder = self.config.trainer.default_local_dir  # TODO: check path
-            if not os.path.isabs(checkpoint_folder):
-                working_dir = os.getcwd()
-                checkpoint_folder = os.path.join(working_dir, checkpoint_folder)
-            global_step_folder = find_latest_ckpt_path(checkpoint_folder)  # None if no latest
+        remote_step_folder = None
+        if remote_dir is not None:
+            remote_step_folder = find_latest_ckpt_path(remote_dir)  # None if no latest
+
+        if not os.path.isabs(local_dir):
+            working_dir = os.getcwd()
+            local_dir = os.path.join(working_dir, local_dir)
+        local_step_folder = find_latest_ckpt_path(local_dir)  # None if no latest
 
         # find global_step_folder
         if self.config.trainer.resume_mode == "auto":
-            if global_step_folder is None:
+            if local_step_folder is None and remote_step_folder is None:
                 print("Training from scratch")
                 return 0
         else:
@@ -851,37 +849,54 @@ class RayPPOTrainer:
                 assert "global_step_" in self.config.trainer.resume_from_path, (
                     "resume ckpt must specify the global_steps"
                 )
-                global_step_folder = self.config.trainer.resume_from_path
-                if not os.path.isabs(global_step_folder):
+                local_step_folder = self.config.trainer.resume_from_path
+                if not os.path.isabs(local_step_folder):
                     working_dir = os.getcwd()
-                    global_step_folder = os.path.join(working_dir, global_step_folder)
-        print(f"Load from checkpoint folder: {global_step_folder}")
+                    local_step_folder = os.path.join(working_dir, local_step_folder)
+        assert local_step_folder is not None or remote_step_folder is not None, (
+            "At least one of local_step_folder or remote_step_folder must be specified"
+        )
+        print(f"Load from checkpoint folder: {local_step_folder} [{remote_step_folder}]")
         # set global step
-        self.global_steps = int(global_step_folder.split("global_step_")[-1])
+        if remote_step_folder:
+            self.global_steps = int(remote_step_folder.split("global_step_")[-1])
+        else:
+            self.global_steps = int(local_step_folder.split("global_step_")[-1])
 
         print(f"Setting global step to {self.global_steps}")
-        print(f"Resuming from {global_step_folder}")
+        print(f"Resuming from {local_step_folder} [{remote_step_folder}]")
 
-        actor_path = os.path.join(global_step_folder, "actor")
-        critic_path = os.path.join(global_step_folder, "critic")
+        local_actor_path = path_join(local_step_folder, "actor")
+        local_critic_path = path_join(local_step_folder, "critic")
+        remote_actor_path = path_join(remote_step_folder, "actor")
+        remote_critic_path = path_join(remote_step_folder, "critic")
         # load actor
         self.actor_rollout_wg.load_checkpoint(
-            actor_path, del_local_after_load=self.config.trainer.del_local_ckpt_after_load
+            local_actor_path,
+            remote_actor_path,
+            del_local_after_load=self.config.trainer.del_local_ckpt_after_load,
         )
         # load critic
         if self.use_critic:
             self.critic_wg.load_checkpoint(
-                critic_path, del_local_after_load=self.config.trainer.del_local_ckpt_after_load
+                local_critic_path,
+                remote_critic_path,
+                del_local_after_load=self.config.trainer.del_local_ckpt_after_load,
             )
 
-        # load dataloader,
-        # TODO: from remote not implemented yet
-        dataloader_local_path = os.path.join(global_step_folder, "data.pt")
-        if os.path.exists(dataloader_local_path):
-            dataloader_state_dict = torch.load(dataloader_local_path, weights_only=False)
+        # load data loader,
+        for folder in [remote_step_folder, local_step_folder]:
+            if folder is None:
+                continue
+            loader_path = copy_to_local(path_join(folder, "data.pt"))
+            if loader_path is None:
+                continue
+            if not os.path.exists(loader_path):
+                continue
+            dataloader_state_dict = torch.load(loader_path, weights_only=False)
             self.train_dataloader.load_state_dict(dataloader_state_dict)
-        else:
-            print(f"Warning: No dataloader state found at {dataloader_local_path}, will start from scratch")
+            print(f"loaded dataloader state from {loader_path}")
+            break
 
     def _start_profiling(self, do_profile: bool) -> None:
         """Start profiling for all worker groups if profiling is enabled."""
