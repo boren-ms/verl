@@ -25,11 +25,11 @@ fi
 
 if [ "$dry_run" == "true" ]; then
     echo "Dry run"
-    echo rcall-brix ssh  "$job_name" "bash -l /root/code/verl/submit_ray_job.sh /root/code/verl/quick_run.sh $config_file"  | tee "${job_name}_${config_name}.log"
+    echo rcall-brix ssh  "$job_name" "bash -l /root/code/verl/submit_quick_run.sh $config_file"  | tee "${job_name}_${config_name}.log"
     exit 0
 fi
 
 log_dir=logs/$job_name
 mkdir -p "$log_dir"
 
-rcall-brix ssh  "$job_name" "bash -l /root/code/verl/submit_ray_job.sh /root/code/verl/quick_run.sh $config_file" | tee "${log_dir}/${config_name}.log"
+rcall-brix ssh  "$job_name" "bash -l /root/code/verl/submit_quick_run.sh $config_file" | tee "${log_dir}/${config_name}.log"
