@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-# -*- coding: utf-8 -*-
 import subprocess
 import ray
 import os
@@ -8,8 +7,6 @@ import fire
 import time
 import blobfile as bf
 import importlib.metadata
-import uuid
-import functools
 
 
 def sorted_nodes(nodes):
@@ -304,36 +301,6 @@ def local_home():
 ORNG_USER = UserStorage()
 
 
-@functools.cache
-def cache_remote_path(remote_path, local_path=None, cache_dir=None):
-    """Sync remote to local."""
-    if not remote_path.startswith("az://"):
-        return remote_path
-
-    if local_path is None:
-        cache_dir = cache_dir or str(Path.home() / ".blobfile")
-        local_path = str(Path(cache_dir, str(uuid.uuid4().hex), *Path(remote_path).parts[3:]))
-    if not bf.exists(remote_path):
-        return None
-    if not bf.isdir(remote_path):
-        print(f"Syncing file {remote_path} to {local_path} ...")
-        bf.copy(remote_path, local_path, overwrite=True)
-        return local_path
-
-    print(f"Syncing directory {remote_path} to {local_path} ...")
-
-    cmd = [
-        "bbb",
-        "sync",
-        "--concurrency",
-        "64",
-        f"{remote_path.rstrip('/')}/",
-        f"{local_path.rstrip('/')}/",
-    ]
-    run_cmd(cmd, check=True)
-    return local_path
-
-
 def get_output_dirs(rel_path=None):
     """Get the remote output directory based on the job name."""
     # job_name = job_name or os.environ.get("RCALL_JOB_NAME", None)
@@ -431,10 +398,13 @@ def prepare_env(forced=False):
     run_cmd("pip install --no-deps -e .")
     # find the package
     # echo $(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')")
-    remote_pkg_name = "flash_attn-2.7.4.post1+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
-    remote_pkg_path = f"{ORNG_USER.data_path}/packages/{remote_pkg_name}"
-    local_pkg_path = cache_remote_path(remote_pkg_path)
-    if local_pkg_path is None or not Path(local_pkg_path).exists():
+    pkg_name = "flash_attn-2.7.4.post1+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
+    remote_pkg_path = f"{ORNG_USER.data_path}/packages/{pkg_name}"
+    local_pkg_path = f"/root/code/verl/packages/{pkg_name}"
+    if bf.exists(remote_pkg_path):
+        bf.copy(remote_pkg_path, local_pkg_path, overwrite=False)
+
+    if not Path(local_pkg_path).exists():
         print(f"Could not locate {remote_pkg_path}, using pip to install directly.")
         local_pkg_path = "flash-attn==2.7.4.post1"
 

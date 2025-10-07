@@ -6,7 +6,8 @@ config_file=$1
 config_base=$(basename "$config_file")
 config_name=${config_base%.*}
 
-cwd="$(dirname $0)"
+cwd="$(dirname $(readlink -f $0))"
+echo "Current working directory: ${cwd}"
 pushd "$cwd" > /dev/null
 
 # bash quick_install.sh # prepare on local node only

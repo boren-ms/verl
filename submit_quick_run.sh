@@ -1,7 +1,7 @@
 #!/bin/bash
 set -xeuo pipefail
 
-cwd="$(dirname $0)"
+cwd="$(dirname $(readlink -f $0))"
 
 echo "Submitting Ray job ..."
 echo "Current working directory: ${cwd}"
