@@ -4,10 +4,9 @@ set -euo pipefail
 
 job_name=$1
 config_file=$2
-val_only=${3:-"false"}
-cleanup=${4:-"false"}
-dry_run=${5:-"false"}
-sync_code=${6:-"true"}
+cleanup=${3:-"true"}
+dry_run=${4:-"false"}
+sync_code=${5:-"true"}
 config_name=$(basename "${config_file%.*}")
 echo "Job: $job_name $config_file"
 
@@ -26,11 +25,11 @@ fi
 
 if [ "$dry_run" == "true" ]; then
     echo "Dry run"
-    echo rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file $val_only"  | tee "${job_name}_${config_name}.log"
+    echo rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file"  | tee "${job_name}_${config_name}.log"
     exit 0
 fi
 
 log_dir=logs/$job_name
 mkdir -p $log_dir
 
-rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file $val_only" | tee "${log_dir}/${config_name}.log"
+rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file" | tee "${log_dir}/${config_name}.log"
