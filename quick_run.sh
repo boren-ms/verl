@@ -9,7 +9,9 @@ config_name=${config_base%.*}
 cwd="$(dirname $0)"
 pushd "$cwd" > /dev/null
 
-bash quick_install.sh
+# bash quick_install.sh # prepare on local node only
+echo "[INFO] Preparing environment ..."
+python3 ray_tool.py prepare_env # prepare on all ray nodes
 
 echo "[INFO] Running ${config_name} ..."
 python3 -m recipe.phimm.main_asr_dapo \
