@@ -15,6 +15,8 @@ echo "[INFO] Preparing environment ..."
 python3 ray_tool.py prepare_env # prepare on all ray nodes
 
 echo "[INFO] Running ${config_name} ..."
+ray job submit --working-dir="${cwd}"  \
+--no-wait -- \
 python3 -m recipe.phimm.main_asr_dapo \
 --config-name "${config_name}" \
 trainer.experiment_name="${config_name}" \

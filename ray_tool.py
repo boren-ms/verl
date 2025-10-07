@@ -390,6 +390,7 @@ def prepare_env(forced=False):
         "ray==2.46.0",
         "transformers==4.55.4",
         "vllm==0.10.0",
+        "flash-attn==2.7.4.post1",
     ]
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
@@ -400,8 +401,8 @@ def prepare_env(forced=False):
     # echo $(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')")
     pkg_name = "flash_attn-2.7.4.post1+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
     remote_pkg_path = f"{ORNG_USER.data_path}/packages/{pkg_name}"
-    local_pkg_path = f"/root/code/verl/packages/{pkg_name}"
-    if bf.exists(remote_pkg_path):
+    local_pkg_path = f"/root/packages/{pkg_name}"
+    if bf.exists(remote_pkg_path) and not bf.exists(local_pkg_path):
         bf.copy(remote_pkg_path, local_pkg_path, overwrite=False)
 
     if not Path(local_pkg_path).exists():
