@@ -102,5 +102,3 @@ trainer:
   default_hdfs_dir: ${oc.env:DATA_PATH}/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
   val_only: False
-  default_hdfs_dir: ${oc.env:DATA_PATH}/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
-  default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
