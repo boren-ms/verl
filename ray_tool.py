@@ -8,6 +8,8 @@ import fire
 import time
 import blobfile as bf
 import importlib.metadata
+import uuid
+import functools
 
 
 def sorted_nodes(nodes):
@@ -302,6 +304,36 @@ def local_home():
 ORNG_USER = UserStorage()
 
 
+@functools.cache
+def cache_remote_path(remote_path, local_path=None, cache_dir=None):
+    """Sync remote to local."""
+    if not remote_path.startswith("az://"):
+        return remote_path
+
+    if local_path is None:
+        cache_dir = cache_dir or str(Path.home() / ".blobfile")
+        local_path = str(Path(cache_dir, str(uuid.uuid4().hex), *Path(remote_path).parts[3:]))
+    if not bf.exists(remote_path):
+        return None
+    if not bf.isdir(remote_path):
+        print(f"Syncing file {remote_path} to {local_path} ...")
+        bf.copy(remote_path, local_path, overwrite=True)
+        return local_path
+
+    print(f"Syncing directory {remote_path} to {local_path} ...")
+
+    cmd = [
+        "bbb",
+        "sync",
+        "--concurrency",
+        "64",
+        f"{remote_path.rstrip('/')}/",
+        f"{local_path.rstrip('/')}/",
+    ]
+    run_cmd(cmd, check=True)
+    return local_path
+
+
 def get_output_dirs(rel_path=None):
     """Get the remote output directory based on the job name."""
     # job_name = job_name or os.environ.get("RCALL_JOB_NAME", None)
@@ -382,66 +414,6 @@ def prepare_local_checkpoint(local_dir, remote_dir):
 
 
 @ray.remote
-def prepare_env_old(forced=False):
-    """Prepare the environment on each node by installing necessary packages."""
-    hostname = os.uname().nodename
-    print(f"Preparing environment on node: {hostname}")
-    required = [
-        "torch==2.7.1",
-        "ray==2.46.0",
-        "transformers==4.55.4",
-        "vllm==0.10.0",
-    ]
-    if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
-        print(f"Required packages already installed on {hostname}, skipping installation.")
-        return
-    required = [
-        "accelerate",
-        "codetiming",
-        "datasets>=4.0.0",
-        "dill",
-        "torch==2.7.1",
-        "hydra-core",
-        "liger-kernel",
-        "numpy<2.0.0",
-        "pandas",
-        "peft",
-        "pyarrow>=19.0.0",
-        "pybind11",
-        "pylatexenc",
-        "pre-commit",
-        "ray[default]>=2.46.0",
-        "tensordict>=0.8.0,<=0.10.0,!=0.9.0",
-        "torchdata",
-        "transformers==4.55.4",
-        "vllm==0.10.0",
-        "wandb",
-        "packaging>=20.0",
-        "uvicorn",
-        "fastapi",
-        "latex2sympy2_extended",
-        "math_verify",
-        "tensorboard",
-        "blobfile",
-        "soundfile",
-        "more-itertools",
-        "whisper_normalizer",
-        "jiwer",
-        "fire",
-        "backoff",
-        "wandb",
-        "packaging>=20.0",
-        "qwen_vl_utils",
-    ]
-    print("Installing required packages...")
-    run_cmd(f"pip install {' '.join(required)}")
-    run_cmd("pip install --no-deps -e /root/code/verl")
-    run_cmd("pip install flash-attn==2.7.4.post1 ")
-    run_cmd("apt install lsof")
-    print("Environment preparation completed.")
-
-
-@ray.remote
 def prepare_env(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
@@ -455,7 +427,18 @@ def prepare_env(forced=False):
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
-    run_cmd("bash quick_install.sh")
+    run_cmd("pip install -r requirements_vllm.txt")
+    run_cmd("pip install --no-deps -e .")
+    # find the package
+    # echo $(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')")
+    remote_pkg_name = "flash_attn-2.7.4.post1+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
+    remote_pkg_path = f"{ORNG_USER.data_path}/packages/{remote_pkg_name}"
+    local_pkg_path = cache_remote_path(remote_pkg_path)
+    if local_pkg_path is None or not Path(local_pkg_path).exists():
+        print(f"Could not locate {remote_pkg_path}, using pip to install directly.")
+        local_pkg_path = "flash-attn==2.7.4.post1"
+
+    run_cmd(f"pip install --no-deps {local_pkg_path}")
     print("Environment preparation completed.")
 
 
