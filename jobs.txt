@@ -12,21 +12,22 @@ Host: h-n2-hpe4-0 Ray: http://10.133.38.50:9209
 [0] python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_hc_fy23q2_tag_entity_cache_zero_e1_bp8_ref_fn1.yaml
 
 Host: h-n2-uks7-0 Ray: http://10.131.176.242:9209
-[0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bs64_2k trainer.experiment_name=dapo_ls_bs64_2k
-[1] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bs64_2k_v1 trainer.experiment_name=dapo_ls_bs64_2k_v1
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bs64_2k_w_cache trainer.experiment_name=dapo_ls_bs64_2k_w_cache
+[1] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bs64_2k trainer.experiment_name=dapo_ls_bs64_2k
 
 Host: h-n2-wus2-0 Ray: http://10.142.22.185:9209
-[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k trainer.experiment_name=grpo_ls_bias_bs64_rep_2k
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bias_bs64_rep_2k_n16 trainer.experiment_name=dapo_ls_bias_bs64_rep_2k_n16
 [1] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bias_bs64_rep_2k trainer.experiment_name=dapo_ls_bias_bs64_rep_2k
 
 Host: h1-n2-hpe4-0 Ray: http://10.133.237.178:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_prod_fy22_bs64_rep_me10_2k trainer.experiment_name=dapo_prod_fy22_bs64_rep_me10_2k
-[1] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bias_bs64_rep_2k trainer.experiment_name=dapo_ls_bias_bs64_rep_2k
+[1] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k trainer.experiment_name=grpo_ls_bias_bs64_rep_2k
 
 Host: h1-n2-wus2-0 Ray: http://10.142.66.177:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bias_bs64_rep_e2 trainer.experiment_name=dapo_ls_bias_bs64_rep_e2
 [1] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_prod_fy22_bs64_rep_2k trainer.experiment_name=dapo_prod_fy22_bs64_rep_2k
 
-Host: l-n1-uks7-0 Ray: http://10.131.255.237:9209
+Host: l-n1-uks7-0 Ray: http://10.131.81.53:9209
 
 Host: l-n2-hpe2-0 Ray: http://10.130.156.213:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bs64_2k_cache_tp2 trainer.experiment_name=dapo_ls_bs64_2k_cache_tp2
