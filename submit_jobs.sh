@@ -16,7 +16,7 @@
 # bash submit_job.sh h-n2-wus2 recipe/phimm/config/grpo_ls_bias_bs64_rep_2k.yaml
 # bash submit_job.sh h-n2-wus2  recipe/phimm/config/dapo_ls_bias_bs64_rep_2k.yaml
 # bash submit_job.sh h-n2-uks7 recipe/phimm/config/dapo_ls_bs64_2k.yaml
-# bash submit_job.sh l-n2-hpe2 recipe/phimm/config/eval_phimm.yaml
+bash submit_job.sh l-n2-hpe2 recipe/phimm/config/eval_phimm_3b.yaml
 bash submit_job.sh l-n2-hpe2 recipe/phimm/config/eval_phimm_7b.yaml
 # bash submit_job.sh l-n2-hpe2 recipe/phimm/config/eval_phimm_rlbr.yaml
 # bash submit_job.sh l-n1-uks7 recipe/phimm/config/eval_phimm_bias_sft.yaml
