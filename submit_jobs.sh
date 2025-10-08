@@ -23,5 +23,5 @@
 # bash submit_job.sh h1-n2-hpe4 dapo_ls_bias_bs64_rep_2k true
 # bash submit_job.sh h1-n2-hpe4 grpo_ls_bias_bs64_rep_2k
 
-bash submit_job.sh l-n2-hpe2 dapo_ls_bs64_2k_cache_tp2
-bash submit_job.sh l-n2-hpe2 dapo_ls_bs64_2k_cache_tp4
+bash submit_job.sh dev1-n1-wus2 dapo_ls_bs64_2k_cache_tp2
+# bash submit_job.sh l-n1-hpe2 dapo_ls_bs64_2k_cache_tp4
