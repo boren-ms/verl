@@ -34,5 +34,4 @@ Host: l-n1-uks7-0 Ray: http://10.131.255.237:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name eval_phimm_bias_sft trainer.experiment_name=eval_phimm_bias_sft
 
 Host: l-n2-hpe2-0 Ray: http://10.130.156.213:9209
-[0] python3 -m recipe.phimm.main_asr_dapo --config-name eval_phimm_rlbr trainer.experiment_name=eval_phimm_rlbr
-[1] python3 -m recipe.phimm.main_asr_dapo --config-name eval_phimm_7b trainer.experiment_name=eval_phimm_7b
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name eval_phimm_7b trainer.experiment_name=eval_phimm_7b
