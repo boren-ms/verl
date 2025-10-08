@@ -1,0 +1,10 @@
+defaults:
+  - dapo_asr
+  - data/val_data/bias_entity_ls
+  - data/val_data/bias_entity_ls
+  - _self_
+
+trainer:
+  val_only: True
+  nnodes: 1
+  n_gpus_per_node: 4
