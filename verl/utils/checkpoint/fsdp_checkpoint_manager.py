@@ -29,7 +29,7 @@ from transformers import GenerationConfig, PreTrainedTokenizer, ProcessorMixin
 from transformers.dynamic_module_utils import custom_object_save
 
 from verl.utils.device import is_cuda_available
-from verl.utils.fs import copy_to_local, is_non_local, local_mkdir_safe
+from verl.utils.fs import is_non_local, local_mkdir_safe, to_local, copy_to_remote
 from verl.utils.fsdp_utils import fsdp_version, get_fsdp_full_state_dict, get_fsdp_state_ctx
 from verl.utils.logger import log_with_rank
 
@@ -130,37 +130,45 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             if self.should_load_optimizer
             else None
         )
+        # breakpoint()
         with get_fsdp_state_ctx(self.model, StateDictType.SHARDED_STATE_DICT, state_dict_cfg, optim_cfg):
             if self.should_load_model:
-                remote_model_path = os.path.join(local_path, f"model_world_size_{self.world_size}_rank_{self.rank}.pt")
-                local_model_path = copy_to_local(remote_model_path)
+                local_model_path = to_local(
+                    f"model_world_size_{self.world_size}_rank_{self.rank}.pt",
+                    local_path,
+                    hdfs_path,
+                )
                 model_state_dict = torch.load(local_model_path, weights_only=False)
                 self.model.load_state_dict(model_state_dict)
-                log_with_rank(f"Loaded model from {remote_model_path}", rank=self.rank, logger=logger)
+                log_with_rank(f"Loaded model from {local_model_path}", rank=self.rank, logger=logger)
 
             if self.should_load_optimizer:
-                remote_optim_path = os.path.join(local_path, f"optim_world_size_{self.world_size}_rank_{self.rank}.pt")
-                local_optim_path = copy_to_local(remote_optim_path)
+                local_optim_path = to_local(
+                    f"optim_world_size_{self.world_size}_rank_{self.rank}.pt",
+                    local_path,
+                    hdfs_path,
+                )
                 optimizer_state_dict = torch.load(local_optim_path, weights_only=False)
                 self.optimizer.load_state_dict(optimizer_state_dict)
-                log_with_rank(f"Loaded optimizer from {remote_optim_path}", rank=self.rank, logger=logger)
+                log_with_rank(f"Loaded optimizer from {local_optim_path}", rank=self.rank, logger=logger)
 
         if self.should_load_extra:
-            remote_extra_state_path = os.path.join(
-                local_path, f"extra_state_world_size_{self.world_size}_rank_{self.rank}.pt"
+            local_extra_state_path = to_local(
+                f"extra_state_world_size_{self.world_size}_rank_{self.rank}.pt",
+                local_path,
+                hdfs_path,
             )
-            local_extra_state_path = copy_to_local(remote_extra_state_path)
             extra_state_dict = torch.load(local_extra_state_path, weights_only=False)
             # recover random state
             if "rng" in extra_state_dict:
                 # 'rng' may not exist for backward compatibility
                 self.load_rng_state(extra_state_dict["rng"])
-                log_with_rank(f"Loaded rng from {remote_extra_state_path}", rank=self.rank, logger=logger)
+                log_with_rank(f"Loaded rng from {local_extra_state_path}", rank=self.rank, logger=logger)
 
             lr_scheduler_state_dict = extra_state_dict["lr_scheduler"]
             if lr_scheduler_state_dict is not None and self.lr_scheduler is not None:
                 self.lr_scheduler.load_state_dict(lr_scheduler_state_dict)
-                log_with_rank(f"Loaded lr_scheduler from {remote_extra_state_path}", rank=self.rank, logger=logger)
+                log_with_rank(f"Loaded lr_scheduler from {local_extra_state_path}", rank=self.rank, logger=logger)
 
         if self.rank == 0 and del_local_after_load:
             try:
@@ -197,7 +205,6 @@ class FSDPCheckpointManager(BaseCheckpointManager):
         """
         if local_path is None:
             return
-
         # record the previous global step
         self.previous_global_step = global_step
 
@@ -238,11 +245,13 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     model_state_dict = self.model.state_dict()
                     torch.save(model_state_dict, model_path)
                     log_with_rank(f"Saved model to {os.path.abspath(model_path)}", rank=self.rank, logger=logger)
+                    copy_to_remote(model_path, hdfs_path)
 
                 if self.should_save_optimizer:
                     optimizer_state_dict = self.optimizer.state_dict()
                     torch.save(optimizer_state_dict, optim_path)
                     log_with_rank(f"Saved optim to {os.path.abspath(optim_path)}", rank=self.rank, logger=logger)
+                    copy_to_remote(optim_path, hdfs_path)
 
                 if self.should_save_extra:
                     lr_scheduler_state_dict = self.lr_scheduler.state_dict() if self.lr_scheduler is not None else None
@@ -252,6 +261,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     }
                     torch.save(extra_state_dict, extra_path)
                     log_with_rank(f"Saved extra_state to {os.path.abspath(extra_path)}", rank=self.rank, logger=logger)
+                    copy_to_remote(extra_path, hdfs_path)
 
         if self.rank == 0:
             # Save HF tokenizer/processor and model config on rank 0 to huggingface/ directory, no matter whether

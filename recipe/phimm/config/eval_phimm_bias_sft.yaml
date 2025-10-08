@@ -3,21 +3,9 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - dapo_asr
-  - data/train_data/ls_raw # not used
-  - data/val_data/bias_entity_ls
+  - eval_asr
   - _self_
 
 actor_rollout_ref:
-  rollout:
-    n: 8
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
-
-data:
-  max_prompt_length: 8192 # requred by 7b model
-
-trainer:
-  val_only: True
-  n_gpus_per_node: 1
-  nnodes: 1

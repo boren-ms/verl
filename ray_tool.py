@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-# -*- coding: utf-8 -*-
 import subprocess
 import ray
 import os
@@ -382,66 +381,6 @@ def prepare_local_checkpoint(local_dir, remote_dir):
 
 
 @ray.remote
-def prepare_env_old(forced=False):
-    """Prepare the environment on each node by installing necessary packages."""
-    hostname = os.uname().nodename
-    print(f"Preparing environment on node: {hostname}")
-    required = [
-        "torch==2.7.1",
-        "ray==2.46.0",
-        "transformers==4.55.4",
-        "vllm==0.10.0",
-    ]
-    if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
-        print(f"Required packages already installed on {hostname}, skipping installation.")
-        return
-    required = [
-        "accelerate",
-        "codetiming",
-        "datasets>=4.0.0",
-        "dill",
-        "torch==2.7.1",
-        "hydra-core",
-        "liger-kernel",
-        "numpy<2.0.0",
-        "pandas",
-        "peft",
-        "pyarrow>=19.0.0",
-        "pybind11",
-        "pylatexenc",
-        "pre-commit",
-        "ray[default]>=2.46.0",
-        "tensordict>=0.8.0,<=0.10.0,!=0.9.0",
-        "torchdata",
-        "transformers==4.55.4",
-        "vllm==0.10.0",
-        "wandb",
-        "packaging>=20.0",
-        "uvicorn",
-        "fastapi",
-        "latex2sympy2_extended",
-        "math_verify",
-        "tensorboard",
-        "blobfile",
-        "soundfile",
-        "more-itertools",
-        "whisper_normalizer",
-        "jiwer",
-        "fire",
-        "backoff",
-        "wandb",
-        "packaging>=20.0",
-        "qwen_vl_utils",
-    ]
-    print("Installing required packages...")
-    run_cmd(f"pip install {' '.join(required)}")
-    run_cmd("pip install --no-deps -e /root/code/verl")
-    run_cmd("pip install flash-attn==2.7.4.post1 ")
-    run_cmd("apt install lsof")
-    print("Environment preparation completed.")
-
-
-@ray.remote
 def prepare_env(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
@@ -451,11 +390,26 @@ def prepare_env(forced=False):
         "ray==2.46.0",
         "transformers==4.55.4",
         "vllm==0.10.0",
+        "flash-attn==2.7.4.post1",
     ]
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
-    run_cmd("bash quick_install.sh")
+    run_cmd("pip install -r requirements_vllm.txt")
+    run_cmd("pip install --no-deps -e .")
+    # find the package
+    # echo $(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')")
+    pkg_name = "flash_attn-2.7.4.post1+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
+    remote_pkg_path = f"{ORNG_USER.data_path}/packages/{pkg_name}"
+    local_pkg_path = f"/root/packages/{pkg_name}"
+    if bf.exists(remote_pkg_path) and not bf.exists(local_pkg_path):
+        bf.copy(remote_pkg_path, local_pkg_path, overwrite=False)
+
+    if not Path(local_pkg_path).exists():
+        print(f"Could not locate {remote_pkg_path}, using pip to install directly.")
+        local_pkg_path = "flash-attn==2.7.4.post1"
+
+    run_cmd(f"pip install --no-deps {local_pkg_path}")
     print("Environment preparation completed.")
 
 

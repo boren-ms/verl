@@ -192,6 +192,35 @@ def _check_directory_structure(folder_path, record_file):
     return existing_entries == recorded_entries
 
 
+def to_local(file_name, local_path, hdfs_path=None):
+    for remote_dir in [hdfs_path, local_path]:
+        if remote_dir is None:
+            continue
+        remote_file = os.path.join(remote_dir, file_name)
+        local_file = copy_to_local(remote_file)
+        if local_file is not None:
+            return local_file
+    return None
+
+
+def copy_to_remote(local_file, hdfs_path=None, overwrite=False):
+    if hdfs_path is None:
+        return local_file
+    file_name = os.path.basename(local_file)
+    remote_file = os.path.join(hdfs_path, file_name)
+    from recipe.phimm.utils.shared import upload_file
+
+    upload_file(local_file, remote_file, overwrite=overwrite)
+    return remote_file
+
+
+def path_join(*args):
+    """Join multiple path components into a single path."""
+    if any([x is None for x in args]):
+        return None
+    return os.path.join(*args)
+
+
 def copy_to_local(
     src: str, cache_dir=None, filelock=".file.lock", verbose=False, always_recopy=False, use_shm: bool = False
 ) -> str:
@@ -210,10 +239,11 @@ def copy_to_local(
     """
     # Save to a local path for persistence.
     # local_path = copy_local_path_from_hdfs(src, cache_dir, filelock, verbose, always_recopy)
-    from recipe.phimm.utils.shared import cache_remote_dir
+    from recipe.phimm.utils.shared import cache_remote_path
 
-    local_path = cache_remote_dir(src, cache_dir=cache_dir)
-
+    local_path = cache_remote_path(src, cache_dir=cache_dir)
+    if local_path is None:
+        return None
     # Load into shm to improve efficiency.
     if use_shm:
         return copy_to_shm(local_path)
