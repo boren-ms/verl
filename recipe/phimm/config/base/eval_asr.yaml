@@ -1,6 +1,6 @@
 defaults:
   - dapo_asr
-  - data/val_data/bias_entity_ls
+  - data/train_data/ls_raw
   - data/val_data/bias_entity_ls
   - _self_
 
