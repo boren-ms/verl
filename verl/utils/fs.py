@@ -203,14 +203,14 @@ def to_local(file_name, local_path, hdfs_path=None):
     return None
 
 
-def copy_to_remote(local_file, hdfs_path=None):
+def copy_to_remote(local_file, hdfs_path=None, overwrite=False):
     if hdfs_path is None:
         return local_file
     file_name = os.path.basename(local_file)
     remote_file = os.path.join(hdfs_path, file_name)
     from recipe.phimm.utils.shared import upload_file
 
-    upload_file(local_file, remote_file, overwrite=False)
+    upload_file(local_file, remote_file, overwrite=overwrite)
     return remote_file
 
 

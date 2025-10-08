@@ -820,7 +820,7 @@ class RayPPOTrainer:
         local_latest_iteration = path_join(local_dir, "latest_checkpointed_iteration.txt")
         with open(local_latest_iteration, "w") as f:
             f.write(str(self.global_steps))
-        copy_to_remote(local_latest_iteration, remote_dir)
+        copy_to_remote(local_latest_iteration, remote_dir, overwrite=True)
 
     def _load_checkpoint(self):
         if self.config.trainer.resume_mode == "disable":
