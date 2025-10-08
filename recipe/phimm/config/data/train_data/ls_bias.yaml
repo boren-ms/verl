@@ -13,7 +13,7 @@ biasing:
   hit_ratio: [0.9, 1.0]
   log_interval: 10000 # print biasing every 10000 samples
   common_word_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_words.count.txt
-  common_word_num: 1000
+  common_word_num: 3000
 post_process:
   add_field:
     fields:
