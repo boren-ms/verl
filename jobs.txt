@@ -5,8 +5,6 @@ Host: dev-n1-uks7-0 Ray: http://10.131.198.100:9209
 Host: dev-n1-wus2-0 Ray: http://10.142.114.228:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_7b_prod_fy22_bs64_rep_2k trainer.experiment_name=dapo_7b_prod_fy22_bs64_rep_2k
 
-Host: dev1-n1-wus2-0 Ray: http://10.142.248.57:9209
-
 Host: h-n1-uks7-0 Ray: http://10.131.221.125:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_rare_fy32q2_bs64_rep trainer.experiment_name=dapo_rare_fy32q2_bs64_rep
 
