@@ -18,3 +18,7 @@
 
 # bash submit_job.sh h-n2-wus2  grpo_ls_bias_bs64_rep_2k true # dryrun, will cleanup
 # bash submit_job.sh h-n2-wus2  dapo_ls_bias_bs64_rep_2k_n16
+# bash submit_job.sh h-n2-uks7  dapo_ls_bs64_2k_v1 true
+# bash submit_job.sh h-n2-uks7  dapo_ls_bs64_2k_w_cache
+bash submit_job.sh h1-n2-hpe4 dapo_ls_bias_bs64_rep_2k true
+bash submit_job.sh h1-n2-hpe4 grpo_ls_bias_bs64_rep_2k

@@ -19,6 +19,7 @@ custom_reward_function:
 actor_rollout_ref:
   rollout:
     n: 8
+    free_cache_engine: False
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 data:
