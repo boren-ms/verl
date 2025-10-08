@@ -139,6 +139,6 @@ def eval_score(solution_str, ground_truth, **kwargs):
 
 
 # %%
-print(get_wers("Hello <NE>world</NE> 123", "hello world one two three"))
+# print(get_wers("Hello <NE>world</NE> 123", "hello world one two three"))
 
 # %%
