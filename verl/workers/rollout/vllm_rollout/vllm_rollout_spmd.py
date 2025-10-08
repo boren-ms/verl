@@ -103,7 +103,7 @@ class vLLMRollout(BaseRollout):
             self.sleep_level = VLLM_SLEEP_LEVEL
         # breakpoint()
         model_path = model_config.local_path
-        tokenizer = model_config.tokenizer
+        self.tokenizer = model_config.tokenizer
         model_hf_config = model_config.hf_config
         trust_remote_code = model_config.trust_remote_code
         self.lora_kwargs = (
@@ -226,7 +226,7 @@ class vLLMRollout(BaseRollout):
         # print(f"kwargs: {kwargs}")
         self.sampling_params = SamplingParams(**kwargs)
 
-        self.pad_token_id = tokenizer.pad_token_id
+        self.pad_token_id = self.tokenizer.pad_token_id
 
     @contextmanager
     def update_sampling_params(self, **kwargs):
@@ -350,7 +350,7 @@ class vLLMRollout(BaseRollout):
 
             response = []
             rollout_log_probs = []
-            for output in outputs:
+            for i, output in enumerate(outputs):
                 for sample_id in range(len(output.outputs)):
                     response_ids = output.outputs[sample_id].token_ids
                     response.append(response_ids)
@@ -359,6 +359,11 @@ class vLLMRollout(BaseRollout):
                         for i, logprob in enumerate(output.outputs[sample_id].logprobs):
                             curr_log_prob.append(logprob[response_ids[i]].logprob)
                         rollout_log_probs.append(curr_log_prob)
+
+                # replace the response with ground truth for every n samples
+                if i % self.config.n == 0 and self.config.gt_rollout:
+                    ground_truth = non_tensor_batch["reward_model"][i]["ground_truth"]
+                    response[i] = self.tokenizer.encode(ground_truth + "<|end|>")
 
             response = pad_2d_list_to_length(response, self.pad_token_id, max_length=self.config.response_length).to(
                 idx.device

@@ -154,6 +154,7 @@ class RolloutConfig(BaseConfig):
     update_weights_bucket_megabytes: int = 512
 
     skip_rollout: bool = False
+    gt_rollout: bool = False
 
     skip_dump_dir: str = "/tmp/rollout_dump"
 
