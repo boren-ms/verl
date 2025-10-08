@@ -4,8 +4,8 @@ set -euo pipefail
 
 job_name=$1
 config_file=$2
-cleanup=${3:-"true"}
-dry_run=${4:-"false"}
+dry_run=${3:-"false"}
+cleanup=${4:-"true"}
 sync_code=${5:-"true"}
 config_name=$(basename "${config_file%.*}")
 echo "Job: $job_name $config_file"
