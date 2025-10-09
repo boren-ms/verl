@@ -27,7 +27,8 @@ actor_rollout_ref:
     gt_rollout: true
     temperature: 1.2
   actor:
-    ppo_micro_batch_size_per_gpu: 12
+    ppo_micro_batch_size_per_gpu: 8
+    ppo_mini_batch_size: 512 # 64*8
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
 
