@@ -12,9 +12,6 @@ val_before_train=false
 
 python3 -m recipe.phimm.main_asr_dapo \
 --config-name ${config_name} \
-data.train_batch_size=4 \
-data.gen_batch_size=4 \
-actor_rollout_ref.rollout.n=4 \
 trainer.n_gpus_per_node=1 \
 trainer.logger=console \
 trainer.val_before_train=${val_before_train} \

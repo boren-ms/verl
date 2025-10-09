@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - dapo_asr
+  - grpo_asr
   - _self_
   - data/train_data/local
   - data/val_data/local
@@ -31,9 +31,12 @@ train_reward:
       choice: "err" # "err", "acc", "wer"
       text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
       unit: word # word (default), char
+data:
+  train_batch_size: 8
 
 actor_rollout_ref:
   rollout:
+    n: 4
     gpu_memory_utilization: 0.3
     gt_rollout: true
     calculate_log_probs: True
@@ -41,7 +44,8 @@ actor_rollout_ref:
     loss_agg_mode: seq-mean-token-sum-norm
     use_kl_loss: False
     tis_imp_ratio_cap: 5
-
+    ppo_epochs: 2
+    ppo_micro_batch_size_per_gpu: 16 # trajectories
 algorithm:
   filter_groups:
     enable: false
@@ -50,9 +54,10 @@ algorithm:
 
 trainer:
   experiment_name: dapo-phimm-test-lora-new
-  save_freq: 1
+  save_freq: 100000
   test_freq: 10000
   val_before_train: false
   # resume_mode: "auto"
   resume_mode: "disable"
   default_hdfs_dir: null
+  # total_training_steps: 10
