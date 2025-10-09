@@ -361,7 +361,7 @@ class vLLMRollout(BaseRollout):
                         rollout_log_probs.append(curr_log_prob)
 
                 # replace the response with ground truth for every n samples
-                if i % self.config.n == 0 and self.config.gt_rollout:
+                if i % self.config.n == 0 and self.config.gt_rollout and not is_validate:
                     ground_truth = non_tensor_batch["reward_model"][i]["ground_truth"]
                     response[i] = self.tokenizer.encode(ground_truth + "<|end|>")
 
