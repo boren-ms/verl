@@ -6,6 +6,7 @@ Host: dev-n1-wus2-0 Ray: http://10.142.114.228:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_7b_prod_fy22_bs64_rep_2k trainer.experiment_name=dapo_7b_prod_fy22_bs64_rep_2k
 
 Host: dev1-n1-wus2-0 Ray: http://10.142.243.101:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k_gt_t12_tis5 trainer.experiment_name=grpo_ls_bias_bs64_rep_2k_gt_t12_tis5
 
 Host: h-n1-uks7-0 Ray: http://10.131.221.125:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_rare_fy32q2_bs64_rep trainer.experiment_name=dapo_rare_fy32q2_bs64_rep
@@ -30,5 +31,7 @@ Host: h1-n2-wus2-0 Ray: http://10.142.66.177:9209
 [1] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_prod_fy22_bs64_rep_2k trainer.experiment_name=dapo_prod_fy22_bs64_rep_2k
 
 Host: l-n1-hpe2-0 Ray: http://10.130.154.27:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k_gt_t12 trainer.experiment_name=grpo_ls_bias_bs64_rep_2k_gt_t12
 
 Host: l-n1-uks7-0 Ray: http://10.131.172.91:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name drgrpo_ls_bias_bs64_rep_2k_gt_t12 trainer.experiment_name=drgrpo_ls_bias_bs64_rep_2k_gt_t12
