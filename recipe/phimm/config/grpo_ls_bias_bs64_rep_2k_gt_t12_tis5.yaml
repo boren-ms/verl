@@ -27,9 +27,7 @@ actor_rollout_ref:
     gt_rollout: true
     temperature: 1.2
     calculate_log_probs: True # required by TIS
-
   actor:
-    loss_agg_mode: seq-mean-token-sum-norm
     tis_imp_ratio_cap: 5
 
   model:

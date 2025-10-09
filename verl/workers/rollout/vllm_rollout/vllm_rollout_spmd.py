@@ -356,8 +356,8 @@ class vLLMRollout(BaseRollout):
                     response.append(response_ids)
                     if self.config.calculate_log_probs:
                         curr_log_prob = []
-                        for i, logprob in enumerate(output.outputs[sample_id].logprobs):
-                            curr_log_prob.append(logprob[response_ids[i]].logprob)
+                        for j, logprob in enumerate(output.outputs[sample_id].logprobs):
+                            curr_log_prob.append(logprob[response_ids[j]].logprob)
                         rollout_log_probs.append(curr_log_prob)
 
                 # replace the response with ground truth for every n samples
