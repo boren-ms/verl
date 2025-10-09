@@ -28,4 +28,5 @@ data:
   # gen_batch_size: ${data.train_batch_size}
   train_batch_size: 64
   total_epochs: 2
-  # total_training_steps: 9000
+# trainer:
+#   total_training_steps: 9000

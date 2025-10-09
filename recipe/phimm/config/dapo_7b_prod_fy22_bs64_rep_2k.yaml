@@ -25,4 +25,5 @@ actor_rollout_ref:
 data:
   max_prompt_length: 7168
   train_batch_size: 64
+trainer:
   total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch

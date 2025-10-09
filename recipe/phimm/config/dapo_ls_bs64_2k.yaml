@@ -26,4 +26,5 @@ data:
   # gen_batch_size: ${data.train_batch_size}
   train_batch_size: 64
   gen_batch_size: 128
+trainer:
   total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch

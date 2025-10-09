@@ -40,4 +40,5 @@ data:
   # train_batch_size: ${eval:8*trainer.nnodes*trainer.n_gpus_per_node}
   # gen_batch_size: ${data.train_batch_size}
   train_batch_size: 64
+trainer:
   total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
