@@ -40,7 +40,7 @@ actor_rollout_ref:
     clip_ratio_high: 0.28
     loss_agg_mode: token-mean
     entropy_coeff: 0
-    ppo_micro_batch_size_per_gpu: 2
+    ppo_micro_batch_size_per_gpu: 16
     ppo_mini_batch_size: 1024 # keep it large, use only policy gradient
     ppo_epochs: 1
     optim:

@@ -36,11 +36,15 @@ actor_rollout_ref:
   rollout:
     gpu_memory_utilization: 0.3
     gt_rollout: true
+    calculate_log_probs: True
   actor:
     loss_agg_mode: seq-mean-token-sum-norm
     use_kl_loss: False
+    tis_imp_ratio_cap: 5
 
 algorithm:
+  filter_groups:
+    enable: false
   norm_adv_by_std_in_grpo: False
   norm_adv_by_mean_in_grpo: False
 
@@ -49,4 +53,6 @@ trainer:
   save_freq: 1
   test_freq: 10000
   val_before_train: false
-  resume_mode: "auto"
+  # resume_mode: "auto"
+  resume_mode: "disable"
+  default_hdfs_dir: null
