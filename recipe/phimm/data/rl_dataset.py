@@ -107,19 +107,6 @@ class RLHFDataset(Dataset):
         row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
         model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
         input_ids = model_inputs.pop("input_ids")
-
-        emb_sizes = (input_ids == 200011).sum(-1)
-        diff = (emb_sizes - model_inputs["audio_embed_sizes"]).nonzero(as_tuple=True)[0]
-        if len(diff) > 0:
-            print("model generated: ")
-            print(f"Found {len(diff)} samples with unexpected audio embed sizes ")
-
-            for i in diff:
-                print(f"==== Sample {i} ====")
-                audio, fs = audios[i]
-                print(f"Audio length: {len(audio)}")
-                print(f"emb_sizes: {model_inputs['audio_embed_sizes'][i]}, holder size: {emb_sizes[i]}")
-
         attention_mask = model_inputs.pop("attention_mask")
 
         if self.return_multi_modal_inputs:
@@ -183,18 +170,6 @@ class RLHFDataset(Dataset):
         row_dict["index"] = index
         row_dict["tools_kwargs"] = tools_kwargs
         row_dict["interaction_kwargs"] = interaction_kwargs
-        emb_sizes = (row_dict["input_ids"] == 200011).sum(-1)
-        diff = (emb_sizes - model_inputs["audio_embed_sizes"]).nonzero(as_tuple=True)[0]
-        if len(diff) > 0:
-            print("return from dataset: ")
-            print(f"Found {len(diff)} samples with unexpected audio embed sizes ")
-
-            for i in diff:
-                print(f"==== Sample {i} ====")
-                audio, fs = audios[i]
-                print(f"Audio length: {len(audio)}")
-                print(f"emb_sizes: {model_inputs['audio_embed_sizes'][i]}, holder size: {emb_sizes[i]}")
-            raise ValueError("Found samples with unexpected audio embed sizes")
         return row_dict
 
     def __getstate__(self):

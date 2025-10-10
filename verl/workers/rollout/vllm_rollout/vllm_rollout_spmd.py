@@ -60,7 +60,7 @@ from verl.third_party.vllm import VLLM_SLEEP_LEVEL
 from verl.utils.device import is_npu_available
 from verl.utils.profiler import GPUMemoryLogger
 from verl.utils.ray_utils import ray_noset_visible_devices
-from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length
+from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length, mask_tokens
 from verl.utils.vllm import TensorLoRARequest, VLLMHijack, is_version_ge
 from verl.workers.config import HFModelConfig, RolloutConfig
 from verl.workers.rollout.base import BaseRollout
@@ -368,6 +368,8 @@ class vLLMRollout(BaseRollout):
             response = pad_2d_list_to_length(response, self.pad_token_id, max_length=self.config.response_length).to(
                 idx.device
             )
+            # Mask special tokens in the response, 200011 is audio token holder for phi4mm
+            response = mask_tokens(response, 200011, self.pad_token_id)
             if self.config.calculate_log_probs:
                 rollout_log_probs = pad_2d_list_to_length(
                     rollout_log_probs, -1, max_length=self.config.response_length

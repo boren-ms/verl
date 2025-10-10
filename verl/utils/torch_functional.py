@@ -360,6 +360,15 @@ def pad(tensors, padding_value=0, padding_side="right", pad_to_multiple_of=None)
     return output
 
 
+def mask_tokens(x, token_id, pad_id):
+    mask = x == token_id
+    n_masked = mask.sum()
+    if n_masked > 0:
+        print(f"Masking out: {n_masked} special tokens [{token_id}] .")
+        x = x.masked_fill(mask, pad_id)
+    return x
+
+
 def postprocess_data(
     input_ids: torch.Tensor,
     attention_mask: torch.Tensor,
