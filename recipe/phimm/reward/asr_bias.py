@@ -9,6 +9,7 @@ import sys
 sys.path.append(str(Path(__file__).parents[3]))
 
 from recipe.phimm.utils.tn import text_norm as text_normalize
+from recipe.phimm.reward.error_book import get_eb
 from collections import deque
 
 
@@ -333,10 +334,17 @@ def is_valid(wer, **kwargs):
 def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for ASR with keywords."""
     extra_info = kwargs.pop("extra_info", {})
+    error_book = kwargs.get("error_book", False)
+    if error_book:
+        kwd_cnt = get_eb().find_errors(ground_truth, solution_str)
+        keywords = list(kwd_cnt.keys())
+    else:
+        keywords = extra_info.get("keywords", None)
+
     wer, u_wer, b_wer = measure_errors(
         solution_str,
         ground_truth,
-        keywords=extra_info.get("keywords", None),
+        keywords=keywords,
         **kwargs,
     )
     beta = kwargs.get("beta", 0.0)
@@ -392,10 +400,49 @@ if __name__ == "__main__":
             "hyp": "or of the habits of or *people* it is quite impossible.",
             "ref": "or of the habits of *our* people it is quite impossible",
         },
+        {
+            "hyp": "Who was it she was in love with? The story will t",
+            "ref": "who was it she was in love with the story will te upon myself to reply oh i can't wait fre's* the pity then",
+        },
+        {
+            "hyp": "The air and the earth are curiously *mated* and *intermingled* as if the one were the breath of the other,",
+            "ref": "the air and the earth are curiously *mated* and *intermingled* as if the one were the breath of the other",
+        },
+        {
+            "hyp": "These thoughts agitated me all day, and my imagination scarcely *calmed* down after several hours' sleep.",
+            "ref": "these thoughts agitated me all day and my imagination scarcely *calmed* down after several hours sleep",
+        },
+        {
+            "hyp": "The task will not be difficult, returned David, hesitating, though I greatly fear your presence would rather increase than,*mitigate* his unhappy fortunes.",
+            "ref": "the task will not be difficult returned david *hesitating* though i greatly fear your presence would rather increase than *mitigate* ,his unhappy fortunes",
+        },
+        {
+            "hyp": "it was silent and gloomy, *beeing* *tenanted* *solely* by the *captive* and lighted by the dying *embers* of a fire which had been,used for the purpose of *cookery*",
+            "ref": "it was silent and gloomy being *tenanted* *solely* by the *captive* and lighted by the dying *embers* of a fire which had been used ,for the *purposed* of *cookery*",
+        },
+        {
+            "hyp": "or of the habits of our people it is quite impossible.",
+            "ref": "or of the habits of our people it is quite impossible",
+        },
+        {
+            "hyp": "To be or not to be, that is the question Whether 'tis *nobler* in the mind to suffer the *slings* and arrows what? No, *hamlet*,speaking",
+            "ref": "to be or not to be that is the question whether tis *nobler* in the mind to suffer the *slings* and arrows what no *hamlet* ,speaking",
+        },
+        {
+            "hyp": "By quick *marches* through these *inaccessible* mountains, that general *freed* himself from the superior forces of the,*covenanters*",
+            "ref": "by quick *marches* through these *inaccessible* mountains that general *freed* himself from the superior forces of the ,*covenanters*",
+        },
+        {
+            "hyp": "This *nobleman's* character, though celebrated for political courage and conduct, was very low for military *prowess* and after some,*skirmishes* in which he was *worsted* he here allowed *montrose* to escape him.",
+            "ref": "this *nobleman's* character though celebrated for political courage and conduct was very low for military *prowess* and after some ,*skirmishes* in which he was *worsted* he here allowed *montrose* to escape him",
+        },
     ]
 
     for pair in pairs:
-        result = eval_score(pair["hyp"], pair["ref"])
+        # result = eval_score(pair["hyp"], pair["ref"])
 
+        result = compute_score(pair["hyp"], pair["ref"], text_norm="english", choice="wer", beta=1.0, error_book=True)
         print(result)
+        print("EB:", get_eb().cnt)
+
 # %%

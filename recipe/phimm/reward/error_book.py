@@ -18,18 +18,34 @@ def align(refs, hyps):
 
 class ErrorBook:
     def __init__(self, tn=None):
-        self.err_cnt = Counter()
+        self.cnt = Counter()
         self.tn = tn or EnglishTextNormalizer()
 
     def find_errors(self, ref, hyp=None):
         hyp = hyp or ref
         refs = self.tn(ref).split()
         hyps = self.tn(hyp).split()
-        keywords = set(refs) & set(self.err_cnt.keys())
+        kwd_cnt = Counter({w: self.cnt[w] for w in refs if w in self.cnt})
         hits, edits = align(refs, hyps)
-        self.err_cnt += Counter(edits)
-        self.err_cnt -= Counter(hits)
-        return keywords
+        self.cnt += Counter(edits)
+        self.cnt -= Counter(hits)
+        return kwd_cnt
+
+
+# Add singleton storage and accessor
+_EB = None
+
+
+def get_eb():
+    """
+    Return a singleton ErrorBook instance.
+
+    Creates the ErrorBook on first call and reuses it thereafter.
+    """
+    global _EB
+    if _EB is None:
+        _EB = ErrorBook()
+    return _EB
 
 
 # %%
@@ -81,7 +97,7 @@ if __name__ == "__main__":
         print("Ref: ", pair["ref"])
         kws = eb.find_errors(pair["ref"], pair["hyp"])
         print("Keywords: ", kws)
-        print("Error book: ", eb.err_cnt)
+        print("Error book: ", eb.cnt)
         print()
 
 # %%
