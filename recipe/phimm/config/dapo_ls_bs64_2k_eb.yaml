@@ -1,0 +1,32 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - dapo_asr
+  - data/train_data/ls_raw
+  - data/val_data/ls_raw
+  - _self_
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_bias.py
+  name: compute_score
+  reward_kwargs:
+    beta: 1 # score = (1-beta)*WER + beta*B-WER
+    choice: "err" # "err", "acc", "wer"
+    text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
+    unit: word # word (default), char
+    error_book: True # use error book to compute keyword-based reward
+
+actor_rollout_ref:
+  rollout:
+    n: 8
+  model:
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+data:
+  # train_batch_size: ${eval:8*trainer.nnodes*trainer.n_gpus_per_node}
+  # gen_batch_size: ${data.train_batch_size}
+  train_batch_size: 64
+  gen_batch_size: 128
+trainer:
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
