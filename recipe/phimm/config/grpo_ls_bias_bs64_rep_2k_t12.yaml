@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - grpo_asr
+  - dapo_asr
   - data/train_data/ls_bias
   - data/val_data/ls_bias
   - _self_
@@ -17,18 +17,14 @@ custom_reward_function:
     text_norm: simple_with_tag # english (default), identity, lower, basic, simple, simple_with_tag
     unit: char # word (default), char
 
+algorithm:
+  filter_groups:
+    enable: false
+
 actor_rollout_ref:
   rollout:
-    n: 16
-    gt_rollout: true
+    n: 8
     temperature: 1.2
-    calculate_log_probs: True # required by TIS
-
-  actor:
-    loss_agg_mode: seq-mean-token-sum-norm
-    tis_imp_ratio_cap: 5
-    # ppo_micro_batch_size_per_gpu: 8
-
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
 
