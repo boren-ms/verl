@@ -15,8 +15,8 @@ Host: h-n2-hpe4-0 Ray: http://10.133.38.50:9209
 [0] python3 ./launch_train.py orng_conf/biasing/rare/grpo_rare_hc_fy23q2_tag_entity_cache_zero_e1_bp8_ref_fn1.yaml
 
 Host: h-n2-uks7-0 Ray: http://10.131.176.242:9209
-[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k_gt_t12_b16 trainer.experiment_name=grpo_ls_bias_bs64_rep_2k_gt_t12_b16
-[1] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k_gt_t12_b8 trainer.experiment_name=grpo_ls_bias_bs64_rep_2k_gt_t12_b8
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k_gt_t12_b8 trainer.experiment_name=grpo_ls_bias_bs64_rep_2k_gt_t12_b8
+[1] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k_gt_t12_tis5 trainer.experiment_name=grpo_ls_bias_bs64_rep_2k_gt_t12_tis5
 
 Host: h-n2-wus2-0 Ray: http://10.142.22.185:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_ls_bias_bs64_rep_2k_n16 trainer.experiment_name=dapo_ls_bias_bs64_rep_2k_n16
