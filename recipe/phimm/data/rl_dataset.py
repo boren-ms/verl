@@ -218,5 +218,6 @@ if __name__ == "__main__":
     # data_conf = "/home/boren/data/parquet/data_conf.yaml"
     tokenizer_path = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct"
     tokenizer_path = "/home/boren/data/ckp/hf_models/phi4_mm_bias_merged"
-    data_yaml = "/home/boren/verl/recipe/dapo/config/data/test_audio.yaml"
+    data_yaml = "/home/boren/verl/recipe/phimm/config/data_local.yaml"
+
     main(data_yaml, tokenizer_path)
