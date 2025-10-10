@@ -20,6 +20,9 @@ def limit_audio(x, fs, max_dur=30):
     if len(x) > fs * max_dur:
         print(f"Truncating audio {len(x) / fs:.2f} ->  {max_dur} seconds.")
         x = x[: fs * max_dur]
+    n = len(x)
+    n = n // 8 * 8  # make it multiple of 8
+    x = x[:n]
     return x, fs
 
 
