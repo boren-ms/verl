@@ -38,5 +38,7 @@
 # bash submit_job.sh h-n2-wus2 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_dr
 # bash submit_job.sh h-n2-wus2 dapo_ls_bias_bs64_rep_2k_gt_t12_tis5
 
-bash submit_job.sh h-n1-uks7 dapo_rare_fy32q2_bs64_rep true
-bash submit_job.sh h-n1-uks7 grpo_rare_fy22_bs64_rep_gt_tis5
+bash submit_job.sh h-n1-uks7 dapo_rare_fy32q2_bs64_rep  true
+bash submit_job.sh h-n1-uks7 grpo_prod_fy22_bs64_rep_gt_tis5_2k
+# bash submit_job.sh dev-n1-uks7 dapo_prod_fy22_bs64_2k true
+# bash submit_job.sh dev-n1-uks7 grpo_prod_fy22_bs64_gt_tis5_2k
