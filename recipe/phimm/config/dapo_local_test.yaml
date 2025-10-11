@@ -27,10 +27,11 @@ train_reward:
     path: recipe/phimm/reward/asr_bias.py
     name: compute_score
     reward_kwargs:
-      beta: 0.0 # score = WER + beta*B-WER
+      beta: 10.0 # score = WER + beta*B-WER
       choice: "err" # "err", "acc", "wer"
-      text_norm: simple # english (default), identity, lower, basic, simple, simple_with_tag
+      text_norm: english # english (default), identity, lower, basic, simple, simple_with_tag
       unit: word # word (default), char
+      error_book: true # whether to return error book for each sample
 data:
   train_batch_size: 8
 
@@ -38,9 +39,9 @@ actor_rollout_ref:
   rollout:
     n: 4
     gpu_memory_utilization: 0.3
-    gt_rollout: true
+    # gt_rollout: true
     calculate_log_probs: True
-    temperature: 10
+    # temperature: 10
   actor:
     loss_agg_mode: seq-mean-token-sum-norm
     use_kl_loss: False
