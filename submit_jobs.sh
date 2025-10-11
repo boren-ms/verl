@@ -42,5 +42,7 @@
 # bash submit_job.sh dev-n1-uks7 dapo_prod_fy22_bs64_2k true
 # bash submit_job.sh dev-n1-uks7 grpo_prod_fy22_bs64_gt_tis5_2k
 
-bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_bs64_rep_gt_t12_tis5_2k
+# bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_bs64_rep_gt_t12_tis5_2k
 # bash submit_job.sh l-n1-uks7 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_raw
+
+bash submit_job.sh dev-n1-wus2 dapo_7b_prod_fy22_bs64_rep_2k true
