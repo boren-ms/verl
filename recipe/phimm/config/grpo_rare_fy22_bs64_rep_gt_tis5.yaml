@@ -1,0 +1,41 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - dapo_asr
+  - data/train_data/rare_fy32q2
+  - data/train_data/prod_fy22
+  - data/val_data/entity
+  - _self_
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_bias.py
+  name: compute_score
+  reward_kwargs:
+    beta: 5 # score = WER + beta*B-WER
+    choice: "err" # "err", "acc", "wer"
+    text_norm: simple_with_tag # english (default), identity, lower, basic, simple, simple_with_tag
+    unit: char # word (default), char
+
+algorithm:
+  filter_groups:
+    enable: false
+
+actor_rollout_ref:
+  rollout:
+    n: 8
+    gt_rollout: true
+    temperature: 1.2
+    calculate_log_probs: True # required by TIS
+  actor:
+    tis_imp_ratio_cap: 5
+
+  model:
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+data:
+  # train_batch_size: ${eval:8*trainer.nnodes*trainer.n_gpus_per_node}
+  # gen_batch_size: ${data.train_batch_size}
+  train_batch_size: 64
+trainer:
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch

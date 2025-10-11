@@ -28,15 +28,15 @@ actor_rollout_ref:
     n: 8
     gt_rollout: true
     temperature: 1.2
+    calculate_log_probs: True # required by TIS
   actor:
+    tis_imp_ratio_cap: 5
     loss_agg_mode: seq-mean-token-sum-norm
 
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
 
 data:
-  # train_batch_size: ${eval:8*trainer.nnodes*trainer.n_gpus_per_node}
-  # gen_batch_size: ${data.train_batch_size}
   train_batch_size: 64
 
 trainer:

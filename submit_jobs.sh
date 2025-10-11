@@ -26,7 +26,7 @@
 # bash submit_job.sh l-n1-uks7 grpo_ls_bias_bs64_rep_2k_t12
 # bash submit_job.sh l1-n1-hpe2 grpo_ls_bias_bs64_rep_2k_gt_t12
 # bash submit_job.sh h-n2-uks7 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5
-bash submit_job.sh l-n1-uks7 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_raw
+# bash submit_job.sh l-n1-uks7 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_raw
 # # bash submit_job.sh l-n1-uks7 grpo_ls_bias_bs64_rep_2k_gt_t12_b16
 # # bash submit_job.sh h1-n2-wus2 dapo_ls_bias_bs64_rep_e2 true
 # bash submit_job.sh h1-n2-wus2 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_n16
@@ -35,4 +35,8 @@ bash submit_job.sh l-n1-uks7 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_raw
 # bash submit_job.sh h-n2-uks7 dapo_ls_bs64_2k_eb true
 # bash submit_job.sh h-n2-uks7 grpo_ls_bs64_2k_eb
 # bash submit_job.sh h1-n2-hpe4 grpo_ls_bias_bs64_rep_2k true
-# bash submit_job.sh h1-n2-hpe4 grpo_ls_bs64_2k true
+# bash submit_job.sh h-n2-wus2 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_dr
+# bash submit_job.sh h-n2-wus2 dapo_ls_bias_bs64_rep_2k_gt_t12_tis5
+
+bash submit_job.sh h-n1-uks7 dapo_rare_fy32q2_bs64_rep true
+bash submit_job.sh h-n1-uks7 grpo_rare_fy22_bs64_rep_gt_tis5
