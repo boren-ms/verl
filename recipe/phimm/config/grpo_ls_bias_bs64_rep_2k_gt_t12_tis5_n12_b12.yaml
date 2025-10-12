@@ -23,7 +23,7 @@ algorithm:
 
 actor_rollout_ref:
   rollout:
-    n: 16
+    n: 12
     gt_rollout: true
     temperature: 1.2
     calculate_log_probs: True # required by TIS
@@ -31,7 +31,7 @@ actor_rollout_ref:
   actor:
     loss_agg_mode: seq-mean-token-sum-norm
     tis_imp_ratio_cap: 5
-    ppo_micro_batch_size_per_gpu: 16 # default 32
+    ppo_micro_batch_size_per_gpu: 12 # default 32
 
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
@@ -40,7 +40,7 @@ data:
   # train_batch_size: ${eval:8*trainer.nnodes*trainer.n_gpus_per_node}
   # gen_batch_size: ${data.train_batch_size}
   truncation: right2
-  max_prompt_length: 3072
+  max_prompt_length: 4096
   max_response_length: 512
   train_batch_size: 64
 trainer:
