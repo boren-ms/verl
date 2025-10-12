@@ -46,6 +46,7 @@ from verl.trainer.ppo.ray_trainer import (
 from verl.utils.profiler import marked_timer
 from verl.utils.rollout_skip import RolloutSkip
 from verl.utils.ray_utils import ray_host_url
+from recipe.phimm.reward.error_book import get_eb
 
 
 class RayDAPOTrainer(RayPPOTrainer):
@@ -267,6 +268,8 @@ class RayDAPOTrainer(RayPPOTrainer):
                             batch = batch[:traj_bsz]
 
                     # === Updating ===
+                    # update the error book
+                    get_eb().update()
 
                     batch.batch["response_mask"] = compute_response_mask(batch)
 

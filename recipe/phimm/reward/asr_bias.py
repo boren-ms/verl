@@ -335,11 +335,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for ASR with keywords."""
     extra_info = kwargs.pop("extra_info", {})
     error_book = kwargs.get("error_book", False)
-    if error_book:
-        kwd_cnt = get_eb().find_errors(ground_truth)
-        keywords = list(kwd_cnt.keys())
-    else:
-        keywords = extra_info.get("keywords", None)
+    keywords = get_eb().error_words(ground_truth, solution_str) if error_book else extra_info.get("keywords", None)
 
     wer, u_wer, b_wer = measure_errors(
         solution_str,
@@ -354,7 +350,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     if not is_valid(wer, **kwargs):
         score = -100.0  # penalty for too high WER
 
-    return {
+    result = {
         "score": score,
         "n_err": wer.n_err,
         "nu_err": u_wer.n_err,
@@ -366,6 +362,9 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "nu_ref": u_wer.n_ref,
         "nb_ref": b_wer.n_ref,
     }
+    if error_book:
+        result["extra_info"] = {"keywords": keywords}
+    return result
 
 
 def eval_score(solution_str, ground_truth, **kwargs):

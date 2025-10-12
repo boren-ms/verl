@@ -20,18 +20,24 @@ class ErrorBook:
     def __init__(self, tn=None):
         self.cnt = Counter()
         self.tn = tn or EnglishTextNormalizer()
+        self.hit_cnt = Counter()
+        self.edit_cnt = Counter()
 
-    def find_errors(self, ref):
-        refs = self.tn(ref).split()
-        return Counter({w: self.cnt[w] for w in refs if w in self.cnt})
-
-    def update_errors(self, ref, hyp=None):
+    def error_words(self, ref, hyp=None):
         hyp = hyp or ref
         refs = self.tn(ref).split()
         hyps = self.tn(hyp).split()
         hits, edits = align(refs, hyps)
-        self.cnt += Counter(edits)
-        self.cnt -= Counter(hits)
+        self.hit_cnt += Counter(hits)
+        self.edit_cnt += Counter(edits)
+        # return Counter({w: self.cnt[w] for w in refs if w in self.cnt})
+        return list(set(w for w in refs if w in self.cnt))
+
+    def update(self):
+        self.cnt += self.edit_cnt
+        self.cnt -= Counter(self.hit_cnt)
+        self.hit_cnt = Counter()
+        self.edit_cnt = Counter()
 
 
 # Add singleton storage and accessor
@@ -97,9 +103,10 @@ if __name__ == "__main__":
         print(f"==== Example {i} ====")
         print("Hyp: ", pair["hyp"])
         print("Ref: ", pair["ref"])
-        kws = eb.find_errors(pair["ref"], pair["hyp"])
+        kws = eb.error_words(pair["ref"], pair["hyp"])
         print("Keywords: ", kws)
         print("Error book: ", eb.cnt)
+        eb.update()
         print()
 
 # %%

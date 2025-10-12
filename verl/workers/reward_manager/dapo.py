@@ -102,6 +102,8 @@ class DAPORewardManager(AbstractRewardManager):
                 extra_info=extra_info,
             )
 
+            extra_info.update(result.pop("extra_info", {}))  # update extra_info if any from result
+
             score: float
             if isinstance(result, dict):
                 score = result["score"]
