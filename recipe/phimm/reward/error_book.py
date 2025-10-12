@@ -21,15 +21,17 @@ class ErrorBook:
         self.cnt = Counter()
         self.tn = tn or EnglishTextNormalizer()
 
-    def find_errors(self, ref, hyp=None):
+    def find_errors(self, ref):
+        refs = self.tn(ref).split()
+        return Counter({w: self.cnt[w] for w in refs if w in self.cnt})
+
+    def update_errors(self, ref, hyp=None):
         hyp = hyp or ref
         refs = self.tn(ref).split()
         hyps = self.tn(hyp).split()
-        kwd_cnt = Counter({w: self.cnt[w] for w in refs if w in self.cnt})
         hits, edits = align(refs, hyps)
         self.cnt += Counter(edits)
         self.cnt -= Counter(hits)
-        return kwd_cnt
 
 
 # Add singleton storage and accessor

@@ -336,7 +336,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     extra_info = kwargs.pop("extra_info", {})
     error_book = kwargs.get("error_book", False)
     if error_book:
-        kwd_cnt = get_eb().find_errors(ground_truth, solution_str)
+        kwd_cnt = get_eb().find_errors(ground_truth)
         keywords = list(kwd_cnt.keys())
     else:
         keywords = extra_info.get("keywords", None)
