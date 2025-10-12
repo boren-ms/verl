@@ -1,0 +1,36 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - grpo_asr
+  - data/train_data/ls_raw
+  - data/val_data/ls_raw
+  - _self_
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_bias.py
+  name: compute_score
+  reward_kwargs:
+    beta: 1 # score = WER + beta*B-WER
+    choice: "err" # "err", "acc", "wer"
+    text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
+    unit: word # word (default), char
+    error_book: True # use error book to compute keyword-based reward
+
+actor_rollout_ref:
+  rollout:
+    n: 2
+    # gt_rollout: true
+    temperature: 1.2
+    calculate_log_probs: True # required by TIS
+  actor:
+    tis_imp_ratio_cap: 5
+
+  model:
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+
+data:
+  train_batch_size: 64
+trainer:
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
