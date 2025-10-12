@@ -69,7 +69,7 @@ class RLHFDataset(Dataset):
         self.prompt_key = config.get("prompt_key", "prompt")
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
-        self.truncation = config.get("truncation", "error")
+        self.truncation = config.get("truncation", "right2")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
         self.num_proc = get_num_proc(config.get("num_proc", "auto"))
         self.chat_template_func = config.get("chat_template_func", None)
@@ -137,18 +137,6 @@ class RLHFDataset(Dataset):
         row_dict["position_ids"] = position_ids[0]
 
         raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
-        if len(raw_prompt_ids) > self.max_prompt_length:
-            if self.truncation == "left":
-                raw_prompt_ids = raw_prompt_ids[-self.max_prompt_length :]
-            elif self.truncation == "right":
-                raw_prompt_ids = raw_prompt_ids[: self.max_prompt_length]
-            elif self.truncation == "middle":
-                left_half = self.max_prompt_length // 2
-                right_half = self.max_prompt_length - left_half
-                raw_prompt_ids = raw_prompt_ids[:left_half] + raw_prompt_ids[-right_half:]
-            elif self.truncation == "error":
-                raise RuntimeError(f"Prompt length {len(raw_prompt_ids)} is longer than {self.max_prompt_length}.")
-
         row_dict["raw_prompt_ids"] = raw_prompt_ids
         # encode prompts without chat template
         if self.return_raw_chat:
@@ -193,7 +181,7 @@ def main(config_path, tokenizer_path, data_files=None):
             "audio_key": "audio_path",
             "asr_dataset": True,
             # "filter_overlong_prompts": False,
-            "max_prompt_length": 1024,
+            "max_prompt_length": 30,
             "max_response_length": 2048,
             "train_files": data_files,
         }
