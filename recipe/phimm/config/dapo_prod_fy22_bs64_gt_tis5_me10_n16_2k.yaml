@@ -19,7 +19,13 @@ custom_reward_function:
     max_err: 10 # only accept if error count <= max_err
 actor_rollout_ref:
   rollout:
-    n: 8
+    n: 16
+    gt_rollout: true
+    temperature: 1.2
+    calculate_log_probs: True # required by TIS
+  actor:
+    tis_imp_ratio_cap: 5
+
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 data:

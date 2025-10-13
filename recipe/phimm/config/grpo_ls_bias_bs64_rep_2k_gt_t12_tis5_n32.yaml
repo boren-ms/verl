@@ -1,0 +1,37 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - grpo_asr
+  - data/train_data/ls_bias
+  - data/val_data/ls_bias
+  - _self_
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_bias.py
+  name: compute_score
+  reward_kwargs:
+    beta: 5 # score = WER + beta*B-WER
+    choice: "err" # "err", "acc", "wer"
+    text_norm: simple_with_tag # english (default), identity, lower, basic, simple, simple_with_tag
+    unit: char # word (default), char
+
+actor_rollout_ref:
+  rollout:
+    n: 32
+    gt_rollout: true
+    temperature: 1.2
+    calculate_log_probs: True # required by TIS
+
+  actor:
+    loss_agg_mode: seq-mean-token-sum-norm
+    tis_imp_ratio_cap: 5
+
+  model:
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
+
+data:
+  train_batch_size: 64
+trainer:
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
