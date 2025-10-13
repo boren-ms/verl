@@ -343,9 +343,10 @@ def compute_score(solution_str, ground_truth, **kwargs):
         keywords=keywords,
         **kwargs,
     )
+    alpha = kwargs.get("alpha", 1.0)
     beta = kwargs.get("beta", 0.0)
     choice = kwargs.get("choice", "err")
-    score = get_score(wer, choice) + get_score(b_wer, choice) * beta
+    score = get_score(wer, choice) * alpha + get_score(b_wer, choice) * beta
 
     if not is_valid(wer, **kwargs):
         score = -100.0  # penalty for too high WER
