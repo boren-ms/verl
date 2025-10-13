@@ -16,7 +16,16 @@ from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as bia
 from recipe.phimm.data.prompts import get_task_prompt
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
-from recipe.phimm.utils.shared import hash_id, get_value, rank_print, dist_state, all_rank_print, to_list, is_list
+from recipe.phimm.utils.shared import (
+    hash_id,
+    get_value,
+    rank_print,
+    dist_state,
+    all_rank_print,
+    to_list,
+    is_list,
+    to_int,
+)
 from recipe.phimm.utils.audio import sf_read
 from recipe.phimm.utils.storage import get_path_with_options
 
@@ -36,6 +45,23 @@ def read_words(file_path, num=None, tn_name=None):
             word = line.split()[0]
             words.append(text_norm(word, tn_name))
     return words
+
+
+def read_word_count(file_path, num=None, tn_name=None):
+    """Read the top N lines from a file."""
+    if file_path is None:
+        return []
+    wd_cnt = defaultdict(int)
+    tn_name = tn_name or "identity"
+    with bf.BlobFile(file_path, "r") as f:
+        for i, line in enumerate(f):
+            if num is not None and i >= num:
+                break
+            parts = line.split(maxsplit=1)
+            word = text_norm(parts[0], tn_name)
+            cnt = to_int(parts[-1], 0)
+            wd_cnt[word] += cnt
+    return wd_cnt
 
 
 def prefix_match(str1, str2, nd=2):
@@ -389,19 +415,24 @@ def filter_ds(ds, **kwargs):
 
 def add_rare_keywords(ds, **kwargs):
     tn_name = kwargs.get("tn_name", "english")
-    min_len_diff = kwargs.get("min_len_diff", 2)
+    rare_ratio = kwargs.get("rare_ratio", None)
+    rare_num = kwargs.get("rare_num", None)
     common_file = kwargs.get("common_file", None)
-    common_num = kwargs.get("common_num", 1000)
+    common_num = kwargs.get("common_num", 10000)
     assert common_file is not None, "common_file must be set"
-    common_words = read_words(common_file, num=common_num, tn_name=tn_name)
+    wd_cnt = read_word_count(common_file, num=common_num, tn_name=tn_name)
 
     def rare_words(egs):
         text = text_norm(egs["text"], tn_name)
         words = set(text.split())
-        rare_words = find_rare(words, common_words, nd=min_len_diff)
-        return {
-            "keywords": list(rare_words),
-        }
+        n_rare = int(len(words) * rare_ratio) if rare_ratio else rare_num
+        if not n_rare:
+            keywords = [w for w in words if w not in wd_cnt]
+        else:
+            sorted_wds = sorted(words, key=lambda w: wd_cnt.get(w, 0))
+            keywords = sorted_wds[:n_rare]
+
+        return {"keywords": list(keywords)}
 
     ds = ds.map(rare_words, **pop_map_kwargs(kwargs))
     return ds
@@ -870,11 +901,11 @@ if __name__ == "__main__":
     # dataset = create_dataset(name="openasr", head=2)
     # print(dataset)
     # print(dataset[0]["text"])
-    tsv_path = "recipe/dapo/config/data/test_audio.yaml"
+    tsv_path = "recipe/phimm/config/data/train_data/local_debug.yaml"
     import yaml
 
-    kwargs = yaml.safe_load(Path(tsv_path).read_text())["data"]
-    ds = create_datasets(kwargs["val_data"])
+    kwargs = yaml.safe_load(Path(tsv_path).read_text())
+    ds = create_datasets(kwargs)
     print(ds)
     print(next(iter(ds)))
 

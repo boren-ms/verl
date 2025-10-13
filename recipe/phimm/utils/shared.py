@@ -6,6 +6,7 @@ from pathlib import Path
 import functools
 import hashlib
 import importlib.metadata
+from collections.abc import Sequence
 
 
 def is_package_version(package_name, target_version):
@@ -37,7 +38,7 @@ def to_list(x, default=None):
 
 
 def is_list(obj):
-    return not isinstance(obj, (str, bytes)) and hasattr(obj, "__getitem__")
+    return not isinstance(obj, (str, bytes)) and isinstance(obj, Sequence)
 
 
 def chkp_index(name, default=-1):
