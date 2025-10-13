@@ -43,7 +43,7 @@
 # bash submit_job.sh dev-n1-uks7 grpo_prod_fy22_bs64_gt_tis5_2k
 
 # bash submit_job.sh l-n1-uks7 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_raw true
-# bash submit_job.sh l-n1-uks7 grpo_ls_eb_bs64_rep_2k_gt_t12_tis5_n2
+bash submit_job.sh l-n1-uks7 grpo_ls_eb_bs64_rep_2k_gt_t12_tis5_n2
 # bash submit_job.sh h1-n2-hpe4 grpo_ls_eb_bs64_rep_2k_gt_t12_tis5_n8
 # bash submit_job.sh l-n1-hpe2 grpo_ls_bs64_gt_t12_tis5_2k
 
@@ -52,5 +52,5 @@
 # bash submit_job.sh dev-n1-wus2 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_sm
 
 # bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_bs64_gt_t12_tis5_eb_n8_2k
-bash submit_job.sh h-n2-hpe4 grpo_ls_eb_bs64_t12_tis5_n2_2k
-bash submit_job.sh h-n2-hpe4 grpo_ls_eb_bs64_t12_tis5_n2_4k
+# bash submit_job.sh h-n2-hpe4 grpo_ls_eb_bs64_t12_tis5_n2_2k
+# bash submit_job.sh h-n2-hpe4 grpo_ls_eb_bs64_t12_tis5_n2_4k
