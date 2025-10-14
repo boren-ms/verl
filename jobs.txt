@@ -34,6 +34,7 @@ Host: l-n1-hpe2-0 Ray: http://10.130.139.244:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_n2x4 trainer.experiment_name=grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_n2x4
 
 Host: l-n1-uks7-0 Ray: http://10.131.219.166:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_eb_bs64_rep_2k_gt_t12_tis5_n2 trainer.experiment_name=grpo_ls_eb_bs64_rep_2k_gt_t12_tis5_n2
 
 Host: l1-n1-hpe2-0 Ray: http://10.130.48.152:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_gt_t12_tis5_n16_e2 trainer.experiment_name=grpo_ls_bias_bs64_rep_gt_t12_tis5_n16_e2
