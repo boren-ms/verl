@@ -425,6 +425,7 @@ def add_rare_keywords(ds, **kwargs):
     def rare_words(egs):
         text = text_norm(egs["text"], tn_name)
         words = set(text.split())
+        words = [w for w in words if len(w) > 1]  # filter single character words
         n_rare = int(len(words) * rare_ratio) if rare_ratio else rare_num
         if not n_rare:
             keywords = [w for w in words if w not in wd_cnt]
