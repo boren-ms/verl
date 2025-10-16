@@ -1,0 +1,174 @@
+# Copyright 2024 Bytedance Ltd. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+Generate responses given a dataset of prompts
+"""
+
+import os
+
+import hydra
+import numpy as np
+import ray
+
+os.environ["NCCL_DEBUG"] = "WARN"
+os.environ["TOKENIZERS_PARALLELISM"] = "true"
+# os.environ['TORCH_COMPILE_DISABLE'] = '1'
+import uuid
+from pprint import pprint
+from collections import defaultdict
+from datasets import Dataset
+from omegaconf import OmegaConf
+from torchdata.stateful_dataloader import StatefulDataLoader
+
+from verl import DataProto
+from verl.protocol import pad_dataproto_to_divisor, unpad_dataproto
+from verl.single_controller.ray import RayClassWithInitArgs, RayResourcePool, RayWorkerGroup
+from verl.utils import hf_processor, hf_tokenizer
+from verl.utils.dataset import RLHFDataset
+from recipe.phimm.data.rl_dataset import RLHFDataset 
+from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
+from verl.utils.fs import copy_to_local, copy_to_remote
+from verl.workers.fsdp_workers import ActorRolloutRefWorker
+from pathlib import Path
+from tqdm import tqdm
+from recipe.phimm.utils.env import EnvMgr
+from verl.utils.ray_utils import ray_address, ray_host_url
+
+def get_env_vars():
+    env_vars = EnvMgr().envs()
+    required_envs = ["DATA_PATH"]
+    assert all(k in env_vars for k in required_envs), (
+        f"Missing env vars: {[k for k in required_envs if k not in env_vars]}"
+    )
+    return env_vars
+
+def cwd():
+    return Path(__file__).parents[2]
+
+@hydra.main(config_path="config", config_name="generation", version_base=None)
+def main(config):
+    run_generation(config)
+
+def run_generation(config) -> None:
+    env_vars = get_env_vars()
+    print(f"Cluster Env: {env_vars}")
+    if not ray.is_initialized():
+        # this is for local ray cluster
+        default_runtime_env = {
+            "env_vars": {
+                "TOKENIZERS_PARALLELISM": "true",
+                "NCCL_DEBUG": "WARN",
+                "VLLM_LOGGING_LEVEL": "WARN",
+                **env_vars,
+            },
+            "excludes": [str(cwd() / ".git")],
+        }
+        ray_init_kwargs = config.ray_kwargs.get("ray_init", {})
+        runtime_env_kwargs = ray_init_kwargs.get("runtime_env", {})
+        runtime_env = OmegaConf.merge(default_runtime_env, runtime_env_kwargs)
+        ray_init_kwargs = OmegaConf.create({**ray_init_kwargs, "runtime_env": runtime_env})
+        print(f"ray init kwargs: {ray_init_kwargs}")
+        ray.init(**OmegaConf.to_container(ray_init_kwargs))
+
+    ray.get(main_task.remote(config))
+
+@ray.remote(num_cpus=1)
+def main_task(config):
+    pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
+    OmegaConf.resolve(config)
+    # breakpoint()
+    local_path = copy_to_local(config.model.path)
+    trust_remote_code = config.model.get("trust_remote_code", False)
+    tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code)
+    processor = hf_processor(local_path, trust_remote_code=trust_remote_code, use_fast=True)
+    print(f"{trust_remote_code=}")
+    assert tokenizer is not None, "Please specify a valid tokenizer"
+    assert processor is not None, "Please specify a valid processor"
+
+    ds_conf = config.data.get("gen_data", config.data.get("train_data", config.data.get("val_data", None)))
+    assert ds_conf is not None, "Please specify data.gen_data or data.train_data or data.val_data in the config"
+    dataset = RLHFDataset(ds_conf, tokenizer, config.data, processor)
+    print(f"Loaded RLHFDataset with {len(dataset)} samples.")
+    dataloader = StatefulDataLoader(
+        dataset=dataset,
+        batch_size=config.data.batch_size,
+        num_workers=config.data.get("num_workers", 0),
+        shuffle=config.data.get("validation_shuffle", False),
+        drop_last=False,
+        collate_fn=default_collate_fn,
+    )
+    ray_cls_with_init = RayClassWithInitArgs(cls=ray.remote(ActorRolloutRefWorker), config=config, role="rollout")
+    resource_pool = RayResourcePool(process_on_nodes=[config.trainer.n_gpus_per_node] * config.trainer.nnodes)
+    wg = RayWorkerGroup(
+        resource_pool=resource_pool,
+        ray_cls_with_init=ray_cls_with_init,
+        device_name=config.trainer.device,
+    )
+    wg.init_model()
+    # breakpoint()
+    
+    results = defaultdict(list)
+    remote_output_dir = config.data.get("remote_output_path", None)
+    local_output_dir = Path(config.data.local_output_dir)
+    local_output_dir.mkdir(parents=True, exist_ok=True)
+    split_size = config.data.get("output_split_size", 1000)
+    total_splits = (len(dataset) + split_size - 1) // split_size
+    
+    split_idx = 0
+    total_batches = len(dataloader)
+    
+    for batch_idx, batch_dict in enumerate(dataloader):
+        results["prompt"].extend([msg[0]["content"] for msg in batch_dict["prompt"]]) # get user prompt
+        results["text"].extend([x["ground_truth"] for x in batch_dict["reward_model"]])
+        
+        for value in batch_dict.get("extra_info", []):
+            for k, v in value.items():
+                results[k].append(v)
+        n_egs = len(batch_dict["text"])
+        results["audio_path"].extend(batch_dict.get("audio_path", [None]*n_egs))
+        results["audio_chunk"].extend(batch_dict.get("audio_chunk", [None]*n_egs))
+        data = DataProto.from_single_dict(batch_dict)
+        if "uid" not in data.non_tensor_batch:
+            data.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object)
+        data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
+        print(f"(Batch {batch_idx+1}/{total_batches}) Generating {len(data.batch)} samples")
+        output_padded = wg.generate_sequences(data_padded)
+        output = unpad_dataproto(output_padded, pad_size=pad_size)
+        responses = []
+        for i in range(len(output)):
+            data_item = output[i]
+            prompt_length = data_item.batch["prompts"].shape[-1]
+            valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
+            valid_response_ids = data_item.batch["responses"][:valid_response_length]
+            response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
+            responses.append(response_str)
+
+        results["response"].extend(responses)
+        if len(results["id"]) >= split_size or (batch_idx + 1) == total_batches: # save a split
+            split_ds = Dataset.from_dict(results)
+            split_path = local_output_dir / f"part-{split_idx:03d}-{total_splits:03d}.parquet"
+            print(f"Writting results to {split_path}")
+            split_ds.to_parquet(str(split_path))
+            if remote_output_dir is not None:
+                print(f"Copying {split_path.name} to remote: {remote_output_dir}")
+                copy_to_remote(split_path, remote_output_dir)
+            split_idx += 1
+            results = defaultdict(list)
+
+    print(f"All done, saved to {total_splits} splits to {local_output_dir}")
+
+
+
+if __name__ == "__main__":
+    main()

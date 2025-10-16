@@ -1,0 +1,26 @@
+defaults:
+  - generation
+  - _self_
+
+data:
+  path: null
+  batch_size: 128
+  output_path: null
+  local_output_dir: ~/outputs/phimm_gen
+  remote_output_dir: null
+  output_split_size: 10000
+
+model:
+  path: null
+  trust_remote_code: True
+
+rollout:
+  temperature: 0.0
+  top_k: -1 # 0 for hf rollout, -1 for vllm rollout
+  top_p: 1
+  prompt_length: 5120
+  response_length: 1024
+  dtype: bfloat16 # should align with FSDP
+  gpu_memory_utilization: 0.8
+  max_num_batched_tokens: 8192
+  log_prob_micro_batch_size_per_gpu: 8

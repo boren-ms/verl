@@ -1,0 +1,17 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - gen_asr
+  - _self_
+  - data/train_data/local_debug
+
+rollout:
+  temperature: 0.0
+  top_k: -1 # 0 for hf rollout, -1 for vllm rollout
+  top_p: 1
+  prompt_length: 5120
+  response_length: 1024
+  dtype: bfloat16 # should align with FSDP
+  gpu_memory_utilization: 0.4
