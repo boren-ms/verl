@@ -65,14 +65,17 @@
 # bash submit_job.sh h-n2-hpe4 grpo_ls_eb_bs64_t12_tis5_n2_4k true
 # bash submit_job.sh h-n2-hpe4 grpo_ls_rare05_gt_t12_tis5_n8_2k
 
-# bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k
 # bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_me10_2k
 # bash submit_job.sh l1-n1-hpe2 grpo_ls_bias_bs64_rep_gt_t12_tis5_n16_e2 true
 # bash submit_job.sh h-n1-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k_v1
 # bash submit_job.sh l1-n1-hpe2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k_v1 true
-bash submit_job.sh l1-n1-hpe2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k
 # bash submit_job.sh h-n2-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_2k
 # bash submit_job.sh h-n2-hpe4 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_n2x4
 
-bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_8k
+# bash submit_job.sh l1-n1-hpe2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k
+# bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_8k
+
+# bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k
+
+bash submit_job.sh l-n1-hpe2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_a0_2k
 
