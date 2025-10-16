@@ -5,6 +5,9 @@ Host: dev-n1-uks7-0 Ray: http://10.131.14.11:9209
 Host: dev-n1-wus2-0 Ray: http://10.142.131.130:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k trainer.experiment_name=grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k
 
+Host: dev1-n1-wus2-0 Ray: http://10.142.216.249:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k_simple trainer.experiment_name=grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k_simple
+
 Host: h-n1-uks7-0 Ray: http://10.131.221.125:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k_v1 trainer.experiment_name=grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k_v1
 
