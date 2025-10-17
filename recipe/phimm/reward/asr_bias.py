@@ -63,6 +63,17 @@ class WordError(object):
 
     def get_result_string(self):
         return f"WER={self.wer * 100}, refs={self.n_ref}, subs={self.n_sub}, ins={self.n_ins}, dels={self.n_del}"
+    
+    def __add__(self, other):
+        if not isinstance(other, WordError):
+            return NotImplemented
+        if other.n_ref == 0:
+            return self
+        result = WordError()
+        result.n_ref = self.n_ref + other.n_ref
+        for code in self.errors:
+            result.errors[code] = self.errors[code] + other.errors[code]
+        return result
 
 
 def coordinate_to_offset(row, col, ncols):
@@ -311,6 +322,19 @@ def measure_errors(hyp, ref, keywords=None, **kwargs):
     wer, u_wer, b_wer = calc_errors(refs, hyps, tn=text_norm, unit=unit)
     return wer, u_wer, b_wer
 
+def sum_wers(wers):
+    total_wer = WordError()
+    for wer in wers:
+        total_wer += wer
+    return total_wer
+
+def compute_wers(refs, hyps, **kwargs):
+    """Compute WERs for a batch of references and hypotheses."""
+    wers  = []
+    for ref, hyp in zip(refs, hyps):
+        wer, _, _ = measure_errors(hyp, ref, **kwargs)
+        wers.append(wer)
+    return wers     
 
 def get_score(wer, choice="wer"):
     choice = choice.lower()

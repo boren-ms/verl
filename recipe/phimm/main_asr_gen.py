@@ -27,7 +27,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 import uuid
 from pprint import pprint
 from collections import defaultdict
-from datasets import Dataset
+from datasets import Dataset, concatenate_datasets
 from omegaconf import OmegaConf
 from torchdata.stateful_dataloader import StatefulDataLoader
 
@@ -41,9 +41,8 @@ from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
 from verl.utils.fs import copy_to_local, copy_to_remote
 from verl.workers.fsdp_workers import ActorRolloutRefWorker
 from pathlib import Path
-from tqdm import tqdm
 from recipe.phimm.utils.env import EnvMgr
-from verl.utils.ray_utils import ray_address, ray_host_url
+from recipe.phimm.reward.asr_bias import compute_wers, WordError, sum_wers
 
 def get_env_vars():
     env_vars = EnvMgr().envs()
@@ -83,6 +82,18 @@ def run_generation(config) -> None:
 
     ray.get(main_task.remote(config))
 
+
+def filter_ds(ds, **kwargs):
+    wer_range = kwargs.get("wer_range", None)
+    err_range = kwargs.get("err_range", None)
+    def filter_fn(x):
+        if wer_range is not None and not (wer_range[0] <= x["wer"] <= wer_range[1]):
+            return False
+        if err_range is not None and not (err_range[0] <= x["n_err"] <= err_range[1]):
+            return False
+        return True
+    return ds.filter(filter_fn)
+
 @ray.remote(num_cpus=1)
 def main_task(config):
     pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
@@ -118,31 +129,41 @@ def main_task(config):
     wg.init_model()
     # breakpoint()
     
-    results = defaultdict(list)
     remote_output_dir = config.data.get("remote_output_path", None)
     local_output_dir = Path(config.data.local_output_dir)
     local_output_dir.mkdir(parents=True, exist_ok=True)
     split_size = config.data.get("output_split_size", 1000)
-    total_splits = (len(dataset) + split_size - 1) // split_size
-    
+    total_egs = len(dataset)
+    total_splits = (total_egs + split_size - 1) // split_size
+
     split_idx = 0
     total_batches = len(dataloader)
+    wer_kwargs = config.data.get("wer_kwargs", {})
+    
+    ds_list = []
+    total_wer = WordError()
+    left_egs = 0
+    
+    err_range = config.data.get("err_range", None)
+    wer_range = config.data.get("wer_range", None)
     
     for batch_idx, batch_dict in enumerate(dataloader):
+        results = defaultdict(list)
         results["prompt"].extend([msg[0]["content"] for msg in batch_dict["prompt"]]) # get user prompt
         results["text"].extend([x["ground_truth"] for x in batch_dict["reward_model"]])
         
         for value in batch_dict.get("extra_info", []):
             for k, v in value.items():
                 results[k].append(v)
-        n_egs = len(batch_dict["text"])
+
+        n_egs = len(results["text"])
         results["audio_path"].extend(batch_dict.get("audio_path", [None]*n_egs))
         results["audio_chunk"].extend(batch_dict.get("audio_chunk", [None]*n_egs))
         data = DataProto.from_single_dict(batch_dict)
         if "uid" not in data.non_tensor_batch:
             data.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object)
         data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
-        print(f"(Batch {batch_idx+1}/{total_batches}) Generating {len(data.batch)} samples")
+        print(f"\n(Batch {batch_idx+1}/{total_batches}) Generating {n_egs} samples")
         output_padded = wg.generate_sequences(data_padded)
         output = unpad_dataproto(output_padded, pad_size=pad_size)
         responses = []
@@ -155,19 +176,44 @@ def main_task(config):
             responses.append(response_str)
 
         results["response"].extend(responses)
-        if len(results["id"]) >= split_size or (batch_idx + 1) == total_batches: # save a split
-            split_ds = Dataset.from_dict(results)
+        wers = compute_wers(results["text"], results["response"], **wer_kwargs)
+        results["wer"] = [x.wer for x in wers]
+        results["n_err"] = [x.n_err for x in wers]
+        batch_wer = sum_wers(wers)
+        print(f"Batch WER: {batch_wer.wer:.2%} [{batch_wer.n_err}/{batch_wer.n_ref}] on {n_egs} samples")
+        
+        total_wer += batch_wer
+        
+        batch_ds = Dataset.from_dict(results)
+        batch_ds = filter_ds(batch_ds, wer_range=wer_range, err_range=err_range)
+        print(f"Batch Filtering: {n_egs} => {len(batch_ds)} samples.")
+        
+        if len(batch_ds) > 0:
+            ds_list.append(batch_ds)
+            left_egs += len(batch_ds)
+
+        if sum(len(ds) for ds in ds_list) >= split_size or (batch_idx + 1) == total_batches: # save a split
+            if len(ds_list) == 0:
+                print(f"No samples to save for split {split_idx}, skip.")
+                split_idx += 1
+                continue
             split_path = local_output_dir / f"part-{split_idx:03d}-{total_splits:03d}.parquet"
             print(f"Writting results to {split_path}")
+            split_ds = concatenate_datasets(ds_list)
             split_ds.to_parquet(str(split_path))
             if remote_output_dir is not None:
                 print(f"Copying {split_path.name} to remote: {remote_output_dir}")
                 copy_to_remote(split_path, remote_output_dir)
             split_idx += 1
-            results = defaultdict(list)
+            ds_list = []
 
-    print(f"All done, saved to {total_splits} splits to {local_output_dir}")
-
+    print(f"Overall WER: {total_wer.wer:.2%} [{total_wer.n_err}/{total_wer.n_ref}] on {total_egs} samples")
+    print(f"Filtering with: {wer_range=}, {err_range=}")
+    print(f"Keep {left_egs}/{total_egs} [{left_egs/total_egs:.2%}] samples.")
+    print(f"Saved {split_idx}/{total_splits} splits to {local_output_dir}")
+    if remote_output_dir is not None:
+        print(f"Saved {split_idx}/{total_splits} splits to {remote_output_dir}")
+    print("All Done")
 
 
 if __name__ == "__main__":

@@ -9,6 +9,11 @@ data:
   local_output_dir: ~/outputs/phimm_gen
   remote_output_dir: null
   output_split_size: 10000
+  wer_range: null
+  err_range: null
+  wer_kwargs:
+    text_norm: english # english (default), identity, lower, basic, simple, simple_with_tag
+    unit: word # word (default), char
 
 model:
   path: null
