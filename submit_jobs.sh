@@ -79,4 +79,6 @@
 
 # bash submit_job.sh l-n1-hpe2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_a0_2k
 
-bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k_simple
+# bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k_simple
+bash submit_job.sh h-n2-hpe4 grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_n2x4 true
+bash submit_job.sh h-n2-hpe4 gen_prod_fy22_phi4_7b_wer_01_20_err_1_20
