@@ -2,6 +2,9 @@ defaults:
   - generation
   - _self_
 
+trainer:
+  experiment_name: phimm_asr_gen # required for logging
+  
 data:
   path: null
   batch_size: 128
