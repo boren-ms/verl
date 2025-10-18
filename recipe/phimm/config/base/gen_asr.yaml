@@ -11,7 +11,7 @@ data:
   output_path: null
   local_output_dir: ~/outputs/phimm_gen
   remote_output_dir: null
-  output_split_size: 10000
+  output_split_size: 100000
   wer_range: null
   err_range: null
   wer_kwargs:
@@ -26,9 +26,10 @@ rollout:
   temperature: 0.0
   top_k: -1 # 0 for hf rollout, -1 for vllm rollout
   top_p: 1
-  prompt_length: 5120
+  prompt_length: 7168
   response_length: 1024
+  max_num_batched_tokens: 16384 # 1024*8
   dtype: bfloat16 # should align with FSDP
   gpu_memory_utilization: 0.8
-  max_num_batched_tokens: 8192
   log_prob_micro_batch_size_per_gpu: 8
+  load_format: dummy # need to force reload from fsdp to vllm

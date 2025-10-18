@@ -905,7 +905,8 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         prompts.meta_info.update(meta_info)
 
         timing_generate = {}
-        if self._is_actor:  # For rollout only, we do not switch context.
+        # switch to rollout mode if needed
+        if self._is_actor or (self._is_rollout and not self.base_sync_done):  
             loop = asyncio.get_event_loop()
             loop.run_until_complete(self.rollout_mode())
             log_gpu_memory_usage("After switch to rollout mode", logger=logger)

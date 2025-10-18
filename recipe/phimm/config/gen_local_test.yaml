@@ -5,20 +5,27 @@ hydra:
 defaults:
   - gen_asr
   - _self_
-  - data/train_data/local_debug
+  # - data/train_data/local_debug
+  - data/train_data/local_debug_chunk
+
+
+model:
+  path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
 data:
-  batch_size: 10
-  local_output_dir: ~/outputs/phimm_gen_new
+  batch_size: 128
+  local_output_dir: ~/outputs/phimm_gen_chunk
   remote_output_dir: null
-  output_split_size: 10
+  output_split_size: 400
   wer_range: [0.001, 0.2]
-  err_range: [1, 20]
+  # err_range: [1, 20]
+  
 rollout:
   temperature: 0.0
   top_k: -1 # 0 for hf rollout, -1 for vllm rollout
   top_p: 1
   prompt_length: 5120
   response_length: 1024
+  load_format: dummy # need to force reload from fsdp to vllm
   dtype: bfloat16 # should align with FSDP
   gpu_memory_utilization: 0.4
