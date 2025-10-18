@@ -198,7 +198,7 @@ def main_task(config):
         audio_key = "audio_chunk" if "audio_chunk" in batch_dict else "audio_path"
         for i in range(num_examine):
             print(f"--- Example {i + 1} ---")
-            print("WER:", sort_ds[i]["wer"])
+            print(f"WER: {sort_ds[i]['wer']:.2%}")
             print("Ref:", sort_ds[i]["text"])
             print("Hyp:", sort_ds[i]["response"])
             print("Audio:", sort_ds[i][audio_key])
