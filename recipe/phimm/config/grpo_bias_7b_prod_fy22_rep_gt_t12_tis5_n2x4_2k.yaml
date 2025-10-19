@@ -19,10 +19,11 @@ custom_reward_function:
 
 actor_rollout_ref:
   rollout:
-    n: 16
+    n: 2
     gt_rollout: true
     temperature: 1.2
     calculate_log_probs: True # required by TIS
+
   actor:
     tis_imp_ratio_cap: 5
 
@@ -31,6 +32,6 @@ actor_rollout_ref:
 
 data:
   max_prompt_length: 7168
-  train_batch_size: 64
+  train_batch_size: 256
 trainer:
   total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch

@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - dapo_asr
-  - data/train_data/rare_fy32q2
+  - data/train_data/rare_fy23q2
   - data/val_data/entity
   - _self_
 

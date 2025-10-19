@@ -1,5 +1,5 @@
 dataset_name: cached
-cache_path: ${oc.env:DATA_PATH}/boren/data/cache_datasets/hcv2_fy22_info_tag/
+cache_path: ${oc.env:DATA_PATH}/boren/data/cache_datasets/stage1_en_asr_hc_fy23q2_tag_entity/
 num_proc: auto
 cache_name: auto_train
 pre_process:
