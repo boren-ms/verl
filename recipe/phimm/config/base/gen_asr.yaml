@@ -8,6 +8,7 @@ trainer:
 data:
   path: null
   batch_size: 128
+  num_workers: 8
   output_path: null
   local_output_dir: ~/outputs/phimm_gen
   remote_output_dir: null
