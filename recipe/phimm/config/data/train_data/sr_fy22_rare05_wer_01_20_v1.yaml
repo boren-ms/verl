@@ -1,0 +1,24 @@
+dataset_name: parquet
+parquet_paths: ${oc.env:DATA_PATH}/boren/data/cache_datasets/gen_prod_fy22_phi4_7b_wer_20/part-*.parquet
+num_proc: auto
+cache_name: auto_train
+pre_process:
+  filter_by_wer:
+    wer_range: [0.001, 0.2] # filter WER between 0.1% and 20%
+  path_map:
+    field: audio_chunk
+    src_part: "az://orngwus2cresco/data"
+    dst_part: "${oc.env:DATA_PATH}"
+add_rare_keywords:
+  common_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_num: 10000
+  rare_ratio: 0.5
+add_prompt:
+  task: rare_asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/sr_fy22_rare05_wer_01_20
+  - data/train_data/sr_fy22_rare05_wer_01_20_v1
   - data/val_data/entity_rare
   - _self_
 
