@@ -140,7 +140,7 @@ def main_task(config):
     wg = wg_dict.spawn(prefix_set=["rollout"])["rollout"]
     wg.init_model()
 
-    remote_output_dir = config.data.get("remote_output_path", None)
+    remote_output_dir = config.data.get("remote_output_dir", None)
     local_output_dir = Path(config.data.local_output_dir)
     local_output_dir.mkdir(parents=True, exist_ok=True)
     split_size = config.data.get("output_split_size", 1000)
