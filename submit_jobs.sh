@@ -86,4 +86,7 @@
 # bash submit_job.sh h-n2-wus2 gen_sr_fy23q2_phi4_7b_wer_01_20
 # bash submit_job.sh h-n2-uks7 grpo_bias_7b_prod_fy22_rep_gt_t12_tis5_n2x4_2k 
 # bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_8k 
-bash submit_job.sh l-n1-hpe2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_wer_01_20_2k
+# bash submit_job.sh h-n1-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_wer_01_20_2k
+# bash submit_job.sh dev-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_wer_20_2k
+bash submit_job.sh h-n2-hpe4 gen_prod_fy22_phi4_7b_wer_01_20 true
+bash submit_job.sh h-n2-hpe4 gen_sr_fy23q2_phi4_7b_wer_20
