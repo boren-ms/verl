@@ -20,6 +20,7 @@ import os
 import hydra
 import numpy as np
 import ray
+from tqdm import tqdm
 
 os.environ["NCCL_DEBUG"] = "WARN"
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
@@ -156,8 +157,7 @@ def main_task(config):
 
     err_range = config.data.get("err_range", None)
     wer_range = config.data.get("wer_range", None)
-
-    for batch_idx, batch_dict in enumerate(dataloader):
+    for batch_idx, batch_dict in tqdm(enumerate(dataloader)):
         results = defaultdict(list)
         results["prompt"].extend([msg[0]["content"] for msg in batch_dict["prompt"]])  # get user prompt
         results["text"].extend([x["ground_truth"] for x in batch_dict["reward_model"]])
