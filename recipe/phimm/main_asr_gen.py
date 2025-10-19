@@ -216,8 +216,8 @@ def main_task(config):
                 split_idx += 1
                 continue
             split_path = local_output_dir / f"part-{split_idx:03d}-{total_splits:03d}.parquet"
-            print(f"Writting results to {split_path}")
             split_ds = concatenate_datasets(ds_list)
+            print(f"Writting {len(split_ds)} samples to {split_path}")
             split_ds.to_parquet(str(split_path))
             if remote_output_dir is not None:
                 print(f"Copying {split_path.name} to remote: {remote_output_dir}")
