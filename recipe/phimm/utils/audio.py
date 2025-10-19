@@ -28,12 +28,12 @@ def limit_audio(x, fs, max_dur=30):
 
 def load_raw_audio(x):
     """Load audio data from the input dictionary."""
-    if "audio" in x and "sr" in x:
-        return x["audio"], x["sr"]
-    elif "audio_path" in x:
-        return sf_read(x["audio_path"])
-    elif "audio_chunk" in x:
-        return load_chunk_example(x["audio_chunk"])
+    if (audio := x.get("audio", None)) and (sr := x.get("sr", None)):
+        return audio, sr
+    if audio_path := x.get("audio_path", None):
+        return sf_read(audio_path)
+    if audio_chunk := x.get("audio_chunk", None):
+        return load_chunk_example(audio_chunk)
     raise ValueError("No audio data found in the input dictionary.")
 
 
@@ -43,13 +43,16 @@ def load_audio(x, max_dur=30):
 
 
 def load_raw_audios(x):  # x is batched
-    if "audio" in x and "sr" in x:
-        return list(zip(x["audio"], x["sr"]))
-    elif "audio_path" in x:
-        return [sf_read(p) for p in x["audio_path"]]
-    elif "audio_chunk" in x:
-        return [load_chunk_example(p) for p in x["audio_chunk"]]
-    raise ValueError("No audio data found in the input dictionary.")
+    audio_paths = x.get("audio_path", [])
+    audio_chunks = x.get("audio_chunk", [])
+    from itertools import zip_longest
+    for audio_path, audio_chunk in zip_longest(audio_paths, audio_chunks, fillvalue=None):
+        if audio_path:
+            yield sf_read(audio_path)
+        elif audio_chunk:
+            yield load_chunk_example(audio_chunk)
+        else:
+            raise ValueError("No audio data found in the input dictionary.")
 
 
 def load_audios(x, max_dur=30):  # x is batched

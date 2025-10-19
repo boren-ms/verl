@@ -108,6 +108,17 @@ def jsonl_dataset(jsonl_paths, **kwargs):
     ds = stream_shuffle(ds, **kwargs)
     return ds
 
+def parquet_dataset(parquet_paths, **kwargs):
+    """Load a Parquet dataset from the specified paths."""
+
+    data_files = [parquet_paths] if isinstance(parquet_paths, str) else parquet_paths
+    data_files = [get_path_with_options(str(file_path)) for file_path in data_files]
+
+    options = data_files[0][1]
+    fs_files = [file[0] for file in data_files]
+    ds = load_dataset("parquet", data_files=fs_files, split="train", storage_options=options)
+    return ds
+
 
 def update_dir(data_path, src_dir=None, dst_dir=None):
     if not src_dir or not dst_dir:
@@ -494,23 +505,30 @@ def filter_by_keywords(ds, **kwargs):
     return ds
 
 
-def wer_filter_ds(ds, **kwargs):
+def filter_by_wer(ds, **kwargs):
     """Filter the dataset."""
     wer_range = kwargs.get("wer_range", None)
     bwer_range = kwargs.get("bwer_range", None)
     uwer_range = kwargs.get("uwer_range", None)
 
-    def is_good(wer, wer_range=None):
-        if wer_range is None or wer is None:
+    def get_number(x, key, default=None):
+        for name in [key, key.lower(), key.upper()]:
+            if name not in x:
+                continue
+            return x[name]
+        return default  
+    
+    def is_good(val, val_range=None):
+        if val_range is None or val is None:
             return True
-        wer_range = to_list(wer_range)
-        return wer_range[0] <= wer <= wer_range[-1]
+        val_range = to_list(val_range)
+        return val_range[0] <= val <= val_range[-1]
 
     def wer_filter_fn(x):
         good = (
-            is_good(x.get("WER", None), wer_range)
-            and is_good(x.get("BWER", None), bwer_range)
-            and is_good(x.get("UWER", None), uwer_range)
+            is_good(get_number(x, "WER"), wer_range)
+            and is_good(get_number(x, "BWER"), bwer_range)
+            and is_good(get_number(x, "UWER"), uwer_range)
         )
         return good
 
@@ -658,13 +676,12 @@ def process_ds(ds, **kwargs):
     map_kwargs = pop_map_kwargs(kwargs)
     if input_egs_limit := kwargs.get("input_egs_limit", None):
         ds = limit_ds(ds, egs_limit=input_egs_limit)
-    # ds = stream_shuffle(ds, **kwargs)
     if filter_by_keywords_kwargs := kwargs.get("filter_by_keywords", {}):
         ds = filter_by_keywords(ds, **merge_kwargs(map_kwargs, filter_by_keywords_kwargs))
     if filter_long_text_kwargs := kwargs.get("filter_long_text", {}):
         ds = filter_long_text(ds, **merge_kwargs(map_kwargs, filter_long_text_kwargs))
-    if wer_filter_kwargs := kwargs.get("wer_filter", {}):
-        ds = wer_filter_ds(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
+    if wer_filter_kwargs := kwargs.get("filter_by_wer", {}):
+        ds = filter_by_wer(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
     if path_map_kwargs := kwargs.get("path_map", {}):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
@@ -869,6 +886,8 @@ def create_audio_dataset(**kwargs):
             ds = tsv_dataset(**kwargs)
         elif ds_name == "jsonl":
             ds = jsonl_dataset(**kwargs)
+        elif ds_name == "parquet":
+            ds = parquet_dataset(**kwargs)
         elif ds_name == "chunk":
             ds = chunk_dataset(**kwargs)
         elif ds_name == "cached":
@@ -902,10 +921,11 @@ if __name__ == "__main__":
     # dataset = create_dataset(name="openasr", head=2)
     # print(dataset)
     # print(dataset[0]["text"])
-    tsv_path = "recipe/phimm/config/data/train_data/local_debug.yaml"
+    # yaml_file = "recipe/phimm/config/data/train_data/local_debug.yaml"
+    yaml_file = "recipe/phimm/config/data/train_data/local_debug_parquet.yaml"
     import yaml
 
-    kwargs = yaml.safe_load(Path(tsv_path).read_text())
+    kwargs = yaml.safe_load(Path(yaml_file).read_text())
     ds = create_datasets(kwargs)
     print(ds)
     print(next(iter(ds)))

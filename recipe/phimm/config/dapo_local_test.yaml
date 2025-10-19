@@ -5,7 +5,8 @@ hydra:
 defaults:
   - grpo_asr
   - _self_
-  - data/train_data/local
+  # - data/train_data/local
+  - data/train_data/local_debug_parquet
   - data/val_data/local
 
 val_reward:
