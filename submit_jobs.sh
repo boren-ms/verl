@@ -91,5 +91,6 @@
 # bash submit_job.sh h-n2-hpe4 gen_prod_fy22_phi4_7b_wer_01_20 true
 # bash submit_job.sh h-n2-hpe4 gen_sr_fy23q2_phi4_7b_wer_20
 # bash submit_job.sh h1-n2-hpe4 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_a0_2k
-bash submit_job.sh h1-n2-hpe4 dapo_prod_fy22_bs64_rep_me10_2k true
+# bash submit_job.sh h1-n2-hpe4 dapo_prod_fy22_bs64_rep_me10_2k true
 bash submit_job.sh h1-n2-hpe4 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_wer_20_2k
+bash submit_job.sh h-n2-hpe4 dapo_prod_fy22_7b_rare05_gt_t12_tis5_n8_wer_20_2k
