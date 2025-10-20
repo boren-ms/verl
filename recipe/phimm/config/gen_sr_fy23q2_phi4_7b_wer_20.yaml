@@ -14,7 +14,7 @@ data:
   batch_size: 1024
   local_output_dir: ~/outputs/gen_prod_fy23q2_phi4_7b_wer_20
   remote_output_dir: ${oc.env:DATA_PATH}/boren/data/cache_datasets/gen_prod_fy23q2_phi4_7b_wer_20
-  output_split_size: 100000
+  output_split_size: 1000000
   wer_range: [0.0, 0.2]
   # err_range: [1, 20]
 

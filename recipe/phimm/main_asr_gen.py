@@ -141,7 +141,7 @@ def main_task(config):
     wg.init_model()
 
     remote_output_dir = config.data.get("remote_output_dir", None)
-    local_output_dir = Path(config.data.local_output_dir)
+    local_output_dir = Path(config.data.local_output_dir).expanduser()
     local_output_dir.mkdir(parents=True, exist_ok=True)
     split_size = config.data.get("output_split_size", 1000)
     total_egs = len(dataset)
