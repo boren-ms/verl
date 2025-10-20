@@ -108,7 +108,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             hdfs_path: Unused (for API compatibility).
             del_local_after_load: Remove local files after loading.
         """
-        if local_path is None:
+        if local_path is None and hdfs_path is None:
             return
 
         # check if the checkpoint_load_contents is valid
