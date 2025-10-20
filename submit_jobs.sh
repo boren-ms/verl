@@ -73,7 +73,6 @@
 
 # bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_8k
 
-# bash submit_job.sh dev-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k
 # bash submit_job.sh h-n2-wus2 dapo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4
 
 # bash submit_job.sh dev-n1-hpe2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k
@@ -94,4 +93,7 @@
 # bash submit_job.sh h1-n2-hpe4 dapo_prod_fy22_bs64_rep_me10_2k true
 # bash submit_job.sh h1-n2-hpe4 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_wer_20_2k
 # bash submit_job.sh h-n2-hpe4 dapo_prod_fy22_7b_rare05_gt_t12_tis5_n8_wer_20_2k
-bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_8k
+# bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_8k
+
+bash submit_job.sh dev-n1-hpe2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k
+bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k
