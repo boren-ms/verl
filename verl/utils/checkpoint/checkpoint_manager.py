@@ -190,10 +190,10 @@ def find_latest_ckpt_path(path, directory_format="global_step_{}"):
         iteration = int(f.read().decode())
     ckpt_path = os.path.join(path, directory_format.format(iteration))
     if not bf.exists(ckpt_path):
-        print("Checkpoint does not exist: %s", ckpt_path)
+        print("Checkpoint does not exist:", ckpt_path)
         return None
 
-    print("Found checkpoint: %s", ckpt_path)
+    print("Found checkpoint:", ckpt_path)
     return ckpt_path
 
 
