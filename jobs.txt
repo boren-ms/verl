@@ -2,6 +2,9 @@
 Host: dev-n1-hpe2-0 Ray: http://10.130.57.117:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k trainer.experiment_name=grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2x4_2k
 
+Host: dev-n1-hpe5-0 Ray: http://10.139.169.122:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_entity_7b_gt_t12_tis5_n32_1k trainer.experiment_name=grpo_entity_7b_gt_t12_tis5_n32_1k
+
 Host: dev-n1-uks7-0 Ray: http://10.131.14.11:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_n32 trainer.experiment_name=grpo_ls_bias_bs64_rep_2k_gt_t12_tis5_n32
 
