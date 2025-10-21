@@ -1,0 +1,98 @@
+Gaming 83.78% [1369/1634]
+Energy 84.97% [622/732]
+ScienceTech 89.26% [1114/1248]
+Insurance 92.34% [494/535]
+Retail 93.25% [829/889]
+Media 89.94% [1028/1143]
+DoctorPatientConsultation 93.43% [740/792]
+Sustain 87.24% [711/815]
+CapitalMarket 90.88% [1256/1382]
+Banking 89.70% [784/874]
+K12HigherEdu 91.71% [985/1074]
+PatientHistoryDictation 92.34% [759/822]
+Manufactory 89.00% [963/1082]
+LifeHealth 86.32% [1281/1484]
+Domain: Gaming
+  # Words: 7062386
+  # Entities: 1634
+  # Covered: 1369
+  Coverage: 83.78%
+  Coverage Density: 35.80%
+Domain: Energy
+  # Words: 7062386
+  # Entities: 732
+  # Covered: 622
+  Coverage: 84.97%
+  Coverage Density: 25.89%
+Domain: ScienceTech
+  # Words: 7062386
+  # Entities: 1248
+  # Covered: 1114
+  Coverage: 89.26%
+  Coverage Density: 20.66%
+Domain: Insurance
+  # Words: 7062386
+  # Entities: 535
+  # Covered: 494
+  Coverage: 92.34%
+  Coverage Density: 22.00%
+Domain: Retail
+  # Words: 7062386
+  # Entities: 889
+  # Covered: 829
+  Coverage: 93.25%
+  Coverage Density: 35.80%
+Domain: Media
+  # Words: 7062386
+  # Entities: 1143
+  # Covered: 1028
+  Coverage: 89.94%
+  Coverage Density: 33.81%
+Domain: DoctorPatientConsultation
+  # Words: 7062386
+  # Entities: 792
+  # Covered: 740
+  Coverage: 93.43%
+  Coverage Density: 21.84%
+Domain: Sustain
+  # Words: 7062386
+  # Entities: 815
+  # Covered: 711
+  Coverage: 87.24%
+  Coverage Density: 27.22%
+Domain: CapitalMarket
+  # Words: 7062386
+  # Entities: 1382
+  # Covered: 1256
+  Coverage: 90.88%
+  Coverage Density: 33.85%
+Domain: Banking
+  # Words: 7062386
+  # Entities: 874
+  # Covered: 784
+  Coverage: 89.70%
+  Coverage Density: 27.37%
+Domain: K12HigherEdu
+  # Words: 7062386
+  # Entities: 1074
+  # Covered: 985
+  Coverage: 91.71%
+  Coverage Density: 33.54%
+Domain: PatientHistoryDictation
+  # Words: 7062386
+  # Entities: 822
+  # Covered: 759
+  Coverage: 92.34%
+  Coverage Density: 24.99%
+Domain: Manufactory
+  # Words: 7062386
+  # Entities: 1082
+  # Covered: 963
+  Coverage: 89.00%
+  Coverage Density: 29.92%
+Domain: LifeHealth
+  # Words: 7062386
+  # Entities: 1484
+  # Covered: 1281
+  Coverage: 86.32%
+  Coverage Density: 27.58%
