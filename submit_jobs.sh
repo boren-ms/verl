@@ -100,4 +100,5 @@
 
 # bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k
 # bash submit_job.sh l-n1-uks7 grpo_entity_7b_gt_t12_tis5_n32_1k
-bash submit_job.sh l-n1-hpe2 grpo_entity_7b_gt_t12_tis5_n16_s100
+# bash submit_job.sh l-n1-hpe2 grpo_entity_7b_gt_t12_tis5_n16_s100
+bash submit_job.sh l-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k
