@@ -1,0 +1,12 @@
+dataset_name: audio_dir
+data_dir: ${oc.env:DATA_PATH}/boren/data/inhouse/GeneratedAudio/Entity/AudioEntity
+cache_name: auto_train
+add_prompt:
+  task: rare_asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
