@@ -9,6 +9,8 @@ import blobfile as bf
 import pandas as pd
 import string
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).parents[3]))
 from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
 from recipe.phimm.data.error_simu import ErrorSimulator
@@ -257,6 +259,20 @@ def entity_dataset(
 
     return ds.map(load_sample, **pop_map_kwargs(kwargs))
 
+def audio_dir_dataset(data_dir, **kwargs):
+    """Load audio files from a directory."""
+    examples = []
+    for audio_file in bf.glob(f"{data_dir}/*.wav"):
+        text_file = audio_file.replace(".wav", ".txt")
+        if not bf.exists(text_file):
+            continue
+        with bf.BlobFile(text_file, "r") as f:
+            trans = f.read().strip()
+        examples.append({
+            "audio_path": audio_file,
+            "text": trans,
+        })
+    return Dataset.from_list(examples)
 
 def load_tsv(tsv_file, **kwargs):
     """Load a TSV file into a dataset."""
@@ -890,6 +906,8 @@ def create_audio_dataset(**kwargs):
             ds = parquet_dataset(**kwargs)
         elif ds_name == "chunk":
             ds = chunk_dataset(**kwargs)
+        elif ds_name == "audio_dir":
+            ds = audio_dir_dataset(**kwargs)
         elif ds_name == "cached":
             ds = load_cached_ds(kwargs.get("cache_path", None))
             assert ds is not None, "Cached dataset not found."
@@ -922,7 +940,8 @@ if __name__ == "__main__":
     # print(dataset)
     # print(dataset[0]["text"])
     # yaml_file = "recipe/phimm/config/data/train_data/local_debug.yaml"
-    yaml_file = "recipe/phimm/config/data/train_data/local_debug_parquet.yaml"
+    # yaml_file = "recipe/phimm/config/data/train_data/local_debug_parquet.yaml"
+    yaml_file = "recipe/phimm/config/data/train_data/local_debug_audio_dir.yaml"
     import yaml
 
     kwargs = yaml.safe_load(Path(yaml_file).read_text())
