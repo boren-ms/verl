@@ -362,10 +362,10 @@ class RayPPOTrainer:
 
         if train_dataset is None:
             train_data = self.config.data.get("train_data", None) or self.config.data.get("train_files", None)
-            train_dataset = create_rl_dataset(train_data, self.config.data, self.tokenizer, self.processor)
+            train_dataset = create_rl_dataset(train_data, self.config.data, self.tokenizer, self.processor, True)
         if val_dataset is None:
             val_data = self.config.data.get("val_data", None) or self.config.data.get("val_files", None)
-            val_dataset = create_rl_dataset(val_data, self.config.data, self.tokenizer, self.processor)
+            val_dataset = create_rl_dataset(val_data, self.config.data, self.tokenizer, self.processor, False)
         self.train_dataset, self.val_dataset = train_dataset, val_dataset
         print("Train dataset:", len(self.train_dataset))
         print("Val dataset:", len(self.val_dataset))

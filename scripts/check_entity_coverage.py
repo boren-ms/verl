@@ -57,7 +57,7 @@ domains = load_domain_entities(entity_dir)
 print(f"{len(domains)} domains loaded.")
 print({name: len(entities) for name, entities in domains.items()})
 
-ds = load_dataset("parquet", data_files=str(parquet_dir / "part-000-035.parquet"), split="train")
+ds = load_dataset("parquet", data_files=str(parquet_dir / "part-*.parquet"), split="train")
 
 check_coverage(ds, domains)
 
