@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/audio_entity
+  - data/train_data/tts_entity
   - data/val_data/entity_rare
   - _self_
 
@@ -17,7 +17,7 @@ custom_reward_function:
     choice: "err" # "err", "acc", "wer"
     text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
     unit: word # word (default), char
-    # max_err: 10 # max error allowed to get reward, otherwise -100
+    max_wer: 0.1 # max wer 10% allowed to get reward, otherwise -100
 
 actor_rollout_ref:
   rollout:
@@ -34,5 +34,6 @@ actor_rollout_ref:
 data:
   train_batch_size: 64
 trainer:
+  total_epochs: 1000 # 24 step per epoch 
   val_before_train: true
-  total_training_steps: 1000 # ~= 140k samples with bs64, 0.5 epoch
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
