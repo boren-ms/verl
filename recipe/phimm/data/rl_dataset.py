@@ -194,7 +194,7 @@ def main(config_path, tokenizer_path, data_files=None):
     data_files = config.get("train_files", None)
     data_conf = config.get("train_data", None)
     # data_conf = config.get("val_data", None)
-    dataset = RLHFDataset(data_conf, tokenizer, config, processor)
+    dataset = RLHFDataset(data_conf, tokenizer, config, processor, True)
     from torchdata.stateful_dataloader import StatefulDataLoader
     from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
 
@@ -212,6 +212,7 @@ if __name__ == "__main__":
     tokenizer_path = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct"
     tokenizer_path = "/home/boren/data/ckp/hf_models/phi4_mm_bias_merged"
     # data_yaml = "/home/boren/verl/recipe/phimm/config/data_local.yaml"
-    data_yaml = "/home/boren/verl/recipe/phimm/config/data_local_parquet.yaml"
+    # data_yaml = "/home/boren/verl/recipe/phimm/config/data_local_parquet.yaml"
+    data_yaml = "/home/boren/verl/recipe/phimm/config/data_local_2.yaml"
 
     main(data_yaml, tokenizer_path)

@@ -23,7 +23,33 @@ data:
         add_field:
           fields:
             data_source: asr
-
+    - dataset_name: tsv
+      # nug_egs: 5000
+      tsv_paths: /home/boren/data/LibriSpeech/debug.tsv
+      pre_process:
+        output_egs_limit: 50
+      cache_name: auto_train
+      num_proc: 1
+      add_rare_keywords:
+        common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
+        common_num: 1000
+      add_prompt:
+        task: asr
+        # forced: True
+      post_process:
+        input_egs_limit: 100
+        filter_by_keywords:
+          min_num: 1
+        output_egs_limit: 40
+        verl_format:
+          prompt_key: prompt
+        add_field:
+          fields:
+            data_source: asr
+  interleave_ds:
+    probabilities: [0.8, 0.2]
+    seed: 123
+    stopping_strategy: first_exhausted # "first_exhausted"、"all_exhausted"
   train_files: null
   val_files: null
   trust_remote_code: true
