@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - dapo_asr
-  - data/train_data/sr_fy22_rare05
+  - data/train_data/sr_fy22_rare02
   - data/val_data/entity_rare
   - _self_
 
@@ -17,7 +17,7 @@ custom_reward_function:
     choice: "err" # "err", "acc", "wer"
     text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
     unit: word # word (default), char
-    max_wer: 0.02 # max error allowed to get reward, otherwise -100
+    max_wer: 0.05 # max error allowed to get reward, otherwise -100
 
 actor_rollout_ref:
   rollout:

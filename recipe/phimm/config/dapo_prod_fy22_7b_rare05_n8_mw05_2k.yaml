@@ -17,11 +17,11 @@ custom_reward_function:
     choice: "err" # "err", "acc", "wer"
     text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
     unit: word # word (default), char
-    max_wer: 0.02 # max error allowed to get reward, otherwise -100
+    max_wer: 0.05 # max error allowed to get reward, otherwise -100
 
 actor_rollout_ref:
   rollout:
-    n: 16
+    n: 8
     gt_rollout: true
     temperature: 1.2
     calculate_log_probs: True # required by TIS
