@@ -24,5 +24,5 @@ Host: h1-n2-wus2-0 Ray: http://10.142.66.177:9209
 Host: l-n1-hpe2-0 Ray: http://10.130.45.100:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_tts_entity_sr_fy22_7b_gt_t12_tis5_n16_2k_mw10 trainer.experiment_name=grpo_tts_entity_sr_fy22_7b_gt_t12_tis5_n16_2k_mw10
 
-Host: l-n1-uks7-0 Ray: http://10.131.183.183:9209
+Host: l-n1-uks7-0 Ray: http://10.131.43.25:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_prod_fy22_7b_rare05_n16_mw05_2k_pe3 trainer.experiment_name=dapo_prod_fy22_7b_rare05_n16_mw05_2k_pe3
