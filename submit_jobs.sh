@@ -97,7 +97,7 @@
 
 # bash submit_job.sh dev1-n1-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k
 # bash submit_job.sh l-n1-uks7 grpo_entity_7b_gt_t12_tis5_n32_1k
-# bash submit_job.sh l-n1-hpe2 grpo_tts_entity_sr_fy22_7b_gt_t12_tis5_n16_2k_mw10
+
 # bash submit_job.sh h1-n2-wus2 grpo_tts_entity_7b_gt_t12_tis5_n16_2k_mw10
 # bash submit_job.sh h1-n2-wus2 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k_mw05
 # bash submit_job.sh l-n1-uks7 grpo_tts_entity_7b_t12_tis5_n16_s100
@@ -106,13 +106,14 @@
 # bash submit_job.sh dev-n1-wus2 dapo_prod_fy22_7b_rare05_n8_mw05_2k
 # bash submit_job.sh h-n2-wus2 gen_sr_fy23q2_phi4_7b_wer_01_20 true
 # bash submit_job.sh h-n2-wus2 dapo_prod_fy22_7b_rare05_n16_mw05_2k
-# bash submit_job.sh h1-n2-hpe4 dapo_prod_fy22_7b_rare05_n16_mw02_2k
+bash submit_job.sh h1-n2-hpe4 dapo_prod_fy22_7b_rare05_n16_mw02_2k
 # bash submit_job.sh dev-n1-uks7 dapo_prod_fy22_7b_rare02_n16_mw05_2k
 # bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_8k true
 # bash submit_job.sh h-n2-uks7 grpo_tts_entity_sr_fy22_7b_gt_t12_tis5_n16_2k_mw10_tts80
 
 # bash submit_job.sh h-n2-uks7 grpo_bias_7b_prod_fy22_rep_gt_t12_tis5_n2x4_2k true
 # bash submit_job.sh h-n2-uks7 dapo_tts_entity_7b_gt_t12_tis5_n16_2k_mw10
-bash submit_job.sh h1-n2-hpe4 grpo_tts_entity_sr_fy22_7b_gt_t12_tis5_n32_4k_mw10 true
+# bash submit_job.sh h1-n2-hpe4 grpo_tts_entity_sr_fy22_7b_gt_t12_tis5_n32_4k_mw10 true
 bash submit_job.sh h1-n2-hpe4 dapo_tts_entity_7b_gt_t12_tis5_n16_2k_mw10_pe3
+bash submit_job.sh l-n1-hpe2 grpo_tts_entity_sr_fy22_7b_gt_t12_tis5_n16_2k_mw10
 
