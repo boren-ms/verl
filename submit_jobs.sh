@@ -118,4 +118,6 @@
 # bash submit_job.sh h1-n2-hpe4 dapo_tts_entity_7b_gt_t12_tis5_n16_2k_mw10_pe3
 # bash submit_job.sh l-n1-hpe2 grpo_tts_entity_sr_fy22_7b_gt_t12_tis5_n16_2k_mw10
 
-# bash submit_job.sh h1-n2-wus2 dapo_prod_fy22_7b_rare05_n16_me10_2k
+bash submit_job.sh l-n1-hpe2     dapo_prod_fy22_7b_rare05_n8_mw05_2k_gmpo
+bash submit_job.sh l1-n1-hpe2     dapo_prod_fy22_7b_rare05_n8_mw05_2k_kl001
+
