@@ -5,8 +5,8 @@ hydra:
 defaults:
   - grpo_asr
   - _self_
-  # - data/train_data/local
-  - data/train_data/local_debug_parquet
+  - data/train_data/local
+  # - data/train_data/local_debug_parquet
   - data/val_data/local
 
 val_reward:
@@ -28,11 +28,11 @@ train_reward:
     path: recipe/phimm/reward/asr_bias.py
     name: compute_score
     reward_kwargs:
-      beta: 10.0 # score = WER + beta*B-WER
+      beta: 1.0 # score = WER + beta*B-WER
       choice: "err" # "err", "acc", "wer"
       text_norm: english # english (default), identity, lower, basic, simple, simple_with_tag
       unit: word # word (default), char
-      error_book: true # whether to return error book for each sample
+      # error_book: true # whether to return error book for each sample
 data:
   train_batch_size: 8
 
@@ -45,9 +45,11 @@ actor_rollout_ref:
     # temperature: 10
   actor:
     loss_agg_mode: seq-mean-token-sum-norm
-    use_kl_loss: False
     tis_imp_ratio_cap: 5
     ppo_epochs: 1
+    use_kl_loss: True
+    kl_loss_coef: 0.001
+    kl_loss_type: low_var_kl
 algorithm:
   filter_groups:
     enable: false
