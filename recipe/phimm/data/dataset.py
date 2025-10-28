@@ -59,9 +59,9 @@ def read_word_count(file_path, num=None, tn_name=None):
         for i, line in enumerate(f):
             if num is not None and i >= num:
                 break
-            parts = line.split(maxsplit=1)
+            parts = line.split()
             word = text_norm(parts[0], tn_name)
-            cnt = to_int(parts[-1], 0)
+            cnt = to_int(parts[1] , 0) if len(parts) > 1 else 0
             wd_cnt[word] += cnt
     return wd_cnt
 
@@ -939,9 +939,9 @@ if __name__ == "__main__":
     # dataset = create_dataset(name="openasr", head=2)
     # print(dataset)
     # print(dataset[0]["text"])
-    # yaml_file = "recipe/phimm/config/data/train_data/local_debug.yaml"
+    yaml_file = "recipe/phimm/config/data/train_data/local_debug.yaml"
     # yaml_file = "recipe/phimm/config/data/train_data/local_debug_parquet.yaml"
-    yaml_file = "recipe/phimm/config/data/train_data/local_debug_audio_dir.yaml"
+    # yaml_file = "recipe/phimm/config/data/train_data/local_debug_audio_dir.yaml"
     import yaml
 
     kwargs = yaml.safe_load(Path(yaml_file).read_text())

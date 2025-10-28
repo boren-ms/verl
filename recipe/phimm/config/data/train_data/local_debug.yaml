@@ -7,7 +7,8 @@ pre_process:
 # cache_name: auto_train
 num_proc: 1
 add_rare_keywords:
-  common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
+  # common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_file: /home/boren/data/librispeech_biasing/words/1grams_english.tsv
   common_num: 10000
   rare_ratio: 0.5
 add_prompt:
