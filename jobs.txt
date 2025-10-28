@@ -19,10 +19,12 @@ Host: h1-n2-hpe4-0 Ray: http://10.133.191.171:9209
 
 Host: h1-n2-wus2-0 Ray: http://10.142.66.177:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_prod_fy22_7b_rare05_n16_me10_2k trainer.experiment_name=dapo_prod_fy22_7b_rare05_n16_me10_2k
-[1] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k_mw05 trainer.experiment_name=grpo_prod_fy22_7b_rare05_gt_t12_tis5_n8_2k_mw05
+[1] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_prod_fy22_7b_rare05_gt_t12_tis5_n4_me10_4k trainer.experiment_name=grpo_prod_fy22_7b_rare05_gt_t12_tis5_n4_me10_4k
 
 Host: l-n1-hpe2-0 Ray: http://10.130.7.167:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_prod_fy22_7b_rare05_n8_mw05_2k_gmpo trainer.experiment_name=dapo_prod_fy22_7b_rare05_n8_mw05_2k_gmpo
+
+Host: l-n1-wus2-0 Ray: http://10.142.39.18:9209
 
 Host: l1-n1-hpe2-0 Ray: http://10.246.7.193:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name dapo_prod_fy22_7b_rare05_n8_mw05_2k_kl001 trainer.experiment_name=dapo_prod_fy22_7b_rare05_n8_mw05_2k_kl001
