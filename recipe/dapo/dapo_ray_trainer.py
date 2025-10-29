@@ -151,6 +151,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                             gen_baseline_output = self.actor_rollout_wg.generate_sequences(gen_baseline_batch)
                             # breakpoint()
                             new_batch = new_batch.union(gen_baseline_output)
+                            new_batch.meta_info["skip_examine"] = True
                             reward_baseline_tensor = self.reward_fn(new_batch)
                             reward_baseline_tensor = reward_baseline_tensor.sum(dim=-1)
 

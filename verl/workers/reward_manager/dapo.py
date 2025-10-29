@@ -94,6 +94,7 @@ class DAPORewardManager(AbstractRewardManager):
             data_source = data_item.non_tensor_batch[self.reward_fn_key]
 
             extra_info = data_item.non_tensor_batch.get("extra_info", None)
+            skip_examine = data_item.meta_info.get("skip_examine", False)
 
             result = self.compute_score(
                 data_source=data_source,
@@ -132,7 +133,7 @@ class DAPORewardManager(AbstractRewardManager):
             if data_source not in already_print_data_sources:
                 already_print_data_sources[data_source] = 0
 
-            if already_print_data_sources[data_source] < self.num_examine:
+            if already_print_data_sources[data_source] < self.num_examine and not skip_examine:
                 already_print_data_sources[data_source] += 1
                 pfx = f"[{already_print_data_sources[data_source]}]"
                 print(f"======{pfx}=====")

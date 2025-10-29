@@ -40,7 +40,7 @@ actor_rollout_ref:
   rollout:
     n: 4
     gpu_memory_utilization: 0.3
-    # gt_rollout: true
+    gt_rollout: true
     calculate_log_probs: True
     # temperature: 10
   actor:
