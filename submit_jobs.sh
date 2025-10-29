@@ -125,5 +125,6 @@
 # bash submit_job.sh h-n2-hpe4     grpo_prod_fy22_7b_rare01_n8_mw05_2k
 # bash submit_job.sh h-n2-hpe4     grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax
 
-bash submit_job.sh h1-n2-uks7     grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_me10_8k
-bash submit_job.sh h1-n2-uks7     grpo_prod_fy22_7b_rare01a_n8_mw05_2k
+# bash submit_job.sh h1-n2-uks7     grpo_prod_fy22_7b_rare05_gt_t12_tis5_n2_me10_8k
+# bash submit_job.sh h1-n2-uks7     grpo_prod_fy22_7b_rare01a_n8_mw05_2k
+bash submit_job.sh h1-n2-hpe4     grpo_prod_fy22_7b_rare05a_gt_t12_tis5_n8_2k
