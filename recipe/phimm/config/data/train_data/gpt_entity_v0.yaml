@@ -1,8 +1,15 @@
 dataset_name: chunk
-# specs: [/home/boren/data/inhouse/data_spec/asr_chunk_inhouse_en_egs.json]
-# specs: [/home/boren/data/inhouse/data_spec/local_debug.json]
-specs: [${oc.env:DATA_PATH}/boren/data/inhouse/data_spec/gpt_entity/insurance.json]
-# data_dir: ${oc.env:DATA_PATH}/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
+specs:
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk
 cache_name: auto_train
 add_prompt:
   task: rare_asr
