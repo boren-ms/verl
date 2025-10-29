@@ -1,0 +1,15 @@
+dataset_name: chunk
+# specs: [/home/boren/data/inhouse/data_spec/asr_chunk_inhouse_en_egs.json]
+# specs: [/home/boren/data/inhouse/data_spec/local_debug.json]
+specs: [${oc.env:DATA_PATH}/boren/data/inhouse/data_spec/gpt_entity/insurance.json]
+# data_dir: ${oc.env:DATA_PATH}/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
+cache_name: auto_train
+add_prompt:
+  task: rare_asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

@@ -939,7 +939,8 @@ if __name__ == "__main__":
     # dataset = create_dataset(name="openasr", head=2)
     # print(dataset)
     # print(dataset[0]["text"])
-    yaml_file = "recipe/phimm/config/data/train_data/local_debug.yaml"
+    # yaml_file = "recipe/phimm/config/data/train_data/local_debug.yaml"
+    yaml_file = "recipe/phimm/config/data/train_data/local_debug_chunk.yaml"
     # yaml_file = "recipe/phimm/config/data/train_data/local_debug_parquet.yaml"
     # yaml_file = "recipe/phimm/config/data/train_data/local_debug_audio_dir.yaml"
     import yaml
@@ -947,6 +948,7 @@ if __name__ == "__main__":
     kwargs = yaml.safe_load(Path(yaml_file).read_text())
     ds = create_datasets(kwargs)
     print(ds)
-    print(next(iter(ds)))
+    for egs in ds.take(5):
+        print(egs)
 
 # %%

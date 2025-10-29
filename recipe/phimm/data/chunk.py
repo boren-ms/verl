@@ -4,6 +4,7 @@
 import io
 import json
 import random
+from pathlib import Path
 from math import ceil
 from functools import partial
 from collections import defaultdict
@@ -285,17 +286,27 @@ def load_chunk_example(chunk_path):
 # %%
 if __name__ == "__main__":
     spec_file = [
-        "/datablob1/users/ruchaofan/DataSpecs/mlang_s2/asr_person_filtered/asr_chunk_inhouse_en.json",
+        # "/datablob1/users/ruchaofan/DataSpecs/mlang_s2/asr_person_filtered/asr_chunk_inhouse_en.json",
+        "/home/boren/data/inhouse/data_spec/local_entity_debug.json"
     ]
     # dataset = ChunkDataset(spec_file)
     # for i in range(0, 100, 10):  # Print every 10th sample, 50 samples in each chunk
     #     sample = dataset[i]
     #     rank_print(f"Sample {i}: {sample}")  # Output the sample data
     # pass
-    chunk_types = ["audio", "info", "transcription"]
-    for i, example in enumerate(generate_examples(spec_file, chunk_types=chunk_types, max_chunks=2)):
-        rank_print(f"Example {i}: {example}")
-        data, fs = load_chunk_example(example["audio_chunk"])
-        rank_print(f"Audio shape: {data.shape}, Sample rate: {fs}")
-        if i > 52:
-            break
+    output_dir = Path("/home/boren/data/inhouse/data_spec/local_entity_debug_output")
+    example_jsonl_file = output_dir / "trans.tsv"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    chunk_types = ["audio", "transcription"]
+    with open(example_jsonl_file, "w") as jf:
+        for i, example in enumerate(generate_examples(spec_file, chunk_types=chunk_types, max_chunks=2)):
+            rank_print(f"Example {i}: {example}")
+            data, fs = load_chunk_example(example["audio_chunk"])
+            wav_name = f"egs_{i}.wav"
+            wav_path = output_dir / wav_name
+            with open(wav_path, "wb") as f:
+                sf.write(f, data, fs)
+            print("Wav:", wav_path)
+            jf.write(f"{wav_name}\t{example['transcription']}\n")
+            if i > 10:
+                break
