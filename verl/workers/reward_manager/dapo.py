@@ -95,6 +95,7 @@ class DAPORewardManager(AbstractRewardManager):
 
             extra_info = data_item.non_tensor_batch.get("extra_info", None)
             skip_examine = data_item.meta_info.get("skip_examine", False)
+            score_baseline = data_item.batch["reward_baselines"].item() if "reward_baselines" in data_item.batch else None
 
             result = self.compute_score(
                 data_source=data_source,
@@ -139,13 +140,15 @@ class DAPORewardManager(AbstractRewardManager):
                 print(f"======{pfx}=====")
                 print(f"{pfx}[prompt]", prompt_str)
                 print(f"{pfx}[keywords]", extra_info.get("keywords", None))
-                print(f"{pfx}[response]", response_str)
                 print(f"{pfx}[ground_truth]", ground_truth)
+                print(f"{pfx}[response]", response_str)
+                scores = [f"score_baseline={score_baseline}"]
                 if isinstance(result, dict):
                     for key, value in result.items():
-                        print(f"{pfx}[{key}]", value)
+                        scores.append(f"{key}={value}")
                 else:
-                    print(f"{pfx}[score]", score)
+                    scores.append(f"score={score}")
+                print(pfx, "; ".join(scores))
 
         if return_dict:
             return {

@@ -153,6 +153,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                             new_batch = new_batch.union(gen_baseline_output)
                             new_batch.meta_info["skip_examine"] = True
                             reward_baseline_tensor = self.reward_fn(new_batch)
+                            new_batch.meta_info.pop("skip_examine", None)
                             reward_baseline_tensor = reward_baseline_tensor.sum(dim=-1)
 
                             new_batch.pop(batch_keys=list(gen_baseline_output.batch.keys()))
