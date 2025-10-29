@@ -191,7 +191,7 @@ def load_specs(spec_files):
 
 def load_chunks(specs, chunks_per_spec=None):
     """Load and chunk dataset based on the provided data specification and chunk types."""
-    if not isinstance(specs[0], dict):  # if specs is not list of dicts, assume list of files.
+    if isinstance(specs[0], str): # specs is list of text # assume spec files
         specs = load_specs(specs)
     chunks = []
     rank_print(f"Loading chunks from {len(specs)} specs.")
