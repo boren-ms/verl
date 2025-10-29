@@ -1,11 +1,11 @@
 dataset_name: chunk
 # Domain	#hrs	#utt	sec/utt
-# Insurance	723.0	95910	27
-# Gaming	1919	260268	27
-# K12_Higher_Education	1677.88	214740	28
-# Retail	1209.3	160080	27
-# Science_And_Tech	2256.74	286288	28
-# Total	7785.9	1017286.0	28
+# Insurance	120.5	15985.0	27
+# Gaming	319.8	43378.0	27
+# K12_Higher_Education	279.6	35790.0	28
+# Retail	201.6	26680.0	27
+# Science_And_Tech	376.1	47714.7	28
+# Total	1297.7	169547.7	28
 specs:
   - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk_merged.json
     chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk
