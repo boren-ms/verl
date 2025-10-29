@@ -55,6 +55,7 @@ algorithm:
     enable: false
   norm_adv_by_std_in_grpo: False
   norm_adv_by_mean_in_grpo: False
+  adv_estimator: remax
 
 trainer:
   experiment_name: dapo-phimm-test-lora-new
