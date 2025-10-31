@@ -182,6 +182,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         self._lora_rank = self.config.model.get("lora_rank", 0)
         self._is_lora = self._lora_rank > 0
         self._patch_phi4mm = self.config.model.get("patch_phi4mm", True)
+        self._trainable_params = self.config.model.get("trainable_params", None)
 
         self.role = role
         assert self.role in ["actor", "rollout", "ref", "actor_rollout", "actor_rollout_ref"]
@@ -417,6 +418,11 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
 
                 lora_name = self.config.model.get("lora_name", "speech")
                 actor_module = get_peft_model(actor_module, LoraConfig(**lora_config), adapter_name=lora_name)
+            
+            if self._trainable_params is not None and len(self._trainable_params) > 0:
+                for name, param in actor_module.named_parameters():
+                    if any(tp in name for tp in self._trainable_params):
+                        param.requires_grad = True
 
         self.use_orig_params = fsdp_config.get("use_orig_params", False)
         if self.config.actor.get("freeze_vision_tower", False):

@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - grpo_asr
+  - grpo_asr_full
   - _self_
   # - data/train_data/local
   # - data/train_data/local_debug_parquet
