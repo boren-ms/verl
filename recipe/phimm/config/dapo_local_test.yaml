@@ -50,9 +50,10 @@ actor_rollout_ref:
     tis_imp_ratio_cap: 5
     ppo_epochs: 1
     use_kl_loss: True
-    kl_loss_coef: 0.0
-  model:
-    gt_as_ref: True
+    use_ground_truth_ref: True
+    kl_loss_coef: 0.1
+    kl_loss_type: low_var_kl
+
 algorithm:
   filter_groups:
     enable: false

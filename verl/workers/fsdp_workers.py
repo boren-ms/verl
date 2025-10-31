@@ -193,7 +193,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         self.ulysses_sharding_manager = FSDPUlyssesShardingManager(self.ulysses_device_mesh)
         self._lora_rank = self.config.model.get("lora_rank", 0)
         self._is_lora = self._lora_rank > 0
-        self._gt_as_ref = self.config.model.get("gt_as_ref", False)
+        self._use_ground_truth_ref = self.config.actor.get("use_ground_truth_ref", False)
         self._patch_phi4mm = self.config.model.get("patch_phi4mm", True)
         self._trainable_params = self.config.model.get("trainable_params", None)
 
@@ -1002,7 +1002,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     @DistProfiler.annotate(color="olive", role="ref_compute_log_prob")
     def compute_ref_log_prob(self, data: DataProto):
         # breakpoint()
-        if self._gt_as_ref:
+        if self._use_ground_truth_ref:
             # use ground truth as ref log prob
             gt_tokens = [self.tokenizer.encode(x["ground_truth"] + "<|end|>") for x in  data.non_tensor_batch["reward_model"]]
             response_tokens = data.batch["responses"].tolist()
