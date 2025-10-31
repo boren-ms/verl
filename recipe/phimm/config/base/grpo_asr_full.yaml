@@ -9,4 +9,4 @@ algorithm:
 actor_rollout_ref:
   model:
     lora_rank: 0 # disable lora
-    trainable_params: [model.layers]  # all layers are frozen
+    trainable_params: [model.layers]  # all layers are frozen, # not verified yet

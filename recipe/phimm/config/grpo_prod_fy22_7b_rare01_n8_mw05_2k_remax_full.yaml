@@ -27,7 +27,8 @@ actor_rollout_ref:
     calculate_log_probs: True # required by TIS
   actor:
     tis_imp_ratio_cap: 5
-
+    optim:
+      lr: 1e-6
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
