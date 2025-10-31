@@ -391,7 +391,7 @@ class DataParallelPPOActor(BasePPOActor):
         mini_batches = data.split(self.config.ppo_mini_batch_size)
 
         on_policy = len(mini_batches) == 1 and self.config.ppo_epochs == 1
-
+        # breakpoint()
         metrics = {}
         for _ in range(self.config.ppo_epochs):
             for batch_idx, mini_batch in enumerate(mini_batches):

@@ -131,6 +131,18 @@ def get_vl_model_vision_tower(vl_model_instance):
         return vl_model_instance.visual
     return None
 
+def soft_labels(hyp, ref):
+    import difflib
+    matcher = difflib.SequenceMatcher(a=ref, b=hyp)
+    labels = []
+    n_del = 0
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        labels.extend([int(tag == "equal")] * (j2 - j1))
+        if tag == "delete":
+            n_del += i2 - i1  # shared to all
+    scale = 1.0 - n_del / len(ref)
+    labels = [label * scale for label in labels]
+    return labels
 
 class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     """
@@ -181,6 +193,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         self.ulysses_sharding_manager = FSDPUlyssesShardingManager(self.ulysses_device_mesh)
         self._lora_rank = self.config.model.get("lora_rank", 0)
         self._is_lora = self._lora_rank > 0
+        self._gt_as_ref = self.config.model.get("gt_as_ref", False)
         self._patch_phi4mm = self.config.model.get("patch_phi4mm", True)
         self._trainable_params = self.config.model.get("trainable_params", None)
 
@@ -988,6 +1001,18 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     @register(dispatch_mode=make_nd_compute_dataproto_dispatch_fn(mesh_name="actor"))
     @DistProfiler.annotate(color="olive", role="ref_compute_log_prob")
     def compute_ref_log_prob(self, data: DataProto):
+        # breakpoint()
+        if self._gt_as_ref:
+            # use ground truth as ref log prob
+            gt_tokens = [self.tokenizer.encode(x["ground_truth"] + "<|end|>") for x in  data.non_tensor_batch["reward_model"]]
+            response_tokens = data.batch["responses"].tolist()
+            labels = [soft_labels(hyp, ref) for hyp, ref in zip(response_tokens, gt_tokens)]
+            labels = torch.tensor(labels, device=data.batch["responses"].device)
+            ref_log_probs = torch.log(torch.clamp(labels, min=1e-10))
+            data = DataProto.from_dict(tensors={"ref_log_prob": ref_log_probs})
+            return data
+            
+            
         if self._is_lora:
             # if _is_lora, actor without lora applied is the ref
             data.meta_info["is_lora"] = True

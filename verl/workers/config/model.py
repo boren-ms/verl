@@ -83,6 +83,7 @@ class HFModelConfig(BaseConfig):
 
     exclude_modules: Optional[str] = None
     use_liger: bool = False
+    gt_as_ref: bool = False
 
     use_fused_kernels: bool = False
     fused_kernel_options: dict = field(default_factory=dict)

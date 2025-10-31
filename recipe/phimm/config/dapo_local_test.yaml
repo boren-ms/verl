@@ -3,7 +3,8 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - grpo_asr_full
+  # - grpo_asr_full
+  - grpo_asr
   - _self_
   # - data/train_data/local
   # - data/train_data/local_debug_parquet
@@ -49,8 +50,9 @@ actor_rollout_ref:
     tis_imp_ratio_cap: 5
     ppo_epochs: 1
     use_kl_loss: True
-    kl_loss_coef: 0.001
-    kl_loss_type: low_var_kl
+    kl_loss_coef: 0.0
+  model:
+    gt_as_ref: True
 algorithm:
   filter_groups:
     enable: false
