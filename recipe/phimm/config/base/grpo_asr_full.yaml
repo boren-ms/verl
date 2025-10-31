@@ -1,0 +1,12 @@
+defaults:
+  - dapo_asr
+  - _self_
+
+algorithm:
+  filter_groups:
+    enable: false
+
+actor_rollout_ref:
+  model:
+    path: null
+    lora_rank: 0 # disable lora
