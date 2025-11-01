@@ -1,0 +1,44 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - grpo_asr
+  - data/train_data/sr_fy22_rare01
+  - data/val_data/entity_rare
+  - _self_
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_bias.py
+  name: compute_score
+  reward_kwargs:
+    alpha: 1
+    beta: 1 # score = alpha*WER + beta*B-WER
+    choice: "err" # "err", "acc", "wer"
+    text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
+    unit: word # word (default), char
+    max_wer: 0.05 # max error allowed to get reward, otherwise -100
+
+actor_rollout_ref:
+  rollout:
+    n: 8
+    gt_rollout: true
+    dtype: float16
+    temperature: 1.2
+    calculate_log_probs: True # required by TIS
+  actor:
+    tis_imp_ratio_cap: 5
+    fsdp_config:
+      model_dtype: fp16
+  model:
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+
+algorithm:
+  adv_estimator: remax
+
+data:
+  max_prompt_length: 6000
+  train_batch_size: 64
+trainer:
+  val_before_train: true
+  total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
