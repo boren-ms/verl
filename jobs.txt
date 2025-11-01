@@ -38,3 +38,7 @@ Host: l-n1-hpe2-0 Ray: http://10.130.7.167:9209
 Host: l-n1-hpe5-0 Ray: http://10.139.23.191:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_prod_fy22_7b_rare01_n8_mw05_2k_kl01_gtref trainer.experiment_name=grpo_prod_fy22_7b_rare01_n8_mw05_2k_kl01_gtref
 
+Host: l-n1-uks7-0 Ray: http://10.131.230.34:9209
+
+Host: l1-n1-hpe2-0 Ray: http://10.130.98.51:9209
+[0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax_fp16 trainer.experiment_name=grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax_fp16

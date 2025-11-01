@@ -28,7 +28,8 @@
 # bash submit_job.sh h-n2-hpe4 grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax_full
 # bash submit_job.sh h1-n2-hpe4 grpo_prod_fy22_7b_rare01_n8_mw05_2k_kl1_gtref
 # bash submit_job.sh dev1-n1-hpe5 grpo_prod_fy22_7b_rare01_n8_mw05_2k_kl01
-bash submit_job.sh l-n1-hpe5 grpo_prod_fy22_7b_rare01_n8_mw05_2k_kl01_gtref
+# bash submit_job.sh l-n1-hpe5 grpo_prod_fy22_7b_rare01_n8_mw05_2k_kl01_gtref
+bash submit_job.sh l1-n1-hpe2 grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax_fp16
 
 # bash submit_job.sh h-n2-uks7 dapo_tts_entity_7b_gt_t12_tis5_n16_2k_mw10 true
 # bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax_bs128_t06
