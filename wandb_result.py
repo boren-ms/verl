@@ -54,7 +54,8 @@ def get_run_result(runs, prefix="metric", name=None):
     results = []
     name_pfx = to_list(name)
     for run in runs:
-        run_dict = {"name": run.name}
+        step = run.summary.get("step", 0)
+        run_dict = {"name": f"{run.name}_step{step}"}
         for key, value in run.summary.items():
             if key and key.startswith(prefix):
                 new_key = key.split("/", 1)[-1]  # Remove prefix
