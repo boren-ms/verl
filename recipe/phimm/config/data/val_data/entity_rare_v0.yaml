@@ -115,7 +115,7 @@
         data_source: Manufactory_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_Manufactory
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Manufactory_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
@@ -132,7 +132,7 @@
         data_source: PatientHistoryDictation_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_PatientHistoryDictation
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_PatientHistoryDictation_Entity_FY25Q2_en-US_DTEST_OfflineDataCollection/segments.jsonl
@@ -149,7 +149,7 @@
         data_source: Energy_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_Energy
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Energy_Entity_FY24Q3_en-US_DTEST_OfflineDataCollection/segments.jsonl
@@ -166,7 +166,7 @@
         data_source: Sustain_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_Sustain
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Sustain_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
@@ -183,7 +183,7 @@
         data_source: Media_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_Media
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Media_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
@@ -200,7 +200,7 @@
         data_source: CapitalMarket_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_CapitalMarket
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_CapitalMarket_Entity_FY24Q3_en-US_DTEST_OfflineDataCollection/segments.jsonl
@@ -217,7 +217,7 @@
         data_source: LifeHealth_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_LifeHealth
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_LifeHealth_Entity_FY24Q3_en-US_DTEST_OfflineDataCollection/segments.jsonl
@@ -234,7 +234,7 @@
         data_source: DoctorPatientConsultation_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_DoctorPatientConsultation
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_DoctorPatientConsultation_Entity_FY25Q2_en-US_DTEST_OfflineDataCollection/segments.jsonl
@@ -251,7 +251,7 @@
         data_source: Banking_0
     verl_format:
       prompt_key: prompt
-  dataset_name: inhouse_Banking
+  dataset_name: inhouse_entity
   data_dir: ${oc.env:DATA_PATH}/boren/data/
   src_dir: /home/boren/data/
   jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/CustomerSpeechDomainSet_DTEST_Banking_Entity_FY23Q4_en-US_DTEST/segments.jsonl
