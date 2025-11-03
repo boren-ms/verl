@@ -11,6 +11,7 @@ actor_rollout_ref:
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
+
 data:
   max_prompt_length: 7168 # requred by 7b model
 

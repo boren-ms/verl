@@ -19,6 +19,10 @@ data:
   eval_num_examine: 3
   train_num_examine: ${actor_rollout_ref.rollout.n}
 
+# for training data
+custom_reward_function:
+  path: recipe/phimm/reward/asr_bias.py
+  name: compute_score
 val_reward:
   custom_reward_function:
     path: recipe/phimm/reward/asr_bias.py
@@ -100,9 +104,9 @@ trainer:
   test_freq: 100
   total_epochs: 1
   resume_mode: auto
-  val_before_train: false
   total_training_steps: null # disable steps
   default_hdfs_dir: ${oc.env:DATA_PATH}/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
+  val_before_train: false
   val_only: False
   validation_data_dir: ${trainer.default_local_dir}/val_data_gen

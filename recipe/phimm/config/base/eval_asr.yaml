@@ -6,5 +6,6 @@ defaults:
 
 trainer:
   val_only: True
+  val_before_train: True
   nnodes: 1
-  n_gpus_per_node: 4
+  n_gpus_per_node: 8
