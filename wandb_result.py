@@ -50,11 +50,14 @@ def index2names(index):
     return pd.Series([name, bias or 0, mapping.get(metric, metric)])
 
 
-def get_run_result(runs, prefix="metric", name=None):
+def get_run_result(runs, prefix="metric", name=None, min_step=None):
     results = []
     name_pfx = to_list(name)
     for run in runs:
         step = run.summary.get("step", 0)
+        if step is not None and step:
+            if min_step is not None and step < min_step:
+                continue
         run_dict = {"name": f"{run.name}_step{step}"}
         for key, value in run.summary.items():
             if key and key.startswith(prefix):
@@ -117,7 +120,7 @@ class WandbChecker:
         print(f"Writing {df.shape} results to {excel_path}")
         df.to_excel(excel_path, index=True)
 
-    def search(self, run_name, key=None, nrows=10):
+    def search(self, run_name, min_step=None, key=None, nrows=10):
         """search runs"""
         api = wandb.Api()
         runs = api.runs(f"{self.entity}/{self.project}", filters={"display_name": {"$regex": run_name}})
@@ -125,7 +128,7 @@ class WandbChecker:
             print(f"No runs found matching '{run_name}'")
             return
         print(f"Found {len(runs)} runs matching '{run_name}'")
-        df = get_run_result(runs, prefix=self.metric, name=self.dataset)
+        df = get_run_result(runs, prefix=self.metric, name=self.dataset, min_step=min_step)
         if self.scale:
             df = df * self.scale
         if df is None:
