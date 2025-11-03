@@ -8,6 +8,7 @@ export DATA_PATH=/home
 # export MODEL_PATH=/home/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
 config_name=dapo_local_test
+# config_name=eval_local_test
 val_before_train=false
 
 python3 -m recipe.phimm.main_asr_dapo \

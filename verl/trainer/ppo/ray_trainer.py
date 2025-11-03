@@ -846,12 +846,16 @@ class RayPPOTrainer:
                 return 0
         else:
             if self.config.trainer.resume_mode == "resume_path":
-                assert isinstance(self.config.trainer.resume_from_path, str), "resume ckpt must be str type"
-                assert "global_step_" in self.config.trainer.resume_from_path, (
+                resume_path = self.config.trainer.resume_from_path
+                assert isinstance(resume_path, str), "resume ckpt must be str type"
+                assert "global_step_" in resume_path, (
                     "resume ckpt must specify the global_steps"
                 )
-                local_step_folder = self.config.trainer.resume_from_path
-                if not os.path.isabs(local_step_folder):
+                if resume_path.startswith("az://"):
+                    remote_step_folder = resume_path
+                else:
+                    local_step_folder = resume_path
+                if local_step_folder is not None and not os.path.isabs(local_step_folder):
                     working_dir = os.getcwd()
                     local_step_folder = os.path.join(working_dir, local_step_folder)
         assert local_step_folder is not None or remote_step_folder is not None, (

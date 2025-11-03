@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - grpo_asr_full
+  - grpo_asr
   - _self_
   # - data/train_data/local
   # - data/train_data/local_debug_parquet
@@ -60,10 +60,10 @@ algorithm:
 
 trainer:
   experiment_name: dapo-phimm-test-lora-new
-  save_freq: 100000
-  test_freq: 10000
+  save_freq: 1
+  test_freq: 1
   val_before_train: false
-  # resume_mode: "auto"
-  resume_mode: "disable"
+  resume_mode: "auto"
+  # resume_mode: "disable"
   default_hdfs_dir: null
   # total_training_steps: 10

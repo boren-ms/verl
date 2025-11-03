@@ -1,0 +1,28 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - eval_asr
+  - _self_
+  # - data/train_data/local
+  # - data/train_data/local_debug_parquet
+  - data/train_data/local_debug_chunk
+  - data/val_data/local
+
+
+actor_rollout_ref:
+  model:
+    path: /home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+  rollout:
+    gpu_memory_utilization: 0.3
+trainer:
+  experiment_name: dapo-phimm-test-lora
+  val_before_train: false
+  # resume_mode: "auto"
+  resume_mode: "resume_path"
+  resume_from_path: /root/checkpoints/verl_asr/dapo-phimm-test-lora-new/global_step_5
+  # default_hdfs_dir: null
+  # default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
+
+  # total_training_steps: 10
