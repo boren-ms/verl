@@ -1,0 +1,16 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - eval_asr
+  - data/val_data/entity_rare_v0
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+
+data:
+  max_prompt_length: 7168 # requred by 7b model
+

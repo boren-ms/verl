@@ -81,7 +81,7 @@ class RLHFDataset(Dataset):
 
     def load_datasets(self):
         data_sets = [create_audio_dataset(**data_conf) for data_conf in self.data_confs]
-        if self.is_training:
+        if self.is_training and len(data_sets) > 1:
             ds = datasets.interleave_datasets(data_sets, **self.interleave_ds)
         else:
             ds = datasets.concatenate_datasets(data_sets)
