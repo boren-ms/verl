@@ -1,0 +1,24 @@
+dataset_name: cached
+cache_path: ${oc.env:DATA_PATH}/boren/data/cache_datasets/hcv2_fy22_info_tag/
+num_proc: auto
+cache_name: auto_train
+pre_process:
+  path_map:
+    field: audio_chunk
+    src_part: "az://orngwus2cresco/data"
+    dst_part: "${oc.env:DATA_PATH}"
+  # filter_by_keywords:
+  #   min_num: 1
+add_rare_keywords:
+  common_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_num: 10000
+  rare_ratio: 0.1
+add_prompt:
+  task: asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

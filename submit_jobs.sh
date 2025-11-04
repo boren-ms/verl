@@ -46,5 +46,5 @@ bash submit_job.sh h-n2-hpe4 grpo_prod_fy22_7b_rare01_n8_mw05_e1_remax
 # bash submit_job.sh h-n2-hpe4 grpo_gpt_entity_v0_7b_n2x8_2k_remax true
 # bash submit_job.sh h-n2-hpe4 eval_entity_v0_7b_remax_2k
 # bash submit_job.sh h-n2-uks7 eval_entity_v0_7b
-bash submit_job.sh h-n2-uks7 eval_entity_v0_7b
-bash submit_job.sh h1-n2-wus2 eval_entity_v0_7b_remax_2k
+bash submit_job.sh h-n2-uks7 grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax_asr
+bash submit_job.sh h1-n2-wus2 grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax_nogt
