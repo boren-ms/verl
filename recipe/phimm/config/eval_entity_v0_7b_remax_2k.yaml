@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_asr
-  - data/val_data/entity_rare_v0
+  - data/val_data/entity_v0
   - _self_
 
 actor_rollout_ref:
