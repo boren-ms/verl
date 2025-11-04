@@ -2,6 +2,9 @@
 Host: dev-n1-uks7-0 Ray: http://10.131.235.109:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_gpt_entity_v0_7b_n4_2k_remax_dapo_t06 trainer.experiment_name=grpo_gpt_entity_v0_7b_n4_2k_remax_dapo_t06
 
+Host: dev-n1-wus2-0 Ray: http://10.142.121.118:9209
+[0] python3 ray_tool.py prepare_env
+
 Host: h-n1-uks7-0 Ray: http://10.131.215.214:9209
 [0] python3 -m recipe.phimm.main_asr_dapo --config-name grpo_gpt_entity_v0_7b_n2x8_2k_remax trainer.experiment_name=grpo_gpt_entity_v0_7b_n2x8_2k_remax
 
