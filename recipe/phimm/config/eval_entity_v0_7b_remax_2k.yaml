@@ -12,7 +12,10 @@ actor_rollout_ref:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
 trainer:
-  experiment_name: grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax
+  resume_mode: resume_path
+  # experiment_name: grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax
+  # resume_from_path: az://orngwus2cresco/data/boren/outputs/verl_asr/grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax/global_step_2200
+  resume_from_path: ${oc.env:DATA_PATH}/boren/outputs/verl_asr/grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax/global_step_2200
 
 data:
   max_prompt_length: 7168 # requred by 7b model
