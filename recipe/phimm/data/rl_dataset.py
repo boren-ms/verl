@@ -67,7 +67,7 @@ class RLHFDataset(Dataset):
         self.is_training = is_training
         self.interleave_ds = config.get("interleave_ds", {})
         self.max_prompt_length = config.get("max_prompt_length", 1024)
-        self.max_audio_dur = config.get("max_audio_dur", 40)
+        self.max_audio_dur = config.get("max_audio_dur", None)
         self.prompt_key = config.get("prompt_key", "prompt")
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)

@@ -15,9 +15,9 @@ def sf_read(file_path):
     return audio, sr
 
 
-def limit_audio(x, fs, max_dur=30):
+def limit_audio(x, fs, max_dur=None):
     """Limit the length of the audio to max_dur seconds."""
-    if len(x) > fs * max_dur:
+    if max_dur is not None and len(x) > fs * max_dur:
         print(f"Truncating audio {len(x) / fs:.2f} ->  {max_dur} seconds.")
         x = x[: fs * max_dur]
     n = len(x)
@@ -37,7 +37,7 @@ def load_raw_audio(x):
     raise ValueError("No audio data found in the input dictionary.")
 
 
-def load_audio(x, max_dur=30):
+def load_audio(x, max_dur=None):
     data, fs = load_raw_audio(x)
     return limit_audio(data, fs, max_dur=max_dur)
 
@@ -55,5 +55,5 @@ def load_raw_audios(x):  # x is batched
             raise ValueError("No audio data found in the input dictionary.")
 
 
-def load_audios(x, max_dur=30):  # x is batched
+def load_audios(x, max_dur=None):  # x is batched
     return [limit_audio(data, fs, max_dur=max_dur) for data, fs in load_raw_audios(x)]
