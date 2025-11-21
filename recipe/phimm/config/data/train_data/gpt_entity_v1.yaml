@@ -1,0 +1,74 @@
+dataset_name: chunk
+# Domain	#hrs	#utt	sec/utt
+# Insurance	120.5	15985.0	27
+# Gaming	319.8	43378.0	27
+# K12_Higher_Education	279.6	35790.0	28
+# Retail	201.6	26680.0	27
+# Science_And_Tech	376.1	47714.7	28
+# Total	1297.7	169547.7	28
+specs:
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk_merged.json
+    chunk_path: ${oc.env:DATA_PATH}/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Banking/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Banking/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Capital_Markets/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Capital_Markets/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Consumer_Goods/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Consumer_Goods/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Doctor_Patient_Consultation/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Doctor_Patient_Consultation/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Energy/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Energy/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Law_Enforcement/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Law_Enforcement/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Legal/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Legal/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Manufactory/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Manufactory/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Media/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Media/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Medical/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Medical/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Medical_Team_Meetings/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Medical_Team_Meetings/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Patient_History_Dictation/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Patient_History_Dictation/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Payer_Provider/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Payer_Provider/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Pharmaceutical/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Pharmaceutical/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Pharmacy_Instructions/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Pharmacy_Instructions/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Public_Safety_And_Justice/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Public_Safety_And_Justice/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Sports/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Sports/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Surgery_Instructions/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Surgery_Instructions/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Surgical/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Surgical/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Sustainability_And_Conservation/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Sustainability_And_Conservation/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Telecommunication/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Telecommunication/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Vehicle_Manufacturing/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-zhhon/en-US/chunk_dragon_display/Vehicle_Manufacturing/ChunkFiles/
+
+cache_name: auto_train
+add_prompt:
+  task: rare_asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
