@@ -18,7 +18,7 @@ def amlt_run(conf_file, node=1, job_pfx="llm", sla_tier=None, tag="safn", prepar
     """submit a job to AMLT"""
     # remove script/train from the path
     conf_file = Path(conf_file)
-    assert conf_file.exists()
+    assert conf_file.exists() or str(conf_file).startswith("dummy"), f"Config file {conf_file} does not exist"
     amlt_conf_dir = Path("amlt_conf")
     tmp_suf = f"_{tag}" if tag else ""
     conf = OmegaConf.load(amlt_conf_dir / f"amlt_train_temp{tmp_suf}.yaml")
@@ -33,7 +33,7 @@ def amlt_run(conf_file, node=1, job_pfx="llm", sla_tier=None, tag="safn", prepar
         )
     elif "grpo" in file_stem:
         tr_cmd = f"python trl/scripts/grpo_bias.py --config {conf_file} --job_name {job_name} --output_dir $$AMLT_OUTPUT_DIR "
-    elif "dummy" in file_stem:
+    elif file_stem.startswith("dummy"):
         tr_cmd = "python dummy_train.py"
     else:
         raise ValueError(f"Unknown config file: {conf_file}")
