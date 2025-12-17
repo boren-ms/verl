@@ -1,0 +1,11 @@
+{
+    "project_name": "boren",
+    "storage_account_name": "tsstd01uks",
+    "container_name": "amulet",
+    "blob_storage_account_name": "tsstd01uks",
+    "registry_name": "projects",
+    "local_path": "/home/boren/code/verl",
+    "default_output_dir": "/home/boren/code/verl/amlt",
+    "project_uuid": "7271656110.20972-aef062c9-f276-422a-a7c5-24b40a9105cb",
+    "version": "10.6.4"
+}
