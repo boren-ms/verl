@@ -1,0 +1,63 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+description: speech-training
+target:
+  service: sing
+  name: spch-train-h200-safn
+  workspace_name: speech-training-prod-ws01
+
+environment:
+    registry: sramdevregistry.azurecr.io
+    image: boren_dev:trl
+    username: sramdevregistry
+
+    setup:
+        - set -e -o xtrace
+        - pip install -e . --no-deps
+        - pip install rich
+
+storage:
+  output:
+    storage_account_name: tsstd01safn
+    container_name: data
+  
+  model_blob:
+    storage_account_name: tsstd01safn
+    container_name: data
+    mount_dir: /modelblob
+  uks_blob:
+        container_name: data
+        mount_dir: /uksblob
+        storage_account_name: tsstd01uks
+  data_blob:
+    container_name: data
+    mount_dir: /datablob1
+    storage_account_name: highperf01safn
+
+code:
+  local_dir: ./
+
+jobs:
+  - name: llm-biasing
+    sku: 8x141G8-H200-IB-NvLink
+    sla_tier: premium
+    priority: high
+    mpi: True
+    process_count_per_node: 8
+    command:
+        - pwd
+        - ls -hl
+        - pip install -r requirements.txt
+        - export NCCL_P2P_LEVEL=NVL
+        - python trl/scripts/grpo_bias.py --config ls_biasing.yaml --output_dir $$AMLT_OUTPUT_DIR
+    submit_args:
+      container_args:
+        SHARED_MEMORY_PERCENT: 0.5
+      env:
+        NCCL_TOPO_FILE: "topology.xml"
+        NCCL_DEBUG_SUBSYS: "INIT,GRAPH"
+        NCCL_DEBUG: "INFO"
+        _AZUREML_SINGULARITY_JOB_UAI: "/subscriptions/f0d830dc-9b44-446e-86dd-722e7de7c533/resourceGroups/speech-training-h200/providers/Microsoft.ManagedIdentity/userAssignedIdentities/speech-training-uai-safn"
+        
+    identity: managed
+ 

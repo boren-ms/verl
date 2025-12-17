@@ -1,0 +1,61 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+description: speech-training
+target:
+    service: sing
+    name: genai-win-sa
+    workspace_name: Singularity-GenAI-WS-UKSouth
+environment:
+    # registry: florencecontainerregistryeu.azurecr.io
+    # image: haiping/h100-nvidia23.10-pytorch2.1.1-cuda12.2.2-deepspeed0.12.3-flashattn2.3.4:20231124
+    # username: FlorenceContainerRegistryEU
+    registry: sramdevregistry.azurecr.io
+    image: boren_dev:trl
+    username: sramdevregistry
+
+    setup:
+        - set -e -o xtrace
+        - pip install -e . --no-deps
+        - pip install rich
+
+storage:
+    output:
+        storage_account_name: tsstd01uks
+        container_name: data
+    uks_blob:
+        container_name: data
+        mount_dir: /uksblob
+        storage_account_name: tsstd01uks
+        # storage_account_name: tsstd01uks
+    data_blob:
+        container_name: data
+        mount_dir: /datablob1
+        storage_account_name: tsstd01safn
+        # storage_account_name: tsstd01uks
+
+code:
+    local_dir: ./
+jobs:
+    - name: phi-omni-sqa
+      sku: 4x80G8-H100-IB-NvLink
+      sla_tier: Standard
+      priority: high
+      mpi: True
+      process_count_per_node: 8
+      command:
+          - pwd
+          - ls -hl
+          - export NCCL_P2P_LEVEL=NVL
+          - python trl/scripts/grpo_bias.py --config ls_biasing.yaml --output_dir $$AMLT_OUTPUT_DIR
+
+      submit_args:
+          container_args:
+              shm_size: 1024g
+          env:
+              NCCL_TOPO_FILE: "topology.xml"
+              NCCL_DEBUG_SUBSYS: "INIT,GRAPH"
+              NCCL_DEBUG: "INFO"
+              _AZUREML_SINGULARITY_JOB_UAI: "/subscriptions/d676d072-7cbf-4197-b2d6-17ecf38370d0/resourceGroups/Singularity-GenAI-GPU-UKSouth/providers/Microsoft.ManagedIdentity/userAssignedIdentities/genai-sing-uai"
+            #   _AZUREML_SINGULARITY_JOB_UAI: "/subscriptions/5c9e4789-4852-4ffe-8551-d682affcbd74/resourceGroups/genai-slm-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/genai-win-sa-uai"
+
+      identity: managed

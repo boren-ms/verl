@@ -1,0 +1,68 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+description: speech-training
+target:
+    service: sing
+    name: GenAI-Shared-UKSouth
+environment:
+    # registry: florencecontainerregistryeu.azurecr.io
+    # image: haiping/h100-nvidia23.10-pytorch2.1.1-cuda12.2.2-deepspeed0.12.3-flashattn2.3.4:20231124
+    # username: FlorenceContainerRegistryEU
+    registry: sramdevregistry.azurecr.io
+    image: jing-dev:a100_latest
+    username: sramdevregistry
+
+    setup:
+        - set -e -o xtrace
+        - pip install -e .
+        - wget https://aka.ms/downloadazcopy-v10-linux && tar xzf downloadazcopy-v10-linux
+        - sudo mv azcopy_linux_amd64_*/azcopy /usr/local/bin/azcopy
+        - pip install azure-storage-blob==12.19.1
+        - pip install -U transformers==4.46.1
+        - pip install --upgrade Pillow
+        - pip install webp
+        - pip install openai-whisper
+        - pip install typing_extensions==4.7.1
+        - pip install pydantic==2.0.3
+        - pip install backoff
+        - pip install unidecode
+        - pip install timm
+        - pip install mup
+
+storage:
+    output:
+        storage_account_name: tsstd01uks
+        container_name: data
+    data_blob:
+        container_name: data
+        mount_dir: /datablob1
+        storage_account_name: tsstd01uks
+
+code:
+    local_dir: ./
+jobs:
+    - name: phi-omni-sqa-zh
+      sku: 4x80G8-A100-IB-NvLink
+      sla_tier: premium
+      priority: high
+      mpi: True
+      process_count_per_node: 8
+      command:
+          - ls -hl
+          - pwd
+          - python scripts/train/allreduce_test.py
+          - cd scripts/train
+          - ls -hl
+          - export NCCL_P2P_LEVEL=NVL
+          - python ds_train_advanced.py configs/phi3_audio/cascade_encoder_stage2/phiS-sqa-zh.yaml --output_dir $$AMLT_OUTPUT_DIR
+
+      submit_args:
+          container_args:
+              shm_size: 1024g
+          env:
+              NCCL_TOPO_FILE: "topology.xml"
+              NCCL_DEBUG_SUBSYS: "INIT,GRAPH"
+              NCCL_DEBUG: "INFO"
+              _AZUREML_SINGULARITY_JOB_UAI: "/subscriptions/d676d072-7cbf-4197-b2d6-17ecf38370d0/resourceGroups/Singularity-GenAI-GPU-UKSouth/providers/Microsoft.ManagedIdentity/userAssignedIdentities/genai-sing-uai"
+
+      identity: managed
