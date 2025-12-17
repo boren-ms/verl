@@ -1,0 +1,9 @@
+# ARG BASE_IMAGE=sramdevregistry.azurecr.io/jing-dev:a100_latest
+ARG BASE_IMAGE=verlai/verl:app-verl0.5-transformers4.55.4-vllm0.10.0-mcore0.13.0-te2.2
+FROM ${BASE_IMAGE}
+LABEL description="Docker image for VerL"
+
+# RUN curl -LsSf https://astral.sh/uv/install.sh | sh # for uv
+RUN pip install --upgrade pip
+COPY requirements_vllm.txt .
+RUN pip install -r requirements_vllm.txt
