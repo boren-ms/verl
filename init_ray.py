@@ -1,7 +1,4 @@
-import subprocess
 import fire
-import time
-import os
 from mpi4py import MPI
 import socket
 import ray
@@ -44,42 +41,5 @@ def init_ray(port=RAY_PORT):
     print(f"Rank {rank} connected to Ray head at {head_addr}")
 
 
-def print_env():
-    """Print environment variables."""
-    print("Environment Variables:")
-    for key, value in os.environ.items():
-        print(f"{key}={value}")
-
-
-def print_pip():
-    """Print installed pip packages."""
-    print("Installed pip packages:")
-    try:
-        import pkg_resources
-
-        installed_packages = pkg_resources.working_set
-        for dist in installed_packages:
-            print(f"{dist.project_name}=={dist.version}")
-    except ImportError:
-        print("using pip list command")
-        subprocess.run(["pip", "list"])
-
-
-def dummy_training_loop():
-    """A dummy training loop that runs indefinitely."""
-    print("Starting dummy training with endless loop...")
-    print_env()
-    print_pip()
-    init_ray()
-    step = 0
-    while True:
-        step += 1
-        print(f"Training step {step}")
-        time.sleep(1)
-
-
 if __name__ == "__main__":
-    fire.Fire(dummy_training_loop)
-
-
-# %%
+    fire.Fire(init_ray)
