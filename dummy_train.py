@@ -43,6 +43,17 @@ def init_ray(port=RAY_PORT):
 
     print(f"Rank {rank} connected to Ray head at {head_addr}")
 
+    if ray.is_initialized():
+        info = ray.cluster_resources()
+        print("Ray Cluster Resources:", info)
+        nodes = [node for node in ray.nodes() if node["Alive"]]
+        nodes = sorted(nodes, key=lambda x: x["NodeManagerHostname"])
+        print("Found nodes:")
+        for i, node in enumerate(nodes):
+            print(f" - {i}: {node['NodeManagerHostname']}[{node['NodeManagerAddress']}]")
+    else:
+        print(f"Ray is not initialized on rank[{rank}].")
+
 
 def print_env():
     """Print environment variables."""
@@ -65,14 +76,15 @@ def print_pip():
         subprocess.run(["pip", "list"])
 
 
-def dummy_training_loop():
+def dummy_training_loop(n=10):
     """A dummy training loop that runs indefinitely."""
     print("Starting dummy training with endless loop...")
     print_env()
     print_pip()
     init_ray()
+    print("Starting training loop...")
     step = 0
-    while True:
+    while step < n:
         step += 1
         print(f"Training step {step}")
         time.sleep(1)
