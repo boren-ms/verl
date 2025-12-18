@@ -27,16 +27,10 @@ def amlt_run(conf_file, node=1, job_pfx="llm", sla_tier=None, tag="safn", prepar
     job_name = "-".join([job_pfx, conf_file.stem, uuid4()])
     sku = conf.jobs[0].sku.split("x")[-1]
 
-    if "dpo" in file_stem:
-        tr_cmd = (
-            f"python trl/scripts/dpo_bias.py --config {conf_file} --job_name {job_name} --output_dir $$AMLT_OUTPUT_DIR "
-        )
-    elif "grpo" in file_stem:
-        tr_cmd = f"python trl/scripts/grpo_bias.py --config {conf_file} --job_name {job_name} --output_dir $$AMLT_OUTPUT_DIR "
-    elif file_stem.startswith("dummy"):
+    if file_stem.startswith("dummy"):
         tr_cmd = "python dummy_train.py"
     else:
-        raise ValueError(f"Unknown config file: {conf_file}")
+        tr_cmd = f"bash aml_run.sh {conf_file} "
     conf.jobs[0].name = job_name
     conf.jobs[0].sku = f"{node}x{sku}"
     for key in ["WANDB_API_KEY"]:

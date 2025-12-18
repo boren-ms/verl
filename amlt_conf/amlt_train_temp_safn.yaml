@@ -8,7 +8,7 @@ target:
 
 environment:
     registry: sramdevregistry.azurecr.io
-    image: boren_dev:trl
+    image: boren_dev:verl
     username: sramdevregistry
 
     setup:
@@ -47,9 +47,8 @@ jobs:
     command:
         - pwd
         - ls -hl
-        - pip install -r requirements.txt
         - export NCCL_P2P_LEVEL=NVL
-        - python trl/scripts/grpo_bias.py --config ls_biasing.yaml --output_dir $$AMLT_OUTPUT_DIR
+        - printenv
     submit_args:
       container_args:
         SHARED_MEMORY_PERCENT: 0.5
