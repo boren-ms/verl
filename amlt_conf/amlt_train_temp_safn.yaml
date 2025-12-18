@@ -42,7 +42,7 @@ jobs:
     sku: 8x141G8-H200-IB-NvLink
     sla_tier: premium
     priority: high
-    mpi: True
+    mpi: False
     process_count_per_node: 8
     command:
         - pwd
