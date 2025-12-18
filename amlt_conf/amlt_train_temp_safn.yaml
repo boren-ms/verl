@@ -15,6 +15,7 @@ environment:
         - set -e -o xtrace
         - pip install -e . --no-deps
         - pip install rich
+        - pip install mpi4py
 
 storage:
   output:
