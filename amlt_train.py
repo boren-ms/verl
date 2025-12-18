@@ -14,7 +14,7 @@ def uuid4():
     return short_id
 
 
-def amlt_run(conf_file, node=1, job_pfx="llm", sla_tier=None, tag="safn", prepare=False):
+def amlt_run(conf_file, node=1, job_pfx="LLM", sla_tier=None, tag="safn", prepare=False):
     """submit a job to AMLT"""
     # remove script/train from the path
     conf_file = Path(conf_file)
