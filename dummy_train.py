@@ -7,56 +7,47 @@ from mpi4py import MPI
 import socket
 import ray
 
-RAY_PORT = 6379
+def get_host_ip():
+    """Get the host IP address."""
+    hostname = socket.gethostname()
+    host_ip = socket.gethostbyname(hostname)
+    return host_ip
 
 
-def get_head_address(comm, rank, port=RAY_PORT):
-    """Get the Ray head address. Rank 0 creates it, others receive via broadcast."""
-    if rank == 0:
-        hostname = socket.gethostname()
-        host_ip = socket.gethostbyname(hostname)
-        head_addr = f"{host_ip}:{port}"
-    else:
-        head_addr = None
-
-    # Everyone learns the head address
-    head_addr = comm.bcast(head_addr, root=0)
-    return head_addr
-
-
-def init_ray(port=RAY_PORT):
+def init_ray(port=6379):
     """Initialize Ray with MPI. Rank 0 starts as head, others connect as workers."""
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     world_size = comm.Get_size()
     print(f"Initializing Ray for rank {rank} out of {world_size}...")
 
-    head_addr = get_head_address(comm, rank, port)
-    print(f"Rank {rank} got head address: {head_addr}")
-
+    head_ip = None
     # Rank 0: head
     if rank == 0:
-        print(f"Starting Ray head at rank {rank} with address {head_addr}...")
-        ray.init()
-
-    print(f"Rank {rank} waiting for head ray...")
-    comm.barrier()
-    if rank != 0 and not ray.is_initialized():
-        print(f"Connecting rank[{rank}] to Ray head at {head_addr}...")
-        ray.init(address=f"ray://{head_addr}")
-
-    print(f"Rank {rank} connected to Ray head at {head_addr}")
+        head_ip = get_host_ip()
+        print(f"[{rank}] Starting Ray head with address {head_ip}:{port}...")
+        cmd = ["ray", "start", "--head", f"--node-ip-address={head_ip}", f"--port={port}"]
+        print("cmd:", " ".join(cmd))
+        subprocess.run(cmd, check=True)
+    comm.bcast(head_ip, root=0)
+    print(f"[{rank}] obtained head IP: {head_ip}")
+    if not ray.is_initialized() and rank != 0:
+        print(f"[{rank}] Connecting to Ray head at {head_ip}:{port}...")
+        cmd = ["ray", "start", f"--address={head_ip}:{port}"]
+        print("cmd:", " ".join(cmd))
+        subprocess.run(cmd, check=True)
 
     if ray.is_initialized():
         info = ray.cluster_resources()
-        print("Ray Cluster Resources:", info)
+        print(f"[{rank}] Ray is initialized.")
+        print(f"[{rank}] Cluster Info:", info)
         nodes = [node for node in ray.nodes() if node["Alive"]]
         nodes = sorted(nodes, key=lambda x: x["NodeManagerHostname"])
-        print("Found nodes:")
+        print(f"[{rank}] Found nodes:")
         for i, node in enumerate(nodes):
             print(f" - {i}: {node['NodeManagerHostname']}[{node['NodeManagerAddress']}]")
     else:
-        print(f"Ray is not initialized on rank[{rank}].")
+        print(f"[{rank}] Ray is not initialized .")
 
 
 def print_env():
