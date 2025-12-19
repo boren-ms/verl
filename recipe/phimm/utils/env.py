@@ -96,13 +96,42 @@ class LocalEnv(EnvBase):
         }
 
 
+class AmlEnv(EnvBase):
+    """Class to manage local environment variables."""
+
+    def __init__(self):
+        """Initialize the LocalEnv class."""
+        self.hostname = socket.gethostname()
+        self.user = os.environ.get("AMLT_PROJECT_NAME", "boren")
+        data_dir = os.environ.get("data_blob", "/datablob1")
+        output_dir = os.environ.get("AMLT_OUTPUT_DIR", None)
+
+        self.data_path = Path(data_dir)
+        self.user_home_path = self.data_path / "users" / self.user
+        self.user_data_path = self.user_home_path / "data"
+        self.user_output_path = output_dir or self.user_data_path / "outputs"
+
+    def envs(self):
+        """Get the environment variables."""
+        return {
+            "DATA_PATH": str(self.data_path),
+            "USER_HOME_PATH": str(self.user_home_path),
+            "USER_DATA_PATH": str(self.user_data_path),
+            "USER_OUTPUT_PATH": str(self.user_output_path),
+        }
+
+
 class EnvMgr:
     """Class to manage environment variables."""
 
     def __init__(self):
         """Initialize the EnvMgr class."""
-
-        self.env = OrngEnv() if "RCALL_KUBE_CLUSTER" in os.environ else LocalEnv()
+        if "RCALL_KUBE_CLUSTER" in os.environ:
+            self.env = OrngEnv()
+        elif "AMLT_EXPERIMENT_NAME" in os.environ:
+            self.env = AmlEnv()
+        else:
+            self.env = LocalEnv()
         print(f"Using Env: {self.env.__class__.__name__}")
 
     def envs(self):
