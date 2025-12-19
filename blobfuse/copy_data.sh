@@ -18,7 +18,8 @@ get_sas() {
 src_storage=tsstd01wus2
 src_blob=data
 
-dst_storage=tsstd01safn
+# dst_storage=tsstd01safn
+dst_storage=highperf01safn
 dst_blob=data
 src_sas=$(get_sas ${src_storage}_${src_blob})
 dst_sas=$(get_sas ${dst_storage}_${dst_blob})
@@ -41,10 +42,8 @@ dst_sas=$(get_sas ${dst_storage}_${dst_blob})
 # src_rel_path="users/v-zhhon/en-US/chunk_dragon_display/speed_simulate_6chunk_display/${tag}/base_chunk/*"
 # # src_rel_path=users/ruchaofan/wavllm_data/wavllm/converted_path_train_data_4chunk/asr_train_transcribe.tsv
 # dst_rel_path=/home/boren/data/inhouse/entity_data/entity_chunk/${tag}/base_chunk/
-# #train-other-500
 
 
-#     # "https://${src_storage}.blob.core.windows.net/${src_blob}/${src_rel_path}?${src_sas}" \
 
 # azcopy cp --recursive=true --overwrite=false \
 # "${src_rel_path}/*" \
