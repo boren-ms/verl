@@ -65,8 +65,8 @@ specs:
   # | NO. | Locales | Audio Prompt Locale | TTS          | Delivery | Target (hrs) | Actual (hrs) | #utt    | Avg Dur (s) | Completion Rate | Domain     |
   # |-----|---------|----------------------|--------------|----------|--------------|--------------|---------|-------------|------------------|------------|
   # | 6   | en-US   | en-US               | dragon TTS   | 25-Nov   | 2500         | 2206.03      | 341,219 | 23          | 88%              | wikimedia  |
-  - manifest_file: ${oc.env:DATA_PATH}/speech/users/v-benzhao/generated_tts_data/20251121/wave2_chunk/file_set.json
-    chunk_path: ${oc.env:DATA_PATH}/speech/users/v-benzhao/generated_tts_data/20251121/wave2_chunk/ChunkFiles/
+  - manifest_file: ${oc.env:DATA_PATH}/users/v-benzhao/generated_tts_data/20251121/wave2_chunk/file_set.json
+    chunk_path: ${oc.env:DATA_PATH}/users/v-benzhao/generated_tts_data/20251121/wave2_chunk/ChunkFiles/
 
 cache_name: auto_train
 add_prompt:
