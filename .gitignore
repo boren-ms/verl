@@ -127,3 +127,5 @@ log
 outputs
 .history
 .env_done
+# amlt temp 
+amlt_conf/tmp_*
