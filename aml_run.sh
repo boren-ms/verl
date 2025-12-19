@@ -28,7 +28,7 @@ fi
 
 echo "[${hostname}] Running ${config_name} ..."
 ray job submit --working-dir="${cwd}"  \
-python3 -m ${module} \
+python -m ${module} \
 --config-name "${config_name}" \
 trainer.experiment_name="${config_name}" 
 
