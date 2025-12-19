@@ -1,6 +1,6 @@
 - dataset_name: ls_bias
   num_egs: 10
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
   post_process:
     add_field:
       fields:
@@ -10,10 +10,10 @@
     path_map:
       field: audio_path
       src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
-      dst_part: ${oc.env:DATA_PATH}/boren/data/
+      dst_part: ${oc.env:DATA_PATH}/users/boren/data/
 - dataset_name: ls_bias
   num_egs: 20
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
   post_process:
     add_field:
       fields:
@@ -23,4 +23,4 @@
     path_map:
       field: audio_path
       src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
-      dst_part: ${oc.env:DATA_PATH}/boren/data/
+      dst_part: ${oc.env:DATA_PATH}/users/boren/data/

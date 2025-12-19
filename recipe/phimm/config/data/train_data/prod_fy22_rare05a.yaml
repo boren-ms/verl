@@ -1,5 +1,5 @@
 dataset_name: cached
-cache_path: ${oc.env:DATA_PATH}/boren/data/cache_datasets/hcv2_fy22_info_tag/
+cache_path: ${oc.env:DATA_PATH}/users/boren/data/cache_datasets/hcv2_fy22_info_tag/
 num_proc: auto
 cache_name: auto_train
 pre_process:
@@ -10,8 +10,8 @@ pre_process:
   filter_by_keywords:
     min_num: 1
 add_rare_keywords:
-  # common_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_words.count.txt
-  common_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/1grams_english.tsv
+  # common_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/1grams_english.tsv
   common_num: 10000
   rare_ratio: 0.5
 add_prompt:

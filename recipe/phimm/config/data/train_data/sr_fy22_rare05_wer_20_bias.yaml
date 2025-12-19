@@ -1,5 +1,5 @@
 dataset_name: parquet
-parquet_paths: ${oc.env:DATA_PATH}/boren/data/cache_datasets/gen_prod_fy22_phi4_7b_wer_20/part-*.parquet
+parquet_paths: ${oc.env:DATA_PATH}/users/boren/data/cache_datasets/gen_prod_fy22_phi4_7b_wer_20/part-*.parquet
 num_proc: auto
 cache_name: auto_train
 pre_process:
@@ -21,7 +21,7 @@ biasing:
   sampling_version: v2
   hit_ratio: [0.9, 1.0]
   log_interval: 10000 # print biasing every 10000 samples
-  common_word_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_word_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_words.count.txt
   common_word_num: 1000
 
 post_process:

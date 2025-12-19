@@ -1,6 +1,6 @@
 - dataset_name: ls_bias
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   cache_name: auto_clean_0
   post_process:
       add_field:
@@ -9,8 +9,8 @@
       verl_format:
           prompt_key: prompt
 - dataset_name: ls_bias
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   cache_name: auto_other_0
   post_process:
       add_field:
@@ -26,10 +26,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_Insurance
   post_process:
@@ -39,10 +39,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_K12HigherEdu
   post_process:
@@ -52,10 +52,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_Retail
   post_process:
@@ -65,10 +65,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_ScienceTech
   post_process:
@@ -78,10 +78,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_Gaming
   post_process:
@@ -91,10 +91,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 100
 - cache_name: auto_entity_Insurance
   post_process:
@@ -104,10 +104,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 100
 - cache_name: auto_entity_K12HigherEdu
   post_process:
@@ -117,10 +117,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 100
 - cache_name: auto_entity_Retail
   post_process:
@@ -130,10 +130,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 100
 - cache_name: auto_entity_ScienceTech
   post_process:
@@ -143,10 +143,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 100
 - cache_name: auto_entity_Gaming
   post_process:
@@ -156,10 +156,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 500
 - cache_name: auto_entity_Insurance
   post_process:
@@ -169,10 +169,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 500
 - cache_name: auto_entity_K12HigherEdu
   post_process:
@@ -182,10 +182,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 500
 - cache_name: auto_entity_Retail
   post_process:
@@ -195,10 +195,10 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 500
 - cache_name: auto_entity_ScienceTech
   post_process:
@@ -208,8 +208,8 @@
       verl_format:
           prompt_key: prompt
   dataset_name: inhouse_entity
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  data_dir: ${oc.env:DATA_PATH}/users/boren/data/
   src_dir: /home/boren/data/
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
-  distractor_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_rare_words.txt
+  jsonl_path: ${oc.env:DATA_PATH}/users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: ${oc.env:DATA_PATH}/users/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 500
