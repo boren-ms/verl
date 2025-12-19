@@ -25,38 +25,37 @@ def run_cmd(cmd):
     return result.returncode, result.stdout.strip()
 
 
+def print_ray_info(rank_str):
+    ray.init(address="auto")
+    info = ray.cluster_resources()
+    print(f"[{rank_str}] Cluster Info:", info)
+    nodes = [node for node in ray.nodes() if node["Alive"]]
+    nodes = sorted(nodes, key=lambda x: x["NodeManagerHostname"])
+    print(f"[{rank_str}] Found nodes:")
+    for i, node in enumerate(nodes):
+        print(f" - {i}: {node['NodeManagerHostname']}[{node['NodeManagerAddress']}]")
+
+
 def init_ray(port=6379):
     """Initialize Ray with MPI. Rank 0 starts as head, others connect as workers."""
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     world_size = comm.Get_size()
+    rank_str = f"{rank}/{world_size}"
     hostname = socket.gethostname()
 
-    print(f"[{rank}] Host name: {hostname}")
-    print(f"Initializing Ray for rank {rank} out of {world_size}...")
+    print(f"[{rank_str}] Host name: {hostname}")
     if rank == 0:
-        print(f"[{rank}] Starting Ray head on {hostname}:{port}...")
-        run_cmd(f"ray start --head --port={port}")
-        run_cmd("ray status")
-    else:
+        print(f"[{rank_str}] Starting Ray head on {hostname}:{port}...")
+        run_cmd(f"ray start --head --port={port} --disable-usage-stats")
+    comm.barrier()  # wait for head to start
+    if rank != 0:
         head_host = "node-0"
-        print(f"[{rank}] Connecting to Ray at {head_host}:{port}...")
+        print(f"[{rank_str}] Connecting to Ray at {head_host}:{port}...")
         run_cmd(f"ray start --address={head_host}:{port}")
-        run_cmd("ray status")
-
     comm.barrier()  # Ensure all ranks have started Ray
-    ray.init(address="auto")
-    if ray.is_initialized():
-        info = ray.cluster_resources()
-        print(f"[{rank}] Ray is initialized.")
-        print(f"[{rank}] Cluster Info:", info)
-        nodes = [node for node in ray.nodes() if node["Alive"]]
-        nodes = sorted(nodes, key=lambda x: x["NodeManagerHostname"])
-        print(f"[{rank}] Found nodes:")
-        for i, node in enumerate(nodes):
-            print(f" - {i}: {node['NodeManagerHostname']}[{node['NodeManagerAddress']}]")
-    else:
-        print(f"[{rank}] Ray is not initialized .")
+    run_cmd("ray status")
+    print_ray_info(rank_str)
 
 
 def print_env():
