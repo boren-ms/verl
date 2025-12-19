@@ -1,3 +1,4 @@
+# %%
 import subprocess
 import fire
 import time
@@ -12,8 +13,9 @@ RAY_PORT = 6379
 def get_head_address(comm, rank, port=RAY_PORT):
     """Get the Ray head address. Rank 0 creates it, others receive via broadcast."""
     if rank == 0:
-        host = socket.gethostname()
-        head_addr = f"{host}:{port}"
+        hostname = socket.gethostname()
+        host_ip = socket.gethostbyname(hostname)
+        head_addr = f"{host_ip}:{port}"
     else:
         head_addr = None
 
@@ -30,16 +32,18 @@ def init_ray(port=RAY_PORT):
     print(f"Initializing Ray for rank {rank} out of {world_size}...")
 
     head_addr = get_head_address(comm, rank, port)
+    print(f"Rank {rank} got head address: {head_addr}")
 
     # Rank 0: head
     if rank == 0:
-        print("Starting Ray head...")
+        print(f"Starting Ray head at rank {rank} with address {head_addr}...")
         ray.init()
-    elif not ray.is_initialized():  # same node
+
+    print(f"Rank {rank} waiting for head ray...")
+    comm.barrier()
+    if rank != 0 and not ray.is_initialized():
         print(f"Connecting rank[{rank}] to Ray head at {head_addr}...")
         ray.init(address=f"ray://{head_addr}")
-    else:
-        print(f"Ray already initialized for rank[{rank}]")
 
     print(f"Rank {rank} connected to Ray head at {head_addr}")
 
