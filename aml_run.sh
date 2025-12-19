@@ -28,11 +28,9 @@ fi
 
 echo "[${hostname}] Running ${config_name} ..."
 ray job submit --working-dir="${cwd}"  \
---no-wait -- \
 python3 -m ${module} \
 --config-name "${config_name}" \
-trainer.experiment_name="${config_name}" \
-2>&1 | tee "${config_name}.log"
+trainer.experiment_name="${config_name}" 
 
 echo "[${hostname}] Finished ${config_name}."
 popd > /dev/null
