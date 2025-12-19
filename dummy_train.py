@@ -21,7 +21,8 @@ def run_cmd(cmd):
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"Command failed: {cmd}\n{result.stderr}")
-    return result.stdout.strip()
+    print(result.stdout.strip())
+    return result.returncode, result.stdout.strip()
 
 
 def init_ray(port=6379):
@@ -44,6 +45,7 @@ def init_ray(port=6379):
         run_cmd("ray status")
 
     comm.barrier()  # Ensure all ranks have started Ray
+    ray.init(address="auto")
     if ray.is_initialized():
         info = ray.cluster_resources()
         print(f"[{rank}] Ray is initialized.")
