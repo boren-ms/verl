@@ -7,11 +7,21 @@ from mpi4py import MPI
 import socket
 import ray
 
+
 def get_host_ip():
     """Get the host IP address."""
     hostname = socket.gethostname()
     host_ip = socket.gethostbyname(hostname)
     return host_ip
+
+
+def run_cmd(cmd):
+    """Run a shell command and return its output."""
+    print(f"Running command: {cmd}")
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd}\n{result.stderr}")
+    return result.stdout.strip()
 
 
 def init_ray(port=6379):
@@ -26,17 +36,18 @@ def init_ray(port=6379):
     if rank == 0:
         head_ip = get_host_ip()
         print(f"[{rank}] Starting Ray head with address {head_ip}:{port}...")
-        cmd = ["ray", "start", "--head", f"--node-ip-address={head_ip}", f"--port={port}"]
-        print("cmd:", " ".join(cmd))
-        subprocess.run(cmd, check=True)
+        run_cmd(f"ray start --head --port={port}")
+        run_cmd("ray status")
+
     comm.bcast(head_ip, root=0)
+    comm.barrier()
     print(f"[{rank}] obtained head IP: {head_ip}")
     if not ray.is_initialized() and rank != 0:
         print(f"[{rank}] Connecting to Ray head at {head_ip}:{port}...")
-        cmd = ["ray", "start", f"--address={head_ip}:{port}"]
-        print("cmd:", " ".join(cmd))
-        subprocess.run(cmd, check=True)
+        run_cmd(f"ray start --address={head_ip}:{port}")
+        run_cmd("ray status")
 
+    comm.barrier()  # Ensure all ranks have started Ray
     if ray.is_initialized():
         info = ray.cluster_resources()
         print(f"[{rank}] Ray is initialized.")
