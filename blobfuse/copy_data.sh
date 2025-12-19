@@ -39,15 +39,22 @@ dst_sas=$(get_sas ${dst_storage}_${dst_blob})
 # # tag=Retail_26k
 # # tag=Science_And_Tech_48k
 # # tag=Insurance_16k
-# src_rel_path="users/v-zhhon/en-US/chunk_dragon_display/speed_simulate_6chunk_display/${tag}/base_chunk/*"
-# # src_rel_path=users/ruchaofan/wavllm_data/wavllm/converted_path_train_data_4chunk/asr_train_transcribe.tsv
+# src_rel_path="/home/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3"
+# dst_rel_path="users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3"
+# src_rel_path="/home/boren/data/librispeech_biasing"
+# dst_rel_path="users/boren/data/librispeech_biasing"
+src_rel_path="/home/boren/data/inhouse/entity_data/entity_chunk"
+dst_rel_path="users/boren/data/inhouse/entity_data/entity_chunk"
+# src_rel_path="/home/boren/data/LibriSpeech/asr_train_transcribe.tsv"
+# dst_rel_path="users/boren/data/LibriSpeech/asr_train_transcribe.tsv"
+# src_rel_path="/home/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4"
+# dst_rel_path="users/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4"
 # dst_rel_path=/home/boren/data/inhouse/entity_data/entity_chunk/${tag}/base_chunk/
 
 
-
-# azcopy cp --recursive=true --overwrite=false \
-# "${src_rel_path}/*" \
-# "https://${dst_storage}.blob.core.windows.net/${dst_blob}/${dst_rel_path}?${dst_sas}"
+azcopy cp --recursive=true --overwrite=false \
+"${src_rel_path}/*" \
+"https://${dst_storage}.blob.core.windows.net/${dst_blob}/${dst_rel_path}?${dst_sas}"
 
 # azcopy cp --recursive=true --overwrite=false --include-pattern "*.audio;*.transcription;*.json"  \
 # "https://${src_storage}.blob.core.windows.net/${src_blob}/${src_rel_path}?${src_sas}" \
@@ -55,11 +62,11 @@ dst_sas=$(get_sas ${dst_storage}_${dst_blob})
 
 
 # /home/boren/
-src_rel_path="users/v-zhhon/en-US/chunk_dragon_display"
-dst_rel_path="users/v-zhhon/en-US/chunk_dragon_display"
-azcopy cp --recursive=true --overwrite=true \
-    "https://${src_storage}.blob.core.windows.net/${src_blob}/${src_rel_path}/*?${src_sas}" \
-    "https://${dst_storage}.blob.core.windows.net/${dst_blob}/${dst_rel_path}?${dst_sas}"
+# src_rel_path="users/v-zhhon/en-US/chunk_dragon_display"
+# dst_rel_path="users/v-zhhon/en-US/chunk_dragon_display"
+# azcopy cp --recursive=true --overwrite=true \
+#     "https://${src_storage}.blob.core.windows.net/${src_blob}/${src_rel_path}/*?${src_sas}" \
+#     "https://${dst_storage}.blob.core.windows.net/${dst_blob}/${dst_rel_path}?${dst_sas}"
 
 
 # dst_dir=/home/boren/data/tts_gen/egs/

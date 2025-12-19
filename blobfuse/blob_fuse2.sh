@@ -2,9 +2,9 @@
 
 # Array of storage accounts
 accounts=(
-    # tsstd01uks
-    # tsstd01wus2
-    # tsstd01safn
+    tsstd01uks
+    tsstd01wus2
+    tsstd01safn
     highperf01safn
 
     # zettaprod01eus2
