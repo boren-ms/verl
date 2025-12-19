@@ -10,6 +10,7 @@ import pandas as pd
 import string
 from pathlib import Path
 import sys
+
 sys.path.insert(0, str(Path(__file__).parents[3]))
 from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
@@ -61,7 +62,7 @@ def read_word_count(file_path, num=None, tn_name=None):
                 break
             parts = line.split()
             word = text_norm(parts[0], tn_name)
-            cnt = to_int(parts[1] , 0) if len(parts) > 1 else 0
+            cnt = to_int(parts[1], 0) if len(parts) > 1 else 0
             wd_cnt[word] += cnt
     return wd_cnt
 
@@ -109,6 +110,7 @@ def jsonl_dataset(jsonl_paths, **kwargs):
     ds = load_dataset("json", data_files=fs_files, split="train", storage_options=options)
     ds = stream_shuffle(ds, **kwargs)
     return ds
+
 
 def parquet_dataset(parquet_paths, **kwargs):
     """Load a Parquet dataset from the specified paths."""
@@ -159,9 +161,7 @@ def pop_map_kwargs(kwargs):
     return output
 
 
-def ls_bias_dataset(
-    jsonl_path, bias_key=None, with_gt=False, min_word_len=None, bias_sort=False, tag="*", data_dir=None, **kwargs
-):
+def ls_bias_dataset(jsonl_path, bias_key=None, with_gt=False, min_word_len=None, bias_sort=False, tag="*", data_dir=None, **kwargs):
     """Create a dataset from the given split."""
     ds = jsonl_dataset(jsonl_path, **kwargs)
 
@@ -259,6 +259,7 @@ def entity_dataset(
 
     return ds.map(load_sample, **pop_map_kwargs(kwargs))
 
+
 def audio_dir_dataset(data_dir, **kwargs):
     """Load audio files from a directory."""
     examples = []
@@ -268,11 +269,14 @@ def audio_dir_dataset(data_dir, **kwargs):
             continue
         with bf.BlobFile(text_file, "r") as f:
             trans = f.read().strip()
-        examples.append({
-            "audio_path": audio_file,
-            "text": trans,
-        })
+        examples.append(
+            {
+                "audio_path": audio_file,
+                "text": trans,
+            }
+        )
     return Dataset.from_list(examples)
+
 
 def load_tsv(tsv_file, **kwargs):
     """Load a TSV file into a dataset."""
@@ -287,8 +291,6 @@ def load_tsv(tsv_file, **kwargs):
         column_names=["id", "paths", "msgs"],
         storage_options=options,
     )
-    tsv_dir = tsv_file.rsplit("/", 1)[0]  # get the directory of the tsv file, do not use os.path
-    ds = ds.map(lambda x: {"dir": tsv_dir}, **pop_map_kwargs(kwargs))
     return ds
 
 
@@ -304,8 +306,6 @@ def tsv_dataset(tsv_paths, **kwargs):
     def load_sample(egs):
         """Process a single sample."""
         audio_path = ast.literal_eval(egs["paths"])[0]
-        if egs["dir"]:
-            audio_path = audio_path.replace("/root/data/LibriSpeech", egs["dir"])
         messages = ast.literal_eval(egs["msgs"])[0]["messages"]
         x = {
             "prompt": prompt_format.format("Transcribe the audio clip into text."),
@@ -478,9 +478,7 @@ def extract_tags(text):
 
 def add_tag_keywords(ds, **kwargs):
     """Add keywords extracted from tags in the text to the dataset."""
-    src_field = kwargs.get(
-        "src_field", "info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw"
-    )
+    src_field = kwargs.get("src_field", "info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw")
     tgt_field = kwargs.get("tgt_field", "keywords")
 
     def tag_keywords(egs):
@@ -532,8 +530,8 @@ def filter_by_wer(ds, **kwargs):
             if name not in x:
                 continue
             return x[name]
-        return default  
-    
+        return default
+
     def is_good(val, val_range=None):
         if val_range is None or val is None:
             return True
@@ -541,11 +539,7 @@ def filter_by_wer(ds, **kwargs):
         return val_range[0] <= val <= val_range[-1]
 
     def wer_filter_fn(x):
-        good = (
-            is_good(get_number(x, "WER"), wer_range)
-            and is_good(get_number(x, "BWER"), bwer_range)
-            and is_good(get_number(x, "UWER"), uwer_range)
-        )
+        good = is_good(get_number(x, "WER"), wer_range) and is_good(get_number(x, "BWER"), bwer_range) and is_good(get_number(x, "UWER"), uwer_range)
         return good
 
     n_egs = len(ds)
