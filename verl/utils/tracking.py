@@ -68,12 +68,12 @@ class Tracking:
             if config and config["trainer"].get("wandb_proxy", None):
                 settings = wandb.Settings(https_proxy=config["trainer"]["wandb_proxy"])
             key = config["trainer"].get("wandb_api_key", None)
-            host = config["trainer"].get("wandb_organization", "https://msaip.wandb.io")
+            host = config["trainer"].get("wandb_organization", "https://wandb.ai")
             key = os.environ.get("WANDB_API_KEY", key)
             host = os.environ.get("WANDB_ORGANIZATION", host)
             print("Logging WANDB host:", host)
             wandb.login(host=host, key=key, relogin=True)  # relogin to make sure the key is used
-            entity = os.environ.get("WANDB_ENTITY", "genai")
+            entity = os.environ.get("WANDB_ENTITY", "ms-speech")
             wandb.init(entity=entity, project=project_name, name=experiment_name, config=config, settings=settings)
             self.logger["wandb"] = wandb
 
@@ -221,8 +221,7 @@ class ClearMLLogger:
                 )
             else:
                 logger.warning(
-                    f'Trainer is attempting to log a value of "{v}" of type {type(v)} for key "{k}". This '
-                    f"invocation of ClearML logger's function is incorrect so this attribute was dropped. "
+                    f'Trainer is attempting to log a value of "{v}" of type {type(v)} for key "{k}". This invocation of ClearML logger\'s function is incorrect so this attribute was dropped. '
                 )
 
     def finish(self):
@@ -348,9 +347,7 @@ class ValidationGenerationsLogger:
         """Log samples to wandb as a table"""
 
         # Create column names for all samples
-        columns = ["step"] + sum(
-            [[f"input_{i + 1}", f"output_{i + 1}", f"score_{i + 1}"] for i in range(len(samples))], []
-        )
+        columns = ["step"] + sum([[f"input_{i + 1}", f"output_{i + 1}", f"score_{i + 1}"] for i in range(len(samples))], [])
 
         if not hasattr(self, "validation_table"):
             # Initialize the table on first call
