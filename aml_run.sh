@@ -5,9 +5,18 @@ config_file=$1
 
 config_base=$(basename "$config_file")
 config_name=${config_base%.*}
+hostname=$(hostname)
+
+echo "[${hostname}] Setting up AML environment ..."
+python setup_aml_env.py --log_env True --log_pip True
+
+if [[ "$hostname" != "node-0" ]]; then
+    echo "[${hostname}] This script should be run on node-0 only. "
+    exit 0
+fi
 
 cwd="$(dirname $(readlink -f $0))"
-echo "Current working directory: ${cwd}"
+echo "[${hostname}] Current working directory: ${cwd}"
 pushd "$cwd" > /dev/null
 
 
@@ -17,11 +26,7 @@ if [[ "$config_name" == gen_* ]]; then
     module="recipe.phimm.main_asr_gen"
 fi
 
-# bash quick_install.sh # prepare on local node only
-# echo "[INFO] Preparing environment ..."
-# python3 ray_tool.py prepare_env # prepare on all ray nodes
-
-echo "[INFO] Running ${config_name} ..."
+echo "[${hostname}] Running ${config_name} ..."
 ray job submit --working-dir="${cwd}"  \
 --no-wait -- \
 python3 -m ${module} \
@@ -29,5 +34,5 @@ python3 -m ${module} \
 trainer.experiment_name="${config_name}" \
 2>&1 | tee "${config_name}.log"
 
-echo "[INFO] Finished ${config_name}."
+echo "[${hostname}] Finished ${config_name}."
 popd > /dev/null
