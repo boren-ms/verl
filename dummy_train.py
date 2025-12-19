@@ -29,22 +29,18 @@ def init_ray(port=6379):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     world_size = comm.Get_size()
-    print(f"Initializing Ray for rank {rank} out of {world_size}...")
+    hostname = socket.gethostname()
 
-    head_ip = None
-    # Rank 0: head
+    print(f"[{rank}] Host name: {hostname}")
+    print(f"Initializing Ray for rank {rank} out of {world_size}...")
     if rank == 0:
-        head_ip = get_host_ip()
-        print(f"[{rank}] Starting Ray head with address {head_ip}:{port}...")
+        print(f"[{rank}] Starting Ray head on {hostname}:{port}...")
         run_cmd(f"ray start --head --port={port}")
         run_cmd("ray status")
-
-    comm.bcast(head_ip, root=0)
-    comm.barrier()
-    print(f"[{rank}] obtained head IP: {head_ip}")
-    if not ray.is_initialized() and rank != 0:
-        print(f"[{rank}] Connecting to Ray head at {head_ip}:{port}...")
-        run_cmd(f"ray start --address={head_ip}:{port}")
+    else:
+        head_host = "node-0"
+        print(f"[{rank}] Connecting to Ray at {head_host}:{port}...")
+        run_cmd(f"ray start --address={head_host}:{port}")
         run_cmd("ray status")
 
     comm.barrier()  # Ensure all ranks have started Ray
