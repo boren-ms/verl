@@ -31,7 +31,7 @@ actor_rollout_ref:
     kl_loss_coef: 0.001
     kl_loss_type: low_var_kl
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+    path: ${oc.env:DATA_PATH}/users/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
 data:
   max_prompt_length: 6000

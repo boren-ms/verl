@@ -34,7 +34,7 @@ actor_rollout_ref:
     loss_agg_mode: seq-mean-token-sum-norm
 
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
+    path: ${oc.env:DATA_PATH}/users/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
 
 data:
   train_batch_size: 64

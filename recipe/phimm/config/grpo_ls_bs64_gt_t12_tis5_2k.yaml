@@ -31,7 +31,7 @@ actor_rollout_ref:
     # ppo_micro_batch_size_per_gpu: 8
 
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+    path: ${oc.env:DATA_PATH}/users/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 data:
   train_batch_size: 64
 trainer:

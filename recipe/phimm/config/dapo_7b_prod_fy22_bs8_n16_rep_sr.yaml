@@ -19,7 +19,7 @@ custom_reward_function:
 
 actor_rollout_ref:
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+    path: ${oc.env:DATA_PATH}/users/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
   rollout:
     n: 16
 
