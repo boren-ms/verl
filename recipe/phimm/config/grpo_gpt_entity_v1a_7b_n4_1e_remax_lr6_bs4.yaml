@@ -36,6 +36,7 @@ algorithm:
     adv_estimator: remax
 data:
     train_batch_size: 256
+    val_batch_size: 4096
 trainer:
     nnodes: 1
     total_epochs: 1 # 24 step per epoch
