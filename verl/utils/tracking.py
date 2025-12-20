@@ -68,7 +68,7 @@ class Tracking:
             if config and config["trainer"].get("wandb_proxy", None):
                 settings = wandb.Settings(https_proxy=config["trainer"]["wandb_proxy"])
             key = config["trainer"].get("wandb_api_key", None)
-            host = config["trainer"].get("wandb_organization", "https://wandb.ai")
+            host = config["trainer"].get("wandb_organization", "https://api.wandb.ai")
             key = os.environ.get("WANDB_API_KEY", key)
             host = os.environ.get("WANDB_ORGANIZATION", host)
             print("Logging WANDB host:", host)

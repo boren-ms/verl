@@ -82,7 +82,7 @@ def get_run_result(runs, prefix="metric", name=None, min_step=None):
 
 class WandbChecker:
     def __init__(self, entity=None, project=None, metric="val-aux", dataset=None, excel_dir=None, scale=100.0):
-        self.host = os.environ.get("WANDB_ORGANIZATION", "https://wandb.ai")
+        self.host = os.environ.get("WANDB_ORGANIZATION", "https://api.wandb.ai")
         self.entity = entity or os.environ.get("WANDB_ENTITY", "ms-speech")
         self.project = project or os.environ.get("WANDB_PROJECT", "verl_asr")
         key = os.environ.get("WANDB_API_KEY", "")
