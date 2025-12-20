@@ -136,7 +136,8 @@ def update_dir(data_path, src_dir=None, dst_dir=None):
 def get_num_proc(num_proc):
     if num_proc == "auto":
         n_cpu = os.cpu_count()
-        n_proc = max(dist_state().num_processes, 2)
+        # n_proc = max(dist_state().num_processes, 2)
+        n_proc = 8
         num_proc = int(n_cpu / n_proc)
     return num_proc
 

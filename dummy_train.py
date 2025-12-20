@@ -58,6 +58,14 @@ def init_ray(port=6379):
     print_ray_info(rank_str)
 
 
+def print_accelerate_info():
+    """Print information about the Accelerate library and devices."""
+    from accelerate import PartialState
+
+    state = PartialState()
+    print("Accelerate State:", state)
+
+
 def print_env():
     """Print environment variables."""
     print("Environment Variables:")
@@ -85,6 +93,7 @@ def dummy_training_loop(n=10):
     print_env()
     print_pip()
     init_ray()
+    print_accelerate_info()
     print("Starting training loop...")
     step = 0
     while step < n:
