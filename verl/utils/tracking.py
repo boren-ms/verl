@@ -250,6 +250,13 @@ class FileLogger:
         self.fp.close()
 
 
+def to_float(value, default=None):
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+
 class _TensorboardAdapter:
     def __init__(self, project_name, experiment_name):
         import os
@@ -263,7 +270,10 @@ class _TensorboardAdapter:
 
     def log(self, data, step):
         for key in data:
-            self.writer.add_scalar(key, data[key], step)
+            value = to_float(data[key], default=None)
+            if value is None:
+                continue
+            self.writer.add_scalar(key, value, step)
 
     def finish(self):
         self.writer.close()
@@ -347,7 +357,9 @@ class ValidationGenerationsLogger:
         """Log samples to wandb as a table"""
 
         # Create column names for all samples
-        columns = ["step"] + sum([[f"input_{i + 1}", f"output_{i + 1}", f"score_{i + 1}"] for i in range(len(samples))], [])
+        columns = ["step"] + sum(
+            [[f"input_{i + 1}", f"output_{i + 1}", f"score_{i + 1}"] for i in range(len(samples))], []
+        )
 
         if not hasattr(self, "validation_table"):
             # Initialize the table on first call
