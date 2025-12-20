@@ -43,8 +43,10 @@ dst_sas=$(get_sas ${dst_storage}_${dst_blob})
 # dst_rel_path="users/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3"
 # src_rel_path="/home/boren/data/librispeech_biasing"
 # dst_rel_path="users/boren/data/librispeech_biasing"
-src_rel_path="/home/boren/data/inhouse/entity_data/entity_chunk"
-dst_rel_path="users/boren/data/inhouse/entity_data/entity_chunk"
+# src_rel_path="/home/boren/data/inhouse/entity_data/entity_chunk"
+# dst_rel_path="users/boren/data/inhouse/entity_data/entity_chunk"
+src_rel_path="/home/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf"
+dst_rel_path="users/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf"
 # src_rel_path="/home/boren/data/LibriSpeech/asr_train_transcribe.tsv"
 # dst_rel_path="users/boren/data/LibriSpeech/asr_train_transcribe.tsv"
 # src_rel_path="/home/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4"
@@ -62,8 +64,8 @@ azcopy cp --recursive=true --overwrite=false \
 
 
 # /home/boren/
-# src_rel_path="users/v-zhhon/en-US/chunk_dragon_display"
-# dst_rel_path="users/v-zhhon/en-US/chunk_dragon_display"
+# src_rel_path="users/v-benzhao/generated_tts_data/20251121/wave2_chunk"
+# dst_rel_path="users/v-benzhao/generated_tts_data/20251121/wave2_chunk"
 # azcopy cp --recursive=true --overwrite=true \
 #     "https://${src_storage}.blob.core.windows.net/${src_blob}/${src_rel_path}/*?${src_sas}" \
 #     "https://${dst_storage}.blob.core.windows.net/${dst_blob}/${dst_rel_path}?${dst_sas}"
