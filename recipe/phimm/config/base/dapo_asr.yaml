@@ -96,7 +96,7 @@ reward_model:
 
 trainer:
     project_name: verl_asr
-    logger: ["console", "wandb"]
+    logger: ["console", "wandb", "tensorboard"]
     experiment_name: dapo-phimm-test
     n_gpus_per_node: 8
     ngpus: ${eval:${trainer.n_gpus_per_node}*${trainer.nnodes}}
