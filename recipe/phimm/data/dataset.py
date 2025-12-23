@@ -883,33 +883,33 @@ def save_cached_ds(ds, cache_path):
 def create_audio_dataset(**kwargs):
     """Create a dataset from the given split."""
     ds_name = kwargs.get("dataset_name", "unknown").lower()
-    with dist_state().local_main_process_first():
-        ds, cache_path = cache_ds(**kwargs)
-        if ds is not None:
-            return ds
-        if ds_name == "ls_bias":
-            ds = ls_bias_dataset(**kwargs)
-        elif ds_name == "inhouse_entity":
-            ds = entity_dataset(**kwargs)
-        elif ds_name == "openasr":
-            ds = openasr_dataset(**kwargs)
-        elif ds_name == "tsv":
-            ds = tsv_dataset(**kwargs)
-        elif ds_name == "jsonl":
-            ds = jsonl_dataset(**kwargs)
-        elif ds_name == "parquet":
-            ds = parquet_dataset(**kwargs)
-        elif ds_name == "chunk":
-            ds = chunk_dataset(**kwargs)
-        elif ds_name == "audio_dir":
-            ds = audio_dir_dataset(**kwargs)
-        elif ds_name == "cached":
-            ds = load_cached_ds(kwargs.get("cache_path", None))
-            assert ds is not None, "Cached dataset not found."
-        else:
-            raise ValueError(f"Unknown dataset name: {ds_name}")
-        ds = augment(ds, **kwargs)
-        save_cached_ds(ds, cache_path)
+    # with dist_state().local_main_process_first():
+    ds, cache_path = cache_ds(**kwargs)
+    if ds is not None:
+        return ds
+    if ds_name == "ls_bias":
+        ds = ls_bias_dataset(**kwargs)
+    elif ds_name == "inhouse_entity":
+        ds = entity_dataset(**kwargs)
+    elif ds_name == "openasr":
+        ds = openasr_dataset(**kwargs)
+    elif ds_name == "tsv":
+        ds = tsv_dataset(**kwargs)
+    elif ds_name == "jsonl":
+        ds = jsonl_dataset(**kwargs)
+    elif ds_name == "parquet":
+        ds = parquet_dataset(**kwargs)
+    elif ds_name == "chunk":
+        ds = chunk_dataset(**kwargs)
+    elif ds_name == "audio_dir":
+        ds = audio_dir_dataset(**kwargs)
+    elif ds_name == "cached":
+        ds = load_cached_ds(kwargs.get("cache_path", None))
+        assert ds is not None, "Cached dataset not found."
+    else:
+        raise ValueError(f"Unknown dataset name: {ds_name}")
+    ds = augment(ds, **kwargs)
+    save_cached_ds(ds, cache_path)
     return ds
 
 
