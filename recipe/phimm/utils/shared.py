@@ -1,5 +1,4 @@
 import os
-from mpi4py import MPI
 import uuid
 import blobfile as bf
 import subprocess
@@ -177,22 +176,11 @@ def rank_print(*args, main=True, **kwargs):
 
 
 def get_rank():
-    try:
-        return MPI.COMM_WORLD.Get_rank()
-    except Exception:
-        return int(os.environ.get("RANK", 0))
-
-
-def get_local_rank(node_size=8):
-    rank = get_rank()
-    return rank % node_size
+    return int(os.environ.get("RANK", 0))
 
 
 def get_world_size():
-    try:
-        return MPI.COMM_WORLD.Get_size()
-    except Exception:
-        return int(os.environ.get("WORLD_SIZE", 1)) * 8  # WORLD SIZE is number of nodes
+    return int(os.environ.get("WORLD_SIZE", 1)) * 8  # WORLD SIZE is number of nodes
 
 
 def all_rank_print(*args, **kwargs):
