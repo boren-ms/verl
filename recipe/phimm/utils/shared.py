@@ -1,3 +1,4 @@
+from mpi4py import MPI
 import uuid
 import blobfile as bf
 import subprocess
@@ -7,6 +8,8 @@ import functools
 import hashlib
 import importlib.metadata
 from collections.abc import Sequence
+import contextlib
+import threading
 
 
 def is_package_version(package_name, target_version):
@@ -168,16 +171,39 @@ def get_values(lst, key, default=None):
 
 
 def rank_print(*args, main=True, **kwargs):
-    if main and not dist_state().is_main_process:
+    rank = get_rank()
+    if main and rank != 0:
         return
-    rank = dist_state().process_index
     print(f"[{rank}]", *args, **kwargs)
 
 
-def dist_state():
-    from accelerate import PartialState
+def get_rank():
+    return MPI.COMM_WORLD.Get_rank()
 
-    return PartialState()
+
+def get_local_rank(node_size=8):
+    rank = get_rank()
+    return rank % node_size
+
+
+def get_world_size():
+    return MPI.COMM_WORLD.Get_size()
+
+
+@contextlib.contextmanager
+def local_main_process_first():
+    """A context manager to ensure the local main process runs first."""
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    node_size = 8  # assuming 8 GPUs per node
+    local_rank = rank % node_size
+    if local_rank != 0:
+        comm.barrier()
+    try:
+        yield
+    finally:
+        if local_rank == 0:
+            comm.barrier()
 
 
 def all_rank_print(*args, **kwargs):

@@ -23,7 +23,9 @@ from recipe.phimm.utils.shared import (
     hash_id,
     get_value,
     rank_print,
-    dist_state,
+    get_rank,
+    get_world_size,
+    local_main_process_first,
     all_rank_print,
     to_list,
     is_list,
@@ -136,8 +138,7 @@ def update_dir(data_path, src_dir=None, dst_dir=None):
 def get_num_proc(num_proc):
     if num_proc == "auto":
         n_cpu = os.cpu_count()
-        # n_proc = max(dist_state().num_processes, 2)
-        n_proc = 8
+        n_proc = max(get_world_size(), 2)
         num_proc = int(n_cpu / n_proc)
     return num_proc
 
@@ -553,7 +554,7 @@ def stream_shuffle(ds, **kwargs):
     """Process the dataset."""
     streaming = kwargs.get("streaming", False)
     if streaming:
-        num_shards = kwargs.get("num_shards", dist_state().num_processes)  # this is shared with shard_ds
+        num_shards = kwargs.get("num_shards", get_world_size())  # this is shared with shard_ds
         ds = ds.to_iterable_dataset(num_shards=num_shards)
     num_egs = kwargs.get("num_egs", None)
     if num_egs is not None and num_egs > len(ds):
@@ -563,8 +564,8 @@ def stream_shuffle(ds, **kwargs):
 
 def shard_ds(ds, **kwargs):
     """Shard the dataset."""
-    num_shards = kwargs.get("num_shards", dist_state().num_processes)
-    shard_id = kwargs.get("shard_id", dist_state().process_index)
+    num_shards = kwargs.get("num_shards", get_world_size())
+    shard_id = kwargs.get("shard_id", get_rank())
     all_rank_print(f"Sharding dataset into {num_shards} shards, picking {shard_id}")
     all_rank_print("Original dataset:", ds)
     if num_shards > 1:
@@ -883,33 +884,33 @@ def save_cached_ds(ds, cache_path):
 def create_audio_dataset(**kwargs):
     """Create a dataset from the given split."""
     ds_name = kwargs.get("dataset_name", "unknown").lower()
-    # with dist_state().local_main_process_first():
-    ds, cache_path = cache_ds(**kwargs)
-    if ds is not None:
-        return ds
-    if ds_name == "ls_bias":
-        ds = ls_bias_dataset(**kwargs)
-    elif ds_name == "inhouse_entity":
-        ds = entity_dataset(**kwargs)
-    elif ds_name == "openasr":
-        ds = openasr_dataset(**kwargs)
-    elif ds_name == "tsv":
-        ds = tsv_dataset(**kwargs)
-    elif ds_name == "jsonl":
-        ds = jsonl_dataset(**kwargs)
-    elif ds_name == "parquet":
-        ds = parquet_dataset(**kwargs)
-    elif ds_name == "chunk":
-        ds = chunk_dataset(**kwargs)
-    elif ds_name == "audio_dir":
-        ds = audio_dir_dataset(**kwargs)
-    elif ds_name == "cached":
-        ds = load_cached_ds(kwargs.get("cache_path", None))
-        assert ds is not None, "Cached dataset not found."
-    else:
-        raise ValueError(f"Unknown dataset name: {ds_name}")
-    ds = augment(ds, **kwargs)
-    save_cached_ds(ds, cache_path)
+    with local_main_process_first():
+        ds, cache_path = cache_ds(**kwargs)
+        if ds is not None:
+            return ds
+        if ds_name == "ls_bias":
+            ds = ls_bias_dataset(**kwargs)
+        elif ds_name == "inhouse_entity":
+            ds = entity_dataset(**kwargs)
+        elif ds_name == "openasr":
+            ds = openasr_dataset(**kwargs)
+        elif ds_name == "tsv":
+            ds = tsv_dataset(**kwargs)
+        elif ds_name == "jsonl":
+            ds = jsonl_dataset(**kwargs)
+        elif ds_name == "parquet":
+            ds = parquet_dataset(**kwargs)
+        elif ds_name == "chunk":
+            ds = chunk_dataset(**kwargs)
+        elif ds_name == "audio_dir":
+            ds = audio_dir_dataset(**kwargs)
+        elif ds_name == "cached":
+            ds = load_cached_ds(kwargs.get("cache_path", None))
+            assert ds is not None, "Cached dataset not found."
+        else:
+            raise ValueError(f"Unknown dataset name: {ds_name}")
+        ds = augment(ds, **kwargs)
+        save_cached_ds(ds, cache_path)
     return ds
 
 
