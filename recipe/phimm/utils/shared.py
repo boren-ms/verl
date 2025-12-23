@@ -1,3 +1,4 @@
+import os
 from mpi4py import MPI
 import uuid
 import blobfile as bf
@@ -8,8 +9,6 @@ import functools
 import hashlib
 import importlib.metadata
 from collections.abc import Sequence
-import contextlib
-import threading
 
 
 def is_package_version(package_name, target_version):
@@ -178,7 +177,10 @@ def rank_print(*args, main=True, **kwargs):
 
 
 def get_rank():
-    return MPI.COMM_WORLD.Get_rank()
+    try:
+        return MPI.COMM_WORLD.Get_rank()
+    except Exception:
+        return int(os.environ.get("RANK", 0))
 
 
 def get_local_rank(node_size=8):
@@ -187,23 +189,10 @@ def get_local_rank(node_size=8):
 
 
 def get_world_size():
-    return MPI.COMM_WORLD.Get_size()
-
-
-@contextlib.contextmanager
-def local_main_process_first():
-    """A context manager to ensure the local main process runs first."""
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    node_size = 8  # assuming 8 GPUs per node
-    local_rank = rank % node_size
-    if local_rank != 0:
-        comm.barrier()
     try:
-        yield
-    finally:
-        if local_rank == 0:
-            comm.barrier()
+        return MPI.COMM_WORLD.Get_size()
+    except Exception:
+        return int(os.environ.get("WORLD_SIZE", 1)) * 8  # WORLD SIZE is number of nodes
 
 
 def all_rank_print(*args, **kwargs):
