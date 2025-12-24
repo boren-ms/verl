@@ -41,5 +41,5 @@ data:
 trainer:
     nnodes: 1
     total_epochs: 1 # 24 step per epoch
-    val_before_train: true
+    val_before_train: false # don't run val before train
     # total_training_steps: 2200 # ~= 140k samples with bs64, 0.5 epoch
