@@ -27,7 +27,7 @@ actor_rollout_ref:
         calculate_log_probs: True # required by TIS
     actor:
         ppo_micro_batch_size_per_gpu: 64
-        ppo_mini_batch_size_per_gpu: 1024
+        ppo_mini_batch_size: "${eval:${trainer.ngpus}*1024}" # global batch size
         tis_imp_ratio_cap: 5
         optim:
             lr: 1e-6
