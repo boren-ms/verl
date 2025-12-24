@@ -25,7 +25,7 @@ actor_rollout_ref:
         gt_rollout: true
         temperature: 1.2
         calculate_log_probs: True # required by TIS
-        max_num_batched_tokens: 524288
+        max_num_batched_tokens: 131072
         # max_num_seqs: 4096 # 4096*4
 
     actor:
