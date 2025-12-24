@@ -23,15 +23,15 @@ actor_rollout_ref:
     rollout:
         n: 4
         gt_rollout: true
-        temperature: 1.2
+        temperature: 1.0
         calculate_log_probs: True # required by TIS
-        max_num_batched_tokens: 131072
+        max_num_batched_tokens: 65536
         # max_num_seqs: 4096 # 4096*4
 
     actor:
         ppo_micro_batch_size_per_gpu: 64
-        ppo_mini_batch_size: "${eval:${trainer.ngpus}*1024}" # global batch size
-        ppo_epochs: 1
+        ppo_mini_batch_size: "${eval:${trainer.ngpus}*2048}" # global batch size
+        ppo_epochs: 2
         tis_imp_ratio_cap: 5
         optim:
             lr: 1e-6
