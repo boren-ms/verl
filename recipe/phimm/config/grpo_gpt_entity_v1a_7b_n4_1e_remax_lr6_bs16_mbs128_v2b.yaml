@@ -29,7 +29,7 @@ actor_rollout_ref:
         # max_num_seqs: 4096 # 4096*4
 
     actor:
-        ppo_micro_batch_size_per_gpu: 128
+        ppo_micro_batch_size_per_gpu: 64
         ppo_mini_batch_size: "${eval:${trainer.ngpus}*2048}" # global batch size
         ppo_epochs: 2
         tis_imp_ratio_cap: 5
