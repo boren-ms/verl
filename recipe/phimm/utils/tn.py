@@ -58,10 +58,26 @@ def simple(text):
     return norm(text)
 
 
+def no_punc(text):
+    """Simple normalization function."""
+    norm = tr.Compose(
+        [
+            # tr.ToLowerCase(),
+            tr.RemovePunctuation(),
+            tr.RemoveWhiteSpace(replace_by_space=True),
+            tr.RemoveMultipleSpaces(),
+            tr.Strip(),
+            tr.ReduceToSingleSentence(),
+        ]
+    )
+    return norm(text)
+
+
 TN_DICT = {
     "english": EnglishTextNormalizer(),
     "identity": identity,
     "lower": lower,
+    "no_punc": no_punc,
     "basic": BasicTextNormalizer(),
     "simple": simple,
     "simple_with_tag": simple_with_tag,
