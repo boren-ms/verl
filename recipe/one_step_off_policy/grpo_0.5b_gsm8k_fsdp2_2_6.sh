@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -x
 
 project_name='GRPO'
@@ -5,11 +7,10 @@ exp_name='GRPO-Qwen2.5-0.5b-gsm8k-fsdp2-one-step-off-2-6'
 
 # Paths
 # RAY_DATA_HOME=${RAY_DATA_HOME:-"${HOME}/verl"}
-RAY_DATA_HOME="~"
-MODEL_PATH=${MODEL_PATH:-"${RAY_DATA_HOME}/ckp/hf_models/Qwen2.5-0.5B-Instruct"}
-CKPTS_DIR=${CKPTS_DIR:-"${RAY_DATA_HOME}/ckpts/${project_name}/${exp_name}"}
-TRAIN_FILE=${TRAIN_FILE:-"${RAY_DATA_HOME}/data/gsm8k/train.parquet"}
-TEST_FILE=${TEST_FILE:-"${RAY_DATA_HOME}/data/gsm8k/test.parquet"}
+MODEL_PATH=${MODEL_PATH:-"/root/data/ckp/hf_models/Qwen2.5-0.5B-Instruct"}
+CKPTS_DIR=${CKPTS_DIR:-"/root/ckpts/${project_name}/${exp_name}"}
+TRAIN_FILE=${TRAIN_FILE:-"/root/data/gsm8k/train.parquet"}
+TEST_FILE=${TEST_FILE:-"/root/data/gsm8k/test.parquet"}
 
 NNODES=${NNODES:-1}
 NGPUS_PER_NODE=${NGPUS_PER_NODE:-8}
