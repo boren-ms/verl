@@ -16,7 +16,7 @@ if [ ! -f ${done_file} ]; then
     echo "[INFO] Installing environment..."
     pip install -r requirements_vllm.txt
     pip install --no-deps -e .
-    pip install  flash-attn==2.7.4.post1
+    pip install  flash-attn==2.8.3
     apt install lsof
     mv ${running_file} ${done_file}
 else
