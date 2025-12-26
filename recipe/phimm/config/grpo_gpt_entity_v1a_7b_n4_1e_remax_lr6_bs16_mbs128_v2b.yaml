@@ -15,7 +15,7 @@ custom_reward_function:
         alpha: 1
         beta: 0 # score = alpha*WER + beta*B-WER
         choice: "err" # "err", "acc", "wer"
-        text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
+        text_norm: no_punc # simple (default), identity, lower, basic, simple, simple_with_tag
         unit: word # word (default), char
         # max_wer: 0.1 # max wer 10% allowed to get reward, otherwise -100
 
@@ -25,12 +25,12 @@ actor_rollout_ref:
         gt_rollout: true
         temperature: 1.0
         calculate_log_probs: True # required by TIS
-        max_num_batched_tokens: 65536
+        max_num_batched_tokens: 32768
         # max_num_seqs: 4096 # 4096*4
 
     actor:
-        ppo_micro_batch_size_per_gpu: 64
-        ppo_mini_batch_size: "${eval:${trainer.ngpus}*2048}" # global batch size
+        ppo_micro_batch_size_per_gpu: 60
+        ppo_mini_batch_size: "${eval:${trainer.ngpus}*1200}" # global batch size
         ppo_epochs: 2
         tis_imp_ratio_cap: 5
         optim:
@@ -40,7 +40,7 @@ actor_rollout_ref:
 algorithm:
     adv_estimator: remax
 data:
-    train_batch_size: 8192
+    train_batch_size: 9600
     val_batch_size: 8192
 trainer:
     nnodes: 1
