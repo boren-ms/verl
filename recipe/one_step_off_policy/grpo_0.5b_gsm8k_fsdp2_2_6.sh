@@ -1,7 +1,7 @@
 set -x
 
 project_name='GRPO'
-exp_name='GRPO-Qwen3-0.6b-gsm8k-fsdp2-one-step-off-2-6'
+exp_name='GRPO-Qwen2.5-0.5b-gsm8k-fsdp2-one-step-off-2-6'
 
 # Paths
 RAY_DATA_HOME=${RAY_DATA_HOME:-"${HOME}/verl"}
