@@ -74,7 +74,7 @@ actor_rollout_ref:
     rollout:
         n: 4
         max_num_batched_tokens: 16384
-        log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*4}"
+        log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
         tensor_model_parallel_size: 1
         name: vllm
         temperature: 1.0
