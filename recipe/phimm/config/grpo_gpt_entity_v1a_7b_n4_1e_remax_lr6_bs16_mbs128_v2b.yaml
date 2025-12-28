@@ -29,8 +29,8 @@ actor_rollout_ref:
         # max_num_seqs: 4096 # 4096*4
 
     actor:
-        ppo_micro_batch_size_per_gpu: 60
-        ppo_mini_batch_size: "${eval:${trainer.ngpus}*1200}" # global batch size
+        ppo_micro_batch_size_per_gpu: 50
+        ppo_mini_batch_size: "${eval:${trainer.ngpus}*2000}" # global batch size
         ppo_epochs: 2
         tis_imp_ratio_cap: 5
         optim:
@@ -40,7 +40,7 @@ actor_rollout_ref:
 algorithm:
     adv_estimator: remax
 data:
-    train_batch_size: 9600
+    train_batch_size: 2000
     val_batch_size: 8192
 trainer:
     nnodes: 1
