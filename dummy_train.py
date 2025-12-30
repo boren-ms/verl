@@ -87,7 +87,31 @@ def print_pip():
         subprocess.run(["pip", "list"])
 
 
-def dummy_training_loop(n=10):
+def dummy_train(n=10):
+    """A dummy training function."""
+    print("Dummy training function called.")
+    import torch
+
+    # Consume GPU memory and compute matrix multiply
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    # Create large matrices to consume GPU memory
+    size = 8192
+    a = torch.randn(size, size, device=device)
+    b = torch.randn(size, size, device=device)
+
+    # Perform matrix multiplication
+    print(f"Computing matrix multiplication of size {size}x{size}...")
+    for _i in range(n):
+        c = torch.matmul(a, b)
+    print(f"Result shape: {c.shape}")
+    print(f"GPU memory allocated: {torch.cuda.memory_allocated(device) / 1e9:.2f} GB")
+
+    return c
+
+
+def dummy_training_loop(n=-1):
     """A dummy training loop that runs indefinitely."""
     print("Starting dummy training with endless loop...")
     print_env()
@@ -96,10 +120,11 @@ def dummy_training_loop(n=10):
     print_accelerate_info()
     print("Starting training loop...")
     step = 0
-    while step < n:
+    while step < n or n < 0:
         step += 1
         print(f"Training step {step}")
-        time.sleep(1)
+        dummy_train(n=5)
+        time.sleep(600)  # Sleep for 10 minutes
 
 
 if __name__ == "__main__":
