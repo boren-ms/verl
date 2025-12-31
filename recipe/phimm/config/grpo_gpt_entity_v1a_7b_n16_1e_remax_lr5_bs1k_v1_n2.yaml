@@ -27,7 +27,7 @@ actor_rollout_ref:
         calculate_log_probs: True # required by TIS
         max_num_batched_tokens: 32768
         log_prob_micro_batch_size_per_gpu: 16
-        # max_num_seqs: 4096 # 4096*4
+        max_num_seqs: 8192 # 4096*4
 
     actor:
         ppo_micro_batch_size_per_gpu: 16
