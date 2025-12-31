@@ -15,6 +15,7 @@ storage_account="orngwus2cresco"
 rel_paths=(
     data/gsm8k
     data/ckp/hf_models/Qwen2.5-0.5B-Instruct
+    data/packages
 )
 if [ ! -f ${done_file} ]; then
     touch ${running_file}

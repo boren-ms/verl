@@ -3,7 +3,7 @@ accelerate
 codetiming
 datasets==4.0.0
 dill
-torch
+torch=2.7.1
 hydra-core
 liger-kernel
 numpy<2.0.0
@@ -18,7 +18,6 @@ tensordict>=0.8.0,<=0.10.0,!=0.9.0
 torchdata
 transformers==4.55.4
 vllm==0.11.0
-flash_attn
 wandb
 packaging>=20.0
 uvicorn
