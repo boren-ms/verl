@@ -36,7 +36,7 @@ clip_ratio_high=0.28
 max_prompt_length=512
 max_response_length=1024
 enable_overlong_buffer=True
-overlong_buffer_len=$((1024 * 2))
+overlong_buffer_len=1024
 overlong_penalty_factor=1.0
 
 # Training parameters
@@ -62,7 +62,7 @@ fsdp_size=2
 NNODES=${NNODES:-1}
 NGPUS_PER_NODE=${NGPUS_PER_NODE:-8}
 
-n_gpus_rollout=2
+n_gpus_rollout=4
 n_gpus_training=$((NGPUS_PER_NODE - n_gpus_rollout))
 
 train_prompt_bsz=0
