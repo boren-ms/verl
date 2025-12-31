@@ -3,7 +3,7 @@ hydra:
         - file://recipe/phimm/config/base
         - file://verl/trainer/config
 defaults:
-    - grpo_asr
+    - dapo_asr
     - data/train_data/gpt_entity_v1a # 169547 utts, 1297.7 hrs + 2206.03 hrs
     - data/val_data/entity_rare_v1
     - _self_
@@ -16,8 +16,8 @@ custom_reward_function:
         beta: 0 # score = alpha*WER + beta*B-WER
         choice: "err" # "err", "acc", "wer"
         text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
-        unit: word # word (default), char
-        # max_wer: 0.1 # max wer 10% allowed to get reward, otherwise -100
+        unit: char # word (default), char
+        max_wer: 0.1 # max wer 10% allowed to get reward, otherwise -100
 
 actor_rollout_ref:
     rollout:
@@ -26,12 +26,11 @@ actor_rollout_ref:
         temperature: 1.0
         calculate_log_probs: True # required by TIS
         max_num_batched_tokens: 32768
-        log_prob_micro_batch_size_per_gpu: 16
+        log_prob_micro_batch_size_per_gpu: 64
         # max_num_seqs: 4096 # 4096*4
-        tensor_model_parallel_size: 2
 
     actor:
-        ppo_micro_batch_size_per_gpu: 16
+        ppo_micro_batch_size_per_gpu: 64
         ppo_mini_batch_size: 1024 # global batch size
         ppo_epochs: 1
         tis_imp_ratio_cap: 5
@@ -42,10 +41,10 @@ actor_rollout_ref:
 algorithm:
     adv_estimator: remax
 data:
+    gen_batch_size: 1536
     train_batch_size: 1024
     val_batch_size: 8192
 trainer:
-    balance_batch: True
     nnodes: 1
     total_epochs: 1 # 24 step per epoch
     val_before_train: false # don't run val before train
