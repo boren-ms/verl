@@ -4,7 +4,7 @@ hydra:
         - file://verl/trainer/config
 defaults:
     - grpo_asr
-    - data/train_data/gpt_entity_v1a # 169547 utts, 1297.7 hrs + 2206.03 hrs
+    - data/train_data/gpt_entity_v1a_ls # 169547 utts, 1297.7 hrs + 2206.03 hrs
     - data/val_data/entity_rare_v1
     - _self_
 
