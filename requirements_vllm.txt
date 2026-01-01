@@ -3,7 +3,7 @@ accelerate
 codetiming
 datasets==4.0.0
 dill
-torch=2.7.1
+torch==2.7.1
 hydra-core
 liger-kernel
 numpy<2.0.0
