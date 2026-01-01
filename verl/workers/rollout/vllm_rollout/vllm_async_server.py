@@ -29,10 +29,7 @@ import zmq
 from ray.actor import ActorHandle
 from vllm import SamplingParams
 from vllm.engine.arg_utils import AsyncEngineArgs
-from vllm.entrypoints.openai.api_server import (
-    build_app,
-    init_app_state,
-)
+from vllm.entrypoints.openai.api_server import build_app, init_app_state
 from vllm.inputs import TokensPrompt
 from vllm.lora.request import LoRARequest
 from vllm.outputs import RequestOutput
@@ -49,12 +46,7 @@ from verl.workers.config import HFModelConfig, RolloutConfig
 from verl.workers.rollout.replica import RolloutMode, RolloutReplica, TokenOutput
 from verl.workers.rollout.utils import get_free_port, is_valid_ipv6_address, run_unvicorn
 from verl.workers.rollout.vllm_rollout import vLLMAsyncRollout
-from verl.workers.rollout.vllm_rollout.utils import (
-    VLLM_LORA_INT_ID,
-    VLLM_LORA_NAME,
-    VLLM_LORA_PATH,
-    get_vllm_max_lora_rank,
-)
+from verl.workers.rollout.vllm_rollout.utils import VLLM_LORA_INT_ID, VLLM_LORA_NAME, VLLM_LORA_PATH, get_vllm_max_lora_rank
 
 if vllm.__version__ > "0.11.0":
     from vllm.utils.argparse_utils import FlexibleArgumentParser
@@ -107,9 +99,7 @@ class ExternalZeroMQDistributedExecutor(Executor):
 
     if vllm.__version__ >= "0.12.0":
 
-        def execute_model(
-            self, scheduler_output: "SchedulerOutput", non_block: bool = False
-        ) -> "ModelRunnerOutput | None | Future[ModelRunnerOutput | None]":
+        def execute_model(self, scheduler_output: "SchedulerOutput", non_block: bool = False) -> "ModelRunnerOutput | None | Future[ModelRunnerOutput | None]":
             output = self.collective_rpc("execute_model", args=(scheduler_output,))
             result = output[0]
             if non_block:
@@ -118,9 +108,7 @@ class ExternalZeroMQDistributedExecutor(Executor):
                 return f
             return result
 
-        def sample_tokens(
-            self, grammar_output: "GrammarOutput | None", non_block: bool = False
-        ) -> "ModelRunnerOutput | None | Future[ModelRunnerOutput | None]":
+        def sample_tokens(self, grammar_output: "GrammarOutput | None", non_block: bool = False) -> "ModelRunnerOutput | None | Future[ModelRunnerOutput | None]":
             output = self.collective_rpc("sample_tokens", args=(grammar_output,))
             result = output[0]
             if non_block:
@@ -215,8 +203,7 @@ class vLLMHttpServerBase:
             self._master_port, self._master_sock = get_free_port(self._server_address)
             self._dp_master_port, self._dp_master_sock = get_free_port(self._server_address)
             logger.info(
-                f"vLLMHttpServer, replica_rank: {self.replica_rank}, master address: {self._master_address}, "
-                f"master port: {self._master_port}, data parallel master port: {self._dp_master_port}"
+                f"vLLMHttpServer, replica_rank: {self.replica_rank}, master address: {self._master_address}, master port: {self._master_port}, data parallel master port: {self._dp_master_port}"
             )
         else:
             self._master_address = None
@@ -321,13 +308,9 @@ class vLLMHttpServerBase:
                 args["served_model_name"] = served_model_name
 
         if self.config.expert_parallel_size > 1:
-            assert self.gpus_per_node % self.config.tensor_model_parallel_size == 0, (
-                "gpus_per_node should be divisible by tensor_model_parallel_size"
-            )
+            assert self.gpus_per_node % self.config.tensor_model_parallel_size == 0, "gpus_per_node should be divisible by tensor_model_parallel_size"
             data_parallel_size_local = self.gpus_per_node // self.config.tensor_model_parallel_size
-            assert len(self.workers) == data_parallel_size_local * self.config.tensor_model_parallel_size, (
-                f"num workers ({len(self.workers)}) should be equal to dp_size_local "
-            )
+            assert len(self.workers) == data_parallel_size_local * self.config.tensor_model_parallel_size, f"num workers ({len(self.workers)}) should be equal to dp_size_local "
             f"({data_parallel_size_local}) * tp_size ({self.config.tensor_model_parallel_size})"
 
             args.update(
@@ -386,11 +369,9 @@ class vLLMHttpServerBase:
         server_args.distributed_executor_backend = distributed_executor_backend
 
         zmq_addresses = ray.get([worker.get_zeromq_address.remote() for worker in self.workers])
-        logger.info(
-            f"replica_rank={self.replica_rank}, node_rank={self.node_rank}, nnodes={self.nnodes}, "
-            f"get worker zmq addresses: {zmq_addresses}"
-        )
+        logger.info(f"replica_rank={self.replica_rank}, node_rank={self.node_rank}, nnodes={self.nnodes}, get worker zmq addresses: {zmq_addresses}")
         os.environ["VERL_VLLM_ZMQ_ADDRESSES"] = ",".join(zmq_addresses)
+        os.environ["VLLM_USE_V1"] = "1"
 
         # 3. launch server
         if self.node_rank == 0:
@@ -479,16 +460,12 @@ class vLLMHttpServerBase:
         # Apply safety clamp: ensure max_tokens doesn't exceed available context space
         max_tokens = min(max_tokens, max_possible_tokens)
 
-        assert max_tokens <= max_possible_tokens, (
-            f"max_tokens {max_tokens} exceeds available context space {max_possible_tokens}"
-        )
+        assert max_tokens <= max_possible_tokens, f"max_tokens {max_tokens} exceeds available context space {max_possible_tokens}"
         sampling_params["logprobs"] = 0 if sampling_params.pop("logprobs", False) else None
         sampling_params.setdefault("repetition_penalty", self.config.get("repetition_penalty", 1.0))
         sampling_params = SamplingParams(max_tokens=max_tokens, **sampling_params)
         prompt_ids = _qwen2_5_vl_dedup_image_tokens(prompt_ids, self.model_config.processor)
-        prompt = TokensPrompt(
-            prompt_token_ids=prompt_ids, multi_modal_data={"image": image_data} if image_data else None
-        )
+        prompt = TokensPrompt(prompt_token_ids=prompt_ids, multi_modal_data={"image": image_data} if image_data else None)
 
         # Add lora request
         lora_request = None
@@ -496,13 +473,9 @@ class vLLMHttpServerBase:
             # Make sure we also check that the lora is already loaded in the engine
             lora_loaded = VLLM_LORA_INT_ID in await self.engine.list_loras()
             if lora_loaded:
-                lora_request = LoRARequest(
-                    lora_name=VLLM_LORA_NAME, lora_int_id=VLLM_LORA_INT_ID, lora_path=VLLM_LORA_PATH
-                )
+                lora_request = LoRARequest(lora_name=VLLM_LORA_NAME, lora_int_id=VLLM_LORA_INT_ID, lora_path=VLLM_LORA_PATH)
 
-        generator = self.engine.generate(
-            prompt=prompt, sampling_params=sampling_params, request_id=request_id, lora_request=lora_request
-        )
+        generator = self.engine.generate(prompt=prompt, sampling_params=sampling_params, request_id=request_id, lora_request=lora_request)
 
         # Get final response
         final_res: Optional[RequestOutput] = None
@@ -528,9 +501,7 @@ class vLLMHttpServerBase:
         else:
             stop_reason = finish_reason  # for more stop reason in the future
 
-        return TokenOutput(
-            token_ids=token_ids, log_probs=log_probs, routed_experts=routed_experts, stop_reason=stop_reason
-        )
+        return TokenOutput(token_ids=token_ids, log_probs=log_probs, routed_experts=routed_experts, stop_reason=stop_reason)
 
     async def wake_up(self):
         if self.rollout_mode == RolloutMode.HYBRID:
@@ -583,9 +554,7 @@ class vLLMHttpServerBase:
             from vllm.v1.engine import FinishReason
 
             for _, req_state in request_states_snapshot:
-                request_output = req_state.make_request_output(
-                    [], pooling_output=None, finish_reason=FinishReason.ABORT, stop_reason=None
-                )
+                request_output = req_state.make_request_output([], pooling_output=None, finish_reason=FinishReason.ABORT, stop_reason=None)
                 req_state.queue.put(request_output)
 
             # Abort requests in the output processor and engine core
@@ -623,9 +592,7 @@ class vLLMHttpServerBase:
             # Create abort output and put it to the queue
             from vllm.v1.engine import FinishReason
 
-            request_output = req_state.make_request_output(
-                [], pooling_output=None, finish_reason=FinishReason.ABORT, stop_reason=None
-            )
+            request_output = req_state.make_request_output([], pooling_output=None, finish_reason=FinishReason.ABORT, stop_reason=None)
             req_state.queue.put(request_output)
 
             # Abort in output processor and engine core
@@ -694,17 +661,10 @@ class vLLMReplica(RolloutReplica):
 
     async def launch_servers(self):
         """Launch http server in each node."""
-        assert len(self.workers) == self.world_size, (
-            f"worker number {len(self.workers)} not equal to world size {self.world_size}"
-        )
+        assert len(self.workers) == self.world_size, f"worker number {len(self.workers)} not equal to world size {self.world_size}"
 
         # get node_id of all workers
-        worker_node_ids = await asyncio.gather(
-            *[
-                worker.__ray_call__.remote(lambda self: ray.get_runtime_context().get_node_id())
-                for worker in self.workers
-            ]
-        )
+        worker_node_ids = await asyncio.gather(*[worker.__ray_call__.remote(lambda self: ray.get_runtime_context().get_node_id()) for worker in self.workers])
 
         # For non-data parallel case, there's only one server whether it's single or multi nodes.
         nnodes, gpus_per_node = self.nnodes, self.gpus_per_node
@@ -716,11 +676,7 @@ class vLLMReplica(RolloutReplica):
         for node_rank in range(nnodes):
             workers = self.workers[node_rank * gpus_per_node : (node_rank + 1) * gpus_per_node]
             node_id = worker_node_ids[node_rank * gpus_per_node]
-            name = (
-                f"vllm_server_{self.replica_rank}_{node_rank}"
-                if not self.is_reward_model
-                else f"vllm_server_reward_{self.replica_rank}_{node_rank}"
-            )
+            name = f"vllm_server_{self.replica_rank}_{node_rank}" if not self.is_reward_model else f"vllm_server_reward_{self.replica_rank}_{node_rank}"
             server = self.server_class.options(
                 scheduling_strategy=ray.util.scheduling_strategies.NodeAffinitySchedulingStrategy(
                     node_id=node_id,
@@ -741,21 +697,12 @@ class vLLMReplica(RolloutReplica):
 
         # launch http server in each node
         master_address, master_port = await self.servers[0].get_master_address.remote()
-        await asyncio.gather(
-            *[
-                server.launch_server.remote(master_address=master_address, master_port=master_port)
-                for server in self.servers
-            ]
-        )
+        await asyncio.gather(*[server.launch_server.remote(master_address=master_address, master_port=master_port) for server in self.servers])
 
         # get http server address from first server
         server_address, server_port = await self.servers[0].get_server_address.remote()
         self._server_handle = self.servers[0]
-        self._server_address = (
-            f"[{server_address}]:{server_port}"
-            if is_valid_ipv6_address(server_address)
-            else f"{server_address}:{server_port}"
-        )
+        self._server_address = f"[{server_address}]:{server_port}" if is_valid_ipv6_address(server_address) else f"{server_address}:{server_port}"
 
     async def sleep(self):
         """Sleep each rollout server."""
