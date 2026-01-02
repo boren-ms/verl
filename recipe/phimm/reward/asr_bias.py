@@ -63,7 +63,7 @@ class WordError(object):
 
     def get_result_string(self):
         return f"WER={self.wer * 100}, refs={self.n_ref}, subs={self.n_sub}, ins={self.n_ins}, dels={self.n_del}"
-    
+
     def __add__(self, other):
         if not isinstance(other, WordError):
             return NotImplemented
@@ -195,9 +195,7 @@ class EditDistance(object):
                 # Below here both i and j are greater than 0
                 ref = refs[i - 1]
                 hyp = hyps[j - 1]
-                best_score = self.scores_[i - 1][j - 1] + (
-                    self.cost(ref, hyp, Code.match) if ref == hyp else self.cost(ref, hyp, Code.substitution)
-                )
+                best_score = self.scores_[i - 1][j - 1] + (self.cost(ref, hyp, Code.match) if ref == hyp else self.cost(ref, hyp, Code.substitution))
 
                 prev_row = i - 1
                 prev_col = j - 1
@@ -322,19 +320,22 @@ def measure_errors(hyp, ref, keywords=None, **kwargs):
     wer, u_wer, b_wer = calc_errors(refs, hyps, tn=text_norm, unit=unit)
     return wer, u_wer, b_wer
 
+
 def sum_wers(wers):
     total_wer = WordError()
     for wer in wers:
         total_wer += wer
     return total_wer
 
+
 def compute_wers(refs, hyps, **kwargs):
     """Compute WERs for a batch of references and hypotheses."""
-    wers  = []
-    for ref, hyp in zip(refs, hyps):
+    wers = []
+    for ref, hyp in zip(refs, hyps, strict=True):
         wer, _, _ = measure_errors(hyp, ref, **kwargs)
         wers.append(wer)
-    return wers     
+    return wers
+
 
 def get_score(wer, choice="wer"):
     choice = choice.lower()
@@ -390,6 +391,28 @@ def compute_score(solution_str, ground_truth, **kwargs):
     if error_book:
         result["extra_info"] = {"keywords": keywords}
     return result
+
+
+def compute_weighted_score(solution_str, ground_truth, **kwargs):
+    """Compute a weighted combination of multiple scores with different kwargs."""
+    score_kwargs = kwargs.get("score_kwargs", [])
+    if not isinstance(score_kwargs, (list, tuple)):
+        score_kwargs = [score_kwargs]
+    assert len(score_kwargs) > 0, "At least one set of score_kwargs must be provided."
+
+    score = 0.0
+    results = {}
+
+    for i, func_kwargs in enumerate(score_kwargs):
+        weight = func_kwargs.pop("weight", 1.0)
+        result = compute_score(solution_str, ground_truth, **func_kwargs)
+        score += weight * result["score"]
+        results.update({f"{k}-{i}": v for k, v in result.items()})
+
+    return {
+        "score": score,
+        **results,
+    }
 
 
 def eval_score(solution_str, ground_truth, **kwargs):
@@ -461,12 +484,30 @@ if __name__ == "__main__":
             "ref": "this *nobleman's* character though celebrated for political courage and conduct was very low for military *prowess* and after some ,*skirmishes* in which he was *worsted* he here allowed *montrose* to escape him",
         },
     ]
+    kwargs = {
+        "score_kwargs": [
+            {
+                "weight": 0.5,
+                "alpha": 1.0,
+                "beta": 0.0,
+                "choice": "err",
+                "text_norm": "english",
+            },
+            {
+                "weight": 0.7,
+                "alpha": 1.0,
+                "beta": 0.0,
+                "choice": "err",
+                "text_norm": "identity",
+            },
+        ],
+    }
 
     for pair in pairs:
         # result = eval_score(pair["hyp"], pair["ref"])
 
-        result = compute_score(pair["hyp"], pair["ref"], text_norm="english", choice="wer", beta=1.0, error_book=True)
+        # result = compute_score(pair["hyp"], pair["ref"], text_norm="english", choice="wer", beta=1.0, error_book=True)
+        result = compute_weighted_score(pair["hyp"], pair["ref"], **kwargs)
         print(result)
-        print("EB:", get_eb().cnt)
 
 # %%
