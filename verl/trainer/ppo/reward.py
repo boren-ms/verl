@@ -22,7 +22,8 @@ from typing import Any, Optional
 from pathlib import Path
 import ray
 import torch
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
+
 
 from verl import DataProto
 from verl.utils.reward_score import default_compute_score
@@ -58,7 +59,7 @@ def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
         RuntimeError: If there's an error loading the module from file.
         AttributeError: If the specified function name isn't found in the module.
     """
-
+    config = OmegaConf.to_container(config, resolve=True)  # to standard dict
     reward_fn_config = config.get("custom_reward_function") or {}
     file_path = reward_fn_config.get("path")
     if not file_path:
@@ -95,9 +96,7 @@ def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
     return partial(_call_with_kwargs, raw_fn, reward_kwargs)
 
 
-def load_reward_manager(
-    config: DictConfig, tokenizer: Any, num_examine: int, **reward_kwargs: Any
-) -> AbstractRewardManager:
+def load_reward_manager(config: DictConfig, tokenizer: Any, num_examine: int, **reward_kwargs: Any) -> AbstractRewardManager:
     """
     Load and initialize a reward manager based on the configuration.
 
@@ -181,13 +180,9 @@ def compute_reward_async(data: DataProto, config=None, tokenizer=None, reward_fn
     This is meant to be run in a separate Ray worker.
     """
     if reward_fn is None:
-        assert config is not None and tokenizer is not None, (
-            "config and tokenizer must not be None when reward_fn is None"
-        )
+        assert config is not None and tokenizer is not None, "config and tokenizer must not be None when reward_fn is None"
 
         warnings.warn("using config and tokenizer with compute_reward_async is deprecated", stacklevel=2)
-        reward_fn = load_reward_manager(
-            config, tokenizer, num_examine=0, **config.reward_model.get("reward_kwargs", {})
-        )
+        reward_fn = load_reward_manager(config, tokenizer, num_examine=0, **config.reward_model.get("reward_kwargs", {}))
 
     return compute_reward(data, reward_fn)
