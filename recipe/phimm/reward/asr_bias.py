@@ -404,7 +404,7 @@ def compute_weighted_score(solution_str, ground_truth, **kwargs):
     results = {}
 
     for i, func_kwargs in enumerate(score_kwargs):
-        weight = func_kwargs.pop("weight", 1.0)
+        weight = func_kwargs.get("weight", 1.0)
         result = compute_score(solution_str, ground_truth, **func_kwargs)
         score += weight * result["score"]
         results.update({f"{k}-{i}": v for k, v in result.items()})
