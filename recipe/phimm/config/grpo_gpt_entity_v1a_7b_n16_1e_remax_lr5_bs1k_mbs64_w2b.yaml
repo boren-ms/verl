@@ -14,15 +14,15 @@ custom_reward_function:
     reward_kwargs:
         score_kwargs:
             - alpha: 1
-              choice: "err" # "err", "acc", "wer"
+              choice: "wer" # "err", "acc", "wer"
               text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
               unit: word # word (default), char
-              weight: 0.5
+              weight: 1.0
             - alpha: 1
-              choice: "err" # "err", "acc", "wer"
-              text_norm: no_punc # simple (default), identity, lower, basic, simple, simple_with_tag
-              unit: word # word (default), char
-              weight: 0.5
+              choice: "wer" # "err", "acc", "wer"
+              text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
+              unit: chat # word (default), char
+              weight: 1.0
 
 actor_rollout_ref:
     rollout:
