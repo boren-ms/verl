@@ -21,7 +21,7 @@ custom_reward_function:
             - alpha: 1
               choice: "wer" # "err", "acc", "wer"
               text_norm: english # simple (default), identity, lower, basic, simple, simple_with_tag
-              unit: chat # word (default), char
+              unit: char # word (default), char
               weight: 1.0
 
 actor_rollout_ref:
