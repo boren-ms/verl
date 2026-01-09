@@ -9,7 +9,7 @@ target:
 environment:
     registry: sramdevregistry.azurecr.io
     image: boren_dev:verl
-    username: sramdevregistry
+    # username: sramdevregistry
 
     setup:
         - set -e -o xtrace

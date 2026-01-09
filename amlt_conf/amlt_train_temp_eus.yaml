@@ -5,12 +5,9 @@ target:
     service: sing
     name: ast-sing-prod01-eus
 environment:
-    # registry: florencecontainerregistryeu.azurecr.io
-    # image: haiping/h100-nvidia23.10-pytorch2.1.1-cuda12.2.2-deepspeed0.12.3-flashattn2.3.4:20231124
-    # username: FlorenceContainerRegistryEU
     registry: sramdevregistry.azurecr.io
     image: boren_dev:verl
-    username: sramdevregistry
+    # username: sramdevregistry
 
     setup:
         - set -e -o xtrace

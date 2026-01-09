@@ -10,7 +10,7 @@ environment:
     # username: FlorenceContainerRegistryEU
     registry: sramdevregistry.azurecr.io
     image: jing-dev:a100_latest
-    username: sramdevregistry
+    # username: sramdevregistry
 
     setup:
         - set -e -o xtrace

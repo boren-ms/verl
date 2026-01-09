@@ -11,7 +11,7 @@ environment:
     # username: FlorenceContainerRegistryEU
     registry: sramdevregistry.azurecr.io
     image: boren_dev:trl
-    username: sramdevregistry
+    # username: sramdevregistry
 
     setup:
         - set -e -o xtrace
