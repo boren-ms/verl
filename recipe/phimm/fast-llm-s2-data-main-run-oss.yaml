@@ -1,0 +1,188 @@
+
+data_audio_processor: 
+  name: "cascades"
+  
+seq_len: 8192
+batcher_batch_size: 64
+batcher_batch_size_text: 8
+compression_rate: 8    # in   speech encoder
+downsample_rate: 1     # after speech encoder qformer / linear ds
+use_storage_api: True 
+multi_threaded_download: True   # set true for h200 cluster
+prefetch_queue_size: 32
+
+conv_template: phi_o_long # qwen3_audio_instruct # mistral3_audio_instruct # phi_o_long
+
+tokenizer:
+  # pretrained_model_name_or_path: /datablob1/users/ruchaofan/Phi-omni-checkpoints/language_ckpt/Ministral-3-8B-Instruct-2512/
+  pretrained_model_name_or_path: /datablob1/users/ruchaofan/Phi-omni-checkpoints/language_ckpt/phi4-silica-7b-text-dpo-orig_then_msr-0419/
+
+pad_to_context_length: False 
+
+dataset:
+  # ASR Data Amount examples:
+  # OpenSource: 16.94M
+  # Text SFT: 10.16M 
+  # CodeSwitch
+  # 386.0067 / 16 + 10.16 / 2 = 29.20541875 GPU steps
+
+ ################################# Opensource Data ####################################################
+  # opensource data in lexical format  8.47M
+  # asr chunk data for the collected open-source ASR data
+  # MLS: 2.056M
+  - dataset_spec: 
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_en_asr_2k.json          # 1999.67 hours, number of examples: 0.484M, average duration: 14.87s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_de_asr.json             # 1966.50 hours, number of examples: 0.470M, average duration: 15.06s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_es_asr.json             # 929.73 hours, number of examples: 0.224M, average duration: 14.97s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_fr_asr.json             # 1076.58 hours, number of examples: 0.258M, average duration: 15.01s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_it_asr.json             # 247.38 hours, number of examples: 0.060M, average duration: 14.94s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_it_asr.json        
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pt_asr.json             # 160.96 hours, number of examples: 0.038M, average duration: 15.44s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pt_asr.json        
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pl_asr.json             # 103.65 hours, number of examples: 0.025M, average duration: 14.90s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pl_asr.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_nl_asr.json             # 1554.24 hours, number of examples: 0.374M, average duration: 14.95s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_zh_asr_3k.json              # 3000.23 hours, number of examples: 4.290M, average duration: 2.52s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_gigaspeech_2k5.json    # 2498.74 hours, number of examples: 2.124M, average duration: 4.24s
+
+    use_num_examples_as_durations: True
+    filter_options:
+      max_utterance_frames: 4000
+      min_utterance_frames: 0
+      max_utterance_labels: 300
+      min_utterance_labels: 1
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: asr-lid-lexical
+      fixed_prompt: False
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+    
+    text_normalization:
+      case_normalize: "lower"     # lower for the gigaspeech
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: 1000
+    batcher_criterion: "utterance"
+    batcher_batch_size: ${batcher_batch_size}
+    num_chunks_for_shuffling: 10
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: False
+    dataset_provider: blob_chunk_alm
+
+  # Display audios chunk
+  # asr commonvoice15.0 tsv data sampled en fixed prompt + 7languages fixed + random prompt + tier2 = 5.556M
+  # asr voxpopuli = 1.224M
+  # asr fleurs = 0.12M
+  # OpenASR: ami + earnings  0.11M*4 + 0.05M*2 = 0.54M
+  # 5.556M + 1.224M + 0.12M + 0.54M = 7.44M
+  - dataset_spec: 
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json             # 1688.26 hours, number of examples: 1.070M, average duration: 5.68s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_de.json             # 1801.81 hours, number of examples: 1.136M, average duration: 5.71s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json             # 901.72 hours, number of examples: 0.623M, average duration: 5.21s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fr.json             # 1514.72 hours, number of examples: 1.055M, average duration: 5.17s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_it.json             # 489.32 hours, number of examples: 0.333M, average duration: 5.29s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json             # 18.82 hours, number of examples: 0.014M, average duration: 4.97s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json             # 48.12 hours, number of examples: 0.042M, average duration: 4.11s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json             # 84.63 hours, number of examples: 0.059M, average duration: 5.18s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json                
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_tier2.json          # 603.61 hours, number of examples: 0.486M, average duration: 4.47s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_en.json        # 1045.21 hours, number of examples: 0.365M, average duration: 10.31s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_de.json        # 529.29 hours, number of examples: 0.217M, average duration: 8.78s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_es.json        # 303.85 hours, number of examples: 0.102M, average duration: 10.74s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_fr.json        # 411.40 hours, number of examples: 0.147M, average duration: 10.07s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_it.json        # 156.13 hours, number of examples: 0.045M, average duration: 12.45s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_es.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_it.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_tier2.json     # 549.45 hours, number of examples: 0.201M, average duration: 9.84s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_fleurs.json              # 159.75 hours, number of examples: 0.050M, average duration: 11.39s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_fleurs_tier2.json        # 212.54 hours, number of examples: 0.069M, average duration: 11.13s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_ami.json         # 0.11M * 2
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_ami.json         # 0.11M * 2
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_earnings.json    # 0.05M * 2    # 0.27M * 2
+
+    use_num_examples_as_durations: True
+    filter_options:
+      max_utterance_frames: 4000
+      min_utterance_frames: 3
+      max_utterance_labels: 300
+      min_utterance_labels: 1
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: asr-lid
+      fixed_prompt: False
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: 1000
+    batcher_criterion: "utterance"
+    batcher_batch_size: ${batcher_batch_size}
+    num_chunks_for_shuffling: 10
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: False
+    dataset_provider: blob_chunk_alm
+
+  # librispeech and libriheavy in lexical format
+  # 3772.18 hours, number of examples: 1.030M, average duration: 13.18s
+  - dataset_spec: 
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/wavllm_chunk_asr.json
+
+    use_num_examples_as_durations: True
+    filter_options:
+      max_utterance_frames: 4000
+      min_utterance_frames: 0
+      min_utterance_labels: 1
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: asr-lid-lexical
+      fixed_prompt: False
+      batch_format: "samples_to_batch"     # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: 1000
+    batcher_criterion: "utterance"
+    batcher_batch_size: ${batcher_batch_size}
+    num_chunks_for_shuffling: 5
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length} # just in case there are extremely long answers
+    dataset_provider: blob_chunk_alm
+
+dataset_concat: random_iterable # [random, sequential]
+dataset_provider: blob_chunk_alm
+dataset_collator:
+  cls: blob_chunk_alm_dynamic
+  tokenizer: ${tokenizer}
+  audio_key: inputs_embeds
+  # padding_mask: True
+
+
+
