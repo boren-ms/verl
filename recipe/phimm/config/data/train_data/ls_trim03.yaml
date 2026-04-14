@@ -1,0 +1,18 @@
+dataset_name: parquet
+parquet_paths: az://orngwus2cresco/data/boren/data/LibriSpeechTrim03/dataset.parquet
+num_proc: auto
+cache_name: auto_train
+pre_process:
+  path_map:
+    field: audio_chunk
+    src_part: "az://orngwus2cresco/data"
+    dst_part: "${oc.env:DATA_PATH}"
+add_prompt:
+  task: asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
