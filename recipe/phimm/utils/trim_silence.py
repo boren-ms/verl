@@ -1,6 +1,7 @@
 """Trim head/tail silence from audio using Silero VAD (ONNX). Supports parallel processing."""
 
 import glob
+import io
 import numpy as np
 import onnxruntime as ort
 import soundfile as sf
@@ -23,6 +24,7 @@ class SilenceTrimmer:
     """Trim head/tail silence from audio files using Silero VAD (ONNX)."""
 
     _MODEL_URL = "https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx"
+    _MODEL_BLOB = "az://orngwus2cresco/data/boren/data/verl/silero_vad.onnx"
     _TARGET_SR = 16000
 
     def __init__(self, threshold: float = 0.5):
@@ -36,11 +38,32 @@ class SilenceTrimmer:
         cache_dir.mkdir(parents=True, exist_ok=True)
         path = cache_dir / "silero_vad.onnx"
         if not path.exists():
-            import urllib.request
-
-            print(f"Downloading Silero VAD ONNX model to {path}...")
-            urllib.request.urlretrieve(cls._MODEL_URL, path)
+            # Try URL first, fall back to blob (for nodes without internet)
+            try:
+                import urllib.request
+                print(f"Downloading Silero VAD ONNX model to {path}...")
+                urllib.request.urlretrieve(cls._MODEL_URL, path)
+            except Exception:
+                import blobfile as bf
+                print(f"Downloading VAD model from blob {cls._MODEL_BLOB} ...")
+                with bf.BlobFile(cls._MODEL_BLOB, "rb") as src, open(path, "wb") as dst:
+                    dst.write(src.read())
         return path
+
+    @staticmethod
+    def read_audio(audio_path: str):
+        """Read audio from local or az:// path. Returns (audio, sr)."""
+        import blobfile as bf
+        with bf.BlobFile(audio_path, "rb") as f:
+            return sf.read(f, dtype="float32", always_2d=False)
+
+    @staticmethod
+    def write_audio(output_path: str, audio, sr: int):
+        """Write audio to local or az:// path, inferring format from extension."""
+        import blobfile as bf
+        fmt = Path(output_path).suffix.lstrip(".").upper() or "WAV"
+        with bf.BlobFile(output_path, "wb") as f:
+            sf.write(f, audio, sr, format=fmt)
 
     def _speech_timestamps(self, audio: np.ndarray, window: int = 512) -> list[dict]:
         sr = self._TARGET_SR
@@ -117,8 +140,8 @@ class SilenceTrimmer:
 
     def trim_file(self, audio_path: str, output_path: str = None,
                   head_cut_ms: int = 0, tail_cut_ms: int = 0) -> str | None:
-        """Trim silence from an audio file. Returns output path or None."""
-        audio, sr = sf.read(audio_path, dtype="float32", always_2d=False)
+        """Trim silence from an audio file (supports az:// paths). Returns output path or None."""
+        audio, sr = self.read_audio(audio_path)
         trimmed = self.trim(audio, sr, head_cut_ms=head_cut_ms, tail_cut_ms=tail_cut_ms)
         if trimmed is None:
             print(f"[skip] No speech: {audio_path}")
@@ -130,7 +153,7 @@ class SilenceTrimmer:
             op = Path(output_path)
             if op.is_dir():
                 output_path = str(op / Path(audio_path).name)
-        sf.write(output_path, trimmed, sr)
+        self.write_audio(output_path, trimmed, sr)
         print(f"[done] {audio_path}  {len(audio)/sr:.2f}s -> {len(trimmed)/sr:.2f}s  => {output_path}")
         return output_path
 
