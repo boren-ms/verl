@@ -72,7 +72,13 @@ class Tracking:
             key = os.environ.get("WANDB_API_KEY", key)
             host = os.environ.get("WANDB_ORGANIZATION", host)
             print("Logging WANDB host:", host)
-            wandb.login(host=host, key=key, relogin=True)  # relogin to make sure the key is used
+            # Self-hosted wandb keys (e.g. "local-..." prefix) can be >40 chars,
+            # which newer wandb SDK rejects in wandb.login(). Use env vars instead.
+            if key and len(key) > 40:
+                os.environ["WANDB_API_KEY"] = key
+                os.environ["WANDB_BASE_URL"] = host
+            else:
+                wandb.login(host=host, key=key, relogin=True)
             entity = os.environ.get("WANDB_ENTITY", "genai")
             wandb.init(entity=entity, project=project_name, name=experiment_name, config=config, settings=settings)
             self.logger["wandb"] = wandb
