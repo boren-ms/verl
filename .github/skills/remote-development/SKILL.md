@@ -1,6 +1,6 @@
 ---
 name: remote-development
-description: 'Connect to a remote Brix node using rcall-brix, switch workspace to ~/code/openai, install Python dependencies with oaipkg install, and run development tasks. Use when setting up a remote dev environment, running code on a GPU node, installing packages like speech and knight, or developing/testing on a remote machine.'
+description: 'Connect to a remote Brix node using rcall-brix, switch workspace to ~/code/verl, install dependencies, and run development tasks. Use when setting up a remote dev environment, running code on a GPU node, installing required packages, or developing/testing on a remote machine.'
 argument-hint: 'Target node name, e.g. cw-n1-i0'
 ---
 
@@ -10,7 +10,7 @@ Use this skill when the user needs to connect to a remote Brix node, navigate to
 
 ## When to Use
 - User wants to set up or refresh a remote dev environment
-- User needs to install `speech`, `knight`, or other packages on a remote node
+- User needs to install required packages on a remote node
 - User says "connect to remote", "set up the remote node", or "install deps on <node>"
 - User wants to run, test, or develop code on a remote GPU node
 
@@ -20,13 +20,14 @@ Use this skill when the user needs to connect to a remote Brix node, navigate to
 If the user provides a node name (e.g. `cw-n1-i0`), use it directly.
 If not, ask for the node name before proceeding.
 
-### Step 2 — Sync local code to the remote node
+### Step 2 — Push local code to the remote node
 ```bash
-rcall-brix sync <NODE>
+bpush <NODE>
 ```
-- Syncs the current local workspace to the remote node before connecting.
-- Run this from the local repo root (e.g. `~/code/openai`).
-- Wait for sync to complete before proceeding.
+- Pushes the current git repo (or worktree) to the remote node via `brix git push`.
+- Works from both regular repos and git worktrees — automatically maps the worktree directory to the canonical repo name so the remote path stays `/root/code/<repo>`.
+- Run this from anywhere inside the repo or worktree.
+- Wait for the push to complete before proceeding.
 
 ### Step 3 — Connect via rcall-brix tmux (dedicated session)
 Use a **fixed session name per conversation thread** so subsequent invocations reuse the same tmux session:
@@ -42,40 +43,41 @@ rcall-brix tmux -s codex <NODE>
 ### Step 4 — Switch to the workspace
 Once connected, send:
 ```
-cd ~/code/openai
+cd ~/code/verl
 ```
 Confirm the directory changed (prompt shows the path, or run `pwd`).
 
 ### Step 5 — Install dependencies
-**Always use `oaipkg install`** to install packages. Never use `pip install` directly.
+Install dependencies using the package manager required by the target project or environment.
 ```
-oaipkg install speech knight
+<install command for the target project>
 ```
-- This installs the `speech` and `knight` packages using the internal oaipkg tool.
+- Use the install command specified by the repo or environment you are working in.
 - Wait for the install to complete (watch for success/error output).
-- If the user specifies different packages, substitute them here.
-- **Fallback:** If tmux output is hard to read, use `rcall-brix ssh <NODE> -- 'bash -l -c "cd ~/code/openai && oaipkg install speech knight"'` instead. The `bash -l` login shell picks up Azure credentials needed by oaipkg.
+- If the user specifies packages, substitute them in the install command.
+- **Fallback:** If tmux output is hard to read, use `rcall-brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <install command for the target project>"'` instead.
 
 ### Step 6 — Verify
-After install, optionally verify:
+After install, optionally verify the required packages or environment:
 ```
-python3 -c "import speech; import knight; print('OK')"
+python3 -c "import <required_package>; print('OK')"
 ```
 
 ## Development Workflow
 
 When developing or testing on the remote node, **minimize the changes introduced**:
-- **Edit locally, sync remotely.** Make code changes on the local machine, then run `rcall-brix sync <NODE>` to push them. Avoid editing files directly on the remote node.
-- **Always use `rcall-brix`** to access the remote node — use `rcall-brix ssh`, `rcall-brix tmux`, or `rcall-brix sync`. Do not use raw `ssh` or `scp`.
-- **Always use `oaipkg install`** when installing or updating dependent packages. Do not use `pip install` — oaipkg handles internal package resolution and Azure credentials.
-- **Run tests on remote** via `rcall-brix ssh <NODE> -- 'bash -l -c "cd ~/code/openai && <test command>"'` for one-off commands, or inside the tmux session for interactive work.
-- **Keep changes small.** When iterating, sync only what changed (rcall-brix sync is incremental). Avoid reinstalling packages unless dependencies actually changed.
+- **Edit locally, push remotely.** Make code changes on the local machine, then run `bpush <NODE>` to push them. This works from both regular repos and git worktrees. Avoid editing files directly on the remote node.
+- **Always use `rcall-brix`** to access the remote node — use `rcall-brix ssh` or `rcall-brix tmux`. Use `bpush` for pushing code. Do not use raw `ssh` or `scp`.
+- **Use the project's required installer** when installing or updating dependencies.
+- **Run tests on remote** via `rcall-brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <test command>"'` for one-off commands, or inside the tmux session for interactive work.
+- **Keep changes small.** When iterating, push only what changed (`bpush` is incremental via git). Avoid reinstalling packages unless dependencies actually changed.
 
 ## Command Resolution
+- `bpush` is a zsh function (defined in `~/.zshrc`) that wraps `brix git push`. It detects the canonical repo name from the main worktree and handles the symlink mapping automatically.
 - `rcall-brix` may be at `~/.virtualenvs/openai/bin/rcall-brix` if not on PATH.
-- Always use `rcall-brix` for all remote access — `rcall-brix ssh`, `rcall-brix tmux`, `rcall-brix sync`. Do not use raw `ssh` or `scp`.
-- `oaipkg` is the internal OpenAI package manager; always use it for installing packages. Do not fall back to `pip install`.
-- The remote workspace is typically at `/root/code/openai` (not `/home/boren/...`).
+- Always use `rcall-brix` for remote access — `rcall-brix ssh`, `rcall-brix tmux`. Use `bpush` for pushing code. Do not use raw `ssh` or `scp`.
+- Use the dependency installer required by the target project or environment.
+- The remote workspace is typically at `/root/code/verl` (not `/home/boren/...`).
 
 ## Response Style
 - Confirm which node you connected to.
