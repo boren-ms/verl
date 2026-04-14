@@ -19,4 +19,4 @@ data:
 
 rollout:
   temperature: 0.0
-  gpu_memory_utilization: 0.9
+  gpu_memory_utilization: 0.8
