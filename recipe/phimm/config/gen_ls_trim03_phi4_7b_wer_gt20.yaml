@@ -14,7 +14,7 @@ data:
   batch_size: 512
   local_output_dir: ~/outputs/gen_ls_trim03_phi4_7b_wer_gt20
   remote_output_dir: ${oc.env:DATA_PATH}/boren/data/cache_datasets/gen_ls_trim03_phi4_7b_wer_gt20
-  output_split_size: 100000
+  output_split_size: 5000
   wer_range: [0.2, 100.0]
 
 rollout:

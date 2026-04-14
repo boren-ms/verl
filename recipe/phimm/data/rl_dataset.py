@@ -97,6 +97,14 @@ class RLHFDataset(Dataset):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
+        try:
+            return self._getitem(i)
+        except Exception as e:
+            import random
+            print(f"[WARN] Skipping sample {i} due to error: {e}")
+            return self._getitem(random.randint(0, len(self) - 1))
+
+    def _getitem(self, i):
         row_dict: dict = self.ds[i]
         messages = row_dict[self.prompt_key]
 
