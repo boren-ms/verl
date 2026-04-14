@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repetition Hallucinations — phi7b SPGISpeech</title>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --card-bg: #fff;
+    --border: #dee2e6;
+    --text: #212529;
+    --muted: #6c757d;
+    --red: #dc3545;
+    --red-bg: #fff5f5;
+    --green: #198754;
+    --green-bg: #f0fdf4;
+    --blue: #0d6efd;
+    --blue-bg: #eff6ff;
+    --orange: #fd7e14;
+    --orange-bg: #fff7ed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2rem;
+  }
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+  .stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    min-width: 140px;
+  }
+  .stat-card .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--red);
+  }
+  .stat-card .label {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .case {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .case-header {
+    background: #f1f3f5;
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .rank {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--red);
+    min-width: 2rem;
+  }
+  .audio-id {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .pattern-tag {
+    font-size: 0.82rem;
+    color: var(--red);
+    background: var(--red-bg);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    margin-left: auto;
+  }
+  .transcript-pair {
+    padding: 0.8rem 1rem;
+  }
+  .transcript {
+    padding: 0.5rem 0;
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+  .transcript .label {
+    display: inline-block;
+    width: 3rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    vertical-align: top;
+    padding-top: 2px;
+  }
+  .ref-row .label { color: var(--green); }
+  .hyp-row .label { color: var(--blue); }
+  .transcript .text {
+    display: inline;
+  }
+  .ref-row {
+    border-bottom: 1px dashed #e9ecef;
+  }
+  /* Diff highlights */
+  span.sub {
+    background: #fef3c7;
+    border-bottom: 2px solid var(--orange);
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+  span.del {
+    background: #fecaca;
+    text-decoration: line-through;
+    color: #991b1b;
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+  span.ins {
+    background: #bbf7d0;
+    color: #166534;
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+  /* Repetition highlight */
+  span.rep {
+    background: #fecaca;
+    color: #991b1b;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 3px;
+    border: 1px solid #fca5a5;
+  }
+  .footer {
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<h1>Repetition Hallucinations</h1>
+<p class="subtitle">phi7b_20260413 &mdash; SPGISpeech &mdash; 16 cases detected from 39341 utterances</p>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="value">16</div>
+    <div class="label">Total Cases</div>
+  </div>
+  <div class="stat-card">
+    <div class="value">8</div>
+    <div class="label">Severe (8+ repeats)</div>
+  </div>
+  <div class="stat-card">
+    <div class="value">3</div>
+    <div class="label">Moderate (4-7 repeats)</div>
+  </div>
+  <div class="stat-card">
+    <div class="value">5</div>
+    <div class="label">Phrase Loop Only</div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch" style="background:#fecaca;border:1px solid #fca5a5"></span> Repeated sequence</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#fef3c7;border-bottom:2px solid #fd7e14"></span> Substitution</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#fecaca;text-decoration:line-through"></span> Deletion</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#bbf7d0"></span> Insertion</div>
+</div>
+
+
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#1</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/8cfc2a9aace5078f22a83c782b9d41f7_79.wav.wav</span>
+        <audio controls preload="none" src="wavs/8cfc2a9aace5078f22a83c782b9d41f7_79.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 8x consecutively; phrase loop: to, to, x4</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">But it would be fair to think that you would have capacity that you could utilize here to</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">But it, it would be fair to, to think that you, you would have capacity that you could utilize here <span class="rep">to, to, to, to, to, to, to, to</span>,</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#2</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/1ea5a01d14ee672e3e9cdbff8e56da74_28.wav.wav</span>
+        <audio controls preload="none" src="wavs/1ea5a01d14ee672e3e9cdbff8e56da74_28.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 8x consecutively; phrase loop: uh, uh, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">As mentioned, we see strong changes in our exchange rates and they move right now in a favorable direction for Duni and especially when it comes to the</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">As mentioned, we see strong changes in our exchange rates and they move right now in a favorable direction for Duni and especially when it comes to the, <span class="rep">uh, uh, uh, uh, uh, uh, uh, uh</span>…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#3</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/4ee3c79ebc57c9870b221b9479d52436_258.wav.wav</span>
+        <audio controls preload="none" src="wavs/4ee3c79ebc57c9870b221b9479d52436_258.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 8x consecutively; phrase loop: the, the, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Simon, I honestly don&#x27;t think that these things are any different in the context of the way we&#x27;ve thought about</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um, Simon, I, I honestly don&#x27;t think that these things, um, are any different in the context of the way we&#x27;ve thought about, um, <span class="rep">the, the, the, the, the, the, the, the</span>.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#4</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/6f1b092b312410065d308541be46da95_143.wav.wav</span>
+        <audio controls preload="none" src="wavs/6f1b092b312410065d308541be46da95_143.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;on&quot; repeated 8x consecutively; phrase loop: on, on, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text"><span class="sub">Yes,</span> I think <span class="sub">--</span> well, let me start with New York as well, I think there&#x27;s a number of tests that we have on</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um, I think in, well, let me start with New York as well. I mean, I think there&#x27;s a number of tests that we have on, uh, <span class="rep">on, on, on, on, on, on, on, on</span>.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#5</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/dd1b5d8b62882dbf2ce5e06cf5678ced_21.wav.wav</span>
+        <audio controls preload="none" src="wavs/dd1b5d8b62882dbf2ce5e06cf5678ced_21.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 8x consecutively; phrase loop: uh, uh, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And again, with respect to the exploration wells, depending on the distance from existing infrastructure, the <span class="sub">tie-in</span> can be quite quick or it can be a couple of months while we&#x27;re actually laying <span class="sub">flow-lines</span> to connect with the main</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And again, with respect to the exploration wells, depending on the distance from existing infrastructure, the tie in can be quite quick or it can be a couple of months while we&#x27;re actually laying flow lines to connect with the main, <span class="rep">uh, uh, uh, uh, uh, uh, uh, uh</span>…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#6</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/e35fae1d3df1f7aeda409f90f200ec7b_224.wav.wav</span>
+        <audio controls preload="none" src="wavs/e35fae1d3df1f7aeda409f90f200ec7b_224.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;a&quot; repeated 8x consecutively; phrase loop: a, a, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So whilst the quarter <span class="sub">3</span> might have been a little softer, quarter <span class="sub">4</span> is a little better, we look at it at a little bit longer time frame than you sometimes do. So what we&#x27;ve seen in the last quarter, and we don&#x27;t even have the shares yet because they come in with a</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So whilst the quarter three might have been a little softer, quarter four is a little better, we look at it, uh, at a, at a little bit longer time frame than you sometimes do, so what we&#x27;ve seen in the last quarter, and we don&#x27;t even have the shares yet because they come in with a, uh, <span class="rep">a, a, a, a, a, a, a, a</span>.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#7</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/1b91eb82f5211000e711424657cc2484_247.wav.wav</span>
+        <audio controls preload="none" src="wavs/1b91eb82f5211000e711424657cc2484_247.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 8x consecutively; phrase loop: uh, uh, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So I don&#x27;t know what <span class="del">--</span> we don&#x27;t have <span class="del">or</span> can&#x27;t give an estimate of what we think the eligible universe could expand to, but we are optimistic that it is a</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So I don&#x27;t know what, we don&#x27;t have, can&#x27;t give an estimate of what we think the eligible universe could expand to, uh, but we are optimistic that it is a, it is a, <span class="rep">uh, uh, uh, uh, uh, uh, uh, uh</span>…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#8</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/599ab9a8d39052867bd99cb2fa4fd4f2_78.wav.wav</span>
+        <audio controls preload="none" src="wavs/599ab9a8d39052867bd99cb2fa4fd4f2_78.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;a&quot; repeated 8x consecutively; phrase loop: a, a, x4</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">where we&#x27;re just <span class="del">--</span> we&#x27;ve laid down a few frac crews, a few rigs and it doesn&#x27;t take much slack in that market for it to really impact pricing. So I think it&#x27;s just a</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">where we&#x27;re just, we&#x27;ve laid down a few frac crews, a few rigs, and it doesn&#x27;t take much slack in that market for it to really impact pricing, so I think it&#x27;s just <span class="rep">a, a, a, a, a, a, a, a</span>,</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#9</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/3e714a49937be1672aa48244ba7254ce_33.wav.wav</span>
+        <audio controls preload="none" src="wavs/3e714a49937be1672aa48244ba7254ce_33.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And we think that we had to improve our processes and the service we are supporting</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And we think that we had to improve our processes and the, the, the service we are, are, are supporting <span class="rep">the, the, the, the</span>…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#10</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/3e7ae56945d17332dc48a3a2b331da25_58.wav.wav</span>
+        <audio controls preload="none" src="wavs/3e7ae56945d17332dc48a3a2b331da25_58.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">and at this point, the board and the controlling group is not <span class="sub">--</span> the <span class="sub">strategy</span> of the company is not to make</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And at this point, <span class="rep">the, the, the, the</span> board and the controlling group, uh, is not, is not, uh, at the stretch of the company, is not to make…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#11</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/82b66739c0d2b8a47f19a5acbe3b90ed_107.wav.wav</span>
+        <audio controls preload="none" src="wavs/82b66739c0d2b8a47f19a5acbe3b90ed_107.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;on&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">We work towards allocating capital to where we think the best opportunities are. So I don&#x27;t even <span class="del">want</span> <span class="sub">to</span> speculate as to whether it&#x27;ll go higher or lower. It&#x27;s very dependent on the opportunity set.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">We, we work towards allocating capital to where we think the best opportunities are, so I don&#x27;t even wanna speculate as to whether it&#x27;ll go higher or lower, it&#x27;s very dependent <span class="rep">on, on, on, on</span> the opportunity set.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#12</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/e97326d6a8951550e363f2be6ec489ba_70.wav.wav</span>
+        <audio controls preload="none" src="wavs/e97326d6a8951550e363f2be6ec489ba_70.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: a, uh, x4</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">It has been systematic and has affected us, too. We need to look at nonrecurring effects, too, such as the fact that last year,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">It has been, uh, systematic and has affected us too, we need to look at non-recurring effects too, such as the fact that last year, uh, we had a, uh, a, uh, a, uh, a, uh, a, a, uh, a, uh, a, uh, a…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#13</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/a45d8b57fe6b8199bca7aec4d022bbb3_13.wav.wav</span>
+        <audio controls preload="none" src="wavs/a45d8b57fe6b8199bca7aec4d022bbb3_13.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: the, uh, x4</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">The sale of the segment FRP <span class="sub">is</span> something that we actually consider as well as the preparation for our further growth ideas that we have. It will focus the management</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">The sale of the segment FRP, that&#x27;s something that we actually consider as well as the preparation for our further growth ideas that we have, it will focus the management, uh, on the, uh, the, uh, the, uh, the, uh, the, um, the, uh, the, uh, the, uh, the…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#14</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/d261e09fa176510406c0d05eeedfc8f8_167.wav.wav</span>
+        <audio controls preload="none" src="wavs/d261e09fa176510406c0d05eeedfc8f8_167.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: uh, the, x4</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">how they have been performing very strongly. in the case of Vueling, in the case of British Airways. There is a piece there having to do with</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">how they have been performing very strongly in the case of, uh, Vueling, in the case of British Airways, uh, there is a piece there having to do with, uh, the, uh, the, uh, the, uh, the, uh…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#15</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/333d478ab06fd400afafa68f4a952191_130.wav.wav</span>
+        <audio controls preload="none" src="wavs/333d478ab06fd400afafa68f4a952191_130.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: uh, the, x4</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">As far as we know or we have heard, we haven&#x27;t had that kind of signal from the government. I think they will <span class="del">--</span> they are still concerned on the amount of</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, as far as we know or we have heard, we haven&#x27;t, uh, had that kind of signal from the government. I think they will, they are still concerned on the amount of, uh, the, uh, the, uh, the, uh, the, uh.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#16</span>
+        <span class="audio-id">/home/boren/data/open_asr/spgispeech/wavs/f7df5ecab61eca575f169a8298318eca_65.wav.wav</span>
+        <audio controls preload="none" src="wavs/f7df5ecab61eca575f169a8298318eca_65.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: on a, x5</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">All right, thank you very much everybody. And again, thank you for taking the time out to meet with us here on</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">All right, thank you very much everybody and again, thank you for taking the time out to meet with us here on a, on a, on a, on a, on a, on a.</span>
+        </div>
+      </div>
+    </div>
+
+<div class="footer">
+  Generated from generate_spgispeech.txt &mdash; 39,341 total utterances
+</div>
+</body>
+</html>
