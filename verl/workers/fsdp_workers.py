@@ -97,6 +97,23 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 device_name = get_device_name()
 
 
+def get_event_loop(auto_create=True):
+    """Get or create an asyncio event loop for the current thread (Python 3.12+ compatible)."""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            if not auto_create:
+                raise RuntimeError("Event loop is closed")
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+    except RuntimeError:
+        if not auto_create:
+            raise
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop
+
+
 def create_device_mesh(world_size, fsdp_size):
     if fsdp_size < 0 or fsdp_size >= world_size:
         device_mesh = init_device_mesh(device_name, mesh_shape=(world_size,), mesh_dim_names=["fsdp"])
@@ -632,8 +649,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         # For sync mode, we directly switch to trainer mode here.
         # For async mode, we can't call run_until_complete here, so we will switch to trainer mode in AgentLoopManager.
         if rollout_config.mode == "sync" and self._is_actor:
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(self.trainer_mode())
+            get_event_loop().run_until_complete(self.trainer_mode())
 
     async def rollout_mode(self):
         """Context switch hybridengine to rollout mode."""
@@ -913,15 +929,14 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         timing_generate = {}
         # switch to rollout mode if needed
         if self._is_actor or (self._is_rollout and not self.base_sync_done):  
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(self.rollout_mode())
+            get_event_loop().run_until_complete(self.rollout_mode())
             log_gpu_memory_usage("After switch to rollout mode", logger=logger)
 
         with simple_timer("generate_sequences", timing_generate):
             output = self.rollout.generate_sequences(prompts=prompts)
 
         if self._is_actor:
-            loop.run_until_complete(self.trainer_mode())
+            get_event_loop().run_until_complete(self.trainer_mode())
             log_gpu_memory_usage("After switch to trainer mode", logger=logger)
 
         # We calculate the average timing across all ranks
