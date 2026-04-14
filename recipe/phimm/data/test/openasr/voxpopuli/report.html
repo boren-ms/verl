@@ -1,0 +1,1610 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Error Analysis - voxpopuli</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f7f8fa;color:#1a1a1a;line-height:1.6}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#fff;border-right:1px solid #e0e0e0;padding:12px 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar h3{padding:8px 16px;margin:0;font-size:.85rem;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.nav-item{display:block;padding:6px 16px;text-decoration:none;color:#333;font-size:.8rem;border-left:3px solid transparent;transition:background .15s}
+.nav-item:hover{background:#f0f4ff;border-left-color:#4a90d9}
+.nav-rank{font-weight:700;color:#4a90d9} .nav-err{color:#c33;font-size:.75rem} .nav-wer{color:#666;font-size:.75rem}
+main{flex:1;max-width:1100px;padding:24px 32px;overflow-x:hidden}
+h1{font-size:1.5rem;margin:0 0 4px} .subtitle{color:#666;font-size:.9rem;margin-bottom:20px;word-break:break-all}
+h2{font-size:1.15rem;margin-top:2rem;padding-bottom:6px;border-bottom:1px solid #e0e0e0}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.kpi>div{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px 18px;min-width:130px}
+.kpi .val{font-size:1.4rem;font-weight:700} .kpi .lbl{font-size:.8rem;color:#666}
+.kpi .highlight{border-color:#4a90d9;background:#f0f4ff}
+table.data{border-collapse:collapse;margin:12px 0;width:100%}
+table.data th,table.data td{border:1px solid #ddd;padding:6px 10px;text-align:left;font-size:.85rem}
+table.data th{background:#f8f8f8;position:sticky;top:0}
+table.data tr:hover{background:#fafafa}
+.tables-row{display:flex;gap:24px;flex-wrap:wrap}
+.tables-row>div{flex:1;min-width:200px}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;margin:16px 0;overflow:hidden}
+.card header{padding:14px 18px;background:#f8f9fb;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card .rank{font-size:1.1rem;font-weight:700;color:#4a90d9}
+.card .utt-id{font-family:monospace;font-size:.82rem;color:#555}
+.card .stats{font-size:.8rem;color:#666;margin-left:auto}
+details{padding:0}
+summary{padding:10px 18px;cursor:pointer;font-weight:600;font-size:.9rem;background:#fafbfc;border-top:1px solid #eee;user-select:none}
+summary:hover{background:#f0f4ff}
+.transcript{padding:16px 18px;font-size:.9rem;line-height:1.9;white-space:pre-wrap;word-wrap:break-word;max-height:600px;overflow-y:auto}
+.audio-block{padding:8px 18px}
+.audio-block audio{width:min(520px,100%)}
+.audio-meta{font-size:.82rem;color:#555;padding:4px 18px;overflow-wrap:anywhere}
+.err-sub{background:#fff3cd;border-radius:3px;padding:1px 2px;border-bottom:2px solid #fd7e14;text-decoration:line-through;opacity:.75}
+.err-del{background:#f8d7da;border-radius:3px;padding:1px 2px;border-bottom:2px solid #dc3545;text-decoration:line-through;opacity:.7}
+.err-ins{background:#d6ecff;border-radius:3px;padding:1px 2px;border-bottom:2px solid #007bff;font-style:italic}
+.hyp-inline{color:#c33;font-size:.8rem;font-style:italic}
+.err-table{width:100%;border-collapse:collapse;margin:8px 0}
+.err-table th,.err-table td{border:1px solid #eee;padding:5px 8px;font-size:.82rem;text-align:left}
+.err-table th{background:#f8f8f8}
+@media(max-width:900px){
+  .sidebar{display:none}
+  main{padding:16px}
+  .tables-row{flex-direction:column}
+}
+</style></head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <h3>Utterances</h3>
+  <a href="#utt-1" class="nav-item"><span class="nav-rank">#1</span> <span class="nav-err">35 err</span> <span class="nav-wer">20.8%</span></a>
+<a href="#utt-2" class="nav-item"><span class="nav-rank">#2</span> <span class="nav-err">15 err</span> <span class="nav-wer">17.2%</span></a>
+<a href="#utt-3" class="nav-item"><span class="nav-rank">#3</span> <span class="nav-err">14 err</span> <span class="nav-wer">40.0%</span></a>
+<a href="#utt-4" class="nav-item"><span class="nav-rank">#4</span> <span class="nav-err">13 err</span> <span class="nav-wer">46.4%</span></a>
+<a href="#utt-5" class="nav-item"><span class="nav-rank">#5</span> <span class="nav-err">13 err</span> <span class="nav-wer">25.5%</span></a>
+<a href="#utt-6" class="nav-item"><span class="nav-rank">#6</span> <span class="nav-err">12 err</span> <span class="nav-wer">23.5%</span></a>
+<a href="#utt-7" class="nav-item"><span class="nav-rank">#7</span> <span class="nav-err">12 err</span> <span class="nav-wer">11.0%</span></a>
+<a href="#utt-8" class="nav-item"><span class="nav-rank">#8</span> <span class="nav-err">11 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-9" class="nav-item"><span class="nav-rank">#9</span> <span class="nav-err">11 err</span> <span class="nav-wer">27.5%</span></a>
+<a href="#utt-10" class="nav-item"><span class="nav-rank">#10</span> <span class="nav-err">10 err</span> <span class="nav-wer">18.5%</span></a>
+<a href="#utt-11" class="nav-item"><span class="nav-rank">#11</span> <span class="nav-err">9 err</span> <span class="nav-wer">22.5%</span></a>
+<a href="#utt-12" class="nav-item"><span class="nav-rank">#12</span> <span class="nav-err">9 err</span> <span class="nav-wer">10.5%</span></a>
+<a href="#utt-13" class="nav-item"><span class="nav-rank">#13</span> <span class="nav-err">9 err</span> <span class="nav-wer">23.1%</span></a>
+<a href="#utt-14" class="nav-item"><span class="nav-rank">#14</span> <span class="nav-err">9 err</span> <span class="nav-wer">27.3%</span></a>
+<a href="#utt-15" class="nav-item"><span class="nav-rank">#15</span> <span class="nav-err">9 err</span> <span class="nav-wer">9.1%</span></a>
+<a href="#utt-16" class="nav-item"><span class="nav-rank">#16</span> <span class="nav-err">9 err</span> <span class="nav-wer">12.0%</span></a>
+<a href="#utt-17" class="nav-item"><span class="nav-rank">#17</span> <span class="nav-err">8 err</span> <span class="nav-wer">12.3%</span></a>
+<a href="#utt-18" class="nav-item"><span class="nav-rank">#18</span> <span class="nav-err">8 err</span> <span class="nav-wer">30.8%</span></a>
+<a href="#utt-19" class="nav-item"><span class="nav-rank">#19</span> <span class="nav-err">8 err</span> <span class="nav-wer">20.5%</span></a>
+<a href="#utt-20" class="nav-item"><span class="nav-rank">#20</span> <span class="nav-err">8 err</span> <span class="nav-wer">21.6%</span></a>
+<a href="#utt-21" class="nav-item"><span class="nav-rank">#21</span> <span class="nav-err">8 err</span> <span class="nav-wer">19.0%</span></a>
+<a href="#utt-22" class="nav-item"><span class="nav-rank">#22</span> <span class="nav-err">8 err</span> <span class="nav-wer">18.2%</span></a>
+<a href="#utt-23" class="nav-item"><span class="nav-rank">#23</span> <span class="nav-err">8 err</span> <span class="nav-wer">21.1%</span></a>
+<a href="#utt-24" class="nav-item"><span class="nav-rank">#24</span> <span class="nav-err">8 err</span> <span class="nav-wer">20.5%</span></a>
+<a href="#utt-25" class="nav-item"><span class="nav-rank">#25</span> <span class="nav-err">8 err</span> <span class="nav-wer">11.3%</span></a>
+<a href="#utt-26" class="nav-item"><span class="nav-rank">#26</span> <span class="nav-err">8 err</span> <span class="nav-wer">16.3%</span></a>
+<a href="#utt-27" class="nav-item"><span class="nav-rank">#27</span> <span class="nav-err">7 err</span> <span class="nav-wer">17.5%</span></a>
+<a href="#utt-28" class="nav-item"><span class="nav-rank">#28</span> <span class="nav-err">7 err</span> <span class="nav-wer">21.2%</span></a>
+<a href="#utt-29" class="nav-item"><span class="nav-rank">#29</span> <span class="nav-err">7 err</span> <span class="nav-wer">21.2%</span></a>
+<a href="#utt-30" class="nav-item"><span class="nav-rank">#30</span> <span class="nav-err">7 err</span> <span class="nav-wer">14.3%</span></a>
+<a href="#utt-31" class="nav-item"><span class="nav-rank">#31</span> <span class="nav-err">7 err</span> <span class="nav-wer">17.9%</span></a>
+<a href="#utt-32" class="nav-item"><span class="nav-rank">#32</span> <span class="nav-err">7 err</span> <span class="nav-wer">14.6%</span></a>
+<a href="#utt-33" class="nav-item"><span class="nav-rank">#33</span> <span class="nav-err">7 err</span> <span class="nav-wer">24.1%</span></a>
+<a href="#utt-34" class="nav-item"><span class="nav-rank">#34</span> <span class="nav-err">7 err</span> <span class="nav-wer">41.2%</span></a>
+<a href="#utt-35" class="nav-item"><span class="nav-rank">#35</span> <span class="nav-err">7 err</span> <span class="nav-wer">31.8%</span></a>
+<a href="#utt-36" class="nav-item"><span class="nav-rank">#36</span> <span class="nav-err">7 err</span> <span class="nav-wer">13.7%</span></a>
+<a href="#utt-37" class="nav-item"><span class="nav-rank">#37</span> <span class="nav-err">7 err</span> <span class="nav-wer">13.7%</span></a>
+<a href="#utt-38" class="nav-item"><span class="nav-rank">#38</span> <span class="nav-err">7 err</span> <span class="nav-wer">8.3%</span></a>
+<a href="#utt-39" class="nav-item"><span class="nav-rank">#39</span> <span class="nav-err">7 err</span> <span class="nav-wer">14.3%</span></a>
+<a href="#utt-40" class="nav-item"><span class="nav-rank">#40</span> <span class="nav-err">7 err</span> <span class="nav-wer">14.6%</span></a>
+<a href="#utt-41" class="nav-item"><span class="nav-rank">#41</span> <span class="nav-err">7 err</span> <span class="nav-wer">17.5%</span></a>
+<a href="#utt-42" class="nav-item"><span class="nav-rank">#42</span> <span class="nav-err">7 err</span> <span class="nav-wer">15.2%</span></a>
+<a href="#utt-43" class="nav-item"><span class="nav-rank">#43</span> <span class="nav-err">7 err</span> <span class="nav-wer">12.3%</span></a>
+<a href="#utt-44" class="nav-item"><span class="nav-rank">#44</span> <span class="nav-err">7 err</span> <span class="nav-wer">20.6%</span></a>
+<a href="#utt-45" class="nav-item"><span class="nav-rank">#45</span> <span class="nav-err">7 err</span> <span class="nav-wer">14.3%</span></a>
+<a href="#utt-46" class="nav-item"><span class="nav-rank">#46</span> <span class="nav-err">7 err</span> <span class="nav-wer">22.6%</span></a>
+<a href="#utt-47" class="nav-item"><span class="nav-rank">#47</span> <span class="nav-err">6 err</span> <span class="nav-wer">14.0%</span></a>
+<a href="#utt-48" class="nav-item"><span class="nav-rank">#48</span> <span class="nav-err">6 err</span> <span class="nav-wer">13.3%</span></a>
+<a href="#utt-49" class="nav-item"><span class="nav-rank">#49</span> <span class="nav-err">6 err</span> <span class="nav-wer">17.1%</span></a>
+<a href="#utt-50" class="nav-item"><span class="nav-rank">#50</span> <span class="nav-err">6 err</span> <span class="nav-wer">20.0%</span></a>
+</nav>
+<main>
+<h1>Word Error Analysis: voxpopuli</h1>
+<div class="subtitle">Input: /home/boren/data/test/phi7b_20260413/generate_voxpopuli.jsonl</div>
+<div class="kpi">
+  <div class="highlight"><div class="val">5.66%</div><div class="lbl">WER</div></div>
+  <div><div class="val">1,842</div><div class="lbl">Utterances</div></div>
+  <div><div class="val">44,079</div><div class="lbl">Ref Words</div></div>
+  <div><div class="val">2,493</div><div class="lbl">Total Errors</div></div>
+  <div><div class="val">1,206</div><div class="lbl">Sub (2.7%)</div></div>
+  <div><div class="val">637</div><div class="lbl">Del (1.4%)</div></div>
+  <div><div class="val">650</div><div class="lbl">Ins (1.5%)</div></div>
+</div>
+
+<h2>Top Substitution Confusions</h2>
+<table class="data"><thead><tr><th>Ref Word</th><th>Hyp Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>a</td><td>the</td><td>20</td></tr>
+<tr><td>which</td><td>that</td><td>11</td></tr>
+<tr><td>the</td><td>a</td><td>10</td></tr>
+<tr><td>in</td><td>on</td><td>9</td></tr>
+<tr><td>for</td><td>of</td><td>7</td></tr>
+<tr><td>that</td><td>which</td><td>7</td></tr>
+<tr><td>the</td><td>this</td><td>7</td></tr>
+<tr><td>this</td><td>the</td><td>7</td></tr>
+<tr><td>is</td><td>are</td><td>7</td></tr>
+<tr><td>in</td><td>of</td><td>7</td></tr>
+<tr><td>are</td><td>is</td><td>7</td></tr>
+<tr><td>madam</td><td>mister</td><td>6</td></tr>
+<tr><td>to</td><td>for</td><td>6</td></tr>
+<tr><td>this</td><td>it</td><td>6</td></tr>
+<tr><td>in</td><td>to</td><td>6</td></tr>
+<tr><td>that</td><td>this</td><td>5</td></tr>
+<tr><td>this</td><td>these</td><td>5</td></tr>
+<tr><td>of</td><td>for</td><td>4</td></tr>
+<tr><td>anticorruption</td><td>corruption</td><td>4</td></tr>
+<tr><td>in</td><td>for</td><td>4</td></tr>
+<tr><td>of</td><td>on</td><td>4</td></tr>
+<tr><td>of</td><td>the</td><td>4</td></tr>
+<tr><td>crisis</td><td>crises</td><td>4</td></tr>
+<tr><td>their</td><td>the</td><td>4</td></tr>
+<tr><td>amendment</td><td>number</td><td>3</td></tr>
+<tr><td>in</td><td>at</td><td>3</td></tr>
+<tr><td>its</td><td>the</td><td>3</td></tr>
+<tr><td>of</td><td>in</td><td>3</td></tr>
+<tr><td>and</td><td>in</td><td>3</td></tr>
+<tr><td>policies</td><td>policy</td><td>3</td></tr></tbody></table>
+
+<div class="tables-row">
+<div>
+<h2>Top Deletions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>the</td><td>78</td></tr>
+<tr><td>and</td><td>40</td></tr>
+<tr><td>that</td><td>28</td></tr>
+<tr><td>a</td><td>27</td></tr>
+<tr><td>is</td><td>22</td></tr>
+<tr><td>in</td><td>19</td></tr>
+<tr><td>to</td><td>18</td></tr>
+<tr><td>of</td><td>16</td></tr>
+<tr><td>it</td><td>14</td></tr>
+<tr><td>have</td><td>12</td></tr>
+<tr><td>so</td><td>10</td></tr>
+<tr><td>as</td><td>9</td></tr>
+<tr><td>are</td><td>8</td></tr>
+<tr><td>which</td><td>8</td></tr>
+<tr><td>at</td><td>8</td></tr>
+<tr><td>we</td><td>7</td></tr>
+<tr><td>on</td><td>5</td></tr>
+<tr><td>no</td><td>5</td></tr>
+<tr><td>for</td><td>5</td></tr>
+<tr><td>i</td><td>5</td></tr></tbody></table>
+</div>
+<div>
+<h2>Top Insertions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>the</td><td>113</td></tr>
+<tr><td>and</td><td>34</td></tr>
+<tr><td>a</td><td>26</td></tr>
+<tr><td>that</td><td>21</td></tr>
+<tr><td>to</td><td>18</td></tr>
+<tr><td>of</td><td>16</td></tr>
+<tr><td>in</td><td>16</td></tr>
+<tr><td>i</td><td>14</td></tr>
+<tr><td>so</td><td>10</td></tr>
+<tr><td>are</td><td>10</td></tr>
+<tr><td>we</td><td>10</td></tr>
+<tr><td>is</td><td>10</td></tr>
+<tr><td>it</td><td>9</td></tr>
+<tr><td>also</td><td>9</td></tr>
+<tr><td>on</td><td>8</td></tr>
+<tr><td>for</td><td>7</td></tr>
+<tr><td>have</td><td>6</td></tr>
+<tr><td>will</td><td>5</td></tr>
+<tr><td>but</td><td>5</td></tr>
+<tr><td>european</td><td>5</td></tr></tbody></table>
+</div>
+</div>
+
+<h2>Top 50 Worst Utterances (by error count)</h2>
+<article class="card" id="utt-1">
+  <header>
+    <span class="rank">#1</span>
+    <span class="utt-id">20180613-0900-PLENARY-24-en_20180613-21:40:52_2</span>
+    <span class="stats">
+      35 errors &bull; WER 20.83%
+      &bull; S:4 D:27 I:4
+      &bull; 168 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180613-0900-PLENARY-24-en_20180613-21:40:52_2.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180613-0900-PLENARY-24-en_20180613-21:40:52_2.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">trade</span> <span class="err-del" title="deleted">already</span> <span class="err-del" title="deleted">we</span> <span class="err-del" title="deleted">have</span> <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">place</span> <span class="err-del" title="deleted">strict</span> <span class="err-del" title="deleted">rules</span> <span class="err-del" title="deleted">on</span> <span class="err-del" title="deleted">ivory</span> <span class="err-del" title="deleted">trade</span> <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">european</span> <span class="err-del" title="deleted">union</span> <span class="err-del" title="deleted">imports</span> <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">ivory</span> <span class="err-del" title="deleted">into</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">eu</span> and exports from the eu <span class="err-del" title="deleted">have</span> <span class="err-sub" title="sub: been → are">been</span><span class="hyp-inline">[→are]</span> banned since 1975 <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">respect</span> <span class="err-sub" title="sub: of → for">of</span><span class="hyp-inline">[→for]</span> asian elephants and since 1990 <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">respect</span> <span class="err-sub" title="sub: of → for">of</span><span class="hyp-inline">[→for]</span> african elephants for ivory items that have been in europe for a long time domestic trade is strictly regulated with a system of certificates and demonstration of legal origin by traders the rules were tightened further in may 2017 with the adoption of a specific commission guidance document since then the export of old raw ivory from the eu <span class="err-sub" title="sub: has → is">has</span><span class="hyp-inline">[→is]</span> no longer <span class="err-del" title="deleted">been</span> possible eu member states have unanimously supported this additional tightening of the rules and are following the guidance very closely thereby ensuring uniform application of the rules with this measure the risk that ivory exported from europe could fuel the demand in destination markets and indirectly also the poaching in africa has been significantly reduced but we did not stop there towards the <span class="err-ins" title="inserted">+end</span> <span class="err-ins" title="inserted">+of</span> <span class="err-ins" title="inserted">+last</span> <span class="err-ins" title="inserted">+year</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (35 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>of</td><td>for</td><td>2</td></tr>
+<tr><td>Sub</td><td>been</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>has</td><td>is</td><td>1</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>4</td></tr>
+<tr><td>Del</td><td>trade</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>ivory</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>respect</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>already</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>we</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>place</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>strict</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>end</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>last</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>year</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-2">
+  <header>
+    <span class="rank">#2</span>
+    <span class="utt-id">20140716-0900-PLENARY-7-en_20140716-10:22:18_15</span>
+    <span class="stats">
+      15 errors &bull; WER 17.24%
+      &bull; S:5 D:6 I:4
+      &bull; 87 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20140716-0900-PLENARY-7-en_20140716-10:22:18_15.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20140716-0900-PLENARY-7-en_20140716-10:22:18_15.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: 25 → 2005">25</span><span class="hyp-inline">[→2005]</span> the problem is that most of the eu funding allocated to <span class="err-sub" title="sub: addressing → address">addressing</span><span class="hyp-inline">[→address]</span> youth unemployment <span class="err-sub" title="sub: will → would">will</span><span class="hyp-inline">[→would]</span> be allocated to countries with a much higher youth unemployment rate than sweden so we are the backyard and we can pay for the other countries which is totally unfair as <span class="err-del" title="deleted">have</span> i said <span class="err-del" title="deleted">already</span> <span class="err-sub" title="sub: solidarity → it">solidarity</span><span class="hyp-inline">[→it]</span> is very easy <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+be</span> <span class="err-ins" title="inserted">+solidary</span> <span class="err-sub" title="sub: when → with">when</span><span class="hyp-inline">[→with]</span> other people is money <span class="err-del" title="deleted">is</span> <span class="err-del" title="deleted">involved</span> youth unemployment is today again an item on the agenda of this house again <span class="err-del" title="deleted">we</span> <span class="err-del" title="deleted">have</span> recommendations on how to tackle youth unemployment in the <span class="err-ins" title="inserted">+eu</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (15 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>25</td><td>2005</td><td>1</td></tr>
+<tr><td>Sub</td><td>addressing</td><td>address</td><td>1</td></tr>
+<tr><td>Sub</td><td>will</td><td>would</td><td>1</td></tr>
+<tr><td>Sub</td><td>solidarity</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>when</td><td>with</td><td>1</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>already</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>involved</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>we</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>be</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>solidary</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>eu</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-3">
+  <header>
+    <span class="rank">#3</span>
+    <span class="utt-id">20120313-0900-PLENARY-5-en_20120313-12:34:15_0</span>
+    <span class="stats">
+      14 errors &bull; WER 40.00%
+      &bull; S:9 D:5 I:0
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20120313-0900-PLENARY-5-en_20120313-12:34:15_0.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20120313-0900-PLENARY-5-en_20120313-12:34:15_0.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">your question is fully justified this is exactly the question i am asking the danish presidency because the danish presidency is <span class="err-del" title="deleted">leading</span> <span class="err-del" title="deleted">these</span> <span class="err-del" title="deleted">talks</span> <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">it</span> <span class="err-sub" title="sub: must → the">must</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: know → one">know</span><span class="hyp-inline">[→one]</span> <span class="err-sub" title="sub: for → that">for</span><span class="hyp-inline">[→that]</span> <span class="err-sub" title="sub: what → has">what</span><span class="hyp-inline">[→has]</span> <span class="err-sub" title="sub: reasons → to">reasons</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: those → decide">those</span><span class="hyp-inline">[→decide]</span> <span class="err-sub" title="sub: countries → on">countries</span><span class="hyp-inline">[→on]</span> <span class="err-sub" title="sub: are → the">are</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: objecting → matter">objecting</span><span class="hyp-inline">[→matter]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (14 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>must</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>know</td><td>one</td><td>1</td></tr>
+<tr><td>Sub</td><td>for</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>what</td><td>has</td><td>1</td></tr>
+<tr><td>Sub</td><td>reasons</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>those</td><td>decide</td><td>1</td></tr>
+<tr><td>Sub</td><td>countries</td><td>on</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>objecting</td><td>matter</td><td>1</td></tr>
+<tr><td>Del</td><td>leading</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>these</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>talks</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-4">
+  <header>
+    <span class="rank">#4</span>
+    <span class="utt-id">20180911-0900-PLENARY-en_20180911-18:37:21_10</span>
+    <span class="stats">
+      13 errors &bull; WER 46.43%
+      &bull; S:7 D:3 I:3
+      &bull; 28 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180911-0900-PLENARY-en_20180911-18:37:21_10.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180911-0900-PLENARY-en_20180911-18:37:21_10.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: as → like">as</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: in → we">in</span><span class="hyp-inline">[→we]</span> <span class="err-sub" title="sub: seeking → want">seeking</span><span class="hyp-inline">[→want]</span> to regulate uber <span class="err-del" title="deleted">when</span> the socialists <span class="err-ins" title="inserted">+want</span> <span class="err-sub" title="sub: wanted → it">wanted</span><span class="hyp-inline">[→it]</span> for good reasons to <span class="err-del" title="deleted">ensure</span> <span class="err-sub" title="sub: that → make">that</span><span class="hyp-inline">[→make]</span> workers <span class="err-sub" title="sub: were → be">were</span><span class="hyp-inline">[→be]</span> paid <span class="err-ins" title="inserted">+and</span> we want <span class="err-ins" title="inserted">+that</span> cultural workers <span class="err-del" title="deleted">to</span> <span class="err-sub" title="sub: be → are">be</span><span class="hyp-inline">[→are]</span> paid as well</div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>as</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>we</td><td>1</td></tr>
+<tr><td>Sub</td><td>seeking</td><td>want</td><td>1</td></tr>
+<tr><td>Sub</td><td>wanted</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>make</td><td>1</td></tr>
+<tr><td>Sub</td><td>were</td><td>be</td><td>1</td></tr>
+<tr><td>Sub</td><td>be</td><td>are</td><td>1</td></tr>
+<tr><td>Del</td><td>when</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>ensure</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>want</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-5">
+  <header>
+    <span class="rank">#5</span>
+    <span class="utt-id">20170913-0900-PLENARY-19-en_20170913-21:03:12_0</span>
+    <span class="stats">
+      13 errors &bull; WER 25.49%
+      &bull; S:3 D:0 I:10
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170913-0900-PLENARY-19-en_20170913-21:03:12_0.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170913-0900-PLENARY-19-en_20170913-21:03:12_0.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">many times in this place i have said on the record that the cfp has been a disaster for scotland and many times i have said in this place on the record that one of the principal reasons for that has been the failure of the uk government <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+take</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+necessary</span> <span class="err-ins" title="inserted">+steps</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+ensure</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+cfp</span> <span class="err-sub" title="sub: successive → was">successive</span><span class="hyp-inline">[→was]</span> <span class="err-sub" title="sub: uk → properly">uk</span><span class="hyp-inline">[→properly]</span> <span class="err-sub" title="sub: governments → implemented">governments</span><span class="hyp-inline">[→implemented]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>successive</td><td>was</td><td>1</td></tr>
+<tr><td>Sub</td><td>uk</td><td>properly</td><td>1</td></tr>
+<tr><td>Sub</td><td>governments</td><td>implemented</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>take</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>necessary</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>steps</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ensure</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>cfp</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-6">
+  <header>
+    <span class="rank">#6</span>
+    <span class="utt-id">20090204-0900-PLENARY-10-en_20090204-15:03:55_0</span>
+    <span class="stats">
+      12 errors &bull; WER 23.53%
+      &bull; S:6 D:5 I:1
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090204-0900-PLENARY-10-en_20090204-15:03:55_0.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090204-0900-PLENARY-10-en_20090204-15:03:55_0.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: madam → mister">madam</span><span class="hyp-inline">[→mister]</span> president <span class="err-del" title="deleted">on</span> <span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">point</span> <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">order</span> i refer to <span class="err-ins" title="inserted">+article</span> <span class="err-sub" title="sub: rule → 1422">rule</span><span class="hyp-inline">[→1422]</span> <span class="err-sub" title="sub: 142 → a">142</span><span class="hyp-inline">[→a]</span> and <span class="err-sub" title="sub: on → 2">on</span><span class="hyp-inline">[→2]</span> <span class="err-sub" title="sub: the → b">the</span><span class="hyp-inline">[→b]</span> allocation of speaking time yesterday when we were discussing the <span class="err-sub" title="sub: guantnamo → guantanamo">guantnamo</span><span class="hyp-inline">[→guantanamo]</span> prison here in the chamber i and several other speakers were interrupted without mercy when we had exceeded our speaking time by a few seconds</div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>madam</td><td>mister</td><td>1</td></tr>
+<tr><td>Sub</td><td>rule</td><td>1422</td><td>1</td></tr>
+<tr><td>Sub</td><td>142</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>on</td><td>2</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>b</td><td>1</td></tr>
+<tr><td>Sub</td><td>guantnamo</td><td>guantanamo</td><td>1</td></tr>
+<tr><td>Del</td><td>on</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>point</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>order</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>article</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-7">
+  <header>
+    <span class="rank">#7</span>
+    <span class="utt-id">20180117-0900-PLENARY-6-en_20180117-12:05:57_0</span>
+    <span class="stats">
+      12 errors &bull; WER 11.01%
+      &bull; S:3 D:8 I:1
+      &bull; 109 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180117-0900-PLENARY-6-en_20180117-12:05:57_0.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180117-0900-PLENARY-6-en_20180117-12:05:57_0.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">mister president <span class="err-ins" title="inserted">+taoiseach</span> i must start by thanking <span class="err-del" title="deleted">the</span> <span class="err-sub" title="sub: taoiseach → you">taoiseach</span><span class="hyp-inline">[→you]</span> for <span class="err-sub" title="sub: his → your">his</span><span class="hyp-inline">[→your]</span> continued efforts and commitment to preserve the peace process and to prevent the formation of barriers within the island of ireland on foot of the uk is decision to withdraw from the union however <span class="err-del" title="deleted">taoiseach</span> i do not share your ideology in other ways so i must also follow that with a plea to you as taoiseach of ireland and as a member of the european political force whose <span class="err-del" title="deleted">world</span> <span class="err-sub" title="sub: view → worldview">view</span><span class="hyp-inline">[→worldview]</span> and power has most considerably shaped both the emergence of the financial and economic crisis a decade ago and the measures taken <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">response</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">it</span> <span class="err-del" title="deleted">since</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>taoiseach</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>his</td><td>your</td><td>1</td></tr>
+<tr><td>Sub</td><td>view</td><td>worldview</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>taoiseach</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>world</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>response</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>since</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>taoiseach</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-8">
+  <header>
+    <span class="rank">#8</span>
+    <span class="utt-id">20181025-0900-PLENARY-en_20181025-12:58:20_0</span>
+    <span class="stats">
+      11 errors &bull; WER 33.33%
+      &bull; S:3 D:0 I:8
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20181025-0900-PLENARY-en_20181025-12:58:20_0.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20181025-0900-PLENARY-en_20181025-12:58:20_0.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">mister president this house should know that my group the ecr group was blocked from signing this joint text because of the childish political games of the <span class="err-sub" title="sub: socialist → socialists">socialist</span><span class="hyp-inline">[→socialists]</span> greens and <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+group</span> <span class="err-ins" title="inserted">+of</span> the <span class="err-ins" title="inserted">+alliance</span> <span class="err-ins" title="inserted">+of</span> <span class="err-ins" title="inserted">+liberals</span> <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+democrats</span> <span class="err-sub" title="sub: gue → for">gue</span><span class="hyp-inline">[→for]</span> <span class="err-sub" title="sub: groups → europe">groups</span><span class="hyp-inline">[→europe]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>socialist</td><td>socialists</td><td>1</td></tr>
+<tr><td>Sub</td><td>gue</td><td>for</td><td>1</td></tr>
+<tr><td>Sub</td><td>groups</td><td>europe</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>group</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>alliance</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>liberals</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>democrats</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-9">
+  <header>
+    <span class="rank">#9</span>
+    <span class="utt-id">20170706-0900-PLENARY-4-en_20170706-10:08:28_6</span>
+    <span class="stats">
+      11 errors &bull; WER 27.50%
+      &bull; S:6 D:0 I:5
+      &bull; 40 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170706-0900-PLENARY-4-en_20170706-10:08:28_6.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170706-0900-PLENARY-4-en_20170706-10:08:28_6.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">in fact the japanese government itself has rejected imports of norwegian whale meat after tests revealed <span class="err-ins" title="inserted">+that</span> pesticide levels double the amount japan permits <span class="err-sub" title="sub: in → on">in</span><span class="hyp-inline">[→on]</span> imports <span class="err-ins" title="inserted">+were</span> <span class="err-ins" title="inserted">+found</span> <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+that</span> <span class="err-sub" title="sub: making → is">making</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: the → making">the</span><span class="hyp-inline">[→making]</span> <span class="err-sub" title="sub: meat → it">meat</span><span class="hyp-inline">[→it]</span> unfit for human consumption <span class="err-sub" title="sub: so → and">so</span><span class="hyp-inline">[→and]</span> that <span class="err-sub" title="sub: it → meat">it</span><span class="hyp-inline">[→meat]</span> simply has to be destroyed</div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>in</td><td>on</td><td>1</td></tr>
+<tr><td>Sub</td><td>making</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>making</td><td>1</td></tr>
+<tr><td>Sub</td><td>meat</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>so</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>meat</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>were</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>found</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-10">
+  <header>
+    <span class="rank">#10</span>
+    <span class="utt-id">20170704-0900-PLENARY-14-en_20170704-15:10:40_10</span>
+    <span class="stats">
+      10 errors &bull; WER 18.52%
+      &bull; S:6 D:3 I:1
+      &bull; 54 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170704-0900-PLENARY-14-en_20170704-15:10:40_10.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170704-0900-PLENARY-14-en_20170704-15:10:40_10.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">in the area of migration which is the big challenge <span class="err-ins" title="inserted">+in</span> <span class="err-sub" title="sub: ahead → front">ahead</span><span class="hyp-inline">[→front]</span> of the european union we consider <span class="err-del" title="deleted">it</span> <span class="err-del" title="deleted">of</span> <span class="err-sub" title="sub: the → its">the</span><span class="hyp-inline">[→its]</span> utmost importance <span class="err-sub" title="sub: to → for">to</span><span class="hyp-inline">[→for]</span> <span class="err-sub" title="sub: tackle → tackling">tackle</span><span class="hyp-inline">[→tackling]</span> the root causes of migration by upgrading the <span class="err-del" title="deleted">union</span> <span class="err-sub" title="sub: is → eu">is</span><span class="hyp-inline">[→eu]</span> development and cooperation policy in africa as well as its role in the resolution of <span class="err-sub" title="sub: conflict → conflicts">conflict</span><span class="hyp-inline">[→conflicts]</span> in its neighboring countries</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>ahead</td><td>front</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>its</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>for</td><td>1</td></tr>
+<tr><td>Sub</td><td>tackle</td><td>tackling</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>eu</td><td>1</td></tr>
+<tr><td>Sub</td><td>conflict</td><td>conflicts</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>union</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-11">
+  <header>
+    <span class="rank">#11</span>
+    <span class="utt-id">20090324-0900-PLENARY-7-en_20090324-15:32:59_1</span>
+    <span class="stats">
+      9 errors &bull; WER 22.50%
+      &bull; S:2 D:2 I:5
+      &bull; 40 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090324-0900-PLENARY-7-en_20090324-15:32:59_1.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090324-0900-PLENARY-7-en_20090324-15:32:59_1.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+in</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+name</span> of the european parliament i want to thank you for <span class="err-sub" title="sub: that → this">that</span><span class="hyp-inline">[→this]</span> very remarkable speech here in the european parliament <span class="err-del" title="deleted">applause</span> <span class="err-del" title="deleted">now</span> it is <span class="err-ins" title="inserted">+now</span> a pleasure to invite the president of the european commission <span class="err-sub" title="sub: jos → jose">jos</span><span class="hyp-inline">[→jose]</span> manuel <span class="err-ins" title="inserted">+durao</span> barroso to make his contribution</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>that</td><td>this</td><td>1</td></tr>
+<tr><td>Sub</td><td>jos</td><td>jose</td><td>1</td></tr>
+<tr><td>Del</td><td>applause</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>now</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>name</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>now</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>durao</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-12">
+  <header>
+    <span class="rank">#12</span>
+    <span class="utt-id">20180613-0900-PLENARY-en_20180613-21:40:52_2</span>
+    <span class="stats">
+      9 errors &bull; WER 10.47%
+      &bull; S:2 D:3 I:4
+      &bull; 86 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180613-0900-PLENARY-en_20180613-21:40:52_2.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180613-0900-PLENARY-en_20180613-21:40:52_2.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">respondents</span> called for far reaching measures against domestic ivory trade those calls are often based on the precautionary principle rather than on any specific evidence for systematic links between <span class="err-del" title="deleted">the</span> legal ivory trade in the eu and elephant poaching in africa on the other hand eu stakeholders such as makers of musical instruments or antique dealers used the consultation to highlight the impact of any additional restrictive measures on their sources of livelihood the commission is currently reflecting on the way forward and <span class="err-ins" title="inserted">+will</span> <span class="err-ins" title="inserted">+report</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: it → european">it</span><span class="hyp-inline">[→european]</span> <span class="err-sub" title="sub: will → parliament">will</span><span class="hyp-inline">[→parliament]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>it</td><td>european</td><td>1</td></tr>
+<tr><td>Sub</td><td>will</td><td>parliament</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>respondents</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>will</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>report</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-13">
+  <header>
+    <span class="rank">#13</span>
+    <span class="utt-id">20170201-0900-PLENARY-9-en_20170201-17:22:57_2</span>
+    <span class="stats">
+      9 errors &bull; WER 23.08%
+      &bull; S:6 D:1 I:2
+      &bull; 39 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170201-0900-PLENARY-9-en_20170201-17:22:57_2.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170201-0900-PLENARY-9-en_20170201-17:22:57_2.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">mister</span> <span class="err-sub" title="sub: efovi → if">efovi</span><span class="hyp-inline">[→if]</span> <span class="err-sub" title="sub: if → mister">if</span><span class="hyp-inline">[→mister]</span> <span class="err-sub" title="sub: you → schefczewicz">you</span><span class="hyp-inline">[→schefczewicz]</span> <span class="err-sub" title="sub: want → wants">want</span><span class="hyp-inline">[→wants]</span> to fly with your or our airbus 380 energy package you must distribute as a <span class="err-sub" title="sub: good → group">good</span><span class="hyp-inline">[→group]</span> manager <span class="err-ins" title="inserted">+the</span> responsibilities to every member of the crew responsibilities with higher priority than <span class="err-ins" title="inserted">+the</span> flexibility <span class="err-sub" title="sub: in → of">in</span><span class="hyp-inline">[→of]</span> each member state</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>efovi</td><td>if</td><td>1</td></tr>
+<tr><td>Sub</td><td>if</td><td>mister</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>schefczewicz</td><td>1</td></tr>
+<tr><td>Sub</td><td>want</td><td>wants</td><td>1</td></tr>
+<tr><td>Sub</td><td>good</td><td>group</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>of</td><td>1</td></tr>
+<tr><td>Del</td><td>mister</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>2</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-14">
+  <header>
+    <span class="rank">#14</span>
+    <span class="utt-id">20140402-0900-PLENARY-11-en_20140402-16:41:26_4</span>
+    <span class="stats">
+      9 errors &bull; WER 27.27%
+      &bull; S:4 D:0 I:5
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20140402-0900-PLENARY-11-en_20140402-16:41:26_4.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20140402-0900-PLENARY-11-en_20140402-16:41:26_4.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the impact of the definition of specialized services is going to be enormous and i very much fear that the definition in <span class="err-ins" title="inserted">+either</span> <span class="err-sub" title="sub: both → of">both</span><span class="hyp-inline">[→of]</span> the compromises is not very clear <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: nor → impact">nor</span><span class="hyp-inline">[→impact]</span> is <span class="err-ins" title="inserted">+going</span> <span class="err-ins" title="inserted">+to</span> <span class="err-sub" title="sub: the → be">the</span><span class="hyp-inline">[→be]</span> <span class="err-sub" title="sub: impact → enormous">impact</span><span class="hyp-inline">[→enormous]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>both</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>nor</td><td>impact</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>be</td><td>1</td></tr>
+<tr><td>Sub</td><td>impact</td><td>enormous</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>either</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>going</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-15">
+  <header>
+    <span class="rank">#15</span>
+    <span class="utt-id">20181210-0900-PLENARY-en_20181210-22:04:34_4</span>
+    <span class="stats">
+      9 errors &bull; WER 9.09%
+      &bull; S:6 D:1 I:2
+      &bull; 99 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20181210-0900-PLENARY-en_20181210-22:04:34_4.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20181210-0900-PLENARY-en_20181210-22:04:34_4.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">cedefop is role is to contribute to the shaping and <span class="err-sub" title="sub: implementing → implementation">implementing</span><span class="hyp-inline">[→implementation]</span> of <span class="err-sub" title="sub: vt → vet">vt</span><span class="hyp-inline">[→vet]</span> but also <span class="err-del" title="deleted">to</span> shaping skills and qualification policies at <span class="err-ins" title="inserted">+the</span> union level the agency can do this by providing crucial evidence and services for <span class="err-ins" title="inserted">+policy</span> <span class="err-sub" title="sub: policymaking → making">policymaking</span><span class="hyp-inline">[→making]</span> and knowledge sharing <span class="err-sub" title="sub: among → amongst">among</span><span class="hyp-inline">[→amongst]</span> the union and national actors in particular to governments and social partners i believe that the revision of the <span class="err-sub" title="sub: function → functioning">function</span><span class="hyp-inline">[→functioning]</span> of this tripartite agency has been a very good one and i fully appreciate the agency is great work in supporting and developing inclusive and quality <span class="err-sub" title="sub: vt → vet">vt</span><span class="hyp-inline">[→vet]</span> systems now we have to work together to put in place</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>vt</td><td>vet</td><td>2</td></tr>
+<tr><td>Sub</td><td>implementing</td><td>implementation</td><td>1</td></tr>
+<tr><td>Sub</td><td>policymaking</td><td>making</td><td>1</td></tr>
+<tr><td>Sub</td><td>among</td><td>amongst</td><td>1</td></tr>
+<tr><td>Sub</td><td>function</td><td>functioning</td><td>1</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>policy</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-16">
+  <header>
+    <span class="rank">#16</span>
+    <span class="utt-id">20090505-0900-PLENARY-10-en_20090505-15:53:49_9</span>
+    <span class="stats">
+      9 errors &bull; WER 12.00%
+      &bull; S:3 D:0 I:6
+      &bull; 75 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090505-0900-PLENARY-10-en_20090505-15:53:49_9.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090505-0900-PLENARY-10-en_20090505-15:53:49_9.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but can i remind you that an unemployment <span class="err-sub" title="sub: level → rate">level</span><span class="hyp-inline">[→rate]</span> of <span class="err-ins" title="inserted">+11</span> <span class="err-sub" title="sub: 111 → one">111</span><span class="hyp-inline">[→one]</span> next year is 27000000 unemployed people <span class="err-ins" title="inserted">+and</span> can i remind you that at the g 20 summit with some resistance from some european leaders you accepted that if there is a reason we are willing to do more to engage in having <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: high → higher">high</span><span class="hyp-inline">[→higher]</span> economic growth <span class="err-ins" title="inserted">+mister</span> president of the commission i have 27000000 good reasons to do more that is why i <span class="err-ins" title="inserted">+have</span> <span class="err-ins" title="inserted">+an</span> appeal to you today</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>level</td><td>rate</td><td>1</td></tr>
+<tr><td>Sub</td><td>111</td><td>one</td><td>1</td></tr>
+<tr><td>Sub</td><td>high</td><td>higher</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>11</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>mister</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>have</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>an</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-17">
+  <header>
+    <span class="rank">#17</span>
+    <span class="utt-id">20200917-0900-PLENARY-en_20200917-12:18:01_1</span>
+    <span class="stats">
+      8 errors &bull; WER 12.31%
+      &bull; S:4 D:1 I:3
+      &bull; 65 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20200917-0900-PLENARY-en_20200917-12:18:01_1.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20200917-0900-PLENARY-en_20200917-12:18:01_1.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the people of mozambique are faced with one crisis after another yet their plight is often neglected and ignored around the world since 2017 mozambique has been in a constant state of insecurity and has suffered from terrorist attacks by the <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+called</span> <span class="err-sub" title="sub: socalled → al">socalled</span><span class="hyp-inline">[→al]</span> <span class="err-sub" title="sub: alshabaab → shabaab">alshabaab</span><span class="hyp-inline">[→shabaab]</span> and one <span class="err-ins" title="inserted">+climate</span> <span class="err-sub" title="sub: climaterelated → related">climaterelated</span><span class="hyp-inline">[→related]</span> natural disaster after the other <span class="err-del" title="deleted">the</span> <span class="err-sub" title="sub: mozambique → mozambican">mozambique</span><span class="hyp-inline">[→mozambican]</span> authorities need the assistance of the international community to combat this danger</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>socalled</td><td>al</td><td>1</td></tr>
+<tr><td>Sub</td><td>alshabaab</td><td>shabaab</td><td>1</td></tr>
+<tr><td>Sub</td><td>climaterelated</td><td>related</td><td>1</td></tr>
+<tr><td>Sub</td><td>mozambique</td><td>mozambican</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>called</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>climate</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-18">
+  <header>
+    <span class="rank">#18</span>
+    <span class="utt-id">20180207-0900-PLENARY-19-en_20180207-20:09:27_0</span>
+    <span class="stats">
+      8 errors &bull; WER 30.77%
+      &bull; S:2 D:1 I:5
+      &bull; 26 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180207-0900-PLENARY-19-en_20180207-20:09:27_0.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180207-0900-PLENARY-19-en_20180207-20:09:27_0.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+thank</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+very</span> <span class="err-ins" title="inserted">+much</span> i think we have found a good compromise in the framework of this report in which we said that tackling climate change is <span class="err-del" title="deleted">an</span> <span class="err-sub" title="sub: important → a">important</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: objective → priority">objective</span><span class="hyp-inline">[→priority]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>important</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>objective</td><td>priority</td><td>1</td></tr>
+<tr><td>Del</td><td>an</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>thank</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>very</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>much</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-19">
+  <header>
+    <span class="rank">#19</span>
+    <span class="utt-id">20090421-0900-PLENARY-12-en_20090421-19:29:45_3</span>
+    <span class="stats">
+      8 errors &bull; WER 20.51%
+      &bull; S:2 D:0 I:6
+      &bull; 39 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090421-0900-PLENARY-12-en_20090421-19:29:45_3.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090421-0900-PLENARY-12-en_20090421-19:29:45_3.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">competitive framework for the development of the energy markets and for their efficient functioning <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+believe</span> <span class="err-ins" title="inserted">+that</span> this package <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+of</span> <span class="err-ins" title="inserted">+course</span> <span class="err-sub" title="sub: depends → dependent">depends</span><span class="hyp-inline">[→dependent]</span> on implementation as my colleague eluned morgan has just said and i do not believe that <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> 4th package is the solution</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>depends</td><td>dependent</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>believe</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>course</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-20">
+  <header>
+    <span class="rank">#20</span>
+    <span class="utt-id">20181002-0900-PLENARY-en_20181002-17:26:48_11</span>
+    <span class="stats">
+      8 errors &bull; WER 21.62%
+      &bull; S:6 D:0 I:2
+      &bull; 37 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20181002-0900-PLENARY-en_20181002-17:26:48_11.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20181002-0900-PLENARY-en_20181002-17:26:48_11.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">we <span class="err-ins" title="inserted">+can</span> <span class="err-sub" title="sub: cannot → not">cannot</span><span class="hyp-inline">[→not]</span> endlessly repair the <span class="err-sub" title="sub: damage → damages">damage</span><span class="hyp-inline">[→damages]</span> without understanding and addressing the causes and we can <span class="err-ins" title="inserted">+not</span> <span class="err-sub" title="sub: no → ignore">no</span><span class="hyp-inline">[→ignore]</span> <span class="err-sub" title="sub: longer → any">longer</span><span class="hyp-inline">[→any]</span> <span class="err-sub" title="sub: ignore → more">ignore</span><span class="hyp-inline">[→more]</span> the obligation to ensure effective impartial and independent <span class="err-sub" title="sub: investigations → investigation">investigations</span><span class="hyp-inline">[→investigation]</span> into all alleged violations of human rights and humanitarian law</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>cannot</td><td>not</td><td>1</td></tr>
+<tr><td>Sub</td><td>damage</td><td>damages</td><td>1</td></tr>
+<tr><td>Sub</td><td>no</td><td>ignore</td><td>1</td></tr>
+<tr><td>Sub</td><td>longer</td><td>any</td><td>1</td></tr>
+<tr><td>Sub</td><td>ignore</td><td>more</td><td>1</td></tr>
+<tr><td>Sub</td><td>investigations</td><td>investigation</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>can</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>not</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-21">
+  <header>
+    <span class="rank">#21</span>
+    <span class="utt-id">20090311-0900-PLENARY-6-en_20090311-11:11:51_1</span>
+    <span class="stats">
+      8 errors &bull; WER 19.05%
+      &bull; S:5 D:0 I:3
+      &bull; 42 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090311-0900-PLENARY-6-en_20090311-11:11:51_1.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090311-0900-PLENARY-6-en_20090311-11:11:51_1.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the thrust of these reports the amendments that will be presented by the socialist members to <span class="err-sub" title="sub: improve → make">improve</span><span class="hyp-inline">[→make]</span> them <span class="err-ins" title="inserted">+better</span> and also i think today is debate <span class="err-sub" title="sub: show → shows">show</span><span class="hyp-inline">[→shows]</span> very clearly that there <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: are → a">are</span><span class="hyp-inline">[→a]</span> distinctive <span class="err-ins" title="inserted">+policy</span> <span class="err-sub" title="sub: policies → a">policies</span><span class="hyp-inline">[→a]</span> distinctive right wing and socialist <span class="err-sub" title="sub: policies → policy">policies</span><span class="hyp-inline">[→policy]</span> towards the crisis</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>improve</td><td>make</td><td>1</td></tr>
+<tr><td>Sub</td><td>show</td><td>shows</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>policies</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>policies</td><td>policy</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>better</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>policy</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-22">
+  <header>
+    <span class="rank">#22</span>
+    <span class="utt-id">20171113-0900-PLENARY-15-en_20171113-20:14:20_8</span>
+    <span class="stats">
+      8 errors &bull; WER 18.18%
+      &bull; S:5 D:3 I:0
+      &bull; 44 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20171113-0900-PLENARY-15-en_20171113-20:14:20_8.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20171113-0900-PLENARY-15-en_20171113-20:14:20_8.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">the</span> eu and <span class="err-del" title="deleted">the</span> bilateral diplomacy of <span class="err-sub" title="sub: our → all">our</span><span class="hyp-inline">[→all]</span> countries must <span class="err-sub" title="sub: ensure → achieve">ensure</span><span class="hyp-inline">[→achieve]</span> that <span class="err-del" title="deleted">these</span> <span class="err-sub" title="sub: violations → violence">violations</span><span class="hyp-inline">[→violence]</span> of human rights and atrocities against christians are finished christians and other churches are often the only actors who take care of <span class="err-sub" title="sub: the → persecuted">the</span><span class="hyp-inline">[→persecuted]</span> <span class="err-sub" title="sub: persecuted → people">persecuted</span><span class="hyp-inline">[→people]</span> on the spot but they have</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>our</td><td>all</td><td>1</td></tr>
+<tr><td>Sub</td><td>ensure</td><td>achieve</td><td>1</td></tr>
+<tr><td>Sub</td><td>violations</td><td>violence</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>persecuted</td><td>1</td></tr>
+<tr><td>Sub</td><td>persecuted</td><td>people</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>these</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-23">
+  <header>
+    <span class="rank">#23</span>
+    <span class="utt-id">20120613-0900-PLENARY-4-en_20120613-10:59:54_14</span>
+    <span class="stats">
+      8 errors &bull; WER 21.05%
+      &bull; S:5 D:0 I:3
+      &bull; 38 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20120613-0900-PLENARY-4-en_20120613-10:59:54_14.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20120613-0900-PLENARY-4-en_20120613-10:59:54_14.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+talking</span> <span class="err-sub" title="sub: concerning → about">concerning</span><span class="hyp-inline">[→about]</span> budget consolidation it is also important that the commission <span class="err-sub" title="sub: stop → stops">stop</span><span class="hyp-inline">[→stops]</span> any proposal <span class="err-sub" title="sub: for → on">for</span><span class="hyp-inline">[→on]</span> eu legislation which means additional bureaucratic <span class="err-sub" title="sub: burdens → burden">burdens</span><span class="hyp-inline">[→burden]</span> and costs for member states for regions and local communities and the legislator has to do <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+in</span> <span class="err-sub" title="sub: likewise → the">likewise</span><span class="hyp-inline">[→the]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>concerning</td><td>about</td><td>1</td></tr>
+<tr><td>Sub</td><td>stop</td><td>stops</td><td>1</td></tr>
+<tr><td>Sub</td><td>for</td><td>on</td><td>1</td></tr>
+<tr><td>Sub</td><td>burdens</td><td>burden</td><td>1</td></tr>
+<tr><td>Sub</td><td>likewise</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>talking</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-24">
+  <header>
+    <span class="rank">#24</span>
+    <span class="utt-id">20180314-0900-PLENARY-4-en_20180314-09:51:53_3</span>
+    <span class="stats">
+      8 errors &bull; WER 20.51%
+      &bull; S:3 D:1 I:4
+      &bull; 39 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180314-0900-PLENARY-4-en_20180314-09:51:53_3.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180314-0900-PLENARY-4-en_20180314-09:51:53_3.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+decision</span> would have <span class="err-ins" title="inserted">+a</span> vertical effect on this specific measure but if you <span class="err-ins" title="inserted">+are</span> <span class="err-sub" title="sub: lose → losing">lose</span><span class="hyp-inline">[→losing]</span> the case on <span class="err-sub" title="sub: that → a">that</span><span class="hyp-inline">[→a]</span> measure based on the national security angle then in principle <span class="err-sub" title="sub: there → that">there</span><span class="hyp-inline">[→that]</span> would be a horizontal effect and <span class="err-del" title="deleted">that</span> would make the system explode</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>lose</td><td>losing</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>there</td><td>that</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>decision</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-25">
+  <header>
+    <span class="rank">#25</span>
+    <span class="utt-id">20170912-0900-PLENARY-3-en_20170912-09:28:55_6</span>
+    <span class="stats">
+      8 errors &bull; WER 11.27%
+      &bull; S:3 D:4 I:1
+      &bull; 71 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170912-0900-PLENARY-3-en_20170912-09:28:55_6.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170912-0900-PLENARY-3-en_20170912-09:28:55_6.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but we need to go beyond that in <span class="err-del" title="deleted">the</span> <span class="err-sub" title="sub: itre → each">itre</span><span class="hyp-inline">[→each]</span> committee we are committed to developing better connectivity <span class="err-ins" title="inserted">+in</span> <span class="err-sub" title="sub: throughout → entire">throughout</span><span class="hyp-inline">[→entire]</span> europe better coordination of <span class="err-del" title="deleted">the</span> radio spectrum for example <span class="err-del" title="deleted">which</span> <span class="err-del" title="deleted">is</span> very important and to stimulate investments in the high capacity networks across the continent so if <span class="err-sub" title="sub: you → we">you</span><span class="hyp-inline">[→we]</span> would like to fight for a more inclusive europe let us go forward even if it is a great success we should not stop</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>itre</td><td>each</td><td>1</td></tr>
+<tr><td>Sub</td><td>throughout</td><td>entire</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>we</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>which</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-26">
+  <header>
+    <span class="rank">#26</span>
+    <span class="utt-id">20160706-0900-PLENARY-21-en_20160706-22:05:22_2</span>
+    <span class="stats">
+      8 errors &bull; WER 16.33%
+      &bull; S:8 D:0 I:0
+      &bull; 49 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20160706-0900-PLENARY-21-en_20160706-22:05:22_2.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20160706-0900-PLENARY-21-en_20160706-22:05:22_2.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">therefore i share the concern of my colleagues regarding the expected recommendation of the basel committee on capital <span class="err-sub" title="sub: flows → floors">flows</span><span class="hyp-inline">[→floors]</span> <span class="err-sub" title="sub: mister → as">mister</span><span class="hyp-inline">[→as]</span> <span class="err-sub" title="sub: ferber → said">ferber</span><span class="hyp-inline">[→said]</span> <span class="err-sub" title="sub: said → by">said</span><span class="hyp-inline">[→by]</span> <span class="err-sub" title="sub: this → mister">this</span><span class="hyp-inline">[→mister]</span> <span class="err-sub" title="sub: evening → fabre">evening</span><span class="hyp-inline">[→fabre]</span> <span class="err-sub" title="sub: it → this">it</span><span class="hyp-inline">[→this]</span> <span class="err-sub" title="sub: is → evening">is</span><span class="hyp-inline">[→evening]</span> good for the us bad for europe i sincerely hope that the commission will not take into account that one size fits all</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>flows</td><td>floors</td><td>1</td></tr>
+<tr><td>Sub</td><td>mister</td><td>as</td><td>1</td></tr>
+<tr><td>Sub</td><td>ferber</td><td>said</td><td>1</td></tr>
+<tr><td>Sub</td><td>said</td><td>by</td><td>1</td></tr>
+<tr><td>Sub</td><td>this</td><td>mister</td><td>1</td></tr>
+<tr><td>Sub</td><td>evening</td><td>fabre</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>this</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>evening</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-27">
+  <header>
+    <span class="rank">#27</span>
+    <span class="utt-id">20090218-0900-PLENARY-10-en_20090218-15:15:21_13</span>
+    <span class="stats">
+      7 errors &bull; WER 17.50%
+      &bull; S:3 D:1 I:3
+      &bull; 40 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090218-0900-PLENARY-10-en_20090218-15:15:21_13.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090218-0900-PLENARY-10-en_20090218-15:15:21_13.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">too often the region has been plagued by cycles of violence <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+rise</span> <span class="err-sub" title="sub: rising → of">rising</span><span class="hyp-inline">[→of]</span> extremism and economic hardship at the same time <span class="err-del" title="deleted">the</span> conditions for <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: europeans → european">europeans</span><span class="hyp-inline">[→european]</span> and <span class="err-sub" title="sub: americans → american">americans</span><span class="hyp-inline">[→american]</span> to work together in the search for peace in the middle east are probably</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>rising</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>europeans</td><td>european</td><td>1</td></tr>
+<tr><td>Sub</td><td>americans</td><td>american</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>rise</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-28">
+  <header>
+    <span class="rank">#28</span>
+    <span class="utt-id">20180612-0900-PLENARY-en_20180612-21:10:59_0</span>
+    <span class="stats">
+      7 errors &bull; WER 21.21%
+      &bull; S:3 D:1 I:3
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180612-0900-PLENARY-en_20180612-21:10:59_0.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180612-0900-PLENARY-en_20180612-21:10:59_0.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">could you name one other single country which gets <span class="err-ins" title="inserted">+macro</span> <span class="err-sub" title="sub: macrofinancial → financial">macrofinancial</span><span class="hyp-inline">[→financial]</span> assistance is fighting corruption and has created independent institutions <span class="err-del" title="deleted">such</span> as a national <span class="err-ins" title="inserted">+anti</span> <span class="err-sub" title="sub: anticorruption → corruption">anticorruption</span><span class="hyp-inline">[→corruption]</span> office and is preparing its own high <span class="err-ins" title="inserted">+anti</span> <span class="err-sub" title="sub: anticorruption → corruption">anticorruption</span><span class="hyp-inline">[→corruption]</span> court</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>anticorruption</td><td>corruption</td><td>2</td></tr>
+<tr><td>Sub</td><td>macrofinancial</td><td>financial</td><td>1</td></tr>
+<tr><td>Del</td><td>such</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>anti</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>macro</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-29">
+  <header>
+    <span class="rank">#29</span>
+    <span class="utt-id">20180612-0900-PLENARY-19-en_20180612-21:10:59_0</span>
+    <span class="stats">
+      7 errors &bull; WER 21.21%
+      &bull; S:3 D:1 I:3
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180612-0900-PLENARY-19-en_20180612-21:10:59_0.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180612-0900-PLENARY-19-en_20180612-21:10:59_0.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">could you name one other single country which gets <span class="err-ins" title="inserted">+macro</span> <span class="err-sub" title="sub: macrofinancial → financial">macrofinancial</span><span class="hyp-inline">[→financial]</span> assistance is fighting corruption and has created independent institutions <span class="err-del" title="deleted">such</span> as a national <span class="err-ins" title="inserted">+anti</span> <span class="err-sub" title="sub: anticorruption → corruption">anticorruption</span><span class="hyp-inline">[→corruption]</span> office and is preparing its own high <span class="err-ins" title="inserted">+anti</span> <span class="err-sub" title="sub: anticorruption → corruption">anticorruption</span><span class="hyp-inline">[→corruption]</span> court</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>anticorruption</td><td>corruption</td><td>2</td></tr>
+<tr><td>Sub</td><td>macrofinancial</td><td>financial</td><td>1</td></tr>
+<tr><td>Del</td><td>such</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>anti</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>macro</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-30">
+  <header>
+    <span class="rank">#30</span>
+    <span class="utt-id">20160705-0900-PLENARY-14-en_20160705-18:32:19_19</span>
+    <span class="stats">
+      7 errors &bull; WER 14.29%
+      &bull; S:4 D:3 I:0
+      &bull; 49 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20160705-0900-PLENARY-14-en_20160705-18:32:19_19.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20160705-0900-PLENARY-14-en_20160705-18:32:19_19.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i am looking forward to a positive vote because every member of this parliament if he <span class="err-del" title="deleted">really</span> <span class="err-del" title="deleted">cares</span> <span class="err-del" title="deleted">about</span> <span class="err-sub" title="sub: european → is">european</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: union → really">union</span><span class="hyp-inline">[→really]</span> <span class="err-sub" title="sub: interests → caring">interests</span><span class="hyp-inline">[→caring]</span> about the interests of our citizens <span class="err-sub" title="sub: and → the">and</span><span class="hyp-inline">[→the]</span> rights of our citizens and wants to make our union better will vote in this case to create this agency</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>european</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>union</td><td>really</td><td>1</td></tr>
+<tr><td>Sub</td><td>interests</td><td>caring</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>really</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>cares</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>about</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-31">
+  <header>
+    <span class="rank">#31</span>
+    <span class="utt-id">20090310-0900-PLENARY-20-en_20090310-22:15:43_4</span>
+    <span class="stats">
+      7 errors &bull; WER 17.95%
+      &bull; S:2 D:5 I:0
+      &bull; 39 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090310-0900-PLENARY-20-en_20090310-22:15:43_4.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090310-0900-PLENARY-20-en_20090310-22:15:43_4.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">however</span> one aspect was left <span class="err-sub" title="sub: out → aside">out</span><span class="hyp-inline">[→aside]</span> the situation of 1000s of european children left behind by parents who go to work in another european country generally called the migration orphans <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">which</span> <span class="err-del" title="deleted">there</span> <span class="err-del" title="deleted">are</span> almost <span class="err-sub" title="sub: 3500 → 350">3500</span><span class="hyp-inline">[→350]</span> in my country</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>out</td><td>aside</td><td>1</td></tr>
+<tr><td>Sub</td><td>3500</td><td>350</td><td>1</td></tr>
+<tr><td>Del</td><td>however</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>which</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>there</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>are</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-32">
+  <header>
+    <span class="rank">#32</span>
+    <span class="utt-id">20090310-0900-PLENARY-20-en_20090310-22:11:44_2</span>
+    <span class="stats">
+      7 errors &bull; WER 14.58%
+      &bull; S:3 D:3 I:1
+      &bull; 48 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090310-0900-PLENARY-20-en_20090310-22:11:44_2.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090310-0900-PLENARY-20-en_20090310-22:11:44_2.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the situation in which <span class="err-ins" title="inserted">+the</span> social and economic risks are made worse by the absence of parents who cannot meet their children is <span class="err-sub" title="sub: needs → need">needs</span><span class="hyp-inline">[→need]</span> for care protection and education may <span class="err-del" title="deleted">lead</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">an</span> <span class="err-sub" title="sub: increase → bring">increase</span><span class="hyp-inline">[→bring]</span> <span class="err-sub" title="sub: in → increased">in</span><span class="hyp-inline">[→increased]</span> vulnerability the primary responsibility for the development of the child rests with the parents</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>needs</td><td>need</td><td>1</td></tr>
+<tr><td>Sub</td><td>increase</td><td>bring</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>increased</td><td>1</td></tr>
+<tr><td>Del</td><td>lead</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>an</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-33">
+  <header>
+    <span class="rank">#33</span>
+    <span class="utt-id">20130521-0900-PLENARY-14-en_20130521-18:57:21_13</span>
+    <span class="stats">
+      7 errors &bull; WER 24.14%
+      &bull; S:4 D:1 I:2
+      &bull; 29 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20130521-0900-PLENARY-14-en_20130521-18:57:21_13.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20130521-0900-PLENARY-14-en_20130521-18:57:21_13.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the current legal framework and the functioning of the market are not sufficient to provide a real solution to the <span class="err-ins" title="inserted">+books</span> <span class="err-sub" title="sub: book → for">book</span><span class="hyp-inline">[→for]</span> <span class="err-sub" title="sub: famine → the">famine</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: that → blind">that</span><span class="hyp-inline">[→blind]</span> <span class="err-sub" title="sub: the → that">the</span><span class="hyp-inline">[→that]</span> visually impaired <span class="err-ins" title="inserted">+people</span> still live <span class="err-del" title="deleted">with</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>book</td><td>for</td><td>1</td></tr>
+<tr><td>Sub</td><td>famine</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>blind</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>that</td><td>1</td></tr>
+<tr><td>Del</td><td>with</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>books</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>people</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-34">
+  <header>
+    <span class="rank">#34</span>
+    <span class="utt-id">20101019-0900-PLENARY-10-en_20101019-17:01:28_5</span>
+    <span class="stats">
+      7 errors &bull; WER 41.18%
+      &bull; S:1 D:2 I:4
+      &bull; 17 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20101019-0900-PLENARY-10-en_20101019-17:01:28_5.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20101019-0900-PLENARY-10-en_20101019-17:01:28_5.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">20</span> the great innovation union <span class="err-ins" title="inserted">+the</span> digital access <span class="err-sub" title="sub: to → for">to</span><span class="hyp-inline">[→for]</span> all the next generation network <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+on</span> and so forth</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>to</td><td>for</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>20</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>on</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-35">
+  <header>
+    <span class="rank">#35</span>
+    <span class="utt-id">20180613-0900-PLENARY-6-en_20180613-11:56:15_2</span>
+    <span class="stats">
+      7 errors &bull; WER 31.82%
+      &bull; S:4 D:2 I:1
+      &bull; 22 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180613-0900-PLENARY-6-en_20180613-11:56:15_2.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180613-0900-PLENARY-6-en_20180613-11:56:15_2.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: from → in">from</span><span class="hyp-inline">[→in]</span> my <span class="err-del" title="deleted">point</span> <span class="err-del" title="deleted">of</span> view it <span class="err-ins" title="inserted">+does</span> <span class="err-sub" title="sub: means → mean">means</span><span class="hyp-inline">[→mean]</span> we need a more common political interest all over the european union <span class="err-sub" title="sub: in → to">in</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: being → be">being</span><span class="hyp-inline">[→be]</span> stronger</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>from</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>means</td><td>mean</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>being</td><td>be</td><td>1</td></tr>
+<tr><td>Del</td><td>point</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>does</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-36">
+  <header>
+    <span class="rank">#36</span>
+    <span class="utt-id">20170913-0900-PLENARY-12-en_20170913-16:49:29_4</span>
+    <span class="stats">
+      7 errors &bull; WER 13.73%
+      &bull; S:2 D:1 I:4
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170913-0900-PLENARY-12-en_20170913-16:49:29_4.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170913-0900-PLENARY-12-en_20170913-16:49:29_4.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: this → it">this</span><span class="hyp-inline">[→it]</span> means collecting comparable data on fire incidents in all member states <span class="err-ins" title="inserted">+also</span> using data to identify <span class="err-ins" title="inserted">+the</span> best practice in national fire safety regulations and <span class="err-ins" title="inserted">+also</span> sharing and spreading <span class="err-ins" title="inserted">+the</span> best practice to achieve <span class="err-del" title="deleted">a</span> tangible improvement <span class="err-sub" title="sub: in → of">in</span><span class="hyp-inline">[→of]</span> fire safety in buildings the proposed actions are fully in line with the principle of subsidiarity</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>this</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>of</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>also</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>2</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-37">
+  <header>
+    <span class="rank">#37</span>
+    <span class="utt-id">20130416-0900-PLENARY-13-en_20130416-19:31:26_5</span>
+    <span class="stats">
+      7 errors &bull; WER 13.73%
+      &bull; S:6 D:1 I:0
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20130416-0900-PLENARY-13-en_20130416-19:31:26_5.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20130416-0900-PLENARY-13-en_20130416-19:31:26_5.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the court will <span class="err-del" title="deleted">continue</span> <span class="err-sub" title="sub: to → remain">to</span><span class="hyp-inline">[→remain]</span> <span class="err-sub" title="sub: do → doing">do</span><span class="hyp-inline">[→doing]</span> its best when responding to the needs of european taxpayers <span class="err-sub" title="sub: in → on">in</span><span class="hyp-inline">[→on]</span> informing them <span class="err-sub" title="sub: of → on">of</span><span class="hyp-inline">[→on]</span> the quality of eu spending finally i respect the commission and the council for their acceptance of our <span class="err-sub" title="sub: criticism → criticisms">criticism</span><span class="hyp-inline">[→criticisms]</span> and their enthusiasm today about streamlining and simplifying <span class="err-sub" title="sub: their → the">their</span><span class="hyp-inline">[→the]</span> future spending schemes</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>to</td><td>remain</td><td>1</td></tr>
+<tr><td>Sub</td><td>do</td><td>doing</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>on</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>on</td><td>1</td></tr>
+<tr><td>Sub</td><td>criticism</td><td>criticisms</td><td>1</td></tr>
+<tr><td>Sub</td><td>their</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>continue</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-38">
+  <header>
+    <span class="rank">#38</span>
+    <span class="utt-id">20180312-0900-PLENARY-10-en_20180312-17:37:51_5</span>
+    <span class="stats">
+      7 errors &bull; WER 8.33%
+      &bull; S:2 D:1 I:4
+      &bull; 84 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180312-0900-PLENARY-10-en_20180312-17:37:51_5.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180312-0900-PLENARY-10-en_20180312-17:37:51_5.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">of course we <span class="err-sub" title="sub: could → can">could</span><span class="hyp-inline">[→can]</span> have a great debate in april when everything has been settled or the dust has not been settled but this time we have a chance because we have been talking to the north koreans for the last 2.5 years to be able to be <span class="err-ins" title="inserted">+at</span> <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: ahead → head">ahead</span><span class="hyp-inline">[→head]</span> of the curve to <span class="err-ins" title="inserted">+actually</span> contribute to that process by supporting the initiatives of the president of south korea who has done something remarkable in trying to avoid a world war <span class="err-ins" title="inserted">+and</span> we need to <span class="err-del" title="deleted">provide</span> support</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>could</td><td>can</td><td>1</td></tr>
+<tr><td>Sub</td><td>ahead</td><td>head</td><td>1</td></tr>
+<tr><td>Del</td><td>provide</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>at</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>actually</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-39">
+  <header>
+    <span class="rank">#39</span>
+    <span class="utt-id">20090323-0900-PLENARY-9-en_20090323-19:09:29_2</span>
+    <span class="stats">
+      7 errors &bull; WER 14.29%
+      &bull; S:3 D:3 I:1
+      &bull; 49 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090323-0900-PLENARY-9-en_20090323-19:09:29_2.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090323-0900-PLENARY-9-en_20090323-19:09:29_2.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it is important <span class="err-del" title="deleted">that</span> we <span class="err-sub" title="sub: bear → keep">bear</span><span class="hyp-inline">[→keep]</span> in mind that <span class="err-del" title="deleted">this</span> epa is a stepping stone agreement which means <span class="err-del" title="deleted">that</span> it is only a temporary solution in order for <span class="err-ins" title="inserted">+the</span> trade <span class="err-sub" title="sub: liberation → liberalization">liberation</span><span class="hyp-inline">[→liberalization]</span> to have a substantial positive effect on the whole region it is essential that ecowas <span class="err-sub" title="sub: sign → signs">sign</span><span class="hyp-inline">[→signs]</span> a full epa</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>bear</td><td>keep</td><td>1</td></tr>
+<tr><td>Sub</td><td>liberation</td><td>liberalization</td><td>1</td></tr>
+<tr><td>Sub</td><td>sign</td><td>signs</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>this</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-40">
+  <header>
+    <span class="rank">#40</span>
+    <span class="utt-id">20171025-0900-PLENARY-20-en_20171025-18:10:03_3</span>
+    <span class="stats">
+      7 errors &bull; WER 14.58%
+      &bull; S:1 D:6 I:0
+      &bull; 48 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20171025-0900-PLENARY-20-en_20171025-18:10:03_3.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20171025-0900-PLENARY-20-en_20171025-18:10:03_3.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">however i personally believe that we could have been even more ambitious in this proposal and indeed with the capital markets union project as a whole <span class="err-del" title="deleted">as</span> <span class="err-del" title="deleted">this</span> <span class="err-del" title="deleted">is</span> <span class="err-del" title="deleted">an</span> <span class="err-del" title="deleted">area</span> <span class="err-del" title="deleted">in</span> <span class="err-sub" title="sub: which → where">which</span><span class="hyp-inline">[→where]</span> our level of achievement does not so far seem to match up to our rhetoric</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>which</td><td>where</td><td>1</td></tr>
+<tr><td>Del</td><td>as</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>this</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>an</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>area</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-41">
+  <header>
+    <span class="rank">#41</span>
+    <span class="utt-id">20131021-0900-PLENARY-9-en_20131021-17:37:03_8</span>
+    <span class="stats">
+      7 errors &bull; WER 17.50%
+      &bull; S:4 D:1 I:2
+      &bull; 40 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20131021-0900-PLENARY-9-en_20131021-17:37:03_8.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20131021-0900-PLENARY-9-en_20131021-17:37:03_8.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: then → europe">then</span><span class="hyp-inline">[→europe]</span> <span class="err-sub" title="sub: europe → here">europe</span><span class="hyp-inline">[→here]</span> <span class="err-sub" title="sub: can → could">can</span><span class="hyp-inline">[→could]</span> show the way by having <span class="err-ins" title="inserted">+with</span> <span class="err-ins" title="inserted">+us</span> pledges that will make others believe in our climate policies <span class="err-del" title="deleted">and</span> that will make others find solutions to their own climate policies <span class="err-sub" title="sub: and → in">and</span><span class="hyp-inline">[→in]</span> our policies and that will show the way forward</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>then</td><td>europe</td><td>1</td></tr>
+<tr><td>Sub</td><td>europe</td><td>here</td><td>1</td></tr>
+<tr><td>Sub</td><td>can</td><td>could</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>in</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>with</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>us</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-42">
+  <header>
+    <span class="rank">#42</span>
+    <span class="utt-id">20120613-0900-PLENARY-4-en_20120613-10:59:54_11</span>
+    <span class="stats">
+      7 errors &bull; WER 15.22%
+      &bull; S:3 D:2 I:2
+      &bull; 46 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20120613-0900-PLENARY-4-en_20120613-10:59:54_11.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20120613-0900-PLENARY-4-en_20120613-10:59:54_11.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i would <span class="err-ins" title="inserted">+also</span> like to say <span class="err-del" title="deleted">as</span> <span class="err-del" title="deleted">well</span> that the position of the president of the commission is in some ways understandable but on the other hand there is a huge risk <span class="err-sub" title="sub: concerning → to">concerning</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: giving → give">giving</span><span class="hyp-inline">[→give]</span> up the community method and <span class="err-ins" title="inserted">+to</span> <span class="err-sub" title="sub: going → come">going</span><span class="hyp-inline">[→come]</span> back to national contributions in special instruments</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>concerning</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>giving</td><td>give</td><td>1</td></tr>
+<tr><td>Sub</td><td>going</td><td>come</td><td>1</td></tr>
+<tr><td>Del</td><td>as</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>well</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>also</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-43">
+  <header>
+    <span class="rank">#43</span>
+    <span class="utt-id">20170705-0900-PLENARY-7-en_20170705-11:12:17_7</span>
+    <span class="stats">
+      7 errors &bull; WER 12.28%
+      &bull; S:3 D:4 I:0
+      &bull; 57 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170705-0900-PLENARY-7-en_20170705-11:12:17_7.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170705-0900-PLENARY-7-en_20170705-11:12:17_7.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it is not only market it is not only technology in the 1st place it is new relationships in the whole society <span class="err-del" title="deleted">a</span> new <span class="err-sub" title="sub: type → types">type</span><span class="hyp-inline">[→types]</span> of services <span class="err-del" title="deleted">a</span> new <span class="err-sub" title="sub: type → types">type</span><span class="hyp-inline">[→types]</span> of well being <span class="err-del" title="deleted">a</span> new <span class="err-sub" title="sub: type → types">type</span><span class="hyp-inline">[→types]</span> of engagement and activity and participation of people <span class="err-del" title="deleted">and</span> for that i suppose it is very important also to build trust</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>type</td><td>types</td><td>3</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-44">
+  <header>
+    <span class="rank">#44</span>
+    <span class="utt-id">20170912-0900-PLENARY-5-en_20170912-10:26:19_3</span>
+    <span class="stats">
+      7 errors &bull; WER 20.59%
+      &bull; S:4 D:1 I:2
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170912-0900-PLENARY-5-en_20170912-10:26:19_3.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170912-0900-PLENARY-5-en_20170912-10:26:19_3.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">we now have a solution for one of the biggest divides in europe which was that <span class="err-sub" title="sub: gazprom → gas">gazprom</span><span class="hyp-inline">[→gas]</span> <span class="err-sub" title="sub: and → from">and</span><span class="hyp-inline">[→from]</span> russia could <span class="err-ins" title="inserted">+be</span> <span class="err-sub" title="sub: abuse → abused">abuse</span><span class="hyp-inline">[→abused]</span> not only <span class="err-ins" title="inserted">+in</span> markets but also <span class="err-del" title="deleted">gas</span> to <span class="err-sub" title="sub: put → exert">put</span><span class="hyp-inline">[→exert]</span> political pressure on eastern europe</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>gazprom</td><td>gas</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>from</td><td>1</td></tr>
+<tr><td>Sub</td><td>abuse</td><td>abused</td><td>1</td></tr>
+<tr><td>Sub</td><td>put</td><td>exert</td><td>1</td></tr>
+<tr><td>Del</td><td>gas</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>be</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-45">
+  <header>
+    <span class="rank">#45</span>
+    <span class="utt-id">20090424-0900-PLENARY-9-en_20090424-11:48:27_1</span>
+    <span class="stats">
+      7 errors &bull; WER 14.29%
+      &bull; S:4 D:0 I:3
+      &bull; 49 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20090424-0900-PLENARY-9-en_20090424-11:48:27_1.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20090424-0900-PLENARY-9-en_20090424-11:48:27_1.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">that dictatorship not only <span class="err-sub" title="sub: forces → enforces">forces</span><span class="hyp-inline">[→enforces]</span> the inhabitants to live in conformity with its religious standards but <span class="err-sub" title="sub: also → it">also</span><span class="hyp-inline">[→it]</span> tries <span class="err-ins" title="inserted">+also</span> to kill everyone who does not <span class="err-ins" title="inserted">+behave</span> <span class="err-ins" title="inserted">+in</span> <span class="err-sub" title="sub: conform → conformity">conform</span><span class="hyp-inline">[→conformity]</span> <span class="err-sub" title="sub: to → with">to</span><span class="hyp-inline">[→with]</span> its system the consequence is that many iranians have to live in exile not only in europe but also in the neighboring countries</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>forces</td><td>enforces</td><td>1</td></tr>
+<tr><td>Sub</td><td>also</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>conform</td><td>conformity</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>with</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>also</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>behave</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-46">
+  <header>
+    <span class="rank">#46</span>
+    <span class="utt-id">20140311-0900-PLENARY-5-en_20140311-09:06:47_3</span>
+    <span class="stats">
+      7 errors &bull; WER 22.58%
+      &bull; S:5 D:0 I:2
+      &bull; 31 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20140311-0900-PLENARY-5-en_20140311-09:06:47_3.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20140311-0900-PLENARY-5-en_20140311-09:06:47_3.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the regulation lays down <span class="err-ins" title="inserted">+the</span> rules for our banks and other payment service providers regarding information on <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: payers → payer">payers</span><span class="hyp-inline">[→payer]</span> and <span class="err-sub" title="sub: payees → the">payees</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: which → payee">which</span><span class="hyp-inline">[→payee]</span> they need to collect and transfer <span class="err-sub" title="sub: throughout → through">throughout</span><span class="hyp-inline">[→through]</span> the <span class="err-sub" title="sub: entire → whole">entire</span><span class="hyp-inline">[→whole]</span> payment chain</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>payers</td><td>payer</td><td>1</td></tr>
+<tr><td>Sub</td><td>payees</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>which</td><td>payee</td><td>1</td></tr>
+<tr><td>Sub</td><td>throughout</td><td>through</td><td>1</td></tr>
+<tr><td>Sub</td><td>entire</td><td>whole</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>2</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-47">
+  <header>
+    <span class="rank">#47</span>
+    <span class="utt-id">20170601-0900-PLENARY-8-en_20170601-11:36:32_1</span>
+    <span class="stats">
+      6 errors &bull; WER 13.95%
+      &bull; S:3 D:0 I:3
+      &bull; 43 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170601-0900-PLENARY-8-en_20170601-11:36:32_1.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170601-0900-PLENARY-8-en_20170601-11:36:32_1.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: today → day">today</span><span class="hyp-inline">[→day]</span> was proclaimed by the un general assembly <span class="err-ins" title="inserted">+in</span> 2012 <span class="err-ins" title="inserted">+in</span> <span class="err-sub" title="sub: and → honor">and</span><span class="hyp-inline">[→honor]</span> <span class="err-sub" title="sub: honors → of">honors</span><span class="hyp-inline">[→of]</span> parents throughout the world the global day provides an opportunity to appreciate all parents in all parts of the world for their selfless commitment to children and their lifelong sacrifice towards nurturing</div>
+  </details>
+  <details>
+    <summary>Error breakdown (6 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>today</td><td>day</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>honor</td><td>1</td></tr>
+<tr><td>Sub</td><td>honors</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-48">
+  <header>
+    <span class="rank">#48</span>
+    <span class="utt-id">20091020-0900-PLENARY-4-en_20091020-11:30:19_3</span>
+    <span class="stats">
+      6 errors &bull; WER 13.33%
+      &bull; S:0 D:1 I:5
+      &bull; 45 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20091020-0900-PLENARY-4-en_20091020-11:30:19_3.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20091020-0900-PLENARY-4-en_20091020-11:30:19_3.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+agree</span> <span class="err-ins" title="inserted">+with</span> <span class="err-ins" title="inserted">+you</span> let us not make this <span class="err-ins" title="inserted">+into</span> a beauty contest about who is more or less ambitious <span class="err-del" title="deleted">more</span> realistic or less realistic or more or less willing to pay we need 4 clarities because too much is at stake we need a clear and ambitious political stance</div>
+  </details>
+  <details>
+    <summary>Error breakdown (6 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>more</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>agree</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>with</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>into</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-49">
+  <header>
+    <span class="rank">#49</span>
+    <span class="utt-id">20180228-0900-PLENARY-18-en_20180228-18:41:24_6</span>
+    <span class="stats">
+      6 errors &bull; WER 17.14%
+      &bull; S:2 D:1 I:3
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20180228-0900-PLENARY-18-en_20180228-18:41:24_6.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20180228-0900-PLENARY-18-en_20180228-18:41:24_6.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it is impossible to have a <span class="err-ins" title="inserted">+one</span> <span class="err-ins" title="inserted">+size</span> <span class="err-ins" title="inserted">+fits</span> <span class="err-sub" title="sub: onesizefitsall → all">onesizefitsall</span><span class="hyp-inline">[→all]</span> approach as each member state has its own culture and tradition that <span class="err-del" title="deleted">is</span> <span class="err-sub" title="sub: reflected → reflects">reflected</span><span class="hyp-inline">[→reflects]</span> in consumer habits it makes sense that labeling also acknowledges each country is specificities</div>
+  </details>
+  <details>
+    <summary>Error breakdown (6 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>onesizefitsall</td><td>all</td><td>1</td></tr>
+<tr><td>Sub</td><td>reflected</td><td>reflects</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>one</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>size</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>fits</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-50">
+  <header>
+    <span class="rank">#50</span>
+    <span class="utt-id">20170913-0900-PLENARY-13-en_20170913-17:39:22_3</span>
+    <span class="stats">
+      6 errors &bull; WER 20.00%
+      &bull; S:3 D:1 I:2
+      &bull; 30 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/voxpopuli/wavs/20170913-0900-PLENARY-13-en_20170913-17:39:22_3.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/20170913-0900-PLENARY-13-en_20170913-17:39:22_3.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+so</span> these provisions ensure <span class="err-ins" title="inserted">+barrier</span> <span class="err-sub" title="sub: barrierfree → free">barrierfree</span><span class="hyp-inline">[→free]</span> journeys for everyone and <span class="err-sub" title="sub: would → will">would</span><span class="hyp-inline">[→will]</span> fundamentally improve the lives of disabled people so please fellow members vote for the <span class="err-del" title="deleted">transport</span> <span class="err-sub" title="sub: committee → tran">committee</span><span class="hyp-inline">[→tran]</span> and the green amendments tomorrow</div>
+  </details>
+  <details>
+    <summary>Error breakdown (6 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>barrierfree</td><td>free</td><td>1</td></tr>
+<tr><td>Sub</td><td>would</td><td>will</td><td>1</td></tr>
+<tr><td>Sub</td><td>committee</td><td>tran</td><td>1</td></tr>
+<tr><td>Del</td><td>transport</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>barrier</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+
+</main></div>
+</body></html>

@@ -1,0 +1,1978 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Error Analysis - gigaspeech</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f7f8fa;color:#1a1a1a;line-height:1.6}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#fff;border-right:1px solid #e0e0e0;padding:12px 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar h3{padding:8px 16px;margin:0;font-size:.85rem;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.nav-item{display:block;padding:6px 16px;text-decoration:none;color:#333;font-size:.8rem;border-left:3px solid transparent;transition:background .15s}
+.nav-item:hover{background:#f0f4ff;border-left-color:#4a90d9}
+.nav-rank{font-weight:700;color:#4a90d9} .nav-err{color:#c33;font-size:.75rem} .nav-wer{color:#666;font-size:.75rem}
+main{flex:1;max-width:1100px;padding:24px 32px;overflow-x:hidden}
+h1{font-size:1.5rem;margin:0 0 4px} .subtitle{color:#666;font-size:.9rem;margin-bottom:20px;word-break:break-all}
+h2{font-size:1.15rem;margin-top:2rem;padding-bottom:6px;border-bottom:1px solid #e0e0e0}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.kpi>div{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px 18px;min-width:130px}
+.kpi .val{font-size:1.4rem;font-weight:700} .kpi .lbl{font-size:.8rem;color:#666}
+.kpi .highlight{border-color:#4a90d9;background:#f0f4ff}
+table.data{border-collapse:collapse;margin:12px 0;width:100%}
+table.data th,table.data td{border:1px solid #ddd;padding:6px 10px;text-align:left;font-size:.85rem}
+table.data th{background:#f8f8f8;position:sticky;top:0}
+table.data tr:hover{background:#fafafa}
+.tables-row{display:flex;gap:24px;flex-wrap:wrap}
+.tables-row>div{flex:1;min-width:200px}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;margin:16px 0;overflow:hidden}
+.card header{padding:14px 18px;background:#f8f9fb;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card .rank{font-size:1.1rem;font-weight:700;color:#4a90d9}
+.card .utt-id{font-family:monospace;font-size:.82rem;color:#555}
+.card .stats{font-size:.8rem;color:#666;margin-left:auto}
+details{padding:0}
+summary{padding:10px 18px;cursor:pointer;font-weight:600;font-size:.9rem;background:#fafbfc;border-top:1px solid #eee;user-select:none}
+summary:hover{background:#f0f4ff}
+.transcript{padding:16px 18px;font-size:.9rem;line-height:1.9;white-space:pre-wrap;word-wrap:break-word;max-height:600px;overflow-y:auto}
+.audio-block{padding:8px 18px}
+.audio-block audio{width:min(520px,100%)}
+.audio-meta{font-size:.82rem;color:#555;padding:4px 18px;overflow-wrap:anywhere}
+.err-sub{background:#fff3cd;border-radius:3px;padding:1px 2px;border-bottom:2px solid #fd7e14;text-decoration:line-through;opacity:.75}
+.err-del{background:#f8d7da;border-radius:3px;padding:1px 2px;border-bottom:2px solid #dc3545;text-decoration:line-through;opacity:.7}
+.err-ins{background:#d6ecff;border-radius:3px;padding:1px 2px;border-bottom:2px solid #007bff;font-style:italic}
+.hyp-inline{color:#c33;font-size:.8rem;font-style:italic}
+.err-table{width:100%;border-collapse:collapse;margin:8px 0}
+.err-table th,.err-table td{border:1px solid #eee;padding:5px 8px;font-size:.82rem;text-align:left}
+.err-table th{background:#f8f8f8}
+@media(max-width:900px){
+  .sidebar{display:none}
+  main{padding:16px}
+  .tables-row{flex-direction:column}
+}
+</style></head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <h3>Utterances</h3>
+  <a href="#utt-1" class="nav-item"><span class="nav-rank">#1</span> <span class="nav-err">47 err</span> <span class="nav-wer">90.4%</span></a>
+<a href="#utt-2" class="nav-item"><span class="nav-rank">#2</span> <span class="nav-err">39 err</span> <span class="nav-wer">150.0%</span></a>
+<a href="#utt-3" class="nav-item"><span class="nav-rank">#3</span> <span class="nav-err">30 err</span> <span class="nav-wer">100.0%</span></a>
+<a href="#utt-4" class="nav-item"><span class="nav-rank">#4</span> <span class="nav-err">30 err</span> <span class="nav-wer">47.6%</span></a>
+<a href="#utt-5" class="nav-item"><span class="nav-rank">#5</span> <span class="nav-err">26 err</span> <span class="nav-wer">100.0%</span></a>
+<a href="#utt-6" class="nav-item"><span class="nav-rank">#6</span> <span class="nav-err">25 err</span> <span class="nav-wer">69.4%</span></a>
+<a href="#utt-7" class="nav-item"><span class="nav-rank">#7</span> <span class="nav-err">25 err</span> <span class="nav-wer">49.0%</span></a>
+<a href="#utt-8" class="nav-item"><span class="nav-rank">#8</span> <span class="nav-err">23 err</span> <span class="nav-wer">67.6%</span></a>
+<a href="#utt-9" class="nav-item"><span class="nav-rank">#9</span> <span class="nav-err">23 err</span> <span class="nav-wer">41.8%</span></a>
+<a href="#utt-10" class="nav-item"><span class="nav-rank">#10</span> <span class="nav-err">22 err</span> <span class="nav-wer">81.5%</span></a>
+<a href="#utt-11" class="nav-item"><span class="nav-rank">#11</span> <span class="nav-err">21 err</span> <span class="nav-wer">34.4%</span></a>
+<a href="#utt-12" class="nav-item"><span class="nav-rank">#12</span> <span class="nav-err">21 err</span> <span class="nav-wer">41.2%</span></a>
+<a href="#utt-13" class="nav-item"><span class="nav-rank">#13</span> <span class="nav-err">21 err</span> <span class="nav-wer">60.0%</span></a>
+<a href="#utt-14" class="nav-item"><span class="nav-rank">#14</span> <span class="nav-err">21 err</span> <span class="nav-wer">60.0%</span></a>
+<a href="#utt-15" class="nav-item"><span class="nav-rank">#15</span> <span class="nav-err">21 err</span> <span class="nav-wer">55.3%</span></a>
+<a href="#utt-16" class="nav-item"><span class="nav-rank">#16</span> <span class="nav-err">21 err</span> <span class="nav-wer">75.0%</span></a>
+<a href="#utt-17" class="nav-item"><span class="nav-rank">#17</span> <span class="nav-err">20 err</span> <span class="nav-wer">33.9%</span></a>
+<a href="#utt-18" class="nav-item"><span class="nav-rank">#18</span> <span class="nav-err">20 err</span> <span class="nav-wer">37.0%</span></a>
+<a href="#utt-19" class="nav-item"><span class="nav-rank">#19</span> <span class="nav-err">20 err</span> <span class="nav-wer">133.3%</span></a>
+<a href="#utt-20" class="nav-item"><span class="nav-rank">#20</span> <span class="nav-err">20 err</span> <span class="nav-wer">54.1%</span></a>
+<a href="#utt-21" class="nav-item"><span class="nav-rank">#21</span> <span class="nav-err">20 err</span> <span class="nav-wer">111.1%</span></a>
+<a href="#utt-22" class="nav-item"><span class="nav-rank">#22</span> <span class="nav-err">20 err</span> <span class="nav-wer">100.0%</span></a>
+<a href="#utt-23" class="nav-item"><span class="nav-rank">#23</span> <span class="nav-err">20 err</span> <span class="nav-wer">87.0%</span></a>
+<a href="#utt-24" class="nav-item"><span class="nav-rank">#24</span> <span class="nav-err">19 err</span> <span class="nav-wer">55.9%</span></a>
+<a href="#utt-25" class="nav-item"><span class="nav-rank">#25</span> <span class="nav-err">19 err</span> <span class="nav-wer">37.3%</span></a>
+<a href="#utt-26" class="nav-item"><span class="nav-rank">#26</span> <span class="nav-err">19 err</span> <span class="nav-wer">38.0%</span></a>
+<a href="#utt-27" class="nav-item"><span class="nav-rank">#27</span> <span class="nav-err">19 err</span> <span class="nav-wer">25.3%</span></a>
+<a href="#utt-28" class="nav-item"><span class="nav-rank">#28</span> <span class="nav-err">18 err</span> <span class="nav-wer">54.5%</span></a>
+<a href="#utt-29" class="nav-item"><span class="nav-rank">#29</span> <span class="nav-err">18 err</span> <span class="nav-wer">64.3%</span></a>
+<a href="#utt-30" class="nav-item"><span class="nav-rank">#30</span> <span class="nav-err">18 err</span> <span class="nav-wer">40.9%</span></a>
+<a href="#utt-31" class="nav-item"><span class="nav-rank">#31</span> <span class="nav-err">18 err</span> <span class="nav-wer">42.9%</span></a>
+<a href="#utt-32" class="nav-item"><span class="nav-rank">#32</span> <span class="nav-err">18 err</span> <span class="nav-wer">62.1%</span></a>
+<a href="#utt-33" class="nav-item"><span class="nav-rank">#33</span> <span class="nav-err">18 err</span> <span class="nav-wer">50.0%</span></a>
+<a href="#utt-34" class="nav-item"><span class="nav-rank">#34</span> <span class="nav-err">18 err</span> <span class="nav-wer">54.5%</span></a>
+<a href="#utt-35" class="nav-item"><span class="nav-rank">#35</span> <span class="nav-err">18 err</span> <span class="nav-wer">52.9%</span></a>
+<a href="#utt-36" class="nav-item"><span class="nav-rank">#36</span> <span class="nav-err">18 err</span> <span class="nav-wer">25.4%</span></a>
+<a href="#utt-37" class="nav-item"><span class="nav-rank">#37</span> <span class="nav-err">18 err</span> <span class="nav-wer">28.1%</span></a>
+<a href="#utt-38" class="nav-item"><span class="nav-rank">#38</span> <span class="nav-err">18 err</span> <span class="nav-wer">78.3%</span></a>
+<a href="#utt-39" class="nav-item"><span class="nav-rank">#39</span> <span class="nav-err">18 err</span> <span class="nav-wer">51.4%</span></a>
+<a href="#utt-40" class="nav-item"><span class="nav-rank">#40</span> <span class="nav-err">18 err</span> <span class="nav-wer">31.6%</span></a>
+<a href="#utt-41" class="nav-item"><span class="nav-rank">#41</span> <span class="nav-err">18 err</span> <span class="nav-wer">32.7%</span></a>
+<a href="#utt-42" class="nav-item"><span class="nav-rank">#42</span> <span class="nav-err">18 err</span> <span class="nav-wer">38.3%</span></a>
+<a href="#utt-43" class="nav-item"><span class="nav-rank">#43</span> <span class="nav-err">17 err</span> <span class="nav-wer">37.0%</span></a>
+<a href="#utt-44" class="nav-item"><span class="nav-rank">#44</span> <span class="nav-err">17 err</span> <span class="nav-wer">39.5%</span></a>
+<a href="#utt-45" class="nav-item"><span class="nav-rank">#45</span> <span class="nav-err">17 err</span> <span class="nav-wer">44.7%</span></a>
+<a href="#utt-46" class="nav-item"><span class="nav-rank">#46</span> <span class="nav-err">17 err</span> <span class="nav-wer">38.6%</span></a>
+<a href="#utt-47" class="nav-item"><span class="nav-rank">#47</span> <span class="nav-err">17 err</span> <span class="nav-wer">37.8%</span></a>
+<a href="#utt-48" class="nav-item"><span class="nav-rank">#48</span> <span class="nav-err">17 err</span> <span class="nav-wer">41.5%</span></a>
+<a href="#utt-49" class="nav-item"><span class="nav-rank">#49</span> <span class="nav-err">17 err</span> <span class="nav-wer">70.8%</span></a>
+<a href="#utt-50" class="nav-item"><span class="nav-rank">#50</span> <span class="nav-err">17 err</span> <span class="nav-wer">94.4%</span></a>
+</nav>
+<main>
+<h1>Word Error Analysis: gigaspeech</h1>
+<div class="subtitle">Input: /home/boren/data/test/phi7b_20260413/generate_gigaspeech.jsonl</div>
+<div class="kpi">
+  <div class="highlight"><div class="val">8.77%</div><div class="lbl">WER</div></div>
+  <div><div class="val">19,931</div><div class="lbl">Utterances</div></div>
+  <div><div class="val">403,727</div><div class="lbl">Ref Words</div></div>
+  <div><div class="val">35,403</div><div class="lbl">Total Errors</div></div>
+  <div><div class="val">19,517</div><div class="lbl">Sub (4.8%)</div></div>
+  <div><div class="val">8,750</div><div class="lbl">Del (2.2%)</div></div>
+  <div><div class="val">7,136</div><div class="lbl">Ins (1.8%)</div></div>
+</div>
+
+<h2>Top Substitution Confusions</h2>
+<table class="data"><thead><tr><th>Ref Word</th><th>Hyp Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>the</td><td>a</td><td>166</td></tr>
+<tr><td>in</td><td>and</td><td>112</td></tr>
+<tr><td>and</td><td>in</td><td>105</td></tr>
+<tr><td>its</td><td>is</td><td>90</td></tr>
+<tr><td>the</td><td>this</td><td>82</td></tr>
+<tr><td>a</td><td>the</td><td>75</td></tr>
+<tr><td>a</td><td>ah</td><td>74</td></tr>
+<tr><td>that</td><td>it</td><td>71</td></tr>
+<tr><td>bela</td><td>bella</td><td>58</td></tr>
+<tr><td>the</td><td>that</td><td>57</td></tr>
+<tr><td>is</td><td>was</td><td>55</td></tr>
+<tr><td>are</td><td>were</td><td>53</td></tr>
+<tr><td>v</td><td>tv</td><td>52</td></tr>
+<tr><td>that</td><td>the</td><td>52</td></tr>
+<tr><td>it</td><td>that</td><td>47</td></tr>
+<tr><td>as</td><td>is</td><td>42</td></tr>
+<tr><td>alright</td><td>right</td><td>41</td></tr>
+<tr><td>was</td><td>is</td><td>41</td></tr>
+<tr><td>were</td><td>are</td><td>39</td></tr>
+<tr><td>ah</td><td>and</td><td>38</td></tr>
+<tr><td>the</td><td>to</td><td>37</td></tr>
+<tr><td>sociible</td><td>sociable</td><td>35</td></tr>
+<tr><td>s</td><td>us</td><td>35</td></tr>
+<tr><td>this</td><td>the</td><td>34</td></tr>
+<tr><td>is</td><td>as</td><td>34</td></tr>
+<tr><td>to</td><td>into</td><td>33</td></tr>
+<tr><td>will</td><td>would</td><td>32</td></tr>
+<tr><td>we</td><td>you</td><td>31</td></tr>
+<tr><td>could</td><td>can</td><td>31</td></tr>
+<tr><td>is</td><td>has</td><td>30</td></tr></tbody></table>
+
+<div class="tables-row">
+<div>
+<h2>Top Deletions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>ah</td><td>1549</td></tr>
+<tr><td>i</td><td>436</td></tr>
+<tr><td>a</td><td>414</td></tr>
+<tr><td>it</td><td>315</td></tr>
+<tr><td>and</td><td>258</td></tr>
+<tr><td>the</td><td>250</td></tr>
+<tr><td>is</td><td>239</td></tr>
+<tr><td>you</td><td>157</td></tr>
+<tr><td>that</td><td>135</td></tr>
+<tr><td>to</td><td>124</td></tr>
+<tr><td>p</td><td>114</td></tr>
+<tr><td>t</td><td>105</td></tr>
+<tr><td>are</td><td>103</td></tr>
+<tr><td>in</td><td>102</td></tr>
+<tr><td>u</td><td>91</td></tr>
+<tr><td>of</td><td>90</td></tr>
+<tr><td>e</td><td>87</td></tr>
+<tr><td>r</td><td>82</td></tr>
+<tr><td>c</td><td>76</td></tr>
+<tr><td>d</td><td>73</td></tr></tbody></table>
+</div>
+<div>
+<h2>Top Insertions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>it</td><td>524</td></tr>
+<tr><td>and</td><td>412</td></tr>
+<tr><td>is</td><td>343</td></tr>
+<tr><td>a</td><td>283</td></tr>
+<tr><td>i</td><td>257</td></tr>
+<tr><td>the</td><td>251</td></tr>
+<tr><td>of</td><td>181</td></tr>
+<tr><td>yeah</td><td>179</td></tr>
+<tr><td>you</td><td>174</td></tr>
+<tr><td>that</td><td>160</td></tr>
+<tr><td>are</td><td>159</td></tr>
+<tr><td>to</td><td>154</td></tr>
+<tr><td>ah</td><td>132</td></tr>
+<tr><td>have</td><td>121</td></tr>
+<tr><td>in</td><td>114</td></tr>
+<tr><td>we</td><td>107</td></tr>
+<tr><td>like</td><td>93</td></tr>
+<tr><td>they</td><td>88</td></tr>
+<tr><td>all</td><td>76</td></tr>
+<tr><td>not</td><td>75</td></tr></tbody></table>
+</div>
+</div>
+
+<h2>Top 50 Worst Utterances (by error count)</h2>
+<article class="card" id="utt-1">
+  <header>
+    <span class="rank">#1</span>
+    <span class="utt-id">POD1000000043_S0000050</span>
+    <span class="stats">
+      47 errors &bull; WER 90.38%
+      &bull; S:0 D:47 I:0
+      &bull; 52 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000043_S0000050.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000043_S0000050.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but then there is <span class="err-del" title="deleted">this</span> <span class="err-del" title="deleted">team</span> <span class="err-del" title="deleted">ah</span> <span class="err-del" title="deleted">ah</span> <span class="err-del" title="deleted">administration</span> <span class="err-del" title="deleted">official</span> <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">peace</span> <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">they</span> <span class="err-del" title="deleted">are</span> <span class="err-del" title="deleted">quoted</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">saying</span> <span class="err-del" title="deleted">something</span> <span class="err-del" title="deleted">along</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">lines</span> <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">20</span> <span class="err-del" title="deleted">years</span> <span class="err-del" title="deleted">people</span> <span class="err-del" title="deleted">will</span> <span class="err-del" title="deleted">not</span> <span class="err-del" title="deleted">remember</span> <span class="err-del" title="deleted">bleach</span> <span class="err-del" title="deleted">they</span> <span class="err-del" title="deleted">will</span> <span class="err-del" title="deleted">not</span> <span class="err-del" title="deleted">remember</span> <span class="err-del" title="deleted">him</span> <span class="err-del" title="deleted">not</span> <span class="err-del" title="deleted">wearing</span> <span class="err-del" title="deleted">masks</span> <span class="err-del" title="deleted">they</span> <span class="err-del" title="deleted">will</span> <span class="err-del" title="deleted">not</span> <span class="err-del" title="deleted">remember</span> this <span class="err-del" title="deleted">they</span> <span class="err-del" title="deleted">will</span> <span class="err-del" title="deleted">just</span> <span class="err-del" title="deleted">remember</span> <span class="err-del" title="deleted">operation</span> <span class="err-del" title="deleted">warp</span> <span class="err-del" title="deleted">speed</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (47 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>they</td><td>&mdash;</td><td>4</td></tr>
+<tr><td>Del</td><td>will</td><td>&mdash;</td><td>4</td></tr>
+<tr><td>Del</td><td>not</td><td>&mdash;</td><td>4</td></tr>
+<tr><td>Del</td><td>remember</td><td>&mdash;</td><td>4</td></tr>
+<tr><td>Del</td><td>ah</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>this</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>team</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>administration</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-2">
+  <header>
+    <span class="rank">#2</span>
+    <span class="utt-id">POD1000000046_S0000729</span>
+    <span class="stats">
+      39 errors &bull; WER 150.00%
+      &bull; S:7 D:0 I:32
+      &bull; 26 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0000729.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0000729.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">congratulations you know it <span class="err-sub" title="sub: is → was">is</span><span class="hyp-inline">[→was]</span> that easy <span class="err-ins" title="inserted">+yeah</span> you should <span class="err-ins" title="inserted">+not</span> have stopped <span class="err-sub" title="sub: him → being">him</span><span class="hyp-inline">[→being]</span> <span class="err-sub" title="sub: filming → van">filming</span><span class="hyp-inline">[→van]</span> wilder anyways brother <span class="err-sub" title="sub: while → why">while</span><span class="hyp-inline">[→why]</span> <span class="err-sub" title="sub: he → was">he</span><span class="hyp-inline">[→was]</span> <span class="err-sub" title="sub: is → he">is</span><span class="hyp-inline">[→he]</span> going for an oscar no need <span class="err-ins" title="inserted">+all</span> <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+wanted</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+see</span> <span class="err-ins" title="inserted">+was</span> <span class="err-ins" title="inserted">+van</span> <span class="err-ins" title="inserted">+wilder</span> <span class="err-ins" title="inserted">+give</span> <span class="err-ins" title="inserted">+us</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+van</span> <span class="err-ins" title="inserted">+wilder</span> <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+all</span> <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+are</span> <span class="err-ins" title="inserted">+getting</span> <span class="err-ins" title="inserted">+now</span> <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+ryan</span> <span class="err-ins" title="inserted">+reynolds</span> <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: well → like">well</span><span class="hyp-inline">[→like]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (39 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>is</td><td>was</td><td>1</td></tr>
+<tr><td>Sub</td><td>him</td><td>being</td><td>1</td></tr>
+<tr><td>Sub</td><td>filming</td><td>van</td><td>1</td></tr>
+<tr><td>Sub</td><td>while</td><td>why</td><td>1</td></tr>
+<tr><td>Sub</td><td>he</td><td>was</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>he</td><td>1</td></tr>
+<tr><td>Sub</td><td>well</td><td>like</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>all</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>van</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>wilder</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>not</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-3">
+  <header>
+    <span class="rank">#3</span>
+    <span class="utt-id">YOU1000000141_S0000069</span>
+    <span class="stats">
+      30 errors &bull; WER 100.00%
+      &bull; S:1 D:29 I:0
+      &bull; 30 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000141_S0000069.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000141_S0000069.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">hey</span> <span class="err-del" title="deleted">dude</span> <span class="err-del" title="deleted">what</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">say</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">me</span> <span class="err-del" title="deleted">like</span> <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">dude</span> <span class="err-del" title="deleted">do</span> <span class="err-del" title="deleted">not</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">say</span> <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">man</span> <span class="err-del" title="deleted">say</span> <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">shit</span> <span class="err-del" title="deleted">again</span> <span class="err-del" title="deleted">man</span> <span class="err-del" title="deleted">get</span> <span class="err-del" title="deleted">out</span> <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">car</span> <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">say</span> <span class="err-del" title="deleted">that</span> <span class="err-sub" title="sub: shit → 那开灯啊有谁都没来大家都猜的这个最大的区别就是">shit</span><span class="hyp-inline">[→那开灯啊有谁都没来大家都猜的这个最大的区别就是]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (30 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>shit</td><td>那开灯啊有谁都没来大家都猜的这个最大的区别就是</td><td>1</td></tr>
+<tr><td>Del</td><td>say</td><td>&mdash;</td><td>4</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>4</td></tr>
+<tr><td>Del</td><td>dude</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>man</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>hey</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>what</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>me</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>like</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-4">
+  <header>
+    <span class="rank">#4</span>
+    <span class="utt-id">YOU1000000183_S0000130</span>
+    <span class="stats">
+      30 errors &bull; WER 47.62%
+      &bull; S:24 D:0 I:6
+      &bull; 63 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000183_S0000130.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000183_S0000130.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">all i know <span class="err-sub" title="sub: was → is">was</span><span class="hyp-inline">[→is]</span> i mean i do not know <span class="err-ins" title="inserted">+about</span> <span class="err-ins" title="inserted">+this</span> it is way <span class="err-sub" title="sub: of → over">of</span><span class="hyp-inline">[→over]</span> my head <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: and → have">and</span><span class="hyp-inline">[→have]</span> <span class="err-sub" title="sub: everybody → never">everybody</span><span class="hyp-inline">[→never]</span> <span class="err-sub" title="sub: to → bought">to</span><span class="hyp-inline">[→bought]</span> <span class="err-sub" title="sub: ask → an">ask</span><span class="hyp-inline">[→an]</span> <span class="err-sub" title="sub: question → option">question</span><span class="hyp-inline">[→option]</span> in my life i <span class="err-sub" title="sub: know → never">know</span><span class="hyp-inline">[→never]</span> <span class="err-sub" title="sub: but → bought">but</span><span class="hyp-inline">[→bought]</span> <span class="err-sub" title="sub: you → your">you</span><span class="hyp-inline">[→your]</span> <span class="err-sub" title="sub: i → time">i</span><span class="hyp-inline">[→time]</span> <span class="err-sub" title="sub: times → is">times</span><span class="hyp-inline">[→is]</span> on your side when you <span class="err-sub" title="sub: are → own">are</span><span class="hyp-inline">[→own]</span> <span class="err-sub" title="sub: on → a">on</span><span class="hyp-inline">[→a]</span> stock you know i do not know about <span class="err-sub" title="sub: but → putting">but</span><span class="hyp-inline">[→putting]</span> you know 3% down <span class="err-sub" title="sub: buying → and">buying</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: in → buying">in</span><span class="hyp-inline">[→buying]</span> <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> future and <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: scrap → strap">scrap</span><span class="hyp-inline">[→strap]</span> and <span class="err-ins" title="inserted">+a</span> <span class="err-ins" title="inserted">+straddle</span> <span class="err-sub" title="sub: scrap → that">scrap</span><span class="hyp-inline">[→that]</span> <span class="err-sub" title="sub: let → is">let</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: us → way">us</span><span class="hyp-inline">[→way]</span> <span class="err-sub" title="sub: wear → over">wear</span><span class="hyp-inline">[→over]</span> my <span class="err-sub" title="sub: hat → head">hat</span><span class="hyp-inline">[→head]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (30 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>was</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>over</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>have</td><td>1</td></tr>
+<tr><td>Sub</td><td>everybody</td><td>never</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>bought</td><td>1</td></tr>
+<tr><td>Sub</td><td>ask</td><td>an</td><td>1</td></tr>
+<tr><td>Sub</td><td>question</td><td>option</td><td>1</td></tr>
+<tr><td>Sub</td><td>know</td><td>never</td><td>1</td></tr>
+<tr><td>Sub</td><td>but</td><td>bought</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>your</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>about</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>this</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>straddle</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-5">
+  <header>
+    <span class="rank">#5</span>
+    <span class="utt-id">YOU1000000141_S0000062</span>
+    <span class="stats">
+      26 errors &bull; WER 100.00%
+      &bull; S:1 D:25 I:0
+      &bull; 26 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000141_S0000062.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000141_S0000062.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">hey</span> <span class="err-del" title="deleted">dude</span> <span class="err-del" title="deleted">why</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">say</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">me</span> <span class="err-del" title="deleted">like</span> <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">dude</span> <span class="err-del" title="deleted">do</span> <span class="err-del" title="deleted">not</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">talk</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">me</span> <span class="err-del" title="deleted">like</span> <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">dude</span> <span class="err-del" title="deleted">what</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">say</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">me</span> <span class="err-del" title="deleted">like</span> <span class="err-sub" title="sub: that → 黑度白有色都没拉着都都就都都没拉着都我就色都没拉着">that</span><span class="hyp-inline">[→黑度白有色都没拉着都都就都都没拉着都我就色都没拉着]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (26 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>that</td><td>黑度白有色都没拉着都都就都都没拉着都我就色都没拉着</td><td>1</td></tr>
+<tr><td>Del</td><td>dude</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>me</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>like</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>say</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>hey</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>why</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>do</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-6">
+  <header>
+    <span class="rank">#6</span>
+    <span class="utt-id">YOU1000000144_S0000029</span>
+    <span class="stats">
+      25 errors &bull; WER 69.44%
+      &bull; S:18 D:7 I:0
+      &bull; 36 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000144_S0000029.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000144_S0000029.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: they → ariel">they</span><span class="hyp-inline">[→ariel]</span> <span class="err-sub" title="sub: have → is">have</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: released → gone">released</span><span class="hyp-inline">[→gone]</span> <span class="err-sub" title="sub: a → got">a</span><span class="hyp-inline">[→got]</span> <span class="err-sub" title="sub: gun → one">gun</span><span class="hyp-inline">[→one]</span> <span class="err-sub" title="sub: yell → with">yell</span><span class="hyp-inline">[→with]</span> <span class="err-sub" title="sub: with → an">with</span><span class="hyp-inline">[→an]</span> <span class="err-sub" title="sub: the → aid">the</span><span class="hyp-inline">[→aid]</span> <span class="err-sub" title="sub: noddle → though">noddle</span><span class="hyp-inline">[→though]</span> simple <span class="err-sub" title="sub: they → may">they</span><span class="hyp-inline">[→may]</span> have taken him down but <span class="err-sub" title="sub: they → he">they</span><span class="hyp-inline">[→he]</span> found <span class="err-del" title="deleted">him</span> <span class="err-del" title="deleted">put</span> <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">stay</span> <span class="err-del" title="deleted">so</span> <span class="err-del" title="deleted">they</span> <span class="err-sub" title="sub: are → edward">are</span><span class="hyp-inline">[→edward]</span> <span class="err-sub" title="sub: going → instead">going</span><span class="hyp-inline">[→instead]</span> <span class="err-sub" title="sub: to → sergey">to</span><span class="hyp-inline">[→sergey]</span> <span class="err-sub" title="sub: see → sitting">see</span><span class="hyp-inline">[→sitting]</span> in the <span class="err-sub" title="sub: pictures → pit">pictures</span><span class="hyp-inline">[→pit]</span> <span class="err-sub" title="sub: just → catches">just</span><span class="hyp-inline">[→catches]</span> off the <span class="err-sub" title="sub: plane → plant">plane</span><span class="hyp-inline">[→plant]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (25 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>they</td><td>ariel</td><td>1</td></tr>
+<tr><td>Sub</td><td>have</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>released</td><td>gone</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>got</td><td>1</td></tr>
+<tr><td>Sub</td><td>gun</td><td>one</td><td>1</td></tr>
+<tr><td>Sub</td><td>yell</td><td>with</td><td>1</td></tr>
+<tr><td>Sub</td><td>with</td><td>an</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>aid</td><td>1</td></tr>
+<tr><td>Sub</td><td>noddle</td><td>though</td><td>1</td></tr>
+<tr><td>Sub</td><td>they</td><td>may</td><td>1</td></tr>
+<tr><td>Del</td><td>him</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>put</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>stay</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>so</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>they</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-7">
+  <header>
+    <span class="rank">#7</span>
+    <span class="utt-id">POD1000000040_S0000525</span>
+    <span class="stats">
+      25 errors &bull; WER 49.02%
+      &bull; S:14 D:1 I:10
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000040_S0000525.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000040_S0000525.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: got → i">got</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: i → got">i</span><span class="hyp-inline">[→got]</span> i got one on the 1st thing i i literally <span class="err-ins" title="inserted">+when</span> <span class="err-ins" title="inserted">+we</span> were running out <span class="err-del" title="deleted">of</span> of of when we started <span class="err-sub" title="sub: the → that">the</span><span class="hyp-inline">[→that]</span> thing <span class="err-sub" title="sub: i → we">i</span><span class="hyp-inline">[→we]</span> went to the store like <span class="err-ins" title="inserted">+2</span> <span class="err-ins" title="inserted">+or</span> <span class="err-sub" title="sub: 23 → 3">23</span><span class="hyp-inline">[→3]</span> times <span class="err-sub" title="sub: for → we">for</span><span class="hyp-inline">[→we]</span> <span class="err-sub" title="sub: getting → got">getting</span><span class="hyp-inline">[→got]</span> <span class="err-sub" title="sub: the → no">the</span><span class="hyp-inline">[→no]</span> paper i i <span class="err-ins" title="inserted">+just</span> <span class="err-ins" title="inserted">+said</span> <span class="err-ins" title="inserted">+to</span> <span class="err-sub" title="sub: still → my">still</span><span class="hyp-inline">[→my]</span> <span class="err-sub" title="sub: more → wife">more</span><span class="hyp-inline">[→wife]</span> <span class="err-sub" title="sub: effort → well">effort</span><span class="hyp-inline">[→well]</span> let us let us go <span class="err-ins" title="inserted">+ah</span> let us get <span class="err-ins" title="inserted">+let</span> <span class="err-ins" title="inserted">+us</span> <span class="err-sub" title="sub: a → get">a</span><span class="hyp-inline">[→get]</span> <span class="err-sub" title="sub: big → a">big</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: day → bidet">day</span><span class="hyp-inline">[→bidet]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (25 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>got</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>got</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>we</td><td>1</td></tr>
+<tr><td>Sub</td><td>23</td><td>3</td><td>1</td></tr>
+<tr><td>Sub</td><td>for</td><td>we</td><td>1</td></tr>
+<tr><td>Sub</td><td>getting</td><td>got</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>no</td><td>1</td></tr>
+<tr><td>Sub</td><td>still</td><td>my</td><td>1</td></tr>
+<tr><td>Sub</td><td>more</td><td>wife</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>when</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>2</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>or</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>just</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>said</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>let</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>us</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-8">
+  <header>
+    <span class="rank">#8</span>
+    <span class="utt-id">POD1000000046_S0001016</span>
+    <span class="stats">
+      23 errors &bull; WER 67.65%
+      &bull; S:10 D:3 I:10
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0001016.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0001016.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+caught</span> <span class="err-ins" title="inserted">+yeah</span> so i <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+not</span> <span class="err-ins" title="inserted">+know</span> <span class="err-sub" title="sub: love → if">love</span><span class="hyp-inline">[→if]</span> you guys remember <span class="err-ins" title="inserted">+this</span> <span class="err-ins" title="inserted">+story</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+kind</span> <span class="err-sub" title="sub: the → of">the</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: stories → like">stories</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: county → a">county</span><span class="hyp-inline">[→a]</span> crime corner <span class="err-del" title="deleted">for</span> <span class="err-sub" title="sub: ever → forever">ever</span><span class="hyp-inline">[→forever]</span> ago that this guy was giving <span class="err-sub" title="sub: math → meth">math</span><span class="hyp-inline">[→meth]</span> to his squirrels <span class="err-sub" title="sub: that → had">that</span><span class="hyp-inline">[→had]</span> squirrels in his house and <span class="err-del" title="deleted">they</span> <span class="err-del" title="deleted">can</span> <span class="err-sub" title="sub: not → like">not</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: young → had">young</span><span class="hyp-inline">[→had]</span> <span class="err-sub" title="sub: caught → yeah">caught</span><span class="hyp-inline">[→yeah]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (23 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>love</td><td>if</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>stories</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>county</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>ever</td><td>forever</td><td>1</td></tr>
+<tr><td>Sub</td><td>math</td><td>meth</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>had</td><td>1</td></tr>
+<tr><td>Sub</td><td>not</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>young</td><td>had</td><td>1</td></tr>
+<tr><td>Sub</td><td>caught</td><td>yeah</td><td>1</td></tr>
+<tr><td>Del</td><td>for</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>they</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>can</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>caught</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>not</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>know</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>this</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>story</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>kind</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-9">
+  <header>
+    <span class="rank">#9</span>
+    <span class="utt-id">POD1000000042_S0000317</span>
+    <span class="stats">
+      23 errors &bull; WER 41.82%
+      &bull; S:15 D:3 I:5
+      &bull; 55 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000317.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000317.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i <span class="err-sub" title="sub: i → think">i</span><span class="hyp-inline">[→think]</span> <span class="err-sub" title="sub: i → that">i</span><span class="hyp-inline">[→that]</span> <span class="err-sub" title="sub: think → is">think</span><span class="hyp-inline">[→is]</span> why i am so <span class="err-sub" title="sub: respect → respectful">respect</span><span class="hyp-inline">[→respectful]</span> <span class="err-sub" title="sub: for → of">for</span><span class="hyp-inline">[→of]</span> people is time and i will not ask for a lot <span class="err-sub" title="sub: to → of">to</span><span class="hyp-inline">[→of]</span> help because <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">i</span> i do not want to take up their time <span class="err-ins" title="inserted">+right</span> <span class="err-ins" title="inserted">+yeah</span> i my time <span class="err-del" title="deleted">is</span> is is very important to me <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+sometimes</span> <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: it → can">it</span><span class="hyp-inline">[→can]</span> <span class="err-sub" title="sub: sometime → be">sometime</span><span class="hyp-inline">[→be]</span> <span class="err-sub" title="sub: like → a">like</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: build → little">build</span><span class="hyp-inline">[→little]</span> brutal <span class="err-sub" title="sub: bout → about">bout</span><span class="hyp-inline">[→about]</span> <span class="err-sub" title="sub: ah → it">ah</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: you → ah">you</span><span class="hyp-inline">[→ah]</span> <span class="err-sub" title="sub: you → same">you</span><span class="hyp-inline">[→same]</span> <span class="err-sub" title="sub: look → same">look</span><span class="hyp-inline">[→same]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (23 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>i</td><td>think</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>think</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>respect</td><td>respectful</td><td>1</td></tr>
+<tr><td>Sub</td><td>for</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>can</td><td>1</td></tr>
+<tr><td>Sub</td><td>sometime</td><td>be</td><td>1</td></tr>
+<tr><td>Sub</td><td>like</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>build</td><td>little</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>right</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>sometimes</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-10">
+  <header>
+    <span class="rank">#10</span>
+    <span class="utt-id">POD1000000042_S0000113</span>
+    <span class="stats">
+      22 errors &bull; WER 81.48%
+      &bull; S:10 D:1 I:11
+      &bull; 27 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000113.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000113.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+well</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+mean</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+it</span> <span class="err-sub" title="sub: while → is">while</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: minutes → .4">minutes</span><span class="hyp-inline">[→.4]</span> <span class="err-sub" title="sub: its → or">its</span><span class="hyp-inline">[→or]</span> <span class="err-sub" title="sub: .45% → 5%">.45%</span><span class="hyp-inline">[→5%]</span> actually <span class="err-ins" title="inserted">+if</span> <span class="err-ins" title="inserted">+you</span> <span class="err-sub" title="sub: agree → want">agree</span><span class="hyp-inline">[→want]</span> <span class="err-sub" title="sub: on → to">on</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: any → be">any</span><span class="hyp-inline">[→be]</span> specific yes i think <span class="err-ins" title="inserted">+in</span> i think in <span class="err-del" title="deleted">the</span> world war 2 <span class="err-sub" title="sub: as → was">as</span><span class="hyp-inline">[→was]</span> like <span class="err-sub" title="sub: 15.8% → 50.8%">15.8%</span><span class="hyp-inline">[→50.8%]</span> to the now <span class="err-ins" title="inserted">+.4</span> <span class="err-ins" title="inserted">+or</span> <span class="err-sub" title="sub: .45% → 5%">.45%</span><span class="hyp-inline">[→5%]</span> yeah</div>
+  </details>
+  <details>
+    <summary>Error breakdown (22 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>.45%</td><td>5%</td><td>2</td></tr>
+<tr><td>Sub</td><td>while</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>minutes</td><td>.4</td><td>1</td></tr>
+<tr><td>Sub</td><td>its</td><td>or</td><td>1</td></tr>
+<tr><td>Sub</td><td>agree</td><td>want</td><td>1</td></tr>
+<tr><td>Sub</td><td>on</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>any</td><td>be</td><td>1</td></tr>
+<tr><td>Sub</td><td>as</td><td>was</td><td>1</td></tr>
+<tr><td>Sub</td><td>15.8%</td><td>50.8%</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>well</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>mean</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>if</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>.4</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>or</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-11">
+  <header>
+    <span class="rank">#11</span>
+    <span class="utt-id">POD1000000046_S0000311</span>
+    <span class="stats">
+      21 errors &bull; WER 34.43%
+      &bull; S:5 D:3 I:13
+      &bull; 61 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0000311.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0000311.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: and → think">and</span><span class="hyp-inline">[→think]</span> i think i am <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+think</span> something <span class="err-ins" title="inserted">+is</span> wrong with me <span class="err-del" title="deleted">not</span> like physically wrong with me <span class="err-ins" title="inserted">+and</span> and that is when <span class="err-sub" title="sub: you → he">you</span><span class="hyp-inline">[→he]</span> <span class="err-sub" title="sub: guess → goes">guess</span><span class="hyp-inline">[→goes]</span> you have pneumonia and ah <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+they</span> <span class="err-sub" title="sub: stated → did">stated</span><span class="hyp-inline">[→did]</span> all the tests and they do an <span class="err-del" title="deleted">m</span> <span class="err-del" title="deleted">r</span> <span class="err-sub" title="sub: i → mri">i</span><span class="hyp-inline">[→mri]</span> for pneumonia which i was unaware of right because they have got to examine <span class="err-ins" title="inserted">+your</span> <span class="err-ins" title="inserted">+yeah</span> <span class="err-ins" title="inserted">+yeah</span> your lungs to make sure <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+are</span> <span class="err-ins" title="inserted">+not</span> you are not going to</div>
+  </details>
+  <details>
+    <summary>Error breakdown (21 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>and</td><td>think</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>he</td><td>1</td></tr>
+<tr><td>Sub</td><td>guess</td><td>goes</td><td>1</td></tr>
+<tr><td>Sub</td><td>stated</td><td>did</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>mri</td><td>1</td></tr>
+<tr><td>Del</td><td>not</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>m</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>r</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>think</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>they</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>your</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-12">
+  <header>
+    <span class="rank">#12</span>
+    <span class="utt-id">POD1000000042_S0000128</span>
+    <span class="stats">
+      21 errors &bull; WER 41.18%
+      &bull; S:15 D:0 I:6
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000128.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000128.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">so all these things come together and <span class="err-sub" title="sub: used → you">used</span><span class="hyp-inline">[→you]</span> the the result unfortunately very often is <span class="err-ins" title="inserted">+some</span> <span class="err-sub" title="sub: subdued → dude">subdued</span><span class="hyp-inline">[→dude]</span> alone <span class="err-ins" title="inserted">+in</span> <span class="err-sub" title="sub: and → his">and</span><span class="hyp-inline">[→his]</span> <span class="err-sub" title="sub: is → apartment">is</span><span class="hyp-inline">[→apartment]</span> <span class="err-sub" title="sub: a → with">a</span><span class="hyp-inline">[→with]</span> <span class="err-sub" title="sub: part → a">part</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: of → fucking">of</span><span class="hyp-inline">[→fucking]</span> <span class="err-sub" title="sub: the → gun">the</span><span class="hyp-inline">[→gun]</span> <span class="err-sub" title="sub: fucking → in">fucking</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: gunner → his">gunner</span><span class="hyp-inline">[→his]</span> <span class="err-sub" title="sub: and → hand">and</span><span class="hyp-inline">[→hand]</span> you know what i mean that <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: the → too">the</span><span class="hyp-inline">[→too]</span> <span class="err-sub" title="sub: to → ah">to</span><span class="hyp-inline">[→ah]</span> <span class="err-sub" title="sub: to → too">to</span><span class="hyp-inline">[→too]</span> common standard here and it is <span class="err-ins" title="inserted">+it</span> it is what it is <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: and → mean">and</span><span class="hyp-inline">[→mean]</span> we have to educate</div>
+  </details>
+  <details>
+    <summary>Error breakdown (21 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>used</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>subdued</td><td>dude</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>his</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>apartment</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>with</td><td>1</td></tr>
+<tr><td>Sub</td><td>part</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>fucking</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>gun</td><td>1</td></tr>
+<tr><td>Sub</td><td>fucking</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>gunner</td><td>his</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>some</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-13">
+  <header>
+    <span class="rank">#13</span>
+    <span class="utt-id">POD1000000042_S0000639</span>
+    <span class="stats">
+      21 errors &bull; WER 60.00%
+      &bull; S:13 D:0 I:8
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000639.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000639.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">ah we said what we needed <span class="err-ins" title="inserted">+to</span> to get <span class="err-ins" title="inserted">+there</span> <span class="err-ins" title="inserted">+but</span> <span class="err-sub" title="sub: their → it">their</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: best → is">best</span><span class="hyp-inline">[→is]</span> time to like <span class="err-sub" title="sub: cape → hey">cape</span><span class="hyp-inline">[→hey]</span> like clean slate <span class="err-ins" title="inserted">+let</span> <span class="err-ins" title="inserted">+us</span> <span class="err-sub" title="sub: the → see">the</span><span class="hyp-inline">[→see]</span> <span class="err-sub" title="sub: sea → what">sea</span><span class="hyp-inline">[→what]</span> we <span class="err-ins" title="inserted">+are</span> going to do <span class="err-ins" title="inserted">+going</span> <span class="err-sub" title="sub: go → forward">go</span><span class="hyp-inline">[→forward]</span> <span class="err-sub" title="sub: on → like">on</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: board → let">board</span><span class="hyp-inline">[→let]</span> <span class="err-sub" title="sub: like → us">like</span><span class="hyp-inline">[→us]</span> <span class="err-sub" title="sub: the → see">the</span><span class="hyp-inline">[→see]</span> <span class="err-sub" title="sub: sea → what">sea</span><span class="hyp-inline">[→what]</span> we <span class="err-ins" title="inserted">+are</span> going to do <span class="err-sub" title="sub: on → going">on</span><span class="hyp-inline">[→going]</span> <span class="err-sub" title="sub: board → forward">board</span><span class="hyp-inline">[→forward]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (21 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>the</td><td>see</td><td>2</td></tr>
+<tr><td>Sub</td><td>sea</td><td>what</td><td>2</td></tr>
+<tr><td>Sub</td><td>their</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>best</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>cape</td><td>hey</td><td>1</td></tr>
+<tr><td>Sub</td><td>go</td><td>forward</td><td>1</td></tr>
+<tr><td>Sub</td><td>on</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>board</td><td>let</td><td>1</td></tr>
+<tr><td>Sub</td><td>like</td><td>us</td><td>1</td></tr>
+<tr><td>Sub</td><td>on</td><td>going</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>there</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>but</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>let</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>us</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>going</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-14">
+  <header>
+    <span class="rank">#14</span>
+    <span class="utt-id">POD1000000042_S0000278</span>
+    <span class="stats">
+      21 errors &bull; WER 60.00%
+      &bull; S:12 D:0 I:9
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000278.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000278.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">21 days typically <span class="err-sub" title="sub: speak → speaking">speak</span><span class="hyp-inline">[→speaking]</span> for a normal person so <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: southern → not">southern</span><span class="hyp-inline">[→not]</span> <span class="err-sub" title="sub: heart → that">heart</span><span class="hyp-inline">[→that]</span> <span class="err-sub" title="sub: adieu → hard">adieu</span><span class="hyp-inline">[→hard]</span> to <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+just</span> <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: surmount → matter">surmount</span><span class="hyp-inline">[→matter]</span> <span class="err-sub" title="sub: have → of">have</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: ever → effort">ever</span><span class="hyp-inline">[→effort]</span> right and strategy i think we are all <span class="err-ins" title="inserted">+failing</span> <span class="err-sub" title="sub: feeling → at">feeling</span><span class="hyp-inline">[→at]</span> <span class="err-sub" title="sub: out → it">out</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: i → like">i</span><span class="hyp-inline">[→like]</span> pretty much everybody i know <span class="err-ins" title="inserted">+fails</span> <span class="err-sub" title="sub: feels → at">feels</span><span class="hyp-inline">[→at]</span> <span class="err-sub" title="sub: the → this">the</span><span class="hyp-inline">[→this]</span> shit</div>
+  </details>
+  <details>
+    <summary>Error breakdown (21 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>speak</td><td>speaking</td><td>1</td></tr>
+<tr><td>Sub</td><td>southern</td><td>not</td><td>1</td></tr>
+<tr><td>Sub</td><td>heart</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>adieu</td><td>hard</td><td>1</td></tr>
+<tr><td>Sub</td><td>surmount</td><td>matter</td><td>1</td></tr>
+<tr><td>Sub</td><td>have</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>ever</td><td>effort</td><td>1</td></tr>
+<tr><td>Sub</td><td>feeling</td><td>at</td><td>1</td></tr>
+<tr><td>Sub</td><td>out</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>like</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>just</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>failing</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>fails</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-15">
+  <header>
+    <span class="rank">#15</span>
+    <span class="utt-id">YOU1000000183_S0000125</span>
+    <span class="stats">
+      21 errors &bull; WER 55.26%
+      &bull; S:11 D:2 I:8
+      &bull; 38 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000183_S0000125.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000183_S0000125.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">we rely on the fact that yes <span class="err-sub" title="sub: business → businesses">business</span><span class="hyp-inline">[→businesses]</span> <span class="err-sub" title="sub: is → are">is</span><span class="hyp-inline">[→are]</span> going <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">continue</span> to <span class="err-sub" title="sub: prove → continually">prove</span><span class="hyp-inline">[→continually]</span> <span class="err-sub" title="sub: it → improve">it</span><span class="hyp-inline">[→improve]</span> <span class="err-sub" title="sub: no → not">no</span><span class="hyp-inline">[→not]</span> maybe not over <span class="err-ins" title="inserted">+the</span> next <span class="err-ins" title="inserted">+year</span> <span class="err-ins" title="inserted">+or</span> 2 <span class="err-ins" title="inserted">+maybe</span> <span class="err-ins" title="inserted">+there</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+something</span> <span class="err-sub" title="sub: years → like">years</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: maybe → what">maybe</span><span class="hyp-inline">[→what]</span> we <span class="err-sub" title="sub: sold → saw">sold</span><span class="hyp-inline">[→saw]</span> <span class="err-sub" title="sub: the → with">the</span><span class="hyp-inline">[→with]</span> <span class="err-sub" title="sub: lock → the">lock</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: down → lockdown">down</span><span class="hyp-inline">[→lockdown]</span> where business is impaired for <span class="err-ins" title="inserted">+like</span> a whole year or 2</div>
+  </details>
+  <details>
+    <summary>Error breakdown (21 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>business</td><td>businesses</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>prove</td><td>continually</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>improve</td><td>1</td></tr>
+<tr><td>Sub</td><td>no</td><td>not</td><td>1</td></tr>
+<tr><td>Sub</td><td>years</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>maybe</td><td>what</td><td>1</td></tr>
+<tr><td>Sub</td><td>sold</td><td>saw</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>with</td><td>1</td></tr>
+<tr><td>Sub</td><td>lock</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>continue</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>year</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>or</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>maybe</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>there</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>something</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>like</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-16">
+  <header>
+    <span class="rank">#16</span>
+    <span class="utt-id">YOU1000000141_S0000066</span>
+    <span class="stats">
+      21 errors &bull; WER 75.00%
+      &bull; S:13 D:2 I:6
+      &bull; 28 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000141_S0000066.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000141_S0000066.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+will</span> <span class="err-ins" title="inserted">+hide</span> <span class="err-ins" title="inserted">+we</span> <span class="err-sub" title="sub: vietnamese → will">vietnamese</span><span class="hyp-inline">[→will]</span> <span class="err-sub" title="sub: people → hide">people</span><span class="hyp-inline">[→hide]</span> <span class="err-sub" title="sub: go → like">go</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: real → that">real</span><span class="hyp-inline">[→that]</span> <span class="err-sub" title="sub: high → do">high</span><span class="hyp-inline">[→do]</span> they go <span class="err-ins" title="inserted">+they</span> <span class="err-sub" title="sub: real → now">real</span><span class="hyp-inline">[→now]</span> <span class="err-sub" title="sub: high → low">high</span><span class="hyp-inline">[→low]</span> like that <span class="err-del" title="deleted">dude</span> <span class="err-del" title="deleted">now</span> <span class="err-sub" title="sub: low → do">low</span><span class="hyp-inline">[→do]</span> they start low like that <span class="err-sub" title="sub: dude → do">dude</span><span class="hyp-inline">[→do]</span> <span class="err-sub" title="sub: then → they">then</span><span class="hyp-inline">[→they]</span> they go <span class="err-ins" title="inserted">+we</span> <span class="err-sub" title="sub: real → will">real</span><span class="hyp-inline">[→will]</span> <span class="err-sub" title="sub: high → hide">high</span><span class="hyp-inline">[→hide]</span> like that <span class="err-sub" title="sub: dude → do">dude</span><span class="hyp-inline">[→do]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (21 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>dude</td><td>do</td><td>2</td></tr>
+<tr><td>Sub</td><td>vietnamese</td><td>will</td><td>1</td></tr>
+<tr><td>Sub</td><td>people</td><td>hide</td><td>1</td></tr>
+<tr><td>Sub</td><td>go</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>real</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>high</td><td>do</td><td>1</td></tr>
+<tr><td>Sub</td><td>real</td><td>now</td><td>1</td></tr>
+<tr><td>Sub</td><td>high</td><td>low</td><td>1</td></tr>
+<tr><td>Sub</td><td>low</td><td>do</td><td>1</td></tr>
+<tr><td>Sub</td><td>then</td><td>they</td><td>1</td></tr>
+<tr><td>Del</td><td>dude</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>now</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>will</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>hide</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>they</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-17">
+  <header>
+    <span class="rank">#17</span>
+    <span class="utt-id">POD1000000040_S0000662</span>
+    <span class="stats">
+      20 errors &bull; WER 33.90%
+      &bull; S:8 D:4 I:8
+      &bull; 59 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000040_S0000662.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000040_S0000662.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and <span class="err-sub" title="sub: they → i">they</span><span class="hyp-inline">[→i]</span> have <span class="err-sub" title="sub: gone → going">gone</span><span class="hyp-inline">[→going]</span> to this baby show in vegas which is <span class="err-del" title="deleted">at</span> which is the <span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">b</span> <span class="err-sub" title="sub: c → abc">c</span><span class="hyp-inline">[→abc]</span> show it is the biggest baby show in the world for <span class="err-sub" title="sub: when → where">when</span><span class="hyp-inline">[→where]</span> you get to you know <span class="err-del" title="deleted">ah</span> shake hands with all the big <span class="err-ins" title="inserted">+box</span> <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+sort</span> <span class="err-sub" title="sub: boss → of">boss</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: are → just">are</span><span class="hyp-inline">[→just]</span> <span class="err-sub" title="sub: not → went">not</span><span class="hyp-inline">[→went]</span> there for <span class="err-ins" title="inserted">+r</span> <span class="err-ins" title="inserted">+and</span> <span class="err-sub" title="sub: me → d">me</span><span class="hyp-inline">[→d]</span> to understand <span class="err-ins" title="inserted">+what</span> the market <span class="err-ins" title="inserted">+was</span> and who we are up against</div>
+  </details>
+  <details>
+    <summary>Error breakdown (20 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>they</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>gone</td><td>going</td><td>1</td></tr>
+<tr><td>Sub</td><td>c</td><td>abc</td><td>1</td></tr>
+<tr><td>Sub</td><td>when</td><td>where</td><td>1</td></tr>
+<tr><td>Sub</td><td>boss</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>just</td><td>1</td></tr>
+<tr><td>Sub</td><td>not</td><td>went</td><td>1</td></tr>
+<tr><td>Sub</td><td>me</td><td>d</td><td>1</td></tr>
+<tr><td>Del</td><td>at</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>b</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>ah</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>box</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>sort</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>r</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>what</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>was</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-18">
+  <header>
+    <span class="rank">#18</span>
+    <span class="utt-id">POD1000000046_S0000336</span>
+    <span class="stats">
+      20 errors &bull; WER 37.04%
+      &bull; S:15 D:2 I:3
+      &bull; 54 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0000336.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0000336.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">you you could <span class="err-sub" title="sub: put → but">put</span><span class="hyp-inline">[→but]</span> like vimeo <span class="err-del" title="deleted">art</span> made me that that <span class="err-sub" title="sub: offers → offer">offers</span><span class="hyp-inline">[→offer]</span> as well <span class="err-sub" title="sub: we → where">we</span><span class="hyp-inline">[→where]</span> <span class="err-sub" title="sub: are → they">are</span><span class="hyp-inline">[→they]</span> <span class="err-sub" title="sub: there → were">there</span><span class="hyp-inline">[→were]</span> <span class="err-sub" title="sub: will → like">will</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: i → we">i</span><span class="hyp-inline">[→we]</span> will <span class="err-sub" title="sub: get → give">get</span><span class="hyp-inline">[→give]</span> <span class="err-sub" title="sub: a → you">a</span><span class="hyp-inline">[→you]</span> 90% we only keep 10 that is how desperate they are to get <span class="err-ins" title="inserted">+people</span> <span class="err-ins" title="inserted">+to</span> <span class="err-sub" title="sub: me → vimeo">me</span><span class="hyp-inline">[→vimeo]</span> <span class="err-sub" title="sub: out → and">out</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: of → i">of</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: vimeo → was">vimeo</span><span class="hyp-inline">[→was]</span> <span class="err-sub" title="sub: notions → just">notions</span><span class="hyp-inline">[→just]</span> like what the fuck is <span class="err-del" title="deleted">i</span> <span class="err-sub" title="sub: get → that">get</span><span class="hyp-inline">[→that]</span> i did not know <span class="err-ins" title="inserted">+if</span> there is a</div>
+  </details>
+  <details>
+    <summary>Error breakdown (20 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>put</td><td>but</td><td>1</td></tr>
+<tr><td>Sub</td><td>offers</td><td>offer</td><td>1</td></tr>
+<tr><td>Sub</td><td>we</td><td>where</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>they</td><td>1</td></tr>
+<tr><td>Sub</td><td>there</td><td>were</td><td>1</td></tr>
+<tr><td>Sub</td><td>will</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>we</td><td>1</td></tr>
+<tr><td>Sub</td><td>get</td><td>give</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>me</td><td>vimeo</td><td>1</td></tr>
+<tr><td>Del</td><td>art</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>people</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>if</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-19">
+  <header>
+    <span class="rank">#19</span>
+    <span class="utt-id">POD1000000044_S0000515</span>
+    <span class="stats">
+      20 errors &bull; WER 133.33%
+      &bull; S:0 D:0 I:20
+      &bull; 15 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000044_S0000515.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000044_S0000515.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">okay do not worry if you are not a morning person we are doing <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+work</span> <span class="err-ins" title="inserted">+for</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+just</span> <span class="err-ins" title="inserted">+search</span> the <span class="err-ins" title="inserted">+get</span> <span class="err-ins" title="inserted">+up</span> <span class="err-ins" title="inserted">+hit</span> <span class="err-ins" title="inserted">+play</span> <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+listen</span> <span class="err-ins" title="inserted">+up</span> <span class="err-ins" title="inserted">+for</span> <span class="err-ins" title="inserted">+everything</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+need</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+know</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (20 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Ins</td><td>&mdash;</td><td>for</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>up</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>work</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>just</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>search</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>get</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>hit</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-20">
+  <header>
+    <span class="rank">#20</span>
+    <span class="utt-id">YOU1000000154_S0000213</span>
+    <span class="stats">
+      20 errors &bull; WER 54.05%
+      &bull; S:11 D:6 I:3
+      &bull; 37 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000154_S0000213.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000154_S0000213.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">0</span> yeah this <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: small → more">small</span><span class="hyp-inline">[→more]</span> the entertaining space <span class="err-ins" title="inserted">+so</span> you come down here <span class="err-del" title="deleted">where</span> <span class="err-del" title="deleted">you</span> <span class="err-sub" title="sub: have → well">have</span><span class="hyp-inline">[→well]</span> the bar <span class="err-sub" title="sub: you → will">you</span><span class="hyp-inline">[→will]</span> have <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> smoke mirror <span class="err-del" title="deleted">l</span> <span class="err-del" title="deleted">e</span> <span class="err-sub" title="sub: d → led">d</span><span class="hyp-inline">[→led]</span> <span class="err-sub" title="sub: led → lit">led</span><span class="hyp-inline">[→lit]</span> <span class="err-sub" title="sub: shells → shelves">shells</span><span class="hyp-inline">[→shelves]</span> for the <span class="err-ins" title="inserted">+liquor</span> <span class="err-sub" title="sub: link → we">link</span><span class="hyp-inline">[→we]</span> <span class="err-sub" title="sub: to → have">to</span><span class="hyp-inline">[→have]</span> <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> wine fridge fridge sink <span class="err-del" title="deleted">dish</span> <span class="err-sub" title="sub: washer → dishwasher">washer</span><span class="hyp-inline">[→dishwasher]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (20 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>the</td><td>a</td><td>2</td></tr>
+<tr><td>Sub</td><td>small</td><td>more</td><td>1</td></tr>
+<tr><td>Sub</td><td>have</td><td>well</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>will</td><td>1</td></tr>
+<tr><td>Sub</td><td>d</td><td>led</td><td>1</td></tr>
+<tr><td>Sub</td><td>led</td><td>lit</td><td>1</td></tr>
+<tr><td>Sub</td><td>shells</td><td>shelves</td><td>1</td></tr>
+<tr><td>Sub</td><td>link</td><td>we</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>have</td><td>1</td></tr>
+<tr><td>Sub</td><td>washer</td><td>dishwasher</td><td>1</td></tr>
+<tr><td>Del</td><td>0</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>where</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>l</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>e</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>dish</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>liquor</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-21">
+  <header>
+    <span class="rank">#21</span>
+    <span class="utt-id">POD1000000042_S0000660</span>
+    <span class="stats">
+      20 errors &bull; WER 111.11%
+      &bull; S:5 D:0 I:15
+      &bull; 18 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000660.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000660.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">that everything has to be a fight <span class="err-ins" title="inserted">+well</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+not</span> <span class="err-ins" title="inserted">+know</span> <span class="err-ins" title="inserted">+if</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+not</span> <span class="err-sub" title="sub: and → know">and</span><span class="hyp-inline">[→know]</span> and <span class="err-sub" title="sub: and → i">and</span><span class="hyp-inline">[→i]</span> and i got i got <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+not</span> <span class="err-sub" title="sub: this → think">this</span><span class="hyp-inline">[→think]</span> <span class="err-sub" title="sub: all → it">all</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: sides → is">sides</span><span class="hyp-inline">[→is]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (20 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>and</td><td>know</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>this</td><td>think</td><td>1</td></tr>
+<tr><td>Sub</td><td>all</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>sides</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>not</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>well</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>know</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>if</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-22">
+  <header>
+    <span class="rank">#22</span>
+    <span class="utt-id">POD1000000016_S0000096</span>
+    <span class="stats">
+      20 errors &bull; WER 100.00%
+      &bull; S:11 D:9 I:0
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000016_S0000096.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000016_S0000096.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">put</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">up</span> <span class="err-del" title="deleted">on</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">bench</span> <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">bid</span> <span class="err-del" title="deleted">on</span> <span class="err-sub" title="sub: you → faccio">you</span><span class="hyp-inline">[→faccio]</span> <span class="err-sub" title="sub: the → un">the</span><span class="hyp-inline">[→un]</span> <span class="err-sub" title="sub: same → po">same</span><span class="hyp-inline">[→po]</span> <span class="err-sub" title="sub: as → un">as</span><span class="hyp-inline">[→un]</span> <span class="err-sub" title="sub: you → bicchierone">you</span><span class="hyp-inline">[→bicchierone]</span> <span class="err-sub" title="sub: are → di">are</span><span class="hyp-inline">[→di]</span> <span class="err-sub" title="sub: bidding → birra">bidding</span><span class="hyp-inline">[→birra]</span> <span class="err-sub" title="sub: on → non">on</span><span class="hyp-inline">[→non]</span> <span class="err-sub" title="sub: cattle → c">cattle</span><span class="hyp-inline">[→c]</span> <span class="err-sub" title="sub: you → e">you</span><span class="hyp-inline">[→e]</span> <span class="err-sub" title="sub: know → meno">know</span><span class="hyp-inline">[→meno]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (20 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>you</td><td>faccio</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>un</td><td>1</td></tr>
+<tr><td>Sub</td><td>same</td><td>po</td><td>1</td></tr>
+<tr><td>Sub</td><td>as</td><td>un</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>bicchierone</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>di</td><td>1</td></tr>
+<tr><td>Sub</td><td>bidding</td><td>birra</td><td>1</td></tr>
+<tr><td>Sub</td><td>on</td><td>non</td><td>1</td></tr>
+<tr><td>Sub</td><td>cattle</td><td>c</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>e</td><td>1</td></tr>
+<tr><td>Del</td><td>on</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>put</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>up</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>bench</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>bid</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-23">
+  <header>
+    <span class="rank">#23</span>
+    <span class="utt-id">YOU1000000165_S0000178</span>
+    <span class="stats">
+      20 errors &bull; WER 86.96%
+      &bull; S:7 D:0 I:13
+      &bull; 23 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000165_S0000178.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000165_S0000178.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+stop</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+stop</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+stop</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+stop</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+stop</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+stop</span> <span class="err-sub" title="sub: i → it">i</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: am → stop">am</span><span class="hyp-inline">[→stop]</span> <span class="err-sub" title="sub: being → it">being</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: laden → stop">laden</span><span class="hyp-inline">[→stop]</span> <span class="err-sub" title="sub: come → it">come</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: here → stop">here</span><span class="hyp-inline">[→stop]</span> hold on this is what <span class="err-ins" title="inserted">+magic</span> <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: man → like">man</span><span class="hyp-inline">[→like]</span> i am tired of talking i am fucking tired of talking</div>
+  </details>
+  <details>
+    <summary>Error breakdown (20 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>i</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>am</td><td>stop</td><td>1</td></tr>
+<tr><td>Sub</td><td>being</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>laden</td><td>stop</td><td>1</td></tr>
+<tr><td>Sub</td><td>come</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>here</td><td>stop</td><td>1</td></tr>
+<tr><td>Sub</td><td>man</td><td>like</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>stop</td><td>6</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>5</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>magic</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-24">
+  <header>
+    <span class="rank">#24</span>
+    <span class="utt-id">YOU1000000037_S0000502</span>
+    <span class="stats">
+      19 errors &bull; WER 55.88%
+      &bull; S:10 D:1 I:8
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000037_S0000502.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000037_S0000502.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">if we could <span class="err-del" title="deleted">pro</span> promote <span class="err-sub" title="sub: back → that">back</span><span class="hyp-inline">[→that]</span> to people that <span class="err-ins" title="inserted">+would</span> be enough to draw people into the hobby really <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+could</span> <span class="err-ins" title="inserted">+keep</span> <span class="err-ins" title="inserted">+fish</span> <span class="err-ins" title="inserted">+like</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+and</span> <span class="err-sub" title="sub: enough → they">enough</span><span class="hyp-inline">[→they]</span> <span class="err-sub" title="sub: to → are">to</span><span class="hyp-inline">[→are]</span> <span class="err-sub" title="sub: draw → freshwater">draw</span><span class="hyp-inline">[→freshwater]</span> <span class="err-sub" title="sub: people → and">people</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: into → they">into</span><span class="hyp-inline">[→they]</span> <span class="err-sub" title="sub: the → are">the</span><span class="hyp-inline">[→are]</span> <span class="err-sub" title="sub: hobby → beautiful">hobby</span><span class="hyp-inline">[→beautiful]</span> <span class="err-sub" title="sub: really → and">really</span><span class="hyp-inline">[→and]</span> they are playful <span class="err-sub" title="sub: yeah → yep">yeah</span><span class="hyp-inline">[→yep]</span> sand creek aquatics says</div>
+  </details>
+  <details>
+    <summary>Error breakdown (19 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>back</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>enough</td><td>they</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>draw</td><td>freshwater</td><td>1</td></tr>
+<tr><td>Sub</td><td>people</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>into</td><td>they</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>hobby</td><td>beautiful</td><td>1</td></tr>
+<tr><td>Sub</td><td>really</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>yeah</td><td>yep</td><td>1</td></tr>
+<tr><td>Del</td><td>pro</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>would</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>could</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>keep</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>fish</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>like</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-25">
+  <header>
+    <span class="rank">#25</span>
+    <span class="utt-id">YOU1000000154_S0000005</span>
+    <span class="stats">
+      19 errors &bull; WER 37.25%
+      &bull; S:10 D:0 I:9
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000154_S0000005.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000154_S0000005.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">so what i thought <span class="err-ins" title="inserted">+with</span> this thing is <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+are</span> going to <span class="err-ins" title="inserted">+try</span> <span class="err-ins" title="inserted">+and</span> <span class="err-sub" title="sub: touch → attach">touch</span><span class="hyp-inline">[→attach]</span> this 360 <span class="err-ins" title="inserted">+camera</span> <span class="err-ins" title="inserted">+to</span> <span class="err-sub" title="sub: character → it">character</span><span class="hyp-inline">[→it]</span> and then effectively that means that i am not holding it and walking through the property you can basically just control it as <span class="err-sub" title="sub: it → if">it</span><span class="hyp-inline">[→if]</span> <span class="err-sub" title="sub: of → if">of</span><span class="hyp-inline">[→if]</span> <span class="err-sub" title="sub: some → someone">some</span><span class="hyp-inline">[→someone]</span> <span class="err-sub" title="sub: one → is">one</span><span class="hyp-inline">[→is]</span> looking at <span class="err-sub" title="sub: the → it">the</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: v → in">v</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: r → vr">r</span><span class="hyp-inline">[→vr]</span> or <span class="err-ins" title="inserted">+they</span> <span class="err-ins" title="inserted">+are</span> looking at <span class="err-sub" title="sub: them → it">them</span><span class="hyp-inline">[→it]</span> in facebook</div>
+  </details>
+  <details>
+    <summary>Error breakdown (19 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>touch</td><td>attach</td><td>1</td></tr>
+<tr><td>Sub</td><td>character</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>if</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>if</td><td>1</td></tr>
+<tr><td>Sub</td><td>some</td><td>someone</td><td>1</td></tr>
+<tr><td>Sub</td><td>one</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>v</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>r</td><td>vr</td><td>1</td></tr>
+<tr><td>Sub</td><td>them</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>with</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>try</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>camera</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>they</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-26">
+  <header>
+    <span class="rank">#26</span>
+    <span class="utt-id">POD1000000042_S0000439</span>
+    <span class="stats">
+      19 errors &bull; WER 38.00%
+      &bull; S:14 D:3 I:2
+      &bull; 50 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000439.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000439.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: ah → i">ah</span><span class="hyp-inline">[→i]</span> dude i <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+last</span> the last <span class="err-sub" title="sub: blossom → one">blossom</span><span class="hyp-inline">[→one]</span> i had there was not a bad <span class="err-sub" title="sub: one → wine">one</span><span class="hyp-inline">[→wine]</span> in the bunch man and my wife and i are huge fans <span class="err-del" title="deleted">good</span> <span class="err-sub" title="sub: and → go">and</span><span class="hyp-inline">[→go]</span> <span class="err-sub" title="sub: try → to">try</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: bursley → tryfirstleaf">bursley</span><span class="hyp-inline">[→tryfirstleaf]</span> dot com <span class="err-del" title="deleted">ford</span> <span class="err-sub" title="sub: slashed → forward">slashed</span><span class="hyp-inline">[→forward]</span> <span class="err-sub" title="sub: drink → slash">drink</span><span class="hyp-inline">[→slash]</span> <span class="err-sub" title="sub: in → drinking">in</span><span class="hyp-inline">[→drinking]</span> <span class="err-sub" title="sub: rose → bros">rose</span><span class="hyp-inline">[→bros]</span> that is <span class="err-del" title="deleted">try</span> <span class="err-sub" title="sub: bursley → tryfirstleaf">bursley</span><span class="hyp-inline">[→tryfirstleaf]</span> dot com <span class="err-sub" title="sub: for → forward">for</span><span class="hyp-inline">[→forward]</span> <span class="err-sub" title="sub: a → slash">a</span><span class="hyp-inline">[→slash]</span> <span class="err-sub" title="sub: slashing → drinking">slashing</span><span class="hyp-inline">[→drinking]</span> bros if nothing else</div>
+  </details>
+  <details>
+    <summary>Error breakdown (19 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>bursley</td><td>tryfirstleaf</td><td>2</td></tr>
+<tr><td>Sub</td><td>ah</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>blossom</td><td>one</td><td>1</td></tr>
+<tr><td>Sub</td><td>one</td><td>wine</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>go</td><td>1</td></tr>
+<tr><td>Sub</td><td>try</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>slashed</td><td>forward</td><td>1</td></tr>
+<tr><td>Sub</td><td>drink</td><td>slash</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>drinking</td><td>1</td></tr>
+<tr><td>Sub</td><td>rose</td><td>bros</td><td>1</td></tr>
+<tr><td>Del</td><td>good</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>ford</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>try</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>last</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-27">
+  <header>
+    <span class="rank">#27</span>
+    <span class="utt-id">YOU1000000140_S0000016</span>
+    <span class="stats">
+      19 errors &bull; WER 25.33%
+      &bull; S:13 D:4 I:2
+      &bull; 75 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000140_S0000016.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000140_S0000016.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">the</span> <span class="err-sub" title="sub: thing → she">thing</span><span class="hyp-inline">[→she]</span> <span class="err-sub" title="sub: is → yeah">is</span><span class="hyp-inline">[→yeah]</span> we <span class="err-sub" title="sub: are → argue">are</span><span class="hyp-inline">[→argue]</span> <span class="err-sub" title="sub: you → me">you</span><span class="hyp-inline">[→me]</span> <span class="err-sub" title="sub: meet → and">meet</span><span class="hyp-inline">[→and]</span> my daughter honestly <span class="err-sub" title="sub: honestly → argue">honestly</span><span class="hyp-inline">[→argue]</span> <span class="err-sub" title="sub: you → she">you</span><span class="hyp-inline">[→she]</span> can not even talk <span class="err-del" title="deleted">because</span> <span class="err-sub" title="sub: you → she">you</span><span class="hyp-inline">[→she]</span> know a couple <span class="err-del" title="deleted">of</span> words right <span class="err-sub" title="sub: you → she">you</span><span class="hyp-inline">[→she]</span> put a couple <span class="err-del" title="deleted">of</span> sentences together but it is like every time i tell her something she always got something to say back <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+do</span> <span class="err-sub" title="sub: no → not">no</span><span class="hyp-inline">[→not]</span> matter what i say she always got to give me something back and it <span class="err-sub" title="sub: made → make">made</span><span class="hyp-inline">[→make]</span> me mad we got <span class="err-sub" title="sub: an → to">an</span><span class="hyp-inline">[→to]</span> argument <span class="err-sub" title="sub: about → over">about</span><span class="hyp-inline">[→over]</span> juice the other day</div>
+  </details>
+  <details>
+    <summary>Error breakdown (19 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>you</td><td>she</td><td>3</td></tr>
+<tr><td>Sub</td><td>thing</td><td>she</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>yeah</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>argue</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>me</td><td>1</td></tr>
+<tr><td>Sub</td><td>meet</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>honestly</td><td>argue</td><td>1</td></tr>
+<tr><td>Sub</td><td>no</td><td>not</td><td>1</td></tr>
+<tr><td>Sub</td><td>made</td><td>make</td><td>1</td></tr>
+<tr><td>Sub</td><td>an</td><td>to</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>because</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-28">
+  <header>
+    <span class="rank">#28</span>
+    <span class="utt-id">POD1000000046_S0000340</span>
+    <span class="stats">
+      18 errors &bull; WER 54.55%
+      &bull; S:7 D:0 I:11
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0000340.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0000340.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">well you can do <span class="err-sub" title="sub: them → that">them</span><span class="hyp-inline">[→that]</span> on amazon <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+yeah</span> if you are going to do it you know <span class="err-ins" title="inserted">+you</span> might as well do i <span class="err-sub" title="sub: which → would">which</span><span class="hyp-inline">[→would]</span> <span class="err-sub" title="sub: is → just">is</span><span class="hyp-inline">[→just]</span> give it away <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+truthfully</span> <span class="err-sub" title="sub: to → if">to</span><span class="hyp-inline">[→if]</span> <span class="err-sub" title="sub: 5 → somebody">5</span><span class="hyp-inline">[→somebody]</span> <span class="err-sub" title="sub: summers → is">summers</span><span class="hyp-inline">[→is]</span> paid for <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+not</span> <span class="err-ins" title="inserted">+give</span> <span class="err-sub" title="sub: italian → a">italian</span><span class="hyp-inline">[→a]</span> fuck</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>them</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>which</td><td>would</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>just</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>if</td><td>1</td></tr>
+<tr><td>Sub</td><td>5</td><td>somebody</td><td>1</td></tr>
+<tr><td>Sub</td><td>summers</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>italian</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>truthfully</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>not</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>give</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-29">
+  <header>
+    <span class="rank">#29</span>
+    <span class="utt-id">YOU1000000186_S0000086</span>
+    <span class="stats">
+      18 errors &bull; WER 64.29%
+      &bull; S:4 D:0 I:14
+      &bull; 28 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000186_S0000086.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000186_S0000086.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> <span class="err-ins" title="inserted">+ah</span> ah <span class="err-sub" title="sub: i → ah">i</span><span class="hyp-inline">[→ah]</span> <span class="err-sub" title="sub: mean → ah">mean</span><span class="hyp-inline">[→ah]</span> ah <span class="err-ins" title="inserted">+amir</span> when bill gates <span class="err-ins" title="inserted">+kind</span> <span class="err-sub" title="sub: got → of">got</span><span class="hyp-inline">[→of]</span> launched into this phase 2 he talked to and convinced a lot of billionaires around the world especially warren <span class="err-sub" title="sub: buffet → buffett">buffet</span><span class="hyp-inline">[→buffett]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>i</td><td>ah</td><td>1</td></tr>
+<tr><td>Sub</td><td>mean</td><td>ah</td><td>1</td></tr>
+<tr><td>Sub</td><td>got</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>buffet</td><td>buffett</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ah</td><td>12</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>amir</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>kind</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-30">
+  <header>
+    <span class="rank">#30</span>
+    <span class="utt-id">POD1000000042_S0000328</span>
+    <span class="stats">
+      18 errors &bull; WER 40.91%
+      &bull; S:8 D:1 I:9
+      &bull; 44 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000328.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000328.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">because</span> we do not want <span class="err-ins" title="inserted">+it</span> to eat any more <span class="err-ins" title="inserted">+of</span> <span class="err-ins" title="inserted">+our</span> bandwidth we all gave <span class="err-ins" title="inserted">+20</span> <span class="err-ins" title="inserted">+for</span> <span class="err-sub" title="sub: 24 → it">24</span><span class="hyp-inline">[→it]</span> we are done we are pushing <span class="err-sub" title="sub: behind → it">behind</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: in → behind">in</span><span class="hyp-inline">[→behind]</span> <span class="err-sub" title="sub: in → and">in</span><span class="hyp-inline">[→and]</span> our job is to live now for the <span class="err-ins" title="inserted">+guys</span> <span class="err-ins" title="inserted">+that</span> <span class="err-sub" title="sub: gazette → did">gazette</span><span class="hyp-inline">[→did]</span> <span class="err-sub" title="sub: in → not">in</span><span class="hyp-inline">[→not]</span> <span class="err-sub" title="sub: comp → come">comp</span><span class="hyp-inline">[→come]</span> come home live in their absence <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+live</span> in <span class="err-sub" title="sub: living → their">living</span><span class="hyp-inline">[→their]</span> memory memory</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>24</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>behind</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>behind</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>gazette</td><td>did</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>not</td><td>1</td></tr>
+<tr><td>Sub</td><td>comp</td><td>come</td><td>1</td></tr>
+<tr><td>Sub</td><td>living</td><td>their</td><td>1</td></tr>
+<tr><td>Del</td><td>because</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>our</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>20</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>for</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>guys</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>live</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-31">
+  <header>
+    <span class="rank">#31</span>
+    <span class="utt-id">POD1000000046_S0000248</span>
+    <span class="stats">
+      18 errors &bull; WER 42.86%
+      &bull; S:9 D:2 I:7
+      &bull; 42 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0000248.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0000248.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+greats</span> <span class="err-sub" title="sub: great → well">great</span><span class="hyp-inline">[→well]</span> then what <span class="err-del" title="deleted">would</span> would you know <span class="err-del" title="deleted">and</span> then that is when you feel weird about it <span class="err-ins" title="inserted">+where</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+are</span> <span class="err-ins" title="inserted">+like</span> <span class="err-sub" title="sub: how → ah">how</span><span class="hyp-inline">[→ah]</span> <span class="err-sub" title="sub: shitty → shit">shitty</span><span class="hyp-inline">[→shit]</span> <span class="err-sub" title="sub: it → i">it</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: is → used">is</span><span class="hyp-inline">[→used]</span> to fuck that dead person that is when you <span class="err-sub" title="sub: starts → start">starts</span><span class="hyp-inline">[→start]</span> to feel <span class="err-ins" title="inserted">+real</span> <span class="err-sub" title="sub: really → iffy">really</span><span class="hyp-inline">[→iffy]</span> <span class="err-sub" title="sub: effy → about">effy</span><span class="hyp-inline">[→about]</span> about your life <span class="err-ins" title="inserted">+where</span> you <span class="err-sub" title="sub: got → are">got</span><span class="hyp-inline">[→are]</span> like ah</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>great</td><td>well</td><td>1</td></tr>
+<tr><td>Sub</td><td>how</td><td>ah</td><td>1</td></tr>
+<tr><td>Sub</td><td>shitty</td><td>shit</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>used</td><td>1</td></tr>
+<tr><td>Sub</td><td>starts</td><td>start</td><td>1</td></tr>
+<tr><td>Sub</td><td>really</td><td>iffy</td><td>1</td></tr>
+<tr><td>Sub</td><td>effy</td><td>about</td><td>1</td></tr>
+<tr><td>Sub</td><td>got</td><td>are</td><td>1</td></tr>
+<tr><td>Del</td><td>would</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>where</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>greats</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>like</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>real</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-32">
+  <header>
+    <span class="rank">#32</span>
+    <span class="utt-id">YOU1000000112_S0000156</span>
+    <span class="stats">
+      18 errors &bull; WER 62.07%
+      &bull; S:17 D:0 I:1
+      &bull; 29 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000112_S0000156.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000112_S0000156.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: gun → good">gun</span><span class="hyp-inline">[→good]</span> <span class="err-sub" title="sub: were → and">were</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: they → davis">they</span><span class="hyp-inline">[→davis]</span> <span class="err-sub" title="sub: missiles → says">missiles</span><span class="hyp-inline">[→says]</span> <span class="err-sub" title="sub: balls → tom">balls</span><span class="hyp-inline">[→tom]</span> <span class="err-sub" title="sub: in → bowls">in</span><span class="hyp-inline">[→bowls]</span> <span class="err-sub" title="sub: one → who">one</span><span class="hyp-inline">[→who]</span> <span class="err-sub" title="sub: of → won">of</span><span class="hyp-inline">[→won]</span> <span class="err-sub" title="sub: ring → a">ring</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: is → ring">is</span><span class="hyp-inline">[→ring]</span> <span class="err-sub" title="sub: acquire → as">acquire</span><span class="hyp-inline">[→as]</span> <span class="err-sub" title="sub: but → a">but</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: watching → player">watching</span><span class="hyp-inline">[→player]</span> <span class="err-sub" title="sub: it → with">it</span><span class="hyp-inline">[→with]</span> <span class="err-sub" title="sub: in → washington">in</span><span class="hyp-inline">[→washington]</span> back in 87 here is edwards <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: helaire → lair">helaire</span><span class="hyp-inline">[→lair]</span> and he has got a 1st <span class="err-sub" title="sub: round → down">round</span><span class="hyp-inline">[→down]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>gun</td><td>good</td><td>1</td></tr>
+<tr><td>Sub</td><td>were</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>they</td><td>davis</td><td>1</td></tr>
+<tr><td>Sub</td><td>missiles</td><td>says</td><td>1</td></tr>
+<tr><td>Sub</td><td>balls</td><td>tom</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>bowls</td><td>1</td></tr>
+<tr><td>Sub</td><td>one</td><td>who</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>won</td><td>1</td></tr>
+<tr><td>Sub</td><td>ring</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>ring</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-33">
+  <header>
+    <span class="rank">#33</span>
+    <span class="utt-id">POD1000000042_S0000431</span>
+    <span class="stats">
+      18 errors &bull; WER 50.00%
+      &bull; S:12 D:1 I:5
+      &bull; 36 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000431.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000431.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and then <span class="err-sub" title="sub: a → it">a</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: graduate → graduates">graduate</span><span class="hyp-inline">[→graduates]</span> so every new <span class="err-del" title="deleted">ah</span> <span class="err-sub" title="sub: ever → every">ever</span><span class="hyp-inline">[→every]</span> <span class="err-sub" title="sub: knew → new">knew</span><span class="hyp-inline">[→new]</span> <span class="err-sub" title="sub: why → wine">why</span><span class="hyp-inline">[→wine]</span> <span class="err-sub" title="sub: should → shipment">should</span><span class="hyp-inline">[→shipment]</span> you get should be closer to your own particular <span class="err-sub" title="sub: test → taste">test</span><span class="hyp-inline">[→taste]</span> which is good <span class="err-ins" title="inserted">+right</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: by → how">by</span><span class="hyp-inline">[→how]</span> <span class="err-sub" title="sub: the → it">the</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: touch → should">touch</span><span class="hyp-inline">[→should]</span> <span class="err-sub" title="sub: our → work">our</span><span class="hyp-inline">[→work]</span> <span class="err-sub" title="sub: food → particularly">food</span><span class="hyp-inline">[→particularly]</span> for people <span class="err-ins" title="inserted">+who</span> have never used <span class="err-ins" title="inserted">+it</span> before</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>a</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>graduate</td><td>graduates</td><td>1</td></tr>
+<tr><td>Sub</td><td>ever</td><td>every</td><td>1</td></tr>
+<tr><td>Sub</td><td>knew</td><td>new</td><td>1</td></tr>
+<tr><td>Sub</td><td>why</td><td>wine</td><td>1</td></tr>
+<tr><td>Sub</td><td>should</td><td>shipment</td><td>1</td></tr>
+<tr><td>Sub</td><td>test</td><td>taste</td><td>1</td></tr>
+<tr><td>Sub</td><td>by</td><td>how</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>touch</td><td>should</td><td>1</td></tr>
+<tr><td>Del</td><td>ah</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>right</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>who</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-34">
+  <header>
+    <span class="rank">#34</span>
+    <span class="utt-id">POD1000000046_S0000844</span>
+    <span class="stats">
+      18 errors &bull; WER 54.55%
+      &bull; S:9 D:1 I:8
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0000844.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0000844.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">yeah i think she <span class="err-sub" title="sub: would → was">would</span><span class="hyp-inline">[→was]</span> she lived in california for a while <span class="err-del" title="deleted">and</span> <span class="err-sub" title="sub: moved → lived">moved</span><span class="hyp-inline">[→lived]</span> <span class="err-sub" title="sub: to → in">to</span><span class="hyp-inline">[→in]</span> l a <span class="err-ins" title="inserted">+yeah</span> you <span class="err-ins" title="inserted">+too</span> <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: 2 → have">2</span><span class="hyp-inline">[→have]</span> <span class="err-sub" title="sub: ever → i">ever</span><span class="hyp-inline">[→i]</span> thought about that already <span class="err-ins" title="inserted">+but</span> <span class="err-sub" title="sub: and → like">and</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: have → i">have</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: been → like">been</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: enjoying → enjoy">enjoying</span><span class="hyp-inline">[→enjoy]</span> each other quite a bit <span class="err-ins" title="inserted">+okay</span> <span class="err-ins" title="inserted">+good</span> <span class="err-ins" title="inserted">+okay</span> <span class="err-ins" title="inserted">+and</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>would</td><td>was</td><td>1</td></tr>
+<tr><td>Sub</td><td>moved</td><td>lived</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>2</td><td>have</td><td>1</td></tr>
+<tr><td>Sub</td><td>ever</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>have</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>been</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>enjoying</td><td>enjoy</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>okay</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>too</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>but</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>good</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-35">
+  <header>
+    <span class="rank">#35</span>
+    <span class="utt-id">YOU1000000165_S0000187</span>
+    <span class="stats">
+      18 errors &bull; WER 52.94%
+      &bull; S:13 D:1 I:4
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000165_S0000187.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000165_S0000187.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: is → he">is</span><span class="hyp-inline">[→he]</span> <span class="err-sub" title="sub: all → is">all</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: us → lost">us</span><span class="hyp-inline">[→lost]</span> <span class="err-sub" title="sub: pity → 3">pity</span><span class="hyp-inline">[→3]</span> <span class="err-sub" title="sub: fighting → fights">fighting</span><span class="hyp-inline">[→fights]</span> <span class="err-sub" title="sub: around → in">around</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: you → a">you</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: know → row">know</span><span class="hyp-inline">[→row]</span> <span class="err-sub" title="sub: and → well">and</span><span class="hyp-inline">[→well]</span> we can not get <span class="err-ins" title="inserted">+used</span> to losing it is a <span class="err-sub" title="sub: manly → mental">manly</span><span class="hyp-inline">[→mental]</span> thing <span class="err-ins" title="inserted">+you</span> <span class="err-sub" title="sub: no → know">no</span><span class="hyp-inline">[→know]</span> but we <span class="err-ins" title="inserted">+are</span> going to we <span class="err-ins" title="inserted">+are</span> going to break that <span class="err-del" title="deleted">one</span> <span class="err-sub" title="sub: man → with">man</span><span class="hyp-inline">[→with]</span> <span class="err-sub" title="sub: be → mambi">be</span><span class="hyp-inline">[→mambi]</span> right</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>is</td><td>he</td><td>1</td></tr>
+<tr><td>Sub</td><td>all</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>us</td><td>lost</td><td>1</td></tr>
+<tr><td>Sub</td><td>pity</td><td>3</td><td>1</td></tr>
+<tr><td>Sub</td><td>fighting</td><td>fights</td><td>1</td></tr>
+<tr><td>Sub</td><td>around</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>know</td><td>row</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>well</td><td>1</td></tr>
+<tr><td>Sub</td><td>manly</td><td>mental</td><td>1</td></tr>
+<tr><td>Del</td><td>one</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>used</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-36">
+  <header>
+    <span class="rank">#36</span>
+    <span class="utt-id">POD1000000042_S0000273</span>
+    <span class="stats">
+      18 errors &bull; WER 25.35%
+      &bull; S:12 D:0 I:6
+      &bull; 71 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000273.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000273.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">yeah it is not it is not <span class="err-ins" title="inserted">+hard</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+take</span> <span class="err-sub" title="sub: heart → a">heart</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: attack → couple">attack</span><span class="hyp-inline">[→couple]</span> <span class="err-sub" title="sub: now → minutes">now</span><span class="hyp-inline">[→minutes]</span> <span class="err-sub" title="sub: and → out">and</span><span class="hyp-inline">[→out]</span> <span class="err-sub" title="sub: an → of">an</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: earlier → your">earlier</span><span class="hyp-inline">[→your]</span> day and think about what you should be grateful for <span class="err-sub" title="sub: it → yeah">it</span><span class="hyp-inline">[→yeah]</span> and then maybe if <span class="err-ins" title="inserted">+it</span> <span class="err-sub" title="sub: its → is">its</span><span class="hyp-inline">[→is]</span> people go show some gratitude it is not it does not take a whole lot of time to do either one <span class="err-ins" title="inserted">+of</span> <span class="err-ins" title="inserted">+those</span> <span class="err-sub" title="sub: will → things">will</span><span class="hyp-inline">[→things]</span> <span class="err-sub" title="sub: say → it">say</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: that → is">that</span><span class="hyp-inline">[→is]</span> something that i am a dude that lives in my own <span class="err-sub" title="sub: had → head">had</span><span class="hyp-inline">[→head]</span> quite a bit i am heady</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>heart</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>attack</td><td>couple</td><td>1</td></tr>
+<tr><td>Sub</td><td>now</td><td>minutes</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>out</td><td>1</td></tr>
+<tr><td>Sub</td><td>an</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>earlier</td><td>your</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>yeah</td><td>1</td></tr>
+<tr><td>Sub</td><td>its</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>will</td><td>things</td><td>1</td></tr>
+<tr><td>Sub</td><td>say</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>hard</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>take</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>those</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-37">
+  <header>
+    <span class="rank">#37</span>
+    <span class="utt-id">POD1000000040_S0000408</span>
+    <span class="stats">
+      18 errors &bull; WER 28.12%
+      &bull; S:7 D:0 I:11
+      &bull; 64 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000040_S0000408.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000040_S0000408.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">what <span class="err-sub" title="sub: are → do">are</span><span class="hyp-inline">[→do]</span> you <span class="err-sub" title="sub: doing → do">doing</span><span class="hyp-inline">[→do]</span> she <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: said → like">said</span><span class="hyp-inline">[→like]</span> it tastes good daddy <span class="err-ins" title="inserted">+and</span> i am like 0 my god and then like 2 days later she <span class="err-sub" title="sub: had → would">had</span><span class="hyp-inline">[→would]</span> have like a sniffle or <span class="err-ins" title="inserted">+a</span> cold and she <span class="err-ins" title="inserted">+would</span> get over it but it is like it is like that <span class="err-ins" title="inserted">+is</span> what how that is how we <span class="err-ins" title="inserted">+grew</span> <span class="err-sub" title="sub: grow → up">grow</span><span class="hyp-inline">[→up]</span> i am sure you guys <span class="err-ins" title="inserted">+grew</span> <span class="err-sub" title="sub: were → up">were</span><span class="hyp-inline">[→up]</span> <span class="err-sub" title="sub: awkward → where">awkward</span><span class="hyp-inline">[→where]</span> you know <span class="err-ins" title="inserted">+you</span> go <span class="err-ins" title="inserted">+out</span> and play <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+get</span> dirty and</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>are</td><td>do</td><td>1</td></tr>
+<tr><td>Sub</td><td>doing</td><td>do</td><td>1</td></tr>
+<tr><td>Sub</td><td>said</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>had</td><td>would</td><td>1</td></tr>
+<tr><td>Sub</td><td>grow</td><td>up</td><td>1</td></tr>
+<tr><td>Sub</td><td>were</td><td>up</td><td>1</td></tr>
+<tr><td>Sub</td><td>awkward</td><td>where</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>grew</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>would</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>out</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>get</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-38">
+  <header>
+    <span class="rank">#38</span>
+    <span class="utt-id">POD1000000046_S0001067</span>
+    <span class="stats">
+      18 errors &bull; WER 78.26%
+      &bull; S:14 D:0 I:4
+      &bull; 23 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0001067.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0001067.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: counts → kind">counts</span><span class="hyp-inline">[→kind]</span> <span class="err-sub" title="sub: i → of">i</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: can → looks">can</span><span class="hyp-inline">[→looks]</span> <span class="err-sub" title="sub: count → like">count</span><span class="hyp-inline">[→like]</span> the guy on the right looks like scooter braun <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+dead</span> <span class="err-ins" title="inserted">+serious</span> <span class="err-sub" title="sub: at → this">at</span><span class="hyp-inline">[→this]</span> <span class="err-sub" title="sub: the → is">the</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: dancers → what">dancers</span><span class="hyp-inline">[→what]</span> <span class="err-sub" title="sub: as → scooter">as</span><span class="hyp-inline">[→scooter]</span> <span class="err-sub" title="sub: does → braun">does</span><span class="hyp-inline">[→braun]</span> <span class="err-sub" title="sub: get → looks">get</span><span class="hyp-inline">[→looks]</span> <span class="err-sub" title="sub: around → like">around</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: the → in">the</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: 2nd → real">2nd</span><span class="hyp-inline">[→real]</span> <span class="err-sub" title="sub: relief → life">relief</span><span class="hyp-inline">[→life]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>counts</td><td>kind</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>can</td><td>looks</td><td>1</td></tr>
+<tr><td>Sub</td><td>count</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>at</td><td>this</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>dancers</td><td>what</td><td>1</td></tr>
+<tr><td>Sub</td><td>as</td><td>scooter</td><td>1</td></tr>
+<tr><td>Sub</td><td>does</td><td>braun</td><td>1</td></tr>
+<tr><td>Sub</td><td>get</td><td>looks</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>dead</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>serious</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-39">
+  <header>
+    <span class="rank">#39</span>
+    <span class="utt-id">YOU1000000183_S0000119</span>
+    <span class="stats">
+      18 errors &bull; WER 51.43%
+      &bull; S:15 D:0 I:3
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000183_S0000119.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000183_S0000119.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: in → and">in</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: in → and">in</span><span class="hyp-inline">[→and]</span> it is <span class="err-sub" title="sub: few → futile">few</span><span class="hyp-inline">[→futile]</span> <span class="err-sub" title="sub: top → to">top</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: to → try">to</span><span class="hyp-inline">[→try]</span> <span class="err-sub" title="sub: trying → and">trying</span><span class="hyp-inline">[→and]</span> guess it <span class="err-sub" title="sub: cooperate → corporate">cooperate</span><span class="hyp-inline">[→corporate]</span> profits <span class="err-sub" title="sub: could → will">could</span><span class="hyp-inline">[→will]</span> be <span class="err-ins" title="inserted">+a</span> lot <span class="err-sub" title="sub: hot → higher">hot</span><span class="hyp-inline">[→higher]</span> 10 years from now <span class="err-ins" title="inserted">+they</span> <span class="err-sub" title="sub: or → will">or</span><span class="hyp-inline">[→will]</span> be <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: lower → lot">lower</span><span class="hyp-inline">[→lot]</span> <span class="err-sub" title="sub: hot → higher">hot</span><span class="hyp-inline">[→higher]</span> 20 years from now that is <span class="err-sub" title="sub: which → what">which</span><span class="hyp-inline">[→what]</span> <span class="err-sub" title="sub: go → you">go</span><span class="hyp-inline">[→you]</span> <span class="err-sub" title="sub: to → can">to</span><span class="hyp-inline">[→can]</span> rely on</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>in</td><td>and</td><td>2</td></tr>
+<tr><td>Sub</td><td>hot</td><td>higher</td><td>2</td></tr>
+<tr><td>Sub</td><td>few</td><td>futile</td><td>1</td></tr>
+<tr><td>Sub</td><td>top</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>try</td><td>1</td></tr>
+<tr><td>Sub</td><td>trying</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>cooperate</td><td>corporate</td><td>1</td></tr>
+<tr><td>Sub</td><td>could</td><td>will</td><td>1</td></tr>
+<tr><td>Sub</td><td>or</td><td>will</td><td>1</td></tr>
+<tr><td>Sub</td><td>lower</td><td>lot</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>they</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-40">
+  <header>
+    <span class="rank">#40</span>
+    <span class="utt-id">POD1000000042_S0000243</span>
+    <span class="stats">
+      18 errors &bull; WER 31.58%
+      &bull; S:11 D:2 I:5
+      &bull; 57 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000243.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000243.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: i → it">i</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: do → is">do</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: not → taking">not</span><span class="hyp-inline">[→taking]</span> <span class="err-sub" title="sub: i → time">i</span><span class="hyp-inline">[→time]</span> <span class="err-sub" title="sub: do → for">do</span><span class="hyp-inline">[→for]</span> <span class="err-sub" title="sub: not → us">not</span><span class="hyp-inline">[→us]</span> we will <span class="err-ins" title="inserted">+see</span> we will see about we will see it probably is <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+mean</span> <span class="err-sub" title="sub: admitted → it">admitted</span><span class="hyp-inline">[→it]</span> it it definitely <span class="err-sub" title="sub: pass → passes">pass</span><span class="hyp-inline">[→passes]</span> the smell test and we know that those <span class="err-del" title="deleted">e</span> <span class="err-sub" title="sub: mails → emails">mails</span><span class="hyp-inline">[→emails]</span> are are legit now <span class="err-ins" title="inserted">+right</span> not not necessarily <span class="err-ins" title="inserted">+we</span> do not know that biden is the big guy necessarily we know those <span class="err-del" title="deleted">e</span> <span class="err-sub" title="sub: mails → emails">mails</span><span class="hyp-inline">[→emails]</span> <span class="err-sub" title="sub: of → are">of</span><span class="hyp-inline">[→are]</span> legit</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>mails</td><td>emails</td><td>2</td></tr>
+<tr><td>Sub</td><td>i</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>do</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>not</td><td>taking</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>time</td><td>1</td></tr>
+<tr><td>Sub</td><td>do</td><td>for</td><td>1</td></tr>
+<tr><td>Sub</td><td>not</td><td>us</td><td>1</td></tr>
+<tr><td>Sub</td><td>admitted</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>pass</td><td>passes</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>are</td><td>1</td></tr>
+<tr><td>Del</td><td>e</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>see</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>mean</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>right</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-41">
+  <header>
+    <span class="rank">#41</span>
+    <span class="utt-id">YOU1000000151_S0000081</span>
+    <span class="stats">
+      18 errors &bull; WER 32.73%
+      &bull; S:14 D:0 I:4
+      &bull; 55 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000151_S0000081.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000151_S0000081.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: for → with">for</span><span class="hyp-inline">[→with]</span> <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> better <span class="err-ins" title="inserted">+set</span> <span class="err-sub" title="sub: side → of">side</span><span class="hyp-inline">[→of]</span> tires <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: on → think">on</span><span class="hyp-inline">[→think]</span> <span class="err-sub" title="sub: a → you">a</span><span class="hyp-inline">[→you]</span> <span class="err-sub" title="sub: huguenot → can">huguenot</span><span class="hyp-inline">[→can]</span> <span class="err-sub" title="sub: gripped → outgrip">gripped</span><span class="hyp-inline">[→outgrip]</span> them both but the great thing is this just tells you so much about what is going on <span class="err-ins" title="inserted">+that</span> <span class="err-sub" title="sub: better → it">better</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: give → gives">give</span><span class="hyp-inline">[→gives]</span> you a lot of confidence <span class="err-sub" title="sub: partly → partially">partly</span><span class="hyp-inline">[→partially]</span> because the limits in the <span class="err-ins" title="inserted">+frs</span> <span class="err-sub" title="sub: forest → are">forest</span><span class="hyp-inline">[→are]</span> <span class="err-sub" title="sub: alone → low">alone</span><span class="hyp-inline">[→low]</span> <span class="err-sub" title="sub: on → enough">on</span><span class="hyp-inline">[→enough]</span> that you <span class="err-sub" title="sub: could → can">could</span><span class="hyp-inline">[→can]</span> approach them safely and you can feel them coming</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>for</td><td>with</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>side</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>on</td><td>think</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>huguenot</td><td>can</td><td>1</td></tr>
+<tr><td>Sub</td><td>gripped</td><td>outgrip</td><td>1</td></tr>
+<tr><td>Sub</td><td>better</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>give</td><td>gives</td><td>1</td></tr>
+<tr><td>Sub</td><td>partly</td><td>partially</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>set</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>frs</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-42">
+  <header>
+    <span class="rank">#42</span>
+    <span class="utt-id">POD1000000042_S0000039</span>
+    <span class="stats">
+      18 errors &bull; WER 38.30%
+      &bull; S:13 D:4 I:1
+      &bull; 47 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000039.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000039.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">ah</span> and then we <span class="err-sub" title="sub: saw → sort">saw</span><span class="hyp-inline">[→sort]</span> <span class="err-sub" title="sub: the → of">the</span><span class="hyp-inline">[→of]</span> pivoted <span class="err-del" title="deleted">ah</span> <span class="err-sub" title="sub: jocularly → jacqueline">jocularly</span><span class="hyp-inline">[→jacqueline]</span> myself and <span class="err-ins" title="inserted">+leif</span> <span class="err-sub" title="sub: wife → took">wife</span><span class="hyp-inline">[→took]</span> <span class="err-sub" title="sub: ah → that">ah</span><span class="hyp-inline">[→that]</span> <span class="err-sub" title="sub: to → idea">to</span><span class="hyp-inline">[→idea]</span> <span class="err-sub" title="sub: get → and">get</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: idea → made">idea</span><span class="hyp-inline">[→made]</span> <span class="err-sub" title="sub: admitted → it">admitted</span><span class="hyp-inline">[→it]</span> a for profit and so i place <span class="err-del" title="deleted">that</span> <span class="err-sub" title="sub: is → vets">is</span><span class="hyp-inline">[→vets]</span> high performing <span class="err-del" title="deleted">that</span> <span class="err-sub" title="sub: is → vets">is</span><span class="hyp-inline">[→vets]</span> into senior leadership positions <span class="err-sub" title="sub: in → and">in</span><span class="hyp-inline">[→and]</span> as we are doing this <span class="err-sub" title="sub: do → dude">do</span><span class="hyp-inline">[→dude]</span> companies are just bad at hiring</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>is</td><td>vets</td><td>2</td></tr>
+<tr><td>Sub</td><td>saw</td><td>sort</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>jocularly</td><td>jacqueline</td><td>1</td></tr>
+<tr><td>Sub</td><td>wife</td><td>took</td><td>1</td></tr>
+<tr><td>Sub</td><td>ah</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>idea</td><td>1</td></tr>
+<tr><td>Sub</td><td>get</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>idea</td><td>made</td><td>1</td></tr>
+<tr><td>Sub</td><td>admitted</td><td>it</td><td>1</td></tr>
+<tr><td>Del</td><td>ah</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>leif</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-43">
+  <header>
+    <span class="rank">#43</span>
+    <span class="utt-id">POD1000000040_S0000409</span>
+    <span class="stats">
+      17 errors &bull; WER 36.96%
+      &bull; S:11 D:1 I:5
+      &bull; 46 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000040_S0000409.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000040_S0000409.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">there was no hand <span class="err-sub" title="sub: sanitizers → sanitizer">sanitizers</span><span class="hyp-inline">[→sanitizer]</span> and you <span class="err-del" title="deleted">spill</span> <span class="err-sub" title="sub: them → just">them</span><span class="hyp-inline">[→just]</span> <span class="err-sub" title="sub: and → build">and</span><span class="hyp-inline">[→build]</span> <span class="err-sub" title="sub: you → your">you</span><span class="hyp-inline">[→your]</span> <span class="err-sub" title="sub: insist → immune">insist</span><span class="hyp-inline">[→immune]</span> <span class="err-sub" title="sub: them → system">them</span><span class="hyp-inline">[→system]</span> and like <span class="err-ins" title="inserted">+there</span> <span class="err-sub" title="sub: they → is">they</span><span class="hyp-inline">[→is]</span> just not <span class="err-sub" title="sub: consistently → constantly">consistently</span><span class="hyp-inline">[→constantly]</span> hand sanitizing what we <span class="err-ins" title="inserted">+have</span> got to get you got <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+and</span> even as adults you have to build up this <span class="err-sub" title="sub: for → photo">for</span><span class="hyp-inline">[→photo]</span> <span class="err-sub" title="sub: the → immunity">the</span><span class="hyp-inline">[→immunity]</span> <span class="err-sub" title="sub: immunity → yeah">immunity</span><span class="hyp-inline">[→yeah]</span> to to do <span class="err-ins" title="inserted">+and</span> and hiding from</div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>sanitizers</td><td>sanitizer</td><td>1</td></tr>
+<tr><td>Sub</td><td>them</td><td>just</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>build</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>your</td><td>1</td></tr>
+<tr><td>Sub</td><td>insist</td><td>immune</td><td>1</td></tr>
+<tr><td>Sub</td><td>them</td><td>system</td><td>1</td></tr>
+<tr><td>Sub</td><td>they</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>consistently</td><td>constantly</td><td>1</td></tr>
+<tr><td>Sub</td><td>for</td><td>photo</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>immunity</td><td>1</td></tr>
+<tr><td>Del</td><td>spill</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>there</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>have</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-44">
+  <header>
+    <span class="rank">#44</span>
+    <span class="utt-id">YOU1000000144_S0000112</span>
+    <span class="stats">
+      17 errors &bull; WER 39.53%
+      &bull; S:15 D:1 I:1
+      &bull; 43 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000144_S0000112.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000144_S0000112.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+ah</span> 100% certain <span class="err-sub" title="sub: old → 0">old</span><span class="hyp-inline">[→0]</span> great flash great bounce catches both of them somehow <span class="err-del" title="deleted">flame</span> <span class="err-sub" title="sub: he → flamey">he</span><span class="hyp-inline">[→flamey]</span> gets away <span class="err-sub" title="sub: back → backs">back</span><span class="hyp-inline">[→backs]</span> off <span class="err-sub" title="sub: from → on">from</span><span class="hyp-inline">[→on]</span> the flash <span class="err-sub" title="sub: in → and">in</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: the → nails">the</span><span class="hyp-inline">[→nails]</span> <span class="err-sub" title="sub: all → 2">all</span><span class="hyp-inline">[→2]</span> <span class="err-sub" title="sub: these → the">these</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: 2 → 2nd">2</span><span class="hyp-inline">[→2nd]</span> <span class="err-sub" title="sub: this → of">this</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: 2nd → which">2nd</span><span class="hyp-inline">[→which]</span> at the sandbags but could not do much more <span class="err-sub" title="sub: scary → as">scary</span><span class="hyp-inline">[→as]</span> <span class="err-sub" title="sub: and → kerrigan">and</span><span class="hyp-inline">[→kerrigan]</span> <span class="err-sub" title="sub: overwhelm → overwhelms">overwhelm</span><span class="hyp-inline">[→overwhelms]</span> <span class="err-sub" title="sub: as → him">as</span><span class="hyp-inline">[→him]</span> edward now</div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>old</td><td>0</td><td>1</td></tr>
+<tr><td>Sub</td><td>he</td><td>flamey</td><td>1</td></tr>
+<tr><td>Sub</td><td>back</td><td>backs</td><td>1</td></tr>
+<tr><td>Sub</td><td>from</td><td>on</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>nails</td><td>1</td></tr>
+<tr><td>Sub</td><td>all</td><td>2</td><td>1</td></tr>
+<tr><td>Sub</td><td>these</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>2</td><td>2nd</td><td>1</td></tr>
+<tr><td>Sub</td><td>this</td><td>of</td><td>1</td></tr>
+<tr><td>Del</td><td>flame</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ah</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-45">
+  <header>
+    <span class="rank">#45</span>
+    <span class="utt-id">POD1000000041_S0000355</span>
+    <span class="stats">
+      17 errors &bull; WER 44.74%
+      &bull; S:8 D:2 I:7
+      &bull; 38 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000041_S0000355.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000041_S0000355.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">he is not some guy with a cool twitter handle <span class="err-del" title="deleted">of</span> that you know bibi <span class="err-del" title="deleted">net</span> <span class="err-sub" title="sub: yahoo → netanyahu">yahoo</span><span class="hyp-inline">[→netanyahu]</span> like <span class="err-sub" title="sub: fox → fucks">fox</span><span class="hyp-inline">[→fucks]</span> with it is like you know <span class="err-ins" title="inserted">+he</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+he</span> <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: his → i">his</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: his → think">his</span><span class="hyp-inline">[→think]</span> <span class="err-sub" title="sub: heavy → he">heavy</span><span class="hyp-inline">[→he]</span> <span class="err-sub" title="sub: use → was">use</span><span class="hyp-inline">[→was]</span> running <span class="err-ins" title="inserted">+it</span> from <span class="err-ins" title="inserted">+like</span> the <span class="err-ins" title="inserted">+80</span> <span class="err-sub" title="sub: 80s → s">80s</span><span class="hyp-inline">[→s]</span> <span class="err-sub" title="sub: till → to">till</span><span class="hyp-inline">[→to]</span> like 2010 or something</div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>yahoo</td><td>netanyahu</td><td>1</td></tr>
+<tr><td>Sub</td><td>fox</td><td>fucks</td><td>1</td></tr>
+<tr><td>Sub</td><td>his</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>his</td><td>think</td><td>1</td></tr>
+<tr><td>Sub</td><td>heavy</td><td>he</td><td>1</td></tr>
+<tr><td>Sub</td><td>use</td><td>was</td><td>1</td></tr>
+<tr><td>Sub</td><td>80s</td><td>s</td><td>1</td></tr>
+<tr><td>Sub</td><td>till</td><td>to</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>net</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>he</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>like</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>80</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-46">
+  <header>
+    <span class="rank">#46</span>
+    <span class="utt-id">POD1000000046_S0001075</span>
+    <span class="stats">
+      17 errors &bull; WER 38.64%
+      &bull; S:8 D:3 I:6
+      &bull; 44 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0001075.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0001075.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">yeah i <span class="err-ins" title="inserted">+do</span> <span class="err-sub" title="sub: know → not">know</span><span class="hyp-inline">[→not]</span> i do not <span class="err-del" title="deleted">use</span> you are right i have not done <span class="err-ins" title="inserted">+that</span> either i think <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">am</span> or the people i liked <span class="err-sub" title="sub: him → and">him</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: and → any">and</span><span class="hyp-inline">[→any]</span> <span class="err-sub" title="sub: in → of">in</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: a → that">a</span><span class="hyp-inline">[→that]</span> shit i am not going to judge <span class="err-ins" title="inserted">+her</span> the weird thing is <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: to → do">to</span><span class="hyp-inline">[→do]</span> feel <span class="err-ins" title="inserted">+like</span> <span class="err-ins" title="inserted">+we</span> <span class="err-sub" title="sub: quite → know">quite</span><span class="hyp-inline">[→know]</span> <span class="err-sub" title="sub: another → this">another</span><span class="hyp-inline">[→this]</span> person</div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>know</td><td>not</td><td>1</td></tr>
+<tr><td>Sub</td><td>him</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>any</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>do</td><td>1</td></tr>
+<tr><td>Sub</td><td>quite</td><td>know</td><td>1</td></tr>
+<tr><td>Sub</td><td>another</td><td>this</td><td>1</td></tr>
+<tr><td>Del</td><td>use</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>am</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>her</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>like</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-47">
+  <header>
+    <span class="rank">#47</span>
+    <span class="utt-id">POD1000000043_S0000224</span>
+    <span class="stats">
+      17 errors &bull; WER 37.78%
+      &bull; S:8 D:7 I:2
+      &bull; 45 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000043_S0000224.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000043_S0000224.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+had</span> <span class="err-sub" title="sub: habit → that">habit</span><span class="hyp-inline">[→that]</span> <span class="err-sub" title="sub: knows → this">knows</span><span class="hyp-inline">[→this]</span> <span class="err-sub" title="sub: of → was">of</span><span class="hyp-inline">[→was]</span> <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> new york times story a couple <span class="err-del" title="deleted">of</span> weeks ago <span class="err-sub" title="sub: have → had">have</span><span class="hyp-inline">[→had]</span> the chance in july and <span class="err-sub" title="sub: that → then">that</span><span class="hyp-inline">[→then]</span> i did not realize until i saw <span class="err-ins" title="inserted">+it</span> scott gottlieb the former <span class="err-del" title="deleted">f</span> <span class="err-del" title="deleted">d</span> <span class="err-sub" title="sub: a → fda">a</span><span class="hyp-inline">[→fda]</span> commissioner was on <span class="err-del" title="deleted">ah</span> <span class="err-del" title="deleted">c</span> <span class="err-del" title="deleted">n</span> <span class="err-del" title="deleted">b</span> <span class="err-sub" title="sub: c → cnbc">c</span><span class="hyp-inline">[→cnbc]</span> this morning saying</div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>habit</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>knows</td><td>this</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>was</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>have</td><td>had</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>then</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>fda</td><td>1</td></tr>
+<tr><td>Sub</td><td>c</td><td>cnbc</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>f</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>d</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>ah</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>c</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>n</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>b</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>had</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-48">
+  <header>
+    <span class="rank">#48</span>
+    <span class="utt-id">POD1000000042_S0000367</span>
+    <span class="stats">
+      17 errors &bull; WER 41.46%
+      &bull; S:13 D:0 I:4
+      &bull; 41 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000042_S0000367.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000042_S0000367.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and and where they can grab <span class="err-sub" title="sub: at → it">at</span><span class="hyp-inline">[→it]</span> i know <span class="err-ins" title="inserted">+covid</span> <span class="err-sub" title="sub: kovats → is">kovats</span><span class="hyp-inline">[→is]</span> different now <span class="err-ins" title="inserted">+because</span> <span class="err-sub" title="sub: it → you">it</span><span class="hyp-inline">[→you]</span> used to be <span class="err-sub" title="sub: although → able">although</span><span class="hyp-inline">[→able]</span> <span class="err-sub" title="sub: i → to">i</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: got → like">got</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: to → yeah">to</span><span class="hyp-inline">[→yeah]</span> go to barnes and noble <span class="err-ins" title="inserted">+or</span> <span class="err-ins" title="inserted">+things</span> <span class="err-sub" title="sub: nothing → like">nothing</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: hellish → that">hellish</span><span class="hyp-inline">[→that]</span> like it <span class="err-sub" title="sub: was → almost">was</span><span class="hyp-inline">[→almost]</span> <span class="err-sub" title="sub: feel → feels">feel</span><span class="hyp-inline">[→feels]</span> safer to <span class="err-sub" title="sub: is → just">is</span><span class="hyp-inline">[→just]</span> <span class="err-sub" title="sub: as → say">as</span><span class="hyp-inline">[→say]</span> hey man just go to amazon</div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>at</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>kovats</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>although</td><td>able</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>got</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>yeah</td><td>1</td></tr>
+<tr><td>Sub</td><td>nothing</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>hellish</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>was</td><td>almost</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>covid</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>because</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>or</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>things</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-49">
+  <header>
+    <span class="rank">#49</span>
+    <span class="utt-id">YOU1000000111_S0000011</span>
+    <span class="stats">
+      17 errors &bull; WER 70.83%
+      &bull; S:12 D:5 I:0
+      &bull; 24 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/YOU1000000111_S0000011.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/YOU1000000111_S0000011.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: hurry → burri">hurry</span><span class="hyp-inline">[→burri]</span> <span class="err-sub" title="sub: up → now">up</span><span class="hyp-inline">[→now]</span> picks him up <span class="err-sub" title="sub: by → 5">by</span><span class="hyp-inline">[→5]</span> <span class="err-sub" title="sub: the → to">the</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: shoe → shoot">shoe</span><span class="hyp-inline">[→shoot]</span> james <span class="err-sub" title="sub: towers → powers">towers</span><span class="hyp-inline">[→powers]</span> drives <span class="err-del" title="deleted">on</span> <span class="err-del" title="deleted">it</span> <span class="err-sub" title="sub: lay → down">lay</span><span class="hyp-inline">[→down]</span> <span class="err-sub" title="sub: it → the">it</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: lay → lane">lay</span><span class="hyp-inline">[→lane]</span> <span class="err-sub" title="sub: it → layup">it</span><span class="hyp-inline">[→layup]</span> missed it <span class="err-del" title="deleted">they</span> <span class="err-del" title="deleted">get</span> <span class="err-del" title="deleted">out</span> <span class="err-sub" title="sub: a → iguodala">a</span><span class="hyp-inline">[→iguodala]</span> <span class="err-sub" title="sub: contestant → contested">contestant</span><span class="hyp-inline">[→contested]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>hurry</td><td>burri</td><td>1</td></tr>
+<tr><td>Sub</td><td>up</td><td>now</td><td>1</td></tr>
+<tr><td>Sub</td><td>by</td><td>5</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>shoe</td><td>shoot</td><td>1</td></tr>
+<tr><td>Sub</td><td>towers</td><td>powers</td><td>1</td></tr>
+<tr><td>Sub</td><td>lay</td><td>down</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>lay</td><td>lane</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>layup</td><td>1</td></tr>
+<tr><td>Del</td><td>on</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>they</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>get</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>out</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-50">
+  <header>
+    <span class="rank">#50</span>
+    <span class="utt-id">POD1000000046_S0000768</span>
+    <span class="stats">
+      17 errors &bull; WER 94.44%
+      &bull; S:1 D:0 I:16
+      &bull; 18 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/gigaspeech/wavs/POD1000000046_S0000768.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/POD1000000046_S0000768.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">in my family extended and otherwise <span class="err-ins" title="inserted">+yeah</span> is on a <span class="err-ins" title="inserted">+ghost</span> <span class="err-ins" title="inserted">+bed</span> <span class="err-sub" title="sub: ghostbet → same">ghostbet</span><span class="hyp-inline">[→same]</span> and they love it the <span class="err-ins" title="inserted">+lux</span> is the best <span class="err-ins" title="inserted">+get</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+adjustable</span> <span class="err-ins" title="inserted">+base</span> <span class="err-ins" title="inserted">+if</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+can</span> <span class="err-ins" title="inserted">+because</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+luxury</span> <span class="err-ins" title="inserted">+but</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>ghostbet</td><td>same</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ghost</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>bed</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>lux</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>get</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>adjustable</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>base</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>if</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+
+</main></div>
+</body></html>

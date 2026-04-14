@@ -1,0 +1,1401 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Error Analysis - tedlium</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f7f8fa;color:#1a1a1a;line-height:1.6}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#fff;border-right:1px solid #e0e0e0;padding:12px 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar h3{padding:8px 16px;margin:0;font-size:.85rem;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.nav-item{display:block;padding:6px 16px;text-decoration:none;color:#333;font-size:.8rem;border-left:3px solid transparent;transition:background .15s}
+.nav-item:hover{background:#f0f4ff;border-left-color:#4a90d9}
+.nav-rank{font-weight:700;color:#4a90d9} .nav-err{color:#c33;font-size:.75rem} .nav-wer{color:#666;font-size:.75rem}
+main{flex:1;max-width:1100px;padding:24px 32px;overflow-x:hidden}
+h1{font-size:1.5rem;margin:0 0 4px} .subtitle{color:#666;font-size:.9rem;margin-bottom:20px;word-break:break-all}
+h2{font-size:1.15rem;margin-top:2rem;padding-bottom:6px;border-bottom:1px solid #e0e0e0}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.kpi>div{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px 18px;min-width:130px}
+.kpi .val{font-size:1.4rem;font-weight:700} .kpi .lbl{font-size:.8rem;color:#666}
+.kpi .highlight{border-color:#4a90d9;background:#f0f4ff}
+table.data{border-collapse:collapse;margin:12px 0;width:100%}
+table.data th,table.data td{border:1px solid #ddd;padding:6px 10px;text-align:left;font-size:.85rem}
+table.data th{background:#f8f8f8;position:sticky;top:0}
+table.data tr:hover{background:#fafafa}
+.tables-row{display:flex;gap:24px;flex-wrap:wrap}
+.tables-row>div{flex:1;min-width:200px}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;margin:16px 0;overflow:hidden}
+.card header{padding:14px 18px;background:#f8f9fb;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card .rank{font-size:1.1rem;font-weight:700;color:#4a90d9}
+.card .utt-id{font-family:monospace;font-size:.82rem;color:#555}
+.card .stats{font-size:.8rem;color:#666;margin-left:auto}
+details{padding:0}
+summary{padding:10px 18px;cursor:pointer;font-weight:600;font-size:.9rem;background:#fafbfc;border-top:1px solid #eee;user-select:none}
+summary:hover{background:#f0f4ff}
+.transcript{padding:16px 18px;font-size:.9rem;line-height:1.9;white-space:pre-wrap;word-wrap:break-word;max-height:600px;overflow-y:auto}
+.audio-block{padding:8px 18px}
+.audio-block audio{width:min(520px,100%)}
+.audio-meta{font-size:.82rem;color:#555;padding:4px 18px;overflow-wrap:anywhere}
+.err-sub{background:#fff3cd;border-radius:3px;padding:1px 2px;border-bottom:2px solid #fd7e14;text-decoration:line-through;opacity:.75}
+.err-del{background:#f8d7da;border-radius:3px;padding:1px 2px;border-bottom:2px solid #dc3545;text-decoration:line-through;opacity:.7}
+.err-ins{background:#d6ecff;border-radius:3px;padding:1px 2px;border-bottom:2px solid #007bff;font-style:italic}
+.hyp-inline{color:#c33;font-size:.8rem;font-style:italic}
+.err-table{width:100%;border-collapse:collapse;margin:8px 0}
+.err-table th,.err-table td{border:1px solid #eee;padding:5px 8px;font-size:.82rem;text-align:left}
+.err-table th{background:#f8f8f8}
+@media(max-width:900px){
+  .sidebar{display:none}
+  main{padding:16px}
+  .tables-row{flex-direction:column}
+}
+</style></head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <h3>Utterances</h3>
+  <a href="#utt-1" class="nav-item"><span class="nav-rank">#1</span> <span class="nav-err">8 err</span> <span class="nav-wer">38.1%</span></a>
+<a href="#utt-2" class="nav-item"><span class="nav-rank">#2</span> <span class="nav-err">6 err</span> <span class="nav-wer">20.7%</span></a>
+<a href="#utt-3" class="nav-item"><span class="nav-rank">#3</span> <span class="nav-err">6 err</span> <span class="nav-wer">10.0%</span></a>
+<a href="#utt-4" class="nav-item"><span class="nav-rank">#4</span> <span class="nav-err">6 err</span> <span class="nav-wer">54.5%</span></a>
+<a href="#utt-5" class="nav-item"><span class="nav-rank">#5</span> <span class="nav-err">5 err</span> <span class="nav-wer">14.3%</span></a>
+<a href="#utt-6" class="nav-item"><span class="nav-rank">#6</span> <span class="nav-err">5 err</span> <span class="nav-wer">20.8%</span></a>
+<a href="#utt-7" class="nav-item"><span class="nav-rank">#7</span> <span class="nav-err">5 err</span> <span class="nav-wer">5.9%</span></a>
+<a href="#utt-8" class="nav-item"><span class="nav-rank">#8</span> <span class="nav-err">5 err</span> <span class="nav-wer">27.8%</span></a>
+<a href="#utt-9" class="nav-item"><span class="nav-rank">#9</span> <span class="nav-err">5 err</span> <span class="nav-wer">19.2%</span></a>
+<a href="#utt-10" class="nav-item"><span class="nav-rank">#10</span> <span class="nav-err">5 err</span> <span class="nav-wer">15.6%</span></a>
+<a href="#utt-11" class="nav-item"><span class="nav-rank">#11</span> <span class="nav-err">5 err</span> <span class="nav-wer">45.5%</span></a>
+<a href="#utt-12" class="nav-item"><span class="nav-rank">#12</span> <span class="nav-err">5 err</span> <span class="nav-wer">26.3%</span></a>
+<a href="#utt-13" class="nav-item"><span class="nav-rank">#13</span> <span class="nav-err">4 err</span> <span class="nav-wer">14.8%</span></a>
+<a href="#utt-14" class="nav-item"><span class="nav-rank">#14</span> <span class="nav-err">4 err</span> <span class="nav-wer">16.7%</span></a>
+<a href="#utt-15" class="nav-item"><span class="nav-rank">#15</span> <span class="nav-err">4 err</span> <span class="nav-wer">6.3%</span></a>
+<a href="#utt-16" class="nav-item"><span class="nav-rank">#16</span> <span class="nav-err">4 err</span> <span class="nav-wer">8.0%</span></a>
+<a href="#utt-17" class="nav-item"><span class="nav-rank">#17</span> <span class="nav-err">4 err</span> <span class="nav-wer">4.4%</span></a>
+<a href="#utt-18" class="nav-item"><span class="nav-rank">#18</span> <span class="nav-err">4 err</span> <span class="nav-wer">8.0%</span></a>
+<a href="#utt-19" class="nav-item"><span class="nav-rank">#19</span> <span class="nav-err">4 err</span> <span class="nav-wer">12.1%</span></a>
+<a href="#utt-20" class="nav-item"><span class="nav-rank">#20</span> <span class="nav-err">4 err</span> <span class="nav-wer">13.8%</span></a>
+<a href="#utt-21" class="nav-item"><span class="nav-rank">#21</span> <span class="nav-err">4 err</span> <span class="nav-wer">20.0%</span></a>
+<a href="#utt-22" class="nav-item"><span class="nav-rank">#22</span> <span class="nav-err">4 err</span> <span class="nav-wer">8.2%</span></a>
+<a href="#utt-23" class="nav-item"><span class="nav-rank">#23</span> <span class="nav-err">4 err</span> <span class="nav-wer">21.1%</span></a>
+<a href="#utt-24" class="nav-item"><span class="nav-rank">#24</span> <span class="nav-err">4 err</span> <span class="nav-wer">12.1%</span></a>
+<a href="#utt-25" class="nav-item"><span class="nav-rank">#25</span> <span class="nav-err">4 err</span> <span class="nav-wer">11.8%</span></a>
+<a href="#utt-26" class="nav-item"><span class="nav-rank">#26</span> <span class="nav-err">4 err</span> <span class="nav-wer">10.3%</span></a>
+<a href="#utt-27" class="nav-item"><span class="nav-rank">#27</span> <span class="nav-err">4 err</span> <span class="nav-wer">20.0%</span></a>
+<a href="#utt-28" class="nav-item"><span class="nav-rank">#28</span> <span class="nav-err">4 err</span> <span class="nav-wer">6.7%</span></a>
+<a href="#utt-29" class="nav-item"><span class="nav-rank">#29</span> <span class="nav-err">4 err</span> <span class="nav-wer">16.7%</span></a>
+<a href="#utt-30" class="nav-item"><span class="nav-rank">#30</span> <span class="nav-err">4 err</span> <span class="nav-wer">16.7%</span></a>
+<a href="#utt-31" class="nav-item"><span class="nav-rank">#31</span> <span class="nav-err">4 err</span> <span class="nav-wer">14.8%</span></a>
+<a href="#utt-32" class="nav-item"><span class="nav-rank">#32</span> <span class="nav-err">4 err</span> <span class="nav-wer">12.5%</span></a>
+<a href="#utt-33" class="nav-item"><span class="nav-rank">#33</span> <span class="nav-err">3 err</span> <span class="nav-wer">5.8%</span></a>
+<a href="#utt-34" class="nav-item"><span class="nav-rank">#34</span> <span class="nav-err">3 err</span> <span class="nav-wer">6.4%</span></a>
+<a href="#utt-35" class="nav-item"><span class="nav-rank">#35</span> <span class="nav-err">3 err</span> <span class="nav-wer">9.7%</span></a>
+<a href="#utt-36" class="nav-item"><span class="nav-rank">#36</span> <span class="nav-err">3 err</span> <span class="nav-wer">5.9%</span></a>
+<a href="#utt-37" class="nav-item"><span class="nav-rank">#37</span> <span class="nav-err">3 err</span> <span class="nav-wer">7.3%</span></a>
+<a href="#utt-38" class="nav-item"><span class="nav-rank">#38</span> <span class="nav-err">3 err</span> <span class="nav-wer">7.3%</span></a>
+<a href="#utt-39" class="nav-item"><span class="nav-rank">#39</span> <span class="nav-err">3 err</span> <span class="nav-wer">10.0%</span></a>
+<a href="#utt-40" class="nav-item"><span class="nav-rank">#40</span> <span class="nav-err">3 err</span> <span class="nav-wer">13.6%</span></a>
+<a href="#utt-41" class="nav-item"><span class="nav-rank">#41</span> <span class="nav-err">3 err</span> <span class="nav-wer">9.1%</span></a>
+<a href="#utt-42" class="nav-item"><span class="nav-rank">#42</span> <span class="nav-err">3 err</span> <span class="nav-wer">150.0%</span></a>
+<a href="#utt-43" class="nav-item"><span class="nav-rank">#43</span> <span class="nav-err">3 err</span> <span class="nav-wer">4.8%</span></a>
+<a href="#utt-44" class="nav-item"><span class="nav-rank">#44</span> <span class="nav-err">3 err</span> <span class="nav-wer">8.6%</span></a>
+<a href="#utt-45" class="nav-item"><span class="nav-rank">#45</span> <span class="nav-err">3 err</span> <span class="nav-wer">5.4%</span></a>
+<a href="#utt-46" class="nav-item"><span class="nav-rank">#46</span> <span class="nav-err">3 err</span> <span class="nav-wer">8.1%</span></a>
+<a href="#utt-47" class="nav-item"><span class="nav-rank">#47</span> <span class="nav-err">3 err</span> <span class="nav-wer">11.1%</span></a>
+<a href="#utt-48" class="nav-item"><span class="nav-rank">#48</span> <span class="nav-err">3 err</span> <span class="nav-wer">7.7%</span></a>
+<a href="#utt-49" class="nav-item"><span class="nav-rank">#49</span> <span class="nav-err">3 err</span> <span class="nav-wer">7.0%</span></a>
+<a href="#utt-50" class="nav-item"><span class="nav-rank">#50</span> <span class="nav-err">3 err</span> <span class="nav-wer">8.1%</span></a>
+</nav>
+<main>
+<h1>Word Error Analysis: tedlium</h1>
+<div class="subtitle">Input: /home/boren/data/test/phi7b_20260413/generate_tedlium.jsonl</div>
+<div class="kpi">
+  <div class="highlight"><div class="val">2.47%</div><div class="lbl">WER</div></div>
+  <div><div class="val">1,155</div><div class="lbl">Utterances</div></div>
+  <div><div class="val">28,207</div><div class="lbl">Ref Words</div></div>
+  <div><div class="val">696</div><div class="lbl">Total Errors</div></div>
+  <div><div class="val">331</div><div class="lbl">Sub (1.2%)</div></div>
+  <div><div class="val">217</div><div class="lbl">Del (0.8%)</div></div>
+  <div><div class="val">148</div><div class="lbl">Ins (0.5%)</div></div>
+</div>
+
+<h2>Top Substitution Confusions</h2>
+<table class="data"><thead><tr><th>Ref Word</th><th>Hyp Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>this</td><td>the</td><td>6</td></tr>
+<tr><td>ok</td><td>okay</td><td>6</td></tr>
+<tr><td>could</td><td>can</td><td>6</td></tr>
+<tr><td>the</td><td>a</td><td>4</td></tr>
+<tr><td>was</td><td>is</td><td>4</td></tr>
+<tr><td>in</td><td>and</td><td>4</td></tr>
+<tr><td>no</td><td>now</td><td>4</td></tr>
+<tr><td>a</td><td>the</td><td>4</td></tr>
+<tr><td>terrapower</td><td>power</td><td>3</td></tr>
+<tr><td>play</td><td>gameplay</td><td>3</td></tr>
+<tr><td>co</td><td>c</td><td>3</td></tr>
+<tr><td>2</td><td>02</td><td>3</td></tr>
+<tr><td>making</td><td>filmmaking</td><td>3</td></tr>
+<tr><td>it</td><td>that</td><td>2</td></tr>
+<tr><td>stan</td><td>tam</td><td>2</td></tr>
+<tr><td>aimee</td><td>amy</td><td>2</td></tr>
+<tr><td>it</td><td>at</td><td>2</td></tr>
+<tr><td>1980s</td><td>s</td><td>2</td></tr>
+<tr><td>guadalquivir</td><td>guadalupe</td><td>2</td></tr>
+<tr><td>0</td><td>00</td><td>2</td></tr>
+<tr><td>to</td><td>into</td><td>2</td></tr>
+<tr><td>puff</td><td>poof</td><td>2</td></tr>
+<tr><td>it</td><td>this</td><td>2</td></tr>
+<tr><td>algaes</td><td>algae</td><td>2</td></tr>
+<tr><td>mosquitos</td><td>mosquitoes</td><td>2</td></tr>
+<tr><td>in</td><td>at</td><td>2</td></tr>
+<tr><td>is</td><td>was</td><td>2</td></tr>
+<tr><td>feet</td><td>foot</td><td>2</td></tr>
+<tr><td>at</td><td>as</td><td>2</td></tr>
+<tr><td>the</td><td>this</td><td>2</td></tr></tbody></table>
+
+<div class="tables-row">
+<div>
+<h2>Top Deletions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>a</td><td>23</td></tr>
+<tr><td>the</td><td>20</td></tr>
+<tr><td>i</td><td>18</td></tr>
+<tr><td>it</td><td>11</td></tr>
+<tr><td>and</td><td>10</td></tr>
+<tr><td>that</td><td>8</td></tr>
+<tr><td>is</td><td>7</td></tr>
+<tr><td>have</td><td>6</td></tr>
+<tr><td>in</td><td>6</td></tr>
+<tr><td>hum</td><td>4</td></tr>
+<tr><td>are</td><td>4</td></tr>
+<tr><td>you</td><td>4</td></tr>
+<tr><td>there</td><td>4</td></tr>
+<tr><td>film</td><td>4</td></tr>
+<tr><td>now</td><td>3</td></tr>
+<tr><td>game</td><td>3</td></tr>
+<tr><td>if</td><td>3</td></tr>
+<tr><td>what</td><td>3</td></tr>
+<tr><td>re</td><td>3</td></tr>
+<tr><td>over</td><td>2</td></tr></tbody></table>
+</div>
+<div>
+<h2>Top Insertions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>and</td><td>13</td></tr>
+<tr><td>that</td><td>12</td></tr>
+<tr><td>it</td><td>11</td></tr>
+<tr><td>a</td><td>10</td></tr>
+<tr><td>i</td><td>8</td></tr>
+<tr><td>of</td><td>6</td></tr>
+<tr><td>you</td><td>6</td></tr>
+<tr><td>the</td><td>5</td></tr>
+<tr><td>ah</td><td>5</td></tr>
+<tr><td>well</td><td>5</td></tr>
+<tr><td>terra</td><td>3</td></tr>
+<tr><td>in</td><td>3</td></tr>
+<tr><td>do</td><td>3</td></tr>
+<tr><td>there</td><td>3</td></tr>
+<tr><td>like</td><td>3</td></tr>
+<tr><td>know</td><td>3</td></tr>
+<tr><td>are</td><td>2</td></tr>
+<tr><td>1980</td><td>2</td></tr>
+<tr><td>then</td><td>2</td></tr>
+<tr><td>but</td><td>2</td></tr></tbody></table>
+</div>
+</div>
+
+<h2>Top 50 Worst Utterances (by error count)</h2>
+<article class="card" id="utt-1">
+  <header>
+    <span class="rank">#1</span>
+    <span class="utt-id">DanBarber-931.22-935</span>
+    <span class="stats">
+      8 errors &bull; WER 38.10%
+      &bull; S:0 D:8 I:0
+      &bull; 21 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/DanBarber-931.22-935.102-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/DanBarber-931.22-935.102-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i love pink flamingos but <span class="err-del" title="deleted">how</span> <span class="err-del" title="deleted">are</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">going</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">feed</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">world</span> how are you going to feed the world</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>how</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>are</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>going</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>feed</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>world</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-2">
+  <header>
+    <span class="rank">#2</span>
+    <span class="utt-id">JamesCameron-367.61-377</span>
+    <span class="stats">
+      6 errors &bull; WER 20.69%
+      &bull; S:4 D:2 I:0
+      &bull; 29 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-367.61-377.93-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-367.61-377.93-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">for film artists so <span class="err-del" title="deleted">i</span> i started a company with <span class="err-sub" title="sub: stan → tam">stan</span><span class="hyp-inline">[→tam]</span> winston my good friend <span class="err-sub" title="sub: stan → tam">stan</span><span class="hyp-inline">[→tam]</span> winston who is <span class="err-sub" title="sub: the → ah">the</span><span class="hyp-inline">[→ah]</span> the the premier <span class="err-del" title="deleted">make</span> <span class="err-sub" title="sub: up → makeup">up</span><span class="hyp-inline">[→makeup]</span> and and creature designer</div>
+  </details>
+  <details>
+    <summary>Error breakdown (6 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>stan</td><td>tam</td><td>2</td></tr>
+<tr><td>Sub</td><td>the</td><td>ah</td><td>1</td></tr>
+<tr><td>Sub</td><td>up</td><td>makeup</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>make</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-3">
+  <header>
+    <span class="rank">#3</span>
+    <span class="utt-id">JamesCameron-918.38-935</span>
+    <span class="stats">
+      6 errors &bull; WER 10.00%
+      &bull; S:2 D:3 I:1
+      &bull; 60 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-918.38-935.33-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-918.38-935.33-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">over a <span class="err-del" title="deleted">4</span> <span class="err-del" title="deleted">and</span> <span class="err-sub" title="sub: half → 4.5">half</span><span class="hyp-inline">[→4.5]</span> year period and it completely changed how i do movies so people have commented on how <span class="err-del" title="deleted">well</span> you know <span class="err-ins" title="inserted">+well</span> you brought back the ocean organisms and put them on the planet of <span class="err-sub" title="sub: pandora → andorra">pandora</span><span class="hyp-inline">[→andorra]</span> to me it was more of a fundamental way of doing business the process itself that changed as a result of that</div>
+  </details>
+  <details>
+    <summary>Error breakdown (6 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>half</td><td>4.5</td><td>1</td></tr>
+<tr><td>Sub</td><td>pandora</td><td>andorra</td><td>1</td></tr>
+<tr><td>Del</td><td>4</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>well</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>well</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-4">
+  <header>
+    <span class="rank">#4</span>
+    <span class="utt-id">DanBarber-579.476-583</span>
+    <span class="stats">
+      6 errors &bull; WER 54.55%
+      &bull; S:0 D:1 I:5
+      &bull; 11 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/DanBarber-579.476-583.082-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/DanBarber-579.476-583.082-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">unlike <span class="err-del" title="deleted">like</span> any fish <span class="err-ins" title="inserted">+farm</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+not</span> <span class="err-ins" title="inserted">+like</span> any farm i would ever been at</div>
+  </details>
+  <details>
+    <summary>Error breakdown (6 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>like</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>farm</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>not</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>like</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-5">
+  <header>
+    <span class="rank">#5</span>
+    <span class="utt-id">BillGates-483.07-496</span>
+    <span class="stats">
+      5 errors &bull; WER 14.29%
+      &bull; S:4 D:1 I:0
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-483.07-496.89-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-483.07-496.89-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">it</span> it really got them involved in the idea of you know there are people who live with <span class="err-sub" title="sub: mosquitos → mosquitoes">mosquitos</span><span class="hyp-inline">[→mosquitoes]</span> so with energy <span class="err-sub" title="sub: all → i">all</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: i → like">i</span><span class="hyp-inline">[→like]</span> <span class="err-sub" title="sub: could → to">could</span><span class="hyp-inline">[→to]</span> come up with is this i decided that releasing fireflies</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>mosquitos</td><td>mosquitoes</td><td>1</td></tr>
+<tr><td>Sub</td><td>all</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>could</td><td>to</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-6">
+  <header>
+    <span class="rank">#6</span>
+    <span class="utt-id">DanBarber-1025.87-1032</span>
+    <span class="stats">
+      5 errors &bull; WER 20.83%
+      &bull; S:4 D:1 I:0
+      &bull; 24 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/DanBarber-1025.87-1032.51-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/DanBarber-1025.87-1032.51-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">not by chainsaws but by forests and not by fishing boats and nets but by <span class="err-del" title="deleted">fish</span> <span class="err-sub" title="sub: in → fishing">in</span><span class="hyp-inline">[→fishing]</span> the sea <span class="err-sub" title="sub: want → one">want</span><span class="hyp-inline">[→one]</span> <span class="err-sub" title="sub: to → of">to</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: feed → you">feed</span><span class="hyp-inline">[→you]</span> the world</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>in</td><td>fishing</td><td>1</td></tr>
+<tr><td>Sub</td><td>want</td><td>one</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>feed</td><td>you</td><td>1</td></tr>
+<tr><td>Del</td><td>fish</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-7">
+  <header>
+    <span class="rank">#7</span>
+    <span class="utt-id">EricMead_2009P_EricMead-374.89-394</span>
+    <span class="stats">
+      5 errors &bull; WER 5.88%
+      &bull; S:0 D:4 I:1
+      &bull; 85 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/EricMead_2009P_EricMead-374.89-394.666-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/EricMead_2009P_EricMead-374.89-394.666-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">if you are queasy <span class="err-del" title="deleted">if</span> <span class="err-del" title="deleted">you</span> if you faint easily i was doing this for some friends in the hotel room last night and some people that i did not know and one woman almost passed out so i suggest if you <span class="err-ins" title="inserted">+are</span> if you get queasy easy <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">you</span> look away for about the next 30 in fact you know what i will do the 1st bad part behind it you will get to see you can look away too if you would like to</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>you</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>if</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-8">
+  <header>
+    <span class="rank">#8</span>
+    <span class="utt-id">S182-1145.5-1150</span>
+    <span class="stats">
+      5 errors &bull; WER 27.78%
+      &bull; S:0 D:3 I:2
+      &bull; 18 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/S182-1145.5-1150.06-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/S182-1145.5-1150.06-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">mean</span> 1st of all <span class="err-del" title="deleted">what</span> can you give a sense of what <span class="err-ins" title="inserted">+sort</span> <span class="err-ins" title="inserted">+of</span> scale of investment this is</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>mean</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>what</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>sort</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-9">
+  <header>
+    <span class="rank">#9</span>
+    <span class="utt-id">S182-1263.35-1270</span>
+    <span class="stats">
+      5 errors &bull; WER 19.23%
+      &bull; S:3 D:1 I:1
+      &bull; 26 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/S182-1263.35-1270.77-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/S182-1263.35-1270.77-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: but → mean">but</span><span class="hyp-inline">[→mean]</span> <span class="err-sub" title="sub: in → you">in</span><span class="hyp-inline">[→you]</span> <span class="err-sub" title="sub: your → are">your</span><span class="hyp-inline">[→are]</span> talking to different people around the world about the possibilities here <span class="err-del" title="deleted">where</span> where is there most interest in actually doing something with this</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>but</td><td>mean</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>your</td><td>are</td><td>1</td></tr>
+<tr><td>Del</td><td>where</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-10">
+  <header>
+    <span class="rank">#10</span>
+    <span class="utt-id">AimeeMullins-109.73-121</span>
+    <span class="stats">
+      5 errors &bull; WER 15.62%
+      &bull; S:2 D:0 I:3
+      &bull; 32 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/AimeeMullins-109.73-121.23-<o,f0,female>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AimeeMullins-109.73-121.23-%3Co%2Cf0%2Cfemale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">you know <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: hum → am">hum</span><span class="hyp-inline">[→am]</span> of course this is my raggedy old thesaurus i am thinking this must be an ancient print date right but in fact the print date was the early <span class="err-ins" title="inserted">+1980</span> <span class="err-sub" title="sub: 1980s → s">1980s</span><span class="hyp-inline">[→s]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>hum</td><td>am</td><td>1</td></tr>
+<tr><td>Sub</td><td>1980s</td><td>s</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>1980</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-11">
+  <header>
+    <span class="rank">#11</span>
+    <span class="utt-id">S182-1139.4-1145</span>
+    <span class="stats">
+      5 errors &bull; WER 45.45%
+      &bull; S:3 D:1 I:1
+      &bull; 11 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/S182-1139.4-1145.5-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/S182-1139.4-1145.5-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">thank you <span class="err-del" title="deleted">just</span> <span class="err-sub" title="sub: so → interested">so</span><span class="hyp-inline">[→interested]</span> <span class="err-sub" title="sub: i → to">i</span><span class="hyp-inline">[→to]</span> understand more about about <span class="err-ins" title="inserted">+terra</span> <span class="err-sub" title="sub: terrapower → power">terrapower</span><span class="hyp-inline">[→power]</span> right</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>so</td><td>interested</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>terrapower</td><td>power</td><td>1</td></tr>
+<tr><td>Del</td><td>just</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>terra</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-12">
+  <header>
+    <span class="rank">#12</span>
+    <span class="utt-id">S182-1362.83-1368</span>
+    <span class="stats">
+      5 errors &bull; WER 26.32%
+      &bull; S:3 D:0 I:2
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/S182-1362.83-1368.54-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/S182-1362.83-1368.54-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+mean</span> in terms of big scale possible game <span class="err-sub" title="sub: changes → changers">changes</span><span class="hyp-inline">[→changers]</span> <span class="err-sub" title="sub: is → this">is</span><span class="hyp-inline">[→this]</span> <span class="err-sub" title="sub: this → is">this</span><span class="hyp-inline">[→is]</span> the biggest that you are aware of out there</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>changes</td><td>changers</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>this</td><td>1</td></tr>
+<tr><td>Sub</td><td>this</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>mean</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-13">
+  <header>
+    <span class="rank">#13</span>
+    <span class="utt-id">TomWujec-179.95-188</span>
+    <span class="stats">
+      4 errors &bull; WER 14.81%
+      &bull; S:4 D:0 I:0
+      &bull; 27 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/TomWujec-179.95-188.63-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/TomWujec-179.95-188.63-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">always keeping the marshmallow on top so they have multiple times to <span class="err-sub" title="sub: to → fix">to</span><span class="hyp-inline">[→fix]</span> <span class="err-sub" title="sub: fix → and">fix</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: ill → to">ill</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: built → build">built</span><span class="hyp-inline">[→build]</span> prototypes along the way so designers recognize this type of collaboration</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>to</td><td>fix</td><td>1</td></tr>
+<tr><td>Sub</td><td>fix</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>ill</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>built</td><td>build</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-14">
+  <header>
+    <span class="rank">#14</span>
+    <span class="utt-id">JamesCameron-853.73-861</span>
+    <span class="stats">
+      4 errors &bull; WER 16.67%
+      &bull; S:1 D:3 I:0
+      &bull; 24 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-853.73-861.99-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-853.73-861.99-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">sometimes at sea <span class="err-del" title="deleted">for</span> for for <span class="err-del" title="deleted">2</span> <span class="err-del" title="deleted">or</span> <span class="err-sub" title="sub: 3 → 23">3</span><span class="hyp-inline">[→23]</span> months at a time and in that bond you realize that the most important thing</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>3</td><td>23</td><td>1</td></tr>
+<tr><td>Del</td><td>for</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>2</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>or</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-15">
+  <header>
+    <span class="rank">#15</span>
+    <span class="utt-id">EricMead_2009P_EricMead-296.17-313</span>
+    <span class="stats">
+      4 errors &bull; WER 6.35%
+      &bull; S:2 D:2 I:0
+      &bull; 63 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/EricMead_2009P_EricMead-296.17-313.16-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/EricMead_2009P_EricMead-296.17-313.16-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">right a syringe with some inert <span class="err-del" title="deleted">a</span> couple ccs of some inert something and you inject this into a patient well this is such a powerful image in their mind <span class="err-sub" title="sub: it → that">it</span><span class="hyp-inline">[→that]</span> it is so much stronger than the white pill <span class="err-del" title="deleted">it</span> is <span class="err-sub" title="sub: a → it">a</span><span class="hyp-inline">[→it]</span> really this graph well i will show it to you some other time when we have slides the point is</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>it</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>it</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-16">
+  <header>
+    <span class="rank">#16</span>
+    <span class="utt-id">GaryFlake-278.89-292</span>
+    <span class="stats">
+      4 errors &bull; WER 8.00%
+      &bull; S:2 D:2 I:0
+      &bull; 50 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/GaryFlake-278.89-292.49-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/GaryFlake-278.89-292.49-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">pop right back <span class="err-del" title="deleted">in</span> <span class="err-sub" title="sub: to → into">to</span><span class="hyp-inline">[→into]</span> a specific section now the reason why this is important is because by virtue of just viewing web pages in this way i can look at my entire browsing history in the exact same way so i can drill <span class="err-del" title="deleted">in</span> <span class="err-sub" title="sub: to → into">to</span><span class="hyp-inline">[→into]</span> what i have done</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>to</td><td>into</td><td>2</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>2</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-17">
+  <header>
+    <span class="rank">#17</span>
+    <span class="utt-id">GaryFlake-154.69-181</span>
+    <span class="stats">
+      4 errors &bull; WER 4.44%
+      &bull; S:2 D:1 I:1
+      &bull; 90 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/GaryFlake-154.69-181.26-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/GaryFlake-154.69-181.26-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">we think it changes the way information can be used so i want to extrapolate on this idea a bit with something that is a little bit crazy what we <span class="err-sub" title="sub: are → have">are</span><span class="hyp-inline">[→have]</span> done here is we have taken every single wikipedia page and we <span class="err-del" title="deleted">have</span> reduced it down to a little summary so the summary <span class="err-sub" title="sub: consisted → consists">consisted</span><span class="hyp-inline">[→consists]</span> of just <span class="err-ins" title="inserted">+a</span> little synopsis and an icon to indicate the topical area that it comes from i am only showing the top 500 most popular wikipedia pages right here but even in this limited view</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>are</td><td>have</td><td>1</td></tr>
+<tr><td>Sub</td><td>consisted</td><td>consists</td><td>1</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-18">
+  <header>
+    <span class="rank">#18</span>
+    <span class="utt-id">JamesCameron-252.56-267</span>
+    <span class="stats">
+      4 errors &bull; WER 8.00%
+      &bull; S:2 D:1 I:1
+      &bull; 50 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-252.56-267.05-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-252.56-267.05-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">this urge i had to tell stories with my my <span class="err-ins" title="inserted">+urge</span> <span class="err-sub" title="sub: urges → is">urges</span><span class="hyp-inline">[→is]</span> to create images and i was as a kid constantly drawing comic books and so on so <span class="err-del" title="deleted">film</span> <span class="err-sub" title="sub: making → filmmaking">making</span><span class="hyp-inline">[→filmmaking]</span> was the way to put put pictures and stories together and that made sense and of course the stories that</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>urges</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>making</td><td>filmmaking</td><td>1</td></tr>
+<tr><td>Del</td><td>film</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>urge</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-19">
+  <header>
+    <span class="rank">#19</span>
+    <span class="utt-id">JamesCameron-194.37-204</span>
+    <span class="stats">
+      4 errors &bull; WER 12.12%
+      &bull; S:2 D:2 I:0
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-194.37-204.3-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-194.37-204.3-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i did not see the ocean <span class="err-del" title="deleted">a</span> a real ocean for another 2 years until we until we moved to california <span class="err-sub" title="sub: you → and">you</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: know → now">know</span><span class="hyp-inline">[→now]</span> since then you know <span class="err-del" title="deleted">in</span> in the in the intervening</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>you</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>know</td><td>now</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-20">
+  <header>
+    <span class="rank">#20</span>
+    <span class="utt-id">JamesCameron-646.75-656</span>
+    <span class="stats">
+      4 errors &bull; WER 13.79%
+      &bull; S:0 D:4 I:0
+      &bull; 29 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-646.75-656.02-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-646.75-656.02-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and the set was based as an exact replica on the blueprints of the ship so it was this absolutely remarkable experience and it really <span class="err-del" title="deleted">made</span> <span class="err-del" title="deleted">me</span> <span class="err-del" title="deleted">realize</span> <span class="err-del" title="deleted">that</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>made</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>me</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>realize</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-21">
+  <header>
+    <span class="rank">#21</span>
+    <span class="utt-id">JamesCameron-70.81-77</span>
+    <span class="stats">
+      4 errors &bull; WER 20.00%
+      &bull; S:2 D:0 I:2
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-70.81-77.18-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-70.81-77.18-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+i</span> actually seemed to be mirrored in the world around me because what was happening this <span class="err-sub" title="sub: is → was">is</span><span class="hyp-inline">[→was]</span> in the late <span class="err-ins" title="inserted">+60</span> <span class="err-sub" title="sub: 60s → s">60s</span><span class="hyp-inline">[→s]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>is</td><td>was</td><td>1</td></tr>
+<tr><td>Sub</td><td>60s</td><td>s</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>60</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-22">
+  <header>
+    <span class="rank">#22</span>
+    <span class="utt-id">BillGates-449.76-464</span>
+    <span class="stats">
+      4 errors &bull; WER 8.16%
+      &bull; S:2 D:2 I:0
+      &bull; 49 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-449.76-464.58-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-449.76-464.58-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">where you have to get the miracle by a certain date usually you just kind of stand by and some come along some do not this is a case where we actually have to drive <span class="err-sub" title="sub: it → at">it</span><span class="hyp-inline">[→at]</span> full speed and get a miracle in <span class="err-del" title="deleted">a</span> a pretty tight <span class="err-del" title="deleted">time</span> <span class="err-sub" title="sub: line → timeline">line</span><span class="hyp-inline">[→timeline]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>it</td><td>at</td><td>1</td></tr>
+<tr><td>Sub</td><td>line</td><td>timeline</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>time</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-23">
+  <header>
+    <span class="rank">#23</span>
+    <span class="utt-id">JamesCameron-656.02-663</span>
+    <span class="stats">
+      4 errors &bull; WER 21.05%
+      &bull; S:3 D:0 I:1
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-656.02-663.46-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-656.02-663.46-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">made me realize that <span class="err-ins" title="inserted">+you</span> <span class="err-sub" title="sub: the → know">the</span><span class="hyp-inline">[→know]</span> the <span class="err-sub" title="sub: telepresense → telepresence">telepresense</span><span class="hyp-inline">[→telepresence]</span> experience that you actually can have these robotic avatars <span class="err-sub" title="sub: then → than">then</span><span class="hyp-inline">[→than]</span> your consciousness</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>the</td><td>know</td><td>1</td></tr>
+<tr><td>Sub</td><td>telepresense</td><td>telepresence</td><td>1</td></tr>
+<tr><td>Sub</td><td>then</td><td>than</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-24">
+  <header>
+    <span class="rank">#24</span>
+    <span class="utt-id">TomWujec-222.35-234</span>
+    <span class="stats">
+      4 errors &bull; WER 12.12%
+      &bull; S:2 D:2 I:0
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/TomWujec-222.35-234.55-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/TomWujec-222.35-234.55-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">39 inches is the tallest structure <span class="err-del" title="deleted">i</span> i have seen and why is it because they understand triangles and self <span class="err-del" title="deleted">re</span> <span class="err-sub" title="sub: enforcing → reinforcing">enforcing</span><span class="hyp-inline">[→reinforcing]</span> geometrical patterns are the key to building self <span class="err-sub" title="sub: reinforce → reinforced">reinforce</span><span class="hyp-inline">[→reinforced]</span> stable structures</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>enforcing</td><td>reinforcing</td><td>1</td></tr>
+<tr><td>Sub</td><td>reinforce</td><td>reinforced</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>re</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-25">
+  <header>
+    <span class="rank">#25</span>
+    <span class="utt-id">JamesCameron-267.05-278</span>
+    <span class="stats">
+      4 errors &bull; WER 11.76%
+      &bull; S:1 D:2 I:1
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-267.05-278.48-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-267.05-278.48-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i chose to tell were science fiction stories terminator aliens and <span class="err-ins" title="inserted">+then</span> the abyss and with the abyss <span class="err-del" title="deleted">i</span> i was putting together my love of underwater and diving with <span class="err-del" title="deleted">film</span> <span class="err-sub" title="sub: making → filmmaking">making</span><span class="hyp-inline">[→filmmaking]</span> so you know</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>making</td><td>filmmaking</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>film</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>then</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-26">
+  <header>
+    <span class="rank">#26</span>
+    <span class="utt-id">EricMead_2009P_EricMead-80.04-89</span>
+    <span class="stats">
+      4 errors &bull; WER 10.26%
+      &bull; S:3 D:0 I:1
+      &bull; 39 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/EricMead_2009P_EricMead-80.04-89.97-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/EricMead_2009P_EricMead-80.04-89.97-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i will do it for you and then i will explain it and then i will explain why i explained it <span class="err-sub" title="sub: ok → okay">ok</span><span class="hyp-inline">[→okay]</span> so here is what happens <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: the → little">the</span><span class="hyp-inline">[→little]</span> knife which you <span class="err-sub" title="sub: can → could">can</span><span class="hyp-inline">[→could]</span> examine my hand which you could examine</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>ok</td><td>okay</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>little</td><td>1</td></tr>
+<tr><td>Sub</td><td>can</td><td>could</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-27">
+  <header>
+    <span class="rank">#27</span>
+    <span class="utt-id">DanBarber-470.358-475</span>
+    <span class="stats">
+      4 errors &bull; WER 20.00%
+      &bull; S:1 D:0 I:3
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/DanBarber-470.358-475.43-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/DanBarber-470.358-475.43-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+you</span> <span class="err-sub" title="sub: and → know">and</span><span class="hyp-inline">[→know]</span> i am panting and sweating <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+have</span> got mud up to my knees and miguel is calmly conducting a biology lecture</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>and</td><td>know</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>have</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-28">
+  <header>
+    <span class="rank">#28</span>
+    <span class="utt-id">EricMead_2009P_EricMead-63.388-80</span>
+    <span class="stats">
+      4 errors &bull; WER 6.67%
+      &bull; S:2 D:0 I:2
+      &bull; 60 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/EricMead_2009P_EricMead-63.388-80.04-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/EricMead_2009P_EricMead-63.388-80.04-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">in order for us to understand each other i want to start by showing you a rudimentary very simple magic trick and i am going to show you how it works this is a trick that has been in every children is magic book since at least the <span class="err-ins" title="inserted">+1950</span> <span class="err-sub" title="sub: 1950s → s">1950s</span><span class="hyp-inline">[→s]</span> i learned it myself from cub scout magic in the <span class="err-ins" title="inserted">+1970</span> <span class="err-sub" title="sub: 1970s → s">1970s</span><span class="hyp-inline">[→s]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>1950s</td><td>s</td><td>1</td></tr>
+<tr><td>Sub</td><td>1970s</td><td>s</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>1950</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>1970</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-29">
+  <header>
+    <span class="rank">#29</span>
+    <span class="utt-id">BillGates-1331.86-1340</span>
+    <span class="stats">
+      4 errors &bull; WER 16.67%
+      &bull; S:2 D:1 I:1
+      &bull; 24 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-1331.86-1340.86-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-1331.86-1340.86-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">that the <span class="err-sub" title="sub: environment → environmental">environment</span><span class="hyp-inline">[→environmental]</span> models environmental models <span class="err-del" title="deleted">have</span> have have shown us that we have to meet and you know <span class="err-ins" title="inserted">+terra</span> <span class="err-sub" title="sub: terrapower → power">terrapower</span><span class="hyp-inline">[→power]</span> if things go well</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>environment</td><td>environmental</td><td>1</td></tr>
+<tr><td>Sub</td><td>terrapower</td><td>power</td><td>1</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>terra</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-30">
+  <header>
+    <span class="rank">#30</span>
+    <span class="utt-id">GaryFlake-87.62-95</span>
+    <span class="stats">
+      4 errors &bull; WER 16.67%
+      &bull; S:3 D:1 I:0
+      &bull; 24 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/GaryFlake-87.62-95.89-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/GaryFlake-87.62-95.89-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">swimming <span class="err-sub" title="sub: in → and">in</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: an → then">an</span><span class="hyp-inline">[→then]</span> living information <span class="err-del" title="deleted">info</span> <span class="err-sub" title="sub: graphic → infographic">graphic</span><span class="hyp-inline">[→infographic]</span> and if we can do this for raw data why not do it for content as well</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>in</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>an</td><td>then</td><td>1</td></tr>
+<tr><td>Sub</td><td>graphic</td><td>infographic</td><td>1</td></tr>
+<tr><td>Del</td><td>info</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-31">
+  <header>
+    <span class="rank">#31</span>
+    <span class="utt-id">MichaelSpecter-79.704-87</span>
+    <span class="stats">
+      4 errors &bull; WER 14.81%
+      &bull; S:3 D:1 I:0
+      &bull; 27 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/MichaelSpecter-79.704-87.33-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/MichaelSpecter-79.704-87.33-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">there <span class="err-del" title="deleted">would</span> better be <span class="err-sub" title="sub: there → a">there</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: would → there">would</span><span class="hyp-inline">[→there]</span> better be a 9 <span class="err-sub" title="sub: at → in">at</span><span class="hyp-inline">[→in]</span> the beginning of my death number but it is not even about people like us because</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>there</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>would</td><td>there</td><td>1</td></tr>
+<tr><td>Sub</td><td>at</td><td>in</td><td>1</td></tr>
+<tr><td>Del</td><td>would</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-32">
+  <header>
+    <span class="rank">#32</span>
+    <span class="utt-id">BillGates-1630.51-1639</span>
+    <span class="stats">
+      4 errors &bull; WER 12.50%
+      &bull; S:2 D:0 I:2
+      &bull; 32 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-1630.51-1639.92-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-1630.51-1639.92-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">getting more <span class="err-sub" title="sub: discussed → disgust">discussed</span><span class="hyp-inline">[→disgust]</span> he he is still because of his earlier stuff <span class="err-ins" title="inserted">+sort</span> <span class="err-sub" title="sub: further → of">further</span><span class="hyp-inline">[→of]</span> associated with the skeptic camp but he is realized that is that is a pretty lonely camp <span class="err-ins" title="inserted">+and</span> and so</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>discussed</td><td>disgust</td><td>1</td></tr>
+<tr><td>Sub</td><td>further</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>sort</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-33">
+  <header>
+    <span class="rank">#33</span>
+    <span class="utt-id">BillGates-784.66-803</span>
+    <span class="stats">
+      3 errors &bull; WER 5.77%
+      &bull; S:2 D:0 I:1
+      &bull; 52 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-784.66-803.89-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-784.66-803.89-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">bill gross has several companies including one called <span class="err-ins" title="inserted">+e</span> <span class="err-sub" title="sub: esolar → solar">esolar</span><span class="hyp-inline">[→solar]</span> that has some great solar thermal <span class="err-sub" title="sub: technologies → technology">technologies</span><span class="hyp-inline">[→technology]</span> vinod khosla is investing in dozens of companies that are doing great things and have interesting possibilities and i am i am trying to help back that nathan myhrvold and i actually are backing a company</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>esolar</td><td>solar</td><td>1</td></tr>
+<tr><td>Sub</td><td>technologies</td><td>technology</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>e</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-34">
+  <header>
+    <span class="rank">#34</span>
+    <span class="utt-id">JaneMcGonigal-316-328</span>
+    <span class="stats">
+      3 errors &bull; WER 6.38%
+      &bull; S:2 D:1 I:0
+      &bull; 47 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JaneMcGonigal-316-328.644-<o,f0,female>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JaneMcGonigal-316-328.644-%3Co%2Cf0%2Cfemale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">ready to work with you to achieve your epic mission <span class="err-sub" title="sub: it → that">it</span><span class="hyp-inline">[→that]</span> is not something <span class="err-del" title="deleted">that</span> we have in real life that easily <span class="err-sub" title="sub: this → the">this</span><span class="hyp-inline">[→the]</span> sense that at our fingertips are tons of collaborators and also there is this epic story this inspiring story of why we are there</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>it</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>this</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-35">
+  <header>
+    <span class="rank">#35</span>
+    <span class="utt-id">BillGates-811.93-823</span>
+    <span class="stats">
+      3 errors &bull; WER 9.68%
+      &bull; S:1 D:0 I:2
+      &bull; 31 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-811.93-823.39-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-811.93-823.39-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and innovation really stopped in this industry quite some time ago so the idea that there is some good ideas laying around is not all that surprising the idea of <span class="err-ins" title="inserted">+a</span> <span class="err-ins" title="inserted">+terra</span> <span class="err-sub" title="sub: terrapower → power">terrapower</span><span class="hyp-inline">[→power]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>terrapower</td><td>power</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>terra</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-36">
+  <header>
+    <span class="rank">#36</span>
+    <span class="utt-id">EricMead_2009P_EricMead-453.034-464</span>
+    <span class="stats">
+      3 errors &bull; WER 5.88%
+      &bull; S:1 D:1 I:1
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/EricMead_2009P_EricMead-453.034-464.436-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/EricMead_2009P_EricMead-453.034-464.436-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and the people in the back go okay i did not really see <span class="err-sub" title="sub: that → the">that</span><span class="hyp-inline">[→the]</span> people in <span class="err-del" title="deleted">the</span> satellite room are like starting to move in now let me give you <span class="err-ins" title="inserted">+a</span> good close look at this that really is my skin that is not a hollywood special effect that is my flesh</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>that</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-37">
+  <header>
+    <span class="rank">#37</span>
+    <span class="utt-id">BillGates-1435.52-1446</span>
+    <span class="stats">
+      3 errors &bull; WER 7.32%
+      &bull; S:1 D:2 I:0
+      &bull; 41 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-1435.52-1446.45-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-1435.52-1446.45-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">you have been <span class="err-del" title="deleted">over</span> <span class="err-sub" title="sub: eating → overeating">eating</span><span class="hyp-inline">[→overeating]</span> and you are about to have a heart attack you know <span class="err-del" title="deleted">then</span> then then where do you go you may need heart surgery or something there is a line of research on what is called geoengineering</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>eating</td><td>overeating</td><td>1</td></tr>
+<tr><td>Del</td><td>over</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>then</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-38">
+  <header>
+    <span class="rank">#38</span>
+    <span class="utt-id">EricMead_2009P_EricMead-89.97-99</span>
+    <span class="stats">
+      3 errors &bull; WER 7.32%
+      &bull; S:0 D:3 I:0
+      &bull; 41 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/EricMead_2009P_EricMead-89.97-99.49-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/EricMead_2009P_EricMead-89.97-99.49-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">am</span> just going to hold the knife in my fist like this i will get my sleeve back and to make sure nothing goes up or down my sleeve i am just going to squeeze my wrist right here <span class="err-del" title="deleted">right</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>am</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>right</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-39">
+  <header>
+    <span class="rank">#39</span>
+    <span class="utt-id">JamesCameron-627.08-636</span>
+    <span class="stats">
+      3 errors &bull; WER 10.00%
+      &bull; S:0 D:2 I:1
+      &bull; 30 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-627.08-636.44-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-627.08-636.44-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i felt like i was physically present inside the shipwreck of titanic and it was <span class="err-ins" title="inserted">+ah</span> the most surreal kind of deja vu experience <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">have</span> i have ever had because</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ah</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-40">
+  <header>
+    <span class="rank">#40</span>
+    <span class="utt-id">DanBarber-90.94-99</span>
+    <span class="stats">
+      3 errors &bull; WER 13.64%
+      &bull; S:1 D:1 I:1
+      &bull; 22 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/DanBarber-90.94-99.998-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/DanBarber-90.94-99.998-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">90% of large fish the ones we love the tunas the halibuts the salmons swordfish <span class="err-del" title="deleted">they</span> have collapsed there <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: was → almost">was</span><span class="hyp-inline">[→almost]</span> nothing left</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>was</td><td>almost</td><td>1</td></tr>
+<tr><td>Del</td><td>they</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-41">
+  <header>
+    <span class="rank">#41</span>
+    <span class="utt-id">AimeeMullins-883.06-892</span>
+    <span class="stats">
+      3 errors &bull; WER 9.09%
+      &bull; S:2 D:1 I:0
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/AimeeMullins-883.06-892.05-<o,f0,female>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AimeeMullins-883.06-892.05-%3Co%2Cf0%2Cfemale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and i was standing over a bushel of tomatoes it was <span class="err-del" title="deleted">summer</span> <span class="err-sub" title="sub: time → summertime">time</span><span class="hyp-inline">[→summertime]</span> i had shorts on i hear this guy his voice behind me say well if it is not <span class="err-sub" title="sub: aimee → amy">aimee</span><span class="hyp-inline">[→amy]</span> mullins</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>time</td><td>summertime</td><td>1</td></tr>
+<tr><td>Sub</td><td>aimee</td><td>amy</td><td>1</td></tr>
+<tr><td>Del</td><td>summer</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-42">
+  <header>
+    <span class="rank">#42</span>
+    <span class="utt-id">RobertGupta_2010U_S57-361.23-362</span>
+    <span class="stats">
+      3 errors &bull; WER 150.00%
+      &bull; S:2 D:0 I:1
+      &bull; 2 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/RobertGupta_2010U_S57-361.23-362.2-<o,f0,>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/RobertGupta_2010U_S57-361.23-362.2-%3Co%2Cf0%2C%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: robert → have">robert</span><span class="hyp-inline">[→have]</span> <span class="err-sub" title="sub: gupta → got">gupta</span><span class="hyp-inline">[→got]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>robert</td><td>have</td><td>1</td></tr>
+<tr><td>Sub</td><td>gupta</td><td>got</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-43">
+  <header>
+    <span class="rank">#43</span>
+    <span class="utt-id">TomWujec-290.55-311</span>
+    <span class="stats">
+      3 errors &bull; WER 4.76%
+      &bull; S:1 D:2 I:0
+      &bull; 63 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/TomWujec-290.55-311.42-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/TomWujec-290.55-311.42-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">not one team had a standing structure not one had <span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">a</span> if anyone had built say a one inch structure they <span class="err-sub" title="sub: could → would">could</span><span class="hyp-inline">[→would]</span> have taken home the prize so is not it interesting that high stakes have a strong impact we did the exercise again with the same students what do you think happened then so now they understand the value of prototyping</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>could</td><td>would</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>2</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-44">
+  <header>
+    <span class="rank">#44</span>
+    <span class="utt-id">JamesCameron-935.33-949</span>
+    <span class="stats">
+      3 errors &bull; WER 8.57%
+      &bull; S:0 D:3 I:0
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-935.33-949.08-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-935.33-949.08-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">so what can we synthesize out of all this you know <span class="err-del" title="deleted">what</span> <span class="err-del" title="deleted">is</span> <span class="err-del" title="deleted">the</span> what are the lessons learned well i think number one is curiosity it is the most powerful thing you own imagination</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>what</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-45">
+  <header>
+    <span class="rank">#45</span>
+    <span class="utt-id">JamesCameron-866.99-880</span>
+    <span class="stats">
+      3 errors &bull; WER 5.36%
+      &bull; S:1 D:2 I:0
+      &bull; 56 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/JamesCameron-866.99-880.26-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/JamesCameron-866.99-880.26-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">that you can not explain to someone else when you come back to the shore and you say you know we had to do this and the fiber optic and the <span class="err-sub" title="sub: attentuation → attenuation">attentuation</span><span class="hyp-inline">[→attenuation]</span> and <span class="err-del" title="deleted">the</span> this and <span class="err-del" title="deleted">the</span> that all the all the technology of it and the difficulty the human performance aspects of working at sea</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>attentuation</td><td>attenuation</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>2</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-46">
+  <header>
+    <span class="rank">#46</span>
+    <span class="utt-id">BillGates-1639.92-1649</span>
+    <span class="stats">
+      3 errors &bull; WER 8.11%
+      &bull; S:1 D:2 I:0
+      &bull; 37 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-1639.92-1649.78-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-1639.92-1649.78-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">he is making the r and d and and so there is <span class="err-del" title="deleted">a</span> a a <span class="err-sub" title="sub: thread → threat">thread</span><span class="hyp-inline">[→threat]</span> of something that <span class="err-del" title="deleted">i</span> i think is appropriate the r and d piece it is crazy how little it is funded</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>thread</td><td>threat</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-47">
+  <header>
+    <span class="rank">#47</span>
+    <span class="utt-id">EricMead_2009P_EricMead-288.836-296</span>
+    <span class="stats">
+      3 errors &bull; WER 11.11%
+      &bull; S:0 D:1 I:2
+      &bull; 27 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/EricMead_2009P_EricMead-288.836-296.17-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/EricMead_2009P_EricMead-288.836-296.17-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">these dosages have something to do with it and the form has something <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+do</span> and if you want the ultimate in placebo you <span class="err-del" title="deleted">have</span> go to the needle</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-48">
+  <header>
+    <span class="rank">#48</span>
+    <span class="utt-id">BillGates-411.6-426</span>
+    <span class="stats">
+      3 errors &bull; WER 7.69%
+      &bull; S:2 D:1 I:0
+      &bull; 39 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/BillGates-411.6-426.26-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/BillGates-411.6-426.26-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">no if you burn natural gas <span class="err-sub" title="sub: no → now">no</span><span class="hyp-inline">[→now]</span> almost every way we make electricity today except for the emerging renewables and nuclear puts out co 2 and so <span class="err-del" title="deleted">what</span> we are going to have to do <span class="err-sub" title="sub: at → it">at</span><span class="hyp-inline">[→it]</span> a global scale</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>no</td><td>now</td><td>1</td></tr>
+<tr><td>Sub</td><td>at</td><td>it</td><td>1</td></tr>
+<tr><td>Del</td><td>what</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-49">
+  <header>
+    <span class="rank">#49</span>
+    <span class="utt-id">GaryFlake-352.82-367</span>
+    <span class="stats">
+      3 errors &bull; WER 6.98%
+      &bull; S:2 D:0 I:1
+      &bull; 43 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/GaryFlake-352.82-367.14-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/GaryFlake-352.82-367.14-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">of being trapped in data we might actually extract information and instead of dealing just with information we can tease out knowledge and if we get the knowledge <span class="err-ins" title="inserted">+there</span> <span class="err-sub" title="sub: then → may">then</span><span class="hyp-inline">[→may]</span> <span class="err-sub" title="sub: maybe → be">maybe</span><span class="hyp-inline">[→be]</span> even there is wisdom to be found so with that i thank you</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>then</td><td>may</td><td>1</td></tr>
+<tr><td>Sub</td><td>maybe</td><td>be</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>there</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-50">
+  <header>
+    <span class="rank">#50</span>
+    <span class="utt-id">DanielKahneman-952.758-965</span>
+    <span class="stats">
+      3 errors &bull; WER 8.11%
+      &bull; S:1 D:1 I:1
+      &bull; 37 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/tedlium/wavs/DanielKahneman-952.758-965.882-<o,f0,male>.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/DanielKahneman-952.758-965.882-%3Co%2Cf0%2Cmale%3E.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and that contrast <span class="err-del" title="deleted">say</span> <span class="err-sub" title="sub: is → says">is</span><span class="hyp-inline">[→says]</span> in climate well it turns out that climate is not very important to the experiencing self and <span class="err-ins" title="inserted">+it</span> is not even very important to the reflective self that decides how happy people are</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>is</td><td>says</td><td>1</td></tr>
+<tr><td>Del</td><td>say</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+
+</main></div>
+</body></html>

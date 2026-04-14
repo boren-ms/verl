@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repetition Hallucinations — phi7b Ami</title>
+<style>
+  :root {
+    --bg: #f8f9fa; --card-bg: #fff; --border: #dee2e6; --text: #212529;
+    --muted: #6c757d; --red: #dc3545; --red-bg: #fff5f5; --green: #198754;
+    --green-bg: #f0fdf4; --blue: #0d6efd; --blue-bg: #eff6ff;
+    --orange: #fd7e14; --orange-bg: #fff7ed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; padding: 2rem;
+  }
+  h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .stats { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .stat-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.5rem; min-width: 140px;
+  }
+  .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--red); }
+  .stat-card .label { font-size: 0.85rem; color: var(--muted); }
+  .legend {
+    display: flex; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px; display: inline-block;
+  }
+  .case {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 1rem; overflow: hidden;
+  }
+  .case-header {
+    background: #f1f3f5; padding: 0.6rem 1rem; display: flex;
+    align-items: center; gap: 1rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .rank { font-weight: 700; font-size: 1.1rem; color: var(--red); min-width: 2rem; }
+  .audio-id {
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.82rem;
+    color: var(--muted); background: #e9ecef; padding: 2px 8px; border-radius: 4px;
+  }
+  .pattern-tag {
+    font-size: 0.82rem; color: var(--red); background: var(--red-bg);
+    padding: 2px 10px; border-radius: 12px; font-weight: 600; margin-left: auto;
+  }
+  .transcript-pair { padding: 0.8rem 1rem; }
+  .transcript { padding: 0.5rem 0; font-size: 0.92rem; line-height: 1.7; }
+  .transcript .label {
+    display: inline-block; width: 3rem; font-weight: 700; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.05em; vertical-align: top; padding-top: 2px;
+  }
+  .ref-row .label { color: var(--green); }
+  .hyp-row .label { color: var(--blue); }
+  .transcript .text { display: inline; }
+  .ref-row { border-bottom: 1px dashed #e9ecef; }
+  span.rep {
+    background: #fecaca; color: #991b1b; font-weight: 600;
+    padding: 1px 4px; border-radius: 3px; border: 1px solid #fca5a5;
+  }
+  .footer { margin-top: 2rem; font-size: 0.8rem; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<h1>Repetition Hallucinations</h1>
+<p class="subtitle">phi7b_20260413 &mdash; Ami &mdash; 90 cases detected from 12,643 utterances</p>
+
+<div class="stats">
+  <div class="stat-card"><div class="value">90</div><div class="label">Total Cases</div></div>
+  <div class="stat-card"><div class="value">0</div><div class="label">Severe (8+ repeats)</div></div>
+  <div class="stat-card"><div class="value">12</div><div class="label">Moderate (4-7 repeats)</div></div>
+  <div class="stat-card"><div class="value">78</div><div class="label">Mild (3 repeats)</div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch" style="background:#fecaca;border:1px solid #fca5a5"></span> Repeated sequence</div>
+</div>
+
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#1</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H03_MEE073_0088813_0089409.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H03_MEE073_0088813_0089409.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;no&quot; repeated 5x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">No, just just panes, just result panes for each of the three no no no, no No.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">No, just just panes, just result panes for each of the three <span class="rep">no no no no, no.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#2</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0133914_0134088.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0133914_0134088.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;no&quot; repeated 5x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">No no no no no, forget it.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">No no no no no,</span> forget it.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#3</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0074908_0075230.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0074908_0075230.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">The the the uh the object is a NOM right element, I think.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">The the the the</span> object is a non-right element, i think.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#4</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H02_FIO084_0135352_0135967.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009c_H02_FIO084_0135352_0135967.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively; &quot;no&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">No, no, no, th the the the scrolling wheels are different, like you can go for a sw switches like buttons or scrolls,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">No no no the the the the</span> scrolling was uh different like you can go for s switches like buttons or scrolls.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#5</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_TS3003c_H02_MTD0010ID_0131552_0131947.wav</span>
+        <audio controls preload="none" src="wavs/AMI_TS3003c_H02_MTD0010ID_0131552_0131947.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Well there isn&#x27;t any choice there because we&#x27;re using the the the the display.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Well there isn&#x27;t any choice there, because we&#x27;re using <span class="rep">the the the the</span> display.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#6</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H00_FIE088_0009435_0010653.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009d_H00_FIE088_0009435_0010653.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh speech recognition is one of her very f favourite personal uh features she would like see d d to be integrated in this um in this new remote.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh speech recognition is one of her very fa favourite personal uh features she would like see <span class="rep">to to to to</span> be integrated in this um in this new remote.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#7</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0017486_0018262.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0017486_0018262.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Um this speaker, um the data processing is fine, but uh we don&#x27;t particularly want to do the b the the b the GUI for it.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um the speak um the data processing is fine, but i would don&#x27;t particularly want to do <span class="rep">the the the the</span> g. u. i. for it.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#8</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H01_FEO072_0161177_0161402.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H01_FEO072_0161177_0161402.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#9</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_ES2004a_H00_MEO015_0008050_0008166.wav</span>
+        <audio controls preload="none" src="wavs/AMI_ES2004a_H00_MEO015_0008050_0008166.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Tu tu tu tu</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">To to to to.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#10</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0034404_0034674.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0034404_0034674.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And it the the th the start-up&#x27;s great, looks quite good, looks alright.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And <span class="rep">the the the the</span> startup screen looks quite good, looks alright.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#11</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0155341_0156222.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0155341_0156222.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">But I suppose even calculating the the w the the what&#x27;s-its-faces themselves would be too much too long.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I suppose even calculating <span class="rep">the the the the</span> what&#x27;s its faces themselves wouldn&#x27;t be too much too long.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#12</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H01_FEO072_0184287_0185068.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H01_FEO072_0184287_0185068.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;i&#x27;m&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So to come back to the start-up screen I&#x27;m I&#x27;m I&#x27;m I&#x27;m very unsure about what that should look like.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So to come back to the start screen <span class="rep">i&#x27;m i&#x27;m i&#x27;m i&#x27;m</span> very unsure about what that should look like.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#13</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_ES2004d_H02_MEE014_0175366_0176275.wav</span>
+        <audio controls preload="none" src="wavs/AMI_ES2004d_H02_MEE014_0175366_0176275.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;if&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I think it would have made it into the final product if it was actually if if if we&#x27;d seen the marketing before the initial specification was put out,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I think it would have made it into the final product if it was actually <span class="rep">if if if</span> we&#x27;d seen the marketing before the initial specification was put out.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#14</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0083182_0084080.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0083182_0084080.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">If make it useable for more than one device it&#x27;s a it&#x27;s hard but I think it&#x27;s possible but it uh yeah yeah yeah so it&#x27;s it&#x27;s okay,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">If make it usable for more than one device, it&#x27;s uh it&#x27;s hard but i think it&#x27;s possible, but it&#x27;s uh <span class="rep">yeah yeah yeah,</span> so it&#x27;s it&#x27;s okay.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#15</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009a_H00_FIE088_0076472_0077087.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009a_H00_FIE088_0076472_0077087.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;two&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So um we have well, we have a twen two two two three minutes.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So um we have well we have a twi <span class="rep">two two two</span> three minutes.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#16</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_TS3003d_H03_MTD012ME_0106964_0107498.wav</span>
+        <audio controls preload="none" src="wavs/AMI_TS3003d_H03_MTD012ME_0106964_0107498.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: scroll to eight click, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Well, that could be just uh like the scroll to eight, click, scroll to eight, click, scroll to eight, click.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Well that could be just uh like the <span class="rep">scroll to eight click, scroll to eight click, scroll to eight click.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#17</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0158970_0159494.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0158970_0159494.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;no&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">No no no, but that&#x27;s what isn&#x27;t that what the idea was in the first place to rank these rank the results so that</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">No no no,</span> but that&#x27;s what isn&#x27;t that what the idea was in the first place, to rank these rank the results, so that</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#18</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H03_MEE073_0038183_0038603.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H03_MEE073_0038183_0038603.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: if you, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">If you if you ch if you change your window manager, it might look a little bit nicer.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">If you if you if you</span> change your window manager it might look a little bit nicer.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#19</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0023928_0024337.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0023928_0024337.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;in&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Well in uh I guess in in In meeting browser one point one</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Well in i i guess <span class="rep">in in in</span> meeting browser one point one.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#20</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H01_FEO070_0197331_0197709.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H01_FEO070_0197331_0197709.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, yeah, yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#21</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H01_FEO072_0263885_0264236.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H01_FEO072_0263885_0264236.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: it would, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I think I think it w it would it would give you the most relevant result.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I think i think <span class="rep">it would it would it would</span> give you the most relevant result.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#22</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H01_FIO087_0121146_0121371.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H01_FIO087_0121146_0121371.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yes&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yes yes yes.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yes, yes, yes.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#23</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H02_FEO072_0067093_0067298.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H02_FEO072_0067093_0067298.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yea yeah yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#24</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0147717_0147775.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0147717_0147775.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#25</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_TS3003d_H03_MTD012ME_0104980_0105892.wav</span>
+        <audio controls preload="none" src="wavs/AMI_TS3003d_H03_MTD012ME_0104980_0105892.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;eight&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Well, think it&#x27;s pretty much the teletext subtitles are right now you just push the teletext button, go to page eight eight eight, and teletext disappears.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Well i think it&#x27;s pretty much the teletext subtitles are right now you just push the teletext button, go to page <span class="rep">eight eight eight</span> and teletext disappears.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#26</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H03_FIO089_0148032_0148872.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009c_H03_FIO089_0148032_0148872.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;our&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So we&#x27;ve gotta narrow our selection down to li two things, I think, that we gonna say are really great about our our our new product.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So we&#x27;ve gotta narrow our selection down to two things i think that we&#x27;re gonna say are really great about <span class="rep">our our our</span> new product.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#27</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0093450_0094076.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0093450_0094076.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;set&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">You do it in um one of the w whatever the main is it you set w GIF or some Set f set set picture or something.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">You do it in um one of the whatever the main window is, you do set gif or something <span class="rep">set set set</span> picture or something.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#28</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_TS3003b_H02_MTD0010ID_0137249_0137872.wav</span>
+        <audio controls preload="none" src="wavs/AMI_TS3003b_H02_MTD0010ID_0137249_0137872.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;on&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">We don&#x27;t have to focus on on on the on the design then but on functionality.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">We don&#x27;t have to focus <span class="rep">on on on</span> the on the design then, but on functionality.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#29</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H03_MEE073_0083471_0083998.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H03_MEE073_0083471_0083998.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;blah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Like just if they check all three say topics, summaries, blah blah blah, have three different windows come up?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Like just if they check all three say topics summaries <span class="rep">blah blah blah,</span> have three different windows come up.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#30</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009a_H00_FIE088_0062575_0063003.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009a_H00_FIE088_0062575_0063003.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;it&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">In in that moment it has a sensor, i it it gets a certain darkness</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">In in that moment it has a sensor, <span class="rep">it it it</span> gets a certain darkness</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#31</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0186661_0186947.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0186661_0186947.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;i&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Mm, I I I don&#x27;t think no.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">I i i</span> don&#x27;t think no.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#32</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_TS3003c_H01_MTD011UID_0165067_0165324.wav</span>
+        <audio controls preload="none" src="wavs/AMI_TS3003c_H01_MTD011UID_0165067_0165324.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">For uh Uh for Yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">For uh uh for the <span class="rep">yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#33</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_ES2004a_H03_FEE016_0102210_0102441.wav</span>
+        <audio controls preload="none" src="wavs/AMI_ES2004a_H03_FEE016_0102210_0102441.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, yeah, yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#34</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H01_FEO072_0064597_0064749.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H01_FEO072_0064597_0064749.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah yeah, yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#35</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0139544_0139677.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0139544_0139677.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;two&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Two two two weeks today.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Two two two</span> weeks today.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#36</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_TS3003c_H01_MTD011UID_0043838_0043943.wav</span>
+        <audio controls preload="none" src="wavs/AMI_TS3003c_H01_MTD011UID_0043838_0043943.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;mm&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Mm no.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Mm mm mm.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#37</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H01_FEO070_0035885_0035950.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H01_FEO070_0035885_0035950.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;no&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">No no no.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">No no no.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#38</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0063941_0066293.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0063941_0066293.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;you&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">It should be a battery because uh uh remote controller should be like you you you should take it t to wherever you want and then um uh th this integrated circuitry takes energy from the power source and whatever like if you press a button it&#x27;s like a input for the remote controller and it takes the input and it it transforms into a infro infrared bits and it sends it into the device,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">It should be a battery because uh uh remote control should be like <span class="rep">you you you</span> should take it to to wherever you want and then uh uh this integrated circuit it ta takes energy from the power source and whatever like if you press a button it&#x27;s like a input for the remote controller and it takes the input and it it transforms into uh infra infrared bits and it sends it it to the device.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#39</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H02_FIO084_0090140_0092106.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009c_H02_FIO084_0090140_0092106.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;through&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And the uh other component we should uh we have in the remote controller is a resistor uh which is like uh uh i it is very very much important for the electricity uh flow through through through the uh remote controller and uh also a capacitor which is a b which is a m I think it&#x27;s it&#x27;s like a battery</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And the uh other component we should uh we have in the remote controller is a resistor uh which is like uh it is very very much important for the electricity uh flow <span class="rep">through through through</span> the remote controller and also a capacitor which is a which is a i think it&#x27;s it&#x27;s like a battery.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#40</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H00_FIE088_0024040_0025146.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009d_H00_FIE088_0024040_0025146.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">The marketing expert uh who has to finally come up with to to to market this product has been watching the competition,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">The marketing expert uh who has to finally come up with <span class="rep">to to to</span> market this product has been watching the competition</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#41</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009a_H00_FIE088_0056614_0057317.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009a_H00_FIE088_0056614_0057317.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;a&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Well or yeah or if it&#x27;s really, if it&#x27;s really in a dark spot that it gives out a a sound or a signal.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Well or yeah, or if it&#x27;s really if it&#x27;s really in a dark spot that it gives out <span class="rep">a a a</span> sound or a signal</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#42</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H02_FIO084_0126004_0126666.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009c_H02_FIO084_0126004_0126666.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Like for s scrolls we have to go for a sophisticated and and k uh uh uh full a complete chip.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Like for sc rolls we have to go for a sophisticated and and c <span class="rep">uh uh uh</span> full complete chip.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#43</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0099438_0100082.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0099438_0100082.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;some&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Some some some speech and some music, some drum rolls.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Some some some</span> speech and some music, some drum rolls.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#44</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0144569_0145137.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0144569_0145137.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;much&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I gave up doing that completely and just defaulted back to n uh NITE stuff, &#x27;cause it was much much much easier.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I gave up doing that completely and just devolted back to n uh night stuff &#x27;cause it was <span class="rep">much much much</span> easier.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#45</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H03_MEE073_0264093_0264561.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H03_MEE073_0264093_0264561.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;if&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">If if if they&#x27;re looking for, like I say, sunny day and,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">If if if</span> they&#x27;re looking for like i say sunny day and</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#46</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H03_MEE073_0280998_0281269.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H03_MEE073_0280998_0281269.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: i don&#x27;t, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So I don I don&#x27;t know I don&#x27;t know what what it&#x27;s doing.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So <span class="rep">i don&#x27;t i don&#x27;t i don&#x27;t</span> know what what it&#x27;s doing.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#47</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H03_MEE073_0203527_0203630.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H03_MEE073_0203527_0203630.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;blah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">then do this, blah blah blah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Then do this, <span class="rep">blah blah blah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#48</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H00_FEO070_0042617_0044950.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H00_FEO070_0042617_0044950.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;it&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">He he d he doesn&#x27;t have to know exactly what I mean, yeah m I mean it&#x27;s hot finished, but it doesn&#x27;t really say</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">It it it</span> doesn&#x27;t have to know exactly what i&#x27;ve done i mean yeah it went i mean it&#x27;s not finished but it doesn&#x27;t really make sense.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#49</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H03_FIO089_0050250_0050983.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H03_FIO089_0050250_0050983.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;now&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">You&#x27;ve gotta make it attractive enough so they buy it now now now w now is a big word in in my book for selling this thing.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">You&#x27;ve gotta make it attractive enough so they buy it <span class="rep">now now now</span> well now is a big word in in my book for selling this thing.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#50</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H00_FIE088_0190982_0191694.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H00_FIE088_0190982_0191694.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;is&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">and but like if if then everybody is is is tired of the fluorescent blue and of the striped or whatever they have as another one in the package</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And but like if if then everybody <span class="rep">is is is</span> tired of the fluorescent blue and of the striped or whatever they have as another one in the package,</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#51</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0028261_0028966.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0028261_0028966.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;sleep&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Sleep, sleep, food, sleep.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Sleep, sleep, sleep.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#52</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H01_FEO072_0221530_0222119.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H01_FEO072_0221530_0222119.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;no&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">No no no, I&#x27;m not I&#x27;m not saying you can you can pick a user, but you should come up with some list,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">No no no,</span> i&#x27;m not i&#x27;m not saying you can you can pick a user, but it should come up with some list.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#53</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_ES2004d_H02_MEE014_0082154_0082482.wav</span>
+        <audio controls preload="none" src="wavs/AMI_ES2004d_H02_MEE014_0082154_0082482.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, yeah, yeah and</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah,</span> and</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#54</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H03_FIO089_0153405_0153617.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009d_H03_FIO089_0153405_0153617.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;one&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">One, one, one, okay.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">One one one,</span> okay.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#55</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0065809_0065877.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0065809_0065877.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#56</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H00_FIE088_0039508_0040221.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H00_FIE088_0039508_0040221.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;that&quot; repeated 3x consecutively; &quot;of&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">so that it&#x27;s easy that that that they can be easily identified as a product of of of the company</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So that it&#x27;s easy <span class="rep">that that that</span> they can be easily identified as a product <span class="rep">of of of</span> the company</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#57</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H01_FEO072_0185739_0186339.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H01_FEO072_0185739_0186339.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I mean the u the the longer name obviously, if there is one, &#x27;cause they don&#x27;t all have a longer name.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I mean <span class="rep">the the the</span> longer name, obviously, if there is one, &#x27;cause they don&#x27;t all have a longer name.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#58</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0019186_0019778.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0019186_0019778.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Okay, like, &#x27;cause at the moment, the the the there is I&#x27;ve created two classes, one that represents speakers,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Okay, &#x27;cause at the moment <span class="rep">the the the</span> there is i&#x27;ve created two classes, one that represents speakers</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#59</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0086009_0086577.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0086009_0086577.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;no&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">No no no, it won&#x27;t uh I don&#x27;t think it will be like, you can have you know for uh if you want ther there to be more</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">No no no,</span> it w uh i don&#x27;t think it will be like you can have, you know, for uh if you want that that to be moved</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#60</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H03_FIO089_0081579_0082128.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009d_H03_FIO089_0081579_0082128.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;on&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I think we have to, we have to dwell on on on the appearance.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I think we have to we have to dwell <span class="rep">on on on</span> the appearance.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#61</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H03_MEE073_0161185_0161535.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H03_MEE073_0161185_0161535.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;blah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Just general, like how it all integrates, blah blah blah, all this kind of stuff.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Just general, like how it all integrates, <span class="rep">blah blah blah,</span> all this kind of stuff.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#62</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0038021_0038352.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0038021_0038352.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: it&#x27;s not, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">No, it&#x27;s not it&#x27;s not it&#x27;s not a um it&#x27;s not the top priority, is it.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">No, <span class="rep">it&#x27;s not it&#x27;s not it&#x27;s not</span> the um it&#x27;s not the top priority.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#63</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H02_FEO072_0000358_0000538.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H02_FEO072_0000358_0000538.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, exactly, yeah yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Yeah, exactly, <span class="rep">yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#64</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_ES2004d_H00_MEO015_0146133_0146305.wav</span>
+        <audio controls preload="none" src="wavs/AMI_ES2004d_H00_MEO015_0146133_0146305.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;mm&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Mm mm mm.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Mm mm mm.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#65</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0111483_0111596.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0111483_0111596.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, yeah, globally, yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#66</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H01_FIO087_0046472_0047301.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009c_H01_FIO087_0046472_0047301.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;if&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Suddenly if if if uh uh viewer he gets a telephone call, and if he want he doesn&#x27;t want to switch off the uh T. V.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Suddenly <span class="rep">if if if</span> uh uh viewer he gets a telephone call and if he want he doesn&#x27;t want to switch off the uh t. v.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#67</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H02_FIO084_0156682_0157287.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009c_H02_FIO084_0156682_0157287.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;but&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, but but I what I&#x27;m uh very very much doubtful how how uh far it will work,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Yeah, <span class="rep">but but but</span> i&#x27;m uh very very much doubtful how how uh far it will work.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#68</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H03_MEE073_0178333_0178889.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H03_MEE073_0178333_0178889.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;blah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So if you&#x27;re looking for wireless, wired, wire, blah, blah, blah, you do wire with a star and um no?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So if you&#x27;re looking for wireless, wired, wire, <span class="rep">blah blah blah,</span> you do wire with a star and um no.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#69</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H01_FEO072_0272028_0272402.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002c_H01_FEO072_0272028_0272402.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;just&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, just just just disregard it, yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Yeah, <span class="rep">just just just</span> disregard it, yeah.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#70</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H02_FEO072_0095076_0095254.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H02_FEO072_0095076_0095254.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;five&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">O. four five five five six O. .</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Oh four, <span class="rep">five five five,</span> six oh.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#71</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_ES2004d_H02_MEE014_0115809_0115964.wav</span>
+        <audio controls preload="none" src="wavs/AMI_ES2004d_H02_MEE014_0115809_0115964.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;no&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Oh, no, no, no, the um</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Oh <span class="rep">no no no,</span> the um</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#72</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H00_FIE088_0169802_0169923.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009c_H00_FIE088_0169802_0169923.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;right&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Right, right, right, mm-hmm.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Right, right, right,</span> mm-hmm.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#73</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H01_FEO070_0185851_0185928.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H01_FEO070_0185851_0185928.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#74</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H00_FIE088_0019852_0022001.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009d_H00_FIE088_0019852_0022001.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">the chip is morse morse code related relays the uh to the generat to the generator amplification and uh the circuit board is very inexpensive to build and so she thinks this is a great feature uh to to to consider.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">The chip is a morse morse code related relays the uh to the gener to the generator amplification and uh the circuit board is very inexpensive to build and so she thinks this is a great feature uh <span class="rep">to to to</span> consider.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#75</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H01_FIO087_0147988_0148961.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H01_FIO087_0147988_0148961.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;if&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And if a person if if if parents wants the television to be switched off by ten o&#x27;clock then it should be switched off ten o at ten o&#x27;clock automatically</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And if a person <span class="rep">if if if</span> parents wants the television to be switched off by ten o&#x27;clock, then it should be switched off ten oc at ten o&#x27;clock automatically.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#76</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H02_FEO072_0137251_0138184.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H02_FEO072_0137251_0138184.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">you know, the the b the good way of doing it um not together is that you if someone doesn&#x27;t wanna look at the the,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">You know, <span class="rep">the the the</span> good way of doing it um not together is that ye if someone doesn&#x27;t wanna look at the the</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#77</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H01_FEO072_0094007_0094383.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H01_FEO072_0094007_0094383.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, yeah yeah, I I know yeah, I know how to how to put it there.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah yeah yeah</span> i i know yeah, i know how to how to put it there.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#78</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0102753_0103119.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0102753_0103119.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, and then you can just see your remote controller yeah yeah yeah so</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Yeah, and then you can just see your remote control, <span class="rep">yeah yeah yeah,</span> so</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#79</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H01_FEO072_0175887_0175963.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H01_FEO072_0175887_0175963.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#80</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H01_FEO072_0083604_0084156.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H01_FEO072_0083604_0084156.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;one&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I have one one m one little question that I reckon we should have a little icon for our browser.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I have <span class="rep">one one one</span> little question that i reckon we should have a little icon for our browser.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#81</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H00_FIE088_0073933_0074457.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009d_H00_FIE088_0073933_0074457.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;that&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Will have symbols so that that that the user really knows you know and doesn&#x27;t have to first learn it</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">We&#x27;ll have symbols so <span class="rep">that that that</span> the user really knows, you know, and doesn&#x27;t have to first learn it.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#82</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_TS3003d_H02_MTD0010ID_0209950_0210414.wav</span>
+        <audio controls preload="none" src="wavs/AMI_TS3003d_H02_MTD0010ID_0209950_0210414.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Well, the smart-board, the d d drawing is just a pain in the ass, but</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Well, the smartboard, <span class="rep">the the the</span> drawing is just a pain in the ass, but</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#83</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H01_FIO087_0134353_0134816.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H01_FIO087_0134353_0134816.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: and uh, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And uh and uh and it is one more point which I noted it down</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">And uh and uh and uh</span> there&#x27;s one more point which i noted it down.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#84</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H02_FEO072_0094325_0094677.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H02_FEO072_0094325_0094677.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;five&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">O. four, five five five,</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Oh, oh four, <span class="rep">five five five.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#85</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0118027_0118367.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0118027_0118367.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">The the the week as it as is rather than the proper week, do you know what I mean.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">The the the</span> week as as is rather than the proper week, you know what i mean.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#86</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0085488_0085806.wav</span>
+        <audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0085488_0085806.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, yeah, yeah and colours also, different colours, and</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah,</span> and colours also, different colours and</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#87</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0050095_0050312.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0050095_0050312.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;how&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Depends how how how how things m</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Depends on <span class="rep">how how how</span> things b</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#88</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H01_FEO072_0157584_0157793.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H01_FEO072_0157584_0157793.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah, yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#89</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H02_FEO072_0063613_0063708.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002b_H02_FEO072_0063613_0063708.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah, yeah, yeah.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#90</span>
+        <span class="audio-id">/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H01_FEO072_0046694_0046770.wav</span>
+        <audio controls preload="none" src="wavs/AMI_EN2002d_H01_FEO072_0046694_0046770.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;yeah&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Yeah yeah yeah.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Yeah yeah yeah.</span></span>
+        </div>
+      </div>
+    </div>
+
+<div class="footer">
+  Generated from generate_ami.txt &mdash; 12,643 total utterances
+</div>
+</body>
+</html>

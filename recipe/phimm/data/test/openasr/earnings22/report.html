@@ -1,0 +1,1683 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Error Analysis - earnings22</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f7f8fa;color:#1a1a1a;line-height:1.6}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#fff;border-right:1px solid #e0e0e0;padding:12px 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar h3{padding:8px 16px;margin:0;font-size:.85rem;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.nav-item{display:block;padding:6px 16px;text-decoration:none;color:#333;font-size:.8rem;border-left:3px solid transparent;transition:background .15s}
+.nav-item:hover{background:#f0f4ff;border-left-color:#4a90d9}
+.nav-rank{font-weight:700;color:#4a90d9} .nav-err{color:#c33;font-size:.75rem} .nav-wer{color:#666;font-size:.75rem}
+main{flex:1;max-width:1100px;padding:24px 32px;overflow-x:hidden}
+h1{font-size:1.5rem;margin:0 0 4px} .subtitle{color:#666;font-size:.9rem;margin-bottom:20px;word-break:break-all}
+h2{font-size:1.15rem;margin-top:2rem;padding-bottom:6px;border-bottom:1px solid #e0e0e0}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.kpi>div{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px 18px;min-width:130px}
+.kpi .val{font-size:1.4rem;font-weight:700} .kpi .lbl{font-size:.8rem;color:#666}
+.kpi .highlight{border-color:#4a90d9;background:#f0f4ff}
+table.data{border-collapse:collapse;margin:12px 0;width:100%}
+table.data th,table.data td{border:1px solid #ddd;padding:6px 10px;text-align:left;font-size:.85rem}
+table.data th{background:#f8f8f8;position:sticky;top:0}
+table.data tr:hover{background:#fafafa}
+.tables-row{display:flex;gap:24px;flex-wrap:wrap}
+.tables-row>div{flex:1;min-width:200px}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;margin:16px 0;overflow:hidden}
+.card header{padding:14px 18px;background:#f8f9fb;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card .rank{font-size:1.1rem;font-weight:700;color:#4a90d9}
+.card .utt-id{font-family:monospace;font-size:.82rem;color:#555}
+.card .stats{font-size:.8rem;color:#666;margin-left:auto}
+details{padding:0}
+summary{padding:10px 18px;cursor:pointer;font-weight:600;font-size:.9rem;background:#fafbfc;border-top:1px solid #eee;user-select:none}
+summary:hover{background:#f0f4ff}
+.transcript{padding:16px 18px;font-size:.9rem;line-height:1.9;white-space:pre-wrap;word-wrap:break-word;max-height:600px;overflow-y:auto}
+.audio-block{padding:8px 18px}
+.audio-block audio{width:min(520px,100%)}
+.audio-meta{font-size:.82rem;color:#555;padding:4px 18px;overflow-wrap:anywhere}
+.err-sub{background:#fff3cd;border-radius:3px;padding:1px 2px;border-bottom:2px solid #fd7e14;text-decoration:line-through;opacity:.75}
+.err-del{background:#f8d7da;border-radius:3px;padding:1px 2px;border-bottom:2px solid #dc3545;text-decoration:line-through;opacity:.7}
+.err-ins{background:#d6ecff;border-radius:3px;padding:1px 2px;border-bottom:2px solid #007bff;font-style:italic}
+.hyp-inline{color:#c33;font-size:.8rem;font-style:italic}
+.err-table{width:100%;border-collapse:collapse;margin:8px 0}
+.err-table th,.err-table td{border:1px solid #eee;padding:5px 8px;font-size:.82rem;text-align:left}
+.err-table th{background:#f8f8f8}
+@media(max-width:900px){
+  .sidebar{display:none}
+  main{padding:16px}
+  .tables-row{flex-direction:column}
+}
+</style></head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <h3>Utterances</h3>
+  <a href="#utt-1" class="nav-item"><span class="nav-rank">#1</span> <span class="nav-err">24 err</span> <span class="nav-wer">39.3%</span></a>
+<a href="#utt-2" class="nav-item"><span class="nav-rank">#2</span> <span class="nav-err">18 err</span> <span class="nav-wer">45.0%</span></a>
+<a href="#utt-3" class="nav-item"><span class="nav-rank">#3</span> <span class="nav-err">18 err</span> <span class="nav-wer">38.3%</span></a>
+<a href="#utt-4" class="nav-item"><span class="nav-rank">#4</span> <span class="nav-err">17 err</span> <span class="nav-wer">170.0%</span></a>
+<a href="#utt-5" class="nav-item"><span class="nav-rank">#5</span> <span class="nav-err">16 err</span> <span class="nav-wer">100.0%</span></a>
+<a href="#utt-6" class="nav-item"><span class="nav-rank">#6</span> <span class="nav-err">15 err</span> <span class="nav-wer">16.3%</span></a>
+<a href="#utt-7" class="nav-item"><span class="nav-rank">#7</span> <span class="nav-err">15 err</span> <span class="nav-wer">51.7%</span></a>
+<a href="#utt-8" class="nav-item"><span class="nav-rank">#8</span> <span class="nav-err">14 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-9" class="nav-item"><span class="nav-rank">#9</span> <span class="nav-err">14 err</span> <span class="nav-wer">100.0%</span></a>
+<a href="#utt-10" class="nav-item"><span class="nav-rank">#10</span> <span class="nav-err">13 err</span> <span class="nav-wer">29.5%</span></a>
+<a href="#utt-11" class="nav-item"><span class="nav-rank">#11</span> <span class="nav-err">13 err</span> <span class="nav-wer">29.5%</span></a>
+<a href="#utt-12" class="nav-item"><span class="nav-rank">#12</span> <span class="nav-err">13 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-13" class="nav-item"><span class="nav-rank">#13</span> <span class="nav-err">13 err</span> <span class="nav-wer">41.9%</span></a>
+<a href="#utt-14" class="nav-item"><span class="nav-rank">#14</span> <span class="nav-err">13 err</span> <span class="nav-wer">28.3%</span></a>
+<a href="#utt-15" class="nav-item"><span class="nav-rank">#15</span> <span class="nav-err">13 err</span> <span class="nav-wer">1300.0%</span></a>
+<a href="#utt-16" class="nav-item"><span class="nav-rank">#16</span> <span class="nav-err">12 err</span> <span class="nav-wer">38.7%</span></a>
+<a href="#utt-17" class="nav-item"><span class="nav-rank">#17</span> <span class="nav-err">12 err</span> <span class="nav-wer">25.5%</span></a>
+<a href="#utt-18" class="nav-item"><span class="nav-rank">#18</span> <span class="nav-err">12 err</span> <span class="nav-wer">57.1%</span></a>
+<a href="#utt-19" class="nav-item"><span class="nav-rank">#19</span> <span class="nav-err">12 err</span> <span class="nav-wer">28.6%</span></a>
+<a href="#utt-20" class="nav-item"><span class="nav-rank">#20</span> <span class="nav-err">12 err</span> <span class="nav-wer">24.5%</span></a>
+<a href="#utt-21" class="nav-item"><span class="nav-rank">#21</span> <span class="nav-err">11 err</span> <span class="nav-wer">57.9%</span></a>
+<a href="#utt-22" class="nav-item"><span class="nav-rank">#22</span> <span class="nav-err">11 err</span> <span class="nav-wer">52.4%</span></a>
+<a href="#utt-23" class="nav-item"><span class="nav-rank">#23</span> <span class="nav-err">11 err</span> <span class="nav-wer">57.9%</span></a>
+<a href="#utt-24" class="nav-item"><span class="nav-rank">#24</span> <span class="nav-err">11 err</span> <span class="nav-wer">22.4%</span></a>
+<a href="#utt-25" class="nav-item"><span class="nav-rank">#25</span> <span class="nav-err">11 err</span> <span class="nav-wer">35.5%</span></a>
+<a href="#utt-26" class="nav-item"><span class="nav-rank">#26</span> <span class="nav-err">11 err</span> <span class="nav-wer">91.7%</span></a>
+<a href="#utt-27" class="nav-item"><span class="nav-rank">#27</span> <span class="nav-err">11 err</span> <span class="nav-wer">57.9%</span></a>
+<a href="#utt-28" class="nav-item"><span class="nav-rank">#28</span> <span class="nav-err">10 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-29" class="nav-item"><span class="nav-rank">#29</span> <span class="nav-err">10 err</span> <span class="nav-wer">50.0%</span></a>
+<a href="#utt-30" class="nav-item"><span class="nav-rank">#30</span> <span class="nav-err">10 err</span> <span class="nav-wer">166.7%</span></a>
+<a href="#utt-31" class="nav-item"><span class="nav-rank">#31</span> <span class="nav-err">10 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-32" class="nav-item"><span class="nav-rank">#32</span> <span class="nav-err">10 err</span> <span class="nav-wer">20.8%</span></a>
+<a href="#utt-33" class="nav-item"><span class="nav-rank">#33</span> <span class="nav-err">10 err</span> <span class="nav-wer">29.4%</span></a>
+<a href="#utt-34" class="nav-item"><span class="nav-rank">#34</span> <span class="nav-err">10 err</span> <span class="nav-wer">17.2%</span></a>
+<a href="#utt-35" class="nav-item"><span class="nav-rank">#35</span> <span class="nav-err">10 err</span> <span class="nav-wer">28.6%</span></a>
+<a href="#utt-36" class="nav-item"><span class="nav-rank">#36</span> <span class="nav-err">10 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-37" class="nav-item"><span class="nav-rank">#37</span> <span class="nav-err">9 err</span> <span class="nav-wer">18.0%</span></a>
+<a href="#utt-38" class="nav-item"><span class="nav-rank">#38</span> <span class="nav-err">9 err</span> <span class="nav-wer">42.9%</span></a>
+<a href="#utt-39" class="nav-item"><span class="nav-rank">#39</span> <span class="nav-err">9 err</span> <span class="nav-wer">18.8%</span></a>
+<a href="#utt-40" class="nav-item"><span class="nav-rank">#40</span> <span class="nav-err">9 err</span> <span class="nav-wer">60.0%</span></a>
+<a href="#utt-41" class="nav-item"><span class="nav-rank">#41</span> <span class="nav-err">9 err</span> <span class="nav-wer">50.0%</span></a>
+<a href="#utt-42" class="nav-item"><span class="nav-rank">#42</span> <span class="nav-err">9 err</span> <span class="nav-wer">34.6%</span></a>
+<a href="#utt-43" class="nav-item"><span class="nav-rank">#43</span> <span class="nav-err">9 err</span> <span class="nav-wer">50.0%</span></a>
+<a href="#utt-44" class="nav-item"><span class="nav-rank">#44</span> <span class="nav-err">9 err</span> <span class="nav-wer">31.0%</span></a>
+<a href="#utt-45" class="nav-item"><span class="nav-rank">#45</span> <span class="nav-err">9 err</span> <span class="nav-wer">17.6%</span></a>
+<a href="#utt-46" class="nav-item"><span class="nav-rank">#46</span> <span class="nav-err">9 err</span> <span class="nav-wer">29.0%</span></a>
+<a href="#utt-47" class="nav-item"><span class="nav-rank">#47</span> <span class="nav-err">9 err</span> <span class="nav-wer">45.0%</span></a>
+<a href="#utt-48" class="nav-item"><span class="nav-rank">#48</span> <span class="nav-err">9 err</span> <span class="nav-wer">40.9%</span></a>
+<a href="#utt-49" class="nav-item"><span class="nav-rank">#49</span> <span class="nav-err">8 err</span> <span class="nav-wer">44.4%</span></a>
+<a href="#utt-50" class="nav-item"><span class="nav-rank">#50</span> <span class="nav-err">8 err</span> <span class="nav-wer">42.1%</span></a>
+</nav>
+<main>
+<h1>Word Error Analysis: earnings22</h1>
+<div class="subtitle">Input: /home/boren/data/test/phi7b_20260413/generate_earnings22.jsonl</div>
+<div class="kpi">
+  <div class="highlight"><div class="val">8.52%</div><div class="lbl">WER</div></div>
+  <div><div class="val">2,741</div><div class="lbl">Utterances</div></div>
+  <div><div class="val">48,899</div><div class="lbl">Ref Words</div></div>
+  <div><div class="val">4,166</div><div class="lbl">Total Errors</div></div>
+  <div><div class="val">1,879</div><div class="lbl">Sub (3.8%)</div></div>
+  <div><div class="val">1,175</div><div class="lbl">Del (2.4%)</div></div>
+  <div><div class="val">1,112</div><div class="lbl">Ins (2.3%)</div></div>
+</div>
+
+<h2>Top Substitution Confusions</h2>
+<table class="data"><thead><tr><th>Ref Word</th><th>Hyp Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>the</td><td>a</td><td>21</td></tr>
+<tr><td>garda</td><td>gorda</td><td>19</td></tr>
+<tr><td>and</td><td>in</td><td>16</td></tr>
+<tr><td>ebitdaal</td><td>ebitda</td><td>13</td></tr>
+<tr><td>in</td><td>and</td><td>13</td></tr>
+<tr><td>a</td><td>the</td><td>11</td></tr>
+<tr><td>cost</td><td>costs</td><td>11</td></tr>
+<tr><td>term</td><td>midterm</td><td>9</td></tr>
+<tr><td>that</td><td>the</td><td>8</td></tr>
+<tr><td>aspu</td><td>asp</td><td>7</td></tr>
+<tr><td>this</td><td>these</td><td>6</td></tr>
+<tr><td>this</td><td>the</td><td>6</td></tr>
+<tr><td>$38000000000</td><td>38000000000</td><td>6</td></tr>
+<tr><td>costs</td><td>cost</td><td>6</td></tr>
+<tr><td>continued</td><td>continue</td><td>6</td></tr>
+<tr><td>2021</td><td>21</td><td>5</td></tr>
+<tr><td>but</td><td>that</td><td>5</td></tr>
+<tr><td>were</td><td>are</td><td>5</td></tr>
+<tr><td>have</td><td>had</td><td>5</td></tr>
+<tr><td>hendrik</td><td>henrik</td><td>5</td></tr>
+<tr><td>in</td><td>of</td><td>4</td></tr>
+<tr><td>1000000000</td><td>sek</td><td>4</td></tr>
+<tr><td>1000000000</td><td>sec</td><td>4</td></tr>
+<tr><td>of</td><td>on</td><td>4</td></tr>
+<tr><td>are</td><td>were</td><td>4</td></tr>
+<tr><td>marcin</td><td>martin</td><td>4</td></tr>
+<tr><td>it</td><td>this</td><td>4</td></tr>
+<tr><td>on</td><td>of</td><td>4</td></tr>
+<tr><td>these</td><td>this</td><td>4</td></tr>
+<tr><td>on</td><td>and</td><td>4</td></tr></tbody></table>
+
+<div class="tables-row">
+<div>
+<h2>Top Deletions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>the</td><td>60</td></tr>
+<tr><td>and</td><td>55</td></tr>
+<tr><td>a</td><td>53</td></tr>
+<tr><td>you</td><td>49</td></tr>
+<tr><td>in</td><td>35</td></tr>
+<tr><td>i</td><td>33</td></tr>
+<tr><td>of</td><td>30</td></tr>
+<tr><td>we</td><td>26</td></tr>
+<tr><td>is</td><td>22</td></tr>
+<tr><td>it</td><td>20</td></tr>
+<tr><td>know</td><td>20</td></tr>
+<tr><td>that</td><td>18</td></tr>
+<tr><td>are</td><td>17</td></tr>
+<tr><td>to</td><td>17</td></tr>
+<tr><td>thank</td><td>16</td></tr>
+<tr><td>on</td><td>14</td></tr>
+<tr><td>so</td><td>13</td></tr>
+<tr><td>have</td><td>12</td></tr>
+<tr><td>for</td><td>12</td></tr>
+<tr><td>there</td><td>11</td></tr></tbody></table>
+</div>
+<div>
+<h2>Top Insertions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>the</td><td>102</td></tr>
+<tr><td>and</td><td>36</td></tr>
+<tr><td>a</td><td>36</td></tr>
+<tr><td>of</td><td>33</td></tr>
+<tr><td>we</td><td>33</td></tr>
+<tr><td>you</td><td>31</td></tr>
+<tr><td>to</td><td>30</td></tr>
+<tr><td>i</td><td>26</td></tr>
+<tr><td>in</td><td>23</td></tr>
+<tr><td>is</td><td>23</td></tr>
+<tr><td>it</td><td>21</td></tr>
+<tr><td>so</td><td>18</td></tr>
+<tr><td>that</td><td>17</td></tr>
+<tr><td>on</td><td>16</td></tr>
+<tr><td>..</td><td>12</td></tr>
+<tr><td>our</td><td>11</td></tr>
+<tr><td>for</td><td>11</td></tr>
+<tr><td>know</td><td>10</td></tr>
+<tr><td>are</td><td>10</td></tr>
+<tr><td>with</td><td>10</td></tr></tbody></table>
+</div>
+</div>
+
+<h2>Top 50 Worst Utterances (by error count)</h2>
+<article class="card" id="utt-1">
+  <header>
+    <span class="rank">#1</span>
+    <span class="utt-id">4470290/11.wav</span>
+    <span class="stats">
+      24 errors &bull; WER 39.34%
+      &bull; S:13 D:4 I:7
+      &bull; 61 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_11.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_11.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">before we begin <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">would</span> <span class="err-sub" title="sub: like → our">like</span><span class="hyp-inline">[→our]</span> <span class="err-sub" title="sub: to → prepared">to</span><span class="hyp-inline">[→prepared]</span> <span class="err-sub" title="sub: remind → remarks">remind</span><span class="hyp-inline">[→remarks]</span> allow me to remind you that certain statements made <span class="err-sub" title="sub: in → during">in</span><span class="hyp-inline">[→during]</span> the course of the discussion <span class="err-sub" title="sub: will → may">will</span><span class="hyp-inline">[→may]</span> constitute <span class="err-ins" title="inserted">+forward</span> <span class="err-sub" title="sub: correlating → looking">correlating</span><span class="hyp-inline">[→looking]</span> statements which are based on management is current expectations and beliefs and <span class="err-del" title="deleted">as</span> <span class="err-del" title="deleted">such</span> <span class="err-sub" title="sub: you → are">you</span><span class="hyp-inline">[→are]</span> <span class="err-sub" title="sub: will → subject">will</span><span class="hyp-inline">[→subject]</span> <span class="err-sub" title="sub: see → to">see</span><span class="hyp-inline">[→to]</span> a number of risks and uncertainties that <span class="err-ins" title="inserted">+could</span> <span class="err-ins" title="inserted">+because</span> <span class="err-ins" title="inserted">+actual</span> <span class="err-ins" title="inserted">+results</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+materially</span> <span class="err-sub" title="sub: the → differ">the</span><span class="hyp-inline">[→differ]</span> <span class="err-sub" title="sub: report → including">report</span><span class="hyp-inline">[→including]</span> <span class="err-sub" title="sub: is → factors">is</span><span class="hyp-inline">[→factors]</span> <span class="err-sub" title="sub: actual → that">actual</span><span class="hyp-inline">[→that]</span> may be beyond the company is control</div>
+  </details>
+  <details>
+    <summary>Error breakdown (24 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>like</td><td>our</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>prepared</td><td>1</td></tr>
+<tr><td>Sub</td><td>remind</td><td>remarks</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>during</td><td>1</td></tr>
+<tr><td>Sub</td><td>will</td><td>may</td><td>1</td></tr>
+<tr><td>Sub</td><td>correlating</td><td>looking</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>will</td><td>subject</td><td>1</td></tr>
+<tr><td>Sub</td><td>see</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>differ</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>would</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>as</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>such</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>forward</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>could</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>because</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>actual</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>results</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>materially</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-2">
+  <header>
+    <span class="rank">#2</span>
+    <span class="utt-id">4432298/268.wav</span>
+    <span class="stats">
+      18 errors &bull; WER 45.00%
+      &bull; S:0 D:0 I:18
+      &bull; 40 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_268.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_268.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">if 20 years from now i am going to be writing memoirs i <span class="err-ins" title="inserted">+will</span> promise to answer that <span class="err-ins" title="inserted">+but</span> but for now <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> it really has to remain between playstation and us <span class="err-ins" title="inserted">+and</span> and <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+know</span> <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+will</span> <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+will</span> <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+will</span> we will have <span class="err-ins" title="inserted">+announcements</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+sh</span> announcements to share when they are ready</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Ins</td><td>&mdash;</td><td>will</td><td>4</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>but</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>know</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>announcements</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-3">
+  <header>
+    <span class="rank">#3</span>
+    <span class="utt-id">4470290/20.wav</span>
+    <span class="stats">
+      18 errors &bull; WER 38.30%
+      &bull; S:11 D:7 I:0
+      &bull; 47 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_20.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_20.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">our 3rd quarter <span class="err-sub" title="sub: result → results">result</span><span class="hyp-inline">[→results]</span> <span class="err-sub" title="sub: demonstrates → demonstrate">demonstrates</span><span class="hyp-inline">[→demonstrate]</span> that the strategic initiatives <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">stake</span> <span class="err-sub" title="sub: in → undertaken">in</span><span class="hyp-inline">[→undertaken]</span> since the start of the pandemic and <span class="err-del" title="deleted">there</span> <span class="err-del" title="deleted">is</span> <span class="err-sub" title="sub: a → their">a</span><span class="hyp-inline">[→their]</span> <span class="err-sub" title="sub: careful → successful">careful</span><span class="hyp-inline">[→successful]</span> execution <span class="err-sub" title="sub: and → are">and</span><span class="hyp-inline">[→are]</span> <span class="err-sub" title="sub: delivery → delivering">delivery</span><span class="hyp-inline">[→delivering]</span> <span class="err-sub" title="sub: improvement → improved">improvement</span><span class="hyp-inline">[→improved]</span> <span class="err-sub" title="sub: in → margins">in</span><span class="hyp-inline">[→margins]</span> when compared to <span class="err-sub" title="sub: 2018 → 2019">2018</span><span class="hyp-inline">[→2019]</span> our performance this quarter <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">this</span> <span class="err-sub" title="sub: course → underscores">course</span><span class="hyp-inline">[→underscores]</span> the future earnings power of the company</div>
+  </details>
+  <details>
+    <summary>Error breakdown (18 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>result</td><td>results</td><td>1</td></tr>
+<tr><td>Sub</td><td>demonstrates</td><td>demonstrate</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>undertaken</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>their</td><td>1</td></tr>
+<tr><td>Sub</td><td>careful</td><td>successful</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>delivery</td><td>delivering</td><td>1</td></tr>
+<tr><td>Sub</td><td>improvement</td><td>improved</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>margins</td><td>1</td></tr>
+<tr><td>Sub</td><td>2018</td><td>2019</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>stake</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>there</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>this</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-4">
+  <header>
+    <span class="rank">#4</span>
+    <span class="utt-id">4450488/267.wav</span>
+    <span class="stats">
+      17 errors &bull; WER 170.00%
+      &bull; S:1 D:3 I:13
+      &bull; 10 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4450488_267.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4450488_267.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">few</span> <span class="err-del" title="deleted">years</span> when you showed <span class="err-sub" title="sub: this → the">this</span><span class="hyp-inline">[→the]</span> strategy my understanding <span class="err-ins" title="inserted">+was</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+were</span> <span class="err-ins" title="inserted">+going</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+in</span> <span class="err-ins" title="inserted">+a</span> <span class="err-ins" title="inserted">+very</span> <span class="err-ins" title="inserted">+different</span> <span class="err-ins" title="inserted">+way</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (17 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>this</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>few</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>years</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>was</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>were</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>going</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-5">
+  <header>
+    <span class="rank">#5</span>
+    <span class="utt-id">4470290/14.wav</span>
+    <span class="stats">
+      16 errors &bull; WER 100.00%
+      &bull; S:6 D:0 I:10
+      &bull; 16 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_14.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_14.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">speaking on <span class="err-sub" title="sub: our → today">our</span><span class="hyp-inline">[→today]</span> <span class="err-sub" title="sub: next → is">next</span><span class="hyp-inline">[→is]</span> call is our ceo <span class="err-sub" title="sub: damian → damien">damian</span><span class="hyp-inline">[→damien]</span> <span class="err-sub" title="sub: scokin → schalkwyk">scokin</span><span class="hyp-inline">[→schalkwyk]</span> who <span class="err-ins" title="inserted">+will</span> <span class="err-ins" title="inserted">+provide</span> <span class="err-ins" title="inserted">+an</span> <span class="err-ins" title="inserted">+overview</span> <span class="err-ins" title="inserted">+of</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+1st</span> <span class="err-ins" title="inserted">+quarter</span> <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+update</span> <span class="err-sub" title="sub: is → you">is</span><span class="hyp-inline">[→you]</span> on our <span class="err-sub" title="sub: specific → strategic">specific</span><span class="hyp-inline">[→strategic]</span> priorities</div>
+  </details>
+  <details>
+    <summary>Error breakdown (16 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>our</td><td>today</td><td>1</td></tr>
+<tr><td>Sub</td><td>next</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>damian</td><td>damien</td><td>1</td></tr>
+<tr><td>Sub</td><td>scokin</td><td>schalkwyk</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>specific</td><td>strategic</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>will</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>provide</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>an</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>overview</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>1st</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>quarter</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>update</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-6">
+  <header>
+    <span class="rank">#6</span>
+    <span class="utt-id">4432298/132.wav</span>
+    <span class="stats">
+      15 errors &bull; WER 16.30%
+      &bull; S:9 D:3 I:3
+      &bull; 92 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_132.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_132.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the 2nd one was about the sony and the playstation <span class="err-sub" title="sub: in → and">in</span><span class="hyp-inline">[→and]</span> particular <span class="err-sub" title="sub: instead → set">instead</span><span class="hyp-inline">[→set]</span> of <span class="err-sub" title="sub: netflix → metrics">netflix</span><span class="hyp-inline">[→metrics]</span> how the conversation progresses so i i i <span class="err-ins" title="inserted">+kind</span> <span class="err-sub" title="sub: cannot → of">cannot</span><span class="hyp-inline">[→of]</span> go deep into the set of metrics <span class="err-del" title="deleted">so</span> <span class="err-sub" title="sub: the → or">the</span><span class="hyp-inline">[→or]</span> how the conversation progresses <span class="err-sub" title="sub: it → this">it</span><span class="hyp-inline">[→this]</span> has to remain at the discretion of of of playstation <span class="err-del" title="deleted">and</span> of course ourselves but yes there is there is some sort of metrics <span class="err-ins" title="inserted">+let</span> <span class="err-ins" title="inserted">+us</span> <span class="err-sub" title="sub: lets → let">lets</span><span class="hyp-inline">[→let]</span> <span class="err-sub" title="sub: lets → us">lets</span><span class="hyp-inline">[→us]</span> put it like that at a high level but again we are not <span class="err-del" title="deleted">goi</span> <span class="err-sub" title="sub: we → going">we</span><span class="hyp-inline">[→going]</span> we cannot go into the details of of where we are with that</div>
+  </details>
+  <details>
+    <summary>Error breakdown (15 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>in</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>instead</td><td>set</td><td>1</td></tr>
+<tr><td>Sub</td><td>netflix</td><td>metrics</td><td>1</td></tr>
+<tr><td>Sub</td><td>cannot</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>or</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>this</td><td>1</td></tr>
+<tr><td>Sub</td><td>lets</td><td>let</td><td>1</td></tr>
+<tr><td>Sub</td><td>lets</td><td>us</td><td>1</td></tr>
+<tr><td>Sub</td><td>we</td><td>going</td><td>1</td></tr>
+<tr><td>Del</td><td>so</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>goi</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>kind</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>let</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>us</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-7">
+  <header>
+    <span class="rank">#7</span>
+    <span class="utt-id">4470290/8.wav</span>
+    <span class="stats">
+      15 errors &bull; WER 51.72%
+      &bull; S:12 D:2 I:1
+      &bull; 29 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_8.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_8.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">in <span class="err-sub" title="sub: our → addition">our</span><span class="hyp-inline">[→addition]</span> <span class="err-sub" title="sub: recent → to">recent</span><span class="hyp-inline">[→to]</span> reporting financial <span class="err-sub" title="sub: returns → results">returns</span><span class="hyp-inline">[→results]</span> <span class="err-sub" title="sub: and → in">and</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: performance → accordance">performance</span><span class="hyp-inline">[→accordance]</span> <span class="err-sub" title="sub: in → with">in</span><span class="hyp-inline">[→with]</span> us generally accepted accounting <span class="err-sub" title="sub: principal → principles">principal</span><span class="hyp-inline">[→principles]</span> we <span class="err-del" title="deleted">will</span> discuss certain <span class="err-ins" title="inserted">+non</span> <span class="err-sub" title="sub: longterm → gaap">longterm</span><span class="hyp-inline">[→gaap]</span> financial <span class="err-sub" title="sub: metrics → measures">metrics</span><span class="hyp-inline">[→measures]</span> and operating metrics including <span class="err-del" title="deleted">for</span> <span class="err-sub" title="sub: administrations → foreign">administrations</span><span class="hyp-inline">[→foreign]</span> <span class="err-sub" title="sub: and → exchange">and</span><span class="hyp-inline">[→exchange]</span> <span class="err-sub" title="sub: calculations → calculation">calculations</span><span class="hyp-inline">[→calculation]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (15 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>our</td><td>addition</td><td>1</td></tr>
+<tr><td>Sub</td><td>recent</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>returns</td><td>results</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>performance</td><td>accordance</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>with</td><td>1</td></tr>
+<tr><td>Sub</td><td>principal</td><td>principles</td><td>1</td></tr>
+<tr><td>Sub</td><td>longterm</td><td>gaap</td><td>1</td></tr>
+<tr><td>Sub</td><td>metrics</td><td>measures</td><td>1</td></tr>
+<tr><td>Sub</td><td>administrations</td><td>foreign</td><td>1</td></tr>
+<tr><td>Del</td><td>will</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>for</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>non</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-8">
+  <header>
+    <span class="rank">#8</span>
+    <span class="utt-id">4432298/279.wav</span>
+    <span class="stats">
+      14 errors &bull; WER 33.33%
+      &bull; S:10 D:2 I:2
+      &bull; 42 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_279.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_279.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">2nd question and a bit of <span class="err-del" title="deleted">a</span> a reminder <span class="err-sub" title="sub: how → have">how</span><span class="hyp-inline">[→have]</span> <span class="err-sub" title="sub: do → you">do</span><span class="hyp-inline">[→you]</span> <span class="err-sub" title="sub: you → impaired">you</span><span class="hyp-inline">[→impaired]</span> <span class="err-sub" title="sub: paired → anything">paired</span><span class="hyp-inline">[→anything]</span> on the <span class="err-ins" title="inserted">+side</span> <span class="err-ins" title="inserted">+of</span> <span class="err-sub" title="sub: cyberpunk → the">cyberpunk</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: development → government">development</span><span class="hyp-inline">[→government]</span> or do you <span class="err-sub" title="sub: contribute → plan">contribute</span><span class="hyp-inline">[→plan]</span> <span class="err-sub" title="sub: it → to">it</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: i → revisit">i</span><span class="hyp-inline">[→revisit]</span> <span class="err-sub" title="sub: guess → this">guess</span><span class="hyp-inline">[→this]</span> once you know when you when you launch back on the ps <span class="err-del" title="deleted">store</span> or if that gets delayed</div>
+  </details>
+  <details>
+    <summary>Error breakdown (14 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>how</td><td>have</td><td>1</td></tr>
+<tr><td>Sub</td><td>do</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>impaired</td><td>1</td></tr>
+<tr><td>Sub</td><td>paired</td><td>anything</td><td>1</td></tr>
+<tr><td>Sub</td><td>cyberpunk</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>development</td><td>government</td><td>1</td></tr>
+<tr><td>Sub</td><td>contribute</td><td>plan</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>revisit</td><td>1</td></tr>
+<tr><td>Sub</td><td>guess</td><td>this</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>store</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>side</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-9">
+  <header>
+    <span class="rank">#9</span>
+    <span class="utt-id">4479741/373.wav</span>
+    <span class="stats">
+      14 errors &bull; WER 100.00%
+      &bull; S:2 D:12 I:0
+      &bull; 14 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4479741_373.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4479741_373.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">have</span> <span class="err-del" title="deleted">mentioned</span> <span class="err-del" title="deleted">benefits</span> <span class="err-del" title="deleted">from</span> <span class="err-del" title="deleted">timing</span> <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">orders</span> <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">if</span> <span class="err-sub" title="sub: you → can">you</span><span class="hyp-inline">[→can]</span> <span class="err-sub" title="sub: can → ..">can</span><span class="hyp-inline">[→..]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (14 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>you</td><td>can</td><td>1</td></tr>
+<tr><td>Sub</td><td>can</td><td>..</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>mentioned</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>benefits</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>from</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>timing</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>orders</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>if</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-10">
+  <header>
+    <span class="rank">#10</span>
+    <span class="utt-id">4470290/150.wav</span>
+    <span class="stats">
+      13 errors &bull; WER 29.55%
+      &bull; S:6 D:5 I:2
+      &bull; 44 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_150.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_150.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">remember that we were actually at around let us say 5% <span class="err-del" title="deleted">on</span> <span class="err-del" title="deleted">n</span> <span class="err-del" title="deleted">n</span> <span class="err-del" title="deleted">n</span> <span class="err-sub" title="sub: no → between">no</span><span class="hyp-inline">[→between]</span> <span class="err-sub" title="sub: between → 5%">between</span><span class="hyp-inline">[→5%]</span> <span class="err-sub" title="sub: 5 → to">5</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: 10 → 10%">10</span><span class="hyp-inline">[→10%]</span> no more than that of all the gross bookings we are selling were actually secured <span class="err-ins" title="inserted">+or</span> <span class="err-ins" title="inserted">+paid</span> <span class="err-sub" title="sub: occupying → in">occupying</span><span class="hyp-inline">[→in]</span> advance on capacity at hotels and or <span class="err-del" title="deleted">airlines</span> <span class="err-sub" title="sub: okay → aircraft">okay</span><span class="hyp-inline">[→aircraft]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>no</td><td>between</td><td>1</td></tr>
+<tr><td>Sub</td><td>between</td><td>5%</td><td>1</td></tr>
+<tr><td>Sub</td><td>5</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>10</td><td>10%</td><td>1</td></tr>
+<tr><td>Sub</td><td>occupying</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>okay</td><td>aircraft</td><td>1</td></tr>
+<tr><td>Del</td><td>n</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>on</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>airlines</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>or</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>paid</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-11">
+  <header>
+    <span class="rank">#11</span>
+    <span class="utt-id">4432298/186.wav</span>
+    <span class="stats">
+      13 errors &bull; WER 29.55%
+      &bull; S:3 D:10 I:0
+      &bull; 44 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_186.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_186.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but i can just i can just repeat what <span class="err-del" title="deleted">wha</span> <span class="err-sub" title="sub: wha → what">wha</span><span class="hyp-inline">[→what]</span> what i already said that next year <span class="err-del" title="deleted">is</span> is the year when we want to to to to <span class="err-del" title="deleted">speed</span> <span class="err-sub" title="sub: things → split">things</span><span class="hyp-inline">[→split]</span> <span class="err-sub" title="sub: and → teams">and</span><span class="hyp-inline">[→teams]</span> and <span class="err-del" title="deleted">whether</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">want</span> <span class="err-del" title="deleted">to</span> <span class="err-del" title="deleted">speed</span> <span class="err-del" title="deleted">things</span> and <span class="err-del" title="deleted">to</span> work full scale</div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>wha</td><td>what</td><td>1</td></tr>
+<tr><td>Sub</td><td>things</td><td>split</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>teams</td><td>1</td></tr>
+<tr><td>Del</td><td>speed</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>to</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>wha</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>whether</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>want</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>things</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-12">
+  <header>
+    <span class="rank">#12</span>
+    <span class="utt-id">4485244/252.wav</span>
+    <span class="stats">
+      13 errors &bull; WER 33.33%
+      &bull; S:0 D:13 I:0
+      &bull; 39 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4485244_252.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4485244_252.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">could you maybe update us on <span class="err-del" title="deleted">where</span> <span class="err-del" title="deleted">you</span> where things are for you guys right now <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> through <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> the start of the year the 1st <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> half of the quarter <span class="err-del" title="deleted">or</span> <span class="err-del" title="deleted">q</span> <span class="err-del" title="deleted">one</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>you</td><td>&mdash;</td><td>5</td></tr>
+<tr><td>Del</td><td>know</td><td>&mdash;</td><td>4</td></tr>
+<tr><td>Del</td><td>where</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>or</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>q</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>one</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-13">
+  <header>
+    <span class="rank">#13</span>
+    <span class="utt-id">4432298/110.wav</span>
+    <span class="stats">
+      13 errors &bull; WER 41.94%
+      &bull; S:4 D:9 I:0
+      &bull; 31 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_110.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_110.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">so close to 60% of <span class="err-del" title="deleted">products</span> <span class="err-del" title="deleted">say</span> <span class="err-sub" title="sub: it → product">it</span><span class="hyp-inline">[→product]</span> <span class="err-sub" title="sub: is → sales">is</span><span class="hyp-inline">[→sales]</span> revenues came from <span class="err-sub" title="sub: cyberpunk → cyberbank">cyberpunk</span><span class="hyp-inline">[→cyberbank]</span> and as i mentioned most of the sales came from <span class="err-del" title="deleted">pc</span> <span class="err-del" title="deleted">digital</span> <span class="err-del" title="deleted">distribution</span> <span class="err-del" title="deleted">channels</span> <span class="err-del" title="deleted">crosstalk</span> <span class="err-del" title="deleted">yep</span> <span class="err-del" title="deleted">go</span> <span class="err-sub" title="sub: ahead → ..">ahead</span><span class="hyp-inline">[→..]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>it</td><td>product</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>sales</td><td>1</td></tr>
+<tr><td>Sub</td><td>cyberpunk</td><td>cyberbank</td><td>1</td></tr>
+<tr><td>Sub</td><td>ahead</td><td>..</td><td>1</td></tr>
+<tr><td>Del</td><td>products</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>say</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>pc</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>digital</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>distribution</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>channels</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>crosstalk</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>yep</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>go</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-14">
+  <header>
+    <span class="rank">#14</span>
+    <span class="utt-id">4479741/222.wav</span>
+    <span class="stats">
+      13 errors &bull; WER 28.26%
+      &bull; S:3 D:10 I:0
+      &bull; 46 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4479741_222.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4479741_222.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">non</span> <span class="err-del" title="deleted">comparables</span> <span class="err-del" title="deleted">in</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">2nd</span> <span class="err-del" title="deleted">half</span> <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">year</span> <span class="err-sub" title="sub: was → our">was</span><span class="hyp-inline">[→our]</span> <span class="err-sub" title="sub: for → christian">for</span><span class="hyp-inline">[→christian]</span> <span class="err-sub" title="sub: our → hansen">our</span><span class="hyp-inline">[→hansen]</span> business but that our acquired business that were not part of organic growth in h 2 had a very strong performance so the comparables are not as easy as people might might think</div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>was</td><td>our</td><td>1</td></tr>
+<tr><td>Sub</td><td>for</td><td>christian</td><td>1</td></tr>
+<tr><td>Sub</td><td>our</td><td>hansen</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>non</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>comparables</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>2nd</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>half</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>of</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>year</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-15">
+  <header>
+    <span class="rank">#15</span>
+    <span class="utt-id">4479741/249.wav</span>
+    <span class="stats">
+      13 errors &bull; WER 1300.00%
+      &bull; S:1 D:0 I:12
+      &bull; 1 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4479741_249.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4479741_249.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+listen</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+think</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: lisa → ..">lisa</span><span class="hyp-inline">[→..]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>lisa</td><td>..</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>9</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>listen</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>think</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-16">
+  <header>
+    <span class="rank">#16</span>
+    <span class="utt-id">4432298/53.wav</span>
+    <span class="stats">
+      12 errors &bull; WER 38.71%
+      &bull; S:6 D:0 I:6
+      &bull; 31 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_53.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_53.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+our</span> <span class="err-sub" title="sub: the → receivables">the</span><span class="hyp-inline">[→receivables]</span> increased by 1000000000 decreased by 1000000000 <span class="err-ins" title="inserted">+91000000</span> <span class="err-sub" title="sub: 91000000s → zloty">91000000s</span><span class="hyp-inline">[→zloty]</span> leading to an increase <span class="err-sub" title="sub: in → of">in</span><span class="hyp-inline">[→of]</span> cash and bank deposits by <span class="err-ins" title="inserted">+823000000</span> <span class="err-sub" title="sub: 823000000s → zloty">823000000s</span><span class="hyp-inline">[→zloty]</span> and <span class="err-ins" title="inserted">+114000000</span> <span class="err-sub" title="sub: 140000000s → zloty">140000000s</span><span class="hyp-inline">[→zloty]</span> increase <span class="err-sub" title="sub: in → of">in</span><span class="hyp-inline">[→of]</span> domestic <span class="err-ins" title="inserted">+team</span> <span class="err-ins" title="inserted">+bonds</span> included in the other financial assets line</div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>in</td><td>of</td><td>2</td></tr>
+<tr><td>Sub</td><td>the</td><td>receivables</td><td>1</td></tr>
+<tr><td>Sub</td><td>91000000s</td><td>zloty</td><td>1</td></tr>
+<tr><td>Sub</td><td>823000000s</td><td>zloty</td><td>1</td></tr>
+<tr><td>Sub</td><td>140000000s</td><td>zloty</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>our</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>91000000</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>823000000</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>114000000</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>team</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>bonds</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-17">
+  <header>
+    <span class="rank">#17</span>
+    <span class="utt-id">4470290/153.wav</span>
+    <span class="stats">
+      12 errors &bull; WER 25.53%
+      &bull; S:1 D:11 I:0
+      &bull; 47 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_153.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_153.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">of course we see that as a profitable business and that will be will put <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">our</span> our foot <span class="err-del" title="deleted">on</span> <span class="err-del" title="deleted">on</span> <span class="err-del" title="deleted">on</span> on the gas pedal as <span class="err-del" title="deleted">the</span> we are fully recovered because we see <span class="err-del" title="deleted">there</span> <span class="err-del" title="deleted">is</span> <span class="err-del" title="deleted">there</span> <span class="err-del" title="deleted">are</span> there is opportunity to gain extra <span class="err-sub" title="sub: margin → margins">margin</span><span class="hyp-inline">[→margins]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>margin</td><td>margins</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>on</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>there</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>our</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>are</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-18">
+  <header>
+    <span class="rank">#18</span>
+    <span class="utt-id">4432298/222.wav</span>
+    <span class="stats">
+      12 errors &bull; WER 57.14%
+      &bull; S:1 D:0 I:11
+      &bull; 21 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_222.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_222.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">in terms of <span class="err-ins" title="inserted">+m</span> <span class="err-sub" title="sub: mna → a">mna</span><span class="hyp-inline">[→a]</span> if there will be anything to announce we will announce it i mean <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+fact</span> that is <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> the situation</div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>mna</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>m</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>fact</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-19">
+  <header>
+    <span class="rank">#19</span>
+    <span class="utt-id">4470290/166.wav</span>
+    <span class="stats">
+      12 errors &bull; WER 28.57%
+      &bull; S:5 D:1 I:6
+      &bull; 42 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_166.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_166.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">this is damian <span class="err-del" title="deleted">t</span> the new campaign was extremely <span class="err-ins" title="inserted">+effective</span> <span class="err-sub" title="sub: this → it">this</span><span class="hyp-inline">[→it]</span> has been extremely <span class="err-ins" title="inserted">+effective</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+still</span> <span class="err-sub" title="sub: successful → running">successful</span><span class="hyp-inline">[→running]</span> and what we are pointing towards is getting back to travel and being able to afford the travel as <span class="err-sub" title="sub: as → we">as</span><span class="hyp-inline">[→we]</span> always have been positioned in the <span class="err-ins" title="inserted">+minds</span> <span class="err-sub" title="sub: market → of">market</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: section → consumers">section</span><span class="hyp-inline">[→consumers]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>this</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>successful</td><td>running</td><td>1</td></tr>
+<tr><td>Sub</td><td>as</td><td>we</td><td>1</td></tr>
+<tr><td>Sub</td><td>market</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>section</td><td>consumers</td><td>1</td></tr>
+<tr><td>Del</td><td>t</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>effective</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>still</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>minds</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-20">
+  <header>
+    <span class="rank">#20</span>
+    <span class="utt-id">4432298/86.wav</span>
+    <span class="stats">
+      12 errors &bull; WER 24.49%
+      &bull; S:5 D:0 I:7
+      &bull; 49 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_86.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_86.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">based on the strong financial position and taking into consideration the <span class="err-ins" title="inserted">+455000000</span> <span class="err-sub" title="sub: 455000000s → zloty">455000000s</span><span class="hyp-inline">[→zloty]</span> excess of <span class="err-ins" title="inserted">+short</span> <span class="err-ins" title="inserted">+term</span> liabilities over receivables as of the end of q one the board <span class="err-ins" title="inserted">+of</span> <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: proposed → project">proposed</span><span class="hyp-inline">[→project]</span> <span class="err-sub" title="sub: to → proposed">to</span><span class="hyp-inline">[→proposed]</span> the general <span class="err-ins" title="inserted">+meeting</span> to pay out a dividend in the total amount of nearly <span class="err-ins" title="inserted">+504000000</span> <span class="err-sub" title="sub: 504000000s → zloty">504000000s</span><span class="hyp-inline">[→zloty]</span> which translates into 5 <span class="err-sub" title="sub: latic → zloty">latic</span><span class="hyp-inline">[→zloty]</span> per share</div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>455000000s</td><td>zloty</td><td>1</td></tr>
+<tr><td>Sub</td><td>proposed</td><td>project</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>proposed</td><td>1</td></tr>
+<tr><td>Sub</td><td>504000000s</td><td>zloty</td><td>1</td></tr>
+<tr><td>Sub</td><td>latic</td><td>zloty</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>455000000</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>short</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>term</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>meeting</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>504000000</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-21">
+  <header>
+    <span class="rank">#21</span>
+    <span class="utt-id">4432298/51.wav</span>
+    <span class="stats">
+      11 errors &bull; WER 57.89%
+      &bull; S:1 D:1 I:9
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_51.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_51.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the 64000000 <span class="err-ins" title="inserted">+slotted</span> growth of other <span class="err-ins" title="inserted">+fixed</span> <span class="err-ins" title="inserted">+assets</span> <span class="err-ins" title="inserted">+visible</span> <span class="err-ins" title="inserted">+in</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+line</span> <span class="err-ins" title="inserted">+below</span> comes mostly from the <span class="err-del" title="deleted">re</span> <span class="err-sub" title="sub: calculation → recalculation">calculation</span><span class="hyp-inline">[→recalculation]</span> of our deferred income taxes by nearly 60000000 <span class="err-ins" title="inserted">+slotted</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>calculation</td><td>recalculation</td><td>1</td></tr>
+<tr><td>Del</td><td>re</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>slotted</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>fixed</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>assets</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>visible</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>line</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>below</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-22">
+  <header>
+    <span class="rank">#22</span>
+    <span class="utt-id">4483338/412.wav</span>
+    <span class="stats">
+      11 errors &bull; WER 52.38%
+      &bull; S:3 D:8 I:0
+      &bull; 21 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4483338_412.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4483338_412.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">thank</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">thank</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">stefan</span> <span class="err-del" title="deleted">thank</span> <span class="err-del" title="deleted">you</span> the next question comes from the line of francesca <span class="err-sub" title="sub: schild → schill">schild</span><span class="hyp-inline">[→schill]</span> from <span class="err-del" title="deleted">bnp</span> <span class="err-sub" title="sub: paribas → deutsche">paribas</span><span class="hyp-inline">[→deutsche]</span> <span class="err-sub" title="sub: exane → bank">exane</span><span class="hyp-inline">[→bank]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>schild</td><td>schill</td><td>1</td></tr>
+<tr><td>Sub</td><td>paribas</td><td>deutsche</td><td>1</td></tr>
+<tr><td>Sub</td><td>exane</td><td>bank</td><td>1</td></tr>
+<tr><td>Del</td><td>thank</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>stefan</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>bnp</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-23">
+  <header>
+    <span class="rank">#23</span>
+    <span class="utt-id">4432298/322.wav</span>
+    <span class="stats">
+      11 errors &bull; WER 57.89%
+      &bull; S:6 D:0 I:5
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_322.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_322.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">all right the next question from <span class="err-ins" title="inserted">+piotr</span> <span class="err-ins" title="inserted">+wopachewicz</span> <span class="err-ins" title="inserted">+pko</span> <span class="err-ins" title="inserted">+bp</span> do you observe significantly <span class="err-ins" title="inserted">+increased</span> <span class="err-sub" title="sub: increase → employee">increase</span><span class="hyp-inline">[→employee]</span> <span class="err-sub" title="sub: and → turnover">and</span><span class="hyp-inline">[→turnover]</span> <span class="err-sub" title="sub: turn → after">turn</span><span class="hyp-inline">[→after]</span> <span class="err-sub" title="sub: over → paying">over</span><span class="hyp-inline">[→paying]</span> <span class="err-sub" title="sub: after → out">after</span><span class="hyp-inline">[→out]</span> <span class="err-sub" title="sub: after → of">after</span><span class="hyp-inline">[→of]</span> the annual bonuses</div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>increase</td><td>employee</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>turnover</td><td>1</td></tr>
+<tr><td>Sub</td><td>turn</td><td>after</td><td>1</td></tr>
+<tr><td>Sub</td><td>over</td><td>paying</td><td>1</td></tr>
+<tr><td>Sub</td><td>after</td><td>out</td><td>1</td></tr>
+<tr><td>Sub</td><td>after</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>piotr</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>wopachewicz</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>pko</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>bp</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>increased</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-24">
+  <header>
+    <span class="rank">#24</span>
+    <span class="utt-id">4450488/207.wav</span>
+    <span class="stats">
+      11 errors &bull; WER 22.45%
+      &bull; S:5 D:6 I:0
+      &bull; 49 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4450488_207.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4450488_207.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">now <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">was</span> <span class="err-del" title="deleted">at</span> <span class="err-del" title="deleted">acc</span> <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">was</span> <span class="err-sub" title="sub: an → deposit">an</span><span class="hyp-inline">[→deposit]</span> access program we continue to <span class="err-sub" title="sub: sync → sink">sync</span><span class="hyp-inline">[→sink]</span> gg one shaft we hit 1231 meters and for the shaft gg 2 we do have a <span class="err-sub" title="sub: spatial → special">spatial</span><span class="hyp-inline">[→special]</span> plan <span class="err-sub" title="sub: spatial → special">spatial</span><span class="hyp-inline">[→special]</span> development plan already published and now we are actually moving on with <span class="err-sub" title="sub: their → the">their</span><span class="hyp-inline">[→the]</span> drill holes</div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>spatial</td><td>special</td><td>2</td></tr>
+<tr><td>Sub</td><td>an</td><td>deposit</td><td>1</td></tr>
+<tr><td>Sub</td><td>sync</td><td>sink</td><td>1</td></tr>
+<tr><td>Sub</td><td>their</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>was</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>at</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>acc</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-25">
+  <header>
+    <span class="rank">#25</span>
+    <span class="utt-id">4432298/192.wav</span>
+    <span class="stats">
+      11 errors &bull; WER 35.48%
+      &bull; S:5 D:0 I:6
+      &bull; 31 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_192.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_192.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and the 3rd <span class="err-ins" title="inserted">+adam</span> adam again sorry we can not comment on it i mean definitely <span class="err-ins" title="inserted">+after</span> after our promise <span class="err-ins" title="inserted">+to</span> to <span class="err-sub" title="sub: start → to">start</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: and → start">and</span><span class="hyp-inline">[→start]</span> <span class="err-sub" title="sub: the → any">the</span><span class="hyp-inline">[→any]</span> communication closer <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+to</span> <span class="err-sub" title="sub: through → to">through</span><span class="hyp-inline">[→to]</span> <span class="err-sub" title="sub: each → releases">each</span><span class="hyp-inline">[→releases]</span> we do not want <span class="err-ins" title="inserted">+to</span> ..</div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>start</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>start</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>any</td><td>1</td></tr>
+<tr><td>Sub</td><td>through</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>each</td><td>releases</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>4</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>adam</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>after</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-26">
+  <header>
+    <span class="rank">#26</span>
+    <span class="utt-id">4483338/301.wav</span>
+    <span class="stats">
+      11 errors &bull; WER 91.67%
+      &bull; S:2 D:0 I:9
+      &bull; 12 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4483338_301.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4483338_301.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">so <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: specifically → basically">specifically</span><span class="hyp-inline">[→basically]</span> what what i am trying to say is that <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: .. → the">..</span><span class="hyp-inline">[→the]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>specifically</td><td>basically</td><td>1</td></tr>
+<tr><td>Sub</td><td>..</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>7</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-27">
+  <header>
+    <span class="rank">#27</span>
+    <span class="utt-id">4432298/84.wav</span>
+    <span class="stats">
+      11 errors &bull; WER 57.89%
+      &bull; S:4 D:0 I:7
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_84.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_84.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+as</span> <span class="err-ins" title="inserted">+you</span> <span class="err-sub" title="sub: only → already">only</span><span class="hyp-inline">[→already]</span> <span class="err-sub" title="sub: now → know">now</span><span class="hyp-inline">[→know]</span> our cash <span class="err-sub" title="sub: from → bank">from</span><span class="hyp-inline">[→bank]</span> deposits and <span class="err-ins" title="inserted">+t</span> <span class="err-ins" title="inserted">+bonds</span> value increased by 1000000000 <span class="err-ins" title="inserted">+40000000</span> <span class="err-ins" title="inserted">+zloty</span> and reached an unprecedented total of <span class="err-sub" title="sub: 1000000 → 1000000000">1000000</span><span class="hyp-inline">[→1000000000]</span> 950000000 <span class="err-ins" title="inserted">+zloty</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>only</td><td>already</td><td>1</td></tr>
+<tr><td>Sub</td><td>now</td><td>know</td><td>1</td></tr>
+<tr><td>Sub</td><td>from</td><td>bank</td><td>1</td></tr>
+<tr><td>Sub</td><td>1000000</td><td>1000000000</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>zloty</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>as</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>t</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>bonds</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>40000000</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-28">
+  <header>
+    <span class="rank">#28</span>
+    <span class="utt-id">4470290/64.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 33.33%
+      &bull; S:5 D:1 I:4
+      &bull; 30 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_64.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_64.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">on <span class="err-ins" title="inserted">+coin</span> <span class="err-sub" title="sub: colares → is">colares</span><span class="hyp-inline">[→is]</span> b 2 b business we <span class="err-sub" title="sub: continued → continue">continued</span><span class="hyp-inline">[→continue]</span> expanding the number of merchants in the <span class="err-ins" title="inserted">+e</span> <span class="err-sub" title="sub: ecommerce → commerce">ecommerce</span><span class="hyp-inline">[→commerce]</span> sector <span class="err-ins" title="inserted">+to</span> which we now provide <span class="err-ins" title="inserted">+the</span> alternative means for customers to pay <span class="err-del" title="deleted">the</span> <span class="err-sub" title="sub: foreign → via">foreign</span><span class="hyp-inline">[→via]</span> <span class="err-sub" title="sub: language → wallet">language</span><span class="hyp-inline">[→wallet]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>colares</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>continued</td><td>continue</td><td>1</td></tr>
+<tr><td>Sub</td><td>ecommerce</td><td>commerce</td><td>1</td></tr>
+<tr><td>Sub</td><td>foreign</td><td>via</td><td>1</td></tr>
+<tr><td>Sub</td><td>language</td><td>wallet</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>coin</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>e</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-29">
+  <header>
+    <span class="rank">#29</span>
+    <span class="utt-id">4432298/289.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 50.00%
+      &bull; S:3 D:6 I:1
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_289.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_289.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">crosstalk</span> <span class="err-del" title="deleted">okay</span> <span class="err-del" title="deleted">so</span> <span class="err-del" title="deleted">sir</span> <span class="err-del" title="deleted">so</span> when the when <span class="err-ins" title="inserted">+silent</span> <span class="err-sub" title="sub: cyberpunk → bob">cyberpunk</span><span class="hyp-inline">[→bob]</span> launches back on the playstation store what <span class="err-del" title="deleted">are</span> <span class="err-sub" title="sub: your → is">your</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: expectations → the">expectations</span><span class="hyp-inline">[→the]</span> ..</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>cyberpunk</td><td>bob</td><td>1</td></tr>
+<tr><td>Sub</td><td>your</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>expectations</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>so</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>crosstalk</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>okay</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>sir</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>are</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>silent</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-30">
+  <header>
+    <span class="rank">#30</span>
+    <span class="utt-id">4432298/20.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 166.67%
+      &bull; S:0 D:0 I:10
+      &bull; 6 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_20.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_20.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">that is all from my side <span class="err-ins" title="inserted">+let</span> <span class="err-ins" title="inserted">+us</span> <span class="err-ins" title="inserted">+now</span> <span class="err-ins" title="inserted">+let</span> <span class="err-ins" title="inserted">+us</span> <span class="err-ins" title="inserted">+now</span> <span class="err-ins" title="inserted">+let</span> <span class="err-ins" title="inserted">+us</span> <span class="err-ins" title="inserted">+now</span> <span class="err-ins" title="inserted">+..</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Ins</td><td>&mdash;</td><td>let</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>us</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>now</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>..</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-31">
+  <header>
+    <span class="rank">#31</span>
+    <span class="utt-id">4432298/201.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 33.33%
+      &bull; S:1 D:0 I:9
+      &bull; 30 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_201.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_201.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and on the <span class="err-ins" title="inserted">+cost</span> <span class="err-ins" title="inserted">+side</span> <span class="err-ins" title="inserted">+again</span> <span class="err-ins" title="inserted">+aside</span> <span class="err-ins" title="inserted">+again</span> with <span class="err-ins" title="inserted">+the</span> major fixing taking place in the 1st quarter do you see any improvement in terms of <span class="err-sub" title="sub: flexibility → profitability">flexibility</span><span class="hyp-inline">[→profitability]</span> or lower costs <span class="err-ins" title="inserted">+which</span> which <span class="err-ins" title="inserted">+you</span> incur <span class="err-ins" title="inserted">+in</span> in the 2nd quarter</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>flexibility</td><td>profitability</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>again</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>cost</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>side</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>aside</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>which</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-32">
+  <header>
+    <span class="rank">#32</span>
+    <span class="utt-id">4450488/237.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 20.83%
+      &bull; S:5 D:1 I:4
+      &bull; 48 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4450488_237.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4450488_237.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">a big project for us <span class="err-ins" title="inserted">+bitomodzyski</span> license that is basically <span class="err-ins" title="inserted">+a</span> new <span class="err-sub" title="sub: mind → mine">mind</span><span class="hyp-inline">[→mine]</span> <span class="err-sub" title="sub: and → a">and</span><span class="hyp-inline">[→a]</span> new technology <span class="err-del" title="deleted">a</span> new regulatory environment that is a priority topic for us under the license and <span class="err-ins" title="inserted">+the</span> ports <span class="err-sub" title="sub: and → in">and</span><span class="hyp-inline">[→in]</span> potassium salts <span class="err-ins" title="inserted">+that</span> <span class="err-sub" title="sub: but → is">but</span><span class="hyp-inline">[→is]</span> also very promising future oriented subject <span class="err-sub" title="sub: to → in">to</span><span class="hyp-inline">[→in]</span> the context of the current business cycle</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>mind</td><td>mine</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>but</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>in</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>bitomodzyski</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-33">
+  <header>
+    <span class="rank">#33</span>
+    <span class="utt-id">4470290/82.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 29.41%
+      &bull; S:6 D:4 I:0
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_82.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_82.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: excluding → student">excluding</span><span class="hyp-inline">[→student]</span> extraordinary charges comparable adjusted ebitda <span class="err-sub" title="sub: neared → near">neared</span><span class="hyp-inline">[→near]</span> break even reaching a loss of <span class="err-sub" title="sub: 3600000 → $3600000">3600000</span><span class="hyp-inline">[→$3600000]</span> improving from losses of <span class="err-del" title="deleted">10</span> <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">half</span> <span class="err-sub" title="sub: 1000000 → $7500000">1000000</span><span class="hyp-inline">[→$7500000]</span> in the <span class="err-sub" title="sub: 3rd → prior">3rd</span><span class="hyp-inline">[→prior]</span> quarter and nearly <span class="err-sub" title="sub: 17000000 → $17000000">17000000</span><span class="hyp-inline">[→$17000000]</span> in 3rd quarter 2020</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>excluding</td><td>student</td><td>1</td></tr>
+<tr><td>Sub</td><td>neared</td><td>near</td><td>1</td></tr>
+<tr><td>Sub</td><td>3600000</td><td>$3600000</td><td>1</td></tr>
+<tr><td>Sub</td><td>1000000</td><td>$7500000</td><td>1</td></tr>
+<tr><td>Sub</td><td>3rd</td><td>prior</td><td>1</td></tr>
+<tr><td>Sub</td><td>17000000</td><td>$17000000</td><td>1</td></tr>
+<tr><td>Del</td><td>10</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>half</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-34">
+  <header>
+    <span class="rank">#34</span>
+    <span class="utt-id">4485244/226.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 17.24%
+      &bull; S:4 D:6 I:0
+      &bull; 58 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4485244_226.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4485244_226.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">like i know you had <span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">ha</span> just <span class="err-sub" title="sub: had → hired">had</span><span class="hyp-inline">[→hired]</span> a new head of global wealth management but <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> whether it is specific products or specific things that kind of give you that confidence <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> sitting here today that <span class="err-sub" title="sub: next → in">next</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: you → the">you</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: know → next">know</span><span class="hyp-inline">[→next]</span> couple of years you can have that magnitude of an increase coming from that channel</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>had</td><td>hired</td><td>1</td></tr>
+<tr><td>Sub</td><td>next</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>know</td><td>next</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>know</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>ha</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-35">
+  <header>
+    <span class="rank">#35</span>
+    <span class="utt-id">4450488/196.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 28.57%
+      &bull; S:6 D:3 I:1
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4450488_196.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4450488_196.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">1st</span> <span class="err-sub" title="sub: 6 → projects">6</span><span class="hyp-inline">[→projects]</span> the 1st 6 months <span class="err-del" title="deleted">we</span> <span class="err-sub" title="sub: are → were">are</span><span class="hyp-inline">[→were]</span> <span class="err-sub" title="sub: close → closed">close</span><span class="hyp-inline">[→closed]</span> with <span class="err-sub" title="sub: that → the">that</span><span class="hyp-inline">[→the]</span> capex at <span class="err-ins" title="inserted">+1000000000</span> <span class="err-sub" title="sub: 1036000000 → 36000000">1036000000</span><span class="hyp-inline">[→36000000]</span> zlotys on the pie charts you can see the breakdown <span class="err-sub" title="sub: on → of">on</span><span class="hyp-inline">[→of]</span> the capex for the 1st 6 months of 2021</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>6</td><td>projects</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>were</td><td>1</td></tr>
+<tr><td>Sub</td><td>close</td><td>closed</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>1036000000</td><td>36000000</td><td>1</td></tr>
+<tr><td>Sub</td><td>on</td><td>of</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>1st</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>we</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>1000000000</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-36">
+  <header>
+    <span class="rank">#36</span>
+    <span class="utt-id">4432298/223.wav</span>
+    <span class="stats">
+      10 errors &bull; WER 33.33%
+      &bull; S:1 D:0 I:9
+      &bull; 30 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_223.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_223.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">now we are finalizing <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+the</span> the deal <span class="err-ins" title="inserted">+with</span> with our vancouver studio and <span class="err-ins" title="inserted">+with</span> with <span class="err-ins" title="inserted">+vancouver</span> <span class="err-ins" title="inserted">+team</span> and if <span class="err-ins" title="inserted">+any</span> any further plans like this or <span class="err-ins" title="inserted">+this</span> of this kind will appear <span class="err-ins" title="inserted">+will</span> <span class="err-sub" title="sub: we → will">we</span><span class="hyp-inline">[→will]</span> will inform the market</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>we</td><td>will</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>with</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>vancouver</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>team</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>any</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>this</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>will</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-37">
+  <header>
+    <span class="rank">#37</span>
+    <span class="utt-id">4470290/32.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 18.00%
+      &bull; S:7 D:2 I:0
+      &bull; 50 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_32.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_32.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">similar to past quarters our take rate benefited from the investments we have made in technology and <span class="err-sub" title="sub: analysis → analytics">analysis</span><span class="hyp-inline">[→analytics]</span> which allowed us to price more accurately improving algorithms to capture more <span class="err-del" title="deleted">process</span> <span class="err-sub" title="sub: development → profitable">development</span><span class="hyp-inline">[→profitable]</span> <span class="err-sub" title="sub: sections → transactions">sections</span><span class="hyp-inline">[→transactions]</span> and the positive impact from <span class="err-del" title="deleted">that</span> <span class="err-sub" title="sub: day → betdaq">day</span><span class="hyp-inline">[→betdaq]</span> which has <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: highest → higher">highest</span><span class="hyp-inline">[→higher]</span> take rate were also <span class="err-sub" title="sub: the → key">the</span><span class="hyp-inline">[→key]</span> contributors</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>analysis</td><td>analytics</td><td>1</td></tr>
+<tr><td>Sub</td><td>development</td><td>profitable</td><td>1</td></tr>
+<tr><td>Sub</td><td>sections</td><td>transactions</td><td>1</td></tr>
+<tr><td>Sub</td><td>day</td><td>betdaq</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>highest</td><td>higher</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>key</td><td>1</td></tr>
+<tr><td>Del</td><td>process</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-38">
+  <header>
+    <span class="rank">#38</span>
+    <span class="utt-id">4450488/82.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 42.86%
+      &bull; S:2 D:0 I:7
+      &bull; 21 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4450488_82.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4450488_82.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: and → but">and</span><span class="hyp-inline">[→but]</span> it helps us because it gives us an opportunity to fully utilize the capacity <span class="err-ins" title="inserted">+for</span> <span class="err-ins" title="inserted">+smelting</span> <span class="err-ins" title="inserted">+and</span> for <span class="err-ins" title="inserted">+refinement</span> <span class="err-ins" title="inserted">+in</span> <span class="err-ins" title="inserted">+our</span> <span class="err-ins" title="inserted">+smelters</span> <span class="err-sub" title="sub: w → to">w</span><span class="hyp-inline">[→to]</span> push up our volumes</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>and</td><td>but</td><td>1</td></tr>
+<tr><td>Sub</td><td>w</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>for</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>smelting</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>refinement</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>our</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>smelters</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-39">
+  <header>
+    <span class="rank">#39</span>
+    <span class="utt-id">4432298/131.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 18.75%
+      &bull; S:3 D:6 I:0
+      &bull; 48 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_131.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_131.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and we take our next question from <span class="err-sub" title="sub: mathew → matthew">mathew</span><span class="hyp-inline">[→matthew]</span> walker credit <span class="err-del" title="deleted">crosstalk</span> <span class="err-del" title="deleted">no</span> <span class="err-sub" title="sub: i → suisse">i</span><span class="hyp-inline">[→suisse]</span> i believe <span class="err-del" title="deleted">crosstalk</span> there was a sorry i believe there was a 2nd question which we did not get to because because there was like <span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">a</span> you know ongoing <span class="err-sub" title="sub: questioning → question">questioning</span><span class="hyp-inline">[→question]</span> about the units</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>mathew</td><td>matthew</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>suisse</td><td>1</td></tr>
+<tr><td>Sub</td><td>questioning</td><td>question</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>3</td></tr>
+<tr><td>Del</td><td>crosstalk</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>no</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-40">
+  <header>
+    <span class="rank">#40</span>
+    <span class="utt-id">4470290/9.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 60.00%
+      &bull; S:2 D:0 I:7
+      &bull; 15 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_9.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_9.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+investors</span> <span class="err-sub" title="sub: investment → should">investment</span><span class="hyp-inline">[→should]</span> <span class="err-sub" title="sub: secures → read">secures</span><span class="hyp-inline">[→read]</span> the definition of these measures and metrics <span class="err-ins" title="inserted">+included</span> <span class="err-ins" title="inserted">+in</span> <span class="err-ins" title="inserted">+our</span> <span class="err-ins" title="inserted">+press</span> <span class="err-ins" title="inserted">+release</span> <span class="err-ins" title="inserted">+carefully</span> to ensure that they understand them</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>investment</td><td>should</td><td>1</td></tr>
+<tr><td>Sub</td><td>secures</td><td>read</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>investors</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>included</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>our</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>press</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>release</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>carefully</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-41">
+  <header>
+    <span class="rank">#41</span>
+    <span class="utt-id">4432298/79.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 50.00%
+      &bull; S:0 D:0 I:9
+      &bull; 18 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_79.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_79.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">please note that the <span class="err-ins" title="inserted">+spoko</span> company which works full force <span class="err-ins" title="inserted">+on</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+coming</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+witcher</span> <span class="err-ins" title="inserted">+monster</span> <span class="err-ins" title="inserted">+slayer</span> <span class="err-ins" title="inserted">+game</span> is not included in the presented consolidated results yet</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Ins</td><td>&mdash;</td><td>the</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>spoko</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>on</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>coming</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>witcher</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>monster</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>slayer</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>game</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-42">
+  <header>
+    <span class="rank">#42</span>
+    <span class="utt-id">4485244/306.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 34.62%
+      &bull; S:3 D:6 I:0
+      &bull; 26 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4485244_306.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4485244_306.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">only</span> <span class="err-del" title="deleted">thing</span> <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">would</span> <span class="err-del" title="deleted">add</span> <span class="err-sub" title="sub: the → so">the</span><span class="hyp-inline">[→so]</span> last quarter we said we thought we could double <span class="err-sub" title="sub: c → fee">c</span><span class="hyp-inline">[→fee]</span> related earnings <span class="err-sub" title="sub: and → in">and</span><span class="hyp-inline">[→in]</span> tde over the next 5 years</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>the</td><td>so</td><td>1</td></tr>
+<tr><td>Sub</td><td>c</td><td>fee</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>in</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>only</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>thing</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>would</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>add</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-43">
+  <header>
+    <span class="rank">#43</span>
+    <span class="utt-id">4485244/582.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 50.00%
+      &bull; S:0 D:9 I:0
+      &bull; 18 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4485244_582.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4485244_582.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">thank</span> <span class="err-del" title="deleted">you</span> our final question this morning comes from the line <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">rufus</span> <span class="err-del" title="deleted">hone</span> <span class="err-del" title="deleted">with</span> <span class="err-del" title="deleted">bank</span> <span class="err-del" title="deleted">of</span> <span class="err-del" title="deleted">montreal</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>of</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>thank</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>rufus</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>hone</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>with</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>bank</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>montreal</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-44">
+  <header>
+    <span class="rank">#44</span>
+    <span class="utt-id">4432298/242.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 31.03%
+      &bull; S:3 D:1 I:5
+      &bull; 29 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_242.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_242.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but of course before the <span class="err-del" title="deleted">game</span> <span class="err-sub" title="sub: is → games">is</span><span class="hyp-inline">[→games]</span> <span class="err-sub" title="sub: launched → launch">launched</span><span class="hyp-inline">[→launch]</span> in <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> full scale we do not want to you know <span class="err-ins" title="inserted">+through</span> announce <span class="err-ins" title="inserted">+any</span> any internal data regarding <span class="err-ins" title="inserted">+how</span> how <span class="err-ins" title="inserted">+the</span> soft launches <span class="err-ins" title="inserted">+were</span> were progressing</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>is</td><td>games</td><td>1</td></tr>
+<tr><td>Sub</td><td>launched</td><td>launch</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>a</td><td>1</td></tr>
+<tr><td>Del</td><td>game</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>through</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>any</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>how</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>were</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-45">
+  <header>
+    <span class="rank">#45</span>
+    <span class="utt-id">4483338/196.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 17.65%
+      &bull; S:0 D:0 I:9
+      &bull; 51 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4483338_196.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4483338_196.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and the the key reason for the question really there is we are trying to think about <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+know</span> whether you can continue to create further efficiencies further out <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+know</span> than than <span class="err-ins" title="inserted">+the</span> middle of 2023 and <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+are</span> trying to understand <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+know</span> how much scope there is for long term greater efficiencies in the in the company</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Ins</td><td>&mdash;</td><td>you</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>know</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-46">
+  <header>
+    <span class="rank">#46</span>
+    <span class="utt-id">4432298/280.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 29.03%
+      &bull; S:3 D:2 I:4
+      &bull; 31 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_280.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_280.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+and</span> and and finally in terms of timing of the downloadable content <span class="err-sub" title="sub: that → for">that</span><span class="hyp-inline">[→for]</span> cyberpunk what is your <span class="err-ins" title="inserted">+sort</span> <span class="err-ins" title="inserted">+of</span> strategy in terms of <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> how much content there is <span class="err-ins" title="inserted">+and</span> and <span class="err-sub" title="sub: into → sort">into</span><span class="hyp-inline">[→sort]</span> <span class="err-sub" title="sub: the → of">the</span><span class="hyp-inline">[→of]</span> pricing</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>that</td><td>for</td><td>1</td></tr>
+<tr><td>Sub</td><td>into</td><td>sort</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>of</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>know</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>sort</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-47">
+  <header>
+    <span class="rank">#47</span>
+    <span class="utt-id">4432298/328.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 45.00%
+      &bull; S:1 D:0 I:8
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_328.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_328.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">so so from now on any update will be called <span class="err-sub" title="sub: parch → patch">parch</span><span class="hyp-inline">[→patch]</span> as and if there will be any hot fixes <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+so</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>parch</td><td>patch</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>8</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-48">
+  <header>
+    <span class="rank">#48</span>
+    <span class="utt-id">4470290/10.wav</span>
+    <span class="stats">
+      9 errors &bull; WER 40.91%
+      &bull; S:3 D:0 I:6
+      &bull; 22 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4470290_10.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4470290_10.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: longer → that">longer</span><span class="hyp-inline">[→that]</span> financial measures and operating metrics should not be considered <span class="err-ins" title="inserted">+in</span> <span class="err-ins" title="inserted">+isolation</span> <span class="err-ins" title="inserted">+as</span> <span class="err-ins" title="inserted">+substitute</span> <span class="err-ins" title="inserted">+for</span> <span class="err-ins" title="inserted">+or</span> <span class="err-sub" title="sub: to → superior">to</span><span class="hyp-inline">[→superior]</span> to the financial measures and are provided as <span class="err-sub" title="sub: supplementary → supplemental">supplementary</span><span class="hyp-inline">[→supplemental]</span> information only</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>longer</td><td>that</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>superior</td><td>1</td></tr>
+<tr><td>Sub</td><td>supplementary</td><td>supplemental</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>isolation</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>as</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>substitute</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>for</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>or</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-49">
+  <header>
+    <span class="rank">#49</span>
+    <span class="utt-id">4432298/194.wav</span>
+    <span class="stats">
+      8 errors &bull; WER 44.44%
+      &bull; S:1 D:2 I:5
+      &bull; 18 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4432298_194.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4432298_194.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">deliberately</span> of course <span class="err-ins" title="inserted">+we</span> <span class="err-ins" title="inserted">+have</span> we have the date internally but it is too early <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+to</span> to say anything <span class="err-del" title="deleted">about</span> <span class="err-sub" title="sub: it → else">it</span><span class="hyp-inline">[→else]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>it</td><td>else</td><td>1</td></tr>
+<tr><td>Del</td><td>deliberately</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>about</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>3</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>we</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>have</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-50">
+  <header>
+    <span class="rank">#50</span>
+    <span class="utt-id">4450488/99.wav</span>
+    <span class="stats">
+      8 errors &bull; WER 42.11%
+      &bull; S:8 D:0 I:0
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/earnings22/wavs/4450488_99.wav.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4450488_99.wav.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">we <span class="err-sub" title="sub: at → are">at</span><span class="hyp-inline">[→are]</span> <span class="err-sub" title="sub: the → supported">the</span><span class="hyp-inline">[→supported]</span> <span class="err-sub" title="sub: time → in">time</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: of → the">of</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: of → term">of</span><span class="hyp-inline">[→term]</span> <span class="err-sub" title="sub: this → of">this</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: of → the">of</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: this → service">this</span><span class="hyp-inline">[→service]</span> management board we are being supported by the macroeconomic situation</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>of</td><td>the</td><td>2</td></tr>
+<tr><td>Sub</td><td>at</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>supported</td><td>1</td></tr>
+<tr><td>Sub</td><td>time</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>term</td><td>1</td></tr>
+<tr><td>Sub</td><td>this</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>this</td><td>service</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+
+</main></div>
+</body></html>

@@ -1,0 +1,1391 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Error Analysis - librispeech-clean</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f7f8fa;color:#1a1a1a;line-height:1.6}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#fff;border-right:1px solid #e0e0e0;padding:12px 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar h3{padding:8px 16px;margin:0;font-size:.85rem;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.nav-item{display:block;padding:6px 16px;text-decoration:none;color:#333;font-size:.8rem;border-left:3px solid transparent;transition:background .15s}
+.nav-item:hover{background:#f0f4ff;border-left-color:#4a90d9}
+.nav-rank{font-weight:700;color:#4a90d9} .nav-err{color:#c33;font-size:.75rem} .nav-wer{color:#666;font-size:.75rem}
+main{flex:1;max-width:1100px;padding:24px 32px;overflow-x:hidden}
+h1{font-size:1.5rem;margin:0 0 4px} .subtitle{color:#666;font-size:.9rem;margin-bottom:20px;word-break:break-all}
+h2{font-size:1.15rem;margin-top:2rem;padding-bottom:6px;border-bottom:1px solid #e0e0e0}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.kpi>div{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px 18px;min-width:130px}
+.kpi .val{font-size:1.4rem;font-weight:700} .kpi .lbl{font-size:.8rem;color:#666}
+.kpi .highlight{border-color:#4a90d9;background:#f0f4ff}
+table.data{border-collapse:collapse;margin:12px 0;width:100%}
+table.data th,table.data td{border:1px solid #ddd;padding:6px 10px;text-align:left;font-size:.85rem}
+table.data th{background:#f8f8f8;position:sticky;top:0}
+table.data tr:hover{background:#fafafa}
+.tables-row{display:flex;gap:24px;flex-wrap:wrap}
+.tables-row>div{flex:1;min-width:200px}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;margin:16px 0;overflow:hidden}
+.card header{padding:14px 18px;background:#f8f9fb;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card .rank{font-size:1.1rem;font-weight:700;color:#4a90d9}
+.card .utt-id{font-family:monospace;font-size:.82rem;color:#555}
+.card .stats{font-size:.8rem;color:#666;margin-left:auto}
+details{padding:0}
+summary{padding:10px 18px;cursor:pointer;font-weight:600;font-size:.9rem;background:#fafbfc;border-top:1px solid #eee;user-select:none}
+summary:hover{background:#f0f4ff}
+.transcript{padding:16px 18px;font-size:.9rem;line-height:1.9;white-space:pre-wrap;word-wrap:break-word;max-height:600px;overflow-y:auto}
+.audio-block{padding:8px 18px}
+.audio-block audio{width:min(520px,100%)}
+.audio-meta{font-size:.82rem;color:#555;padding:4px 18px;overflow-wrap:anywhere}
+.err-sub{background:#fff3cd;border-radius:3px;padding:1px 2px;border-bottom:2px solid #fd7e14;text-decoration:line-through;opacity:.75}
+.err-del{background:#f8d7da;border-radius:3px;padding:1px 2px;border-bottom:2px solid #dc3545;text-decoration:line-through;opacity:.7}
+.err-ins{background:#d6ecff;border-radius:3px;padding:1px 2px;border-bottom:2px solid #007bff;font-style:italic}
+.hyp-inline{color:#c33;font-size:.8rem;font-style:italic}
+.err-table{width:100%;border-collapse:collapse;margin:8px 0}
+.err-table th,.err-table td{border:1px solid #eee;padding:5px 8px;font-size:.82rem;text-align:left}
+.err-table th{background:#f8f8f8}
+@media(max-width:900px){
+  .sidebar{display:none}
+  main{padding:16px}
+  .tables-row{flex-direction:column}
+}
+</style></head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <h3>Utterances</h3>
+  <a href="#utt-1" class="nav-item"><span class="nav-rank">#1</span> <span class="nav-err">11 err</span> <span class="nav-wer">12.8%</span></a>
+<a href="#utt-2" class="nav-item"><span class="nav-rank">#2</span> <span class="nav-err">8 err</span> <span class="nav-wer">28.6%</span></a>
+<a href="#utt-3" class="nav-item"><span class="nav-rank">#3</span> <span class="nav-err">7 err</span> <span class="nav-wer">15.2%</span></a>
+<a href="#utt-4" class="nav-item"><span class="nav-rank">#4</span> <span class="nav-err">6 err</span> <span class="nav-wer">40.0%</span></a>
+<a href="#utt-5" class="nav-item"><span class="nav-rank">#5</span> <span class="nav-err">5 err</span> <span class="nav-wer">7.8%</span></a>
+<a href="#utt-6" class="nav-item"><span class="nav-rank">#6</span> <span class="nav-err">5 err</span> <span class="nav-wer">5.2%</span></a>
+<a href="#utt-7" class="nav-item"><span class="nav-rank">#7</span> <span class="nav-err">5 err</span> <span class="nav-wer">41.7%</span></a>
+<a href="#utt-8" class="nav-item"><span class="nav-rank">#8</span> <span class="nav-err">5 err</span> <span class="nav-wer">50.0%</span></a>
+<a href="#utt-9" class="nav-item"><span class="nav-rank">#9</span> <span class="nav-err">5 err</span> <span class="nav-wer">20.0%</span></a>
+<a href="#utt-10" class="nav-item"><span class="nav-rank">#10</span> <span class="nav-err">4 err</span> <span class="nav-wer">14.8%</span></a>
+<a href="#utt-11" class="nav-item"><span class="nav-rank">#11</span> <span class="nav-err">4 err</span> <span class="nav-wer">11.1%</span></a>
+<a href="#utt-12" class="nav-item"><span class="nav-rank">#12</span> <span class="nav-err">4 err</span> <span class="nav-wer">23.5%</span></a>
+<a href="#utt-13" class="nav-item"><span class="nav-rank">#13</span> <span class="nav-err">4 err</span> <span class="nav-wer">12.1%</span></a>
+<a href="#utt-14" class="nav-item"><span class="nav-rank">#14</span> <span class="nav-err">4 err</span> <span class="nav-wer">11.4%</span></a>
+<a href="#utt-15" class="nav-item"><span class="nav-rank">#15</span> <span class="nav-err">4 err</span> <span class="nav-wer">5.2%</span></a>
+<a href="#utt-16" class="nav-item"><span class="nav-rank">#16</span> <span class="nav-err">4 err</span> <span class="nav-wer">15.4%</span></a>
+<a href="#utt-17" class="nav-item"><span class="nav-rank">#17</span> <span class="nav-err">4 err</span> <span class="nav-wer">14.3%</span></a>
+<a href="#utt-18" class="nav-item"><span class="nav-rank">#18</span> <span class="nav-err">4 err</span> <span class="nav-wer">9.3%</span></a>
+<a href="#utt-19" class="nav-item"><span class="nav-rank">#19</span> <span class="nav-err">4 err</span> <span class="nav-wer">11.1%</span></a>
+<a href="#utt-20" class="nav-item"><span class="nav-rank">#20</span> <span class="nav-err">4 err</span> <span class="nav-wer">20.0%</span></a>
+<a href="#utt-21" class="nav-item"><span class="nav-rank">#21</span> <span class="nav-err">4 err</span> <span class="nav-wer">20.0%</span></a>
+<a href="#utt-22" class="nav-item"><span class="nav-rank">#22</span> <span class="nav-err">4 err</span> <span class="nav-wer">9.1%</span></a>
+<a href="#utt-23" class="nav-item"><span class="nav-rank">#23</span> <span class="nav-err">3 err</span> <span class="nav-wer">10.7%</span></a>
+<a href="#utt-24" class="nav-item"><span class="nav-rank">#24</span> <span class="nav-err">3 err</span> <span class="nav-wer">23.1%</span></a>
+<a href="#utt-25" class="nav-item"><span class="nav-rank">#25</span> <span class="nav-err">3 err</span> <span class="nav-wer">37.5%</span></a>
+<a href="#utt-26" class="nav-item"><span class="nav-rank">#26</span> <span class="nav-err">3 err</span> <span class="nav-wer">4.3%</span></a>
+<a href="#utt-27" class="nav-item"><span class="nav-rank">#27</span> <span class="nav-err">3 err</span> <span class="nav-wer">4.7%</span></a>
+<a href="#utt-28" class="nav-item"><span class="nav-rank">#28</span> <span class="nav-err">3 err</span> <span class="nav-wer">4.9%</span></a>
+<a href="#utt-29" class="nav-item"><span class="nav-rank">#29</span> <span class="nav-err">3 err</span> <span class="nav-wer">6.7%</span></a>
+<a href="#utt-30" class="nav-item"><span class="nav-rank">#30</span> <span class="nav-err">3 err</span> <span class="nav-wer">10.3%</span></a>
+<a href="#utt-31" class="nav-item"><span class="nav-rank">#31</span> <span class="nav-err">3 err</span> <span class="nav-wer">21.4%</span></a>
+<a href="#utt-32" class="nav-item"><span class="nav-rank">#32</span> <span class="nav-err">3 err</span> <span class="nav-wer">27.3%</span></a>
+<a href="#utt-33" class="nav-item"><span class="nav-rank">#33</span> <span class="nav-err">3 err</span> <span class="nav-wer">7.9%</span></a>
+<a href="#utt-34" class="nav-item"><span class="nav-rank">#34</span> <span class="nav-err">3 err</span> <span class="nav-wer">9.1%</span></a>
+<a href="#utt-35" class="nav-item"><span class="nav-rank">#35</span> <span class="nav-err">3 err</span> <span class="nav-wer">7.7%</span></a>
+<a href="#utt-36" class="nav-item"><span class="nav-rank">#36</span> <span class="nav-err">3 err</span> <span class="nav-wer">9.4%</span></a>
+<a href="#utt-37" class="nav-item"><span class="nav-rank">#37</span> <span class="nav-err">3 err</span> <span class="nav-wer">13.0%</span></a>
+<a href="#utt-38" class="nav-item"><span class="nav-rank">#38</span> <span class="nav-err">3 err</span> <span class="nav-wer">18.8%</span></a>
+<a href="#utt-39" class="nav-item"><span class="nav-rank">#39</span> <span class="nav-err">3 err</span> <span class="nav-wer">15.8%</span></a>
+<a href="#utt-40" class="nav-item"><span class="nav-rank">#40</span> <span class="nav-err">3 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-41" class="nav-item"><span class="nav-rank">#41</span> <span class="nav-err">3 err</span> <span class="nav-wer">30.0%</span></a>
+<a href="#utt-42" class="nav-item"><span class="nav-rank">#42</span> <span class="nav-err">3 err</span> <span class="nav-wer">7.0%</span></a>
+<a href="#utt-43" class="nav-item"><span class="nav-rank">#43</span> <span class="nav-err">3 err</span> <span class="nav-wer">5.7%</span></a>
+<a href="#utt-44" class="nav-item"><span class="nav-rank">#44</span> <span class="nav-err">3 err</span> <span class="nav-wer">13.0%</span></a>
+<a href="#utt-45" class="nav-item"><span class="nav-rank">#45</span> <span class="nav-err">3 err</span> <span class="nav-wer">15.8%</span></a>
+<a href="#utt-46" class="nav-item"><span class="nav-rank">#46</span> <span class="nav-err">3 err</span> <span class="nav-wer">10.0%</span></a>
+<a href="#utt-47" class="nav-item"><span class="nav-rank">#47</span> <span class="nav-err">3 err</span> <span class="nav-wer">23.1%</span></a>
+<a href="#utt-48" class="nav-item"><span class="nav-rank">#48</span> <span class="nav-err">3 err</span> <span class="nav-wer">5.8%</span></a>
+<a href="#utt-49" class="nav-item"><span class="nav-rank">#49</span> <span class="nav-err">3 err</span> <span class="nav-wer">6.4%</span></a>
+<a href="#utt-50" class="nav-item"><span class="nav-rank">#50</span> <span class="nav-err">3 err</span> <span class="nav-wer">15.8%</span></a>
+</nav>
+<main>
+<h1>Word Error Analysis: librispeech-clean</h1>
+<div class="subtitle">Input: /home/boren/data/test/phi7b_20260413/generate_librispeech-clean.jsonl</div>
+<div class="kpi">
+  <div class="highlight"><div class="val">1.69%</div><div class="lbl">WER</div></div>
+  <div><div class="val">2,620</div><div class="lbl">Utterances</div></div>
+  <div><div class="val">53,029</div><div class="lbl">Ref Words</div></div>
+  <div><div class="val">897</div><div class="lbl">Total Errors</div></div>
+  <div><div class="val">678</div><div class="lbl">Sub (1.3%)</div></div>
+  <div><div class="val">100</div><div class="lbl">Del (0.2%)</div></div>
+  <div><div class="val">119</div><div class="lbl">Ins (0.2%)</div></div>
+</div>
+
+<h2>Top Substitution Confusions</h2>
+<table class="data"><thead><tr><th>Ref Word</th><th>Hyp Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>a</td><td>the</td><td>8</td></tr>
+<tr><td>an</td><td>and</td><td>7</td></tr>
+<tr><td>rodolfo</td><td>rudolfo</td><td>5</td></tr>
+<tr><td>silvia</td><td>sylvia</td><td>5</td></tr>
+<tr><td>anyone</td><td>one</td><td>5</td></tr>
+<tr><td>the</td><td>a</td><td>5</td></tr>
+<tr><td>soames</td><td>solmes</td><td>5</td></tr>
+<tr><td>kaffar</td><td>kafir</td><td>5</td></tr>
+<tr><td>and</td><td>in</td><td>4</td></tr>
+<tr><td>battleaxe</td><td>ax</td><td>4</td></tr>
+<tr><td>this</td><td>the</td><td>4</td></tr>
+<tr><td>neverbend</td><td>been</td><td>4</td></tr>
+<tr><td>0</td><td>of</td><td>4</td></tr>
+<tr><td>everyone</td><td>one</td><td>3</td></tr>
+<tr><td>round</td><td>around</td><td>3</td></tr>
+<tr><td>uncas</td><td>uncus</td><td>3</td></tr>
+<tr><td>fitzooth</td><td>fitzuth</td><td>3</td></tr>
+<tr><td>towards</td><td>toward</td><td>3</td></tr>
+<tr><td>solon</td><td>sullen</td><td>3</td></tr>
+<tr><td>unc</td><td>unk</td><td>3</td></tr>
+<tr><td>stuteley</td><td>stutley</td><td>3</td></tr>
+<tr><td>thorkel</td><td>torkel</td><td>3</td></tr>
+<tr><td>hollan</td><td>holland</td><td>3</td></tr>
+<tr><td>wylder</td><td>wilder</td><td>3</td></tr>
+<tr><td>tabu</td><td>taboo</td><td>3</td></tr>
+<tr><td>jago</td><td>yago</td><td>3</td></tr>
+<tr><td>mainhall</td><td>hall</td><td>3</td></tr>
+<tr><td>today</td><td>day</td><td>3</td></tr>
+<tr><td>dobryna</td><td>dobrina</td><td>3</td></tr>
+<tr><td>man</td><td>men</td><td>3</td></tr></tbody></table>
+
+<div class="tables-row">
+<div>
+<h2>Top Deletions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>is</td><td>5</td></tr>
+<tr><td>la</td><td>3</td></tr>
+<tr><td>some</td><td>3</td></tr>
+<tr><td>a</td><td>3</td></tr>
+<tr><td>up</td><td>2</td></tr>
+<tr><td>court</td><td>2</td></tr>
+<tr><td>de</td><td>2</td></tr>
+<tr><td>e</td><td>2</td></tr>
+<tr><td>non</td><td>2</td></tr>
+<tr><td>cap</td><td>2</td></tr>
+<tr><td>we</td><td>2</td></tr>
+<tr><td>have</td><td>2</td></tr>
+<tr><td>table</td><td>2</td></tr>
+<tr><td>neo</td><td>2</td></tr>
+<tr><td>in</td><td>2</td></tr>
+<tr><td>would</td><td>2</td></tr>
+<tr><td>down</td><td>2</td></tr>
+<tr><td>sharp</td><td>1</td></tr>
+<tr><td>farm</td><td>1</td></tr>
+<tr><td>horse</td><td>1</td></tr></tbody></table>
+</div>
+<div>
+<h2>Top Insertions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>the</td><td>10</td></tr>
+<tr><td>a</td><td>6</td></tr>
+<tr><td>any</td><td>6</td></tr>
+<tr><td>to</td><td>5</td></tr>
+<tr><td>some</td><td>4</td></tr>
+<tr><td>battle</td><td>4</td></tr>
+<tr><td>never</td><td>4</td></tr>
+<tr><td>every</td><td>3</td></tr>
+<tr><td>britain</td><td>3</td></tr>
+<tr><td>on</td><td>3</td></tr>
+<tr><td>and</td><td>3</td></tr>
+<tr><td>main</td><td>3</td></tr>
+<tr><td>wat</td><td>2</td></tr>
+<tr><td>for</td><td>2</td></tr>
+<tr><td>it</td><td>2</td></tr>
+<tr><td>in</td><td>2</td></tr>
+<tr><td>i</td><td>2</td></tr>
+<tr><td>ander</td><td>2</td></tr>
+<tr><td>be</td><td>1</td></tr>
+<tr><td>snub</td><td>1</td></tr></tbody></table>
+</div>
+</div>
+
+<h2>Top 50 Worst Utterances (by error count)</h2>
+<article class="card" id="utt-1">
+  <header>
+    <span class="rank">#1</span>
+    <span class="utt-id">4992-41797-0001</span>
+    <span class="stats">
+      11 errors &bull; WER 12.79%
+      &bull; S:10 D:1 I:0
+      &bull; 86 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/4992-41797-0001.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4992-41797-0001.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">well as i say it is an awful queer world they clap all the burglars <span class="err-sub" title="sub: into → in">into</span><span class="hyp-inline">[→in]</span> jail and the murderers and the wife beaters i <span class="err-del" title="deleted">have</span> <span class="err-sub" title="sub: allers → always">allers</span><span class="hyp-inline">[→always]</span> thought a gentle reproof would be enough punishment for a wife beater because he probably has a lot <span class="err-sub" title="sub: 0 → of">0</span><span class="hyp-inline">[→of]</span> provocation that nobody knows and the firebugs can not think <span class="err-sub" title="sub: 0 → of">0</span><span class="hyp-inline">[→of]</span> the right name something like <span class="err-sub" title="sub: cendenaries → incendiaries">cendenaries</span><span class="hyp-inline">[→incendiaries]</span> <span class="err-sub" title="sub: an → and">an</span><span class="hyp-inline">[→and]</span> the breakers <span class="err-sub" title="sub: 0 → of">0</span><span class="hyp-inline">[→of]</span> the peace <span class="err-sub" title="sub: an → and">an</span><span class="hyp-inline">[→and]</span> what not <span class="err-sub" title="sub: an → and">an</span><span class="hyp-inline">[→and]</span> yet the law has <span class="err-sub" title="sub: nothin → nothing">nothin</span><span class="hyp-inline">[→nothing]</span> to say to a man like hen lord</div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>0</td><td>of</td><td>3</td></tr>
+<tr><td>Sub</td><td>an</td><td>and</td><td>3</td></tr>
+<tr><td>Sub</td><td>into</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>allers</td><td>always</td><td>1</td></tr>
+<tr><td>Sub</td><td>cendenaries</td><td>incendiaries</td><td>1</td></tr>
+<tr><td>Sub</td><td>nothin</td><td>nothing</td><td>1</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-2">
+  <header>
+    <span class="rank">#2</span>
+    <span class="utt-id">8555-284447-0002</span>
+    <span class="stats">
+      8 errors &bull; WER 28.57%
+      &bull; S:5 D:3 I:0
+      &bull; 28 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8555-284447-0002.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8555-284447-0002.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i would not mind a cup <span class="err-sub" title="sub: 0 → of">0</span><span class="hyp-inline">[→of]</span> coffee myself said <span class="err-del" title="deleted">cap</span> <span class="err-sub" title="sub: n → captain">n</span><span class="hyp-inline">[→captain]</span> bill i have had <span class="err-del" title="deleted">consid</span> <span class="err-sub" title="sub: ble → considerable">ble</span><span class="hyp-inline">[→considerable]</span> exercise this <span class="err-sub" title="sub: mornin → morning">mornin</span><span class="hyp-inline">[→morning]</span> and <span class="err-del" title="deleted">i</span> am all ready for <span class="err-sub" title="sub: breakfas → breakfast">breakfas</span><span class="hyp-inline">[→breakfast]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>0</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>n</td><td>captain</td><td>1</td></tr>
+<tr><td>Sub</td><td>ble</td><td>considerable</td><td>1</td></tr>
+<tr><td>Sub</td><td>mornin</td><td>morning</td><td>1</td></tr>
+<tr><td>Sub</td><td>breakfas</td><td>breakfast</td><td>1</td></tr>
+<tr><td>Del</td><td>cap</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>consid</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-3">
+  <header>
+    <span class="rank">#3</span>
+    <span class="utt-id">4992-41806-0014</span>
+    <span class="stats">
+      7 errors &bull; WER 15.22%
+      &bull; S:6 D:0 I:1
+      &bull; 46 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/4992-41806-0014.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4992-41806-0014.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: thinks → think">thinks</span><span class="hyp-inline">[→think]</span> <span class="err-sub" title="sub: i → side">i</span><span class="hyp-inline">[→side]</span> <span class="err-sub" title="sub: to → 0">to</span><span class="hyp-inline">[→0]</span> myself i never seen anything <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: osh → sh">osh</span><span class="hyp-inline">[→sh]</span> <span class="err-sub" title="sub: popham → popple">popham</span><span class="hyp-inline">[→popple]</span> could not mend if he took time enough and glue enough so i carried this little feller home in a bushel basket one night last month <span class="err-sub" title="sub: an → and">an</span><span class="hyp-inline">[→and]</span> i have spent 11 evenin is puttin him together</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>thinks</td><td>think</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>side</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>0</td><td>1</td></tr>
+<tr><td>Sub</td><td>osh</td><td>sh</td><td>1</td></tr>
+<tr><td>Sub</td><td>popham</td><td>popple</td><td>1</td></tr>
+<tr><td>Sub</td><td>an</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-4">
+  <header>
+    <span class="rank">#4</span>
+    <span class="utt-id">2094-142345-0027</span>
+    <span class="stats">
+      6 errors &bull; WER 40.00%
+      &bull; S:6 D:0 I:0
+      &bull; 15 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/2094-142345-0027.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/2094-142345-0027.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: munny → money">munny</span><span class="hyp-inline">[→money]</span> i <span class="err-sub" title="sub: tould → tidd">tould</span><span class="hyp-inline">[→tidd]</span> <span class="err-sub" title="sub: ike → like">ike</span><span class="hyp-inline">[→like]</span> to do into <span class="err-sub" title="sub: de → the">de</span><span class="hyp-inline">[→the]</span> barn to tommy to see <span class="err-sub" title="sub: de → the">de</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: whittawd → widowed">whittawd</span><span class="hyp-inline">[→widowed]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (6 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>de</td><td>the</td><td>2</td></tr>
+<tr><td>Sub</td><td>munny</td><td>money</td><td>1</td></tr>
+<tr><td>Sub</td><td>tould</td><td>tidd</td><td>1</td></tr>
+<tr><td>Sub</td><td>ike</td><td>like</td><td>1</td></tr>
+<tr><td>Sub</td><td>whittawd</td><td>widowed</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-5">
+  <header>
+    <span class="rank">#5</span>
+    <span class="utt-id">121-123859-0002</span>
+    <span class="stats">
+      5 errors &bull; WER 7.81%
+      &bull; S:4 D:1 I:0
+      &bull; 64 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/121-123859-0002.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/121-123859-0002.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but reckoning time whose 1000000 would accidents creep in twixt vows and change decrees of kings tan sacred beauty blunt the <span class="err-del" title="deleted">sharp</span> <span class="err-sub" title="sub: saint → sharpest">saint</span><span class="hyp-inline">[→sharpest]</span> intents divert strong minds to the course of altering things alas why fearing of time is tyranny might i not then say now i love you best when i was certain <span class="err-sub" title="sub: 0 → or">0</span><span class="hyp-inline">[→or]</span> <span class="err-sub" title="sub: er → in">er</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: incertainty → certainty">incertainty</span><span class="hyp-inline">[→certainty]</span> crowning the present doubting of the rest</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>saint</td><td>sharpest</td><td>1</td></tr>
+<tr><td>Sub</td><td>0</td><td>or</td><td>1</td></tr>
+<tr><td>Sub</td><td>er</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>incertainty</td><td>certainty</td><td>1</td></tr>
+<tr><td>Del</td><td>sharp</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-6">
+  <header>
+    <span class="rank">#6</span>
+    <span class="utt-id">1995-1836-0004</span>
+    <span class="stats">
+      5 errors &bull; WER 5.21%
+      &bull; S:4 D:0 I:1
+      &bull; 96 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/1995-1836-0004.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/1995-1836-0004.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">as she awaited her guests she surveyed the table with both satisfaction and disquietude for her social functions were few <span class="err-ins" title="inserted">+to</span> <span class="err-sub" title="sub: tonight → night">tonight</span><span class="hyp-inline">[→night]</span> there were she checked them off on her fingers sir james <span class="err-sub" title="sub: creighton → crichton">creighton</span><span class="hyp-inline">[→crichton]</span> the rich english manufacturer and lady <span class="err-sub" title="sub: creighton → crichton">creighton</span><span class="hyp-inline">[→crichton]</span> mister and missus <span class="err-sub" title="sub: vanderpool → vanderpoel">vanderpool</span><span class="hyp-inline">[→vanderpoel]</span> mister harry cresswell and his sister john taylor and his sister and mister charles smith whom the evening papers mentioned as likely to be united states senator from new jersey a selection of guests that had been determined unknown to the hostess by the meeting of cotton interests earlier in the day</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>creighton</td><td>crichton</td><td>2</td></tr>
+<tr><td>Sub</td><td>tonight</td><td>night</td><td>1</td></tr>
+<tr><td>Sub</td><td>vanderpool</td><td>vanderpoel</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-7">
+  <header>
+    <span class="rank">#7</span>
+    <span class="utt-id">2094-142345-0024</span>
+    <span class="stats">
+      5 errors &bull; WER 41.67%
+      &bull; S:4 D:1 I:0
+      &bull; 12 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/2094-142345-0024.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/2094-142345-0024.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: munny → money">munny</span><span class="hyp-inline">[→money]</span> my <span class="err-del" title="deleted">iron</span> <span class="err-sub" title="sub: is → irons">is</span><span class="hyp-inline">[→irons]</span> <span class="err-sub" title="sub: twite → twight">twite</span><span class="hyp-inline">[→twight]</span> told <span class="err-sub" title="sub: pease → please">pease</span><span class="hyp-inline">[→please]</span> put it down to warm</div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>munny</td><td>money</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>irons</td><td>1</td></tr>
+<tr><td>Sub</td><td>twite</td><td>twight</td><td>1</td></tr>
+<tr><td>Sub</td><td>pease</td><td>please</td><td>1</td></tr>
+<tr><td>Del</td><td>iron</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-8">
+  <header>
+    <span class="rank">#8</span>
+    <span class="utt-id">4992-41797-0016</span>
+    <span class="stats">
+      5 errors &bull; WER 50.00%
+      &bull; S:5 D:0 I:0
+      &bull; 10 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/4992-41797-0016.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4992-41797-0016.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">they could not run <span class="err-sub" title="sub: nor → or">nor</span><span class="hyp-inline">[→or]</span> move <span class="err-sub" title="sub: they → their">they</span><span class="hyp-inline">[→their]</span> <span class="err-sub" title="sub: are → just">are</span><span class="hyp-inline">[→just]</span> <span class="err-sub" title="sub: just → pace">just</span><span class="hyp-inline">[→pace]</span> <span class="err-sub" title="sub: pasteboard → bored">pasteboard</span><span class="hyp-inline">[→bored]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>nor</td><td>or</td><td>1</td></tr>
+<tr><td>Sub</td><td>they</td><td>their</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>just</td><td>1</td></tr>
+<tr><td>Sub</td><td>just</td><td>pace</td><td>1</td></tr>
+<tr><td>Sub</td><td>pasteboard</td><td>bored</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-9">
+  <header>
+    <span class="rank">#9</span>
+    <span class="utt-id">6829-68769-0015</span>
+    <span class="stats">
+      5 errors &bull; WER 20.00%
+      &bull; S:4 D:0 I:1
+      &bull; 25 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/6829-68769-0015.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/6829-68769-0015.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">sometimes i am that yearning for a smoke i am nearly crazy <span class="err-sub" title="sub: an → and">an</span><span class="hyp-inline">[→and]</span> i do not know which is <span class="err-sub" title="sub: worst → worse">worst</span><span class="hyp-inline">[→worse]</span> <span class="err-sub" title="sub: dyin → dying">dyin</span><span class="hyp-inline">[→dying]</span> one way or <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: another → other">another</span><span class="hyp-inline">[→other]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (5 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>an</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>worst</td><td>worse</td><td>1</td></tr>
+<tr><td>Sub</td><td>dyin</td><td>dying</td><td>1</td></tr>
+<tr><td>Sub</td><td>another</td><td>other</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-10">
+  <header>
+    <span class="rank">#10</span>
+    <span class="utt-id">8555-284447-0023</span>
+    <span class="stats">
+      4 errors &bull; WER 14.81%
+      &bull; S:3 D:1 I:0
+      &bull; 27 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8555-284447-0023.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8555-284447-0023.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i could not shiver much <span class="err-sub" title="sub: bein → being">bein</span><span class="hyp-inline">[→being]</span> bound so tight but when i am loose i mean to have <span class="err-sub" title="sub: jus → just">jus</span><span class="hyp-inline">[→just]</span> one good shiver to relieve my <span class="err-del" title="deleted">feelin</span> <span class="err-sub" title="sub: is → feelings">is</span><span class="hyp-inline">[→feelings]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>bein</td><td>being</td><td>1</td></tr>
+<tr><td>Sub</td><td>jus</td><td>just</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>feelings</td><td>1</td></tr>
+<tr><td>Del</td><td>feelin</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-11">
+  <header>
+    <span class="rank">#11</span>
+    <span class="utt-id">61-70970-0004</span>
+    <span class="stats">
+      4 errors &bull; WER 11.11%
+      &bull; S:3 D:1 I:0
+      &bull; 36 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/61-70970-0004.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/61-70970-0004.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but take it whilst i live and wear <span class="err-sub" title="sub: montfichet → muntfichet">montfichet</span><span class="hyp-inline">[→muntfichet]</span> is shield in the days when my eyes can be rejoiced by so brave a sight for you will <span class="err-del" title="deleted">ne</span> <span class="err-sub" title="sub: er → never">er</span><span class="hyp-inline">[→never]</span> disgrace our <span class="err-sub" title="sub: scutcheon → stutcheon">scutcheon</span><span class="hyp-inline">[→stutcheon]</span> i warrant me</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>montfichet</td><td>muntfichet</td><td>1</td></tr>
+<tr><td>Sub</td><td>er</td><td>never</td><td>1</td></tr>
+<tr><td>Sub</td><td>scutcheon</td><td>stutcheon</td><td>1</td></tr>
+<tr><td>Del</td><td>ne</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-12">
+  <header>
+    <span class="rank">#12</span>
+    <span class="utt-id">7021-79740-0004</span>
+    <span class="stats">
+      4 errors &bull; WER 23.53%
+      &bull; S:2 D:0 I:2
+      &bull; 17 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/7021-79740-0004.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/7021-79740-0004.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">you have come <span class="err-ins" title="inserted">+and</span> <span class="err-ins" title="inserted">+della</span> <span class="err-sub" title="sub: andella → and">andella</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: andella → della">andella</span><span class="hyp-inline">[→della]</span> was the name of jane is doll to make rosalie a visit</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>andella</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>andella</td><td>della</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>della</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-13">
+  <header>
+    <span class="rank">#13</span>
+    <span class="utt-id">908-157963-0004</span>
+    <span class="stats">
+      4 errors &bull; WER 12.12%
+      &bull; S:2 D:0 I:2
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/908-157963-0004.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/908-157963-0004.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">thel is like a <span class="err-ins" title="inserted">+wat</span> <span class="err-sub" title="sub: watry → ry">watry</span><span class="hyp-inline">[→ry]</span> bow and like a parting cloud like a reflection in a glass like shadows in the water like dreams of infants like a smile upon an <span class="err-ins" title="inserted">+infant</span> <span class="err-sub" title="sub: infants → is">infants</span><span class="hyp-inline">[→is]</span> face</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>watry</td><td>ry</td><td>1</td></tr>
+<tr><td>Sub</td><td>infants</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>wat</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>infant</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-14">
+  <header>
+    <span class="rank">#14</span>
+    <span class="utt-id">4970-29095-0027</span>
+    <span class="stats">
+      4 errors &bull; WER 11.43%
+      &bull; S:2 D:0 I:2
+      &bull; 35 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/4970-29095-0027.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4970-29095-0027.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it is such a crush at the yearly meeting at arch street and then there is the row of sleek looking young men who <span class="err-ins" title="inserted">+lie</span> <span class="err-sub" title="sub: line → in">line</span><span class="hyp-inline">[→in]</span> the <span class="err-ins" title="inserted">+curb</span> <span class="err-sub" title="sub: curbstone → stone">curbstone</span><span class="hyp-inline">[→stone]</span> and stare at us as we come out</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>line</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>curbstone</td><td>stone</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>lie</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>curb</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-15">
+  <header>
+    <span class="rank">#15</span>
+    <span class="utt-id">908-157963-0007</span>
+    <span class="stats">
+      4 errors &bull; WER 5.19%
+      &bull; S:3 D:0 I:1
+      &bull; 77 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/908-157963-0007.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/908-157963-0007.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the <span class="err-sub" title="sub: lilly → lily">lilly</span><span class="hyp-inline">[→lily]</span> of the valley breathing in the humble grass <span class="err-sub" title="sub: answerd → answered">answerd</span><span class="hyp-inline">[→answered]</span> the lovely maid and said i am a <span class="err-ins" title="inserted">+wat</span> <span class="err-sub" title="sub: watry → ry">watry</span><span class="hyp-inline">[→ry]</span> weed and i am very small and love to dwell in lowly vales so weak the gilded butterfly scarce perches on my head yet i am visited from heaven and he that smiles on all walks in the valley and each morn over me spreads his hand saying rejoice thou humble grass thou new born lily flower</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>lilly</td><td>lily</td><td>1</td></tr>
+<tr><td>Sub</td><td>answerd</td><td>answered</td><td>1</td></tr>
+<tr><td>Sub</td><td>watry</td><td>ry</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>wat</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-16">
+  <header>
+    <span class="rank">#16</span>
+    <span class="utt-id">8555-284449-0003</span>
+    <span class="stats">
+      4 errors &bull; WER 15.38%
+      &bull; S:3 D:0 I:1
+      &bull; 26 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8555-284449-0003.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8555-284449-0003.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">when the <span class="err-ins" title="inserted">+blue</span> <span class="err-sub" title="sub: blueskins → skins">blueskins</span><span class="hyp-inline">[→skins]</span> saw <span class="err-sub" title="sub: ghip → gitka">ghip</span><span class="hyp-inline">[→gitka]</span> <span class="err-sub" title="sub: ghisizzle → sizzle">ghisizzle</span><span class="hyp-inline">[→sizzle]</span> they raised another great shout for he was the favorite of the soldiers and very popular with all the people</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>blueskins</td><td>skins</td><td>1</td></tr>
+<tr><td>Sub</td><td>ghip</td><td>gitka</td><td>1</td></tr>
+<tr><td>Sub</td><td>ghisizzle</td><td>sizzle</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>blue</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-17">
+  <header>
+    <span class="rank">#17</span>
+    <span class="utt-id">4507-16021-0021</span>
+    <span class="stats">
+      4 errors &bull; WER 14.29%
+      &bull; S:2 D:0 I:2
+      &bull; 28 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/4507-16021-0021.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4507-16021-0021.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the painter who says my grinder the notary who says my skip the gutter the <span class="err-ins" title="inserted">+hair</span> <span class="err-sub" title="sub: hairdresser → dresser">hairdresser</span><span class="hyp-inline">[→dresser]</span> who says my <span class="err-ins" title="inserted">+mealy</span> <span class="err-sub" title="sub: mealyback → back">mealyback</span><span class="hyp-inline">[→back]</span> the cobbler who says my cub talks slang</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>hairdresser</td><td>dresser</td><td>1</td></tr>
+<tr><td>Sub</td><td>mealyback</td><td>back</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>hair</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>mealy</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-18">
+  <header>
+    <span class="rank">#18</span>
+    <span class="utt-id">908-157963-0008</span>
+    <span class="stats">
+      4 errors &bull; WER 9.30%
+      &bull; S:3 D:0 I:1
+      &bull; 43 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/908-157963-0008.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/908-157963-0008.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">thou gentle maid of silent valleys and of modest brooks for thou <span class="err-sub" title="sub: shall → shalt">shall</span><span class="hyp-inline">[→shalt]</span> be clothed in light and fed with morning manna till <span class="err-ins" title="inserted">+summer</span> <span class="err-sub" title="sub: summers → is">summers</span><span class="hyp-inline">[→is]</span> heat melts thee beside the fountains and the springs to flourish in eternal vales they why should <span class="err-sub" title="sub: thel → they">thel</span><span class="hyp-inline">[→they]</span> complain</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>shall</td><td>shalt</td><td>1</td></tr>
+<tr><td>Sub</td><td>summers</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>thel</td><td>they</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>summer</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-19">
+  <header>
+    <span class="rank">#19</span>
+    <span class="utt-id">5639-40744-0028</span>
+    <span class="stats">
+      4 errors &bull; WER 11.11%
+      &bull; S:4 D:0 I:0
+      &bull; 36 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/5639-40744-0028.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/5639-40744-0028.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i have great things to tell you <span class="err-sub" title="sub: senor → signor">senor</span><span class="hyp-inline">[→signor]</span> said <span class="err-sub" title="sub: dona → donna">dona</span><span class="hyp-inline">[→donna]</span> <span class="err-sub" title="sub: estafania → stefania">estafania</span><span class="hyp-inline">[→stefania]</span> to her husband the cream and substance of which is this the fainting girl before you is your daughter and <span class="err-sub" title="sub: that → the">that</span><span class="hyp-inline">[→the]</span> boy is your grandson</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>senor</td><td>signor</td><td>1</td></tr>
+<tr><td>Sub</td><td>dona</td><td>donna</td><td>1</td></tr>
+<tr><td>Sub</td><td>estafania</td><td>stefania</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-20">
+  <header>
+    <span class="rank">#20</span>
+    <span class="utt-id">4507-16021-0001</span>
+    <span class="stats">
+      4 errors &bull; WER 20.00%
+      &bull; S:4 D:0 I:0
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/4507-16021-0001.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4507-16021-0001.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it engenders a whole world la <span class="err-sub" title="sub: pegre → pagne">pegre</span><span class="hyp-inline">[→pagne]</span> for which <span class="err-sub" title="sub: read → red">read</span><span class="hyp-inline">[→red]</span> theft and a hell la <span class="err-sub" title="sub: pegrenne → pagne">pegrenne</span><span class="hyp-inline">[→pagne]</span> for which <span class="err-sub" title="sub: read → red">read</span><span class="hyp-inline">[→red]</span> hunger</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>read</td><td>red</td><td>2</td></tr>
+<tr><td>Sub</td><td>pegre</td><td>pagne</td><td>1</td></tr>
+<tr><td>Sub</td><td>pegrenne</td><td>pagne</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-21">
+  <header>
+    <span class="rank">#21</span>
+    <span class="utt-id">7127-75947-0033</span>
+    <span class="stats">
+      4 errors &bull; WER 20.00%
+      &bull; S:3 D:1 I:0
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/7127-75947-0033.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/7127-75947-0033.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">how is it <span class="err-del" title="deleted">la</span> <span class="err-sub" title="sub: valliere → lavalliere">valliere</span><span class="hyp-inline">[→lavalliere]</span> said mademoiselle de <span class="err-sub" title="sub: tonnay → tenay">tonnay</span><span class="hyp-inline">[→tenay]</span> <span class="err-sub" title="sub: charente → chante">charente</span><span class="hyp-inline">[→chante]</span> that the vicomte de bragelonne spoke of you as louise</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>valliere</td><td>lavalliere</td><td>1</td></tr>
+<tr><td>Sub</td><td>tonnay</td><td>tenay</td><td>1</td></tr>
+<tr><td>Sub</td><td>charente</td><td>chante</td><td>1</td></tr>
+<tr><td>Del</td><td>la</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-22">
+  <header>
+    <span class="rank">#22</span>
+    <span class="utt-id">8455-210777-0061</span>
+    <span class="stats">
+      4 errors &bull; WER 9.09%
+      &bull; S:2 D:1 I:1
+      &bull; 44 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8455-210777-0061.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8455-210777-0061.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">you will carry out with you 100 men of the <span class="err-del" title="deleted">north</span> north <span class="err-sub" title="sub: west → northwest">west</span><span class="hyp-inline">[→northwest]</span> birmingham regiment which will probably suffice for your own security as it is thought that if mister <span class="err-ins" title="inserted">+never</span> <span class="err-sub" title="sub: neverbend → been">neverbend</span><span class="hyp-inline">[→been]</span> be withdrawn the people will revert easily to their old habits of obedience</div>
+  </details>
+  <details>
+    <summary>Error breakdown (4 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>west</td><td>northwest</td><td>1</td></tr>
+<tr><td>Sub</td><td>neverbend</td><td>been</td><td>1</td></tr>
+<tr><td>Del</td><td>north</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>never</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-23">
+  <header>
+    <span class="rank">#23</span>
+    <span class="utt-id">8555-284449-0007</span>
+    <span class="stats">
+      3 errors &bull; WER 10.71%
+      &bull; S:3 D:0 I:0
+      &bull; 28 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8555-284449-0007.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8555-284449-0007.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">now then let us enter the city <span class="err-sub" title="sub: an → and">an</span><span class="hyp-inline">[→and]</span> enjoy the <span class="err-sub" title="sub: grand → great">grand</span><span class="hyp-inline">[→great]</span> feast that is being cooked i am nearly starved myself for this <span class="err-sub" title="sub: conquerin → conquering">conquerin</span><span class="hyp-inline">[→conquering]</span> kingdoms is hard work</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>an</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>grand</td><td>great</td><td>1</td></tr>
+<tr><td>Sub</td><td>conquerin</td><td>conquering</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-24">
+  <header>
+    <span class="rank">#24</span>
+    <span class="utt-id">908-157963-0017</span>
+    <span class="stats">
+      3 errors &bull; WER 23.08%
+      &bull; S:2 D:1 I:0
+      &bull; 13 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/908-157963-0017.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/908-157963-0017.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the cloud then <span class="err-sub" title="sub: shewd → showed">shewd</span><span class="hyp-inline">[→showed]</span> his golden head and his bright form <span class="err-del" title="deleted">emerg</span> <span class="err-sub" title="sub: would → emerged">would</span><span class="hyp-inline">[→emerged]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>shewd</td><td>showed</td><td>1</td></tr>
+<tr><td>Sub</td><td>would</td><td>emerged</td><td>1</td></tr>
+<tr><td>Del</td><td>emerg</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-25">
+  <header>
+    <span class="rank">#25</span>
+    <span class="utt-id">7176-92135-0027</span>
+    <span class="stats">
+      3 errors &bull; WER 37.50%
+      &bull; S:3 D:0 I:0
+      &bull; 8 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/7176-92135-0027.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/7176-92135-0027.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">lady larkspur <span class="err-sub" title="sub: starts → started">starts</span><span class="hyp-inline">[→started]</span> suddenly and <span class="err-sub" title="sub: turns → turned">turns</span><span class="hyp-inline">[→turned]</span> <span class="err-sub" title="sub: towards → toward">towards</span><span class="hyp-inline">[→toward]</span> him</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>starts</td><td>started</td><td>1</td></tr>
+<tr><td>Sub</td><td>turns</td><td>turned</td><td>1</td></tr>
+<tr><td>Sub</td><td>towards</td><td>toward</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-26">
+  <header>
+    <span class="rank">#26</span>
+    <span class="utt-id">3575-170457-0046</span>
+    <span class="stats">
+      3 errors &bull; WER 4.35%
+      &bull; S:1 D:2 I:0
+      &bull; 69 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/3575-170457-0046.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/3575-170457-0046.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">a good neighbor of the brontes a clever intelligent yorkshire woman who keeps a druggist <span class="err-del" title="deleted">is</span> shop in haworth <span class="err-del" title="deleted">and</span> from her occupation her experience and excellent sense holds the position of village doctress and nurse and as such has been a friend in many a time of trial and sickness and death in the <span class="err-sub" title="sub: households → household">households</span><span class="hyp-inline">[→household]</span> round told me a characteristic little incident connected with tabby is fractured leg</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>households</td><td>household</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-27">
+  <header>
+    <span class="rank">#27</span>
+    <span class="utt-id">5639-40744-0027</span>
+    <span class="stats">
+      3 errors &bull; WER 4.69%
+      &bull; S:2 D:0 I:1
+      &bull; 64 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/5639-40744-0027.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/5639-40744-0027.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">thus saying and pressing the crucifix to her breast she fell fainting into the arms of <span class="err-sub" title="sub: dona → donna">dona</span><span class="hyp-inline">[→donna]</span> <span class="err-sub" title="sub: estafania → estefania">estafania</span><span class="hyp-inline">[→estefania]</span> who as a gentlewoman to whose sex pity is as natural as cruelty is to <span class="err-ins" title="inserted">+a</span> man instantly pressed her lips to those of the fainting girl shedding over her so many tears that there needed no other sprinkling of water to recover leocadia from her swoon</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>dona</td><td>donna</td><td>1</td></tr>
+<tr><td>Sub</td><td>estafania</td><td>estefania</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-28">
+  <header>
+    <span class="rank">#28</span>
+    <span class="utt-id">3729-6852-0003</span>
+    <span class="stats">
+      3 errors &bull; WER 4.92%
+      &bull; S:3 D:0 I:0
+      &bull; 61 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/3729-6852-0003.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/3729-6852-0003.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: madam → madame">madam</span><span class="hyp-inline">[→madame]</span> corrected me with a patronizing air for my pronunciation of the word <span class="err-sub" title="sub: scevra → schevre">scevra</span><span class="hyp-inline">[→schevre]</span> which means divided saying that it ought to be pronounced <span class="err-sub" title="sub: sceura → scheure">sceura</span><span class="hyp-inline">[→scheure]</span> and she added that i ought to be very glad to have learned so much on the 1st day of my arrival in paris telling me that it would be an important day in my life</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>madam</td><td>madame</td><td>1</td></tr>
+<tr><td>Sub</td><td>scevra</td><td>schevre</td><td>1</td></tr>
+<tr><td>Sub</td><td>sceura</td><td>scheure</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-29">
+  <header>
+    <span class="rank">#29</span>
+    <span class="utt-id">8224-274381-0008</span>
+    <span class="stats">
+      3 errors &bull; WER 6.67%
+      &bull; S:2 D:0 I:1
+      &bull; 45 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8224-274381-0008.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8224-274381-0008.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">with these and some <span class="err-sub" title="sub: reenforcements → reinforcements">reenforcements</span><span class="hyp-inline">[→reinforcements]</span> of the <span class="err-ins" title="inserted">+athol</span> <span class="err-sub" title="sub: atholemen → men">atholemen</span><span class="hyp-inline">[→men]</span> and macdonalds whom he had recalled montrose fell suddenly upon argyle is country and let loose upon it all the rage of war carrying off the cattle burning the houses and putting the inhabitants to the sword</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>reenforcements</td><td>reinforcements</td><td>1</td></tr>
+<tr><td>Sub</td><td>atholemen</td><td>men</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>athol</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-30">
+  <header>
+    <span class="rank">#30</span>
+    <span class="utt-id">1089-134691-0017</span>
+    <span class="stats">
+      3 errors &bull; WER 10.34%
+      &bull; S:2 D:0 I:1
+      &bull; 29 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/1089-134691-0017.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/1089-134691-0017.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the europe they had come from lay out there beyond the irish sea europe of strange tongues and <span class="err-sub" title="sub: valleyed → vallyed">valleyed</span><span class="hyp-inline">[→vallyed]</span> and <span class="err-ins" title="inserted">+wood</span> <span class="err-sub" title="sub: woodbegirt → begirt">woodbegirt</span><span class="hyp-inline">[→begirt]</span> and citadelled and of entrenched and marshaled races</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>valleyed</td><td>vallyed</td><td>1</td></tr>
+<tr><td>Sub</td><td>woodbegirt</td><td>begirt</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>wood</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-31">
+  <header>
+    <span class="rank">#31</span>
+    <span class="utt-id">8555-284447-0022</span>
+    <span class="stats">
+      3 errors &bull; WER 21.43%
+      &bull; S:3 D:0 I:0
+      &bull; 14 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8555-284447-0022.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8555-284447-0022.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i had a notion it was you <span class="err-sub" title="sub: mate → made">mate</span><span class="hyp-inline">[→made]</span> <span class="err-sub" title="sub: as → ter">as</span><span class="hyp-inline">[→ter]</span> <span class="err-sub" title="sub: saved → save">saved</span><span class="hyp-inline">[→save]</span> me from the knife</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>mate</td><td>made</td><td>1</td></tr>
+<tr><td>Sub</td><td>as</td><td>ter</td><td>1</td></tr>
+<tr><td>Sub</td><td>saved</td><td>save</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-32">
+  <header>
+    <span class="rank">#32</span>
+    <span class="utt-id">61-70970-0010</span>
+    <span class="stats">
+      3 errors &bull; WER 27.27%
+      &bull; S:1 D:2 I:0
+      &bull; 11 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/61-70970-0010.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/61-70970-0010.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">dismiss your squire robin and bid me good <span class="err-del" title="deleted">e</span> <span class="err-del" title="deleted">e</span> <span class="err-sub" title="sub: n → even">n</span><span class="hyp-inline">[→even]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>n</td><td>even</td><td>1</td></tr>
+<tr><td>Del</td><td>e</td><td>&mdash;</td><td>2</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-33">
+  <header>
+    <span class="rank">#33</span>
+    <span class="utt-id">8463-287645-0002</span>
+    <span class="stats">
+      3 errors &bull; WER 7.89%
+      &bull; S:3 D:0 I:0
+      &bull; 38 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8463-287645-0002.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8463-287645-0002.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">from the manner in which he expressed himself with regard to robert <span class="err-sub" title="sub: hollan → holland">hollan</span><span class="hyp-inline">[→holland]</span> no man in the whole range of his recollections will be longer remembered than he his <span class="err-sub" title="sub: enthralment → enthrallment">enthralment</span><span class="hyp-inline">[→enthrallment]</span> while under <span class="err-sub" title="sub: hollan → holland">hollan</span><span class="hyp-inline">[→holland]</span> will hardly ever be forgotten</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>hollan</td><td>holland</td><td>2</td></tr>
+<tr><td>Sub</td><td>enthralment</td><td>enthrallment</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-34">
+  <header>
+    <span class="rank">#34</span>
+    <span class="utt-id">8555-284449-0002</span>
+    <span class="stats">
+      3 errors &bull; WER 9.09%
+      &bull; S:3 D:0 I:0
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8555-284449-0002.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8555-284449-0002.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">at the head of the pinkies were <span class="err-sub" title="sub: ghip → gip">ghip</span><span class="hyp-inline">[→gip]</span> <span class="err-sub" title="sub: ghisizzle → gizzel">ghisizzle</span><span class="hyp-inline">[→gizzel]</span> and button bright who had the parrot on his shoulder and they were supported by captain <span class="err-sub" title="sub: coralie → coralee">coralie</span><span class="hyp-inline">[→coralee]</span> and captain tintint and rosalie the witch</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>ghip</td><td>gip</td><td>1</td></tr>
+<tr><td>Sub</td><td>ghisizzle</td><td>gizzel</td><td>1</td></tr>
+<tr><td>Sub</td><td>coralie</td><td>coralee</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-35">
+  <header>
+    <span class="rank">#35</span>
+    <span class="utt-id">61-70970-0038</span>
+    <span class="stats">
+      3 errors &bull; WER 7.69%
+      &bull; S:2 D:1 I:0
+      &bull; 39 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/61-70970-0038.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/61-70970-0038.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the old servant told him quietly as they crept back to gamewell that this <span class="err-del" title="deleted">passage</span> <span class="err-sub" title="sub: way → passageway">way</span><span class="hyp-inline">[→passageway]</span> led from the hut in the <span class="err-sub" title="sub: pleasance → pleasanes">pleasance</span><span class="hyp-inline">[→pleasanes]</span> to sherwood and that geoffrey for the time was hiding with the outlaws in the forest</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>way</td><td>passageway</td><td>1</td></tr>
+<tr><td>Sub</td><td>pleasance</td><td>pleasanes</td><td>1</td></tr>
+<tr><td>Del</td><td>passage</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-36">
+  <header>
+    <span class="rank">#36</span>
+    <span class="utt-id">8555-284447-0013</span>
+    <span class="stats">
+      3 errors &bull; WER 9.38%
+      &bull; S:2 D:0 I:1
+      &bull; 32 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8555-284447-0013.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8555-284447-0013.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">why you said to fetch the 1st living creature we met and that was <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: this → spilly">this</span><span class="hyp-inline">[→spilly]</span> <span class="err-sub" title="sub: billygoat → goat">billygoat</span><span class="hyp-inline">[→goat]</span> replied the captain panting hard as he held fast to one of the goat is horns</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>this</td><td>spilly</td><td>1</td></tr>
+<tr><td>Sub</td><td>billygoat</td><td>goat</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-37">
+  <header>
+    <span class="rank">#37</span>
+    <span class="utt-id">6930-76324-0027</span>
+    <span class="stats">
+      3 errors &bull; WER 13.04%
+      &bull; S:2 D:0 I:1
+      &bull; 23 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/6930-76324-0027.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/6930-76324-0027.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">forgetting all their weariness they seized their candles and scurried through the house finding <span class="err-ins" title="inserted">+on</span> <span class="err-sub" title="sub: an → occasion">an</span><span class="hyp-inline">[→occasion]</span> <span class="err-sub" title="sub: occasional → a">occasional</span><span class="hyp-inline">[→a]</span> paper tucked away in some odd corner</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>an</td><td>occasion</td><td>1</td></tr>
+<tr><td>Sub</td><td>occasional</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>on</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-38">
+  <header>
+    <span class="rank">#38</span>
+    <span class="utt-id">7127-75947-0026</span>
+    <span class="stats">
+      3 errors &bull; WER 18.75%
+      &bull; S:2 D:1 I:0
+      &bull; 16 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/7127-75947-0026.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/7127-75947-0026.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">well said mademoiselle <span class="err-del" title="deleted">de</span> <span class="err-sub" title="sub: tonnay → detainne">tonnay</span><span class="hyp-inline">[→detainne]</span> <span class="err-sub" title="sub: charente → chalant">charente</span><span class="hyp-inline">[→chalant]</span> i also think a good deal but i take care</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>tonnay</td><td>detainne</td><td>1</td></tr>
+<tr><td>Sub</td><td>charente</td><td>chalant</td><td>1</td></tr>
+<tr><td>Del</td><td>de</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-39">
+  <header>
+    <span class="rank">#39</span>
+    <span class="utt-id">6930-75918-0015</span>
+    <span class="stats">
+      3 errors &bull; WER 15.79%
+      &bull; S:1 D:2 I:0
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/6930-75918-0015.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/6930-75918-0015.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">thus it is that the honor of 3 is saved our country <span class="err-del" title="deleted">is</span> our <span class="err-del" title="deleted">master</span> <span class="err-sub" title="sub: is → masters">is</span><span class="hyp-inline">[→masters]</span> and our own</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>is</td><td>masters</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>master</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-40">
+  <header>
+    <span class="rank">#40</span>
+    <span class="utt-id">7127-75947-0021</span>
+    <span class="stats">
+      3 errors &bull; WER 33.33%
+      &bull; S:2 D:1 I:0
+      &bull; 9 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/7127-75947-0021.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/7127-75947-0021.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">la</span> <span class="err-sub" title="sub: valliere → lavalier">valliere</span><span class="hyp-inline">[→lavalier]</span> is quite a poetess said <span class="err-sub" title="sub: tonnay → tonet">tonnay</span><span class="hyp-inline">[→tonet]</span> charente</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>valliere</td><td>lavalier</td><td>1</td></tr>
+<tr><td>Sub</td><td>tonnay</td><td>tonet</td><td>1</td></tr>
+<tr><td>Del</td><td>la</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-41">
+  <header>
+    <span class="rank">#41</span>
+    <span class="utt-id">1995-1826-0025</span>
+    <span class="stats">
+      3 errors &bull; WER 30.00%
+      &bull; S:1 D:2 I:0
+      &bull; 10 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/1995-1826-0025.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/1995-1826-0025.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">some</span> <span class="err-sub" title="sub: time → sometime">time</span><span class="hyp-inline">[→sometime]</span> you <span class="err-del" title="deleted">will</span> tell me please will not you</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>time</td><td>sometime</td><td>1</td></tr>
+<tr><td>Del</td><td>some</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>will</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-42">
+  <header>
+    <span class="rank">#42</span>
+    <span class="utt-id">908-157963-0019</span>
+    <span class="stats">
+      3 errors &bull; WER 6.98%
+      &bull; S:3 D:0 I:0
+      &bull; 43 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/908-157963-0019.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/908-157963-0019.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it is to tenfold life to love to peace and raptures <span class="err-sub" title="sub: holy → wholly">holy</span><span class="hyp-inline">[→wholly]</span> unseen descending weigh my light wings upon balmy flowers and court the fair <span class="err-sub" title="sub: eyed → i">eyed</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: dew → do">dew</span><span class="hyp-inline">[→do]</span> to take me to her shining tent the weeping virgin trembling kneels before the risen sun</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>holy</td><td>wholly</td><td>1</td></tr>
+<tr><td>Sub</td><td>eyed</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>dew</td><td>do</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-43">
+  <header>
+    <span class="rank">#43</span>
+    <span class="utt-id">5142-36377-0008</span>
+    <span class="stats">
+      3 errors &bull; WER 5.66%
+      &bull; S:2 D:0 I:1
+      &bull; 53 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/5142-36377-0008.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/5142-36377-0008.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">mister <span class="err-sub" title="sub: meadowcroft → medacraft">meadowcroft</span><span class="hyp-inline">[→medacraft]</span> the elder having not spoken one word thus far himself introduced the <span class="err-ins" title="inserted">+new</span> <span class="err-sub" title="sub: newcomer → comer">newcomer</span><span class="hyp-inline">[→comer]</span> to me with a side glance at his sons which had something like defiance in it a glance which as i was sorry to notice was returned with the defiance on their side by the 2 young men</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>meadowcroft</td><td>medacraft</td><td>1</td></tr>
+<tr><td>Sub</td><td>newcomer</td><td>comer</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>new</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-44">
+  <header>
+    <span class="rank">#44</span>
+    <span class="utt-id">908-157963-0023</span>
+    <span class="stats">
+      3 errors &bull; WER 13.04%
+      &bull; S:2 D:0 I:1
+      &bull; 23 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/908-157963-0023.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/908-157963-0023.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the helpless worm arose and sat upon the <span class="err-ins" title="inserted">+lily</span> <span class="err-sub" title="sub: lillys → is">lillys</span><span class="hyp-inline">[→is]</span> leaf and the bright cloud <span class="err-sub" title="sub: saild → sailed">saild</span><span class="hyp-inline">[→sailed]</span> on to find his partner in the vale</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>lillys</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>saild</td><td>sailed</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>lily</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-45">
+  <header>
+    <span class="rank">#45</span>
+    <span class="utt-id">5639-40744-0006</span>
+    <span class="stats">
+      3 errors &bull; WER 15.79%
+      &bull; S:2 D:1 I:0
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/5639-40744-0006.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/5639-40744-0006.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: rodolfo → rudolfo">rodolfo</span><span class="hyp-inline">[→rudolfo]</span> arrived at his own house without any impediment and leocadia is parents reached theirs <span class="err-del" title="deleted">heart</span> <span class="err-sub" title="sub: broken → heartbroken">broken</span><span class="hyp-inline">[→heartbroken]</span> and despairing</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>rodolfo</td><td>rudolfo</td><td>1</td></tr>
+<tr><td>Sub</td><td>broken</td><td>heartbroken</td><td>1</td></tr>
+<tr><td>Del</td><td>heart</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-46">
+  <header>
+    <span class="rank">#46</span>
+    <span class="utt-id">2094-142345-0034</span>
+    <span class="stats">
+      3 errors &bull; WER 10.00%
+      &bull; S:1 D:2 I:0
+      &bull; 30 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/2094-142345-0034.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/2094-142345-0034.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and there is linen in the house as i could well spare you for i <span class="err-del" title="deleted">have</span> got lots 0 sheeting and <span class="err-del" title="deleted">table</span> <span class="err-sub" title="sub: clothing → tableclothing">clothing</span><span class="hyp-inline">[→tableclothing]</span> and toweling as is not made up</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>clothing</td><td>tableclothing</td><td>1</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>table</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-47">
+  <header>
+    <span class="rank">#47</span>
+    <span class="utt-id">4970-29095-0029</span>
+    <span class="stats">
+      3 errors &bull; WER 23.08%
+      &bull; S:1 D:2 I:0
+      &bull; 13 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/4970-29095-0029.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/4970-29095-0029.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">is he going to start a daily newspaper among the <span class="err-del" title="deleted">kick</span> <span class="err-del" title="deleted">a</span> <span class="err-sub" title="sub: poos → kickapoos">poos</span><span class="hyp-inline">[→kickapoos]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>poos</td><td>kickapoos</td><td>1</td></tr>
+<tr><td>Del</td><td>kick</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-48">
+  <header>
+    <span class="rank">#48</span>
+    <span class="utt-id">8224-274381-0005</span>
+    <span class="stats">
+      3 errors &bull; WER 5.77%
+      &bull; S:3 D:0 I:0
+      &bull; 52 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/8224-274381-0005.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/8224-274381-0005.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">dreading the superior power of argyle who having joined his vassals to a force levied by the public was approaching with a considerable army <span class="err-sub" title="sub: montrose → montreaux">montrose</span><span class="hyp-inline">[→montreaux]</span> hastened <span class="err-sub" title="sub: northwards → northward">northwards</span><span class="hyp-inline">[→northward]</span> in order to rouse again the marquis of <span class="err-sub" title="sub: huntley → huntly">huntley</span><span class="hyp-inline">[→huntly]</span> and the gordons who having before hastily taken arms had been instantly suppressed by the covenanters</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>montrose</td><td>montreaux</td><td>1</td></tr>
+<tr><td>Sub</td><td>northwards</td><td>northward</td><td>1</td></tr>
+<tr><td>Sub</td><td>huntley</td><td>huntly</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-49">
+  <header>
+    <span class="rank">#49</span>
+    <span class="utt-id">2961-961-0002</span>
+    <span class="stats">
+      3 errors &bull; WER 6.38%
+      &bull; S:3 D:0 I:0
+      &bull; 47 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/2961-961-0002.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/2961-961-0002.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and therefore to you i turn <span class="err-sub" title="sub: timaeus → timeus">timaeus</span><span class="hyp-inline">[→timeus]</span> citizen of <span class="err-sub" title="sub: locris → locri">locris</span><span class="hyp-inline">[→locri]</span> who are at once a philosopher and a statesman and to you <span class="err-sub" title="sub: critias → crito">critias</span><span class="hyp-inline">[→crito]</span> whom all athenians know to be similarly accomplished and to hermocrates who is also fitted by nature and education to share in our discourse</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>timaeus</td><td>timeus</td><td>1</td></tr>
+<tr><td>Sub</td><td>locris</td><td>locri</td><td>1</td></tr>
+<tr><td>Sub</td><td>critias</td><td>crito</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-50">
+  <header>
+    <span class="rank">#50</span>
+    <span class="utt-id">1995-1826-0023</span>
+    <span class="stats">
+      3 errors &bull; WER 15.79%
+      &bull; S:1 D:0 I:2
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/librispeech/wavs/1995-1826-0023.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/1995-1826-0023.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">goobers do not grow on the tops of vines but <span class="err-ins" title="inserted">+on</span> <span class="err-ins" title="inserted">+the</span> <span class="err-sub" title="sub: underground → ground">underground</span><span class="hyp-inline">[→ground]</span> on the roots like yams is that so</div>
+  </details>
+  <details>
+    <summary>Error breakdown (3 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>underground</td><td>ground</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>on</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+
+</main></div>
+</body></html>

@@ -1,0 +1,1633 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Error Analysis - ami</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f7f8fa;color:#1a1a1a;line-height:1.6}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#fff;border-right:1px solid #e0e0e0;padding:12px 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar h3{padding:8px 16px;margin:0;font-size:.85rem;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.nav-item{display:block;padding:6px 16px;text-decoration:none;color:#333;font-size:.8rem;border-left:3px solid transparent;transition:background .15s}
+.nav-item:hover{background:#f0f4ff;border-left-color:#4a90d9}
+.nav-rank{font-weight:700;color:#4a90d9} .nav-err{color:#c33;font-size:.75rem} .nav-wer{color:#666;font-size:.75rem}
+main{flex:1;max-width:1100px;padding:24px 32px;overflow-x:hidden}
+h1{font-size:1.5rem;margin:0 0 4px} .subtitle{color:#666;font-size:.9rem;margin-bottom:20px;word-break:break-all}
+h2{font-size:1.15rem;margin-top:2rem;padding-bottom:6px;border-bottom:1px solid #e0e0e0}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.kpi>div{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px 18px;min-width:130px}
+.kpi .val{font-size:1.4rem;font-weight:700} .kpi .lbl{font-size:.8rem;color:#666}
+.kpi .highlight{border-color:#4a90d9;background:#f0f4ff}
+table.data{border-collapse:collapse;margin:12px 0;width:100%}
+table.data th,table.data td{border:1px solid #ddd;padding:6px 10px;text-align:left;font-size:.85rem}
+table.data th{background:#f8f8f8;position:sticky;top:0}
+table.data tr:hover{background:#fafafa}
+.tables-row{display:flex;gap:24px;flex-wrap:wrap}
+.tables-row>div{flex:1;min-width:200px}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;margin:16px 0;overflow:hidden}
+.card header{padding:14px 18px;background:#f8f9fb;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card .rank{font-size:1.1rem;font-weight:700;color:#4a90d9}
+.card .utt-id{font-family:monospace;font-size:.82rem;color:#555}
+.card .stats{font-size:.8rem;color:#666;margin-left:auto}
+details{padding:0}
+summary{padding:10px 18px;cursor:pointer;font-weight:600;font-size:.9rem;background:#fafbfc;border-top:1px solid #eee;user-select:none}
+summary:hover{background:#f0f4ff}
+.transcript{padding:16px 18px;font-size:.9rem;line-height:1.9;white-space:pre-wrap;word-wrap:break-word;max-height:600px;overflow-y:auto}
+.audio-block{padding:8px 18px}
+.audio-block audio{width:min(520px,100%)}
+.audio-meta{font-size:.82rem;color:#555;padding:4px 18px;overflow-wrap:anywhere}
+.err-sub{background:#fff3cd;border-radius:3px;padding:1px 2px;border-bottom:2px solid #fd7e14;text-decoration:line-through;opacity:.75}
+.err-del{background:#f8d7da;border-radius:3px;padding:1px 2px;border-bottom:2px solid #dc3545;text-decoration:line-through;opacity:.7}
+.err-ins{background:#d6ecff;border-radius:3px;padding:1px 2px;border-bottom:2px solid #007bff;font-style:italic}
+.hyp-inline{color:#c33;font-size:.8rem;font-style:italic}
+.err-table{width:100%;border-collapse:collapse;margin:8px 0}
+.err-table th,.err-table td{border:1px solid #eee;padding:5px 8px;font-size:.82rem;text-align:left}
+.err-table th{background:#f8f8f8}
+@media(max-width:900px){
+  .sidebar{display:none}
+  main{padding:16px}
+  .tables-row{flex-direction:column}
+}
+</style></head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <h3>Utterances</h3>
+  <a href="#utt-1" class="nav-item"><span class="nav-rank">#1</span> <span class="nav-err">42 err</span> <span class="nav-wer">123.5%</span></a>
+<a href="#utt-2" class="nav-item"><span class="nav-rank">#2</span> <span class="nav-err">33 err</span> <span class="nav-wer">143.5%</span></a>
+<a href="#utt-3" class="nav-item"><span class="nav-rank">#3</span> <span class="nav-err">24 err</span> <span class="nav-wer">266.7%</span></a>
+<a href="#utt-4" class="nav-item"><span class="nav-rank">#4</span> <span class="nav-err">13 err</span> <span class="nav-wer">38.2%</span></a>
+<a href="#utt-5" class="nav-item"><span class="nav-rank">#5</span> <span class="nav-err">12 err</span> <span class="nav-wer">44.4%</span></a>
+<a href="#utt-6" class="nav-item"><span class="nav-rank">#6</span> <span class="nav-err">12 err</span> <span class="nav-wer">48.0%</span></a>
+<a href="#utt-7" class="nav-item"><span class="nav-rank">#7</span> <span class="nav-err">11 err</span> <span class="nav-wer">15.5%</span></a>
+<a href="#utt-8" class="nav-item"><span class="nav-rank">#8</span> <span class="nav-err">11 err</span> <span class="nav-wer">68.8%</span></a>
+<a href="#utt-9" class="nav-item"><span class="nav-rank">#9</span> <span class="nav-err">10 err</span> <span class="nav-wer">29.4%</span></a>
+<a href="#utt-10" class="nav-item"><span class="nav-rank">#10</span> <span class="nav-err">10 err</span> <span class="nav-wer">13.9%</span></a>
+<a href="#utt-11" class="nav-item"><span class="nav-rank">#11</span> <span class="nav-err">10 err</span> <span class="nav-wer">142.9%</span></a>
+<a href="#utt-12" class="nav-item"><span class="nav-rank">#12</span> <span class="nav-err">10 err</span> <span class="nav-wer">62.5%</span></a>
+<a href="#utt-13" class="nav-item"><span class="nav-rank">#13</span> <span class="nav-err">10 err</span> <span class="nav-wer">100.0%</span></a>
+<a href="#utt-14" class="nav-item"><span class="nav-rank">#14</span> <span class="nav-err">9 err</span> <span class="nav-wer">112.5%</span></a>
+<a href="#utt-15" class="nav-item"><span class="nav-rank">#15</span> <span class="nav-err">9 err</span> <span class="nav-wer">25.0%</span></a>
+<a href="#utt-16" class="nav-item"><span class="nav-rank">#16</span> <span class="nav-err">9 err</span> <span class="nav-wer">15.5%</span></a>
+<a href="#utt-17" class="nav-item"><span class="nav-rank">#17</span> <span class="nav-err">9 err</span> <span class="nav-wer">64.3%</span></a>
+<a href="#utt-18" class="nav-item"><span class="nav-rank">#18</span> <span class="nav-err">9 err</span> <span class="nav-wer">100.0%</span></a>
+<a href="#utt-19" class="nav-item"><span class="nav-rank">#19</span> <span class="nav-err">9 err</span> <span class="nav-wer">47.4%</span></a>
+<a href="#utt-20" class="nav-item"><span class="nav-rank">#20</span> <span class="nav-err">9 err</span> <span class="nav-wer">34.6%</span></a>
+<a href="#utt-21" class="nav-item"><span class="nav-rank">#21</span> <span class="nav-err">8 err</span> <span class="nav-wer">27.6%</span></a>
+<a href="#utt-22" class="nav-item"><span class="nav-rank">#22</span> <span class="nav-err">8 err</span> <span class="nav-wer">38.1%</span></a>
+<a href="#utt-23" class="nav-item"><span class="nav-rank">#23</span> <span class="nav-err">8 err</span> <span class="nav-wer">44.4%</span></a>
+<a href="#utt-24" class="nav-item"><span class="nav-rank">#24</span> <span class="nav-err">8 err</span> <span class="nav-wer">53.3%</span></a>
+<a href="#utt-25" class="nav-item"><span class="nav-rank">#25</span> <span class="nav-err">8 err</span> <span class="nav-wer">66.7%</span></a>
+<a href="#utt-26" class="nav-item"><span class="nav-rank">#26</span> <span class="nav-err">8 err</span> <span class="nav-wer">24.2%</span></a>
+<a href="#utt-27" class="nav-item"><span class="nav-rank">#27</span> <span class="nav-err">8 err</span> <span class="nav-wer">40.0%</span></a>
+<a href="#utt-28" class="nav-item"><span class="nav-rank">#28</span> <span class="nav-err">8 err</span> <span class="nav-wer">47.1%</span></a>
+<a href="#utt-29" class="nav-item"><span class="nav-rank">#29</span> <span class="nav-err">8 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-30" class="nav-item"><span class="nav-rank">#30</span> <span class="nav-err">8 err</span> <span class="nav-wer">21.1%</span></a>
+<a href="#utt-31" class="nav-item"><span class="nav-rank">#31</span> <span class="nav-err">8 err</span> <span class="nav-wer">40.0%</span></a>
+<a href="#utt-32" class="nav-item"><span class="nav-rank">#32</span> <span class="nav-err">8 err</span> <span class="nav-wer">72.7%</span></a>
+<a href="#utt-33" class="nav-item"><span class="nav-rank">#33</span> <span class="nav-err">8 err</span> <span class="nav-wer">88.9%</span></a>
+<a href="#utt-34" class="nav-item"><span class="nav-rank">#34</span> <span class="nav-err">8 err</span> <span class="nav-wer">33.3%</span></a>
+<a href="#utt-35" class="nav-item"><span class="nav-rank">#35</span> <span class="nav-err">8 err</span> <span class="nav-wer">400.0%</span></a>
+<a href="#utt-36" class="nav-item"><span class="nav-rank">#36</span> <span class="nav-err">7 err</span> <span class="nav-wer">18.4%</span></a>
+<a href="#utt-37" class="nav-item"><span class="nav-rank">#37</span> <span class="nav-err">7 err</span> <span class="nav-wer">140.0%</span></a>
+<a href="#utt-38" class="nav-item"><span class="nav-rank">#38</span> <span class="nav-err">7 err</span> <span class="nav-wer">58.3%</span></a>
+<a href="#utt-39" class="nav-item"><span class="nav-rank">#39</span> <span class="nav-err">7 err</span> <span class="nav-wer">50.0%</span></a>
+<a href="#utt-40" class="nav-item"><span class="nav-rank">#40</span> <span class="nav-err">7 err</span> <span class="nav-wer">700.0%</span></a>
+<a href="#utt-41" class="nav-item"><span class="nav-rank">#41</span> <span class="nav-err">7 err</span> <span class="nav-wer">350.0%</span></a>
+<a href="#utt-42" class="nav-item"><span class="nav-rank">#42</span> <span class="nav-err">7 err</span> <span class="nav-wer">18.4%</span></a>
+<a href="#utt-43" class="nav-item"><span class="nav-rank">#43</span> <span class="nav-err">7 err</span> <span class="nav-wer">26.9%</span></a>
+<a href="#utt-44" class="nav-item"><span class="nav-rank">#44</span> <span class="nav-err">7 err</span> <span class="nav-wer">116.7%</span></a>
+<a href="#utt-45" class="nav-item"><span class="nav-rank">#45</span> <span class="nav-err">7 err</span> <span class="nav-wer">43.8%</span></a>
+<a href="#utt-46" class="nav-item"><span class="nav-rank">#46</span> <span class="nav-err">7 err</span> <span class="nav-wer">38.9%</span></a>
+<a href="#utt-47" class="nav-item"><span class="nav-rank">#47</span> <span class="nav-err">7 err</span> <span class="nav-wer">233.3%</span></a>
+<a href="#utt-48" class="nav-item"><span class="nav-rank">#48</span> <span class="nav-err">7 err</span> <span class="nav-wer">700.0%</span></a>
+<a href="#utt-49" class="nav-item"><span class="nav-rank">#49</span> <span class="nav-err">7 err</span> <span class="nav-wer">30.4%</span></a>
+<a href="#utt-50" class="nav-item"><span class="nav-rank">#50</span> <span class="nav-err">7 err</span> <span class="nav-wer">35.0%</span></a>
+</nav>
+<main>
+<h1>Word Error Analysis: ami</h1>
+<div class="subtitle">Input: /home/boren/data/test/phi7b_20260413/generate_ami.jsonl</div>
+<div class="kpi">
+  <div class="highlight"><div class="val">8.48%</div><div class="lbl">WER</div></div>
+  <div><div class="val">12,643</div><div class="lbl">Utterances</div></div>
+  <div><div class="val">89,648</div><div class="lbl">Ref Words</div></div>
+  <div><div class="val">7,604</div><div class="lbl">Total Errors</div></div>
+  <div><div class="val">3,807</div><div class="lbl">Sub (4.2%)</div></div>
+  <div><div class="val">2,345</div><div class="lbl">Del (2.6%)</div></div>
+  <div><div class="val">1,452</div><div class="lbl">Ins (1.6%)</div></div>
+</div>
+
+<h2>Top Substitution Confusions</h2>
+<table class="data"><thead><tr><th>Ref Word</th><th>Hyp Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>yep</td><td>yeah</td><td>53</td></tr>
+<tr><td>a</td><td>the</td><td>38</td></tr>
+<tr><td>kay</td><td>okay</td><td>33</td></tr>
+<tr><td>it</td><td>that</td><td>31</td></tr>
+<tr><td>that</td><td>it</td><td>29</td></tr>
+<tr><td>okay</td><td>kay</td><td>21</td></tr>
+<tr><td>the</td><td>a</td><td>20</td></tr>
+<tr><td>yeah</td><td>yep</td><td>16</td></tr>
+<tr><td>th</td><td>the</td><td>15</td></tr>
+<tr><td>would</td><td>will</td><td>15</td></tr>
+<tr><td>alright</td><td>right</td><td>14</td></tr>
+<tr><td>yeah</td><td>no</td><td>14</td></tr>
+<tr><td>ah</td><td>0</td><td>12</td></tr>
+<tr><td>yes</td><td>yeah</td><td>12</td></tr>
+<tr><td>nite</td><td>night</td><td>11</td></tr>
+<tr><td>you</td><td>it</td><td>11</td></tr>
+<tr><td>right</td><td>alright</td><td>11</td></tr>
+<tr><td>will</td><td>would</td><td>11</td></tr>
+<tr><td>board</td><td>whiteboard</td><td>10</td></tr>
+<tr><td>yeah</td><td>know</td><td>10</td></tr>
+<tr><td>s</td><td>is</td><td>10</td></tr>
+<tr><td>then</td><td>and</td><td>10</td></tr>
+<tr><td>you</td><td>we</td><td>10</td></tr>
+<tr><td>could</td><td>can</td><td>10</td></tr>
+<tr><td>no</td><td>yeah</td><td>10</td></tr>
+<tr><td>is</td><td>was</td><td>9</td></tr>
+<tr><td>can</td><td>could</td><td>9</td></tr>
+<tr><td>y</td><td>you</td><td>9</td></tr>
+<tr><td>that</td><td>there</td><td>9</td></tr>
+<tr><td>i</td><td>it</td><td>9</td></tr></tbody></table>
+
+<div class="tables-row">
+<div>
+<h2>Top Deletions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>yeah</td><td>136</td></tr>
+<tr><td>a</td><td>135</td></tr>
+<tr><td>it</td><td>133</td></tr>
+<tr><td>i</td><td>119</td></tr>
+<tr><td>the</td><td>67</td></tr>
+<tr><td>0</td><td>59</td></tr>
+<tr><td>is</td><td>59</td></tr>
+<tr><td>you</td><td>48</td></tr>
+<tr><td>s</td><td>46</td></tr>
+<tr><td>and</td><td>45</td></tr>
+<tr><td>not</td><td>42</td></tr>
+<tr><td>w</td><td>40</td></tr>
+<tr><td>do</td><td>40</td></tr>
+<tr><td>d</td><td>35</td></tr>
+<tr><td>have</td><td>33</td></tr>
+<tr><td>or</td><td>33</td></tr>
+<tr><td>th</td><td>33</td></tr>
+<tr><td>that</td><td>32</td></tr>
+<tr><td>we</td><td>31</td></tr>
+<tr><td>m</td><td>29</td></tr></tbody></table>
+</div>
+<div>
+<h2>Top Insertions</h2>
+<table class="data"><thead><tr><th>Word</th><th>Count</th></tr></thead>
+<tbody><tr><td>it</td><td>126</td></tr>
+<tr><td>a</td><td>97</td></tr>
+<tr><td>i</td><td>76</td></tr>
+<tr><td>yeah</td><td>76</td></tr>
+<tr><td>is</td><td>56</td></tr>
+<tr><td>the</td><td>44</td></tr>
+<tr><td>0</td><td>37</td></tr>
+<tr><td>you</td><td>35</td></tr>
+<tr><td>that</td><td>33</td></tr>
+<tr><td>so</td><td>30</td></tr>
+<tr><td>we</td><td>25</td></tr>
+<tr><td>and</td><td>23</td></tr>
+<tr><td>are</td><td>20</td></tr>
+<tr><td>not</td><td>19</td></tr>
+<tr><td>do</td><td>18</td></tr>
+<tr><td>to</td><td>17</td></tr>
+<tr><td>have</td><td>16</td></tr>
+<tr><td>on</td><td>15</td></tr>
+<tr><td>in</td><td>15</td></tr>
+<tr><td>will</td><td>15</td></tr></tbody></table>
+</div>
+</div>
+
+<h2>Top 50 Worst Utterances (by error count)</h2>
+<article class="card" id="utt-1">
+  <header>
+    <span class="rank">#1</span>
+    <span class="utt-id">AMI_IS1009b_H02_FIO084_0076382_0077721</span>
+    <span class="stats">
+      42 errors &bull; WER 123.53%
+      &bull; S:34 D:0 I:8
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0076382_0077721.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0076382_0077721.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+आई</span> <span class="err-ins" title="inserted">+आई</span> <span class="err-ins" title="inserted">+जसट</span> <span class="err-ins" title="inserted">+वड</span> <span class="err-ins" title="inserted">+ल</span> <span class="err-ins" title="inserted">+इक</span> <span class="err-ins" title="inserted">+ट</span> <span class="err-ins" title="inserted">+ऐड</span> <span class="err-sub" title="sub: so → सम">so</span><span class="hyp-inline">[→सम]</span> <span class="err-sub" title="sub: i → एकसटर">i</span><span class="hyp-inline">[→एकसटर]</span> <span class="err-sub" title="sub: i → फ">i</span><span class="hyp-inline">[→फ]</span> <span class="err-sub" title="sub: just → चरस">just</span><span class="hyp-inline">[→चरस]</span> <span class="err-sub" title="sub: would → ट">would</span><span class="hyp-inline">[→ट]</span> <span class="err-sub" title="sub: like → द">like</span><span class="hyp-inline">[→द]</span> <span class="err-sub" title="sub: to → र">to</span><span class="hyp-inline">[→र]</span> <span class="err-sub" title="sub: add → म">add</span><span class="hyp-inline">[→म]</span> <span class="err-sub" title="sub: some → ट">some</span><span class="hyp-inline">[→ट]</span> <span class="err-sub" title="sub: extra → कटर">extra</span><span class="hyp-inline">[→कटर]</span> <span class="err-sub" title="sub: features → लर">features</span><span class="hyp-inline">[→लर]</span> <span class="err-sub" title="sub: to → आई">to</span><span class="hyp-inline">[→आई]</span> <span class="err-sub" title="sub: the → थ">the</span><span class="hyp-inline">[→थ]</span> <span class="err-sub" title="sub: remote → क">remote</span><span class="hyp-inline">[→क]</span> <span class="err-sub" title="sub: controller → थ">controller</span><span class="hyp-inline">[→थ]</span> <span class="err-sub" title="sub: i → स">i</span><span class="hyp-inline">[→स]</span> <span class="err-sub" title="sub: think → अर">think</span><span class="hyp-inline">[→अर]</span> <span class="err-sub" title="sub: these → द">these</span><span class="hyp-inline">[→द]</span> <span class="err-sub" title="sub: are → वर">are</span><span class="hyp-inline">[→वर]</span> <span class="err-sub" title="sub: the → स">the</span><span class="hyp-inline">[→स]</span> <span class="err-sub" title="sub: very → पल">very</span><span class="hyp-inline">[→पल]</span> <span class="err-sub" title="sub: simple → फ">simple</span><span class="hyp-inline">[→फ]</span> <span class="err-sub" title="sub: features → चरस">features</span><span class="hyp-inline">[→चरस]</span> <span class="err-sub" title="sub: and → एड">and</span><span class="hyp-inline">[→एड]</span> <span class="err-sub" title="sub: they → द">they</span><span class="hyp-inline">[→द]</span> <span class="err-sub" title="sub: do → ड">do</span><span class="hyp-inline">[→ड]</span> <span class="err-sub" title="sub: not → ट">not</span><span class="hyp-inline">[→ट]</span> <span class="err-sub" title="sub: take → टक">take</span><span class="hyp-inline">[→टक]</span> <span class="err-sub" title="sub: much → मच">much</span><span class="hyp-inline">[→मच]</span> <span class="err-sub" title="sub: much → मच">much</span><span class="hyp-inline">[→मच]</span> <span class="err-sub" title="sub: of → ऑफ">of</span><span class="hyp-inline">[→ऑफ]</span> <span class="err-sub" title="sub: the → द">the</span><span class="hyp-inline">[→द]</span> <span class="err-sub" title="sub: investment → इनवसटमट">investment</span><span class="hyp-inline">[→इनवसटमट]</span> <span class="err-sub" title="sub: also → ऑलस">also</span><span class="hyp-inline">[→ऑलस]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (42 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>much</td><td>मच</td><td>2</td></tr>
+<tr><td>Sub</td><td>so</td><td>सम</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>एकसटर</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>फ</td><td>1</td></tr>
+<tr><td>Sub</td><td>just</td><td>चरस</td><td>1</td></tr>
+<tr><td>Sub</td><td>would</td><td>ट</td><td>1</td></tr>
+<tr><td>Sub</td><td>like</td><td>द</td><td>1</td></tr>
+<tr><td>Sub</td><td>to</td><td>र</td><td>1</td></tr>
+<tr><td>Sub</td><td>add</td><td>म</td><td>1</td></tr>
+<tr><td>Sub</td><td>some</td><td>ट</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>आई</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>जसट</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>वड</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ल</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>इक</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ट</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ऐड</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-2">
+  <header>
+    <span class="rank">#2</span>
+    <span class="utt-id">AMI_IS1009d_H02_FIO084_0043332_0044239</span>
+    <span class="stats">
+      33 errors &bull; WER 143.48%
+      &bull; S:23 D:0 I:10
+      &bull; 23 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H02_FIO084_0043332_0044239.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009d_H02_FIO084_0043332_0044239.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+फ</span> <span class="err-ins" title="inserted">+र</span> <span class="err-ins" title="inserted">+द</span> <span class="err-ins" title="inserted">+ल</span> <span class="err-ins" title="inserted">+इट</span> <span class="err-ins" title="inserted">+इम</span> <span class="err-ins" title="inserted">+ट</span> <span class="err-ins" title="inserted">+ग</span> <span class="err-ins" title="inserted">+ड</span> <span class="err-ins" title="inserted">+य</span> <span class="err-sub" title="sub: for → ड">for</span><span class="hyp-inline">[→ड]</span> <span class="err-sub" title="sub: the → इट">the</span><span class="hyp-inline">[→इट]</span> <span class="err-sub" title="sub: light → इस">light</span><span class="hyp-inline">[→इस]</span> <span class="err-sub" title="sub: emitting → ए">emitting</span><span class="hyp-inline">[→ए]</span> <span class="err-sub" title="sub: diode → फल">diode</span><span class="hyp-inline">[→फल]</span> <span class="err-sub" title="sub: it → र">it</span><span class="hyp-inline">[→र]</span> <span class="err-sub" title="sub: is → सट">is</span><span class="hyp-inline">[→सट]</span> <span class="err-sub" title="sub: a → गर">a</span><span class="hyp-inline">[→गर]</span> <span class="err-sub" title="sub: fluorescent → न">fluorescent</span><span class="hyp-inline">[→न]</span> <span class="err-sub" title="sub: green → एड">green</span><span class="hyp-inline">[→एड]</span> <span class="err-sub" title="sub: and → इटस">and</span><span class="hyp-inline">[→इटस]</span> <span class="err-sub" title="sub: it → ए">it</span><span class="hyp-inline">[→ए]</span> <span class="err-sub" title="sub: is → इट">is</span><span class="hyp-inline">[→इट]</span> <span class="err-sub" title="sub: a → इस">a</span><span class="hyp-inline">[→इस]</span> <span class="err-sub" title="sub: a → ए">a</span><span class="hyp-inline">[→ए]</span> <span class="err-sub" title="sub: it → बलब">it</span><span class="hyp-inline">[→बलब]</span> <span class="err-sub" title="sub: is → ल">is</span><span class="hyp-inline">[→ल]</span> <span class="err-sub" title="sub: a → इक">a</span><span class="hyp-inline">[→इक]</span> <span class="err-sub" title="sub: bulb → एन">bulb</span><span class="hyp-inline">[→एन]</span> <span class="err-sub" title="sub: like → ऑरड">like</span><span class="hyp-inline">[→ऑरड]</span> <span class="err-sub" title="sub: an → नर">an</span><span class="hyp-inline">[→नर]</span> <span class="err-sub" title="sub: ordinary → इनफर">ordinary</span><span class="hyp-inline">[→इनफर]</span> <span class="err-sub" title="sub: infrared → रड">infrared</span><span class="hyp-inline">[→रड]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (33 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>for</td><td>ड</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>इट</td><td>1</td></tr>
+<tr><td>Sub</td><td>light</td><td>इस</td><td>1</td></tr>
+<tr><td>Sub</td><td>emitting</td><td>ए</td><td>1</td></tr>
+<tr><td>Sub</td><td>diode</td><td>फल</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>र</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>सट</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>गर</td><td>1</td></tr>
+<tr><td>Sub</td><td>fluorescent</td><td>न</td><td>1</td></tr>
+<tr><td>Sub</td><td>green</td><td>एड</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>फ</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>र</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>द</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ल</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>इट</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>इम</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ट</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ग</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>ड</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>य</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-3">
+  <header>
+    <span class="rank">#3</span>
+    <span class="utt-id">AMI_ES2004d_H03_FEE016_0057098_0057436</span>
+    <span class="stats">
+      24 errors &bull; WER 266.67%
+      &bull; S:0 D:0 I:24
+      &bull; 9 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_ES2004d_H03_FEE016_0057098_0057436.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_ES2004d_H03_FEE016_0057098_0057436.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it will just be criteria 123456 or a b <span class="err-ins" title="inserted">+c</span> <span class="err-ins" title="inserted">+d</span> <span class="err-ins" title="inserted">+e</span> <span class="err-ins" title="inserted">+f</span> <span class="err-ins" title="inserted">+g</span> <span class="err-ins" title="inserted">+h</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+j</span> <span class="err-ins" title="inserted">+k</span> <span class="err-ins" title="inserted">+l</span> <span class="err-ins" title="inserted">+m</span> <span class="err-ins" title="inserted">+n</span> <span class="err-ins" title="inserted">+0</span> <span class="err-ins" title="inserted">+p</span> <span class="err-ins" title="inserted">+q</span> <span class="err-ins" title="inserted">+r</span> <span class="err-ins" title="inserted">+s</span> <span class="err-ins" title="inserted">+t</span> <span class="err-ins" title="inserted">+u</span> <span class="err-ins" title="inserted">+v</span> <span class="err-ins" title="inserted">+w</span> <span class="err-ins" title="inserted">+x</span> <span class="err-ins" title="inserted">+y</span> <span class="err-ins" title="inserted">+z</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (24 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Ins</td><td>&mdash;</td><td>c</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>d</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>e</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>f</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>g</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>h</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>j</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>k</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>l</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-4">
+  <header>
+    <span class="rank">#4</span>
+    <span class="utt-id">AMI_IS1009c_H02_FIO084_0121709_0122749</span>
+    <span class="stats">
+      13 errors &bull; WER 38.24%
+      &bull; S:1 D:11 I:1
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H02_FIO084_0121709_0122749.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009c_H02_FIO084_0121709_0122749.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">the circuit under the button will be activated <span class="err-del" title="deleted">th</span> <span class="err-del" title="deleted">it</span> <span class="err-del" title="deleted">will</span> it will <span class="err-del" title="deleted">he</span> get some signals from it and <span class="err-del" title="deleted">it</span> <span class="err-del" title="deleted">will</span> it will <span class="err-del" title="deleted">ch</span> <span class="err-del" title="deleted">its</span> <span class="err-del" title="deleted">ch</span> <span class="err-del" title="deleted">se</span> send <span class="err-del" title="deleted">a</span> <span class="err-sub" title="sub: signal → the">signal</span><span class="hyp-inline">[→the]</span> signals to the <span class="err-ins" title="inserted">+.</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (13 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>signal</td><td>the</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>will</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>ch</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>th</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>he</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>its</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>se</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>.</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-5">
+  <header>
+    <span class="rank">#5</span>
+    <span class="utt-id">AMI_EN2002b_H00_FEO070_0042617_0044950</span>
+    <span class="stats">
+      12 errors &bull; WER 44.44%
+      &bull; S:6 D:1 I:5
+      &bull; 27 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H00_FEO070_0042617_0044950.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002b_H00_FEO070_0042617_0044950.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">he</span> <span class="err-sub" title="sub: he → it">he</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: d → it">d</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: he → it">he</span><span class="hyp-inline">[→it]</span> does not have to know exactly what <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+have</span> <span class="err-ins" title="inserted">+done</span> i mean yeah <span class="err-ins" title="inserted">+it</span> <span class="err-sub" title="sub: m → went">m</span><span class="hyp-inline">[→went]</span> i mean it is <span class="err-sub" title="sub: hot → not">hot</span><span class="hyp-inline">[→not]</span> finished but it does not really <span class="err-ins" title="inserted">+make</span> <span class="err-sub" title="sub: say → sense">say</span><span class="hyp-inline">[→sense]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>he</td><td>it</td><td>2</td></tr>
+<tr><td>Sub</td><td>d</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>m</td><td>went</td><td>1</td></tr>
+<tr><td>Sub</td><td>hot</td><td>not</td><td>1</td></tr>
+<tr><td>Sub</td><td>say</td><td>sense</td><td>1</td></tr>
+<tr><td>Del</td><td>he</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>have</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>done</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>make</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-6">
+  <header>
+    <span class="rank">#6</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0153454_0154048</span>
+    <span class="stats">
+      12 errors &bull; WER 48.00%
+      &bull; S:7 D:2 I:3
+      &bull; 25 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0153454_0154048.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0153454_0154048.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">instead <span class="err-ins" title="inserted">+of</span> it would just search for <span class="err-sub" title="sub: key → keywords">key</span><span class="hyp-inline">[→keywords]</span> <span class="err-sub" title="sub: words → and">words</span><span class="hyp-inline">[→and]</span> when it when they you tell <span class="err-sub" title="sub: him → them">him</span><span class="hyp-inline">[→them]</span> that <span class="err-ins" title="inserted">+to</span> <span class="err-ins" title="inserted">+project</span> <span class="err-sub" title="sub: with → your">with</span><span class="hyp-inline">[→your]</span> topics <span class="err-sub" title="sub: but → per">but</span><span class="hyp-inline">[→per]</span> actually <span class="err-del" title="deleted">get</span> <span class="err-sub" title="sub: searching → search">searching</span><span class="hyp-inline">[→search]</span> with <span class="err-del" title="deleted">key</span> <span class="err-sub" title="sub: words → keywords">words</span><span class="hyp-inline">[→keywords]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (12 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>key</td><td>keywords</td><td>1</td></tr>
+<tr><td>Sub</td><td>words</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>him</td><td>them</td><td>1</td></tr>
+<tr><td>Sub</td><td>with</td><td>your</td><td>1</td></tr>
+<tr><td>Sub</td><td>but</td><td>per</td><td>1</td></tr>
+<tr><td>Sub</td><td>searching</td><td>search</td><td>1</td></tr>
+<tr><td>Sub</td><td>words</td><td>keywords</td><td>1</td></tr>
+<tr><td>Del</td><td>get</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>key</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>project</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-7">
+  <header>
+    <span class="rank">#7</span>
+    <span class="utt-id">AMI_IS1009b_H02_FIO084_0073867_0076040</span>
+    <span class="stats">
+      11 errors &bull; WER 15.49%
+      &bull; S:2 D:9 I:0
+      &bull; 71 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0073867_0076040.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0073867_0076040.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">you want to change the channel you want to control the volume <span class="err-del" title="deleted">you</span> you want to <span class="err-del" title="deleted">mute</span> mute the <span class="err-del" title="deleted">t</span> <span class="err-sub" title="sub: v → tv">v</span><span class="hyp-inline">[→tv]</span> or you want to have a child lock or you want to do some operations <span class="err-del" title="deleted">there</span> <span class="err-del" title="deleted">is</span> <span class="err-del" title="deleted">a</span> there should be some device to tell what to do to the <span class="err-del" title="deleted">in</span> integrated circuit so that the integrated circuit can <span class="err-del" title="deleted">s</span> send the signals and <span class="err-del" title="deleted">t</span> <span class="err-sub" title="sub: v → tv">v</span><span class="hyp-inline">[→tv]</span> can perform the actions</div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>v</td><td>tv</td><td>2</td></tr>
+<tr><td>Del</td><td>t</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>mute</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>there</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>s</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-8">
+  <header>
+    <span class="rank">#8</span>
+    <span class="utt-id">AMI_EN2002b_H03_MEE073_0066537_0066801</span>
+    <span class="stats">
+      11 errors &bull; WER 68.75%
+      &bull; S:2 D:9 I:0
+      &bull; 16 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H03_MEE073_0066537_0066801.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002b_H03_MEE073_0066537_0066801.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: well → or">well</span><span class="hyp-inline">[→or]</span> <span class="err-sub" title="sub: i → we">i</span><span class="hyp-inline">[→we]</span> will do this <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">will</span> <span class="err-del" title="deleted">do</span> <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> <span class="err-del" title="deleted">it</span> <span class="err-del" title="deleted">just</span> all <span class="err-del" title="deleted">falls</span> together</div>
+  </details>
+  <details>
+    <summary>Error breakdown (11 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>well</td><td>or</td><td>1</td></tr>
+<tr><td>Sub</td><td>i</td><td>we</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>will</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>do</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>know</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>just</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>falls</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-9">
+  <header>
+    <span class="rank">#9</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0032977_0033810</span>
+    <span class="stats">
+      10 errors &bull; WER 29.41%
+      &bull; S:6 D:3 I:1
+      &bull; 34 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0032977_0033810.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0032977_0033810.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: w → well">w</span><span class="hyp-inline">[→well]</span> you can either have <span class="err-del" title="deleted">it</span> <span class="err-del" title="deleted">th</span> you <span class="err-sub" title="sub: could → can">could</span><span class="hyp-inline">[→can]</span> <span class="err-sub" title="sub: either → even">either</span><span class="hyp-inline">[→even]</span> have <span class="err-sub" title="sub: it → a">it</span><span class="hyp-inline">[→a]</span> you could <span class="err-del" title="deleted">i</span> have <span class="err-sub" title="sub: it → a">it</span><span class="hyp-inline">[→a]</span> like an embedded <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: in → l">in</span><span class="hyp-inline">[→l]</span> vector or array of strings and each one represents one person or whatever</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>it</td><td>a</td><td>2</td></tr>
+<tr><td>Sub</td><td>w</td><td>well</td><td>1</td></tr>
+<tr><td>Sub</td><td>could</td><td>can</td><td>1</td></tr>
+<tr><td>Sub</td><td>either</td><td>even</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>l</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>th</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-10">
+  <header>
+    <span class="rank">#10</span>
+    <span class="utt-id">AMI_IS1009b_H02_FIO084_0063941_0066293</span>
+    <span class="stats">
+      10 errors &bull; WER 13.89%
+      &bull; S:5 D:2 I:3
+      &bull; 72 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0063941_0066293.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0063941_0066293.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it should be a battery because remote <span class="err-sub" title="sub: controller → control">controller</span><span class="hyp-inline">[→control]</span> should be like you you you should take it <span class="err-sub" title="sub: t → to">t</span><span class="hyp-inline">[→to]</span> to wherever you want and then <span class="err-del" title="deleted">th</span> this integrated <span class="err-ins" title="inserted">+circuit</span> <span class="err-ins" title="inserted">+it</span> <span class="err-sub" title="sub: circuitry → ta">circuitry</span><span class="hyp-inline">[→ta]</span> takes energy from the power source and whatever like if you press a button it is like a input for the remote controller and it takes the input and it it transforms into <span class="err-del" title="deleted">a</span> <span class="err-sub" title="sub: infro → infra">infro</span><span class="hyp-inline">[→infra]</span> infrared bits and it sends <span class="err-ins" title="inserted">+it</span> it <span class="err-sub" title="sub: into → to">into</span><span class="hyp-inline">[→to]</span> the device</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>controller</td><td>control</td><td>1</td></tr>
+<tr><td>Sub</td><td>t</td><td>to</td><td>1</td></tr>
+<tr><td>Sub</td><td>circuitry</td><td>ta</td><td>1</td></tr>
+<tr><td>Sub</td><td>infro</td><td>infra</td><td>1</td></tr>
+<tr><td>Sub</td><td>into</td><td>to</td><td>1</td></tr>
+<tr><td>Del</td><td>th</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>circuit</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-11">
+  <header>
+    <span class="rank">#11</span>
+    <span class="utt-id">AMI_ES2004a_H03_FEE016_0004975_0005318</span>
+    <span class="stats">
+      10 errors &bull; WER 142.86%
+      &bull; S:2 D:0 I:8
+      &bull; 7 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_ES2004a_H03_FEE016_0004975_0005318.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_ES2004a_H03_FEE016_0004975_0005318.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: jesus → g">jesus</span><span class="hyp-inline">[→g]</span> <span class="err-sub" title="sub: it → this">it</span><span class="hyp-inline">[→this]</span> is going to fall off <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+does</span> <span class="err-ins" title="inserted">+not</span> <span class="err-ins" title="inserted">+let</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+put</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+on</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>jesus</td><td>g</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>this</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>does</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>not</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>let</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>put</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>on</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-12">
+  <header>
+    <span class="rank">#12</span>
+    <span class="utt-id">AMI_EN2002a_H03_MEE071_0146991_0148409</span>
+    <span class="stats">
+      10 errors &bull; WER 62.50%
+      &bull; S:5 D:1 I:4
+      &bull; 16 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0146991_0148409.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0146991_0148409.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">well should you <span class="err-del" title="deleted">find</span> <span class="err-sub" title="sub: you → finally">you</span><span class="hyp-inline">[→finally]</span> want to explore any other <span class="err-ins" title="inserted">+how</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+how</span> <span class="err-ins" title="inserted">+is</span> <span class="err-sub" title="sub: perhaps → your">perhaps</span><span class="hyp-inline">[→your]</span> <span class="err-sub" title="sub: you → how">you</span><span class="hyp-inline">[→how]</span> <span class="err-sub" title="sub: as → is">as</span><span class="hyp-inline">[→is]</span> your <span class="err-sub" title="sub: quantify → quantifier">quantify</span><span class="hyp-inline">[→quantifier]</span> raising</div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>you</td><td>finally</td><td>1</td></tr>
+<tr><td>Sub</td><td>perhaps</td><td>your</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>how</td><td>1</td></tr>
+<tr><td>Sub</td><td>as</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>quantify</td><td>quantifier</td><td>1</td></tr>
+<tr><td>Del</td><td>find</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>how</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>2</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-13">
+  <header>
+    <span class="rank">#13</span>
+    <span class="utt-id">AMI_EN2002d_H00_FEO070_0200435_0200738</span>
+    <span class="stats">
+      10 errors &bull; WER 100.00%
+      &bull; S:4 D:6 I:0
+      &bull; 10 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H00_FEO070_0200435_0200738.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002d_H00_FEO070_0200435_0200738.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">just</span> <span class="err-del" title="deleted">realized</span> <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">have</span> <span class="err-del" title="deleted">not</span> <span class="err-sub" title="sub: done → it">done</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: that → is">that</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: part → just">part</span><span class="hyp-inline">[→just]</span> <span class="err-sub" title="sub: yet → real">yet</span><span class="hyp-inline">[→real]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (10 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>done</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>part</td><td>just</td><td>1</td></tr>
+<tr><td>Sub</td><td>yet</td><td>real</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>just</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>realized</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>not</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-14">
+  <header>
+    <span class="rank">#14</span>
+    <span class="utt-id">AMI_EN2002a_H01_FEO070_0156411_0156771</span>
+    <span class="stats">
+      9 errors &bull; WER 112.50%
+      &bull; S:7 D:0 I:2
+      &bull; 8 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H01_FEO070_0156411_0156771.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002a_H01_FEO070_0156411_0156771.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+will</span> <span class="err-sub" title="sub: have → be">have</span><span class="hyp-inline">[→be]</span> <span class="err-sub" title="sub: we → happy">we</span><span class="hyp-inline">[→happy]</span> <span class="err-sub" title="sub: these → when">these</span><span class="hyp-inline">[→when]</span> <span class="err-sub" title="sub: courses → this">courses</span><span class="hyp-inline">[→this]</span> <span class="err-sub" title="sub: that → course">that</span><span class="hyp-inline">[→course]</span> <span class="err-sub" title="sub: we → is">we</span><span class="hyp-inline">[→is]</span> <span class="err-sub" title="sub: are → over">are</span><span class="hyp-inline">[→over]</span> okay</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>have</td><td>be</td><td>1</td></tr>
+<tr><td>Sub</td><td>we</td><td>happy</td><td>1</td></tr>
+<tr><td>Sub</td><td>these</td><td>when</td><td>1</td></tr>
+<tr><td>Sub</td><td>courses</td><td>this</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>course</td><td>1</td></tr>
+<tr><td>Sub</td><td>we</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>over</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>will</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-15">
+  <header>
+    <span class="rank">#15</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0024593_0025389</span>
+    <span class="stats">
+      9 errors &bull; WER 25.00%
+      &bull; S:5 D:0 I:4
+      &bull; 36 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0024593_0025389.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0024593_0025389.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">which means that you just <span class="err-ins" title="inserted">+re</span> <span class="err-ins" title="inserted">+called</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+and</span> <span class="err-sub" title="sub: ret → a">ret</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: call → null">call</span><span class="hyp-inline">[→null]</span> constructor and <span class="err-sub" title="sub: call → called">call</span><span class="hyp-inline">[→called]</span> the load thing and <span class="err-sub" title="sub: call → called">call</span><span class="hyp-inline">[→called]</span> it <span class="err-sub" title="sub: there → that">there</span><span class="hyp-inline">[→that]</span> and you can create a list of them or a vector of them or whatever you want to do</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>call</td><td>called</td><td>2</td></tr>
+<tr><td>Sub</td><td>ret</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>call</td><td>null</td><td>1</td></tr>
+<tr><td>Sub</td><td>there</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>re</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>called</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>and</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-16">
+  <header>
+    <span class="rank">#16</span>
+    <span class="utt-id">AMI_IS1009b_H02_FIO084_0079506_0081211</span>
+    <span class="stats">
+      9 errors &bull; WER 15.52%
+      &bull; S:3 D:6 I:0
+      &bull; 58 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0079506_0081211.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0079506_0081211.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and <span class="err-del" title="deleted">ther</span> there should be a beep if many buttons are pressed if suppose a child is playing with the remote <span class="err-del" title="deleted">controller</span> <span class="err-del" title="deleted">and</span> <span class="err-sub" title="sub: a → control">a</span><span class="hyp-inline">[→control]</span> and <span class="err-del" title="deleted">she</span> she or he is pressing the buttons all at the time then there should be a beep saying that it is <span class="err-del" title="deleted">this</span> this is not <span class="err-del" title="deleted">a</span> a you know a <span class="err-sub" title="sub: a → action">a</span><span class="hyp-inline">[→action]</span> <span class="err-sub" title="sub: action → this">action</span><span class="hyp-inline">[→this]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>a</td><td>control</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>action</td><td>1</td></tr>
+<tr><td>Sub</td><td>action</td><td>this</td><td>1</td></tr>
+<tr><td>Del</td><td>ther</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>controller</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>she</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>this</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-17">
+  <header>
+    <span class="rank">#17</span>
+    <span class="utt-id">AMI_EN2002b_H03_MEE073_0086802_0087255</span>
+    <span class="stats">
+      9 errors &bull; WER 64.29%
+      &bull; S:2 D:1 I:6
+      &bull; 14 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H03_MEE073_0086802_0087255.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002b_H03_MEE073_0086802_0087255.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">you</span> <span class="err-sub" title="sub: know → yeah">know</span><span class="hyp-inline">[→yeah]</span> splits that thing into like 2 or 3 or whatever <span class="err-sub" title="sub: that → it">that</span><span class="hyp-inline">[→it]</span> is <span class="err-ins" title="inserted">+12</span> <span class="err-ins" title="inserted">+or</span> <span class="err-ins" title="inserted">+3</span> <span class="err-ins" title="inserted">+depending</span> <span class="err-ins" title="inserted">+on</span> <span class="err-ins" title="inserted">+which</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>know</td><td>yeah</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>it</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>12</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>or</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>3</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>depending</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>on</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>which</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-18">
+  <header>
+    <span class="rank">#18</span>
+    <span class="utt-id">AMI_EN2002b_H03_MEE073_0087255_0087384</span>
+    <span class="stats">
+      9 errors &bull; WER 100.00%
+      &bull; S:5 D:4 I:0
+      &bull; 9 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H03_MEE073_0087255_0087384.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002b_H03_MEE073_0087255_0087384.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">12</span> <span class="err-del" title="deleted">or</span> <span class="err-del" title="deleted">3</span> <span class="err-del" title="deleted">depending</span> <span class="err-sub" title="sub: on → once">on</span><span class="hyp-inline">[→once]</span> <span class="err-sub" title="sub: which → you">which</span><span class="hyp-inline">[→you]</span> <span class="err-sub" title="sub: ones → check">ones</span><span class="hyp-inline">[→check]</span> <span class="err-sub" title="sub: you → and">you</span><span class="hyp-inline">[→and]</span> <span class="err-sub" title="sub: check → then">check</span><span class="hyp-inline">[→then]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>on</td><td>once</td><td>1</td></tr>
+<tr><td>Sub</td><td>which</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>ones</td><td>check</td><td>1</td></tr>
+<tr><td>Sub</td><td>you</td><td>and</td><td>1</td></tr>
+<tr><td>Sub</td><td>check</td><td>then</td><td>1</td></tr>
+<tr><td>Del</td><td>12</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>or</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>3</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>depending</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-19">
+  <header>
+    <span class="rank">#19</span>
+    <span class="utt-id">AMI_EN2002a_H03_MEE071_0019405_0019811</span>
+    <span class="stats">
+      9 errors &bull; WER 47.37%
+      &bull; S:7 D:0 I:2
+      &bull; 19 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0019405_0019811.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0019405_0019811.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+yeah</span> <span class="err-sub" title="sub: and → you">and</span><span class="hyp-inline">[→you]</span> <span class="err-sub" title="sub: so → said">so</span><span class="hyp-inline">[→said]</span> it <span class="err-ins" title="inserted">+would</span> <span class="err-sub" title="sub: might → maybe">might</span><span class="hyp-inline">[→maybe]</span> be a bit weird <span class="err-sub" title="sub: the → for">the</span><span class="hyp-inline">[→for]</span> <span class="err-sub" title="sub: fir → it">fir</span><span class="hyp-inline">[→it]</span> to just start bringing up stuff <span class="err-sub" title="sub: and → would">and</span><span class="hyp-inline">[→would]</span> <span class="err-sub" title="sub: then → not">then</span><span class="hyp-inline">[→not]</span> it</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>and</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>so</td><td>said</td><td>1</td></tr>
+<tr><td>Sub</td><td>might</td><td>maybe</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>for</td><td>1</td></tr>
+<tr><td>Sub</td><td>fir</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>would</td><td>1</td></tr>
+<tr><td>Sub</td><td>then</td><td>not</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>would</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-20">
+  <header>
+    <span class="rank">#20</span>
+    <span class="utt-id">AMI_EN2002d_H02_MEE071_0022410_0023001</span>
+    <span class="stats">
+      9 errors &bull; WER 34.62%
+      &bull; S:2 D:1 I:6
+      &bull; 26 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0022410_0023001.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0022410_0023001.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">does not <span class="err-del" title="deleted">saint</span> have anything in <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+have</span> <span class="err-ins" title="inserted">+a</span> <span class="err-ins" title="inserted">+look</span> <span class="err-ins" title="inserted">+at</span> it <span class="err-sub" title="sub: 0 → well">0</span><span class="hyp-inline">[→well]</span> it does it has about 3 lines of x m l that <span class="err-sub" title="sub: did → does">did</span><span class="hyp-inline">[→does]</span> not do much i think</div>
+  </details>
+  <details>
+    <summary>Error breakdown (9 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>0</td><td>well</td><td>1</td></tr>
+<tr><td>Sub</td><td>did</td><td>does</td><td>1</td></tr>
+<tr><td>Del</td><td>saint</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>have</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>look</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>at</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-21">
+  <header>
+    <span class="rank">#21</span>
+    <span class="utt-id">AMI_EN2002d_H02_MEE071_0111299_0112231</span>
+    <span class="stats">
+      8 errors &bull; WER 27.59%
+      &bull; S:7 D:1 I:0
+      &bull; 29 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0111299_0112231.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0111299_0112231.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">and it it <span class="err-del" title="deleted">is</span> was <span class="err-sub" title="sub: apparently → plainly">apparently</span><span class="hyp-inline">[→plainly]</span> generated by going to <span class="err-sub" title="sub: d → generate">d</span><span class="hyp-inline">[→generate]</span> <span class="err-sub" title="sub: generate → java">generate</span><span class="hyp-inline">[→java]</span> <span class="err-sub" title="sub: javadoc → doc">javadoc</span><span class="hyp-inline">[→doc]</span> and it just went spat it all out and they never bothered to <span class="err-sub" title="sub: d → come">d</span><span class="hyp-inline">[→come]</span> <span class="err-sub" title="sub: comment → in">comment</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: anything → and">anything</span><span class="hyp-inline">[→and]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>apparently</td><td>plainly</td><td>1</td></tr>
+<tr><td>Sub</td><td>d</td><td>generate</td><td>1</td></tr>
+<tr><td>Sub</td><td>generate</td><td>java</td><td>1</td></tr>
+<tr><td>Sub</td><td>javadoc</td><td>doc</td><td>1</td></tr>
+<tr><td>Sub</td><td>d</td><td>come</td><td>1</td></tr>
+<tr><td>Sub</td><td>comment</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>anything</td><td>and</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-22">
+  <header>
+    <span class="rank">#22</span>
+    <span class="utt-id">AMI_IS1009c_H02_FIO084_0116861_0117506</span>
+    <span class="stats">
+      8 errors &bull; WER 38.10%
+      &bull; S:0 D:8 I:0
+      &bull; 21 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009c_H02_FIO084_0116861_0117506.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009c_H02_FIO084_0116861_0117506.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">actually building a circuit <span class="err-del" title="deleted">bo</span> board is <span class="err-del" title="deleted">pretty</span> pretty easy and also <span class="err-del" title="deleted">it</span> <span class="err-del" title="deleted">is</span> <span class="err-del" title="deleted">a</span> it is <span class="err-del" title="deleted">a</span> <span class="err-del" title="deleted">l</span> <span class="err-del" title="deleted">l</span> inexpensive</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>a</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>l</td><td>&mdash;</td><td>2</td></tr>
+<tr><td>Del</td><td>bo</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>pretty</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>is</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-23">
+  <header>
+    <span class="rank">#23</span>
+    <span class="utt-id">AMI_EN2002a_H03_MEE071_0024337_0025195</span>
+    <span class="stats">
+      8 errors &bull; WER 44.44%
+      &bull; S:2 D:6 I:0
+      &bull; 18 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0024337_0025195.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0024337_0025195.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">you can have a menu instead of a button <span class="err-sub" title="sub: but → right">but</span><span class="hyp-inline">[→right]</span> this <span class="err-del" title="deleted">why</span> <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">do</span> <span class="err-del" title="deleted">not</span> <span class="err-del" title="deleted">think</span> <span class="err-del" title="deleted">it</span> <span class="err-sub" title="sub: yeah → one">yeah</span><span class="hyp-inline">[→one]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>but</td><td>right</td><td>1</td></tr>
+<tr><td>Sub</td><td>yeah</td><td>one</td><td>1</td></tr>
+<tr><td>Del</td><td>why</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>do</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>not</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>think</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>it</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-24">
+  <header>
+    <span class="rank">#24</span>
+    <span class="utt-id">AMI_TS3003c_H00_MTD009PM_0168681_0169252</span>
+    <span class="stats">
+      8 errors &bull; WER 53.33%
+      &bull; S:3 D:2 I:3
+      &bull; 15 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_TS3003c_H00_MTD009PM_0168681_0169252.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_TS3003c_H00_MTD009PM_0168681_0169252.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+use</span> <span class="err-ins" title="inserted">+a</span> <span class="err-ins" title="inserted">+bit</span> <span class="err-sub" title="sub: usabili → of">usabili</span><span class="hyp-inline">[→of]</span> yeah ease of use will be a lot more difficult <span class="err-del" title="deleted">and</span> <span class="err-del" title="deleted">then</span> <span class="err-sub" title="sub: it → than">it</span><span class="hyp-inline">[→than]</span> <span class="err-sub" title="sub: is → that">is</span><span class="hyp-inline">[→that]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>usabili</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>than</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>that</td><td>1</td></tr>
+<tr><td>Del</td><td>and</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>then</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>use</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>bit</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-25">
+  <header>
+    <span class="rank">#25</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0062858_0063016</span>
+    <span class="stats">
+      8 errors &bull; WER 66.67%
+      &bull; S:2 D:6 I:0
+      &bull; 12 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0062858_0063016.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0062858_0063016.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">no no but i <span class="err-del" title="deleted">do</span> <span class="err-del" title="deleted">not</span> <span class="err-del" title="deleted">think</span> <span class="err-del" title="deleted">that</span> <span class="err-del" title="deleted">will</span> <span class="err-del" title="deleted">be</span> <span class="err-sub" title="sub: too → have">too</span><span class="hyp-inline">[→have]</span> <span class="err-sub" title="sub: difficult → it">difficult</span><span class="hyp-inline">[→it]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>too</td><td>have</td><td>1</td></tr>
+<tr><td>Sub</td><td>difficult</td><td>it</td><td>1</td></tr>
+<tr><td>Del</td><td>do</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>not</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>think</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>will</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>be</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-26">
+  <header>
+    <span class="rank">#26</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0059579_0060210</span>
+    <span class="stats">
+      8 errors &bull; WER 24.24%
+      &bull; S:7 D:0 I:1
+      &bull; 33 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0059579_0060210.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0059579_0060210.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+that</span> <span class="err-sub" title="sub: they → you">they</span><span class="hyp-inline">[→you]</span> can load each <span class="err-sub" title="sub: 0 → w">0</span><span class="hyp-inline">[→w]</span> all of the whole lot up and do a search <span class="err-sub" title="sub: of → over">of</span><span class="hyp-inline">[→over]</span> the whole lot to find who <span class="err-sub" title="sub: by → participated">by</span><span class="hyp-inline">[→participated]</span> <span class="err-sub" title="sub: who → in">who</span><span class="hyp-inline">[→in]</span> <span class="err-sub" title="sub: and → what">and</span><span class="hyp-inline">[→what]</span> <span class="err-sub" title="sub: what → no">what</span><span class="hyp-inline">[→no]</span> problem or what topics were in what</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>they</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>0</td><td>w</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>over</td><td>1</td></tr>
+<tr><td>Sub</td><td>by</td><td>participated</td><td>1</td></tr>
+<tr><td>Sub</td><td>who</td><td>in</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>what</td><td>1</td></tr>
+<tr><td>Sub</td><td>what</td><td>no</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-27">
+  <header>
+    <span class="rank">#27</span>
+    <span class="utt-id">AMI_EN2002b_H01_MEE071_0145518_0145969</span>
+    <span class="stats">
+      8 errors &bull; WER 40.00%
+      &bull; S:5 D:3 I:0
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0145518_0145969.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0145518_0145969.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">otherwise <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">are</span> <span class="err-del" title="deleted">going</span> <span class="err-sub" title="sub: to → it">to</span><span class="hyp-inline">[→it]</span> <span class="err-sub" title="sub: be → can">be</span><span class="hyp-inline">[→can]</span> <span class="err-sub" title="sub: s → always">s</span><span class="hyp-inline">[→always]</span> java <span class="err-sub" title="sub: trying → try">trying</span><span class="hyp-inline">[→try]</span> to do <span class="err-sub" title="sub: s → it">s</span><span class="hyp-inline">[→it]</span> it was just so complicated it was ridiculous</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>to</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>be</td><td>can</td><td>1</td></tr>
+<tr><td>Sub</td><td>s</td><td>always</td><td>1</td></tr>
+<tr><td>Sub</td><td>trying</td><td>try</td><td>1</td></tr>
+<tr><td>Sub</td><td>s</td><td>it</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>are</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>going</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-28">
+  <header>
+    <span class="rank">#28</span>
+    <span class="utt-id">AMI_EN2002a_H03_MEE071_0118367_0118669</span>
+    <span class="stats">
+      8 errors &bull; WER 47.06%
+      &bull; S:4 D:4 I:0
+      &bull; 17 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0118367_0118669.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0118367_0118669.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">do</span> <span class="err-del" title="deleted">you</span> <span class="err-del" title="deleted">know</span> <span class="err-sub" title="sub: that → yeah">that</span><span class="hyp-inline">[→yeah]</span> it has been <span class="err-sub" title="sub: all → a">all</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: a → little">a</span><span class="hyp-inline">[→little]</span> bit manic the last <span class="err-del" title="deleted">m</span> the last <span class="err-sub" title="sub: yeah → year">yeah</span><span class="hyp-inline">[→year]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>that</td><td>yeah</td><td>1</td></tr>
+<tr><td>Sub</td><td>all</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>little</td><td>1</td></tr>
+<tr><td>Sub</td><td>yeah</td><td>year</td><td>1</td></tr>
+<tr><td>Del</td><td>do</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>know</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>m</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-29">
+  <header>
+    <span class="rank">#29</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0017486_0018262</span>
+    <span class="stats">
+      8 errors &bull; WER 33.33%
+      &bull; S:7 D:0 I:1
+      &bull; 24 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0017486_0018262.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0017486_0018262.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: this → the">this</span><span class="hyp-inline">[→the]</span> <span class="err-sub" title="sub: speaker → speak">speaker</span><span class="hyp-inline">[→speak]</span> the data processing is fine but <span class="err-ins" title="inserted">+i</span> <span class="err-sub" title="sub: we → would">we</span><span class="hyp-inline">[→would]</span> do not particularly want to do the <span class="err-sub" title="sub: b → the">b</span><span class="hyp-inline">[→the]</span> the the <span class="err-sub" title="sub: b → g">b</span><span class="hyp-inline">[→g]</span> <span class="err-sub" title="sub: the → u">the</span><span class="hyp-inline">[→u]</span> <span class="err-sub" title="sub: gui → i">gui</span><span class="hyp-inline">[→i]</span> for it</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>this</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>speaker</td><td>speak</td><td>1</td></tr>
+<tr><td>Sub</td><td>we</td><td>would</td><td>1</td></tr>
+<tr><td>Sub</td><td>b</td><td>the</td><td>1</td></tr>
+<tr><td>Sub</td><td>b</td><td>g</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>u</td><td>1</td></tr>
+<tr><td>Sub</td><td>gui</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-30">
+  <header>
+    <span class="rank">#30</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0279738_0280798</span>
+    <span class="stats">
+      8 errors &bull; WER 21.05%
+      &bull; S:4 D:1 I:3
+      &bull; 38 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0279738_0280798.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0279738_0280798.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it could just be ignored because it falls off the bottom of the do you <span class="err-del" title="deleted">have</span> <span class="err-sub" title="sub: a → i">a</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: assuming → presume">assuming</span><span class="hyp-inline">[→presume]</span> you only <span class="err-sub" title="sub: have → ha">have</span><span class="hyp-inline">[→ha]</span> you have a <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+sh</span> return all results for all <span class="err-sub" title="sub: so → say">so</span><span class="hyp-inline">[→say]</span> you type language and it returns 75 meetings</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>a</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>assuming</td><td>presume</td><td>1</td></tr>
+<tr><td>Sub</td><td>have</td><td>ha</td><td>1</td></tr>
+<tr><td>Sub</td><td>so</td><td>say</td><td>1</td></tr>
+<tr><td>Del</td><td>have</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>sh</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-31">
+  <header>
+    <span class="rank">#31</span>
+    <span class="utt-id">AMI_EN2002a_H03_MEE071_0191580_0192089</span>
+    <span class="stats">
+      8 errors &bull; WER 40.00%
+      &bull; S:3 D:2 I:3
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0191580_0192089.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0191580_0192089.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">k</span> the <span class="err-sub" title="sub: f → c">f</span><span class="hyp-inline">[→c]</span> there is <span class="err-ins" title="inserted">+this</span> computer <span class="err-ins" title="inserted">+room</span> <span class="err-sub" title="sub: rooms → is">rooms</span><span class="hyp-inline">[→is]</span> in here the m s c computer lab <span class="err-ins" title="inserted">+in</span> <span class="err-sub" title="sub: and → it">and</span><span class="hyp-inline">[→it]</span> is in here</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>f</td><td>c</td><td>1</td></tr>
+<tr><td>Sub</td><td>rooms</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>and</td><td>it</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>k</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>this</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>room</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>in</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-32">
+  <header>
+    <span class="rank">#32</span>
+    <span class="utt-id">AMI_TS3003a_H00_MTD009PM_0057962_0058204</span>
+    <span class="stats">
+      8 errors &bull; WER 72.73%
+      &bull; S:4 D:2 I:2
+      &bull; 11 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_TS3003a_H00_MTD009PM_0057962_0058204.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_TS3003a_H00_MTD009PM_0057962_0058204.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">so</span> <span class="err-sub" title="sub: what → sort">what</span><span class="hyp-inline">[→sort]</span> yeah it is <span class="err-del" title="deleted">this</span> <span class="err-sub" title="sub: is → a">is</span><span class="hyp-inline">[→a]</span> bit of <span class="err-ins" title="inserted">+a</span> <span class="err-ins" title="inserted">+sort</span> <span class="err-sub" title="sub: the → of">the</span><span class="hyp-inline">[→of]</span> <span class="err-sub" title="sub: swordfish → thing">swordfish</span><span class="hyp-inline">[→thing]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>what</td><td>sort</td><td>1</td></tr>
+<tr><td>Sub</td><td>is</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>the</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>swordfish</td><td>thing</td><td>1</td></tr>
+<tr><td>Del</td><td>so</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>this</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>sort</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-33">
+  <header>
+    <span class="rank">#33</span>
+    <span class="utt-id">AMI_EN2002a_H03_MEE071_0139133_0139328</span>
+    <span class="stats">
+      8 errors &bull; WER 88.89%
+      &bull; S:0 D:8 I:0
+      &bull; 9 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0139133_0139328.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0139133_0139328.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-del" title="deleted">fish</span> <span class="err-del" title="deleted">the</span> <span class="err-del" title="deleted">data</span> <span class="err-del" title="deleted">i</span> <span class="err-del" title="deleted">was</span> <span class="err-del" title="deleted">just</span> <span class="err-del" title="deleted">thinking</span> <span class="err-del" title="deleted">that</span> yeah</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Del</td><td>fish</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>the</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>data</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>was</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>just</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>thinking</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>that</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-34">
+  <header>
+    <span class="rank">#34</span>
+    <span class="utt-id">AMI_ES2004c_H00_MEO015_0218025_0218991</span>
+    <span class="stats">
+      8 errors &bull; WER 33.33%
+      &bull; S:4 D:1 I:3
+      &bull; 24 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_ES2004c_H00_MEO015_0218025_0218991.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_ES2004c_H00_MEO015_0218025_0218991.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">fine we <span class="err-sub" title="sub: were → are">were</span><span class="hyp-inline">[→are]</span> talking of voice recognition also because that we <span class="err-sub" title="sub: are → have">are</span><span class="hyp-inline">[→have]</span> not <span class="err-ins" title="inserted">+addressed</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+issue</span> <span class="err-sub" title="sub: for → of">for</span><span class="hyp-inline">[→of]</span> how to <span class="err-del" title="deleted">look</span> <span class="err-sub" title="sub: it → locate">it</span><span class="hyp-inline">[→locate]</span> remote control if it is lost</div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>were</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>are</td><td>have</td><td>1</td></tr>
+<tr><td>Sub</td><td>for</td><td>of</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>locate</td><td>1</td></tr>
+<tr><td>Del</td><td>look</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>addressed</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>issue</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-35">
+  <header>
+    <span class="rank">#35</span>
+    <span class="utt-id">AMI_IS1009d_H03_FIO089_0068759_0069052</span>
+    <span class="stats">
+      8 errors &bull; WER 400.00%
+      &bull; S:2 D:0 I:6
+      &bull; 2 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H03_FIO089_0068759_0069052.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009d_H03_FIO089_0068759_0069052.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+these</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+front</span> <span class="err-ins" title="inserted">+buttons</span> <span class="err-ins" title="inserted">+extra</span> <span class="err-ins" title="inserted">+here</span> <span class="err-sub" title="sub: and → are">and</span><span class="hyp-inline">[→are]</span> <span class="err-sub" title="sub: these → the">these</span><span class="hyp-inline">[→the]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (8 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>and</td><td>are</td><td>1</td></tr>
+<tr><td>Sub</td><td>these</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>these</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>front</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>buttons</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>extra</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>here</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-36">
+  <header>
+    <span class="rank">#36</span>
+    <span class="utt-id">AMI_IS1009b_H02_FIO084_0177728_0179020</span>
+    <span class="stats">
+      7 errors &bull; WER 18.42%
+      &bull; S:1 D:5 I:1
+      &bull; 38 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009b_H02_FIO084_0177728_0179020.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009b_H02_FIO084_0177728_0179020.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but specifically <span class="err-del" title="deleted">if</span> <span class="err-del" title="deleted">y</span> if <span class="err-del" title="deleted">like</span> elderly people want big buttons then you can not really make a <span class="err-del" title="deleted">bi</span> big remote controller so maybe specifically you can design a big <span class="err-del" title="deleted">con</span> remote <span class="err-sub" title="sub: controller → control">controller</span><span class="hyp-inline">[→control]</span> for elderly and for children <span class="err-ins" title="inserted">+like</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>controller</td><td>control</td><td>1</td></tr>
+<tr><td>Del</td><td>if</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>y</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>like</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>bi</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>con</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>like</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-37">
+  <header>
+    <span class="rank">#37</span>
+    <span class="utt-id">AMI_EN2002d_H01_FEO072_0067354_0067828</span>
+    <span class="stats">
+      7 errors &bull; WER 140.00%
+      &bull; S:5 D:0 I:2
+      &bull; 5 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H01_FEO072_0067354_0067828.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002d_H01_FEO072_0067354_0067828.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+jeg</span> <span class="err-ins" title="inserted">+far</span> <span class="err-sub" title="sub: you → la">you</span><span class="hyp-inline">[→la]</span> <span class="err-sub" title="sub: followed → det">followed</span><span class="hyp-inline">[→det]</span> <span class="err-sub" title="sub: all → vaere">all</span><span class="hyp-inline">[→vaere]</span> <span class="err-sub" title="sub: this → i">this</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: up → samme">up</span><span class="hyp-inline">[→samme]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>you</td><td>la</td><td>1</td></tr>
+<tr><td>Sub</td><td>followed</td><td>det</td><td>1</td></tr>
+<tr><td>Sub</td><td>all</td><td>vaere</td><td>1</td></tr>
+<tr><td>Sub</td><td>this</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>up</td><td>samme</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>jeg</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>far</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-38">
+  <header>
+    <span class="rank">#38</span>
+    <span class="utt-id">AMI_IS1009d_H02_FIO084_0098501_0098936</span>
+    <span class="stats">
+      7 errors &bull; WER 58.33%
+      &bull; S:3 D:0 I:4
+      &bull; 12 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H02_FIO084_0098501_0098936.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009d_H02_FIO084_0098501_0098936.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i think that is <span class="err-sub" title="sub: f → for">f</span><span class="hyp-inline">[→for]</span> for rubbers <span class="err-sub" title="sub: that → there">that</span><span class="hyp-inline">[→there]</span> is <span class="err-ins" title="inserted">+a</span> yeah case <span class="err-ins" title="inserted">+what</span> <span class="err-ins" title="inserted">+do</span> <span class="err-ins" title="inserted">+you</span> <span class="err-sub" title="sub: material → say">material</span><span class="hyp-inline">[→say]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>f</td><td>for</td><td>1</td></tr>
+<tr><td>Sub</td><td>that</td><td>there</td><td>1</td></tr>
+<tr><td>Sub</td><td>material</td><td>say</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>what</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>do</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-39">
+  <header>
+    <span class="rank">#39</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0234538_0234956</span>
+    <span class="stats">
+      7 errors &bull; WER 50.00%
+      &bull; S:4 D:3 I:0
+      &bull; 14 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0234538_0234956.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0234538_0234956.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">i think it is <span class="err-del" title="deleted">in</span> <span class="err-sub" title="sub: the → a">the</span><span class="hyp-inline">[→a]</span> <span class="err-sub" title="sub: right → night">right</span><span class="hyp-inline">[→night]</span> object model <span class="err-del" title="deleted">but</span> <span class="err-del" title="deleted">i</span> <span class="err-sub" title="sub: am → or">am</span><span class="hyp-inline">[→or]</span> not <span class="err-sub" title="sub: sure → so">sure</span><span class="hyp-inline">[→so]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>the</td><td>a</td><td>1</td></tr>
+<tr><td>Sub</td><td>right</td><td>night</td><td>1</td></tr>
+<tr><td>Sub</td><td>am</td><td>or</td><td>1</td></tr>
+<tr><td>Sub</td><td>sure</td><td>so</td><td>1</td></tr>
+<tr><td>Del</td><td>in</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>but</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>i</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-40">
+  <header>
+    <span class="rank">#40</span>
+    <span class="utt-id">AMI_EN2002d_H02_MEE071_0023001_0023214</span>
+    <span class="stats">
+      7 errors &bull; WER 700.00%
+      &bull; S:1 D:0 I:6
+      &bull; 1 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0023001_0023214.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0023001_0023214.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+so</span> <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+not</span> <span class="err-ins" title="inserted">+a</span> <span class="err-ins" title="inserted">+good</span> <span class="err-sub" title="sub: yeah → thing">yeah</span><span class="hyp-inline">[→thing]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>yeah</td><td>thing</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>so</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>not</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>good</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-41">
+  <header>
+    <span class="rank">#41</span>
+    <span class="utt-id">AMI_IS1009d_H01_FIO087_0123878_0124032</span>
+    <span class="stats">
+      7 errors &bull; WER 350.00%
+      &bull; S:2 D:0 I:5
+      &bull; 2 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_IS1009d_H01_FIO087_0123878_0124032.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_IS1009d_H01_FIO087_0123878_0124032.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+what</span> <span class="err-ins" title="inserted">+people</span> <span class="err-ins" title="inserted">+are</span> <span class="err-sub" title="sub: fee → going">fee</span><span class="hyp-inline">[→going]</span> <span class="err-sub" title="sub: selling → to">selling</span><span class="hyp-inline">[→to]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>fee</td><td>going</td><td>1</td></tr>
+<tr><td>Sub</td><td>selling</td><td>to</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>what</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>people</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>are</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-42">
+  <header>
+    <span class="rank">#42</span>
+    <span class="utt-id">AMI_ES2004c_H03_FEE016_0023678_0024933</span>
+    <span class="stats">
+      7 errors &bull; WER 18.42%
+      &bull; S:4 D:0 I:3
+      &bull; 38 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_ES2004c_H03_FEE016_0023678_0024933.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_ES2004c_H03_FEE016_0023678_0024933.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: were → well">were</span><span class="hyp-inline">[→well]</span> that we did our traditional <span class="err-ins" title="inserted">+our</span> our usual market research study with <span class="err-sub" title="sub: a → our">a</span><span class="hyp-inline">[→our]</span> 100 subjects and the the general feedback from them is that the most <span class="err-ins" title="inserted">+it</span> <span class="err-ins" title="inserted">+m</span> <span class="err-sub" title="sub: im → i">im</span><span class="hyp-inline">[→i]</span> <span class="err-sub" title="sub: w → m">w</span><span class="hyp-inline">[→m]</span> i am sorry i am slightly tongue tied after lunch</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>were</td><td>well</td><td>1</td></tr>
+<tr><td>Sub</td><td>a</td><td>our</td><td>1</td></tr>
+<tr><td>Sub</td><td>im</td><td>i</td><td>1</td></tr>
+<tr><td>Sub</td><td>w</td><td>m</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>our</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>m</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-43">
+  <header>
+    <span class="rank">#43</span>
+    <span class="utt-id">AMI_EN2002d_H02_MEE071_0093450_0094076</span>
+    <span class="stats">
+      7 errors &bull; WER 26.92%
+      &bull; S:5 D:2 I:0
+      &bull; 26 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002d_H02_MEE071_0093450_0094076.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002d_H02_MEE071_0093450_0094076.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">you do it in one of the <span class="err-del" title="deleted">w</span> whatever the main <span class="err-sub" title="sub: is → window">is</span><span class="hyp-inline">[→window]</span> <span class="err-sub" title="sub: it → is">it</span><span class="hyp-inline">[→is]</span> you <span class="err-sub" title="sub: set → do">set</span><span class="hyp-inline">[→do]</span> <span class="err-sub" title="sub: w → set">w</span><span class="hyp-inline">[→set]</span> gif or <span class="err-sub" title="sub: some → something">some</span><span class="hyp-inline">[→something]</span> set <span class="err-del" title="deleted">f</span> set set picture or something</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>is</td><td>window</td><td>1</td></tr>
+<tr><td>Sub</td><td>it</td><td>is</td><td>1</td></tr>
+<tr><td>Sub</td><td>set</td><td>do</td><td>1</td></tr>
+<tr><td>Sub</td><td>w</td><td>set</td><td>1</td></tr>
+<tr><td>Sub</td><td>some</td><td>something</td><td>1</td></tr>
+<tr><td>Del</td><td>w</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>f</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-44">
+  <header>
+    <span class="rank">#44</span>
+    <span class="utt-id">AMI_EN2002b_H01_MEE071_0178394_0178659</span>
+    <span class="stats">
+      7 errors &bull; WER 116.67%
+      &bull; S:5 D:0 I:2
+      &bull; 6 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0178394_0178659.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0178394_0178659.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: not → how">not</span><span class="hyp-inline">[→how]</span> much <span class="err-ins" title="inserted">+of</span> <span class="err-ins" title="inserted">+a</span> <span class="err-sub" title="sub: without → line">without</span><span class="hyp-inline">[→line]</span> <span class="err-sub" title="sub: any → do">any</span><span class="hyp-inline">[→do]</span> <span class="err-sub" title="sub: of → you">of</span><span class="hyp-inline">[→you]</span> <span class="err-sub" title="sub: us → have">us</span><span class="hyp-inline">[→have]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>not</td><td>how</td><td>1</td></tr>
+<tr><td>Sub</td><td>without</td><td>line</td><td>1</td></tr>
+<tr><td>Sub</td><td>any</td><td>do</td><td>1</td></tr>
+<tr><td>Sub</td><td>of</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>us</td><td>have</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>of</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>a</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-45">
+  <header>
+    <span class="rank">#45</span>
+    <span class="utt-id">AMI_EN2002c_H02_MEE071_0252439_0252628</span>
+    <span class="stats">
+      7 errors &bull; WER 43.75%
+      &bull; S:3 D:4 I:0
+      &bull; 16 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H02_MEE071_0252439_0252628.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H02_MEE071_0252439_0252628.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">it is <span class="err-del" title="deleted">might</span> not <span class="err-del" title="deleted">be</span> <span class="err-del" title="deleted">too</span> <span class="err-sub" title="sub: we → on">we</span><span class="hyp-inline">[→on]</span> <span class="err-sub" title="sub: th → but">th</span><span class="hyp-inline">[→but]</span> i do not think we need <span class="err-del" title="deleted">a</span> <span class="err-sub" title="sub: probably → it">probably</span><span class="hyp-inline">[→it]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>we</td><td>on</td><td>1</td></tr>
+<tr><td>Sub</td><td>th</td><td>but</td><td>1</td></tr>
+<tr><td>Sub</td><td>probably</td><td>it</td><td>1</td></tr>
+<tr><td>Del</td><td>might</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>be</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>too</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>a</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-46">
+  <header>
+    <span class="rank">#46</span>
+    <span class="utt-id">AMI_EN2002a_H03_MEE071_0132084_0132683</span>
+    <span class="stats">
+      7 errors &bull; WER 38.89%
+      &bull; S:3 D:0 I:4
+      &bull; 18 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002a_H03_MEE071_0132084_0132683.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002a_H03_MEE071_0132084_0132683.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">yeah yeah because that is the <span class="err-ins" title="inserted">+i</span> the <span class="err-ins" title="inserted">+like</span> <span class="err-ins" title="inserted">+it</span> declares a variable does not it and then <span class="err-ins" title="inserted">+it</span> <span class="err-sub" title="sub: they → can">they</span><span class="hyp-inline">[→can]</span> <span class="err-sub" title="sub: keep → probably">keep</span><span class="hyp-inline">[→probably]</span> <span class="err-sub" title="sub: okay → anything">okay</span><span class="hyp-inline">[→anything]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>they</td><td>can</td><td>1</td></tr>
+<tr><td>Sub</td><td>keep</td><td>probably</td><td>1</td></tr>
+<tr><td>Sub</td><td>okay</td><td>anything</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>it</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>like</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-47">
+  <header>
+    <span class="rank">#47</span>
+    <span class="utt-id">AMI_TS3003c_H00_MTD009PM_0132127_0132465</span>
+    <span class="stats">
+      7 errors &bull; WER 233.33%
+      &bull; S:1 D:0 I:6
+      &bull; 3 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_TS3003c_H00_MTD009PM_0132127_0132465.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_TS3003c_H00_MTD009PM_0132127_0132465.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">okay <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+fair</span> <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+fun</span> <span class="err-sub" title="sub: advanced → saint">advanced</span><span class="hyp-inline">[→saint]</span> chip</div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>advanced</td><td>saint</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>2</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>fair</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>fun</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-48">
+  <header>
+    <span class="rank">#48</span>
+    <span class="utt-id">AMI_EN2002c_H03_MEE073_0163365_0163504</span>
+    <span class="stats">
+      7 errors &bull; WER 700.00%
+      &bull; S:1 D:0 I:6
+      &bull; 1 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002c_H03_MEE073_0163365_0163504.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002c_H03_MEE073_0163365_0163504.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-ins" title="inserted">+yeah</span> <span class="err-ins" title="inserted">+i</span> <span class="err-ins" title="inserted">+mean</span> <span class="err-ins" title="inserted">+if</span> <span class="err-ins" title="inserted">+you</span> <span class="err-ins" title="inserted">+have</span> <span class="err-sub" title="sub: right → time">right</span><span class="hyp-inline">[→time]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>right</td><td>time</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>yeah</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>i</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>mean</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>if</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>you</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>have</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-49">
+  <header>
+    <span class="rank">#49</span>
+    <span class="utt-id">AMI_EN2002b_H01_MEE071_0019391_0020010</span>
+    <span class="stats">
+      7 errors &bull; WER 30.43%
+      &bull; S:4 D:3 I:0
+      &bull; 23 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0019391_0020010.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0019391_0020010.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript">but <span class="err-del" title="deleted">th</span> <span class="err-del" title="deleted">you</span> can <span class="err-sub" title="sub: either → you">either</span><span class="hyp-inline">[→you]</span> have <span class="err-del" title="deleted">screen</span> <span class="err-sub" title="sub: shots → screenshots">shots</span><span class="hyp-inline">[→screenshots]</span> by the thing each one or have just a bunch of <span class="err-sub" title="sub: em → them">em</span><span class="hyp-inline">[→them]</span> in one <span class="err-sub" title="sub: session → section">session</span><span class="hyp-inline">[→section]</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>either</td><td>you</td><td>1</td></tr>
+<tr><td>Sub</td><td>shots</td><td>screenshots</td><td>1</td></tr>
+<tr><td>Sub</td><td>em</td><td>them</td><td>1</td></tr>
+<tr><td>Sub</td><td>session</td><td>section</td><td>1</td></tr>
+<tr><td>Del</td><td>th</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>you</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Del</td><td>screen</td><td>&mdash;</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+<article class="card" id="utt-50">
+  <header>
+    <span class="rank">#50</span>
+    <span class="utt-id">AMI_EN2002b_H01_MEE071_0121398_0121828</span>
+    <span class="stats">
+      7 errors &bull; WER 35.00%
+      &bull; S:2 D:1 I:4
+      &bull; 20 ref words
+    </span>
+  </header>
+  <div class="audio-meta">Audio: <code>/home/boren/data/open_asr/ami/wavs/AMI_EN2002b_H01_MEE071_0121398_0121828.wav</code></div>
+  <div class="audio-block"><audio controls preload="none" src="wavs/AMI_EN2002b_H01_MEE071_0121398_0121828.wav"></audio></div>
+  <details open>
+    <summary>Transcript with error highlighting</summary>
+    <div class="transcript"><span class="err-sub" title="sub: you → it">you</span><span class="hyp-inline">[→it]</span> will very much limit what you can do with it if it is <span class="err-del" title="deleted">not</span> <span class="err-sub" title="sub: in → 9">in</span><span class="hyp-inline">[→9]</span> x m l format <span class="err-ins" title="inserted">+that</span> <span class="err-ins" title="inserted">+is</span> <span class="err-ins" title="inserted">+the</span> <span class="err-ins" title="inserted">+problem</span></div>
+  </details>
+  <details>
+    <summary>Error breakdown (7 errors)</summary>
+    <table class="err-table"><thead><tr><th>Type</th><th>Ref</th><th>Hyp</th><th>Count</th></tr></thead><tbody><tr><td>Sub</td><td>you</td><td>it</td><td>1</td></tr>
+<tr><td>Sub</td><td>in</td><td>9</td><td>1</td></tr>
+<tr><td>Del</td><td>not</td><td>&mdash;</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>that</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>is</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>the</td><td>1</td></tr>
+<tr><td>Ins</td><td>&mdash;</td><td>problem</td><td>1</td></tr></tbody></table>
+  </details>
+</article>
+
+</main></div>
+</body></html>

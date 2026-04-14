@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repetition Hallucinations — phi7b Earnings22</title>
+<style>
+  :root {
+    --bg: #f8f9fa; --card-bg: #fff; --border: #dee2e6; --text: #212529;
+    --muted: #6c757d; --red: #dc3545; --red-bg: #fff5f5; --green: #198754;
+    --green-bg: #f0fdf4; --blue: #0d6efd; --blue-bg: #eff6ff;
+    --orange: #fd7e14; --orange-bg: #fff7ed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; padding: 2rem;
+  }
+  h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .stats { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .stat-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.5rem; min-width: 140px;
+  }
+  .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--red); }
+  .stat-card .label { font-size: 0.85rem; color: var(--muted); }
+  .legend {
+    display: flex; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px; display: inline-block;
+  }
+  .case {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 1rem; overflow: hidden;
+  }
+  .case-header {
+    background: #f1f3f5; padding: 0.6rem 1rem; display: flex;
+    align-items: center; gap: 1rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .rank { font-weight: 700; font-size: 1.1rem; color: var(--red); min-width: 2rem; }
+  .audio-id {
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.82rem;
+    color: var(--muted); background: #e9ecef; padding: 2px 8px; border-radius: 4px;
+  }
+  .pattern-tag {
+    font-size: 0.82rem; color: var(--red); background: var(--red-bg);
+    padding: 2px 10px; border-radius: 12px; font-weight: 600; margin-left: auto;
+  }
+  .transcript-pair { padding: 0.8rem 1rem; }
+  .transcript { padding: 0.5rem 0; font-size: 0.92rem; line-height: 1.7; }
+  .transcript .label {
+    display: inline-block; width: 3rem; font-weight: 700; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.05em; vertical-align: top; padding-top: 2px;
+  }
+  .ref-row .label { color: var(--green); }
+  .hyp-row .label { color: var(--blue); }
+  .transcript .text { display: inline; }
+  .ref-row { border-bottom: 1px dashed #e9ecef; }
+  span.rep {
+    background: #fecaca; color: #991b1b; font-weight: 600;
+    padding: 1px 4px; border-radius: 3px; border: 1px solid #fca5a5;
+  }
+  .footer { margin-top: 2rem; font-size: 0.8rem; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<h1>Repetition Hallucinations</h1>
+<p class="subtitle">phi7b_20260413 &mdash; Earnings22 &mdash; 69 cases detected from 2,741 utterances</p>
+
+<div class="stats">
+  <div class="stat-card"><div class="value">69</div><div class="label">Total Cases</div></div>
+  <div class="stat-card"><div class="value">2</div><div class="label">Severe (8+ repeats)</div></div>
+  <div class="stat-card"><div class="value">17</div><div class="label">Moderate (4-7 repeats)</div></div>
+  <div class="stat-card"><div class="value">50</div><div class="label">Mild (3 repeats)</div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch" style="background:#fecaca;border:1px solid #fca5a5"></span> Repeated sequence</div>
+</div>
+
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#1</span>
+        <span class="audio-id">4483338/301.wav</span>
+        <audio controls preload="none" src="wavs/4483338_301.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 8x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So specifically what- what I&#x27;m trying to say is that…</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So it&#x27;s basically what, what I&#x27;m trying to say is that, uh, <span class="rep">the, the, the, the, the, the, the, the.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#2</span>
+        <span class="audio-id">4432298/328.wav</span>
+        <audio controls preload="none" src="wavs/4432298_328.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;so&quot; repeated 8x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh so, so, from now on, any update will be called parch as, and if there will be any hot fixes.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, so, so from now on, any update, uh, will be called patch as, and if there will be any hot fixes, <span class="rep">so, so, so, so, so, so, so, so.</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#3</span>
+        <span class="audio-id">4483338/530.wav</span>
+        <audio controls preload="none" src="wavs/4483338_530.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 7x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So, you know, we&#x27;re- we&#x27;re in full motion of that, um, and, uh, there&#x27;s clearly a lot of potential still to be…</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So, you know, we&#x27;re, we&#x27;re in full motion of that, um, and, um, there&#x27;s clearly a lot of potential still to be, to be, <span class="rep">uh, uh, uh, uh, uh, uh, uh,</span> uh…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#4</span>
+        <span class="audio-id">4479741/356.wav</span>
+        <audio controls preload="none" src="wavs/4479741_356.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;ओके&quot; repeated 5x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Oh the lighthouse question.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">ओके ओके ओके ओके ओके</span> ओके।</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#5</span>
+        <span class="audio-id">4432298/160.wav</span>
+        <audio controls preload="none" src="wavs/4432298_160.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 4x consecutively; &quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, when it comes to planned discounting policy for Q2, we- we of course have, uh, certain assumptions, uh, and- and and- and plans of what- what&#x27;s gonna be happening there, but uh, we we are definitely not in a position to reveal that actually seeing anybody, uh, uh, you know reveal ahead, uh, that kind of, uh, uh, uh plans.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, when it comes to plans discounting policy for Q2, we, we of course have, uh, certain assumptions, uh, <span class="rep">and, and, and, and</span> plans of what&#x27;s, what&#x27;s gonna be happening there, but, uh, we, we are definitely not in a position to reveal that, I&#x27;ve never actually seen anybody, uh, uh, you know, reveal ahead, uh, that kind of, <span class="rep">uh, uh, uh,</span> plans.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#6</span>
+        <span class="audio-id">4432298/338.wav</span>
+        <audio controls preload="none" src="wavs/4432298_338.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively; &quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Um, and then we&#x27;ll be more and more into uh, improving things, uh without promising anything but the the the course of action will uh, will change a bit so we&#x27;ll be more, more focused on pushing uh, the the the uh, persist quality uh, further.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um, and then we&#x27;ll be more and more into, um, improving things, uh, without promising anything, but, but <span class="rep">the, the, the, the</span> course of action will, will change a bit, so we&#x27;ll be more, more focused on pushing, uh, <span class="rep">the, the, the, the,</span> um, perceived quality, uh, further.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#7</span>
+        <span class="audio-id">4432298/229.wav</span>
+        <audio controls preload="none" src="wavs/4432298_229.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;on&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Um, just based on this and your earlier comments, just to clarify, so there hasn&#x27;t been any material development costs capitalized for any new project on anything resembling Cyberpunk&#x27;s scale before Q1 this year?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um, just based on this and your earlier comments, um, just to clarify, so there hasn&#x27;t been any material, uh, development costs capitalized, uh, for any new project <span class="rep">on, on, on, on</span> anything resembling Cyberpunk&#x27;s scale, um, before Q1, uh, this year?</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#8</span>
+        <span class="audio-id">4432298/186.wav</span>
+        <audio controls preload="none" src="wavs/4432298_186.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 4x consecutively; &quot;what&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">But I can just, um, I can just repeat what wha- wha- what I already said that, next year is is the year when we want to to- to- to speed things and- and- Whether you want to speed things and to work full scale.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">But I can just, um, I can just repeat <span class="rep">what, what, what</span> I already said that next year is the year when we want <span class="rep">to, to, to, to</span> split teams and, and work, uh, full scale.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#9</span>
+        <span class="audio-id">4432298/194.wav</span>
+        <audio controls preload="none" src="wavs/4432298_194.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Deliberately of course, we have the date internally, but it&#x27;s too early to say anything about it.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Of course, we have, we have the date, uh, internally, but it&#x27;s too early <span class="rep">to, to, to, to</span> say anything else.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#10</span>
+        <span class="audio-id">4479741/189.wav</span>
+        <audio controls preload="none" src="wavs/4479741_189.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;you&quot; repeated 4x consecutively; &quot;from&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">so so given that, uh, in Q2 and Q4 last year, uh, HMOs were 6 and 7 million in revenue respectively, I just wonder if sort of the underlying run rate for HMOs was in fact weak, given that, uh, you- you- you have this big, uh, product launch fro- from Abbott.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So, so given that, uh, in Q2 and Q4 last year, uh, HMOs were six and seven million in revenue respectively, I just wonder if sort of the underlying run rate for HMOs was in fact weak, given that, uh, <span class="rep">you, you, you, you</span> have this big, uh, product launch <span class="rep">from, from, from</span> Abbott.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#11</span>
+        <span class="audio-id">4479741/187.wav</span>
+        <audio controls preload="none" src="wavs/4479741_187.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;that&quot; repeated 4x consecutively; &quot;my&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">That- that that I understand Maurice but my- my- my question is if, uh, plant health and HMO is 10% of health and nutrition turnover, that is 9 million euros combined.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">That, that, that, that</span> I understand, Maurice, but, but <span class="rep">my, my, my</span> question is if, uh, plant health and HMO is 10% of health and nutrition turnover, that is 9 million euros combined.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#12</span>
+        <span class="audio-id">4485244/338.wav</span>
+        <audio controls preload="none" src="wavs/4485244_338.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;in&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">You know, we were looking at some of these statistics and they&#x27;re kind of interesting just to give you another sense of the breadth in, in, in, in capital market fees.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">You know, we were looking at some of these statistics and they&#x27;re kind of interesting, just to give you another sense of the breadth <span class="rep">in, in, in, in</span> capital markets fees.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#13</span>
+        <span class="audio-id">4432298/268.wav</span>
+        <audio controls preload="none" src="wavs/4432298_268.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;we&#x27;ll&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">If 20 years from now I&#x27;m going to be writing memoirs, I promise to answer that, but for now it really has to remain between PlayStation and us and we&#x27;ll have announcements to share when they are ready.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">If 20 years from now I&#x27;m gonna be writing memoirs, I&#x27;ll promise to answer that, but, but for now, it&#x27;s, it&#x27;s, it really has to remain between PlayStation and us, and, and, you know, <span class="rep">we&#x27;ll, we&#x27;ll, we&#x27;ll, we&#x27;ll</span> have announcements to sh- announcements to share when they are ready.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#14</span>
+        <span class="audio-id">4483338/254.wav</span>
+        <audio controls preload="none" src="wavs/4483338_254.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;this&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Or is it simply going back to the drawing board, you know, putting together all the, all the plans and sort of deciding it&#x27;s it&#x27;s- it&#x27;s better to sort of shift it out by six months?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Or is it simply going back to the drawing board, you know, putting together all the, all the plans and sort of deciding <span class="rep">this, this, this, this</span> better to sort of shift it out by six months?</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#15</span>
+        <span class="audio-id">4479741/162.wav</span>
+        <audio controls preload="none" src="wavs/4479741_162.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, which you supply as upload cost that&#x27;s the- the the-the big thing for- for your HMO business in the quarter.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, which you supply, I suppose that&#x27;s <span class="rep">the, the, the, the</span> big thing for, for your HMO business in the quarter.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#16</span>
+        <span class="audio-id">4483338/279.wav</span>
+        <audio controls preload="none" src="wavs/4483338_279.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;we&#x27;re&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So, we&#x27;re- we&#x27;re- we&#x27;re trying to, you know, to drive value into the market and of course with that also increase the overall value in the market for, you know, um, for the industry.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So <span class="rep">we&#x27;re, we&#x27;re, we&#x27;re, we&#x27;re</span> trying to, you know, to drive value into the market and of course with that also increase the overall value in the market for, you know, um, for the industry.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#17</span>
+        <span class="audio-id">4450488/202.wav</span>
+        <audio controls preload="none" src="wavs/4450488_202.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Um, the numbers are quite impressive for the annual growth is over 40% at each stage of operation, so, looking at this ratios and looking at this growth, we may mention two things.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um, the numbers are quite impressive. <span class="rep">The, the, the, the</span> annual growth is over 40% at each stage of operation. So looking at these ratios and looking at this growth, we may, um, mention two things.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#18</span>
+        <span class="audio-id">4483338/262.wav</span>
+        <audio controls preload="none" src="wavs/4483338_262.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;or&quot; repeated 4x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Or was there a reason why more people percentage-wise of these expiring contracts decided to leave Tele2 or or- or ask for for some better terms?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Or was there a reason why more people percentage wise of these expiring contracts decided to leave Taylor to <span class="rep">or, or, or, or</span> ask for, for, um, better terms?</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#19</span>
+        <span class="audio-id">4479741/249.wav</span>
+        <audio controls preload="none" src="wavs/4479741_249.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">phrase loop: the uh, x4; phrase loop: uh the, x4; phrase loop: the uh, x3</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, Lisa.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, listen, I think <span class="rep">the, uh, the, uh, the, uh, the, uh, the,</span> um, <span class="rep">the, uh, the, uh, the, uh,</span> the…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#20</span>
+        <span class="audio-id">4479741/185.wav</span>
+        <audio controls preload="none" src="wavs/4479741_185.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And- and- and talking about the, um, about the lighthouses, uh, you know, all of them contributed to these strong performance of 35% in- in, uh, Q1, but obviously as we mentioned, uh- uh, particularly plant health and HMO benefited from all the timing in Q1.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">And, and, and</span> talking about the, um, about the lighthouses, uh, you know, all of them contributed to the strong performance of 35% in, in, uh, Q1, but obviously, as we mentioned, uh, uh, particularly plant health and HMO benefited from order timing in Q1.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#21</span>
+        <span class="audio-id">4479741/301.wav</span>
+        <audio controls preload="none" src="wavs/4479741_301.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">But on the other side, I wonder you know what is your base case expectations in terms of your customers pricing action to offset inflation and could that uh, have any drag on FCNE and market volume growth, um for this year.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, but on the other side, I wonder, you know, what is your base case expectation in terms of your customers pricing action to offset inflation <span class="rep">and, and, and</span> could that, uh, have any drag on FC&amp;E end market volume growth, um, for this year?</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#22</span>
+        <span class="audio-id">4479741/382.wav</span>
+        <audio controls preload="none" src="wavs/4479741_382.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 3x consecutively; &quot;in&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And, and, and building on your first question, Miru, um, you know, if we look at what was the one offs in, in, uh, in, in, in human health in Q1 that will impact the rest of the year, as we said.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">And, and, and</span> building on your first question, Mirko, um, you know, if we look at what was the one-offs in, in, uh, <span class="rep">in, in, in</span> human health in Q1 that will impact the rest of the year, as we said.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#23</span>
+        <span class="audio-id">4483338/546.wav</span>
+        <audio controls preload="none" src="wavs/4483338_546.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;a&quot; repeated 3x consecutively; &quot;to&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So going from a- a quite significant negative trend in in B2B to- to- to being a stable business was what we said we would do, and- and we&#x27;ve done it.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So going from <span class="rep">a, a, a</span> quite significant negative trend in, in B2B <span class="rep">to, to, to</span> being a stable business was what we said we would do and, and we&#x27;ve done it.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#24</span>
+        <span class="audio-id">4479741/226.wav</span>
+        <audio controls preload="none" src="wavs/4479741_226.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;we&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">We, we, we, we would like to avoid to give you absolute numbers on the revenue from, from HMO.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">We, we, we</span> would, we would like to avoid to give you absolute numbers on the revenue from, from HMO.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#25</span>
+        <span class="audio-id">4432298/301.wav</span>
+        <audio controls preload="none" src="wavs/4432298_301.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;as&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I mean, I think that&#x27;s, as much as, as I go in, in the details here but, it would be unrealistic to assume that we&#x27;re going to go back to uh, uh, to the December level of sales with, with any kind of uh, uh, marketing.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I mean, I, I think that&#x27;s as much <span class="rep">as, as, as</span> I, I should go in, in the details here, but it would be unrealistic to assume that we&#x27;re gonna go back to, uh, uh, you know, to the December level of sales with, with any kind of, uh, uh, marketing.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#26</span>
+        <span class="audio-id">4479741/409.wav</span>
+        <audio controls preload="none" src="wavs/4479741_409.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And, and, and that was mainly because, you know, uh, Q1 of last year for SCNE was particularly, uh, soft.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">And, and, and</span> that was mainly because, you know, uh, Q1 of last year for F&amp;E was particularly, uh, soft.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#27</span>
+        <span class="audio-id">4483338/479.wav</span>
+        <audio controls preload="none" src="wavs/4483338_479.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;of&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I wonder if you could just say a few words about how that&#x27;s going, whether you are seeing any issues or any areas where you were ahead of of plans that kind of thing?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I wondered if you could just say a few words about how that&#x27;s going, whether you&#x27;re seeing any issues or any areas where you&#x27;re ahead <span class="rep">of, of, of</span> plans, that kind of thing.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#28</span>
+        <span class="audio-id">4483338/331.wav</span>
+        <audio controls preload="none" src="wavs/4483338_331.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Of course, I cannot say anything about what we are gonna do this year, but the- the board is very committed to our policy.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Of course, I cannot say anything about what we&#x27;re gonna do this year, but <span class="rep">the, the, the</span> board is very committed to our policy.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#29</span>
+        <span class="audio-id">4479741/279.wav</span>
+        <audio controls preload="none" src="wavs/4479741_279.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;in&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Particularly you know, uh, uh, in, in, in our probiotics solutions.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Particularly, you know, uh, um, <span class="rep">in, in, in</span> our probiotics, uh, solutions.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#30</span>
+        <span class="audio-id">4432298/333.wav</span>
+        <audio controls preload="none" src="wavs/4432298_333.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;it&#x27;s&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">It&#x27;s, it&#x27;s almost ready.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">It&#x27;s, it&#x27;s, it&#x27;s</span> almost ready.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#31</span>
+        <span class="audio-id">4432298/132.wav</span>
+        <audio controls preload="none" src="wavs/4432298_132.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;i&quot; repeated 3x consecutively; &quot;of&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, the second one was about the Sony and the, uh, PlayStation in particular instead of Netflix, how the conversation progresses, so, i I- I cannot go deep into the set of metrics so the how the conversation progresses, it has to remain at the discretion of- of- of PlayStation and of course ourselves, uh, um, but yes there is, there is some sort of metrics, lets, lets put it like that, at a high level but again we&#x27;re not goi- we we cannot go into the details of of where we are with that.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, the second one was about the Sony and the, uh, PlayStation and particular set of metrics, how the conversation progresses, so <span class="rep">I, I, I</span> kind of go deep into the set of metrics or how the conversation progresses, this has to remain at the discretion <span class="rep">of, of, of</span> PlayStation, of course, ourselves, uh, um, but yes, there is, there is some sort of metrics, let&#x27;s, let&#x27;s put it like that at a high level, but again, we&#x27;re not going, we cannot go into the details of, of where we are with that.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#32</span>
+        <span class="audio-id">4479741/411.wav</span>
+        <audio controls preload="none" src="wavs/4479741_411.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Um, I will, I will pass it on to Lisa to comment on, on margin, but just to clarify my comment, I said when we passed, uh, prices with p- price, uh, uh, uh, passed on prices to make sure that we protect our profitability.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um, I will, I will pass it on to Lisa to comment on, on margin, but just to clarify my comments, I said when we passed, uh, prices, we passed my food price, <span class="rep">uh, uh, uh,</span> passed on prices to make sure that we protect, uh, our…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#33</span>
+        <span class="audio-id">4479741/179.wav</span>
+        <audio controls preload="none" src="wavs/4479741_179.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And I think it&#x27;s good to recognize that while we are in a good position in Q1, we maintain our guidance, uh- uh, for the, uh, for the year and and and that is the position.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And I think it&#x27;s good to recognize that while we are in a good position in Q1, we maintain our guidance, uh, uh, for the, uh, for the year, <span class="rep">and, and, and</span> that is the position.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#34</span>
+        <span class="audio-id">4432298/190.wav</span>
+        <audio controls preload="none" src="wavs/4432298_190.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;with&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">On the storefront, yes, there&#x27;s a similar conversation happening with the Xbox team as well as the PlayStation one.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, yes, there, there is a similar conversation happening <span class="rep">with, with, with</span> the Xbox, uh, team as well, as, as the PlayStation one.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#35</span>
+        <span class="audio-id">4479741/407.wav</span>
+        <audio controls preload="none" src="wavs/4479741_407.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So on, um, on China, China had a, had a solid growth against, uh, uh, uh, low comparable, uh, from, from last year.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So on, um, on China, China had, uh, had a solid growth against, <span class="rep">uh, uh, uh,</span> low comparable, uh, from, from last year.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#36</span>
+        <span class="audio-id">4483338/352.wav</span>
+        <audio controls preload="none" src="wavs/4483338_352.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;or&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Could you give us any indication or- or- or, you know, qualitative comments on how how do you view the TV business, um, moving into this year?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Could you give us any indication <span class="rep">or, or, or,</span> you know, qualitative comments on how, how do you view the TV business, um, moving into this year?</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#37</span>
+        <span class="audio-id">4485244/493.wav</span>
+        <audio controls preload="none" src="wavs/4485244_493.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;it&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So, uh, you know, it, it, it feels like collectively we&#x27;re off to a, a great start.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So, uh, you know, <span class="rep">it, it, it</span> feels like collectively we&#x27;re off to a, a great start.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#38</span>
+        <span class="audio-id">4432298/149.wav</span>
+        <audio controls preload="none" src="wavs/4432298_149.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, what influences our- our revenues are the digital sales as uh, then, the- the sales are each time the reporting is instant without the sub-distributor in the middle of the process, uh, and most of the sales occurred uh, for PC on all of the available PC platforms, there&#x27;s obviously the Xbox digital, uh, sales and since Cyberpunk is non-existent on the Sony store front we we didn&#x27;t report any revenues NSAs from- from this one.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, what influences our, our revenues are the digital sales as, uh, then <span class="rep">the, the, the</span> sales are instant and the reporting is instant without the sub-distributor in the middle of the process, uh, and most of the sales occurred, uh, for PC on all of the available PC platforms, there is obviously the Xbox digital, uh, sales, and since Cyberpunk is non-existent on the Sony storefront, we, we didn&#x27;t report any revenues, any sales from, from this one.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#39</span>
+        <span class="audio-id">4432298/207.wav</span>
+        <audio controls preload="none" src="wavs/4432298_207.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;too&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Um, we&#x27;re not hiding future results so I cannot lead too much into pre sizing formation, but definitely each year, the most important part of the second quarter is the June and all the summer promos, and this is still in front of us.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um, we are not guiding future results, so I cannot give you <span class="rep">too, too, too</span> much into precise information, but, uh, definitely each year, the most important part of the second quarter, uh, is the June and all the summer promos, and this is still in front of us.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#40</span>
+        <span class="audio-id">4432298/192.wav</span>
+        <audio controls preload="none" src="wavs/4432298_192.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 3x consecutively; &quot;to&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And the third, Adam again, sorry we can&#x27;t comment on it, I mean definitely after our promise to start and the communication closer through each, we don&#x27;t want…</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And the third, uh, Adam, Adam again, sorry, we can&#x27;t comment on it, I mean, definitely after, after our promise <span class="rep">to, to, to</span> start any communication closer <span class="rep">to, to, to</span> releases, we don&#x27;t want to…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#41</span>
+        <span class="audio-id">4432298/131.wav</span>
+        <audio controls preload="none" src="wavs/4432298_131.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And we take our next question from Mathew Walker credit- crosstalk No i I believe crosstalk there was a- sorry I believe there was a second question which we didn&#x27;t get to because because there was like a- a- a- you know, ongoing questioning about the units.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And we take our next question from Matthew Walker, Credit Suisse. I believe there was a, sorry, I believe there was a second question which we didn&#x27;t get to because, because there was like, <span class="rep">uh, uh, uh,</span> you know, ongoing question, uh, about the units.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#42</span>
+        <span class="audio-id">4483338/523.wav</span>
+        <audio controls preload="none" src="wavs/4483338_523.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;in&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, and I think the cooperation that we have with with the units within our technical organization, with the skillset that they bring, uh, the cooperation between the commercial and technical parts, that will yield, uh, better control and better, um, uh, performance and execution going forward in- in- in all aspects, and not just commercial, I would say, but also from a customer experience perspective, uh, and a production perspective.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And, and I think the cooperation that we have with, with the unit within our technical organization, with the skill set that they bring, uh, the cooperation between the commercial and technical parts, that will yield, uh, better control, better, uh, uh, performance and execution going forward <span class="rep">in, in, in</span> all aspects, and, and not just commercial, I would say, but also from a customer experience perspective, uh, and a production perspective.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#43</span>
+        <span class="audio-id">4479741/318.wav</span>
+        <audio controls preload="none" src="wavs/4479741_318.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I think what we are very pleased from the um, five HMO mix is that everything that we expected on this being a front panel ingredient and positioned as the um, let&#x27;s say important ingredient to make infant formula closer to mother&#x27;s milk, that has been uh, uh very clearly communicated in the product launches which I think is positive for the HMO market uh, uh, overall.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">I think what we are very pleased from the, uh, five HMO mix is that everything that we expected on this being a front panel ingredient and positioned as the, um, let&#x27;s say, uh, important ingredient to make, uh, infant formula closer to mother&#x27;s milk, that has been, uh, uh, very clearly communicated in the product launches, which I think is positive for the HMO market, <span class="rep">uh, uh, uh,</span> overall.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#44</span>
+        <span class="audio-id">4483338/551.wav</span>
+        <audio controls preload="none" src="wavs/4483338_551.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So, our ambition is that all the the the main lines of the business, meaning the Baltics, B2C Sweden, B2B Sweden should should be delivering, uh, to the overall growth momentum of the company.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So our ambition is that all <span class="rep">the, the, the</span> main lines of the business, meaning the Baltics, B2C Sweden, B2B Sweden, should, should be delivering, uh, to the overall growth momentum of the company.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#45</span>
+        <span class="audio-id">4483338/598.wav</span>
+        <audio controls preload="none" src="wavs/4483338_598.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Of course, you know, you need to look at the total market, of course, where- where we have gotten and if you look traditionally first where we are now, of course, you know, uh, we we do have a mature and- and quite penetrated market.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Of course, you know, you need to look at the total market, of course, where, where we&#x27;ve gotten, and if you look traditionally, first, where we are now, of course, you know, uh, we, we do have a mature <span class="rep">and, and, and</span> quite penetrated market.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#46</span>
+        <span class="audio-id">4479741/246.wav</span>
+        <audio controls preload="none" src="wavs/4479741_246.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">So you know, order of magnitude less than uh, uh, one third of the health and nutrition growth would be related to one off benefits.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">So, you know, order of magnitude less than, <span class="rep">uh, uh, uh,</span> one third of the health and nutrition growth would be related to one off benefits.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#47</span>
+        <span class="audio-id">4432298/330.wav</span>
+        <audio controls preload="none" src="wavs/4432298_330.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;of&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And in terms of, of number, uh, I don&#x27;t want to pre, uh, announce things which are not announced yet.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And in terms <span class="rep">of, of, of</span> number, uh, I don&#x27;t want to pre, uh, uh, announce things which are not announced yet.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#48</span>
+        <span class="audio-id">4432298/222.wav</span>
+        <audio controls preload="none" src="wavs/4432298_222.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;that&#x27;s&quot; repeated 3x consecutively; &quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">In terms of MNA, if there will be anything to announce, we will announce it, I mean, that&#x27;s the situation.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">In terms of M&amp;A, if there will be anything to announce, we&#x27;ll announce it, I mean, <span class="rep">that&#x27;s, that&#x27;s, that&#x27;s</span> the fact, that&#x27;s <span class="rep">the, the, the</span> situation.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#49</span>
+        <span class="audio-id">4479741/454.wav</span>
+        <audio controls preload="none" src="wavs/4479741_454.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;i&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">I- I- I of course acknowledge that this is quite uncertain and difficult to predict, but maybe give, um, s- uh, s- your thoughts there.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">I, I, I</span> of course acknowledge that this is quite uncertain and difficult to predict, but maybe give us your thoughts there.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#50</span>
+        <span class="audio-id">4483338/562.wav</span>
+        <audio controls preload="none" src="wavs/4483338_562.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;we&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, we&#x27;re- we&#x27;re- we are, uh, we&#x27;re proud of that delivery, but we&#x27;re not satisfied.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, <span class="rep">we, we, we,</span> uh, we&#x27;re proud of that delivery, but we&#x27;re not satisfied.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#51</span>
+        <span class="audio-id">4432298/303.wav</span>
+        <audio controls preload="none" src="wavs/4432298_303.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;when&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">When, when when that happens, if that happens and its announced.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">When, when, when</span> that happens, if that happens and it&#x27;s announced.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#52</span>
+        <span class="audio-id">4479741/156.wav</span>
+        <audio controls preload="none" src="wavs/4479741_156.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;on&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Congrats with the, a very strong quarter, uh- uh, quite impressive and good to see a couple of questions on on- on- on my side, so, uh, looking at your unchanged full year guidance, you need to grow 4 to 7% for the rest of the year.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Congrats with a very strong quarter, uh, quite impressive and good to see, a couple of questions <span class="rep">on, on, on</span> my side, so, uh, looking at your unchanged full year guidance, you need to grow 4 to 7% for the rest of the year.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#53</span>
+        <span class="audio-id">4432298/280.wav</span>
+        <audio controls preload="none" src="wavs/4432298_280.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And, and finally, in terms of timing of the downloadable content that Cyberpunk, what&#x27;s your strategy in terms of, you know, how much content there is and into the pricing?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">And, and, and</span> finally, in terms of timing of the, uh, downloadable content for Cyberpunk, what&#x27;s your sort of strategy in terms of, uh, how much content there is and, and sort of pricing?</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#54</span>
+        <span class="audio-id">4479741/228.wav</span>
+        <audio controls preload="none" src="wavs/4479741_228.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;in&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And yes, we do- we did see some impact, some positive order timing in, in, in Q1.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And yes, we do- we did see some impact from positive order timing <span class="rep">in, in, in</span> Q1.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#55</span>
+        <span class="audio-id">4432298/113.wav</span>
+        <audio controls preload="none" src="wavs/4432298_113.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">In, if we take, uh, sort or the- the- the average sort of digital, uh, revenue per unit to be somewhere in the 135-140 kind of sloppy sort of range, when I look at what I used for Ubisoft et cetera, that would get me to 800,000 -ish kind of er, sort of range of Cyberpunk in itself.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And if we take, uh, sort of <span class="rep">the, the, the</span> average sort of digital, uh, revenue per unit to be somewhere in the 135, 140 kind of slotty sort of range, when I look at what I use for Ubisoft, et cetera, that would get me to 800,000-ish kind of, uh, sort of range of revenue.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#56</span>
+        <span class="audio-id">4483338/557.wav</span>
+        <audio controls preload="none" src="wavs/4483338_557.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">We are delivering on on that strategy to the full extent and that&#x27;s our focus and also to be consistent with regards to- to to strategy and- and these cornerstones with segmentation being a big subscription partner, operational excellence, et cetera.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">We are delivering on, on that strategy to the full extent, and that&#x27;s our focus, and also to be consistent in regards <span class="rep">to, to, to</span> strategy and, and these cornerstones with segmentation, being a digitalization partner, operational excellence, et cetera.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#57</span>
+        <span class="audio-id">4483338/207.wav</span>
+        <audio controls preload="none" src="wavs/4483338_207.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;for&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, but from a value perspective, I think the sequencing that we are putting now, where we are taking the last of the big migrations in the first quarter of 2023, uh, is a better one for- for- for our overall business.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, but from a value perspective, I think the sequencing that we are putting now, where we are taking the loss of the big migrations in the first quarter of &#x27; 23, uh, is a better one <span class="rep">for, for, for</span> our overall business.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#58</span>
+        <span class="audio-id">4479741/353.wav</span>
+        <audio controls preload="none" src="wavs/4479741_353.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;to&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Just remind me uh, uh, Mathias was there a second part to your question that we haven&#x27;t addressed?</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Just remind me, uh, uh, Matthias, was there a second part <span class="rep">to, to, to</span> your question that we haven&#x27;t answered?</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#59</span>
+        <span class="audio-id">4432298/223.wav</span>
+        <audio controls preload="none" src="wavs/4432298_223.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively; &quot;will&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Now we are finalizing the deal with our Vancouver studio and with And if any further plans like this or of this kind will appear, we&#x27;ll inform the market.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Now we are, uh, finalizing, uh, <span class="rep">the, the, the</span> deal with, um, with our Vancouver studio and with, with, um, Vancouver team, and if any, any further plans like this or this, of this kind, uh, will appear, <span class="rep">will, will, will</span> inform the market.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#60</span>
+        <span class="audio-id">4483338/561.wav</span>
+        <audio controls preload="none" src="wavs/4483338_561.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;that&quot; repeated 3x consecutively; &quot;to&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Um, and, uh, hopefully that that- that, uh, answers the the ambitions that we have, uh, and going from minus 7% in- in 2020, uh, to- to to that level that we see now with two consecutive quarters with- with positive growth.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Um, and, uh, hopefully <span class="rep">that, that, that,</span> uh, answers the, the ambition that we have, uh, and going from minus seven in, in 2020, uh, <span class="rep">to, to, to</span> that level that we see now with two consecutive quarters with, with positive growth.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#61</span>
+        <span class="audio-id">4485244/593.wav</span>
+        <audio controls preload="none" src="wavs/4485244_593.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;and&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, but we think, uh, with our capital base, uh, quality of our management team, uh, the relationships we have and, and, and really, our, our systems and processes, they position us all, uh, to compete really effectively for block transaction.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, but we think, uh, with our capital base, uh, quality of our management team, uh, the relationships we have, <span class="rep">and, and, and</span> really our, our systems and processes, they position us all, uh, to compete really effectively for block transaction.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#62</span>
+        <span class="audio-id">4432298/243.wav</span>
+        <audio controls preload="none" src="wavs/4432298_243.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;of&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">The extensive size of soft launches enables us to tweak many many things, and we learned a lot and this project is definitely driven by design of course…</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">The extensive phase <span class="rep">of, of, of</span> soft launches enabled us to, to tweak many, many things, and we learned a lot, and this project is definitely, uh, driven by design, of course.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#63</span>
+        <span class="audio-id">4470290/137.wav</span>
+        <audio controls preload="none" src="wavs/4470290_137.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;we&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">When you start looking at margins, let&#x27;s say top to bottom, okay, we, we are seeing, um, take rate at similar levels to, to the ones we have been discussing.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">When you start looking at margins, let&#x27;s say top to bottom, okay, we, we are seeing, um, take rate at similar levels to, to the ones <span class="rep">we, we, we</span> have been discussing.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#64</span>
+        <span class="audio-id">4432298/155.wav</span>
+        <audio controls preload="none" src="wavs/4432298_155.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;of&quot; repeated 3x consecutively; &quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">You have to remember that we, we are not in direct control of of of the discounts, uh, that are happening in the retail because those, uh, uh, uh, that remains in the retailers&#x27; discretion.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">You have to remember that we, we are not in direct control <span class="rep">of, of, of</span> the discounts, uh, that are happening in the retail, of course, there&#x27;s, <span class="rep">uh, uh, uh,</span> that remains at the retail.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#65</span>
+        <span class="audio-id">4479741/282.wav</span>
+        <audio controls preload="none" src="wavs/4479741_282.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">And, and now face a larger comparable to that with uh, uh definitely an effect of the um, African swine fever.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">And, and, uh, now faced a larger, comparable to that, uh, with, <span class="rep">uh, uh, uh,</span> definitely an effect of the, um, African swine, uh, fever.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#66</span>
+        <span class="audio-id">4479741/245.wav</span>
+        <audio controls preload="none" src="wavs/4479741_245.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;uh&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Uh, given the, uh, uh positive development we saw in the traditional sales channel in North America, in Europe, as well as the new wins.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text">Uh, given the, <span class="rep">uh, uh, uh,</span> positive development we saw in the traditional sales channel in North America and in Europe, as well as the new wins.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#67</span>
+        <span class="audio-id">4479741/289.wav</span>
+        <audio controls preload="none" src="wavs/4479741_289.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;just&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">Just, just, just on my first question um, also we see milk production is slowing.</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">Just, just, just</span> on my, my first question, um, also we see milk production is slowing.</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#68</span>
+        <span class="audio-id">4432298/266.wav</span>
+        <audio controls preload="none" src="wavs/4432298_266.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;it&#x27;s&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">It&#x27;s still…</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">It&#x27;s, it&#x27;s, it&#x27;s</span> still…</span>
+        </div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="case-header">
+        <span class="rank">#69</span>
+        <span class="audio-id">4432298/286.wav</span>
+        <audio controls preload="none" src="wavs/4432298_286.wav.wav" style="height:30px;vertical-align:middle;margin-left:8px"></audio>
+        <span class="pattern-tag">&quot;the&quot; repeated 3x consecutively</span>
+      </div>
+      <div class="transcript-pair">
+        <div class="transcript ref-row">
+          <span class="label">REF</span>
+          <span class="text">The, the, the marketing and, and…</span>
+        </div>
+        <div class="transcript hyp-row">
+          <span class="label">HYP</span>
+          <span class="text"><span class="rep">the, the, the</span> marketing and, and, and…</span>
+        </div>
+      </div>
+    </div>
+
+<div class="footer">
+  Generated from generate_earnings22.txt &mdash; 2,741 total utterances
+</div>
+</body>
+</html>
