@@ -440,6 +440,28 @@ def filter_ds(ds, **kwargs):
     return ds
 
 
+def filter_short_audio(ds, **kwargs):
+    """Filter out audio samples shorter than min_dur seconds."""
+    min_dur = kwargs.get("min_dur", 0.2)
+    audio_field = kwargs.get("field", "audio_path")
+
+    def is_long_enough(example):
+        path = example.get(audio_field, None)
+        if path is None:
+            return True
+        try:
+            with bf.BlobFile(path, "rb") as f:
+                info = sf.info(f)
+            return info.duration >= min_dur
+        except Exception:
+            return False
+
+    n_egs = len(ds)
+    ds = ds.filter(is_long_enough, **pop_filter_kwargs(kwargs), desc="Filtering short audio")
+    print(f"Filtered short audio (<{min_dur}s): {n_egs} => {len(ds)} [{len(ds)/n_egs:.2%}]")
+    return ds
+
+
 def add_rare_keywords(ds, **kwargs):
     tn_name = kwargs.get("tn_name", "english")
     rare_ratio = kwargs.get("rare_ratio", None)
@@ -702,6 +724,8 @@ def process_ds(ds, **kwargs):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
+    if filter_short_audio_kwargs := kwargs.get("filter_short_audio", {}):
+        ds = filter_short_audio(ds, **merge_kwargs(map_kwargs, filter_short_audio_kwargs))
     if kwargs.get("load_audio", False):
         ds = load_audio(ds, **map_kwargs)
     if kwargs.get("do_shard", False):

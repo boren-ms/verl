@@ -14,6 +14,9 @@ add_prompt:
   task: asr
   forced: True
 post_process:
+  filter_short_audio:
+    min_dur: 0.2
+    field: audio_path
   add_field:
     fields:
       data_source: asr

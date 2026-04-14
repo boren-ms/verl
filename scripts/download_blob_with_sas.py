@@ -8,12 +8,16 @@ Example:
 
 If --sas is omitted and URL has no SAS query, the script will try to auto-generate
 container SAS from Azure CLI login credentials.
+
+SAS tokens are cached in ~/.sas/azure_blob_sas_cache.json and reused for the
+same container when still valid.
 """
 
 from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import json
 import os
 import shutil
 import subprocess
@@ -24,6 +28,10 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+
+SAS_CACHE_DIR = Path("~/.sas").expanduser()
+SAS_CACHE_FILE = SAS_CACHE_DIR / "azure_blob_sas_cache.json"
 
 
 @dataclass
@@ -111,6 +119,71 @@ def _generate_sas_via_az_cli(container_url: str, expiry_hours: int) -> str:
     return sas
 
 
+def _parse_sas_expiry(sas: str) -> datetime | None:
+    params = dict(urllib.parse.parse_qsl(_normalize_sas(sas), keep_blank_values=True))
+    expiry = params.get("se")
+    if not expiry:
+        return None
+    expiry = expiry.strip().replace("Z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(expiry)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _is_sas_usable(sas: str, min_remaining_minutes: int = 30) -> bool:
+    expiry = _parse_sas_expiry(sas)
+    if expiry is None:
+        return True
+    remaining = expiry - datetime.now(timezone.utc)
+    return remaining >= timedelta(minutes=min_remaining_minutes)
+
+
+def _read_sas_cache() -> dict[str, dict[str, str]]:
+    if not SAS_CACHE_FILE.exists():
+        return {}
+    try:
+        with open(SAS_CACHE_FILE, encoding="utf8") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {k: v for k, v in data.items() if isinstance(v, dict)}
+
+
+def _write_sas_cache(cache: dict[str, dict[str, str]]) -> None:
+    SAS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    with open(SAS_CACHE_FILE, "w", encoding="utf8") as f:
+        json.dump(cache, f, ensure_ascii=True, indent=2, sort_keys=True)
+
+
+def _load_cached_sas(container_url: str) -> str:
+    cache = _read_sas_cache()
+    entry = cache.get(container_url, {})
+    sas = entry.get("sas", "")
+    if not sas:
+        return ""
+    if not _is_sas_usable(sas):
+        return ""
+    return sas
+
+
+def _store_cached_sas(container_url: str, sas: str) -> None:
+    normalized = _normalize_sas(sas)
+    cache = _read_sas_cache()
+    expiry = _parse_sas_expiry(normalized)
+    cache[container_url] = {
+        "sas": normalized,
+        "updated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "expiry_utc": expiry.strftime("%Y-%m-%dT%H:%M:%SZ") if expiry else "",
+    }
+    _write_sas_cache(cache)
+
+
 def _with_sas(base_url: str, sas: str, extra_params: dict[str, str] | None = None) -> str:
     params = urllib.parse.parse_qsl(_normalize_sas(sas), keep_blank_values=True)
     if extra_params:
@@ -191,8 +264,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--sas-expiry-hours",
         type=int,
-        default=48,
-        help="Auto-generated SAS validity in hours when --sas is not provided (default: 48)",
+        default=168,
+        help="Auto-generated SAS validity in hours when --sas is not provided (default: 168)",
     )
     parser.add_argument(
         "--dest",
@@ -212,9 +285,19 @@ def main() -> None:
     args = parse_args()
     container_url, prefix, sas_from_url = _split_blob_url(args.url)
     sas = args.sas or sas_from_url
+
+    if not sas:
+        cached = _load_cached_sas(container_url)
+        if cached:
+            sas = cached
+            print(f"Using cached SAS from {SAS_CACHE_FILE}")
+
     if not sas:
         print("No SAS provided; trying Azure CLI to generate one with login credentials...")
         sas = _generate_sas_via_az_cli(container_url, max(1, args.sas_expiry_hours))
+
+    _store_cached_sas(container_url, sas)
+
     dest_root = Path(args.dest).expanduser().resolve()
     dest_root.mkdir(parents=True, exist_ok=True)
 

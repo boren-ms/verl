@@ -115,13 +115,7 @@ class RLHFDataset(Dataset):
             **self.apply_chat_template_kwargs,
         )
 
-        audio_data, fs = load_audio(row_dict, self.max_audio_dur)
-        min_audio_dur = 0.2
-        if len(audio_data) / fs < min_audio_dur:
-            import random
-            print(f"[WARN] Skipping sample {i}: audio too short ({len(audio_data)/fs:.3f}s < {min_audio_dur}s)")
-            return self._getitem(random.randint(0, len(self) - 1))
-        audios = [(audio_data, fs)]
+        audios = [load_audio(row_dict, self.max_audio_dur)]
 
         row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
         model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
