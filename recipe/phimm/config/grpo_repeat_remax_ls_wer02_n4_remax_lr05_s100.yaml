@@ -5,7 +5,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/gen_ls_raw_wer_gt20
-  - data/val_data/openasr_spgispeech
+  - data/val_data/spgispeech_repeat
   - _self_
 
 custom_reward_function:
@@ -35,5 +35,6 @@ algorithm:
 data:
   train_batch_size: 64
 trainer:
-  total_epochs: 1
+  total_epochs: null
+  total_training_steps: 100
   val_before_train: true
