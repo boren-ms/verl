@@ -1,0 +1,12 @@
+dataset_name: cached
+cache_path: ${oc.env:DATA_PATH}/boren/data/cache_datasets/gen_ls_raw_phi4_7b_wer_gt20
+cache_name: auto_train
+add_prompt:
+  task: asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
