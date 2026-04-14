@@ -67,7 +67,7 @@ class RLHFDataset(Dataset):
         self.is_training = is_training
         self.interleave_ds = config.get("interleave_ds", {})
         self.max_prompt_length = config.get("max_prompt_length", 1024)
-        self.max_audio_dur = config.get("max_audio_dur", None)
+        self.max_audio_dur = config.get("max_audio_dur", 40)
         self.prompt_key = config.get("prompt_key", "prompt")
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
@@ -97,14 +97,6 @@ class RLHFDataset(Dataset):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
-        try:
-            return self._getitem(i)
-        except Exception as e:
-            import random
-            print(f"[WARN] Skipping sample {i} due to error: {e}")
-            return self._getitem(random.randint(0, len(self) - 1))
-
-    def _getitem(self, i):
         row_dict: dict = self.ds[i]
         messages = row_dict[self.prompt_key]
 
