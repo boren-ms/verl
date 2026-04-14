@@ -3,6 +3,9 @@ parquet_paths: az://orngwus2cresco/data/boren/data/LibriSpeechTrim03/dataset.par
 num_proc: auto
 cache_name: auto_train
 pre_process:
+  filter_short_audio:
+    min_dur: 0.2
+    field: audio_file
   path_map:
     field: audio_file
     src_part: "az://orngwus2cresco/data"
@@ -14,9 +17,6 @@ add_prompt:
   task: asr
   forced: True
 post_process:
-  filter_short_audio:
-    min_dur: 0.2
-    field: audio_path
   add_field:
     fields:
       data_source: asr

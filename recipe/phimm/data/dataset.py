@@ -720,12 +720,12 @@ def process_ds(ds, **kwargs):
         ds = filter_long_text(ds, **merge_kwargs(map_kwargs, filter_long_text_kwargs))
     if wer_filter_kwargs := kwargs.get("filter_by_wer", {}):
         ds = filter_by_wer(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
+    if filter_short_audio_kwargs := kwargs.get("filter_short_audio", {}):
+        ds = filter_short_audio(ds, **merge_kwargs(map_kwargs, filter_short_audio_kwargs))
     if path_map_kwargs := kwargs.get("path_map", {}):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
-    if filter_short_audio_kwargs := kwargs.get("filter_short_audio", {}):
-        ds = filter_short_audio(ds, **merge_kwargs(map_kwargs, filter_short_audio_kwargs))
     if kwargs.get("load_audio", False):
         ds = load_audio(ds, **map_kwargs)
     if kwargs.get("do_shard", False):
