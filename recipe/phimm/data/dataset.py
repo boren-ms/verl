@@ -453,11 +453,12 @@ def filter_short_audio(ds, **kwargs):
             with bf.BlobFile(path, "rb") as f:
                 info = sf.info(f)
             return info.duration >= min_dur
-        except Exception:
+        except Exception as e:
+            print(f"[WARN] filter_short_audio: {path}: {e}")
             return False
 
     n_egs = len(ds)
-    ds = ds.filter(is_long_enough, **pop_filter_kwargs(kwargs), desc="Filtering short audio")
+    ds = ds.filter(is_long_enough, num_proc=1, desc="Filtering short audio")
     print(f"Filtered short audio (<{min_dur}s): {n_egs} => {len(ds)} [{len(ds)/n_egs:.2%}]")
     return ds
 
