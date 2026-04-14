@@ -1,0 +1,4 @@
+interface:
+  display_name: "Brix Node GPU Check"
+  short_description: "Check Ready nodes and report GPU utilization via rcall-brix"
+  default_prompt: "Use $brix-node-gpu-check to list my Ready Brix pools and check GPU utilization on each node."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "ATS Idle Node Diagnosis"
+  short_description: "Diagnose why bus-ats-prod nodes are Ready but GPUs are idle"
+  default_prompt: "Use $ats-idle-node-diagnosis to find out why my bus-ats-prod ATS nodes have idle GPUs."

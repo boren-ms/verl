@@ -1,0 +1,4 @@
+interface:
+  display_name: "ASR Full Eval"
+  short_description: "Full eval with detail compare and entity analysis"
+  default_prompt: "Use asr-full-eval to evaluate a model, compare against baseline, and analyze entity errors on regressions."

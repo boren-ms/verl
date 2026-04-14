@@ -1,0 +1,4 @@
+interface:
+  display_name: "Excel Metric Analysis"
+  short_description: "Build WER and EER pivot sheets"
+  default_prompt: "Use $excel-metric-analysis to turn this metrics workbook into WER and EER comparison sheets."
