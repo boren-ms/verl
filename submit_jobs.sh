@@ -50,8 +50,8 @@
 # bash submit_job.sh l1-n1-hpe2 grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax_fp16
 # bash submit_job.sh h-n2-uks7 grpo_gpt_entity_v0_7b_n2x8_2k_remax
 # bash submit_job.sh dev-n1-wus2 grpo_gpt_entity_v1_7b_n4_2e_remax
-bash submit_job.sh h-n1-hpe4  grpo_gpt_entity_v1a_7b_n4_1e_remax
-bash submit_job.sh h1-n1-hpe4  grpo_gpt_entity_v1a_7b_n4_1e_remax_lr05
+# bash submit_job.sh h-n1-hpe4  grpo_gpt_entity_v1a_7b_n4_1e_remax
+bash submit_job.sh verl-n1-i0  grpo_gpt_entity_v1a_7b_n4_1e_remax_lr05
 # bash submit_job.sh h-n2-hpe4  grpo_gpt_entity_v1_7b_n4_2k_remax
 # bash submit_job.sh h-n2-hpe4 grpo_prod_fy22_7b_rare01_n8_mw05_e1_remax
 # bash submit_job.sh h-n2-hpe4 grpo_prod_fy23_7b_rare01_n8_mw05_e1_remax
