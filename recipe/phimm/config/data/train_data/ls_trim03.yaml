@@ -4,9 +4,12 @@ num_proc: auto
 cache_name: auto_train
 pre_process:
   path_map:
-    field: audio_chunk
+    field: audio_file
     src_part: "az://orngwus2cresco/data"
     dst_part: "${oc.env:DATA_PATH}"
+  rename_fields:
+    mappings:
+      audio_path: audio_file
 add_prompt:
   task: asr
   forced: True
