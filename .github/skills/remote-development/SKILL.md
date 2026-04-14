@@ -63,21 +63,79 @@ After install, optionally verify the required packages or environment:
 python3 -c "import <required_package>; print('OK')"
 ```
 
+## Network Constraints
+
+Remote Brix nodes **may not have full internet access**. Keep this in mind:
+- **Do not assume `pip install` from PyPI will work.** Packages may need to be pre-built locally or synced via blob storage.
+- **Do not assume `git clone` from external repos will work.**
+- Use `bbb` (blob storage) as the intermediary for transferring files, wheels, datasets, and other non-code artifacts.
+- Code is pushed via `bpush` (which uses `brix git push` over the internal network, not the public internet).
+
+## File Transfer with `bbb`
+
+Use `bbb` to sync **non-code files** (data, wheels, configs, model checkpoints, etc.) between local machines, remote nodes, and Azure blob storage. Do **not** use `bbb` for code — use `bpush` for that.
+
+### Transfer port (blob staging area)
+```
+az://orngwus2cresco/data/boren/data/verl/
+```
+Use this path as the intermediate staging area on Azure blob for files that need to move between local and remote nodes.
+
+### Common patterns
+
+**Local → Blob → Remote** (for files the remote node needs):
+```bash
+# 1. Upload from local to blob
+bbb sync /local/path/to/files az://orngwus2cresco/data/boren/data/verl/files/
+
+# 2. On remote node, download from blob
+rcall-brix ssh <NODE> -- 'bbb sync az://orngwus2cresco/data/boren/data/verl/files/ /root/data/files/'
+```
+
+**Remote → Blob → Local** (for results, logs, checkpoints):
+```bash
+# 1. On remote node, upload to blob
+rcall-brix ssh <NODE> -- 'bbb sync /root/data/results/ az://orngwus2cresco/data/boren/data/verl/results/'
+
+# 2. Download from blob to local
+bbb sync az://orngwus2cresco/data/boren/data/verl/results/ /local/path/to/results/
+```
+
+**Single file copy:**
+```bash
+bbb cp /local/file.whl az://orngwus2cresco/data/boren/data/verl/wheels/file.whl
+bbb cp az://orngwus2cresco/data/boren/data/verl/wheels/file.whl /root/file.whl  # on remote
+```
+
+**List blob contents:**
+```bash
+bbb ls az://orngwus2cresco/data/boren/data/verl/
+```
+
+### Tips
+- `bbb sync` is incremental — only changed/missing files are transferred.
+- Use `bbb sync --delete` to mirror exactly (removes extra files at destination).
+- Use `-x <regex>` to exclude files matching a pattern.
+- Both local and remote nodes have `bbb` available.
+
 ## Development Workflow
 
 When developing or testing on the remote node, **minimize the changes introduced**:
 - **Edit locally, push remotely.** Make code changes on the local machine, then run `bpush <NODE>` to push them. This works from both regular repos and git worktrees. Avoid editing files directly on the remote node.
 - **Always use `rcall-brix`** to access the remote node — use `rcall-brix ssh` or `rcall-brix tmux`. Use `bpush` for pushing code. Do not use raw `ssh` or `scp`.
-- **Use the project's required installer** when installing or updating dependencies.
+- **Use `bbb` for non-code files.** Data, wheels, configs, checkpoints — sync via blob storage using the transfer port `az://orngwus2cresco/data/boren/data/verl/`.
+- **Use the project's required installer** when installing or updating dependencies. If PyPI is unreachable, pre-download wheels locally, upload to blob with `bbb`, then `pip install` from the local path on the remote.
 - **Run tests on remote** via `rcall-brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <test command>"'` for one-off commands, or inside the tmux session for interactive work.
 - **Keep changes small.** When iterating, push only what changed (`bpush` is incremental via git). Avoid reinstalling packages unless dependencies actually changed.
 
 ## Command Resolution
 - `bpush` is a zsh function (defined in `~/.zshrc`) that wraps `brix git push`. It detects the canonical repo name from the main worktree and handles the symlink mapping automatically.
 - `rcall-brix` may be at `~/.virtualenvs/openai/bin/rcall-brix` if not on PATH.
-- Always use `rcall-brix` for remote access — `rcall-brix ssh`, `rcall-brix tmux`. Use `bpush` for pushing code. Do not use raw `ssh` or `scp`.
+- `bbb` may be at `~/.virtualenvs/openai/bin/bbb` if not on PATH. Used for blob file operations (sync, cp, ls, rm).
+- Always use `rcall-brix` for remote access — `rcall-brix ssh`, `rcall-brix tmux`. Use `bpush` for pushing code. Use `bbb` for syncing non-code files. Do not use raw `ssh` or `scp`.
 - Use the dependency installer required by the target project or environment.
 - The remote workspace is typically at `/root/code/verl` (not `/home/boren/...`).
+- The blob transfer port for non-code files is `az://orngwus2cresco/data/boren/data/verl/`.
 
 ## Response Style
 - Confirm which node you connected to.
