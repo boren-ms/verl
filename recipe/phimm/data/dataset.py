@@ -442,6 +442,8 @@ def filter_ds(ds, **kwargs):
 
 def filter_short_audio(ds, **kwargs):
     """Filter out audio samples shorter than min_dur seconds."""
+    import soundfile as sf
+
     min_dur = kwargs.get("min_dur", 0.2)
     audio_field = kwargs.get("field", "audio_path")
 
