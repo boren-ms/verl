@@ -11,5 +11,8 @@
         "initializer_list": "cpp",
         "utility": "cpp"
     },
-    "iis.configDir": ""
+    "iis.configDir": "",
+    "pylint.enabled": false,
+    "python.terminal.activateEnvironment": false,
+    "python-envs.defaultEnvManager": "ms-python.python:venv",
 }
