@@ -225,8 +225,11 @@ def _list_blobs(container_url: str, prefix: str, sas: str) -> list[BlobEntry]:
     return blobs
 
 
-def _download_one(container_url: str, sas: str, blob: BlobEntry, dest_root: Path, lock: threading.Lock) -> tuple[str, bool]:
-    local_path = dest_root / blob.name
+def _download_one(container_url: str, sas: str, blob: BlobEntry, dest_root: Path, lock: threading.Lock, strip_prefix: str = "") -> tuple[str, bool]:
+    rel_name = blob.name
+    if strip_prefix and rel_name.startswith(strip_prefix):
+        rel_name = rel_name[len(strip_prefix):]
+    local_path = dest_root / rel_name
     local_path.parent.mkdir(parents=True, exist_ok=True)
 
     if local_path.exists() and local_path.stat().st_size == blob.size:
@@ -278,6 +281,17 @@ def parse_args() -> argparse.Namespace:
         default=8,
         help="Parallel download workers (default: 8)",
     )
+    parser.add_argument(
+        "--strip-prefix",
+        action="store_true",
+        default=True,
+        help="Strip the URL prefix from blob names so files land directly in --dest (default: True)",
+    )
+    parser.add_argument(
+        "--keep-prefix",
+        action="store_true",
+        help="Keep the full blob prefix path under --dest",
+    )
     return parser.parse_args()
 
 
@@ -318,7 +332,8 @@ def main() -> None:
     skipped = 0
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.workers)) as pool:
-        futures = [pool.submit(_download_one, container_url, sas, b, dest_root, lock) for b in blobs]
+        sp = prefix if not args.keep_prefix else ""
+        futures = [pool.submit(_download_one, container_url, sas, b, dest_root, lock, sp) for b in blobs]
         for fut in concurrent.futures.as_completed(futures):
             _, was_downloaded = fut.result()
             if was_downloaded:
