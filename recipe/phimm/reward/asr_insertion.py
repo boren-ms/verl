@@ -31,10 +31,7 @@ class Error:
 def _norm_text(text, norm_name="english"):
     
     from recipe.phimm.utils.tn import text_norm as apply_text_norm
-    norm = apply_text_norm(name=norm_name)
-    # from whisper_normalizer.english import EnglishTextNormalizer
-    # norm = EnglishTextNormalizer()
-    return norm(text.strip())
+    return apply_text_norm(text.strip(), name=norm_name)
 
 
 def _count_ops(ref_words, hyp_words):
