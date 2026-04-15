@@ -8,13 +8,12 @@ defaults:
   - _self_
 
 model:
-  path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+  path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
 
 data:
   batch_size: 512
-  local_output_dir: ~/outputs/gen_ls_trim03_phi4_7b_wer_gt20
-  remote_output_dir: ${oc.env:DATA_PATH}/boren/data/cache_datasets/gen_ls_trim03_phi4_7b_wer_gt20
-  output_split_size: 5000
+  remote_output_dir: ${oc.env:DATA_PATH}/boren/data/verl/gen_filtered/ls_trim03_wer20
+  output_split_size: 10000
   wer_range: [0.2, 100.0]
 
 rollout:

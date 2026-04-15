@@ -1,0 +1,22 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - gen_asr
+  - data/train_data/oss_ami_trim03
+  - _self_
+
+model:
+  path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
+
+data:
+  batch_size: 512
+  remote_output_dir: ${oc.env:DATA_PATH}/boren/data/verl/gen_filtered/ami_trim03_wer10
+  output_split_size: 10000
+  wer_range: [0.1, 2] #10% to 200% WER
+
+rollout:
+  temperature: 0.0
+  gpu_memory_utilization: 0.8
+  tensor_model_parallel_size: 2

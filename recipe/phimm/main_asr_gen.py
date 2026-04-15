@@ -26,6 +26,7 @@ os.environ["NCCL_DEBUG"] = "WARN"
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 # os.environ['TORCH_COMPILE_DISABLE'] = '1'
 import uuid
+import asyncio
 from pprint import pprint
 from collections import defaultdict
 from datasets import Dataset, concatenate_datasets
@@ -39,7 +40,8 @@ from verl.single_controller.ray.base import create_colocated_worker_cls
 from verl.utils import hf_processor, hf_tokenizer
 from recipe.phimm.data.rl_dataset import RLHFDataset
 from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
-from verl.utils.fs import copy_to_local, copy_to_remote
+from verl.utils.fs import copy_to_local
+import blobfile as bf
 from verl.workers.fsdp_workers import ActorRolloutRefWorker
 from pathlib import Path
 from recipe.phimm.utils.env import EnvMgr
@@ -102,6 +104,19 @@ def filter_ds(ds, **kwargs):
     return ds.filter(filter_fn)
 
 
+def log_examples(ds, num_examine=1):
+    sort_ds = ds.sort("wer", reverse=True)
+    audio_key = "audio_chunk" if "audio_chunk" in ds.column_names else "audio_path"
+    
+    for i in range(min(num_examine, len(sort_ds))):
+        print(f"--- Example {i + 1} ---")
+        print(f"WER: {sort_ds[i]['wer']:.2%}")
+        print("Ref:", sort_ds[i]["text"])
+        print("Hyp:", sort_ds[i]["response"])
+        if audio_key in sort_ds.column_names:
+            print("Audio:", sort_ds[i][audio_key])
+
+
 @ray.remote(num_cpus=1)
 def main_task(config):
     pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
@@ -140,20 +155,31 @@ def main_task(config):
     wg = wg_dict.spawn(prefix_set=["rollout"])["rollout"]
     wg.init_model()
 
-    remote_output_dir = config.data.get("remote_output_dir", None)
-    local_output_dir = Path(config.data.local_output_dir).expanduser()
-    local_output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = config.data.get("output_dir", None) 
+    assert output_dir is not None, "Please specify data.output_dir"
+    output_dir = output_dir.rstrip("/")
     split_size = config.data.get("output_split_size", 1000)
     total_egs = len(dataset)
-    total_splits = (total_egs + split_size - 1) // split_size
-
-    split_idx = 0
+    left_egs = 0
+    
     total_batches = len(dataloader)
     wer_kwargs = config.data.get("wer_kwargs", {})
 
-    ds_list = []
+    batches = []
     total_wer = WordError()
-    left_egs = 0
+    split_idx = 0
+    
+    def write_data(batches, idx):
+        batches = [b for b in batches if len(b) > 0]
+        if not batches:
+            return
+        split_ds = concatenate_datasets(batches)
+        bf.makedirs(output_dir)
+        split_path = f"{output_dir}/part-{idx:03d}.parquet"
+        with bf.BlobFile(split_path, "wb") as f:
+            split_ds.to_parquet(f)
+        return len(split_ds)
+
 
     err_range = config.data.get("err_range", None)
     wer_range = config.data.get("wer_range", None)
@@ -194,43 +220,23 @@ def main_task(config):
 
         total_wer += batch_wer
         batch_ds = Dataset.from_dict(results)
-        sort_ds = batch_ds.sort("wer", reverse=True)
-        audio_key = "audio_chunk" if "audio_chunk" in batch_dict else "audio_path"
-        for i in range(num_examine):
-            print(f"--- Example {i + 1} ---")
-            print(f"WER: {sort_ds[i]['wer']:.2%}")
-            print("Ref:", sort_ds[i]["text"])
-            print("Hyp:", sort_ds[i]["response"])
-            print("Audio:", sort_ds[i][audio_key])
+        log_examples(batch_ds, num_examine=num_examine)
 
         batch_ds = filter_ds(batch_ds, wer_range=wer_range, err_range=err_range)
         print(f"Batch Filtering: {n_egs} => {len(batch_ds)} samples.")
-
-        if len(batch_ds) > 0:
-            ds_list.append(batch_ds)
-            left_egs += len(batch_ds)
-
-        if sum(len(ds) for ds in ds_list) >= split_size or (batch_idx + 1) == total_batches:  # save a split
-            if len(ds_list) == 0:
-                print(f"No samples to save for split {split_idx}, skip.")
-                split_idx += 1
-                continue
-            split_path = local_output_dir / f"part-{split_idx:03d}-{total_splits:03d}.parquet"
-            split_ds = concatenate_datasets(ds_list)
-            print(f"Writting {len(split_ds)} samples to {split_path}")
-            split_ds.to_parquet(str(split_path))
-            if remote_output_dir is not None:
-                print(f"Copying {split_path.name} to remote: {remote_output_dir}")
-                copy_to_remote(split_path, remote_output_dir)
+        batches.append(batch_ds)
+        
+        if sum(len(ds) for ds in batches) >= split_size:
+            left_egs += write_data(batches, split_idx)
             split_idx += 1
-            ds_list = []
+            batches = []
+
+    left_egs += write_data(batches, split_idx)
 
     print(f"Overall WER: {total_wer.wer:.2%} [{total_wer.n_err}/{total_wer.n_ref}] on {total_egs} samples")
     print(f"Filtering with: {wer_range=}, {err_range=}")
     print(f"Keep {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
-    print(f"Saved {split_idx}/{total_splits} splits to {local_output_dir}")
-    if remote_output_dir is not None:
-        print(f"Saved {split_idx}/{total_splits} splits to {remote_output_dir}")
+    print(f"Saved {split_idx} splits to {output_dir}")
     print("All Done")
 
 
