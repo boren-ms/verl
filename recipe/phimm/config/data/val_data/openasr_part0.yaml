@@ -1,0 +1,35 @@
+- dataset_name: jsonl
+  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/ami/data.jsonl
+  cache_name: auto_ami
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/ami/audio/"
+  add_prompt:
+    task: asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: ami
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/spgispeech/data.jsonl
+  cache_name: auto_spgispeech
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/spgispeech/audio/"
+  add_prompt:
+    task: asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: spgispeech
+    verl_format:
+      prompt_key: prompt

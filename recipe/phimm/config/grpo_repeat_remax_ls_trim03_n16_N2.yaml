@@ -6,7 +6,7 @@ defaults:
   - grpo_asr
   - data/train_data/gen_ls_trim03_wer_gt20
   - data/val_data/spgispeech_repeat
-  - data/val_data/openasr
+  - data/val_data/openasr_part0
   - _self_
 
 custom_reward_function:
