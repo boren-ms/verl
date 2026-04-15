@@ -150,13 +150,14 @@ def upload_file(local_path, remote_path, overwrite=False):
 
 
 def get_value(d, key, default=None):
-    """Get a value from a nested dictionary using dot notation."""
-    if key in d:
+    if isinstance(d, dict) and key in d:
         return d[key]
     keys = key.split(".")
     for k in keys:
-        if k in d:
+        if isinstance(d, dict) and k in d:
             d = d[k]
+        elif isinstance(d, (list, tuple)) and k.isdigit() and int(k) < len(d):
+            d = d[int(k)]
         else:
             return default
     return d

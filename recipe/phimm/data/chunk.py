@@ -17,6 +17,14 @@ import blobfile as bf
 from recipe.phimm.utils.shared import rank_print, get_values, to_list
 
 
+def resolve_path(path, prefix=None):
+    if not isinstance(path, str):
+        return path
+    import re
+    az_prefix = prefix or "az://orngwus2cresco/data/speech/"
+    return re.sub(r"^/datablob1?/", az_prefix, path)
+
+
 def parse_data(data, data_type, **kwargs):
     if data_type.lower() == "audio":
         return sf.read(io.BytesIO(data))
@@ -117,7 +125,7 @@ def load_examples(chunk, fields):
         if not bf.exists(chunk_file):
             rank_print(f"Skip [{chunk_file}] due to missing.")
             return {}
-        if field == "audio":
+        if field in ("audio", "audios"):
             examples["audio_chunk"] = [f"{chunk_file}:{count}:{i}" for i in range(count)]
         else:
             data_list = load_data_from_chunk(chunk_file, chunk_type, count)
@@ -180,17 +188,18 @@ def load_chunk_info(manifest_file, **kwargs):
 
 
 def load_specs(spec_files):
-    """Load and return the specifications from the provided spec files."""
     specs = []
     for spec_file in to_list(spec_files):
         with bf.BlobFile(spec_file, "r") as f:
             spec_dict = json.load(f)
-        specs += spec_dict["data_sources"]
+        for ds in spec_dict["data_sources"]:
+            for key in list(ds.keys()):
+                ds[key] = resolve_path(ds[key])
+            specs.append(ds)
     return specs
 
 
 def load_chunks(specs, chunks_per_spec=None):
-    """Load and chunk dataset based on the provided data specification and chunk types."""
     if isinstance(specs[0], str): # specs is list of text # assume spec files
         specs = load_specs(specs)
     chunks = []
@@ -265,7 +274,6 @@ def create_chunk_datasets(
     num_proc=None,
     **kwargs,
 ):
-    """Generate examples from the chunk dataset based on the specification files."""
     chunks_per_spec = ceil(max_chunks / len(specs)) if max_chunks else None
     chunks = load_chunks(specs, chunks_per_spec)
     chunks = limit_chunks(chunks, max_egs, max_chunks)
