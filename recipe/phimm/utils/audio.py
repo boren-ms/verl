@@ -30,7 +30,7 @@ def load_raw_audio(x):
     """Load audio data from the input dictionary."""
     if (audio := x.get("audio", None)) and (sr := x.get("sr", None)):
         return audio, sr
-    if audio_path := x.get("audio_path", None):
+    if audio_path := x.get("audio_path", None) or x.get("audio_file", None):
         return sf_read(audio_path)
     if audio_chunk := x.get("audio_chunk", None):
         result = load_chunk_example(audio_chunk)

@@ -41,6 +41,11 @@ def is_list(obj):
     return not isinstance(obj, (str, bytes)) and isinstance(obj, Sequence)
 
 
+def unbatch(batch):
+    """Convert a dict-of-lists to a list-of-dicts."""
+    return [dict(zip(batch.keys(), vals)) for vals in zip(*batch.values())]
+
+
 def chkp_index(name, default=-1):
     """Extract the checkpoint index from a checkpoint directory name."""
     if not name.startswith("checkpoint-"):

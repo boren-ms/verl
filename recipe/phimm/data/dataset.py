@@ -27,8 +27,9 @@ from recipe.phimm.utils.shared import (
     to_list,
     is_list,
     to_int,
+    unbatch,
 )
-from recipe.phimm.utils.audio import sf_read
+from recipe.phimm.utils.audio import sf_read, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
 
 prompt_format = "<|user|><|audio_1|>{}<|end|><|assistant|>"
@@ -440,27 +441,63 @@ def filter_ds(ds, **kwargs):
     return ds
 
 
+def trim_silence(ds, **kwargs):
+    """Trim head/tail silence from audio files using Silero VAD."""
+    import random
+    import uuid
+    from recipe.phimm.utils.trim_silence import SilenceTrimmer
+
+    output_dir = kwargs.get("output_dir", None)
+    rand_cut_ms = kwargs.get("rand_cut_ms", 0)
+
+    SilenceTrimmer._ensure_model()
+
+    def trim_batch(batch):
+        trimmer = SilenceTrimmer(threshold=kwargs.get("threshold", 0.5))
+        out_paths = []
+        for example in unbatch(batch):
+            try:
+                audio, sr = load_raw_audio(example)
+                hc = random.randint(0, rand_cut_ms) if rand_cut_ms > 0 else 0
+                tc = random.randint(0, rand_cut_ms) if rand_cut_ms > 0 else 0
+                trimmed = trimmer.trim(audio, sr, head_cut_ms=hc, tail_cut_ms=tc)
+                if trimmed is None:
+                    out_paths.append(example.get("audio_path", ""))
+                    continue
+                out_path = f"{output_dir.rstrip('/')}/{uuid.uuid4().hex}.wav"
+                trimmer.write_audio(out_path, trimmed, sr)
+                out_paths.append(out_path)
+            except Exception as e:
+                print(f"[WARN] trim_silence: {e}")
+                out_paths.append(example.get("audio_path", ""))
+        return {"audio_path": out_paths}
+
+    map_kwargs = pop_map_kwargs(kwargs)
+    map_kwargs.setdefault("batch_size", 16)
+    ds = ds.map(trim_batch, batched=True, **map_kwargs, desc="Trimming silence")
+    return ds
+
+
 def filter_short_audio(ds, **kwargs):
-    """Filter out audio samples shorter than min_dur seconds."""
-    import soundfile as sf
+    """Filter out audio samples shorter than min_dur_ms milliseconds."""
+    min_dur_ms = kwargs.get("min_dur_ms", 200)
+    min_dur = min_dur_ms / 1000.0
+    batch_size = kwargs.get("batch_size", 64)
 
-    min_dur = kwargs.get("min_dur", 0.2)
-    audio_field = kwargs.get("field", "audio_path")
-
-    def is_long_enough(example):
-        path = example.get(audio_field, None)
-        if path is None:
-            return True
-        try:
-            with bf.BlobFile(path, "rb") as f:
-                info = sf.info(f)
-            return info.duration >= min_dur
-        except Exception as e:
-            print(f"[WARN] filter_short_audio: {path}: {e}")
-            return False
+    def is_long_enough_batch(batch):
+        examples = unbatch(batch)
+        results = []
+        for example in examples:
+            try:
+                audio, sr = load_raw_audio(example)
+                results.append(len(audio) / sr >= min_dur)
+            except Exception as e:
+                print(f"[WARN] filter_short_audio: {e}")
+                results.append(False)
+        return results
 
     n_egs = len(ds)
-    ds = ds.filter(is_long_enough, num_proc=1, desc="Filtering short audio")
+    ds = ds.filter(is_long_enough_batch, batched=True, batch_size=batch_size, num_proc=1, desc="Filtering short audio")
     print(f"Filtered short audio (<{min_dur}s): {n_egs} => {len(ds)} [{len(ds)/n_egs:.2%}]")
     return ds
 
@@ -723,6 +760,8 @@ def process_ds(ds, **kwargs):
         ds = filter_long_text(ds, **merge_kwargs(map_kwargs, filter_long_text_kwargs))
     if wer_filter_kwargs := kwargs.get("filter_by_wer", {}):
         ds = filter_by_wer(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
+    if trim_silence_kwargs := kwargs.get("trim_silence", {}):
+        ds = trim_silence(ds, **merge_kwargs(map_kwargs, trim_silence_kwargs))
     if filter_short_audio_kwargs := kwargs.get("filter_short_audio", {}):
         ds = filter_short_audio(ds, **merge_kwargs(map_kwargs, filter_short_audio_kwargs))
     if path_map_kwargs := kwargs.get("path_map", {}):

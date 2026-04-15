@@ -1,0 +1,27 @@
+dataset_name: chunk
+specs:
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_ami.json
+chunk_types:
+  - audios
+  - sft.0.messages.1.content
+num_proc: auto
+cache_name: auto_train
+pre_process:
+  rename_fields:
+    mappings:
+      text: sft.0.messages.1.content
+add_prompt:
+  task: asr
+  forced: True
+post_process:
+  trim_silence:
+    rand_cut_ms: 300
+    output_dir: ${oc.env:DATA_PATH}/boren/data/trimmed/ami_trim03
+  filter_short_audio:
+    min_dur_ms: 200
+    field: audio_path
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
