@@ -643,6 +643,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         # used for LoRA
         self.base_sync_done: bool = "dummy" not in self.config.rollout.load_format
         self.layered_summon = self.config.rollout.get("layered_summon", False)
+        self._in_rollout_mode = False
 
         # 5. switch to trainer mode
         # NOTE: It's critical that hybrid engine in trainer mode initially to load checkpoint.
@@ -752,6 +753,26 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         # restore random states
         self.gen_random_states = get_torch_device().get_rng_state()
         get_torch_device().set_rng_state(self.torch_random_states)
+
+    def _switch_mode(self, train=True):
+        """Switch between trainer and rollout mode when needed.
+
+        train=True switches back to trainer mode only if currently in rollout
+        mode and actor weights are managed by this worker. train=False switches
+        to rollout mode only when generation requires synced rollout weights.
+        """
+        if train:
+            if self._is_actor and self._in_rollout_mode:
+                get_event_loop().run_until_complete(self.trainer_mode())
+                self._in_rollout_mode = False
+                log_gpu_memory_usage("After switch to trainer mode", logger=logger)
+        else:
+            if self._in_rollout_mode:
+                return
+            if self._is_actor or (self._is_rollout and not self.base_sync_done):
+                get_event_loop().run_until_complete(self.rollout_mode())
+                self._in_rollout_mode = True
+                log_gpu_memory_usage("After switch to rollout mode", logger=logger)
 
     @register(dispatch_mode=Dispatch.ONE_TO_ALL)
     def init_model(self):
@@ -870,6 +891,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     def update_actor(self, data: DataProto):
         # breakpoint()
         assert self._is_actor
+        self._switch_mode(train=True)
         if self._is_offload_param:
             load_fsdp_model_to_gpu(self.actor_module_fsdp)
         if self._is_offload_optimizer:
@@ -927,17 +949,14 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         prompts.meta_info.update(meta_info)
 
         timing_generate = {}
-        # switch to rollout mode if needed
-        if self._is_actor or (self._is_rollout and not self.base_sync_done):  
-            get_event_loop().run_until_complete(self.rollout_mode())
-            log_gpu_memory_usage("After switch to rollout mode", logger=logger)
+        # Switch to rollout mode if not already there.
+        # Stay in rollout mode after generation — the next method that needs
+        # training mode (update_actor, compute_log_prob) will call _switch_mode(train=True).
+        # This allows back-to-back gen calls (e.g. ReMAX) to skip redundant weight transfers.
+        self._switch_mode(train=False)
 
         with simple_timer("generate_sequences", timing_generate):
             output = self.rollout.generate_sequences(prompts=prompts)
-
-        if self._is_actor:
-            get_event_loop().run_until_complete(self.trainer_mode())
-            log_gpu_memory_usage("After switch to trainer mode", logger=logger)
 
         # We calculate the average timing across all ranks
         # to make sure meta_info["timing"] is the same
@@ -965,6 +984,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         # when is_lora is True, we use the actor without lora applied to calculate the log_prob
         # which is mostly used for ref log_prob calculation
         assert self._is_actor
+        self._switch_mode(train=True)
         if self._is_offload_param:
             load_fsdp_model_to_gpu(self.actor_module_fsdp)
 
