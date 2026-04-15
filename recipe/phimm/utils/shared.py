@@ -6,7 +6,7 @@ from pathlib import Path
 import functools
 import hashlib
 import importlib.metadata
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 
 def is_package_version(package_name, target_version):
@@ -150,11 +150,11 @@ def upload_file(local_path, remote_path, overwrite=False):
 
 
 def get_value(d, key, default=None):
-    if isinstance(d, dict) and key in d:
+    if isinstance(d, Mapping) and key in d:
         return d[key]
     keys = key.split(".")
     for k in keys:
-        if isinstance(d, dict) and k in d:
+        if isinstance(d, Mapping) and k in d:
             d = d[k]
         elif isinstance(d, (list, tuple)) and k.isdigit() and int(k) < len(d):
             d = d[int(k)]

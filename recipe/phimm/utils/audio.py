@@ -33,7 +33,10 @@ def load_raw_audio(x):
     if audio_path := x.get("audio_path", None):
         return sf_read(audio_path)
     if audio_chunk := x.get("audio_chunk", None):
-        return load_chunk_example(audio_chunk)
+        result = load_chunk_example(audio_chunk)
+        if isinstance(result, list):
+            return result[0]  # "audios" chunk type returns list of (data, sr)
+        return result
     raise ValueError("No audio data found in the input dictionary.")
 
 
