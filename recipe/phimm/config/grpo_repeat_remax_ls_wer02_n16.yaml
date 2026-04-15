@@ -20,7 +20,7 @@ custom_reward_function:
 
 actor_rollout_ref:
   rollout:
-    n: 4
+    n: 16
     gt_rollout: true
     temperature: 1.2
     calculate_log_probs: True
