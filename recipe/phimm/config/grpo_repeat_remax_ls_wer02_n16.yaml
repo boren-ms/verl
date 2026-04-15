@@ -16,6 +16,11 @@ custom_reward_function:
     edge_beta: 1
     beta: 1
 
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_insertion.py
+    name: eval_score
+
 actor_rollout_ref:
   rollout:
     n: 16

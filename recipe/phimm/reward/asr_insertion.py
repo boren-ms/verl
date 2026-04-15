@@ -98,6 +98,17 @@ def compute_score(solution_str, ground_truth, **kwargs):
     }
 
 
+def eval_score(solution_str, ground_truth, **kwargs):
+    """Validation scoring: returns raw error counts for aggregation."""
+    err = measure(solution_str, ground_truth, **kwargs)
+    return {
+        "score": err.n_err,
+        "n_err": err.n_err,
+        "n_ref": err.n_ref,
+        "n_ins_edge": err.n_ins_edge,
+    }
+
+
 # %%
 if __name__ == "__main__":
     test_cases = [
