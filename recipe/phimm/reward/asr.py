@@ -1,7 +1,6 @@
-from jiwer import transforms as tr
 from jiwer import process_words
 from dataclasses import dataclass
-
+from recipe.phimm.utils.tn import text_norm as apply_text_norm
 
 @dataclass
 class Error:
@@ -32,28 +31,19 @@ class Error:
 
 
 def measure(hyp, ref, **kwargs):
-    tn = tr.Compose(
-        [
-            tr.ToLowerCase(),
-            tr.ExpandCommonEnglishContractions(),
-            tr.RemovePunctuation(),
-            tr.RemoveKaldiNonWords(),
-            tr.RemoveWhiteSpace(replace_by_space=True),
-            tr.RemoveMultipleSpaces(),
-            tr.Strip(),
-            tr.ReduceToListOfListOfWords(),
-        ]
-    )
-    output = process_words(ref, hyp, tn, tn)
+    norm = kwargs.get("text_norm", "english")
+    ref = apply_text_norm(ref, name=norm)
+    hyp = apply_text_norm(hyp, name=norm)
+    
+    output = process_words(ref, hyp)
     return Error(S=output.substitutions, D=output.deletions, I=output.insertions, H=output.hits)
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for Speech Recognition."""
-    # breakpoint()
-    error = measure(solution_str, ground_truth)
+    error = measure(solution_str, ground_truth, **kwargs)
     beta = kwargs.get("beta", 1.0)
-    score = (0 - error.count) * beta
+    score = -error.count * beta
     return {
         "score": score,
         "wer": error.wer,
@@ -68,20 +58,20 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
 
 def wer(solution_str, ground_truth, **kwargs):
-    error = measure(solution_str, ground_truth)
-    return 0 - error.wer
+    error = measure(solution_str, ground_truth, **kwargs)
+    return -error.wer
 
 
 def accuracy(solution_str, ground_truth, **kwargs):
-    error = measure(solution_str, ground_truth)
+    error = measure(solution_str, ground_truth, **kwargs)
     return error.accuracy
 
 
 def error_count(solution_str, ground_truth, **kwargs):
-    error = measure(solution_str, ground_truth)
-    return 0 - error.count
+    error = measure(solution_str, ground_truth, **kwargs)
+    return -error.count
 
 
 def hit_count(solution_str, ground_truth, **kwargs):
-    error = measure(solution_str, ground_truth)
+    error = measure(solution_str, ground_truth, **kwargs)
     return error.H
