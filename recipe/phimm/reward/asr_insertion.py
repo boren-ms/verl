@@ -90,7 +90,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "score": score,
         "n_ref": err.n_ref,
         "n_err": err.n_err,
-        "n_edge": err.n_edge,
+        "n_edge": err.n_ins_edge,
     }
 
 
@@ -101,7 +101,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "score": err.n_err,
         "n_err": err.n_err,
         "n_ref": err.n_ref,
-        "n_edge": err.n_edge,
+        "n_edge": err.n_ins_edge,
     }
 
 
