@@ -1,5 +1,4 @@
 import logging
-import random
 from collections.abc import Sequence
 from typing import Optional
 
@@ -98,13 +97,6 @@ class RLHFDataset(Dataset):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
-        try:
-            return self._getitem(i)
-        except Exception as e:
-            logger.warning("Error processing index %d, retrying with random index: %s", i, e)
-            return self._getitem(random.randint(0, len(self.ds) - 1))
-
-    def _getitem(self, i):
         row_dict: dict = self.ds[i]
         messages = row_dict[self.prompt_key]
 
