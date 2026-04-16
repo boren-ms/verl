@@ -172,7 +172,7 @@ def main_task(config):
     def write_data(batches, idx):
         batches = [b for b in batches if len(b) > 0]
         if not batches:
-            return
+            return 0
         split_ds = concatenate_datasets(batches)
         bf.makedirs(output_dir)
         split_path = f"{output_dir}/part-{idx:03d}.parquet"
@@ -231,7 +231,10 @@ def main_task(config):
             split_idx += 1
             batches = []
 
-    left_egs += write_data(batches, split_idx)
+    n_written = write_data(batches, split_idx)
+    left_egs += n_written
+    if n_written > 0:
+        split_idx += 1
 
     print(f"Overall WER: {total_wer.wer:.2%} [{total_wer.n_err}/{total_wer.n_ref}] on {total_egs} samples")
     print(f"Filtering with: {wer_range=}, {err_range=}")
