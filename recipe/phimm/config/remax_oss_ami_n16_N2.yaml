@@ -5,7 +5,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/oss_ami
-  - data/val_data/spgispeech_repeat
+  - data/val_data/openasr_part0
   - _self_
 
 custom_reward_function:
