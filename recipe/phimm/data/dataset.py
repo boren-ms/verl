@@ -449,7 +449,7 @@ def trim_silence(ds, **kwargs):
 
     output_dir = kwargs.get("output_dir", None)
     rand_cut_ms = kwargs.get("rand_cut_ms", 0)
-    min_dur_ms = kwargs.get("min_dur_ms", 200)
+    min_dur_ms = kwargs.get("min_dur_ms", 300)
 
     SilenceTrimmer._ensure_model()
 
@@ -481,7 +481,7 @@ def trim_silence(ds, **kwargs):
 
 def filter_short_audio(ds, **kwargs):
     """Filter out audio samples shorter than min_dur_ms milliseconds."""
-    min_dur_ms = kwargs.get("min_dur_ms", 200)
+    min_dur_ms = kwargs.get("min_dur_ms", 300)
     min_dur = min_dur_ms / 1000.0
     batch_size = kwargs.get("batch_size", 64)
 
