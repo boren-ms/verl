@@ -98,7 +98,9 @@ class RLHFDataset(Dataset):
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
         row_dict: dict = self.ds[i]
+        print(f"row_dict keys: {list(row_dict.keys())}, data_source: {row_dict.get('data_source', 'N/A')}")
         messages = row_dict[self.prompt_key]
+        print(f"messages (index={i}): {messages}")
 
         raw_prompt = self.processor.apply_chat_template(
             messages,
@@ -106,6 +108,8 @@ class RLHFDataset(Dataset):
             tokenize=False,
             **self.apply_chat_template_kwargs,
         )
+
+        print(f"raw_prompt (index={i}): {raw_prompt[:500]}")
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
 

@@ -2,6 +2,8 @@ hydra:
   searchpath:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
+  verbose:
+    - recipe.phimm.data.rl_dataset
 defaults:
   - eval_asr
   - data/val_data/librispeech_h100
