@@ -449,6 +449,7 @@ def trim_silence(ds, **kwargs):
 
     output_dir = kwargs.get("output_dir", None)
     rand_cut_ms = kwargs.get("rand_cut_ms", 0)
+    min_dur_ms = kwargs.get("min_dur_ms", 200)
 
     SilenceTrimmer._ensure_model()
 
@@ -461,7 +462,7 @@ def trim_silence(ds, **kwargs):
                 hc = random.randint(0, rand_cut_ms) if rand_cut_ms > 0 else 0
                 tc = random.randint(0, rand_cut_ms) if rand_cut_ms > 0 else 0
                 trimmed = trimmer.trim(audio, sr, head_cut_ms=hc, tail_cut_ms=tc)
-                if trimmed is None:
+                if trimmed is None or len(trimmed) / sr * 1000 < min_dur_ms:
                     out_paths.append(example.get("audio_path", ""))
                     continue
                 out_path = f"{output_dir.rstrip('/')}/{uuid.uuid4().hex}.wav"
