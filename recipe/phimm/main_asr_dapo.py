@@ -17,7 +17,6 @@ Note that we don't combine the main with ray_trainer as ray_trainer is used by o
 
 import os
 import socket
-import sys
 
 import hydra
 import ray
@@ -32,9 +31,6 @@ from verl.utils.ray_utils import ray_address, ray_host_url
 from verl.utils.fs import copy_to_local
 
 
-DEFAULT_CONFIG_NAME = "deprecated/dapo_local_test"
-
-
 def get_env_vars():
     env_vars = EnvMgr().envs()
     required_envs = ["DATA_PATH"]
@@ -44,24 +40,7 @@ def get_env_vars():
     return env_vars
 
 
-def get_hydra_config_name(default=DEFAULT_CONFIG_NAME):
-    argv = sys.argv[1:]
-    for index, arg in enumerate(argv):
-        if arg.startswith("--config-name="):
-            return normalize_hydra_config_name(arg.split("=", 1)[1])
-        if arg == "--config-name" and index + 1 < len(argv):
-            return normalize_hydra_config_name(argv[index + 1])
-    return default
-
-
-def normalize_hydra_config_name(config_name):
-    config_path = Path(config_name)
-    if config_path.suffix == ".yaml":
-        config_path = config_path.with_suffix("")
-    return config_path.as_posix()
-
-
-@hydra.main(config_path="config", config_name=get_hydra_config_name(), version_base=None)
+@hydra.main(config_path="config", config_name="dapo_local_test", version_base=None)
 def main(config):
     run_ppo(config)
 

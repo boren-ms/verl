@@ -16,7 +16,6 @@ Generate responses given a dataset of prompts
 """
 
 import os
-import sys
 
 import hydra
 import numpy as np
@@ -49,9 +48,6 @@ from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.reward.asr_bias import compute_wers, WordError, sum_wers
 
 
-DEFAULT_CONFIG_NAME = "base/gen_asr"
-
-
 def get_env_vars():
     env_vars = EnvMgr().envs()
     required_envs = ["DATA_PATH"]
@@ -65,24 +61,7 @@ def cwd():
     return Path(__file__).parents[2]
 
 
-def get_hydra_config_name(default=DEFAULT_CONFIG_NAME):
-    argv = sys.argv[1:]
-    for index, arg in enumerate(argv):
-        if arg.startswith("--config-name="):
-            return normalize_hydra_config_name(arg.split("=", 1)[1])
-        if arg == "--config-name" and index + 1 < len(argv):
-            return normalize_hydra_config_name(argv[index + 1])
-    return default
-
-
-def normalize_hydra_config_name(config_name):
-    config_path = Path(config_name)
-    if config_path.suffix == ".yaml":
-        config_path = config_path.with_suffix("")
-    return config_path.as_posix()
-
-
-@hydra.main(config_path="config", config_name=get_hydra_config_name(), version_base=None)
+@hydra.main(config_path="config", config_name="generation", version_base=None)
 def main(config):
     run_generation(config)
 
