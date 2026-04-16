@@ -1,0 +1,17 @@
+- dataset_name: jsonl
+  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/librispeech/h100.jsonl
+  cache_name: auto_librispeech_h100
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/librispeech/audio/"
+  add_prompt:
+    task: lang_asr_lex
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: librispeech
+    verl_format:
+      prompt_key: prompt
