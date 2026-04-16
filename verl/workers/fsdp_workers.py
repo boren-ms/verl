@@ -198,7 +198,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         self.ulysses_sharding_manager = FSDPUlyssesShardingManager(self.ulysses_device_mesh)
         self._lora_rank = self.config.model.get("lora_rank", 0)
         self._is_lora = self._lora_rank > 0
-        self._patch_phi4mm = self.config.model.get("patch_phi4mm", True)
+        self._adapter_merged = self.config.model.get("adapter_merged", False)
         self._trainable_params = self.config.model.get("trainable_params", None)
 
         self.role = role
@@ -391,10 +391,9 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 config=actor_model_config,
                 trust_remote_code=trust_remote_code,
             )
-            if self._patch_phi4mm:
-                from recipe.phimm.utils.model import patch_phi4mm
+            from recipe.phimm.utils.model import patch_phi4mm
 
-                actor_module = patch_phi4mm(actor_module)
+            actor_module = patch_phi4mm(actor_module, adapter_merged=self._adapter_merged)
 
             # Apply Liger kernel to the model if use_liger is set to True
             if use_liger:

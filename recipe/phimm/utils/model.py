@@ -122,19 +122,35 @@ def add_adapter_func(obj):
     obj.merge_and_unload = types.MethodType(merge_and_unload, obj)
     obj.set_lora_adapter = types.MethodType(set_lora_adapter, obj)
     obj.unset_lora_adapter = types.MethodType(unset_lora_adapter, obj)
+    obj.unload_lora_adapter = types.MethodType(unload_lora_adapter, obj)
     return obj
 
 
-def merge_model_adapter(model, lora_name="speech"):
-    model = add_adapter_func(model)
-    model.set_lora_adapter(lora_name)
-    model.merge_and_unload()  # merge lora and back to normal Linear
+def unload_lora_adapter(model):
+    key_list = [key for key, _ in model.named_modules() if "lora" not in key]
+    for key in key_list:
+        try:
+            parent, target, target_name = _get_submodules(model, key)
+        except AttributeError:
+            continue
+        if hasattr(target, "base_layer"):
+            setattr(parent, target_name, target.get_base_layer())
     return model
 
 
-def patch_phi4mm(model, lora_name="speech"):
+def merge_model_adapter(model, lora_name="speech", adapter_merged=False):
+    model = add_adapter_func(model)
+    if adapter_merged:
+        model.unload_lora_adapter()
+    else:
+        model.set_lora_adapter(lora_name)
+        model.merge_and_unload()  # merge lora and back to normal Linear
+    return model
+
+
+def patch_phi4mm(model, lora_name="speech", adapter_merged=False):
     if model.config.model_type in ["phi4mm"]:
-        model = merge_model_adapter(model, lora_name=lora_name)
+        model = merge_model_adapter(model, lora_name=lora_name, adapter_merged=adapter_merged)
         # disable image embed to save memory
         model.model.embed_tokens_extend.image_embed = None
     return model
