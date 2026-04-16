@@ -61,7 +61,7 @@
       src_part: "audio/"
       dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/gigaspeech/audio/"
   add_prompt:
-    task: lang_asr
+    task: lang_asr_lex
     forced: True
   post_process:
     add_field:
@@ -79,7 +79,7 @@
       src_part: "audio/"
       dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/librispeech/audio/"
   add_prompt:
-    task: lang_asr
+    task: lang_asr_lex
     forced: True
   post_process:
     add_field:
@@ -115,7 +115,7 @@
       src_part: "audio/"
       dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/tedlium/audio/"
   add_prompt:
-    task: lang_asr
+    task: lang_asr_lex
     forced: True
   post_process:
     add_field:
