@@ -1,0 +1,12 @@
+dataset_name: parquet
+parquet_paths: ${oc.env:DATA_PATH}/boren/data/verl/gen_filtered/ami_trim03_wer10_N2/part-*.parquet
+cache_name: auto_train
+add_prompt:
+  task: asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
