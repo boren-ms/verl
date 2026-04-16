@@ -26,7 +26,6 @@ os.environ["NCCL_DEBUG"] = "WARN"
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 # os.environ['TORCH_COMPILE_DISABLE'] = '1'
 import uuid
-import asyncio
 from pprint import pprint
 from collections import defaultdict
 from datasets import Dataset, concatenate_datasets
@@ -231,10 +230,7 @@ def main_task(config):
             split_idx += 1
             batches = []
 
-    n_written = write_data(batches, split_idx)
-    left_egs += n_written
-    if n_written > 0:
-        split_idx += 1
+    left_egs += write_data(batches, split_idx)
 
     print(f"Overall WER: {total_wer.wer:.2%} [{total_wer.n_err}/{total_wer.n_ref}] on {total_egs} samples")
     print(f"Filtering with: {wer_range=}, {err_range=}")
