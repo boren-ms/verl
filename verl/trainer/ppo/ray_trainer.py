@@ -419,10 +419,9 @@ class RayPPOTrainer:
         except Exception as e:
             print(f"Warning: Could not set total_training_steps in config. Structure missing? Error: {e}")
 
-    def _dump_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path):
-        """Dump rollout/validation samples as JSONL."""
+    def _dump_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path, data_sources=None):
+        """Dump rollout/validation samples as JSONL, split per data_source."""
         os.makedirs(dump_path, exist_ok=True)
-        filename = os.path.join(dump_path, f"{self.global_steps}.jsonl")
 
         n = len(inputs)
         base_data = {
@@ -432,20 +431,33 @@ class RayPPOTrainer:
             "score": scores,
             "step": [self.global_steps] * n,
         }
+        if data_sources is not None and len(data_sources) == n:
+            base_data["data_source"] = list(data_sources)
 
         for k, v in reward_extra_infos_dict.items():
             if len(v) == n:
                 base_data[k] = v
 
-        lines = []
-        for i in range(n):
-            entry = {k: v[i] for k, v in base_data.items()}
-            lines.append(json.dumps(entry, ensure_ascii=False))
+        # Group indices by data_source
+        if data_sources is not None and len(data_sources) == n:
+            from collections import defaultdict
+            source_indices = defaultdict(list)
+            for i in range(n):
+                source_indices[str(data_sources[i])].append(i)
+        else:
+            source_indices = {"all": list(range(n))}
 
-        with open(filename, "w") as f:
-            f.write("\n".join(lines) + "\n")
-
-        print(f"Dumped generations to {filename}")
+        for source, indices in source_indices.items():
+            source_dir = os.path.join(dump_path, source)
+            os.makedirs(source_dir, exist_ok=True)
+            filename = os.path.join(source_dir, f"{self.global_steps}.jsonl")
+            lines = []
+            for i in indices:
+                entry = {k: v[i] for k, v in base_data.items()}
+                lines.append(json.dumps(entry, ensure_ascii=False))
+            with open(filename, "w") as f:
+                f.write("\n".join(lines) + "\n")
+            print(f"Dumped {len(indices)} generations ({source}) to {filename}")
 
     def _log_rollout_data(
         self, batch: DataProto, reward_extra_infos_dict: dict, timing_raw: dict, rollout_data_dir: str
@@ -621,6 +633,7 @@ class RayPPOTrainer:
         self._maybe_log_val_generations(inputs=sample_inputs, outputs=sample_outputs, scores=sample_scores)
 
         # dump generations
+        data_sources = np.concatenate(data_source_lst, axis=0)
         val_data_dir = self.config.trainer.get("validation_data_dir", None)
         if val_data_dir:
             self._dump_generations(
@@ -630,12 +643,11 @@ class RayPPOTrainer:
                 scores=sample_scores,
                 reward_extra_infos_dict=reward_extra_infos_dict,
                 dump_path=val_data_dir,
+                data_sources=data_sources,
             )
 
         for key_info, lst in reward_extra_infos_dict.items():
             assert len(lst) == 0 or len(lst) == len(sample_scores), f"{key_info}: {len(lst)=}, {len(sample_scores)=}"
-
-        data_sources = np.concatenate(data_source_lst, axis=0)
 
         data_src2var2metric2val = process_validation_metrics(data_sources, sample_uids, reward_extra_infos_dict)
         metric_dict = {}
