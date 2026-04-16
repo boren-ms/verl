@@ -7,7 +7,7 @@
       src_part: "audio/"
       dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/spgispeech/audio/"
   add_prompt:
-    task: asr
+    task: lang_asr
     forced: True
   post_process:
     add_field:
