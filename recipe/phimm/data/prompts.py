@@ -21,6 +21,10 @@ def get_task_prompt(task="asr", rand=False):
         return f"{prompt} Pay extra attention to rare words."
     elif task == "biasing":
         return rand_prompt(BIASING_PROMPTS, rand=rand)
+    elif task == "lang_asr":
+        return rand_prompt(LANG_ASR_PROMPTS, rand=rand)
+    elif task == "lang_asr_lex":
+        return rand_prompt(LANG_ASR_LEX_PROMPTS, rand=rand)
     else:
         raise ValueError(f"Unknown task: {task}")
 
@@ -183,4 +187,14 @@ BIASING_PROMPTS = [
     "Transcribe the audio material, ensuring the terms below are included accurately.",
     "Provide a written account of the audio, making sure to highlight these phrases/words.",
     "Listen to and transcribe the audio, ensuring precision for the following listed phrases/words.",
+]
+
+
+LANG_ASR_PROMPTS = [
+    "Detect the language and transcribe the audio clip into text.",
+]
+
+
+LANG_ASR_LEX_PROMPTS = [
+    "Detect the language and transcribe the audio clip into text. Output must be in lexical format.",
 ]
