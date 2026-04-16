@@ -1,0 +1,15 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - eval_asr
+  - data/val_data/librispeech_h100_lang_lex
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
+  rollout:
+    tensor_model_parallel_size: 2
+    gpu_memory_utilization: 0.8
