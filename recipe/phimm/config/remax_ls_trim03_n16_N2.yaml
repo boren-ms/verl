@@ -39,7 +39,6 @@ algorithm:
 data:
   train_batch_size: 128
 trainer:
-  project_name: verl_repeat
   nnodes: 2
   total_epochs: 1
   # total_training_steps: 100

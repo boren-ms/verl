@@ -95,7 +95,7 @@ reward_model:
     log: false
 
 trainer:
-  project_name: verl_asr
+  project_name: verl_repeat
   logger: ["console", "wandb"]
   experiment_name: dapo-phimm-test
   n_gpus_per_node: 8
