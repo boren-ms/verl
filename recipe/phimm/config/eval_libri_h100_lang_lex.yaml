@@ -11,6 +11,3 @@ actor_rollout_ref:
   model:
     path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
     patch_phi4mm: false
-  rollout:
-    tensor_model_parallel_size: 2
-    gpu_memory_utilization: 0.8
