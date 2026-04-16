@@ -16,7 +16,7 @@ trainer:
 
 data:
   batch_size: 1024
-  remote_output_dir: ${oc.env:DATA_PATH}/boren/data/verl/gen_filtered/ami_trim03_wer10_N2
+  output_path: ${oc.env:DATA_PATH}/boren/data/verl/gen_filtered/ami_trim03_wer10_N2
   output_split_size: 10000
   wer_range: [0.1, 2] #10% to 200% WER
 

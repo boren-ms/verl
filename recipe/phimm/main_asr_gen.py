@@ -155,8 +155,8 @@ def main_task(config):
     wg = wg_dict.spawn(prefix_set=["rollout"])["rollout"]
     wg.init_model()
 
-    output_dir = config.data.get("remote_output_dir", None) or config.data.get("output_dir", None)
-    assert output_dir is not None, "Please specify data.remote_output_dir"
+    output_dir = config.data.get("output_path", None)
+    assert output_dir is not None, "Please specify data.output_path"
     output_dir = output_dir.rstrip("/")
     split_size = config.data.get("output_split_size", 1000)
     total_egs = len(dataset)

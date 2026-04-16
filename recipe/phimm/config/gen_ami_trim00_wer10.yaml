@@ -12,7 +12,7 @@ model:
 
 data:
   batch_size: 512
-  remote_output_dir: ${oc.env:DATA_PATH}/boren/data/verl/gen_filtered/ami_trim00_wer10
+  output_path: ${oc.env:DATA_PATH}/boren/data/verl/gen_filtered/ami_trim00_wer10
   output_split_size: 10000
   wer_range: [0.1, 2] #10% to 200% WER
 
