@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>spgispeech_repeat: Step 0 vs Step 30</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 20px; background: #f5f5f5; color: #333; }
+  h1 { color: #1a1a2e; }
+  h3 { margin: 0 0 10px 0; }
+  .summary { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .summary table { border-collapse: collapse; }
+  .summary td, .summary th { padding: 6px 14px; text-align: right; border-bottom: 1px solid #eee; }
+  .summary th { text-align: left; }
+  .example { background: #fff; padding: 20px; margin-bottom: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #ddd; }
+  .example.improved { border-left-color: #27ae60; }
+  .example.regressed { border-left-color: #e74c3c; }
+  .example.same { border-left-color: #f39c12; }
+  .badge { font-size: 0.7em; padding: 2px 8px; border-radius: 4px; color: #fff; vertical-align: middle; }
+  .badge.improved { background: #27ae60; }
+  .badge.regressed { background: #e74c3c; }
+  .badge.same { background: #f39c12; }
+  .stats-table { border-collapse: collapse; font-size: 0.85em; margin-bottom: 12px; }
+  .stats-table td, .stats-table th { padding: 3px 10px; border-bottom: 1px solid #eee; }
+  .stats-table th { text-align: left; }
+  .good { color: #27ae60; font-weight: bold; }
+  .bad { color: #e74c3c; font-weight: bold; }
+  .label { font-weight: 600; font-size: 0.85em; color: #666; margin-bottom: 4px; }
+  .ref-block { background: #f0f7ff; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+  .text { font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9em; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .col { background: #fafafa; padding: 10px; border-radius: 4px; }
+  .del { background: #fdd; color: #a00; text-decoration: line-through; }
+  .ins { background: #dfd; color: #060; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>spgispeech_repeat: Step 0 vs Step 30</h1>
+<div class="summary">
+  <h2>Summary</h2>
+  <table>
+    <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+    <tr><td>Total n_err</td><td>2168</td><td>24</td><td class="good">-2144</td></tr>
+    <tr><td>Total n_ins_edge</td><td>2152</td><td>7</td><td class="good">-2145</td></tr>
+    <tr><td>Total n_ref</td><td>472</td><td>472</td><td>-</td></tr>
+    <tr><td>p_err</td><td>459.3%</td><td>5.1%</td><td class="good">-454.2%</td></tr>
+    <tr><td>p_ins_edge</td><td>455.9%</td><td>1.5%</td><td class="good">-454.4%</td></tr>
+    <tr><td>Improved / Same / Regressed</td><td colspan="3">6 / 7 / 3</td></tr>
+  </table>
+</div>
+
+        <div class="example improved">
+          <h3>Example 0 <span class="badge improved">IMPROVED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>1</td><td>0</td><td class="good">-1</td></tr>
+              <tr><td>n_ref</td><td>56</td><td>56</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>1</td><td>0</td><td class="good">-1</td></tr>
+              <tr><td>WER</td><td>1.8%</td><td>0.0%</td><td class="good">-1.8%</td></tr>
+              <tr><td>output len (chars)</td><td>271</td><td>271</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">So whilst the quarter 3 might have been a little softer, quarter 4 is a little better, we look at it at a little bit longer time frame than you sometimes do. So what we&#x27;ve seen in the last quarter, and we don&#x27;t even have the shares yet because they come in with a</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=1, ins_edge=1)</div>
+              <div class="text hyp">So whilst the quarter <span class="ins">three</span> might have been a little softer, quarter <span class="ins">four</span> is a little better, we look at it at a little bit longer time frame than you sometimes do. So what we&#x27;ve seen in the last quarter, and we don&#x27;t even have the shares yet because they come in with <span class="ins">a…</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=0, ins_edge=0)</div>
+              <div class="text hyp">So whilst the quarter <span class="ins">three</span> might have been a little softer, quarter <span class="ins">four</span> is a little better, we look at it at a little bit longer time frame than you sometimes do. So what we&#x27;ve seen in the last quarter, and we don&#x27;t even have the shares yet because they come in with <span class="ins">a.</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example same">
+          <h3>Example 1 <span class="badge same">SAME</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>n_ref</td><td>42</td><td>42</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>0.0%</td><td>0.0%</td><td class="good">+0.0%</td></tr>
+              <tr><td>output len (chars)</td><td>232</td><td>232</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">And again, with respect to the exploration wells, depending on the distance from existing infrastructure, the tie-in can be quite quick or it can be a couple of months while we&#x27;re actually laying flow-lines to connect with the main</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=0, ins_edge=0)</div>
+              <div class="text hyp">And again, with respect to the exploration wells, depending on the distance from existing infrastructure, the tie-in can be quite quick or it can be a couple of months while we&#x27;re actually laying <span class="ins">flow lines</span> to connect with the <span class="ins">main.</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=0, ins_edge=0)</div>
+              <div class="text hyp">And again, with respect to the exploration wells, depending on the distance from existing infrastructure, the tie-in can be quite quick or it can be a couple of months while we&#x27;re actually laying <span class="ins">flow lines</span> to connect with the <span class="ins">main.</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example regressed">
+          <h3>Example 2 <span class="badge regressed">REGRESSED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>1</td><td>2</td><td class="bad">+1</td></tr>
+              <tr><td>n_ref</td><td>28</td><td>28</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>1</td><td>1</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>3.6%</td><td>7.1%</td><td class="bad">+3.6%</td></tr>
+              <tr><td>output len (chars)</td><td>154</td><td>153</td><td>-1</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">As mentioned, we see strong changes in our exchange rates and they move right now in a favorable direction for Duni and especially when it comes to the</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=1, ins_edge=1)</div>
+              <div class="text hyp">As mentioned, we see strong changes in our exchange <span class="ins">rates,</span> and they move right now in a favorable direction for <span class="ins">Duni,</span> and especially when it comes to <span class="ins">the…</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=2, ins_edge=1)</div>
+              <div class="text hyp">As mentioned, we see strong changes in our exchange rates and they move right now in a favorable direction for <span class="ins">Duny,</span> and especially when it comes to <span class="ins">the…</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example improved">
+          <h3>Example 3 <span class="badge improved">IMPROVED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>1</td><td>0</td><td class="good">-1</td></tr>
+              <tr><td>n_ref</td><td>30</td><td>30</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>3.3%</td><td>0.0%</td><td class="good">-3.3%</td></tr>
+              <tr><td>output len (chars)</td><td>165</td><td>165</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">The sale of the segment FRP is something that we actually consider as well as the preparation for our further growth ideas that we have. It will focus the management</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=1, ins_edge=0)</div>
+              <div class="text hyp">The sale of the segment <span class="ins">FFP</span> is something that we actually consider as well as the preparation for our further growth ideas that we have. It will focus the management</div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=0, ins_edge=0)</div>
+              <div class="text hyp">The sale of the segment FRP is something that we actually consider as well as the preparation for our further growth ideas that we <span class="ins">have, it</span> will focus the management</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example same">
+          <h3>Example 4 <span class="badge same">SAME</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>2</td><td>2</td><td class="good">+0</td></tr>
+              <tr><td>n_ref</td><td>21</td><td>21</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>9.5%</td><td>9.5%</td><td class="good">+0.0%</td></tr>
+              <tr><td>output len (chars)</td><td>113</td><td>113</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">and at this point, the board and the controlling group is not -- the strategy of the company is not to make</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=2, ins_edge=0)</div>
+              <div class="text hyp"><span class="ins">And</span> at this point, the board and the controlling group is <span class="ins">not, is not,</span> the strategy of the company is not to make</div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=2, ins_edge=0)</div>
+              <div class="text hyp"><span class="ins">And</span> at this point, the board and the controlling group is <span class="ins">not, is not,</span> the strategy of the company is not to make</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example improved">
+          <h3>Example 5 <span class="badge improved">IMPROVED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>2</td><td>1</td><td class="good">-1</td></tr>
+              <tr><td>n_ref</td><td>27</td><td>27</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>1</td><td>0</td><td class="good">-1</td></tr>
+              <tr><td>WER</td><td>7.4%</td><td>3.7%</td><td class="good">-3.7%</td></tr>
+              <tr><td>output len (chars)</td><td>149</td><td>149</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">how they have been performing very strongly. in the case of Vueling, in the case of British Airways. There is a piece there having to do with</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=2, ins_edge=1)</div>
+              <div class="text hyp"><span class="ins">How</span> they have been performing very <span class="ins">strongly</span> in the case of <span class="ins">uh, Welling,</span> in the case of British <span class="ins">Airways, uh, there</span> is a piece there having to do <span class="ins">with…</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=1, ins_edge=0)</div>
+              <div class="text hyp"><span class="ins">How</span> they have been performing very <span class="ins">strongly</span> in the case of <span class="ins">uh, Welling,</span> in the case of British <span class="ins">Airways, uh, there</span> is a piece there having to do <span class="ins">with.</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example same">
+          <h3>Example 6 <span class="badge same">SAME</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>n_ref</td><td>38</td><td>38</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>0.0%</td><td>0.0%</td><td class="good">+0.0%</td></tr>
+              <tr><td>output len (chars)</td><td>200</td><td>200</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">We work towards allocating capital to where we think the best opportunities are. So I don&#x27;t even want to speculate as to whether it&#x27;ll go higher or lower. It&#x27;s very dependent on the opportunity set.</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=0, ins_edge=0)</div>
+              <div class="text hyp">We work towards allocating capital to where we think the best opportunities <span class="ins">are, so</span> I don&#x27;t even want to speculate as to whether <span class="ins">it will</span> go higher or <span class="ins">lower, it&#x27;s</span> very dependent on the opportunity set.</div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=0, ins_edge=0)</div>
+              <div class="text hyp">We work towards allocating capital to where we think the best opportunities <span class="ins">are, so</span> I don&#x27;t even want to speculate as to whether <span class="ins">it will</span> go higher or <span class="ins">lower, it&#x27;s</span> very dependent on the opportunity set.</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example regressed">
+          <h3>Example 7 <span class="badge regressed">REGRESSED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>0</td><td>1</td><td class="bad">+1</td></tr>
+              <tr><td>n_ref</td><td>32</td><td>32</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>0</td><td>1</td><td class="bad">+1</td></tr>
+              <tr><td>WER</td><td>0.0%</td><td>3.1%</td><td class="bad">+3.1%</td></tr>
+              <tr><td>output len (chars)</td><td>168</td><td>166</td><td>-2</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">As far as we know or we have heard, we haven&#x27;t had that kind of signal from the government. I think they will -- they are still concerned on the amount of</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=0, ins_edge=0)</div>
+              <div class="text hyp"><span class="ins">Uh, as</span> far as we know or we have heard, we <span class="ins">haven&#x27;t, uh,</span> had that kind of signal from the <span class="ins">government,</span> I think they <span class="ins">will,</span> they are still concerned on the amount <span class="ins">of, uh, .</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=1, ins_edge=1)</div>
+              <div class="text hyp"><span class="ins">Uh, as</span> far as we know or we have heard, we <span class="ins">haven&#x27;t, uh,</span> had that kind of signal from the <span class="ins">government,</span> I think they <span class="ins">will,</span> they are still concerned on the amount <span class="ins">of, uh…</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example same">
+          <h3>Example 8 <span class="badge same">SAME</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>2</td><td>2</td><td class="good">+0</td></tr>
+              <tr><td>n_ref</td><td>34</td><td>34</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>5.9%</td><td>5.9%</td><td class="good">+0.0%</td></tr>
+              <tr><td>output len (chars)</td><td>155</td><td>155</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">So I don&#x27;t know what -- we don&#x27;t have or can&#x27;t give an estimate of what we think the eligible universe could expand to, but we are optimistic that it is a</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=2, ins_edge=0)</div>
+              <div class="text hyp">So I don&#x27;t know what <span class="ins">we</span> we don&#x27;t have <span class="ins">and</span> can&#x27;t give an estimate of what we think the eligible universe could expand to, but we are optimistic that it is a</div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=2, ins_edge=0)</div>
+              <div class="text hyp">So I don&#x27;t know what <span class="ins">we</span> we don&#x27;t have <span class="ins">and</span> can&#x27;t give an estimate of what we think the eligible universe could expand to, but we are optimistic that it is a</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example same">
+          <h3>Example 9 <span class="badge same">SAME</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>2</td><td>2</td><td class="good">+0</td></tr>
+              <tr><td>n_ref</td><td>24</td><td>24</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>8.3%</td><td>8.3%</td><td class="good">+0.0%</td></tr>
+              <tr><td>output len (chars)</td><td>126</td><td>126</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">It has been systematic and has affected us, too. We need to look at nonrecurring effects, too, such as the fact that last year,</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=2, ins_edge=0)</div>
+              <div class="text hyp">It has been systematic and has affected <span class="ins">us</span> too. We need to look at <span class="ins">non-recurring effects</span> too, such as the fact that last year,</div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=2, ins_edge=0)</div>
+              <div class="text hyp">It has been systematic and has affected <span class="ins">us</span> too. We need to look at <span class="ins">non-recurring effects</span> too, such as the fact that last year,</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example improved">
+          <h3>Example 10 <span class="badge improved">IMPROVED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>498</td><td>3</td><td class="good">-495</td></tr>
+              <tr><td>n_ref</td><td>22</td><td>22</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>497</td><td>2</td><td class="good">-495</td></tr>
+              <tr><td>WER</td><td>2263.6%</td><td>13.6%</td><td class="good">-2250.0%</td></tr>
+              <tr><td>output len (chars)</td><td>2612</td><td>133</td><td>-2479</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">Simon, I honestly don&#x27;t think that these things are any different in the context of the way we&#x27;ve thought about</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=498, ins_edge=497)</div>
+              <div class="text hyp"><span class="ins">Um,</span> Simon, <span class="ins">I,</span> I honestly don&#x27;t think that these <span class="ins">things, um,</span> are any different in the context of the way we&#x27;ve thought <span class="ins">about, um, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the, the</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=3, ins_edge=2)</div>
+              <div class="text hyp"><span class="ins">Um,</span> Simon, <span class="ins">I,</span> I honestly don&#x27;t think that these <span class="ins">things, um,</span> are any different in the context of the way we&#x27;ve thought <span class="ins">about, um, the…</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example improved">
+          <h3>Example 11 <span class="badge improved">IMPROVED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>985</td><td>0</td><td class="good">-985</td></tr>
+              <tr><td>n_ref</td><td>38</td><td>38</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>985</td><td>0</td><td class="good">-985</td></tr>
+              <tr><td>WER</td><td>2592.1%</td><td>0.0%</td><td class="good">-2592.1%</td></tr>
+              <tr><td>output len (chars)</td><td>3612</td><td>166</td><td>-3446</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">where we&#x27;re just -- we&#x27;ve laid down a few frac crews, a few rigs and it doesn&#x27;t take much slack in that market for it to really impact pricing. So I think it&#x27;s just a</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=985, ins_edge=985)</div>
+              <div class="text hyp">where we&#x27;re <span class="ins">just,</span> we&#x27;ve laid down a few frac crews, a few <span class="ins">rigs,</span> and it doesn&#x27;t take much slack in that market for it to really impact pricing. So I think it&#x27;s just <span class="ins">a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I think it&#x27;s just a, I</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=0, ins_edge=0)</div>
+              <div class="text hyp">where we&#x27;re <span class="ins">just,</span> we&#x27;ve laid down a few frac crews, a few <span class="ins">rigs,</span> and it doesn&#x27;t take much slack in that market for it to really impact pricing. So I think it&#x27;s just <span class="ins">a.</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example same">
+          <h3>Example 12 <span class="badge same">SAME</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>1</td><td>1</td><td class="good">+0</td></tr>
+              <tr><td>n_ref</td><td>16</td><td>16</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>1</td><td>1</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>6.2%</td><td>6.2%</td><td class="good">+0.0%</td></tr>
+              <tr><td>output len (chars)</td><td>88</td><td>87</td><td>-1</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">And we think that we had to improve our processes and the service we are supporting</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=1, ins_edge=1)</div>
+              <div class="text hyp">And we think that we had to improve our processes and the service we are supporting <span class="ins">the.</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=1, ins_edge=1)</div>
+              <div class="text hyp">And we think that we had to improve our processes and the service we are supporting <span class="ins">the</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example improved">
+          <h3>Example 13 <span class="badge improved">IMPROVED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>665</td><td>1</td><td class="good">-664</td></tr>
+              <tr><td>n_ref</td><td>22</td><td>22</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>665</td><td>1</td><td class="good">-664</td></tr>
+              <tr><td>WER</td><td>3022.7%</td><td>4.5%</td><td class="good">-3018.2%</td></tr>
+              <tr><td>output len (chars)</td><td>2106</td><td>113</td><td>-1993</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">All right, thank you very much everybody. And again, thank you for taking the time out to meet with us here on</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=665, ins_edge=665)</div>
+              <div class="text hyp">All right, thank you very <span class="ins">much, everybody, and</span> again, thank you for taking the time out to meet with us here on <span class="ins">a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a, on a,</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=1, ins_edge=1)</div>
+              <div class="text hyp">All right, thank you very <span class="ins">much, everybody, and</span> again, thank you for taking the time out to meet with us here on <span class="ins">a</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example same">
+          <h3>Example 14 <span class="badge same">SAME</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>4</td><td>4</td><td class="good">+0</td></tr>
+              <tr><td>n_ref</td><td>24</td><td>24</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>0</td><td>0</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>16.7%</td><td>16.7%</td><td class="good">+0.0%</td></tr>
+              <tr><td>output len (chars)</td><td>106</td><td>106</td><td>+0</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">Yes, I think -- well, let me start with New York as well, I think there&#x27;s a number of tests that we have on</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=4, ins_edge=0)</div>
+              <div class="text hyp">I think <span class="ins">in,</span> let me start with New York as <span class="ins">well. I mean,</span> I think there&#x27;s a number of tests that we have <span class="ins">on.</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=4, ins_edge=0)</div>
+              <div class="text hyp">I think <span class="ins">in,</span> let me start with New York as <span class="ins">well. I mean,</span> I think there&#x27;s a number of tests that we have <span class="ins">on.</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="example regressed">
+          <h3>Example 15 <span class="badge regressed">REGRESSED</span></h3>
+          <div class="stats">
+            <table class="stats-table">
+              <tr><th></th><th>Step 0</th><th>Step 30</th><th>Δ</th></tr>
+              <tr><td>n_err</td><td>4</td><td>5</td><td class="bad">+1</td></tr>
+              <tr><td>n_ref</td><td>18</td><td>18</td><td>-</td></tr>
+              <tr><td>n_ins_edge</td><td>1</td><td>1</td><td class="good">+0</td></tr>
+              <tr><td>WER</td><td>22.2%</td><td>27.8%</td><td class="bad">+5.6%</td></tr>
+              <tr><td>output len (chars)</td><td>103</td><td>107</td><td>+4</td></tr>
+            </table>
+          </div>
+          <div class="ref-block">
+            <div class="label">Reference (gts)</div>
+            <div class="text">But it would be fair to think that you would have capacity that you could utilize here to</div>
+          </div>
+          <div class="compare-grid">
+            <div class="col">
+              <div class="label">Step 0 — Hypothesis (n_err=4, ins_edge=1)</div>
+              <div class="text hyp">But <span class="ins">it,</span> it would be fair <span class="ins">to,</span> to think that <span class="ins">you,</span> you would have capacity that you could utilize here <span class="ins">to…</span></div>
+            </div>
+            <div class="col">
+              <div class="label">Step 30 — Hypothesis (n_err=5, ins_edge=1)</div>
+              <div class="text hyp">But <span class="ins">it, it,</span> it would be fair <span class="ins">to,</span> to think that <span class="ins">you,</span> you would have capacity that you could utilize here <span class="ins">to…</span></div>
+            </div>
+          </div>
+        </div>
+        
+</body>
+</html>
