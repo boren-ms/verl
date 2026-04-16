@@ -3,8 +3,10 @@ set -xeuo pipefail
 
 config_file=$1
 
-config_base=$(basename "$config_file")
-config_name=${config_base%.*}
+# Keep directory prefix for Hydra config resolution (e.g. gen/ami_trim03_wer10_N2)
+config_name=${config_file%.*}
+# Base name for experiment name and log file
+config_base=$(basename "$config_name")
 
 cwd="$(dirname $(readlink -f $0))"
 echo "Current working directory: ${cwd}"
@@ -13,7 +15,7 @@ pushd "$cwd" > /dev/null
 
 module="recipe.phimm.main_asr_dapo"
 
-if [[ "$config_name" == gen_* ]]; then
+if [[ "$config_name" == gen_* ]] || [[ "$config_name" == gen/* ]]; then
     module="recipe.phimm.main_asr_gen"
 fi
 
@@ -26,8 +28,8 @@ ray job submit --working-dir="${cwd}"  \
 --no-wait -- \
 python3 -m ${module} \
 --config-name "${config_name}" \
-trainer.experiment_name="${config_name}" \
-2>&1 | tee "${config_name}.log"
+trainer.experiment_name="${config_base}" \
+2>&1 | tee "${config_base}.log"
 
 echo "[INFO] Finished ${config_name}."
 popd > /dev/null
