@@ -1,6 +1,6 @@
 ---
 name: verl-job-status
-description: 'Check training/generation job status across all verl-* Brix nodes. Use when: update, job status, check training, monitor jobs, verl nodes, what is running, update all nodes, check progress, training progress, data gen progress.'
+description: 'Check training/generation job status across all verl-* Brix nodes. Only use when explicitly requested with phrases like: verl job status, check verl nodes, verl update, check all verl jobs, verl training progress. Do NOT trigger on short generic commands like "update" or "status" alone.'
 argument-hint: 'Optional node filter like verl-n2-i0, or omit for all verl-* nodes'
 ---
 
@@ -9,10 +9,14 @@ argument-hint: 'Optional node filter like verl-n2-i0, or omit for all verl-* nod
 Report the status of Ray jobs running on all `verl-*` Brix nodes in a single summary table.
 
 ## When to Use
-- User says "update" with no other context
-- User asks to check job status across verl nodes
-- User wants training progress or data generation progress
-- User asks "what is running" or "check all nodes"
+- User explicitly mentions "verl" nodes/jobs (e.g. "check verl nodes", "verl job status", "verl update")
+- User asks to check job status across verl-* nodes specifically
+- User says "check all verl jobs" or "verl training progress"
+
+## When NOT to Use
+- Short generic commands like "update", "status", "check progress" without mentioning verl
+- When the user is already monitoring a specific job in context (use direct kubectl commands instead)
+- When the user says "update" referring to updating code, configs, or other artifacts
 
 ## Prerequisites
 - All verl-* nodes are on cluster `prod-westus2-cw-6` in namespace `boren`
