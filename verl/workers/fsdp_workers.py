@@ -198,7 +198,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         self.ulysses_sharding_manager = FSDPUlyssesShardingManager(self.ulysses_device_mesh)
         self._lora_rank = self.config.model.get("lora_rank", 0)
         self._is_lora = self._lora_rank > 0
-        self._adapter_merged = self.config.model.get("adapter_merged", False)
+        self._adapter_merged = self.config.model.get("adapter_merged", True)
         self._trainable_params = self.config.model.get("trainable_params", None)
 
         self.role = role
