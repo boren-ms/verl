@@ -10,7 +10,7 @@ class Error:
     n_del: int = 0
     n_ins: int = 0
     n_hit: int = 0
-    n_ins_edge: int = 0
+    n_edge: int = 0
 
     @property
     def n_ref(self):
@@ -43,27 +43,28 @@ def _count_ops(ref_words, hyp_words):
 
     for tag, i1, i2, j1, j2 in sm.get_opcodes():
         r_len, h_len = i2 - i1, j2 - j1
+        is_edge = i1 == 0 or i2 == n_ref
         if tag == "equal":
             err.n_hit += r_len
             continue
         if tag == "delete":
             err.n_del += r_len
+            if is_edge:
+                err.n_edge += r_len
             continue
         if tag == "insert":
             err.n_ins += h_len
-            if i1 == 0 or i1 == n_ref:
-                err.n_ins_edge += h_len
+            if is_edge:
+                err.n_edge += h_len
             continue
         if tag == "replace":
-            shared = min(r_len, h_len)
-            err.n_sub += shared
+            err.n_sub += min(r_len, h_len)
             if r_len > h_len:
                 err.n_del += r_len - h_len
             elif h_len > r_len:
-                extra = h_len - r_len
-                err.n_ins += extra
-                if i1 == 0 or i2 == n_ref:
-                    err.n_ins_edge += extra
+                err.n_ins += h_len - r_len
+            if is_edge:
+                err.n_edge += max(r_len, h_len)
 
     return err
 
@@ -85,7 +86,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     edge_beta = kwargs.get("edge_beta", 1.0)
     cutoff = kwargs.get("cutoff", 0.3)
 
-    weighted_err = beta * err.n_err + edge_beta * err.n_ins_edge
+    weighted_err = beta * err.n_err + edge_beta * err.n_edge
     acc = (err.n_ref - weighted_err) / err.n_ref
 
     score = (acc - cutoff) / (1 - cutoff) if acc > cutoff else 0.0
@@ -94,7 +95,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "score": score,
         "n_ref": err.n_ref,
         "n_err": err.n_err,
-        "n_edge": err.n_ins_edge,
+        "n_edge": err.n_edge,
     }
 
 
@@ -106,7 +107,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "score": err.n_err,
         "n_err": err.n_err,
         "n_ref": err.n_ref,
-        "n_edge": err.n_ins_edge,
+        "n_edge": err.n_edge,
     }
 
 
@@ -150,7 +151,7 @@ if __name__ == "__main__":
         },
     ]
 
-    print("== asr_insertion self-test ==")
+    print("== asr_edge self-test ==")
     print("default weights: beta=1.0, ins_beta=0.25, edge_ins_beta=0.75")
     for tc in test_cases:
         out = compute_score(tc["hyp"], tc["ref"], text_norm="english")
@@ -163,7 +164,7 @@ if __name__ == "__main__":
                 "score": out["score"],
                 "wer": out["wer"],
                 "n_err": out["n_err"],
-                "n_ins_edge": out["n_ins_edge"],
+                "n_edge": out["n_edge"],
             },
         )
 
