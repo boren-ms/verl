@@ -197,6 +197,7 @@ def parse_asr_response(response):
     Supports formats like:
         <ASR_LEXICAL><lang=English><TXT>some text</TXT></ASR_LEXICAL>
         <ASR><lang=English><TXT>some text</TXT></ASR>
+        "Audio Language: English.\n<ASR><lang=English><TXT>I think Andrei will pr
         simple text
 
     Returns a dict with 'text' and 'lang' keys.
@@ -204,6 +205,26 @@ def parse_asr_response(response):
     """
     m = re.search(r"<lang=([^>]+)>", response)
     lang = m.group(1) if m else None
-    m = re.search(r"<TXT>(.*?)</TXT>", response, re.DOTALL)
-    text = m.group(1) if m else response
+    text = _parse_transcription(response)
     return {"text": text, "lang": lang}
+
+
+def _parse_transcription(raw_text):
+    """Extract clean transcription from model output."""
+    txt_matches = re.findall(r'<TXT>(.*?)</TXT>', raw_text, re.DOTALL)
+    if txt_matches:
+        return ' '.join(m.strip() for m in txt_matches)
+    m = re.search(r'<TXT>(.*)', raw_text, re.DOTALL)
+    if m:
+        return re.sub(r'</TXT>?(?:</ASR[^>]*>)?$', '', m.group(1)).strip()
+    m = re.search(r'Transcription:\s*(.*)', raw_text, re.DOTALL)
+    if m:
+        text = m.group(1).strip()
+        text = re.sub(r'<\|end\|>.*', '', text).strip()
+        text = re.sub(r'<[^>]+>', ' ', text)
+        return re.sub(r'\s+', ' ', text).strip()
+    raw_text = re.sub(r'^Audio\s+Language:\s*\w+\s*\n?', '', raw_text).strip()
+    if '<|end|>' in raw_text:
+        raw_text = raw_text[:raw_text.index('<|end|>')]
+    raw_text = re.sub(r'<[^>]+>', ' ', raw_text)
+    return re.sub(r'\s+', ' ', raw_text).strip()
