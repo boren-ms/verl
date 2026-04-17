@@ -476,6 +476,11 @@ def trim_silence(ds, **kwargs):
     map_kwargs = pop_map_kwargs(kwargs)
     map_kwargs.setdefault("batch_size", 16)
     ds = ds.map(trim_batch, batched=True, **map_kwargs, desc="Trimming silence")
+    n_before = len(ds)
+    ds = ds.filter(lambda x: bool(x.get("audio_path", "")))
+    n_after = len(ds)
+    if n_before != n_after:
+        print(f"Filtered empty audio_path after trim: {n_before} => {n_after}")
     return ds
 
 
