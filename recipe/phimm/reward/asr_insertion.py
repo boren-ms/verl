@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 
+from recipe.phimm.utils.shared import parse_asr_response
+
 @dataclass
 class Error:
     n_sub: int = 0
@@ -75,6 +77,8 @@ def measure(hyp, ref, **kwargs):
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
+    solution_str = parse_asr_response(solution_str)["text"]
+
     err = measure(solution_str, ground_truth, **kwargs)
 
     beta = kwargs.get("beta", 1.0)
@@ -96,6 +100,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
+    solution_str = parse_asr_response(solution_str)["text"]
     err = measure(solution_str, ground_truth, **kwargs)
     return {
         "score": err.n_err,

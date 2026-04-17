@@ -1,3 +1,4 @@
+import re
 import uuid
 import blobfile as bf
 import subprocess
@@ -188,3 +189,21 @@ def dist_state():
 
 def all_rank_print(*args, **kwargs):
     rank_print(*args, main=False, **kwargs)
+
+
+def parse_asr_response(response):
+    """Extract text and language from an ASR response string.
+
+    Supports formats like:
+        <ASR_LEXICAL><lang=English><TXT>some text</TXT></ASR_LEXICAL>
+        <ASR><lang=English><TXT>some text</TXT></ASR>
+        simple text
+
+    Returns a dict with 'text' and 'lang' keys.
+    If no match is found, returns {'text': response, 'lang': None}.
+    """
+    m = re.search(r"<lang=([^>]+)>", response)
+    lang = m.group(1) if m else None
+    m = re.search(r"<TXT>(.*?)</TXT>", response, re.DOTALL)
+    text = m.group(1) if m else response
+    return {"text": text, "lang": lang}
