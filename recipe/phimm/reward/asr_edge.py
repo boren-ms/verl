@@ -101,7 +101,9 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
-    solution_str = parse_asr_response(solution_str)["text"]
+    remove_repeats = kwargs.get("remove_repeats", False)
+    text_key = "new_text" if remove_repeats else "text"
+    solution_str = parse_asr_response(solution_str)[text_key]
     err = measure(solution_str, ground_truth, **kwargs)
     return {
         "score": err.n_err,

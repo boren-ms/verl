@@ -191,6 +191,22 @@ def all_rank_print(*args, **kwargs):
     rank_print(*args, main=False, **kwargs)
 
 
+def strip_repetitions(text, min_reps=4):
+    """Truncate at first 4+ consecutive repeat of any 1-5 word n-gram."""
+    words = text.split()
+    for ng in range(1, 6):
+        for start in range(len(words) - ng * min_reps):
+            ngram = tuple(words[start:start+ng])
+            reps = 0
+            pos = start
+            while pos + ng <= len(words) and tuple(words[pos:pos+ng]) == ngram:
+                reps += 1
+                pos += ng
+            if reps >= min_reps:
+                return ' '.join(words[:start + ng])
+    return text
+
+
 def parse_asr_response(response):
     """Extract text and language from an ASR response string.
 
@@ -205,26 +221,30 @@ def parse_asr_response(response):
     """
     m = re.search(r"<lang=([^>]+)>", response)
     lang = m.group(1) if m else None
-    text = _parse_transcription(response)
-    return {"text": text, "lang": lang}
+    text, formatted = _parse_transcription(response)
+    new_text = strip_repetitions(text)
+    return {"text": text, "lang": lang, "formatted": formatted, "new_text": new_text}
 
 
 def _parse_transcription(raw_text):
-    """Extract clean transcription from model output."""
+    """Extract clean transcription from model output.
+
+    Returns (text, formatted) where formatted is True if <TXT> tags were found.
+    """
     txt_matches = re.findall(r'<TXT>(.*?)</TXT>', raw_text, re.DOTALL)
     if txt_matches:
-        return ' '.join(m.strip() for m in txt_matches)
+        return ' '.join(m.strip() for m in txt_matches), True
     m = re.search(r'<TXT>(.*)', raw_text, re.DOTALL)
     if m:
-        return re.sub(r'</TXT>?(?:</ASR[^>]*>)?$', '', m.group(1)).strip()
+        return re.sub(r'</TXT>?(?:</ASR[^>]*>)?$', '', m.group(1)).strip(), True
     m = re.search(r'Transcription:\s*(.*)', raw_text, re.DOTALL)
     if m:
         text = m.group(1).strip()
         text = re.sub(r'<\|end\|>.*', '', text).strip()
         text = re.sub(r'<[^>]+>', ' ', text)
-        return re.sub(r'\s+', ' ', text).strip()
+        return re.sub(r'\s+', ' ', text).strip(), False
     raw_text = re.sub(r'^Audio\s+Language:\s*\w+\s*\n?', '', raw_text).strip()
     if '<|end|>' in raw_text:
         raw_text = raw_text[:raw_text.index('<|end|>')]
     raw_text = re.sub(r'<[^>]+>', ' ', raw_text)
-    return re.sub(r'\s+', ' ', raw_text).strip()
+    return re.sub(r'\s+', ' ', raw_text).strip(), False
