@@ -78,9 +78,12 @@ def measure(hyp, ref, **kwargs):
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
-    solution_str = parse_asr_response(solution_str)["text"]
-
-    err = measure(solution_str, ground_truth, **kwargs)
+    trans_dict = parse_asr_response(solution_str)
+    
+    lang = trans_dict["lang"].lower() == "english"
+    format = bool(trans_dict["formatted"])
+    
+    err = measure(trans_dict["text"], ground_truth, **kwargs)
 
     beta = kwargs.get("beta", 1.0)
     edge_beta = kwargs.get("edge_beta", 1.0)
@@ -89,27 +92,35 @@ def compute_score(solution_str, ground_truth, **kwargs):
     weighted_err = beta * err.n_err + edge_beta * err.n_edge
     acc = (err.n_ref - weighted_err) / err.n_ref
 
-    score = (acc - cutoff) / (1 - cutoff) if acc > cutoff else 0.0
+    if lang and format and acc > cutoff:
+        score = (acc - cutoff) / (1 - cutoff)
+    else:
+        score = 0.0
 
     return {
         "score": score,
         "n_ref": err.n_ref,
         "n_err": err.n_err,
         "n_edge": err.n_edge,
+        "n_fmt": int(format),
+        "n_lang": int(lang)
     }
 
 
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
-    remove_repeats = kwargs.get("remove_repeats", False)
-    text_key = "new_text" if remove_repeats else "text"
-    solution_str = parse_asr_response(solution_str)[text_key]
-    err = measure(solution_str, ground_truth, **kwargs)
+    trans_dict = parse_asr_response(solution_str)
+    lang = trans_dict["lang"].lower() == "english"
+    format = bool(trans_dict["formatted"])
+
+    err = measure(trans_dict["text"], ground_truth, **kwargs)
     return {
         "score": err.n_err,
         "n_err": err.n_err,
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,
+        "n_fmt": int(format),
+        "n_lang": int(lang)
     }
 
 
