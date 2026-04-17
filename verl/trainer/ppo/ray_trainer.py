@@ -297,6 +297,7 @@ class RayPPOTrainer:
         collate_fn=None,
         train_sampler: Optional[Sampler] = None,
         device_name=None,
+        dump_fn=None,
     ):
         """
         Initialize distributed PPO trainer with Ray backend.
@@ -324,6 +325,7 @@ class RayPPOTrainer:
         self.config = config
         self.reward_fn = reward_fn
         self.val_reward_fn = val_reward_fn
+        self.dump_fn = dump_fn
 
         self.hybrid_engine = config.actor_rollout_ref.hybrid_engine
         assert self.hybrid_engine, "Currently, only support hybrid engine"
@@ -431,6 +433,8 @@ class RayPPOTrainer:
             "score": scores,
             "step": [self.global_steps] * n,
         }
+        if self.dump_fn:
+            base_data["clean_output"] = [self.dump_fn(o) for o in outputs]
         if data_sources is not None and len(data_sources) == n:
             base_data["data_source"] = list(data_sources)
 

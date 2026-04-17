@@ -27,6 +27,7 @@ from verl.trainer.ppo.reward import load_reward_manager
 from verl.utils.device import is_cuda_available
 from recipe.dapo.dapo_ray_trainer import RayDAPOTrainer
 from recipe.phimm.utils.env import EnvMgr
+from recipe.phimm.utils.shared import parse_asr_response
 from verl.utils.ray_utils import ray_address, ray_host_url
 from verl.utils.fs import copy_to_local
 
@@ -204,6 +205,7 @@ class TaskRunner:
             ray_worker_group_cls=ray_worker_group_cls,
             reward_fn=reward_fn,
             val_reward_fn=val_reward_fn,
+            dump_fn=lambda t: parse_asr_response(t)["text"],
         )
         trainer.init_workers()
         trainer.fit()
