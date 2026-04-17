@@ -59,12 +59,15 @@ Configs live at `recipe/phimm/config/eval_*.yaml` and compose from `recipe/phimm
 - **model_path**: Usually baked into the eval config. If the user specifies a custom model path, it will be passed as a hydra override.
 - **word_error_sets**: Default `1` — only analyze the first data source. If user says "all", analyze all data sources.
 
-### Step 2 — Sync code and submit the eval job
+### Step 2 — Push code and submit the eval job
 
-1. **Sync** local workspace to the remote node:
+**IMPORTANT**: Always push the latest code to the remote node before submitting any job. This ensures the remote node runs the same code as your local workspace.
+
+1. **Push code** to the remote node using `bpush`:
    ```bash
-   rcall-brix sync {NODE}
+   bpush {NODE}
    ```
+   This commits and pushes the current workspace to the node's git checkout. Alternatively, use `submit_job.sh` which handles both push and submit (see step 3b).
 
 2. **Clean up** any previous job with the same config name:
    ```bash
@@ -74,6 +77,11 @@ Configs live at `recipe/phimm/config/eval_*.yaml` and compose from `recipe/phimm
 3. **Submit the eval job** using `quick_run.sh`:
    ```bash
    rcall-brix ssh {NODE} -- 'bash -l /root/code/verl/quick_run.sh recipe/phimm/config/{EVAL_CONFIG}.yaml'
+   ```
+
+   **3b. Alternative (preferred)**: Use `submit_job.sh` which handles push + submit in one command:
+   ```bash
+   bash submit_job.sh {NODE} recipe/phimm/config/{EVAL_CONFIG}.yaml false true false
    ```
 
    If a custom model path is specified, append a hydra override:
@@ -206,7 +214,8 @@ If `validation_data_dir` is not configured and no JSONL files are found:
 - `quick_run.sh` determines the module automatically: configs starting with `gen_*` use `main_asr_gen`, otherwise `main_asr_dapo`.
 - Eval configs inherit from `base/eval_asr.yaml` which sets `val_only: True` — only validation runs, no training.
 - The remote workspace is at `/root/code/verl` on Brix nodes.
-- Always use `rcall-brix sync`, `rcall-brix ssh`, `rcall-brix scp` for remote operations.
+- **Always push code first** before submitting jobs. Use `bpush {NODE}` or `submit_job.sh` (which pushes automatically). Never submit a job without syncing code first.
+- For remote operations, use `rcall-brix ssh`, `rcall-brix scp`, or the convenience wrappers `bpush` and `submit_job.sh`.
 - The word error analysis script (`analyze_word_errors.py`) supports custom column names via `--ref-column` and `--hyp-column`. verl JSONL uses `gts` and `output`.
 
 ## Dependent Skills
