@@ -79,7 +79,9 @@ actor_rollout_ref:
     temperature: 1.0
     gpu_memory_utilization: 0.8
     load_format: safetensors
+    enforce_eager: True
     stop: ["<|end|>"]
+    stop_token_ids: [200020]
   ref:
     strategy: fsdp2
     log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}

@@ -16,23 +16,23 @@
     verl_format:
       prompt_key: prompt
 
-- dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/common_voice/data.jsonl
-  cache_name: auto_common_voice
-  pre_process:
-    path_map:
-      field: audio_path
-      src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/common_voice/audio/"
-  add_prompt:
-    task: lang_asr
-    forced: True
-  post_process:
-    add_field:
-      fields:
-        data_source: common_voice
-    verl_format:
-      prompt_key: prompt
+# - dataset_name: jsonl
+#   jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/common_voice/data.jsonl
+#   cache_name: auto_common_voice
+#   pre_process:
+#     path_map:
+#       field: audio_path
+#       src_part: "audio/"
+#       dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/common_voice/audio/"
+#   add_prompt:
+#     task: lang_asr
+#     forced: True
+#   post_process:
+#     add_field:
+#       fields:
+#         data_source: common_voice
+#     verl_format:
+#       prompt_key: prompt
 
 - dataset_name: jsonl
   jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/earnings22/data.jsonl
