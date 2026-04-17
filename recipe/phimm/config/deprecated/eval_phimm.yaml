@@ -12,7 +12,7 @@ actor_rollout_ref:
   rollout:
     n: 8
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 
 data:
   max_prompt_length: 8192 # requred by 7b model

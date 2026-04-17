@@ -1,5 +1,5 @@
 -  dataset_name: audio_dir
-   data_dir: ${oc.env:DATA_PATH}/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
+   data_dir: az://orngwus2cresco/data/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
    cache_name: auto_train
    num_proc: auto
    add_prompt:
@@ -12,7 +12,7 @@
      verl_format:
        prompt_key: prompt
 -  dataset_name: parquet
-   parquet_paths: ${oc.env:DATA_PATH}/boren/data/cache_datasets/gen_prod_fy22_phi4_7b_wer_20/part-*.parquet
+   parquet_paths: az://orngwus2cresco/data/boren/data/cache_datasets/gen_prod_fy22_phi4_7b_wer_20/part-*.parquet
    num_proc: auto
    cache_name: auto_train
    pre_process:
@@ -21,7 +21,7 @@
      path_map:
        field: audio_chunk
        src_part: "az://orngwus2cresco/data"
-       dst_part: "${oc.env:DATA_PATH}"
+       dst_part: "az://orngwus2cresco/data"
    add_prompt:
      task: rare_asr
      forced: True

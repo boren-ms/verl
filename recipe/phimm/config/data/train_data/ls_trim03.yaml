@@ -9,7 +9,7 @@ pre_process:
   path_map:
     field: audio_file
     src_part: "az://orngwus2cresco/data"
-    dst_part: "${oc.env:DATA_PATH}"
+    dst_part: "az://orngwus2cresco/data"
   rename_fields:
     mappings:
       audio_path: audio_file

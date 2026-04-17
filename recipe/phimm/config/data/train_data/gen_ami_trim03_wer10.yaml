@@ -1,5 +1,5 @@
 dataset_name: parquet
-parquet_paths: ${oc.env:DATA_PATH}/boren/data/verl/gen_filtered/ami_trim03_wer10_N2/part-*.parquet
+parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ami_trim03_wer10_N2/part-*.parquet
 cache_name: auto_train
 add_prompt:
   task: asr

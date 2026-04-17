@@ -108,7 +108,7 @@ trainer:
   total_epochs: 1
   resume_mode: auto
   total_training_steps: null # disable steps
-  default_hdfs_dir: ${oc.env:DATA_PATH}/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
+  default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
   val_before_train: false
   val_only: False

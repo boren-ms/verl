@@ -20,7 +20,7 @@ actor_rollout_ref:
   rollout:
     n: 16
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 data:
   train_batch_size: 8
   gen_batch_size: 16

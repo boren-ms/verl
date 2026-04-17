@@ -1,6 +1,6 @@
 dataset_name: tsv
 cache_name: auto_train
-tsv_paths: ${oc.env:DATA_PATH}/boren/data/LibriSpeech/asr_train_transcribe.tsv
+tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
 biasing:
   buffer_size: 100000
   max_piece_len: 1
@@ -12,7 +12,7 @@ biasing:
   sampling_version: v2
   hit_ratio: [0.9, 1.0]
   log_interval: 10000 # print biasing every 10000 samples
-  common_word_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_word_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_words.count.txt
   common_word_num: 3000
 post_process:
   add_field:

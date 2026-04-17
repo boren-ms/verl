@@ -1,11 +1,11 @@
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/earnings22/data.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/data.jsonl
   cache_name: auto_earnings22
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/earnings22/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
   add_prompt:
     task: lang_asr
     forced: True
@@ -17,13 +17,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/gigaspeech/data.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/data.jsonl
   cache_name: auto_gigaspeech
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/gigaspeech/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/audio/"
   add_prompt:
     task: lang_asr_lex
     forced: True
@@ -35,13 +35,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/spgispeech/data.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/data.jsonl
   cache_name: auto_spgispeech
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/spgispeech/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
   add_prompt:
     task: lang_asr
     forced: True

@@ -16,7 +16,7 @@ add_prompt:
 post_process:
   trim_silence:
     rand_cut_ms: 300
-    output_dir: ${oc.env:DATA_PATH}/boren/data/verl/trimmed/ami_trim03
+    output_dir: az://orngwus2cresco/data/boren/data/verl/trimmed/ami_trim03
   add_field:
     fields:
       data_source: asr

@@ -1,12 +1,12 @@
 dataset_name: tsv
 # nug_egs: 5000
-tsv_paths: ${oc.env:DATA_PATH}/boren/data/LibriSpeech/debug.tsv
+tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/debug.tsv
 pre_process:
   output_egs_limit: 50
 cache_name: auto_train
 num_proc: 1
 add_rare_keywords:
-  common_file: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_words.count.txt
   common_num: 1000
 add_prompt:
   task: asr

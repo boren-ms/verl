@@ -1,6 +1,6 @@
 - dataset_name: ls_bias
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
   cache_name: auto_clean_no
   post_process:
     add_field:
@@ -9,8 +9,8 @@
     verl_format:
       prompt_key: prompt
 - dataset_name: ls_bias
-  jsonl_path: ${oc.env:DATA_PATH}/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
-  data_dir: ${oc.env:DATA_PATH}/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
   cache_name: auto_other_no
   post_process:
     add_field:

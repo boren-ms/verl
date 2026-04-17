@@ -1,11 +1,11 @@
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/ami/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/h100.jsonl
   cache_name: auto_ami_h100
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/ami/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
   add_prompt:
     task: lang_asr
     forced: True
@@ -17,13 +17,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/common_voice/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/common_voice/h100.jsonl
   cache_name: auto_common_voice_h100
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/common_voice/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/common_voice/audio/"
   add_prompt:
     task: lang_asr
     forced: True
@@ -35,13 +35,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/earnings22/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/h100.jsonl
   cache_name: auto_earnings22_h100
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/earnings22/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
   add_prompt:
     task: lang_asr
     forced: True
@@ -53,13 +53,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/gigaspeech/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/h100.jsonl
   cache_name: auto_gigaspeech_h100
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/gigaspeech/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/audio/"
   add_prompt:
     task: lang_asr_lex
     forced: True
@@ -71,13 +71,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/librispeech/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/h100.jsonl
   cache_name: auto_librispeech_h100
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/librispeech/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/audio/"
   add_prompt:
     task: lang_asr_lex
     forced: True
@@ -89,13 +89,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/spgispeech/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/h100.jsonl
   cache_name: auto_spgispeech_h100
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/spgispeech/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
   add_prompt:
     task: lang_asr
     forced: True
@@ -107,13 +107,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/tedlium/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/tedlium/h100.jsonl
   cache_name: auto_tedlium_h100
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/tedlium/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/tedlium/audio/"
   add_prompt:
     task: lang_asr_lex
     forced: True
@@ -125,13 +125,13 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/voxpopuli/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/h100.jsonl
   cache_name: auto_voxpopuli_h100
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/voxpopuli/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/audio/"
   add_prompt:
     task: lang_asr
     forced: True

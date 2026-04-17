@@ -1,5 +1,5 @@
 dataset_name: audio_dir
-data_dir: ${oc.env:DATA_PATH}/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
+data_dir: az://orngwus2cresco/data/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
 cache_name: auto_train
 add_prompt:
   task: rare_asr

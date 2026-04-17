@@ -9,7 +9,7 @@ defaults:
 
 actor_rollout_ref:
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
 trainer:
   experiment_name: grpo_prod_fy22_7b_rare01_n8_mw05_2k_remax

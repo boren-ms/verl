@@ -30,7 +30,7 @@ actor_rollout_ref:
     optim:
       lr: 1e-6
   model:
-    path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
 algorithm:
   adv_estimator: remax

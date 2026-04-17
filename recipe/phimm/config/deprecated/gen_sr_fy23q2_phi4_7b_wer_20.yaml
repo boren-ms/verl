@@ -8,12 +8,12 @@ defaults:
   - _self_
 
 model:
-  path: ${oc.env:DATA_PATH}/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
+  path: az://orngwus2cresco/data/boren/data/ckp/hf_models/phi4-7b-fast-api-s2-final-v4
 
 data:
   batch_size: 1024
   local_output_dir: ~/outputs/gen_prod_fy23q2_phi4_7b_wer_20
-  remote_output_dir: ${oc.env:DATA_PATH}/boren/data/cache_datasets/gen_prod_fy23q2_phi4_7b_wer_20
+  remote_output_dir: az://orngwus2cresco/data/boren/data/cache_datasets/gen_prod_fy23q2_phi4_7b_wer_20
   output_split_size: 1000000
   wer_range: [0.0, 0.2]
   # err_range: [1, 20]

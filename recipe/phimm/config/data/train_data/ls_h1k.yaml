@@ -1,6 +1,6 @@
 dataset_name: tsv
 cache_name: auto_train
-tsv_paths: ${oc.env:DATA_PATH}/boren/data/LibriSpeech/h1k.tsv
+tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/h1k.tsv
 add_prompt:
   task: asr
 post_process:

@@ -1,11 +1,11 @@
 - dataset_name: jsonl
-  jsonl_paths: ${oc.env:DATA_PATH}/boren/data/openasr_jsonl/librispeech/h100.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/h100.jsonl
   cache_name: auto_librispeech_h100_lang_lex
   pre_process:
     path_map:
       field: audio_path
       src_part: "audio/"
-      dst_part: "${oc.env:DATA_PATH}/boren/data/openasr_jsonl/librispeech/audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/audio/"
   add_prompt:
     task: lang_asr_lex
     forced: True
