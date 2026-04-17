@@ -51,7 +51,7 @@ class HFModelConfig(BaseConfig):
     local_tokenizer_path: Optional[str] = None
 
     trainable_params: Optional[list[str]] = None
-    adapter_merged: bool = False  # set True when LoRA is already merged into base weights
+    adapter_merged: bool = True  # set True when LoRA is already merged into base weights
     # whether to load tokenizer. This is useful when we only want to load model config
     load_tokenizer: bool = True
 
