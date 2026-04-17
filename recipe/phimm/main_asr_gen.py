@@ -44,6 +44,7 @@ import blobfile as bf
 from verl.workers.fsdp_workers import ActorRolloutRefWorker
 from pathlib import Path
 from recipe.phimm.utils.env import EnvMgr
+from recipe.phimm.utils.shared import parse_asr_response
 from recipe.phimm.reward.asr_bias import compute_wers, WordError, sum_wers
 
 
@@ -202,14 +203,17 @@ def main_task(config):
         output_padded = wg.generate_sequences(data_padded)
         output = unpad_dataproto(output_padded, pad_size=pad_size)
         responses = []
+        raw_responses = []
         for i in range(len(output)):
             data_item = output[i]
             prompt_length = data_item.batch["prompts"].shape[-1]
             valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
             valid_response_ids = data_item.batch["responses"][:valid_response_length]
             response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
-            responses.append(response_str)
+            raw_responses.append(response_str)
+            responses.append(parse_asr_response(response_str)["text"])
 
+        results["raw_response"] = raw_responses
         results["response"].extend(responses)
         wers = compute_wers(results["text"], results["response"], **wer_kwargs)
         results["wer"] = [x.wer for x in wers]
