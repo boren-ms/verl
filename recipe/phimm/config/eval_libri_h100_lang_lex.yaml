@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_asr
-  - data/val_data/librispeech_h100_lang_lex
+  - data/val_data/ls_h100_lang_lex
   - _self_
 
 actor_rollout_ref:
