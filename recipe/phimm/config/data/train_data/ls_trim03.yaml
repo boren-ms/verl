@@ -14,7 +14,7 @@ pre_process:
     mappings:
       audio_path: audio_file
 add_prompt:
-  task: asr
+  task: lang_asr_lex
   forced: True
 post_process:
   add_field:

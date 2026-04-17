@@ -15,7 +15,7 @@ pre_process:
     mappings:
       text: sft.0.messages.1.content
 add_prompt:
-  task: asr
+  task: lang_asr
   forced: True
 post_process:
   add_field:
