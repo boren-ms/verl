@@ -5,6 +5,7 @@ from difflib import SequenceMatcher
 
 from jiwer import wer as jiwer_wer
 
+from recipe.phimm.utils.shared import parse_asr_response
 from recipe.phimm.reward.openasr_normalizer import (
     EnglishTextNormalizer,
     BasicMultilingualTextNormalizer,
@@ -55,7 +56,7 @@ def _normalize_compound_pairs(ref_norm, hyp_norm):
 
 
 def measure(hyp, ref, **kwargs):
-    """Return WER (float) using OpenASR normalizers + jiwer.wer()."""
+    """Return dict with wer, n_err, n_ref using OpenASR normalizers + jiwer."""
     multilingual = kwargs.get("multilingual", False)
     lang = kwargs.get("lang", None)
 
@@ -67,20 +68,26 @@ def measure(hyp, ref, **kwargs):
     if multilingual:
         ref_norm, hyp_norm = _normalize_compound_pairs(ref_norm, hyp_norm)
 
+    n_ref = len(ref_norm.split())
     if not ref_norm.strip():
-        return 1.0 if hyp_norm.strip() else 0.0
+        wer_val = 1.0 if hyp_norm.strip() else 0.0
+        return {"wer": wer_val, "n_err": n_ref, "n_ref": max(n_ref, 1)}
 
-    return jiwer_wer(ref_norm, hyp_norm)
+    wer_val = jiwer_wer(ref_norm, hyp_norm)
+    n_err = round(wer_val * n_ref)
+    return {"wer": wer_val, "n_err": n_err, "n_ref": n_ref}
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
-    wer = measure(solution_str, ground_truth, **kwargs)
-    return {"score": wer}
+    solution_str = parse_asr_response(solution_str)["text"]
+    result = measure(solution_str, ground_truth, **kwargs)
+    return {"score": result["wer"], **result}
 
 
 def eval_score(solution_str, ground_truth, **kwargs):
-    wer = measure(solution_str, ground_truth, **kwargs)
-    return {"score": wer}
+    solution_str = parse_asr_response(solution_str)["text"]
+    result = measure(solution_str, ground_truth, **kwargs)
+    return {**result}
 
 
 # %%
@@ -91,6 +98,7 @@ if __name__ == "__main__":
         ("I won't go there", "I will not go there"),
     ]
     for ref, hyp in pairs:
-        print(f"ref={ref!r}  hyp={hyp!r}  wer={measure(hyp, ref):.2%}")
+        r = measure(hyp, ref)
+        print(f"ref={ref!r}  hyp={hyp!r}  wer={r['wer']:.2%}  n_err={r['n_err']}  n_ref={r['n_ref']}")
 
 # %%
