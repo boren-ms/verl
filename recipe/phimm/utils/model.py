@@ -1,9 +1,12 @@
 # %%
+import logging
 import types
 from contextlib import contextmanager
 from transformers import AutoModelForCausalLM
 from peft import LoraConfig, get_peft_model
 from peft.tuners.lora.layer import LoraLayer
+
+logger = logging.getLogger(__name__)
 
 
 def get_speech_peft_model(model, lora_name):
@@ -134,6 +137,7 @@ def unload_lora_adapter(model):
         except AttributeError:
             continue
         if hasattr(target, "base_layer"):
+            logger.info(f"Unloading LoRA adapter for key: {key}")
             setattr(parent, target_name, target.get_base_layer())
     return model
 
@@ -141,8 +145,10 @@ def unload_lora_adapter(model):
 def merge_model_adapter(model, lora_name="speech", adapter_merged=False):
     model = add_adapter_func(model)
     if adapter_merged:
+        logger.info("adapter_merged=True, unloading LoRA adapter")
         model.unload_lora_adapter()
     else:
+        logger.info(f"adapter_merged=False, setting LoRA adapter '{lora_name}' and merging")
         model.set_lora_adapter(lora_name)
         model.merge_and_unload()  # merge lora and back to normal Linear
     return model
