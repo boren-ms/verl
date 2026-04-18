@@ -14,6 +14,7 @@ Usage (on remote 8-GPU node):
 """
 
 import json
+import multiprocess
 import subprocess
 from pathlib import Path
 
@@ -23,6 +24,7 @@ import torch
 import yaml
 from datasets import Dataset
 
+multiprocess.set_start_method("spawn", force=True)
 
 # Per-process aligner instance (populated lazily in forked workers)
 _aligner = None
@@ -35,12 +37,20 @@ def load_ds(source: str) -> Dataset:
 
         with bf.BlobFile(source, "r") as f:
             config = yaml.safe_load(f)
+        # Strip training-specific augmentation keys; alignment only needs raw audio_path + text.
+        _AUG_KEYS = {
+            "add_prompt", "overlap_prefix", "context_prefix", "biasing",
+            "simu_preference", "format_preference", "add_rare_keywords",
+            "add_tag_keywords", "post_process", "cache_name",
+        }
+        for k in _AUG_KEYS:
+            config.pop(k, None)
         print(f"Loading dataset from config: {source}")
         ds = create_datasets(config)
         if isinstance(ds, dict):
             from datasets import concatenate_datasets
             ds = concatenate_datasets(list(ds.values()))
-        print(f"  {len(ds)} utterances")
+        print(f"  {len(ds)} utterances, columns: {ds.column_names}")
         return ds
     # Default: JSONL
     print(f"Loading: {source}")
