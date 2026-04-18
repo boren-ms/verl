@@ -62,7 +62,11 @@ def load_raw_audios(x):  # x is batched
         if audio_path:
             yield sf_read(audio_path)
         elif audio_chunk:
-            yield load_chunk_example(audio_chunk)
+            result = load_chunk_example(audio_chunk)
+            if isinstance(result, list):
+                yield result[0]  # "audios" chunk type returns list of (data, sr)
+            else:
+                yield result
         else:
             raise ValueError("No audio data found in the input dictionary.")
 
