@@ -74,7 +74,7 @@ def save_ds(ds: Dataset, output_path: str) -> Dataset:
         print(f"Dropping columns: {drop}")
         ds = ds.remove_columns(drop)
     with bf.BlobFile(output_path, "wb") as f:
-        if output_path.endswith(".json"):
+        if output_path.endswith(".jsonl"):
             ds.to_json(f, orient="records", lines=True)
         else:
             ds.to_parquet(f)
