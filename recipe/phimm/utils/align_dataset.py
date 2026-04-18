@@ -177,10 +177,10 @@ def align_ds(ds: Dataset, language="English", batch_size=8, n_gpus=8, workers_pe
 _ALIGNED_ROOT = "az://orngwus2cresco/data/boren/data/verl/aligned"
 
 
-def _default_output(source: str) -> str:
+def _default_output(source: str, ext="jsonl") -> str:
     """Derive default output path from source: <ALIGNED_ROOT>/<stem>.jsonl"""
     stem = source.rsplit("/", 1)[-1].rsplit(".", 1)[0]
-    return f"{_ALIGNED_ROOT}/{stem}.jsonl"
+    return f"{_ALIGNED_ROOT}/{stem}.{ext}"
 
 
 def main(
@@ -203,7 +203,7 @@ def main(
         workers_per_gpu: Number of worker processes per GPU (overlap I/O with compute).
         n_examples: Number of example rows to print after saving.
     """
-    output_path = output_path or _default_output(input_path)
+    output_path = output_path or _default_output(input_path, ext="parquet")
     ds = load_ds(input_path)
     ds = align_ds(ds, language=language, batch_size=batch_size, n_gpus=n_gpus, workers_per_gpu=workers_per_gpu)
     ds = save_ds(ds, output_path)
