@@ -77,7 +77,6 @@ actor_rollout_ref:
     tensor_model_parallel_size: 1
     name: vllm
     temperature: 1.0
-    repetition_penalty: 1.0093
     gpu_memory_utilization: 0.8
     load_format: safetensors
     enforce_eager: True
