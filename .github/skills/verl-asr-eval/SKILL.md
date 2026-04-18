@@ -51,7 +51,14 @@ Configs live at `recipe/phimm/config/eval_*.yaml` and compose from `recipe/phimm
    rcall-brix ssh {NODE} -- 'bash -l -c "pgrep -fa \"recipe.phimm\" 2>/dev/null || echo No verl eval running"'
    ```
 
-3. **Assign node**: pick the first unoccupied Ready `verl-*` node. If the user specified a node, use that. If no unoccupied node, report status and ask.
+3. **Assign node**: pick the first unoccupied Ready `verl-*` node. If the user specified a node, use that even if it is busy (see below).
+
+4. **If the chosen node is busy** (has running Ray jobs or active `recipe.phimm` processes):
+   - **Do NOT kill or stop the existing job.** Report what is currently running (job ID, config name, runtime).
+   - **Wait for the node to become free.** Poll every **5 minutes** using the occupancy check from step 2.
+   - After each poll, report status: `"Node {NODE} still busy — {JOB_ID} running for {DURATION}. Waiting..."`.
+   - Once the node becomes idle (no running Ray jobs and no `recipe.phimm` processes), proceed to Step 1.
+   - If no unoccupied node exists and no specific node was requested, report the status of all Ready nodes and ask the user which node to wait on.
 
 ### Step 1 — Resolve inputs
 
