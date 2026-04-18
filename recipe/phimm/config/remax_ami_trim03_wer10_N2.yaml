@@ -37,7 +37,7 @@ actor_rollout_ref:
 algorithm:
   adv_estimator: remax
 data:
-  train_batch_size: 128
+  train_batch_size: 64
 trainer:
   nnodes: 2
   total_epochs: 1
