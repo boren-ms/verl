@@ -22,7 +22,6 @@ Run an ASR evaluation job on a remote verl Brix node, monitor it to completion, 
 | **eval_config** | No | `eval_libri_h100` | `eval_openasr`, `eval_libri_h100` |
 | **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
-| **checkpoint_path** | No | None | `az://orngwus2cresco/data/boren/outputs/verl_repeat/remax_ami_trim03_wer10/global_step_70` |
 | **word_error_sets** | No | `1` (first data source only) | `all` (all data sources) |
 
 ## Available Eval Configs
@@ -58,11 +57,6 @@ Configs live at `recipe/phimm/config/eval_*.yaml` and compose from `recipe/phimm
 
 - **eval_config**: Extract from the user's request. Default: `eval_libri_h100`. The config name is the YAML filename without `.yaml` under `recipe/phimm/config/`.
 - **model_path**: Usually baked into the eval config. If the user specifies a custom model path, it will be passed as a hydra override.
-- **checkpoint_path**: If the user wants to evaluate a specific training checkpoint (FSDP shards), resolve the full checkpoint path. Training checkpoints are saved at `az://orngwus2cresco/data/boren/outputs/verl_repeat/{EXPERIMENT_NAME}/global_step_{STEP}/`. To discover available steps:
-  ```bash
-  bbb ls az://orngwus2cresco/data/boren/outputs/verl_repeat/{EXPERIMENT_NAME}/ 2>&1 | grep global_step
-  ```
-  The checkpoint contains FSDP-sharded weights under `actor/` (e.g. `model_world_size_8_rank_0.pt`). These are **not** HF-format — they must be loaded via `trainer.resume_from_path`, not `actor_rollout_ref.model.path`.
 - **word_error_sets**: Default `1` — only analyze the first data source. If user says "all", analyze all data sources.
 
 ### Step 2 — Push code and submit the eval job
@@ -90,28 +84,10 @@ Configs live at `recipe/phimm/config/eval_*.yaml` and compose from `recipe/phimm
    bash submit_job.sh {NODE} recipe/phimm/config/{EVAL_CONFIG}.yaml false true false
    ```
 
-   If a custom **HF model path** is specified, append a hydra override:
+   If a custom model path is specified, append a hydra override:
    ```bash
    rcall-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_asr_dapo --config-name {EVAL_CONFIG} trainer.experiment_name={EVAL_CONFIG} actor_rollout_ref.model.path={MODEL_PATH}"'
    ```
-
-   If evaluating an **FSDP training checkpoint** (e.g. from a remax/grpo run), use `trainer.resume_from_path` instead. The base HF model path stays the same (the original pretrained model); the FSDP checkpoint overrides the weights at load time:
-   ```bash
-   bash submit_job.sh {NODE} recipe/phimm/config/{EVAL_CONFIG}.yaml false true false \
-     "trainer.resume_from_path={CHECKPOINT_PATH}"
-   ```
-   Or via `ray job submit`:
-   ```bash
-   rcall-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_asr_dapo --config-name {EVAL_CONFIG} trainer.experiment_name={EVAL_CONFIG} trainer.resume_from_path={CHECKPOINT_PATH}"'
-   ```
-   Where `{CHECKPOINT_PATH}` is the full path to the checkpoint directory, e.g.:
-   `az://orngwus2cresco/data/boren/outputs/verl_repeat/{EXPERIMENT}/global_step_{STEP}`
-
-   The loader will:
-   1. Load the base HF model from `actor_rollout_ref.model.path`
-   2. Download FSDP shards from `{CHECKPOINT_PATH}/actor/model_world_size_N_rank_*.pt`
-   3. Override the model weights with the checkpoint
-   4. Set the global step to the checkpoint step number
 
    Save the output — it contains the Ray job ID (e.g. `raysubmit_XXXX`).
 
@@ -241,8 +217,6 @@ If `validation_data_dir` is not configured and no JSONL files are found:
 - **Always push code first** before submitting jobs. Use `bpush {NODE}` or `submit_job.sh` (which pushes automatically). Never submit a job without syncing code first.
 - For remote operations, use `rcall-brix ssh`, `rcall-brix scp`, or the convenience wrappers `bpush` and `submit_job.sh`.
 - The word error analysis script (`analyze_word_errors.py`) supports custom column names via `--ref-column` and `--hyp-column`. verl JSONL uses `gts` and `output`.
-- **FSDP checkpoints vs HF models**: Training checkpoints are FSDP-sharded (files like `model_world_size_8_rank_0.pt`). These cannot be passed as `actor_rollout_ref.model.path` — use `trainer.resume_from_path` instead. The base model path stays as the original HF model; the FSDP checkpoint overrides weights at load time.
-- **Checkpoint path format**: `az://orngwus2cresco/data/boren/outputs/verl_repeat/{EXPERIMENT_NAME}/global_step_{STEP}` — pass the directory, not individual shard files.
 
 ## Dependent Skills
 

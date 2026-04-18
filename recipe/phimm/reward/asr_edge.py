@@ -80,7 +80,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
     trans_dict = parse_asr_response(solution_str)
     
-    lang = trans_dict["lang"].lower() == "english"
+    lang = (trans_dict["lang"] or "").lower() == "english"
     format = bool(trans_dict["formatted"])
     
     err = measure(trans_dict["text"], ground_truth, **kwargs)
@@ -110,7 +110,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
     trans_dict = parse_asr_response(solution_str)
-    lang = trans_dict["lang"].lower() == "english"
+    lang = (trans_dict["lang"] or "").lower() == "english"
     format = bool(trans_dict["formatted"])
 
     err = measure(trans_dict["text"], ground_truth, **kwargs)
