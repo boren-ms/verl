@@ -1,6 +1,8 @@
 # %%
 import os
 import re
+import uuid
+import math
 from collections import defaultdict
 import ast
 import random
@@ -29,7 +31,7 @@ from recipe.phimm.utils.shared import (
     to_int,
     unbatch,
 )
-from recipe.phimm.utils.audio import sf_read, load_raw_audio
+from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
 
 prompt_format = "<|user|><|audio_1|>{}<|end|><|assistant|>"
@@ -443,8 +445,6 @@ def filter_ds(ds, **kwargs):
 
 def trim_silence(ds, **kwargs):
     """Trim head/tail silence from audio files using Silero VAD."""
-    import random
-    import uuid
     from recipe.phimm.utils.trim_silence import SilenceTrimmer
 
     output_dir = kwargs.get("output_dir", None)
@@ -466,7 +466,7 @@ def trim_silence(ds, **kwargs):
                     out_paths.append(example.get("audio_path", ""))
                     continue
                 out_path = f"{output_dir.rstrip('/')}/{uuid.uuid4().hex}.wav"
-                trimmer.write_audio(out_path, trimmed, sr)
+                sf_write(out_path, trimmed, sr)
                 out_paths.append(out_path)
             except Exception as e:
                 print(f"[WARN] trim_silence: {e}")
@@ -481,6 +481,46 @@ def trim_silence(ds, **kwargs):
     n_after = len(ds)
     if n_before != n_after:
         print(f"Filtered empty audio_path after trim: {n_before} => {n_after}")
+    return ds
+
+
+def trim_tailing(ds, **kwargs):
+    """Randomly remove trailing words and cut audio based on word timestamps."""
+    
+    output_dir = kwargs.get("output_dir", None)
+    cut_rate = kwargs.get("max_cut_rate", 0.1)
+    ts_field = kwargs.get("ts_field", "word_timestamps")
+
+    def trim_batch(batch):
+        out_paths = []
+        out_texts = []
+        for example in unbatch(batch):
+            try:
+                words = example.get(ts_field, None)
+                last_n = math.ceil((1-random.random() * cut_rate) * len(words))
+                words = words[:last_n]
+                if not words:
+                    out_paths.append(example.get("audio_path", ""))
+                    out_texts.append(example.get("text", ""))
+                    continue
+                text = " ".join([w["word"] for w in words])
+                end = words[-1]["end"]
+                audio, sr = load_raw_audio(example)
+                trimmed = audio[:int(end * sr)]
+                out_path = f"{output_dir.rstrip('/')}/{uuid.uuid4().hex}.wav"
+                sf_write(out_path, trimmed, sr)
+                out_paths.append(out_path)
+                out_texts.append(text)
+            except Exception as e:
+                print(f"[WARN] trim_tailing: {e}")
+                out_paths.append(example.get("audio_path", ""))
+                out_texts.append(example.get("text", ""))
+        return {"audio_path": out_paths, "text": out_texts, }
+
+    map_kwargs = pop_map_kwargs(kwargs)
+    map_kwargs.setdefault("batch_size", 16)
+    ds = ds.map(trim_batch, batched=True, **map_kwargs, desc="Trimming trailing words")
+    ds = ds.filter(lambda x: bool(x.get("audio_path", "")))
     return ds
 
 
@@ -768,6 +808,8 @@ def process_ds(ds, **kwargs):
         ds = filter_by_wer(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
     if trim_silence_kwargs := kwargs.get("trim_silence", {}):
         ds = trim_silence(ds, **merge_kwargs(map_kwargs, trim_silence_kwargs))
+    if trim_tailing_kwargs := kwargs.get("trim_tailing", {}):
+        ds = trim_tailing(ds, **merge_kwargs(map_kwargs, trim_tailing_kwargs))
     if filter_short_audio_kwargs := kwargs.get("filter_short_audio", {}):
         ds = filter_short_audio(ds, **merge_kwargs(map_kwargs, filter_short_audio_kwargs))
     if path_map_kwargs := kwargs.get("path_map", {}):

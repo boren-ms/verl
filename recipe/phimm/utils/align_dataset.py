@@ -61,11 +61,24 @@ def load_ds(source: str) -> Dataset:
     return ds
 
 
+_KEEP_COLS = {"id", "text", "word_timestamps", "n_words"}
+_KEEP_PREFIXES = ("id", "audio_")
+
+
 def save_ds(ds: Dataset, output_path: str) -> Dataset:
-    """Save Dataset to parquet."""
+    """Save only required columns to JSONL (default) or parquet."""
+    keep = [c for c in ds.column_names
+            if c in _KEEP_COLS or c.startswith(_KEEP_PREFIXES)]
+    drop = [c for c in ds.column_names if c not in keep]
+    if drop:
+        print(f"Dropping columns: {drop}")
+        ds = ds.remove_columns(drop)
     with bf.BlobFile(output_path, "wb") as f:
-        ds.to_parquet(f)
-    print(f"Saved: {output_path} ({len(ds)} rows)")
+        if output_path.endswith(".json"):
+            ds.to_json(f, orient="records", lines=True)
+        else:
+            ds.to_parquet(f)
+    print(f"Saved: {output_path} ({len(ds)} rows, columns: {ds.column_names})")
     return ds
 
 
@@ -165,9 +178,9 @@ _ALIGNED_ROOT = "az://orngwus2cresco/data/boren/data/verl/aligned"
 
 
 def _default_output(source: str) -> str:
-    """Derive default output path from source: <ALIGNED_ROOT>/<stem>.parquet"""
+    """Derive default output path from source: <ALIGNED_ROOT>/<stem>.jsonl"""
     stem = source.rsplit("/", 1)[-1].rsplit(".", 1)[0]
-    return f"{_ALIGNED_ROOT}/{stem}.parquet"
+    return f"{_ALIGNED_ROOT}/{stem}.jsonl"
 
 
 def main(

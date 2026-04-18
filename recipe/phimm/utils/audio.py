@@ -1,5 +1,6 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
+from numpy.compat import Path
 import soundfile as sf
 from recipe.phimm.data.chunk import load_chunk_example
 
@@ -13,6 +14,13 @@ def sf_read(file_path):
     with bf.BlobFile(file_path, "rb") as f:
         audio, sr = sf.read(f)
     return audio, sr
+
+
+def sf_write(file_path, audio, sr):
+    """Write audio to a file."""
+    fmt = Path(file_path).suffix.lstrip(".").upper() or "WAV"
+    with bf.BlobFile(file_path, "wb") as f:
+        sf.write(f, audio, sr, format=fmt)
 
 
 def limit_audio(x, fs, max_dur=None):
@@ -49,6 +57,7 @@ def load_raw_audios(x):  # x is batched
     audio_paths = x.get("audio_path", [])
     audio_chunks = x.get("audio_chunk", [])
     from itertools import zip_longest
+
     for audio_path, audio_chunk in zip_longest(audio_paths, audio_chunks, fillvalue=None):
         if audio_path:
             yield sf_read(audio_path)

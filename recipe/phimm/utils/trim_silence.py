@@ -60,10 +60,8 @@ class SilenceTrimmer:
     @staticmethod
     def write_audio(output_path: str, audio, sr: int):
         """Write audio to local or az:// path, inferring format from extension."""
-        import blobfile as bf
-        fmt = Path(output_path).suffix.lstrip(".").upper() or "WAV"
-        with bf.BlobFile(output_path, "wb") as f:
-            sf.write(f, audio, sr, format=fmt)
+        from recipe.phimm.utils.audio import sf_write
+        sf_write(output_path, audio, sr)
 
     def _speech_timestamps(self, audio: np.ndarray, window: int = 512) -> list[dict]:
         sr = self._TARGET_SR
