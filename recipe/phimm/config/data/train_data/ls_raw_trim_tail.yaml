@@ -2,10 +2,6 @@ dataset_name: parquet
 parquet_paths: az://orngwus2cresco/data/boren/data/verl/aligned/ls_raw.parquet
 num_proc: auto
 cache_name: auto_train
-pre_process:
-  rename_fields:
-    mappings:
-      audio_path: audio_chunk
 add_prompt:
   task: lang_asr
   forced: True
