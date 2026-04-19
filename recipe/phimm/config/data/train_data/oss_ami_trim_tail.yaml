@@ -1,0 +1,20 @@
+dataset_name: parquet
+parquet_paths: az://orngwus2cresco/data/boren/data/verl/aligned/oss_ami.parquet
+num_proc: auto
+cache_name: auto_train
+pre_process:
+  rename_fields:
+    mappings:
+      audio_path: audio_chunk
+add_prompt:
+  task: lang_asr
+  forced: True
+post_process:
+  trim_tailing:
+    max_cut_rate: 0.1
+    output_dir: az://orngwus2cresco/data/boren/data/verl/trimmed/ami_trim_tail
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
