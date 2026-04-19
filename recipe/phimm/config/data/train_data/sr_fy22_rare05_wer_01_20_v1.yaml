@@ -1,7 +1,6 @@
 dataset_name: parquet
 parquet_paths: az://orngwus2cresco/data/boren/data/cache_datasets/gen_prod_fy22_phi4_7b_wer_20/part-*.parquet
 num_proc: auto
-cache_name: auto_train
 pre_process:
   filter_by_wer:
     wer_range: [0.001, 0.2] # filter WER between 0.1% and 20%

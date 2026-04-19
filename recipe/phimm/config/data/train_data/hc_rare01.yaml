@@ -1,7 +1,6 @@
 - dataset_name: cached
   cache_path: az://orngwus2cresco/data/boren/data/cache_datasets/hcv2_fy22_info_tag/
   num_proc: auto
-  cache_name: auto_train
   pre_process:
     path_map:
       field: audio_chunk
@@ -26,7 +25,6 @@
 - dataset_name: cached
   cache_path: az://orngwus2cresco/data/boren/data/cache_datasets/stage1_en_asr_hc_fy23q2_tag_entity/
   num_proc: auto
-  cache_name: auto_train
   pre_process:
     path_map:
       field: audio_chunk

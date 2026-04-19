@@ -1,6 +1,5 @@
 dataset_name: parquet
 parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ami_trim00_wer10/part-*.parquet
-cache_name: auto_train
 add_prompt:
   task: lang_asr
   forced: True

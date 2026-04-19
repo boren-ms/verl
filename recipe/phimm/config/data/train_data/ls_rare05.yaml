@@ -1,5 +1,4 @@
 dataset_name: tsv
-cache_name: auto_train
 # num_egs: 5000
 # tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/debug.tsv
 tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv

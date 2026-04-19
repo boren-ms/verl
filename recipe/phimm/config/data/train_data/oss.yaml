@@ -30,7 +30,6 @@ chunk_types:
   - audios
   - sft.0.messages.1.content
 num_proc: auto
-cache_name: auto_train
 pre_process:
   rename_fields:
     mappings:

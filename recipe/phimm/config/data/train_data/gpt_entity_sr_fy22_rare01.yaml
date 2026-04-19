@@ -18,7 +18,6 @@
     - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk_merged.json
       chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk
   num_proc: auto
-  cache_name: auto_train
   add_rare_keywords:
     common_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/1grams_english.tsv
     common_num: 10000
@@ -36,7 +35,6 @@
 - dataset_name: cached
   cache_path: az://orngwus2cresco/data/boren/data/cache_datasets/hcv2_fy22_info_tag/
   num_proc: auto
-  cache_name: auto_train
   pre_process:
     path_map:
       field: audio_chunk

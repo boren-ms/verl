@@ -1,6 +1,5 @@
 -  dataset_name: audio_dir
    data_dir: az://orngwus2cresco/data/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
-   cache_name: auto_train
    num_proc: auto
    add_prompt:
      task: rare_asr
@@ -14,7 +13,6 @@
 -  dataset_name: parquet
    parquet_paths: az://orngwus2cresco/data/boren/data/cache_datasets/gen_prod_fy22_phi4_7b_wer_20/part-*.parquet
    num_proc: auto
-   cache_name: auto_train
    pre_process:
      filter_by_wer:
        wer_range: [0.0, 0.2] # filter WER between 0.0% and 20%

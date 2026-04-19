@@ -1,5 +1,4 @@
 dataset_name: tsv
-cache_name: auto_train
 tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
 biasing:
   buffer_size: 100000
