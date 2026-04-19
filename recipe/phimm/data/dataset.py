@@ -3,6 +3,7 @@ import os
 import re
 import uuid
 import math
+import json
 from collections import defaultdict
 import ast
 import random
@@ -12,6 +13,7 @@ import pandas as pd
 import string
 from pathlib import Path
 import sys
+
 sys.path.insert(0, str(Path(__file__).parents[3]))
 from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
@@ -64,7 +66,7 @@ def read_word_count(file_path, num=None, tn_name=None):
                 break
             parts = line.split()
             word = text_norm(parts[0], tn_name)
-            cnt = to_int(parts[1] , 0) if len(parts) > 1 else 0
+            cnt = to_int(parts[1], 0) if len(parts) > 1 else 0
             wd_cnt[word] += cnt
     return wd_cnt
 
@@ -112,6 +114,7 @@ def jsonl_dataset(jsonl_paths, **kwargs):
     ds = load_dataset("json", data_files=fs_files, split="train", storage_options=options)
     ds = stream_shuffle(ds, **kwargs)
     return ds
+
 
 def parquet_dataset(parquet_paths, **kwargs):
     """Load a Parquet dataset from the specified paths."""
@@ -162,9 +165,7 @@ def pop_map_kwargs(kwargs):
     return output
 
 
-def ls_bias_dataset(
-    jsonl_path, bias_key=None, with_gt=False, min_word_len=None, bias_sort=False, tag="*", data_dir=None, **kwargs
-):
+def ls_bias_dataset(jsonl_path, bias_key=None, with_gt=False, min_word_len=None, bias_sort=False, tag="*", data_dir=None, **kwargs):
     """Create a dataset from the given split."""
     ds = jsonl_dataset(jsonl_path, **kwargs)
 
@@ -262,6 +263,7 @@ def entity_dataset(
 
     return ds.map(load_sample, **pop_map_kwargs(kwargs))
 
+
 def audio_dir_dataset(data_dir, **kwargs):
     """Load audio files from a directory."""
     examples = []
@@ -271,11 +273,14 @@ def audio_dir_dataset(data_dir, **kwargs):
             continue
         with bf.BlobFile(text_file, "r") as f:
             trans = f.read().strip()
-        examples.append({
-            "audio_path": audio_file,
-            "text": trans,
-        })
+        examples.append(
+            {
+                "audio_path": audio_file,
+                "text": trans,
+            }
+        )
     return Dataset.from_list(examples)
+
 
 def load_tsv(tsv_file, **kwargs):
     """Load a TSV file into a dataset."""
@@ -484,38 +489,69 @@ def trim_silence(ds, **kwargs):
     return ds
 
 
+def load_timestamps(timestamps):
+    """Parse timestamps from list or serialized string."""
+    if isinstance(timestamps, str):
+        try:
+            timestamps = json.loads(timestamps)
+        except json.JSONDecodeError:
+            try:
+                timestamps = ast.literal_eval(timestamps)
+            except (ValueError, SyntaxError):
+                return []
+    return timestamps if isinstance(timestamps, list) else []
+
+
+def to_float(value, default=0.0):
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+
 def trim_tailing(ds, **kwargs):
     """Randomly remove trailing words and cut audio based on word timestamps."""
-    
+
     output_dir = kwargs.get("output_dir", None)
     cut_rate = kwargs.get("max_cut_rate", 0.1)
     ts_field = kwargs.get("ts_field", "word_timestamps")
+    min_dur_ms = kwargs.get("min_dur_ms", 300)
 
     def trim_batch(batch):
         out_paths = []
         out_texts = []
         for example in unbatch(batch):
             try:
-                words = example.get(ts_field, None)
-                last_n = math.ceil((1-random.random() * cut_rate) * len(words))
+                words = load_timestamps(example.get(ts_field, None))
+                last_n = math.ceil((1 - random.random() * cut_rate) * len(words))
                 words = words[:last_n]
                 if not words:
                     out_paths.append(example.get("audio_path", ""))
                     out_texts.append(example.get("text", ""))
                     continue
-                text = " ".join([w["word"] for w in words])
-                end = words[-1]["end"]
+                text = " ".join([w.get("text", "") for w in words]).strip()
+                end = to_float(words[-1].get("end", 0.0))
+                if end <= 0:
+                    out_paths.append(example.get("audio_path", ""))
+                    out_texts.append(example.get("text", ""))
+                    continue
                 audio, sr = load_raw_audio(example)
-                trimmed = audio[:int(end * sr)]
+                if end * 1000 < min_dur_ms:
+                    out_paths.append(example.get("audio_path", ""))
+                    out_texts.append(example.get("text", ""))
+                    continue
                 out_path = f"{output_dir.rstrip('/')}/{uuid.uuid4().hex}.wav"
-                sf_write(out_path, trimmed, sr)
+                sf_write(out_path, audio[: int(end * sr)], sr)
                 out_paths.append(out_path)
                 out_texts.append(text)
             except Exception as e:
                 print(f"[WARN] trim_tailing: {e}")
                 out_paths.append(example.get("audio_path", ""))
                 out_texts.append(example.get("text", ""))
-        return {"audio_path": out_paths, "text": out_texts, }
+        return {
+            "audio_path": out_paths,
+            "text": out_texts,
+        }
 
     map_kwargs = pop_map_kwargs(kwargs)
     map_kwargs.setdefault("batch_size", 16)
@@ -544,7 +580,7 @@ def filter_short_audio(ds, **kwargs):
 
     n_egs = len(ds)
     ds = ds.filter(is_long_enough_batch, batched=True, batch_size=batch_size, num_proc=1, desc="Filtering short audio")
-    print(f"Filtered short audio (<{min_dur}s): {n_egs} => {len(ds)} [{len(ds)/n_egs:.2%}]")
+    print(f"Filtered short audio (<{min_dur}s): {n_egs} => {len(ds)} [{len(ds) / n_egs:.2%}]")
     return ds
 
 
@@ -586,9 +622,7 @@ def extract_tags(text):
 
 def add_tag_keywords(ds, **kwargs):
     """Add keywords extracted from tags in the text to the dataset."""
-    src_field = kwargs.get(
-        "src_field", "info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw"
-    )
+    src_field = kwargs.get("src_field", "info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw")
     tgt_field = kwargs.get("tgt_field", "keywords")
 
     def tag_keywords(egs):
@@ -640,8 +674,8 @@ def filter_by_wer(ds, **kwargs):
             if name not in x:
                 continue
             return x[name]
-        return default  
-    
+        return default
+
     def is_good(val, val_range=None):
         if val_range is None or val is None:
             return True
@@ -649,11 +683,7 @@ def filter_by_wer(ds, **kwargs):
         return val_range[0] <= val <= val_range[-1]
 
     def wer_filter_fn(x):
-        good = (
-            is_good(get_number(x, "WER"), wer_range)
-            and is_good(get_number(x, "BWER"), bwer_range)
-            and is_good(get_number(x, "UWER"), uwer_range)
-        )
+        good = is_good(get_number(x, "WER"), wer_range) and is_good(get_number(x, "BWER"), bwer_range) and is_good(get_number(x, "UWER"), uwer_range)
         return good
 
     n_egs = len(ds)
