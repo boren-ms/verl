@@ -706,9 +706,12 @@ class SGLangRollout(BaseRollout):
                     "top_k": self.config.val_kwargs.top_k,
                     "top_p": self.config.val_kwargs.top_p,
                     "temperature": self.config.val_kwargs.temperature,
+                    "repetition_penalty": self.config.val_kwargs.repetition_penalty,
                     "n": 1,  # if validate, already repeat in ray_trainer
                 }
             )
+            if self.config.val_kwargs.response_length is not None:
+                request_sampling_params["max_new_tokens"] = self.config.val_kwargs.response_length
 
         # Update with any additional kwargs
         request_sampling_params.update(kwargs)
@@ -832,9 +835,12 @@ class SGLangRollout(BaseRollout):
                     "top_k": self.config.val_kwargs.top_k,
                     "top_p": self.config.val_kwargs.top_p,
                     "temperature": self.config.val_kwargs.temperature,
+                    "repetition_penalty": self.config.val_kwargs.repetition_penalty,
                     "n": 1,  # if validate, already repeat in ray_trainer
                 }
             )
+            if self.config.val_kwargs.response_length is not None:
+                request_sampling_params["max_new_tokens"] = self.config.val_kwargs.response_length
 
         # Update with any additional kwargs
         request_sampling_params.update(kwargs)

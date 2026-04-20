@@ -36,6 +36,8 @@ class SamplingConfig(BaseConfig):
     temperature: float = 1.0
     top_k: int = -1
     top_p: float = 1.0
+    repetition_penalty: float = 1.0
+    response_length: Optional[int] = None
     do_sample: bool = True
     n: int = 1
 

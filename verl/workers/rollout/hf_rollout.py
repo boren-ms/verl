@@ -75,8 +75,11 @@ class HFRollout(BaseRollout):
                 "top_k": max(0, self.config.val_kwargs.top_k),  # to be compatible with vllm
                 "top_p": self.config.val_kwargs.top_p,
                 "temperature": self.config.val_kwargs.temperature,
+                "repetition_penalty": self.config.val_kwargs.repetition_penalty,
                 "num_return_sequences": 1,  # if validate, already repeat in ray_trainer
             }
+            if self.config.val_kwargs.response_length is not None:
+                response_length = self.config.val_kwargs.response_length
         else:
             # do_sample -> use rollout config
             kwargs = {
