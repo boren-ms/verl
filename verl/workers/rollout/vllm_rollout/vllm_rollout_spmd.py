@@ -309,26 +309,7 @@ class vLLMRollout(BaseRollout):
 
         do_sample = prompts.meta_info.get("do_sample", True)
         is_validate = prompts.meta_info.get("validate", False)
-        if not do_sample:
-            kwargs = {
-                "best_of": 1,
-                "top_p": 1.0,
-                "top_k": -1,
-                "min_p": 0.0,
-                "temperature": 0,
-                "n": 1,  # if greedy, only 1 response
-            }
-            if is_validate:
-                # apply val_kwargs overrides even for greedy decoding
-                kwargs["repetition_penalty"] = self.config.val_kwargs.repetition_penalty
-                if self.config.val_kwargs.response_length is not None:
-                    kwargs["max_tokens"] = self.config.val_kwargs.response_length
-                print(
-                    f"[vllm_rollout] validate greedy: repetition_penalty={kwargs.get('repetition_penalty')}, "
-                    f"max_tokens={kwargs.get('max_tokens', 'default')}"
-                )
-        elif is_validate:
-            # TODO: try **
+        if is_validate:
             kwargs = {
                 "top_k": self.config.val_kwargs.top_k,
                 "top_p": self.config.val_kwargs.top_p,
@@ -339,9 +320,19 @@ class vLLMRollout(BaseRollout):
             if self.config.val_kwargs.response_length is not None:
                 kwargs["max_tokens"] = self.config.val_kwargs.response_length
             logger.info(
-                f"[vllm_rollout] validate sample: repetition_penalty={kwargs.get('repetition_penalty')}, "
+                f"[vllm_rollout] validate: "
+                f"repetition_penalty={kwargs.get('repetition_penalty')}, "
                 f"max_tokens={kwargs.get('max_tokens', 'default')}, temperature={kwargs.get('temperature')}"
             )
+        elif not do_sample:
+            kwargs = {
+                "best_of": 1,
+                "top_p": 1.0,
+                "top_k": -1,
+                "min_p": 0.0,
+                "temperature": 0,
+                "n": 1,  # if greedy, only 1 response
+            }
 
         lora_requests = None
         if self.lora_kwargs:
