@@ -1,0 +1,23 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - gen_asr
+  - data/train_data/ls_raw
+  - _self_
+
+model:
+  path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
+
+data:
+  batch_size: 512
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp
+  output_split_size: 10000
+  wer_range: [0.1, 2]
+
+rollout:
+  temperature: 0.0
+  gpu_memory_utilization: 0.8
+  repetition_penalty: 1.0093
+  response_length: 200
