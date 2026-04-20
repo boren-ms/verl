@@ -39,7 +39,7 @@ algorithm:
 data:
   train_batch_size: 64
 trainer:
-  nnodes: 2
+  nnodes: 1
   total_epochs: 1
   # total_training_steps: 100
   test_freq: 10
