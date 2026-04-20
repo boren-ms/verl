@@ -4,6 +4,7 @@ from difflib import SequenceMatcher
 
 from recipe.phimm.utils.shared import parse_asr_response
 
+
 @dataclass
 class Error:
     n_sub: int = 0
@@ -22,17 +23,17 @@ class Error:
 
     @property
     def accuracy(self):
-        return self.n_hit / self.n_ref if self.n_ref > 0 else 0.0
+        return (self.n_ref - self.n_err) / max(self.n_ref, 1)
 
     @property
     def wer(self):
-        return self.n_err / self.n_ref if self.n_ref > 0 else 0.0
-
+        return self.n_err / max(self.n_ref, 1)
 
 
 def _norm_text(text, norm_name="english"):
-    
+
     from recipe.phimm.utils.tn import text_norm as apply_text_norm
+
     return apply_text_norm(text.strip(), name=norm_name)
 
 
@@ -79,18 +80,18 @@ def measure(hyp, ref, **kwargs):
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
     trans_dict = parse_asr_response(solution_str)
-    
+
     lang = (trans_dict["lang"] or "").lower() == "english"
     format = bool(trans_dict["formatted"])
-    
+
     err = measure(trans_dict["text"], ground_truth, **kwargs)
 
     beta = kwargs.get("beta", 1.0)
     edge_beta = kwargs.get("edge_beta", 1.0)
     cutoff = kwargs.get("cutoff", 0.0)
 
-    weighted_err = beta * err.n_err + edge_beta * err.n_edge
-    acc = (err.n_ref - weighted_err) / err.n_ref
+    nw_err = beta * err.n_err + edge_beta * err.n_edge
+    acc = (err.n_ref - nw_err) / max(err.n_ref, 1)  # in case zero n_ref
 
     if lang and format and acc > cutoff:
         score = (acc - cutoff) / (1 - cutoff)
@@ -103,7 +104,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "n_err": err.n_err,
         "n_edge": err.n_edge,
         "n_fmt": int(format),
-        "n_lang": int(lang)
+        "n_lang": int(lang),
     }
 
 
@@ -120,7 +121,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,
         "n_fmt": int(format),
-        "n_lang": int(lang)
+        "n_lang": int(lang),
     }
 
 
