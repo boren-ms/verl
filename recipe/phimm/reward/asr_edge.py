@@ -87,7 +87,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
     beta = kwargs.get("beta", 1.0)
     edge_beta = kwargs.get("edge_beta", 1.0)
-    cutoff = kwargs.get("cutoff", 0.3)
+    cutoff = kwargs.get("cutoff", 0.0)
 
     weighted_err = beta * err.n_err + edge_beta * err.n_edge
     acc = (err.n_ref - weighted_err) / err.n_ref

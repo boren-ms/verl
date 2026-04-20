@@ -12,7 +12,6 @@ custom_reward_function:
   path: recipe/phimm/reward/asr_edge.py
   name: compute_score
   reward_kwargs:
-    cutoff: 0.5
     edge_beta: 0.5
     beta: 1
 
