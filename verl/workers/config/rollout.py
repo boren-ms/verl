@@ -146,6 +146,7 @@ class RolloutConfig(BaseConfig):
     engine_kwargs: dict = field(default_factory=dict)
 
     calculate_log_probs: bool = False
+    use_rollout_log_probs_as_old: bool = False
 
     agent: AgentLoopConfig = field(default_factory=AgentLoopConfig)
 
