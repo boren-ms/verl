@@ -75,6 +75,7 @@ algorithm:
 
 trainer:
   balance_batch: True
+  dedup_responses: False
   total_epochs: 30
   total_training_steps: null
   project_name: verl_examples

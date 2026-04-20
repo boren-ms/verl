@@ -28,7 +28,7 @@ import torch
 from tqdm import tqdm
 
 from verl import DataProto
-from verl.trainer.ppo.core_algos import agg_loss
+from verl.trainer.ppo.core_algos import agg_loss, deduplicate_rollout_responses
 
 from verl.utils.metric import reduce_metrics
 from verl.trainer.ppo.metric_utils import (
@@ -266,6 +266,14 @@ class RayDAPOTrainer(RayPPOTrainer):
                             batch = batch[:traj_bsz]
 
                     batch.batch["response_mask"] = compute_response_mask(batch)
+
+                    # Deduplicate identical rollout responses within each prompt group.
+                    if self.config.trainer.get("dedup_responses", False):
+                        batch, n_total, n_kept, n_removed = deduplicate_rollout_responses(batch)
+                        if n_removed > 0:
+                            metrics["rollout/dedup_removed"] = n_removed
+                            metrics["rollout/dedup_kept"] = n_kept
+                            metrics["rollout/dedup_ratio"] = n_removed / n_total
 
                     # Balance the number of valid tokens across DP ranks.
                     # NOTE: This usually changes the order of data in the `batch`,

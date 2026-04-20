@@ -686,6 +686,57 @@ def compute_gpg_outcome_advantage(
     return scores, scores
 
 
+def deduplicate_rollout_responses(batch, pad_token_id: int = 0) -> tuple:
+    """Remove duplicate responses within each prompt group (same uid) to save training compute.
+
+    For ASR tasks with high temperature, the model often generates many identical responses.
+    These duplicates waste compute in reward, log_prob, ref_log_prob, and training steps
+    without contributing new training signal (identical responses get identical rewards,
+    so their GRPO advantages are all zero after group normalization).
+
+    Args:
+        batch: DataProto with 'responses', 'response_mask' in batch and 'uid' in non_tensor_batch.
+        pad_token_id: Token ID used for padding (ignored during comparison).
+
+    Returns:
+        A tuple of (filtered_batch, n_total, n_kept, n_removed) where filtered_batch is a
+        new DataProto with duplicates removed, and the counts are for logging.
+    """
+    responses = batch.batch["responses"]  # (bs, response_length)
+    response_mask = batch.batch["response_mask"]  # (bs, response_length)
+    uids = batch.non_tensor_batch["uid"]  # (bs,)
+
+    # Group indices by uid
+    uid_to_indices = defaultdict(list)
+    for i, uid in enumerate(uids):
+        uid_to_indices[uid].append(i)
+
+    keep_indices = []
+    for uid, indices in uid_to_indices.items():
+        seen_responses = set()
+        for idx in indices:
+            # Extract valid (non-padded) response tokens as a hashable key
+            mask = response_mask[idx].bool()
+            valid_tokens = responses[idx][mask]
+            token_key = tuple(valid_tokens.tolist())
+
+            if token_key not in seen_responses:
+                seen_responses.add(token_key)
+                keep_indices.append(idx)
+
+    n_total = len(uids)
+    n_kept = len(keep_indices)
+    n_removed = n_total - n_kept
+
+    if n_removed == 0:
+        return batch, n_total, n_kept, n_removed
+
+    keep_indices.sort()
+    filtered_batch = batch.select_idxs(keep_indices)
+
+    return filtered_batch, n_total, n_kept, n_removed
+
+
 def compute_rewards(token_level_scores, old_log_prob, ref_log_prob, kl_ratio):
     """Compute token-level rewards with KL penalty.
 

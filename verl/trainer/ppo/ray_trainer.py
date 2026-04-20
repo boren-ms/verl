@@ -42,7 +42,7 @@ from verl.single_controller.ray import RayClassWithInitArgs, RayResourcePool, Ra
 from verl.single_controller.ray.base import create_colocated_worker_cls
 from verl.trainer.config import AlgoConfig
 from verl.trainer.ppo import core_algos
-from verl.trainer.ppo.core_algos import AdvantageEstimator, agg_loss
+from verl.trainer.ppo.core_algos import AdvantageEstimator, agg_loss, deduplicate_rollout_responses
 from verl.trainer.ppo.metric_utils import (
     compute_data_metrics,
     compute_throughout_metrics,
@@ -1081,6 +1081,17 @@ class RayPPOTrainer:
 
                     if "response_mask" not in batch.batch.keys():
                         batch.batch["response_mask"] = compute_response_mask(batch)
+
+                    # Deduplicate identical rollout responses within each prompt group.
+                    # This saves compute on reward, log_prob, ref_log_prob, and training
+                    # for responses that contribute no new training signal.
+                    if self.config.trainer.get("dedup_responses", False):
+                        batch, n_total, n_kept, n_removed = deduplicate_rollout_responses(batch)
+                        if n_removed > 0:
+                            metrics["rollout/dedup_removed"] = n_removed
+                            metrics["rollout/dedup_kept"] = n_kept
+                            metrics["rollout/dedup_ratio"] = n_removed / n_total
+
                     # Balance the number of valid tokens across DP ranks.
                     # NOTE: This usually changes the order of data in the `batch`,
                     # which won't affect the advantage calculation (since it's based on uid),
