@@ -363,7 +363,9 @@ class vLLMRollout(BaseRollout):
                 # replace the response with ground truth for every n samples
                 if i % self.config.n == 0 and self.config.gt_rollout and not is_validate:
                     ground_truth = non_tensor_batch["reward_model"][i]["ground_truth"]
-                    response[i] = self.tokenizer.encode(ground_truth + "<|end|>")
+                    gt_template = getattr(self.config, "gt_rollout_template", None)
+                    gt_text = gt_template.format(ground_truth) if gt_template else ground_truth
+                    response[i] = self.tokenizer.encode(gt_text + "<|end|>")
 
             response = pad_2d_list_to_length(response, self.pad_token_id, max_length=self.config.response_length).to(
                 idx.device

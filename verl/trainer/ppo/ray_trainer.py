@@ -375,6 +375,8 @@ class RayPPOTrainer:
             train_sampler = create_rl_sampler(self.config.data, self.train_dataset)
 
         num_workers = self.config.data["dataloader_num_workers"]
+        prefetch_factor = self.config.data.get("prefetch_factor", 2 if num_workers > 0 else None)
+        persistent_workers = self.config.data.get("persistent_workers", num_workers > 0)
         gen_batch_size = self.config.data.get("gen_batch_size", self.config.data.train_batch_size)
         self.train_dataloader = StatefulDataLoader(
             dataset=self.train_dataset,
@@ -383,6 +385,8 @@ class RayPPOTrainer:
             drop_last=True,
             collate_fn=get_collate_fn(self.train_dataset, collate_fn),
             sampler=train_sampler,
+            prefetch_factor=prefetch_factor,
+            persistent_workers=persistent_workers,
         )
 
         val_batch_size = self.config.data.val_batch_size or gen_batch_size
@@ -393,6 +397,8 @@ class RayPPOTrainer:
             shuffle=self.config.data.get("validation_shuffle", False),
             drop_last=False,
             collate_fn=get_collate_fn(self.val_dataset, collate_fn),
+            prefetch_factor=prefetch_factor,
+            persistent_workers=persistent_workers,
         )
 
         assert len(self.train_dataloader) >= 1, "Train dataloader is empty!"

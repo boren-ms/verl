@@ -180,6 +180,15 @@ multi_turn:
   # Format of the multi-turn interaction. Options: hermes, llama3_json, ...
   format: hermes
 
+# Whether to include a ground-truth response as the first sample in each group
+gt_rollout: False
+
+# Optional template to wrap the ground-truth text before tokenization.
+# Use '{}' as a placeholder for the ground-truth string.
+# Example: "<ASR><lang=English><TXT>{}</TXT></ASR>"
+# When null, the raw ground-truth text is used (no wrapping).
+gt_rollout_template: null
+
 # support logging rollout prob for debugging purpose
 # "Truncated importance sampling" requires rollout log probs, set to True when turning on Truncated importance sampling
 calculate_log_probs: False

@@ -8,7 +8,7 @@ data:
   trust_remote_code: true
   max_prompt_length: 7168
   max_response_length: 512
-  # dataloader_num_workers: 16 # default 8
+  dataloader_num_workers: 4
   train_batch_size: 8
   max_audio_dur: 80 # max audio duration in seconds
   gen_batch_size: ${data.train_batch_size}
@@ -82,6 +82,8 @@ actor_rollout_ref:
     enforce_eager: True
     stop: ["<|end|>"]
     stop_token_ids: [200020]
+    gt_rollout_template: "<ASR><lang=English><TXT>{}</TXT></ASR>"
+    layered_summon: true
   ref:
     strategy: fsdp2
     log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
