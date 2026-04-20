@@ -399,6 +399,7 @@ def build_comparison_html(rows: list[dict[str, object]], title: str) -> str:
             verdict_label = "No change"
 
         audio_file_stem = normalize_text(row.get("audio_file_stem") or row.get("comparison_id"))
+        ref_text = html.escape(normalize_text(row.get("ref", "")))
         baseline_diff = render_word_diff(normalize_text(row["hyp_baseline"]), normalize_text(row["hyp_target"]), "diff-removed")
         target_diff = render_word_diff(normalize_text(row["hyp_target"]), normalize_text(row["hyp_baseline"]), "diff-added")
         cards.append(
@@ -421,6 +422,10 @@ def build_comparison_html(rows: list[dict[str, object]], title: str) -> str:
                   <span class="value">{format_percent(row["target_wer"])}</span>
                 </div>
               </div>
+              <section class="panel ref-panel">
+                <h3>Reference</h3>
+                <p>{ref_text}</p>
+              </section>
               <div class="compare-grid">
                 <section class="panel">
                   <h3>hyp_baseline</h3>
@@ -560,6 +565,9 @@ def build_comparison_html(rows: list[dict[str, object]], title: str) -> str:
       font-size: 1.4rem;
       font-weight: 700;
     }}
+    .ref-panel {{
+      margin-bottom: 16px;
+    }}
     .compare-grid {{
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -678,55 +686,82 @@ def main() -> None:
     else:
         merged["comparison_id"] = merged["__row_idx"].astype(str)
 
-    top_df = merged.sort_values(
-        by=["target_errors", "error_delta", "target_ref_words", "comparison_id"],
-        ascending=[False, False, False, True],
-    ).head(args.top_n)
+    report_columns = [
+        "comparison_id",
+        *join_columns,
+        "ref",
+        "hyp_baseline",
+        "hyp_target",
+        "ref_matches_baseline",
+        "baseline_ref_words",
+        "baseline_errors",
+        "baseline_substitutions",
+        "baseline_deletions",
+        "baseline_insertions",
+        "baseline_wer",
+        "baseline_total_wer_contribution",
+        "target_ref_words",
+        "target_errors",
+        "target_substitutions",
+        "target_deletions",
+        "target_insertions",
+        "target_wer",
+        "target_total_wer_contribution",
+        "error_delta",
+        "wer_delta",
+    ]
 
-    top_df = top_df.loc[
-        :,
-        [
-            "comparison_id",
-            *join_columns,
-            "ref",
-            "hyp_baseline",
-            "hyp_target",
-            "ref_matches_baseline",
-            "baseline_ref_words",
-            "baseline_errors",
-            "baseline_substitutions",
-            "baseline_deletions",
-            "baseline_insertions",
-            "baseline_wer",
-            "baseline_total_wer_contribution",
-            "target_ref_words",
-            "target_errors",
-            "target_substitutions",
-            "target_deletions",
-            "target_insertions",
-            "target_wer",
-            "target_total_wer_contribution",
-            "error_delta",
-            "wer_delta",
-        ],
-    ].copy()
-    top_df.insert(0, "rank", range(1, len(top_df) + 1))
+    # Report 0: Overall comparison sorted by absolute error_delta (largest changes first)
+    overall_df = merged.copy()
+    overall_df["abs_error_delta"] = overall_df["error_delta"].abs()
+    overall_df = overall_df.sort_values(
+        by=["abs_error_delta", "target_errors", "comparison_id"],
+        ascending=[False, False, True],
+    ).head(args.top_n)
+    overall_df = overall_df.loc[:, report_columns].copy()
+    overall_df.insert(0, "rank", range(1, len(overall_df) + 1))
+
+    # Report 1: Improved utterances (error_delta < 0), sorted by baseline_errors desc
+    improved_df = merged[merged["error_delta"] < 0].sort_values(
+        by=["baseline_errors", "error_delta", "comparison_id"],
+        ascending=[False, True, True],
+    ).head(args.top_n)
+    improved_df = improved_df.loc[:, report_columns].copy()
+    improved_df.insert(0, "rank", range(1, len(improved_df) + 1))
+
+    # Report 2: Degraded utterances (error_delta > 0), sorted by target_errors desc
+    degraded_df = merged[merged["error_delta"] > 0].sort_values(
+        by=["target_errors", "error_delta", "comparison_id"],
+        ascending=[False, False, True],
+    ).head(args.top_n)
+    degraded_df = degraded_df.loc[:, report_columns].copy()
+    degraded_df.insert(0, "rank", range(1, len(degraded_df) + 1))
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     stem = slugify(f"{args.dataset}-{baseline_name}-vs-{target_name}")
-    top_path = output_dir / f"{stem}.top{args.top_n}.csv"
-    summary_path = output_dir / f"{stem}.summary.json"
-    full_path = output_dir / f"{stem}.full.csv"
-    html_path = output_dir / f"{stem}.top{args.top_n}.html"
     local_baseline_jsonl = copy_to_output_dir(baseline_path, output_dir, baseline_name)
     local_target_jsonl = copy_to_output_dir(target_path, output_dir, target_name)
 
-    top_df.to_csv(top_path, index=False)
+    reports = [
+        ("overall", overall_df, f"{stem}.overall-top{args.top_n}"),
+        ("improved", improved_df, f"{stem}.improved-top{args.top_n}"),
+        ("degraded", degraded_df, f"{stem}.degraded-top{args.top_n}"),
+    ]
+
+    summary_outputs: dict[str, dict[str, str]] = {}
+    for report_name, report_df, report_stem in reports:
+        csv_path = output_dir / f"{report_stem}.csv"
+        report_df.to_csv(csv_path, index=False)
+        summary_outputs[report_name] = {"csv": str(csv_path)}
+        if args.write_html:
+            html_path = output_dir / f"{report_stem}.html"
+            write_comparison_html(report_df, html_path, report_stem)
+            summary_outputs[report_name]["html"] = str(html_path)
+
     if args.write_full_csv:
+        full_path = output_dir / f"{stem}.full.csv"
         merged.to_csv(full_path, index=False)
-    if args.write_html:
-        write_comparison_html(top_df, html_path, top_path.stem)
 
     summary = {
         "dataset": args.dataset,
@@ -748,18 +783,21 @@ def main() -> None:
         "baseline_wer": total_baseline_errors / max(total_ref_words, 1),
         "target_wer": total_target_errors / max(total_ref_words, 1),
         "error_delta": total_target_errors - total_baseline_errors,
-        "top_csv": str(top_path),
+        "improved_count": int((merged["error_delta"] < 0).sum()),
+        "degraded_count": int((merged["error_delta"] > 0).sum()),
+        "unchanged_count": int((merged["error_delta"] == 0).sum()),
+        "reports": summary_outputs,
     }
     if args.write_full_csv:
         summary["full_csv"] = str(full_path)
-    if args.write_html:
-        summary["top_html"] = str(html_path)
 
+    summary_path = output_dir / f"{stem}.summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n")
 
     print(json.dumps(summary, indent=2))
-    print()
-    print(top_df.to_markdown(index=False))
+    for report_name, report_df, _report_stem in reports:
+        print(f"\n=== {report_name.upper()} (top {args.top_n}) ===")
+        print(report_df.to_markdown(index=False))
 
 
 if __name__ == "__main__":

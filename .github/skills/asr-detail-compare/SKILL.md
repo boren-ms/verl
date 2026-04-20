@@ -1,6 +1,6 @@
 ---
 name: asr-detail-compare
-description: Compare two ASR `result_details*.jsonl` outputs for the same dataset, especially when Codex needs to load remote `az://` files with `blobfile`, rank the utterances that contribute most to a target model's total WER, and show baseline vs target `hyp` differences side by side. Use for model-to-model detail analysis on the same eval set, top-error investigations, utterance-level WER debugging, and generating standalone HTML comparisons as the default review artifact.
+description: Compare two ASR `result_details*.jsonl` outputs for the same dataset, especially when Codex needs to load remote `az://` files with `blobfile`, rank the utterances that contribute most to a target model's total WER, and show baseline vs target `hyp` differences side by side. Use for model-to-model detail analysis on the same eval set, top-error investigations, utterance-level WER debugging, generating standalone HTML comparisons as the default review artifact, and comparing verl training checkpoints at different steps.
 ---
 
 # ASR Detail Compare
@@ -11,14 +11,20 @@ Compare utterance-level ASR detail files without re-implementing the same merge 
 1. Confirm both models write results under the same results root in the layout `<results-root>/<model>/<dataset>/result_details_*.jsonl`.
 2. Run `scripts/compare_result_details.py` with `--baseline-model`, `--target-model`, and `--dataset`. Only pass explicit paths when you need to override auto-discovery.
 3. Run the script with `--write-html` by default so the main deliverable is a human-friendly utterance review page.
-4. Read the generated `*.summary.json` for dataset-level WER numbers and use `*.topN.html` as the primary artifact. Use `*.topN.csv` when you need the raw ranked table for follow-up analysis.
+4. Read the generated `*.summary.json` for dataset-level WER numbers and improved/degraded/unchanged counts. Use the three HTML reports as the primary review artifacts:
+   - `*.overall-topN.html` for the biggest changes
+   - `*.improved-topN.html` for wins
+   - `*.degraded-topN.html` for regressions
 5. Spot-check a few top-ranked rows before delivering, especially if the script had to fall back to row-order joins.
+
+## Python Environment
+Always use `/home/boren/.virtualenvs/openai/bin/python` to run the script. The system python (`/home/linuxbrew/.linuxbrew/bin/python3`) lacks `pandas`, `blobfile`, and `whisper`.
 
 ## Script
 Run:
 
 ```bash
-python skills/asr-detail-compare/scripts/compare_result_details.py   --baseline-model baseline   --target-model en_hc_fy24_200k_step_7800   --dataset openasr/ami   --output-dir tmp/asr-detail-compare   --write-html   --join-columns audio_file
+/home/boren/.virtualenvs/openai/bin/python .github/skills/asr-detail-compare/scripts/compare_result_details.py   --baseline-model baseline   --target-model en_hc_fy24_200k_step_7800   --dataset openasr/ami   --output-dir tmp/asr-detail-compare   --write-html   --join-columns audio_file
 ```
 
 Useful options:
@@ -26,7 +32,7 @@ Useful options:
 - `--top-n 20`: keep the top 20 utterances by target-model error count.
 - `--join-columns audio_file`: use `audio_file` as the default explicit join key.
 - `--join-columns audio_file_stem`: force the join to use the stem derived from `audio_file` when the full path is not stable across runs.
-- `--ref-column ref` and `--hyp-column hyp`: override schema defaults if needed.
+- `--ref-column ref` and `--hyp-column hyp`: override schema defaults if needed. For verl training JSONL files, use `--ref-column gts --hyp-column clean_output`.
 - `--baseline-path ...` and `--target-path ...`: bypass model discovery and use explicit files.
 - `--write-html`: write the default standalone HTML review page that shows `audio_file_stem`, `baseline_wer`, `target_wer`, and side-by-side `hyp_baseline` vs `hyp_target` with word-level highlights.
 - `--write-full-csv`: also save the full utterance-level joined comparison.
@@ -51,14 +57,42 @@ Useful options:
 - The output includes substitutions, deletions, insertions, utterance WER, total-WER contribution, and `error_delta` vs baseline.
 
 ## Output
-- `*.summary.json`: dataset-level totals and WER for baseline and target.
-- `*.topN.html`: primary review artifact for the ranked rows when `--write-html` is enabled.
-- `*.topN.csv`: companion ranked table with `ref`, `hyp_baseline`, `hyp_target`, and per-model error statistics.
+The script generates **three separate reports** (each as CSV, and as HTML when `--write-html` is enabled):
+
+1. **Overall** (`*.overall-topN`): Top-N utterances with the largest absolute change in error count between baseline and target, sorted by `|error_delta|` descending. Shows the biggest movers regardless of direction.
+2. **Improved** (`*.improved-topN`): Top-N utterances where the target model reduced errors (`error_delta < 0`), sorted by `baseline_errors` descending. Shows the biggest wins.
+3. **Degraded** (`*.degraded-topN`): Top-N utterances where the target model increased errors (`error_delta > 0`), sorted by `target_errors` descending. Shows the worst regressions.
+
+Additional outputs:
+- `*.summary.json`: dataset-level totals, WER for baseline and target, counts of improved/degraded/unchanged utterances, and paths to all report files.
 - `*.full.csv`: optional full joined table when `--write-full-csv` is enabled.
 - Each compared model's `result_details_*.jsonl` file is copied into the output directory for local inspection, with the filename prefixed by the model name.
+
+## Verl Training Checkpoint Comparison
+When comparing verl training outputs at different steps (e.g., step0 vs step200):
+- Use `--baseline-path` / `--target-path` with explicit local JSONL files and `--baseline-name` / `--target-name` for labels.
+- Set `--ref-column gts --hyp-column clean_output` — verl JSONL uses `gts` for reference and `clean_output` for hypothesis.
+- These files lack `audio_file` or any stable utterance ID, so the script will fall back to `__row_idx` (row-order join). This is safe when both files come from the same dataset evaluation with identical ordering.
+- Verl JSONL schema: `input`, `output`, `gts`, `clean_output`, `score`, `step`, `data_source`, `reward`, `n_err`, `n_ref`, `n_edge`, `n_fmt`, `n_lang`.
+
+Example:
+```bash
+/home/boren/.virtualenvs/openai/bin/python .github/skills/asr-detail-compare/scripts/compare_result_details.py \
+  --baseline-path tmp/ami_analysis/step0.jsonl \
+  --target-path tmp/ami_analysis/step200.jsonl \
+  --baseline-name step0 \
+  --target-name step200 \
+  --dataset ami \
+  --ref-column gts \
+  --hyp-column clean_output \
+  --output-dir tmp/ami_analysis/step0_vs_step200 \
+  --write-html \
+  --top-n 30
+```
 
 ## Review Expectations
 - Call out the join key the script chose.
 - Confirm whether `ref_matches_baseline` stays true for the reviewed rows.
 - Highlight whether the target model regressed or improved on the highest-contributing utterances.
 - When sharing HTML output, mention that the page reflects the ranked top-N rows rather than the full comparison unless `top-n` was set to cover the full dataset.
+- For verl checkpoint comparisons, watch for hallucinated insertions (model generating extra content beyond the utterance boundary) — a common regression pattern during RL training.
