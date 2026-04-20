@@ -700,6 +700,10 @@ class SGLangRollout(BaseRollout):
                     "spaces_between_special_tokens": True,
                 }
             )
+            if is_validate:
+                request_sampling_params["repetition_penalty"] = self.config.val_kwargs.repetition_penalty
+                if self.config.val_kwargs.response_length is not None:
+                    request_sampling_params["max_new_tokens"] = self.config.val_kwargs.response_length
         elif is_validate:
             request_sampling_params.update(
                 {
@@ -829,6 +833,10 @@ class SGLangRollout(BaseRollout):
                     "spaces_between_special_tokens": True,
                 }
             )
+            if is_validate:
+                request_sampling_params["repetition_penalty"] = self.config.val_kwargs.repetition_penalty
+                if self.config.val_kwargs.response_length is not None:
+                    request_sampling_params["max_new_tokens"] = self.config.val_kwargs.response_length
         elif is_validate:
             request_sampling_params.update(
                 {

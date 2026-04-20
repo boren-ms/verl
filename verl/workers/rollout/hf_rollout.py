@@ -67,6 +67,10 @@ class HFRollout(BaseRollout):
                 "do_sample": False,
                 "num_beams": 1,
             }
+            if is_validate:
+                kwargs["repetition_penalty"] = self.config.val_kwargs.repetition_penalty
+                if self.config.val_kwargs.response_length is not None:
+                    response_length = self.config.val_kwargs.response_length
         elif is_validate:
             # do validate and do sample -> use val_kwargs
             kwargs = {
