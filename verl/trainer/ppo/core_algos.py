@@ -686,7 +686,7 @@ def compute_gpg_outcome_advantage(
     return scores, scores
 
 
-def deduplicate_rollout_responses(batch, pad_token_id: int = 0) -> tuple:
+def deduplicate_rollout_responses(batch, dp_size: int = 1, pad_token_id: int = 0) -> tuple:
     """Remove duplicate responses within each prompt group (same uid) to save training compute.
 
     For ASR tasks with high temperature, the model often generates many identical responses.
@@ -696,6 +696,8 @@ def deduplicate_rollout_responses(batch, pad_token_id: int = 0) -> tuple:
 
     Args:
         batch: DataProto with 'responses', 'response_mask' in batch and 'uid' in non_tensor_batch.
+        dp_size: Number of data-parallel ranks. The kept batch size is rounded down to be
+                 divisible by dp_size so that downstream partitioning doesn't fail.
         pad_token_id: Token ID used for padding (ignored during comparison).
 
     Returns:
@@ -723,6 +725,10 @@ def deduplicate_rollout_responses(batch, pad_token_id: int = 0) -> tuple:
             if token_key not in seen_responses:
                 seen_responses.add(token_key)
                 keep_indices.append(idx)
+
+    # Round down to be divisible by dp_size so balance_batch won't fail
+    if dp_size > 1 and len(keep_indices) % dp_size != 0:
+        keep_indices = keep_indices[: len(keep_indices) - len(keep_indices) % dp_size]
 
     n_total = len(uids)
     n_kept = len(keep_indices)

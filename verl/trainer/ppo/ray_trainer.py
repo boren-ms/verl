@@ -1086,7 +1086,8 @@ class RayPPOTrainer:
                     # This saves compute on reward, log_prob, ref_log_prob, and training
                     # for responses that contribute no new training signal.
                     if self.config.trainer.get("dedup_responses", False):
-                        batch, n_total, n_kept, n_removed = deduplicate_rollout_responses(batch)
+                        dp_size = self.actor_rollout_wg.world_size
+                        batch, n_total, n_kept, n_removed = deduplicate_rollout_responses(batch, dp_size=dp_size)
                         if n_removed > 0:
                             metrics["rollout/dedup_removed"] = n_removed
                             metrics["rollout/dedup_kept"] = n_kept
