@@ -1,0 +1,22 @@
+dataset_name: chunk
+specs:
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json           # 1688.26 hours, number of examples: 1.070M, average duration: 5.68s
+chunk_types:
+  - audios
+  - sft.0.messages.1.content
+num_proc: auto
+pre_process:
+  filter_short_audio:
+    min_dur_ms: 300
+  rename_fields:
+    mappings:
+      text: sft.0.messages.1.content
+add_prompt:
+  task: lang_asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
