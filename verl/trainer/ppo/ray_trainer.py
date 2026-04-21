@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from pprint import pprint
 from typing import Optional
 
+import blobfile as bf
 import numpy as np
 import ray
 import torch
@@ -427,9 +428,12 @@ class RayPPOTrainer:
         except Exception as e:
             print(f"Warning: Could not set total_training_steps in config. Structure missing? Error: {e}")
 
-    def _dump_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path, data_sources=None):
-        """Dump rollout/validation samples as JSONL, split per data_source."""
-        os.makedirs(dump_path, exist_ok=True)
+    def _dump_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path, data_sources=None, extra_infos=None):
+        """Dump rollout/validation samples as JSONL, split per data_source.
+
+        Supports remote paths (e.g. az://) via blobfile.
+        """
+        bf.makedirs(dump_path)
 
         n = len(inputs)
         base_data = {
@@ -448,6 +452,12 @@ class RayPPOTrainer:
             if len(v) == n:
                 base_data[k] = v
 
+        # Merge extra_info fields (e.g. id, audio_file) into base_data
+        if extra_infos is not None and len(extra_infos) == n:
+            all_keys = {ek for ei in extra_infos if ei for ek in ei}
+            for ek in all_keys:
+                base_data[ek] = [ei.get(ek) if ei else None for ei in extra_infos]
+
         # Group indices by data_source
         if data_sources is not None and len(data_sources) == n:
             from collections import defaultdict
@@ -458,14 +468,14 @@ class RayPPOTrainer:
             source_indices = {"all": list(range(n))}
 
         for source, indices in source_indices.items():
-            source_dir = os.path.join(dump_path, source)
-            os.makedirs(source_dir, exist_ok=True)
-            filename = os.path.join(source_dir, f"{self.global_steps}.jsonl")
+            source_dir = bf.join(dump_path, source)
+            bf.makedirs(source_dir)
+            filename = bf.join(source_dir, f"{self.global_steps}.jsonl")
             lines = []
             for i in indices:
                 entry = {k: v[i] for k, v in base_data.items()}
                 lines.append(json.dumps(entry, ensure_ascii=False))
-            with open(filename, "w") as f:
+            with bf.BlobFile(filename, "w") as f:
                 f.write("\n".join(lines) + "\n")
             print(f"Dumped {len(indices)} generations ({source}) to {filename}")
 
@@ -492,6 +502,9 @@ class RayPPOTrainer:
                     batch.non_tensor_batch["request_id"].tolist(),
                 )
 
+            # collect extra_info (id, audio_file, etc.) for dump
+            extra_infos = list(batch.non_tensor_batch.get("extra_info", [None] * len(inputs)))
+
             self._dump_generations(
                 inputs=inputs,
                 outputs=outputs,
@@ -499,6 +512,7 @@ class RayPPOTrainer:
                 scores=scores,
                 reward_extra_infos_dict=reward_extra_infos_to_dump,
                 dump_path=rollout_data_dir,
+                extra_infos=extra_infos,
             )
 
     def _maybe_log_val_generations(self, inputs, outputs, scores):
@@ -553,6 +567,7 @@ class RayPPOTrainer:
         sample_scores = []
         sample_turns = []
         sample_uids = []
+        sample_extra_infos = []
 
         for test_data in self.val_dataloader:
             test_batch = DataProto.from_single_dict(test_data)
@@ -577,6 +592,12 @@ class RayPPOTrainer:
             input_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in input_ids]
             sample_inputs.extend(input_texts)
             sample_uids.extend(test_batch.non_tensor_batch["uid"])
+
+            # collect extra_info (id, audio_file, etc.) for dump
+            if "extra_info" in test_batch.non_tensor_batch:
+                sample_extra_infos.extend(test_batch.non_tensor_batch["extra_info"])
+            else:
+                sample_extra_infos.extend([None] * len(input_ids))
 
             ground_truths = [
                 item.non_tensor_batch.get("reward_model", {}).get("ground_truth", None) for item in test_batch
@@ -654,6 +675,7 @@ class RayPPOTrainer:
                 reward_extra_infos_dict=reward_extra_infos_dict,
                 dump_path=val_data_dir,
                 data_sources=data_sources,
+                extra_infos=sample_extra_infos,
             )
 
         for key_info, lst in reward_extra_infos_dict.items():
