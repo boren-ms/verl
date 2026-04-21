@@ -25,6 +25,10 @@ def get_task_prompt(task="asr", rand=False):
         prompt = rand_prompt(ASR_PROMPTS, rand=rand)
         lang = "English"
         return f"{prompt} Language: {lang}. Transcription:"
+    elif task == "en_asr_lex":
+        prompt = rand_prompt(ASR_PROMPTS, rand=rand)
+        lang = "English"
+        return f"{prompt} Output must be in lexical format. Language: {lang}. Transcription:"
     elif task == "lang_asr":
         return rand_prompt(LANG_ASR_PROMPTS, rand=rand)
     elif task == "lang_asr_lex":
