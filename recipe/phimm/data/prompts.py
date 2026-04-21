@@ -21,6 +21,10 @@ def get_task_prompt(task="asr", rand=False):
         return f"{prompt} Pay extra attention to rare words."
     elif task == "biasing":
         return rand_prompt(BIASING_PROMPTS, rand=rand)
+    elif task == "en_asr":
+        prompt = rand_prompt(ASR_PROMPTS, rand=rand)
+        lang = "English"
+        return f"{prompt} Language: {lang}. Transcription:"
     elif task == "lang_asr":
         return rand_prompt(LANG_ASR_PROMPTS, rand=rand)
     elif task == "lang_asr_lex":
