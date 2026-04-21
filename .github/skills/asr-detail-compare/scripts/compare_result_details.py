@@ -54,9 +54,7 @@ class ErrorStats:
 
     @property
     def wer(self) -> float:
-        if self.ref_words == 0:
-            return 0.0
-        return self.errors / self.ref_words
+        return self.errors / max(1, self.ref_words)
 
 
 def parse_args() -> argparse.Namespace:
