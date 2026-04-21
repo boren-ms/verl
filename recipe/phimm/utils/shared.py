@@ -236,7 +236,7 @@ def _parse_transcription(raw_text):
         return ' '.join(m.strip() for m in txt_matches), True
     m = re.search(r'<TXT>(.*)', raw_text, re.DOTALL)
     if m:
-        return re.sub(r'</TXT>?(?:</ASR[^>]*>)?$', '', m.group(1)).strip(), True
+        return re.sub(r'</TXT>?(?:</ASR[^>]*>)?$', '', m.group(1)).strip(), False
     m = re.search(r'Transcription:\s*(.*)', raw_text, re.DOTALL)
     if m:
         text = m.group(1).strip()
