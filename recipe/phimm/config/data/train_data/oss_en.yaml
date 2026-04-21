@@ -12,6 +12,8 @@ chunk_types:
   - sft.0.messages.1.content
 num_proc: auto
 pre_process:
+  filter_short_audio:
+    min_dur_ms: 300
   rename_fields:
     mappings:
       text: sft.0.messages.1.content
