@@ -43,6 +43,7 @@ Useful options:
 - Prefer `--write-html` by default. Use the HTML output as the main deliverable unless the user explicitly asks for CSV-only output.
 - The HTML output is derived from the ranked `*.topN.csv`, so it reflects the same ordering and selection logic as the CSV.
 - The page highlights changed word spans separately in baseline and target hypotheses; it is optimized for quick utterance-by-utterance scanning on desktop and mobile.
+- Each card shows normalized (Whisper English normalizer) text in the main comparison grid, plus a collapsible "Raw output" section with the original un-normalized reference, baseline hypothesis, and target hypothesis. The raw section uses monospace font to preserve formatting.
 - If the CSV lacks `audio_file_stem`, the renderer falls back to `comparison_id` for the card title.
 - When `--audio-blob-root` is set, each card includes an `<audio>` player. Audio files are downloaded from `{blob-root}/{dataset}/audio/{row_index}.wav` (flat-indexed by position in the source dataset JSONL), cached to `--audio-local-dir`, and copied to `{output-dir}/audio/`. The HTML references audio via relative `audio/{index}.wav` paths.
 

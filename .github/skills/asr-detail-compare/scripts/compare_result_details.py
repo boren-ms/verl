@@ -422,6 +422,9 @@ def build_comparison_html(
         baseline_diff = render_word_diff(normalize_text(row["hyp_baseline"]), normalize_text(row["hyp_target"]), "diff-removed")
         target_diff = render_word_diff(normalize_text(row["hyp_target"]), normalize_text(row["hyp_baseline"]), "diff-added")
 
+        raw_baseline_text = html.escape(str(row.get("raw_hyp_baseline", "")))
+        raw_target_text = html.escape(str(row.get("raw_hyp_target", "")))
+
         audio_html = ""
         if audio_map:
             cid = normalize_text(row.get("comparison_id", ""))
@@ -458,14 +461,27 @@ def build_comparison_html(
               </section>
               <div class="compare-grid">
                 <section class="panel">
-                  <h3>hyp_baseline</h3>
+                  <h3>hyp_baseline (normalized)</h3>
                   <p>{baseline_diff}</p>
                 </section>
                 <section class="panel">
-                  <h3>hyp_target</h3>
+                  <h3>hyp_target (normalized)</h3>
                   <p>{target_diff}</p>
                 </section>
               </div>
+              <details class="raw-section">
+                <summary>Raw output</summary>
+                <div class="compare-grid">
+                  <section class="panel raw-panel">
+                    <h3>Raw output (baseline)</h3>
+                    <p>{raw_baseline_text}</p>
+                  </section>
+                  <section class="panel raw-panel">
+                    <h3>Raw output (target)</h3>
+                    <p>{raw_target_text}</p>
+                  </section>
+                </div>
+              </details>
             </article>
             """
         )
@@ -635,6 +651,34 @@ def build_comparison_html(
       width: 100%;
       height: 36px;
     }}
+    .raw-section {{
+      margin-top: 12px;
+    }}
+    .raw-section summary {{
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 0;
+      user-select: none;
+    }}
+    .raw-section summary:hover {{
+      color: var(--ink);
+    }}
+    .raw-panel {{
+      background: rgba(245, 240, 232, 0.7);
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.88rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }}
+    .raw-panel p {{
+      line-height: 1.6;
+    }}
+    .raw-section .compare-grid {{
+      margin-top: 10px;
+    }}
     @media (max-width: 800px) {{
       .card-header,
       .compare-grid,
@@ -758,6 +802,8 @@ def main() -> None:
     hyp_target = f"{args.hyp_column}_target"
     ensure_required_columns(merged, "merged frame", [ref_baseline, ref_target, hyp_baseline, hyp_target])
 
+    merged["raw_hyp_baseline"] = merged.get("output_baseline", merged[hyp_baseline])
+    merged["raw_hyp_target"] = merged.get("output_target", merged[hyp_target])
     merged["ref"] = merged[ref_target].map(normalize_asr_text)
     merged["ref_matches_baseline"] = (
         merged[ref_target].map(normalize_asr_text) == merged[ref_baseline].map(normalize_asr_text)
@@ -789,6 +835,8 @@ def main() -> None:
         "ref",
         "hyp_baseline",
         "hyp_target",
+        "raw_hyp_baseline",
+        "raw_hyp_target",
         "ref_matches_baseline",
         "baseline_ref_words",
         "baseline_errors",
