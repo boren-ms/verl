@@ -35,6 +35,8 @@ Useful options:
 - `--ref-column ref` and `--hyp-column hyp`: override schema defaults if needed. For verl training JSONL files, use `--ref-column gts --hyp-column clean_output`.
 - `--baseline-path ...` and `--target-path ...`: bypass model discovery and use explicit files.
 - `--write-html`: write the default standalone HTML review page that shows `audio_file_stem`, `baseline_wer`, `target_wer`, and side-by-side `hyp_baseline` vs `hyp_target` with word-level highlights.
+- `--audio-blob-root az://orngwus2cresco/data/boren/data/openasr_jsonl`: enable audio playback in HTML reports. Downloads audio files for the top-N utterances from `{blob-root}/{dataset}/audio/{index}.wav` and embeds `<audio>` controls in each card. Only effective with `--write-html`.
+- `--audio-local-dir ~/data/openasr_jsonl/{dataset}/audio`: override the local cache directory for downloaded audio. Defaults to `~/data/openasr_jsonl/{dataset}/audio`. Already-cached files are reused.
 - `--write-full-csv`: also save the full utterance-level joined comparison.
 
 ## HTML Review Output
@@ -42,6 +44,7 @@ Useful options:
 - The HTML output is derived from the ranked `*.topN.csv`, so it reflects the same ordering and selection logic as the CSV.
 - The page highlights changed word spans separately in baseline and target hypotheses; it is optimized for quick utterance-by-utterance scanning on desktop and mobile.
 - If the CSV lacks `audio_file_stem`, the renderer falls back to `comparison_id` for the card title.
+- When `--audio-blob-root` is set, each card includes an `<audio>` player. Audio files are downloaded from `{blob-root}/{dataset}/audio/{row_index}.wav` (flat-indexed by position in the source dataset JSONL), cached to `--audio-local-dir`, and copied to `{output-dir}/audio/`. The HTML references audio via relative `audio/{index}.wav` paths.
 
 ## Join Rules
 - Prefer `audio_file` as the join key by default when it is present and unique in both files.
@@ -87,6 +90,7 @@ Example:
   --hyp-column clean_output \
   --output-dir tmp/ami_analysis/step0_vs_step200 \
   --write-html \
+  --audio-blob-root az://orngwus2cresco/data/boren/data/openasr_jsonl \
   --top-n 30
 ```
 

@@ -3,6 +3,7 @@ import argparse
 import html
 import json
 import re
+import shutil
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -116,6 +117,24 @@ def parse_args() -> argparse.Namespace:
         "--write-html",
         action="store_true",
         help="Also write a standalone HTML comparison for the top-ranked rows.",
+    )
+    parser.add_argument(
+        "--audio-blob-root",
+        default=None,
+        help=(
+            "Azure blob root containing {dataset}/audio/{index}.wav files. "
+            "When set with --write-html, downloads audio for report utterances "
+            "and adds playback controls to HTML. "
+            "Example: az://orngwus2cresco/data/boren/data/openasr_jsonl"
+        ),
+    )
+    parser.add_argument(
+        "--audio-local-dir",
+        default=None,
+        help=(
+            "Local cache directory for downloaded audio files. "
+            "Default: ~/data/openasr_jsonl/{dataset}/audio"
+        ),
     )
     return parser.parse_args()
 
@@ -381,7 +400,9 @@ def render_word_diff(text: str, other: str, css_class: str) -> str:
     return " ".join(parts)
 
 
-def build_comparison_html(rows: list[dict[str, object]], title: str) -> str:
+def build_comparison_html(
+    rows: list[dict[str, object]], title: str, audio_map: dict[str, str] | None = None,
+) -> str:
     cards: list[str] = []
     for row in rows:
         baseline_wer = float(row["baseline_wer"])
@@ -400,6 +421,19 @@ def build_comparison_html(rows: list[dict[str, object]], title: str) -> str:
         ref_text = html.escape(normalize_text(row.get("ref", "")))
         baseline_diff = render_word_diff(normalize_text(row["hyp_baseline"]), normalize_text(row["hyp_target"]), "diff-removed")
         target_diff = render_word_diff(normalize_text(row["hyp_target"]), normalize_text(row["hyp_baseline"]), "diff-added")
+
+        audio_html = ""
+        if audio_map:
+            cid = normalize_text(row.get("comparison_id", ""))
+            audio_src = audio_map.get(cid)
+            if audio_src:
+                audio_html = f"""
+              <div class="audio-player">
+                <audio controls preload="none">
+                  <source src="{html.escape(audio_src)}" type="audio/wav">
+                </audio>
+              </div>"""
+
         cards.append(
             f"""
             <article class="card {verdict}">
@@ -409,7 +443,7 @@ def build_comparison_html(rows: list[dict[str, object]], title: str) -> str:
                   <h2>{html.escape(audio_file_stem)}</h2>
                 </div>
                 <div class="verdict">{verdict_label}</div>
-              </div>
+              </div>{audio_html}
               <div class="metrics">
                 <div class="metric">
                   <span class="label">baseline_wer</span>
@@ -596,6 +630,13 @@ def build_comparison_html(rows: list[dict[str, object]], title: str) -> str:
     .diff-removed {{
       background: var(--remove);
     }}
+    .audio-player {{
+      margin-bottom: 14px;
+    }}
+    .audio-player audio {{
+      width: 100%;
+      height: 36px;
+    }}
     @media (max-width: 800px) {{
       .card-header,
       .compare-grid,
@@ -625,8 +666,67 @@ def build_comparison_html(rows: list[dict[str, object]], title: str) -> str:
 """
 
 
-def write_comparison_html(df: pd.DataFrame, output_path: Path, title: str) -> None:
-    output_path.write_text(build_comparison_html(df.to_dict("records"), title), encoding="utf-8")
+def download_audio_for_reports(
+    report_dfs: list[pd.DataFrame],
+    merged: pd.DataFrame,
+    dataset: str,
+    audio_blob_root: str,
+    audio_local_dir: Path,
+    output_dir: Path,
+) -> dict[str, str]:
+    """Download audio files for utterances in the reports.
+
+    Returns a mapping from comparison_id to relative audio path (audio/{idx}.wav).
+    """
+    audio_idx_map = dict(
+        zip(merged["comparison_id"].astype(str), merged["__audio_idx"].astype(int))
+    )
+
+    needed_ids: set[str] = set()
+    for report_df in report_dfs:
+        needed_ids.update(report_df["comparison_id"].astype(str))
+
+    audio_local_dir.mkdir(parents=True, exist_ok=True)
+    audio_output_dir = output_dir / "audio"
+    audio_output_dir.mkdir(parents=True, exist_ok=True)
+
+    audio_map: dict[str, str] = {}
+    for cid in sorted(needed_ids):
+        audio_idx = audio_idx_map.get(cid)
+        if audio_idx is None:
+            continue
+
+        blob_path = bf.join(audio_blob_root, dataset, "audio", f"{audio_idx}.wav")
+        local_file = audio_local_dir / f"{audio_idx}.wav"
+        output_file = audio_output_dir / f"{audio_idx}.wav"
+
+        if not local_file.exists():
+            try:
+                with bf.BlobFile(blob_path, "rb") as src, local_file.open("wb") as dst:
+                    while True:
+                        chunk = src.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        dst.write(chunk)
+                print(f"  Downloaded {blob_path} -> {local_file}")
+            except Exception as exc:
+                print(f"  Warning: Failed to download audio for {cid} (idx={audio_idx}): {exc}")
+                continue
+
+        if not output_file.exists():
+            shutil.copy2(local_file, output_file)
+
+        audio_map[cid] = f"audio/{audio_idx}.wav"
+
+    return audio_map
+
+
+def write_comparison_html(
+    df: pd.DataFrame, output_path: Path, title: str, audio_map: dict[str, str] | None = None,
+) -> None:
+    output_path.write_text(
+        build_comparison_html(df.to_dict("records"), title, audio_map), encoding="utf-8",
+    )
 
 
 def main() -> None:
@@ -639,6 +739,7 @@ def main() -> None:
 
     baseline_df = load_jsonl(baseline_path)
     target_df = load_jsonl(target_path)
+    baseline_df["__audio_idx"] = range(len(baseline_df))
     ensure_required_columns(baseline_df, baseline_path, [args.ref_column, args.hyp_column])
     ensure_required_columns(target_df, target_path, [args.ref_column, args.hyp_column])
 
@@ -748,13 +849,32 @@ def main() -> None:
     ]
 
     summary_outputs: dict[str, dict[str, str]] = {}
+
+    audio_map: dict[str, str] | None = None
+    if args.audio_blob_root and args.write_html:
+        audio_local_dir = (
+            Path(args.audio_local_dir)
+            if args.audio_local_dir
+            else Path.home() / "data" / "openasr_jsonl" / args.dataset / "audio"
+        )
+        print(f"\nDownloading audio files to {audio_local_dir} ...")
+        audio_map = download_audio_for_reports(
+            [overall_df, improved_df, degraded_df],
+            merged,
+            args.dataset,
+            args.audio_blob_root,
+            audio_local_dir,
+            output_dir,
+        )
+        print(f"  {len(audio_map)} audio files ready.\n")
+
     for report_name, report_df, report_stem in reports:
         csv_path = output_dir / f"{report_stem}.csv"
         report_df.to_csv(csv_path, index=False)
         summary_outputs[report_name] = {"csv": str(csv_path)}
         if args.write_html:
             html_path = output_dir / f"{report_stem}.html"
-            write_comparison_html(report_df, html_path, report_stem)
+            write_comparison_html(report_df, html_path, report_stem, audio_map)
             summary_outputs[report_name]["html"] = str(html_path)
 
     if args.write_full_csv:
