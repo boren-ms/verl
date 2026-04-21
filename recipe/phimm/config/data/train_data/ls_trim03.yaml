@@ -4,7 +4,6 @@ num_proc: auto
 pre_process:
   filter_short_audio:
     min_dur_ms: 300
-    field: audio_file
   path_map:
     field: audio_file
     src_part: "az://orngwus2cresco/data"
