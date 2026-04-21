@@ -429,9 +429,7 @@ def build_comparison_html(
             if audio_src:
                 audio_html = f"""
               <div class="audio-player">
-                <audio controls preload="none">
-                  <source src="{html.escape(audio_src)}" type="audio/wav">
-                </audio>
+                <audio controls preload="none" src="{html.escape(audio_src)}"></audio>
               </div>"""
 
         cards.append(
