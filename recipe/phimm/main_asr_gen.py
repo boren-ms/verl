@@ -45,7 +45,7 @@ from verl.workers.fsdp_workers import ActorRolloutRefWorker
 from pathlib import Path
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.utils.shared import parse_asr_response
-from recipe.phimm.reward.asr_bias import compute_wers, WordError, sum_wers
+from recipe.phimm.reward.asr_edge import measure as edge_measure, Error
 
 
 def get_env_vars():
@@ -90,14 +90,20 @@ def run_generation(config) -> None:
     ray.get(main_task.remote(config))
 
 
+def compute_wers(refs, hyps, **kwargs):
+    """Compute WERs using asr_edge.measure for a batch of refs and hyps."""
+    return [edge_measure(hyp, ref, **kwargs) for ref, hyp in zip(refs, hyps, strict=True)]
+
+
+
 def filter_ds(ds, **kwargs):
     wer_range = kwargs.get("wer_range", None)
-    err_range = kwargs.get("err_range", None)
+    edge_wer_range = kwargs.get("edge_wer_range", None)
 
     def filter_fn(x):
         if wer_range is not None and not (wer_range[0] <= x["wer"] <= wer_range[1]):
             return False
-        if err_range is not None and not (err_range[0] <= x["n_err"] <= err_range[1]):
+        if edge_wer_range is not None and not (edge_wer_range[0] <= x["edge_wer"] <= edge_wer_range[1]):
             return False
         return True
 
@@ -110,7 +116,7 @@ def log_examples(ds, num_examine=1):
     
     for i in range(min(num_examine, len(sort_ds))):
         print(f"--- Example {i + 1} ---")
-        print(f"WER: {sort_ds[i]['wer']:.2%}")
+        print(f"WER: {sort_ds[i]['wer']:.2%}  edge_wer: {sort_ds[i]['edge_wer']:.2%}")
         print("Ref:", sort_ds[i]["text"])
         print("Hyp:", sort_ds[i]["response"])
         if audio_key in sort_ds.column_names:
@@ -166,7 +172,7 @@ def main_task(config):
     wer_kwargs = config.data.get("wer_kwargs", {})
 
     batches = []
-    total_wer = WordError()
+    total_err = Error()
     split_idx = 0
     
     def write_data(batches, idx):
@@ -181,8 +187,8 @@ def main_task(config):
         return len(split_ds)
 
 
-    err_range = config.data.get("err_range", None)
     wer_range = config.data.get("wer_range", None)
+    edge_wer_range = config.data.get("edge_wer_range", None)
     for batch_idx, batch_dict in tqdm(enumerate(dataloader)):
         results = defaultdict(list)
         results["prompt"].extend([msg[0]["content"] for msg in batch_dict["prompt"]])  # get user prompt
@@ -215,17 +221,17 @@ def main_task(config):
 
         results["raw_response"] = raw_responses
         results["response"].extend(responses)
-        wers = compute_wers(results["text"], results["response"], **wer_kwargs)
-        results["wer"] = [x.wer for x in wers]
-        results["n_err"] = [x.n_err for x in wers]
-        batch_wer = sum_wers(wers)
-        print(f"Batch WER: {batch_wer.wer:.2%} [{batch_wer.n_err}/{batch_wer.n_ref}] on {n_egs} samples")
+        errors = compute_wers(results["text"], results["response"], **wer_kwargs)
+        results["wer"] = [x.wer for x in errors]
+        results["edge_wer"] = [x.edge_wer for x in errors]
+        batch_err = sum(errors, Error())
+        print(f"Batch wer: {batch_err.wer:.2%} [{batch_err.n_err}/{batch_err.n_ref}] edge_wer={batch_err.edge_wer:.2%} on {n_egs} samples")
 
-        total_wer += batch_wer
+        total_err += batch_err
         batch_ds = Dataset.from_dict(results)
         log_examples(batch_ds, num_examine=num_examine)
 
-        batch_ds = filter_ds(batch_ds, wer_range=wer_range, err_range=err_range)
+        batch_ds = filter_ds(batch_ds, wer_range=wer_range, edge_wer_range=edge_wer_range)
         print(f"Batch Filtering: {n_egs} => {len(batch_ds)} samples.")
         batches.append(batch_ds)
         
@@ -236,8 +242,8 @@ def main_task(config):
 
     left_egs += write_data(batches, split_idx)
 
-    print(f"Overall WER: {total_wer.wer:.2%} [{total_wer.n_err}/{total_wer.n_ref}] on {total_egs} samples")
-    print(f"Filtering with: {wer_range=}, {err_range=}")
+    print(f"Overall wer: {total_err.wer:.2%} [{total_err.n_err}/{total_err.n_ref}] edge_wer={total_err.edge_wer:.2%} on {total_egs} samples")
+    print(f"Filtering with: {wer_range=}, {edge_wer_range=}")
     print(f"Keep {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
     print(f"Saved {split_idx} splits to {output_dir}")
     print("All Done")

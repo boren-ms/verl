@@ -29,6 +29,21 @@ class Error:
     def wer(self):
         return self.n_err / max(self.n_ref, 1)
 
+    @property
+    def edge_wer(self):
+        return self.n_edge / max(self.n_ref, 1)
+
+    def __add__(self, other):
+        if not isinstance(other, Error):
+            return NotImplemented
+        return Error(
+            n_sub=self.n_sub + other.n_sub,
+            n_del=self.n_del + other.n_del,
+            n_ins=self.n_ins + other.n_ins,
+            n_hit=self.n_hit + other.n_hit,
+            n_edge=self.n_edge + other.n_edge,
+        )
+
 
 def _norm_text(text, norm_name="english"):
 
