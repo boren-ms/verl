@@ -436,9 +436,21 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 actor_module = get_peft_model(actor_module, LoraConfig(**lora_config), adapter_name=lora_name)
             
             if self._trainable_params is not None and len(self._trainable_params) > 0:
+                # When trainable_params is specified without LoRA, freeze everything
+                # first, then selectively unfreeze only the matching params.
+                if not self._is_lora:
+                    for param in actor_module.parameters():
+                        param.requires_grad = False
+                num_trainable = 0
+                num_total = 0
                 for name, param in actor_module.named_parameters():
+                    num_total += 1
                     if any(tp in name for tp in self._trainable_params):
                         param.requires_grad = True
+                        num_trainable += 1
+                if self.rank == 0:
+                    print(f"[actor model] trainable_params={self._trainable_params}: "
+                          f"{num_trainable}/{num_total} params are trainable")
 
         self.use_orig_params = fsdp_config.get("use_orig_params", False)
         if self.config.actor.get("freeze_vision_tower", False):
