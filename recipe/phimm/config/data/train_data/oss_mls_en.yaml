@@ -2,15 +2,12 @@ dataset_name: chunk
 specs:
   - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_en_asr_2k.json          # 1999.67 hours, number of examples: 0.484M, average duration: 14.87s
 chunk_types:
-  - audios
-  - sft.0.messages.1.content
+  - audio
+  - transcription
 num_proc: auto
 pre_process:
   filter_short_audio:
     min_dur_ms: 300
-  rename_fields:
-    mappings:
-      text: sft.0.messages.1.content
 add_prompt:
   task: lang_asr
   forced: True
