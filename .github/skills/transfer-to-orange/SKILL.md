@@ -12,26 +12,28 @@ Two-stage azcopy transfer from highperf01safn blob storage to Orange (orng) blob
 
 - Transfer datasets, audio data, or models from highperf01safn to Orange storage
 - User says "copy to orange", "transfer to orng", "move data to orange blob"
-- Two-stage pipeline required: highperf → grngenaiexternal → (wait) → grngenaiinternal → orngtransfer
+- Two-stage pipeline: highperf01safn → grngenaiexternal → orngwus2cresco (all from dev machine)
 
 ## Architecture
 
+There is no direct Corp → Orange path. Data flows: Corp → Green → Orange.
+
 ```
-Stage 1: highperf01safn/data/<relative_path>  →  grngenaiexternal/inbound/speech/<relative_path>
-                     (GRN gateway syncs external → internal)
-Stage 2: grngenaiinternal/inbound/speech/<relative_path>  →  orngtransfer/data/speech/<relative_path>
+Stage 1 (from dev machine):  highperf01safn (with SAS)  →  grngenaiexternal/inbound/speech/...
+Stage 2 (from dev machine):  grngenaiexternal/inbound/speech/...  →  orngwus2cresco/data/speech/...
 ```
 
-**Note:** Stage 2 must be run from inside the orange network.
+Both stages run from the dev machine with green tenant login. No orange pod access needed.
+
+Ref: [Penny wiki: Transfers Corp <=> Orange](~/code/Penny.wiki/Orange-wiki/Project-Orange/Models-and-data/Transfers%3A-Corp-%3C=%3E-Orange.md), [Tangerine: Upload Model and Data](~/code/Penny.wiki/Orange-wiki/Tangerine/Upload-Model-and-Data.md)
 
 ## URL Reference
 
 | Role | Base URL |
 |------|----------|
 | Source | `https://highperf01safn.blob.core.windows.net/data/<relative_path>` |
-| Stage 1 dest | `https://grngenaiexternal.blob.core.windows.net/inbound/speech/<relative_path>` |
-| Stage 2 source | `https://grngenaiinternal.blob.core.windows.net/inbound/speech/<relative_path>` |
-| Final dest | `https://orngtransfer.blob.core.windows.net/data/speech/<relative_path>` |
+| Stage 1 dest / Stage 2 source | `https://grngenaiexternal.blob.core.windows.net/inbound/speech/<relative_path>` |
+| Final dest | `https://orngwus2cresco.blob.core.windows.net/data/speech/<relative_path>` |
 
 ## Prerequisites
 
@@ -90,7 +92,7 @@ Construct full URLs with SAS by appending `?<sas_value>` to the blob URL.
 Only source blob accounts use SAS tokens:
 - `https://highperf01safn.blob.core.windows.net/data`
 
-The GRN and orng endpoints (`grngenaiexternal`, `grngenaiinternal`, `orngtransfer`) authenticate via **`AZCOPY_AUTO_LOGIN_TYPE=AZCLI`** which reuses the `az login` session (green tenant). Ensure the user has run `az login --tenant 8b9ebe14-d942-49e7-ace9-14496d0caff0` and set `export AZCOPY_AUTO_LOGIN_TYPE=AZCLI` before proceeding.
+The GRN and orng endpoints (`grngenaiexternal`, `orngwus2cresco`) authenticate via **`AZCOPY_AUTO_LOGIN_TYPE=AZCLI`** which reuses the `az login` session (green tenant). Ensure the user has run `az login --tenant 8b9ebe14-d942-49e7-ace9-14496d0caff0` and set `export AZCOPY_AUTO_LOGIN_TYPE=AZCLI` before proceeding.
 
 ### Step 2 — Test with 1 file first
 
@@ -121,27 +123,21 @@ AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy copy \
 - Run in async terminal — large datasets may take hours.
 - Monitor with `azcopy jobs list` and `azcopy jobs show <job-id>`.
 
-### Step 4 — Wait for grngenaiinternal
-
-The GRN gateway automatically syncs data from `grngenaiexternal` → `grngenaiinternal`. This may take minutes to hours.
-
-**Note:** `grngenaiinternal` is only accessible from inside the orange network (not from the dev machine). You cannot poll it directly. Instead, wait a reasonable time (small files: ~10 min, large datasets: hours) and proceed to Step 5. If Step 5 fails with file-not-found, the sync hasn't completed yet — wait and retry.
-
-### Step 5 — Stage 2: azcopy grngenaiinternal → orngtransfer
+### Step 4 — Stage 2: azcopy grngenaiexternal → orngwus2cresco
 
 ```bash
 AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy copy \
-  "https://grngenaiinternal.blob.core.windows.net/inbound/speech/<relative_path>/*" \
-  "https://orngtransfer.blob.core.windows.net/data/speech/<relative_path>/" \
+  "https://grngenaiexternal.blob.core.windows.net/inbound/speech/<relative_path>/*" \
+  "https://orngwus2cresco.blob.core.windows.net/data/speech/<relative_path>/" \
   --s2s-preserve-access-tier=false --recursive
 ```
 
-**Note:** This step must be run from a machine inside the orange network that can resolve `grngenaiinternal.blob.core.windows.net`.
+This runs directly from the dev machine — no orange pod needed.
 
-### Step 6 — Verify
+### Step 5 — Verify
 
 ```bash
-AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy list "https://orngtransfer.blob.core.windows.net/data/speech/<relative_path>" | head -10
+bbb ls az://orngwus2cresco/data/speech/<relative_path>/
 ```
 
 Compare file count and sizes against the source listing from Step 2.
@@ -153,7 +149,6 @@ Compare file count and sizes against the source listing from Step 2.
 - **Always add `--s2s-preserve-access-tier=false`** — GRN/orng storage accounts don't support blob access tiers.
 - **Only source blobs use SAS tokens** from `/home/boren/.sas/azure_blob_sas_cache.json`. GRN/orng endpoints use `az login` (green tenant).
 - **Check SAS expiry** before starting — if expired, regenerate via `az login --tenant microsoft.com` (see Prerequisites).
-- **`grngenaiinternal` is only accessible from inside the orange network** — cannot be accessed from the dev machine.
 - **Always test with 1 file** before doing the full recursive copy.
 - The `data` container in highperf01safn does NOT always have the `datablob1/` prefix — verify the actual path with `azcopy list` first.
 - **Run long copies in async terminal mode** — they can take hours for large datasets.
