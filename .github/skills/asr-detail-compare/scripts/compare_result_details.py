@@ -4,6 +4,7 @@ import html
 import json
 import re
 import shutil
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -120,12 +121,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--audio-blob-root",
-        default=None,
+        default="az://orngwus2cresco/data/boren/data/openasr_jsonl",
         help=(
             "Azure blob root containing {dataset}/audio/{index}.wav files. "
             "When set with --write-html, downloads audio for report utterances "
             "and adds playback controls to HTML. "
-            "Example: az://orngwus2cresco/data/boren/data/openasr_jsonl"
+            "Default: az://orngwus2cresco/data/boren/data/openasr_jsonl. "
+            "Set to empty string to disable audio."
         ),
     )
     parser.add_argument(
@@ -732,17 +734,19 @@ def download_audio_for_reports(
     audio_output_dir = output_dir / "audio"
     audio_output_dir.mkdir(parents=True, exist_ok=True)
 
-    audio_map: dict[str, str] = {}
+    # Build list of (cid, audio_idx) to download
+    download_tasks: list[tuple[str, int]] = []
     for cid in sorted(needed_ids):
         audio_idx = audio_idx_map.get(cid)
-        if audio_idx is None:
-            continue
+        if audio_idx is not None:
+            download_tasks.append((cid, audio_idx))
 
-        blob_path = bf.join(audio_blob_root, dataset, "audio", f"{audio_idx}.wav")
+    def _download_one(cid: str, audio_idx: int) -> tuple[str, int, bool]:
+        """Download a single audio file. Returns (cid, audio_idx, success)."""
         local_file = audio_local_dir / f"{audio_idx}.wav"
         output_file = audio_output_dir / f"{audio_idx}.wav"
-
         if not local_file.exists():
+            blob_path = bf.join(audio_blob_root, dataset, "audio", f"{audio_idx}.wav")
             try:
                 with bf.BlobFile(blob_path, "rb") as src, local_file.open("wb") as dst:
                     while True:
@@ -750,15 +754,29 @@ def download_audio_for_reports(
                         if not chunk:
                             break
                         dst.write(chunk)
-                print(f"  Downloaded {blob_path} -> {local_file}")
             except Exception as exc:
                 print(f"  Warning: Failed to download audio for {cid} (idx={audio_idx}): {exc}")
-                continue
-
+                return cid, audio_idx, False
         if not output_file.exists():
             shutil.copy2(local_file, output_file)
+        return cid, audio_idx, True
 
-        audio_map[cid] = f"audio/{audio_idx}.wav"
+    audio_map: dict[str, str] = {}
+    n_downloaded = 0
+    n_cached = 0
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {pool.submit(_download_one, cid, idx): (cid, idx) for cid, idx in download_tasks}
+        for future in as_completed(futures):
+            cid, audio_idx, ok = future.result()
+            if ok:
+                local_file = audio_local_dir / f"{audio_idx}.wav"
+                if local_file.stat().st_mtime > 0:  # just downloaded or already cached
+                    audio_map[cid] = f"audio/{audio_idx}.wav"
+                if (audio_output_dir / f"{audio_idx}.wav").stat().st_size > 0:
+                    n_cached += 1
+                else:
+                    n_downloaded += 1
+    print(f"  {len(audio_map)} audio files ready ({n_downloaded} downloaded, {n_cached} cached).")
 
     return audio_map
 
