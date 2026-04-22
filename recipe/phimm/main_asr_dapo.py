@@ -26,7 +26,6 @@ from pathlib import Path
 from verl.trainer.ppo.reward import load_reward_manager
 from verl.utils.device import is_cuda_available
 from recipe.dapo.dapo_ray_trainer import RayDAPOTrainer
-from recipe.entropy.entropy_ray_trainer import RayEntropyTrainer
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.utils.shared import parse_asr_response
 from verl.utils.ray_utils import ray_address, ray_host_url
@@ -198,8 +197,7 @@ class TaskRunner:
         )
         resource_pool_manager = ResourcePoolManager(resource_pool_spec=resource_pool_spec, mapping=mapping)
 
-        trainer_cls = RayEntropyTrainer if config.get("trainer_cls", None) == "entropy" else RayDAPOTrainer
-        trainer = trainer_cls(
+        trainer = RayDAPOTrainer(
             config=config,
             tokenizer=tokenizer,
             processor=processor,
