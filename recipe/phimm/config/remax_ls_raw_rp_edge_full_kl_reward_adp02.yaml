@@ -43,8 +43,8 @@ algorithm:
   kl_penalty: low_var_kl
   kl_ctrl:
     type: adaptive
-    kl_coef: 0.5
-    target_kl: 0.05
+    kl_coef: 0.2
+    target_kl: 0.1
     horizon: 20
 data:
   train_batch_size: 64
