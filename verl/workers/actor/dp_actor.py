@@ -486,6 +486,8 @@ class DataParallelPPOActor(BasePPOActor):
                             "actor/pg_clipfrac_lower": pg_clipfrac_lower.detach().item(),
                         }
                     )
+                    if entropy_coeff != 0:
+                        micro_batch_metrics["actor/entropy"] = entropy_loss.detach().item()
                     append_to_dict(metrics, micro_batch_metrics)
 
                 grad_norm = self._optimizer_step()
