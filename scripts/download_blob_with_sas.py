@@ -77,6 +77,37 @@ def _parse_account_and_container(container_url: str) -> tuple[str, str]:
     return account, container
 
 
+MICROSOFT_TENANT = "microsoft.com"
+
+
+def _ensure_az_tenant(tenant: str) -> None:
+    """Switch az CLI to the given tenant if not already active."""
+    result = subprocess.run(
+        ["az", "account", "show", "-o", "json"],
+        check=False, capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        try:
+            info = json.loads(result.stdout)
+            current = info.get("tenantId", "") or info.get("tenantDefaultDomain", "")
+            if tenant.lower() in (current.lower(), info.get("tenantDefaultDomain", "").lower()):
+                return
+        except json.JSONDecodeError:
+            pass
+
+    print(f"Switching az CLI to tenant '{tenant}'...")
+    login_result = subprocess.run(
+        ["az", "login", "--tenant", tenant],
+        check=False, capture_output=True, text=True,
+    )
+    if login_result.returncode != 0:
+        raise RuntimeError(
+            f"Failed to az login --tenant {tenant}. "
+            f"Error: {login_result.stderr.strip()}"
+        )
+    print(f"Logged into tenant '{tenant}' successfully.")
+
+
 def _generate_sas_via_az_cli(container_url: str, expiry_hours: int) -> str:
     account, container = _parse_account_and_container(container_url)
 
@@ -106,12 +137,16 @@ def _generate_sas_via_az_cli(container_url: str, expiry_hours: int) -> str:
 
     result = subprocess.run(cmd, check=False, capture_output=True, text=True)
     if result.returncode != 0:
-        stderr = result.stderr.strip()
-        raise RuntimeError(
-            "Failed to auto-generate SAS via Azure CLI. "
-            "Run 'az login' and ensure access to the storage account, "
-            f"or provide --sas manually. Azure CLI error: {stderr}"
-        )
+        # SAS generation failed — try switching to Microsoft corp tenant and retry
+        print(f"SAS generation failed with current tenant. Switching to {MICROSOFT_TENANT}...")
+        _ensure_az_tenant(MICROSOFT_TENANT)
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+        if result.returncode != 0:
+            stderr = result.stderr.strip()
+            raise RuntimeError(
+                "Failed to auto-generate SAS via Azure CLI after switching to "
+                f"{MICROSOFT_TENANT}. Error: {stderr}"
+            )
 
     sas = result.stdout.strip().strip('"')
     if not sas:
