@@ -32,7 +32,7 @@ actor_rollout_ref:
       response_length: 200
   actor:
     tis_imp_ratio_cap: 5
-    ppo_micro_batch_size_per_gpu: 16
+    ppo_micro_batch_size_per_gpu: 8
     optim:
       lr: 5e-6
   model:

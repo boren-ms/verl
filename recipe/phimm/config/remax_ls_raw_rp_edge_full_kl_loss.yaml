@@ -35,7 +35,7 @@ actor_rollout_ref:
     use_kl_loss: true
     kl_loss_coef: 0.001
     kl_loss_type: low_var_kl
-    ppo_micro_batch_size_per_gpu: 16
+    ppo_micro_batch_size_per_gpu: 8
     optim:
       lr: 5e-6
   model:
