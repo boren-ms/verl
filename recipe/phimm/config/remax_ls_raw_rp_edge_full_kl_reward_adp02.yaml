@@ -32,7 +32,6 @@ actor_rollout_ref:
       response_length: 200
   actor:
     tis_imp_ratio_cap: 5
-    loss_agg_mode: seq-mean-token-sum
     ppo_micro_batch_size_per_gpu: 8
     optim:
       lr: 5e-6
@@ -44,9 +43,9 @@ algorithm:
   kl_penalty: low_var_kl
   kl_ctrl:
     type: adaptive
-    kl_coef: 0.1
-    target_kl: 0.1
-    horizon: 100
+    kl_coef: 0.5
+    target_kl: 0.05
+    horizon: 20
 data:
   train_batch_size: 64
 trainer:

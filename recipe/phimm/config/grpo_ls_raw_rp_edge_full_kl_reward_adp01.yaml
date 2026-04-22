@@ -32,14 +32,13 @@ actor_rollout_ref:
       response_length: 200
   actor:
     tis_imp_ratio_cap: 5
-    loss_agg_mode: seq-mean-token-sum
     ppo_micro_batch_size_per_gpu: 8
     optim:
       lr: 5e-6
   model:
     path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
 algorithm:
-  adv_estimator: remax
+  adv_estimator: grpo
   use_kl_in_reward: true
   kl_penalty: low_var_kl
   kl_ctrl:
@@ -55,4 +54,3 @@ trainer:
   test_freq: 10
   save_freq: 10
   val_before_train: false
-  dedup_responses: true
