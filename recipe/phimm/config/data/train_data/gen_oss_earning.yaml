@@ -1,5 +1,5 @@
 dataset_name: parquet
-parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_earning/part-*.parquet
+parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_earning_wer01/part-*.parquet
 add_prompt:
   task: lang_asr
   forced: True
