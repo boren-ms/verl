@@ -113,9 +113,13 @@ Verify the single file transferred successfully before proceeding with the full 
 
 ### Step 3 — Stage 1: azcopy source → grngenaiexternal
 
+**CRITICAL:** Each async terminal is a new shell session. The `$SAS` variable from a previous terminal is NOT inherited. You must `export SAS="..."` at the top of every async terminal command block before using `$SAS` in URLs. If `$SAS` is empty, azcopy falls back to OAuth with the green tenant against the corp source and fails with `401 InvalidAuthenticationInfo / Issuer validation failed`.
+
 ```bash
+export SAS="<sas_value_from_cache>"
+
 AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy copy \
-  "https://highperf01safn.blob.core.windows.net/data/<relative_path>/*?<SAS_highperf>" \
+  "https://highperf01safn.blob.core.windows.net/data/<relative_path>/*?${SAS}" \
   "https://grngenaiexternal.blob.core.windows.net/inbound/speech/<relative_path>/" \
   --s2s-preserve-access-tier=false --recursive
 ```
@@ -155,3 +159,5 @@ Compare file count and sizes against the source listing from Step 2.
 - The relative path is computed by stripping `/datablob1/` from the source path.
 - Ensure trailing `/` on destination directory URLs.
 - `azcopy` is installed at `/usr/local/bin/azcopy` (v10.29.1).
+- **`$SAS` must be set in every new terminal session** — async terminals do NOT inherit shell variables from previous terminals. Always `export SAS="..."` inline before using `${SAS}` in azcopy URLs.
+- **Common 401 error**: If you see `InvalidAuthenticationInfo / Issuer validation failed` on the source blob, it means `$SAS` is empty and azcopy is trying OAuth (green tenant) against the corp source. Fix: ensure `$SAS` is exported in the current terminal.
