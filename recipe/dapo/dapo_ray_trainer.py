@@ -196,16 +196,9 @@ class RayDAPOTrainer(RayPPOTrainer):
                                 {k: np.array(v) for k, v in reward_extra_infos_dict.items()}
                             )
 
-                        # compute rewards. apply_kl_penalty if available
-                        if self.config.algorithm.use_kl_in_reward:
-                            new_batch, kl_metrics = apply_kl_penalty(
-                                new_batch, kl_ctrl=self.kl_ctrl_in_reward, kl_penalty=self.config.algorithm.kl_penalty
-                            )
-                            metrics.update(
-                                kl_metrics
-                            )  # TODO: This will be cleared if we use multiple genenration batches
-                        else:
-                            new_batch.batch["token_level_rewards"] = new_batch.batch["token_level_scores"]
+                        # Defer KL penalty to after old_log_probs and ref_log_prob are computed.
+                        # For now, set token_level_rewards = token_level_scores (KL applied later).
+                        new_batch.batch["token_level_rewards"] = new_batch.batch["token_level_scores"]
                     # check zero std prompts
                     metric_name = self.config.algorithm.filter_groups.metric
                     if metric_name == "seq_final_reward":
@@ -319,6 +312,14 @@ class RayDAPOTrainer(RayPPOTrainer):
                         with marked_timer("values", timing_raw, "cyan"):
                             values = self.critic_wg.compute_values(batch)
                             batch = batch.union(values)
+
+                    # apply KL penalty now that old_log_probs and ref_log_prob are available
+                    if self.config.algorithm.use_kl_in_reward:
+                        batch, kl_metrics = apply_kl_penalty(
+                            batch, kl_ctrl=self.kl_ctrl_in_reward, kl_penalty=self.config.algorithm.kl_penalty
+                        )
+                        metrics.update(kl_metrics)
+
                     # breakpoint()
                     with marked_timer("adv", timing_raw, "brown"):
                         # compute advantages, executed on the driver process
