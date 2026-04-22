@@ -137,6 +137,8 @@ def apply_kl_penalty(data: DataProto, kl_ctrl: core_algos.AdaptiveKLController, 
             - The updated data with token-level rewards adjusted by KL penalty
             - A dictionary of metrics related to the KL penalty
     """
+    if "response_mask" not in data.batch.keys():
+        data.batch["response_mask"] = compute_response_mask(data)
     response_mask = data.batch["response_mask"]
     token_level_scores = data.batch["token_level_scores"]
     batch_size = data.batch.batch_size[0]
