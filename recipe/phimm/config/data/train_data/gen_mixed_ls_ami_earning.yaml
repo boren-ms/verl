@@ -1,0 +1,39 @@
+# Mixed training data: LibriSpeech + AMI-trim-tail + Earning
+# ls_raw_rp_edge (parquet)
+- dataset_name: parquet
+  parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
+  add_prompt:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
+
+# ami_trim_tail_wer10 (parquet)
+- dataset_name: parquet
+  parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ami_trim_tail_wer10/part-*.parquet
+  add_prompt:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
+
+# oss_earning (parquet)
+- dataset_name: parquet
+  parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_earning_wer01/part-*.parquet
+  add_prompt:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
