@@ -32,6 +32,9 @@ actor_rollout_ref:
       response_length: 200
   actor:
     tis_imp_ratio_cap: 5
+    use_kl_loss: true
+    kl_loss_coef: 0.1
+    kl_loss_type: low_var_kl
     ppo_micro_batch_size_per_gpu: 8
     optim:
       lr: 1e-6
@@ -39,13 +42,6 @@ actor_rollout_ref:
     path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
 algorithm:
   adv_estimator: remax
-  use_kl_in_reward: true
-  kl_penalty: low_var_kl
-  kl_ctrl:
-    type: adaptive
-    kl_coef: 0.1
-    target_kl: 0.1
-    horizon: 100
 data:
   train_batch_size: 64
   interleave_ds:
