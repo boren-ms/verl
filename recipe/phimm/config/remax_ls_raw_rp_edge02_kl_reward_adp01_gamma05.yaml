@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - grpo_asr_full
+  - grpo_asr
   - data/train_data/gen_ls_raw_rp_edge
   - data/val_data/openasr_part0
   - _self_
@@ -12,7 +12,8 @@ custom_reward_function:
   path: recipe/phimm/reward/asr_edge.py
   name: compute_score
   reward_kwargs:
-    beta: 1
+    beta: 0.2
+    gamma: 0.5
 
 val_reward:
   custom_reward_function:
@@ -31,7 +32,6 @@ actor_rollout_ref:
       response_length: 200
   actor:
     tis_imp_ratio_cap: 5
-    loss_agg_mode: seq-mean-token-sum
     ppo_micro_batch_size_per_gpu: 8
     optim:
       lr: 5e-6

@@ -104,12 +104,13 @@ def compute_score(solution_str, ground_truth, **kwargs):
     alpha = kwargs.get("alpha", 1.0)
     beta = kwargs.get("beta", 1.0)
     cutoff = kwargs.get("cutoff", 0.0)
+    gamma = kwargs.get("gamma", 1)
 
     nw_err = alpha * err.n_err + beta * err.n_edge
     acc = (err.n_ref - nw_err) / max(err.n_ref, 1)  # in case zero n_ref
 
     if lang and format and acc > cutoff:
-        score = (acc - cutoff) / (1 - cutoff)
+        score = ((acc - cutoff) / (1 - cutoff)) ** gamma
     else:
         score = 0.0
 
