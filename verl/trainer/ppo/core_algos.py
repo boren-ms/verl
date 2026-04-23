@@ -593,6 +593,7 @@ def compute_remax_outcome_advantage(
     reward_baselines: torch.Tensor,
     response_mask: torch.Tensor,
     config: Optional[AlgoConfig] = None,
+    index: np.ndarray = None,
     **kwargs,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
@@ -608,6 +609,8 @@ def compute_remax_outcome_advantage(
         response_mask: `(torch.Tensor)`
             shape: (bs, response_length)
         config: (AlgoConfig) algorithm config
+        index: `(np.ndarray)`
+            index array for grouping (optional, used for norm_adv_in_remax)
 
     Returns:
         advantages: `(torch.Tensor)`
@@ -619,6 +622,30 @@ def compute_remax_outcome_advantage(
     with torch.no_grad():
         returns = (token_level_rewards * response_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
         advantages = returns - reward_baselines.unsqueeze(-1) * response_mask
+
+        # Asymmetric min/max normalization: independently scale positive and
+        # negative advantages to [0, 1] and [-1, 0] per prompt group.
+        # This fixes the imbalance where positive advantages are tiny
+        # (e.g., +0.05) when the baseline is strong, while negatives
+        # can be large (e.g., -0.95).
+        if config is not None and config.get("norm_adv_in_remax", False) and index is not None:
+            seq_adv = advantages[:, 0]  # constant per sequence (outcome reward)
+            id2indices = defaultdict(list)
+            for i in range(seq_adv.shape[0]):
+                id2indices[index[i]].append(i)
+            for idx in id2indices:
+                group_indices = id2indices[idx]
+                group_adv = seq_adv[group_indices]
+                pos_mask = group_adv > 0
+                neg_mask = group_adv < 0
+                max_pos = group_adv[pos_mask].max() if pos_mask.any() else None
+                min_neg = group_adv[neg_mask].min() if neg_mask.any() else None
+                for i in group_indices:
+                    a = seq_adv[i]
+                    if a > 0 and max_pos is not None and max_pos > 1e-8:
+                        advantages[i] = advantages[i] / max_pos  # scale to [0, 1]
+                    elif a < 0 and min_neg is not None and min_neg < -1e-8:
+                        advantages[i] = advantages[i] / (-min_neg)  # scale to [-1, 0]
 
     return advantages, returns
 
