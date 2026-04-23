@@ -12,8 +12,8 @@ custom_reward_function:
   path: recipe/phimm/reward/asr_edge.py
   name: compute_score
   reward_kwargs:
-    edge_beta: 0.5
-    beta: 1
+    beta: 0.5
+    alpha: 1
 
 val_reward:
   custom_reward_function:

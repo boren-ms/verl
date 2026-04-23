@@ -101,11 +101,11 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
     err = measure(trans_dict["text"], ground_truth, **kwargs)
 
+    alpha = kwargs.get("alpha", 1.0)
     beta = kwargs.get("beta", 1.0)
-    edge_beta = kwargs.get("edge_beta", 1.0)
     cutoff = kwargs.get("cutoff", 0.0)
 
-    nw_err = beta * err.n_err + edge_beta * err.n_edge
+    nw_err = alpha * err.n_err + beta * err.n_edge
     acc = (err.n_ref - nw_err) / max(err.n_ref, 1)  # in case zero n_ref
 
     if lang and format and acc > cutoff:
