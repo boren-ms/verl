@@ -1,0 +1,18 @@
+defaults:
+  - eval_asr
+  - _self_
+
+actor_rollout_ref:
+  model:
+    lora_rank: 0
+    target_modules: null
+    exclude_modules: null
+    trainable_params: [model.layers, model.norm, lm_head]
+  actor:
+    fsdp_config:
+      param_offload: false
+      optimizer_offload: false
+      use_orig_params: true
+  ref:
+    fsdp_config:
+      param_offload: true
