@@ -208,6 +208,12 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = True) -> dict[str,
         "prompt_length/clip_ratio": torch.mean(torch.eq(prompt_length, max_prompt_length).float()).detach().item(),
     }
 
+    if "reward_baselines" in batch.batch:
+        reward_baselines = batch.batch["reward_baselines"]
+        metrics["critic/baseline_score/mean"] = torch.mean(reward_baselines).detach().item()
+        metrics["critic/baseline_score/max"] = torch.max(reward_baselines).detach().item()
+        metrics["critic/baseline_score/min"] = torch.min(reward_baselines).detach().item()
+
     # multi-turn conversation
     if "__num_turns__" in batch.non_tensor_batch:
         num_turns = batch.non_tensor_batch["__num_turns__"]
