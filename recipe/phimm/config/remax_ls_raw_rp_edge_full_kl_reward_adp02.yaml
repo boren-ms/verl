@@ -43,7 +43,7 @@ algorithm:
   kl_penalty: low_var_kl
   kl_ctrl:
     type: adaptive
-    kl_coef: 0.2
+    kl_coef: 0.1
     target_kl: 0.1
     horizon: 20
 data:
