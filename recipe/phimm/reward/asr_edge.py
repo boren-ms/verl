@@ -118,8 +118,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "n_ref": err.n_ref,
         "n_err": err.n_err,
         "n_edge": err.n_edge,
-        "n_fmt": int(format),
-        "n_lang": int(lang),
+        "p_fmt": float(format),
+        "p_lang": float(lang),
     }
 
 
@@ -135,8 +135,8 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "n_err": err.n_err,
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,
-        "n_fmt": int(format),
-        "n_lang": int(lang),
+        "p_fmt": float(format),
+        "p_lang": float(lang),
     }
 
 

@@ -382,13 +382,15 @@ def calc_maj_val(data: list[dict[str, Any]], vote_key: str, val_key: str) -> flo
 def update_var2metric2val(var2metric2val: dict[str, dict[str, float]]):
     output = var2metric2val.copy()
     prefixs = {"n_": "p_", "nb_": "pb_", "nu_": "pu_"}
+    remove_vars = set()
     for n_pfx, p_pfx in prefixs.items():
-        ref_key = f"{n_pfx}ref"
-        ref_metric2val = var2metric2val.get(ref_key, None)
+        ref_var = f"{n_pfx}ref"
+        ref_metric2val = var2metric2val.get(ref_var, None)
         if not ref_metric2val:
             continue
+        remove_vars.add(ref_var)
         for var_name, metric2val in var2metric2val.items():
-            if not var_name.startswith(n_pfx) or var_name == ref_key:
+            if not var_name.startswith(n_pfx) or var_name == ref_var:
                 continue
             pvar_name = var_name.replace(n_pfx, p_pfx)
             if pvar_name in output:
@@ -398,6 +400,10 @@ def update_var2metric2val(var2metric2val: dict[str, dict[str, float]]):
                 if not ref_val:
                     continue
                 output[pvar_name][name] = val / ref_val
+                remove_vars.add(var_name)
+    # remove variables that have been converted to percentage, as well total
+    for var_name in remove_vars:
+        output.pop(var_name, None)
     return output
 
 
