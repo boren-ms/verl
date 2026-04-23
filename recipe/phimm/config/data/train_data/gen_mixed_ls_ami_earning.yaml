@@ -3,7 +3,7 @@
 - dataset_name: parquet
   parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
   add_prompt:
-    task: lang_asr
+    task: lang_asr_lex
     forced: True
   post_process:
     add_field:

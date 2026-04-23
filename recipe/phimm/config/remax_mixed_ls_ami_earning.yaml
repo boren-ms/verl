@@ -34,7 +34,7 @@ actor_rollout_ref:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 8
     optim:
-      lr: 5e-6
+      lr: 1e-6
   model:
     path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
 algorithm:
@@ -51,7 +51,7 @@ data:
   interleave_ds:
     stopping_strategy: all_exhausted
 trainer:
-  nnodes: 1
+  nnodes: 4
   total_epochs: 1
   test_freq: 10
   save_freq: 10
