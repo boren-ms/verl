@@ -46,7 +46,7 @@ algorithm:
     type: adaptive
     kl_coef: 0.1
     target_kl: 0.1
-    horizon: 100
+    horizon: 10000
 data:
   train_batch_size: 512
 trainer:
