@@ -53,4 +53,3 @@ trainer:
   test_freq: 100
   save_freq: 100
   val_before_train: false
-  dedup_responses: true
