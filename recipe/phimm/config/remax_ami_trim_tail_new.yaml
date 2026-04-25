@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/gen_ls_raw_rp_edge
+  - data/train_data/gen_ami_trim_tail_wer10
   - data/val_data/openasr_part0
   - _self_
 
@@ -52,7 +52,7 @@ data:
 trainer:
   nnodes: 1
   total_epochs: 1
-  test_freq: 10
-  save_freq: 10
+  test_freq: 100
+  save_freq: 100
   val_before_train: false
-  dedup_responses: false
+  dedup_responses: true
