@@ -51,3 +51,4 @@ trainer:
   save_freq: -1
   val_before_train: true
   resume_mode: disable
+  dedup_responses: true
