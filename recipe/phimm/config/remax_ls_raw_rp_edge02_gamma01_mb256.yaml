@@ -33,22 +33,15 @@ actor_rollout_ref:
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 8
-    ppo_mini_batch_size: 64
+    ppo_mini_batch_size: "${data.train_batch_size}"
     optim:
       lr: 5e-6
   model:
     path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
 algorithm:
   adv_estimator: remax
-  use_kl_in_reward: true
-  kl_penalty: low_var_kl
-  kl_ctrl:
-    type: adaptive
-    kl_coef: 0.1
-    target_kl: 0.1
-    horizon: "${eval:${actor_rollout_ref.rollout.n}*${actor_rollout_ref.actor.ppo_mini_batch_size}*10}"
 data:
-  train_batch_size: 64
+  train_batch_size: 256
 trainer:
   nnodes: 1
   total_epochs: 1
