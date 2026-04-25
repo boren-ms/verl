@@ -43,22 +43,28 @@ Configs live at `recipe/phimm/config/eval_*.yaml` and compose from `recipe/phimm
    ```
    Separate into Ready nodes and Paused/Suspended nodes.
 
-2. **Check occupancy** on each Ready node — look for running Ray jobs:
+2. **Check occupancy** on each Ready node using two signals:
+
+   **a) GPU utilization** — check if GPUs are actively in use:
+   ```bash
+   rcall-brix ssh {NODE} -- 'bash -l -c "nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits"'
+   ```
+   A node is **GPU-busy** if any GPU shows utilization > 5% or memory used > 5000 MiB.
+
+   **b) Ray jobs** — check for running Ray jobs:
    ```bash
    rcall-brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list 2>/dev/null || echo No Ray jobs"'
    ```
-   Also check for active `python3 -m recipe.phimm` processes:
-   ```bash
-   rcall-brix ssh {NODE} -- 'bash -l -c "pgrep -fa \"recipe.phimm\" 2>/dev/null || echo No verl eval running"'
-   ```
 
-3. **Assign node**: pick the first unoccupied Ready `verl-*` node. If the user specified a node, use that even if it is busy (see below).
+   A node is considered **occupied** if either check is positive (GPU-busy OR running Ray jobs). A node is **free** only if GPUs are idle AND no Ray jobs are running.
 
-4. **If the chosen node is busy** (has running Ray jobs or active `recipe.phimm` processes):
-   - **Do NOT kill or stop the existing job.** Report what is currently running (job ID, config name, runtime).
-   - **Wait for the node to become free.** Poll every **5 minutes** using the occupancy check from step 2.
-   - After each poll, report status: `"Node {NODE} still busy — {JOB_ID} running for {DURATION}. Waiting..."`.
-   - Once the node becomes idle (no running Ray jobs and no `recipe.phimm` processes), proceed to Step 1.
+3. **Assign node**: pick the first free (unoccupied) Ready `verl-*` node. If the user specified a node, use that even if it is busy (see below).
+
+4. **If the chosen node is busy** (GPU-busy or has running Ray jobs):
+   - **Do NOT kill or stop the existing job.** Report what is currently running (job ID, config name, runtime, GPU utilization).
+   - **Wait for the node to become free.** Poll every **5 minutes** using the occupancy checks from step 2.
+   - After each poll, report status: `"Node {NODE} still busy — GPU util: {UTIL}%, Ray jobs: {COUNT}. Waiting..."`.
+   - Once the node is idle (GPUs idle AND no running Ray jobs), proceed to Step 1.
 
 5. **If no unoccupied Ready node exists** and no specific node was requested:
    - Check if any `verl-*` nodes are in **Paused** or **Suspended** state:
