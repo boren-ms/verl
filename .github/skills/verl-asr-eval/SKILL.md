@@ -37,10 +37,11 @@ Configs live at `recipe/phimm/config/eval_*.yaml` and compose from `recipe/phimm
 
 ### Step 0 — Find a Ready verl node and check occupancy
 
-1. **List Ready nodes** matching the `verl-*` prefix:
+1. **List all verl nodes** and their status:
    ```bash
-   rcall-brix ls 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '\bReady\b' | awk '{print $1}' | grep '^verl-'
+   rcall-brix ls 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep '^verl-'
    ```
+   Separate into Ready nodes and Paused/Suspended nodes.
 
 2. **Check occupancy** on each Ready node — look for running Ray jobs:
    ```bash
@@ -58,7 +59,23 @@ Configs live at `recipe/phimm/config/eval_*.yaml` and compose from `recipe/phimm
    - **Wait for the node to become free.** Poll every **5 minutes** using the occupancy check from step 2.
    - After each poll, report status: `"Node {NODE} still busy — {JOB_ID} running for {DURATION}. Waiting..."`.
    - Once the node becomes idle (no running Ray jobs and no `recipe.phimm` processes), proceed to Step 1.
-   - If no unoccupied node exists and no specific node was requested, report the status of all Ready nodes and ask the user which node to wait on.
+
+5. **If no unoccupied Ready node exists** and no specific node was requested:
+   - Check if any `verl-*` nodes are in **Paused** or **Suspended** state:
+     ```bash
+     rcall-brix ls 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E 'Paused|Suspended' | awk '{print $1}' | grep '^verl-'
+     ```
+   - If a Paused/Suspended node is found, **automatically resume** the first one:
+     ```bash
+     rcall-brix resume {NODE}
+     ```
+   - **Poll until Ready**: check status every 15 seconds until the node reaches `Ready`:
+     ```bash
+     rcall-brix ls '{NODE}' 2>&1
+     ```
+     Report each poll: `"Resuming {NODE}... status: {STATUS}"`.
+   - Once `Ready`, use this node and proceed to Step 1.
+   - If **no Paused/Suspended nodes** exist either, report the status of all `verl-*` nodes and ask the user which busy node to wait on.
 
 ### Step 1 — Resolve inputs
 
