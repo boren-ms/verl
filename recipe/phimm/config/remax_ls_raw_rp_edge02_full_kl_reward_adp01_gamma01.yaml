@@ -33,6 +33,7 @@ actor_rollout_ref:
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 8
+    ppo_mini_batch_size: 64
     optim:
       lr: 5e-6
   model:
@@ -45,7 +46,7 @@ algorithm:
     type: adaptive
     kl_coef: 0.1
     target_kl: 0.1
-    horizon: 100
+    horizon: "${eval:${actor_rollout_ref.rollout.n}*${actor_rollout_ref.actor.ppo_mini_batch_size}*10}"
 data:
   train_batch_size: 64
 trainer:
