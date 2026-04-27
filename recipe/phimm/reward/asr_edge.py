@@ -103,16 +103,21 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
     alpha = kwargs.get("alpha", 1.0)
     beta = kwargs.get("beta", 1.0)
-    cutoff = kwargs.get("cutoff", 0.0)
+    metric = kwargs.get("metric", "acc") # wer, acc, ed
     gamma = kwargs.get("gamma", 1)
 
     nw_err = alpha * err.n_err + beta * err.n_edge
-    acc = max((err.n_ref - nw_err) / max(err.n_ref, 1), 0)  # ensure acc >=0
-
-    if lang and format and acc > cutoff:
-        score = ((acc - cutoff) / (1 - cutoff)) ** gamma
+    n_ref = max(err.n_ref, 1)
+    wer = nw_err / n_ref
+    is_good = lang and format
+    
+    if metric == "wer":
+        score = -(wer**gamma) if is_good else -1
+    elif metric == "ed":
+        score = -(nw_err**gamma) 
     else:
-        score = 0.0
+        score = (1-wer)**gamma if is_good else 0
+        
 
     return {
         "score": score,
