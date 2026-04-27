@@ -21,15 +21,20 @@ class Error:
     def n_err(self):
         return self.n_sub + self.n_del + self.n_ins
 
-    @property
-    def accuracy(self):
-        return (self.n_ref - self.n_err) / max(self.n_ref, 1)
+    def accuracy(self, **betas):
+        return max(1 - self.wer(**betas), 0.0)
 
-    @property
-    def wer(self):
-        return self.n_err / max(self.n_ref, 1)
+    def wer(self, **betas):
+        n_edit = self.edit_distance(**betas)
+        return n_edit / max(self.n_ref, 1)
+    
+    def edit_distance(self, **betas):
+        w_ins = betas.get("ins", 1.0)
+        w_sub = betas.get("sub", 1.0)
+        w_del = betas.get("del", 1.0)
+        w_edge = betas.get("edge", 0.0)
+        return w_sub * self.n_sub + w_del * self.n_del + w_ins * self.n_ins + w_edge * self.n_edge
 
-    @property
     def edge_wer(self):
         return self.n_edge / max(self.n_ref, 1)
 
@@ -100,23 +105,20 @@ def compute_score(solution_str, ground_truth, **kwargs):
     format = bool(trans_dict["formatted"])
 
     err = measure(trans_dict["text"], ground_truth, **kwargs)
-
-    alpha = kwargs.get("alpha", 1.0)
-    beta = kwargs.get("beta", 1.0)
+    betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc") # wer, acc, ed
     gamma = kwargs.get("gamma", 1)
 
-    nw_err = alpha * err.n_err + beta * err.n_edge
-    n_ref = max(err.n_ref, 1)
-    wer = nw_err / n_ref
     is_good = lang and format
     
     if metric == "wer":
+        wer = err.wer(**betas)
         score = -(wer**gamma) if is_good else -1
     elif metric == "ed":
-        score = -(nw_err**gamma) 
+        n_edit = err.edit_distance(**betas)
+        score = -(n_edit**gamma)
     else:
-        score = (1-wer)**gamma if is_good else 0
+        score = err.accuracy()**gamma if is_good else 0
         
 
     return {
@@ -134,10 +136,9 @@ def eval_score(solution_str, ground_truth, **kwargs):
     trans_dict = parse_asr_response(solution_str)
     lang = (trans_dict["lang"] or "").lower() == "english"
     format = bool(trans_dict["formatted"])
-
     err = measure(trans_dict["text"], ground_truth, **kwargs)
     return {
-        "score": err.accuracy,
+        "score": err.accuracy(),
         "n_err": err.n_err,
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,
