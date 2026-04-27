@@ -1,7 +1,7 @@
 # %%
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-
+import re
 from recipe.phimm.utils.shared import parse_asr_response
 
 
@@ -27,7 +27,7 @@ class Error:
     def wer(self, **betas):
         n_edit = self.edit_distance(**betas)
         return n_edit / max(self.n_ref, 1)
-    
+
     def edit_distance(self, **betas):
         w_ins = betas.get("ins", 1.0)
         w_sub = betas.get("sub", 1.0)
@@ -90,11 +90,21 @@ def _count_ops(ref_words, hyp_words):
     return err
 
 
+def _split_units(text, unit="word"):
+    if unit.lower() in {"word", "words"}:
+        return text.split()
+    if unit.lower() in {"char", "chars"}:
+        text = re.sub(r"\s+", "", text)
+        return list(text)
+    raise ValueError(f"Unsupported error measure unit: {unit!r}. Expected 'word' or 'char'.")
+
+
 def measure(hyp, ref, **kwargs):
     norm_name = kwargs.get("text_norm", "english")
-    ref = _norm_text(ref, norm_name=norm_name)
-    hyp = _norm_text(hyp, norm_name=norm_name)
-    return _count_ops(ref.split(), hyp.split())
+    unit = kwargs.get("unit", "word")
+    ref_units = _split_units(_norm_text(ref, norm_name=norm_name), unit=unit)
+    hyp_units = _split_units(_norm_text(hyp, norm_name=norm_name), unit=unit)
+    return _count_ops(ref_units, hyp_units)
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
@@ -106,11 +116,11 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
     err = measure(trans_dict["text"], ground_truth, **kwargs)
     betas = kwargs.get("betas", {})
-    metric = kwargs.get("metric", "acc") # wer, acc, ed
+    metric = kwargs.get("metric", "acc")  # wer, acc, ed
     gamma = kwargs.get("gamma", 1)
 
     is_good = lang and format
-    
+
     if metric == "wer":
         wer = err.wer(**betas)
         score = -(wer**gamma) if is_good else -1
@@ -118,8 +128,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         n_edit = err.edit_distance(**betas)
         score = -(n_edit**gamma)
     else:
-        score = err.accuracy(**betas)**gamma if is_good else 0
-        
+        score = err.accuracy(**betas) ** gamma if is_good else 0
 
     return {
         "score": score,
