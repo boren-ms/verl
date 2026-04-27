@@ -692,6 +692,20 @@ def filter_by_wer(ds, **kwargs):
     return ds
 
 
+def filter_text_with_numbers(ds, **kwargs):
+    field = kwargs.get("field", "text")
+    norm_name = kwargs.get("text_norm", kwargs.get("tn_name", "english"))
+
+    def has_number_after_norm(example):
+        text = str(example.get(field, ""))
+        return not has_digit(text_norm(text, norm_name))
+
+    n_egs = len(ds)
+    ds = ds.filter(has_number_after_norm, **pop_filter_kwargs(kwargs), desc="Filtering text with numbers")
+    all_rank_print(f"Filtered text with numbers after {norm_name} norm: {n_egs} to {len(ds)}")
+    return ds
+
+
 def stream_shuffle(ds, **kwargs):
     """Process the dataset."""
     streaming = kwargs.get("streaming", False)
@@ -850,6 +864,8 @@ def process_ds(ds, **kwargs):
         ds = load_audio(ds, **map_kwargs)
     if kwargs.get("do_shard", False):
         ds = shard_ds(ds, **map_kwargs)
+    if filter_text_with_numbers_kwargs := kwargs.get("filter_text_with_numbers", {}):
+        ds = filter_text_with_numbers(ds, **merge_kwargs(map_kwargs, filter_text_with_numbers_kwargs))
     if output_egs_limit := kwargs.get("output_egs_limit", None):
         ds = limit_ds(ds, egs_limit=output_egs_limit)
     if add_field_kwargs := kwargs.get("add_field", {}):
