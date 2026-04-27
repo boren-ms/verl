@@ -99,11 +99,14 @@ def compute_wers(refs, hyps, **kwargs):
 def filter_ds(ds, **kwargs):
     wer_range = kwargs.get("wer_range", None)
     edge_wer_range = kwargs.get("edge_wer_range", None)
+    bad_format = kwargs.get("bad_format", False)
 
     def filter_fn(x):
         if wer_range is not None and not (wer_range[0] <= x["wer"] <= wer_range[1]):
             return False
         if edge_wer_range is not None and not (edge_wer_range[0] <= x["edge_wer"] <= edge_wer_range[1]):
+            return False
+        if bad_format and x.get("formatted", True):
             return False
         return True
 
