@@ -75,15 +75,44 @@ def _mkdir_parent(path: str) -> None:
     Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
 
 
-def save_parquet(dataset: Dataset, output_path: str) -> None:
+def save_parquet(dataset: Dataset, output_path: str, overwrite: bool = False) -> None:
+    if bf.exists(output_path) and not overwrite:
+        raise FileExistsError(f"Output already exists: {output_path}. Set overwrite=true to replace it.")
     _mkdir_parent(output_path)
     with bf.BlobFile(output_path, "wb") as file_obj:
         dataset.to_parquet(file_obj)
 
 
-def cache_dataset(source_config: str, output_path: str, include_verl_format: bool = False) -> dict[str, Any]:
+def cache_summary(
+    source_config: str,
+    output_path: str,
+    overwrite: bool,
+    skipped: bool,
+    reason: str | None = None,
+    dataset: Dataset | None = None,
+) -> dict[str, Any]:
+    summary = {
+        "source_config": source_config,
+        "output_path": output_path,
+        "overwrite": overwrite,
+        "skipped": skipped,
+    }
+    if reason is not None:
+        summary["reason"] = reason
+    if dataset is not None:
+        summary["num_rows"] = len(dataset)
+        summary["columns"] = dataset.column_names
+    print(json.dumps(summary, indent=2))
+    return summary
+
+
+def cache_dataset(source_config: str, output_path: str, include_verl_format: bool = False, overwrite: bool = False) -> dict[str, Any]:
     source_config = _resolve_path(source_config, config_relative=True)
     output_path = _resolve_path(output_path)
+    if bf.exists(output_path) and not overwrite:
+        print(f"Output already exists, skipping: {output_path}")
+        return cache_summary(source_config, output_path, overwrite, skipped=True, reason="output_exists")
+
     dataset_config = _load_yaml(source_config)
     if not include_verl_format:
         dataset_config = _strip_verl_format(dataset_config)
@@ -94,15 +123,8 @@ def cache_dataset(source_config: str, output_path: str, include_verl_format: boo
     dataset = _as_dataset(create_datasets(dataset_config))
 
     print(f"Writing parquet: {output_path}")
-    save_parquet(dataset, output_path)
-    summary = {
-        "source_config": source_config,
-        "output_path": output_path,
-        "num_rows": len(dataset),
-        "columns": dataset.column_names,
-    }
-    print(json.dumps(summary, indent=2))
-    return summary
+    save_parquet(dataset, output_path, overwrite=overwrite)
+    return cache_summary(source_config, output_path, overwrite, skipped=False, dataset=dataset)
 
 
 @hydra.main(config_path="config/data/cache", config_name="gen_ls_raw_rp_edge_nodigits", version_base=None)
@@ -112,6 +134,7 @@ def main(config: DictConfig) -> None:
         source_config=str(cfg["source_config"]),
         output_path=str(cfg["output_path"]),
         include_verl_format=bool(cfg.get("include_verl_format", False)),
+        overwrite=bool(cfg.get("overwrite", False)),
     )
 
 
