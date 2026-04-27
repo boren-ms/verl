@@ -4,7 +4,7 @@ Loads audio from az:// blob paths, runs forced alignment in parallel across
 GPUs (one aligner per worker process), and saves word timestamps to parquet.
 
 Usage (on remote 8-GPU node):
-    python -m recipe.phimm.utils.align_dataset \
+    python -m recipe.phimm.align_dataset \
         --jsonl_path az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/h100.jsonl \
         --output_path az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/alignment.parquet \
         --audio_base az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech \

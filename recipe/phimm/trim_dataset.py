@@ -1,7 +1,7 @@
 """Prepare a trimmed-audio parquet dataset from TSV data configs.
 
 Usage:
-    python -m recipe.phimm.utils.trim_dataset \
+    python -m recipe.phimm.trim_dataset \
         --tsv_path az://orngwus2cresco/data/boren/data/LibriSpeech/debug.tsv \
         --output_dir az://orngwus2cresco/data/boren/data/verl/trimmed_output \
         --jobs 64
