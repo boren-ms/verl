@@ -169,7 +169,8 @@ def main_task(config):
     left_egs = 0
     
     total_batches = len(dataloader)
-    wer_kwargs = config.data.get("wer_kwargs", {})
+    wer_kwargs = OmegaConf.to_container(config.data.get("wer_kwargs", {}), resolve=True) or {}
+    wer_betas = wer_kwargs.get("betas", {})
 
     batches = []
     total_err = Error()
@@ -222,10 +223,13 @@ def main_task(config):
         results["raw_response"] = raw_responses
         results["response"].extend(responses)
         errors = compute_wers(results["text"], results["response"], **wer_kwargs)
-        results["wer"] = [x.wer for x in errors]
-        results["edge_wer"] = [x.edge_wer for x in errors]
+        results["wer"] = [err.wer(**wer_betas) for err in errors]
+        results["edge_wer"] = [err.edge_wer() for err in errors]
         batch_err = sum(errors, Error())
-        print(f"Batch wer: {batch_err.wer:.2%} [{batch_err.n_err}/{batch_err.n_ref}] edge_wer={batch_err.edge_wer:.2%} on {n_egs} samples")
+        print(
+            f"Batch wer: {batch_err.wer(**wer_betas):.2%} [{batch_err.n_err}/{batch_err.n_ref}] "
+            f"edge_wer={batch_err.edge_wer():.2%} on {n_egs} samples"
+        )
 
         total_err += batch_err
         batch_ds = Dataset.from_dict(results)
@@ -242,7 +246,10 @@ def main_task(config):
 
     left_egs += write_data(batches, split_idx)
 
-    print(f"Overall wer: {total_err.wer:.2%} [{total_err.n_err}/{total_err.n_ref}] edge_wer={total_err.edge_wer:.2%} on {total_egs} samples")
+    print(
+        f"Overall wer: {total_err.wer(**wer_betas):.2%} [{total_err.n_err}/{total_err.n_ref}] "
+        f"edge_wer={total_err.edge_wer():.2%} on {total_egs} samples"
+    )
     print(f"Filtering with: {wer_range=}, {edge_wer_range=}")
     print(f"Keep {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
     print(f"Saved {split_idx} splits to {output_dir}")

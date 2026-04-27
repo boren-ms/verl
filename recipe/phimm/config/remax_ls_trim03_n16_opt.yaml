@@ -13,7 +13,8 @@ custom_reward_function:
   name: compute_score
   reward_kwargs:
     cutoff: 0.5
-    beta: 1
+    betas:
+      edge: 1
 
 val_reward:
   custom_reward_function:
