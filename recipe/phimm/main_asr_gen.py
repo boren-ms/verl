@@ -33,7 +33,7 @@ from omegaconf import OmegaConf
 from torchdata.stateful_dataloader import StatefulDataLoader
 
 from verl import DataProto
-from verl.protocol import pad_dataproto_to_divisor, unpad_dataproto
+from verl.protocol import list_of_dict_to_dict_of_list, pad_dataproto_to_divisor, unpad_dataproto
 from verl.single_controller.ray import RayClassWithInitArgs, RayResourcePool, RayWorkerGroup
 from verl.single_controller.ray.base import create_colocated_worker_cls
 from verl.utils import hf_processor, hf_tokenizer
@@ -209,19 +209,20 @@ def main_task(config):
         print(f"\n(Batch {batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
         output_padded = wg.generate_sequences(data_padded)
         output = unpad_dataproto(output_padded, pad_size=pad_size)
-        responses = []
-        raw_responses = []
+        hyps = []
         for i in range(len(output)):
             data_item = output[i]
             prompt_length = data_item.batch["prompts"].shape[-1]
             valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
             valid_response_ids = data_item.batch["responses"][:valid_response_length]
             response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
-            raw_responses.append(response_str)
-            responses.append(parse_asr_response(response_str)["text"])
+            hyp_dict = parse_asr_response(response_str)
+            hyp_dict["response"] = hyp_dict.pop("text", "")
+            hyp_dict["raw_response"] = response_str
+            hyp_dict.pop("new_text", None)
+            hyps.append(hyp_dict)
 
-        results["raw_response"] = raw_responses
-        results["response"].extend(responses)
+        results.update(list_of_dict_to_dict_of_list(hyps))
         errors = compute_wers(results["text"], results["response"], **wer_kwargs)
         results["wer"] = [err.wer(**wer_betas) for err in errors]
         results["edge_wer"] = [err.edge_wer() for err in errors]
