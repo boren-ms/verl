@@ -21,8 +21,7 @@ val_reward:
   custom_reward_function:
     path: recipe/phimm/reward/asr_edge.py
     name: eval_score
-    reward_kwargs:
-      unit: char
+
 
 actor_rollout_ref:
   rollout:
