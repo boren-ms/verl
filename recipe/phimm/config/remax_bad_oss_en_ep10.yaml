@@ -24,7 +24,7 @@ val_reward:
 
 actor_rollout_ref:
   rollout:
-    n: 16
+    n: 8
     gt_rollout: true
     temperature: 1
     calculate_log_probs: True
