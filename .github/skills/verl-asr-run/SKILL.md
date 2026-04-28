@@ -239,7 +239,7 @@ Common failure patterns:
 - **Model incompatibility**: PEFT/vLLM doesn't support the model → revert model or patch
 - **Checkpoint error**: model shard missing on blob → check blob path in config
 - **"rcall-brix: command not found"**: Use full path `~/.virtualenvs/openai/bin/rcall-brix`
-- **Sync fails**: Check node is Ready with `rcall-brix ls` or the brix-node-gpu-check skill
+- **Sync fails**: Check node is Ready with `rcall-brix ls`
 
 #### 3g. Extract and present metrics
 

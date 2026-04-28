@@ -1,4 +1,0 @@
-interface:
-  display_name: "Rcall Brix Jobs"
-  short_description: "List pools with rcall-brix and restart scheduled jobs"
-  default_prompt: "Use $rcall-brix-jobs to list my jobs with rcall-brix and restart any jobs that are in Scheduled state."
