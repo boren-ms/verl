@@ -44,6 +44,7 @@ Useful options:
 - The HTML output is derived from the ranked `*.topN.csv`, so it reflects the same ordering and selection logic as the CSV.
 - The page highlights changed word spans separately in baseline and target hypotheses; it is optimized for quick utterance-by-utterance scanning on desktop and mobile.
 - Each card shows normalized (Whisper English normalizer) text in the main comparison grid, plus a collapsible "Raw output" section with the original un-normalized reference, baseline hypothesis, and target hypothesis. The raw section uses monospace font to preserve formatting.
+- The "Raw output" section for the target uses the `output` column if present (showing the full model output with tags like `<ASR><lang=English><TXT>...</TXT></ASR>`). When `output` only exists on the target side (not baseline), the script finds it as an unsuffixed column after the pandas merge and uses it correctly.
 - If the CSV lacks `audio_file_stem`, the renderer falls back to `comparison_id` for the card title.
 - When `--audio-blob-root` is set, each card includes an `<audio>` player. Audio files are downloaded from `{blob-root}/{dataset}/audio/{row_index}.wav` (flat-indexed by position in the source dataset JSONL), cached to `--audio-local-dir`, and copied to `{output-dir}/audio/`. The HTML references audio via relative `audio/{index}.wav` paths.
 
@@ -94,6 +95,47 @@ Example:
   --audio-blob-root az://orngwus2cresco/data/boren/data/openasr_jsonl \
   --top-n 30
 ```
+
+## Comparing Mixed-Schema Files (eval_openasr baseline vs verl target)
+When the baseline uses the standard eval schema (`ref`, `hyp`, `id`) and the target uses the verl schema (`gts`, `clean_output`, `output`, `id`), the column names differ. Instead of using `--ref-column gts --hyp-column clean_output` (which would fail on the baseline), **preprocess the target file** to add `ref`/`hyp` columns, then use the default `--ref-column ref --hyp-column hyp` for both:
+
+```python
+import json, pathlib
+src = pathlib.Path("tmp/target_model/val_data_gen/ami/300.jsonl")
+dst = pathlib.Path("tmp/asr-detail-compare/ami/target_normalized.jsonl")
+with open(src) as f, open(dst, 'w') as out:
+    for line in f:
+        row = json.loads(line)
+        row['ref'] = row.get('gts', '')
+        row['hyp'] = row.get('clean_output', '')
+        out.write(json.dumps(row) + '\n')
+```
+
+Then compare with `--join-columns id` (both schemas have `id`):
+```bash
+/home/boren/.virtualenvs/openai/bin/python .github/skills/asr-detail-compare/scripts/compare_result_details.py \
+  --baseline-path tmp/eval_openasr_step50/ami.jsonl \
+  --target-path tmp/asr-detail-compare/ami/target_normalized.jsonl \
+  --baseline-name eval_openasr \
+  --target-name remax_nodigits_step300 \
+  --dataset ami \
+  --output-dir tmp/asr-detail-compare/ami \
+  --write-html \
+  --join-columns id \
+  --top-n 30 \
+  --audio-blob-root az://orngwus2cresco/data/boren/data/openasr_jsonl
+```
+
+Key points:
+- Preserving the original `output` column in the preprocessed file ensures the HTML "Raw output" section shows the full model output (with `<ASR>` tags). The script picks up `output` from the target side automatically.
+- Use `--join-columns id` — both eval_openasr and verl JSONL schemas include a unique `id` field.
+- The baseline eval_openasr files live locally at `tmp/eval_openasr_step50/{dataset}.jsonl` (not on blob). The verl target files are at `tmp/{model_name}/val_data_gen/{dataset}/{step}.jsonl`.
+- Loop over datasets for batch comparisons:
+  ```bash
+  for ds in ami earnings22 gigaspeech; do
+    # preprocess target, then run compare
+  done
+  ```
 
 ## Review Expectations
 - Call out the join key the script chose.

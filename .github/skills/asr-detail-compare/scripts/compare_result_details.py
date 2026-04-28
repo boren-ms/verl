@@ -33,7 +33,7 @@ JOIN_CANDIDATES = [
 
 _whisper_normalizer = EnglishTextNormalizer()
 TIMESTAMP_PATTERN = re.compile(r"result_details_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})\.jsonl$")
-DEFAULT_RESULTS_ROOT = "az://orngwus2cresco/data/boren/data/results/gpt-4o-mini-asr-v1"
+DEFAULT_RESULTS_ROOT = "az://orngwus2cresco/data/boren/data/results"
 META_PROMOTED_COLUMNS = [
     "audio_file",
     "audio_path",
@@ -173,10 +173,48 @@ def resolve_latest_result(results_root: str, model: str, dataset: str) -> str:
     return latest
 
 
+LOCAL_RESULTS_ROOTS = [
+    Path("tmp"),
+    Path.home() / "data" / "results" / "verl_word_error",
+]
+
+
+def _resolve_local(model: str, dataset: str) -> str | None:
+    """Try common local directory layouts under known results roots."""
+    # Strip prefix like "openasr/" to get the bare dataset name
+    ds_bare = dataset.rsplit("/", 1)[-1] if "/" in dataset else dataset
+    for root in LOCAL_RESULTS_ROOTS:
+        candidates = [
+            # {root}/{model}/{dataset}.jsonl  (eval_openasr flat style)
+            root / model / f"{ds_bare}.jsonl",
+            # {root}/{model}/{dataset}/result_details_*.jsonl  (blob-mirror style)
+        ]
+        for c in candidates:
+            if c.is_file():
+                return str(c)
+        # blob-mirror: {root}/{model}/{dataset}/result_details_*.jsonl — pick latest
+        blob_mirror = root / model / dataset
+        if blob_mirror.is_dir():
+            jsonls = sorted(blob_mirror.glob("result_details_*.jsonl"))
+            if jsonls:
+                return str(jsonls[-1])
+        # verl eval: {root}/{model}/val_data_gen/{ds_bare}/*.jsonl — pick latest
+        verl_dir = root / model / "val_data_gen" / ds_bare
+        if verl_dir.is_dir():
+            jsonls = sorted(verl_dir.glob("*.jsonl"))
+            if jsonls:
+                return str(jsonls[-1])
+    return None
+
+
 def resolve_input_path(explicit_path: str | None, model: str | None, results_root: str, dataset: str) -> str:
     if explicit_path:
         return explicit_path
     if model:
+        # Try local paths first (instant), then blob discovery (slow)
+        local = _resolve_local(model, dataset)
+        if local:
+            return local
         return resolve_latest_result(results_root, model, dataset)
     raise ValueError("Expected either an explicit path or a model name.")
 
@@ -800,6 +838,14 @@ def main() -> None:
     baseline_df = load_jsonl(baseline_path)
     target_df = load_jsonl(target_path)
     baseline_df["__audio_idx"] = range(len(baseline_df))
+
+    # Auto-remap verl schema columns (gts->ref, clean_output->hyp) when needed
+    for label, df in [("baseline", baseline_df), ("target", target_df)]:
+        if args.ref_column not in df.columns and "gts" in df.columns:
+            df[args.ref_column] = df["gts"]
+        if args.hyp_column not in df.columns and "clean_output" in df.columns:
+            df[args.hyp_column] = df["clean_output"]
+
     ensure_required_columns(baseline_df, baseline_path, [args.ref_column, args.hyp_column])
     ensure_required_columns(target_df, target_path, [args.ref_column, args.hyp_column])
 
@@ -821,7 +867,8 @@ def main() -> None:
     ensure_required_columns(merged, "merged frame", [ref_baseline, ref_target, hyp_baseline, hyp_target])
 
     merged["raw_hyp_baseline"] = merged.get("output_baseline", merged[hyp_baseline])
-    merged["raw_hyp_target"] = merged.get("output_target", merged[hyp_target])
+    # output_target when both sides have 'output'; plain 'output' when only target has it
+    merged["raw_hyp_target"] = merged.get("output_target", merged.get("output", merged[hyp_target]))
     merged["ref"] = merged[ref_target].map(normalize_asr_text)
     merged["ref_matches_baseline"] = (
         merged[ref_target].map(normalize_asr_text) == merged[ref_baseline].map(normalize_asr_text)
