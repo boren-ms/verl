@@ -55,5 +55,5 @@ trainer:
   total_epochs: 1
   test_freq: 10
   save_freq: 10
-  val_before_train: false
-  dedup_responses: false
+  val_before_train: true
+  dedup_responses: true
