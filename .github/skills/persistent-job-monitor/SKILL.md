@@ -16,7 +16,7 @@ Continuously monitor a running Ray job on a Brix node, polling every 5 minutes, 
 
 ## When NOT to Use
 - One-time status checks (use `verl-job-status` skill instead)
-- Submitting a new job (use `submit-remote-job` skill instead)
+- Submitting a new job (use `verl-asr-run` skill instead)
 
 ## Prerequisites
 - A running Ray job ID (e.g. `raysubmit_XXXXX`)
@@ -188,7 +188,7 @@ If the job FAILS during monitoring:
 1. Get the last 40 lines of logs for error diagnosis
 2. Report the error clearly
 3. Ask the user if they want to:
-   - Fix and resubmit (switch to `submit-remote-job` skill)
+   - Fix and resubmit (switch to `verl-asr-run` skill)
    - Abandon the job
 
 If the job appears stuck (same step for 3+ consecutive polls = 15+ min):
