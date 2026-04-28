@@ -4,6 +4,6 @@ hydra:
     - file://verl/trainer/config
 
 source_config: data/train_data/gen_ls_raw_rp_bad.yaml
-output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_bad/data.parquet
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_bad/data.jsonl
 include_verl_format: false
 overwrite: false

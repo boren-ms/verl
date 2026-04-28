@@ -106,7 +106,7 @@ def extract_entities(text):
     return set(entities)
 
 
-def jsonl_dataset(jsonl_paths):
+def jsonl_dataset(jsonl_paths, **kwargs):
     """Load a JSONL dataset from the specified paths."""
 
     def load_jsonl(file_path):
@@ -144,7 +144,7 @@ def _load_expanded_datasets(file_paths, ext, load_fn):
     return concatenate_datasets(datasets) if len(datasets) > 1 else datasets[0]
 
 
-def parquet_dataset(parquet_paths):
+def parquet_dataset(parquet_paths, **kwargs):
     """Load a Parquet dataset from the specified paths."""
 
     def load_parquet(file_path):
@@ -193,7 +193,7 @@ def pop_map_kwargs(kwargs):
 
 def ls_bias_dataset(jsonl_path, bias_key=None, with_gt=False, min_word_len=None, bias_sort=False, tag="*", data_dir=None, **kwargs):
     """Create a dataset from the given split."""
-    ds = jsonl_dataset(jsonl_path)
+    ds = jsonl_dataset(jsonl_path, **kwargs)
 
     def load_sample(example):
         """Load audio from a file."""
@@ -249,7 +249,7 @@ def entity_dataset(
     data_dir=None,
     **kwargs,
 ):
-    ds = jsonl_dataset(jsonl_path)
+    ds = jsonl_dataset(jsonl_path, **kwargs)
     distractors = read_words(distractor_file)
     shared_entities = read_words(entity_file)
 
