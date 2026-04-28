@@ -161,7 +161,6 @@ class RolloutConfig(BaseConfig):
 
     skip_rollout: bool = False
     gt_rollout: bool = False
-    gt_rollout_template: Optional[str] = None
 
     skip_dump_dir: str = "/tmp/rollout_dump"
 
