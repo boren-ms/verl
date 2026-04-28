@@ -5,7 +5,7 @@ hydra:
 defaults:
   - grpo_asr_full
   - data/train_data/gen_ls_raw_rp_edge_nodigits
-  - data/val_data/openasr_bad_fmt_lang
+  - data/val_data/openasr_part0
   - _self_
 
 custom_reward_function:
