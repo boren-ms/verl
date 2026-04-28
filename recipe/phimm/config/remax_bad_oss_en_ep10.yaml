@@ -5,7 +5,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/gen_bad_oss_en_rp_edge
-  - data/val_data/openasr_part0
+  - data/val_data/openasr_bad_fmt_lang
   - _self_
 
 custom_reward_function:
@@ -56,5 +56,5 @@ trainer:
   total_epochs: 10
   test_freq: 10
   save_freq: 10
-  val_before_train: false
+  val_before_train: true
   dedup_responses: true
