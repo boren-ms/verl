@@ -37,6 +37,20 @@ def get_task_prompt(task="asr", rand=False):
         raise ValueError(f"Unknown task: {task}")
 
 
+def get_task_output(task="asr", lang="English", text=""):
+    """Get the expected output format for the specified task."""
+    prefix = f"Audio Language: {lang}.\n"
+    if task in ("asr", "rare_asr", "biasing"):
+        return f"{prefix}<ASR><lang={lang}><TXT>{text}</TXT></ASR>"
+    elif task in ("en_asr", "lang_asr"):
+        return f"{prefix}<ASR><lang={lang}><TXT>{text}</TXT></ASR>"
+    elif task in ("en_asr_lex", "lang_asr_lex"):
+        return f"{prefix}<ASR_LEXICAL><lang={lang}><TXT>{text}</TXT></ASR_LEXICAL>"
+    else:
+        raise ValueError(f"Unknown task: {task}")
+    
+
+
 ASR_PROMPTS = [
     # from wavllm
     "Transcribe the audio clip into text.",

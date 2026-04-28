@@ -21,7 +21,7 @@ from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
 from recipe.phimm.data.error_simu import ErrorSimulator
 from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
-from recipe.phimm.data.prompts import get_task_prompt
+from recipe.phimm.data.prompts import get_task_prompt, get_task_output
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
 from recipe.phimm.utils.shared import (
@@ -863,12 +863,14 @@ def verl_format_ds(ds, **kwargs):
     extra_keys = kwargs.get("extra_keys", ["id", "keywords"])
 
     def map_fn(egs):
-        return {
+        text = egs.get("text", "")
+        result = {
             prompt_key: to_user_msg(egs[prompt_key]),
-            "reward_model": {"ground_truth": egs.get("text", "")},
+            "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
             "extra_info": {key: egs.get(key, None) for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),
         }
+        return result
 
     col_names = [x for x in ds.column_names if not x.startswith("audio")]
     map_kwargs = pop_map_kwargs(kwargs)
@@ -970,13 +972,16 @@ def add_prompt(ds, **kwargs):
     task = kwargs.get("task", "asr")
     rand = kwargs.get("rand", False)
     forced = kwargs.get("forced", False)
+    language = kwargs.get("language", "English")
 
     def add_prompt_fn(egs):
         prompt = egs.get("prompt", None)
         if forced or prompt is None:
             prompt_txt = get_task_prompt(task=task, rand=rand)
             prompt = prompt_format.format(prompt_txt)
-        return {"prompt": prompt}
+        lang = egs.get("lang", language)
+        gt_output = get_task_output(task=task, lang=lang, text=egs.get("text", ""))
+        return {"prompt": prompt, "gt_output": gt_output}
 
     ds = ds.map(add_prompt_fn, **pop_map_kwargs(kwargs))
     return ds

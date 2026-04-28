@@ -49,3 +49,16 @@
         data_source: spgispeech_bad_fmt_lang
     verl_format:
       prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/bad_fmt_lang.jsonl
+  cache_name: auto_voxpopuli_bad_fmt_lang
+  add_prompt:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: voxpopuli_bad_fmt_lang
+    verl_format:
+      prompt_key: prompt
