@@ -19,5 +19,3 @@ data:
 rollout:
   temperature: 0.0
   gpu_memory_utilization: 0.8
-  repetition_penalty: 1.0093
-  response_length: 200
