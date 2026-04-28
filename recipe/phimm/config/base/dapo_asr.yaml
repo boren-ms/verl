@@ -86,7 +86,7 @@ actor_rollout_ref:
     enforce_eager: True
     stop: ["<|end|>"]
     stop_token_ids: [200020]
-    gt_rollout_template: "<ASR><lang=English><TXT>{}</TXT></ASR>"
+    gt_rollout_template: "Audio Language: English.\n<ASR><lang=English><TXT>{}</TXT></ASR>"
     layered_summon: true
   ref:
     strategy: fsdp2
