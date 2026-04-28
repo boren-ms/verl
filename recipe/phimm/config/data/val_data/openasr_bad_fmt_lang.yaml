@@ -1,6 +1,11 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/bad_fmt_lang.jsonl
   cache_name: auto_ami_bad_fmt_lang
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
   add_prompt:
     task: lang_asr
     forced: True
@@ -14,6 +19,11 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/bad_fmt_lang.jsonl
   cache_name: auto_earnings22_bad_fmt_lang
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
   add_prompt:
     task: lang_asr
     forced: True
@@ -27,6 +37,11 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/bad_fmt_lang.jsonl
   cache_name: auto_gigaspeech_bad_fmt_lang
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/audio/"
   add_prompt:
     task: lang_asr_lex
     forced: True
@@ -40,6 +55,11 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/bad_fmt_lang.jsonl
   cache_name: auto_spgispeech_bad_fmt_lang
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
   add_prompt:
     task: lang_asr
     forced: True
@@ -53,6 +73,11 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/bad_fmt_lang.jsonl
   cache_name: auto_voxpopuli_bad_fmt_lang
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/audio/"
   add_prompt:
     task: lang_asr
     forced: True
