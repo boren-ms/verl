@@ -193,6 +193,7 @@ def main_task(config):
 
     wer_range = config.data.get("wer_range", None)
     edge_wer_range = config.data.get("edge_wer_range", None)
+    bad_format = config.data.get("bad_format", False)
     for batch_idx, batch_dict in tqdm(enumerate(dataloader)):
         results = defaultdict(list)
         results["prompt"].extend([msg[0]["content"] for msg in batch_dict["prompt"]])  # get user prompt
@@ -239,7 +240,7 @@ def main_task(config):
         batch_ds = Dataset.from_dict(results)
         log_examples(batch_ds, num_examine=num_examine)
 
-        batch_ds = filter_ds(batch_ds, wer_range=wer_range, edge_wer_range=edge_wer_range)
+        batch_ds = filter_ds(batch_ds, wer_range=wer_range, edge_wer_range=edge_wer_range, bad_format=bad_format)
         print(f"Batch Filtering: {n_egs} => {len(batch_ds)} samples.")
         batches.append(batch_ds)
         
@@ -254,7 +255,7 @@ def main_task(config):
         f"Overall wer: {total_err.wer(**wer_betas):.2%} [{total_err.n_err}/{total_err.n_ref}] "
         f"edge_wer={total_err.edge_wer():.2%} on {total_egs} samples"
     )
-    print(f"Filtering with: {wer_range=}, {edge_wer_range=}")
+    print(f"Filtering with: {wer_range=}, {edge_wer_range=}, {bad_format=}")
     print(f"Keep {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
     print(f"Saved {split_idx} splits to {output_dir}")
     print("All Done")
