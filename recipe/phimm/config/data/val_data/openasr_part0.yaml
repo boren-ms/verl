@@ -51,3 +51,20 @@
         data_source: spgispeech_repeat
     verl_format:
       prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/data.jsonl
+  cache_name: auto_earnings22
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
+  add_prompt:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
