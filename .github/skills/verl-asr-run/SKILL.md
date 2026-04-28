@@ -1,19 +1,24 @@
 ---
 name: verl-asr-run
-description: 'Submit and monitor ASR training or evaluation jobs on remote verl Brix nodes. Use when: running RL training (ReMax, GRPO), evaluating checkpoints on LibriSpeech/OpenASR/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, and analyzing per-dataset WER with word-level error breakdowns. Combines remote-development patterns with verl training/eval pipeline and asr-word-error-analysis.'
+description: 'Submit and monitor ASR training or evaluation jobs on remote verl Brix nodes until completion, reporting metrics in structured tables. Use when: running RL training (ReMax, GRPO), evaluating checkpoints on LibriSpeech/OpenASR/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "eval_openasr", "check WER", "monitor job", "check training status", "push and submit", "run config on node".'
 argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0, or eval_libri_h100'
 ---
 
 # verl ASR Run
 
-Submit a training or evaluation job on a remote verl Brix node, monitor it to completion, and optionally perform word error analysis on validation output.
+Submit a training or evaluation job on a remote verl Brix node via `submit_job.sh`, **continuously monitor until completion** reporting metrics in structured tables, and optionally perform word error analysis on validation output.
+
+Refer to the **remote-development** skill for node connectivity, `rcall-brix`, `bpush`, `bbb`, and environment setup.
 
 ## When to Use
 
 - User wants to **train** an ASR model with RL (ReMax, GRPO) — "run training", "submit job", "train on node"
 - User wants to **evaluate** a checkpoint — "run eval", "evaluate on librispeech", "eval_openasr", "check WER"
 - User wants to submit any verl ASR job to a remote node and monitor until completion
+- User asks to monitor an existing job — "check status", "update", "how's the job"
+- User needs to fix code, push, and resubmit after a failure
 - User wants word-level error analysis on verl validation JSONL output
+- User wants to run multiple jobs (see batch submission below)
 
 ## Inputs
 
@@ -49,6 +54,19 @@ Determined by config name prefix:
 | `eval_openasr` | OpenASR (ami, common_voice, earnings22, etc.) | Full OpenASR suite |
 
 Configs live at `recipe/phimm/config/*.yaml`. Training configs compose from `recipe/phimm/config/base/dapo_asr.yaml`; eval configs compose from `recipe/phimm/config/base/eval_asr.yaml` (which sets `val_only: True` and `val_before_train: True`).
+
+## Job Submission Pipeline
+
+```
+submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
+  └─ submit_job.sh <node> <config> [dry_run] [cleanup] [sync_code]
+       ├─ rcall-brix sync <node>          # sync code to remote (if sync_code=true)
+       ├─ ray_job.py cleanup <config>     # cancel previous run of same config
+       └─ rcall-brix ssh <node> "bash -l /root/code/verl/quick_run.sh <config>"
+            └─ quick_run.sh <config>
+                 ├─ ray_tool.py prepare_env   # install deps on all Ray nodes
+                 └─ ray job submit ... python3 -m <module> --config-name <config>
+```
 
 ## Procedure
 
@@ -179,8 +197,21 @@ rcall-brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} | tail -n 30"'
 ```bash
 rcall-brix ssh {NODE} -- 'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits'
 ```
+Run this on every monitoring check. Parse the CSV output into the status header.
 
-#### 3d. Detect completion
+#### 3d. Monitoring phases (check in order)
+1. **Startup**: reward functions loaded, dataset loaded, worker count
+2. **Model sync**: `bbb sync` fetching model shards from blob
+3. **Checkpoint loading**: `Loading checkpoint shards: X%`
+4. **LoRA application**: `Applying LoRA to actor module`
+5. **vLLM init**: LoRA warnings about vision encoder layers (expected)
+6. **CUDA graph capture**: `Capturing CUDA graph shapes: X% | N/M`
+7. **W&B init**: `wandb: Syncing run <NAME>` — capture the **run URL**
+8. **Training**: `step:N` lines with metrics
+9. **Validation**: `val-core/` and `val-aux/` metrics at validation steps
+10. **Checkpointing**: `save_checkpoint` timing at save steps
+
+#### 3e. Detect completion
 
 **For eval jobs**, the job is done when:
 - `ray_job.py list` shows no running jobs matching `{CONFIG}`, OR
@@ -191,24 +222,39 @@ rcall-brix ssh {NODE} -- 'nvidia-smi --query-gpu=index,utilization.gpu,memory.us
 - Ray job status shows `SUCCEEDED` or `FAILED`, OR
 - The log shows the final step completed and checkpoint saved
 
-#### 3e. If the job crashes
-Check the log tail for errors. Common fixes:
-- OOM: reduce `gpu_memory_utilization`, `val_batch_size`, or training batch size
-- Missing data: check `DATA_PATH` env var on the node
-- Import error: wrong module path or API mismatch → fix and resubmit
-- Checkpoint error: model shard missing on blob → check blob path in config
+#### 3f. Handle failures
 
-#### 3f. Extract and present metrics
+If the job status is FAILED or errors appear:
+1. Get the error from logs: `ray job logs {JOB_ID} | tail -n 40`
+2. Diagnose the root cause (read the traceback)
+3. Fix the code locally
+4. Push (`bpush {NODE}`) and resubmit (go back to Step 2)
+5. Track all job IDs across resubmissions
+
+Common failure patterns:
+- **OOM**: reduce `gpu_memory_utilization`, `val_batch_size`, or `rollout_n` in config
+- **Missing data**: check `DATA_PATH` env var on the node
+- **Missing function**: reward module doesn't have the expected function → add it
+- **Import error**: wrong module path or API mismatch → fix the call
+- **Model incompatibility**: PEFT/vLLM doesn't support the model → revert model or patch
+- **Checkpoint error**: model shard missing on blob → check blob path in config
+- **"rcall-brix: command not found"**: Use full path `~/.virtualenvs/openai/bin/rcall-brix`
+- **Sync fails**: Check node is Ready with `rcall-brix ls` or the brix-node-gpu-check skill
+
+#### 3g. Extract and present metrics
 
 **Status header** (show on every poll):
 ```
 **Job**: `{JOB_ID}` | **Status**: RUNNING | **Progress**: step X/N (XX%)
 **Node**: {NODE} | **Config**: {CONFIG}
 **W&B**: [{RUN_NAME}](https://msaip.wandb.io/genai/{PROJECT}/runs/{RUN_ID})
+**Ray**: http://{HEAD_IP}:9209
 **GPU**: 0: 95% (65G/80G) | 1: 92% (64G/80G) | ...
 ```
 
-Extract the W&B URL from logs: look for `wandb: 🚀 View run at https://...`
+- Extract the W&B URL from logs: look for `wandb: 🚀 View run at https://...`
+- Extract the Ray dashboard from logs: look for the Ray dashboard URL in startup output
+- GPU line: format each GPU as `{idx}: {util}% ({mem_used}G/{mem_total}G)` from `nvidia-smi` output
 
 **Training metrics table** (for training jobs — accumulate all observed steps):
 
@@ -245,7 +291,23 @@ Extract from validation log lines:
 
 **Show ALL steps observed — accumulate across monitoring checks to compare progression.**
 
-### Step 4 — Word Error Analysis
+### Step 4 — Final summary (when SUCCEEDED)
+
+When the job completes, provide:
+1. **Full validation metrics table** across ALL val steps (complete trajectory)
+2. **Final training metrics** from the last step (for training jobs)
+3. **Checkpoint save location** from the `save_checkpoint` log
+4. **W&B run link** (clickable)
+5. **Total training time** (from first step to last step)
+6. **Trend summary**: did WER improve? By how much? Best val step?
+
+#### W&B result check (optional post-job):
+```bash
+python ./wandb_result.py --metric val-aux search '{CONFIG}'
+```
+This queries W&B for the run's validation metrics and saves an Excel summary to `~/wandb_results/`.
+
+### Step 5 — Word Error Analysis
 
 After the job completes, perform word-level error analysis on the validation JSONL output.
 
@@ -291,11 +353,11 @@ where `{PROJECT}` is the `trainer.project_name` from config (default: `verl_repe
    - Top 5 deletions and insertions
    - Link to the HTML report for visual inspection
 
-#### Step 4b — Fallback if no JSONL dump
+#### Step 5b — Fallback if no JSONL dump
 
 If the blob path has no JSONL files (validation data dir not configured or upload failed):
 
-1. The WER metrics are still available from the log (Step 3f). Present those.
+1. The WER metrics are still available from the log (Step 3g). Present those.
 2. Suggest re-running with `trainer.validation_data_dir` set in the config or as a hydra override.
 3. If the user agrees, re-submit the job with the override and repeat from Step 2.
 
@@ -304,7 +366,7 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 - **Step 2**: `ray job submit` output shows a job ID. If it errors, check `ray_tool.py prepare_env` ran.
 - **Step 3 (eval)**: WER values are reasonable (0–100%). If WER > 50%, flag as suspicious.
 - **Step 3 (training)**: Training metrics should show learning (score/mean trending up, pg_loss decreasing). If metrics are flat or diverging, flag.
-- **Step 4**: `summary.json` exists and WER matches the log metrics (within rounding).
+- **Step 5**: `summary.json` exists and WER matches the log metrics (within rounding).
 - **Word error HTML**: `report.html` is generated and not empty.
 
 ## Important Notes
@@ -334,11 +396,33 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 | W&B results | `python ./wandb_result.py --metric val-aux search '{CONFIG}'` |
 | List jobs | `rcall-brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list"'` |
 
+## Batch Submission
+
+For submitting multiple jobs to different nodes, edit `submit_jobs_repeat.sh` to list the jobs, or call `submit_job.sh` multiple times:
+```bash
+bash submit_job.sh <node1> <config1> false true false
+bash submit_job.sh <node2> <config2> false true false
+```
+
+Or use `submit_jobs_repeat.sh` which wraps multiple `submit_job.sh` calls:
+```bash
+bash submit_jobs_repeat.sh
+```
+
+## Response Style
+
+- **Always show** the status header with job ID, W&B URL, and Ray dashboard URL
+- **Use tables** for metrics — never dump raw log lines to the user
+- **Accumulate** metrics across monitoring polls — show the full step-by-step progression
+- Parse `step:N - key:val - key:val` format into structured table rows
+- When monitoring, report the current phase and what to expect next
+- On failure, show the error, diagnose, and proceed to fix without asking
+- **Do not stop monitoring** until the job is SUCCEEDED or FAILED
+
 ## Dependent Skills
 
 | Skill | Phase | Purpose |
 |-------|-------|---------|
 | **remote-development** | 0, 2 | Node discovery, sync, remote commands |
-| **submit-remote-job** | 2, 3 | Job submission pipeline and monitoring patterns |
 | **persistent-job-monitor** | 3 | Long-running training job monitoring |
-| **asr-word-error-analysis** | 4 | Word-level error analysis on validation JSONL |
+| **asr-word-error-analysis** | 5 | Word-level error analysis on validation JSONL |
