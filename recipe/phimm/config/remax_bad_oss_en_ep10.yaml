@@ -26,7 +26,7 @@ actor_rollout_ref:
   rollout:
     n: 16
     gt_rollout: true
-    temperature: 1.2
+    temperature: 1
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     val_kwargs:
