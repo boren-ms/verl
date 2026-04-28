@@ -10,6 +10,7 @@ import random
 import socket
 import blobfile as bf
 import pandas as pd
+import pyarrow.parquet as pq
 import string
 from pathlib import Path
 import sys
@@ -117,16 +118,37 @@ def jsonl_dataset(jsonl_paths, **kwargs):
     return ds
 
 
+def _has_glob_pattern(file_path):
+    return any(char in file_path for char in "*?[")
+
+
+def _expand_paths(file_paths, ext="parquet"):
+    expanded_files = []
+    for file_path in file_paths:
+        file_path = os.path.expanduser(str(file_path))
+        if _has_glob_pattern(file_path):
+            matches = sorted(bf.glob(file_path))
+        elif bf.isdir(file_path):
+            matches = sorted(bf.glob(bf.join(file_path, f"*.{ext}")))
+        elif bf.exists(file_path):
+            matches = [file_path]
+        else:
+            matches = []
+        if not matches:
+            raise FileNotFoundError(f"No {ext} files matched: {file_path}")
+        expanded_files.extend(matches)
+    return expanded_files
+
+
 def parquet_dataset(parquet_paths, **kwargs):
     """Load a Parquet dataset from the specified paths."""
 
     data_files = [parquet_paths] if isinstance(parquet_paths, str) else parquet_paths
-    data_files = [get_path_with_options(str(file_path)) for file_path in data_files]
-
-    options = data_files[0][1]
-    fs_files = [file[0] for file in data_files]
-    ds = load_dataset("parquet", data_files=fs_files, split="train", storage_options=options)
-    return ds
+    datasets = []
+    for file_path in _expand_paths(data_files, ext="parquet"):
+        with bf.BlobFile(file_path, "rb") as file_obj:
+            datasets.append(Dataset(pq.read_table(file_obj)))
+    return concatenate_datasets(datasets) if len(datasets) > 1 else datasets[0]
 
 
 def update_dir(data_path, src_dir=None, dst_dir=None):
@@ -702,10 +724,10 @@ def keep_bad_response(ds, **kwargs):
     def keep_bad_example(example):
         parsed = parse_asr_response(example.get(response_key, "") or {})
         good_fmt = bool(parsed.get("formatted", True))
-        egs_lang = parsed.get("lang", "").lower()
+        egs_lang = (parsed.get("lang") or "").lower()
         if bad_format and not good_fmt:
             return True
-        if lang and egs_lang != lang: # not the expected language
+        if lang and egs_lang != lang:  # not the expected language
             return True
         return False
 
