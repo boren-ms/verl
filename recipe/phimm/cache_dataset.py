@@ -30,7 +30,7 @@ SourceConfig = str | dict[str, Any] | list[Any]
 
 
 def _load_yaml(path: str) -> Any:
-    path = _resolve_path(path)
+    path = _resolve_path(path, config_relative=True)
     with bf.BlobFile(path, "r") as file_obj:
         return yaml.safe_load(file_obj)
 
