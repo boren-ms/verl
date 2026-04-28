@@ -11,6 +11,7 @@ import socket
 import blobfile as bf
 import pandas as pd
 import pyarrow.parquet as pq
+import pyarrow.json as pjson
 import string
 from pathlib import Path
 import sys
@@ -105,17 +106,14 @@ def extract_entities(text):
     return set(entities)
 
 
-def jsonl_dataset(jsonl_paths, **kwargs):
+def jsonl_dataset(jsonl_paths):
     """Load a JSONL dataset from the specified paths."""
 
-    data_files = [jsonl_paths] if isinstance(jsonl_paths, str) else jsonl_paths
-    data_files = [get_path_with_options(str(file_path)) for file_path in data_files]
+    def load_jsonl(file_path):
+        with bf.BlobFile(file_path, "rb") as file_obj:
+            return Dataset(pjson.read_json(file_obj))
 
-    options = data_files[0][1]
-    fs_files = [file[0] for file in data_files]
-    ds = load_dataset("json", data_files=fs_files, split="train", storage_options=options)
-    ds = stream_shuffle(ds, **kwargs)
-    return ds
+    return _load_expanded_datasets(jsonl_paths, ext="jsonl", load_fn=load_jsonl)
 
 
 def _has_glob_pattern(file_path):
@@ -140,15 +138,20 @@ def _expand_paths(file_paths, ext="parquet"):
     return expanded_files
 
 
-def parquet_dataset(parquet_paths, **kwargs):
+def _load_expanded_datasets(file_paths, ext, load_fn):
+    data_files = [file_paths] if isinstance(file_paths, str) else file_paths
+    datasets = [load_fn(file_path) for file_path in _expand_paths(data_files, ext=ext)]
+    return concatenate_datasets(datasets) if len(datasets) > 1 else datasets[0]
+
+
+def parquet_dataset(parquet_paths):
     """Load a Parquet dataset from the specified paths."""
 
-    data_files = [parquet_paths] if isinstance(parquet_paths, str) else parquet_paths
-    datasets = []
-    for file_path in _expand_paths(data_files, ext="parquet"):
+    def load_parquet(file_path):
         with bf.BlobFile(file_path, "rb") as file_obj:
-            datasets.append(Dataset(pq.read_table(file_obj)))
-    return concatenate_datasets(datasets) if len(datasets) > 1 else datasets[0]
+            return Dataset(pq.read_table(file_obj))
+
+    return _load_expanded_datasets(parquet_paths, ext="parquet", load_fn=load_parquet)
 
 
 def update_dir(data_path, src_dir=None, dst_dir=None):
@@ -190,7 +193,7 @@ def pop_map_kwargs(kwargs):
 
 def ls_bias_dataset(jsonl_path, bias_key=None, with_gt=False, min_word_len=None, bias_sort=False, tag="*", data_dir=None, **kwargs):
     """Create a dataset from the given split."""
-    ds = jsonl_dataset(jsonl_path, **kwargs)
+    ds = jsonl_dataset(jsonl_path)
 
     def load_sample(example):
         """Load audio from a file."""
@@ -246,7 +249,7 @@ def entity_dataset(
     data_dir=None,
     **kwargs,
 ):
-    ds = jsonl_dataset(jsonl_path, **kwargs)
+    ds = jsonl_dataset(jsonl_path)
     distractors = read_words(distractor_file)
     shared_entities = read_words(entity_file)
 

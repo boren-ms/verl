@@ -1,10 +1,10 @@
-"""Cache processed phimm data configs as parquet.
+"""Cache processed phimm data configs as JSONL or parquet.
 
 Usage:
     python -m recipe.phimm.cache_dataset \
         --config-name gen_ls_raw_rp_edge_nodigits
 
-Each Hydra config points to a source data YAML and a destination parquet path.
+Each Hydra config points to a source data YAML and a destination .jsonl or .parquet path.
 """
 
 from __future__ import annotations
@@ -75,12 +75,23 @@ def _mkdir_parent(path: str) -> None:
     Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
 
 
-def save_parquet(dataset: Dataset, output_path: str, overwrite: bool = False) -> None:
+def _ensure_can_write(output_path: str, overwrite: bool = False) -> None:
     if bf.exists(output_path) and not overwrite:
         raise FileExistsError(f"Output already exists: {output_path}. Set overwrite=true to replace it.")
     _mkdir_parent(output_path)
+
+
+def save_dataset(dataset: Dataset, output_path: str, overwrite: bool = False) -> None:
+    suffix = Path(urlparse(output_path).path).suffix.lstrip(".").lower()
+    if suffix not in {"jsonl", "parquet"}:
+        raise ValueError(f"Unsupported output path extension: {output_path}. Use a .jsonl or .parquet path.")
+
+    _ensure_can_write(output_path, overwrite=overwrite)
     with bf.BlobFile(output_path, "wb") as file_obj:
-        dataset.to_parquet(file_obj)
+        if suffix == "jsonl":
+            dataset.to_json(file_obj, force_ascii=False)
+        else:
+            dataset.to_parquet(file_obj)
 
 
 def cache_summary(
@@ -122,8 +133,8 @@ def cache_dataset(source_config: str, output_path: str, include_verl_format: boo
         print("Skipping post_process.verl_format before caching.")
     dataset = _as_dataset(create_datasets(dataset_config))
 
-    print(f"Writing parquet: {output_path}")
-    save_parquet(dataset, output_path, overwrite=overwrite)
+    print(f"Writing to: {output_path}")
+    save_dataset(dataset, output_path, overwrite=overwrite)
     return cache_summary(source_config, output_path, overwrite, skipped=False, dataset=dataset)
 
 
