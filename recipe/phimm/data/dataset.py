@@ -32,6 +32,7 @@ from recipe.phimm.utils.shared import (
     is_list,
     to_int,
     unbatch,
+    parse_asr_response,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
@@ -692,6 +693,29 @@ def filter_by_wer(ds, **kwargs):
     return ds
 
 
+def keep_bad_response(ds, **kwargs):
+    """Filter ASR raw responses by bad format and parsed language."""
+    response_key = kwargs.get("response_key", "raw_response")
+    bad_format = kwargs.get("bad_format", False)
+    lang = kwargs.get("language", "").lower()
+
+    def keep_bad_example(example):
+        parsed = parse_asr_response(example.get(response_key, "") or {})
+        good_fmt = bool(parsed.get("formatted", True))
+        egs_lang = parsed.get("lang", "").lower()
+        if bad_format and not good_fmt:
+            return True
+        if lang and egs_lang != lang: # not the expected language
+            return True
+        return False
+
+    n_egs = len(ds)
+    ds = ds.filter(keep_bad_example, **pop_filter_kwargs(kwargs), desc="Keeping bad responses")
+    n_left = len(ds)
+    all_rank_print(f"Kept bad responses: {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
+    return ds
+
+
 def filter_text_with_numbers(ds, **kwargs):
     field = kwargs.get("field", "text")
     norm_name = kwargs.get("text_norm", kwargs.get("tn_name", "english"))
@@ -850,6 +874,8 @@ def process_ds(ds, **kwargs):
         ds = filter_long_text(ds, **merge_kwargs(map_kwargs, filter_long_text_kwargs))
     if wer_filter_kwargs := kwargs.get("filter_by_wer", {}):
         ds = filter_by_wer(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
+    if keep_bad_response_kwargs := kwargs.get("keep_bad_response", {}):
+        ds = keep_bad_response(ds, **merge_kwargs(map_kwargs, keep_bad_response_kwargs))
     if trim_silence_kwargs := kwargs.get("trim_silence", {}):
         ds = trim_silence(ds, **merge_kwargs(map_kwargs, trim_silence_kwargs))
     if trim_tailing_kwargs := kwargs.get("trim_tailing", {}):
