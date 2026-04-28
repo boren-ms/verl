@@ -1,20 +1,85 @@
 ---
 name: remote-development
-description: 'Connect to a remote Brix node using rcall-brix, switch workspace to ~/code/verl, install dependencies, and run development tasks. Use when setting up a remote dev environment, running code on a GPU node, installing required packages, or developing/testing on a remote machine.'
-argument-hint: 'Target node name, e.g. cw-n1-i0'
+description: 'Create, resume, or connect to a remote Brix node using rcall-brix, switch workspace to ~/code/verl, install dependencies, and run development tasks. Use when: creating a new GPU node, resuming a paused node, setting up a remote dev environment, running code on a GPU node, installing required packages, or developing/testing on a remote machine. Triggers: "create node", "spin up a node", "new devbox", "resume node", "connect to remote", "set up remote", "install deps on node".'
+argument-hint: 'Target node name, e.g. verl-n1-i0'
 ---
 
 # Remote Development
 
-Use this skill when the user needs to connect to a remote Brix node, navigate to the workspace, install packages, or do development work on a remote node.
+Use this skill when the user needs to create a new Brix GPU node, resume a paused node, connect to a remote node, navigate to the workspace, install packages, or do development work on a remote node.
 
 ## When to Use
+- User wants to **create** a new remote GPU node / devbox — "create node", "spin up a node", "new devbox"
+- User wants to **resume** a paused or suspended node — "resume node", "start a node"
 - User wants to set up or refresh a remote dev environment
 - User needs to install required packages on a remote node
 - User says "connect to remote", "set up the remote node", or "install deps on <node>"
 - User wants to run, test, or develop code on a remote GPU node
 
 ## Procedure
+
+### Step 0 — Create or resume node (if needed)
+
+Skip this step if the user already has a running node.
+
+#### Node creation defaults
+
+| Parameter | Default |
+|-----------|---------|
+| prefix | `verl` |
+| N (num_pods) | `1` |
+| i (index) | auto-pick unused |
+| cluster | `prod-westus2-cw-6` |
+| num_gpu | `8` |
+| priority_class | `team-critical` |
+| team | `team-moonfire-speech` |
+
+The full job name is `{PREFIX}-n{N}-i{I}`.
+
+#### 0a. Check for existing pools
+
+```bash
+rcall-brix ls '{PREFIX}-n*' 2>&1
+```
+
+- If user provided a specific `i`, check if `{PREFIX}-n{N}-i{I}` exists.
+- If user did NOT provide `i`, parse existing `{PREFIX}-n{N}-i*` names, extract used `i` values, and pick the smallest unused `i` starting from 0.
+
+#### 0b. Resume if paused/suspended
+
+If the pool exists but status is `Paused`, `Suspended`, or any non-Ready state:
+```bash
+rcall-brix resume {PREFIX}-n{N}-i{I}
+```
+Poll until Ready:
+```bash
+rcall-brix ls '{PREFIX}-n{N}-i{I}' 2>&1
+```
+Wait 15 seconds between polls. Report each status so user sees progress.
+
+If already `Ready`, report and skip to Step 1.
+
+#### 0c. Create new node
+
+If the pool does NOT exist:
+```bash
+twdev create-ray-devbox \
+  cluster={CLUSTER} \
+  num_pods={N} \
+  num_gpu={NUM_GPU} \
+  job_name={PREFIX}-n{N}-i{I} \
+  priority_class={PRIORITY} \
+  team={TEAM}
+```
+
+#### 0d. Verify
+
+Confirm the node is up:
+```bash
+rcall-brix ls '{PREFIX}-n{N}-i{I}' 2>&1
+```
+
+Report: job name, cluster, status, size (`{N} x {NUM_GPU} GPU`).
 
 ### Step 1 — Resolve the target node
 If the user provides a node name (e.g. `cw-n1-i0`), use it directly.
