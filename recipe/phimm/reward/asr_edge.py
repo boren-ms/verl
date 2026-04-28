@@ -128,7 +128,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         n_edit = err.edit_distance(**betas)
         score = -(n_edit**gamma)
     else:
-        score = err.accuracy(**betas) ** gamma if is_good else 0
+        score = err.accuracy(**betas) ** gamma if is_good else -1 # penalize non-English or unformatted outputs
 
     return {
         "score": score,
