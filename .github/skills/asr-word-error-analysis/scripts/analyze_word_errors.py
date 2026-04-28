@@ -53,6 +53,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--top-n", type=int, default=50, help="Number of worst utterances shown in alignment samples.")
     p.add_argument("--top-confusions", type=int, default=100, help="Number of top substitution pairs to report.")
     p.add_argument("--write-html", action="store_true", help="Also write a standalone HTML report.")
+    p.add_argument("--raw-output-column", default="", help="Column containing the raw model output to include in HTML report.")
     p.add_argument("--length-bucket-size", type=int, default=5, help="Ref-word-count bucket width for error_patterns.csv.")
     p.add_argument("--case-sensitive", action="store_true", help="Do not lowercase ref/hyp before alignment.")
     return p.parse_args()
@@ -626,6 +627,7 @@ def render_html(
     dataset: str,
     input_path: str,
     top_n: int,
+    raw_output_column: str = "",
 ) -> None:
     ranked = sorted(results, key=lambda r: r.alignment.errors, reverse=True)[:top_n]
     local_audio_by_idx = download_ranked_audio(results, output_dir, top_n)
@@ -676,6 +678,17 @@ def render_html(
         transcript_html = _render_alignment_html(r.alignment)
         err_table_html = _render_error_summary_table(r.alignment)
 
+        raw_output_html = ""
+        if raw_output_column:
+            raw_val = str(r.row.get(raw_output_column, "")).strip()
+            if raw_val:
+                raw_output_html = (
+                    f'  <details>\n'
+                    f'    <summary>Raw model output</summary>\n'
+                    f'    <pre class="raw-output">{_esc(raw_val)}</pre>\n'
+                    f'  </details>'
+                )
+
         cards.append(
             f"""<article class="card" id="utt-{rank}">
   <header>
@@ -692,6 +705,7 @@ def render_html(
     <summary>Transcript with error highlighting</summary>
     <div class="transcript">{transcript_html}</div>
   </details>
+  {raw_output_html}
   <details>
     <summary>Error breakdown ({r.alignment.errors} errors)</summary>
     {err_table_html}
@@ -755,6 +769,7 @@ summary:hover{{background:#f0f4ff}}
 .err-table{{width:100%;border-collapse:collapse;margin:8px 0}}
 .err-table th,.err-table td{{border:1px solid #eee;padding:5px 8px;font-size:.82rem;text-align:left}}
 .err-table th{{background:#f8f8f8}}
+.raw-output{{padding:12px 18px;font-size:.82rem;background:#f9f9f9;border:1px solid #eee;border-radius:4px;margin:8px 18px;white-space:pre-wrap;word-wrap:break-word;max-height:400px;overflow-y:auto;font-family:monospace;line-height:1.5}}
 @media(max-width:900px){{
   .sidebar{{display:none}}
   main{{padding:16px}}
@@ -857,7 +872,7 @@ def main() -> None:
     write_alignment_samples(results, output_dir, args.top_n)
 
     if args.write_html:
-        render_html(results, agg, output_dir, args.dataset, input_path, args.top_n)
+        render_html(results, agg, output_dir, args.dataset, input_path, args.top_n, args.raw_output_column)
 
     print("\nDone.")
 
