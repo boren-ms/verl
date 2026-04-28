@@ -12,9 +12,9 @@ model:
 
 data:
   batch_size: 512
-  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_mls_en_wer01
-  output_split_size: 10000
-  wer_range: [0.1, 2]
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_mls_en_wer001
+  output_split_size: 1000000
+  wer_range: [0.01, 2000]
 
 rollout:
   temperature: 0.0

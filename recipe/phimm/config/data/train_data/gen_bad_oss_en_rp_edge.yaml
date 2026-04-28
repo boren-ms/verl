@@ -1,0 +1,6 @@
+dataset_name: parquet
+parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_en_rp_edge/part-*.parquet
+post_process:
+  keep_bad_response:
+    bad_format: true
+    language: English

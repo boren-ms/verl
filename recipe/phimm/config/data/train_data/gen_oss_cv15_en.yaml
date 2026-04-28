@@ -6,6 +6,6 @@ add_prompt:
 post_process:
   add_field:
     fields:
-      data_source: asr
+      language: English
   verl_format:
     prompt_key: prompt

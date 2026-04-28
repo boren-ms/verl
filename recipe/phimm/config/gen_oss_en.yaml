@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - gen_asr
-  - data/train_data/oss_cv15_en
+  - data/train_data/oss_en
   - _self_
 
 model:
@@ -12,7 +12,7 @@ model:
 
 data:
   batch_size: 512
-  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_cv15_en_wer001
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_en_wer001
   output_split_size: 1000000
   wer_range: [0.01, 2000]
 
