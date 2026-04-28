@@ -1,9 +1,12 @@
-hydra:
-  searchpath:
-    - file://recipe/phimm/config/base
-    - file://verl/trainer/config
 
-source_config: data/train_data/gen_bad_oss_en_rp_edge.yaml
+source_config:
+  dataset_name: parquet
+  parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_en_rp_edge/part-*.parquet
+  post_process:
+    keep_bad_response:
+      bad_format: true
+      language: English
+
 output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_oss_en_rp_edge/data.jsonl
 include_verl_format: false
 overwrite: false

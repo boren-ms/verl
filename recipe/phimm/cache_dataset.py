@@ -26,11 +26,21 @@ from recipe.phimm.data.dataset import create_datasets
 
 
 PHIMM_CONFIG_DIR = Path(__file__).parent / "config"
+SourceConfig = str | dict[str, Any] | list[Any]
 
 
 def _load_yaml(path: str) -> Any:
+    path = _resolve_path(path)
     with bf.BlobFile(path, "r") as file_obj:
         return yaml.safe_load(file_obj)
+
+
+def _load_source_config(source_config: SourceConfig) -> Any:
+    if isinstance(source_config, str):
+        return _load_yaml(source_config)
+    if isinstance(source_config, (dict, list)):
+        return copy.deepcopy(source_config)
+    raise TypeError(f"Unsupported source_config type: {type(source_config).__name__}")
 
 
 def _resolve_path(path: str, config_relative: bool = False) -> str:
@@ -95,7 +105,7 @@ def save_dataset(dataset: Dataset, output_path: str, overwrite: bool = False) ->
 
 
 def cache_summary(
-    source_config: str,
+    source_config: SourceConfig,
     output_path: str,
     overwrite: bool,
     skipped: bool,
@@ -117,14 +127,18 @@ def cache_summary(
     return summary
 
 
-def cache_dataset(source_config: str, output_path: str, include_verl_format: bool = False, overwrite: bool = False) -> dict[str, Any]:
-    source_config = _resolve_path(source_config, config_relative=True)
+def cache_dataset(
+    source_config: SourceConfig,
+    output_path: str,
+    include_verl_format: bool = False,
+    overwrite: bool = False,
+) -> dict[str, Any]:
     output_path = _resolve_path(output_path)
     if bf.exists(output_path) and not overwrite:
         print(f"Output already exists, skipping: {output_path}")
         return cache_summary(source_config, output_path, overwrite, skipped=True, reason="output_exists")
 
-    dataset_config = _load_yaml(source_config)
+    dataset_config = _load_source_config(source_config)
     if not include_verl_format:
         dataset_config = _strip_verl_format(dataset_config)
 
@@ -142,7 +156,7 @@ def cache_dataset(source_config: str, output_path: str, include_verl_format: boo
 def main(config: DictConfig) -> None:
     cfg = OmegaConf.to_container(config, resolve=True)
     cache_dataset(
-        source_config=str(cfg["source_config"]),
+        source_config=cfg["source_config"],
         output_path=str(cfg["output_path"]),
         include_verl_format=bool(cfg.get("include_verl_format", False)),
         overwrite=bool(cfg.get("overwrite", False)),
