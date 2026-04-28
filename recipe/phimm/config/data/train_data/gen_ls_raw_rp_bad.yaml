@@ -1,0 +1,14 @@
+dataset_name: parquet
+parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp/part-*.parquet
+add_prompt:
+  task: lang_asr
+  forced: True
+post_process:
+  keep_bad_response:
+    bad_format: true
+    language: English
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
