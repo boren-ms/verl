@@ -150,7 +150,7 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
    **3b. Alternative (preferred)**: Use `submit_job.sh` which handles push + submit in one command:
    ```bash
-   bash submit_job.sh {NODE} recipe/phimm/config/{CONFIG}.yaml false true false
+   bash submit_job.sh {NODE} recipe/phimm/config/{CONFIG}.yaml false true true
    ```
 
    If a custom model path is specified, append a hydra override:
@@ -386,7 +386,7 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 | Action | Command |
 |--------|---------|
 | Push code | `bpush {NODE}` |
-| Submit job | `bash submit_job.sh {NODE} recipe/phimm/config/{CONFIG}.yaml false true false` |
+| Submit job | `bash submit_job.sh {NODE} recipe/phimm/config/{CONFIG}.yaml false true true` |
 | Job status | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job status {JOB_ID}"'` |
 | Job logs (tail) | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| tail -n N"'` |
 | Step progress | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep \"step:\" \| tail -n 10"'` |
@@ -400,8 +400,8 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 
 For submitting multiple jobs to different nodes, edit `submit_jobs_repeat.sh` to list the jobs, or call `submit_job.sh` multiple times:
 ```bash
-bash submit_job.sh <node1> <config1> false true false
-bash submit_job.sh <node2> <config2> false true false
+bash submit_job.sh <node1> <config1> false true true
+bash submit_job.sh <node2> <config2> false true true
 ```
 
 Or use `submit_jobs_repeat.sh` which wraps multiple `submit_job.sh` calls:
