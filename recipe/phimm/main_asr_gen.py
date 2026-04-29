@@ -221,7 +221,7 @@ def main_task(config):
             valid_response_ids = data_item.batch["responses"][:valid_response_length]
             response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
             score = eval_score(response_str, results[i]["text"], **wer_kwargs)
-            score["response"] = parse_asr_response(response_str)
+            score["response"] = parse_asr_response(response_str).get("text") # the parsed ASR text from the response
             score["raw_response"] = response_str
             results[i].update(score)
         bn_err = sum(r["n_err"] for r in results)
