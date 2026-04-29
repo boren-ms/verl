@@ -49,6 +49,15 @@ Useful options:
 - If the CSV lacks `audio_file_stem`, the renderer falls back to `comparison_id` for the card title.
 - When `--audio-blob-root` is set, each card includes an `<audio>` player. Audio files are downloaded from `{blob-root}/{dataset}/audio/{row_index}.wav` (flat-indexed by position in the source dataset JSONL), cached to `--audio-local-dir`, and copied to `{output-dir}/audio/`. The HTML references audio via relative `audio/{index}.wav` paths.
 
+## Serving HTML Reports
+After generating HTML reports, start a local HTTP server from the output directory so links are clickable in the chat. Pick a fixed port (e.g. 8899) and start in the background:
+
+```bash
+cd <output-dir> && nohup python3 -m http.server 8899 &>/dev/null & echo "PID=$! PORT=8899"
+```
+
+Then present links using `http://localhost:8899/<dataset>/<filename>.html` format. VS Code auto-forwards the port so the user can click to open in their browser. Always present the links as clickable HTTP URLs, not bare file paths.
+
 ## Join Rules
 - Prefer `audio_file` as the join key by default when it is present and unique in both files.
 - If `audio_file` is unavailable or unstable, the script can fall back to other stable keys such as `audio_file_stem`, `utt_id`, `utterance_id`, `id`, `key`, or `audio_path`.
