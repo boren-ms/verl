@@ -28,6 +28,7 @@ actor_rollout_ref:
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     max_num_batched_tokens: 8192
+    gpu_memory_utilization: 0.45
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 16
