@@ -199,8 +199,11 @@ def eval_score(solution_str, ground_truth, **kwargs):
     lang = (trans_dict["lang"] or "").lower() == "english"
     format = bool(trans_dict["formatted"])
     err = measure(trans_dict["text"], ground_truth, **kwargs)
+    
     return {
-        "score": err.accuracy(),
+        "accuracy": err.accuracy(),
+        "wer": err.wer(),
+        "edge_wer": err.edge_wer(),
         "n_err": err.n_err,
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,

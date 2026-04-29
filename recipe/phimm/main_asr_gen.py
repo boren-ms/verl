@@ -44,8 +44,7 @@ import blobfile as bf
 from verl.workers.fsdp_workers import ActorRolloutRefWorker
 from pathlib import Path
 from recipe.phimm.utils.env import EnvMgr
-from recipe.phimm.utils.shared import parse_asr_response
-from recipe.phimm.reward.asr_edge import measure as edge_measure, Error
+from recipe.phimm.reward.asr_edge import eval_score
 
 
 def get_env_vars():
@@ -90,23 +89,21 @@ def run_generation(config) -> None:
     ray.get(main_task.remote(config))
 
 
-def compute_wers(refs, hyps, **kwargs):
-    """Compute WERs using asr_edge.measure for a batch of refs and hyps."""
-    return [edge_measure(hyp, ref, **kwargs) for ref, hyp in zip(refs, hyps, strict=True)]
-
-
-
 def filter_ds(ds, **kwargs):
     wer_range = kwargs.get("wer_range", None)
     edge_wer_range = kwargs.get("edge_wer_range", None)
-    bad_format = kwargs.get("bad_format", False)
+    bad_fmt = kwargs.get("bad_fmt", False)
+    bad_lang = kwargs.get("bad_lang", False)
+    
 
     def filter_fn(x):
         if wer_range is not None and not (wer_range[0] <= x["wer"] <= wer_range[1]):
             return False
         if edge_wer_range is not None and not (edge_wer_range[0] <= x["edge_wer"] <= edge_wer_range[1]):
             return False
-        if bad_format and x.get("formatted", True):
+        if bad_fmt and x.get("p_fmt", 0.0):
+            return False
+        if bad_lang and x.get("p_lang", 0.0):
             return False
         return True
 
@@ -121,7 +118,7 @@ def log_examples(ds, num_examine=1):
         print(f"--- Example {i + 1} ---")
         print(f"WER: {sort_ds[i]['wer']:.2%}  edge_wer: {sort_ds[i]['edge_wer']:.2%}")
         print("Ref:", sort_ds[i]["text"])
-        print("Hyp:", sort_ds[i]["response"])
+        print("Hyp:", sort_ds[i]["raw_response"])
         if audio_key in sort_ds.column_names:
             print("Audio:", sort_ds[i][audio_key])
 
@@ -173,10 +170,11 @@ def main_task(config):
     
     total_batches = len(dataloader)
     wer_kwargs = OmegaConf.to_container(config.data.get("wer_kwargs", {}), resolve=True) or {}
-    wer_betas = wer_kwargs.get("betas", {})
 
     batches = []
-    total_err = Error()
+    tn_err = 0
+    tn_ref = 0
+    tn_edge = 0
     split_idx = 0
     
     def write_data(batches, idx):
@@ -195,17 +193,20 @@ def main_task(config):
     edge_wer_range = config.data.get("edge_wer_range", None)
     bad_format = config.data.get("bad_format", False)
     for batch_idx, batch_dict in tqdm(enumerate(dataloader)):
-        results = defaultdict(list)
-        results["prompt"].extend([msg[0]["content"] for msg in batch_dict["prompt"]])  # get user prompt
-        results["text"].extend([x["ground_truth"] for x in batch_dict["reward_model"]])
+        prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
+        texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
+        n_egs = len(texts)
+        audio_paths = batch_dict.get("audio_path", [None] * n_egs)
+        audio_chunks = batch_dict.get("audio_chunk", [None] * n_egs)
+        extras = batch_dict.get("extra_info", [{}] * n_egs)
 
-        for value in batch_dict.get("extra_info", []):
-            for k, v in value.items():
-                results[k].append(v)
-
-        n_egs = len(results["text"])
-        results["audio_path"].extend(batch_dict.get("audio_path", [None] * n_egs))
-        results["audio_chunk"].extend(batch_dict.get("audio_chunk", [None] * n_egs))
+        results = []
+        for i in range(n_egs):
+            r = {"prompt": prompts[i], "text": texts[i],
+                 "audio_path": audio_paths[i], "audio_chunk": audio_chunks[i]}
+            if extras[i]:
+                r.update(extras[i])
+            results.append(r)
         data = DataProto.from_single_dict(batch_dict)
         if "uid" not in data.non_tensor_batch:
             data.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object)
@@ -213,36 +214,35 @@ def main_task(config):
         print(f"\n(Batch {batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
         output_padded = wg.generate_sequences(data_padded)
         output = unpad_dataproto(output_padded, pad_size=pad_size)
-        hyps = []
         for i in range(len(output)):
             data_item = output[i]
             prompt_length = data_item.batch["prompts"].shape[-1]
             valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
             valid_response_ids = data_item.batch["responses"][:valid_response_length]
             response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
-            hyp_dict = parse_asr_response(response_str)
-            hyp_dict["response"] = hyp_dict.pop("text", "")
-            hyp_dict["raw_response"] = response_str
-            hyp_dict.pop("new_text", None)
-            hyps.append(hyp_dict)
-
-        results.update(list_of_dict_to_dict_of_list(hyps))
-        errors = compute_wers(results["text"], results["response"], **wer_kwargs)
-        results["wer"] = [err.wer(**wer_betas) for err in errors]
-        results["edge_wer"] = [err.edge_wer() for err in errors]
-        batch_err = sum(errors, Error())
+            score = eval_score(response_str, results[i]["text"], **wer_kwargs)
+            score["raw_response"] = response_str
+            results[i].update(score)
+        bn_err = sum(r["n_err"] for r in results)
+        bn_ref = sum(r["n_ref"] for r in results)
+        bn_edge = sum(r["n_edge"] for r in results)
+        
         print(
-            f"Batch wer: {batch_err.wer(**wer_betas):.2%} [{batch_err.n_err}/{batch_err.n_ref}] "
-            f"edge_wer={batch_err.edge_wer():.2%} on {n_egs} samples"
+            f"\n(Batch {batch_idx + 1}/{total_batches}) "
+            f"Batch wer: {bn_err / max(bn_ref, 1):.2%} [{bn_err}/{bn_ref}] "
+            f"Batch edge_wer={bn_edge / max(bn_ref, 1):.2%} "
         )
 
-        total_err += batch_err
-        batch_ds = Dataset.from_dict(results)
-        log_examples(batch_ds, num_examine=num_examine)
+        tn_err += bn_err
+        tn_ref += bn_ref
+        tn_edge += bn_edge
+        b_ds = Dataset.from_list(results)
+        log_examples(b_ds, num_examine=num_examine)
 
-        batch_ds = filter_ds(batch_ds, wer_range=wer_range, edge_wer_range=edge_wer_range, bad_format=bad_format)
-        print(f"Batch Filtering: {n_egs} => {len(batch_ds)} samples.")
-        batches.append(batch_ds)
+        b_ds = filter_ds(b_ds, wer_range=wer_range, edge_wer_range=edge_wer_range, bad_format=bad_format)
+        print(f"Filtering with {wer_range=}, {edge_wer_range=}, {bad_format=}")
+        print(f"Batch Filtering: {n_egs} => {len(b_ds)} samples.")
+        batches.append(b_ds)
         
         if sum(len(ds) for ds in batches) >= split_size:
             left_egs += write_data(batches, split_idx)
@@ -252,8 +252,8 @@ def main_task(config):
     left_egs += write_data(batches, split_idx)
 
     print(
-        f"Overall wer: {total_err.wer(**wer_betas):.2%} [{total_err.n_err}/{total_err.n_ref}] "
-        f"edge_wer={total_err.edge_wer():.2%} on {total_egs} samples"
+        f"Overall wer: {tn_err / max(tn_ref, 1):.2%} [{tn_err}/{tn_ref}] "
+        f"edge_wer={tn_edge / max(tn_ref, 1):.2%} on {total_egs} samples"
     )
     print(f"Filtering with: {wer_range=}, {edge_wer_range=}, {bad_format=}")
     print(f"Keep {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
