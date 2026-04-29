@@ -1,0 +1,12 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/prod_fy22_sr_100k_wer001/part-*.parquet
+  post_process:
+    keep_bad_response:
+      bad_format: true
+      language: English
+
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_prod_fy22_sr_100k/data.jsonl
+include_verl_format: false
+overwrite: false
