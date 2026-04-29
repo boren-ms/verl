@@ -3,6 +3,8 @@ from whisper_normalizer.english import EnglishTextNormalizer
 from whisper_normalizer.basic import BasicTextNormalizer
 import jiwer.transforms as tr
 from recipe.phimm.utils.shared import is_list
+from recipe.phimm.utils.open_asr_normalizer import EnglishTextNormalizer as OpenASREnglishNormalizer
+from recipe.phimm.utils.open_asr_normalizer import BasicMultilingualTextNormalizer as OpenASRMultilingualNormalizer
 
 
 class RemovePunctuationExclude(tr.RemovePunctuation):
@@ -65,6 +67,8 @@ TN_DICT = {
     "basic": BasicTextNormalizer(),
     "simple": simple,
     "simple_with_tag": simple_with_tag,
+    "openasr_en": OpenASREnglishNormalizer(),
+    "openasr_ml": OpenASRMultilingualNormalizer(),
 }
 
 
