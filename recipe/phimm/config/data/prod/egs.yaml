@@ -1,0 +1,41 @@
+# - mix_name: librispeech
+#   data_dir: az://orngwus2cresco/data/boren/data/LibriSpeech/test-clean
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/LibriSpeech/test-clean
+- mix_name: chunk
+  max_chunks: 1
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/examples/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/examples/
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  overwrite: True
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  specs:
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2503/en_asr_entity.json
+    # - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2503/en_asr_hc.json # 627088.36 hours, number of examples: 87.773M, average duration: 25.72s
+    # - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2503/en_asr_hc_fy24_400k.json # 389955.90 hours, number of examples: 54.547M, average duration: 25.74s
+    # - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2503/en_asr_ht.json # 210169.48 hours, number of examples: 153.532M, average duration: 4.93s
+    # - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+    #   chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM/ChunkFiles/
+    #   info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+    # - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1-3_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+    #   chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1-3_AdjustBoundary_BiasLM/ChunkFiles/
+    #   info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1-3_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+    # - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-1_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+    #   chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-1_AdjustBoundary_BiasLM/ChunkFiles/
+    #   info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+    # - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-2_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+    #   chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-2_AdjustBoundary_BiasLM/ChunkFiles/
+    #   info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-2_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+    # - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-3_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+    #   chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-3_AdjustBoundary_BiasLM/ChunkFiles/
+    #   info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-3_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+    # - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-1_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+    #   chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-1_AdjustBoundary_BiasLM/ChunkFiles/
+    #   info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/

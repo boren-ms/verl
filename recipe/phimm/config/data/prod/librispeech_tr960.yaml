@@ -1,0 +1,25 @@
+- mix_name: librispeech 
+  data_dir: az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-100
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/LibriSpeech/train-clean-100/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/LibriSpeech/train-clean-100/
+    
+- mix_name: librispeech 
+  data_dir: az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-360
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/LibriSpeech/train-clean-360/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/LibriSpeech/train-clean-360/
+  
+- mix_name: librispeech 
+  data_dir: az://orngwus2cresco/data/boren/data/LibriSpeech/train-other-500
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/LibriSpeech/train-other-500/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/LibriSpeech/train-other-500/
+    
+# - mix_name: librispeech 
+#   data_dir: az://orngwus2cresco/data/boren/data/LibriSpeech/test-clean
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/LibriSpeech/test-clean/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/LibriSpeech/test-clean/
+    
+# - mix_name: librispeech 
+#   data_dir: az://orngwus2cresco/data/boren/data/LibriSpeech/test-other
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/LibriSpeech/test-other/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/LibriSpeech/test-other/
+    

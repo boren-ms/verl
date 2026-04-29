@@ -1,0 +1,103 @@
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM/ChunkFiles/
+      info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q1-3_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q1-3_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1-3_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1-3_AdjustBoundary_BiasLM/ChunkFiles/
+      info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1-3_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q2-1_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q2-1_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-1_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-1_AdjustBoundary_BiasLM/ChunkFiles/
+      info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q2-2_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q2-2_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-2_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-2_AdjustBoundary_BiasLM/ChunkFiles/
+      info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-2_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q2-3_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q2-3_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-3_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-3_AdjustBoundary_BiasLM/ChunkFiles/
+      info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-3_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q3-1_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_400k/FY24Q3-1_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-1_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-1_AdjustBoundary_BiasLM/ChunkFiles/
+      info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/

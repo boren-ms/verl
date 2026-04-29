@@ -1,0 +1,34 @@
+- mix_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk/
+
+- mix_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk/
+
+- mix_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk/
+
+- mix_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk/
+
+- mix_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk/
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk/

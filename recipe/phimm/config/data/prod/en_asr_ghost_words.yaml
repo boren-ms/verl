@@ -1,0 +1,41 @@
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/noise_data/kskumar/aed_data/unlabeled_data_proc/temp_1/Partition0/AED
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/noise_data/kskumar/aed_data/unlabeled_data_proc/temp_1/Partition0/AED
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/kskumar/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/kskumar/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/ChunkFiles/
+
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/noise_data/v-tiasun/s2s/AED_8k
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/noise_data/v-tiasun/s2s/AED_8k
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-tiasun/s2s/AED_8k/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-tiasun/s2s/AED_8k/ChunkFiles/
+
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/noise_data/rnnt/en/noise_augmentation_mixkit_noise_v1
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/noise_data/rnnt/en/noise_augmentation_mixkit_noise_v1
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_mixkit_noise_v1/ChunkFiles/train_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_mixkit_noise_v1/ChunkFiles/
+
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/noise_data/rnnt/en/noise_augmentation_mixkit_noise_v1
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/noise_data/rnnt/en/noise_augmentation_mixkit_noise_v1
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_mixkit_noise_v1/ChunkFiles/valid_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_mixkit_noise_v1/ChunkFiles/
+
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/noise_data/rnnt/en/noise_augmentation_esc50_noise_v1
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/noise_data/rnnt/en/noise_augmentation_esc50_noise_v1
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_esc50_noise_v1/ChunkFiles/train_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_esc50_noise_v1/ChunkFiles/
+
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/noise_data/rnnt/en/noise_augmentation_esc50_noise_v1
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/noise_data/rnnt/en/noise_augmentation_esc50_noise_v1
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_esc50_noise_v1/ChunkFiles/valid_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_esc50_noise_v1/ChunkFiles/

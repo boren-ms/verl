@@ -1,0 +1,255 @@
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY22_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY22_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/Alignment/FY22_AdjustBoundary_BiasLM_alignment/file_set_with_hc_v2_verbatim_topic.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY22_AdjustBoundary_BiasLM/ChunkFiles/
+
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q2_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q2_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/Alignment/FY23Q2_AdjustBoundary_BiasLM_alignment/file_set_with_hc_v2_verbatim_topic.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q2_AdjustBoundary_BiasLM/ChunkFiles/
+
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part1_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part1_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/Alignment/FY23Q3Part1_AdjustBoundary_BiasLM_alignment/file_set_with_hc_v2_verbatim_topic.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part1_AdjustBoundary_BiasLM/ChunkFiles/
+
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part2_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part2_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/Alignment/FY23Q3Part2_AdjustBoundary_BiasLM_alignment/file_set_with_hc_v2_verbatim_topic.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part2_AdjustBoundary_BiasLM/ChunkFiles/
+
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part3_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part3_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/Alignment/FY23Q3Part3_AdjustBoundary_BiasLM_alignment/file_set_with_hc_v2_verbatim_topic.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part3_AdjustBoundary_BiasLM/ChunkFiles/
+
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part4_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part4_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/Alignment/FY23Q3Part4_AdjustBoundary_BiasLM_alignment/file_set_with_hc_v2_verbatim_topic.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part4_AdjustBoundary_BiasLM/ChunkFiles/
+
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part5_AdjustBoundary_BiasLM
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/FY23Q3Part5_AdjustBoundary_BiasLM
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/Alignment/FY23Q3Part5_AdjustBoundary_BiasLM_alignment/file_set_with_hc_v2_verbatim_topic.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part5_AdjustBoundary_BiasLM/ChunkFiles/
+
+# No audio chunk for below datasets currently
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup1_Word20_AlignwithTN_L2/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup1_Word20_AlignwithTN_L2/
+#   specs:
+#     - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/train_delivery1_delivery2_w20_json_real/Earnings_delivery1_fix/Earnings_delivery1_fix_setup1_Word20_AlignwithTN_L2_.json
+#       chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption/earnings_call/Earnings_delivery1_fix/setup1_Word20_AlignwithTN_L2/
+
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup2_Word20_AlignwithTN_L1/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup2_Word20_AlignwithTN_L1/
+#   specs:
+#     - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/train_delivery1_delivery2_w20_json_real/Earnings_delivery1_fix/Earnings_delivery1_fix_setup2_Word20_AlignwithTN_L1_.json
+#       chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption/earnings_call/Earnings_delivery1_fix/setup2_Word20_AlignwithTN_L1/
+
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup2_Word20_AlignwithTN_L2/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup2_Word20_AlignwithTN_L2/
+#   specs:
+#     - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/train_delivery1_delivery2_w20_json_real/Earnings_delivery1_fix/Earnings_delivery1_fix_setup2_Word20_AlignwithTN_L2_.json
+#       chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption/earnings_call/Earnings_delivery1_fix/setup2_Word20_AlignwithTN_L2/
+
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup1_Word20_AlignwithTN_L1/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup1_Word20_AlignwithTN_L1/
+#   specs:
+#     - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/train_delivery1_delivery2_w20_json_real/Earnings_delivery1_fix/Earnings_delivery1_fix_setup1_Word20_AlignwithTN_L1_.json
+#       chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption/earnings_call/Earnings_delivery1_fix/setup1_Word20_AlignwithTN_L1/
+
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup1_Word20_AlignwithTN_L1/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup1_Word20_AlignwithTN_L1/
+#   specs:
+#     - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/train_delivery1_delivery2_w20_json_real/Earnings_delivery2_fix/Earnings_delivery2_fix_setup1_Word20_AlignwithTN_L1_.json
+#       chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption/earnings_call/Earnings_delivery2_fix/setup1_Word20_AlignwithTN_L1/
+
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup1_Word20_AlignwithTN_L2/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup1_Word20_AlignwithTN_L2/
+#   specs:
+#     - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/train_delivery1_delivery2_w20_json_real/Earnings_delivery2_fix/Earnings_delivery2_fix_setup1_Word20_AlignwithTN_L2_.json
+#       chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption/earnings_call/Earnings_delivery2_fix/setup1_Word20_AlignwithTN_L2/
+
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup2_Word20_AlignwithTN_L1/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup2_Word20_AlignwithTN_L1/
+#   specs:
+#     - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/train_delivery1_delivery2_w20_json_real/Earnings_delivery2_fix/Earnings_delivery2_fix_setup2_Word20_AlignwithTN_L1_.json
+#       chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption/earnings_call/Earnings_delivery2_fix/setup2_Word20_AlignwithTN_L1/
+
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup2_Word20_AlignwithTN_L2/
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc/earnings_callsetup2_Word20_AlignwithTN_L2/
+#   specs:
+#     - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption/train_delivery1_delivery2_w20_json_real/Earnings_delivery2_fix/Earnings_delivery2_fix_setup2_Word20_AlignwithTN_L2_.json
+#       chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption/earnings_call/Earnings_delivery2_fix/setup2_Word20_AlignwithTN_L2/

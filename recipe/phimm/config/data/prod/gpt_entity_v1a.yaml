@@ -1,0 +1,177 @@
+# Domain	#hrs	#utt	sec/utt
+# Insurance	120.5	15985.0	27
+# Gaming	319.8	43378.0	27
+# K12_Higher_Education	279.6	35790.0	28
+# Retail	201.6	26680.0	27
+# Science_And_Tech	376.1	47714.7	28
+# Total	1297.7	169547.7	28
+#=============================================================
+
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Insurance_16k
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Insurance_16k
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Gaming_43k
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Gaming_43k
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Retail_26k
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Retail_26k
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Science_And_Tech_48k
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Science_And_Tech_48k
+  specs:
+    - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk_merged.json
+      chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Banking
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Banking
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Banking/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Banking/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Capital_Markets
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Capital_Markets
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Capital_Markets/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Capital_Markets/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Consumer_Goods
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Consumer_Goods
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Consumer_Goods/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Consumer_Goods/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Doctor_Patient_Consultation
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Doctor_Patient_Consultation
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Doctor_Patient_Consultation/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Doctor_Patient_Consultation/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Energy
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Energy
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Energy/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Energy/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Law_Enforcement
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Law_Enforcement
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Law_Enforcement/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Law_Enforcement/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Legal
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Legal
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Legal/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Legal/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Manufactory
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Manufactory
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Manufactory/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Manufactory/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Media
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Media
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Media/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Media/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Medical
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Medical
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Medical/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Medical/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Medical_Team_Meetings
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Medical_Team_Meetings
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Medical_Team_Meetings/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Medical_Team_Meetings/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Patient_History_Dictation
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Patient_History_Dictation
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Patient_History_Dictation/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Patient_History_Dictation/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Payer_Provider
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Payer_Provider
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Payer_Provider/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Payer_Provider/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Pharmaceutical
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Pharmaceutical
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Pharmaceutical/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Pharmaceutical/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Pharmacy_Instructions
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Pharmacy_Instructions
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Pharmacy_Instructions/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Pharmacy_Instructions/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Public_Safety_And_Justice
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Public_Safety_And_Justice
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Public_Safety_And_Justice/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Public_Safety_And_Justice/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Sports
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Sports
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Sports/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Sports/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Surgery_Instructions
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Surgery_Instructions
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Surgery_Instructions/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Surgery_Instructions/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Surgical
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Surgical
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Surgical/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Surgical/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Sustainability_And_Conservation
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Sustainability_And_Conservation
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Sustainability_And_Conservation/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Sustainability_And_Conservation/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Telecommunication
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Telecommunication
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Telecommunication/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Telecommunication/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/Vehicle_Manufacturing
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/Vehicle_Manufacturing
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Vehicle_Manufacturing/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Vehicle_Manufacturing/ChunkFiles/
+- mix_name: chunk
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/entity_data/entity_chunk/wiki_chunk_20251121
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/entity_data/entity_chunk/wiki_chunk_20251121
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-benzhao/generated_tts_data/20251121/wave2_chunk/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-benzhao/generated_tts_data/20251121/wave2_chunk/ChunkFiles/

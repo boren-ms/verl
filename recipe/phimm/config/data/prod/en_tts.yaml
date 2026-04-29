@@ -1,0 +1,76 @@
+# - mix_name: chunk
+#   chunk_types:
+#     - audio
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_keys:
+#     - info.alternative_transcription.display_human_caption_adjusted
+#     - transcription
+#   text_norm:
+#     unicode_normalize: False
+#     rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+#   cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_digit_tts
+#   asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_digit_tts
+#   specs:
+        # this datasets has not audio chunk files, only feature chunks
+#       - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_digit_tts.json            # 379.59 hours
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_entity
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_entity
+  specs:
+      - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_entity.json               # 7505.86 hours
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_global_dictionary
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_global_dictionary
+  specs:
+      - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_global_dictionary.json    # 266.62 hours
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_medical_tts
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_medical_tts
+  specs:
+      - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_medical_tts.json          # 9353.46 hours
+- mix_name: chunk
+  chunk_types:
+    - audio
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_keys:
+    - info.alternative_transcription.display_human_caption_adjusted
+    - transcription
+  text_norm:
+    unicode_normalize: False
+    rule_file: az://orngwus2cresco/data/speech/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+  cache_path: az://orngwus2cresco/data/boren/data/audio_conv/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_ghost_words
+  asset_path: az://orngwus2cresco/data/boren/data/audio_asset/inhouse/mlang_asr_data_2025_readable/en/tts_additional/en_asr_ghost_words
+  specs:
+      - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_ghost_words.json   # 1681.68 hours
