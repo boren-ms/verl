@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - grpo_asr
+  - grpo_asr_full
   - data/train_data/gen_ls_raw_rp_edge_nodigits
   - data/val_data/openasr_bad_fmt_lang
   - _self_
