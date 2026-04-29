@@ -27,13 +27,12 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 # os.environ['TORCH_COMPILE_DISABLE'] = '1'
 import uuid
 from pprint import pprint
-from collections import defaultdict
 from datasets import Dataset, concatenate_datasets
 from omegaconf import OmegaConf
 from torchdata.stateful_dataloader import StatefulDataLoader
 
 from verl import DataProto
-from verl.protocol import list_of_dict_to_dict_of_list, pad_dataproto_to_divisor, unpad_dataproto
+from verl.protocol import pad_dataproto_to_divisor, unpad_dataproto
 from verl.single_controller.ray import RayClassWithInitArgs, RayResourcePool, RayWorkerGroup
 from verl.single_controller.ray.base import create_colocated_worker_cls
 from verl.utils import hf_processor, hf_tokenizer
@@ -45,6 +44,7 @@ from verl.workers.fsdp_workers import ActorRolloutRefWorker
 from pathlib import Path
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.reward.asr_edge import eval_score
+from recipe.phimm.utils.shared import parse_asr_response
 
 
 def get_env_vars():
@@ -221,6 +221,7 @@ def main_task(config):
             valid_response_ids = data_item.batch["responses"][:valid_response_length]
             response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
             score = eval_score(response_str, results[i]["text"], **wer_kwargs)
+            score["response"] = parse_asr_response(response_str)
             score["raw_response"] = response_str
             results[i].update(score)
         bn_err = sum(r["n_err"] for r in results)
