@@ -10,9 +10,11 @@ actor_rollout_ref:
     trainable_params: [model.layers, model.norm, lm_head]
   actor:
     fsdp_config:
-      param_offload: false
+      param_offload: true
       optimizer_offload: false
       use_orig_params: true
+  rollout:
+    gpu_memory_utilization: 0.8
   ref:
     fsdp_config:
       param_offload: true
