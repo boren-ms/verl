@@ -201,7 +201,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
     err = measure(trans_dict["text"], ground_truth, **kwargs)
     
     return {
-        "accuracy": err.accuracy(),
+        "score": err.accuracy(),
         "wer": err.wer(),
         "edge_wer": err.edge_wer(),
         "n_err": err.n_err,

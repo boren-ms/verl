@@ -16,5 +16,5 @@ post_process:
     prompt_key: prompt
 add_prompt:
   # task: asr
-  # task: lang_asr
+  task: lang_asr
   forced: True
