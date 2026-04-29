@@ -1,6 +1,6 @@
 dataset_name: cached
 cache_path: az://orngwus2cresco/data/boren/data/cache_datasets/hcv2_fy22_info_tag/
-num_proc: auto
+num_proc: 1
 pre_process:
   input_egs_limit: 100
 post_process:
