@@ -138,7 +138,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     local_path,
                     hdfs_path,
                 )
-                model_state_dict = torch.load(local_model_path, weights_only=False)
+                model_state_dict = torch.load(local_model_path, weights_only=False, map_location="cpu")
                 self.model.load_state_dict(model_state_dict)
                 log_with_rank(f"Loaded model from {local_model_path}", rank=self.rank, logger=logger)
 
@@ -148,7 +148,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     local_path,
                     hdfs_path,
                 )
-                optimizer_state_dict = torch.load(local_optim_path, weights_only=False)
+                optimizer_state_dict = torch.load(local_optim_path, weights_only=False, map_location="cpu")
                 self.optimizer.load_state_dict(optimizer_state_dict)
                 log_with_rank(f"Loaded optimizer from {local_optim_path}", rank=self.rank, logger=logger)
 
@@ -158,7 +158,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                 local_path,
                 hdfs_path,
             )
-            extra_state_dict = torch.load(local_extra_state_path, weights_only=False)
+            extra_state_dict = torch.load(local_extra_state_path, weights_only=False, map_location="cpu")
             # recover random state
             if "rng" in extra_state_dict:
                 # 'rng' may not exist for backward compatibility
