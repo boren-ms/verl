@@ -33,7 +33,9 @@ JOIN_CANDIDATES = [
 
 _whisper_normalizer = EnglishTextNormalizer()
 TIMESTAMP_PATTERN = re.compile(r"result_details_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})\.jsonl$")
+STEP_PATTERN = re.compile(r"(\d+)\.jsonl$")
 DEFAULT_RESULTS_ROOT = "az://orngwus2cresco/data/boren/data/results"
+DEFAULT_VAL_DATA_ROOT = "az://orngwus2cresco/data/boren/outputs"
 META_PROMOTED_COLUMNS = [
     "audio_file",
     "audio_path",
@@ -88,6 +90,15 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Root directory that contains <model>/<dataset>/result_details_*.jsonl. "
             f"Default: {DEFAULT_RESULTS_ROOT}"
+        ),
+    )
+    parser.add_argument(
+        "--val-data-root",
+        default=DEFAULT_VAL_DATA_ROOT,
+        help=(
+            "Root directory for verl validation outputs. Layout: "
+            "<root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl. "
+            f"Default: {DEFAULT_VAL_DATA_ROOT}"
         ),
     )
     parser.add_argument(
@@ -173,6 +184,30 @@ def resolve_latest_result(results_root: str, model: str, dataset: str) -> str:
     return latest
 
 
+def _extract_step(path: str) -> int:
+    """Extract the numeric step from a filename like '300.jsonl'. Returns -1 on failure."""
+    match = STEP_PATTERN.search(path)
+    return int(match.group(1)) if match else -1
+
+
+def resolve_val_data_gen(val_data_root: str, model: str, dataset: str) -> str | None:
+    """Discover the latest step JSONL under val_data_gen on blob.
+
+    Layout: <val_data_root>/<model>/val_data_gen/<dataset>/<step>.jsonl
+    The model name may contain '/' to represent project/experiment.
+    """
+    ds_bare = dataset.rsplit("/", 1)[-1] if "/" in dataset else dataset
+    pattern = bf.join(val_data_root, model, "val_data_gen", ds_bare, "*.jsonl")
+    try:
+        matches = sorted(bf.glob(pattern))
+    except Exception:
+        return None
+    if not matches:
+        return None
+    ranked = sorted(matches, key=lambda p: (_extract_step(p), p))
+    return ranked[-1]
+
+
 LOCAL_RESULTS_ROOTS = [
     Path("tmp"),
     Path.home() / "data" / "results" / "verl_word_error",
@@ -207,7 +242,10 @@ def _resolve_local(model: str, dataset: str) -> str | None:
     return None
 
 
-def resolve_input_path(explicit_path: str | None, model: str | None, results_root: str, dataset: str) -> str:
+def resolve_input_path(
+    explicit_path: str | None, model: str | None, results_root: str, dataset: str,
+    val_data_root: str = DEFAULT_VAL_DATA_ROOT,
+) -> str:
     if explicit_path:
         return explicit_path
     if model:
@@ -215,6 +253,10 @@ def resolve_input_path(explicit_path: str | None, model: str | None, results_roo
         local = _resolve_local(model, dataset)
         if local:
             return local
+        # Try val_data_gen blob layout: <root>/<model>/val_data_gen/<dataset>/<step>.jsonl
+        val_path = resolve_val_data_gen(val_data_root, model, dataset)
+        if val_path:
+            return val_path
         return resolve_latest_result(results_root, model, dataset)
     raise ValueError("Expected either an explicit path or a model name.")
 
@@ -830,8 +872,8 @@ def write_comparison_html(
 def main() -> None:
     args = parse_args()
 
-    baseline_path = resolve_input_path(args.baseline_path, args.baseline_model, args.results_root, args.dataset)
-    target_path = resolve_input_path(args.target_path, args.target_model, args.results_root, args.dataset)
+    baseline_path = resolve_input_path(args.baseline_path, args.baseline_model, args.results_root, args.dataset, args.val_data_root)
+    target_path = resolve_input_path(args.target_path, args.target_model, args.results_root, args.dataset, args.val_data_root)
     baseline_name = args.baseline_name or infer_label(baseline_path, args.baseline_model)
     target_name = args.target_name or infer_label(target_path, args.target_model)
 
@@ -869,6 +911,8 @@ def main() -> None:
     merged["raw_hyp_baseline"] = merged.get("output_baseline", merged[hyp_baseline])
     # output_target when both sides have 'output'; plain 'output' when only target has it
     merged["raw_hyp_target"] = merged.get("output_target", merged.get("output", merged[hyp_target]))
+    # Preserve the full original output (with <ASR> tags etc.) as raw_output
+    merged["raw_output"] = merged.get("output_target", merged.get("output", pd.Series([""] * len(merged))))
     merged["ref"] = merged[ref_target].map(normalize_asr_text)
     merged["ref_matches_baseline"] = (
         merged[ref_target].map(normalize_asr_text) == merged[ref_baseline].map(normalize_asr_text)
@@ -902,6 +946,7 @@ def main() -> None:
         "hyp_target",
         "raw_hyp_baseline",
         "raw_hyp_target",
+        "raw_output",
         "ref_matches_baseline",
         "baseline_ref_words",
         "baseline_errors",

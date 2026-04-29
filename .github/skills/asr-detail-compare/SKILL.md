@@ -8,8 +8,8 @@ description: Compare two ASR `result_details*.jsonl` outputs for the same datase
 Compare utterance-level ASR detail files without re-implementing the same merge and WER logic each time. Prefer the bundled script for repeatable comparisons, and default to model-based discovery so you only need model names and dataset.
 
 ## Workflow
-1. Confirm both models write results under the same results root in the layout `<results-root>/<model>/<dataset>/result_details_*.jsonl`.
-2. Run `scripts/compare_result_details.py` with `--baseline-model`, `--target-model`, and `--dataset`. Only pass explicit paths when you need to override auto-discovery.
+1. Confirm both models write results under the layout `<val-data-root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl` (verl validation outputs).
+2. Run `scripts/compare_result_details.py` with `--baseline-model`, `--target-model`, and `--dataset`. Only pass explicit paths when you need to override auto-discovery. The model name is `<project>/<experiment>` (e.g. `verl_repeat/eval_openasr`).
 3. Run the script with `--write-html` by default so the main deliverable is a human-friendly utterance review page.
 4. Read the generated `*.summary.json` for dataset-level WER numbers and improved/degraded/unchanged counts. Use the three HTML reports as the primary review artifacts:
    - `*.overall-topN.html` for the biggest changes
@@ -29,6 +29,7 @@ Run:
 
 Useful options:
 - `--results-root az://orngwus2cresco/data/boren/data/results/gpt-4o-mini-asr-v1`: override the shared model-results root. The script picks the latest `result_details_*.jsonl` under each model and dataset.
+- `--val-data-root az://orngwus2cresco/data/boren/outputs`: override the verl validation outputs root. Layout: `<root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl`. The script picks the latest step. Default: `az://orngwus2cresco/data/boren/outputs`.
 - `--top-n 20`: keep the top 20 utterances by target-model error count.
 - `--join-columns audio_file`: use `audio_file` as the default explicit join key.
 - `--join-columns audio_file_stem`: force the join to use the stem derived from `audio_file` when the full path is not stable across runs.
@@ -73,12 +74,32 @@ Additional outputs:
 - `*.full.csv`: optional full joined table when `--write-full-csv` is enabled.
 - Each compared model's `result_details_*.jsonl` file is copied into the output directory for local inspection, with the filename prefixed by the model name.
 
+## Verl Validation Data Discovery (val_data_gen)
+The script auto-discovers verl validation outputs from `--val-data-root` (default: `az://orngwus2cresco/data/boren/outputs`). When using `--baseline-model` or `--target-model`, set the model name to `<project_name>/<experiment_name>` matching the verl config's `trainer.project_name`/`trainer.experiment_name`.
+
+Layout: `<val-data-root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl`
+
+The script picks the latest step (highest numeric filename). The verl schema columns (`gts`→`ref`, `clean_output`→`hyp`) are auto-remapped, so `--ref-column` / `--hyp-column` overrides are not needed.
+
+Discovery order: local paths → val_data_gen blob → result_details blob.
+
+Example — compare two verl experiments on ami:
+```bash
+/home/boren/.virtualenvs/openai/bin/python .github/skills/asr-detail-compare/scripts/compare_result_details.py \
+  --baseline-model verl_repeat/eval_openasr \
+  --target-model verl_repeat/eval_openasr_remax_ls_raw_nodigits_v1_full_step100 \
+  --dataset ami \
+  --output-dir tmp/asr-detail-compare/ami \
+  --write-html \
+  --top-n 30
+```
+
 ## Verl Training Checkpoint Comparison
 When comparing verl training outputs at different steps (e.g., step0 vs step200):
 - Use `--baseline-path` / `--target-path` with explicit local JSONL files and `--baseline-name` / `--target-name` for labels.
 - Set `--ref-column gts --hyp-column clean_output` — verl JSONL uses `gts` for reference and `clean_output` for hypothesis.
 - These files lack `audio_file` or any stable utterance ID, so the script will fall back to `__row_idx` (row-order join). This is safe when both files come from the same dataset evaluation with identical ordering.
-- Verl JSONL schema: `input`, `output`, `gts`, `clean_output`, `score`, `step`, `data_source`, `reward`, `n_err`, `n_ref`, `n_edge`, `n_fmt`, `n_lang`.
+- Verl JSONL schema: `input`, `output` (→ `raw_output`), `gts`, `clean_output`, `score`, `step`, `data_source`, `reward`, `n_err`, `n_ref`, `n_edge`, `n_fmt`, `n_lang`.
 
 Example:
 ```bash
@@ -97,7 +118,9 @@ Example:
 ```
 
 ## Comparing Mixed-Schema Files (eval_openasr baseline vs verl target)
-When the baseline uses the standard eval schema (`ref`, `hyp`, `id`) and the target uses the verl schema (`gts`, `clean_output`, `output`, `id`), the column names differ. Instead of using `--ref-column gts --hyp-column clean_output` (which would fail on the baseline), **preprocess the target file** to add `ref`/`hyp` columns, then use the default `--ref-column ref --hyp-column hyp` for both:
+When the baseline uses the standard eval schema (`ref`, `hyp`, `id`) and the target uses the verl schema (`gts`, `clean_output`, `output`, `id`), the script auto-remaps `gts`→`ref` and `clean_output`→`hyp` on whichever side is missing `ref`/`hyp`. No preprocessing or `--ref-column` override is needed.
+
+If auto-remapping is not desired, you can still **preprocess the target file** manually:
 
 ```python
 import json, pathlib
