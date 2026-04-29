@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - eval_asr_full
+  - eval_asr
   - data/val_data/openasr_en
   - _self_
 
