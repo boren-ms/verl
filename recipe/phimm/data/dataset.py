@@ -35,6 +35,7 @@ from recipe.phimm.utils.shared import (
     to_int,
     unbatch,
     parse_asr_response,
+    strip_repetitions,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
@@ -755,6 +756,22 @@ def filter_text_with_numbers(ds, **kwargs):
     return ds
 
 
+def keep_repetitions(ds, **kwargs):
+    """Filter to keep only examples that contain repetitions in a text field."""
+    field = kwargs.get("field", "response")
+    min_reps = kwargs.get("min_reps", 4)
+
+    def has_repetition(example):
+        text = example.get(field, "") or ""
+        return text and strip_repetitions(text, min_reps=min_reps) != text
+
+    n_egs = len(ds)
+    ds = ds.filter(has_repetition, **pop_filter_kwargs(kwargs), desc="Keeping repetitions")
+    n_left = len(ds)
+    all_rank_print(f"Kept repetitions: {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
+    return ds
+
+
 def stream_shuffle(ds, **kwargs):
     """Process the dataset."""
     streaming = kwargs.get("streaming", False)
@@ -919,6 +936,8 @@ def process_ds(ds, **kwargs):
         ds = shard_ds(ds, **map_kwargs)
     if filter_text_with_numbers_kwargs := kwargs.get("filter_text_with_numbers", {}):
         ds = filter_text_with_numbers(ds, **merge_kwargs(map_kwargs, filter_text_with_numbers_kwargs))
+    if keep_repetitions_kwargs := kwargs.get("keep_repetitions", {}):
+        ds = keep_repetitions(ds, **merge_kwargs(map_kwargs, keep_repetitions_kwargs))
     if output_egs_limit := kwargs.get("output_egs_limit", None):
         ds = limit_ds(ds, egs_limit=output_egs_limit)
     if add_field_kwargs := kwargs.get("add_field", {}):
