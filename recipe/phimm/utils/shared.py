@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 import re
 import uuid
 import blobfile as bf
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 import functools
 import hashlib
 import importlib.metadata
 from collections.abc import Mapping, Sequence
+
+from datasets import Dataset
 
 
 def is_package_version(package_name, target_version):
@@ -97,6 +102,31 @@ def run_cmd(cmd, cwd=None, check=True):
     ret = subprocess.run(cmd, shell=True, check=check, cwd=cwd)
     print(f"Cmd: {cmd} returned: {ret.returncode}")
     return ret
+
+
+def _mkdir_parent(path: str) -> None:
+    if path.startswith("az://"):
+        return
+    Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
+
+
+def _ensure_can_write(output_path: str, overwrite: bool = False) -> None:
+    if bf.exists(output_path) and not overwrite:
+        raise FileExistsError(f"Output already exists: {output_path}. Set overwrite=true to replace it.")
+    _mkdir_parent(output_path)
+
+
+def save_dataset(dataset: Dataset, output_path: str, overwrite: bool = False) -> None:
+    suffix = Path(urlparse(output_path).path).suffix.lstrip(".").lower()
+    if suffix not in {"jsonl", "parquet"}:
+        raise ValueError(f"Unsupported output path extension: {output_path}. Use a .jsonl or .parquet path.")
+
+    _ensure_can_write(output_path, overwrite=overwrite)
+    with bf.BlobFile(output_path, "wb") as file_obj:
+        if suffix == "jsonl":
+            dataset.to_json(file_obj, force_ascii=False)
+        else:
+            dataset.to_parquet(file_obj)
 
 
 @functools.cache

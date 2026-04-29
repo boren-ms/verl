@@ -23,6 +23,7 @@ from hydra.utils import to_absolute_path
 from omegaconf import DictConfig, OmegaConf
 
 from recipe.phimm.data.dataset import create_datasets
+from recipe.phimm.utils.shared import save_dataset
 
 
 PHIMM_CONFIG_DIR = Path(__file__).parent / "config"
@@ -77,31 +78,6 @@ def _as_dataset(dataset: Dataset | dict[str, Dataset]) -> Dataset:
             raise ValueError("No datasets were created from the config.")
         return concatenate_datasets(list(dataset.values()))
     raise TypeError(f"Unsupported dataset type: {type(dataset).__name__}")
-
-
-def _mkdir_parent(path: str) -> None:
-    if path.startswith("az://"):
-        return
-    Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
-
-
-def _ensure_can_write(output_path: str, overwrite: bool = False) -> None:
-    if bf.exists(output_path) and not overwrite:
-        raise FileExistsError(f"Output already exists: {output_path}. Set overwrite=true to replace it.")
-    _mkdir_parent(output_path)
-
-
-def save_dataset(dataset: Dataset, output_path: str, overwrite: bool = False) -> None:
-    suffix = Path(urlparse(output_path).path).suffix.lstrip(".").lower()
-    if suffix not in {"jsonl", "parquet"}:
-        raise ValueError(f"Unsupported output path extension: {output_path}. Use a .jsonl or .parquet path.")
-
-    _ensure_can_write(output_path, overwrite=overwrite)
-    with bf.BlobFile(output_path, "wb") as file_obj:
-        if suffix == "jsonl":
-            dataset.to_json(file_obj, force_ascii=False)
-        else:
-            dataset.to_parquet(file_obj)
 
 
 def cache_summary(
