@@ -49,7 +49,7 @@ def is_list(obj):
 
 def unbatch(batch):
     """Convert a dict-of-lists to a list-of-dicts."""
-    return [dict(zip(batch.keys(), vals)) for vals in zip(*batch.values())]
+    return [dict(zip(batch.keys(), vals, strict=True)) for vals in zip(*batch.values(), strict=True)]
 
 
 def chkp_index(name, default=-1):
@@ -202,6 +202,14 @@ def get_value(d, key, default=None):
 def get_values(lst, key, default=None):
     """Get a list of values from a list of dictionaries using dot notation."""
     return [get_value(d, key, default) for d in lst]
+
+
+BRACKET_PATTERN = re.compile(r"<[^>]*>|\[[^\]]*\]|\{[^}]*\}|\([^)]*\)")
+
+
+def has_brackets(text):
+    text = "" if text is None else str(text)
+    return bool(BRACKET_PATTERN.search(text))
 
 
 def rank_print(*args, main=True, **kwargs):

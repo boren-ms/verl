@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 import logging
 import re
 from recipe.phimm.utils.languages import LANGUAGES
-from recipe.phimm.utils.shared import parse_asr_response
+from recipe.phimm.utils.shared import has_brackets, parse_asr_response
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
 
@@ -124,22 +124,24 @@ def _parse_response(solution_str, **kwargs):
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower()
     trans_dict = parse_asr_response(solution_str)
+    hyp_text = trans_dict["text"]
     pred_lang = (trans_dict["lang"] or "").lower()
     is_lang = pred_lang == tgt_lang
     is_fmt = bool(trans_dict["formatted"])
-    return trans_dict["text"], tgt_lang, is_lang, is_fmt
+
+    return hyp_text, tgt_lang, is_lang, is_fmt, has_brackets(hyp_text)
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
-    hyp_text, _, is_lang, is_fmt = _parse_response(solution_str, **kwargs)
+    hyp_text, _, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
 
     err = measure(hyp_text, ground_truth, **kwargs)
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed
     gamma = kwargs.get("gamma", 1)
 
-    is_good = is_lang and is_fmt
+    is_good = is_lang and is_fmt and not p_bracket
 
     if metric == "wer":
         wer = err.wer(**betas)
@@ -148,7 +150,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         n_edit = err.edit_distance(**betas)
         score = -(n_edit**gamma)
     else:
-        score = err.accuracy(**betas) ** gamma if is_good else -1 # penalize non-target-language or unformatted outputs
+        score = err.accuracy(**betas) ** gamma if is_good else -1 # penalize non-target-language or unformatted outputs or outputs with brackets
 
     return {
         "score": score,
@@ -157,12 +159,13 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "n_edge": err.n_edge,
         "p_fmt": float(is_fmt),
         "p_lang": float(is_lang),
+        "p_bracket": float(p_bracket),
     }
 
 
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
-    hyp_text, _, is_lang, is_fmt = _parse_response(solution_str, **kwargs)
+    hyp_text, _, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
     err = measure(hyp_text, ground_truth, **kwargs)
 
     return {
@@ -174,6 +177,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "n_edge": err.n_edge,
         "p_fmt": float(is_fmt),
         "p_lang": float(is_lang),
+        "p_bracket": float(p_bracket),
     }
 
 
@@ -183,7 +187,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
     Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
     """
     from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
-    hyp_text, tgt_lang, is_lang, is_fmt = _parse_response(solution_str, **kwargs)
+    hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
     logger.info("openasr_eval language check: tgt_lang=%s is_lang=%s", tgt_lang, is_lang)
 
     result = measure_wer(hyp_text, ground_truth, lang=LANGUAGES.get(tgt_lang))
@@ -194,6 +198,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
         "n_ref": result["n_ref"],
         "p_fmt": float(is_fmt),
         "p_lang": float(is_lang),
+        "p_bracket": float(p_bracket),
     }
 
 

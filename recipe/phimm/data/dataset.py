@@ -35,6 +35,7 @@ from recipe.phimm.utils.shared import (
     is_list,
     to_int,
     unbatch,
+    has_brackets,
     parse_asr_response,
     strip_repetitions,
 )
@@ -811,6 +812,20 @@ def keep_bad_response(ds, **kwargs):
     return ds
 
 
+def keep_brackets(ds, **kwargs):
+    """Keep examples whose response text contains bracketed or parenthesized text."""
+    field = kwargs.get("field", kwargs.get("response_key", "response"))
+
+    def has_removed_span(example):
+        return has_brackets(get_value(example, field, ""))
+
+    n_egs = len(ds)
+    ds = ds.filter(has_removed_span, **pop_filter_kwargs(kwargs), desc="Keeping response with brackets")
+    n_left = len(ds)
+    all_rank_print(f"Kept response with bracketed/parenthesized text: {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
+    return ds
+
+
 def filter_text_with_numbers(ds, **kwargs):
     field = kwargs.get("field", "text")
     norm_name = kwargs.get("text_norm", kwargs.get("tn_name", "english"))
@@ -989,6 +1004,8 @@ def process_ds(ds, **kwargs):
         ds = filter_by_wer(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
     if keep_bad_response_kwargs := kwargs.get("keep_bad_response", {}):
         ds = keep_bad_response(ds, **merge_kwargs(map_kwargs, keep_bad_response_kwargs))
+    if keep_brackets_kwargs := kwargs.get("keep_brackets", {}):
+        ds = keep_brackets(ds, **merge_kwargs(map_kwargs, keep_brackets_kwargs))
     if trim_silence_kwargs := kwargs.get("trim_silence", {}):
         ds = trim_silence(ds, **merge_kwargs(map_kwargs, trim_silence_kwargs))
     if trim_tailing_kwargs := kwargs.get("trim_tailing", {}):
