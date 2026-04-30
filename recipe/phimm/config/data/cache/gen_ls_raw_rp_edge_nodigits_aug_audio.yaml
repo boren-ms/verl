@@ -14,7 +14,7 @@ source_config:
       noise_prob: 1.0
       speed_range: [1.0, 2.0]
       speed_prob: 1.0
-      num_proc: 8
+      num_proc: "auto"
     add_field:
       fields:
         data_source: asr
