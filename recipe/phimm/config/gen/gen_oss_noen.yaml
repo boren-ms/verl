@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - gen_asr
-  - data/train_data/oss_noen
+  - data/train_data/oss/noen
   - _self_
 
 model:
