@@ -29,7 +29,15 @@ def read_audio(audio_field: dict | None) -> tuple[object, int]:
     return sf.read(io.BytesIO(audio_field["bytes"]), dtype="float32", always_2d=False)
 
 
-def dump_parquet(input_path: str, output_dir: str, dataset: str, batch_size: int) -> int:
+def dump_parquet(
+    input_path: str,
+    output_dir: str,
+    dataset: str,
+    batch_size: int,
+    audio_path_root: str | None = None,
+    progress_interval: int = 5000,
+) -> int:
+    audio_path_root = audio_path_root or output_dir
     audio_dir = join_path(output_dir, "audio")
     if not bf.exists(audio_dir):
         bf.makedirs(audio_dir)
@@ -39,6 +47,7 @@ def dump_parquet(input_path: str, output_dir: str, dataset: str, batch_size: int
     columns = ["file_name", "audio", "duration", "text", "source_lang", "target_lang"]
 
     count = 0
+    last_report = 0
     jsonl_path = join_path(output_dir, "data.jsonl")
     with bf.BlobFile(jsonl_path, "w") as jsonl_file:
         for batch in parquet_file.iter_batches(batch_size=batch_size, columns=columns):
@@ -48,8 +57,9 @@ def dump_parquet(input_path: str, output_dir: str, dataset: str, batch_size: int
                 if duration is None:
                     duration = len(audio) / sampling_rate
 
-                audio_path = join_path(output_dir, "audio", f"{count}.wav")
-                with bf.BlobFile(audio_path, "wb") as audio_file:
+                output_audio_path = join_path(output_dir, "audio", f"{count}.wav")
+                record_audio_path = join_path(audio_path_root, "audio", f"{count}.wav")
+                with bf.BlobFile(output_audio_path, "wb") as audio_file:
                     sf.write(audio_file, audio, sampling_rate, format="WAV")
 
                 record = {
@@ -57,14 +67,16 @@ def dump_parquet(input_path: str, output_dir: str, dataset: str, batch_size: int
                     "text": row.get("text", ""),
                     "id": row_id(row.get("file_name"), count, dataset),
                     "audio_length_s": duration,
-                    "audio_path": audio_path,
+                    "audio_path": record_audio_path,
                     "sampling_rate": sampling_rate,
                     "duration": duration,
                 }
                 jsonl_file.write(json.dumps(record, ensure_ascii=False) + "\n")
                 count += 1
 
-            print(f"converted {count} rows", flush=True)
+            if count - last_report >= progress_interval:
+                print(f"converted {count} rows", flush=True)
+                last_report = count
 
     if hasattr(parquet_source, "close"):
         parquet_source.close()
@@ -77,9 +89,22 @@ def main() -> None:
     parser.add_argument("--output-dir", required=True, help="Output directory for data.jsonl and audio/")
     parser.add_argument("--dataset", required=True, help="Value to write into the JSONL dataset field")
     parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--progress-interval", type=int, default=5000)
+    parser.add_argument(
+        "--audio-path-root",
+        default=None,
+        help="Root to store in JSONL audio_path values. Defaults to --output-dir.",
+    )
     args = parser.parse_args()
 
-    count = dump_parquet(args.input, args.output_dir, args.dataset, args.batch_size)
+    count = dump_parquet(
+        args.input,
+        args.output_dir,
+        args.dataset,
+        args.batch_size,
+        args.audio_path_root,
+        args.progress_interval,
+    )
     print(json.dumps({"rows": count, "output_dir": args.output_dir}, indent=2))
 
 
