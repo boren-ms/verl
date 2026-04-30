@@ -1,5 +1,6 @@
 """Audio augmentation helpers for phimm datasets."""
 
+import functools
 import json
 import math
 import random
@@ -163,7 +164,7 @@ class AudioAugmenter:
         self.seed = int(seed)
         self.audio_reader = audio_reader
         self.noise_paths = load_noise_paths(noise_path)
-        self._noise_cache = {}  # path -> (audio, sr)
+        self._load_noise = functools.lru_cache(maxsize=10000)(self.audio_reader)
 
         if noise_path is not None:
             print(f"Loaded {len(self.noise_paths)} noise audio paths from {noise_path}")
@@ -189,11 +190,7 @@ class AudioAugmenter:
         if not self.noise_paths or random_state.random() >= self.noise_prob:
             return audio, None, None
         noise_path = random_state.choice(self.noise_paths)
-        if noise_path in self._noise_cache:
-            noise, noise_sr = self._noise_cache[noise_path]
-        else:
-            noise, noise_sr = self.audio_reader(noise_path)
-            self._noise_cache[noise_path] = (noise, noise_sr)
+        noise, noise_sr = self._load_noise(noise_path)
         noise = to_float32_audio(noise)
         noise = resample_audio_to_sr(noise, noise_sr, sr)
         snr_db = random_state.uniform(self.snr_range[0], self.snr_range[-1])
