@@ -11,7 +11,7 @@ The alignment uses standard Levenshtein word-level edit distance. Each word posi
 
 Example from `alignment_samples.txt`:
 
-```
+```text
 REF: the   cat   sat   on    the   mat
 HYP: a     cat   ***   on    the   mat   today
 OPS:  S           D                       I
@@ -19,7 +19,7 @@ OPS:  S           D                       I
 
 In `error_details.csv`, the `alignment_ops` column uses a compact format:
 
-```
+```text
 S(the/a) cat sat D(on/-) the mat I(-/today)
 ```
 
@@ -30,9 +30,11 @@ Correct words appear bare; errors appear as `OP(ref_word/hyp_word)`.
 Each line of the input JSONL must have at least:
 
 | Field | Required | Description |
-|-------|----------|-------------|
+| --- | --- | --- |
 | `ref` | Yes (or `--ref-column` override) | Reference transcription text |
 | `hyp` | Yes (or `--hyp-column` override) | Hypothesis transcription text |
+
+For verl `val_data_gen` files, the script auto-remaps `gts` to `ref` and `clean_output` to `hyp` when the requested columns are missing. The original `output` column can be shown in HTML reports with `--raw-output-column output`.
 
 ### Optional ID fields (auto-detected in this priority order)
 

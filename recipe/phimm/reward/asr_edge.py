@@ -1,10 +1,14 @@
 # %%
 from dataclasses import dataclass
 from difflib import SequenceMatcher
+import logging
 import re
 from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import parse_asr_response
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -180,6 +184,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
     """
     from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
     hyp_text, tgt_lang, is_lang, is_fmt = _parse_response(solution_str, **kwargs)
+    logger.info("openasr_eval language check: tgt_lang=%s is_lang=%s", tgt_lang, is_lang)
 
     result = measure_wer(hyp_text, ground_truth, lang=LANGUAGES.get(tgt_lang))
     return {

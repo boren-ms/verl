@@ -28,7 +28,6 @@ Run:
 ```
 
 Useful options:
-- `--results-root az://orngwus2cresco/data/boren/data/results/gpt-4o-mini-asr-v1`: override the shared model-results root. The script picks the latest `result_details_*.jsonl` under each model and dataset.
 - `--val-data-root az://orngwus2cresco/data/boren/outputs`: override the verl validation outputs root. Layout: `<root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl`. The script picks the latest step. Default: `az://orngwus2cresco/data/boren/outputs`.
 - `--top-n 20`: keep the top 20 utterances by target-model error count.
 - `--join-columns audio_file`: use `audio_file` as the default explicit join key.

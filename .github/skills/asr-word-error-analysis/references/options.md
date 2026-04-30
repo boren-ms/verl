@@ -1,11 +1,12 @@
 # Options Reference
 
 | Flag | Default | Description |
-|------|---------|-------------|
+| --- | --- | --- |
 | `--input-path` | — | Explicit path to JSONL (local or `az://`). Mutually exclusive with `--model`. |
-| `--model` | — | Model directory under `--results-root`. Auto-discovers the most recently modified `result_details_*.jsonl` file. |
+| `--model` | — | Model directory for auto-discovery. The script checks local paths, verl `val_data_gen`, then the most recently modified `result_details_*.jsonl` under `--results-root`. |
 | `--dataset` | `""` | Dataset label (used in discovery and output). |
 | `--results-root` | `az://orngwus2cresco/data/boren/data/results/gpt-4o-mini-asr-v1` | Root for auto-discovery. |
+| `--val-data-root` | `az://orngwus2cresco/data/boren/outputs` | Root for verl validation output discovery. Layout: `<root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl`. |
 | `--ref-column` | `ref` | Column name for reference text. |
 | `--hyp-column` | `hyp` | Column name for hypothesis text. |
 | `--id-column` | auto | Column for utterance ID. Auto-detected from `audio_file_stem`, `id`, etc. |
@@ -14,4 +15,5 @@
 | `--length-bucket-size` | `5` | Ref-word-count bucket width for `error_patterns.csv`. |
 | `--case-sensitive` | off | Do not lowercase ref/hyp before alignment. |
 | `--write-html` | off | Generate a standalone HTML report and download playable local audio for the ranked worst utterances when an audio path is available. |
+| `--raw-output-column` | `""` | Column containing raw model output to include in HTML cards, for example `output` in verl JSONL files. |
 | `--output-dir` | `tmp/asr-word-error-analysis` | Output directory. |

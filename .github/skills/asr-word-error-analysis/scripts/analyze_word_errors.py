@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Detailed word-level error analysis for a single ASR result_details JSONL file.
+Detailed word-level error analysis for a single ASR JSONL file.
 
 Produces:
   - summary.json          - dataset-level WER, error counts, top confusion pairs
@@ -35,16 +35,24 @@ from whisper_normalizer.english import EnglishTextNormalizer
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Generate detailed word-level error analysis from an ASR result_details JSONL file."
+        description="Generate detailed word-level error analysis from a single ASR JSONL file."
     )
     source = p.add_mutually_exclusive_group(required=True)
-    source.add_argument("--input-path", help="Path to result_details JSONL file (local or az://).")
-    source.add_argument("--model", help="Model directory name under results root (auto-discovers latest file).")
+    source.add_argument("--input-path", help="Path to ASR JSONL file (local or az://).")
+    source.add_argument("--model", help="Model directory name for local, val_data_gen, or result_details auto-discovery.")
     p.add_argument("--dataset", default="", help="Dataset name (used in file discovery and output labeling).")
     p.add_argument(
         "--results-root",
         default="az://orngwus2cresco/data/boren/data/results/gpt-4o-mini-asr-v1",
         help="Root that contains <model>/<dataset>/result_details_*.jsonl.",
+    )
+    p.add_argument(
+        "--val-data-root",
+        default="az://orngwus2cresco/data/boren/outputs",
+        help=(
+            "Root for verl validation outputs. Layout: "
+            "<root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl."
+        ),
     )
     p.add_argument("--ref-column", default="ref", help="Column name for reference text.")
     p.add_argument("--hyp-column", default="hyp", help="Column name for hypothesis text.")
@@ -64,6 +72,11 @@ def parse_args() -> argparse.Namespace:
 # ---------------------------------------------------------------------------
 
 TIMESTAMP_RE = re.compile(r"result_details_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})\.jsonl$")
+STEP_RE = re.compile(r"(\d+)\.jsonl$")
+LOCAL_RESULTS_ROOTS = [
+    Path("tmp"),
+    Path.home() / "data" / "results" / "verl_word_error",
+]
 ID_CANDIDATES = [
     "audio_file_stem", "audio_file", "utt_id", "utterance_id", "example_id",
     "item_id", "segment_id", "id", "key", "audio_path", "path",
@@ -102,6 +115,61 @@ def resolve_latest(results_root: str, model: str, dataset: str) -> str:
     return ranked[-1]
 
 
+def dataset_leaf(dataset: str) -> str:
+    return dataset.rsplit("/", 1)[-1] if "/" in dataset else dataset
+
+
+def extract_step(path: str) -> int:
+    match = STEP_RE.search(path)
+    return int(match.group(1)) if match else -1
+
+
+def resolve_val_data_gen(val_data_root: str, model: str, dataset: str) -> str | None:
+    ds_bare = dataset_leaf(dataset)
+    pattern = bf.join(val_data_root, model, "val_data_gen", ds_bare, "*.jsonl")
+    try:
+        matches = sorted(bf.glob(pattern))
+    except Exception:
+        return None
+    if not matches:
+        return None
+    ranked = sorted(matches, key=lambda p: (extract_step(p), p))
+    return ranked[-1]
+
+
+def resolve_local(model: str, dataset: str) -> str | None:
+    ds_bare = dataset_leaf(dataset)
+    for root in LOCAL_RESULTS_ROOTS:
+        flat_path = root / model / f"{ds_bare}.jsonl"
+        if flat_path.is_file():
+            return str(flat_path)
+
+        result_details_dir = root / model / dataset
+        if result_details_dir.is_dir():
+            matches = sorted(result_details_dir.glob("result_details_*.jsonl"))
+            if matches:
+                return str(matches[-1])
+
+        val_data_dir = root / model / "val_data_gen" / ds_bare
+        if val_data_dir.is_dir():
+            matches = sorted(val_data_dir.glob("*.jsonl"), key=lambda p: (extract_step(str(p)), str(p)))
+            if matches:
+                return str(matches[-1])
+    return None
+
+
+def resolve_input_path(model: str, dataset: str, results_root: str, val_data_root: str) -> str:
+    local_path = resolve_local(model, dataset)
+    if local_path:
+        return local_path
+
+    val_path = resolve_val_data_gen(val_data_root, model, dataset)
+    if val_path:
+        return val_path
+
+    return resolve_latest(results_root, model, dataset)
+
+
 def load_jsonl(path: str) -> list[dict]:
     rows: list[dict] = []
     with bf.BlobFile(path, "r") as fh:
@@ -127,6 +195,14 @@ def load_jsonl(path: str) -> list[dict]:
         if "audio_file" in row and "audio_file_stem" not in row:
             row["audio_file_stem"] = Path(str(row["audio_file"])).stem
     return rows
+
+
+def remap_verl_schema(rows: list[dict], ref_col: str, hyp_col: str) -> None:
+    for row in rows:
+        if ref_col not in row and "gts" in row:
+            row[ref_col] = row["gts"]
+        if hyp_col not in row and "clean_output" in row:
+            row[hyp_col] = row["clean_output"]
 
 
 def detect_id_column(rows: list[dict]) -> str:
@@ -834,10 +910,11 @@ def main() -> None:
     if args.input_path:
         input_path = args.input_path
     else:
-        input_path = resolve_latest(args.results_root, args.model, args.dataset)
+        input_path = resolve_input_path(args.model, args.dataset, args.results_root, args.val_data_root)
     print(f"Loading {input_path} ...")
 
     rows = load_jsonl(input_path)
+    remap_verl_schema(rows, args.ref_column, args.hyp_column)
     print(f"  {len(rows)} utterances loaded")
 
     # Detect ID column
