@@ -33,6 +33,8 @@ Useful options:
 - `--join-columns audio_file`: use `audio_file` as the default explicit join key.
 - `--join-columns audio_file_stem`: force the join to use the stem derived from `audio_file` when the full path is not stable across runs.
 - `--ref-column ref` and `--hyp-column hyp`: override schema defaults if needed. For verl training JSONL files, use `--ref-column gts --hyp-column clean_output`.
+- `--normalizer openasr`: normalize ref/hyp with the same OpenASR path used by `recipe.phimm.utils.open_asr_normalizer.eval_utils.measure_wer` before recomputing utterance errors. Use this for OpenASR multilingual outputs when summary WER should match eval/reward counts.
+- `--lang German` or `--lang-column language`: override or choose the row language used by `--normalizer openasr`. Language names are mapped through `recipe.phimm.utils.languages.LANGUAGES`; if absent, the script falls back to the suffix of `data_source`.
 - `--baseline-path ...` and `--target-path ...`: bypass model discovery and use explicit files.
 - `--write-html`: write the default standalone HTML review page that shows `audio_file_stem`, `baseline_wer`, `target_wer`, and side-by-side `hyp_baseline` vs `hyp_target` with word-level highlights.
 - `--audio-blob-root az://orngwus2cresco/data/boren/data/openasr_jsonl`: enable audio playback in HTML reports. Downloads audio files for the top-N utterances from `{blob-root}/{dataset}/audio/{index}.wav` and embeds `<audio>` controls in each card. Only effective with `--write-html`.
@@ -43,7 +45,7 @@ Useful options:
 - Prefer `--write-html` by default. Use the HTML output as the main deliverable unless the user explicitly asks for CSV-only output.
 - The HTML output is derived from the ranked `*.topN.csv`, so it reflects the same ordering and selection logic as the CSV.
 - The page highlights changed word spans separately in baseline and target hypotheses; it is optimized for quick utterance-by-utterance scanning on desktop and mobile.
-- Each card shows normalized (Whisper English normalizer) text in the main comparison grid, plus a collapsible "Raw output" section with the original un-normalized reference, baseline hypothesis, and target hypothesis. The raw section uses monospace font to preserve formatting.
+- Each card shows normalized text in the main comparison grid: Whisper English normalization by default, or OpenASR normalization when `--normalizer openasr` is selected. A collapsible "Raw output" section preserves the original un-normalized reference, baseline hypothesis, and target hypothesis.
 - The "Raw output" section for the target uses the `output` column if present (showing the full model output with tags like `<ASR><lang=English><TXT>...</TXT></ASR>`). When `output` only exists on the target side (not baseline), the script finds it as an unsuffixed column after the pandas merge and uses it correctly.
 - If the CSV lacks `audio_file_stem`, the renderer falls back to `comparison_id` for the card title.
 - When `--audio-blob-root` is set, each card includes an `<audio>` player. Audio files are downloaded from `{blob-root}/{dataset}/audio/{row_index}.wav` (flat-indexed by position in the source dataset JSONL), cached to `--audio-local-dir`, and copied to `{output-dir}/audio/`. The HTML references audio via relative `audio/{index}.wav` paths.

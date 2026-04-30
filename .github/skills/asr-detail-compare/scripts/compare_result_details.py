@@ -4,6 +4,7 @@ import html
 import json
 import re
 import shutil
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from difflib import SequenceMatcher
@@ -13,6 +14,13 @@ from typing import Sequence
 import blobfile as bf
 import pandas as pd
 from whisper.normalizers.english import EnglishTextNormalizer
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if (REPO_ROOT / "recipe").is_dir() and str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from recipe.phimm.utils.languages import LANGUAGES
+from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_for_wer
 
 
 JOIN_CANDIDATES = [
@@ -149,6 +157,14 @@ def parse_args() -> argparse.Namespace:
             "Default: ~/data/openasr_jsonl/{dataset}/audio"
         ),
     )
+    parser.add_argument(
+        "--normalizer",
+        choices=("english", "openasr"),
+        default="english",
+        help="Text normalizer used before alignment. Use 'openasr' to match measure_wer.",
+    )
+    parser.add_argument("--lang", default="", help="Language code/name override for --normalizer openasr.")
+    parser.add_argument("--lang-column", default="language", help="Row column with language name/code for --normalizer openasr.")
     return parser.parse_args()
 
 
@@ -314,6 +330,46 @@ def normalize_asr_text(value: object) -> str:
     return _whisper_normalizer(text)
 
 
+def infer_language(row: pd.Series, lang_override: str = "", lang_column: str = "language", prefix: str = "") -> str:
+    if lang_override:
+        source_lang = lang_override.strip().lower()
+        return LANGUAGES.get(source_lang, source_lang or "en")
+
+    if prefix:
+        candidates = [f"{lang_column}_{prefix}", lang_column, f"data_source_{prefix}", "data_source"]
+    else:
+        candidates = [lang_column, "data_source"]
+
+    source_lang = ""
+    for candidate in candidates:
+        value = row.get(candidate, "")
+        if value is None or (isinstance(value, float) and pd.isna(value)):
+            continue
+        source_lang = str(value).strip().lower()
+        if source_lang:
+            break
+
+    if source_lang and source_lang not in LANGUAGES and "_" in source_lang:
+        source_lang = source_lang.rsplit("_", 1)[-1]
+    return LANGUAGES.get(source_lang, source_lang or "en")
+
+
+def normalize_asr_pair(
+    ref_value: object,
+    hyp_value: object,
+    row: pd.Series | None = None,
+    normalizer: str = "english",
+    lang_override: str = "",
+    lang_column: str = "language",
+    prefix: str = "",
+) -> tuple[str, str]:
+    if normalizer == "openasr":
+        lang_code = infer_language(row if row is not None else pd.Series(dtype=object), lang_override, lang_column, prefix)
+        hyp_norm, ref_norm = normalize_for_wer(normalize_text(hyp_value), normalize_text(ref_value), lang=lang_code)
+        return ref_norm, hyp_norm
+    return normalize_asr_text(ref_value), normalize_asr_text(hyp_value)
+
+
 def edit_stats(ref_text: str, hyp_text: str) -> ErrorStats:
     ref_tokens = ref_text.split()
     hyp_tokens = hyp_text.split()
@@ -421,10 +477,26 @@ def choose_join_columns(
     )
 
 
-def compute_metrics(df: pd.DataFrame, ref_column: str, hyp_column: str, prefix: str) -> pd.DataFrame:
+def compute_metrics(
+    df: pd.DataFrame,
+    ref_column: str,
+    hyp_column: str,
+    prefix: str,
+    normalizer: str,
+    lang_override: str,
+    lang_column: str,
+) -> pd.DataFrame:
     stats = [
-        edit_stats(normalize_asr_text(ref_value), normalize_asr_text(hyp_value))
-        for ref_value, hyp_value in zip(df[ref_column], df[hyp_column], strict=True)
+        edit_stats(*normalize_asr_pair(
+            row[ref_column],
+            row[hyp_column],
+            row,
+            normalizer,
+            lang_override,
+            lang_column,
+            prefix,
+        ))
+        for _, row in df.iterrows()
     ]
     return pd.DataFrame(
         {
@@ -913,15 +985,21 @@ def main() -> None:
     merged["raw_hyp_target"] = merged.get("output_target", merged.get("output", merged[hyp_target]))
     # Preserve the full original output (with <ASR> tags etc.) as raw_output
     merged["raw_output"] = merged.get("output_target", merged.get("output", pd.Series([""] * len(merged))))
-    merged["ref"] = merged[ref_target].map(normalize_asr_text)
-    merged["ref_matches_baseline"] = (
-        merged[ref_target].map(normalize_asr_text) == merged[ref_baseline].map(normalize_asr_text)
-    )
-    merged["hyp_baseline"] = merged[hyp_baseline].map(normalize_asr_text)
-    merged["hyp_target"] = merged[hyp_target].map(normalize_asr_text)
+    normalized_rows = [
+        (
+            *normalize_asr_pair(row[ref_baseline], row[hyp_baseline], row, args.normalizer, args.lang, args.lang_column, "baseline"),
+            *normalize_asr_pair(row[ref_target], row[hyp_target], row, args.normalizer, args.lang, args.lang_column, "target"),
+        )
+        for _, row in merged.iterrows()
+    ]
+    merged["ref_baseline_norm"] = [row[0] for row in normalized_rows]
+    merged["hyp_baseline"] = [row[1] for row in normalized_rows]
+    merged["ref"] = [row[2] for row in normalized_rows]
+    merged["hyp_target"] = [row[3] for row in normalized_rows]
+    merged["ref_matches_baseline"] = merged["ref"] == merged["ref_baseline_norm"]
 
-    baseline_metrics = compute_metrics(merged, ref_baseline, hyp_baseline, "baseline")
-    target_metrics = compute_metrics(merged, ref_target, hyp_target, "target")
+    baseline_metrics = compute_metrics(merged, ref_baseline, hyp_baseline, "baseline", args.normalizer, args.lang, args.lang_column)
+    target_metrics = compute_metrics(merged, ref_target, hyp_target, "target", args.normalizer, args.lang, args.lang_column)
     merged = pd.concat([merged.reset_index(drop=True), baseline_metrics, target_metrics], axis=1)
 
     total_ref_words = int(merged["target_ref_words"].sum())
@@ -1044,6 +1122,9 @@ def main() -> None:
         "baseline_model": args.baseline_model,
         "target_model": args.target_model,
         "results_root": args.results_root,
+        "normalizer": args.normalizer,
+        "lang": args.lang,
+        "lang_column": args.lang_column,
         "baseline_path": baseline_path,
         "target_path": target_path,
         "local_baseline_jsonl": str(local_baseline_jsonl),
