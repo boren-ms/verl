@@ -115,19 +115,27 @@ def measure(hyp, ref, **kwargs):
     return _count_ops(ref_units, hyp_units)
 
 
+def _parse_response(solution_str, **kwargs):
+    """Shared parsing: extract target language, parse ASR response, check lang/format."""
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower()
+    trans_dict = parse_asr_response(solution_str)
+    pred_lang = (trans_dict["lang"] or "").lower()
+    is_lang = pred_lang == tgt_lang
+    is_fmt = bool(trans_dict["formatted"])
+    return trans_dict["text"], tgt_lang, is_lang, is_fmt
+
+
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
-    trans_dict = parse_asr_response(solution_str)
+    hyp_text, _, is_lang, is_fmt = _parse_response(solution_str, **kwargs)
 
-    lang = (trans_dict["lang"] or "").lower() == "english"
-    format = bool(trans_dict["formatted"])
-
-    err = measure(trans_dict["text"], ground_truth, **kwargs)
+    err = measure(hyp_text, ground_truth, **kwargs)
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed
     gamma = kwargs.get("gamma", 1)
 
-    is_good = lang and format
+    is_good = is_lang and is_fmt
 
     if metric == "wer":
         wer = err.wer(**betas)
@@ -136,25 +144,23 @@ def compute_score(solution_str, ground_truth, **kwargs):
         n_edit = err.edit_distance(**betas)
         score = -(n_edit**gamma)
     else:
-        score = err.accuracy(**betas) ** gamma if is_good else -1 # penalize non-English or unformatted outputs
+        score = err.accuracy(**betas) ** gamma if is_good else -1 # penalize non-target-language or unformatted outputs
 
     return {
         "score": score,
         "n_ref": err.n_ref,
         "n_err": err.n_err,
         "n_edge": err.n_edge,
-        "p_fmt": float(format),
-        "p_lang": float(lang),
+        "p_fmt": float(is_fmt),
+        "p_lang": float(is_lang),
     }
 
 
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
-    trans_dict = parse_asr_response(solution_str)
-    lang = (trans_dict["lang"] or "").lower() == "english"
-    format = bool(trans_dict["formatted"])
-    err = measure(trans_dict["text"], ground_truth, **kwargs)
-    
+    hyp_text, _, is_lang, is_fmt = _parse_response(solution_str, **kwargs)
+    err = measure(hyp_text, ground_truth, **kwargs)
+
     return {
         "score": err.accuracy(),
         "wer": err.wer(),
@@ -162,8 +168,8 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "n_err": err.n_err,
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,
-        "p_fmt": float(format),
-        "p_lang": float(lang),
+        "p_fmt": float(is_fmt),
+        "p_lang": float(is_lang),
     }
 
 
@@ -173,18 +179,16 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
     Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
     """
     from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
-    tgt_lang = kwargs.get("lang", "English").lower()
+    hyp_text, tgt_lang, is_lang, is_fmt = _parse_response(solution_str, **kwargs)
 
-    trans_dict = parse_asr_response(solution_str)
-    pred_lang = (trans_dict["lang"] or "").lower()
-    result = measure_wer(trans_dict["text"], ground_truth, lang=LANGUAGES.get(tgt_lang))
+    result = measure_wer(hyp_text, ground_truth, lang=LANGUAGES.get(tgt_lang))
     return {
         "score": 1.0 - result["wer"],
         "wer": result["wer"],
         "n_err": result["n_err"],
         "n_ref": result["n_ref"],
-        "p_fmt": float(bool(trans_dict["formatted"])),
-        "p_lang": float(pred_lang == tgt_lang),
+        "p_fmt": float(is_fmt),
+        "p_lang": float(is_lang),
     }
 
 
