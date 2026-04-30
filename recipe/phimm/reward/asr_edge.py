@@ -4,6 +4,7 @@ from difflib import SequenceMatcher
 import re
 from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import parse_asr_response
+from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
 
 @dataclass
@@ -100,51 +101,6 @@ def _split_units(text, unit="word"):
     raise ValueError(f"Unsupported error measure unit: {unit!r}. Expected 'word' or 'char'.")
 
 
-def normalize_compound_pairs(ref_words, hyp_words):
-    """Align compound word boundaries between ref and hyp word lists.
-
-    For each mismatch region, greedily merge words whose concatenation
-    matches across ref and hyp (e.g. ["ice", "cream"] ↔ ["icecream"]),
-    preserving real errors as-is.
-    """
-    if not ref_words or not hyp_words:
-        return list(ref_words), list(hyp_words)
-
-    sm = SequenceMatcher(None, ref_words, hyp_words, autojunk=False)
-    new_rw, new_hw = [], []
-
-    for tag, i1, i2, j1, j2 in sm.get_opcodes():
-        if tag == "equal":
-            new_rw.extend(ref_words[i1:i2])
-            new_hw.extend(hyp_words[j1:j2])
-            continue
-
-        rw, hw = ref_words[i1:i2], hyp_words[j1:j2]
-        ri = hi = 0
-        rc = hc = ""
-        match_ri = match_hi = 0  # last successfully matched positions
-
-        while ri < len(rw) or hi < len(hw):
-            # Extend the shorter accumulator
-            if len(rc) <= len(hc) and ri < len(rw):
-                rc += rw[ri]; ri += 1
-            elif hi < len(hw):
-                hc += hw[hi]; hi += 1
-            else:
-                rc += rw[ri]; ri += 1
-
-            if rc == hc and rc:
-                new_rw.append(rc)
-                new_hw.append(hc)
-                rc = hc = ""
-                match_ri, match_hi = ri, hi
-
-        # Emit unmatched remainder as original words
-        new_rw.extend(rw[match_ri:])
-        new_hw.extend(hw[match_hi:])
-
-    return new_rw, new_hw
-
 
 def measure(hyp, ref, **kwargs):
     norm_name = kwargs.get("text_norm", "english")
@@ -153,9 +109,7 @@ def measure(hyp, ref, **kwargs):
     ref_text = _norm_text(ref, norm_name=norm_name)
     hyp_text = _norm_text(hyp, norm_name=norm_name)
     if compound_norm:
-        ref_words, hyp_words = normalize_compound_pairs(ref_text.split(), hyp_text.split())
-        ref_text = " ".join(ref_words)
-        hyp_text = " ".join(hyp_words)
+        [ref_text], [hyp_text] = normalize_compound_pairs([ref_text], [hyp_text])
     ref_units = _split_units(ref_text, unit=unit)
     hyp_units = _split_units(hyp_text, unit=unit)
     return _count_ops(ref_units, hyp_units)
