@@ -15,7 +15,8 @@ trainer:
   n_gpus_per_node: 8
 
 data:
-  batch_size: 2048
+  batch_size: 1024
+  num_workers: 2
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_en
   output_split_size: 10000
 
