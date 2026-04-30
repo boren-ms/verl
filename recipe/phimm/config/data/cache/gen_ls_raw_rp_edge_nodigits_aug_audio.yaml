@@ -1,7 +1,7 @@
 source_config:
   dataset_name: parquet
   parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: true
   post_process:

@@ -2,7 +2,7 @@
   jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
   data_dir: az://orngwus2cresco/data/boren/data/
   cache_name: auto_clean_0
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -15,7 +15,7 @@
   jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
   data_dir: az://orngwus2cresco/data/boren/data/
   cache_name: auto_other_0
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -25,7 +25,7 @@
     verl_format:
       prompt_key: prompt
 - cache_name: auto_entity_Gaming
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -41,7 +41,7 @@
   distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_Insurance
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -57,7 +57,7 @@
   distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_K12HigherEdu
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -73,7 +73,7 @@
   distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_Retail
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -89,7 +89,7 @@
   distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
   max_bias: 0
 - cache_name: auto_entity_ScienceTech
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -106,7 +106,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_Manufactory
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -123,7 +123,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_PatientHistoryDictation
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -140,7 +140,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_Energy
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -157,7 +157,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_Sustain
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -174,7 +174,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_Media
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -191,7 +191,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_CapitalMarket
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -208,7 +208,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_LifeHealth
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -225,7 +225,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_DoctorPatientConsultation
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -242,7 +242,7 @@
   max_bias: 0
 
 - cache_name: auto_entity_Banking
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:

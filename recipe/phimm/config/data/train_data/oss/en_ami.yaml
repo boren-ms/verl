@@ -12,7 +12,7 @@ pre_process:
   rename_fields:
     mappings:
       text: sft.0.messages.1.content
-add_prompt:
+add_task_info:
   task: lang_asr
   forced: True
 post_process:

@@ -6,7 +6,7 @@
       field: audio_path
       src_part: "audio/"
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
-  add_prompt:
+  add_task_info:
     task: en_asr
     forced: True
   post_process:
@@ -24,7 +24,7 @@
       field: audio_path
       src_part: "audio/"
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
-  add_prompt:
+  add_task_info:
     task: en_asr
     forced: True
   post_process:
@@ -42,7 +42,7 @@
       field: audio_path
       src_part: "audio/"
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
-  add_prompt:
+  add_task_info:
     task: en_asr
     forced: True
   post_process:

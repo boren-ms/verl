@@ -1,6 +1,6 @@
 dataset_name: jsonl
 jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_oss_en_rp_edge/data.jsonl
-add_prompt:
+add_task_info:
   task: lang_asr
   forced: True
 post_process:

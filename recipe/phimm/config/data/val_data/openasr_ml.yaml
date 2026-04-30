@@ -1,7 +1,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/data.jsonl
   cache_name: auto_openasr_ml_fleurs_de
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: German
@@ -15,7 +15,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/data.jsonl
   cache_name: auto_openasr_ml_fleurs_fr
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: French
@@ -29,7 +29,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/data.jsonl
   cache_name: auto_openasr_ml_fleurs_it
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Italian
@@ -43,7 +43,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/data.jsonl
   cache_name: auto_openasr_ml_fleurs_es
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Spanish
@@ -57,7 +57,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/data.jsonl
   cache_name: auto_openasr_ml_fleurs_pt
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Portuguese
@@ -71,7 +71,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/data.jsonl
   cache_name: auto_openasr_ml_mcv_de
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: German
@@ -85,7 +85,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/data.jsonl
   cache_name: auto_openasr_ml_mcv_fr
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: French
@@ -99,7 +99,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/data.jsonl
   cache_name: auto_openasr_ml_mcv_it
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Italian
@@ -113,7 +113,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/data.jsonl
   cache_name: auto_openasr_ml_mcv_es
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Spanish
@@ -127,7 +127,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/pt/data.jsonl
   cache_name: auto_openasr_ml_mcv_pt
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Portuguese
@@ -141,7 +141,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data.jsonl
   cache_name: auto_openasr_ml_mls_fr
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: French
@@ -155,7 +155,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/it/data.jsonl
   cache_name: auto_openasr_ml_mls_it
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Italian
@@ -169,7 +169,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/data.jsonl
   cache_name: auto_openasr_ml_mls_es
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Spanish
@@ -183,7 +183,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data.jsonl
   cache_name: auto_openasr_ml_mls_pt
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
     language: Portuguese

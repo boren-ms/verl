@@ -6,7 +6,7 @@ chunk_types:
   - audio
   - transcription
 num_proc: auto
-add_prompt:
+add_task_info:
   task: lang_asr
   forced: True
 post_process:

@@ -1,6 +1,6 @@
 dataset_name: audio_dir
 data_dir: az://orngwus2cresco/data/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
-add_prompt:
+add_task_info:
   task: rare_asr
   forced: True
 post_process:

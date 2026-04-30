@@ -1,6 +1,6 @@
 dataset_name: parquet
 parquet_paths: az://orngwus2cresco/data/boren/data/cache_datasets/gen_ls_trim03_phi4_7b_wer_gt20/part-*.parquet
-add_prompt:
+add_task_info:
   task: asr
   forced: True
 post_process:

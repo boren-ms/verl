@@ -62,7 +62,7 @@ specs:
   - manifest_file: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Vehicle_Manufacturing/file_set.json
     chunk_path: az://orngwus2cresco/data/speech/users/v-zhhon/en-US/chunk_dragon_display/Vehicle_Manufacturing/ChunkFiles/
 
-add_prompt:
+add_task_info:
   task: rare_asr
   forced: True
 post_process:

@@ -68,7 +68,7 @@ specs:
   - manifest_file: az://orngwus2cresco/data/speech/users/v-benzhao/generated_tts_data/20251121/wave2_chunk/file_set.json
     chunk_path: az://orngwus2cresco/data/speech/users/v-benzhao/generated_tts_data/20251121/wave2_chunk/ChunkFiles/
 
-add_prompt:
+add_task_info:
   task: rare_asr
   forced: True
 post_process:

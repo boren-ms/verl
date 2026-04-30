@@ -2,7 +2,7 @@
 dataset_name: parquet
 parquet_paths: az://orngwus2cresco/data/boren/data/verl/aligned/oss_ami.parquet
 num_proc: auto
-add_prompt:
+add_task_info:
   task: lang_asr
   forced: True
 post_process:

@@ -11,7 +11,7 @@ num_proc: 1
 #   common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
 #   common_num: 10000
 #   rare_ratio: 0.5
-add_prompt:
+add_task_info:
   task: asr
   # forced: True
 post_process:

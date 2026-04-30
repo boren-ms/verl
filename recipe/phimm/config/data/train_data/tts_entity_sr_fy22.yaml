@@ -1,7 +1,7 @@
 -  dataset_name: audio_dir
    data_dir: az://orngwus2cresco/data/boren/data/inhouse/GeneratedAudio/Entity/AudioEntityV1 # shorter
    num_proc: auto
-   add_prompt:
+   add_task_info:
      task: rare_asr
      forced: True
    post_process:
@@ -20,7 +20,7 @@
        field: audio_chunk
        src_part: "az://orngwus2cresco/data"
        dst_part: "az://orngwus2cresco/data"
-   add_prompt:
+   add_task_info:
      task: rare_asr
      forced: True
    post_process:

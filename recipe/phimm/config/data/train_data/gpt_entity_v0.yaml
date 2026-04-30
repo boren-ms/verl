@@ -17,7 +17,7 @@ specs:
     chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk
   - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk_merged.json
     chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk
-add_prompt:
+add_task_info:
   task: rare_asr
   forced: True
 post_process:

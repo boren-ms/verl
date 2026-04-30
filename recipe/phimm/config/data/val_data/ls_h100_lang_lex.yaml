@@ -6,7 +6,7 @@
       field: audio_path
       src_part: "audio/"
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/audio/"
-  add_prompt:
+  add_task_info:
     task: lang_asr_lex
     forced: True
   post_process:

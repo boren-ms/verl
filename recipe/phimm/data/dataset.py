@@ -946,7 +946,7 @@ def to_user_msg(prompt):
 def verl_format_ds(ds, **kwargs):
     """Format the dataset for verl training."""
     prompt_key = kwargs.get("prompt_key", "prompt")
-    extra_keys = kwargs.get("extra_keys", ["id", "keywords"])
+    extra_keys = kwargs.get("extra_keys", ["id", "keywords", "language"])
 
     def map_fn(egs):
         text = egs.get("text", "")
@@ -1057,23 +1057,23 @@ def overlap_prefix(ds, **kwargs):
     return ds
 
 
-def add_prompt(ds, **kwargs):
+def add_task_info(ds, **kwargs):
     """Add a prompt to the dataset."""
     task = kwargs.get("task", "asr")
     rand = kwargs.get("rand", False)
     forced = kwargs.get("forced", False)
     language = kwargs.get("language", "English")
 
-    def add_prompt_fn(egs):
+    def add_task_info_fn(egs):
         prompt = egs.get("prompt", None)
         if forced or prompt is None:
             prompt_txt = get_task_prompt(task=task, rand=rand)
             prompt = prompt_format.format(prompt_txt)
         lang = egs.get("lang", language)
         gt_output = get_task_output(task=task, lang=lang, text=egs.get("text", ""))
-        return {"prompt": prompt, "gt_output": gt_output}
+        return {"prompt": prompt, "gt_output": gt_output, "language": lang}
 
-    ds = ds.map(add_prompt_fn, **pop_map_kwargs(kwargs))
+    ds = ds.map(add_task_info_fn, **pop_map_kwargs(kwargs))
     return ds
 
 
@@ -1151,8 +1151,8 @@ def augment(ds, **kwargs):
         ds = add_tag_keywords(ds, **merge_kwargs(map_kwargs, add_tag_keywords_kwargs))
     # if tag_entity_kwargs := kwargs.get("tag_entity", {}):
     #     ds = tag_entity(ds, **merge_kwargs(map_kwargs, tag_entity_kwargs))
-    if add_prompt_kwargs := kwargs.get("add_prompt", {}):
-        ds = add_prompt(ds, **merge_kwargs(map_kwargs, add_prompt_kwargs))
+    if add_task_info_kwargs := kwargs.get("add_task_info", {}):
+        ds = add_task_info(ds, **merge_kwargs(map_kwargs, add_task_info_kwargs))
     if post_process_kwargs := kwargs.get("post_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, post_process_kwargs))
     return ds

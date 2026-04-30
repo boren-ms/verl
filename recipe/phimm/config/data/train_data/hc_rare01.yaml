@@ -12,7 +12,7 @@
     common_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/1grams_english.tsv
     common_num: 10000
     rare_ratio: 0.1
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:
@@ -36,7 +36,7 @@
     common_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/1grams_english.tsv
     common_num: 10000
     rare_ratio: 0.1
-  add_prompt:
+  add_task_info:
     task: rare_asr
     forced: True
   post_process:

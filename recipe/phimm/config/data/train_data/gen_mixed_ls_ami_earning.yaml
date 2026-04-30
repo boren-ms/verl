@@ -2,7 +2,7 @@
 # ls_raw_rp_edge (parquet)
 - dataset_name: parquet
   parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
-  add_prompt:
+  add_task_info:
     task: lang_asr_lex
     forced: True
   post_process:
@@ -15,7 +15,7 @@
 # ami_trim_tail_wer10 (parquet)
 - dataset_name: parquet
   parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ami_trim_tail_wer10/part-*.parquet
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
   post_process:
@@ -28,7 +28,7 @@
 # oss_earning (parquet)
 - dataset_name: parquet
   parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_earning_wer01/part-*.parquet
-  add_prompt:
+  add_task_info:
     task: lang_asr
     forced: True
   post_process:

@@ -7,7 +7,7 @@ num_proc: 1
 add_rare_keywords:
   common_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_words.count.txt
   common_num: 1000
-add_prompt:
+add_task_info:
   task: asr
   # forced: True
 post_process:

@@ -10,7 +10,7 @@ data:
       add_rare_keywords:
         common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
         common_num: 1000
-      add_prompt:
+      add_task_info:
         task: asr
         # forced: True
       post_process:
@@ -33,7 +33,7 @@ data:
       add_rare_keywords:
         common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
         common_num: 1000
-      add_prompt:
+      add_task_info:
         task: asr
         # forced: True
       post_process:

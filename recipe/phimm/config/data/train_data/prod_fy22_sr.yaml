@@ -9,7 +9,7 @@ post_process:
       data_source: asr
   verl_format:
     prompt_key: prompt
-add_prompt:
+add_task_info:
   # task: asr
   task: lang_asr
   forced: True

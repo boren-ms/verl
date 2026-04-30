@@ -11,7 +11,7 @@ pre_process:
   rename_fields:
     mappings:
       audio_path: audio_file
-add_prompt:
+add_task_info:
   task: lang_asr_lex
   forced: True
 post_process:
