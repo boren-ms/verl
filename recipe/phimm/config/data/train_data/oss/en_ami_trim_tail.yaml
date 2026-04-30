@@ -1,3 +1,4 @@
+# @package data.train_data
 dataset_name: parquet
 parquet_paths: az://orngwus2cresco/data/boren/data/verl/aligned/oss_ami.parquet
 num_proc: auto

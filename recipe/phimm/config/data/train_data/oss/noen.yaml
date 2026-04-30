@@ -1,3 +1,4 @@
+# @package data.train_data
 - dataset_name: chunk
   specs:
     - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_de_asr.json             # 1966.50 hours, number of examples: 0.470M, average duration: 15.06s

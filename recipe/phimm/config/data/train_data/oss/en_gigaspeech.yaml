@@ -1,3 +1,4 @@
+# @package data.train_data
 dataset_name: chunk
 specs:
   - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_gigaspeech_2k5.json    # 2498.74 hours, number of examples: 2.124M, average duration: 4.24s

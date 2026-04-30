@@ -1,3 +1,4 @@
+# @package data.train_data
 dataset_name: chunk
 specs:
   - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_en.json      # 1045.21 hours, number of examples: 0.365M, average duration: 10.31s
