@@ -1,0 +1,13 @@
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio/data.jsonl
+add_prompt:
+  task: lang_asr
+  forced: True
+post_process:
+  filter_text_with_numbers:
+    text_norm: english
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
