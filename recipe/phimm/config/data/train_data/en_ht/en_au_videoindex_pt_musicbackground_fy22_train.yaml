@@ -1,0 +1,16 @@
+dataset_name: chunk
+specs:
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_ht_split/en_au_videoindex_pt_musicbackground_fy22_train.json    # en-AU_Videoindex_PT_Musicbackground_FY22_TRAIN (2 sources)
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_prompt:
+  task: lang_asr
+  forced: True
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

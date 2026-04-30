@@ -60,7 +60,7 @@ def cwd():
     return Path(__file__).parents[2]
 
 
-@hydra.main(config_path="config", config_name="generation", version_base=None)
+@hydra.main(config_path="config/gen", config_name="generation", version_base=None)
 def main(config):
     run_generation(config)
 
