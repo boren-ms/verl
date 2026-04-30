@@ -3,14 +3,11 @@ specs:
   - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_ht.json    # 182 data sources
 chunk_types:
   - audio
-  - info.alternative_transcription.display_human_caption_adjusted
+  - transcription
 num_proc: auto
 pre_process:
   filter_short_audio:
     min_dur_ms: 300
-  rename_fields:
-    mappings:
-      text: info.alternative_transcription.display_human_caption_adjusted
 add_prompt:
   task: lang_asr
   forced: True
