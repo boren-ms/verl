@@ -9,10 +9,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: German
   post_process:
-    add_field:
-      fields:
-        language: German
     verl_format:
       prompt_key: prompt
 
@@ -31,10 +29,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: German
   post_process:
-    add_field:
-      fields:
-        language: German
     verl_format:
       prompt_key: prompt
 
@@ -48,10 +44,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Spanish
   post_process:
-    add_field:
-      fields:
-        language: Spanish
     verl_format:
       prompt_key: prompt
 
@@ -70,10 +64,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Spanish
   post_process:
-    add_field:
-      fields:
-        language: Spanish
     verl_format:
       prompt_key: prompt
 
@@ -87,10 +79,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: French
   post_process:
-    add_field:
-      fields:
-        language: French
     verl_format:
       prompt_key: prompt
 
@@ -109,10 +99,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: French
   post_process:
-    add_field:
-      fields:
-        language: French
     verl_format:
       prompt_key: prompt
 
@@ -126,10 +114,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Italian
   post_process:
-    add_field:
-      fields:
-        language: Italian
     verl_format:
       prompt_key: prompt
 
@@ -148,10 +134,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Italian
   post_process:
-    add_field:
-      fields:
-        language: Italian
     verl_format:
       prompt_key: prompt
 
@@ -165,10 +149,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Portuguese
   post_process:
-    add_field:
-      fields:
-        language: Portuguese
     verl_format:
       prompt_key: prompt
 
@@ -186,10 +168,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Portuguese
   post_process:
-    add_field:
-      fields:
-        language: Portuguese
     verl_format:
       prompt_key: prompt
 
@@ -203,10 +183,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Polish
   post_process:
-    add_field:
-      fields:
-        language: Polish
     verl_format:
       prompt_key: prompt
 
@@ -220,10 +198,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Dutch
   post_process:
-    add_field:
-      fields:
-        language: Dutch
     verl_format:
       prompt_key: prompt
 
@@ -242,10 +218,8 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Chinese
   post_process:
-    add_field:
-      fields:
-        language: Chinese
     verl_format:
       prompt_key: prompt
 
@@ -263,9 +237,7 @@
   add_task_info:
     task: lang_asr
     forced: True
+    language: Japanese
   post_process:
-    add_field:
-      fields:
-        language: Japanese
     verl_format:
       prompt_key: prompt
