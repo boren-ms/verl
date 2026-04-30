@@ -134,6 +134,14 @@ def main() -> None:
     args = parser.parse_args()
 
     input_paths = sorted(bf.glob(join_path(args.input_root, "*", "*.parquet")))
+    expected_jsonl_paths = set()
+    for input_path in input_paths:
+        dataset, split, _ = split_name(input_path, args.input_root)
+        expected_jsonl_paths.add(join_path(args.output_root, dataset, split, "data.jsonl"))
+    actual_jsonl_paths = set(bf.glob(join_path(args.output_root, "*", "*", "data.jsonl")))
+    missing_jsonl_paths = sorted(expected_jsonl_paths - actual_jsonl_paths)
+    extra_jsonl_paths = sorted(actual_jsonl_paths - expected_jsonl_paths)
+
     results = [
         verify_split(
             input_path=input_path,
@@ -147,14 +155,17 @@ def main() -> None:
     failures = [result for result in results if result["problems"]]
     summary = {
         "inputs": len(input_paths),
+        "generated_data_jsonl": len(actual_jsonl_paths),
         "verified_outputs": len(results) - len(failures),
         "total_rows": sum(int(result["rows"]) for result in results if not result["problems"]),
+        "missing_data_jsonl": missing_jsonl_paths,
+        "extra_data_jsonl": extra_jsonl_paths,
         "failures": failures,
         "first_verified": [result for result in results if not result["problems"]][:3],
         "last_verified": [result for result in results if not result["problems"]][-3:],
     }
     print(json.dumps(summary, indent=2))
-    if failures:
+    if failures or missing_jsonl_paths or extra_jsonl_paths:
         raise SystemExit(1)
 
 
