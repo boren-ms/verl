@@ -17,7 +17,7 @@ trainer:
 
 data:
   batch_size: 2048
-  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/prod_fy22_sr_100k_wer001
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/prod_fy22_sr_100k
   output_split_size: 10000
 
 rollout:

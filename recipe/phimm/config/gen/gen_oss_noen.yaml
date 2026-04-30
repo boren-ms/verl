@@ -13,8 +13,8 @@ model:
 
 data:
   batch_size: 512
-  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_noen_wer001
-  output_split_size: 1000000
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_noen
+  output_split_size: 10000
 
 rollout:
   temperature: 0.0
