@@ -14,7 +14,6 @@ source_config:
       noise_prob: 1.0
       speed_range: [1.0, 2.0]
       speed_prob: 1.0
-      seed: 0
     add_field:
       fields:
         data_source: asr
