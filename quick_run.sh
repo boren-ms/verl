@@ -15,6 +15,8 @@ module="recipe.phimm.main_asr_dapo"
 
 if [[ "$config_name" == gen_* ]]; then
     module="recipe.phimm.main_asr_gen"
+elif [[ "$config_name" == eval_* ]]; then
+    module="recipe.phimm.main_asr_eval"
 fi
 
 # bash quick_install.sh # prepare on local node only

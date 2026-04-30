@@ -1,0 +1,18 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - eval_asr
+  - data/val_data/openasr_ml
+  - _self_
+
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_edge.py
+    name: openasr_eval
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
