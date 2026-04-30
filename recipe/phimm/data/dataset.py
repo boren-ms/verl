@@ -24,6 +24,7 @@ from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as bia
 from recipe.phimm.data.prompts import get_task_prompt, get_task_output
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
+from recipe.phimm.data.audio_augment import AudioAugmenter, safe_audio_stem
 from recipe.phimm.utils.shared import (
     hash_id,
     get_value,
@@ -611,6 +612,74 @@ def filter_short_audio(ds, **kwargs):
     return ds
 
 
+def augment_audio(ds, **kwargs):
+    """Write randomly speed/noise augmented audio and update audio_path."""
+    output_dir = kwargs.get("output_dir", None)
+    assert output_dir is not None, "augment_audio.output_dir must be set"
+    audio_output_dir = f"{output_dir.rstrip('/')}/audio"
+    if not audio_output_dir.startswith("az://"):
+        Path(audio_output_dir).mkdir(parents=True, exist_ok=True)
+
+    seed = int(kwargs.get("seed", 0))
+    augmenter = AudioAugmenter(
+        speed_prob=kwargs.get("speed_prob", 1.0),
+        speed_range=to_list(kwargs.get("speed_range", [0.9, 1.1])),
+        noise_prob=kwargs.get("noise_prob", 1.0),
+        snr_range=to_list(kwargs.get("snr_range", [10.0, 12.0])),
+        noise_path=kwargs.get("noise_path", None),
+        peak=kwargs.get("peak", 0.99),
+        seed=seed,
+    )
+
+    def augment_batch(batch, indices):
+        output_paths = []
+        source_paths = []
+        speed_factors = []
+        snr_dbs = []
+        chosen_noise_paths = []
+
+        for example, idx in zip(unbatch(batch), indices, strict=True):
+            source_path = example.get("audio_path") or example.get("audio_chunk") or example.get("audio_file", "")
+            try:
+                audio, sr = load_raw_audio(example)
+                augmented, aug_info = augmenter.augment(audio, sr, idx)
+
+                out_name = f"{idx:08d}_{safe_audio_stem(Path(source_path).stem, idx)}.wav"
+                out_path = f"{audio_output_dir.rstrip('/')}/{out_name}"
+                sf_write(out_path, augmented, sr)
+
+                output_paths.append(out_path)
+                source_paths.append(source_path)
+                speed_factors.append(aug_info["speed_factor"])
+                snr_dbs.append(aug_info["snr_db"])
+                chosen_noise_paths.append(aug_info["noise_path"])
+            except Exception as e:
+                print(f"[WARN] augment_audio failed for index {idx}: {e}")
+                output_paths.append("")
+                source_paths.append(source_path)
+                speed_factors.append(1.0)
+                snr_dbs.append(-1)
+                chosen_noise_paths.append("")
+
+        return {
+            "audio_path": output_paths,
+            "source_audio_path": source_paths,
+            "speed_factor": speed_factors,
+            "snr_db": snr_dbs,
+            "noise_path": chosen_noise_paths,
+        }
+
+    map_kwargs = pop_map_kwargs(kwargs)
+    map_kwargs.setdefault("batch_size", 16)
+    ds = ds.map(augment_batch, batched=True, with_indices=True, **map_kwargs, desc="Augmenting audio")
+    n_before = len(ds)
+    ds = ds.filter(lambda x: bool(x.get("audio_path", "")))
+    n_after = len(ds)
+    if n_before != n_after:
+        print(f"Filtered failed audio augmentations: {n_before} => {n_after}")
+    return ds
+
+
 def add_rare_keywords(ds, **kwargs):
     tn_name = kwargs.get("tn_name", "english")
     rare_ratio = kwargs.get("rare_ratio", None)
@@ -926,6 +995,8 @@ def process_ds(ds, **kwargs):
         ds = trim_tailing(ds, **merge_kwargs(map_kwargs, trim_tailing_kwargs))
     if filter_short_audio_kwargs := kwargs.get("filter_short_audio", {}):
         ds = filter_short_audio(ds, **merge_kwargs(map_kwargs, filter_short_audio_kwargs))
+    if augment_audio_kwargs := kwargs.get("augment_audio", {}):
+        ds = augment_audio(ds, **merge_kwargs(map_kwargs, augment_audio_kwargs))
     if path_map_kwargs := kwargs.get("path_map", {}):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
