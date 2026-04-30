@@ -67,6 +67,8 @@ Useful options:
 - `--input-path ...`: bypass model discovery and use one local or `az://` JSONL file directly.
 - `--ref-column gts --hyp-column clean_output`: optional explicit overrides for verl JSONL files. Usually not needed because the script auto-remaps these columns to `ref` / `hyp` when needed.
 - `--raw-output-column output`: include the full raw model output in each HTML utterance card when the file contains model wrapper tags or other non-normalized output.
+- `--normalizer openasr`: normalize ref/hyp with `recipe.phimm.utils.open_asr_normalizer.eval_utils.measure_wer`'s OpenASR normalizer path before alignment. Use this for OpenASR multilingual outputs when artifact WER should match reward/eval scoring.
+- `--lang German` or `--lang-column language`: override or choose the row language used by `--normalizer openasr`. Language names are mapped through `recipe.phimm.utils.languages.LANGUAGES`.
 - `--top-n 30`: control how many worst utterances appear in `alignment_samples.txt` and `report.html`.
 
 See [options reference](./references/options.md) for the full flag table.

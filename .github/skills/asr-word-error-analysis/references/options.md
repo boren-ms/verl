@@ -16,4 +16,7 @@
 | `--case-sensitive` | off | Do not lowercase ref/hyp before alignment. |
 | `--write-html` | off | Generate a standalone HTML report and download playable local audio for the ranked worst utterances when an audio path is available. |
 | `--raw-output-column` | `""` | Column containing raw model output to include in HTML cards, for example `output` in verl JSONL files. |
+| `--normalizer` | `english` | Text normalizer before alignment. Use `openasr` to match `measure_wer`'s OpenASR normalization path. |
+| `--lang` | `""` | Language code/name override for `--normalizer openasr`, e.g. `de` or `German`. |
+| `--lang-column` | `language` | Row column containing language name/code for `--normalizer openasr`. |
 | `--output-dir` | `tmp/asr-word-error-analysis` | Output directory. |

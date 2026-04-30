@@ -40,8 +40,8 @@ def _edit_distance(ref_words, hyp_words):
     return ed.eval(ref_words, hyp_words)
 
 
-def measure_wer(hyp, ref, lang="en"):
-    """Compute WER using OpenASR normalizers + editdistance.
+def normalize_for_wer(hyp, ref, lang="en"):
+    """Normalize hypothesis/reference text with the OpenASR WER normalizers.
 
     Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
 
@@ -51,7 +51,7 @@ def measure_wer(hyp, ref, lang="en"):
         lang: Language code (e.g. "en", "zh", "de", "fr"). Selects normalizer
               and controls number-to-words conversion for non-English.
 
-    Returns dict with wer, n_err, n_ref.
+    Returns tuple of (hyp_norm, ref_norm).
     """
     lang = (lang or "en").lower()
     if lang == "en":
@@ -68,6 +68,23 @@ def measure_wer(hyp, ref, lang="en"):
         hyp_norm = normalizer(hyp.strip(), lang=lang)
 
     [ref_norm], [hyp_norm] = normalize_compound_pairs([ref_norm], [hyp_norm])
+    return hyp_norm, ref_norm
+
+
+def measure_wer(hyp, ref, lang="en"):
+    """Compute WER using OpenASR normalizers + editdistance.
+
+    Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
+
+    Args:
+        hyp: Hypothesis (predicted) text.
+        ref: Reference (ground truth) text.
+        lang: Language code (e.g. "en", "zh", "de", "fr"). Selects normalizer
+              and controls number-to-words conversion for non-English.
+
+    Returns dict with wer, n_err, n_ref.
+    """
+    hyp_norm, ref_norm = normalize_for_wer(hyp, ref, lang=lang)
 
     ref_words = ref_norm.split()
     hyp_words = hyp_norm.split()

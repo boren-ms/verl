@@ -21,12 +21,20 @@ import html
 import json
 import mimetypes
 import re
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import blobfile as bf
 import ftfy
 from whisper_normalizer.english import EnglishTextNormalizer
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if (REPO_ROOT / "recipe").is_dir() and str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from recipe.phimm.utils.languages import LANGUAGES
+from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_for_wer
 
 
 # ---------------------------------------------------------------------------
@@ -63,6 +71,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--write-html", action="store_true", help="Also write a standalone HTML report.")
     p.add_argument("--raw-output-column", default="", help="Column containing the raw model output to include in HTML report.")
     p.add_argument("--length-bucket-size", type=int, default=5, help="Ref-word-count bucket width for error_patterns.csv.")
+    p.add_argument(
+        "--normalizer",
+        choices=("english", "openasr"),
+        default="english",
+        help="Text normalizer used before alignment. Use 'openasr' to match measure_wer.",
+    )
+    p.add_argument("--lang", default="", help="Language code/name override for --normalizer openasr.")
+    p.add_argument("--lang-column", default="language", help="Row column with language name/code for --normalizer openasr.")
     p.add_argument("--case-sensitive", action="store_true", help="Do not lowercase ref/hyp before alignment.")
     return p.parse_args()
 
@@ -229,6 +245,23 @@ def normalize_text(text: str) -> str:
     return text
 
 
+def infer_language(row: dict, lang_override: str = "", lang_column: str = "language") -> str:
+    source_lang = lang_override or str(row.get(lang_column, "") or "")
+    if not source_lang:
+        data_source = str(row.get("data_source", "") or "")
+        source_lang = data_source.rsplit("_", 1)[-1] if "_" in data_source else ""
+    source_lang = source_lang.strip().lower()
+    return LANGUAGES.get(source_lang, source_lang or "en")
+
+
+def normalize_pair(ref: str, hyp: str, row: dict, normalizer: str, lang_override: str, lang_column: str) -> tuple[str, str]:
+    if normalizer == "openasr":
+        lang_code = infer_language(row, lang_override=lang_override, lang_column=lang_column)
+        hyp_norm, ref_norm = normalize_for_wer(clean_text(hyp), clean_text(ref), lang=lang_code)
+        return ref_norm, hyp_norm
+    return normalize_text(ref), normalize_text(hyp)
+
+
 # ---------------------------------------------------------------------------
 # Edit-distance alignment
 # ---------------------------------------------------------------------------
@@ -360,14 +393,20 @@ def analyze_all(
     hyp_col: str,
     id_col: str,
     case_sensitive: bool,
+    normalizer: str,
+    lang_override: str,
+    lang_column: str,
 ) -> list[UtteranceResult]:
     results: list[UtteranceResult] = []
     for i, row in enumerate(rows):
         ref = str(row.get(ref_col, "")).strip()
         hyp = str(row.get(hyp_col, "")).strip()
         uid = str(row.get(id_col, i)) if id_col else str(i)
-        ref_norm = clean_text(ref) if case_sensitive else normalize_text(ref)
-        hyp_norm = clean_text(hyp) if case_sensitive else normalize_text(hyp)
+        if case_sensitive:
+            ref_norm = clean_text(ref)
+            hyp_norm = clean_text(hyp)
+        else:
+            ref_norm, hyp_norm = normalize_pair(ref, hyp, row, normalizer, lang_override, lang_column)
         a = align(ref_norm, hyp_norm, case_sensitive=case_sensitive)
         results.append(
             UtteranceResult(
@@ -928,7 +967,16 @@ def main() -> None:
             raise KeyError(f"Column '{col}' not found. Available: {sorted(rows[0].keys())}")
 
     # Analyze
-    results = analyze_all(rows, args.ref_column, args.hyp_column, id_col, args.case_sensitive)
+    results = analyze_all(
+        rows,
+        args.ref_column,
+        args.hyp_column,
+        id_col,
+        args.case_sensitive,
+        args.normalizer,
+        args.lang,
+        args.lang_column,
+    )
     agg = aggregate(results)
 
     # Print quick summary
