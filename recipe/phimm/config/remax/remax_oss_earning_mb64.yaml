@@ -1,0 +1,53 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - grpo_asr
+  - data/train_data/gen_oss_earning
+  - data/val_data/openasr_part0
+  - _self_
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_edge.py
+  name: compute_score
+  reward_kwargs:
+    betas:
+      edge: 0.0
+    gamma: 0.1
+
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_edge.py
+    name: eval_score
+
+actor_rollout_ref:
+  rollout:
+    n: 16
+    gt_rollout: true
+    temperature: 1.2
+    calculate_log_probs: True
+    use_rollout_log_probs_as_old: true
+    val_kwargs:
+      repetition_penalty: 1.0093
+      response_length: 200
+  actor:
+    tis_imp_ratio_cap: 5
+    ppo_micro_batch_size_per_gpu: 8
+    ppo_mini_batch_size: 64
+    optim:
+      lr: 5e-6
+  model:
+    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
+algorithm:
+  adv_estimator: remax
+data:
+  train_batch_size: 64
+trainer:
+  nnodes: 1
+  total_epochs: 1
+  test_freq: 10
+  save_freq: 10
+  val_before_train: false
+  dedup_responses: true
