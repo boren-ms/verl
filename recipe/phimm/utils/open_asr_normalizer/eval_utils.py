@@ -3,8 +3,79 @@ import glob
 import json
 from difflib import SequenceMatcher
 
-import evaluate
 from collections import defaultdict
+
+from .normalizer import EnglishTextNormalizer
+
+_en_normalizer = None
+_ml_normalizer = None
+_zh_normalizer = None
+
+def _get_en_normalizer():
+    global _en_normalizer
+    if _en_normalizer is None:
+        _en_normalizer = EnglishTextNormalizer()
+    return _en_normalizer
+
+
+def _get_ml_normalizer():
+    global _ml_normalizer
+    if _ml_normalizer is None:
+        from .data_utils import MultilingualNormalizer
+        _ml_normalizer = MultilingualNormalizer(remove_diacritics=False)
+    return _ml_normalizer
+
+
+def _get_zh_normalizer():
+    global _zh_normalizer
+    if _zh_normalizer is None:
+        from .cn_tn import TextNorm
+        _zh_normalizer = TextNorm()
+    return _zh_normalizer
+
+
+def _edit_distance(ref_words, hyp_words):
+    """Word-level edit distance using editdistance."""
+    import editdistance as ed
+    return ed.eval(ref_words, hyp_words)
+
+
+def measure_wer(hyp, ref, lang="en"):
+    """Compute WER using OpenASR normalizers + editdistance.
+
+    Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
+
+    Args:
+        hyp: Hypothesis (predicted) text.
+        ref: Reference (ground truth) text.
+        lang: Language code (e.g. "en", "zh", "de", "fr"). Selects normalizer
+              and controls number-to-words conversion for non-English.
+
+    Returns dict with wer, n_err, n_ref.
+    """
+    lang = (lang or "en").lower()
+    if lang == "en":
+        normalizer = _get_en_normalizer()
+        ref_norm = normalizer(ref.strip())
+        hyp_norm = normalizer(hyp.strip())
+    elif lang in ("zh", "zh-cn"):
+        normalizer = _get_zh_normalizer()
+        ref_norm = normalizer(ref.strip())
+        hyp_norm = normalizer(hyp.strip())
+    else:
+        normalizer = _get_ml_normalizer()
+        ref_norm = normalizer(ref.strip(), lang=lang)
+        hyp_norm = normalizer(hyp.strip(), lang=lang)
+
+    [ref_norm], [hyp_norm] = normalize_compound_pairs([ref_norm], [hyp_norm])
+
+    ref_words = ref_norm.split()
+    hyp_words = hyp_norm.split()
+    n_ref = max(len(ref_words), 1)
+    n_err = _edit_distance(ref_words, hyp_words)
+    wer_val = n_err / n_ref
+
+    return {"wer": wer_val, "n_err": n_err, "n_ref": n_ref}
 
 
 def normalize_compound_pairs(refs, preds):
@@ -179,6 +250,7 @@ def score_results(directory: str, model_id: str = None, multilingual: bool = Fal
 
     # Compute WER results per dataset, and RTFx over all datasets
     results = {}
+    import evaluate
     wer_metric = evaluate.load("wer")
 
     for result_file in result_files:

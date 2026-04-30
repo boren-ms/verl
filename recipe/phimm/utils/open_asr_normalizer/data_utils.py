@@ -1,10 +1,7 @@
 import re
 
-import num2words
-from datasets import load_dataset, Audio
-from normalizer import EnglishTextNormalizer, BasicMultilingualTextNormalizer
-
-from .eval_utils import read_manifest, write_manifest, normalize_compound_pairs
+from .normalizer import EnglishTextNormalizer, BasicMultilingualTextNormalizer
+from .eval_utils import normalize_compound_pairs
 
 
 def is_target_text_in_range(ref):
@@ -22,6 +19,7 @@ class MultilingualNormalizer(BasicMultilingualTextNormalizer):
     """
 
     def _normalize_numbers(self, text, lang):
+        import num2words
         # Join space-separated thousand groups (e.g. "10 000" -> "10000")
         text = re.sub(r"(\d)\s+(\d{3})\b", r"\1\2", text)
         # Convert remaining digit sequences to words
@@ -68,6 +66,7 @@ def normalize(batch):
 
 
 def load_data(args):
+    from datasets import load_dataset
     dataset = load_dataset(
         args.dataset_path,
         args.dataset,
@@ -79,6 +78,7 @@ def load_data(args):
     return dataset
 
 def prepare_data(dataset, sampling_rate=16000):
+    from datasets import Audio
     # Re-sample and normalise transcriptions
     dataset = dataset.cast_column("audio", Audio(sampling_rate=sampling_rate))
     dataset = dataset.map(normalize)

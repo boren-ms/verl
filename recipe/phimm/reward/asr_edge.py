@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 import re
+from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import parse_asr_response
 
 
@@ -209,6 +210,27 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "n_edge": err.n_edge,
         "p_fmt": float(format),
         "p_lang": float(lang),
+    }
+
+
+def openasr_eval(solution_str, ground_truth, **kwargs):
+    """Evaluation using OpenASR normalizers + editdistance WER.
+
+    Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
+    """
+    from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
+    tgt_lang = kwargs.get("lang", "English").lower()
+
+    trans_dict = parse_asr_response(solution_str)
+    pred_lang = (trans_dict["lang"] or "").lower()
+    result = measure_wer(trans_dict["text"], ground_truth, lang=LANGUAGES.get(tgt_lang))
+    return {
+        "score": 1.0 - result["wer"],
+        "wer": result["wer"],
+        "n_err": result["n_err"],
+        "n_ref": result["n_ref"],
+        "p_fmt": float(bool(trans_dict["formatted"])),
+        "p_lang": float(pred_lang == tgt_lang),
     }
 
 

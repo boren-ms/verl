@@ -30,6 +30,9 @@ soundfile
 more-itertools
 whisper_normalizer
 jiwer>=4.0.0
+editdistance
+num2words
+evaluate
 fire
 backoff
 wandb
