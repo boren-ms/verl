@@ -28,6 +28,7 @@ actor_rollout_ref:
     temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
+    gpu_memory_utilization: 0.5
     val_kwargs:
       repetition_penalty: 1.0093
       response_length: 200
