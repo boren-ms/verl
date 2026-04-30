@@ -1,3 +1,4 @@
+# @package data.train_data
 dataset_name: chunk
 specs:
   - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_ht_split/engineer_telephony_evm_6khz.json    # Engineer_Telephony_EVM_6kHz (2 sources)
