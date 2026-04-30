@@ -14,7 +14,6 @@ data:
   batch_size: 512
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_bad_format
   output_split_size: 10000
-  bad_format: true
 
 rollout:
   temperature: 0.0

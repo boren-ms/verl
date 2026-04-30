@@ -89,27 +89,6 @@ def run_generation(config) -> None:
     ray.get(main_task.remote(config))
 
 
-def filter_ds(ds, **kwargs):
-    wer_range = kwargs.get("wer_range", None)
-    edge_wer_range = kwargs.get("edge_wer_range", None)
-    bad_fmt = kwargs.get("bad_fmt", False)
-    bad_lang = kwargs.get("bad_lang", False)
-    
-
-    def filter_fn(x):
-        if wer_range is not None and not (wer_range[0] <= x["wer"] <= wer_range[1]):
-            return False
-        if edge_wer_range is not None and not (edge_wer_range[0] <= x["edge_wer"] <= edge_wer_range[1]):
-            return False
-        if bad_fmt and x.get("p_fmt", 0.0):
-            return False
-        if bad_lang and x.get("p_lang", 0.0):
-            return False
-        return True
-
-    return ds.filter(filter_fn)
-
-
 def log_examples(ds, num_examine=1):
     sort_ds = ds.sort("wer", reverse=True)
     audio_key = "audio_chunk" if "audio_chunk" in ds.column_names else "audio_path"
@@ -189,9 +168,6 @@ def main_task(config):
         return len(split_ds)
 
 
-    wer_range = config.data.get("wer_range", None)
-    edge_wer_range = config.data.get("edge_wer_range", None)
-    bad_format = config.data.get("bad_format", False)
     for batch_idx, batch_dict in tqdm(enumerate(dataloader)):
         prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
         texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
@@ -224,25 +200,12 @@ def main_task(config):
             score["response"] = parse_asr_response(response_str).get("text") # the parsed ASR text from the response
             score["raw_response"] = response_str
             results[i].update(score)
-        bn_err = sum(r["n_err"] for r in results)
-        bn_ref = sum(r["n_ref"] for r in results)
-        bn_edge = sum(r["n_edge"] for r in results)
-        
-        print(
-            f"\n(Batch {batch_idx + 1}/{total_batches}) "
-            f"Batch wer: {bn_err / max(bn_ref, 1):.2%} [{bn_err}/{bn_ref}] "
-            f"Batch edge_wer={bn_edge / max(bn_ref, 1):.2%} "
-        )
 
-        tn_err += bn_err
-        tn_ref += bn_ref
-        tn_edge += bn_edge
+        tn_err += sum(r["n_err"] for r in results)
+        tn_ref += sum(r["n_ref"] for r in results)
+        tn_edge += sum(r["n_edge"] for r in results)
         b_ds = Dataset.from_list(results)
         log_examples(b_ds, num_examine=num_examine)
-
-        b_ds = filter_ds(b_ds, wer_range=wer_range, edge_wer_range=edge_wer_range, bad_format=bad_format)
-        print(f"Filtering with {wer_range=}, {edge_wer_range=}, {bad_format=}")
-        print(f"Batch Filtering: {n_egs} => {len(b_ds)} samples.")
         batches.append(b_ds)
         
         if sum(len(ds) for ds in batches) >= split_size:
@@ -256,8 +219,7 @@ def main_task(config):
         f"Overall wer: {tn_err / max(tn_ref, 1):.2%} [{tn_err}/{tn_ref}] "
         f"edge_wer={tn_edge / max(tn_ref, 1):.2%} on {total_egs} samples"
     )
-    print(f"Filtering with: {wer_range=}, {edge_wer_range=}, {bad_format=}")
-    print(f"Keep {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
+    print(f"Saved {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
     print(f"Saved {split_idx} splits to {output_dir}")
     print("All Done")
 
