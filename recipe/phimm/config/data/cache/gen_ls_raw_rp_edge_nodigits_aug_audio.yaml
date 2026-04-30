@@ -8,7 +8,7 @@ source_config:
     filter_text_with_numbers:
       text_norm: english
     augment_audio:
-      output_dir: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio
+      output_dir: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio/audio
       noise_path: az://orngwus2cresco/data/boren/datat/noise/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/data.jsonl
       snr_range: [10.0, 12.0]
       noise_prob: 1.0
