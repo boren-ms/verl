@@ -32,8 +32,11 @@ from recipe.phimm.utils.shared import (
     dist_state,
     all_rank_print,
     to_list,
+    to_range,
+    in_range,
     is_list,
     to_int,
+    to_float,
     unbatch,
     has_brackets,
     parse_asr_response,
@@ -532,13 +535,6 @@ def load_timestamps(timestamps):
     return timestamps if isinstance(timestamps, list) else []
 
 
-def to_float(value, default=0.0):
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        return default
-
-
 def trim_tailing(ds, **kwargs):
     """Randomly remove trailing words and cut audio based on word timestamps."""
 
@@ -827,6 +823,47 @@ def keep_brackets(ds, **kwargs):
     return ds
 
 
+def keep_by_errors(ds, **kwargs):
+    """Keep utterances matching error criteria: WER range, error count range, or edge WER range.
+
+    Uses keys matching asr_edge.py output: wer, edge_wer, n_err.
+
+    Supported kwargs:
+        wer_range: [lo, hi] — keep if lo <= wer <= hi
+        error_count_range: [lo, hi] — keep if lo <= n_err <= hi
+        edge_wer_range: [lo, hi] — keep if lo <= edge_wer <= hi
+    """
+    wer_range = to_range(kwargs, "wer_range")
+    error_count_range = to_range(kwargs, "error_count_range")
+    edge_wer_range = to_range(kwargs, "edge_wer_range")
+    _logged = set()
+
+    def check(example, field, val_range):
+        val = to_float(example.get(field), default=None)
+        if val is None and val_range is not None and field not in _logged:
+            _logged.add(field)
+            rank_print(f"[WARN] keep_by_errors: '{field}' field is missing from {example}")
+        return in_range(val, val_range)
+
+    def keep_fn(example):
+        if not check(example, "wer", wer_range):
+            return False
+        if not check(example, "n_err", error_count_range):
+            return False
+        if not check(example, "edge_wer", edge_wer_range):
+            return False
+        return True
+
+    n_egs = len(ds)
+    ds = ds.filter(keep_fn, **pop_filter_kwargs(kwargs), desc="Keeping by errors")
+    n_left = len(ds)
+    range_pairs = [(wer_range, "WER"), (error_count_range, "err_count"), (edge_wer_range, "edge_WER")]
+    criteria = [ f"{name}={range}" for range, name in range_pairs if range is not None ]
+    criteria_str = ", ".join(criteria)
+    all_rank_print(f"Kept by errors ({criteria_str}): {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
+    return ds
+
+
 def filter_text_with_numbers(ds, **kwargs):
     field = kwargs.get("field", "text")
     norm_name = kwargs.get("text_norm", kwargs.get("tn_name", "english"))
@@ -1007,6 +1044,8 @@ def process_ds(ds, **kwargs):
         ds = keep_bad_response(ds, **merge_kwargs(map_kwargs, keep_bad_response_kwargs))
     if keep_brackets_kwargs := kwargs.get("keep_brackets", {}):
         ds = keep_brackets(ds, **merge_kwargs(map_kwargs, keep_brackets_kwargs))
+    if keep_by_errors_kwargs := kwargs.get("keep_by_errors", {}):
+        ds = keep_by_errors(ds, **merge_kwargs(map_kwargs, keep_by_errors_kwargs))
     if trim_silence_kwargs := kwargs.get("trim_silence", {}):
         ds = trim_silence(ds, **merge_kwargs(map_kwargs, trim_silence_kwargs))
     if trim_tailing_kwargs := kwargs.get("trim_tailing", {}):

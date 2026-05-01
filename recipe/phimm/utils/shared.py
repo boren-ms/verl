@@ -36,11 +36,32 @@ def to_int(value, default=-1):
         return default
 
 
+def to_float(value, default=0.0):
+    """Convert a value to a float, if possible."""
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+
 def to_list(x, default=None):
     """Convert the input to a list."""
     if x is None:
         return default
     return x if is_list(x) else [x]
+
+
+def to_range(kwargs, key):
+    """Get a key from kwargs as a list range, or None if not set."""
+    val = kwargs.get(key)
+    return to_list(val) if val is not None else None
+
+
+def in_range(val, val_range):
+    """Check if val is within [lo, hi]. Returns True if val_range is None or val is None."""
+    if val_range is None or val is None:
+        return True
+    return val_range[0] <= val <= val_range[-1]
 
 
 def is_list(obj):
