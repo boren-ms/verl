@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - dapo_asr
-  - data/train_data/gen_brackets_oss
+  - data/train_data/gen_oss_bad
   - data/val_data/openasr_all_bad
   - _self_
 
