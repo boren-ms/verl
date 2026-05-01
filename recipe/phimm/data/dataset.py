@@ -1088,7 +1088,7 @@ def add_task_info(ds, **kwargs):
         if forced or prompt is None:
             prompt_txt = get_task_prompt(task=task, rand=rand)
             prompt = prompt_format.format(prompt_txt)
-        lang = get_language_name(egs.get("language", language))
+        lang = get_language_name(egs.get("language") or language)
         gt_output = get_task_output(task=task, lang=lang, text=egs.get("text", ""))
         return {"prompt": prompt, "gt_output": gt_output, "language": lang}
 
