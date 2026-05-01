@@ -136,8 +136,7 @@ def load_examples(chunk, fields):
                 return {}
             examples[field] = data_list
 
-    if "language" in chunk:
-        examples["language"] = [chunk["language"]] * count
+    examples["language"] = [chunk.get("language", None)] * count
 
     return examples
 
