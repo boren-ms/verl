@@ -838,11 +838,11 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
     if has_brackets:
         checks.append(("has_brackets", lambda ex: _has_brackets(ex)))
 
-    if wr := to_range(wer_range):
+    if wr := to_list(wer_range):
         checks.append(("wer", lambda ex, _r=wr: _check_field(ex, "wer", _r)))
-    if ecr := to_range(error_count_range):
+    if ecr := to_list(error_count_range):
         checks.append(("n_err", lambda ex, _r=ecr: _check_field(ex, "n_err", _r)))
-    if ewr := to_range(edge_wer_range):
+    if ewr := to_list(edge_wer_range):
         checks.append(("edge_wer", lambda ex, _r=ewr: _check_field(ex, "edge_wer", _r)))
 
     names = [n for n, _ in checks]
