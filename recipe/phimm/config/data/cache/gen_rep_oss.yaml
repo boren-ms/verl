@@ -10,6 +10,7 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_ami/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_voxpopuli_en_wer01/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_wavllm_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v1/part-*.parquet
   post_process:
     keep_repetitions:
       field: response
