@@ -1,0 +1,17 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - eval_asr
+  - data/val_data/openasr
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
+
+trainer:
+  resume_mode: resume_path
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/verl_repeat/remax_ls_raw_nodigits_v1_dapo_aug_audio_acc_bucket/global_step_170
