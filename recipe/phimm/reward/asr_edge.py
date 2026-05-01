@@ -175,8 +175,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
     elif metric == "bucket":
         acc = err.accuracy(**betas)
         n_buckets = kwargs.get("n_buckets", 10)
-        cutoff = kwargs.get("cutoff", 0.8)
-        score = acc_to_bucket(acc, n_buckets=n_buckets, lo=cutoff)
+        bucket_lo = kwargs.get("bucket_lo", 0.8)
+        score = acc_to_bucket(acc, n_buckets=n_buckets, lo=bucket_lo)
         score = score if is_good else -1
     else:
         score = err.accuracy(**betas) ** gamma
