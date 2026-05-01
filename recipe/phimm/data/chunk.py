@@ -142,7 +142,16 @@ def load_examples(chunk, fields):
 
 
 def load_examples_from_chunks(chunks, types):
-    all_examples = defaultdict(list)
+    # Determine expected keys from types so empty batches still return a valid schema
+    expected_keys = []
+    for field in types:
+        if field in ("audio", "audios"):
+            expected_keys.append("audio_chunk")
+        else:
+            expected_keys.append(field)
+    expected_keys.append("language")
+
+    all_examples = {k: [] for k in expected_keys}
     chunks = to_records(chunks)
     for chunk in chunks:
         examples = load_examples(chunk, types)
