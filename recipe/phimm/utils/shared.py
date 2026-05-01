@@ -205,11 +205,13 @@ def get_values(lst, key, default=None):
 
 
 BRACKET_PATTERN = re.compile(r"<[^>]*>|\[[^\]]*\]|\{[^}]*\}|\([^)]*\)")
+BRACKET_EXCLUDE = re.compile(r"^<nonspeech>$", re.IGNORECASE)
 
 
 def has_brackets(text):
     text = "" if text is None else str(text)
-    return bool(BRACKET_PATTERN.search(text))
+    matches = BRACKET_PATTERN.findall(text)
+    return any(not BRACKET_EXCLUDE.match(m) for m in matches)
 
 
 def rank_print(*args, main=True, **kwargs):
