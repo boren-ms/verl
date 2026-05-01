@@ -1,0 +1,25 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - gen_asr
+  - data/train_data/en_ht/en_au_dai_single_speaker_scripted_fy22q4_train
+  - _self_
+
+model:
+  path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
+
+trainer:
+  nnodes: 1
+  n_gpus_per_node: 8
+
+data:
+  batch_size: 2048
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_au_dai_single_speaker_scripted_fy22q4_train
+  output_split_size: 10000
+
+rollout:
+  temperature: 0.0
+  gpu_memory_utilization: 0.8
