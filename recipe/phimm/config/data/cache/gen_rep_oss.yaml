@@ -18,4 +18,4 @@ source_config:
 
 output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/rep_oss/data.jsonl
 include_verl_format: false
-overwrite: false
+overwrite: true
