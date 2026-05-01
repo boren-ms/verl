@@ -15,6 +15,16 @@ VAL_DATA_ROOT = (
     "eval_openasr_ml/val_data_gen"
 )
 UPLOAD_ROOT = "az://orngwus2cresco/data/boren/data/openasr_ml_jsonl"
+SOURCE_FIELDS = (
+    "audio_path",
+    "audio_file",
+    "audio_chunk",
+    "audio_length_s",
+    "dataset",
+    "duration",
+    "sampling_rate",
+    "text",
+)
 
 # Map val_data_gen directory names to openasr_ml_jsonl subdirectory paths
 DS_NAME_MAP = {
@@ -43,6 +53,27 @@ def load_jsonl(path: str) -> list[dict]:
             if line:
                 rows.append(json.loads(line))
     return rows
+
+
+def load_original_rows(upload_subdir: str) -> dict[str, dict]:
+    original_path = bf.join(UPLOAD_ROOT, upload_subdir, "data.jsonl")
+    return {str(r["id"]): r for r in load_jsonl(original_path)}
+
+
+def enrich_bad_rows(bad_rows: list[dict], original_rows: dict[str, dict]) -> tuple[list[dict], int]:
+    enriched = []
+    missing = 0
+    for row in bad_rows:
+        merged = dict(row)
+        original = original_rows.get(str(row.get("id", "")))
+        if original is None:
+            missing += 1
+        else:
+            for field in SOURCE_FIELDS:
+                if field in original and not merged.get(field):
+                    merged[field] = original[field]
+        enriched.append(merged)
+    return enriched, missing
 
 
 def has_bracket(r: dict) -> bool:
@@ -129,8 +160,12 @@ def main():
 
         total_bad += n_bad
 
-        # Upload bad cases
+        # Upload bad cases with original audio/text fields restored.
         upload_subdir = DS_NAME_MAP.get(ds, ds)
+        original_rows = load_original_rows(upload_subdir)
+        bad_rows, missing = enrich_bad_rows(bad_rows, original_rows)
+        if missing:
+            print(f"  [WARN] {missing} bad rows did not match original IDs in {upload_subdir}/data.jsonl")
         upload_path = bf.join(UPLOAD_ROOT, upload_subdir, "bad_fmt_lang_bracket.jsonl")
         print(f"  Uploading {n_bad} rows to {upload_path}")
         with bf.BlobFile(upload_path, "w") as out:
