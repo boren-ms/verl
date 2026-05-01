@@ -105,6 +105,29 @@ def _split_units(text, unit="word"):
     raise ValueError(f"Unsupported error measure unit: {unit!r}. Expected 'word' or 'char'.")
 
 
+def acc_to_bucket(acc, n_buckets=10, lo=0.8, hi=1.0):
+    """Map accuracy in [lo, hi] to a normalized score in [0, 1] using log-spaced buckets.
+
+    Buckets are finer near hi (1.0) and coarser near lo (0.8).
+    Returns bucket_index / n_buckets so the score is in [0, 1].
+    Accuracy <= lo maps to 0, accuracy >= hi maps to 1.
+    """
+    if acc >= hi:
+        return 1.0
+    if acc <= lo:
+        return 0.0
+    span = hi - lo
+    # distances from hi, log-spaced from span down to span/100
+    distances = [span * 10 ** (-2 * i / n_buckets) for i in range(n_buckets + 1)]
+    boundaries = sorted(hi - d for d in distances)
+    # clamp endpoints
+    boundaries[0] = lo
+    boundaries[-1] = hi
+    for i in range(n_buckets):
+        if acc < boundaries[i + 1]:
+            return i / n_buckets
+    return (n_buckets - 1) / n_buckets
+
 
 def measure(hyp, ref, **kwargs):
     norm_name = kwargs.get("text_norm", "english")
@@ -149,8 +172,15 @@ def compute_score(solution_str, ground_truth, **kwargs):
     elif metric == "ed":
         n_edit = err.edit_distance(**betas)
         score = -(n_edit**gamma)
+    elif metric == "bucket":
+        acc = err.accuracy(**betas)
+        n_buckets = kwargs.get("n_buckets", 10)
+        cutoff = kwargs.get("cutoff", 0.8)
+        score = acc_to_bucket(acc, n_buckets=n_buckets, lo=cutoff)
+        score = score if is_good else -1
     else:
-        score = err.accuracy(**betas) ** gamma if is_good else -1 # penalize non-target-language or unformatted outputs or outputs with brackets
+        score = err.accuracy(**betas) ** gamma
+        score = score if is_good else -1
 
     return {
         "score": score,
@@ -187,6 +217,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
     Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
     """
     from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
+
     hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
     logger.info("openasr_eval language check: tgt_lang=%s is_lang=%s", tgt_lang, is_lang)
 
