@@ -33,7 +33,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 if (REPO_ROOT / "recipe").is_dir() and str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from recipe.phimm.utils.languages import LANGUAGES
+from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_for_wer
 
 
@@ -251,7 +251,7 @@ def infer_language(row: dict, lang_override: str = "", lang_column: str = "langu
         data_source = str(row.get("data_source", "") or "")
         source_lang = data_source.rsplit("_", 1)[-1] if "_" in data_source else ""
     source_lang = source_lang.strip().lower()
-    return LANGUAGES.get(source_lang, source_lang or "en")
+    return get_language_code(source_lang or "en")
 
 
 def normalize_pair(ref: str, hyp: str, row: dict, normalizer: str, lang_override: str, lang_column: str) -> tuple[str, str]:

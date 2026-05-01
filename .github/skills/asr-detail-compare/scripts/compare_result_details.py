@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 if (REPO_ROOT / "recipe").is_dir() and str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from recipe.phimm.utils.languages import LANGUAGES
+from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_for_wer
 
 
@@ -333,7 +333,7 @@ def normalize_asr_text(value: object) -> str:
 def infer_language(row: pd.Series, lang_override: str = "", lang_column: str = "language", prefix: str = "") -> str:
     if lang_override:
         source_lang = lang_override.strip().lower()
-        return LANGUAGES.get(source_lang, source_lang or "en")
+        return get_language_code(source_lang or "en")
 
     if prefix:
         candidates = [f"{lang_column}_{prefix}", lang_column, f"data_source_{prefix}", "data_source"]
@@ -349,9 +349,9 @@ def infer_language(row: pd.Series, lang_override: str = "", lang_column: str = "
         if source_lang:
             break
 
-    if source_lang and source_lang not in LANGUAGES and "_" in source_lang:
+    if source_lang and get_language_code(source_lang) == source_lang and "_" in source_lang:
         source_lang = source_lang.rsplit("_", 1)[-1]
-    return LANGUAGES.get(source_lang, source_lang or "en")
+    return get_language_code(source_lang or "en")
 
 
 def normalize_asr_pair(

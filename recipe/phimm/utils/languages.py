@@ -55,3 +55,20 @@ LANGUAGES = {
     "estonian": "et",
     "icelandic": "is",
 }
+
+LANG_CODE_TO_NAME = {code: name.capitalize() for name, code in LANGUAGES.items()
+                     if name not in ("mandarin", "cantonese")}
+
+
+def get_language_name(lang):
+    """Convert any language identifier to its full name. e.g. "de" -> "German", "German" -> "German"."""
+    if lang.lower() in LANGUAGES:
+        return lang.capitalize()
+    return LANG_CODE_TO_NAME.get(lang, lang)
+
+
+def get_language_code(lang):
+    """Convert any language identifier to its ISO code. e.g. "German" -> "de", "de" -> "de"."""
+    if lang in LANG_CODE_TO_NAME:
+        return lang
+    return LANGUAGES.get(lang.lower(), lang)

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from difflib import SequenceMatcher
 import logging
 import re
-from recipe.phimm.utils.languages import LANGUAGES
+from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.shared import has_brackets, parse_asr_response
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
@@ -190,7 +190,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
     hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
     logger.info("openasr_eval language check: tgt_lang=%s is_lang=%s", tgt_lang, is_lang)
 
-    result = measure_wer(hyp_text, ground_truth, lang=LANGUAGES.get(tgt_lang))
+    result = measure_wer(hyp_text, ground_truth, lang=get_language_code(tgt_lang))
     return {
         "score": 1.0 - result["wer"],
         "wer": result["wer"],

@@ -40,6 +40,7 @@ from recipe.phimm.utils.shared import (
     strip_repetitions,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
+from recipe.phimm.utils.languages import get_language_name
 from recipe.phimm.utils.storage import get_path_with_options
 
 prompt_format = "<|user|><|audio_1|>{}<|end|><|assistant|>"
@@ -1074,6 +1075,7 @@ def overlap_prefix(ds, **kwargs):
     return ds
 
 
+
 def add_task_info(ds, **kwargs):
     """Add a prompt to the dataset."""
     task = kwargs.get("task", "asr")
@@ -1086,7 +1088,7 @@ def add_task_info(ds, **kwargs):
         if forced or prompt is None:
             prompt_txt = get_task_prompt(task=task, rand=rand)
             prompt = prompt_format.format(prompt_txt)
-        lang = egs.get("lang", language)
+        lang = get_language_name(egs.get("language", language))
         gt_output = get_task_output(task=task, lang=lang, text=egs.get("text", ""))
         return {"prompt": prompt, "gt_output": gt_output, "language": lang}
 
