@@ -1,0 +1,48 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/brackets_oss/data.jsonl
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/rep_oss/data.jsonl
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio/data.jsonl
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    filter_text_with_numbers:
+      text_norm: english
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
+- dataset_name: parquet
+  parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    filter_text_with_numbers:
+      text_norm: english
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
