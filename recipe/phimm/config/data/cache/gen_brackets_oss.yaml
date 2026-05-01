@@ -6,7 +6,6 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_earning_wer01/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_en_rp_edge/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_gigaspeech_wer01/part-*.parquet
-    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_gigaspeech/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_mls_en/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_ami/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_voxpopuli_en_wer01/part-*.parquet
