@@ -38,7 +38,7 @@ from recipe.phimm.utils.shared import (
     to_int,
     to_float,
     unbatch,
-    has_brackets,
+    has_brackets as has_brackets_fn,
     parse_asr_response,
     strip_repetitions,
 )
@@ -786,81 +786,75 @@ def filter_by_wer(ds, **kwargs):
     return ds
 
 
-def keep_bad_response(ds, **kwargs):
-    """Filter ASR raw responses by bad format and parsed language."""
-    response_key = kwargs.get("response_key", "raw_response")
-    bad_format = kwargs.get("bad_format", False)
-    lang = kwargs.get("language", "").lower()
-
-    def keep_bad_example(example):
-        parsed = parse_asr_response(example.get(response_key, "") or {})
-        good_fmt = bool(parsed.get("formatted", True))
-        egs_lang = (parsed.get("lang") or "").lower()
-        if bad_format and not good_fmt:
-            return True
-        if lang and egs_lang != lang:  # not the expected language
-            return True
-        return False
-
-    n_egs = len(ds)
-    ds = ds.filter(keep_bad_example, **pop_filter_kwargs(kwargs), desc="Keeping bad responses")
-    n_left = len(ds)
-    all_rank_print(f"Kept bad responses: {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
-    return ds
+_check_field_logged = set()
 
 
-def keep_brackets(ds, **kwargs):
-    """Keep examples whose response text contains bracketed or parenthesized text."""
-    field = kwargs.get("field", kwargs.get("response_key", "response"))
-
-    def has_removed_span(example):
-        return has_brackets(get_value(example, field, ""))
-
-    n_egs = len(ds)
-    ds = ds.filter(has_removed_span, **pop_filter_kwargs(kwargs), desc="Keeping response with brackets")
-    n_left = len(ds)
-    all_rank_print(f"Kept response with bracketed/parenthesized text: {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
-    return ds
+def _check_field(example, field, val_range):
+    val = to_float(example.get(field), default=None)
+    if val is None and val_range is not None and field not in _check_field_logged:
+        _check_field_logged.add(field)
+        rank_print(f"[WARN] keep_samples: '{field}' missing for example {example}")
+    return in_range(val, val_range)
 
 
-def keep_by_errors(ds, **kwargs):
-    """Keep utterances matching error criteria: WER range, error count range, or edge WER range.
+def _is_bad_fmt(example):
+    parsed = parse_asr_response(example.get("raw_response", "") or {})
+    return not parsed.get("formatted", True)
 
-    Uses keys matching asr_edge.py output: wer, edge_wer, n_err.
 
-    Supported kwargs:
-        wer_range: [lo, hi] — keep if lo <= wer <= hi
-        error_count_range: [lo, hi] — keep if lo <= n_err <= hi
-        edge_wer_range: [lo, hi] — keep if lo <= edge_wer <= hi
+def _is_bad_lang(example):
+    parsed = parse_asr_response(example.get("raw_response", "") or {})
+    lang = example.get("language", "English")
+    lang = get_language_name(lang).lower()
+    return (parsed.get("lang") or "").lower() != lang
+
+
+def _has_brackets(example):
+    text = example.get("response", "")
+    return has_brackets_fn(text)
+
+
+def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
+                 wer_range=None, error_count_range=None, edge_wer_range=None, **kwargs):
+    """Keep samples matching ANY enabled criterion (OR logic).
+
+    Args:
+        has_bad_fmt: truthy — bad format in ASR response
+        has_bad_lang: truthy — wrong language
+        has_brackets: truthy — bracketed/parenthesized text
+        wer_range: [lo, hi] — WER range
+        error_count_range: [lo, hi] — error count range
+        edge_wer_range: [lo, hi] — edge WER range
     """
-    wer_range = to_range(kwargs, "wer_range")
-    error_count_range = to_range(kwargs, "error_count_range")
-    edge_wer_range = to_range(kwargs, "edge_wer_range")
-    _logged = set()
+    filter_kwargs = pop_filter_kwargs(kwargs)
+    checks = []
 
-    def check(example, field, val_range):
-        val = to_float(example.get(field), default=None)
-        if val is None and val_range is not None and field not in _logged:
-            _logged.add(field)
-            rank_print(f"[WARN] keep_by_errors: '{field}' field is missing from {example}")
-        return in_range(val, val_range)
+    if has_bad_fmt:
+        checks.append(("has_bad_fmt", lambda ex: _is_bad_fmt(ex)))
+
+    if has_bad_lang:
+        checks.append(("has_bad_lang", lambda ex: _is_bad_lang(ex)))
+
+    if has_brackets:
+        checks.append(("has_brackets", lambda ex: _has_brackets(ex)))
+
+    if wr := to_range(wer_range):
+        checks.append(("wer", lambda ex, _r=wr: _check_field(ex, "wer", _r)))
+    if ecr := to_range(error_count_range):
+        checks.append(("n_err", lambda ex, _r=ecr: _check_field(ex, "n_err", _r)))
+    if ewr := to_range(edge_wer_range):
+        checks.append(("edge_wer", lambda ex, _r=ewr: _check_field(ex, "edge_wer", _r)))
+
+    names = [n for n, _ in checks]
 
     def keep_fn(example):
-        if not check(example, "wer", wer_range):
-            return False
-        if not check(example, "n_err", error_count_range):
-            return False
-        if not check(example, "edge_wer", edge_wer_range):
-            return False
-        return True
+        return any(fn(example) for _, fn in checks)
 
     n_egs = len(ds)
-    ds = ds.filter(keep_fn, **pop_filter_kwargs(kwargs), desc="Keeping by errors")
+    label = ", ".join(names)
+    ds = ds.filter(keep_fn, **filter_kwargs, desc=f"Keeping samples ({label})")
     n_left = len(ds)
-    range_pairs = [(wer_range, "WER"), (error_count_range, "err_count"), (edge_wer_range, "edge_WER")]
-    criteria = [ f"{name}={range}" for range, name in range_pairs if range is not None ]
-    criteria_str = ", ".join(criteria)
-    all_rank_print(f"Kept by errors ({criteria_str}): {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
+    all_rank_print(f"Kept samples ({label}): {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
     return ds
 
 
@@ -1040,12 +1034,8 @@ def process_ds(ds, **kwargs):
         ds = filter_long_text(ds, **merge_kwargs(map_kwargs, filter_long_text_kwargs))
     if wer_filter_kwargs := kwargs.get("filter_by_wer", {}):
         ds = filter_by_wer(ds, **merge_kwargs(map_kwargs, wer_filter_kwargs))
-    if keep_bad_response_kwargs := kwargs.get("keep_bad_response", {}):
-        ds = keep_bad_response(ds, **merge_kwargs(map_kwargs, keep_bad_response_kwargs))
-    if keep_brackets_kwargs := kwargs.get("keep_brackets", {}):
-        ds = keep_brackets(ds, **merge_kwargs(map_kwargs, keep_brackets_kwargs))
-    if keep_by_errors_kwargs := kwargs.get("keep_by_errors", {}):
-        ds = keep_by_errors(ds, **merge_kwargs(map_kwargs, keep_by_errors_kwargs))
+    if keep_kw := kwargs.get("keep_samples", {}):
+        ds = keep_samples(ds, **merge_kwargs(map_kwargs, keep_kw))
     if trim_silence_kwargs := kwargs.get("trim_silence", {}):
         ds = trim_silence(ds, **merge_kwargs(map_kwargs, trim_silence_kwargs))
     if trim_tailing_kwargs := kwargs.get("trim_tailing", {}):

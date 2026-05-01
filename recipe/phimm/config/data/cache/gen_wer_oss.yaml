@@ -13,7 +13,7 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v1/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v0/part-*.parquet
   post_process:
-    keep_by_errors:
+    keep_samples:
       wer_range: [0.01, 200]
 
 output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/wer_oss/data.jsonl

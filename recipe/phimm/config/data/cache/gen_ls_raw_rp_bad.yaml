@@ -5,9 +5,9 @@ source_config:
     task: lang_asr
     forced: True
   post_process:
-    keep_bad_response:
-      bad_format: true
-      language: English
+    keep_samples:
+      has_bad_fmt: true
+      has_bad_lang: true
     add_field:
       fields:
         data_source: asr

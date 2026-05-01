@@ -13,8 +13,8 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v1/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v0/part-*.parquet
   post_process:
-    keep_brackets:
-      field: response
+    keep_samples:
+      has_brackets: true
 
 output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/brackets_oss/data.jsonl
 include_verl_format: false

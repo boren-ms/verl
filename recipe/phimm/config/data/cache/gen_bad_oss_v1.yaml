@@ -8,9 +8,9 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_voxpopuli_en_wer01/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_wavllm_wer01/part-*.parquet
   post_process:
-    keep_bad_response:
-      bad_format: true
-      language: English
+    keep_samples:
+      has_bad_fmt: true
+      has_bad_lang: true
 
 output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_oss_v1/data.jsonl
 include_verl_format: false
