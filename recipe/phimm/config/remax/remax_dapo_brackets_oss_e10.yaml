@@ -7,6 +7,7 @@ defaults:
   - dapo_asr
   - data/train_data/gen_brackets_oss
   - data/val_data/openasr_bad_fmt_lang
+  - data/val_data/openasr_ml_bad_fmt_lang_bracket
   - _self_
 
 custom_reward_function:
