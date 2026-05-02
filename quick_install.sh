@@ -15,8 +15,9 @@ if [ ! -f ${done_file} ]; then
     touch ${running_file}
     echo "[INFO] Installing environment..."
     pip install -r requirements_vllm.txt
+    pip install --no-deps "ray[default]==2.46.0"
     pip install --no-deps -e .
-    pip install  flash-attn==2.7.4.post1
+    pip install  flash-attn==2.8.0.post2
     apt install lsof
     mv ${running_file} ${done_file}
 else
