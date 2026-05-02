@@ -804,7 +804,7 @@ def _is_bad_fmt(example):
 
 def _is_bad_lang(example):
     parsed = parse_asr_response(example.get("raw_response", "") or {})
-    lang = example.get("language", "English")
+    lang = example.get("language") or "English"
     lang = get_language_name(lang).lower()
     return (parsed.get("lang") or "").lower() != lang
 
