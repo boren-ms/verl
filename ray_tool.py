@@ -386,7 +386,7 @@ def prepare_env(forced=False):
     hostname = os.uname().nodename
     print(f"Preparing environment on node: {hostname}")
     required = [
-        "torch==2.7.1",
+        "torch==2.8.0",
         "ray==2.46.0",
         "transformers==4.55.4",
         "vllm==0.11.0",
@@ -396,6 +396,7 @@ def prepare_env(forced=False):
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
     run_cmd("pip install -r requirements_vllm.txt")
+    run_cmd('pip install --no-deps "ray[default]==2.46.0"')
     run_cmd("pip install --no-deps -e .")
     # find the package
     # echo $(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')")
