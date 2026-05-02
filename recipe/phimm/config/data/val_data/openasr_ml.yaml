@@ -142,7 +142,7 @@
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data.jsonl
   cache_name: auto_openasr_ml_mls_fr
   add_task_info:
-    task: lang_asr_lex
+    task: lang_asr
     forced: True
     language: French
   post_process:
@@ -156,7 +156,7 @@
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/it/data.jsonl
   cache_name: auto_openasr_ml_mls_it
   add_task_info:
-    task: lang_asr_lex
+    task: lang_asr
     forced: True
     language: Italian
   post_process:
@@ -170,7 +170,7 @@
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/data.jsonl
   cache_name: auto_openasr_ml_mls_es
   add_task_info:
-    task: lang_asr_lex
+    task: lang_asr
     forced: True
     language: Spanish
   post_process:
@@ -184,7 +184,7 @@
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data.jsonl
   cache_name: auto_openasr_ml_mls_pt
   add_task_info:
-    task: lang_asr_lex
+    task: lang_asr
     forced: True
     language: Portuguese
   post_process:
