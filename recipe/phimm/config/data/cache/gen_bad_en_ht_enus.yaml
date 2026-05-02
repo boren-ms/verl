@@ -1,0 +1,104 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/2000_connected_car/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/aal_region_fy21_en_us_16k_long_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/aal_region_fy21_en_us_16k_short/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_broadcastentertainment_fy21_16k_en_uk_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_conversationalcallcenter_fy21_8k_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_en_gb_16khz_en_gb_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_en_gb_8khz_en_gb_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_en_us_16khz_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_en_us_8khz_en_us_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_telephony_fy22_8k_en_cn/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_telephony_fy22_8k_en_sg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/commonvoicecorpus7/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/cortana10k_desktop_mobile_holographic_ios_smd_vs/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/edu_kidsdatacollection_16k_en_us_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_au/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_au_apptek_fy22h2_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_au_dai_multiple_speaker_spontaneous_fy22q4_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_au_dai_single_speaker_scripted_fy22q4_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_au_videoindex_pt_fy22_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_au_videoindex_pt_musicbackground_fy22_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_ca/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_ca_apptek_fy22h2_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_ca_videoindex_pt_fy22_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_ca_videoindex_pt_musicbackground_fy22_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_cn_dt_apy161101010_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb_dai_multiple_speaker_spontaneous_fy22q4_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb_dai_single_speaker_scripted_fy22q4_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb_dai_single_speaker_spontaneous_fy22q4_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb_dt_children_apy161101023_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb_king_asr_680_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb_public_onlinemeeting_fy22_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb_videoindex_is_livegaming_fy22_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_gb_videoindex_is_musicbackground_fy22_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_in_apptek_fy22h2_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_in_en_in_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_in_ls4m/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_nz/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_ph_apptek_fy22h2_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_ph_dai_multiple_speaker_spontaneous_fy22q4_train_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_sg_dt_apy200331002_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_apptek_fy22h2_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dai_multiple_speaker_spontaneous_fy22q4_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dai_single_speaker_scripted_fy22q4_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dai_single_speaker_spontaneous_fy22q4_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dt_children_apy161101039_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dt_latin_apy190704001_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_king_asr_733_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_public_onlinemeeting_fy22_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_is_livegaming_fy22_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_is_musicbackground_fy22_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_is_podcast_fy22_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_pt_earningscall_fy22_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_pt_musicbackground_fy22_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_pt_podcast_fy22_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/enau_videoindex_pt_fy20_en_au_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/enca_videoindex_pt_fy20_en_ca_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/engb_videoindex_pt_fy20_en_gb_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/engineer_telephony_8khz/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/engineer_telephony_evm_6khz/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/enus_videoindex_pt_fy20_en_us_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/eu_80hr/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/fy21_en_us_musicbackground_en_us_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/hk_speaker_live/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/king_asr_accents_27/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/librispeech_asr_commonvoice/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/live_accent_data_en_zh/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/lynda_data/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/msit_call_center/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/online_meeting_training_3_corpus/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/other_locale/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/princeton_ct_ff/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/speechoceancar/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/switchboard_fisher_8khz/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/ted_resnet_youtube_channel9_live_16khz/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/tedlium_release_3_16k_en_us_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/txflow_enau_train_data_en_au_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/txflow_enca_train_data_en_ca_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/txflow_engb_train_data_en_gb_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/txflow_enus_train_data_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/txflow_enus_train_oocl_callcenter_fy20q2_8khz_en_us_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/video_index/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/videoindex_is_fy20/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/videoindex_is_fy21_en_us_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/videoindex_is_fy22_en_gb_train_nonjson_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/videoindex_is_fy22_en_us_train_nonjson_withseg/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/videoindex_pt_fy21_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/voxforge_16k_v3_en_us_train/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/voxforge_8k_v2/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/vystadial_voip_16k/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/xbox_live/part-*.parquet
+  post_process:
+    keep_samples:
+      has_bad_fmt: true
+      has_bad_lang: true
+      has_brackets: true
+      wer_range: [0.01, 200]
+
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_en_ht/data.jsonl
+include_verl_format: false
+overwrite: true
