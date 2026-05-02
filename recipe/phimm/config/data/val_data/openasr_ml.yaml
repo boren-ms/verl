@@ -142,7 +142,7 @@
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data.jsonl
   cache_name: auto_openasr_ml_mls_fr
   add_task_info:
-    task: lang_asr_lex
+    task: lang_asr
     forced: True
     language: French
   post_process:
