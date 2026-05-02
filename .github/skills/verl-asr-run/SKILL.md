@@ -1,12 +1,12 @@
 ---
 name: verl-asr-run
-description: 'Submit and monitor ASR training or evaluation jobs on remote verl Brix nodes until completion, reporting metrics in structured tables. Use when: running RL training (ReMax, GRPO), evaluating checkpoints on LibriSpeech/OpenASR/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "eval_openasr", "check WER", "monitor job", "check training status", "push and submit", "run config on node".'
+description: 'Submit and monitor ASR training or evaluation jobs on remote verl Brix nodes until completion, reporting metrics in structured tables. Use when: running RL training (ReMax, GRPO), automatically running post-training OpenASR/OpenASR-ML evals, evaluating checkpoints on LibriSpeech/OpenASR/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "eval_openasr", "eval_openasr_ml", "check WER", "monitor job", "check training status", "push and submit", "run config on node".'
 argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0, or eval_libri_h100'
 ---
 
 # verl ASR Run
 
-Submit a training or evaluation job on a remote verl Brix node via `submit_job.sh`, **continuously monitor until completion** reporting metrics in structured tables, and optionally perform word error analysis on validation output.
+Submit a training or evaluation job on a remote verl Brix node via `submit_job.sh`, **continuously monitor until completion** reporting metrics in structured tables, automatically run post-training OpenASR evals when applicable, and optionally perform word error analysis on validation output.
 
 Refer to the **remote-development** skill for node connectivity, `rcall-brix`, `bpush`, `bbb`, and environment setup.
 
@@ -17,6 +17,7 @@ Refer to the **remote-development** skill for node connectivity, `rcall-brix`, `
 - User wants to submit any verl ASR job to a remote node and monitor until completion
 - User asks to monitor an existing job — "check status", "update", "how's the job"
 - User needs to fix code, push, and resubmit after a failure
+- User wants training followed by automatic `eval_openasr` and `eval_openasr_ml` evaluation on the completed checkpoint
 - User wants word-level error analysis on verl validation JSONL output
 - User wants to run multiple jobs (see batch submission below)
 
@@ -27,6 +28,7 @@ Refer to the **remote-development** skill for node connectivity, `rcall-brix`, `
 | **config** | Yes | — | `remax_ls_lr05`, `eval_libri_h100`, `gen_libri` |
 | **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
+| **post_train_eval** | No | `eval_openasr`, `eval_openasr_ml` for training jobs | `none`, `eval_openasr_ml` |
 | **word_error_sets** | No | `1` (first data source only) | `all` (all data sources) |
 
 ## Job Types
@@ -35,8 +37,9 @@ Determined by config name prefix:
 
 | Prefix | Module | Type | Notes |
 |--------|--------|------|-------|
-| `remax_*`, `grpo_*` | `recipe.phimm.main_asr_dapo` | Training | RL training with validation at intervals |
-| `eval_*` | `recipe.phimm.main_asr_dapo` | Eval-only | `val_only: True`, runs validation then exits |
+| `remax_*` | `recipe.phimm.main_asr_remax` | Training | RL training with validation at intervals |
+| `grpo_*` and other training configs | `recipe.phimm.main_asr_dapo` | Training | RL training with validation at intervals |
+| `eval_*` | `recipe.phimm.main_asr_eval` | Eval-only | `val_only: True`, runs validation then exits |
 | `gen_*` | `recipe.phimm.main_asr_gen` | Generation | Inference/generation only |
 
 ## Available Configs (examples)
@@ -52,8 +55,9 @@ Determined by config name prefix:
 |--------|----------|-------|
 | `eval_libri_h100` | LibriSpeech (h100 subset) | Fast eval |
 | `eval_openasr` | OpenASR (ami, common_voice, earnings22, etc.) | Full OpenASR suite |
+| `eval_openasr_ml` | OpenASR-ML (FLEURS, MCV, MLS by language) | Multilingual OpenASR suite; report per-language and overall averages |
 
-Configs live at `recipe/phimm/config/*.yaml`. Training configs compose from `recipe/phimm/config/base/dapo_asr.yaml`; eval configs compose from `recipe/phimm/config/base/eval_asr.yaml` (which sets `val_only: True` and `val_before_train: True`).
+Configs live under `recipe/phimm/config/` by job family, including `recipe/phimm/config/remax/`, `recipe/phimm/config/eval/`, and `recipe/phimm/config/gen/`. Training configs compose from `recipe/phimm/config/base/dapo_asr.yaml`; eval configs compose from `recipe/phimm/config/base/eval_asr.yaml` (which sets `val_only: True` and `val_before_train: True`).
 
 ## Job Submission Pipeline
 
@@ -122,10 +126,12 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
 - **config**: Extract from the user's request (required). The config name is the YAML filename without `.yaml` under `recipe/phimm/config/`.
 - **Job type**: Determined automatically from config prefix:
-  - `gen_*` → generation (uses `main_asr_gen` module)
-  - `eval_*` → eval-only (uses `main_asr_dapo` with `val_only: True`)
-  - Everything else → training (uses `main_asr_dapo`)
+   - `gen_*` → generation (uses `main_asr_gen` module)
+   - `eval_*` → eval-only (uses `main_asr_eval` with `val_only: True`)
+   - `remax_*` → ReMax training (uses `main_asr_remax`)
+   - Everything else → training (uses `main_asr_dapo`)
 - **model_path**: Usually baked into the config. If the user specifies a custom model path, it will be passed as a hydra override.
+- **post_train_eval**: For training jobs, default to automatically running `eval_openasr` and `eval_openasr_ml` on the completed checkpoint unless the user explicitly opts out. For eval or generation jobs, do not start additional evals unless requested.
 - **word_error_sets**: Default `1` — only analyze the first data source. If user says "all", analyze all data sources.
 
 ### Step 2 — Push code and submit the job
@@ -155,7 +161,7 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
    If a custom model path is specified, append a hydra override:
    ```bash
-   rcall-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_asr_dapo --config-name {CONFIG} trainer.experiment_name={CONFIG} actor_rollout_ref.model.path={MODEL_PATH}"'
+   rcall-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m {MODULE} --config-name {CONFIG} trainer.experiment_name={CONFIG} actor_rollout_ref.model.path={MODEL_PATH}"'
    ```
 
    Save the output — it contains the Ray job ID (e.g. `raysubmit_XXXX`).
@@ -289,6 +295,13 @@ Extract from validation log lines:
 
 **Compute WER** per data source: `WER = n_err / n_ref` (or use `p_err` directly).
 
+**OpenASR-ML average rows**:
+- For `eval_openasr_ml`, always include the original per-dataset rows and add derived average rows grouped by language plus one overall row.
+- Infer language from dataset names: `de_*` → German, `fr_*` → French, `it_*` → Italian, `es_*` → Spanish, `pt_*` → Portuguese.
+- Compute average WER as a simple arithmetic mean across dataset rows in that language. Use `p_err` when available; otherwise compute each dataset WER as `n_err / n_ref` first, then average those per-dataset WER values equally. Display as percent.
+- Compute average `p_ins_edge` and `reward/mean` as simple arithmetic means across dataset rows in that language.
+- The overall average is a simple arithmetic mean across all active OpenASR-ML dataset rows observed for that eval step. Include only datasets present in the metrics; do not invent rows for disabled datasets.
+
 **Show ALL steps observed — accumulate across monitoring checks to compare progression.**
 
 ### Step 4 — Final summary (when SUCCEEDED)
@@ -300,6 +313,60 @@ When the job completes, provide:
 4. **W&B run link** (clickable)
 5. **Total training time** (from first step to last step)
 6. **Trend summary**: did WER improve? By how much? Best val step?
+
+For training jobs, Step 4 is an interim training summary. Continue to Step 4a and do not give the final response until the automatic OpenASR eval jobs have also completed or failed.
+
+### Step 4a — Automatic post-training OpenASR evals
+
+When a training job succeeds and `post_train_eval` is not `none`, automatically evaluate the completed checkpoint with:
+
+1. `recipe/phimm/config/eval/eval_openasr.yaml`
+2. `recipe/phimm/config/eval/eval_openasr_ml.yaml`
+
+Use the same trained checkpoint for both evals:
+- Prefer the best checkpoint by validation WER if the training log clearly identifies it.
+- Otherwise pick the latest available checkpoint from the training output directory by selecting the highest numeric `global_step_*` path.
+- Use the final checkpoint path from the last successful `save_checkpoint` log line only if checkpoint directory listing is unavailable.
+- Load the checkpoint with trainer resume fields: `trainer.resume_mode=resume_path` and `trainer.resume_from_path={CHECKPOINT_PATH}`. Do not add `actor_rollout_ref.model.path` just for checkpoint evaluation; the resume path is the required checkpoint reference.
+
+To find the latest checkpoint, derive `{TRAIN_OUTPUT_DIR}` from the training config's `trainer.default_hdfs_dir` or from the observed checkpoint path, usually:
+
+```text
+az://orngwus2cresco/data/boren/outputs/{PROJECT}/{TRAIN_CONFIG}
+```
+
+Then list and select the largest step number:
+
+```bash
+bbb ls {TRAIN_OUTPUT_DIR}/ | grep 'global_step_' | sed -E 's#.*/global_step_([0-9]+)/?#\1 #' | sort -n | tail -1
+```
+
+Set `{CHECKPOINT_PATH}` to `{TRAIN_OUTPUT_DIR}/global_step_{LATEST_STEP}` and report both the selected step and path before submitting eval jobs.
+
+For explicit eval config files, follow this pattern:
+
+```yaml
+trainer:
+  resume_mode: resume_path
+  resume_from_path: {CHECKPOINT_PATH}
+```
+
+Run each eval as a normal remote job and monitor it through Step 3 until `SUCCEEDED` or `FAILED`. Use the same node if it is free; otherwise repeat Step 0 to find or resume a free node. Always sync code before submitting the first post-training eval.
+
+Because `submit_job.sh` does not support arbitrary hydra overrides, use a direct Ray submission for checkpoint evals:
+
+```bash
+rcall-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_asr_eval --config-name {EVAL_CONFIG} trainer.experiment_name={TRAIN_CONFIG}_{EVAL_CONFIG} trainer.resume_mode=resume_path trainer.resume_from_path={CHECKPOINT_PATH}"'
+```
+
+Where `{EVAL_CONFIG}` is `eval_openasr` or `eval_openasr_ml`. Track both Ray job IDs separately. If either eval fails, diagnose and fix using Step 3f, then resubmit the failed eval before continuing.
+
+Post-training final report requirements:
+1. Show the training final summary from Step 4.
+2. Show a separate validation metrics table for `eval_openasr`.
+3. Show a separate validation metrics table for `eval_openasr_ml`, including per-dataset rows, per-language average rows, and the overall average row.
+4. Include W&B and Ray links for the training job and both eval jobs when available.
+5. State which checkpoint path was evaluated.
 
 #### W&B result check (optional post-job):
 ```bash
@@ -372,7 +439,7 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 ## Important Notes
 
 - The verl configs use hydra. The config search path is `recipe/phimm/config/` with base configs in `recipe/phimm/config/base/`.
-- `quick_run.sh` determines the module automatically: configs starting with `gen_*` use `main_asr_gen`, otherwise `main_asr_dapo`.
+- `quick_run.sh` determines the module automatically: configs starting with `gen_*` use `main_asr_gen`, configs starting with `eval_*` use `main_asr_eval`, configs starting with `remax_*` use `main_asr_remax`, and other training configs use `main_asr_dapo`.
 - Eval configs inherit from `base/eval_asr.yaml` which sets `val_only: True` — only validation runs, no training.
 - Training configs inherit from `base/dapo_asr.yaml` (or `grpo_asr.yaml`, `grpo_asr_full.yaml`) — full RL training with periodic validation.
 - The remote workspace is at `/root/code/verl` on Brix nodes.
