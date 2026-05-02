@@ -64,6 +64,7 @@ from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length
 from verl.utils.vllm import TensorLoRARequest, VLLMHijack, is_version_ge
 from verl.workers.config import HFModelConfig, RolloutConfig
 from verl.workers.rollout.base import BaseRollout
+from verl.workers.rollout.vllm_rollout.logits_processors import NoRepeatNGramLogitsProcessor
 
 logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
@@ -82,6 +83,13 @@ def _pre_process_inputs(pad_token_id, prompt_token_ids: torch.Tensor) -> list[in
     non_pad_index = torch.nonzero(prompt_token_ids != pad_token_id, as_tuple=False)[0][0]
     token_ids = prompt_token_ids[non_pad_index:].tolist()
     return token_ids
+
+
+def _build_ngram_processors(ngram_size: int, window_size: int = 100) -> list:
+    """Build logits_processors list for no-repeat-ngram if enabled."""
+    if ngram_size > 0:
+        return [NoRepeatNGramLogitsProcessor(ngram_size=ngram_size, window_size=window_size)]
+    return []
 
 
 if is_version_ge(pkg="vllm", minver="0.7.3"):
@@ -223,7 +231,16 @@ class vLLMRollout(BaseRollout):
             if hasattr(SamplingParams(), str(k)) and k != "seed":
                 kwargs[k] = config.get(k)
         kwargs["n"] = 1  # already repeat in ray_trainer
-        # print(f"kwargs: {kwargs}")
+
+        # Add no_repeat_ngram logits processor if configured
+        ngram_procs = _build_ngram_processors(
+            config.get("no_repeat_ngram_size", 0),
+            config.get("no_repeat_ngram_window_size", 100),
+        )
+        if ngram_procs:
+            kwargs.setdefault("logits_processors", [])
+            kwargs["logits_processors"].extend(ngram_procs)
+
         self.sampling_params = SamplingParams(**kwargs)
 
         self.pad_token_id = self.tokenizer.pad_token_id
@@ -317,12 +334,17 @@ class vLLMRollout(BaseRollout):
                 "repetition_penalty": self.config.val_kwargs.repetition_penalty,
                 "n": 1,  # if validate, already repeat in ray_trainer
             }
+            kwargs["logits_processors"] = _build_ngram_processors(
+                getattr(self.config.val_kwargs, "no_repeat_ngram_size", 0),
+                getattr(self.config.val_kwargs, "no_repeat_ngram_window_size", 100),
+            )
             if self.config.val_kwargs.response_length is not None:
                 kwargs["max_tokens"] = self.config.val_kwargs.response_length
             logger.info(
                 f"[vllm_rollout] validate: "
                 f"repetition_penalty={kwargs.get('repetition_penalty')}, "
-                f"max_tokens={kwargs.get('max_tokens', 'default')}, temperature={kwargs.get('temperature')}"
+                f"max_tokens={kwargs.get('max_tokens', 'default')}, temperature={kwargs.get('temperature')}, "
+                f"no_repeat_ngram_size={getattr(self.config.val_kwargs, 'no_repeat_ngram_size', 0)}"
             )
         elif not do_sample:
             kwargs = {
