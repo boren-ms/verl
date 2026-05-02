@@ -52,7 +52,10 @@ from torch.distributed.device_mesh import DeviceMesh
 from vllm import LLM, SamplingParams
 from vllm.config import CompilationConfig, CompilationLevel
 from vllm.lora.request import LoRARequest
-from vllm.model_executor.sampling_metadata import SamplingMetadata
+try:
+    from vllm.model_executor.sampling_metadata import SamplingMetadata
+except ModuleNotFoundError:
+    from vllm.v1.sample.metadata import SamplingMetadata
 from vllm.worker.worker_base import WorkerWrapperBase
 
 from verl import DataProto
@@ -72,6 +75,35 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 # 1. support pp in vllm
 # 2. passing tokenizer is not necessary? no encoding/decoding is happending here
 # 3. simplify init logics
+
+
+def _config_get(config: Any, key: str, default: Any = None) -> Any:
+    if config is None:
+        return default
+    if hasattr(config, "get"):
+        return config.get(key, default)
+    return getattr(config, key, default)
+
+
+def _is_positive_int(value: Any) -> bool:
+    try:
+        return int(value) > 0
+    except (TypeError, ValueError):
+        return False
+
+
+def _no_repeat_ngram_enabled(config: RolloutConfig) -> bool:
+    rollout_ngram_size = _config_get(config, "no_repeat_ngram_size", 0) or 0
+    val_kwargs = _config_get(config, "val_kwargs", None)
+    val_ngram_size = _config_get(val_kwargs, "no_repeat_ngram_size", 0) or 0
+    return _is_positive_int(rollout_ngram_size) or _is_positive_int(val_ngram_size)
+
+
+def _ensure_no_repeat_ngram_processor(engine_kwargs: dict[str, Any]) -> None:
+    logits_processors = list(engine_kwargs.get("logits_processors") or [])
+    if NOREPEAT_NGRAM_V1_FQCN not in logits_processors:
+        logits_processors.append(NOREPEAT_NGRAM_V1_FQCN)
+    engine_kwargs["logits_processors"] = logits_processors
 
 
 # NOTE(sgm): add for verl. We can optimize it by making the dataloader yield List[int] without padding.
@@ -96,6 +128,7 @@ class vLLMRollout(BaseRollout):
         device_mesh: DeviceMesh,
     ):
         super().__init__(config, model_config, device_mesh)
+        self._vllm_v1 = is_version_ge(pkg="vllm", minver="0.11.0")
 
         if config.layered_summon:
             self.sleep_level = 1
@@ -183,6 +216,13 @@ class vLLMRollout(BaseRollout):
                 )
             else:
                 logger.warning(f"cudagraph_capture_sizes must be a list, but got {cudagraph_capture_sizes}")
+
+        # Register no-repeat-ngram adapter at engine level (V1 model-level processor).
+        # Validation-only NRNS configs set this under val_kwargs, but vLLM still
+        # needs the adapter registered at engine construction time.
+        if _no_repeat_ngram_enabled(config):
+            _ensure_no_repeat_ngram_processor(engine_kwargs)
+
         # breakpoint()
         self.inference_engine = LLM(
             model=model_path,

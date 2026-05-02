@@ -49,7 +49,12 @@ PRIME_REQUIRES = ["pyext"]
 GEO_REQUIRES = ["mathruler", "torchvision", "qwen_vl_utils"]
 GPU_REQUIRES = ["liger-kernel", "flash-attn"]
 MATH_REQUIRES = ["math-verify"]  # Add math-verify as an optional dependency
-VLLM_REQUIRES = ["tensordict>=0.8.0,<=0.10.0,!=0.9.0", "vllm>=0.7.3,<=0.9.1"]
+VLLM_REQUIRES = [
+    "tensordict>=0.8.0,<=0.10.0,!=0.9.0",
+    "torch==2.8.0",
+    "transformers==4.55.4",
+    "vllm==0.11.0",
+]
 SGLANG_REQUIRES = [
     "tensordict>=0.8.0,<=0.10.0,!=0.9.0",
     "sglang[srt,openai]==0.4.10.post2",
