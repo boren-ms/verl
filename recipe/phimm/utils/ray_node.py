@@ -11,10 +11,11 @@ def prepare_env(forced=False):
     hostname = os.uname().nodename
     print(f"[{hostname}] Preparing environment...")
     required = [
-        "torch==2.7.1",
+        "torch==2.8.0",
         "ray==2.46.0",
         "transformers==4.55.4",
-        "vllm==0.10.0",
+        "vllm==0.11.0",
+        "flash-attn==2.8.3",
     ]
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
