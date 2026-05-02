@@ -386,21 +386,20 @@ def prepare_env(forced=False):
     hostname = os.uname().nodename
     print(f"Preparing environment on node: {hostname}")
     required = [
-        "torch==2.8.0",
+        "torch==2.7.1",
         "ray==2.46.0",
         "transformers==4.55.4",
-        "vllm==0.11.0",
-        "flash-attn==2.8.0.post2",
+        "vllm==0.10.0",
+        "flash-attn==2.7.4.post1",
     ]
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
     run_cmd("pip install -r requirements_vllm.txt")
-    run_cmd('pip install --no-deps "ray[default]==2.46.0"')
     run_cmd("pip install --no-deps -e .")
     # find the package
     # echo $(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')")
-    pkg_name = "flash_attn-2.8.0.post2+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
+    pkg_name = "flash_attn-2.7.4.post1+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
     remote_pkg_path = f"{ORNG_USER.data_path}/packages/{pkg_name}"
     local_pkg_path = f"/root/packages/{pkg_name}"
     if bf.exists(remote_pkg_path) and not bf.exists(local_pkg_path):
@@ -408,7 +407,7 @@ def prepare_env(forced=False):
 
     if not Path(local_pkg_path).exists():
         print(f"Could not locate {remote_pkg_path}, using pip to install directly.")
-        local_pkg_path = "flash-attn==2.8.0.post2"
+        local_pkg_path = "flash-attn==2.7.4.post1"
 
     run_cmd(f"pip install --no-deps {local_pkg_path}")
     print("Environment preparation completed.")

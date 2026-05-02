@@ -3,7 +3,7 @@ accelerate
 codetiming
 datasets==4.0.0
 dill
-torch==2.8.0
+torch==2.7.1
 hydra-core
 liger-kernel
 numpy<2.0.0
@@ -13,12 +13,11 @@ pyarrow>=19.0.0
 pybind11
 pylatexenc
 pre-commit
-# ray is installed separately after vllm to allow version override
-# ray[default]==2.46.0
+ray[default]>=2.46.0
 tensordict>=0.8.0,<=0.10.0,!=0.9.0
 torchdata
 transformers==4.55.4
-vllm==0.11.0
+vllm==0.10.0
 wandb
 packaging>=20.0
 uvicorn
