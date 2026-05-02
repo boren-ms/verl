@@ -67,6 +67,7 @@ from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length
 from verl.utils.vllm import TensorLoRARequest, VLLMHijack, is_version_ge
 from verl.workers.config import HFModelConfig, RolloutConfig
 from verl.workers.rollout.base import BaseRollout
+from verl.workers.rollout.vllm_rollout.logits_processors import NOREPEAT_NGRAM_V1_FQCN
 
 logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
@@ -265,7 +266,13 @@ class vLLMRollout(BaseRollout):
             if hasattr(SamplingParams(), str(k)) and k != "seed":
                 kwargs[k] = config.get(k)
         kwargs["n"] = 1  # already repeat in ray_trainer
-        # print(f"kwargs: {kwargs}")
+
+        # Pass no-repeat-ngram config via extra_args for the V1 adapter
+        if ngram_size > 0:
+            kwargs.setdefault("extra_args", {})
+            kwargs["extra_args"]["ngram_size"] = ngram_size
+            kwargs["extra_args"]["ngram_window"] = ngram_window
+
         self.sampling_params = SamplingParams(**kwargs)
 
         self.pad_token_id = self.tokenizer.pad_token_id
@@ -321,7 +328,14 @@ class vLLMRollout(BaseRollout):
         batch_size = idx.size(0)
 
         non_tensor_batch = prompts.non_tensor_batch
-        if "raw_prompt_ids" not in non_tensor_batch:
+
+        # For V0 with multimodal data, always use processor's input_ids which has
+        # correctly expanded audio/image placeholders. raw_prompt_ids from the
+        # tokenizer only has unexpanded placeholder tokens, causing a mismatch
+        # in V0's _merge_multimodal_embeddings.
+        use_processor_ids = ("multi_modal_data" in non_tensor_batch and not self._vllm_v1)
+
+        if "raw_prompt_ids" not in non_tensor_batch or use_processor_ids:
             non_tensor_batch["raw_prompt_ids"] = np.array(
                 [_pre_process_inputs(self.pad_token_id, idx[i]) for i in range(batch_size)], dtype=object
             )
@@ -359,12 +373,19 @@ class vLLMRollout(BaseRollout):
                 "repetition_penalty": self.config.val_kwargs.repetition_penalty,
                 "n": 1,  # if validate, already repeat in ray_trainer
             }
+            val_ngram_size = getattr(self.config.val_kwargs, "no_repeat_ngram_size", 0)
+            val_ngram_window = getattr(self.config.val_kwargs, "no_repeat_ngram_window_size", 100)
+            if val_ngram_size > 0:
+                kwargs.setdefault("extra_args", {})
+                kwargs["extra_args"]["ngram_size"] = val_ngram_size
+                kwargs["extra_args"]["ngram_window"] = val_ngram_window
             if self.config.val_kwargs.response_length is not None:
                 kwargs["max_tokens"] = self.config.val_kwargs.response_length
             logger.info(
                 f"[vllm_rollout] validate: "
                 f"repetition_penalty={kwargs.get('repetition_penalty')}, "
-                f"max_tokens={kwargs.get('max_tokens', 'default')}, temperature={kwargs.get('temperature')}"
+                f"max_tokens={kwargs.get('max_tokens', 'default')}, temperature={kwargs.get('temperature')}, "
+                f"no_repeat_ngram_size={getattr(self.config.val_kwargs, 'no_repeat_ngram_size', 0)}"
             )
         elif not do_sample:
             kwargs = {
