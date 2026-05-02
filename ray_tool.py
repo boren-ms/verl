@@ -403,12 +403,15 @@ def prepare_env(forced=False):
     pkg_name = "flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
     remote_pkg_path = f"{ORNG_USER.data_path}/packages/{pkg_name}"
     local_pkg_path = f"/root/packages/{pkg_name}"
+    Path(local_pkg_path).parent.mkdir(parents=True, exist_ok=True)
     if bf.exists(remote_pkg_path) and not bf.exists(local_pkg_path):
         bf.copy(remote_pkg_path, local_pkg_path, overwrite=False)
 
     if not Path(local_pkg_path).exists():
-        print(f"Could not locate {remote_pkg_path}, using GitHub release wheel.")
-        local_pkg_path = f"https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/{pkg_name}"
+        raise FileNotFoundError(
+            f"Could not locate {remote_pkg_path}. "
+            "Remote nodes cannot fetch this wheel from the internet; pre-upload it to ORNG packages."
+        )
 
     run_cmd(f"pip install --no-deps {local_pkg_path}")
     print("Environment preparation completed.")
