@@ -4,10 +4,7 @@ defaults:
   - data/val_data/bias_entity_ls
   - _self_
 
-actor_rollout_ref:
-  rollout:
-    repetition_penalty: 1.0093
-    response_length: 200
+
 val_reward:
   custom_reward_function:
     path: recipe/phimm/reward/asr_edge.py

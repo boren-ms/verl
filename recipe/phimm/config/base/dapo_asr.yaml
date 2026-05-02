@@ -77,10 +77,10 @@ actor_rollout_ref:
     tensor_model_parallel_size: 1
     name: vllm
     temperature: 1.0
+    no_repeat_ngram_size: 15
+    response_length: ${data.max_response_length}
     val_kwargs:
       temperature: 0.0
-      repetition_penalty: 1.0093
-      response_length: 200
     gpu_memory_utilization: 0.8
     load_format: safetensors
     enforce_eager: True

@@ -29,5 +29,3 @@ rollout:
   gpu_memory_utilization: 0.8
   log_prob_micro_batch_size_per_gpu: 8
   load_format: dummy # need to force reload from fsdp to vllm
-  repetition_penalty: 1.0093
-  response_length: 200

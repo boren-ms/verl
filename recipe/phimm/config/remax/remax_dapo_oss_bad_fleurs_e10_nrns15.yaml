@@ -30,11 +30,7 @@ actor_rollout_ref:
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.5
-    repetition_penalty: 1.0
     no_repeat_ngram_size: 15
-    val_kwargs:
-      repetition_penalty: 1.0
-      no_repeat_ngram_size: 15
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 8
