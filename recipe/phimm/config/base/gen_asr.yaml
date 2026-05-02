@@ -10,10 +10,7 @@ data:
   batch_size: 128
   # num_workers: 8
 
-  output_split_size: 1000000 # 1m samples ~500M
-  wer_kwargs:
-    text_norm: english # english (default), identity, lower, basic, simple, simple_with_tag
-    unit: word # word (default), char
+  output_split_size: 100000 # 1m samples ~500M
 
 model:
   path: null
