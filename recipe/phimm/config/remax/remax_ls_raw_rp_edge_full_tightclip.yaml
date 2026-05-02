@@ -28,9 +28,6 @@ actor_rollout_ref:
     temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
-    val_kwargs:
-      repetition_penalty: 1.0093
-      response_length: 200
   actor:
     tis_imp_ratio_cap: 5
     clip_ratio_low: 0.1

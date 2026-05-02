@@ -28,8 +28,8 @@ actor_rollout_ref:
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     val_kwargs:
-      repetition_penalty: 1.0093
-      response_length: 200
+      no_repeat_ngram_size: 15
+      response_length: 512
   actor:
     tis_imp_ratio_cap: 5
     use_kl_loss: true

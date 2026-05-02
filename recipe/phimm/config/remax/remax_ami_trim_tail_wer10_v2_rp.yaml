@@ -27,9 +27,6 @@ actor_rollout_ref:
     gt_rollout: true
     temperature: 1.2
     calculate_log_probs: True
-    val_kwargs:
-      repetition_penalty: 1.0093
-      response_length: 200
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 16
