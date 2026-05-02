@@ -4,7 +4,6 @@ defaults:
   - data/val_data/bias_entity_ls
   - _self_
 
-actor_rollout_ref:
 val_reward:
   custom_reward_function:
     path: recipe/phimm/reward/asr_edge.py

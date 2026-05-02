@@ -11,65 +11,82 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Custom logits processors for vLLM rollout.
+"""Custom logits processors for vLLM V1 rollout.
 
-Based on vLLM's NoRepeatNGramLogitsProcessor from deepseek_ocr.py:
-https://github.com/vllm-project/vllm/blob/b1388b1fbf5aaef47937fabe98931211684666a6/vllm/model_executor/models/deepseek_ocr.py#L134-L185
+Provides an ``AdapterLogitsProcessor`` subclass registered at engine init via
+the ``logits_processors`` engine kwarg.  Per-request parameters are read from
+``SamplingParams.extra_args``.
+
+Reference: https://github.com/vllm-project/vllm/issues/757
 """
 
 import torch
+from vllm.v1.sample.logits_processor import AdapterLogitsProcessor
 
 
-class NoRepeatNGramLogitsProcessor:
-    """Logits processor that prevents repeated n-grams during generation.
+# ---------------------------------------------------------------------------
+# Core: n-gram banning logic
+# ---------------------------------------------------------------------------
 
-    Compatible with vLLM's logits_processors interface:
-        (prompt_token_ids: list[int], past_token_ids: list[int], scores: torch.Tensor) -> torch.Tensor
+def _calc_banned_ngram_tokens(
+    ngram_size: int, output_ids: list[int], window_size: int
+) -> set[int]:
+    """Return token ids that would create a repeated n-gram if generated next."""
+    if len(output_ids) < ngram_size:
+        return set()
 
-    Args:
-        ngram_size: Size of the n-gram to prevent repeating. Must be > 0.
-        window_size: Only search for repeated n-grams within the last
-            ``window_size`` generated tokens. Limits cost on long sequences.
-        whitelist_token_ids: Optional set of token ids that are never banned
-            even if they would complete a repeated n-gram.
+    current_prefix = tuple(output_ids[-(ngram_size - 1) :])
+    search_start = max(0, len(output_ids) - window_size)
+    search_end = len(output_ids) - ngram_size + 1
+
+    banned: set[int] = set()
+    for i in range(search_start, search_end):
+        ngram = tuple(output_ids[i : i + ngram_size])
+        if ngram[:-1] == current_prefix:
+            banned.add(ngram[-1])
+    return banned
+
+
+# ---------------------------------------------------------------------------
+# V1 model-level adapter  (registered via engine logits_processors kwarg)
+# ---------------------------------------------------------------------------
+
+class NoRepeatNGramV1Adapter(AdapterLogitsProcessor):
+    """vLLM V1 model-level adapter that creates per-request n-gram processors.
+
+    Per-request parameters are read from ``SamplingParams.extra_args``:
+      - ``ngram_size`` (int): n-gram size. 0 or absent → disabled.
+      - ``ngram_window`` (int, default 100): search window.
     """
 
-    def __init__(
-        self,
-        ngram_size: int,
-        window_size: int = 100,
-        whitelist_token_ids: set[int] | None = None,
-    ):
-        if not isinstance(ngram_size, int) or ngram_size <= 0:
-            raise ValueError(f"`ngram_size` has to be a strictly positive integer, got {ngram_size}.")
-        if not isinstance(window_size, int) or window_size <= 0:
-            raise ValueError(f"`window_size` has to be a strictly positive integer, got {window_size}.")
+    def is_argmax_invariant(self) -> bool:
+        # Banning tokens changes which token gets highest probability.
+        return False
+
+    def new_req_logits_processor(self, params):
+        extra = params.extra_args or {}
+        ngram_size = extra.get("ngram_size", 0)
+        if ngram_size <= 0:
+            return None
+        window_size = extra.get("ngram_window", 100)
+        return _NoRepeatNGramPerRequest(ngram_size, window_size)
+
+
+class _NoRepeatNGramPerRequest:
+    """Per-request processor with ``(output_ids, logits) -> logits`` signature."""
+
+    def __init__(self, ngram_size: int, window_size: int):
         self.ngram_size = ngram_size
         self.window_size = window_size
-        self.whitelist_token_ids = whitelist_token_ids or set()
 
-    def __call__(
-        self, prompt_token_ids: list[int], past_token_ids: list[int], scores: torch.FloatTensor
-    ) -> torch.FloatTensor:
-        # Only look at generated (past) tokens, not the prompt.
-        output_ids = list(past_token_ids)
-        if len(output_ids) < self.ngram_size:
-            return scores
+    def __call__(self, output_ids: list[int], logits: torch.Tensor) -> torch.Tensor:
+        banned = _calc_banned_ngram_tokens(self.ngram_size, output_ids, self.window_size)
+        if banned:
+            logits[list(banned)] = -float("inf")
+        return logits
 
-        current_prefix = tuple(output_ids[-(self.ngram_size - 1) :])
 
-        search_start = max(0, len(output_ids) - self.window_size)
-        search_end = len(output_ids) - self.ngram_size + 1
-
-        banned_tokens: set[int] = set()
-        for i in range(search_start, search_end):
-            ngram = tuple(output_ids[i : i + self.ngram_size])
-            if ngram[:-1] == current_prefix:
-                banned_tokens.add(ngram[-1])
-
-        banned_tokens = banned_tokens - self.whitelist_token_ids
-
-        if banned_tokens:
-            scores[list(banned_tokens)] = -float("inf")
-
-        return scores
+# FQCN for passing to engine kwargs (logits_processors=[...])
+NOREPEAT_NGRAM_V1_FQCN = (
+    "verl.workers.rollout.vllm_rollout.logits_processors:NoRepeatNGramV1Adapter"
+)
