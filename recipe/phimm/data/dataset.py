@@ -860,7 +860,7 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
 
 def filter_text_with_numbers(ds, **kwargs):
     field = kwargs.get("field", "text")
-    norm_name = kwargs.get("text_norm", kwargs.get("tn_name", "english"))
+    norm_name = kwargs.get("text_norm", kwargs.get("tn_name", "identity"))
 
     def has_number_after_norm(example):
         text = str(example.get(field, ""))
