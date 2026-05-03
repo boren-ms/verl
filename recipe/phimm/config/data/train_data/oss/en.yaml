@@ -16,7 +16,7 @@
   post_process:
     add_field:
       fields:
-        data_source: asr
+        data_source: en_mls_gigaspeech
     verl_format:
       prompt_key: prompt
 
@@ -43,6 +43,18 @@
   post_process:
     add_field:
       fields:
-        data_source: asr
+        data_source: en_cv15_vox_ami_earn_wavllm
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: tsv
+  tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
+  add_task_info:
+    forced: True
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: en_librispeech
     verl_format:
       prompt_key: prompt
