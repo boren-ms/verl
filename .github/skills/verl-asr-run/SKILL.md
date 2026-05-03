@@ -281,25 +281,27 @@ Extract from `step:N` log lines:
 
 **Validation metrics table** (for both training and eval — accumulate across val steps):
 
-| Step | Dataset | WER (p_err) | p_ins_edge | Errors | Ref Words | reward/mean |
-|------|---------|-------------|------------|--------|-----------|-------------|
-| 0    | librispeech | 5.62%   | 5.57       | 165.8  | 29.5      | 0.486       |
-| 10   | librispeech | 4.98%   | 4.91       | 148.2  | 27.1      | 0.521       |
+Only report metrics with the `p_` prefix. Do not include raw count metrics (`n_err`, `n_ref`, `wer`, etc.) or `reward/mean`.
+
+| Step | Dataset | p_err | p_edge | p_fmt | p_lang | p_bracket |
+|------|---------|-------|--------|-------|--------|-----------|
+| 0    | librispeech | 5.62% | 1.20% | 100.00% | 100.00% | 0.00% |
+| 10   | librispeech | 4.98% | 0.98% | 100.00% | 100.00% | 0.00% |
 
 Extract from validation log lines:
-- `val-aux/{data_source}/p_err/mean@1` → WER (p_err)
-- `val-aux/{data_source}/p_ins_edge/mean@1` → p_ins_edge
-- `val-aux/{data_source}/n_err/sum@1` → Errors (or `n_err/mean@1`)
-- `val-aux/{data_source}/n_ref/sum@1` → Ref Words (or `n_ref/mean@1`)
-- `val-core/{data_source}/reward/mean@1` → reward/mean
+- `val-aux/{data_source}/p_err/mean@1` → p_err
+- `val-aux/{data_source}/p_edge/mean@1` → p_edge
+- `val-aux/{data_source}/p_fmt/mean@1` → p_fmt
+- `val-aux/{data_source}/p_lang/mean@1` → p_lang
+- `val-aux/{data_source}/p_bracket/mean@1` → p_bracket
 
-**Compute WER** per data source: `WER = n_err / n_ref` (or use `p_err` directly).
+All `p_` values are ratios (0–1 in logs); display as percentages (×100).
 
 **OpenASR-ML average rows**:
 - For `eval_openasr_ml`, always include the original per-dataset rows and add derived average rows grouped by language plus one overall row.
 - Infer language from dataset names: `de_*` → German, `fr_*` → French, `it_*` → Italian, `es_*` → Spanish, `pt_*` → Portuguese.
-- Compute average WER as a simple arithmetic mean across dataset rows in that language. Use `p_err` when available; otherwise compute each dataset WER as `n_err / n_ref` first, then average those per-dataset WER values equally. Display as percent.
-- Compute average `p_ins_edge` and `reward/mean` as simple arithmetic means across dataset rows in that language.
+- Compute average WER as a simple arithmetic mean of `p_err` across dataset rows in that language. Display as percent.
+- Compute average `p_edge` as a simple arithmetic mean across dataset rows in that language.
 - The overall average is a simple arithmetic mean across all active OpenASR-ML dataset rows observed for that eval step. Include only datasets present in the metrics; do not invent rows for disabled datasets.
 
 **Show ALL steps observed — accumulate across monitoring checks to compare progression.**
