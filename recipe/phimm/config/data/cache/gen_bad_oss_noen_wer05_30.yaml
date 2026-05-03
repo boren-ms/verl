@@ -7,6 +7,6 @@ source_config:
     keep_samples:
       wer_range: [0.05, 0.3]
 
-output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_oss_wer05_30/data.jsonl
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_oss_noen_wer05_30/data.jsonl
 include_verl_format: false
 overwrite: true
