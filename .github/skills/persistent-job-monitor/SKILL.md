@@ -150,9 +150,9 @@ Extract from `step:N` log lines:
 
 #### Validation metrics table (accumulated)
 
-| Step | p_err (WER) | p_ins_edge | n_err | n_ref | reward/mean |
-|------|-------------|------------|-------|-------|-------------|
-| 0    | 5.62        | 5.57       | 165.8 | 29.5  | 0.486       |
+| Step | p_err (WER) | p_ins_edge | n_err | n_ref |
+|------|-------------|------------|-------|-------|
+| 0    | 5.62        | 5.57       | 165.8 | 29.5  | 
 
 Extract from `val-core/` and `val-aux/` log lines.
 
