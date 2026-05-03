@@ -1,0 +1,12 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v1/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v0/part-*.parquet
+  post_process:
+    keep_samples:
+      error_count_range: [2, 10]
+
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_oss_noen_nerr2_10/data.jsonl
+include_verl_format: false
+overwrite: true

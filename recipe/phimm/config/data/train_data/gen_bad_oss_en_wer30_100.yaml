@@ -1,0 +1,13 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_oss_en_wer30_100/data.jsonl
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    filter_text_with_numbers:
+      text_norm: identity
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
