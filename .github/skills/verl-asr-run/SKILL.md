@@ -279,14 +279,9 @@ Extract from `step:N` log lines:
 - `timing_s/step` → step_time (append s)
 - `progress` → Progress (format as %)
 
-**Validation metrics table** (for both training and eval — accumulate across val steps):
+**Validation metrics** (for both training and eval — accumulate across val steps):
 
-Only report metrics with the `p_` prefix. Do not include raw count metrics (`n_err`, `n_ref`, `wer`, etc.) or `reward/mean`.
-
-| Step | Dataset | p_err | p_edge | p_fmt | p_lang | p_bracket |
-|------|---------|-------|--------|-------|--------|-----------|
-| 0    | librispeech | 5.62% | 1.20% | 100.00% | 100.00% | 0.00% |
-| 10   | librispeech | 4.98% | 0.98% | 100.00% | 100.00% | 0.00% |
+Only report metrics with the `p_` prefix. Do not include raw count metrics (`n_err`, `n_ref`, `wer`, etc.) or `reward/mean`. All `p_` values are ratios (0–1 in logs); display as percentages (×100) with a `%` suffix on every number.
 
 Extract from validation log lines:
 - `val-aux/{data_source}/p_err/mean@1` → p_err
@@ -295,12 +290,34 @@ Extract from validation log lines:
 - `val-aux/{data_source}/p_lang/mean@1` → p_lang
 - `val-aux/{data_source}/p_bracket/mean@1` → p_bracket
 
-All `p_` values are ratios (0–1 in logs); display as percentages (×100).
+Report each `p_` metric in its own **separate table**:
+
+**p_err table** (primary — always show):
+
+| Step | Dataset | p_err |
+|------|---------|-------|
+| 0    | librispeech | 5.62% |
+| 10   | librispeech | 4.98% |
+
+**p_edge table** (separate — always show):
+
+| Step | Dataset | p_edge |
+|------|---------|--------|
+| 0    | librispeech | 1.20% |
+| 10   | librispeech | 0.98% |
+
+**Quality metrics table** (separate — show only if any value deviates from ideal, i.e. p_fmt < 100%, p_lang < 100%, or p_bracket > 0%):
+
+| Step | Dataset | p_fmt | p_lang | p_bracket |
+|------|---------|-------|--------|-----------|
+| 0    | librispeech | 99.50% | 99.80% | 0.10% |
+
+If all quality metrics are at their ideal values (p_fmt = 100%, p_lang = 100%, p_bracket = 0%) across all datasets, omit the quality metrics table and note: "Quality metrics nominal (p_fmt=100%, p_lang=100%, p_bracket=0% for all datasets)."
 
 **OpenASR-ML average rows**:
 - For `eval_openasr_ml`, always include the original per-dataset rows and add derived average rows grouped by language plus one overall row.
 - Infer language from dataset names: `de_*` → German, `fr_*` → French, `it_*` → Italian, `es_*` → Spanish, `pt_*` → Portuguese.
-- Compute average WER as a simple arithmetic mean of `p_err` across dataset rows in that language. Display as percent.
+- Compute average p_err as a simple arithmetic mean of `p_err` across dataset rows in that language. Display as percent with `%` suffix.
 - Compute average `p_edge` as a simple arithmetic mean across dataset rows in that language.
 - The overall average is a simple arithmetic mean across all active OpenASR-ML dataset rows observed for that eval step. Include only datasets present in the metrics; do not invent rows for disabled datasets.
 
