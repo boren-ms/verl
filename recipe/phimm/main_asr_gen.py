@@ -148,8 +148,9 @@ def main_task(config):
     left_egs = 0
     
     total_batches = len(dataloader)
-    wer_kwargs_raw = config.data.get("wer_kwargs", {})
-    wer_kwargs = OmegaConf.to_container(wer_kwargs_raw, resolve=True) if OmegaConf.is_config(wer_kwargs_raw) else (wer_kwargs_raw or {})
+    wer_kwargs = config.data.get("wer_kwargs", {})
+    if OmegaConf.is_config(wer_kwargs):
+        wer_kwargs = OmegaConf.to_container(wer_kwargs, resolve=True)
 
     batches = []
     tn_err = 0
