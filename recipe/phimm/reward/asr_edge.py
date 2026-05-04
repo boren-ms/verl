@@ -129,8 +129,9 @@ def acc_to_bucket(acc, n_buckets=10, lo=0.8, hi=1.0):
     return (n_buckets - 1) / n_buckets
 
 
-def measure(hyp, ref, **kwargs):
-    norm_name = kwargs.get("text_norm", "english")
+def measure(hyp, ref, tgt_lang="english", **kwargs):
+    default_norm = "openasr_en" if tgt_lang.lower() == "english" else "openasr_ml"
+    norm_name = kwargs.get("text_norm", default_norm)
     unit = kwargs.get("unit", "word")
     compound_norm = kwargs.get("compound_norm", False)
     ref_text = _norm_text(ref, norm_name=norm_name)
@@ -157,9 +158,9 @@ def _parse_response(solution_str, **kwargs):
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
-    hyp_text, _, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
+    hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
 
-    err = measure(hyp_text, ground_truth, **kwargs)
+    err = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, **kwargs)
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed
     gamma = kwargs.get("gamma", 1)
@@ -195,8 +196,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
-    hyp_text, _, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
-    err = measure(hyp_text, ground_truth, **kwargs)
+    hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
+    err = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, **kwargs)
 
     return {
         "score": err.accuracy(),
