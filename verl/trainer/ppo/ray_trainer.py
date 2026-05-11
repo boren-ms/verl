@@ -25,7 +25,7 @@ from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pprint import pprint
-from typing import Optional
+from typing import Any, Optional
 
 import blobfile as bf
 import numpy as np
@@ -544,7 +544,7 @@ class RayPPOTrainer:
         self.validation_generations_logger.log(self.config.trainer.logger, samples, self.global_steps)
 
     def _get_gen_batch(self, batch: DataProto) -> DataProto:
-        reward_model_keys = set({"data_source", "reward_model", "extra_info", "uid"}) & batch.non_tensor_batch.keys()
+        reward_model_keys = set({"data_source", "reward_model", "extra_info", "uid", "raw_prompt"}) & batch.non_tensor_batch.keys()
 
         # pop those keys for generation
         batch_keys_to_pop = ["input_ids", "attention_mask", "position_ids"]
@@ -559,6 +559,117 @@ class RayPPOTrainer:
             gen_batch.non_tensor_batch.update(batch.non_tensor_batch)
 
         return gen_batch
+
+    @staticmethod
+    def _collect_feedback(
+        include_environment_feedback: bool,
+        reward_extra_infos_dict: Optional[dict[str, Any]],
+        batch_size: int,
+    ) -> list[Any]:
+        feedback_list: list[Any] = [None] * batch_size
+        if include_environment_feedback and reward_extra_infos_dict is not None:
+            raw_feedback = reward_extra_infos_dict.get("feedback", [])
+            for i in range(min(len(raw_feedback), batch_size)):
+                if raw_feedback[i] and isinstance(raw_feedback[i], str) and raw_feedback[i].strip():
+                    feedback_list[i] = raw_feedback[i]
+        return feedback_list
+
+    def _maybe_build_self_distillation_batch(
+        self,
+        batch: DataProto,
+        reward_extra_infos_dict: Optional[dict[str, Any]],
+    ) -> dict[str, float]:
+        self_distillation_cfg = self.config.actor_rollout_ref.actor.get("self_distillation", None)
+        loss_mode = self.config.actor_rollout_ref.actor.policy_loss.get("loss_mode", "vanilla")
+        if self_distillation_cfg is None or loss_mode != "sdpo":
+            return {}
+        if not self_distillation_cfg.get("include_environment_feedback", False):
+            return {}
+
+        batch_size = batch.batch.batch_size[0]
+        feedback_list = self._collect_feedback(
+            include_environment_feedback=self_distillation_cfg.include_environment_feedback,
+            reward_extra_infos_dict=reward_extra_infos_dict,
+            batch_size=batch_size,
+        )
+        feedback_used = [feedback is not None for feedback in feedback_list]
+        self_distillation_mask = torch.tensor(
+            feedback_used,
+            dtype=torch.float32,
+            device=batch.batch["responses"].device,
+        )
+
+        if "raw_prompt" not in batch.non_tensor_batch:
+            raise ValueError(
+                "SDPO feedback reprompting requires data.return_raw_chat=true so raw_prompt is available."
+            )
+
+        raw_prompts = batch.non_tensor_batch["raw_prompt"]
+        messages = []
+        for i in range(batch_size):
+            prompt_messages = raw_prompts[i]
+            if isinstance(prompt_messages, np.ndarray):
+                prompt_messages = prompt_messages.tolist()
+            prompt_messages = [dict(message) for message in prompt_messages]
+            prompt_text = str(prompt_messages[-1].get("content", "")) if prompt_messages else ""
+            feedback_section = ""
+            if feedback_used[i]:
+                feedback_section = self_distillation_cfg.feedback_template.format(feedback_raw=feedback_list[i])
+            reprompt_text = (
+                self_distillation_cfg.reprompt_template.format(
+                    prompt=prompt_text,
+                    solution="",
+                    feedback=feedback_section,
+                )
+                if feedback_used[i]
+                else prompt_text
+            )
+
+            if prompt_messages:
+                teacher_messages = prompt_messages[:-1] + [
+                    {**prompt_messages[-1], "content": reprompt_text},
+                ]
+            else:
+                teacher_messages = [{"role": "user", "content": reprompt_text}]
+            messages.append(teacher_messages)
+
+        apply_chat_template_kwargs = dict(self.config.data.get("apply_chat_template_kwargs", {}) or {})
+        for reserved_key in (
+            "tokenize",
+            "return_tensors",
+            "return_dict",
+            "add_generation_prompt",
+            "padding",
+            "truncation",
+            "max_length",
+        ):
+            apply_chat_template_kwargs.pop(reserved_key, None)
+        teacher_prompt = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=True,
+            return_tensors="pt",
+            return_dict=True,
+            add_generation_prompt=True,
+            padding=True,
+            truncation=True,
+            max_length=self_distillation_cfg.max_reprompt_len,
+            **apply_chat_template_kwargs,
+        )
+        teacher_input_ids = teacher_prompt["input_ids"].to(batch.batch["responses"].device)
+        teacher_attention_mask = teacher_prompt.get("attention_mask", None)
+        if teacher_attention_mask is None:
+            teacher_attention_mask = teacher_input_ids.ne(self.tokenizer.pad_token_id).long()
+        else:
+            teacher_attention_mask = teacher_attention_mask.to(batch.batch["responses"].device)
+
+        batch.batch["teacher_prompt_input_ids"] = teacher_input_ids
+        batch.batch["teacher_prompt_attention_mask"] = teacher_attention_mask
+        batch.batch["self_distillation_mask"] = self_distillation_mask
+
+        return {
+            "self_distillation/feedback_available_fraction": sum(feedback_used) / max(batch_size, 1),
+            "self_distillation/reprompt_sample_fraction": self_distillation_mask.float().mean().item(),
+        }
 
     def _validate(self):
         data_source_lst = []
@@ -1193,6 +1304,12 @@ class RayPPOTrainer:
 
                         if reward_extra_infos_dict:
                             batch.non_tensor_batch.update({k: np.array(v) for k, v in reward_extra_infos_dict.items()})
+
+                        sdpo_reprompt_metrics = self._maybe_build_self_distillation_batch(
+                            batch=batch,
+                            reward_extra_infos_dict=reward_extra_infos_dict,
+                        )
+                        metrics.update(sdpo_reprompt_metrics)
 
                         # compute rewards. apply_kl_penalty if available
                         if self.config.algorithm.use_kl_in_reward:

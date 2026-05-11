@@ -15,6 +15,8 @@ custom_reward_function:
   reward_kwargs:
     gamma: 0.1
     unit: word
+    feedback_max_words: 96
+    feedback_dedupe_words: true
 
 val_reward:
   custom_reward_function:
@@ -29,7 +31,7 @@ actor_rollout_ref:
     calculate_log_probs: True
     use_rollout_log_probs_as_old: false
     val_kwargs:
-      n: 16
+      n: 1
   actor:
     tis_imp_ratio_cap: -1
     ppo_micro_batch_size_per_gpu: 8
@@ -44,6 +46,10 @@ actor_rollout_ref:
       teacher_regularization: ema
       teacher_update_rate: 0.05
       is_clip: 2.0
+      include_environment_feedback: true
+      environment_feedback_only_without_solution: true
+      reprompt_template: "{prompt} {feedback}"
+      feedback_template: "Pay addtional attention to the following words or phrases : {feedback_raw}"
     optim:
       lr: 1e-5
       lr_warmup_steps: 10
@@ -59,8 +65,9 @@ algorithm:
 
 data:
   train_batch_size: 32
+  return_raw_chat: true
   sdpo_teacher:
-    enable: true
+    enable: false
     max_words: 96
     dedupe_words: true
 

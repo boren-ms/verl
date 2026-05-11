@@ -96,6 +96,24 @@ def _count_ops(ref_words, hyp_words):
     return err
 
 
+def _wrong_ref_units(ref_units, hyp_units, *, dedupe=True, max_units=None):
+    wrong_units = []
+    seen = set()
+    sm = SequenceMatcher(a=ref_units, b=hyp_units, autojunk=False)
+    for tag, i1, i2, _, _ in sm.get_opcodes():
+        if tag not in {"replace", "delete"}:
+            continue
+        for unit in ref_units[i1:i2]:
+            key = unit.lower()
+            if dedupe and key in seen:
+                continue
+            seen.add(key)
+            wrong_units.append(unit)
+            if max_units is not None and len(wrong_units) >= max_units:
+                return wrong_units
+    return wrong_units
+
+
 def _split_units(text, unit="word"):
     if unit.lower() in {"word", "words"}:
         return text.split()
@@ -143,6 +161,27 @@ def measure(hyp, ref, tgt_lang="english", **kwargs):
     return _count_ops(ref_units, hyp_units)
 
 
+def collect_wrong_ref_words(hyp, ref, tgt_lang="english", **kwargs):
+    """Return reference words that were substituted or deleted by the hypothesis."""
+    default_norm = "openasr_en" if tgt_lang.lower() == "english" else "openasr_ml"
+    norm_name = kwargs.get("text_norm", default_norm)
+    unit = kwargs.get("unit", "word")
+    compound_norm = kwargs.get("compound_norm", False)
+    ref_text = _norm_text(ref, norm_name=norm_name)
+    hyp_text = _norm_text(hyp, norm_name=norm_name)
+    if compound_norm:
+        [ref_text], [hyp_text] = normalize_compound_pairs([ref_text], [hyp_text])
+    ref_units = _split_units(ref_text, unit=unit)
+    hyp_units = _split_units(hyp_text, unit=unit)
+    wrong_units = _wrong_ref_units(
+        ref_units,
+        hyp_units,
+        dedupe=kwargs.get("feedback_dedupe_words", True),
+        max_units=kwargs.get("feedback_max_words", None),
+    )
+    return ", ".join(wrong_units)
+
+
 def _parse_response(solution_str, **kwargs):
     """Shared parsing: extract target language, parse ASR response, check lang/format."""
     extra_info = kwargs.get("extra_info") or {}
@@ -161,6 +200,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
 
     err = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, **kwargs)
+    feedback = collect_wrong_ref_words(hyp_text, ground_truth, tgt_lang=tgt_lang, **kwargs)
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed
     gamma = kwargs.get("gamma", 1)
@@ -191,6 +231,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "p_fmt": float(is_fmt),
         "p_lang": float(is_lang),
         "p_bracket": float(p_bracket),
+        "feedback": feedback,
     }
 
 
