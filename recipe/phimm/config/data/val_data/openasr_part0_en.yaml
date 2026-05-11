@@ -7,7 +7,7 @@
       src_part: "audio/"
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
   add_task_info:
-    task: en_asr
+    task: lang_asr_en
     forced: True
   post_process:
     add_field:
@@ -25,7 +25,7 @@
       src_part: "audio/"
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
   add_task_info:
-    task: en_asr
+    task: lang_asr_en
     forced: True
   post_process:
     add_field:
@@ -43,7 +43,7 @@
       src_part: "audio/"
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
   add_task_info:
-    task: en_asr
+    task: lang_asr_en
     forced: True
   post_process:
     add_field:
