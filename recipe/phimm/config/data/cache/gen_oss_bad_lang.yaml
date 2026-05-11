@@ -1,7 +1,7 @@
 source_config:
   dataset_name: parquet
   parquet_paths:
-    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp/part-*.parquet
+    # - az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_cv15_en_wer01/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_earning_wer01/part-*.parquet
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_en_rp_edge/part-*.parquet
