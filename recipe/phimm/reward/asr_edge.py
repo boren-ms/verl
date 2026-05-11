@@ -165,7 +165,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     metric = kwargs.get("metric", "acc")  # wer, acc, ed
     gamma = kwargs.get("gamma", 1)
 
-    is_good = is_lang and is_fmt and not p_bracket
+    is_good = is_fmt and not p_bracket # skip lang check, due to inaccurate lang tag#
 
     if metric == "wer":
         wer = err.wer(**betas)
