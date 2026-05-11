@@ -4,6 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_asr
+  - data/val_data/bias_entity_ls
   - _self_
 
 actor_rollout_ref:

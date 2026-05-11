@@ -9,15 +9,6 @@ defaults:
   - _self_
 
 actor_rollout_ref:
-  rollout:
-    n: 8
   model:
     path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
 
-data:
-  max_prompt_length: 8192 # requred by 7b model
-
-trainer:
-  val_only: True
-  n_gpus_per_node: 1
-  nnodes: 1

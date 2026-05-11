@@ -4,8 +4,9 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_asr
+  - data/val_data/bias_entity_ls
   - _self_
 
 actor_rollout_ref:
   model:
-    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/phi-libri_ft_m1000_p8_new-QpHq/5000_hf
+    path: az://orngwus2cresco/data/boren/outputs/grpo_ls_m1000_seed_e2_simple_err_t12_n8_bp8_imp5_ref_sc1k_char_bias5_smp2a_G2x8/checkpoint-4380/
