@@ -185,7 +185,7 @@ def collect_wrong_ref_words(hyp, ref, tgt_lang="english", **kwargs):
 def _parse_response(solution_str, **kwargs):
     """Shared parsing: extract target language, parse ASR response, check lang/format."""
     extra_info = kwargs.get("extra_info") or {}
-    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower()
+    tgt_lang = (extra_info.get("language") or kwargs.get("language") or "English").lower()
     trans_dict = parse_asr_response(solution_str)
     hyp_text = trans_dict["text"]
     pred_lang = (trans_dict["lang"] or "").lower()

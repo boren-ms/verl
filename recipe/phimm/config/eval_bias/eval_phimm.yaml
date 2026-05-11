@@ -5,7 +5,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - dapo_asr
+  - eval_asr
   - data/val_data/ls_bias
   - _self_
 
