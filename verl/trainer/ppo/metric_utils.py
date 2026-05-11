@@ -339,11 +339,24 @@ def bootstrap_metric(
         [(3.0, 0.5), (4.5, 0.3)]  # Example values
     """
     np.random.seed(seed)
+    bootstrap_idxs = np.random.choice(len(data), size=(n_bootstrap, subset_size), replace=True)
+
+    data_arr = np.asarray(data)
+    numeric_reducers = {
+        np.mean: lambda sample_arr: np.mean(sample_arr, axis=1),
+        np.max: lambda sample_arr: np.max(sample_arr, axis=1),
+        np.min: lambda sample_arr: np.min(sample_arr, axis=1),
+        np.sum: lambda sample_arr: np.sum(sample_arr, axis=1),
+        np.std: lambda sample_arr: np.std(sample_arr, axis=1),
+    }
+    fast_reducers = [numeric_reducers.get(reduce_fn) for reduce_fn in reduce_fns]
+    if np.issubdtype(data_arr.dtype, np.number) and all(reducer is not None for reducer in fast_reducers):
+        bootstrap_data = data_arr[bootstrap_idxs]
+        return [(np.mean(values), np.std(values)) for values in (reducer(bootstrap_data) for reducer in fast_reducers)]
 
     bootstrap_metric_lsts = [[] for _ in range(len(reduce_fns))]
-    for _ in range(n_bootstrap):
-        bootstrap_idxs = np.random.choice(len(data), size=subset_size, replace=True)
-        bootstrap_data = [data[i] for i in bootstrap_idxs]
+    for bootstrap_idx in bootstrap_idxs:
+        bootstrap_data = [data[i] for i in bootstrap_idx]
         for i, reduce_fn in enumerate(reduce_fns):
             bootstrap_metric_lsts[i].append(reduce_fn(bootstrap_data))
     return [(np.mean(lst), np.std(lst)) for lst in bootstrap_metric_lsts]
@@ -386,7 +399,7 @@ def calc_maj_val(data: list[dict[str, Any]], vote_key: str, val_key: str) -> flo
 
 
 def update_var2metric2val(var2metric2val: dict[str, dict[str, float]]):
-    output = var2metric2val.copy()
+    output = defaultdict(dict, {var_name: metric2val.copy() for var_name, metric2val in var2metric2val.items()})
     prefixs = {"n_": "p_", "nb_": "pb_", "nu_": "pu_"}
     remove_vars = set()
     for n_pfx, p_pfx in prefixs.items():

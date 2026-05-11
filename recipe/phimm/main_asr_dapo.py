@@ -140,8 +140,17 @@ class TaskRunner:
 
         from verl.trainer.ppo.ray_trainer import ResourcePoolManager, Role
 
+        loss_mode = config.actor_rollout_ref.actor.policy_loss.get("loss_mode", "vanilla")
+        self_distillation_cfg = config.actor_rollout_ref.actor.get("self_distillation", None)
+        use_sdpo_teacher = loss_mode == "sdpo" and self_distillation_cfg is not None
+        if use_sdpo_teacher:
+            if config.algorithm.use_kl_in_reward or config.actor_rollout_ref.actor.use_kl_loss:
+                raise ValueError("SDPO cannot share the reference-policy slot with KL regularization.")
+            if config.actor_rollout_ref.actor.strategy not in {"fsdp", "fsdp2"}:
+                raise ValueError("PHIMM SDPO currently supports FSDP/FSDP2 actor strategy only.")
+        actor_role = Role.ActorRolloutRef if use_sdpo_teacher else Role.ActorRollout
         role_worker_mapping = {
-            Role.ActorRollout: ray.remote(ActorRolloutRefWorker),
+            actor_role: ray.remote(ActorRolloutRefWorker),
             Role.Critic: ray.remote(CriticWorker),
         }
 
@@ -150,7 +159,7 @@ class TaskRunner:
             global_pool_id: [config.trainer.n_gpus_per_node] * config.trainer.nnodes,
         }
         mapping = {
-            Role.ActorRollout: global_pool_id,
+            actor_role: global_pool_id,
             Role.Critic: global_pool_id,
         }
 

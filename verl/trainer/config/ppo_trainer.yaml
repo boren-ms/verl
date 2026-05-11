@@ -113,6 +113,18 @@ algorithm:
     # Power used for weight scaling in "pow" method
     weight_pow: 2.0
 
+  # Optional rollout-policy importance sampling correction.
+  rollout_correction:
+
+    # Required when using verl.utils.omega_conf_to_dataclass to instantiate dataclass configs
+    _target_: verl.trainer.config.RolloutCorrectionConfig
+
+    # Importance sampling granularity. Set to "token" to enable token-level weights.
+    rollout_is: null
+
+    # Upper clipping threshold for rollout importance sampling weights.
+    rollout_is_threshold: 2.0
+
 # config for the trainer
 trainer:
 

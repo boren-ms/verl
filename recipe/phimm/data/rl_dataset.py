@@ -1,4 +1,5 @@
 import logging
+import re
 from collections.abc import Sequence
 from typing import Optional
 
@@ -12,6 +13,7 @@ from transformers import PreTrainedTokenizer, ProcessorMixin
 import verl.utils.torch_functional as verl_F
 from verl.utils.model import compute_position_id_with_mask
 from recipe.phimm.data.dataset import create_audio_dataset, get_num_proc
+from recipe.phimm.data.prompts import build_sdpo_ground_truth_bias_prompt
 from recipe.phimm.utils.audio import load_audio
 
 logger = logging.getLogger(__name__)
@@ -77,6 +79,11 @@ class RLHFDataset(Dataset):
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
         self.return_multi_modal_inputs = config.get("return_multi_modal_inputs", True)
+        self.sdpo_teacher_config = config.get("sdpo_teacher", {})
+        self.sdpo_teacher_enabled = bool(self.sdpo_teacher_config.get("enable", False))
+        self.sdpo_teacher_max_words = self.sdpo_teacher_config.get("max_words", 96)
+        self.sdpo_teacher_dedupe_words = bool(self.sdpo_teacher_config.get("dedupe_words", True))
+        self.sdpo_teacher_max_prompt_length = self.sdpo_teacher_config.get("max_prompt_length", self.max_prompt_length)
         self.ds = self.load_datasets()
 
     def load_datasets(self):
@@ -92,6 +99,74 @@ class RLHFDataset(Dataset):
 
     def __len__(self):
         return len(self.ds)
+
+    @staticmethod
+    def _get_ground_truth(row_dict):
+        reward_model = row_dict.get("reward_model") or {}
+        return reward_model.get("ground_truth") or reward_model.get("gt_output") or row_dict.get("text", "")
+
+    def _extract_bias_words(self, transcription):
+        words = re.findall(r"[\w']+", str(transcription or ""))
+        if self.sdpo_teacher_dedupe_words:
+            seen = set()
+            deduped = []
+            for word in words:
+                key = word.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                deduped.append(word)
+            words = deduped
+        if self.sdpo_teacher_max_words and self.sdpo_teacher_max_words > 0:
+            words = words[: self.sdpo_teacher_max_words]
+        return ", ".join(words)
+
+    @staticmethod
+    def _replace_audio_prompt(content, teacher_prompt):
+        match = re.search(r"<\|audio_\d+\|>", content)
+        if match is None:
+            return teacher_prompt
+        return f"{content[: match.end()]}{teacher_prompt}"
+
+    def _build_sdpo_teacher_raw_prompt(self, messages, ground_truth):
+        if not messages:
+            return build_sdpo_ground_truth_bias_prompt(self._extract_bias_words(ground_truth))
+        teacher_messages = [dict(message) for message in messages]
+        last_message = dict(teacher_messages[-1])
+        content = str(last_message.get("content", ""))
+        bias_words = self._extract_bias_words(ground_truth)
+        teacher_prompt = build_sdpo_ground_truth_bias_prompt(bias_words)
+        last_message["content"] = self._replace_audio_prompt(content, teacher_prompt)
+        teacher_messages[-1] = last_message
+        return self.processor.apply_chat_template(
+            teacher_messages,
+            add_generation_prompt=True,
+            tokenize=False,
+            **self.apply_chat_template_kwargs,
+        )
+
+    def _add_sdpo_teacher_prompt(self, row_dict, messages, audios):
+        ground_truth = self._get_ground_truth(row_dict)
+        teacher_raw_prompt = self._build_sdpo_teacher_raw_prompt(messages, ground_truth)
+        teacher_model_inputs = self.processor(text=[teacher_raw_prompt], audios=audios, return_tensors="pt")
+        teacher_input_ids = teacher_model_inputs.pop("input_ids")
+        teacher_attention_mask = teacher_model_inputs.pop("attention_mask")
+        teacher_input_ids, teacher_attention_mask = verl_F.postprocess_data(
+            input_ids=teacher_input_ids,
+            attention_mask=teacher_attention_mask,
+            max_length=self.sdpo_teacher_max_prompt_length,
+            pad_token_id=self.tokenizer.pad_token_id,
+            left_pad=True,
+            truncation=self.truncation,
+        )
+        row_dict["teacher_prompt_input_ids"] = teacher_input_ids[0]
+        row_dict["teacher_prompt_attention_mask"] = teacher_attention_mask[0]
+        row_dict["self_distillation_mask"] = torch.tensor(
+            float(bool(self._extract_bias_words(ground_truth))),
+            dtype=torch.float32,
+        )
+        if self.sdpo_teacher_config.get("return_teacher_prompt", False):
+            row_dict["teacher_raw_prompt"] = teacher_raw_prompt
 
     def __getitem__(self, i):
         """
@@ -140,6 +215,8 @@ class RLHFDataset(Dataset):
         row_dict["input_ids"] = input_ids[0]
         row_dict["attention_mask"] = attention_mask[0]
         row_dict["position_ids"] = position_ids[0]
+        if self.is_training and self.sdpo_teacher_enabled:
+            self._add_sdpo_teacher_prompt(row_dict, messages, audios)
 
         raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
         row_dict["raw_prompt_ids"] = raw_prompt_ids

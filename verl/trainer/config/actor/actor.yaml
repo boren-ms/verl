@@ -47,7 +47,7 @@ policy_loss:
   # # Required when using verl.utils.omega_conf_to_dataclass to instantiate dataclass configs
   _target_: verl.workers.config.PolicyLossConfig
 
-  # Loss function mode: vanilla / clip-cov / kl-cov /gpg from https://arxiv.org/abs/2505.22617
+  # Loss function mode: vanilla / clip-cov / kl-cov / gpg from https://arxiv.org/abs/2505.22617 / sdpo
   loss_mode: "vanilla"
 
   # Ratio of tokens to be clipped for clip-cov loss
@@ -136,7 +136,7 @@ optim:
 # Whether to use custom fused kernels (e.g., FlashAttention, fused MLP)
 use_fused_kernels: ${oc.select:actor_rollout_ref.model.use_fused_kernels,false}
 
-# profile the actor model in `update_policy` 
+# profile the actor model in `update_policy`
 profiler:
 
   # Required when using verl.utils.omega_conf_to_dataclass to instantiate dataclass configs
@@ -148,7 +148,7 @@ profiler:
 
   # whether enable profile on Actor
   enable: False
-  
+
   # Whether to profile all ranks.
   all_ranks: False
 
@@ -166,10 +166,10 @@ profiler:
 
       # Required when using verl.utils.omega_conf_to_dataclass to instantiate dataclass configs
       _target_: verl.utils.profiler.config.NsightToolConfig
-    
+
       # True for each task has its own database, False for all tasks in one training step share one database.
       discrete: ${oc.select:global_profiler.global_tool_config.nsys.discrete}
-    
+
     # npu config
     npu:
 
@@ -188,7 +188,7 @@ profiler:
 
       # True for each task has its own database, False for all tasks in one training step share one database.
       discrete: False
-    
+
     # torch profiler config
     torch:
 
@@ -214,3 +214,74 @@ profiler:
 
       # Stack trace depth for memory allocations
       stack_depth: ${oc.select:global_profiler.global_tool_config.torch_memory.stack_depth,32}
+
+# self-distillation config
+self_distillation:
+
+  # Required when using verl.utils.omega_conf_to_dataclass to instantiate dataclass configs
+  _target_: verl.workers.config.SelfDistillationConfig
+
+  # Whether to use full-logit KL distillation
+  full_logit_distillation: True
+
+  # KL interpolation coefficient: 0.0=forward KL, 1.0=reverse KL, in-between=JSD
+  alpha: 0.0
+
+  # Minimum sequence reward to be considered successful
+  success_reward_threshold: 1.0
+
+  # Teacher regularization mode: ema, trust_region, or none
+  teacher_regularization: ema
+
+  # Teacher update/mixing rate in [0, 1]; null falls back to ema_update_rate
+  teacher_update_rate: null
+
+  # Deprecated alias for teacher_update_rate
+  ema_update_rate: 0.05
+
+  # Top-k for logit distillation; null uses full logits
+  distillation_topk: 100
+
+  # Whether to add a tail bucket when using distillation_topk
+  distillation_add_tail: True
+
+  # Maximum length of the reprompted prompt
+  max_reprompt_len: 10240
+
+  # Truncation method for reprompted prompts: left or right
+  reprompt_truncation: right
+
+  # Whether to skip reprompting samples that already succeeded
+  dont_reprompt_on_self_success: False
+
+  # Whether to remove <think>...</think> tags from successful demonstrations
+  remove_thinking_from_demonstration: False
+
+  # Importance-sampling clip for SDPO loss; null disables it
+  is_clip: null
+
+  # Reprompt template
+  reprompt_template: |-
+    {prompt}{solution}{feedback}
+
+    Correctly solve the original question.
+
+  # Solution template
+  solution_template: |-
+
+    Correct solution:
+
+    {successful_previous_attempt}
+
+  # Feedback template
+  feedback_template: |-
+
+    The following is feedback from your unsuccessful earlier attempt:
+
+    {feedback_raw}
+
+  # Whether to include environment feedback when reprompting
+  include_environment_feedback: False
+
+  # Whether feedback is only used when no successful solution is available
+  environment_feedback_only_without_solution: False

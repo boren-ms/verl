@@ -17,7 +17,7 @@ from typing import Any, Optional
 
 from verl.base_config import BaseConfig
 
-__all__ = ["AlgoConfig", "FilterGroupsConfig", "KLControlConfig"]
+__all__ = ["AlgoConfig", "FilterGroupsConfig", "KLControlConfig", "RolloutCorrectionConfig"]
 
 
 @dataclass
@@ -57,6 +57,14 @@ class FilterGroupsConfig(BaseConfig):
 
 
 @dataclass
+class RolloutCorrectionConfig(BaseConfig):
+    """Configuration for rollout-policy importance sampling correction."""
+
+    rollout_is: Optional[str] = None
+    rollout_is_threshold: float = 2.0
+
+
+@dataclass
 class AlgoConfig(BaseConfig):
     """Configuration for the algorithm.
 
@@ -87,3 +95,4 @@ class AlgoConfig(BaseConfig):
     use_pf_ppo: bool = False
     pf_ppo: dict[str, Any] = field(default_factory=dict)
     filter_groups: Optional[FilterGroupsConfig] = None
+    rollout_correction: Optional[RolloutCorrectionConfig] = None

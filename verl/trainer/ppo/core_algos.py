@@ -26,12 +26,12 @@ from typing import Any, Callable, Optional
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from omegaconf import DictConfig
 
 import verl.utils.torch_functional as verl_F
 from verl.trainer.config import AlgoConfig
 from verl.utils.import_utils import deprecated
-from verl.workers.config import ActorConfig
 
 PolicyLossFn = Callable[
     [
@@ -822,6 +822,144 @@ def agg_loss(loss_mat: torch.Tensor, loss_mask: torch.Tensor, loss_agg_mode: str
     return loss
 
 
+def compute_self_distillation_loss(
+    student_log_probs: torch.Tensor,
+    teacher_log_probs: torch.Tensor,
+    response_mask: torch.Tensor,
+    self_distillation_config: Any,
+    old_log_probs: Optional[torch.Tensor] = None,
+    student_all_log_probs: Optional[torch.Tensor] = None,
+    teacher_all_log_probs: Optional[torch.Tensor] = None,
+    student_topk_log_probs: Optional[torch.Tensor] = None,
+    teacher_topk_log_probs: Optional[torch.Tensor] = None,
+    self_distillation_mask: Optional[torch.Tensor] = None,
+    loss_agg_mode: str = "token-mean",
+    rollout_is_weights: Optional[torch.Tensor] = None,
+) -> tuple[torch.Tensor, dict[str, Any]]:
+    """Compute the SDPO distillation loss for actor updates."""
+
+    loss_mask = response_mask
+    if self_distillation_mask is not None:
+        loss_mask = loss_mask * self_distillation_mask.unsqueeze(1).to(dtype=loss_mask.dtype, device=loss_mask.device)
+
+    distill_variant = "rkl_token"
+    kl_type_code = 3.0
+    if self_distillation_config.full_logit_distillation:
+        use_topk = self_distillation_config.distillation_topk is not None
+        distill_variant = "full_logit_topk" if use_topk else "full_logit_all"
+        if use_topk:
+            if student_topk_log_probs is None or teacher_topk_log_probs is None:
+                raise ValueError("top-k distillation requires student_topk_log_probs and teacher_topk_log_probs.")
+
+            def add_tail(log_probs: torch.Tensor) -> torch.Tensor:
+                log_s = torch.logsumexp(log_probs, dim=-1, keepdim=True).clamp(max=-1e-7)
+                tail_log = torch.log(-torch.expm1(log_s))
+                return torch.cat([log_probs, tail_log], dim=-1)
+
+            def renorm_topk_log_probs(log_probs: torch.Tensor) -> torch.Tensor:
+                return log_probs - torch.logsumexp(log_probs, dim=-1, keepdim=True)
+
+            student_distill_log_probs = student_topk_log_probs
+            teacher_distill_log_probs = teacher_topk_log_probs
+            if self_distillation_config.distillation_add_tail:
+                student_distill_log_probs = add_tail(student_distill_log_probs)
+                teacher_distill_log_probs = add_tail(teacher_distill_log_probs)
+            else:
+                student_distill_log_probs = renorm_topk_log_probs(student_distill_log_probs)
+                teacher_distill_log_probs = renorm_topk_log_probs(teacher_distill_log_probs)
+        else:
+            if student_all_log_probs is None or teacher_all_log_probs is None:
+                raise ValueError("full_logit_distillation requires student_all_log_probs and teacher_all_log_probs.")
+            student_distill_log_probs = student_all_log_probs
+            teacher_distill_log_probs = teacher_all_log_probs
+
+        alpha = float(self_distillation_config.alpha)
+        if alpha == 0.0:
+            kl_type_code = 0.0
+            kl_loss = F.kl_div(student_distill_log_probs, teacher_distill_log_probs, reduction="none", log_target=True)
+        elif alpha == 1.0:
+            kl_type_code = 1.0
+            kl_loss = F.kl_div(teacher_distill_log_probs, student_distill_log_probs, reduction="none", log_target=True)
+        else:
+            kl_type_code = 2.0
+            alpha_t = torch.tensor(
+                alpha,
+                dtype=student_distill_log_probs.dtype,
+                device=student_distill_log_probs.device,
+            )
+            mixture_log_probs = torch.logsumexp(
+                torch.stack(
+                    [
+                        student_distill_log_probs + torch.log1p(-alpha_t),
+                        teacher_distill_log_probs + torch.log(alpha_t),
+                    ]
+                ),
+                dim=0,
+            )
+            kl_teacher = F.kl_div(mixture_log_probs, teacher_distill_log_probs, reduction="none", log_target=True)
+            kl_student = F.kl_div(mixture_log_probs, student_distill_log_probs, reduction="none", log_target=True)
+            kl_loss = torch.lerp(kl_student, kl_teacher, alpha_t)
+
+        per_token_loss = kl_loss.sum(-1)
+    else:
+        if float(self_distillation_config.alpha) != 1.0:
+            raise ValueError("Only reverse KL (alpha=1.0) is supported for token-level SDPO distillation.")
+        log_ratio = student_log_probs - teacher_log_probs
+        per_token_loss = log_ratio.detach() * student_log_probs
+
+    is_clip = self_distillation_config.is_clip
+    if is_clip is not None:
+        if old_log_probs is None:
+            raise ValueError("old_log_probs is required for SDPO distillation IS clipping.")
+        negative_approx_kl = (student_log_probs - old_log_probs).detach().clamp(min=-20.0, max=20.0)
+        per_token_loss = per_token_loss * torch.exp(negative_approx_kl).clamp(max=float(is_clip))
+
+    if rollout_is_weights is not None:
+        per_token_loss = per_token_loss * rollout_is_weights
+
+    loss = agg_loss(loss_mat=per_token_loss, loss_mask=loss_mask, loss_agg_mode=loss_agg_mode)
+    metrics = {
+        "self_distillation/loss": loss.detach().item(),
+        "self_distillation/alpha": float(self_distillation_config.alpha),
+        "self_distillation/full_logit_distillation": float(self_distillation_config.full_logit_distillation),
+        "self_distillation/use_topk": float(self_distillation_config.distillation_topk is not None),
+        "self_distillation/topk_value": float(self_distillation_config.distillation_topk or 0),
+        "self_distillation/mask_fraction": loss_mask.float().mean().item(),
+        "self_distillation/variant_code": {
+            "full_logit_all": 0.0,
+            "full_logit_topk": 1.0,
+            "rkl_token": 3.0,
+        }[distill_variant],
+        "self_distillation/kl_type_code": kl_type_code,
+        "self_distillation/is_clip": float(is_clip) if is_clip is not None else -1.0,
+    }
+    return loss, metrics
+
+
+def compute_token_level_rollout_is_weights(
+    old_log_probs: torch.Tensor,
+    rollout_log_probs: torch.Tensor,
+    response_mask: torch.Tensor,
+    threshold: float = 2.0,
+) -> tuple[torch.Tensor, dict[str, float]]:
+    """Compute clipped token-level IS weights between the old and rollout policies."""
+
+    if threshold <= 0:
+        raise ValueError(f"rollout_is_threshold must be positive, got {threshold}")
+    log_ratio = (old_log_probs - rollout_log_probs).detach().clamp(min=-20.0, max=20.0)
+    weights = torch.exp(log_ratio).clamp(max=float(threshold))
+    weights = weights * response_mask.to(dtype=weights.dtype, device=weights.device)
+    metrics = {
+        "rollout_corr/is_weight_mean": verl_F.masked_mean(weights, response_mask).item(),
+        "rollout_corr/is_weight_max": weights.masked_fill(response_mask == 0, float("-inf")).max().item(),
+        "rollout_corr/is_weight_min": weights.masked_fill(response_mask == 0, float("inf")).min().item(),
+        "rollout_corr/is_clip_fraction": verl_F.masked_mean(
+            (weights >= float(threshold)).to(dtype=response_mask.dtype), response_mask
+        ).item(),
+    }
+    return weights, metrics
+
+
 @deprecated("verl.trainer.ppo.core_algos.compute_policy_loss_vanilla")
 def compute_policy_loss(
     old_log_prob,
@@ -994,7 +1132,7 @@ def compute_policy_loss_gspo(
     advantages: torch.Tensor,
     response_mask: torch.Tensor,
     loss_agg_mode: str = "seq-mean-token-mean",
-    config: Optional[DictConfig | ActorConfig] = None,
+    config: Optional[DictConfig | Any] = None,
     rollout_log_probs: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
@@ -1016,6 +1154,8 @@ def compute_policy_loss_gspo(
     """
 
     assert config is not None
+    from verl.workers.config.actor import ActorConfig
+
     assert isinstance(config, ActorConfig)
     clip_ratio_low = config.clip_ratio_low if config.clip_ratio_low is not None else config.clip_ratio
     clip_ratio_high = config.clip_ratio_high if config.clip_ratio_high is not None else config.clip_ratio

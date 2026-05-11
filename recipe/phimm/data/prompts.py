@@ -233,3 +233,15 @@ LANG_ASR_PROMPTS = [
 LANG_ASR_LEX_PROMPTS = [
     "Detect the language and transcribe the audio clip into text. Output must be in lexical format.",
 ]
+
+
+SDPO_GT_BIAS_TEMPLATE = "Pay addtional attention to the following words or phrases : {words}"
+
+
+def build_sdpo_ground_truth_bias_prompt(words, base_prompt=None):
+    """Build the PHIMM SDPO teacher prompt from ground-truth transcription words."""
+    base_prompt = base_prompt or LANG_ASR_PROMPTS[0]
+    words = str(words or "").strip()
+    if not words:
+        return base_prompt
+    return f"{base_prompt} {SDPO_GT_BIAS_TEMPLATE.format(words=words)}"

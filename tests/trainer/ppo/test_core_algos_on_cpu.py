@@ -14,12 +14,20 @@
 
 import random
 import unittest
+from types import SimpleNamespace
 
 import pytest
 import torch
+import torch.nn.functional as F
 
 import verl.trainer.ppo.core_algos
-from verl.trainer.ppo.core_algos import compute_gae_advantage_return, get_adv_estimator_fn, register_adv_est
+from verl.trainer.ppo.core_algos import (
+    compute_gae_advantage_return,
+    compute_self_distillation_loss,
+    compute_token_level_rollout_is_weights,
+    get_adv_estimator_fn,
+    register_adv_est,
+)
 
 
 def mock_test_fn():
@@ -186,6 +194,107 @@ def test_multi_turn_compute_gae_advantage_return():
     assert torch.equal(adv1, adv2), f"{adv1=}, {adv2=}"
     assert torch.equal(ret1, ret2), f"{ret1=}, {ret2=}"
     print(f" [CORRECT] \n\n{adv1=}, \n\n{ret1=}")
+
+
+def test_compute_self_distillation_loss_token_masking():
+    cfg = SimpleNamespace(
+        full_logit_distillation=False,
+        alpha=1.0,
+        distillation_topk=None,
+        distillation_add_tail=True,
+        is_clip=None,
+    )
+    student_log_probs = torch.tensor([[-0.3, -0.5, -0.7], [-0.4, -0.6, -0.8]])
+    teacher_log_probs = torch.tensor([[-0.2, -0.8, -0.6], [-0.5, -0.5, -0.7]])
+    response_mask = torch.tensor([[1.0, 1.0, 0.0], [1.0, 1.0, 1.0]])
+    self_distillation_mask = torch.tensor([1.0, 0.0])
+
+    loss, metrics = compute_self_distillation_loss(
+        student_log_probs=student_log_probs,
+        teacher_log_probs=teacher_log_probs,
+        response_mask=response_mask,
+        self_distillation_config=cfg,
+        self_distillation_mask=self_distillation_mask,
+    )
+
+    per_token = (student_log_probs - teacher_log_probs).detach() * student_log_probs
+    expected_mask = response_mask * self_distillation_mask.unsqueeze(1)
+    expected = (per_token * expected_mask).sum() / expected_mask.sum()
+    assert torch.allclose(loss, expected)
+    assert metrics["self_distillation/variant_code"] == 3.0
+    assert metrics["self_distillation/mask_fraction"] == expected_mask.mean().item()
+
+
+def test_compute_self_distillation_loss_full_logits_zero_when_equal():
+    cfg = SimpleNamespace(
+        full_logit_distillation=True,
+        alpha=0.5,
+        distillation_topk=None,
+        distillation_add_tail=True,
+        is_clip=None,
+    )
+    logits = torch.randn(2, 3, 5)
+    log_probs = F.log_softmax(logits, dim=-1)
+    response_mask = torch.ones(2, 3)
+    token_log_probs = torch.zeros(2, 3)
+
+    loss, metrics = compute_self_distillation_loss(
+        student_log_probs=token_log_probs,
+        teacher_log_probs=token_log_probs,
+        response_mask=response_mask,
+        self_distillation_config=cfg,
+        student_all_log_probs=log_probs,
+        teacher_all_log_probs=log_probs,
+    )
+
+    assert torch.allclose(loss, torch.zeros_like(loss), atol=1e-6)
+    assert metrics["self_distillation/variant_code"] == 0.0
+    assert metrics["self_distillation/kl_type_code"] == 2.0
+
+
+def test_compute_self_distillation_loss_topk_alpha_half():
+    cfg = SimpleNamespace(
+        full_logit_distillation=True,
+        alpha=0.5,
+        distillation_topk=2,
+        distillation_add_tail=True,
+        is_clip=None,
+    )
+    student_topk = torch.log(torch.tensor([[[0.6, 0.2], [0.5, 0.3]]]))
+    teacher_topk = torch.log(torch.tensor([[[0.4, 0.4], [0.2, 0.6]]]))
+    response_mask = torch.tensor([[1.0, 0.0]])
+    token_log_probs = torch.zeros(1, 2)
+
+    loss, metrics = compute_self_distillation_loss(
+        student_log_probs=token_log_probs,
+        teacher_log_probs=token_log_probs,
+        response_mask=response_mask,
+        self_distillation_config=cfg,
+        student_topk_log_probs=student_topk,
+        teacher_topk_log_probs=teacher_topk,
+    )
+
+    assert torch.isfinite(loss)
+    assert loss.item() > 0
+    assert metrics["self_distillation/variant_code"] == 1.0
+    assert metrics["self_distillation/kl_type_code"] == 2.0
+
+
+def test_compute_token_level_rollout_is_weights_clips_by_threshold():
+    old_log_probs = torch.log(torch.tensor([[4.0, 1.0, 0.5]]))
+    rollout_log_probs = torch.log(torch.tensor([[1.0, 1.0, 1.0]]))
+    response_mask = torch.tensor([[1.0, 1.0, 0.0]])
+
+    weights, metrics = compute_token_level_rollout_is_weights(
+        old_log_probs=old_log_probs,
+        rollout_log_probs=rollout_log_probs,
+        response_mask=response_mask,
+        threshold=2.0,
+    )
+
+    assert torch.allclose(weights, torch.tensor([[2.0, 1.0, 0.0]]))
+    assert metrics["rollout_corr/is_weight_mean"] == pytest.approx(1.5)
+    assert metrics["rollout_corr/is_clip_fraction"] == pytest.approx(0.5)
 
 
 if __name__ == "__main__":

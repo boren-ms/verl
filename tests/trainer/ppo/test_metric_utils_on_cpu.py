@@ -28,6 +28,7 @@ from verl.trainer.ppo.metric_utils import (
     compute_throughout_metrics,
     compute_timing_metrics,
     process_validation_metrics,
+    update_var2metric2val,
 )
 from verl.utils.metric import (
     reduce_metrics,
@@ -318,6 +319,21 @@ class TestProcessValidationMetrics(unittest.TestCase):
 
         # For bootstrap with n=2, the majority vote could be either A or B
         # depending on the random sampling, so we don't check the exact value
+
+    def test_update_var2metric2val_derives_error_rate_from_counts(self):
+        """p_err should be derived from aggregate n_err / n_ref counts."""
+        var2metric2val = {
+            "n_err": {"mean@1": 2.0},
+            "n_ref": {"mean@1": 10.0},
+            "n_edge": {"mean@1": 1.0},
+        }
+
+        result = update_var2metric2val(var2metric2val)
+
+        self.assertNotIn("n_err", result)
+        self.assertNotIn("n_ref", result)
+        self.assertAlmostEqual(result["p_err"]["mean@1"], 0.2)
+        self.assertAlmostEqual(result["p_edge"]["mean@1"], 0.1)
 
 
 if __name__ == "__main__":

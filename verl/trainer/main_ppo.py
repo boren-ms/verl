@@ -15,6 +15,7 @@
 Note that we don't combine the main with ray_trainer as ray_trainer is used by other main.
 """
 
+import inspect
 import os
 import socket
 
@@ -106,6 +107,7 @@ class TaskRunner:
     def __init__(self):
         self.role_worker_mapping = {}
         self.mapping = {}
+        self.actor_role = None
 
     def add_actor_rollout_worker(self, config):
         """Add actor rollout worker based on the actor strategy."""
@@ -136,7 +138,18 @@ class TaskRunner:
 
         from verl.trainer.ppo.ray_trainer import Role
 
-        self.role_worker_mapping[Role.ActorRollout] = ray.remote(actor_rollout_cls)
+        loss_mode = config.actor_rollout_ref.actor.policy_loss.get("loss_mode", "vanilla")
+        self_distillation_cfg = config.actor_rollout_ref.actor.get("self_distillation", None)
+        use_sdpo_teacher = loss_mode == "sdpo" and self_distillation_cfg is not None
+        if use_sdpo_teacher:
+            if config.algorithm.use_kl_in_reward or config.actor_rollout_ref.actor.use_kl_loss:
+                raise ValueError("SDPO cannot share the reference-policy slot with KL regularization.")
+            if config.actor_rollout_ref.actor.strategy not in {"fsdp", "fsdp2"}:
+                raise ValueError("SDPO currently supports FSDP/FSDP2 actor strategy only.")
+            if config.trainer.get("use_legacy_worker_impl", "auto") == "disable":
+                raise ValueError("SDPO requires the legacy worker implementation to colocate the teacher.")
+        self.actor_role = Role.ActorRolloutRef if use_sdpo_teacher else Role.ActorRollout
+        self.role_worker_mapping[self.actor_role] = ray.remote(actor_rollout_cls)
 
         return actor_rollout_cls, ray_worker_group_cls
 
@@ -181,7 +194,8 @@ class TaskRunner:
             reward_pool = [config.reward_model.n_gpus_per_node] * config.reward_model.nnodes
             resource_pool_spec["reward_pool"] = reward_pool
 
-        self.mapping[Role.ActorRollout] = global_pool_id
+        actor_role = self.actor_role or Role.ActorRollout
+        self.mapping[actor_role] = global_pool_id
         self.mapping[Role.Critic] = global_pool_id
         from verl.trainer.ppo.ray_trainer import ResourcePoolManager
 
@@ -356,13 +370,17 @@ def create_rl_dataset(datas, data_config, tokenizer, processor, is_train=True):
         dataset_cls = RLHFDataset
     print(f"Using dataset class: {dataset_cls.__name__}")
 
+    dataset_kwargs = {
+        "tokenizer": tokenizer,
+        "processor": processor,
+        "config": data_config,
+    }
+
+    if "is_training" in inspect.signature(dataset_cls).parameters:
+        dataset_kwargs["is_training"] = is_train
+
     # Instantiate the dataset using the determined dataset class
-    dataset = dataset_cls(
-        datas,
-        tokenizer=tokenizer,
-        processor=processor,
-        config=data_config,
-    )
+    dataset = dataset_cls(datas, **dataset_kwargs)
 
     return dataset
 

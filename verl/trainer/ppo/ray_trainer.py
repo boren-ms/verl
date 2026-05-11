@@ -334,7 +334,9 @@ class RayPPOTrainer:
         assert self.hybrid_engine, "Currently, only support hybrid engine"
 
         if self.hybrid_engine:
-            assert Role.ActorRollout in role_worker_mapping, f"{role_worker_mapping.keys()=}"
+            actor_roles = [role for role in (Role.ActorRollout, Role.ActorRolloutRef) if role in role_worker_mapping]
+            assert len(actor_roles) == 1, f"{role_worker_mapping.keys()=}"
+            self.actor_role = actor_roles[0]
 
         self.role_worker_mapping = role_worker_mapping
         self.resource_pool_manager = resource_pool_manager
@@ -723,11 +725,11 @@ class RayPPOTrainer:
 
         # create actor and rollout
         if self.hybrid_engine:
-            resource_pool = self.resource_pool_manager.get_resource_pool(Role.ActorRollout)
+            resource_pool = self.resource_pool_manager.get_resource_pool(self.actor_role)
             actor_rollout_cls = RayClassWithInitArgs(
-                cls=self.role_worker_mapping[Role.ActorRollout],
+                cls=self.role_worker_mapping[self.actor_role],
                 config=self.config.actor_rollout_ref,
-                role="actor_rollout",
+                role="actor_rollout_ref" if self.actor_role == Role.ActorRolloutRef else "actor_rollout",
             )
             self.resource_pool_to_cls[resource_pool]["actor_rollout"] = actor_rollout_cls
         else:
@@ -1200,6 +1202,25 @@ class RayPPOTrainer:
                             metrics.update(kl_metrics)
                         else:
                             batch.batch["token_level_rewards"] = batch.batch["token_level_scores"]
+
+                        rollout_correction = self.config.algorithm.get("rollout_correction", None)
+                        rollout_is = rollout_correction.get("rollout_is", None) if rollout_correction else None
+                        if rollout_is is not None:
+                            if rollout_is != "token":
+                                raise ValueError(f"Unsupported rollout_correction.rollout_is: {rollout_is}")
+                            if "rollout_log_probs" not in batch.batch.keys():
+                                raise ValueError(
+                                    "algorithm.rollout_correction.rollout_is=token requires "
+                                    "actor_rollout_ref.rollout.calculate_log_probs=true."
+                                )
+                            rollout_is_weights, rollout_is_metrics = core_algos.compute_token_level_rollout_is_weights(
+                                old_log_probs=batch.batch["old_log_probs"],
+                                rollout_log_probs=batch.batch["rollout_log_probs"],
+                                response_mask=batch.batch["response_mask"],
+                                threshold=rollout_correction.get("rollout_is_threshold", 2.0),
+                            )
+                            batch.batch["rollout_is_weights"] = rollout_is_weights
+                            metrics.update(rollout_is_metrics)
 
                         # compute advantages, executed on the driver process
 
