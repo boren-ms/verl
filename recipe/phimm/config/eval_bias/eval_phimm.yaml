@@ -1,11 +1,12 @@
+# @package _global_
 hydra:
   searchpath:
+    - file://recipe/phimm/config
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
   - dapo_asr
-  - data/train_data/ls_raw # not used
-  - data/val_data/bias_entity_ls
+  - data/val_data/ls_bias
   - _self_
 
 actor_rollout_ref:

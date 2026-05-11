@@ -5,7 +5,7 @@ import hydra
 from recipe.phimm.main_asr_dapo import run_ppo
 
 
-@hydra.main(config_path="config/eval", config_name="eval_asr", version_base=None)
+@hydra.main(config_path="config/eval_bias", config_name="eval_phimm", version_base=None)
 def main(config):
     run_ppo(config)
 
