@@ -6,10 +6,22 @@
 
 import random
 
+from recipe.phimm.utils.languages import get_language_name
+
 
 def rand_prompt(prompts, rand=True):
     """Return a random prompt from the list."""
     return random.choice(prompts) if rand else prompts[0]
+
+
+def _get_lang_asr_language(task, prefix, default=None):
+    lid = task[len(prefix):].strip("_")
+    return get_language_name(lid) if lid else default
+
+
+def _format_task_output(tag, lang, text):
+    prefix = f"Audio Language: {lang}.\n"
+    return f"{prefix}<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
 
 
 def get_task_prompt(task="asr", rand=False):
@@ -21,31 +33,32 @@ def get_task_prompt(task="asr", rand=False):
         return f"{prompt} Pay extra attention to rare words."
     elif task == "biasing":
         return rand_prompt(BIASING_PROMPTS, rand=rand)
-    elif task == "en_asr":
-        prompt = rand_prompt(ASR_PROMPTS, rand=rand)
-        lang = "English"
-        return f"{prompt} Language: {lang}. Transcription:"
-    elif task == "en_asr_lex":
-        prompt = rand_prompt(ASR_PROMPTS, rand=rand)
-        lang = "English"
-        return f"{prompt} Output must be in lexical format. Language: {lang}. Transcription:"
-    elif task == "lang_asr":
-        return rand_prompt(LANG_ASR_PROMPTS, rand=rand)
-    elif task == "lang_asr_lex":
-        return rand_prompt(LANG_ASR_LEX_PROMPTS, rand=rand)
+    elif task.startswith("lang_asr_lex"):
+        prompt = rand_prompt(LANG_ASR_LEX_PROMPTS, rand=rand)
+        lang = _get_lang_asr_language(task, "lang_asr_lex")
+        if lang:
+            prompt = f"{prompt}\nAudio Language: {lang}\n"
+        return prompt
+    elif task.startswith("lang_asr"):
+        prompt = rand_prompt(LANG_ASR_PROMPTS, rand=rand)
+        lang = _get_lang_asr_language(task, "lang_asr")
+        if lang:
+            prompt = f"{prompt}\nAudio Language: {lang}\n"
+        return prompt
     else:
         raise ValueError(f"Unknown task: {task}")
 
 
 def get_task_output(task="asr", lang="English", text=""):
     """Get the expected output format for the specified task."""
-    prefix = f"Audio Language: {lang}.\n"
     if task in ("asr", "rare_asr", "biasing"):
-        return f"{prefix}<ASR><lang={lang}><TXT>{text}</TXT></ASR>"
-    elif task in ("en_asr", "lang_asr"):
-        return f"{prefix}<ASR><lang={lang}><TXT>{text}</TXT></ASR>"
-    elif task in ("en_asr_lex", "lang_asr_lex"):
-        return f"{prefix}<ASR_LEXICAL><lang={lang}><TXT>{text}</TXT></ASR_LEXICAL>"
+        return _format_task_output("ASR", lang, text)
+    elif task.startswith("lang_asr_lex"):
+        lang = _get_lang_asr_language(task, "lang_asr_lex", default=lang)
+        return _format_task_output("ASR_LEXICAL", lang, text)
+    elif task.startswith("lang_asr"):
+        lang = _get_lang_asr_language(task, "lang_asr", default=lang)
+        return _format_task_output("ASR", lang, text)
     else:
         raise ValueError(f"Unknown task: {task}")
     

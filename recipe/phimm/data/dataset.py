@@ -32,7 +32,6 @@ from recipe.phimm.utils.shared import (
     dist_state,
     all_rank_print,
     to_list,
-    to_range,
     in_range,
     is_list,
     to_int,
@@ -1117,7 +1116,12 @@ def add_task_info(ds, **kwargs):
         if forced or prompt is None:
             prompt_txt = get_task_prompt(task=task, rand=rand)
             prompt = prompt_format.format(prompt_txt)
-        lang = get_language_name(egs.get("language") or language)
+        task_language = None
+        if task.startswith("lang_asr_lex_"):
+            task_language = task.removeprefix("lang_asr_lex_")
+        elif task.startswith("lang_asr_") and task != "lang_asr_lex":
+            task_language = task.removeprefix("lang_asr_")
+        lang = get_language_name(task_language or egs.get("language") or language)
         gt_output = get_task_output(task=task, lang=lang, text=egs.get("text", ""))
         return {"prompt": prompt, "gt_output": gt_output, "language": lang}
 

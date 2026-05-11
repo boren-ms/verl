@@ -64,7 +64,7 @@ def get_language_name(lang):
     """Convert any language identifier to its full name. e.g. "de" -> "German", "German" -> "German"."""
     if lang.lower() in LANGUAGES:
         return lang.capitalize()
-    return LANG_CODE_TO_NAME.get(lang, lang)
+    return LANG_CODE_TO_NAME.get(lang.lower(), lang)
 
 
 def get_language_code(lang):

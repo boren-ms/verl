@@ -1,7 +1,7 @@
 dataset_name: parquet
 parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
 add_task_info:
-  task: en_asr
+  task: lang_asr_en
   forced: True
 post_process:
   add_field:
