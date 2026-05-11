@@ -203,9 +203,10 @@ def load_specs(spec_files):
     for spec_file in to_list(spec_files):
         with bf.BlobFile(spec_file, "r") as f:
             spec_dict = json.load(f)
+        language = spec_dict.get("language")
         for ds in spec_dict["data_sources"]:
-            for key in list(ds.keys()):
-                ds[key] = resolve_path(ds[key])
+            ds = {key: resolve_path(value) for key, value in ds.items()}
+            ds ["language"] = ds.get("language", language)
             specs.append(ds)
     return specs
 
