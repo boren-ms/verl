@@ -1,7 +1,6 @@
 LANGUAGES = {
     "english": "en",
     "chinese": "zh",
-    "mandarin": "zh",
     "cantonese": "yue",
     "japanese": "ja",
     "korean": "ko",
@@ -56,19 +55,23 @@ LANGUAGES = {
     "icelandic": "is",
 }
 
-LANG_CODE_TO_NAME = {code: name.capitalize() for name, code in LANGUAGES.items()
-                     if name not in ("mandarin", "cantonese")}
+LANG_CODE_TO_NAME = {code: name.capitalize() for name, code in LANGUAGES.items()}
+LANG_NAME_MAPPING = {"mandarin": "chinese"}
 
 
 def get_language_name(lang):
     """Convert any language identifier to its full name. e.g. "de" -> "German", "German" -> "German"."""
-    if lang.lower() in LANGUAGES:
+    lang = lang.lower()
+    lang = LANG_NAME_MAPPING.get(lang, lang)
+    if lang in LANGUAGES:
         return lang.capitalize()
-    return LANG_CODE_TO_NAME.get(lang.lower(), lang)
+    return LANG_CODE_TO_NAME.get(lang, lang)
 
 
 def get_language_code(lang):
     """Convert any language identifier to its ISO code. e.g. "German" -> "de", "de" -> "de"."""
+    lang = lang.lower()
     if lang in LANG_CODE_TO_NAME:
         return lang
-    return LANGUAGES.get(lang.lower(), lang)
+    lang = LANG_NAME_MAPPING.get(lang, lang)
+    return LANGUAGES.get(lang, lang)
