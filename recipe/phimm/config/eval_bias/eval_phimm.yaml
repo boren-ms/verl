@@ -12,4 +12,5 @@ defaults:
 actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+    adapter_merged: False
 

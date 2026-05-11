@@ -12,3 +12,4 @@ defaults:
 actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/boren/outputs/grpo_ls_m1000_seed_e2_simple_err_t12_n8_bp8_imp5_ref_sc1k_char_bias5_smp2a_G2x8/checkpoint-4380/
+    adapter_merged: False
