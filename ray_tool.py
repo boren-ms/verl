@@ -380,8 +380,7 @@ def prepare_local_checkpoint(local_dir, remote_dir):
     print("Data preparation completed.")
 
 
-@ray.remote
-def prepare_env(forced=False):
+def _prepare_default_env(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
     print(f"Preparing environment on node: {hostname}")
@@ -415,6 +414,40 @@ def prepare_env(forced=False):
 
     run_cmd(f"pip install --no-deps {local_pkg_path}")
     print("Environment preparation completed.")
+
+
+def _run_requirement_install(requirements_path):
+    run_cmd(f"pip install -r {requirements_path}")
+
+
+def _prepare_qwen35_audio_env(forced=False):
+    hostname = os.uname().nodename
+    print(f"Preparing Qwen3.5-Audio environment on node: {hostname}")
+    required = [
+        "vllm==0.17.0",
+        "transformers==4.57.6",
+        "flashinfer-python==0.6.4",
+        "flashinfer-cubin==0.6.4",
+    ]
+    if not all(is_package_version(*pkg.split("==")) for pkg in required) or forced:
+        _run_requirement_install("plugins/qwen35_audio/requirements-vllm-0.17.txt")
+    else:
+        print(f"Qwen3.5-Audio package stack already installed on {hostname}, skipping dependency installation.")
+
+    run_cmd("pip install --no-deps -e .")
+    run_cmd("pip install --no-deps -e plugins/qwen35_audio")
+    run_cmd('pip install "ray[default]==2.46.0"')
+    print("Qwen3.5-Audio environment preparation completed.")
+
+
+@ray.remote
+def prepare_env(forced=False, profile="default"):
+    """Prepare the environment on each node by installing necessary packages."""
+    if profile in (None, "default"):
+        return _prepare_default_env(forced=forced)
+    if profile in ("qwen35_audio", "qwen3_5_audio"):
+        return _prepare_qwen35_audio_env(forced=forced)
+    raise ValueError(f"Unknown prepare_env profile: {profile}")
 
 
 @ray.remote
@@ -672,10 +705,10 @@ class RayNode:
         print(f"Running: {cmd}")
         self.run(ray.remote(run_cmd), cmd)
 
-    def prepare_env(self, forced=False):
+    def prepare_env(self, forced=False, profile="default"):
         """Prepare the environment on all Ray nodes by installing necessary packages."""
-        print("Preparing environment on all nodes...")
-        self.run(prepare_env, forced=forced)
+        print(f"Preparing {profile} environment on all nodes...")
+        self.run(prepare_env, forced=forced, profile=profile)
 
     def prepare_data(self, forced=False):
         """Prepare data on all Ray nodes by syncing from the remote storage."""

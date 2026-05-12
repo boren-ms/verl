@@ -980,12 +980,14 @@ def filter_long_text(ds, **kwargs):
     return ds
 
 
-def to_user_msg(prompt):
+def to_user_msg(prompt, audio_token=None):
     if not isinstance(prompt, str):
         return prompt
 
     for word in ["<|user|>", "<|end|>", "<|assistant|>"]:
         prompt = prompt.replace(word, "")
+    if audio_token is not None:
+        prompt = prompt.replace("<|audio_1|>", audio_token)
     return [{"role": "user", "content": prompt}]
 
 
@@ -993,11 +995,12 @@ def verl_format_ds(ds, **kwargs):
     """Format the dataset for verl training."""
     prompt_key = kwargs.get("prompt_key", "prompt")
     extra_keys = kwargs.get("extra_keys", ["id", "keywords", "language"])
+    audio_token = kwargs.get("audio_token", None)
 
     def map_fn(egs):
         text = egs.get("text", "")
         result = {
-            prompt_key: to_user_msg(egs[prompt_key]),
+            prompt_key: to_user_msg(egs[prompt_key], audio_token=audio_token),
             "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
             "extra_info": {key: egs.get(key, None) for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),

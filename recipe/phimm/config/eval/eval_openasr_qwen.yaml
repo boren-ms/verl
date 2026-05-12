@@ -1,0 +1,43 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - eval_asr
+  - data/val_data/openasr_h100
+  - _self_
+
+actor_rollout_ref:
+  worker_role: rollout
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/20000/qwen35-audio-hf/
+    external_lib: vllm_qwen35_audio
+    skip_actor_model: true
+    lora_rank: 0
+  rollout:
+    tensor_model_parallel_size: 8
+    gpu_memory_utilization: 0.15
+    max_model_len: 4096
+    max_num_seqs: 8
+    max_num_batched_tokens: 8192
+    enable_chunked_prefill: true
+    stop: null
+    stop_token_ids: [248044, 248046]
+    engine_kwargs:
+      vllm:
+        limit_mm_per_prompt:
+          audio: 1
+
+data:
+  audio_token: "<|audio_start|>\n"
+  max_prompt_length: 3584
+  val_batch_size: 8
+
+ray_kwargs:
+  ray_init:
+    runtime_env:
+      env_vars:
+        QWEN35_AUDIO_DISABLE_CUDNN: "1"
+        VLLM_WORKER_MULTIPROC_METHOD: spawn
+        VLLM_PLUGINS: qwen35_audio

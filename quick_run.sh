@@ -23,7 +23,14 @@ fi
 
 # bash quick_install.sh # prepare on local node only
 echo "[INFO] Preparing environment ..."
-python3 ray_tool.py prepare_env # prepare on all ray nodes
+prepare_env_args=()
+if [[ "$config_name" == *qwen* ]]; then
+    export QWEN35_AUDIO_DISABLE_CUDNN=1
+    export VLLM_WORKER_MULTIPROC_METHOD=spawn
+    export VLLM_PLUGINS=qwen35_audio
+    prepare_env_args=(--profile qwen35_audio)
+fi
+python3 ray_tool.py prepare_env "${prepare_env_args[@]}" # prepare on all ray nodes
 
 echo "[INFO] Running ${config_name} ..."
 ray job submit --working-dir="${cwd}"  \

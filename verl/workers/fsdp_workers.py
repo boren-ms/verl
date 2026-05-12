@@ -637,19 +637,20 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         )
         log_gpu_memory_usage(f"After building {self.config.rollout.name} rollout", logger=logger)
 
-        # Full params
-        if torch.distributed.get_world_size() == 1 and fsdp_version(self.actor_module_fsdp) == 1:
-            FSDP.set_state_dict_type(
-                self.actor_module_fsdp,
-                state_dict_type=StateDictType.FULL_STATE_DICT,
-                state_dict_config=FullStateDictConfig(),
-            )
-        elif fsdp_version(self.actor_module_fsdp) == 1:
-            FSDP.set_state_dict_type(
-                self.actor_module_fsdp,
-                state_dict_type=StateDictType.SHARDED_STATE_DICT,
-                state_dict_config=ShardedStateDictConfig(),
-            )
+        # Full params are only relevant when this worker owns an FSDP actor.
+        if hasattr(self, "actor_module_fsdp"):
+            if torch.distributed.get_world_size() == 1 and fsdp_version(self.actor_module_fsdp) == 1:
+                FSDP.set_state_dict_type(
+                    self.actor_module_fsdp,
+                    state_dict_type=StateDictType.FULL_STATE_DICT,
+                    state_dict_config=FullStateDictConfig(),
+                )
+            elif fsdp_version(self.actor_module_fsdp) == 1:
+                FSDP.set_state_dict_type(
+                    self.actor_module_fsdp,
+                    state_dict_type=StateDictType.SHARDED_STATE_DICT,
+                    state_dict_config=ShardedStateDictConfig(),
+                )
 
         # used for LoRA
         self.base_sync_done: bool = "dummy" not in self.config.rollout.load_format
@@ -787,8 +788,6 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
 
     @register(dispatch_mode=Dispatch.ONE_TO_ALL)
     def init_model(self):
-        from verl.workers.actor import DataParallelPPOActor
-
         # breakpoint()
         # This is used to import external_lib into the huggingface systems
         import_external_libs(self.config.model.get("external_lib", None))
@@ -797,8 +796,13 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         use_remove_padding = self.config.model.get("use_remove_padding", False)
         use_shm = self.config.model.get("use_shm", False)
         use_fused_kernels = self.config.model.get("use_fused_kernels", False)
+        skip_actor_model = self.config.model.get("skip_actor_model", False)
+        if skip_actor_model and self._is_actor:
+            raise ValueError("skip_actor_model requires actor_rollout_ref.worker_role=rollout")
 
-        if self._is_actor or self._is_rollout:
+        if (self._is_actor or self._is_rollout) and not skip_actor_model:
+            from verl.workers.actor import DataParallelPPOActor
+
             # we need the model for actor and rollout
             if self._is_actor:
                 optim_config = self.config.actor.optim
@@ -884,7 +888,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 checkpoint_config=self.config.actor.checkpoint,
             )
 
-        if not self._is_actor and self._is_rollout:
+        if not self._is_actor and self._is_rollout and not skip_actor_model:
             # If ActorRolloutRefWorker is initialized as a standalone rollout,
             # create a checkpoint manager for FSDP model to allow loading FSDP checkpoints for rollout.
 

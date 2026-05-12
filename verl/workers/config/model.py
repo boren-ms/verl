@@ -69,6 +69,8 @@ class HFModelConfig(BaseConfig):
 
     external_lib: Optional[str] = None
 
+    skip_actor_model: bool = False
+
     override_config: dict = field(default_factory=dict)
 
     enable_gradient_checkpointing: bool = True

@@ -73,6 +73,7 @@ class RLHFDataset(Dataset):
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "right2")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
+        self.audio_token = config.get("audio_token", None)
         self.num_proc = get_num_proc(config.get("num_proc", "auto"))
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
@@ -93,14 +94,30 @@ class RLHFDataset(Dataset):
     def __len__(self):
         return len(self.ds)
 
+    def _apply_audio_token_override(self, messages):
+        if self.audio_token is None:
+            return messages
+        if isinstance(messages, str):
+            return messages.replace("<|audio_1|>", self.audio_token)
+        return [
+            {
+                **message,
+                "content": message["content"].replace("<|audio_1|>", self.audio_token)
+                if isinstance(message.get("content"), str)
+                else message.get("content"),
+            }
+            for message in messages
+        ]
+
     def __getitem__(self, i):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
         row_dict: dict = self.ds[i]
-        messages = row_dict[self.prompt_key]
+        messages = self._apply_audio_token_override(row_dict[self.prompt_key])
 
-        raw_prompt = self.processor.apply_chat_template(
+        processing_class = self.processor or self.tokenizer
+        raw_prompt = processing_class.apply_chat_template(
             messages,
             add_generation_prompt=True,
             tokenize=False,
@@ -110,11 +127,14 @@ class RLHFDataset(Dataset):
         audios = [load_audio(row_dict, self.max_audio_dur)]
 
         row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
-        model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
+        if self.processor is not None:
+            model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
+        else:
+            model_inputs = self.tokenizer(text=[raw_prompt], return_tensors="pt")
         input_ids = model_inputs.pop("input_ids")
         attention_mask = model_inputs.pop("attention_mask")
 
-        if self.return_multi_modal_inputs:
+        if self.processor is not None and self.return_multi_modal_inputs:
             inputs_dict = dict(model_inputs)
             inputs_dict = remove_empty_tensors(inputs_dict)
             if "input_audio_embeds" in inputs_dict:

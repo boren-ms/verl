@@ -27,6 +27,9 @@ custom_chat_template: null
 # whether to use external libs for the model
 external_lib: null
 
+# whether to skip constructing the FSDP actor model for rollout-only workers
+skip_actor_model: False
+
 # override hf config
 override_config: {}
 

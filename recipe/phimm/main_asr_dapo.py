@@ -115,7 +115,9 @@ class TaskRunner:
 
         # instantiate tokenizer
         from verl.utils import hf_processor, hf_tokenizer
+        from verl.utils.import_utils import import_external_libs
 
+        import_external_libs(config.actor_rollout_ref.model.get("external_lib", None))
         tokenizer = hf_tokenizer(local_path, trust_remote_code=True)
         processor = hf_processor(local_path, trust_remote_code=True, use_fast=True)
 
