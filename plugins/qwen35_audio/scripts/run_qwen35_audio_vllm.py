@@ -2,6 +2,7 @@
 """Smoke test for Qwen3.5-Audio through the vLLM plugin."""
 
 import argparse
+import hashlib
 import importlib.metadata as metadata
 import os
 import shutil
@@ -28,6 +29,7 @@ DEFAULT_PROMPT = (
     "<|im_start|>assistant\n"
 )
 DEFAULT_STOP_TOKEN_IDS = [248044, 248046]
+MODEL_ARCHITECTURE = "Qwen3_5AudioForCausalLM"
 
 
 def parse_args() -> argparse.Namespace:
@@ -109,6 +111,13 @@ def stage_input(source: str, destination: Path, *, is_dir: bool) -> str:
     return str(destination)
 
 
+def cache_dir_name(source: str) -> str:
+    source_key = source.rstrip("/")
+    source_name = Path(source_key).name or "model"
+    digest = hashlib.sha1(source_key.encode("utf-8")).hexdigest()[:10]
+    return f"{source_name}-{digest}"
+
+
 def stage_inputs(args: argparse.Namespace) -> tuple[str, str]:
     if args.skip_stage:
         return args.model, args.audio
@@ -116,7 +125,7 @@ def stage_inputs(args: argparse.Namespace) -> tuple[str, str]:
     cache_root = Path(args.local_cache_root)
     model_path = stage_input(
         args.model,
-        cache_root / "qwen35-audio-hf",
+        cache_root / "models" / cache_dir_name(args.model),
         is_dir=True,
     )
     audio_path = stage_input(
@@ -185,6 +194,7 @@ def main() -> None:
         max_model_len=args.max_model_len,
         max_num_seqs=args.max_num_seqs,
         dtype="bfloat16",
+        hf_overrides={"architectures": [MODEL_ARCHITECTURE]},
         tensor_parallel_size=args.tensor_parallel_size,
         limit_mm_per_prompt={"audio": 1},
         gpu_memory_utilization=args.gpu_memory_utilization,

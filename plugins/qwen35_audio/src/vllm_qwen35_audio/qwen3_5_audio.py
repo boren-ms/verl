@@ -525,6 +525,8 @@ class Qwen3_5AudioForCausalLM(
         with mark_tower_model(vllm_config, "audio"):
             self.embed_tokens_extend = AudioEmbedding(config, **embedding_config)
 
+        config.model_type = "qwen3_5_text"
+
         # Build language model (Qwen3.5 hybrid backbone)
         mark_language_model = getattr(
             self, "_mark_language_model", lambda *_args, **_kwargs: nullcontext()

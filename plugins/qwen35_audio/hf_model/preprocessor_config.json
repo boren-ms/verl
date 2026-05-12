@@ -1,0 +1,12 @@
+{
+  "feature_extractor_type": "Qwen3_5AudioFeatureExtractor",
+  "processor_class": "Qwen3_5AudioProcessor",
+  "feature_size": 80,
+  "sampling_rate": 16000,
+  "compression_rate": 8,
+  "padding_value": 0.0,
+  "auto_map": {
+    "AutoProcessor": "processing_qwen3_5_audio.Qwen3_5AudioProcessor",
+    "AutoFeatureExtractor": "processing_qwen3_5_audio.Qwen3_5AudioFeatureExtractor"
+  }
+}
