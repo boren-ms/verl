@@ -1,5 +1,6 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
+import numpy as np
 from numpy.compat import Path
 import soundfile as sf
 from recipe.phimm.data.chunk import load_chunk_example
@@ -28,9 +29,10 @@ def limit_audio(x, fs, max_dur=None):
     if max_dur is not None and len(x) > fs * max_dur:
         print(f"Truncating audio {len(x) / fs:.2f} ->  {max_dur} seconds.")
         x = x[: fs * max_dur]
-    n = len(x)
-    n = n // 8 * 8  # make it multiple of 8
-    x = x[:n]
+    remainder = len(x) % 8
+    if remainder != 0:
+        pad = 8 - remainder
+        x = np.pad(x, (0, pad), mode="constant")
     return x, fs
 
 
