@@ -53,3 +53,4 @@ ray_kwargs:
         QWEN35_AUDIO_DISABLE_CUDNN: "1"
         VLLM_WORKER_MULTIPROC_METHOD: spawn
         VLLM_PLUGINS: qwen35_audio
+        LD_LIBRARY_PATH: /root/.pyenv/versions/3.12.9/lib/python3.12/site-packages/nvidia/nvshmem/lib

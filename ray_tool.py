@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 import subprocess
+import sys
 import ray
 import os
 from pathlib import Path
@@ -394,9 +395,9 @@ def _prepare_default_env(forced=False):
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
-    run_cmd("pip install -r requirements_vllm.txt")
-    run_cmd('pip install --no-deps "ray[default]==2.46.0"')
-    run_cmd("pip install --no-deps -e .")
+    run_cmd(f"{sys.executable} -m pip install -r requirements_vllm.txt")
+    run_cmd(f'{sys.executable} -m pip install --no-deps "ray[default]==2.46.0"')
+    run_cmd(f"{sys.executable} -m pip install --no-deps -e .")
     # find the package
     # echo $(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')")
     pkg_name = "flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
@@ -412,36 +413,71 @@ def _prepare_default_env(forced=False):
             "Remote nodes cannot fetch this wheel from the internet; pre-upload it to ORNG packages."
         )
 
-    run_cmd(f"pip install --no-deps {local_pkg_path}")
+    run_cmd(f"{sys.executable} -m pip install --no-deps {local_pkg_path}")
     print("Environment preparation completed.")
 
 
 def _run_requirement_install(requirements_path):
-    run_cmd(f"pip install --no-deps -r {requirements_path}")
+    run_cmd(f"{sys.executable} -m pip install --no-deps -r {requirements_path}")
+
+
+def _patch_flash_attn_init():
+    """Patch flash_attn __init__.py to remove incompatible CUDA extension import.
+
+    flash_attn 2.8.3 binary is compiled against torch 2.8.0 and its CUDA
+    extension cannot be loaded with torch 2.10.0 (ABI mismatch).
+    flash_attn/bert_padding.py is pure Python (torch + einops) and remains
+    fully functional after patching — it's the only flash_attn symbol that
+    transformer_impl.py imports.
+    """
+    import importlib.util as _ilu
+
+    spec = _ilu.find_spec("flash_attn")
+    if spec is None or spec.origin is None:
+        print("flash_attn not found, no patch needed")
+        return
+    fa_init = spec.origin
+    with open(fa_init) as fh:
+        content = fh.read()
+    if "flash_attn_interface" not in content:
+        print(f"flash_attn __init__.py already patched at {fa_init}")
+        return
+    with open(fa_init, "w") as fh:
+        fh.write('__version__ = "2.8.3"\n')
+    print(f"Patched flash_attn __init__.py at {fa_init} (removed CUDA extension import)")
 
 
 def _prepare_qwen35_audio_env(forced=False):
     hostname = os.uname().nodename
     print(f"Preparing Qwen3.5-Audio environment on node: {hostname}")
+    pip = f"{sys.executable} -m pip"
     required = [
-        "vllm==0.17.0",
+        "torch==2.10.0",
+        "torchvision==0.25.0",
+        "vllm==0.17.1",
         "transformers==5.7.0",
         "huggingface-hub==1.13.0",
+        "tokenizers==0.22.0",
         "regex==2026.4.4",
         "flashinfer-python==0.6.4",
         "flashinfer-cubin==0.6.4",
+        "nvidia-nvshmem-cu12==3.6.5",
     ]
     if not all(is_package_version(*pkg.split("==")) for pkg in required) or forced:
         _run_requirement_install("plugins/qwen35_audio/requirements-vllm-0.17.txt")
     else:
         print(f"Qwen3.5-Audio package stack already installed on {hostname}, skipping dependency installation.")
 
-    run_cmd("pip install --no-deps -e .")
-    run_cmd("pip install --no-deps -e plugins/qwen35_audio")
+    # Patch flash_attn __init__.py to remove CUDA extension incompatible with torch 2.10.0.
+    # This must run every time (idempotent) in case flash_attn was re-installed.
+    _patch_flash_attn_init()
+
+    run_cmd(f"{pip} install --no-deps -e .")
+    run_cmd(f"{pip} install --no-deps -e plugins/qwen35_audio")
     # Install ray without deps to avoid reverting the transformers/vllm stack.
-    run_cmd('pip install --no-deps "ray[default]==2.46.0"')
-    # Re-pin transformers after ray to ensure 5.7.0 is active (ray may pull older).
-    run_cmd("pip install --no-deps transformers==5.7.0 huggingface-hub==1.13.0 regex==2026.4.4")
+    run_cmd(f'{pip} install --no-deps "ray[default]==2.46.0"')
+    # Re-pin transformers stack after ray to ensure correct versions are active.
+    run_cmd(f"{pip} install --no-deps transformers==5.7.0 huggingface-hub==1.13.0 tokenizers==0.22.0 regex==2026.4.4")
     print("Qwen3.5-Audio environment preparation completed.")
 
 

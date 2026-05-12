@@ -46,6 +46,8 @@ class Qwen3_5AudioForCausalLMHF(PreTrainedModel):
 
     _keys_to_ignore_on_load_unexpected = [r"^mtp\."]
     supports_gradient_checkpointing = True
+    _supports_sdpa = True
+    _supports_flash_attn_2 = False
 
     def __init__(self, config):
         super().__init__(config)

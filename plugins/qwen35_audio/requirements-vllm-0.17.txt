@@ -1,6 +1,14 @@
 # Verified on verl-n1-i11 with 8x NVIDIA H100 80GB HBM3.
-vllm==0.17.0
+# torch 2.10.0 is required by vllm 0.17.1 (ABI incompatibility with 2.8.0).
+# nvidia-nvshmem-cu12 provides libnvshmem_host.so.3 required by torch 2.10.0.
+# The nvshmem lib dir must be in LD_LIBRARY_PATH for the process.
+torch==2.10.0
+torchvision==0.25.0
+vllm==0.17.1
+nvidia-nvshmem-cu12==3.6.5
 transformers==5.7.0
+huggingface-hub==1.13.0
+tokenizers==0.22.0
 flashinfer-python==0.6.4
 flashinfer-cubin==0.6.4
 numpy
