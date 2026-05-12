@@ -421,6 +421,97 @@ def _run_requirement_install(requirements_path):
     run_cmd(f"{sys.executable} -m pip install --no-deps -r {requirements_path}")
 
 
+def _patch_phi4mm_utils_meta_tensor():
+    """Patch NemoConvSubsampling.__init__ in phi4mm_utils.py to handle meta tensors.
+
+    When FSDP loads Qwen3.5-Audio via init_empty_weights(), torch.tensor() produces
+    meta tensors. NemoConvSubsampling computes `int(out_length)` where out_length
+    is from calc_length() on a meta tensor, which raises RuntimeError. This patch
+    adds a Python-math fallback when the tensor is on the meta device.
+    """
+    import importlib.util as _ilu
+
+    spec = _ilu.find_spec("vllm")
+    if spec is None or spec.origin is None:
+        print("vllm not found, skipping phi4mm_utils patch")
+        return
+    import os as _os
+    phi4mm_path = _os.path.join(_os.path.dirname(spec.origin),
+                                "model_executor", "models", "phi4mm_utils.py")
+    if not _os.path.exists(phi4mm_path):
+        print(f"phi4mm_utils.py not found at {phi4mm_path}, skipping patch")
+        return
+    with open(phi4mm_path) as fh:
+        content = fh.read()
+    marker = "self.out = torch.nn.Linear(conv_channels * int(out_length),"
+    if marker not in content:
+        print(f"phi4mm_utils.py already patched or signature changed: {phi4mm_path}")
+        return
+    patched = content.replace(
+        """\
+        if subsampling in ["dw_striding", "striding"]:
+            in_length = torch.tensor(feat_in, dtype=torch.float)
+            out_length = calc_length(
+                lengths=in_length,
+                all_paddings=self._left_padding + self._right_padding,
+                kernel_size=self._kernel_size,
+                stride=self._stride,
+                ceil_mode=self._ceil_mode,
+                repeat_num=self._sampling_num,
+            )
+            self.out = torch.nn.Linear(conv_channels * int(out_length),
+                                       feat_out)""",
+        """\
+        if subsampling in ["dw_striding", "striding"]:
+            in_length = torch.tensor(feat_in, dtype=torch.float)
+            if in_length.is_meta:
+                import math as _math
+                _add_pad = float(self._left_padding + self._right_padding - self._kernel_size)
+                _len = float(feat_in)
+                for _ in range(self._sampling_num):
+                    _len = _math.ceil((_len + _add_pad) / self._stride + 1.0) if self._ceil_mode else _math.floor((_len + _add_pad) / self._stride + 1.0)
+                _out_len_int = int(_len)
+            else:
+                out_length = calc_length(
+                    lengths=in_length,
+                    all_paddings=self._left_padding + self._right_padding,
+                    kernel_size=self._kernel_size,
+                    stride=self._stride,
+                    ceil_mode=self._ceil_mode,
+                    repeat_num=self._sampling_num,
+                )
+                _out_len_int = int(out_length)
+            self.out = torch.nn.Linear(conv_channels * _out_len_int,
+                                       feat_out)""",
+    )
+    if patched == content:
+        print(f"phi4mm_utils.py patch string not matched exactly, trying line-based approach")
+        # Fallback: use regex replacement
+        import re as _re
+        patched = _re.sub(
+            r'(            in_length = torch\.tensor\(feat_in, dtype=torch\.float\)\n)'
+            r'(            out_length = calc_length\(\n.*?repeat_num=self\._sampling_num,\n            \)\n)'
+            r'(            self\.out = torch\.nn\.Linear\(conv_channels \* int\(out_length\),)',
+            r'\1'
+            r'            if in_length.is_meta:\n'
+            r'                import math as _math\n'
+            r'                _add_pad = float(self._left_padding + self._right_padding - self._kernel_size)\n'
+            r'                _len = float(feat_in)\n'
+            r'                for _ in range(self._sampling_num):\n'
+            r'                    _len = _math.floor((_len + _add_pad) / self._stride + 1.0)\n'
+            r'                _out_len_int = int(_len)\n'
+            r'            else:\n'
+            r'\2'
+            r'                _out_len_int = int(out_length)\n'
+            r'            \3'.replace('int(out_length)', '_out_len_int'),
+            content,
+            flags=_re.DOTALL,
+        )
+    with open(phi4mm_path, "w") as fh:
+        fh.write(patched)
+    print(f"Patched phi4mm_utils.py meta tensor handling at {phi4mm_path}")
+
+
 def _patch_flash_attn_init():
     """Patch flash_attn __init__.py to remove incompatible CUDA extension import.
 
@@ -471,6 +562,10 @@ def _prepare_qwen35_audio_env(forced=False):
     # Patch flash_attn __init__.py to remove CUDA extension incompatible with torch 2.10.0.
     # This must run every time (idempotent) in case flash_attn was re-installed.
     _patch_flash_attn_init()
+
+    # Patch phi4mm_utils.py NemoConvSubsampling to handle meta tensors during FSDP init.
+    # This must run every time (idempotent) in case vllm was re-installed.
+    _patch_phi4mm_utils_meta_tensor()
 
     run_cmd(f"{pip} install --no-deps -e .")
     run_cmd(f"{pip} install --no-deps -e plugins/qwen35_audio")
