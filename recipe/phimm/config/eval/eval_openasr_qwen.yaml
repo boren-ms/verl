@@ -9,15 +9,21 @@ defaults:
   - _self_
 
 actor_rollout_ref:
-  worker_role: rollout
+  actor:
+    fsdp_config:
+      model_dtype: bf16
+      wrap_policy:
+        transformer_layer_cls_to_wrap:
+          - Qwen3_5DecoderLayer
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/20000/qwen35-audio-hf/
     external_lib: vllm_qwen35_audio
-    skip_actor_model: true
     lora_rank: 0
+    override_config:
+      attn_implementation: sdpa
   rollout:
-    tensor_model_parallel_size: 8
-    gpu_memory_utilization: 0.15
+    tensor_model_parallel_size: 1
+    gpu_memory_utilization: 0.55
     max_model_len: 4096
     max_num_seqs: 8
     max_num_batched_tokens: 8192
@@ -31,6 +37,11 @@ actor_rollout_ref:
 
 data:
   audio_token: "<|audio_start|>\n"
+  raw_prompt: |
+    <|im_start|>user
+    <|audio_start|>
+    Detect the language and transcribe the audio into text.<|im_end|>
+    <|im_start|>assistant
   max_prompt_length: 3584
   val_batch_size: 8
 

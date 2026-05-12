@@ -35,7 +35,31 @@ from verl.utils.ulysses import gather_outputs_and_unpad, ulysses_pad_and_slice_i
 from verl.workers.critic import BasePPOCritic
 
 if is_cuda_available:
-    from flash_attn.bert_padding import index_first_axis, pad_input, rearrange, unpad_input
+    try:
+        from flash_attn.bert_padding import index_first_axis, pad_input, rearrange, unpad_input
+    except ImportError:
+        from einops import rearrange
+        from torch.nn import functional as F
+
+        def index_first_axis(input_tensor, indices):
+            return input_tensor[indices]
+
+        def unpad_input(hidden_states, attention_mask):
+            seqlens_in_batch = attention_mask.sum(dim=-1, dtype=torch.int32)
+            indices = torch.nonzero(attention_mask.flatten(), as_tuple=False).flatten()
+            max_seqlen_in_batch = seqlens_in_batch.max().item()
+            cu_seqlens = F.pad(torch.cumsum(seqlens_in_batch, dim=0, dtype=torch.int32), (1, 0))
+            return (
+                index_first_axis(rearrange(hidden_states, "b s ... -> (b s) ..."), indices),
+                indices,
+                cu_seqlens,
+                max_seqlen_in_batch,
+            )
+
+        def pad_input(hidden_states, indices, batch, seqlen):
+            output = hidden_states.new_zeros((batch * seqlen, *hidden_states.shape[1:]))
+            output[indices] = hidden_states
+            return rearrange(output, "(b s) ... -> b s ...", b=batch)
 elif is_npu_available:
     from transformers.integrations.npu_flash_attention import index_first_axis, pad_input, rearrange, unpad_input
 

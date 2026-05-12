@@ -74,6 +74,7 @@ class RLHFDataset(Dataset):
         self.truncation = config.get("truncation", "right2")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
         self.audio_token = config.get("audio_token", None)
+        self.raw_prompt = config.get("raw_prompt", None)
         self.num_proc = get_num_proc(config.get("num_proc", "auto"))
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
@@ -117,12 +118,17 @@ class RLHFDataset(Dataset):
         messages = self._apply_audio_token_override(row_dict[self.prompt_key])
 
         processing_class = self.processor or self.tokenizer
-        raw_prompt = processing_class.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=False,
-            **self.apply_chat_template_kwargs,
-        )
+        if self.raw_prompt is not None:
+            if not isinstance(self.raw_prompt, str):
+                raise TypeError(f"data.raw_prompt must be a string, got {type(self.raw_prompt).__name__}")
+            raw_prompt = self.raw_prompt
+        else:
+            raw_prompt = processing_class.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=False,
+                **self.apply_chat_template_kwargs,
+            )
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
 

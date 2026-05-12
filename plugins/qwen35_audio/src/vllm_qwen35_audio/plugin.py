@@ -20,24 +20,67 @@ def _maybe_register_qwen35_config() -> None:
     """Best-effort config registration for official vLLM installs.
 
     Some vLLM versions already know the qwen3_5 config class. When they do, we
-    register it with Transformers AutoConfig early so tokenizer/config loading
-    can resolve converted Qwen3.5-Audio checkpoints without remote code.
+    register it with vLLM's config registry early so converted Qwen3.5-Audio
+    checkpoints can be loaded without remote code. For non-vLLM code paths,
+    prefer Transformers' native qwen3_5 module so AutoModelForCausalLM can build
+    the HF actor model.
     """
-    try:
-        from transformers import AutoConfig
+    vllm_configs = _maybe_register_qwen35_config_for_vllm()
+    if _maybe_register_hf_qwen35_config():
+        return
+    if vllm_configs is not None:
+        _maybe_register_vllm_qwen35_config_for_transformers(*vllm_configs)
 
+
+def _maybe_register_qwen35_config_for_vllm() -> tuple[type[Any], type[Any]] | None:
+    try:
         from vllm.transformers_utils.config import _CONFIG_REGISTRY
         from vllm.transformers_utils.configs.qwen3_5 import (
             Qwen3_5Config,
             Qwen3_5TextConfig,
         )
     except Exception:
-        return
+        return None
 
     _CONFIG_REGISTRY.setdefault("qwen3_5", Qwen3_5Config)
     _CONFIG_REGISTRY.setdefault("qwen3_5_text", Qwen3_5TextConfig)
+    return Qwen3_5Config, Qwen3_5TextConfig
+
+
+def _maybe_register_hf_qwen35_config() -> bool:
+    try:
+        from transformers import AutoConfig, AutoModel, AutoModelForCausalLM
+        from transformers.models.qwen3_5.configuration_qwen3_5 import (
+            Qwen3_5Config,
+            Qwen3_5TextConfig,
+        )
+        from transformers.models.qwen3_5.modeling_qwen3_5 import (
+            Qwen3_5ForCausalLM,
+            Qwen3_5Model,
+            Qwen3_5TextModel,
+        )
+    except Exception:
+        return False
+
     AutoConfig.register("qwen3_5", Qwen3_5Config, exist_ok=True)
     AutoConfig.register("qwen3_5_text", Qwen3_5TextConfig, exist_ok=True)
+    AutoModel.register(Qwen3_5Config, Qwen3_5Model, exist_ok=True)
+    AutoModel.register(Qwen3_5TextConfig, Qwen3_5TextModel, exist_ok=True)
+    AutoModelForCausalLM.register(Qwen3_5TextConfig, Qwen3_5ForCausalLM, exist_ok=True)
+    return True
+
+
+def _maybe_register_vllm_qwen35_config_for_transformers(
+    qwen35_config: type[Any],
+    qwen35_text_config: type[Any],
+) -> None:
+    try:
+        from transformers import AutoConfig
+    except Exception:
+        return
+
+    AutoConfig.register("qwen3_5", qwen35_config, exist_ok=True)
+    AutoConfig.register("qwen3_5_text", qwen35_text_config, exist_ok=True)
 
 
 def register() -> None:

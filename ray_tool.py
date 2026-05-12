@@ -417,7 +417,7 @@ def _prepare_default_env(forced=False):
 
 
 def _run_requirement_install(requirements_path):
-    run_cmd(f"pip install -r {requirements_path}")
+    run_cmd(f"pip install --no-deps -r {requirements_path}")
 
 
 def _prepare_qwen35_audio_env(forced=False):
@@ -425,12 +425,15 @@ def _prepare_qwen35_audio_env(forced=False):
     print(f"Preparing Qwen3.5-Audio environment on node: {hostname}")
     required = [
         "vllm==0.17.0",
-        "transformers==4.57.6",
+        "transformers==5.7.0",
+        "huggingface-hub==1.13.0",
+        "regex==2026.4.4",
         "flashinfer-python==0.6.4",
         "flashinfer-cubin==0.6.4",
     ]
     if not all(is_package_version(*pkg.split("==")) for pkg in required) or forced:
         _run_requirement_install("plugins/qwen35_audio/requirements-vllm-0.17.txt")
+        run_cmd("pip install --no-deps transformers==5.7.0 huggingface-hub==1.13.0 regex==2026.4.4")
     else:
         print(f"Qwen3.5-Audio package stack already installed on {hostname}, skipping dependency installation.")
 
