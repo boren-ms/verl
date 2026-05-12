@@ -194,7 +194,6 @@ def main() -> None:
         max_model_len=args.max_model_len,
         max_num_seqs=args.max_num_seqs,
         dtype="bfloat16",
-        hf_overrides={"architectures": [MODEL_ARCHITECTURE]},
         tensor_parallel_size=args.tensor_parallel_size,
         limit_mm_per_prompt={"audio": 1},
         gpu_memory_utilization=args.gpu_memory_utilization,
