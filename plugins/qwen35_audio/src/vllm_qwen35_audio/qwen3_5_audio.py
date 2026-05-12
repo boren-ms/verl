@@ -364,10 +364,17 @@ class Qwen3_5AudioMultiModalProcessor(
                 torch.from_numpy(log_fbank).float()
             )
 
+        try:
+            input_audio_embeds = torch.stack(audio_features_list)
+        except RuntimeError:
+            input_audio_embeds = torch.nn.utils.rnn.pad_sequence(
+                audio_features_list, batch_first=True
+            )
+
         return BatchFeature(
             dict(
                 input_ids=[input_ids],
-                input_audio_embeds=audio_features_list,
+                input_audio_embeds=input_audio_embeds,
             ),
             tensor_type="pt",
         )

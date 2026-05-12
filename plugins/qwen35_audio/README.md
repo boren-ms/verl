@@ -11,11 +11,15 @@ The working stack verified on `verl-n1-i11` is:
 | vLLM | `0.17.0` |
 | PyTorch | `2.10.0+cu128` |
 | CUDA runtime | `12.8` |
-| Transformers | `4.57.6` |
+| Transformers | `5.7.0` |
 | flashinfer-python | `0.6.4` |
 | flashinfer-cubin | `0.6.4` |
 
 Hardware used for verification: 8x NVIDIA H100 80GB HBM3 with tensor parallel size 8.
+
+`ray_tool.py prepare_qwen35_audio_env` installs the vLLM-compatible base stack first,
+then upgrades Transformers and its direct dependencies with `--no-deps` so Verl HF
+workers can load checkpoints with native `qwen3_5_text` support.
 
 ## Installation
 

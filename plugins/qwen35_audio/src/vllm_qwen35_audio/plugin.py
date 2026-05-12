@@ -22,9 +22,10 @@ def _maybe_register_qwen35_config() -> None:
     register it with Transformers AutoConfig early so tokenizer/config loading
     can resolve converted Qwen3.5-Audio checkpoints without remote code.
     """
+    native_hf_qwen35_text = _native_hf_qwen35_text_available()
+
     try:
         from transformers import AutoConfig
-
         from vllm.transformers_utils.config import _CONFIG_REGISTRY
         from vllm.transformers_utils.configs.qwen3_5 import (
             Qwen3_5Config,
@@ -35,8 +36,19 @@ def _maybe_register_qwen35_config() -> None:
 
     _CONFIG_REGISTRY.setdefault("qwen3_5", Qwen3_5Config)
     _CONFIG_REGISTRY.setdefault("qwen3_5_text", Qwen3_5TextConfig)
-    AutoConfig.register("qwen3_5", Qwen3_5Config, exist_ok=True)
-    AutoConfig.register("qwen3_5_text", Qwen3_5TextConfig, exist_ok=True)
+    if not native_hf_qwen35_text:
+        AutoConfig.register("qwen3_5", Qwen3_5Config, exist_ok=True)
+        AutoConfig.register("qwen3_5_text", Qwen3_5TextConfig, exist_ok=True)
+
+
+def _native_hf_qwen35_text_available() -> bool:
+    try:
+        from transformers import AutoConfig, AutoModelForCausalLM
+
+        config = AutoConfig.for_model("qwen3_5_text")
+    except Exception:
+        return False
+    return type(config) in AutoModelForCausalLM._model_mapping.keys()
 
 
 def register() -> None:
@@ -58,17 +70,18 @@ def _maybe_disable_cudnn() -> None:
 
 
 def _resolve_model_class() -> str | type[Any]:
-    """Resolve Qwen3.5-Audio model class from official vLLM or fail.
-
-    We do NOT use a bundled fallback because older vLLM versions that don't
-    have the Qwen3.5-Audio model should not attempt to load it at all.
-    """
+    """Resolve Qwen3.5-Audio model class from official vLLM or bundled shim."""
     try:
         _install_multimodal_profiling_compat()
         _install_multimodal_inputs_compat()
         _install_multimodal_processing_compat()
         _install_qwen35_text_model_compat()
-        module = importlib.import_module("vllm.model_executor.models.qwen3_5_audio")
+        try:
+            module = importlib.import_module("vllm.model_executor.models.qwen3_5_audio")
+        except ModuleNotFoundError as e:
+            if e.name != "vllm.model_executor.models.qwen3_5_audio":
+                raise
+            module = importlib.import_module("vllm_qwen35_audio.qwen3_5_audio")
         _install_qwen35_audio_model_compat(module)
         model_cls = getattr(module, ARCHITECTURE)
     except Exception as e:

@@ -418,6 +418,47 @@ def prepare_env(forced=False):
 
 
 @ray.remote
+def prepare_qwen35_audio_env(forced=False):
+    """Prepare the Qwen3.5-Audio vLLM environment on each node."""
+    hostname = os.uname().nodename
+    print(f"Preparing Qwen3.5-Audio environment on node: {hostname}")
+    try:
+        importlib.metadata.version("flash-attn")
+        run_cmd("pip uninstall -y flash-attn")
+    except importlib.metadata.PackageNotFoundError:
+        pass
+    required = [
+        "vllm==0.17.0",
+        "transformers==5.7.0",
+        "huggingface-hub==1.13.0",
+        "tokenizers==0.22.2",
+        "flashinfer-python==0.6.4",
+        "flashinfer-cubin==0.6.4",
+        "ray==2.46.0",
+    ]
+    if all(is_package_version(*pkg.split("==")) for pkg in required) and is_package_version(
+        "vllm-qwen35-audio", "0.1.0"
+    ) and not forced:
+        print(f"Qwen3.5-Audio packages already installed on {hostname}, skipping installation.")
+        return
+    run_cmd("pip install -r plugins/qwen35_audio/requirements-vllm-0.17.txt")
+    run_cmd(
+        "pip install --no-deps "
+        "transformers==5.7.0 "
+        "huggingface-hub==1.13.0 "
+        "tokenizers==0.22.2 "
+        "regex==2026.4.4 "
+        "packaging==26.0 "
+        "tqdm==4.67.3 "
+        "typer"
+    )
+    run_cmd('pip install --no-deps "ray[default]==2.46.0"')
+    run_cmd("pip install --no-deps -e .")
+    run_cmd("pip install --no-deps -e plugins/qwen35_audio")
+    print("Qwen3.5-Audio environment preparation completed.")
+
+
+@ray.remote
 def prepare_data(forced=False):
     """Prepare data on each node by syncing from the remote storage."""
     hostname = os.uname().nodename
@@ -676,6 +717,11 @@ class RayNode:
         """Prepare the environment on all Ray nodes by installing necessary packages."""
         print("Preparing environment on all nodes...")
         self.run(prepare_env, forced=forced)
+
+    def prepare_qwen35_audio_env(self, forced=False):
+        """Prepare the Qwen3.5-Audio environment on all Ray nodes."""
+        print("Preparing Qwen3.5-Audio environment on all nodes...")
+        self.run(prepare_qwen35_audio_env, forced=forced)
 
     def prepare_data(self, forced=False):
         """Prepare data on all Ray nodes by syncing from the remote storage."""
