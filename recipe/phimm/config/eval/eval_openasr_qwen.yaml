@@ -10,6 +10,7 @@ defaults:
 
 actor_rollout_ref:
   actor:
+    use_remove_padding: false
     fsdp_config:
       model_dtype: bf16
       wrap_policy:

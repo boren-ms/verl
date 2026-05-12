@@ -151,6 +151,12 @@ class RLHFDataset(Dataset):
                     dtype=torch.long,
                 )
             row_dict["multi_modal_inputs"] = inputs_dict
+        elif self.processor is None and self.return_multi_modal_inputs and audios:
+            # Qwen3.5-Audio: processor is text-only (no audio feature extraction).
+            # Extract mel filterbank features here so the HF audio actor can use them.
+            inputs_dict = self._extract_qwen35_mel_inputs(audios)
+            if inputs_dict:
+                row_dict["multi_modal_inputs"] = inputs_dict
 
         input_ids, attention_mask = verl_F.postprocess_data(
             input_ids=input_ids,
@@ -193,6 +199,29 @@ class RLHFDataset(Dataset):
 
     def __getstate__(self):
         return self.__dict__.copy()
+
+    def _extract_qwen35_mel_inputs(self, audios):
+        """Extract log mel filterbank features for Qwen3.5-Audio HF actor.
+
+        Uses the SpeechLib-compatible mel extractor from the vLLM plugin so
+        features match what the ConformerEncoder was trained with.
+
+        Returns a dict with "input_audio_embeds": (T, 80) float32 tensor,
+        or an empty dict on failure.
+        """
+        try:
+            from vllm_qwen35_audio.qwen3_5_audio import extract_logfbank
+        except Exception:
+            return {}
+
+        try:
+            wav, fs = audios[0]
+            wav = to_numpy(wav)
+            mel = extract_logfbank(wav, fs)  # (T, 80) float32 numpy
+            return {"input_audio_embeds": torch.from_numpy(mel)}  # (T, 80)
+        except Exception as e:
+            logger.warning("Qwen3.5 mel extraction failed: %s", e)
+            return {}
 
 
 def main(config_path, tokenizer_path, data_files=None):

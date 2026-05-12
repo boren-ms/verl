@@ -401,12 +401,13 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             if (
                 "Qwen3_5AudioForCausalLM" in architectures
                 and getattr(actor_model_config, "model_type", None) == "qwen3_5_text"
-                and actor_module_class is AutoModelForCausalLM
             ):
-                model_load_kwargs["key_mapping"] = {
-                    r"^language_model\.model\.": "model.",
-                    r"^language_model\.lm_head\.": "lm_head.",
-                }
+                # Use HF audio model: text backbone + ConformerEncoder audio tower.
+                # Key mapping routes audio tower weights (stored under model.embed_tokens_extend.*
+                # in the checkpoint) to the top-level embed_tokens_extend.* attribute.
+                from vllm_qwen35_audio.hf_audio_model import Qwen3_5AudioForCausalLMHF
+
+                actor_module_class = Qwen3_5AudioForCausalLMHF
             actor_module = actor_module_class.from_pretrained(**model_load_kwargs)
             from recipe.phimm.utils.model import patch_phi4mm
 

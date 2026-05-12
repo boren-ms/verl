@@ -60,13 +60,50 @@ def _maybe_register_hf_qwen35_config() -> bool:
             Qwen3_5TextModel,
         )
     except Exception:
-        return False
+        # Transformers version doesn't have native qwen3_5 module — register stubs.
+        return _register_qwen35_config_stubs()
 
     AutoConfig.register("qwen3_5", Qwen3_5Config, exist_ok=True)
     AutoConfig.register("qwen3_5_text", Qwen3_5TextConfig, exist_ok=True)
     AutoModel.register(Qwen3_5Config, Qwen3_5Model, exist_ok=True)
     AutoModel.register(Qwen3_5TextConfig, Qwen3_5TextModel, exist_ok=True)
     AutoModelForCausalLM.register(Qwen3_5TextConfig, Qwen3_5ForCausalLM, exist_ok=True)
+    return True
+
+
+def _register_qwen35_config_stubs() -> bool:
+    """Register minimal stub configs when the native HF module is unavailable.
+
+    This allows AutoTokenizer.from_pretrained to resolve the model type from
+    tokenizer_config.json even on older Transformers versions that don't ship
+    the qwen3_5 module.
+    """
+    try:
+        from transformers import AutoConfig, PretrainedConfig
+    except Exception:
+        return False
+
+    try:
+        # Check that qwen3_5_text isn't already registered.
+        _ = AutoConfig.for_model("qwen3_5_text")
+        return True  # already registered
+    except Exception:
+        pass
+
+    class Qwen3_5TextConfigStub(PretrainedConfig):
+        model_type = "qwen3_5_text"
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
+    class Qwen3_5ConfigStub(PretrainedConfig):
+        model_type = "qwen3_5"
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
+    AutoConfig.register("qwen3_5", Qwen3_5ConfigStub, exist_ok=True)
+    AutoConfig.register("qwen3_5_text", Qwen3_5TextConfigStub, exist_ok=True)
     return True
 
 
