@@ -13,8 +13,7 @@ import numpy as np
 import soundfile as sf
 
 REMOTE_MODEL_PATH = (
-    "az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/"
-    "fast-llm-2605-qwen3-5-9b-s2-st-example/20000/qwen35-audio-hf/"
+    "az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/"
 )
 REMOTE_AUDIO_PATH = (
     "az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-360/115/"
