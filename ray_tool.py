@@ -433,13 +433,15 @@ def _prepare_qwen35_audio_env(forced=False):
     ]
     if not all(is_package_version(*pkg.split("==")) for pkg in required) or forced:
         _run_requirement_install("plugins/qwen35_audio/requirements-vllm-0.17.txt")
-        run_cmd("pip install --no-deps transformers==5.7.0 huggingface-hub==1.13.0 regex==2026.4.4")
     else:
         print(f"Qwen3.5-Audio package stack already installed on {hostname}, skipping dependency installation.")
 
     run_cmd("pip install --no-deps -e .")
     run_cmd("pip install --no-deps -e plugins/qwen35_audio")
-    run_cmd('pip install "ray[default]==2.46.0"')
+    # Install ray without deps to avoid reverting the transformers/vllm stack.
+    run_cmd('pip install --no-deps "ray[default]==2.46.0"')
+    # Re-pin transformers after ray to ensure 5.7.0 is active (ray may pull older).
+    run_cmd("pip install --no-deps transformers==5.7.0 huggingface-hub==1.13.0 regex==2026.4.4")
     print("Qwen3.5-Audio environment preparation completed.")
 
 

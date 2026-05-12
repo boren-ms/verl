@@ -60,8 +60,9 @@ def _maybe_register_hf_qwen35_config() -> bool:
             Qwen3_5TextModel,
         )
     except Exception:
-        # Transformers version doesn't have native qwen3_5 module — register stubs.
-        return _register_qwen35_config_stubs()
+        # Transformers version doesn't have native qwen3_5 module —
+        # register bundled config stubs so AutoConfig.from_pretrained works.
+        return _register_bundled_qwen35_config()
 
     AutoConfig.register("qwen3_5", Qwen3_5Config, exist_ok=True)
     AutoConfig.register("qwen3_5_text", Qwen3_5TextConfig, exist_ok=True)
@@ -69,6 +70,38 @@ def _maybe_register_hf_qwen35_config() -> bool:
     AutoModel.register(Qwen3_5TextConfig, Qwen3_5TextModel, exist_ok=True)
     AutoModelForCausalLM.register(Qwen3_5TextConfig, Qwen3_5ForCausalLM, exist_ok=True)
     return True
+
+
+def _register_bundled_qwen35_config() -> bool:
+    """Register bundled Qwen3.5 config when the native HF module is unavailable.
+
+    Falls back to simple stubs if even the bundled config fails to import
+    (e.g. missing transformers 5.x APIs required by the bundled config).
+    """
+    try:
+        from transformers import AutoConfig
+        from .bundled_qwen3_5_config import Qwen3_5TextConfig as BundledQwen3_5TextConfig
+    except Exception:
+        return _register_qwen35_config_stubs()
+
+    try:
+        _ = AutoConfig.for_model("qwen3_5_text")
+        return True  # already registered
+    except Exception:
+        pass
+
+    try:
+        AutoConfig.register("qwen3_5_text", BundledQwen3_5TextConfig, exist_ok=True)
+        # Register a generic stub for "qwen3_5" (the outer multimodal config type)
+        from transformers import PretrainedConfig
+
+        class Qwen3_5ConfigStub(PretrainedConfig):
+            model_type = "qwen3_5"
+
+        AutoConfig.register("qwen3_5", Qwen3_5ConfigStub, exist_ok=True)
+        return True
+    except Exception:
+        return _register_qwen35_config_stubs()
 
 
 def _register_qwen35_config_stubs() -> bool:
