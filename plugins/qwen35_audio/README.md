@@ -33,9 +33,9 @@ The plugin is registered through the `vllm.general_plugins` entry point as `qwen
 
 ## Smoke Test
 
-The smoke test defaults to the verified `az://` bundle for fresh-node reproduction:
+The vLLM smoke test defaults to the verified raw HuggingFace `az://` bundle for fresh-node reproduction:
 
-- model: `az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/20000/qwen35-audio-hf/`
+- model: `az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/`
 - audio: `az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-360/115/122944/115-122944-0036.flac`
 
 The script stages `az://` inputs into `/root/data/qwen35_audio_test/` with `bbb` before loading vLLM.
@@ -46,7 +46,7 @@ QWEN35_AUDIO_DISABLE_CUDNN=1 \
 VLLM_WORKER_MULTIPROC_METHOD=spawn \
 VLLM_PLUGINS=qwen35_audio \
 PYTHONPATH=src \
-python scripts/run_qwen35_audio_smoke.py
+python scripts/run_qwen35_audio_vllm.py
 ```
 
 Use `--model` and `--audio` to point at different `az://` or local paths. Use `--local-cache-root` to change the staging directory.
@@ -93,16 +93,16 @@ print(outputs[0].outputs[0].text)
 
 ## Model Checkpoint Format
 
-The converted checkpoint must be HuggingFace-compatible with:
+The raw checkpoint must be HuggingFace-compatible with:
 
 ```json
 {
-  "architectures": ["Qwen3_5AudioForCausalLM"],
-  "model_type": "qwen3_5_text"
+    "architectures": ["Qwen3_5AudioForCausalLM"],
+    "model_type": "qwen3_5_audio"
 }
 ```
 
-The plugin registers both `qwen3_5` and `qwen3_5_text` config names with Transformers before vLLM loads the model.
+The vLLM script passes the architecture through `hf_overrides`, and the plugin normalizes the language backbone to `qwen3_5_text` internally before constructing vLLM's Qwen3.5 decoder.
 
 ## Compatibility Shims
 
