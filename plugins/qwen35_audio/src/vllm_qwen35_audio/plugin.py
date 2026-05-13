@@ -132,7 +132,10 @@ def _install_multimodal_inputs_compat() -> None:
 
 def _install_multimodal_processing_compat() -> None:
     import vllm.multimodal.processing as processing
-    from vllm.multimodal.processing import processor
+    try:
+        from vllm.multimodal.processing import processor
+    except ImportError:
+        processor = processing
 
     for name in (
         "BaseMultiModalProcessor",

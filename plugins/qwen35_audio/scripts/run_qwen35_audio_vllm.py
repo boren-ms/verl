@@ -7,6 +7,7 @@ import importlib.metadata as metadata
 import os
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -167,6 +168,21 @@ def print_environment() -> None:
         print(f"device0={torch.cuda.get_device_name(0)}")
 
 
+def register_local_plugin() -> None:
+    plugin_src = Path(__file__).resolve().parents[1] / "src"
+    if plugin_src.exists():
+        sys.path.insert(0, str(plugin_src))
+
+    from vllm import ModelRegistry
+
+    if MODEL_ARCHITECTURE in ModelRegistry.get_supported_archs():
+        return
+
+    from vllm_qwen35_audio.plugin import register
+
+    register()
+
+
 def main() -> None:
     args = parse_args()
     model_path, audio_path = stage_inputs(args)
@@ -175,6 +191,8 @@ def main() -> None:
     os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
     if not args.keep_cudnn_enabled:
         os.environ.setdefault("QWEN35_AUDIO_DISABLE_CUDNN", "1")
+
+    register_local_plugin()
 
     from vllm import LLM, SamplingParams
 

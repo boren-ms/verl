@@ -56,7 +56,6 @@ class Qwen3_5AudioConfig(PretrainedConfig):
         kwargs.pop("mtp_num_hidden_layers", None)
         kwargs.pop("mtp_use_dedicated_embeddings", None)
         kwargs.pop("attn_output_gate", None)
-        kwargs.pop("architectures", None)
         kwargs.pop("transformers_version", None)
 
         self.vocab_size = vocab_size

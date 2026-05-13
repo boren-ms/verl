@@ -74,11 +74,20 @@ try:
         ResolvedPromptUpdate,
     )
 except ImportError:
-    BaseMultiModalProcessor = Any
-    BaseProcessingInfo = Any
-    PromptReplacement = Any
-    PromptUpdate = Any
-    ResolvedPromptUpdate = Any
+    try:
+        from vllm.multimodal.processing import (
+            BaseMultiModalProcessor,
+            BaseProcessingInfo,
+            PromptReplacement,
+            PromptUpdate,
+            ResolvedPromptUpdate,
+        )
+    except ImportError:
+        BaseMultiModalProcessor = Any
+        BaseProcessingInfo = Any
+        PromptReplacement = Any
+        PromptUpdate = Any
+        ResolvedPromptUpdate = Any
 
 try:
     from vllm.sequence import IntermediateTensors
@@ -240,6 +249,8 @@ class Qwen3_5AudioFeatureInputs(TensorSchema):
         torch.Tensor | list[torch.Tensor],
         TensorShape("bn", "t", _AUDIO_N_MELS, dynamic_dims={"t"}),
     ]
+    audio_attention_mask: torch.Tensor | list[torch.Tensor] | None
+    audio_embed_sizes: torch.Tensor | list[int] | None
 
 
 class Qwen3_5AudioEmbeddingInputs(TensorSchema):
@@ -353,6 +364,8 @@ class Qwen3_5AudioMultiModalProcessor(
         audio_data = mm_data.get("audios", [])
 
         audio_features_list = []
+        audio_embed_sizes = []
+        audio_frames = []
         for audio in audio_data:
             if isinstance(audio, torch.Tensor):
                 audio = audio.detach().cpu().numpy()
@@ -360,21 +373,31 @@ class Qwen3_5AudioMultiModalProcessor(
 
             # Extract SpeechLib-style log mel filterbank features (T, 80)
             log_fbank = extract_logfbank(audio_np, _AUDIO_SAMPLING_RATE)
+            num_frames = log_fbank.shape[0]
             audio_features_list.append(
                 torch.from_numpy(log_fbank).float()
             )
-
-        try:
-            input_audio_embeds = torch.stack(audio_features_list)
-        except RuntimeError:
-            input_audio_embeds = torch.nn.utils.rnn.pad_sequence(
-                audio_features_list, batch_first=True
+            audio_frames.append(num_frames)
+            audio_embed_sizes.append(
+                self.info._compute_audio_embed_size(num_frames)
             )
+
+        input_audio_embeds = torch.nn.utils.rnn.pad_sequence(
+            audio_features_list, batch_first=True
+        )
+        max_frames = input_audio_embeds.shape[1]
+        audio_attention_mask = torch.zeros(
+            len(audio_features_list), max_frames, dtype=torch.long
+        )
+        for idx, num_frames in enumerate(audio_frames):
+            audio_attention_mask[idx, :num_frames] = 1
 
         return BatchFeature(
             dict(
                 input_ids=[input_ids],
                 input_audio_embeds=input_audio_embeds,
+                audio_embed_sizes=torch.tensor(audio_embed_sizes, dtype=torch.long),
+                audio_attention_mask=audio_attention_mask,
             ),
             tensor_type="pt",
         )
@@ -396,6 +419,8 @@ class Qwen3_5AudioMultiModalProcessor(
     ) -> Mapping[str, MultiModalFieldConfig]:
         return dict(
             input_audio_embeds=MultiModalFieldConfig.batched("audio"),
+            audio_embed_sizes=MultiModalFieldConfig.batched("audio"),
+            audio_attention_mask=MultiModalFieldConfig.batched("audio"),
         )
 
     def _get_prompt_updates(
@@ -544,6 +569,8 @@ class Qwen3_5AudioForCausalLM(
         self, **kwargs: object
     ) -> Qwen3_5AudioInputs | None:
         audio_features = kwargs.pop("input_audio_embeds", None)
+        audio_attention_mask = kwargs.pop("audio_attention_mask", None)
+        audio_embed_sizes = kwargs.pop("audio_embed_sizes", None)
         audio_embeds = kwargs.pop("audio_embeds", None)
 
         if audio_features is None and audio_embeds is None:
@@ -553,6 +580,8 @@ class Qwen3_5AudioForCausalLM(
             return Qwen3_5AudioFeatureInputs(
                 type="audio_features",
                 audio_features=audio_features,
+                audio_attention_mask=audio_attention_mask,
+                audio_embed_sizes=audio_embed_sizes,
             )
 
         if audio_embeds is not None:
@@ -567,13 +596,37 @@ class Qwen3_5AudioForCausalLM(
             return audio_input["data"]
 
         audio_features = audio_input["audio_features"]
+        audio_attention_mask = audio_input.get("audio_attention_mask")
+        audio_embed_sizes = audio_input.get("audio_embed_sizes")
         dtype = next(self.embed_tokens_extend.parameters()).dtype
+        if isinstance(audio_features, torch.Tensor):
+            audio_features = list(audio_features)
+        if isinstance(audio_attention_mask, torch.Tensor):
+            audio_attention_mask = list(audio_attention_mask)
+        if isinstance(audio_embed_sizes, torch.Tensor):
+            audio_embed_sizes = audio_embed_sizes.flatten().tolist()
+
+        def get_audio_attention_mask(idx: int, features: torch.Tensor):
+            if audio_attention_mask is None:
+                return None
+            mask = audio_attention_mask[idx].to(features.device)
+            if mask.ndim == 1:
+                mask = mask.unsqueeze(0)
+            return mask
+
         audio_embeds = [
             self.embed_tokens_extend(
                 features.to(dtype),
+                audio_attention_mask=get_audio_attention_mask(idx, features),
+                audio_projection_mode="speech",
+            )[: int(audio_embed_sizes[idx])]
+            if audio_embed_sizes is not None
+            else self.embed_tokens_extend(
+                features.to(dtype),
+                audio_attention_mask=get_audio_attention_mask(idx, features),
                 audio_projection_mode="speech",
             )
-            for features in audio_features
+            for idx, features in enumerate(audio_features)
         ]
         return audio_embeds
 
