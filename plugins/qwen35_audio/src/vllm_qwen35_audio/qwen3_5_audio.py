@@ -82,9 +82,8 @@ class AudioEmbedding(_AudioEmbeddingBase):
 
 
 # Audio placeholder token ID used for embedding replacement.
-# <|audio_pad|> token in the Qwen3.5 tokenizer.
-# Shared definition lives in hf_model/configuration_qwen3_5_audio.py (AUDIO_PAD_TOKEN_ID).
-_AUDIO_PLACEHOLDER_TOKEN_ID = 248076
+# <|audio_pad|> token id in the Qwen3.5 Audio tokenizer
+AUDIO_PAD_TOKEN_ID = 248076
 
 _AUDIO_MAX_SOUNDFILE_SIZE = 241_000
 
@@ -365,7 +364,7 @@ class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProces
             audio_len = audios.get_audio_length(item_idx)
             audio_frames = self.info.get_audio_num_frames(audio_len, _AUDIO_SAMPLING_RATE)
             audio_embed_size = self.info._compute_audio_embed_size(audio_frames)
-            return [_AUDIO_PLACEHOLDER_TOKEN_ID] * audio_embed_size
+            return [AUDIO_PAD_TOKEN_ID] * audio_embed_size
 
         return [
             PromptReplacement(

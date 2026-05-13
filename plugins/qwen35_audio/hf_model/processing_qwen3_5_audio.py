@@ -23,7 +23,8 @@ from transformers.feature_extraction_sequence_utils import SequenceFeatureExtrac
 from transformers.feature_extraction_utils import BatchFeature
 from transformers.processing_utils import ProcessorMixin
 
-from .configuration_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
+# <|audio_pad|> token id in the Qwen3.5 Audio tokenizer
+AUDIO_PAD_TOKEN_ID = 248076
 
 
 # ---------------------------------------------------------------------------

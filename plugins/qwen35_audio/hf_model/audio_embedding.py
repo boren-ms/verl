@@ -12,7 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .cascade_encoder import ConformerEncoder, NemoConvSubsampling
-from .configuration_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
+from .processing_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
 
 logger = logging.getLogger(__name__)
 
