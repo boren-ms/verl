@@ -108,6 +108,7 @@ class RLHFDataset(Dataset):
             tokenize=False,
             **self.apply_chat_template_kwargs,
         )
+        logger.info("raw_prompt[%s]: %s", i, raw_prompt)
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
 
