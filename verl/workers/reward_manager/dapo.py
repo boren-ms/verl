@@ -83,14 +83,8 @@ class DAPORewardManager(AbstractRewardManager):
             valid_response_ids = response_ids[:valid_response_length]
 
             # decode
-            vocab_size = len(self.tokenizer)
-            prompt_str = self.tokenizer.decode(
-                valid_prompt_ids[(valid_prompt_ids >= 0) & (valid_prompt_ids < vocab_size)], skip_special_tokens=True
-            )
-            response_str = self.tokenizer.decode(
-                valid_response_ids[(valid_response_ids >= 0) & (valid_response_ids < vocab_size)],
-                skip_special_tokens=True,
-            )
+            prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=True)
+            response_str = self.tokenizer.decode(valid_response_ids, skip_special_tokens=True)
             eos_token = self.tokenizer.eos_token
             if response_str.endswith(eos_token):
                 response_str = response_str[: -len(eos_token)]

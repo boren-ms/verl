@@ -75,14 +75,8 @@ class NaiveRewardManager(AbstractRewardManager):
             valid_response_ids = response_ids[:valid_response_length]
 
             # decode
-            vocab_size = len(self.tokenizer)
-            prompt_str = self.tokenizer.decode(
-                valid_prompt_ids[(valid_prompt_ids >= 0) & (valid_prompt_ids < vocab_size)], skip_special_tokens=True
-            )
-            response_str = self.tokenizer.decode(
-                valid_response_ids[(valid_response_ids >= 0) & (valid_response_ids < vocab_size)],
-                skip_special_tokens=True,
-            )
+            prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=True)
+            response_str = self.tokenizer.decode(valid_response_ids, skip_special_tokens=True)
 
             ground_truth = data_item.non_tensor_batch["reward_model"]["ground_truth"]
             data_source = data_item.non_tensor_batch[self.reward_fn_key]
