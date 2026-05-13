@@ -1,0 +1,14 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - eval_asr
+  - data/val_data/ls_clean_test
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi-4-multimodal-instruct
+    adapter_merged: False

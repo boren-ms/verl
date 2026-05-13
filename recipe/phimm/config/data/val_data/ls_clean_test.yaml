@@ -1,0 +1,10 @@
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_clean_0
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_0
+    verl_format:
+      prompt_key: prompt

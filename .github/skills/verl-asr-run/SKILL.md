@@ -8,7 +8,7 @@ argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0,
 
 Submit a training or evaluation job on a remote verl Brix node via `submit_job.sh`, **continuously monitor until completion** reporting metrics in structured tables, automatically run post-training OpenASR evals when applicable, and optionally perform word error analysis on validation output.
 
-Refer to the **remote-development** skill for node connectivity, `rcall-brix`, `bpush`, `bbb`, and environment setup.
+Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
 ## When to Use
 
@@ -64,9 +64,9 @@ Configs live under `recipe/phimm/config/` by job family, including `recipe/phimm
 ```
 submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
   └─ submit_job.sh <node> <config> [dry_run] [cleanup] [sync_code]
-       ├─ rcall-brix sync <node>          # sync code to remote (if sync_code=true)
+       ├─ bpush <node>                    # push code to remote (if sync_code=true)
        ├─ ray_job.py cleanup <config>     # cancel previous run of same config
-       └─ rcall-brix ssh <node> "bash -l /root/code/verl/quick_run.sh <config>"
+       └─ brix ssh <node> -- "bash -l /root/code/verl/quick_run.sh <config>"
             └─ quick_run.sh <config>
                  ├─ ray_tool.py prepare_env   # install deps on all Ray nodes
                  └─ ray job submit ... python3 -m <module> --config-name <config>
@@ -78,7 +78,7 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
 1. **List all verl nodes** and their status:
    ```bash
-   rcall-brix ls 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep '^verl-'
+   brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep '^verl-'
    ```
    Separate into Ready nodes and Paused/Suspended nodes.
 
@@ -86,13 +86,13 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
    **a) GPU utilization** — check if GPUs are actively in use:
    ```bash
-   rcall-brix ssh {NODE} -- 'bash -l -c "nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits"'
+   brix ssh {NODE} -- 'bash -l -c "nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits"'
    ```
    A node is **GPU-busy** if any GPU shows utilization > 5% or memory used > 5000 MiB.
 
    **b) Ray jobs** — check for running Ray jobs:
    ```bash
-   rcall-brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list 2>/dev/null || echo No Ray jobs"'
+   brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list 2>/dev/null || echo No Ray jobs"'
    ```
 
    A node is considered **occupied** if either check is positive (GPU-busy OR running Ray jobs). A node is **free** only if GPUs are idle AND no Ray jobs are running.
@@ -108,15 +108,15 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 5. **If no unoccupied Ready node exists** and no specific node was requested:
    - Check if any `verl-*` nodes are in **Paused** or **Suspended** state:
      ```bash
-     rcall-brix ls 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E 'Paused|Suspended' | awk '{print $1}' | grep '^verl-'
+     brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E 'Paused|Suspended' | awk '{print $1}' | grep '^verl-'
      ```
    - If a Paused/Suspended node is found, **automatically resume** the first one:
      ```bash
-     rcall-brix resume {NODE}
+     brix resume {NODE}
      ```
    - **Poll until Ready**: check status every 15 seconds until the node reaches `Ready`:
      ```bash
-     rcall-brix ls '{NODE}' 2>&1
+     brix pools '{NODE}' 2>&1
      ```
      Report each poll: `"Resuming {NODE}... status: {STATUS}"`.
    - Once `Ready`, use this node and proceed to Step 1.
@@ -146,12 +146,12 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
 2. **Clean up** any previous job with the same config name:
    ```bash
-   rcall-brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py cleanup {CONFIG}"'
+   brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py cleanup {CONFIG}"'
    ```
 
 3. **Submit the job** using `quick_run.sh`:
    ```bash
-   rcall-brix ssh {NODE} -- 'bash -l /root/code/verl/quick_run.sh recipe/phimm/config/{CONFIG}.yaml'
+   brix ssh {NODE} -- 'bash -l /root/code/verl/quick_run.sh recipe/phimm/config/{CONFIG}.yaml'
    ```
 
    **3b. Alternative (preferred)**: Use `submit_job.sh` which handles push + submit in one command:
@@ -161,7 +161,7 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
    If a custom model path is specified, append a hydra override:
    ```bash
-   rcall-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m {MODULE} --config-name {CONFIG} trainer.experiment_name={CONFIG} actor_rollout_ref.model.path={MODEL_PATH}"'
+   brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m {MODULE} --config-name {CONFIG} trainer.experiment_name={CONFIG} actor_rollout_ref.model.path={MODEL_PATH}"'
    ```
 
    Save the output — it contains the Ray job ID (e.g. `raysubmit_XXXX`).
@@ -181,27 +181,27 @@ Poll periodically until the job finishes. **Do NOT stop after a single check —
 
 #### 3a. Check Ray job status
 ```bash
-rcall-brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list"'
+brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list"'
 ```
 
 Or by job ID:
 ```bash
-rcall-brix ssh {NODE} -- 'bash -l -c "ray job status {JOB_ID}"'
+brix ssh {NODE} -- 'bash -l -c "ray job status {JOB_ID}"'
 ```
 
 #### 3b. Tail the log for progress
 ```bash
-rcall-brix ssh {NODE} -- 'bash -l -c "tail -30 /root/code/verl/{CONFIG}.log"'
+brix ssh {NODE} -- 'bash -l -c "tail -30 /root/code/verl/{CONFIG}.log"'
 ```
 
 Or via Ray logs:
 ```bash
-rcall-brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} | tail -n 30"'
+brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} | tail -n 30"'
 ```
 
 #### 3c. Check GPU utilization
 ```bash
-rcall-brix ssh {NODE} -- 'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits'
+brix ssh {NODE} -- 'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits'
 ```
 Run this on every monitoring check. Parse the CSV output into the status header.
 
@@ -244,8 +244,8 @@ Common failure patterns:
 - **Import error**: wrong module path or API mismatch → fix the call
 - **Model incompatibility**: PEFT/vLLM doesn't support the model → revert model or patch
 - **Checkpoint error**: model shard missing on blob → check blob path in config
-- **"rcall-brix: command not found"**: Use full path `~/.virtualenvs/openai/bin/rcall-brix`
-- **Sync fails**: Check node is Ready with `rcall-brix ls`
+- **"brix: command not found"**: Ensure `~/.openai/bin` is on PATH
+- **Sync fails**: Check node is Ready with `brix pools`
 
 #### 3g. Extract and present metrics
 
@@ -375,7 +375,7 @@ Run each eval as a normal remote job and monitor it through Step 3 until `SUCCEE
 Because `submit_job.sh` does not support arbitrary hydra overrides, use a direct Ray submission for checkpoint evals:
 
 ```bash
-rcall-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_asr_eval --config-name {EVAL_CONFIG} trainer.experiment_name={TRAIN_CONFIG}_{EVAL_CONFIG} trainer.resume_mode=resume_path trainer.resume_from_path={CHECKPOINT_PATH}"'
+brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_asr_eval --config-name {EVAL_CONFIG} trainer.experiment_name={TRAIN_CONFIG}_{EVAL_CONFIG} trainer.resume_mode=resume_path trainer.resume_from_path={CHECKPOINT_PATH}"'
 ```
 
 Where `{EVAL_CONFIG}` is `eval_openasr` or `eval_openasr_ml`. Track both Ray job IDs separately. If either eval fails, diagnose and fix using Step 3f, then resubmit the failed eval before continuing.
@@ -463,7 +463,7 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 - Training configs inherit from `base/dapo_asr.yaml` (or `grpo_asr.yaml`, `grpo_asr_full.yaml`) — full RL training with periodic validation.
 - The remote workspace is at `/root/code/verl` on Brix nodes.
 - **Always push code first** before submitting jobs. Use `bpush {NODE}` or `submit_job.sh` (which pushes automatically). Never submit a job without syncing code first.
-- For remote operations, use `rcall-brix ssh`, `rcall-brix scp`, or the convenience wrappers `bpush` and `submit_job.sh`.
+- For remote operations, use `brix ssh`, `brix scp`, or the convenience wrappers `bpush` and `submit_job.sh`.
 - The word error analysis script (`analyze_word_errors.py`) supports custom column names via `--ref-column` and `--hyp-column`. verl JSONL uses `gts` and `output`.
 - For long-running training jobs, use the **persistent-job-monitor** skill to poll every 5 minutes until a target step is reached.
 
@@ -473,14 +473,14 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 |--------|---------|
 | Push code | `bpush {NODE}` |
 | Submit job | `bash submit_job.sh {NODE} recipe/phimm/config/{CONFIG}.yaml false true true` |
-| Job status | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job status {JOB_ID}"'` |
-| Job logs (tail) | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| tail -n N"'` |
-| Step progress | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep \"step:\" \| tail -n 10"'` |
-| Val metrics | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep -E \"val-core\|val-aux\" \| tail -n 30"'` |
-| Stop job | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job stop {JOB_ID}"'` |
-| Check errors | `rcall-brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep -E \"Traceback\|Error\" \| tail -n 20"'` |
+| Job status | `brix ssh {NODE} -- 'bash -l -c "ray job status {JOB_ID}"'` |
+| Job logs (tail) | `brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| tail -n N"'` |
+| Step progress | `brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep \"step:\" \| tail -n 10"'` |
+| Val metrics | `brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep -E \"val-core\|val-aux\" \| tail -n 30"'` |
+| Stop job | `brix ssh {NODE} -- 'bash -l -c "ray job stop {JOB_ID}"'` |
+| Check errors | `brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep -E \"Traceback\|Error\" \| tail -n 20"'` |
 | W&B results | `python ./wandb_result.py --metric val-aux search '{CONFIG}'` |
-| List jobs | `rcall-brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list"'` |
+| List jobs | `brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list"'` |
 
 ## Batch Submission
 
