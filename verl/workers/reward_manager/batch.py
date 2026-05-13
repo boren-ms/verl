@@ -111,8 +111,15 @@ class BatchRewardManager(AbstractRewardManager):
 
             data_source = data_sources[i]
             if already_printed.get(data_source, 0) < self.num_examine:
-                response_str = self.tokenizer.decode(data.batch["responses"][i][:length], skip_special_tokens=True)
-                prompt_str = self.tokenizer.decode(data.batch["prompts"][i], skip_special_tokens=True)
+                resp_ids = data.batch["responses"][i][:length]
+                prm_ids = data.batch["prompts"][i]
+                vocab_size = len(self.tokenizer)
+                response_str = self.tokenizer.decode(
+                    resp_ids[(resp_ids >= 0) & (resp_ids < vocab_size)], skip_special_tokens=True
+                )
+                prompt_str = self.tokenizer.decode(
+                    prm_ids[(prm_ids >= 0) & (prm_ids < vocab_size)], skip_special_tokens=True
+                )
                 ground_truth = data[i].non_tensor_batch["reward_model"].get("ground_truth", None)
                 print("[prompt]", prompt_str)
                 print("[response]", response_str)

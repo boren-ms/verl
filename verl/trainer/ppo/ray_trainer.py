@@ -641,7 +641,10 @@ class RayPPOTrainer:
 
             # Store generated outputs
             output_ids = test_output_gen_batch.batch["responses"]
-            output_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in output_ids]
+            output_texts = [
+                self.tokenizer.decode(ids[(ids >= 0) & (ids < vocab_size)], skip_special_tokens=True)
+                for ids in output_ids
+            ]
             sample_outputs.extend(output_texts)
 
             test_batch = test_batch.union(test_output_gen_batch)
