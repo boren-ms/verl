@@ -4,6 +4,9 @@ codetiming
 datasets==4.0.0
 dill
 torch==2.10.0
+torchaudio==2.10.0
+torchvision==0.25.0
+torchdata==0.11.0
 hydra-core
 liger-kernel
 numpy<2.0.0
@@ -16,7 +19,6 @@ pre-commit
 # ray is installed separately after vllm to allow version override
 # ray[default]==2.46.0
 tensordict>=0.8.0,<=0.10.0,!=0.9.0
-torchdata
 transformers==5.7.0
 flashinfer-python==0.6.4
 flashinfer-cubin==0.6.4
