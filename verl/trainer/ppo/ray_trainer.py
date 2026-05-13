@@ -591,7 +591,12 @@ class RayPPOTrainer:
             # Store original inputs
             input_ids = test_batch.batch["input_ids"]
             # TODO: Can we keep special tokens except for padding tokens?
-            input_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in input_ids]
+            # Filter out IDs beyond tokenizer vocab (e.g. audio_pad placeholder) to avoid OverflowError
+            vocab_size = len(self.tokenizer)
+            input_texts = [
+                self.tokenizer.decode(ids[(ids >= 0) & (ids < vocab_size)], skip_special_tokens=True)
+                for ids in input_ids
+            ]
             sample_inputs.extend(input_texts)
             sample_uids.extend(test_batch.non_tensor_batch["uid"])
 
