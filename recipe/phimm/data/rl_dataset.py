@@ -108,6 +108,8 @@ class RLHFDataset(Dataset):
             tokenize=False,
             **self.apply_chat_template_kwargs,
         )
+        # Remove empty thinking block injected by Qwen3.5 chat template
+        raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
         logger.info("raw_prompt[%s]: %s", i, raw_prompt)
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
