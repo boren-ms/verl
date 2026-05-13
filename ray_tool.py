@@ -394,44 +394,35 @@ def prepare_env(forced=False):
         "flashinfer-python==0.6.4",
         "flashinfer-cubin==0.6.4",
         "ray==2.46.0",
+        "flash-attn==2.8.3",
         "vllm-qwen35-audio==0.1.0",
     ]
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
-    # Uninstall flash-attn first — its CUDA extensions are tied to a specific
-    # torch ABI and will segfault if torch is upgraded underneath it.
-    run_cmd("pip uninstall -y flash-attn", check=False)
     # Install vllm with --no-deps so it does NOT drag in its own torch/ray.
-    # Then pin the exact torch + ray we need.
     run_cmd("pip install --no-deps vllm==0.17.0", check=False)
+    # Install torch + flashinfer first to establish the correct ABI.
     run_cmd(
         "pip install "
         "torch==2.10.0 "
         "flashinfer-python==0.6.4 "
         "flashinfer-cubin==0.6.4"
     )
-    # Install remaining deps from requirements (excluding vllm/torch/ray
-    # which are already handled above).
+    # Install remaining deps (vllm/torch/ray already handled above).
     run_cmd("pip install -r requirements_vllm.txt", check=False)
-    # Force-pin versions that vllm's deps may have overridden.
-    run_cmd(
-        "pip install --no-deps "
-        "torch==2.10.0 "
-        "transformers==5.7.0 "
-        "huggingface-hub==1.13.0 "
-        "tokenizers==0.22.2 "
-        "regex==2026.4.4 "
-        "packaging==26.0 "
-        "tqdm==4.67.3 "
-        "typer "
-        "pyvers==0.1.0"
-    )
     run_cmd('pip install --no-deps "ray[default]==2.46.0"')
-    # Rebuild flash-attn from source against the current torch.
-    run_cmd("pip install flash-attn", check=False)
     run_cmd("pip install --no-deps -e .")
     run_cmd("pip install --no-deps -e plugins/qwen35_audio")
+    # Install pre-built flash-attn wheel from blob storage.
+    flash_attn_pkg = "flash_attn-2.8.3+cu128torch2.10-cp312-cp312-linux_x86_64.whl"
+    remote_pkg_path = f"az://orngwus2cresco/data/boren/data/packages/{flash_attn_pkg}"
+    local_pkg_dir = "/root/packages"
+    local_pkg_path = f"{local_pkg_dir}/{flash_attn_pkg}"
+    Path(local_pkg_dir).mkdir(parents=True, exist_ok=True)
+    if not Path(local_pkg_path).exists():
+        run_cmd(f"bbb cp {remote_pkg_path} {local_pkg_path}")
+    run_cmd(f"pip install --no-deps {local_pkg_path}")
     print("Environment preparation completed.")
 
 

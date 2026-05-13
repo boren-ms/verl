@@ -1,6 +1,6 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
-from numpy.compat import Path
+from pathlib import Path
 import soundfile as sf
 from recipe.phimm.data.chunk import load_chunk_example
 

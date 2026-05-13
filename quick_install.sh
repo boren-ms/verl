@@ -25,7 +25,7 @@ if [ ! -f "${done_file}" ]; then
     pip install --no-deps "ray[default]==2.46.0"
     pip install --no-deps -e .
     pip install --no-deps -e plugins/qwen35_audio
-    flash_attn_pkg="flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
+    flash_attn_pkg="flash_attn-2.8.3+cu128torch2.10-cp312-cp312-linux_x86_64.whl"
     remote_pkg_path="az://orngwus2cresco/data/boren/data/packages/${flash_attn_pkg}"
     local_pkg_dir="/root/packages"
     local_pkg_path="${local_pkg_dir}/${flash_attn_pkg}"
