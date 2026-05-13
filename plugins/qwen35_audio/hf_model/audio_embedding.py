@@ -175,10 +175,10 @@ class AudioEmbedding(nn.Module):
 
         input_shape = input_ids.size()
         input_ids = input_ids.view(-1, input_shape[-1])
-        MAX_INPUT_ID = int(1e9)
+        _AUDIO_PAD_ID = 248076  # <|audio_pad|> token id
 
         with torch.no_grad():
-            positions = torch.nonzero((input_ids < 0) & (input_ids > -MAX_INPUT_ID), as_tuple=False)
+            positions = torch.nonzero(input_ids == _AUDIO_PAD_ID, as_tuple=False)
 
         if isinstance(self.audio_projection, nn.Sequential):
             target_device = self.audio_projection[0].weight.device
@@ -200,7 +200,9 @@ class AudioEmbedding(nn.Module):
                 audio_set_tensor, ctc_loss = self.get_audio_features(input_embeds, audio_attention_mask, audio_embed_sizes=audio_embed_sizes, **kwargs)
 
         with torch.no_grad():
-            input_ids.clamp_min_(0).clamp_max_(self.vocab_size)
+            input_ids = input_ids.clone()
+            input_ids[input_ids == _AUDIO_PAD_ID] = 0
+            input_ids.clamp_max_(self.vocab_size)
 
         if "wte" in kwargs:
             hidden_states = kwargs["wte"](input_ids)

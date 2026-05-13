@@ -255,7 +255,7 @@ class Qwen3_5AudioProcessor(ProcessorMixin):
                     audio_idx += 1
                 else:
                     sz = 0
-                pad_chunks.append([-1] * sz)
+                pad_chunks.append([248076] * sz)  # <|audio_pad|> token id
                 all_embed_sizes.append(sz)
 
             interleaved = list(filter(None, chain.from_iterable(zip_longest(text_chunks, pad_chunks))))
