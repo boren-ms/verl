@@ -45,7 +45,7 @@ from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.languages import get_language_name
 from recipe.phimm.utils.storage import get_path_with_options
 
-prompt_format = "<|im_start|>user\n<audio>\n{}<|im_end|>\n<|im_start|>assistant\n"
+prompt_format = "<audio>\n{}"
 
 
 def read_words(file_path, num=None, tn_name=None):
@@ -984,8 +984,6 @@ def to_user_msg(prompt):
     if not isinstance(prompt, str):
         return prompt
 
-    for word in ["<|user|>", "<|end|>", "<|assistant|>"]:
-        prompt = prompt.replace(word, "")
     return [{"role": "user", "content": prompt}]
 
 
