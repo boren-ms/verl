@@ -18,6 +18,9 @@ from recipe.phimm.utils.audio import load_audio
 
 logger = logging.getLogger(__name__)
 
+CANONICAL_AUDIO_TOKEN = "<|audio_1|>"
+AUDIO_PROMPT_RE = re.compile(r"<\|audio_\d+\|>|<audio>")
+
 
 def to_numpy(x):
     if isinstance(x, torch.Tensor):
@@ -123,10 +126,14 @@ class RLHFDataset(Dataset):
 
     @staticmethod
     def _replace_audio_prompt(content, teacher_prompt):
-        match = re.search(r"<\|audio_\d+\|>", content)
+        match = AUDIO_PROMPT_RE.search(content)
         if match is None:
             return teacher_prompt
         return f"{content[: match.end()]}{teacher_prompt}"
+
+    @staticmethod
+    def _normalize_audio_prompt(raw_prompt):
+        return AUDIO_PROMPT_RE.sub(CANONICAL_AUDIO_TOKEN, raw_prompt, count=1)
 
     def _build_sdpo_teacher_raw_prompt(self, messages, ground_truth):
         if not messages:
@@ -148,6 +155,7 @@ class RLHFDataset(Dataset):
     def _add_sdpo_teacher_prompt(self, row_dict, messages, audios):
         ground_truth = self._get_ground_truth(row_dict)
         teacher_raw_prompt = self._build_sdpo_teacher_raw_prompt(messages, ground_truth)
+        teacher_raw_prompt = self._normalize_audio_prompt(teacher_raw_prompt)
         teacher_model_inputs = self.processor(text=[teacher_raw_prompt], audios=audios, return_tensors="pt")
         teacher_input_ids = teacher_model_inputs.pop("input_ids")
         teacher_attention_mask = teacher_model_inputs.pop("attention_mask")
@@ -181,6 +189,7 @@ class RLHFDataset(Dataset):
             tokenize=False,
             **self.apply_chat_template_kwargs,
         )
+        raw_prompt = self._normalize_audio_prompt(raw_prompt)
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
 
