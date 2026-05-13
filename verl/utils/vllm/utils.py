@@ -13,19 +13,27 @@
 # limitations under the License.
 
 
-from msgspec import field
 from packaging import version as vs
-from vllm.lora.lora_model import LoRAModel
-from vllm.lora.request import LoRARequest
-from vllm.lora.utils import get_adapter_absolute_path
-from vllm.lora.worker_manager import LRUCacheWorkerLoRAManager
 
 from verl.third_party.vllm import get_version
 
+try:
+    from msgspec import field
+    from vllm.lora.lora_model import LoRAModel
+    from vllm.lora.request import LoRARequest
+    from vllm.lora.utils import get_adapter_absolute_path
+    from vllm.lora.worker_manager import LRUCacheWorkerLoRAManager
 
-class TensorLoRARequest(LoRARequest):
-    peft_config: dict = field(default=None)
-    lora_tensors: dict = field(default=None)
+    class TensorLoRARequest(LoRARequest):
+        peft_config: dict = field(default=None)
+        lora_tensors: dict = field(default=None)
+
+except (ImportError, ModuleNotFoundError):
+    LoRAModel = None
+    LoRARequest = None
+    get_adapter_absolute_path = None
+    LRUCacheWorkerLoRAManager = None
+    TensorLoRARequest = None
 
 
 class VLLMHijack:
@@ -114,6 +122,8 @@ class VLLMHijack:
         def do_hijack(target_cls, target_method_name, hooking_method):
             setattr(target_cls, target_method_name, hooking_method)
 
+        if LRUCacheWorkerLoRAManager is None:
+            return
         do_hijack(LRUCacheWorkerLoRAManager, "_load_adapter", hijack__load_adapter)
 
 
