@@ -16,20 +16,20 @@ if [ -z "$job_name" ] || [ -z "$config_file" ]; then
 fi
 if [ "$sync_code" == "true" ]; then
     echo "syncing code to $job_name"
-    rcall-brix sync "$job_name"
+    bpush "$job_name"
 fi
 if [ "$cleanup" == "true" ]; then
     echo "cleaning up old ${config_name} on $job_name"
-    rcall-brix ssh "$job_name" "bash -lc \"python /root/code/verl/ray_job.py cleanup ${config_name}\""
+    brix ssh "$job_name" -- "bash -lc \"python /root/code/verl/ray_job.py cleanup ${config_name}\""
 fi
 log_dir=logs/$job_name
 mkdir -p "$log_dir"
 
 if [ "$dry_run" == "true" ]; then
     echo "Dry run"
-    echo rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file"  | tee "${log_dir}/${config_name}.log"
+    echo brix ssh  "$job_name" -- "bash -l /root/code/verl/quick_run.sh $config_file"  | tee "${log_dir}/${config_name}.log"
     exit 0
 fi
 
 
-rcall-brix ssh  "$job_name" "bash -l /root/code/verl/quick_run.sh $config_file" | tee "${log_dir}/${config_name}.log"
+brix ssh  "$job_name" -- "bash -l /root/code/verl/quick_run.sh $config_file" | tee "${log_dir}/${config_name}.log"
