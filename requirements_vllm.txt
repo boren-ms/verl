@@ -18,7 +18,6 @@ pre-commit
 tensordict>=0.8.0,<=0.10.0,!=0.9.0
 torchdata
 transformers==5.7.0
-vllm==0.17.0
 flashinfer-python==0.6.4
 flashinfer-cubin==0.6.4
 wandb
