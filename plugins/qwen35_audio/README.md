@@ -17,8 +17,8 @@ The working stack verified on `verl-n1-i11` is:
 
 Hardware used for verification: 8x NVIDIA H100 80GB HBM3 with tensor parallel size 8.
 
-`ray_tool.py prepare_qwen35_audio_env` installs the vLLM-compatible base stack first,
-then upgrades Transformers and its direct dependencies with `--no-deps` so Verl HF
+`ray_tool.py prepare_env` installs the full environment including vLLM, flashinfer,
+Transformers and the qwen35_audio plugin with `--no-deps` overrides so Verl HF
 workers can load checkpoints with native `qwen3_5_text` support.
 
 ## Installation

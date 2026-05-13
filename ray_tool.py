@@ -385,49 +385,13 @@ def prepare_env(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
     print(f"Preparing environment on node: {hostname}")
-    required = [
-        "torch==2.8.0",
-        "ray==2.46.0",
-        "transformers==4.55.4",
-        "vllm==0.11.0",
-        "flash-attn==2.8.3",
-    ]
-    if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
-        print(f"Required packages already installed on {hostname}, skipping installation.")
-        return
-    run_cmd("pip install -r requirements_vllm.txt")
-    run_cmd('pip install --no-deps "ray[default]==2.46.0"')
-    run_cmd("pip install --no-deps -e .")
-    # find the package
-    # echo $(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')")
-    pkg_name = "flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
-    remote_pkg_path = f"{ORNG_USER.data_path}/packages/{pkg_name}"
-    local_pkg_path = f"/root/packages/{pkg_name}"
-    Path(local_pkg_path).parent.mkdir(parents=True, exist_ok=True)
-    if bf.exists(remote_pkg_path) and not bf.exists(local_pkg_path):
-        bf.copy(remote_pkg_path, local_pkg_path, overwrite=False)
-
-    if not Path(local_pkg_path).exists():
-        raise FileNotFoundError(
-            f"Could not locate {remote_pkg_path}. "
-            "Remote nodes cannot fetch this wheel from the internet; pre-upload it to ORNG packages."
-        )
-
-    run_cmd(f"pip install --no-deps {local_pkg_path}")
-    print("Environment preparation completed.")
-
-
-@ray.remote
-def prepare_qwen35_audio_env(forced=False):
-    """Prepare the Qwen3.5-Audio vLLM environment on each node."""
-    hostname = os.uname().nodename
-    print(f"Preparing Qwen3.5-Audio environment on node: {hostname}")
     try:
         importlib.metadata.version("flash-attn")
         run_cmd("pip uninstall -y flash-attn")
     except importlib.metadata.PackageNotFoundError:
         pass
     required = [
+        "torch==2.8.0",
         "vllm==0.17.0",
         "transformers==5.7.0",
         "huggingface-hub==1.13.0",
@@ -435,13 +399,12 @@ def prepare_qwen35_audio_env(forced=False):
         "flashinfer-python==0.6.4",
         "flashinfer-cubin==0.6.4",
         "ray==2.46.0",
+        "vllm-qwen35-audio==0.1.0",
     ]
-    if all(is_package_version(*pkg.split("==")) for pkg in required) and is_package_version(
-        "vllm-qwen35-audio", "0.1.0"
-    ) and not forced:
-        print(f"Qwen3.5-Audio packages already installed on {hostname}, skipping installation.")
+    if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
+        print(f"Required packages already installed on {hostname}, skipping installation.")
         return
-    run_cmd("pip install -r plugins/qwen35_audio/requirements-vllm-0.17.txt")
+    run_cmd("pip install -r requirements_vllm.txt")
     run_cmd(
         "pip install --no-deps "
         "transformers==5.7.0 "
@@ -455,7 +418,7 @@ def prepare_qwen35_audio_env(forced=False):
     run_cmd('pip install --no-deps "ray[default]==2.46.0"')
     run_cmd("pip install --no-deps -e .")
     run_cmd("pip install --no-deps -e plugins/qwen35_audio")
-    print("Qwen3.5-Audio environment preparation completed.")
+    print("Environment preparation completed.")
 
 
 @ray.remote
@@ -717,11 +680,6 @@ class RayNode:
         """Prepare the environment on all Ray nodes by installing necessary packages."""
         print("Preparing environment on all nodes...")
         self.run(prepare_env, forced=forced)
-
-    def prepare_qwen35_audio_env(self, forced=False):
-        """Prepare the Qwen3.5-Audio environment on all Ray nodes."""
-        print("Preparing Qwen3.5-Audio environment on all nodes...")
-        self.run(prepare_qwen35_audio_env, forced=forced)
 
     def prepare_data(self, forced=False):
         """Prepare data on all Ray nodes by syncing from the remote storage."""

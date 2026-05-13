@@ -1,7 +1,7 @@
 #!/bin/bash
 set -xeuo pipefail
 
-env_tag="torch2.8.0_ray2.46.0_transformers4.55.4_vllm0.11.0_flashattn2.8.3"
+env_tag="torch2.8.0_ray2.46.0_transformers5.7.0_vllm0.17.0_flashinfer0.6.4"
 done_file=".env_done_${env_tag}"
 running_file=".env_running_${env_tag}"
 
@@ -16,22 +16,20 @@ if [ ! -f "${done_file}" ]; then
     touch "${running_file}"
     trap 'rm -f "${running_file}"' ERR
     echo "[INFO] Installing environment..."
+    # Uninstall flash-attn if present (incompatible with flashinfer stack)
+    pip show flash-attn >/dev/null 2>&1 && pip uninstall -y flash-attn || true
     pip install -r requirements_vllm.txt
+    pip install --no-deps \
+        transformers==5.7.0 \
+        huggingface-hub==1.13.0 \
+        tokenizers==0.22.2 \
+        regex==2026.4.4 \
+        packaging==26.0 \
+        tqdm==4.67.3 \
+        typer
     pip install --no-deps "ray[default]==2.46.0"
     pip install --no-deps -e .
-    flash_attn_pkg="flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl"
-    remote_pkg_path="az://orngwus2cresco/data/boren/data/packages/${flash_attn_pkg}"
-    local_pkg_dir="/root/packages"
-    local_pkg_path="${local_pkg_dir}/${flash_attn_pkg}"
-    mkdir -p "${local_pkg_dir}"
-    if [ ! -f "${local_pkg_path}" ]; then
-        command -v bbb >/dev/null || {
-            echo "[ERROR] bbb is required to download ${remote_pkg_path}" >&2
-            exit 1
-        }
-        bbb cp "${remote_pkg_path}" "${local_pkg_path}"
-    fi
-    pip install --no-deps "${local_pkg_path}"
+    pip install --no-deps -e plugins/qwen35_audio
     if ! command -v lsof >/dev/null; then
         apt install -y lsof || echo "[WARN] Could not install lsof; GPU cleanup helpers may be unavailable." >&2
     fi

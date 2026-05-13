@@ -23,11 +23,7 @@ fi
 
 # bash quick_install.sh # prepare on local node only
 echo "[INFO] Preparing environment ..."
-if [[ "$config_name" == *qwen* ]]; then
-    python3 ray_tool.py prepare_qwen35_audio_env # prepare on all ray nodes
-else
-    python3 ray_tool.py prepare_env # prepare on all ray nodes
-fi
+python3 ray_tool.py prepare_env # prepare on all ray nodes
 
 echo "[INFO] Running ${config_name} ..."
 ray job submit --working-dir="${cwd}"  \
