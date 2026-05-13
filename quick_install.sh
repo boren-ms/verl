@@ -17,7 +17,7 @@ if [ ! -f "${done_file}" ]; then
     trap 'rm -f "${running_file}"' ERR
     echo "[INFO] Installing environment..."
     # Install vllm with --no-deps so it does NOT drag in its own torch/ray.
-    pip install --no-deps vllm==0.17.0
+    pip install vllm==0.17.0
     # Install torch + flashinfer first to establish the correct ABI.
     pip install torch==2.10.0 flashinfer-python==0.6.4 flashinfer-cubin==0.6.4
     # Install remaining deps (vllm/torch/ray already handled above).

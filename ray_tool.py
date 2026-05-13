@@ -401,7 +401,7 @@ def prepare_env(forced=False):
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
     # Install vllm with --no-deps so it does NOT drag in its own torch/ray.
-    run_cmd("pip install --no-deps vllm==0.17.0", check=False)
+    run_cmd("pip install vllm==0.17.0", check=False)
     # Install torch + flashinfer first to establish the correct ABI.
     run_cmd(
         "pip install "
