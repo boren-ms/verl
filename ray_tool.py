@@ -385,11 +385,7 @@ def prepare_env(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
     print(f"Preparing environment on node: {hostname}")
-    try:
-        importlib.metadata.version("flash-attn")
-        run_cmd("pip uninstall -y flash-attn")
-    except importlib.metadata.PackageNotFoundError:
-        pass
+    # flash-attn is required by verl; do not uninstall it
     required = [
         "torch==2.8.0",
         "vllm==0.17.0",
@@ -404,7 +400,7 @@ def prepare_env(forced=False):
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
-    run_cmd("pip install -r requirements_vllm.txt")
+    run_cmd("pip install -r requirements_vllm.txt", check=False)
     run_cmd(
         "pip install --no-deps "
         "transformers==5.7.0 "
@@ -413,7 +409,8 @@ def prepare_env(forced=False):
         "regex==2026.4.4 "
         "packaging==26.0 "
         "tqdm==4.67.3 "
-        "typer"
+        "typer "
+        "pyvers==0.1.0"
     )
     run_cmd('pip install --no-deps "ray[default]==2.46.0"')
     run_cmd("pip install --no-deps -e .")

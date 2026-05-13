@@ -61,6 +61,7 @@ def run_ppo(config) -> None:
                 "NCCL_DEBUG": "WARN",
                 "VLLM_LOGGING_LEVEL": "WARN",
                 "VLLM_SLEEP_LEVEL": "1",
+                "VLLM_PLUGINS": "qwen35_audio",
                 **env_vars,
             },
             "excludes": [str(cwd() / ".git")],

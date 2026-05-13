@@ -45,7 +45,7 @@ from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.languages import get_language_name
 from recipe.phimm.utils.storage import get_path_with_options
 
-prompt_format = "<|user|><|audio_1|>{}<|end|><|assistant|>"
+prompt_format = "<|im_start|>user\n<audio>\n{}<|im_end|>\n<|im_start|>assistant\n"
 
 
 def read_words(file_path, num=None, tn_name=None):
@@ -972,7 +972,7 @@ def filter_long_text(ds, **kwargs):
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
     def filter_fn(example):
-        prompt = example.get("prompt", "").replace("<|audio_1|>", "")
+        prompt = example.get("prompt", "").replace("<audio>", "")
         ids = tokenizer(prompt, truncation=False)["input_ids"]
         return len(ids) <= max_length
 

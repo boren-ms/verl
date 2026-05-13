@@ -100,7 +100,9 @@ class RLHFDataset(Dataset):
         row_dict: dict = self.ds[i]
         messages = row_dict[self.prompt_key]
 
-        raw_prompt = self.processor.apply_chat_template(
+        # Use processor.apply_chat_template if available; fall back to tokenizer
+        _chat_obj = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
+        raw_prompt = _chat_obj.apply_chat_template(
             messages,
             add_generation_prompt=True,
             tokenize=False,
@@ -113,6 +115,7 @@ class RLHFDataset(Dataset):
         model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
         input_ids = model_inputs.pop("input_ids")
         attention_mask = model_inputs.pop("attention_mask")
+
 
         if self.return_multi_modal_inputs:
             inputs_dict = dict(model_inputs)

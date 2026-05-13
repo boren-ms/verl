@@ -50,13 +50,9 @@ from omegaconf import ListConfig
 from tensordict import TensorDict
 from torch.distributed.device_mesh import DeviceMesh
 from vllm import LLM, SamplingParams
-from vllm.config import CompilationConfig, CompilationLevel
+from vllm.config import CompilationConfig
 from vllm.lora.request import LoRARequest
-try:
-    from vllm.model_executor.sampling_metadata import SamplingMetadata
-except ModuleNotFoundError:
-    from vllm.v1.sample.metadata import SamplingMetadata
-from vllm.worker.worker_base import WorkerWrapperBase
+from vllm.v1.sample.metadata import SamplingMetadata
 
 from verl import DataProto
 from verl.third_party.vllm import VLLM_SLEEP_LEVEL
@@ -213,7 +209,7 @@ class vLLMRollout(BaseRollout):
         if not config.enforce_eager and cudagraph_capture_sizes:
             if isinstance(cudagraph_capture_sizes, ListConfig):
                 compilation_config["compilation_config"] = CompilationConfig(
-                    level=CompilationLevel.PIECEWISE, cudagraph_capture_sizes=cudagraph_capture_sizes
+                    level=3, cudagraph_capture_sizes=cudagraph_capture_sizes
                 )
             else:
                 logger.warning(f"cudagraph_capture_sizes must be a list, but got {cudagraph_capture_sizes}")
@@ -562,7 +558,7 @@ class vLLMAsyncRollout(BaseRollout):
         super().__init__(config, model_config, device_mesh)
 
         self.tokenizer = model_config.tokenizer
-        self.inference_engine: WorkerWrapperBase = None
+        self.inference_engine = None
         self.address = self._init_zeromq()
 
         if config.layered_summon:
@@ -622,7 +618,7 @@ class vLLMAsyncRollout(BaseRollout):
             else int(ray.get_runtime_context().get_accelerator_ids()[device_name][0])
         )
         self.vllm_config = all_kwargs[0]["vllm_config"]
-        self.inference_engine = WorkerWrapperBase(vllm_config=self.vllm_config)
+        raise NotImplementedError("vLLMAsyncRollout requires WorkerWrapperBase which was removed in vLLM 0.17.0")
         self.inference_engine.init_worker(all_kwargs)
 
     def _load_model(self, *args, **kwargs):
