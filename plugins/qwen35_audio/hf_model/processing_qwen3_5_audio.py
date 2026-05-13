@@ -23,6 +23,8 @@ from transformers.feature_extraction_sequence_utils import SequenceFeatureExtrac
 from transformers.feature_extraction_utils import BatchFeature
 from transformers.processing_utils import ProcessorMixin
 
+from .configuration_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
+
 
 # ---------------------------------------------------------------------------
 # Audio feature extraction (log-fbank, matching LogFbankProcessor)
@@ -255,7 +257,7 @@ class Qwen3_5AudioProcessor(ProcessorMixin):
                     audio_idx += 1
                 else:
                     sz = 0
-                pad_chunks.append([248076] * sz)  # <|audio_pad|> token id
+                pad_chunks.append([AUDIO_PAD_TOKEN_ID] * sz)
                 all_embed_sizes.append(sz)
 
             interleaved = list(filter(None, chain.from_iterable(zip_longest(text_chunks, pad_chunks))))

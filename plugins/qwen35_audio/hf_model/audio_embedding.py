@@ -12,6 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .cascade_encoder import ConformerEncoder, NemoConvSubsampling
+from .configuration_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
 
 logger = logging.getLogger(__name__)
 
@@ -175,10 +176,8 @@ class AudioEmbedding(nn.Module):
 
         input_shape = input_ids.size()
         input_ids = input_ids.view(-1, input_shape[-1])
-        _AUDIO_PAD_ID = 248076  # <|audio_pad|> token id
-
         with torch.no_grad():
-            positions = torch.nonzero(input_ids == _AUDIO_PAD_ID, as_tuple=False)
+            positions = torch.nonzero(input_ids == AUDIO_PAD_TOKEN_ID, as_tuple=False)
 
         if isinstance(self.audio_projection, nn.Sequential):
             target_device = self.audio_projection[0].weight.device
@@ -201,7 +200,7 @@ class AudioEmbedding(nn.Module):
 
         with torch.no_grad():
             input_ids = input_ids.clone()
-            input_ids[input_ids == _AUDIO_PAD_ID] = 0
+            input_ids[input_ids == AUDIO_PAD_TOKEN_ID] = 0
             input_ids.clamp_max_(self.vocab_size)
 
         if "wte" in kwargs:

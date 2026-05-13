@@ -3,6 +3,10 @@
 """Qwen3.5 Audio model configuration — self-contained for trust_remote_code."""
 
 from transformers.configuration_utils import PretrainedConfig
+
+# <|audio_pad|> token in the Qwen3.5 tokenizer (vocab ID 248076).
+# Used as placeholder in input_ids; replaced by audio embeddings at runtime.
+AUDIO_PAD_TOKEN_ID = 248076
 from transformers.utils import logging
 
 logger = logging.get_logger(__name__)
