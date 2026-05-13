@@ -51,7 +51,7 @@ GPU_REQUIRES = ["liger-kernel", "flash-attn"]
 MATH_REQUIRES = ["math-verify"]  # Add math-verify as an optional dependency
 VLLM_REQUIRES = [
     "tensordict>=0.8.0,<=0.10.0,!=0.9.0",
-    "torch==2.8.0",
+    "torch==2.10.0",
     "transformers==4.55.4",
     "vllm==0.11.0",
 ]

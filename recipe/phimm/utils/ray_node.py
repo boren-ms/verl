@@ -11,7 +11,7 @@ def prepare_env(forced=False):
     hostname = os.uname().nodename
     print(f"[{hostname}] Preparing environment...")
     required = [
-        "torch==2.8.0",
+        "torch==2.10.0",
         "ray==2.46.0",
         "transformers==4.55.4",
         "vllm==0.11.0",

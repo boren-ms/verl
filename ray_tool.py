@@ -385,9 +385,8 @@ def prepare_env(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
     print(f"Preparing environment on node: {hostname}")
-    # flash-attn is required by verl; do not uninstall it
     required = [
-        "torch==2.8.0",
+        "torch==2.10.0",
         "vllm==0.17.0",
         "transformers==5.7.0",
         "huggingface-hub==1.13.0",
@@ -400,9 +399,25 @@ def prepare_env(forced=False):
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
+    # Uninstall flash-attn first — its CUDA extensions are tied to a specific
+    # torch ABI and will segfault if torch is upgraded underneath it.
+    run_cmd("pip uninstall -y flash-attn", check=False)
+    # Install vllm with --no-deps so it does NOT drag in its own torch/ray.
+    # Then pin the exact torch + ray we need.
+    run_cmd("pip install --no-deps vllm==0.17.0", check=False)
+    run_cmd(
+        "pip install "
+        "torch==2.10.0 "
+        "flashinfer-python==0.6.4 "
+        "flashinfer-cubin==0.6.4"
+    )
+    # Install remaining deps from requirements (excluding vllm/torch/ray
+    # which are already handled above).
     run_cmd("pip install -r requirements_vllm.txt", check=False)
+    # Force-pin versions that vllm's deps may have overridden.
     run_cmd(
         "pip install --no-deps "
+        "torch==2.10.0 "
         "transformers==5.7.0 "
         "huggingface-hub==1.13.0 "
         "tokenizers==0.22.2 "
@@ -413,6 +428,8 @@ def prepare_env(forced=False):
         "pyvers==0.1.0"
     )
     run_cmd('pip install --no-deps "ray[default]==2.46.0"')
+    # Rebuild flash-attn from source against the current torch.
+    run_cmd("pip install flash-attn", check=False)
     run_cmd("pip install --no-deps -e .")
     run_cmd("pip install --no-deps -e plugins/qwen35_audio")
     print("Environment preparation completed.")
