@@ -18,93 +18,9 @@ import torch.nn as nn
 from transformers import BatchFeature
 
 from vllm.config import VllmConfig
+from vllm.config.multimodal import BaseDummyOptions
 from vllm.distributed import get_pp_group
-
-# Defensive imports for newer vLLM multimodal APIs (0.15+)
-try:
-    from vllm.inputs import MultiModalDataDict
-except ImportError:
-    MultiModalDataDict = dict  # Fallback for older vLLM versions
-
-try:
-    from vllm.model_executor.models.module_mapping import MultiModelKeys
-except ImportError:
-    MultiModelKeys = dict  # Fallback
-
-try:
-    from vllm.multimodal import MULTIMODAL_REGISTRY
-except ImportError:
-    MULTIMODAL_REGISTRY = None
-
-try:
-    from vllm.multimodal.inputs import (
-        MultiModalFeatureSpec,
-        MultiModalFieldConfig,
-        MultiModalKwargsItems,
-        NestedTensors,
-    )
-except ImportError:
-    MultiModalFeatureSpec = Any
-    MultiModalFieldConfig = Any
-    MultiModalKwargsItems = Any
-    NestedTensors = Any
-
-try:
-    from vllm.multimodal.parse import (
-        AudioProcessorItems,
-        MultiModalDataItems,
-        MultiModalDataParser,
-    )
-except ImportError:
-    AudioProcessorItems = Any
-    MultiModalDataItems = Any
-    MultiModalDataParser = Any
-
-try:
-    from vllm.multimodal.processing import BaseDummyInputsBuilder
-except ImportError:
-    BaseDummyInputsBuilder = Any
-
-try:
-    from vllm.multimodal.processing.processor import (
-        BaseMultiModalProcessor,
-        BaseProcessingInfo,
-        PromptReplacement,
-        PromptUpdate,
-        ResolvedPromptUpdate,
-    )
-except ImportError:
-    try:
-        from vllm.multimodal.processing import (
-            BaseMultiModalProcessor,
-            BaseProcessingInfo,
-            PromptReplacement,
-            PromptUpdate,
-            ResolvedPromptUpdate,
-        )
-    except ImportError:
-        BaseMultiModalProcessor = Any
-        BaseProcessingInfo = Any
-        PromptReplacement = Any
-        PromptUpdate = Any
-        ResolvedPromptUpdate = Any
-
-try:
-    from vllm.sequence import IntermediateTensors
-except ImportError:
-    IntermediateTensors = Any
-
-try:
-    from vllm.utils.tensor_schema import TensorSchema, TensorShape
-except ImportError:
-    TensorSchema = Any
-    TensorShape = Any
-
-try:
-    from vllm.config.multimodal import BaseDummyOptions
-except ImportError:
-    BaseDummyOptions = Any
-
+from vllm.inputs import MultiModalDataDict
 from vllm.model_executor.models.interfaces import (
     HasInnerState,
     IsHybrid,
@@ -112,6 +28,7 @@ from vllm.model_executor.models.interfaces import (
     SupportsMRoPE,
     SupportsMultiModal,
 )
+from vllm.model_executor.models.module_mapping import MultiModelKeys
 from vllm.model_executor.models.phi4mm_audio import (
     AudioEmbedding as _AudioEmbeddingBase,
 )
@@ -124,6 +41,28 @@ from vllm.model_executor.models.utils import (
     WeightsMapper,
     maybe_prefix,
 )
+from vllm.multimodal import MULTIMODAL_REGISTRY
+from vllm.multimodal.inputs import (
+    MultiModalFeatureSpec,
+    MultiModalFieldConfig,
+    MultiModalKwargsItems,
+    NestedTensors,
+)
+from vllm.multimodal.parse import (
+    AudioProcessorItems,
+    MultiModalDataItems,
+    MultiModalDataParser,
+)
+from vllm.multimodal.processing import BaseDummyInputsBuilder
+from vllm.multimodal.processing import (
+    BaseMultiModalProcessor,
+    BaseProcessingInfo,
+    PromptReplacement,
+    PromptUpdate,
+    ResolvedPromptUpdate,
+)
+from vllm.sequence import IntermediateTensors
+from vllm.utils.tensor_schema import TensorSchema, TensorShape
 
 
 class AudioEmbedding(_AudioEmbeddingBase):
@@ -141,6 +80,7 @@ class AudioEmbedding(_AudioEmbeddingBase):
         if hasattr(self, "audio_projection_for_vision"):
             del self.audio_projection_for_vision
 
+
 # Audio placeholder token ID used for embedding replacement.
 # <|audio_pad|> token in the Qwen3.5 tokenizer (vocab ID 248076).
 _AUDIO_PLACEHOLDER_TOKEN_ID = 248076
@@ -157,8 +97,11 @@ _AUDIO_PREEMPHASIS = 0.97
 
 
 def _speechlib_mel(
-    sample_rate: int, n_fft: int, n_mels: int,
-    fmin: float | None = None, fmax: float | None = 7690.0,
+    sample_rate: int,
+    n_fft: int,
+    n_mels: int,
+    fmin: float | None = None,
+    fmax: float | None = 7690.0,
 ) -> np.ndarray:
     """Create a Mel filter-bank matching SpeechLib FbankFC."""
     bank_width = n_fft // 2 + 1
@@ -223,8 +166,7 @@ def extract_logfbank(wav: np.ndarray, fs: int) -> np.ndarray:
 
     n_batch = (wav.shape[0] - _AUDIO_WIN_LENGTH) // _AUDIO_HOP_LENGTH + 1
     y_frames = np.array(
-        [wav[s: s + _AUDIO_WIN_LENGTH]
-         for s in range(0, _AUDIO_HOP_LENGTH * n_batch, _AUDIO_HOP_LENGTH)],
+        [wav[s : s + _AUDIO_WIN_LENGTH] for s in range(0, _AUDIO_HOP_LENGTH * n_batch, _AUDIO_HOP_LENGTH)],
         dtype=np.float32,
     )
 
@@ -263,17 +205,15 @@ class Qwen3_5AudioEmbeddingInputs(TensorSchema):
     ]
 
 
-Qwen3_5AudioInputs: TypeAlias = (
-    Qwen3_5AudioFeatureInputs | Qwen3_5AudioEmbeddingInputs
-)
+Qwen3_5AudioInputs: TypeAlias = Qwen3_5AudioFeatureInputs | Qwen3_5AudioEmbeddingInputs
 
 
 class Qwen3_5AudioProcessingInfo(BaseProcessingInfo):
     @property
     def audio_tokens(self) -> list[str]:
-        # Use <|audio_start|> as user-facing audio placeholder.
+        # Use <audio> as user-facing audio placeholder.
         # Each audio input maps to one occurrence of this token in the prompt.
-        return ["<|audio_start|>"] * 100
+        return ["<audio>"] * 100
 
     def get_feature_extractor(self, **kwargs: object) -> None:
         return None
@@ -312,9 +252,7 @@ class Qwen3_5AudioProcessingInfo(BaseProcessingInfo):
         return integer if remainder == 0 else integer + 1
 
 
-class Qwen3_5AudioDummyInputsBuilder(
-    BaseDummyInputsBuilder[Qwen3_5AudioProcessingInfo]
-):
+class Qwen3_5AudioDummyInputsBuilder(BaseDummyInputsBuilder[Qwen3_5AudioProcessingInfo]):
     def get_dummy_text(self, mm_counts: Mapping[str, int]) -> str:
         num_audios = mm_counts.get("audio", 0)
         audio_tokens: list[str] = self.info.audio_tokens[:num_audios]
@@ -338,9 +276,7 @@ class Qwen3_5AudioDummyInputsBuilder(
         }
 
 
-class Qwen3_5AudioMultiModalProcessor(
-    BaseMultiModalProcessor[Qwen3_5AudioProcessingInfo]
-):
+class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProcessingInfo]):
     def _call_hf_processor(
         self,
         prompt: str,
@@ -374,21 +310,13 @@ class Qwen3_5AudioMultiModalProcessor(
             # Extract SpeechLib-style log mel filterbank features (T, 80)
             log_fbank = extract_logfbank(audio_np, _AUDIO_SAMPLING_RATE)
             num_frames = log_fbank.shape[0]
-            audio_features_list.append(
-                torch.from_numpy(log_fbank).float()
-            )
+            audio_features_list.append(torch.from_numpy(log_fbank).float())
             audio_frames.append(num_frames)
-            audio_embed_sizes.append(
-                self.info._compute_audio_embed_size(num_frames)
-            )
+            audio_embed_sizes.append(self.info._compute_audio_embed_size(num_frames))
 
-        input_audio_embeds = torch.nn.utils.rnn.pad_sequence(
-            audio_features_list, batch_first=True
-        )
+        input_audio_embeds = torch.nn.utils.rnn.pad_sequence(audio_features_list, batch_first=True)
         max_frames = input_audio_embeds.shape[1]
-        audio_attention_mask = torch.zeros(
-            len(audio_features_list), max_frames, dtype=torch.long
-        )
+        audio_attention_mask = torch.zeros(len(audio_features_list), max_frames, dtype=torch.long)
         for idx, num_frames in enumerate(audio_frames):
             audio_attention_mask[idx, :num_frames] = 1
 
@@ -434,9 +362,7 @@ class Qwen3_5AudioMultiModalProcessor(
         def get_audio_replacement(item_idx: int):
             audios = mm_items.get_items("audio", AudioProcessorItems)
             audio_len = audios.get_audio_length(item_idx)
-            audio_frames = self.info.get_audio_num_frames(
-                audio_len, _AUDIO_SAMPLING_RATE
-            )
+            audio_frames = self.info.get_audio_num_frames(audio_len, _AUDIO_SAMPLING_RATE)
             audio_embed_size = self.info._compute_audio_embed_size(audio_frames)
             return [_AUDIO_PLACEHOLDER_TOKEN_ID] * audio_embed_size
 
@@ -470,9 +396,7 @@ class Qwen3_5AudioMultiModalProcessor(
     info=Qwen3_5AudioProcessingInfo,
     dummy_inputs=Qwen3_5AudioDummyInputsBuilder,
 )
-class Qwen3_5AudioForCausalLM(
-    nn.Module, HasInnerState, IsHybrid, SupportsMultiModal, SupportsMRoPE
-):
+class Qwen3_5AudioForCausalLM(nn.Module, HasInnerState, IsHybrid, SupportsMultiModal, SupportsMRoPE):
     """Qwen3.5 + Audio Encoder model for speech-to-text tasks.
 
     Uses the Qwen3.5 hybrid backbone (full attention + GatedDeltaNet) with a
@@ -504,7 +428,7 @@ class Qwen3_5AudioForCausalLM(
     @classmethod
     def get_placeholder_str(cls, modality: str, i: int) -> str | None:
         if modality.startswith("audio"):
-            return "<|audio_start|>"
+            return "<audio>"
         raise ValueError("Only audio modality is supported")
 
     def get_mrope_input_positions(
@@ -544,30 +468,20 @@ class Qwen3_5AudioForCausalLM(
                 "embedding_cls": config.embd_layer,
             }
 
-        mark_tower_model = getattr(
-            self, "_mark_tower_model", lambda *_args, **_kwargs: nullcontext()
-        )
+        mark_tower_model = getattr(self, "_mark_tower_model", lambda *_args, **_kwargs: nullcontext())
         with mark_tower_model(vllm_config, "audio"):
             self.embed_tokens_extend = AudioEmbedding(config, **embedding_config)
 
         config.model_type = "qwen3_5_text"
 
         # Build language model (Qwen3.5 hybrid backbone)
-        mark_language_model = getattr(
-            self, "_mark_language_model", lambda *_args, **_kwargs: nullcontext()
-        )
+        mark_language_model = getattr(self, "_mark_language_model", lambda *_args, **_kwargs: nullcontext())
         with mark_language_model(vllm_config):
-            self.language_model = Qwen3_5ForCausalLM(
-                vllm_config=vllm_config, prefix=maybe_prefix(prefix, "")
-            )
+            self.language_model = Qwen3_5ForCausalLM(vllm_config=vllm_config, prefix=maybe_prefix(prefix, ""))
 
-        self.make_empty_intermediate_tensors = (
-            self.language_model.make_empty_intermediate_tensors
-        )
+        self.make_empty_intermediate_tensors = self.language_model.make_empty_intermediate_tensors
 
-    def _parse_and_validate_audio_input(
-        self, **kwargs: object
-    ) -> Qwen3_5AudioInputs | None:
+    def _parse_and_validate_audio_input(self, **kwargs: object) -> Qwen3_5AudioInputs | None:
         audio_features = kwargs.pop("input_audio_embeds", None)
         audio_attention_mask = kwargs.pop("audio_attention_mask", None)
         audio_embed_sizes = kwargs.pop("audio_embed_sizes", None)
@@ -589,9 +503,7 @@ class Qwen3_5AudioForCausalLM(
 
         raise AssertionError("This line should be unreachable.")
 
-    def _process_audio_input(
-        self, audio_input: Qwen3_5AudioInputs
-    ) -> NestedTensors:
+    def _process_audio_input(self, audio_input: Qwen3_5AudioInputs) -> NestedTensors:
         if audio_input["type"] == "audio_embeds":
             return audio_input["data"]
 
@@ -680,20 +592,12 @@ class Qwen3_5AudioForCausalLM(
 
     # Required by HasInnerState / IsHybrid for mamba cache
     @classmethod
-    def get_mamba_state_dtype_from_config(
-        cls, vllm_config: "VllmConfig"
-    ) -> tuple[torch.dtype, torch.dtype]:
-        return Qwen3_5ForConditionalGeneration.get_mamba_state_dtype_from_config(
-            vllm_config
-        )
+    def get_mamba_state_dtype_from_config(cls, vllm_config: "VllmConfig") -> tuple[torch.dtype, torch.dtype]:
+        return Qwen3_5ForConditionalGeneration.get_mamba_state_dtype_from_config(vllm_config)
 
     @classmethod
-    def get_mamba_state_shape_from_config(
-        cls, vllm_config: "VllmConfig"
-    ) -> tuple[tuple[int, int], tuple[int, int]]:
-        return Qwen3_5ForConditionalGeneration.get_mamba_state_shape_from_config(
-            vllm_config
-        )
+    def get_mamba_state_shape_from_config(cls, vllm_config: "VllmConfig") -> tuple[tuple[int, int], tuple[int, int]]:
+        return Qwen3_5ForConditionalGeneration.get_mamba_state_shape_from_config(vllm_config)
 
     @classmethod
     def get_mamba_state_copy_func(cls):

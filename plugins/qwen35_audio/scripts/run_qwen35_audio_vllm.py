@@ -25,7 +25,7 @@ LOCAL_CACHE_ROOT = "/root/data/qwen35_audio_test"
 DEFAULT_MODEL_PATH = REMOTE_MODEL_PATH
 DEFAULT_AUDIO_PATH = REMOTE_AUDIO_PATH
 DEFAULT_PROMPT = (
-    "<|im_start|>user\n<|audio_start|>\n"
+    "<|im_start|>user\n<audio>\n"
     "Detect the language and transcribe the audio into text.<|im_end|>\n"
     "<|im_start|>assistant\n"
 )
