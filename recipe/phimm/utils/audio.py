@@ -1,8 +1,12 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
+import numpy as np
 from pathlib import Path
 import soundfile as sf
 from recipe.phimm.data.chunk import load_chunk_example
+
+
+TARGET_SAMPLE_RATE = 16000
 
 
 @cached(FIFOCache(maxsize=100))
@@ -23,14 +27,32 @@ def sf_write(file_path, audio, sr):
         sf.write(f, audio, sr, format=fmt)
 
 
+def resample_audio(x, fs, target_fs=TARGET_SAMPLE_RATE):
+    """Resample audio to target_fs if needed."""
+    if fs != target_fs:
+        import torch
+        import torchaudio.functional as F
+
+        waveform = torch.from_numpy(x.T if x.ndim > 1 else x)
+        x = F.resample(waveform, fs, target_fs).numpy()
+        if x.ndim > 1:
+            x = x.T
+        fs = target_fs
+    return x, fs
+
+
 def limit_audio(x, fs, max_dur=None):
-    """Limit the length of the audio to max_dur seconds."""
+    """Resample audio to 16 kHz and limit it to max_dur seconds."""
+    x, fs = resample_audio(x, fs)
+    assert x.ndim == 1, "Only mono audio is supported."
+    assert fs == TARGET_SAMPLE_RATE, f"Sample rate should be {TARGET_SAMPLE_RATE} Hz."
+
     if max_dur is not None and len(x) > fs * max_dur:
         print(f"Truncating audio {len(x) / fs:.2f} ->  {max_dur} seconds.")
         x = x[: fs * max_dur]
-    n = len(x)
-    n = n // 8 * 8  # make it multiple of 8
-    x = x[:n]
+    pad_len = -len(x) % 8
+    if pad_len:
+        x = np.pad(x, [(0, pad_len)] + [(0, 0)] * (x.ndim - 1))
     return x, fs
 
 
