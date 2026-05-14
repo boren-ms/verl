@@ -1,6 +1,6 @@
 ---
 name: remote-development
-description: 'Create, resume, or connect to a remote Brix node using rcall-brix, switch workspace to ~/code/verl, install dependencies, and run development tasks. Use when: creating a new GPU node, resuming a paused node, setting up a remote dev environment, running code on a GPU node, installing required packages, or developing/testing on a remote machine. Triggers: "create node", "spin up a node", "new devbox", "resume node", "connect to remote", "set up remote", "install deps on node".'
+description: 'Create, resume, or connect to a remote Brix node using brix CLI, switch workspace to ~/code/verl, install dependencies, and run development tasks. Use when: creating a new GPU node, resuming a paused node, setting up a remote dev environment, running code on a GPU node, installing required packages, or developing/testing on a remote machine. Triggers: "create node", "spin up a node", "new devbox", "resume node", "connect to remote", "set up remote", "install deps on node".'
 argument-hint: 'Target node name, e.g. verl-n1-i0'
 ---
 
@@ -39,7 +39,7 @@ The full job name is `{PREFIX}-n{N}-i{I}`.
 #### 0a. Check for existing pools
 
 ```bash
-rcall-brix ls '{PREFIX}-n*' 2>&1
+brix ls '{PREFIX}-n*' 2>&1
 ```
 
 - If user provided a specific `i`, check if `{PREFIX}-n{N}-i{I}` exists.
@@ -49,11 +49,11 @@ rcall-brix ls '{PREFIX}-n*' 2>&1
 
 If the pool exists but status is `Paused`, `Suspended`, or any non-Ready state:
 ```bash
-rcall-brix resume {PREFIX}-n{N}-i{I}
+brix resume {PREFIX}-n{N}-i{I}
 ```
 Poll until Ready:
 ```bash
-rcall-brix ls '{PREFIX}-n{N}-i{I}' 2>&1
+brix ls '{PREFIX}-n{N}-i{I}' 2>&1
 ```
 Wait 15 seconds between polls. Report each status so user sees progress.
 
@@ -76,7 +76,7 @@ twdev create-ray-devbox \
 
 Confirm the node is up:
 ```bash
-rcall-brix ls '{PREFIX}-n{N}-i{I}' 2>&1
+brix ls '{PREFIX}-n{N}-i{I}' 2>&1
 ```
 
 Report: job name, cluster, status, size (`{N} x {NUM_GPU} GPU`).
@@ -94,10 +94,10 @@ bpush <NODE>
 - Run this from anywhere inside the repo or worktree.
 - Wait for the push to complete before proceeding.
 
-### Step 3 — Connect via rcall-brix tmux (dedicated session)
+### Step 3 — Connect via brix tmux (dedicated session)
 Use a **fixed session name per conversation thread** so subsequent invocations reuse the same tmux session:
 ```bash
-rcall-brix tmux -s codex <NODE>
+brix tmux -s codex <NODE>
 ```
 - Always use session name `codex` (or another fixed name) so the same tmux session is reattached within the same thread.
 - This avoids colliding with the user's other tmux sessions (e.g. session `0`) while keeping state across multiple skill invocations in the same conversation.
@@ -120,7 +120,7 @@ Install dependencies using the package manager required by the target project or
 - Use the install command specified by the repo or environment you are working in.
 - Wait for the install to complete (watch for success/error output).
 - If the user specifies packages, substitute them in the install command.
-- **Fallback:** If tmux output is hard to read, use `rcall-brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <install command for the target project>"'` instead.
+- **Fallback:** If tmux output is hard to read, use `brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <install command for the target project>"'` instead.
 
 ### Step 6 — Verify
 After install, optionally verify the required packages or environment:
@@ -154,13 +154,13 @@ Use this path as the intermediate staging area on Azure blob for files that need
 bbb sync /local/path/to/files az://orngwus2cresco/data/boren/data/verl/files/
 
 # 2. On remote node, download from blob
-rcall-brix ssh <NODE> -- 'bbb sync az://orngwus2cresco/data/boren/data/verl/files/ /root/data/files/'
+brix ssh <NODE> -- 'bbb sync az://orngwus2cresco/data/boren/data/verl/files/ /root/data/files/'
 ```
 
 **Remote → Blob → Local** (for results, logs, checkpoints):
 ```bash
 # 1. On remote node, upload to blob
-rcall-brix ssh <NODE> -- 'bbb sync /root/data/results/ az://orngwus2cresco/data/boren/data/verl/results/'
+brix ssh <NODE> -- 'bbb sync /root/data/results/ az://orngwus2cresco/data/boren/data/verl/results/'
 
 # 2. Download from blob to local
 bbb sync az://orngwus2cresco/data/boren/data/verl/results/ /local/path/to/results/
@@ -187,17 +187,17 @@ bbb ls az://orngwus2cresco/data/boren/data/verl/
 
 When developing or testing on the remote node, **minimize the changes introduced**:
 - **Edit locally, push remotely.** Make code changes on the local machine, then run `bpush <NODE>` to push them. This works from both regular repos and git worktrees. Avoid editing files directly on the remote node.
-- **Always use `rcall-brix`** to access the remote node — use `rcall-brix ssh` or `rcall-brix tmux`. Use `bpush` for pushing code. Do not use raw `ssh` or `scp`.
+- **Always use `brix`** to access the remote node — use `brix ssh` or `brix tmux`. Use `bpush` for pushing code. Do not use raw `ssh` or `scp`.
 - **Use `bbb` for non-code files.** Data, wheels, configs, checkpoints — sync via blob storage using the transfer port `az://orngwus2cresco/data/boren/data/verl/`.
 - **Use the project's required installer** when installing or updating dependencies. If PyPI is unreachable, pre-download wheels locally, upload to blob with `bbb`, then `pip install` from the local path on the remote.
-- **Run tests on remote** via `rcall-brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <test command>"'` for one-off commands, or inside the tmux session for interactive work.
+- **Run tests on remote** via `brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <test command>"'` for one-off commands, or inside the tmux session for interactive work.
 - **Keep changes small.** When iterating, push only what changed (`bpush` is incremental via git). Avoid reinstalling packages unless dependencies actually changed.
 
 ## Command Resolution
 - `bpush` is a zsh function (defined in `~/.zshrc`) that wraps `brix git push`. It detects the canonical repo name from the main worktree and handles the symlink mapping automatically.
-- `rcall-brix` may be at `~/.virtualenvs/openai/bin/rcall-brix` if not on PATH.
+- `brix` may be at `~/.virtualenvs/openai/bin/brix` if not on PATH.
 - `bbb` may be at `~/.virtualenvs/openai/bin/bbb` if not on PATH. Used for blob file operations (sync, cp, ls, rm).
-- Always use `rcall-brix` for remote access — `rcall-brix ssh`, `rcall-brix tmux`. Use `bpush` for pushing code. Use `bbb` for syncing non-code files. Do not use raw `ssh` or `scp`.
+- Always use `brix` for remote access — `brix ssh`, `brix tmux`. Use `bpush` for pushing code. Use `bbb` for syncing non-code files. Do not use raw `ssh` or `scp`.
 - Use the dependency installer required by the target project or environment.
 - The remote workspace is typically at `/root/code/verl` (not `/home/boren/...`).
 - The blob transfer port for non-code files is `az://orngwus2cresco/data/boren/data/verl/`.
