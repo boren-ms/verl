@@ -75,6 +75,7 @@ def run_generation(config) -> None:
                 "TOKENIZERS_PARALLELISM": "true",
                 "NCCL_DEBUG": "WARN",
                 "VLLM_LOGGING_LEVEL": "WARN",
+                "HF_HUB_OFFLINE": "1",
                 **env_vars,
             },
             "excludes": [str(cwd() / ".git")],
