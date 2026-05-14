@@ -7,10 +7,9 @@ trainer:
   
 data:
   path: null
-  batch_size: 128
+  batch_size: 512
   # num_workers: 8
-
-  output_split_size: 100000 # 1m samples ~500M
+  output_split_size: 10000
 
 model:
   path: null

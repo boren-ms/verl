@@ -1,0 +1,39 @@
+# @package data.train_data
+- dataset_name: chunk
+  specs:
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json           # 1688.26 hours, number of examples: 1.070M, average duration: 5.68s
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_en.json      # 1045.21 hours, number of examples: 0.365M, average duration: 10.31s
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_ami.json       # 0.11M * 2
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_earnings.json  # 0.05M * 2    # 0.27M * 2
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/wavllm_chunk_asr.json
+  chunk_types:
+    - audios
+    - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    filter_short_audio:
+      min_dur_ms: 300
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: en_cv15_vox_ami_earn_wavllm
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: tsv
+  tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
+  add_task_info:
+    forced: True
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: en_librispeech
+    verl_format:
+      prompt_key: prompt
