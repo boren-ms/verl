@@ -1,0 +1,35 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/h100.jsonl
+  cache_name: auto_ami_h100
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: ami
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/data.jsonl
+  cache_name: auto_earnings22
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
