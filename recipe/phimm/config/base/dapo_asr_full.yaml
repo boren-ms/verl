@@ -1,0 +1,8 @@
+defaults:
+  - dapo_asr
+  - _self_
+
+
+actor_rollout_ref:
+  model:
+    lora_rank: 0
