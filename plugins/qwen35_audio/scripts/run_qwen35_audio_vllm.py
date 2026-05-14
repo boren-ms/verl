@@ -13,6 +13,8 @@ from pathlib import Path
 
 import numpy as np
 import soundfile as sf
+import torch
+import torchaudio.functional as F
 
 REMOTE_MODEL_PATH = (
     "az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/"
@@ -31,6 +33,7 @@ DEFAULT_PROMPT = (
 )
 DEFAULT_STOP_TOKEN_IDS = [248044, 248046]
 MODEL_ARCHITECTURE = "Qwen3_5AudioForCausalLM"
+TARGET_SAMPLE_RATE = 16_000
 
 
 def parse_args() -> argparse.Namespace:
@@ -141,6 +144,13 @@ def load_audio(audio_path: str) -> tuple[np.ndarray, int]:
     waveform, sample_rate = sf.read(audio_path)
     if waveform.ndim == 2:
         waveform = waveform.mean(axis=1)
+    if sample_rate != TARGET_SAMPLE_RATE:
+        waveform = F.resample(
+            torch.from_numpy(waveform),
+            sample_rate,
+            TARGET_SAMPLE_RATE,
+        ).numpy()
+        sample_rate = TARGET_SAMPLE_RATE
     return waveform.astype(np.float32), sample_rate
 
 

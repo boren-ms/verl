@@ -21,6 +21,7 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 import torch
+import torchaudio.functional as F
 from transformers import AutoConfig, AutoModelForCausalLM, AutoProcessor
 
 REMOTE_MODEL_PATH = (
@@ -36,6 +37,7 @@ DEFAULT_MODEL_PATH = REMOTE_MODEL_PATH
 DEFAULT_AUDIO_PATH = REMOTE_AUDIO_PATH
 INSTRUCTION = "Transcribe the audio clip into text."
 MAX_NEW_TOKENS = 256
+TARGET_SAMPLE_RATE = 16_000
 
 
 def parse_args() -> argparse.Namespace:
@@ -120,6 +122,13 @@ def load_audio(audio_path: str) -> tuple[np.ndarray, int]:
     waveform, sample_rate = sf.read(audio_path)
     if waveform.ndim == 2:
         waveform = waveform.mean(axis=1)
+    if sample_rate != TARGET_SAMPLE_RATE:
+        waveform = F.resample(
+            torch.from_numpy(waveform),
+            sample_rate,
+            TARGET_SAMPLE_RATE,
+        ).numpy()
+        sample_rate = TARGET_SAMPLE_RATE
     return waveform.astype(np.float32), sample_rate
 
 
