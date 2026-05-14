@@ -25,6 +25,7 @@ from vllm.model_executor.models.interfaces import (
     HasInnerState,
     IsHybrid,
     MultiModalEmbeddings,
+    SupportsLoRA,
     SupportsMRoPE,
     SupportsMultiModal,
 )
@@ -396,7 +397,7 @@ class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProces
     info=Qwen3_5AudioProcessingInfo,
     dummy_inputs=Qwen3_5AudioDummyInputsBuilder,
 )
-class Qwen3_5AudioForCausalLM(nn.Module, HasInnerState, IsHybrid, SupportsMultiModal, SupportsMRoPE):
+class Qwen3_5AudioForCausalLM(nn.Module, SupportsLoRA, HasInnerState, IsHybrid, SupportsMultiModal, SupportsMRoPE):
     """Qwen3.5 + Audio Encoder model for speech-to-text tasks.
 
     Uses the Qwen3.5 hybrid backbone (full attention + GatedDeltaNet) with a
@@ -408,6 +409,11 @@ class Qwen3_5AudioForCausalLM(nn.Module, HasInnerState, IsHybrid, SupportsMultiM
         "gate_up_proj": ["gate_proj", "up_proj"],
         "in_proj_qkvz": ["in_proj_qkv", "in_proj_z"],
         "in_proj_ba": ["in_proj_b", "in_proj_a"],
+    }
+
+    embedding_modules = {
+        "embed_tokens": "input_embeddings",
+        "lm_head": "output_embeddings",
     }
 
     hf_to_vllm_mapper = WeightsMapper(
