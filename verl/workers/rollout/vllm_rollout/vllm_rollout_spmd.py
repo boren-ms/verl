@@ -63,44 +63,21 @@ from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length
 from verl.utils.vllm import TensorLoRARequest, VLLMHijack, is_version_ge
 from verl.workers.config import HFModelConfig, RolloutConfig
 from verl.workers.rollout.base import BaseRollout
-from verl.workers.rollout.vllm_rollout.logits_processors import NOREPEAT_NGRAM_V1_FQCN
 
 logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 
-# TODO
-# 1. support pp in vllm
-# 2. passing tokenizer is not necessary? no encoding/decoding is happending here
-# 3. simplify init logics
 
 
-def _config_get(config: Any, key: str, default: Any = None) -> Any:
-    if config is None:
-        return default
-    if hasattr(config, "get"):
-        return config.get(key, default)
-    return getattr(config, key, default)
+
+DEEPSEEK_OCR_NGRAM_FQCN = "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor"
 
 
-def _is_positive_int(value: Any) -> bool:
-    try:
-        return int(value) > 0
-    except (TypeError, ValueError):
-        return False
-
-
-def _no_repeat_ngram_enabled(config: RolloutConfig) -> bool:
-    rollout_ngram_size = _config_get(config, "no_repeat_ngram_size", 0) or 0
-    val_kwargs = _config_get(config, "val_kwargs", None)
-    val_ngram_size = _config_get(val_kwargs, "no_repeat_ngram_size", 0) or 0
-    return _is_positive_int(rollout_ngram_size) or _is_positive_int(val_ngram_size)
-
-
-def _ensure_no_repeat_ngram_processor(engine_kwargs: dict[str, Any]) -> None:
-    logits_processors = list(engine_kwargs.get("logits_processors") or [])
-    if NOREPEAT_NGRAM_V1_FQCN not in logits_processors:
-        logits_processors.append(NOREPEAT_NGRAM_V1_FQCN)
-    engine_kwargs["logits_processors"] = logits_processors
+def _ensure_ngram_processor(engine_kwargs: dict[str, Any]) -> None:
+    lp = list(engine_kwargs.get("logits_processors") or [])
+    if DEEPSEEK_OCR_NGRAM_FQCN not in lp:
+        lp.append(DEEPSEEK_OCR_NGRAM_FQCN)
+    engine_kwargs["logits_processors"] = lp
 
 
 # NOTE(sgm): add for verl. We can optimize it by making the dataloader yield List[int] without padding.
@@ -214,13 +191,7 @@ class vLLMRollout(BaseRollout):
             else:
                 logger.warning(f"cudagraph_capture_sizes must be a list, but got {cudagraph_capture_sizes}")
 
-        # Register no-repeat-ngram adapter at engine level (V1 model-level processor).
-        # Validation-only NRNS configs set this under val_kwargs, but vLLM still
-        # needs the adapter registered at engine construction time.
-        ngram_size = config.get("no_repeat_ngram_size", 0)
-        ngram_window = config.get("no_repeat_ngram_window_size", 100)
-        if _no_repeat_ngram_enabled(config):
-            _ensure_no_repeat_ngram_processor(engine_kwargs)
+        _ensure_ngram_processor(engine_kwargs)
 
         # breakpoint()
         self.inference_engine = LLM(
@@ -264,6 +235,8 @@ class vLLMRollout(BaseRollout):
         kwargs["n"] = 1  # already repeat in ray_trainer
 
         # Pass no-repeat-ngram config via extra_args for the V1 adapter
+        ngram_size = config.get("no_repeat_ngram_size", 0)
+        ngram_window = config.get("no_repeat_ngram_window_size", 512)
         if ngram_size > 0:
             kwargs.setdefault("extra_args", {})
             kwargs["extra_args"]["ngram_size"] = ngram_size
