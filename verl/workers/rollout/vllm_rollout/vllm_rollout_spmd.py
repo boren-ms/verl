@@ -370,7 +370,7 @@ class vLLMRollout(BaseRollout):
                 "n": 1,  # if validate, already repeat in ray_trainer
             }
             val_ngram_size = getattr(self.config.val_kwargs, "no_repeat_ngram_size", 0)
-            val_ngram_window = getattr(self.config.val_kwargs, "no_repeat_ngram_window_size", 100)
+            val_ngram_window = getattr(self.config.val_kwargs, "no_repeat_ngram_window_size", 512)
             if val_ngram_size > 0:
                 kwargs.setdefault("extra_args", {})
                 kwargs["extra_args"]["ngram_size"] = val_ngram_size
