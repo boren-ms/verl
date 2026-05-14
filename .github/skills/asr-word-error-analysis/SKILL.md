@@ -24,7 +24,7 @@ For *comparing two models* on the same dataset, use the **asr-detail-compare** s
 3. For verl validation outputs, set `--model` to `<project_name>/<experiment_name>` matching the config's `trainer.project_name` / `trainer.experiment_name`. The script picks the latest numeric step from `<val-data-root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl` and auto-remaps `gts` to `ref` and `clean_output` to `hyp`.
 4. Run [analyze_word_errors.py](./scripts/analyze_word_errors.py).
 5. Review artifacts: start with `summary.json`, then `error_details.csv` for utterance-level `ref` vs `hyp`, then `alignment_samples.txt` or `report.html` for visual inspection.
-6. When HTML is enabled, expect the script to download the ranked worst utterances' audio into the output directory and link them in the report with playable local controls.
+6. The script generates an HTML report by default (disable with `--no-html`). It also includes the raw model output (from the `output` column) in each HTML utterance card by default. Expect the script to download the ranked worst utterances' audio into the output directory and link them in the report with playable local controls.
 
 ## Python Environment
 
@@ -36,8 +36,7 @@ Always use `/home/boren/.virtualenvs/openai/bin/python` to run the script. The s
 /home/boren/.virtualenvs/openai/bin/python .github/skills/asr-word-error-analysis/scripts/analyze_word_errors.py \
   --input-path path/to/result_details_2025-03-01_12-00-00.jsonl \
   --dataset openasr/ami \
-  --output-dir tmp/asr-word-error-analysis \
-  --write-html
+  --output-dir tmp/asr-word-error-analysis
 ```
 
 With model auto-discovery:
@@ -46,8 +45,7 @@ With model auto-discovery:
 /home/boren/.virtualenvs/openai/bin/python .github/skills/asr-word-error-analysis/scripts/analyze_word_errors.py \
   --model en_hc_fy24_200k_step_7800 \
   --dataset openasr/ami \
-  --output-dir tmp/asr-word-error-analysis \
-  --write-html
+  --output-dir tmp/asr-word-error-analysis
 ```
 
 With verl `val_data_gen` discovery:
@@ -57,7 +55,6 @@ With verl `val_data_gen` discovery:
   --model verl_repeat/eval_openasr_remax_ls_raw_nodigits_v1_full_step100 \
   --dataset ami \
   --output-dir tmp/asr-word-error-analysis/ami \
-  --write-html \
   --top-n 30
 ```
 
@@ -66,7 +63,8 @@ Useful options:
 - `--val-data-root az://orngwus2cresco/data/boren/outputs`: override the verl validation outputs root. Layout: `<root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl`. The script picks the latest numeric step.
 - `--input-path ...`: bypass model discovery and use one local or `az://` JSONL file directly.
 - `--ref-column gts --hyp-column clean_output`: optional explicit overrides for verl JSONL files. Usually not needed because the script auto-remaps these columns to `ref` / `hyp` when needed.
-- `--raw-output-column output`: include the full raw model output in each HTML utterance card when the file contains model wrapper tags or other non-normalized output.
+- `--raw-output-column output`: column containing the raw model output to include in each HTML utterance card (default: `output`). Set to empty string to disable.
+- `--no-html`: disable the HTML report (enabled by default).
 - `--normalizer openasr`: normalize ref/hyp with `recipe.phimm.utils.open_asr_normalizer.eval_utils.measure_wer`'s OpenASR normalizer path before alignment. Use this for OpenASR multilingual outputs when artifact WER should match reward/eval scoring.
 - `--lang German` or `--lang-column language`: override or choose the row language used by `--normalizer openasr`. Language names are mapped through `recipe.phimm.utils.languages.LANGUAGES`.
 - `--top-n 30`: control how many worst utterances appear in `alignment_samples.txt` and `report.html`.

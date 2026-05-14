@@ -68,8 +68,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--output-dir", default="tmp/asr-word-error-analysis", help="Where to write artifacts.")
     p.add_argument("--top-n", type=int, default=50, help="Number of worst utterances shown in alignment samples.")
     p.add_argument("--top-confusions", type=int, default=100, help="Number of top substitution pairs to report.")
-    p.add_argument("--write-html", action="store_true", help="Also write a standalone HTML report.")
-    p.add_argument("--raw-output-column", default="", help="Column containing the raw model output to include in HTML report.")
+    p.add_argument("--no-html", action="store_true", help="Disable the standalone HTML report (enabled by default).")
+    p.add_argument("--raw-output-column", default="output", help="Column containing the raw model output to include in HTML report (default: 'output').")
     p.add_argument("--length-bucket-size", type=int, default=5, help="Ref-word-count bucket width for error_patterns.csv.")
     p.add_argument(
         "--normalizer",
@@ -996,7 +996,7 @@ def main() -> None:
     write_error_patterns(results, output_dir, args.length_bucket_size)
     write_alignment_samples(results, output_dir, args.top_n)
 
-    if args.write_html:
+    if not args.no_html:
         render_html(results, agg, output_dir, args.dataset, input_path, args.top_n, args.raw_output_column)
 
     print("\nDone.")
