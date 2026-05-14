@@ -94,38 +94,28 @@ bpush <NODE>
 - Run this from anywhere inside the repo or worktree.
 - Wait for the push to complete before proceeding.
 
-### Step 3 — Connect via brix tmux (dedicated session)
-Use a **fixed session name per conversation thread** so subsequent invocations reuse the same tmux session:
+### Step 3 — Run commands via brix ssh
+Use `brix ssh` for all remote command execution — both one-off commands and multi-step workflows:
 ```bash
-brix tmux -s codex <NODE>
+brix ssh <NODE> -- 'bash -l -c "<COMMAND>"'
 ```
-- Always use session name `codex` (or another fixed name) so the same tmux session is reattached within the same thread.
-- This avoids colliding with the user's other tmux sessions (e.g. session `0`) while keeping state across multiple skill invocations in the same conversation.
-- This is an interactive session — use `bash` with `mode="async"` to start it, then `write_bash` to send commands.
-- Wait for the shell prompt to appear before sending further input.
-- If the `codex` session already exists on the remote, `tmux -s codex` will reattach to it — this is the desired behavior.
+- Use `brix ssh` for every remote interaction. Do **not** use `brix tmux`.
+- For multi-step workflows, chain commands with `&&` or run each as a separate `brix ssh` invocation.
+- The remote workspace is at `/root/code/verl`.
 
-### Step 4 — Switch to the workspace
-Once connected, send:
-```
-cd ~/code/verl
-```
-Confirm the directory changed (prompt shows the path, or run `pwd`).
-
-### Step 5 — Install dependencies
-Install dependencies using the package manager required by the target project or environment.
-```
-<install command for the target project>
+### Step 4 — Install dependencies
+Install dependencies on the remote node:
+```bash
+brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <install command for the target project>"'
 ```
 - Use the install command specified by the repo or environment you are working in.
 - Wait for the install to complete (watch for success/error output).
 - If the user specifies packages, substitute them in the install command.
-- **Fallback:** If tmux output is hard to read, use `brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <install command for the target project>"'` instead.
 
-### Step 6 — Verify
+### Step 5 — Verify
 After install, optionally verify the required packages or environment:
-```
-python3 -c "import <required_package>; print('OK')"
+```bash
+brix ssh <NODE> -- 'bash -l -c "python3 -c \"import <required_package>; print(\\\"OK\\\")\""'
 ```
 
 ## Network Constraints
@@ -187,17 +177,17 @@ bbb ls az://orngwus2cresco/data/boren/data/verl/
 
 When developing or testing on the remote node, **minimize the changes introduced**:
 - **Edit locally, push remotely.** Make code changes on the local machine, then run `bpush <NODE>` to push them. This works from both regular repos and git worktrees. Avoid editing files directly on the remote node.
-- **Always use `brix`** to access the remote node — use `brix ssh` or `brix tmux`. Use `bpush` for pushing code. Do not use raw `ssh` or `scp`.
+- **Always use `brix`** to access the remote node — use `brix ssh`. Do **not** use `brix tmux`. Use `bpush` for pushing code. Do not use raw `ssh` or `scp`.
 - **Use `bbb` for non-code files.** Data, wheels, configs, checkpoints — sync via blob storage using the transfer port `az://orngwus2cresco/data/boren/data/verl/`.
 - **Use the project's required installer** when installing or updating dependencies. If PyPI is unreachable, pre-download wheels locally, upload to blob with `bbb`, then `pip install` from the local path on the remote.
-- **Run tests on remote** via `brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <test command>"'` for one-off commands, or inside the tmux session for interactive work.
+- **Run tests on remote** via `brix ssh <NODE> -- 'bash -l -c "cd ~/code/verl && <test command>"'`.
 - **Keep changes small.** When iterating, push only what changed (`bpush` is incremental via git). Avoid reinstalling packages unless dependencies actually changed.
 
 ## Command Resolution
 - `bpush` is a zsh function (defined in `~/.zshrc`) that wraps `brix git push`. It detects the canonical repo name from the main worktree and handles the symlink mapping automatically.
 - `brix` may be at `~/.virtualenvs/openai/bin/brix` if not on PATH.
 - `bbb` may be at `~/.virtualenvs/openai/bin/bbb` if not on PATH. Used for blob file operations (sync, cp, ls, rm).
-- Always use `brix` for remote access — `brix ssh`, `brix tmux`. Use `bpush` for pushing code. Use `bbb` for syncing non-code files. Do not use raw `ssh` or `scp`.
+- Always use `brix` for remote access — use `brix ssh`. Do **not** use `brix tmux`. Use `bpush` for pushing code. Use `bbb` for syncing non-code files. Do not use raw `ssh` or `scp`.
 - Use the dependency installer required by the target project or environment.
 - The remote workspace is typically at `/root/code/verl` (not `/home/boren/...`).
 - The blob transfer port for non-code files is `az://orngwus2cresco/data/boren/data/verl/`.
