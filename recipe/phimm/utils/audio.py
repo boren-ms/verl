@@ -50,7 +50,11 @@ def limit_audio(x, fs, max_dur=None):
     if max_dur is not None and len(x) > fs * max_dur:
         print(f"Truncating audio {len(x) / fs:.2f} ->  {max_dur} seconds.")
         x = x[: fs * max_dur]
-    pad_len = -len(x) % 8
+
+    min_len = int(0.16 * fs)
+    pad_to_len = max(len(x), min_len)
+    pad_to_len += -pad_to_len % 8
+    pad_len = pad_to_len - len(x)
     if pad_len:
         x = np.pad(x, [(0, pad_len)] + [(0, 0)] * (x.ndim - 1))
     return x, fs
