@@ -35,16 +35,14 @@ def resample_audio(x, fs, target_fs=TARGET_SAMPLE_RATE):
 
         waveform = torch.from_numpy(x.T if x.ndim > 1 else x)
         x = F.resample(waveform, fs, target_fs).numpy()
-        if x.ndim > 1:
-            x = x.T
         fs = target_fs
     return x, fs
 
 
 def limit_audio(x, fs, max_dur=None):
     """Resample audio to 16 kHz and limit it to max_dur seconds."""
-    x, fs = resample_audio(x, fs)
     assert x.ndim == 1, "Only mono audio is supported."
+    x, fs = resample_audio(x, fs)
     assert fs == TARGET_SAMPLE_RATE, f"Sample rate should be {TARGET_SAMPLE_RATE} Hz."
 
     if max_dur is not None and len(x) > fs * max_dur:
