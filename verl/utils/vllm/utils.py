@@ -70,7 +70,11 @@ class VLLMHijack:
                 else:
                     lora_path = get_adapter_absolute_path(lora_request.lora_path)
 
-                    peft_helper = PEFTHelper.from_local_dir(lora_path, self.max_position_embeddings)
+                    peft_helper = PEFTHelper.from_local_dir(
+                        lora_path,
+                        self.max_position_embeddings,
+                        lora_request.tensorizer_config_dict,
+                    )
 
                 # Validates the LoRA configuration against requirements before
                 # loading weights, throwing an exception if validation fails.
@@ -79,10 +83,10 @@ class VLLMHijack:
                 # For some models like Qwen2VL, we need to use hf_to_vllm_mapper
                 # to ensure correct loading of lora weights.
                 model = self._adapter_manager.model
-                hf_to_vllm_mapper = None
-                if hasattr(model, "hf_to_vllm_mapper") and model.hf_to_vllm_mapper is not None:
-                    hf_to_vllm_mapper = model.hf_to_vllm_mapper
-                extra_vocab_size = getattr(self.lora_config, "lora_extra_vocab_size", 0)
+                hf_to_vllm_mapper = getattr(model, "hf_to_vllm_mapper", None)
+
+                # Get model-defined prefixes to skip during LoRA loading.
+                lora_skip_prefixes = getattr(model, "lora_skip_prefixes", None)
 
                 if isinstance(lora_request, TensorLoRARequest):
                     lora = self._lora_model_cls.from_lora_tensors(
@@ -91,11 +95,9 @@ class VLLMHijack:
                         peft_helper=peft_helper,
                         device="cpu",
                         dtype=self.lora_config.lora_dtype,
-                        embeddings=None,
-                        target_embedding_padding=self.vocab_size + extra_vocab_size,
-                        embedding_modules=self.embedding_modules,
-                        embedding_padding_modules=self.embedding_padding_modules,
+                        model_vocab_size=self.vocab_size,
                         weights_mapper=hf_to_vllm_mapper,
+                        skip_prefixes=lora_skip_prefixes,
                     )
                 else:
                     lora = self._lora_model_cls.from_local_checkpoint(
@@ -105,19 +107,13 @@ class VLLMHijack:
                         lora_model_id=lora_request.lora_int_id,
                         device="cpu",
                         dtype=self.lora_config.lora_dtype,
-                        target_embedding_padding=self.vocab_size + extra_vocab_size,
-                        embedding_modules=self.embedding_modules,
-                        embedding_padding_modules=self.embedding_padding_modules,
+                        model_vocab_size=self.vocab_size,
                         weights_mapper=hf_to_vllm_mapper,
+                        skip_prefixes=lora_skip_prefixes,
                     )
             except Exception as e:
                 raise e
 
-            if lora.extra_vocab_size > extra_vocab_size:
-                raise ValueError(
-                    f"LoRA added vocab size {lora.extra_vocab_size} is greater than lora_extra_vocab_size "
-                    f"{extra_vocab_size}."
-                )
             return lora
 
         def do_hijack(target_cls, target_method_name, hooking_method):
