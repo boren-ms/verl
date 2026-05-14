@@ -66,8 +66,8 @@ def normalize_for_wer(hyp, ref, lang="en"):
         normalizer = _get_ml_normalizer()
         ref_norm = normalizer(ref.strip(), lang=lang)
         hyp_norm = normalizer(hyp.strip(), lang=lang)
-
-    [ref_norm], [hyp_norm] = normalize_compound_pairs([ref_norm], [hyp_norm])
+    if lang != "en":
+        [ref_norm], [hyp_norm] = normalize_compound_pairs([ref_norm], [hyp_norm])
     return hyp_norm, ref_norm
 
 
