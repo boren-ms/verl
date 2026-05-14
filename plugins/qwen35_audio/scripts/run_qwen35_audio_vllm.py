@@ -25,7 +25,7 @@ LOCAL_CACHE_ROOT = "/root/data/qwen35_audio_test"
 DEFAULT_MODEL_PATH = REMOTE_MODEL_PATH
 DEFAULT_AUDIO_PATH = REMOTE_AUDIO_PATH
 DEFAULT_PROMPT = (
-    "<|im_start|>user\n<audio>\n"
+    "<|im_start|>user\n<|audio_start|>\n"
     "Detect the language and transcribe the audio into text.<|im_end|>\n"
     "<|im_start|>assistant\n"
 )
@@ -63,11 +63,11 @@ def parse_args() -> argparse.Namespace:
         help="Do not stage az:// inputs; pass paths through directly.",
     )
     parser.add_argument("--prompt", default=DEFAULT_PROMPT)
-    parser.add_argument("--tensor-parallel-size", type=int, default=8)
-    parser.add_argument("--gpu-memory-utilization", type=float, default=0.15)
+    parser.add_argument("--tensor-parallel-size", type=int, default=1)
+    parser.add_argument("--gpu-memory-utilization", type=float, default=0.5)
     parser.add_argument("--max-model-len", type=int, default=4096)
     parser.add_argument("--max-num-seqs", type=int, default=1)
-    parser.add_argument("--max-tokens", type=int, default=128)
+    parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument(
         "--stop-token-id",
@@ -211,10 +211,15 @@ def main() -> None:
         trust_remote_code=True,
         max_model_len=args.max_model_len,
         max_num_seqs=args.max_num_seqs,
+        load_format="auto",
         dtype="bfloat16",
         tensor_parallel_size=args.tensor_parallel_size,
         limit_mm_per_prompt={"audio": 1},
         gpu_memory_utilization=args.gpu_memory_utilization,
+        logits_processors=[
+            "vllm.model_executor.models.deepseek_ocr:"
+            "NGramPerReqLogitsProcessor"
+        ],
     )
     print(f"load_seconds={time.time() - start_time:.1f}")
 
@@ -222,6 +227,8 @@ def main() -> None:
         temperature=args.temperature,
         max_tokens=args.max_tokens,
         stop_token_ids=args.stop_token_id or DEFAULT_STOP_TOKEN_IDS,
+        repetition_penalty=1.0,
+        extra_args={"ngram_size": 15, "window_size": 512},
     )
     start_time = time.time()
     outputs = llm.generate(
