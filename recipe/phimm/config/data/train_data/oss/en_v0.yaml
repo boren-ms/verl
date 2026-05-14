@@ -7,9 +7,6 @@
     - audio
     - transcription
   num_proc: auto
-  pre_process:
-    filter_short_audio:
-      min_dur_ms: 300
   add_task_info:
     task: lang_asr
     forced: True
