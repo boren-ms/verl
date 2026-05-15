@@ -291,7 +291,13 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                 # breakpoint()
                 if not hasattr(self.processing_class, "audio_tokenizer"):
                     self.processing_class.audio_tokenizer = None  # required for saving
-                self.processing_class.save_pretrained(hf_config_tokenizer_path)
+                try:
+                    self.processing_class.save_pretrained(hf_config_tokenizer_path)
+                except AttributeError:
+                    # Some processors (e.g. Qwen3.5 Audio) have audio_tokenizer=None
+                    # which causes to_dict() to fail. Save tokenizer only as fallback.
+                    if hasattr(self.processing_class, "tokenizer"):
+                        self.processing_class.tokenizer.save_pretrained(hf_config_tokenizer_path)
             log_with_rank(
                 f"Saved model config and tokenizer class to {os.path.abspath(hf_config_tokenizer_path)}",
                 rank=self.rank,
