@@ -43,12 +43,13 @@ rollout:
   # support logging rollout prob for debugging purpose
   calculate_log_probs: False
 actor:
-  strategy: fsdp  # This is for backward-compatibility
+  strategy: fsdp2
   ulysses_sequence_parallel_size: 1 # sp size
   entropy_from_logits_with_chunking: False  # calculate entropy with chunking to reduce memory peak
   entropy_checkpointing: False  # recompute entropy
   fsdp_config:
     fsdp_size: -1
+    offload_policy: true
     forward_prefetch: False  # FSDP1 forward_prefetch configuration
 
 ray_kwargs:

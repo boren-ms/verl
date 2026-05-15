@@ -774,7 +774,11 @@ def extract_multi_modal_inputs(
         if has_image_bound:  # minicpm-o logic
             multi_modal_inputs[key] = values
         elif has_audio:
-            multi_modal_inputs[key] = verl_F.pad(values).squeeze(-1)
+            result = verl_F.pad(values)
+            # Remove the num_audios=1 dimension preserved during padding
+            if result.dim() >= 3 and result.shape[1] == 1:
+                result = result.squeeze(1)
+            multi_modal_inputs[key] = result.squeeze(-1)
         else:
             multi_modal_inputs[key] = torch.cat(values, dim=0)
 

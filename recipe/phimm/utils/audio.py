@@ -1,9 +1,12 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
+import logging
 import numpy as np
 from pathlib import Path
 import soundfile as sf
 from recipe.phimm.data.chunk import load_chunk_example
+
+logger = logging.getLogger(__name__)
 
 
 TARGET_SAMPLE_RATE = 16000
@@ -58,17 +61,27 @@ def limit_audio(x, fs, max_dur=None):
     return x, fs
 
 
+def _to_mono(data, source):
+    if isinstance(data, np.ndarray) and data.ndim == 2:
+        channels = data.shape[1]
+        logger.warning("Non-mono audio (%d channels) from %s, converting to mono by averaging.", channels, source)
+        data = data.mean(axis=1)
+    return data
+
+
 def load_raw_audio(x):
     """Load audio data from the input dictionary."""
     if (audio := x.get("audio", None)) and (sr := x.get("sr", None)):
-        return audio, sr
+        return _to_mono(audio, "inline audio"), sr
     if audio_path := x.get("audio_path", None) or x.get("audio_file", None):
-        return sf_read(audio_path)
+        data, sr = sf_read(audio_path)
+        return _to_mono(data, audio_path), sr
     if audio_chunk := x.get("audio_chunk", None):
         result = load_chunk_example(audio_chunk)
         if isinstance(result, list):
-            return result[0]  # "audios" chunk type returns list of (data, sr)
-        return result
+            result = result[0]  # "audios" chunk type returns list of (data, sr)
+        data, sr = result
+        return _to_mono(data, audio_chunk), sr
     raise ValueError("No audio data found in the input dictionary.")
 
 
@@ -84,13 +97,14 @@ def load_raw_audios(x):  # x is batched
 
     for audio_path, audio_chunk in zip_longest(audio_paths, audio_chunks, fillvalue=None):
         if audio_path:
-            yield sf_read(audio_path)
+            data, sr = sf_read(audio_path)
+            yield _to_mono(data, audio_path), sr
         elif audio_chunk:
             result = load_chunk_example(audio_chunk)
             if isinstance(result, list):
-                yield result[0]  # "audios" chunk type returns list of (data, sr)
-            else:
-                yield result
+                result = result[0]  # "audios" chunk type returns list of (data, sr)
+            data, sr = result
+            yield _to_mono(data, audio_chunk), sr
         else:
             raise ValueError("No audio data found in the input dictionary.")
 
