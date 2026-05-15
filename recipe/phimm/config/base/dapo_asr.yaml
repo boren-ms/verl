@@ -8,7 +8,7 @@ data:
   trust_remote_code: true
   max_prompt_length: 7168
   max_response_length: 512
-  dataloader_num_workers: 4
+  dataloader_num_workers: 0
   train_batch_size: 8
   max_audio_dur: 80 # max audio duration in seconds
   gen_batch_size: ${data.train_batch_size}
