@@ -66,7 +66,7 @@ class ChunkLoader:
         return dict(enumerate(examples))
 
 
-MAX_CACHED_LOADERS = 100
+MAX_CACHED_LOADERS = 10
 
 
 class ChunkManager:

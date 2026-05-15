@@ -42,6 +42,7 @@ algorithm:
   adv_estimator: remax
 data:
   train_batch_size: 64
+  dataloader_num_workers: 2
 trainer:
   nnodes: 1
   total_epochs: 1
