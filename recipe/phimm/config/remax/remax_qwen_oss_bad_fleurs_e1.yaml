@@ -29,7 +29,8 @@ actor_rollout_ref:
     temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
-    gpu_memory_utilization: 0.5
+    gpu_memory_utilization: 0.4
+    max_num_batched_tokens: 8192
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 4
