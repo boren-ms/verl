@@ -32,6 +32,7 @@ import uuid
 from pprint import pprint
 from datasets import Dataset, concatenate_datasets
 from omegaconf import OmegaConf
+from torch.utils.data import Subset
 from torchdata.stateful_dataloader import StatefulDataLoader
 
 from verl import DataProto
@@ -173,7 +174,8 @@ def main_task(config):
     total_egs = len(dataset)
     batch_size = config.data.batch_size
     resume_from_output = config.data.get("resume_from_output", True)
-    if resume_from_output and config.data.get("validation_shuffle", False):
+    val_shuffle = config.data.get("validation_shuffle", False)
+    if resume_from_output and val_shuffle:
         raise ValueError("data.resume_from_output requires data.validation_shuffle=False")
     left_egs, split_idx = _resume_state_from_output(output_dir, total_egs, batch_size, resume_from_output)
     start_batch_idx = left_egs // batch_size
@@ -183,13 +185,13 @@ def main_task(config):
         print("All Done")
         return
     if left_egs > 0:
-        dataset.ds = dataset.ds.select(range(left_egs, total_egs))
+        dataset = Subset(dataset, range(left_egs, total_egs))
 
     dataloader = StatefulDataLoader(
         dataset=dataset,
         batch_size=batch_size,
         num_workers=config.data.get("num_workers", 0),
-        shuffle=config.data.get("validation_shuffle", False),
+        shuffle=val_shuffle,
         drop_last=False,
         collate_fn=default_collate_fn,
     )
