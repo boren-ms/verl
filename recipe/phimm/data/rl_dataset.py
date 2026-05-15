@@ -125,6 +125,8 @@ class RLHFDataset(Dataset):
             inputs_dict = remove_empty_tensors(inputs_dict)
             if "input_audio_embeds" in inputs_dict:
                 inputs_dict["input_audio_embeds"] = inputs_dict["input_audio_embeds"].squeeze(0)
+            if "audio_attention_mask" in inputs_dict and inputs_dict["audio_attention_mask"] is not None:
+                inputs_dict["audio_attention_mask"] = inputs_dict["audio_attention_mask"].squeeze(0)
             if "input_audio_embeds" in inputs_dict and inputs_dict.get("audio_attention_mask", None) is None:
                 inputs_dict["audio_attention_mask"] = torch.ones(
                     inputs_dict["input_audio_embeds"].shape[:-1],
