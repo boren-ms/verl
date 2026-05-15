@@ -10,10 +10,6 @@ val_reward:
     path: recipe/phimm/reward/asr_edge.py
     name: openasr_eval
 
-actor_rollout_ref:
-  model:
-    lora_rank: 0
-
 trainer:
   val_only: True
   val_before_train: True
