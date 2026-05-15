@@ -42,7 +42,7 @@ def resample_audio(x, fs, target_fs=TARGET_SAMPLE_RATE):
     return x, fs
 
 
-def limit_audio(x, fs, max_dur=None):
+def limit_audio(x, fs, max_dur=None, min_dur=0.16):
     """Resample audio to 16 kHz and limit it to max_dur seconds."""
     assert x.ndim == 1, "Only mono audio is supported."
     x, fs = resample_audio(x, fs)
@@ -52,12 +52,9 @@ def limit_audio(x, fs, max_dur=None):
         print(f"Truncating audio {len(x) / fs:.2f} ->  {max_dur} seconds.")
         x = x[: fs * max_dur]
 
-    min_len = int(0.16 * fs)
-    pad_to_len = max(len(x), min_len)
-    pad_to_len += -pad_to_len % 8
-    pad_len = pad_to_len - len(x)
-    if pad_len:
-        x = np.pad(x, [(0, pad_len)] + [(0, 0)] * (x.ndim - 1))
+    min_len = int(min_dur * fs)
+    if len(x) < min_len:
+        x = np.pad(x, (0, min_len - len(x)), mode="edge")
     return x, fs
 
 
@@ -85,9 +82,9 @@ def load_raw_audio(x):
     raise ValueError("No audio data found in the input dictionary.")
 
 
-def load_audio(x, max_dur=None):
+def load_audio(x, max_dur=None, min_dur=0.16):
     data, fs = load_raw_audio(x)
-    return limit_audio(data, fs, max_dur=max_dur)
+    return limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur)
 
 
 def load_raw_audios(x):  # x is batched
@@ -109,5 +106,5 @@ def load_raw_audios(x):  # x is batched
             raise ValueError("No audio data found in the input dictionary.")
 
 
-def load_audios(x, max_dur=None):  # x is batched
-    return [limit_audio(data, fs, max_dur=max_dur) for data, fs in load_raw_audios(x)]
+def load_audios(x, max_dur=None, min_dur=0.16):  # x is batched
+    return [limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur) for data, fs in load_raw_audios(x)]
