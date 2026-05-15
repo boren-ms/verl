@@ -45,16 +45,19 @@ def resample_audio(x, fs, target_fs=TARGET_SAMPLE_RATE):
 def limit_audio(x, fs, max_dur=None, min_dur=0.16):
     """Resample audio to 16 kHz and limit it to max_dur seconds."""
     assert x.ndim == 1, "Only mono audio is supported."
+    x_dur = len(x)/fs
+    if x_dur < min_dur:
+        print(f"Padding audio {x_dur:.2f} ->  {min_dur:.2f} seconds.")
+        x = np.pad(x, (0, int(min_dur * fs) - len(x)), mode="edge")
+        
+    if max_dur is not None and x_dur > max_dur:
+        print(f"Truncating audio {x_dur:.2f} ->  {max_dur} seconds.")
+        x = x[: int(max_dur * fs)]
+    
     x, fs = resample_audio(x, fs)
     assert fs == TARGET_SAMPLE_RATE, f"Sample rate should be {TARGET_SAMPLE_RATE} Hz."
 
-    if max_dur is not None and len(x) > fs * max_dur:
-        print(f"Truncating audio {len(x) / fs:.2f} ->  {max_dur} seconds.")
-        x = x[: fs * max_dur]
 
-    min_len = int(min_dur * fs)
-    if len(x) < min_len:
-        x = np.pad(x, (0, min_len - len(x)), mode="edge")
     return x, fs
 
 
