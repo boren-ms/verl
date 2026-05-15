@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 import logging
 import re
 from recipe.phimm.utils.languages import get_language_code
-from recipe.phimm.utils.shared import has_brackets, parse_asr_response
+from recipe.phimm.utils.shared import has_brackets, has_tail_repetition, parse_asr_response
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
 
@@ -150,65 +150,71 @@ def _parse_response(solution_str, **kwargs):
     trans_dict = parse_asr_response(solution_str)
     hyp_text = trans_dict["text"]
     pred_lang = (trans_dict["lang"] or "").lower()
-    is_lang = pred_lang == tgt_lang
-    is_fmt = bool(trans_dict["formatted"])
+    tail_rep_opts = kwargs.get("tail_rep") or {}
+    p_tail_rep = has_tail_repetition(
+        hyp_text,
+        min_reps=tail_rep_opts.get("min_reps", 4),
+        max_ngram=tail_rep_opts.get("max_ngram", 5),
+    )
 
-    return hyp_text, tgt_lang, is_lang, is_fmt, has_brackets(hyp_text)
+    return {
+        "hyp_text": hyp_text,
+        "tgt_lang": tgt_lang,
+        "p_lang": float(pred_lang == tgt_lang),
+        "p_fmt": float(bool(trans_dict["formatted"])),
+        "p_bracket": float(has_brackets(hyp_text)),
+        "p_tail_rep": float(p_tail_rep),
+    }
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
-    hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
-
-    err = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, **kwargs)
+    parsed = _parse_response(solution_str, **kwargs)
+    err = measure(parsed["hyp_text"], ground_truth, tgt_lang=parsed["tgt_lang"], **kwargs)
     betas = kwargs.get("betas", {})
-    metric = kwargs.get("metric", "acc")  # wer, acc, ed
+    metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
     gamma = kwargs.get("gamma", 1)
-
-    is_good = is_fmt and not p_bracket # skip lang check, due to inaccurate lang tag#
+    is_good = parsed["p_fmt"] and not parsed["p_bracket"]  # skip lang check, due to inaccurate lang tag
 
     if metric == "wer":
-        wer = err.wer(**betas)
-        score = -(wer**gamma) if is_good else -1
+        score = -(err.wer(**betas) ** gamma) if is_good else -1
     elif metric == "ed":
-        n_edit = err.edit_distance(**betas)
-        score = -(n_edit**gamma)
+        score = -(err.edit_distance(**betas) ** gamma)
     elif metric == "bucket":
-        acc = err.accuracy(**betas)
-        n_buckets = kwargs.get("n_buckets", 10)
-        bucket_lo = kwargs.get("bucket_lo", 0.8)
-        score = acc_to_bucket(acc, n_buckets=n_buckets, lo=bucket_lo)
-        score = score if is_good else -1
+        score = acc_to_bucket(
+            err.accuracy(**betas),
+            n_buckets=kwargs.get("n_buckets", 10),
+            lo=kwargs.get("bucket_lo", 0.8),
+        ) if is_good else -1
     else:
-        score = err.accuracy(**betas) ** gamma
-        score = score if is_good else -1
+        score = err.accuracy(**betas) ** gamma if is_good else -1
 
     return {
         "score": score,
         "n_ref": err.n_ref,
         "n_err": err.n_err,
         "n_edge": err.n_edge,
-        "p_fmt": float(is_fmt),
-        "p_lang": float(is_lang),
-        "p_bracket": float(p_bracket),
+        "p_fmt": parsed["p_fmt"],
+        "p_lang": parsed["p_lang"],
+        "p_bracket": parsed["p_bracket"],
+        "p_tail_rep": parsed["p_tail_rep"],
     }
 
 
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
-    hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
-    err = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, **kwargs)
+    parsed = _parse_response(solution_str, **kwargs)
+    err = measure(parsed["hyp_text"], ground_truth, tgt_lang=parsed["tgt_lang"], **kwargs)
 
     return {
         "score": err.accuracy(),
-        "wer": err.wer(),
-        "edge_wer": err.edge_wer(),
         "n_err": err.n_err,
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,
-        "p_fmt": float(is_fmt),
-        "p_lang": float(is_lang),
-        "p_bracket": float(p_bracket),
+        "p_fmt": parsed["p_fmt"],
+        "p_lang": parsed["p_lang"],
+        "p_bracket": parsed["p_bracket"],
+        "p_tail_rep": parsed["p_tail_rep"],
     }
 
 
@@ -219,18 +225,18 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
     """
     from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
 
-    hyp_text, tgt_lang, is_lang, is_fmt, p_bracket = _parse_response(solution_str, **kwargs)
-    logger.info("openasr_eval language check: tgt_lang=%s is_lang=%s", tgt_lang, is_lang)
+    parsed = _parse_response(solution_str, **kwargs)
+    logger.info("openasr_eval language check: tgt_lang=%s p_lang=%s", parsed["tgt_lang"], parsed["p_lang"])
+    result = measure_wer(parsed["hyp_text"], ground_truth, lang=get_language_code(parsed["tgt_lang"]))
 
-    result = measure_wer(hyp_text, ground_truth, lang=get_language_code(tgt_lang))
     return {
         "score": 1.0 - result["wer"],
-        "wer": result["wer"],
         "n_err": result["n_err"],
         "n_ref": result["n_ref"],
-        "p_fmt": float(is_fmt),
-        "p_lang": float(is_lang),
-        "p_bracket": float(p_bracket),
+        "p_fmt": parsed["p_fmt"],
+        "p_lang": parsed["p_lang"],
+        "p_bracket": parsed["p_bracket"],
+        "p_tail_rep": parsed["p_tail_rep"],
     }
 
 
