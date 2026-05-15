@@ -15,10 +15,13 @@
 Generate responses given a dataset of prompts
 """
 
+import math
 import os
+import re
 
 import hydra
 import numpy as np
+import pyarrow.parquet as pq
 import ray
 from tqdm import tqdm
 
@@ -45,6 +48,48 @@ from pathlib import Path
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.reward.asr_edge import eval_score
 from recipe.phimm.utils.shared import parse_asr_response
+
+
+def _part_index(path: str) -> int | None:
+    match = re.match(r"part-(\d+)\.parquet$", os.path.basename(path))
+    return int(match.group(1)) if match else None
+
+
+def _parquet_num_rows(path: str) -> int:
+    with bf.BlobFile(path, "rb") as file_obj:
+        return pq.ParquetFile(file_obj).metadata.num_rows
+
+
+def _resume_state_from_output(output_dir: str, total_egs: int, batch_size: int, enabled: bool) -> tuple[int, int]:
+    if not enabled:
+        return 0, 0
+
+    parts = []
+    for path in bf.glob(f"{output_dir}/part-*.parquet"):
+        idx = _part_index(path)
+        if idx is not None:
+            parts.append((idx, path))
+    if not parts:
+        return 0, 0
+
+    contiguous_parts = []
+    expected_idx = 0
+    for idx, path in sorted(parts):
+        if idx < expected_idx:
+            continue
+        if idx != expected_idx:
+            break
+        contiguous_parts.append((idx, path))
+        expected_idx += 1
+
+    existing_egs = sum(_parquet_num_rows(path) for _, path in contiguous_parts)
+    existing_egs = min(existing_egs, total_egs)
+    if existing_egs < total_egs and existing_egs % batch_size != 0:
+        raise ValueError(
+            f"Cannot resume from {existing_egs} saved examples because it is not aligned to batch_size={batch_size}"
+        )
+    print(f"Resuming generation from {existing_egs}/{total_egs} saved examples across {len(contiguous_parts)} parts.")
+    return existing_egs, expected_idx
 
 
 def get_env_vars():
@@ -120,9 +165,29 @@ def main_task(config):
     assert ds_conf is not None, "Please specify data.gen_data or data.train_data or data.val_data in the config"
     dataset = RLHFDataset(ds_conf, tokenizer, config.data, processor)
     print(f"Loaded RLHFDataset with {len(dataset)} samples.")
+
+    output_dir = config.data.get("output_path", None)
+    assert output_dir is not None, "Please specify data.output_path"
+    output_dir = output_dir.rstrip("/")
+    split_size = config.data.get("output_split_size", 1000)
+    total_egs = len(dataset)
+    batch_size = config.data.batch_size
+    resume_from_output = config.data.get("resume_from_output", True)
+    if resume_from_output and config.data.get("validation_shuffle", False):
+        raise ValueError("data.resume_from_output requires data.validation_shuffle=False")
+    left_egs, split_idx = _resume_state_from_output(output_dir, total_egs, batch_size, resume_from_output)
+    start_batch_idx = left_egs // batch_size
+    total_batches = math.ceil(total_egs / batch_size)
+    if left_egs >= total_egs:
+        print(f"All {total_egs} samples already exist in {output_dir}; nothing to do.")
+        print("All Done")
+        return
+    if left_egs > 0:
+        dataset.ds = dataset.ds.select(range(left_egs, total_egs))
+
     dataloader = StatefulDataLoader(
         dataset=dataset,
-        batch_size=config.data.batch_size,
+        batch_size=batch_size,
         num_workers=config.data.get("num_workers", 0),
         shuffle=config.data.get("validation_shuffle", False),
         drop_last=False,
@@ -141,14 +206,6 @@ def main_task(config):
     wg = wg_dict.spawn(prefix_set=["rollout"])["rollout"]
     wg.init_model()
 
-    output_dir = config.data.get("output_path", None)
-    assert output_dir is not None, "Please specify data.output_path"
-    output_dir = output_dir.rstrip("/")
-    split_size = config.data.get("output_split_size", 1000)
-    total_egs = len(dataset)
-    left_egs = 0
-    
-    total_batches = len(dataloader)
     wer_kwargs = config.data.get("wer_kwargs", {})
     if OmegaConf.is_config(wer_kwargs):
         wer_kwargs = OmegaConf.to_container(wer_kwargs, resolve=True)
@@ -157,7 +214,6 @@ def main_task(config):
     tn_err = 0
     tn_ref = 0
     tn_edge = 0
-    split_idx = 0
     
     def write_data(batches, idx):
         batches = [b for b in batches if len(b) > 0]
@@ -171,7 +227,8 @@ def main_task(config):
         return len(split_ds)
 
 
-    for batch_idx, batch_dict in tqdm(enumerate(dataloader)):
+    for batch_idx, batch_dict in tqdm(enumerate(dataloader), total=total_batches, initial=start_batch_idx):
+        global_batch_idx = start_batch_idx + batch_idx
         prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
         texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
         n_egs = len(texts)
@@ -190,7 +247,7 @@ def main_task(config):
         if "uid" not in data.non_tensor_batch:
             data.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object)
         data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
-        print(f"\n(Batch {batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
+        print(f"\n(Batch {global_batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
         output_padded = wg.generate_sequences(data_padded)
         output = unpad_dataproto(output_padded, pad_size=pad_size)
         for i in range(len(output)):
