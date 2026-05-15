@@ -17,7 +17,25 @@ pybind11
 pylatexenc
 pre-commit
 # ray is installed separately after vllm to allow version override
-# ray[default]==2.46.0
+ray[default]==2.46.0
+# vllm inference deps (installed --no-deps to avoid protobuf/ray conflicts)
+compressed-tensors
+depyf
+outlines_core
+partial-json-parser
+lm-format-enforcer
+xgrammar==0.1.29
+gguf
+sentencepiece
+mistral_common
+blake3
+cbor2
+pydantic-extra-types
+kaldi-native-fbank
+rignore
+fastar
+quack-kernels
+llguidance
 tensordict>=0.8.0,<=0.10.0,!=0.9.0
 transformers==5.7.0
 flashinfer-python==0.6.4

@@ -400,18 +400,12 @@ def prepare_env(forced=False):
     if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
         print(f"Required packages already installed on {hostname}, skipping installation.")
         return
-    # Install vllm with --no-deps so it does NOT drag in its own torch/ray.
-    run_cmd("pip install vllm==0.17.0", check=False)
-    # Install torch + flashinfer first to establish the correct ABI.
-    run_cmd(
-        "pip install "
-        "torch==2.10.0 "
-        "flashinfer-python==0.6.4 "
-        "flashinfer-cubin==0.6.4"
-    )
-    # Install remaining deps (vllm/torch/ray already handled above).
+    # Install vllm with --no-deps to avoid protobuf/ray/opentelemetry upgrades.
+    run_cmd("pip install --no-deps vllm==0.17.0")
+    # Install all deps from requirements_vllm.txt (includes vllm inference
+    # deps, torch, flashinfer, and project deps — but NOT protobuf/ray).
     run_cmd("pip install -r requirements_vllm.txt", check=False)
-    run_cmd('pip install --no-deps "ray[default]==2.46.0"')
+    # run_cmd('pip install --no-deps "ray[default]==2.46.0"')
     run_cmd("pip install --no-deps -e .")
     run_cmd("pip install --no-deps -e plugins/qwen35_audio")
     # Install pre-built flash-attn wheel from blob storage.

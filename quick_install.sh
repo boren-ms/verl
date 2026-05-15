@@ -31,29 +31,17 @@ if [ ! -f "${done_file}" ]; then
     #
     # Strategy:
     #   1. Install vllm --no-deps  (avoids protobuf/ray/opentelemetry upgrades)
-    #   2. Install vllm's inference-only deps separately
-    #   3. Install torch + flashinfer to establish the correct ABI
-    #   4. Install remaining project deps from requirements_vllm.txt
-    #   5. Skip ray install entirely — use whatever the base image provides
+    #   2. Install all deps from requirements_vllm.txt (includes vllm inference
+    #      deps, torch, flashinfer, and project deps — but NOT protobuf/ray)
+    #   3. Skip ray install entirely — use whatever the base image provides
 
     # 1. vllm without deps — avoids protobuf & ray conflicts
     pip install --no-deps vllm==0.17.0
 
-    # 2. vllm inference deps (no protobuf, no opentelemetry, no ray, no torch)
-    pip install \
-        compressed-tensors depyf outlines_core partial-json-parser \
-        lm-format-enforcer "xgrammar==0.1.29" gguf sentencepiece \
-        mistral_common blake3 cbor2 pydantic-extra-types kaldi-native-fbank \
-        rignore fastar quack-kernels llguidance
-
-    # 3. Torch + flashinfer to establish the correct ABI
-    pip install torch==2.10.0 torchaudio==2.10.0 torchvision==0.25.0 \
-        flashinfer-python==0.6.4 flashinfer-cubin==0.6.4
-
-    # 4. Remaining project deps (vllm/torch/ray already handled above)
+    # 2. All project + vllm inference deps (torch, flashinfer, vllm deps all in requirements_vllm.txt)
     pip install -r requirements_vllm.txt
 
-    # 5. Ray: DO NOT install — keep the base image version
+    # Ray: DO NOT install — keep the base image version
     # pip install --no-deps "ray[default]==2.46.0"  # REMOVED
 
     pip install --no-deps -e .
