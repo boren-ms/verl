@@ -319,14 +319,27 @@ def load_tsv(tsv_file, **kwargs):
     # breakpoint()
 
     fs_path, options = get_path_with_options(tsv_file)
-    ds = load_dataset(
-        "csv",
-        data_files=fs_path,
-        split="train",
-        delimiter="\t",
-        column_names=["id", "paths", "msgs"],
-        storage_options=options,
-    )
+    # HF datasets' fsspec_head() unconditionally errors when HF_HUB_OFFLINE=1,
+    # even for non-Hub URLs like abfs://. Temporarily disable offline mode so
+    # the csv builder can read the remote file via fsspec.
+    import datasets.config as _ds_config
+    import huggingface_hub.constants as _hf_const
+    _prev_ds = _ds_config.HF_HUB_OFFLINE
+    _prev_hf = _hf_const.HF_HUB_OFFLINE
+    _ds_config.HF_HUB_OFFLINE = False
+    _hf_const.HF_HUB_OFFLINE = False
+    try:
+        ds = load_dataset(
+            "csv",
+            data_files=fs_path,
+            split="train",
+            delimiter="\t",
+            column_names=["id", "paths", "msgs"],
+            storage_options=options,
+        )
+    finally:
+        _ds_config.HF_HUB_OFFLINE = _prev_ds
+        _hf_const.HF_HUB_OFFLINE = _prev_hf
     tsv_dir = tsv_file.rsplit("/", 1)[0]  # get the directory of the tsv file, do not use os.path
     ds = ds.map(lambda x: {"dir": tsv_dir}, **pop_map_kwargs(kwargs))
     return ds
