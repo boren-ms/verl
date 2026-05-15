@@ -37,13 +37,13 @@ def get_task_prompt(task="asr", rand=False):
         prompt = rand_prompt(LANG_ASR_LEX_PROMPTS, rand=rand)
         lang = _get_lang_asr_language(task, "lang_asr_lex")
         if lang:
-            prompt = f"{prompt}\nAudio Language: {lang}\n"
+            prompt = f"{prompt} Audio Language: {lang}\n"
         return prompt
     elif task.startswith("lang_asr"):
         prompt = rand_prompt(LANG_ASR_PROMPTS, rand=rand)
         lang = _get_lang_asr_language(task, "lang_asr")
         if lang:
-            prompt = f"{prompt}\nAudio Language: {lang}\n"
+            prompt = f"{prompt} Audio Language: {lang}\n"
         return prompt
     else:
         raise ValueError(f"Unknown task: {task}")
