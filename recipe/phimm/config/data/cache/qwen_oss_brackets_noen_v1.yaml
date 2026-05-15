@@ -1,0 +1,11 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/gen_oss_no_en_v1/*.parquet
+  post_process:
+    keep_samples:
+      has_brackets: true
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/no_en_v1.jsonl
+include_verl_format: false
+overwrite: true
