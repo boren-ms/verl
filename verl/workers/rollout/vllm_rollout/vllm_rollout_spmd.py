@@ -193,6 +193,11 @@ class vLLMRollout(BaseRollout):
 
         _ensure_ngram_processor(engine_kwargs)
 
+        # Disable vLLM v1 multimodal processor cache to avoid sender-receiver
+        # cache desync in RL training where data changes every step.
+        if self._vllm_v1:
+            engine_kwargs.setdefault("mm_processor_cache_gb", 0)
+
         # breakpoint()
         self.inference_engine = LLM(
             model=model_path,
