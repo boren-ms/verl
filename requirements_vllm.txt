@@ -21,6 +21,7 @@ ray[default]==2.46.0
 # vllm inference deps (installed --no-deps to avoid protobuf/ray conflicts)
 compressed-tensors
 depyf
+openai-harmony
 outlines_core
 partial-json-parser
 lm-format-enforcer
