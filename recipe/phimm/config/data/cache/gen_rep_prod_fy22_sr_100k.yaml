@@ -3,9 +3,10 @@ source_config:
   parquet_paths:
     - az://orngwus2cresco/data/boren/data/verl/gen_filtered/prod_fy22_sr_100k_wer001/part-*.parquet
   post_process:
-    keep_repetitions:
-      field: response
-      min_reps: 4
+    keep_samples:
+      has_tail_repetitions:
+        field: response
+        min_reps: 4
 
 output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/rep_prod_fy22_sr_100k/data.jsonl
 include_verl_format: false

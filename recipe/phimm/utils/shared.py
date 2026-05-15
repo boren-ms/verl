@@ -268,6 +268,33 @@ def strip_repetitions(text, min_reps=4):
     return text
 
 
+def has_tail_repetition(text, min_reps=4, max_ngram=5):
+    """Return True if the text ends with an n-gram (size 1..max_ngram) repeated >= min_reps times.
+
+    Examples (min_reps=4):
+        "the the the marketing and and and and and and and and"  -> True (and x8)
+        "as we have access to of of of of of of of of of of"     -> True (of x10)
+        "we want to grow is it is it is it is it is it is it"    -> True ("is it" x6)
+        "this is a normal sentence."                              -> False
+    """
+    words = text.split() if isinstance(text, str) else list(text or [])
+    n = len(words)
+    if n < min_reps:
+        return False
+    for ng in range(1, max_ngram + 1):
+        if n < ng * min_reps:
+            continue
+        tail = tuple(words[-ng:])
+        reps = 1
+        pos = n - 2 * ng
+        while pos >= 0 and tuple(words[pos:pos + ng]) == tail:
+            reps += 1
+            pos -= ng
+        if reps >= min_reps:
+            return True
+    return False
+
+
 def parse_asr_response(response):
     """Extract text and language from an ASR response string.
 

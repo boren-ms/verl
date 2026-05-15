@@ -40,7 +40,7 @@ from recipe.phimm.utils.shared import (
     unbatch,
     has_brackets as has_brackets_fn,
     parse_asr_response,
-    strip_repetitions,
+    has_tail_repetition,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.languages import get_language_name
@@ -804,7 +804,19 @@ def _has_brackets(example):
     return has_brackets_fn(text)
 
 
+def _has_tail_repetitions(example, opts):
+    """Check whether example[field] ends with a repeated n-gram."""
+    field = opts.get("field", "response")
+    min_reps = opts.get("min_reps", 4)
+    max_ngram = opts.get("max_ngram", 5)
+    text = example.get(field, "") or ""
+    if not text:
+        return False
+    return has_tail_repetition(text, min_reps=min_reps, max_ngram=max_ngram)
+
+
 def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
+                 has_tail_repetitions=None,
                  wer_range=None, error_count_range=None, edge_wer_range=None, **kwargs):
     """Keep samples matching ANY enabled criterion (OR logic).
 
@@ -812,6 +824,7 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
         has_bad_fmt: truthy — bad format in ASR response
         has_bad_lang: truthy — wrong language
         has_brackets: truthy — bracketed/parenthesized text
+        has_tail_repetitions: truthy or dict {field, min_reps, max_ngram} — trailing n-gram repetition
         wer_range: [lo, hi] — WER range
         error_count_range: [lo, hi] — error count range
         edge_wer_range: [lo, hi] — edge WER range
@@ -827,6 +840,10 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
 
     if has_brackets:
         checks.append(("has_brackets", lambda ex: _has_brackets(ex)))
+
+    if has_tail_repetitions:
+        tail_opts = dict(has_tail_repetitions) if isinstance(has_tail_repetitions, dict) else {}
+        checks.append(("has_tail_repetitions", lambda ex, _o=tail_opts: _has_tail_repetitions(ex, _o)))
 
     if wr := to_list(wer_range):
         checks.append(("wer", lambda ex, _r=wr: _check_field(ex, "wer", _r)))
@@ -859,22 +876,6 @@ def filter_text_with_numbers(ds, **kwargs):
     n_egs = len(ds)
     ds = ds.filter(has_number_after_norm, **pop_filter_kwargs(kwargs), desc="Filtering text with numbers")
     all_rank_print(f"Filtered text with numbers after {norm_name} norm: {n_egs} to {len(ds)}")
-    return ds
-
-
-def keep_repetitions(ds, **kwargs):
-    """Filter to keep only examples that contain repetitions in a text field."""
-    field = kwargs.get("field", "response")
-    min_reps = kwargs.get("min_reps", 4)
-
-    def has_repetition(example):
-        text = example.get(field, "") or ""
-        return text and strip_repetitions(text, min_reps=min_reps) != text
-
-    n_egs = len(ds)
-    ds = ds.filter(has_repetition, **pop_filter_kwargs(kwargs), desc="Keeping repetitions")
-    n_left = len(ds)
-    all_rank_print(f"Kept repetitions: {n_egs} => {n_left} [{n_left / n_egs if n_egs else 0.0:.2%}] left")
     return ds
 
 
@@ -1042,8 +1043,6 @@ def process_ds(ds, **kwargs):
         ds = shard_ds(ds, **map_kwargs)
     if filter_text_with_numbers_kwargs := kwargs.get("filter_text_with_numbers", {}):
         ds = filter_text_with_numbers(ds, **merge_kwargs(map_kwargs, filter_text_with_numbers_kwargs))
-    if keep_repetitions_kwargs := kwargs.get("keep_repetitions", {}):
-        ds = keep_repetitions(ds, **merge_kwargs(map_kwargs, keep_repetitions_kwargs))
     if output_egs_limit := kwargs.get("output_egs_limit", None):
         ds = limit_ds(ds, egs_limit=output_egs_limit)
     if add_field_kwargs := kwargs.get("add_field", {}):
