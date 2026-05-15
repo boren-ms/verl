@@ -21,7 +21,21 @@ if str(REPO_ROOT) not in sys.path:
 
 from recipe.phimm.reward.asr_edge import openasr_eval  # noqa: E402
 
-GATING_KEYS = ("p_fmt", "p_lang", "p_bracket", "p_tail_rep")
+# For each metric, the value indicating a *failure* (problematic utterance).
+# p_fmt / p_lang: 1.0 = pass, 0.0 = fail
+# p_bracket / p_tail_rep: 0.0 = pass (clean), 1.0 = fail (problem detected)
+FAIL_VALUE = {
+    "p_fmt": 0.0,
+    "p_lang": 0.0,
+    "p_bracket": 1.0,
+    "p_tail_rep": 1.0,
+}
+GATING_KEYS = tuple(FAIL_VALUE.keys())
+
+
+def is_problematic(metrics: dict) -> dict:
+    """Return per-key failure flags; an utt is problematic if any flag is True."""
+    return {k: float(metrics.get(k, 0.0)) == FAIL_VALUE[k] for k in GATING_KEYS}
 
 
 def iter_jsonl(path: Path):
@@ -38,6 +52,7 @@ def process_eval_dir(root: Path, out_path: Path) -> dict:
     total = 0
     kept = 0
     per_source: dict[str, dict[str, int]] = {}
+    fail_counts = {k: 0 for k in GATING_KEYS}
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     with out_path.open("w", encoding="utf-8") as out_f:
@@ -56,22 +71,30 @@ def process_eval_dir(root: Path, out_path: Path) -> dict:
                     )
                 except Exception as exc:  # pragma: no cover
                     metrics = {"error": repr(exc)}
-                    # Treat as bad → keep
-                    bad = True
+                    flags = {k: True for k in GATING_KEYS}
                 else:
-                    bad = any(float(metrics.get(k, 0.0)) != 1.0 for k in GATING_KEYS)
-                if not bad:
+                    flags = is_problematic(metrics)
+                if not any(flags.values()):
                     continue
+                for k, v in flags.items():
+                    if v:
+                        fail_counts[k] += 1
                 out_rec = dict(rec)
                 out_rec["source"] = source
                 out_rec["metrics"] = {
                     k: metrics.get(k) for k in (*GATING_KEYS, "score", "n_err", "n_ref")
                 }
+                out_rec["fail_flags"] = flags
                 out_f.write(json.dumps(out_rec, ensure_ascii=False) + "\n")
                 kept += 1
                 per_source[source]["kept"] += 1
 
-    return {"total": total, "kept": kept, "per_source": per_source}
+    return {
+        "total": total,
+        "kept": kept,
+        "fail_counts": fail_counts,
+        "per_source": per_source,
+    }
 
 
 def main() -> int:
@@ -112,6 +135,7 @@ def main() -> int:
             f"[{name}] kept {result['kept']}/{result['total']} utterances",
             flush=True,
         )
+        print(f"    fail counts: {result['fail_counts']}")
         for src, s in sorted(result["per_source"].items()):
             print(f"    {src}: {s['kept']}/{s['total']}")
 
