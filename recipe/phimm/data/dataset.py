@@ -12,6 +12,7 @@ import blobfile as bf
 import pandas as pd
 import pyarrow.parquet as pq
 import pyarrow.json as pjson
+import pyarrow.csv as pcsv
 import string
 from pathlib import Path
 import sys
@@ -314,32 +315,22 @@ def audio_dir_dataset(data_dir, **kwargs):
     return Dataset.from_list(examples)
 
 
-def load_tsv(tsv_file, **kwargs):
-    """Load a TSV file into a dataset."""
-    # breakpoint()
-
-    fs_path, options = get_path_with_options(tsv_file)
-    ds = load_dataset(
-        "csv",
-        data_files=fs_path,
-        split="train",
-        delimiter="\t",
-        column_names=["id", "paths", "msgs"],
-        storage_options=options,
-    )
-    tsv_dir = tsv_file.rsplit("/", 1)[0]  # get the directory of the tsv file, do not use os.path
-    ds = ds.map(lambda x: {"dir": tsv_dir}, **pop_map_kwargs(kwargs))
-    return ds
-
-
 def tsv_dataset(tsv_paths, **kwargs):
-    """Create a dataset from the given split."""
-    if is_list(tsv_paths):
-        ds = concatenate_datasets([load_tsv(tsv_path, **kwargs) for tsv_path in tsv_paths])
-    else:
-        ds = load_tsv(tsv_paths, **kwargs)
+    """Load a TSV dataset from the specified paths."""
 
-    ds = stream_shuffle(ds, **kwargs)
+    def load_tsv(file_path):
+        with bf.BlobFile(file_path, "rb") as file_obj:
+            table = pcsv.read_csv(
+                file_obj,
+                parse_options=pcsv.ParseOptions(delimiter="\t"),
+                read_options=pcsv.ReadOptions(column_names=["id", "paths", "msgs"]),
+            )
+        ds = Dataset(table)
+        tsv_dir = file_path.rsplit("/", 1)[0]  # get the directory of the tsv file, do not use os.path
+        return ds.add_column("dir", [tsv_dir] * len(ds))
+
+    ds = _load_expanded_datasets(tsv_paths, ext="tsv", load_fn=load_tsv)
+    # ds = stream_shuffle(ds, **kwargs) # need stream or shuffle 
 
     def load_sample(egs):
         """Process a single sample."""
