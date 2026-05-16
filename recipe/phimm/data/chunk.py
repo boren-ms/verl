@@ -23,13 +23,7 @@ def resolve_path(path, prefix=None):
     import re
     az_prefix = prefix or "az://orngwus2cresco/data/speech/"
     path = re.sub(r"^/datablob1?/", az_prefix, path)
-    # Always remap legacy/region-specific blob accounts to the westus2 mirror
-    # so the same dataset works regardless of cluster region.
-    path = re.sub(
-        r"^az://(orngcresco|orngscuscresco|orngwus2cresco)/",
-        "az://orngwus2cresco/",
-        path,
-    )
+    path = re.sub(r"^az://(orngcresco|orngscuscresco|orngwus2cresco)/", "az://orngwus2cresco/", path)
     return path
 
 
@@ -175,9 +169,7 @@ def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int):
     with bf.BlobFile(chunk_path, "rb") as f:
         target_type = f.read(len(chunk_type.encode())).decode()
         if chunk_type.lower() != target_type.lower():
-            raise ValueError(
-                f"Target type is not expected in {chunk_path}, expected {chunk_type}, but got {target_type}"
-            )
+            raise ValueError(f"Target type is not expected in {chunk_path}, expected {chunk_type}, but got {target_type}")
         _ = int.from_bytes(f.read(4), byteorder=ENDIAN)
         for i in range(chunk_size):
             egs_i = int.from_bytes(f.read(4), byteorder=ENDIAN)
@@ -215,13 +207,13 @@ def load_specs(spec_files):
         language = spec_dict.get("language")
         for ds in spec_dict["data_sources"]:
             ds = {key: resolve_path(value) for key, value in ds.items()}
-            ds ["language"] = ds.get("language", language)
+            ds["language"] = ds.get("language", language)
             specs.append(ds)
     return specs
 
 
 def load_chunks(specs, chunks_per_spec=None):
-    if isinstance(specs[0], str): # specs is list of text # assume spec files
+    if isinstance(specs[0], str):  # specs is list of text # assume spec files
         specs = load_specs(specs)
     chunks = []
     rank_print(f"Loading chunks from {len(specs)} specs.")
