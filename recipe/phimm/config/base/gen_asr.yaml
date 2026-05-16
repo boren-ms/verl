@@ -2,6 +2,8 @@ defaults:
   - generation
   - _self_
 
+nccl_timeout: 7200
+
 trainer:
   experiment_name: phimm_asr_gen # required for logging
   
