@@ -21,22 +21,15 @@ def resolve_path(path, prefix=None):
     if not isinstance(path, str):
         return path
     import re
-    from recipe.phimm.utils.storage import storage_account
     az_prefix = prefix or "az://orngwus2cresco/data/speech/"
     path = re.sub(r"^/datablob1?/", az_prefix, path)
-    # Remap legacy hard-coded blob account to the cluster's local mirror so
-    # the same dataset works across regions (e.g. westus2 cannot reach the
-    # uksouth `orngcresco` privatelink endpoint).
-    try:
-        local_account = storage_account()
-    except Exception:
-        local_account = None
-    if local_account:
-        path = re.sub(
-            r"^az://(orngcresco|orngscuscresco|orngwus2cresco)/",
-            f"az://{local_account}/",
-            path,
-        )
+    # Always remap legacy/region-specific blob accounts to the westus2 mirror
+    # so the same dataset works regardless of cluster region.
+    path = re.sub(
+        r"^az://(orngcresco|orngscuscresco|orngwus2cresco)/",
+        "az://orngwus2cresco/",
+        path,
+    )
     return path
 
 
