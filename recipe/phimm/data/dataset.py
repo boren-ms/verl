@@ -826,12 +826,14 @@ def _has_tail_repetitions(example, opts):
     return has_tail_repetition(text, min_reps=min_reps, max_ngram=max_ngram)
 
 
-# Matches single-letter abbreviations like "U. S.", "U. P. S.", "U.S.", "u.s.",
-# "K., F., C.,", or "C. S. V" — i.e. >=2 single letters where each (except
-# possibly the last) is followed by a period and optional comma, separated by
-# zero-or-more whitespace. The trailing letter's period is optional but the
-# whole match must end at a word boundary so we don't grab parts of real words.
-_SPACED_ABBREV_RE = re.compile(r"\b(?:[A-Za-z]\.,?\s*){1,}[A-Za-z](?:\.,?)?(?!\w)")
+# Matches uppercase single-letter abbreviations like "U. S.", "U. P. S.",
+# "U.S.", "K., F., C.,", or "C. S. V" — i.e. >=2 single uppercase letters where
+# each (except possibly the last) is followed by a period and optional comma,
+# separated by zero-or-more whitespace. The trailing letter's period is
+# optional but the whole match must end at a word boundary so we don't grab
+# parts of real words. Lowercase starts like "a.b.", "a.C.", "a. b.", "i.e.",
+# "e.g.", "a.m." are intentionally excluded.
+_SPACED_ABBREV_RE = re.compile(r"\b[A-Z]\.,?\s*(?:[A-Z]\.,?\s*)*[A-Z](?:\.,?)?(?!\w)")
 
 
 def _has_spaced_abbrev(example, opts):
