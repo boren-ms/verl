@@ -1039,12 +1039,13 @@ def extract_chat(ds, **kwargs):
         meta = get_value(example, metadata_key, {}) or {}
         desc = (meta.get("desc") or "").strip()
         text = (meta.get("text") or "").strip()
-        audio_path = meta.get("audio_file") or ""
         audio_chunk = meta.get("audio_chunk") or ""
+        audio_path = meta.get("audio_file") or ""
+        audio_key = "audio_chunk" if audio_chunk else "audio_path"
+        audio_val = audio_chunk or audio_path
         return {
-            "id": example.get("id") or Path(audio_path or audio_chunk).stem,
-            "audio_path": audio_path,
-            "audio_chunk": audio_chunk,
+            "id": example.get("id") or Path(audio_val).stem,
+            audio_key: audio_val,
             "text": text,
             "desc": desc,
             "keywords": sorted(extract_entities(desc)) if desc else [],
