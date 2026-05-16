@@ -23,6 +23,7 @@ val_reward:
 
 
 actor_rollout_ref:
+  nccl_timeout: 3600
   rollout:
     n: 16
     gt_rollout: false
