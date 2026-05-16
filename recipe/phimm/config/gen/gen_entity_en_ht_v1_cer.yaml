@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - gen_asr
-  - data/train_data/entity/en_ht_v1_cer_entity
+  - data/train_data/entity/entity_en_ht_v1_cer
   - _self_
 
 model:
