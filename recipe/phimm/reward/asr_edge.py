@@ -191,6 +191,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
     return {
         "score": score,
+        "wer": err.wer(**betas),
         "n_ref": err.n_ref,
         "n_err": err.n_err,
         "n_edge": err.n_edge,
@@ -208,6 +209,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
 
     return {
         "score": err.accuracy(),
+        "wer": err.wer(),
         "n_err": err.n_err,
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,
@@ -231,6 +233,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
 
     return {
         "score": 1.0 - result["wer"],
+        "wer": result["wer"],
         "n_err": result["n_err"],
         "n_ref": result["n_ref"],
         "p_fmt": parsed["p_fmt"],
