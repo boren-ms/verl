@@ -137,6 +137,8 @@ def run_generation(config) -> None:
 
 
 def log_examples(ds, num_examine=1):
+    if "wer" not in ds.column_names and "n_err" in ds.column_names and "n_ref" in ds.column_names:
+        ds = ds.map(lambda r: {"wer": r["n_err"] / max(r["n_ref"], 1)})
     sort_ds = ds.sort("wer", reverse=True)
     audio_key = "audio_chunk" if "audio_chunk" in ds.column_names else "audio_path"
 
