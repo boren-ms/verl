@@ -1,6 +1,6 @@
 # Single-source training spec using extract_chat to flatten the inhouse
 # chat-Conversation JSONL samples (Source: first dst_path from
-# entity_data/en_ht_v1_cer_entity.yaml).
+# entity_data/entity_en_ht_v1_cer.yaml).
 - dataset_name: jsonl
   jsonl_paths:
     - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix_16k/r8/Engineer_Telephony_8kHz/samples/
@@ -13,6 +13,6 @@
   post_process:
     add_field:
       fields:
-        data_source: en_ht_v1_cer_entity
+        data_source: entity_en_ht_v1_cer
     verl_format:
       prompt_key: prompt
