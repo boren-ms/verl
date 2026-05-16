@@ -13,3 +13,6 @@ model:
 
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_en_v0
+
+actor_rollout_ref:
+  nccl_timeout: 7200
