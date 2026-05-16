@@ -4,6 +4,7 @@ import re
 import uuid
 import math
 import json
+import gzip
 from collections import defaultdict
 import ast
 import random
@@ -114,13 +115,19 @@ def extract_entities(text):
 
 
 def jsonl_dataset(jsonl_paths, **kwargs):
-    """Load a JSONL dataset from the specified paths."""
+    """Load a JSONL dataset from the specified paths.
+
+    Supports both plain ``.jsonl`` files and gzip-compressed ``.jsonl.gz`` files.
+    """
 
     def load_jsonl(file_path):
         with bf.BlobFile(file_path, "rb") as file_obj:
+            if file_path.endswith(".gz"):
+                with gzip.GzipFile(fileobj=file_obj, mode="rb") as gz:
+                    return Dataset(pjson.read_json(gz))
             return Dataset(pjson.read_json(file_obj))
 
-    return _load_expanded_datasets(jsonl_paths, ext="jsonl", load_fn=load_jsonl)
+    return _load_expanded_datasets(jsonl_paths, ext=("jsonl", "jsonl.gz"), load_fn=load_jsonl)
 
 
 def _has_glob_pattern(file_path):
@@ -128,19 +135,23 @@ def _has_glob_pattern(file_path):
 
 
 def _expand_paths(file_paths, ext="parquet"):
+    exts = (ext,) if isinstance(ext, str) else tuple(ext)
     expanded_files = []
     for file_path in file_paths:
         file_path = os.path.expanduser(str(file_path))
         if _has_glob_pattern(file_path):
             matches = sorted(bf.glob(file_path))
         elif bf.isdir(file_path):
-            matches = sorted(bf.glob(bf.join(file_path, f"*.{ext}")))
+            matches = []
+            for e in exts:
+                matches.extend(bf.glob(bf.join(file_path, f"*.{e}")))
+            matches = sorted(matches)
         elif bf.exists(file_path):
             matches = [file_path]
         else:
             matches = []
         if not matches:
-            raise FileNotFoundError(f"No {ext} files matched: {file_path}")
+            raise FileNotFoundError(f"No {'/'.join(exts)} files matched: {file_path}")
         expanded_files.extend(matches)
     return expanded_files
 
