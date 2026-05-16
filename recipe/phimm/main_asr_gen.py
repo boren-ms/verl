@@ -137,14 +137,26 @@ def run_generation(config) -> None:
 
 
 def log_examples(ds, num_examine=1):
-    sort_ds = ds.sort("wer", reverse=True)
-    audio_key = "audio_chunk" if "audio_chunk" in ds.column_names else "audio_path"
-    
+    cols = ds.column_names
+    if "wer" in cols:
+        sort_key = "wer"
+    elif "p_err" in cols:
+        sort_key = "p_err"
+    elif "n_err" in cols and "n_ref" in cols:
+        ds = ds.map(lambda r: {"wer": r["n_err"] / max(r["n_ref"], 1)})
+        sort_key = "wer"
+    else:
+        sort_key = None
+    sort_ds = ds.sort(sort_key, reverse=True) if sort_key else ds
+    audio_key = "audio_chunk" if "audio_chunk" in sort_ds.column_names else "audio_path"
+
     for i in range(min(num_examine, len(sort_ds))):
         print(f"--- Example {i + 1} ---")
         edge_wer = sort_ds[i]["edge_wer"] if "edge_wer" in sort_ds.column_names else None
         edge_str = f"  edge_wer: {edge_wer:.2%}" if edge_wer is not None else ""
-        print(f"WER: {sort_ds[i]['wer']:.2%}{edge_str}")
+        wer_val = sort_ds[i].get(sort_key) if sort_key else None
+        if wer_val is not None:
+            print(f"{sort_key}: {wer_val:.2%}{edge_str}")
         print("Ref:", sort_ds[i]["text"])
         print("Hyp:", sort_ds[i]["raw_response"])
         if audio_key in sort_ds.column_names:
