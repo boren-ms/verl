@@ -21,8 +21,23 @@ def resolve_path(path, prefix=None):
     if not isinstance(path, str):
         return path
     import re
+    from recipe.phimm.utils.storage import storage_account
     az_prefix = prefix or "az://orngwus2cresco/data/speech/"
-    return re.sub(r"^/datablob1?/", az_prefix, path)
+    path = re.sub(r"^/datablob1?/", az_prefix, path)
+    # Remap legacy hard-coded blob account to the cluster's local mirror so
+    # the same dataset works across regions (e.g. westus2 cannot reach the
+    # uksouth `orngcresco` privatelink endpoint).
+    try:
+        local_account = storage_account()
+    except Exception:
+        local_account = None
+    if local_account:
+        path = re.sub(
+            r"^az://(orngcresco|orngscuscresco|orngwus2cresco)/",
+            f"az://{local_account}/",
+            path,
+        )
+    return path
 
 
 def parse_data(data, data_type, **kwargs):
@@ -122,6 +137,7 @@ def load_examples(chunk, fields):
         parts = field.split(".")
         chunk_type = parts[0]
         chunk_file = get_chunk_type_path(chunk, chunk_type).rstrip("/") + f"/{chunk['name']}.{chunk_type}"
+        chunk_file = resolve_path(chunk_file)
         if not bf.exists(chunk_file):
             rank_print(f"Skip [{chunk_file}] due to missing.")
             return {}
@@ -298,6 +314,7 @@ def create_chunk_datasets(
 @cached(FIFOCache(maxsize=100))
 def load_chunk_example(chunk_path):
     """Load a single example from the chunk file."""
+    chunk_path = resolve_path(chunk_path)
     chunk_file, chunk_count, chunk_index = chunk_path.rsplit(":", 2)  # make sure rsplit.
     chunk_loader = get_chunk_manager().get(chunk_file, int(chunk_count))
     return chunk_loader.get(int(chunk_index))
