@@ -142,7 +142,9 @@ def log_examples(ds, num_examine=1):
     
     for i in range(min(num_examine, len(sort_ds))):
         print(f"--- Example {i + 1} ---")
-        print(f"WER: {sort_ds[i]['wer']:.2%}  edge_wer: {sort_ds[i]['edge_wer']:.2%}")
+        edge_wer = sort_ds[i]["edge_wer"] if "edge_wer" in sort_ds.column_names else None
+        edge_str = f"  edge_wer: {edge_wer:.2%}" if edge_wer is not None else ""
+        print(f"WER: {sort_ds[i]['wer']:.2%}{edge_str}")
         print("Ref:", sort_ds[i]["text"])
         print("Hyp:", sort_ds[i]["raw_response"])
         if audio_key in sort_ds.column_names:
