@@ -826,8 +826,25 @@ def _has_tail_repetitions(example, opts):
     return has_tail_repetition(text, min_reps=min_reps, max_ngram=max_ngram)
 
 
+# Matches single-letter abbreviations like "U. S.", "U. P. S.", "U.S.", "u.s.",
+# "K., F., C.,", or "C. S. V" — i.e. >=2 single letters where each (except
+# possibly the last) is followed by a period and optional comma, separated by
+# zero-or-more whitespace. The trailing letter's period is optional but the
+# whole match must end at a word boundary so we don't grab parts of real words.
+_SPACED_ABBREV_RE = re.compile(r"\b(?:[A-Za-z]\.,?\s*){1,}[A-Za-z](?:\.,?)?(?!\w)")
+
+
+def _has_spaced_abbrev(example, opts):
+    """Check whether example[field] contains a spaced single-letter abbreviation."""
+    field = opts.get("field", "response")
+    text = example.get(field, "") or ""
+    if not text:
+        return False
+    return bool(_SPACED_ABBREV_RE.search(text))
+
+
 def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
-                 has_tail_repetitions=None,
+                 has_tail_repetitions=None, has_spaced_abbrev=None,
                  wer_range=None, error_count_range=None, edge_wer_range=None, **kwargs):
     """Keep samples matching ANY enabled criterion (OR logic).
 
@@ -836,6 +853,8 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
         has_bad_lang: truthy — wrong language
         has_brackets: truthy — bracketed/parenthesized text
         has_tail_repetitions: truthy or dict {field, min_reps, max_ngram} — trailing n-gram repetition
+        has_spaced_abbrev: truthy or dict {field} — spaced single-letter abbreviations
+            like "U. S." (should be "US") or "U. P. S." (should be "UPS")
         wer_range: [lo, hi] — WER range
         error_count_range: [lo, hi] — error count range
         edge_wer_range: [lo, hi] — edge WER range
@@ -855,6 +874,10 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
     if has_tail_repetitions:
         tail_opts = dict(has_tail_repetitions) if isinstance(has_tail_repetitions, dict) else {}
         checks.append(("has_tail_repetitions", lambda ex, _o=tail_opts: _has_tail_repetitions(ex, _o)))
+
+    if has_spaced_abbrev:
+        abbrev_opts = dict(has_spaced_abbrev) if isinstance(has_spaced_abbrev, dict) else {}
+        checks.append(("has_spaced_abbrev", lambda ex, _o=abbrev_opts: _has_spaced_abbrev(ex, _o)))
 
     if wr := to_list(wer_range):
         checks.append(("wer", lambda ex, _r=wr: _check_field(ex, "wer", _r)))
