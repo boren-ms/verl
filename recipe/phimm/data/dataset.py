@@ -1023,9 +1023,45 @@ def add_field_ds(ds, **kwargs):
     return ds.map(map_fn, **pop_map_kwargs(kwargs))
 
 
+def extract_chat(ds, **kwargs):
+    """Extract ASR fields from the ``metadata`` block of inhouse chat samples.
+
+    Each input row is a Conversation dict with a metadata block (configurable
+    via ``metadata_key``, default ``"metadata"``) carrying ``audio_chunk``
+    and/or ``audio_file``, ``text``, ``desc`` (entity-tagged transcription
+    with ``<NE:type>`` tags) and ``whisper_language``. Output columns:
+    ``id``, ``audio_path`` (from ``audio_file``), ``audio_chunk``, ``text``,
+    ``desc``, ``keywords``, ``language``. All other columns are dropped.
+    """
+    metadata_key = kwargs.pop("metadata_key", "metadata")
+
+    def map_fn(example):
+        meta = get_value(example, metadata_key, {}) or {}
+        desc = (meta.get("desc") or "").strip()
+        text = (meta.get("text") or "").strip()
+        audio_path = meta.get("audio_file") or ""
+        audio_chunk = meta.get("audio_chunk") or ""
+        return {
+            "id": example.get("id") or Path(audio_path or audio_chunk).stem,
+            "audio_path": audio_path,
+            "audio_chunk": audio_chunk,
+            "text": text,
+            "desc": desc,
+            "keywords": sorted(extract_entities(desc)) if desc else [],
+            "language": meta.get("whisper_language") or "english",
+        }
+
+    map_kwargs = pop_map_kwargs(kwargs)
+    map_kwargs["remove_columns"] = list(ds.column_names)
+    return ds.map(map_fn, **map_kwargs, desc="Extracting chat metadata")
+
+
 def process_ds(ds, **kwargs):
     """Post process the dataset."""
     map_kwargs = pop_map_kwargs(kwargs)
+    if "extract_chat" in kwargs:
+        chat_kwargs = kwargs.get("extract_chat") or {}
+        ds = extract_chat(ds, **merge_kwargs(map_kwargs, chat_kwargs))
     if input_egs_limit := kwargs.get("input_egs_limit", None):
         ds = limit_ds(ds, egs_limit=input_egs_limit)
     if filter_by_keywords_kwargs := kwargs.get("filter_by_keywords", {}):
