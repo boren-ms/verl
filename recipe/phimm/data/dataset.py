@@ -1076,17 +1076,17 @@ def extract_chat(ds, **kwargs):
         meta = get_value(example, metadata_key, {}) or {}
         desc = _strip_lone_surrogates((meta.get("desc") or "").strip())
         text = _strip_lone_surrogates((meta.get("text") or "").strip())
-        audio_chunk = meta.get("audio_chunk") or ""
-        audio_path = meta.get("audio_file") or ""
+        audio_chunk = _strip_lone_surrogates(meta.get("audio_chunk") or "")
+        audio_path = _strip_lone_surrogates(meta.get("audio_file") or "")
         audio_key = "audio_chunk" if audio_chunk else "audio_path"
         audio_val = audio_chunk or audio_path
         return {
-            "id": example.get("id") or Path(audio_val).stem,
+            "id": _strip_lone_surrogates(example.get("id") or Path(audio_val).stem),
             audio_key: audio_val,
             "text": text,
             "desc": desc,
-            "keywords": sorted(extract_entities(desc)) if desc else [],
-            "language": meta.get("whisper_language") or "english",
+            "keywords": [_strip_lone_surrogates(k) for k in sorted(extract_entities(desc))] if desc else [],
+            "language": _strip_lone_surrogates(meta.get("whisper_language") or "english"),
         }
 
     map_kwargs = pop_map_kwargs(kwargs)
