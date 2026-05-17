@@ -1048,6 +1048,18 @@ def add_field_ds(ds, **kwargs):
     return ds.map(map_fn, **pop_map_kwargs(kwargs))
 
 
+def _strip_lone_surrogates(s):
+    """Drop lone UTF-8 surrogate code points so pyarrow can serialize the string.
+
+    Some inhouse JSONL rows contain lone surrogates (e.g. ``\\udc4d``) that
+    survive the JSON parse but cannot be encoded as valid UTF-8 by pyarrow.
+    """
+    if not isinstance(s, str):
+        return s
+    # Roundtrip through utf-8 with surrogatepass then drop invalid bytes on decode.
+    return s.encode("utf-8", "surrogatepass").decode("utf-8", "ignore")
+
+
 def extract_chat(ds, **kwargs):
     """Extract ASR fields from the ``metadata`` block of inhouse chat samples.
 
@@ -1062,8 +1074,8 @@ def extract_chat(ds, **kwargs):
 
     def map_fn(example):
         meta = get_value(example, metadata_key, {}) or {}
-        desc = (meta.get("desc") or "").strip()
-        text = (meta.get("text") or "").strip()
+        desc = _strip_lone_surrogates((meta.get("desc") or "").strip())
+        text = _strip_lone_surrogates((meta.get("text") or "").strip())
         audio_chunk = meta.get("audio_chunk") or ""
         audio_path = meta.get("audio_file") or ""
         audio_key = "audio_chunk" if audio_chunk else "audio_path"
