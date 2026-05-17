@@ -13,3 +13,18 @@ model:
 
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_ls
+  batch_size: 512
+  num_workers: 16
+  prefetch_factor: 4
+  pin_memory: true
+  persistent_workers: true
+  prefetch_depth: 4
+
+rollout:
+  tensor_model_parallel_size: 2
+  gpu_memory_utilization: 0.85
+  enforce_eager: true
+  enable_chunked_prefill: true
+  max_num_batched_tokens: 65536
+  max_num_seqs: 512
+  log_prob_micro_batch_size_per_gpu: 16

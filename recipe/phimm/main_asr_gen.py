@@ -195,6 +195,9 @@ def main_task(config):
         dataset=dataset,
         batch_size=batch_size,
         num_workers=config.data.get("num_workers", 0),
+        prefetch_factor=config.data.get("prefetch_factor", 2) if config.data.get("num_workers", 0) > 0 else None,
+        pin_memory=config.data.get("pin_memory", False),
+        persistent_workers=config.data.get("persistent_workers", False) and config.data.get("num_workers", 0) > 0,
         shuffle=val_shuffle,
         drop_last=False,
         collate_fn=default_collate_fn,
@@ -233,53 +236,95 @@ def main_task(config):
         return len(split_ds)
 
 
-    for batch_idx, batch_dict in tqdm(enumerate(dataloader), total=total_batches, initial=start_batch_idx):
-        global_batch_idx = start_batch_idx + batch_idx
-        prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
-        texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
-        n_egs = len(texts)
-        audio_paths = batch_dict.get("audio_path", [None] * n_egs)
-        audio_chunks = batch_dict.get("audio_chunk", [None] * n_egs)
-        extras = batch_dict.get("extra_info", [{}] * n_egs)
+    import threading
+    import queue as _queue
 
-        results = []
-        for i in range(n_egs):
-            r = {"prompt": prompts[i], "text": texts[i],
-                 "audio_path": audio_paths[i], "audio_chunk": audio_chunks[i]}
-            if extras[i]:
-                r.update(extras[i])
-            results.append(r)
-        data = DataProto.from_single_dict(batch_dict)
-        if "uid" not in data.non_tensor_batch:
-            data.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object)
-        data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
+    prefetch_depth = int(config.data.get("prefetch_depth", 2))
+    prep_queue: _queue.Queue = _queue.Queue(maxsize=max(1, prefetch_depth))
+    post_queue: _queue.Queue = _queue.Queue(maxsize=max(1, prefetch_depth))
+    _SENTINEL = object()
+
+    def producer():
+        try:
+            for batch_idx, batch_dict in enumerate(dataloader):
+                global_batch_idx = start_batch_idx + batch_idx
+                prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
+                texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
+                n_egs = len(texts)
+                audio_paths = batch_dict.get("audio_path", [None] * n_egs)
+                audio_chunks = batch_dict.get("audio_chunk", [None] * n_egs)
+                extras = batch_dict.get("extra_info", [{}] * n_egs)
+                results = []
+                for i in range(n_egs):
+                    r = {"prompt": prompts[i], "text": texts[i],
+                         "audio_path": audio_paths[i], "audio_chunk": audio_chunks[i]}
+                    if extras[i]:
+                        r.update(extras[i])
+                    results.append(r)
+                data = DataProto.from_single_dict(batch_dict)
+                if "uid" not in data.non_tensor_batch:
+                    data.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object)
+                data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
+                prep_queue.put((global_batch_idx, n_egs, data_padded, pad_size, results))
+        finally:
+            prep_queue.put(_SENTINEL)
+
+    def consumer():
+        nonlocal tn_err, tn_ref, tn_edge, left_egs, split_idx
+        local_batches = []
+        try:
+            while True:
+                item = post_queue.get()
+                if item is _SENTINEL:
+                    break
+                output, results = item
+                for i in range(len(output)):
+                    data_item = output[i]
+                    prompt_length = data_item.batch["prompts"].shape[-1]
+                    valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
+                    valid_response_ids = data_item.batch["responses"][:valid_response_length]
+                    response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
+                    score = eval_score(response_str, results[i]["text"], **wer_kwargs)
+                    score["response"] = parse_asr_response(response_str).get("text")
+                    score["raw_response"] = response_str
+                    results[i].update(score)
+                tn_err += sum(r["n_err"] for r in results)
+                tn_ref += sum(r["n_ref"] for r in results)
+                tn_edge += sum(r["n_edge"] for r in results)
+                b_ds = Dataset.from_list(results)
+                log_examples(b_ds, num_examine=num_examine)
+                local_batches.append(b_ds)
+                if sum(len(ds) for ds in local_batches) >= split_size:
+                    left_egs += write_data(local_batches, split_idx)
+                    split_idx += 1
+                    local_batches = []
+        finally:
+            if local_batches:
+                left_egs += write_data(local_batches, split_idx)
+                split_idx += 1
+            batches.extend(local_batches)
+
+    prod_thread = threading.Thread(target=producer, daemon=True)
+    cons_thread = threading.Thread(target=consumer, daemon=True)
+    prod_thread.start()
+    cons_thread.start()
+
+    pbar = tqdm(total=total_batches, initial=start_batch_idx)
+    while True:
+        item = prep_queue.get()
+        if item is _SENTINEL:
+            break
+        global_batch_idx, n_egs, data_padded, pad_size, results = item
         print(f"\n(Batch {global_batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
         output_padded = wg.generate_sequences(data_padded)
         output = unpad_dataproto(output_padded, pad_size=pad_size)
-        for i in range(len(output)):
-            data_item = output[i]
-            prompt_length = data_item.batch["prompts"].shape[-1]
-            valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
-            valid_response_ids = data_item.batch["responses"][:valid_response_length]
-            response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
-            score = eval_score(response_str, results[i]["text"], **wer_kwargs)
-            score["response"] = parse_asr_response(response_str).get("text") # the parsed ASR text from the response
-            score["raw_response"] = response_str
-            results[i].update(score)
+        post_queue.put((output, results))
+        pbar.update(1)
+    post_queue.put(_SENTINEL)
+    prod_thread.join()
+    cons_thread.join()
+    pbar.close()
 
-        tn_err += sum(r["n_err"] for r in results)
-        tn_ref += sum(r["n_ref"] for r in results)
-        tn_edge += sum(r["n_edge"] for r in results)
-        b_ds = Dataset.from_list(results)
-        log_examples(b_ds, num_examine=num_examine)
-        batches.append(b_ds)
-        
-        if sum(len(ds) for ds in batches) >= split_size:
-            left_egs += write_data(batches, split_idx)
-            split_idx += 1
-            batches = []
-
-    left_egs += write_data(batches, split_idx)
 
     print(
         f"Overall wer: {tn_err / max(tn_ref, 1):.2%} [{tn_err}/{tn_ref}] "
