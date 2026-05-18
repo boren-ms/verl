@@ -3,8 +3,8 @@ Launch multiple vLLM server instances on a single node (one per GPU with TP=1),
 each with a worker sidecar that handles audio loading locally.
 
 Per-GPU architecture:
-  - vLLM on internal port (base_port + 100 + gpu_id, e.g. 8201-8208)
-  - Worker sidecar on external port (base_port + gpu_id, e.g. 8101-8108)
+    - vLLM on an auto-selected available local port
+    - Worker sidecar on an auto-selected available local port
   - Worker handles audio loading from blob/local storage, builds chat messages,
     forwards to local vLLM — the proxy only sees the worker port.
 
@@ -22,7 +22,7 @@ GPU utilization optimizations (targeting >90%):
 
 Usage (Hydra config):
     python -m recipe.phimm.vllm_server.launch_vllm_servers \\
-        model.path=/path/to/model \\
+        model.local_path=/tmp/models/my-model \\
         cluster.proxy_url=http://proxy-host:8000
 
     # Override specific params:
@@ -51,9 +51,6 @@ import requests
 from omegaconf import DictConfig, OmegaConf
 
 logger = logging.getLogger("launch_vllm_servers")
-
-# Internal port offset: vLLM runs on base_port + VLLM_PORT_OFFSET + gpu_id
-VLLM_PORT_OFFSET = 100
 
 
 def get_node_ip() -> str:
@@ -97,6 +94,32 @@ def register_with_proxy(proxy_url: str, backend_url: str, max_retries: int = 10)
         time.sleep(2)
     logger.error("Failed to register %s after %d retries", backend_url, max_retries)
     return False
+
+
+def find_available_port(reserved_ports: set[int]) -> int:
+    """Find one currently available TCP port and reserve it in-memory."""
+    for _ in range(100):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("", 0))
+            port = int(s.getsockname()[1])
+        if port <= 8100:
+            continue
+        if port in reserved_ports:
+            continue
+        reserved_ports.add(port)
+        return port
+    raise RuntimeError("Failed to find an available port")
+
+
+def allocate_port_pairs(num_gpus: int, reserved_ports: set[int] | None = None) -> list[tuple[int, int]]:
+    """Allocate (vLLM_port, worker_port) pairs for each GPU."""
+    reserved = set(reserved_ports or set())
+    pairs: list[tuple[int, int]] = []
+    for _ in range(num_gpus):
+        vllm_port = find_available_port(reserved)
+        worker_port = find_available_port(reserved)
+        pairs.append((vllm_port, worker_port))
+    return pairs
 
 
 def launch_vllm_server(
@@ -187,11 +210,47 @@ def _wait_and_register(gpu_id: int, vllm_proc: subprocess.Popen, worker_proc: su
     return gpu_id, ok
 
 
+def prepare_model_path(cfg_model: DictConfig) -> str:
+    """Resolve the model directory vLLM should load.
+
+    Always returns ``cfg_model.local_path``. If ``cfg_model.remote_path`` is
+    set and ``local_path`` does not yet exist (or is empty), the remote tree is
+    synced to ``local_path`` once using ``bbb sync``.
+    """
+    from pathlib import Path
+
+    local_path = cfg_model.local_path
+    remote_path = cfg_model.get("remote_path")
+    if not local_path:
+        raise ValueError("model.local_path must be set")
+
+    local = Path(local_path)
+    is_cached = local.exists() and any(local.iterdir()) if local.is_dir() else False
+
+    if is_cached:
+        logger.info("Using cached model at %s", local_path)
+        return local_path
+
+    if not remote_path:
+        if not local.exists():
+            raise FileNotFoundError(f"model.local_path {local_path} does not exist and model.remote_path is unset")
+        return local_path
+
+    logger.info("Syncing model %s → %s ...", remote_path, local_path)
+    local.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["bbb", "sync", "--concurrency", "64",
+         f"{remote_path.rstrip('/')}/", f"{local_path.rstrip('/')}/"],
+        check=True,
+    )
+    logger.info("Model synced to %s", local_path)
+    return local_path
+
+
 def run_servers(cfg: DictConfig) -> None:
     """Main entry point — launch vLLM + worker servers from Hydra config."""
     node_ip = get_node_ip()
     num_gpus = cfg.cluster.num_gpus
-    base_port = cfg.cluster.base_port
 
     # Resolve proxy URL
     if cfg.cluster.proxy_url:
@@ -205,13 +264,20 @@ def run_servers(cfg: DictConfig) -> None:
     logger.info("Node IP: %s, launching %d GPU workers (vLLM + sidecar)", node_ip, num_gpus)
     logger.info("Config:\n%s", OmegaConf.to_yaml(cfg, resolve=True))
 
+    # Ensure model is cached locally (vLLM always loads from local_path).
+    model_path = prepare_model_path(cfg.model)
+
+    # Auto-select free ports for every (vLLM, worker) pair.
+    reserved_ports = {int(cfg.proxy.port)}
+    port_pairs = allocate_port_pairs(num_gpus, reserved_ports=reserved_ports)
+    logger.info("Allocated port pairs (vLLM, worker): %s", port_pairs)
+
     vllm_procs: list[subprocess.Popen] = []
     worker_procs: list[subprocess.Popen] = []
 
     # Build vLLM extra args from config
     for gpu_id in range(num_gpus):
-        vllm_port = base_port + VLLM_PORT_OFFSET + gpu_id
-        worker_port = base_port + gpu_id
+        vllm_port, worker_port = port_pairs[gpu_id]
 
         extra = [
             "--gpu-memory-utilization", str(cfg.server.gpu_memory_utilization),
@@ -226,9 +292,9 @@ def run_servers(cfg: DictConfig) -> None:
         if not cfg.server.disable_prefix_caching:
             extra.append("--enable-prefix-caching")
 
-        vllm_proc = launch_vllm_server(gpu_id, cfg.model.path, vllm_port, extra_args=extra)
+        vllm_proc = launch_vllm_server(gpu_id, model_path, vllm_port, extra_args=extra)
         worker_proc = launch_worker_server(
-            vllm_port, worker_port, cfg.model.path,
+            vllm_port, worker_port, model_path,
             num_workers=cfg.worker.audio_workers,
         )
         vllm_procs.append(vllm_proc)
@@ -256,8 +322,8 @@ def run_servers(cfg: DictConfig) -> None:
                 _wait_and_register,
                 gpu_id, vllm_procs[gpu_id], worker_procs[gpu_id],
                 node_ip,
-                base_port + VLLM_PORT_OFFSET + gpu_id,
-                base_port + gpu_id,
+                port_pairs[gpu_id][0],
+                port_pairs[gpu_id][1],
                 proxy_url, startup_timeout,
             ): gpu_id
             for gpu_id in range(num_gpus)
@@ -285,7 +351,7 @@ def run_servers(cfg: DictConfig) -> None:
         shutdown(None, None)
 
 
-@hydra.main(config_path=".", config_name="config", version_base=None)
+@hydra.main(config_path=".", config_name="vllm", version_base=None)
 def main(cfg: DictConfig) -> None:
     run_servers(cfg)
 

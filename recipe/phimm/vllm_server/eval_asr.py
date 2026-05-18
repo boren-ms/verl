@@ -15,7 +15,7 @@ GPU utilization optimizations (targeting >90%):
 - High concurrency (512 default, ~64 per GPU): keeps vLLM batches full.
 - Continuous streaming: all requests fire concurrently, semaphore governs parallelism.
 
-Configuration is loaded from ``eval_config.yaml`` via Hydra. Override any
+Configuration is loaded from ``eval.yaml`` via Hydra. Override any
 field on the command line with Hydra-style key=value tokens, e.g.::
 
     python -m recipe.phimm.vllm_server.eval_asr \\
@@ -256,7 +256,7 @@ async def run_evaluation(cfg: DictConfig):
         logger.info("Saved summary to %s", summary_file)
 
 
-@hydra.main(config_path=".", config_name="eval_config", version_base=None)
+@hydra.main(config_path=".", config_name="eval", version_base=None)
 def main(cfg: DictConfig) -> None:
     logger.info("Config:\n%s", OmegaConf.to_yaml(cfg, resolve=True))
     asyncio.run(run_evaluation(cfg))

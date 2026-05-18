@@ -3,7 +3,7 @@
 # Usage:
 #   python -m recipe.phimm.vllm_server.eval_asr
 #   python -m recipe.phimm.vllm_server.eval_asr eval.proxy_url=http://host:8000
-#   python -m recipe.phimm.vllm_server.eval_asr --config-name=eval_config data.num_egs=100
+#   python -m recipe.phimm.vllm_server.eval_asr --config-name=eval data.num_egs=100
 
 # Endpoint to send requests to (FastAPI proxy in front of the vLLM workers)
 eval:
@@ -11,11 +11,6 @@ eval:
   log_interval: 100
   # Timeout for waiting on the proxy's /ready endpoint (≥1 healthy backend).
   wait_timeout: 600.0
-
-# Model identification (passed through to the proxy / used as result label)
-model:
-  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/
-  name: null   # null → derived from model.path basename
 
 # Dataset + client-side request settings
 data:

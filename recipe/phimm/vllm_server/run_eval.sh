@@ -7,8 +7,8 @@
 # to a worker that loads the audio locally and forwards to its vLLM server.
 #
 # Configuration:
-#   Launcher → recipe/phimm/vllm_server/config.yaml
-#   Eval     → recipe/phimm/vllm_server/eval_config.yaml
+#   Launcher → recipe/phimm/vllm_server/vllm.yaml
+#   Eval     → recipe/phimm/vllm_server/eval.yaml
 #   Override any field with Hydra-style key=value tokens after `--`.
 #
 # Usage:
@@ -26,8 +26,8 @@ export PYTHONPATH="$PROJECT_ROOT:${PYTHONPATH:-}"
 
 # ---- Args ----
 ROLE="${ROLE:-all}"                                   # all | proxy | worker | eval-only
-CONFIG_NAME="${CONFIG_NAME:-config}"                  # launcher Hydra config
-EVAL_CONFIG_NAME="${EVAL_CONFIG_NAME:-eval_config}"   # eval Hydra config
+CONFIG_NAME="${CONFIG_NAME:-vllm}"                    # launcher Hydra config
+EVAL_CONFIG_NAME="${EVAL_CONFIG_NAME:-eval}"          # eval Hydra config
 OVERRIDES=()
 
 while [[ $# -gt 0 ]]; do
@@ -46,7 +46,7 @@ done
 [[ -n "${HYDRA_OVERRIDES:-}" ]] && OVERRIDES+=($HYDRA_OVERRIDES)
 
 # ---- Pull only what the shell needs from the launcher config ----
-read -r PROXY_HOST PROXY_PORT NUM_GPUS BASE_PORT PROXY_URL_CFG < <(
+read -r PROXY_HOST PROXY_PORT NUM_GPUS PROXY_URL_CFG < <(
     CONFIG="$SCRIPT_DIR/$CONFIG_NAME.yaml" \
     OVERRIDES_JSON=$(printf '%s\n' "${OVERRIDES[@]:-}" | python3 -c \
         'import json,sys; print(json.dumps([l for l in sys.stdin.read().splitlines() if l]))') \
@@ -58,7 +58,7 @@ ov = json.loads(os.environ["OVERRIDES_JSON"])
 if ov:
     cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(ov))
 print(cfg.proxy.host, cfg.proxy.port, cfg.cluster.num_gpus,
-      cfg.cluster.base_port, cfg.cluster.get("proxy_url") or "")
+    cfg.cluster.get("proxy_url") or "")
 PY
 )
 
@@ -80,7 +80,7 @@ Config:     $SCRIPT_DIR/$CONFIG_NAME.yaml
 Eval cfg:   $SCRIPT_DIR/$EVAL_CONFIG_NAME.yaml
 Overrides:  ${OVERRIDES[*]:-(none)}
 Proxy URL:  $PROXY_URL
-Num GPUs:   $NUM_GPUS  (worker ports ${BASE_PORT}-$((BASE_PORT+NUM_GPUS-1)), vLLM $((BASE_PORT+100))-$((BASE_PORT+100+NUM_GPUS-1)))
+Num GPUs:   $NUM_GPUS
 ============================================
 EOF
 
@@ -99,21 +99,30 @@ start_proxy() {
 
 start_servers() {
     echo "[INFO] Launching $NUM_GPUS GPU workers..."
+    # Drop eval-only keys (data.*, eval.*) so the launcher Hydra config
+    # doesn't reject them in struct mode.
+    local launch_ov=()
+    for ov in "${OVERRIDES[@]:-}"; do
+        case "$ov" in
+            data.*|eval.*) ;;
+            *) launch_ov+=("$ov");;
+        esac
+    done
     python -m recipe.phimm.vllm_server.launch_vllm_servers \
         --config-path "$SCRIPT_DIR" --config-name "$CONFIG_NAME" \
         "cluster.proxy_url=$PROXY_URL" \
-        "${OVERRIDES[@]}" &
+        "${launch_ov[@]}" &
     SERVERS_PID=$!
 }
 
 run_eval() {
     echo "[INFO] Starting ASR evaluation..."
-    # Drop launcher-only keys (server.*, worker.*, cluster.*, proxy.*) so the
-    # eval Hydra config doesn't reject them in struct mode.
+    # Drop launcher-only keys (server.*, worker.*, cluster.*, proxy.*, model.*)
+    # so the eval Hydra config doesn't reject them in struct mode.
     local eval_ov=()
     for ov in "${OVERRIDES[@]:-}"; do
         case "$ov" in
-            server.*|worker.*|cluster.*|proxy.*) ;;
+            server.*|worker.*|cluster.*|proxy.*|model.*) ;;
             *) eval_ov+=("$ov");;
         esac
     done
