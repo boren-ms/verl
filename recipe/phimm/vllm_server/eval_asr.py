@@ -59,7 +59,7 @@ def extract_response_text(result: dict) -> str:
 
 
 PART_PREFIX = "data_"
-PART_SUFFIX = ".jsonl"
+PART_SUFFIX = ".parquet"
 SUMMARY_SUFFIX = ".summary.json"
 PART_DIGITS = 6
 
@@ -93,26 +93,53 @@ def _summarize_rows(rows: list[dict]) -> dict:
 
 
 def write_part(output_path: str, rows: list[dict], part_idx: int) -> str:
-    """Write ``rows`` to ``data_NNNNNN.jsonl`` and a matching summary JSON.
+    """Write ``rows`` to ``data_NNNNNN.parquet`` and a matching summary JSON.
 
     The summary (``data_NNNNNN.summary.json``) holds the per-part WER counters
     and the list of ``audio_path`` values, so resume can rebuild state by
-    reading just the summary files instead of re-parsing every JSONL row.
+    reading just the summary files instead of re-parsing every parquet row.
     """
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
     bf.makedirs(output_path)
+    sanitized = []
+    for r in rows:
+        sanitized.append({
+            k: (v if not isinstance(v, float) or not (math.isnan(v) or math.isinf(v)) else str(v))
+            for k, v in r.items()
+        })
     part_file = _part_path(output_path, part_idx)
-    with bf.BlobFile(part_file, "w") as f:
-        for r in rows:
-            row = {
-                k: (v if not isinstance(v, float) or not (math.isnan(v) or math.isinf(v)) else str(v))
-                for k, v in r.items()
-            }
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    table = pa.Table.from_pylist(sanitized)
+    with bf.BlobFile(part_file, "wb") as f:
+        pq.write_table(table, f)
 
     summary_file = _part_summary_path(output_path, part_idx)
     with bf.BlobFile(summary_file, "w") as f:
         json.dump(_summarize_rows(rows), f, ensure_ascii=False)
     return part_file
+
+
+def _summary_from_part(part_file: str) -> dict:
+    """Compute a part summary by reading the parquet file's relevant columns."""
+    import pyarrow.parquet as pq
+
+    with bf.BlobFile(part_file, "rb") as f:
+        pf = pq.ParquetFile(f)
+        cols = set(pf.schema_arrow.names)
+        wanted = [c for c in ("audio_path", "n_err", "n_ref", "n_edge") if c in cols]
+        table = pf.read(columns=wanted) if wanted else pf.read()
+    data = table.to_pydict()
+    audio_paths = [ap for ap in (data.get("audio_path") or []) if ap is not None]
+    def _sum(col: str) -> int:
+        return int(sum(int(v or 0) for v in (data.get(col) or [])))
+    return {
+        "count": table.num_rows,
+        "n_err": _sum("n_err"),
+        "n_ref": _sum("n_ref"),
+        "n_edge": _sum("n_edge"),
+        "audio_paths": audio_paths,
+    }
 
 
 def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int, int, int]:
@@ -136,20 +163,33 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
     try:
         if not bf.exists(output_path):
             return done_paths, next_part_idx, n_saved, tn_err, tn_ref, tn_edge
-        summaries = sorted(bf.glob(os.path.join(output_path, f"{PART_PREFIX}*{SUMMARY_SUFFIX}")))
-        for summary_file in summaries:
-            stem = os.path.basename(summary_file)
-            num_str = stem.removeprefix(PART_PREFIX).removesuffix(SUMMARY_SUFFIX)
+        parts = sorted(bf.glob(os.path.join(output_path, f"{PART_PREFIX}*{PART_SUFFIX}")))
+        for part_file in parts:
+            stem = os.path.basename(part_file)
+            num_str = stem.removeprefix(PART_PREFIX).removesuffix(PART_SUFFIX)
             try:
                 part_idx = int(num_str)
             except ValueError:
                 continue
-            try:
-                with bf.BlobFile(summary_file, "r") as f:
-                    summary = json.load(f)
-            except Exception as e:
-                logger.warning("Resume: bad summary %s (%s); skipping", summary_file, e)
-                continue
+
+            summary_file = _part_summary_path(output_path, part_idx)
+            summary = None
+            if bf.exists(summary_file):
+                try:
+                    with bf.BlobFile(summary_file, "r") as f:
+                        summary = json.load(f)
+                except Exception as e:
+                    logger.warning("Resume: bad summary %s (%s); will rebuild from parquet", summary_file, e)
+                    summary = None
+            if summary is None:
+                try:
+                    summary = _summary_from_part(part_file)
+                    with bf.BlobFile(summary_file, "w") as f:
+                        json.dump(summary, f, ensure_ascii=False)
+                    logger.info("Resume: rebuilt missing summary for %s", part_file)
+                except Exception as e:
+                    logger.warning("Resume: failed to read %s (%s); skipping", part_file, e)
+                    continue
 
             next_part_idx = max(next_part_idx, part_idx + 1)
             for ap in summary.get("audio_paths", []) or []:
@@ -160,11 +200,11 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
             tn_ref += int(summary.get("n_ref", 0) or 0)
             tn_edge += int(summary.get("n_edge", 0) or 0)
 
-        if summaries:
+        if parts:
             logger.info(
-                "Resume: loaded %d rows from %d summary file(s); next part index=%d",
+                "Resume: loaded %d rows from %d part file(s); next part index=%d",
                 n_saved,
-                len(summaries),
+                len(parts),
                 next_part_idx,
             )
     except Exception as e:
