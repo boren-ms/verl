@@ -9,14 +9,12 @@
 eval:
   proxy_url: http://localhost:8000
   log_interval: 100
-  # Timeout for waiting on the proxy's /ready endpoint (≥1 healthy backend).
+  save_interval: 10000
+  resume: true
   wait_timeout: 600.0
 
 # Dataset + client-side request settings
 data:
-  # Path (relative to recipe/phimm/config or absolute) to a dataset YAML such as
-  # data/train_data/ls_raw.yaml, or an inline dict / list of dicts. The
-  # post_process.verl_format section is stripped automatically for eval.
   source_config: data/train_data/ls_raw.yaml
   output_path: /tmp/vllm_eval_results
   max_concurrent: 512        # ≈ 64/GPU × 8 GPUs
