@@ -91,6 +91,7 @@ async def run_evaluation(cfg: DictConfig):
     num_egs = cfg.data.get("num_egs")
     text_norm = cfg.data.get("text_norm")
     output_path = cfg.data.get("output_path")
+    task = cfg.data.get("task", "asr")
     log_interval = max(int(cfg.eval.get("log_interval", 100)), 1)
 
     # Always wait for the proxy to report ≥1 healthy backend before sending traffic.
@@ -102,7 +103,7 @@ async def run_evaluation(cfg: DictConfig):
     ds_conf = {
         "dataset_name": "tsv",
         "tsv_paths": cfg.data.tsv_path,
-        "add_task_info": {"task": "asr"},
+        "add_task_info": {"task": task},
         "post_process": {
             "add_field": {"fields": {"data_source": "asr"}},
             "verl_format": {"prompt_key": "prompt"},
@@ -118,7 +119,8 @@ async def run_evaluation(cfg: DictConfig):
     total = len(dataset)
     logger.info("Loaded %d samples", total)
 
-    prompt_text = get_task_prompt("asr", rand=False)
+    prompt_text = get_task_prompt(task, rand=False)
+    logger.info("Using task=%s prompt=%r", task, prompt_text)
 
     # High-concurrency client
     client = httpx.AsyncClient(

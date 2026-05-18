@@ -21,3 +21,4 @@ data:
   max_audio_dur: 40.0
   num_egs: 100              # null → all examples
   text_norm: openasr_en            # e.g. openasr_en
+  task: lang_asr_en         # prompt task: asr | rare_asr | biasing | lang_asr[_<lang>] | lang_asr_lex[_<lang>]
