@@ -1,0 +1,15 @@
+# Config for ASR evaluation client (eval_asr.py) on
+# en_hc_200k entity FY24Q3-2_AdjustBoundary_BiasLM subset.
+# Mirrors recipe/phimm/config/gen/gen_entity_en_hc_200k_fy24q3p2.yaml.
+#
+# Usage:
+#   python -m recipe.phimm.vllm_server.eval_asr --config-name=eval_entity_en_hc_200k_fy24q3p2
+
+defaults:
+  - eval_base
+  - _self_
+
+data:
+  source_config: data/train_data/entity/entity_en_hc_200k_fy24q3p2.yaml
+#   output_path: az://orngwus2cresco/data/boren/data/verl/vllm_eval_asr/en_hc_200k_entity_fy24q3p2/
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_hc_200k_entity_fy24q3p2

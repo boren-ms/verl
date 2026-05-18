@@ -1,0 +1,13 @@
+# Config for ASR evaluation client (eval_asr.py) on LibriSpeech raw.
+#
+# Usage:
+#   python -m recipe.phimm.vllm_server.eval_asr --config-name=eval_ls
+#   python -m recipe.phimm.vllm_server.eval_asr --config-name=eval_ls data.num_egs=100
+
+defaults:
+  - eval_base
+  - _self_
+
+data:
+  source_config: data/train_data/ls_raw.yaml
+  output_path: az://orngwus2cresco/data/boren/data/verl/vllm_eval_asr/ls_raw_h100/

@@ -351,7 +351,7 @@ def run_servers(cfg: DictConfig) -> None:
         shutdown(None, None)
 
 
-@hydra.main(config_path=".", config_name="vllm", version_base=None)
+@hydra.main(config_path="config", config_name="vllm", version_base=None)
 def main(cfg: DictConfig) -> None:
     run_servers(cfg)
 

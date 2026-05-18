@@ -58,7 +58,7 @@ def extract_response_text(result: dict) -> str:
         return ""
 
 
-PART_PREFIX = "data_"
+PART_PREFIX = "part-"
 PART_SUFFIX = ".parquet"
 SUMMARY_SUFFIX = ".summary.json"
 PART_DIGITS = 6
@@ -252,7 +252,8 @@ def ensure_proxy_ready(cfg: DictConfig) -> None:
     if not _proxy_healthy(proxy_url) and launcher_enabled:
         vllm_config = str(launcher_cfg.get("vllm_config", "vllm"))
         script_dir = Path(__file__).resolve().parent
-        vllm_cfg_path = script_dir / f"{vllm_config}.yaml"
+        config_dir = script_dir / "config"
+        vllm_cfg_path = config_dir / f"{vllm_config}.yaml"
         if not vllm_cfg_path.exists():
             raise FileNotFoundError(f"Launcher config not found: {vllm_cfg_path}")
         vllm_cfg = OmegaConf.load(vllm_cfg_path)
@@ -283,7 +284,7 @@ def ensure_proxy_ready(cfg: DictConfig) -> None:
         logger.info("Proxy up; launching vLLM workers (num_gpus=%s)", vllm_cfg.cluster.num_gpus)
         subprocess.Popen(
             [sys.executable, "-m", "recipe.phimm.vllm_server.launch_vllm_servers",
-             "--config-path", str(script_dir), "--config-name", vllm_config,
+             "--config-path", str(config_dir), "--config-name", vllm_config,
              f"cluster.proxy_url={proxy_url}"],
             start_new_session=True,
         )
@@ -540,7 +541,7 @@ async def run_evaluation(cfg: DictConfig):
         logger.info("Saved summary to %s", summary_file)
 
 
-@hydra.main(config_path=".", config_name="eval", version_base=None)
+@hydra.main(config_path="config", config_name="eval", version_base=None)
 def main(cfg: DictConfig) -> None:
     logger.info("Config:\n%s", OmegaConf.to_yaml(cfg, resolve=True))
     asyncio.run(run_evaluation(cfg))
