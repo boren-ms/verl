@@ -165,15 +165,31 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
     try:
         if not bf.exists(output_path):
             return done_paths, next_part_idx, n_saved, tn_err, tn_ref, tn_edge
-        parts = sorted(bf.glob(os.path.join(output_path, f"{PART_PREFIX}*{PART_SUFFIX}")))
+        # Collect every part index that has either a parquet OR a summary json.
+        # Summary-only entries (parquet deleted/never written) still carry the
+        # audio_paths we need to skip re-running them.
+        parts = list(bf.glob(os.path.join(output_path, f"{PART_PREFIX}*{PART_SUFFIX}")))
+        summaries = list(bf.glob(os.path.join(output_path, f"{PART_PREFIX}*{SUMMARY_SUFFIX}")))
+
+        idx_to_part: dict[int, str | None] = {}
         for part_file in parts:
             stem = os.path.basename(part_file)
             num_str = stem.removeprefix(PART_PREFIX).removesuffix(PART_SUFFIX)
             try:
-                part_idx = int(num_str)
+                idx_to_part[int(num_str)] = part_file
             except ValueError:
                 continue
+        for sfile in summaries:
+            stem = os.path.basename(sfile)
+            num_str = stem.removeprefix(PART_PREFIX).removesuffix(SUMMARY_SUFFIX)
+            try:
+                idx = int(num_str)
+            except ValueError:
+                continue
+            idx_to_part.setdefault(idx, None)
 
+        for part_idx in sorted(idx_to_part):
+            part_file = idx_to_part[part_idx]
             summary_file = _part_summary_path(output_path, part_idx)
             summary = None
             if bf.exists(summary_file):
@@ -184,6 +200,9 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
                     logger.warning("Resume: bad summary %s (%s); will rebuild from parquet", summary_file, e)
                     summary = None
             if summary is None:
+                if part_file is None:
+                    logger.warning("Resume: no summary and no parquet for index %d; skipping", part_idx)
+                    continue
                 try:
                     summary = _summary_from_part(part_file)
                     with bf.BlobFile(summary_file, "w") as f:
@@ -202,11 +221,11 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
             tn_ref += int(summary.get("n_ref", 0) or 0)
             tn_edge += int(summary.get("n_edge", 0) or 0)
 
-        if parts:
+        if idx_to_part:
             logger.info(
                 "Resume: loaded %d rows from %d part file(s); next part index=%d",
                 n_saved,
-                len(parts),
+                len(idx_to_part),
                 next_part_idx,
             )
     except Exception as e:
