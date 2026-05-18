@@ -19,6 +19,7 @@ pre-commit
 # ray is installed separately after vllm to allow version override
 # ray[default]==2.46.0  # DO NOT uncomment — keep the base image's Ray version
 # vllm inference deps (installed --no-deps to avoid protobuf/ray conflicts)
+model-hosting-container-standards==0.1.15
 compressed-tensors
 depyf
 openai-harmony
