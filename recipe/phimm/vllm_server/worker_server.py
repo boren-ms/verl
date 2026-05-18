@@ -33,23 +33,25 @@ from __future__ import annotations
 import argparse
 import asyncio
 import base64
+import functools
 import io
 import logging
-import os
 import sys
-import threading
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
-import numpy as np
 import soundfile as sf
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
+import blobfile as bf
 
 sys.path.insert(0, str(Path(__file__).parents[3]))
+
+from recipe.phimm.utils.audio import load_audio  # noqa: E402
 
 logger = logging.getLogger("worker_server")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -60,50 +62,33 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname
 
 # Configure blobfile: limit retries (default=unlimited!) and reduce timeouts
 # to prevent permanent thread stalls when Azure connections go stale.
-import blobfile as bf
 bf.configure(
     retry_limit=3,           # Fail after 3 retries (default: unlimited = hang forever)
     read_timeout=15,         # 15s read timeout (default: 30s)
     connect_timeout=5,       # 5s connect timeout (default: 10s)
-    connection_pool_max_size=8,  # Smaller pool = less stale connection state
+    connection_pool_max_size=32,  # Smaller pool = less stale connection state
 )
 
-# Limit concurrent blob reads to prevent Azure HTTP connection pool exhaustion.
-# With 16 thread workers per process, allowing all to hit Azure simultaneously
-# causes connection pool deadlocks after ~2500 requests. Limiting to 6 concurrent
-# blob reads per worker process keeps 8×6=48 total Azure connections (well within limits).
-_blob_semaphore = threading.Semaphore(6)
 
 
-def _load_and_encode_audio(audio_path: str, max_dur: float = 40.0) -> str:
-    """Load audio from blob/local path, limit duration, encode to base64 WAV.
+def _load_and_encode_audio(
+    audio_path: str | None = None,
+    audio_chunk: str | None = None,
+    max_dur: float = 40.0,
+) -> str:
+    """Load audio from blob/local path or chunk spec, encode to base64 WAV.
 
-    Uses local file cache when available (instant disk reads), falls back to
-    blob with semaphore-limited concurrent connections.
+    ``load_audio`` handles ``audio_path`` (``az://`` or local) and
+    ``audio_chunk`` (``file:count:index`` spec).
     """
-    # Try local cache first: az://orngwus2cresco/data/boren/data/X → /root/data/X
-    local_path = None
-    if audio_path.startswith("az://orngwus2cresco/data/boren/data/"):
-        local_path = "/root/data/" + audio_path[len("az://orngwus2cresco/data/boren/data/"):]
-
-    if local_path and os.path.exists(local_path):
-        with open(local_path, "rb") as f:
-            raw_data = f.read()
-    else:
-        # Fall back to blob with concurrency limit
-        with _blob_semaphore:
-            with bf.BlobFile(audio_path, "rb") as f:
-                raw_data = f.read()
-
-    audio, sr = sf.read(io.BytesIO(raw_data))
-
-    # Mono conversion
-    if audio.ndim > 1:
-        audio = audio.mean(axis=1)
-
-    # Limit duration
-    if max_dur and len(audio) / sr > max_dur:
-        audio = audio[: int(sr * max_dur)]
+    x: dict = {}
+    if audio_path:
+        x["audio_path"] = audio_path
+    if audio_chunk:
+        x["audio_chunk"] = audio_chunk
+    if not x:
+        raise ValueError("Either audio_path or audio_chunk must be provided.")
+    audio, sr = load_audio(x, max_dur=max_dur)
 
     buf = io.BytesIO()
     sf.write(buf, audio, sr, format="WAV")
@@ -138,7 +123,12 @@ def _build_chat_messages(prompt_text: str, audio_b64: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 class TranscribeRequest(BaseModel):
-    audio_path: str = Field(..., description="Path to audio file (local or az:// blob)")
+    audio_path: str | None = Field(
+        default=None, description="Path to audio file (local or az:// blob)"
+    )
+    audio_chunk: str | None = Field(
+        default=None, description="Chunk spec 'file:count:index' for chunked audio datasets"
+    )
     prompt: str = Field(
         default="Transcribe the audio clip into text.",
         description="ASR prompt text",
@@ -170,18 +160,6 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
     _client: httpx.AsyncClient | None = None
     _stats = {"completed": 0, "active": 0, "errors": 0}
 
-    @app.on_event("startup")
-    async def start_monitor():
-        async def _monitor():
-            while True:
-                await asyncio.sleep(10)
-                logger.info(
-                    "HEARTBEAT: completed=%d active=%d errors=%d pool_threads=%d",
-                    _stats["completed"], _stats["active"], _stats["errors"],
-                    thread_pool._work_queue.qsize(),
-                )
-        asyncio.create_task(_monitor())
-
     async def get_client() -> httpx.AsyncClient:
         nonlocal _client
         if _client is None:
@@ -191,12 +169,27 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
             )
         return _client
 
-    @app.on_event("shutdown")
-    async def shutdown():
-        nonlocal _client
-        if _client:
-            await _client.aclose()
-        thread_pool.shutdown(wait=False)
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        async def _monitor():
+            while True:
+                await asyncio.sleep(10)
+                logger.info(
+                    "HEARTBEAT: completed=%d active=%d errors=%d pool_threads=%d",
+                    _stats["completed"], _stats["active"], _stats["errors"],
+                    thread_pool._work_queue.qsize(),
+                )
+        monitor_task = asyncio.create_task(_monitor())
+        try:
+            yield
+        finally:
+            monitor_task.cancel()
+            nonlocal _client
+            if _client:
+                await _client.aclose()
+            thread_pool.shutdown(wait=False)
+
+    app.router.lifespan_context = lifespan
 
     # ---- Core endpoint: ASR transcription ----
 
@@ -213,12 +206,18 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
         # CPU/IO-bound: load audio in thread pool
         try:
             audio_b64 = await loop.run_in_executor(
-                thread_pool, _load_and_encode_audio, req.audio_path, req.max_audio_dur,
+                thread_pool,
+                functools.partial(
+                    _load_and_encode_audio,
+                    audio_path=req.audio_path,
+                    audio_chunk=req.audio_chunk,
+                    max_dur=req.max_audio_dur,
+                ),
             )
         except Exception as e:
             _stats["active"] -= 1
             _stats["errors"] += 1
-            raise HTTPException(status_code=400, detail=f"Failed to load audio: {e}")
+            raise HTTPException(status_code=400, detail=f"Failed to load audio: {e}") from e
 
         # Build chat message
         messages = _build_chat_messages(req.prompt, audio_b64)
@@ -242,14 +241,14 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
                     status_code=resp.status_code,
                     media_type=resp.headers.get("content-type", "application/json"),
                 )
-            except httpx.ConnectError:
+            except httpx.ConnectError as e:
                 _stats["active"] -= 1
                 _stats["errors"] += 1
-                raise HTTPException(status_code=502, detail="Local vLLM server not available")
-            except httpx.ReadTimeout:
+                raise HTTPException(status_code=502, detail="Local vLLM server not available") from e
+            except httpx.ReadTimeout as e:
                 _stats["active"] -= 1
                 _stats["errors"] += 1
-                raise HTTPException(status_code=504, detail="Local vLLM server timed out")
+                raise HTTPException(status_code=504, detail="Local vLLM server timed out") from e
 
     # ---- Proxy: forward /v1/* to local vLLM ----
 
@@ -271,7 +270,7 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
                 media_type=resp.headers.get("content-type", "application/json"),
             )
         except (httpx.ConnectError, httpx.ReadTimeout) as e:
-            raise HTTPException(status_code=502, detail=str(e))
+            raise HTTPException(status_code=502, detail=str(e)) from e
 
     # ---- Health: lightweight self-check (does NOT proxy to vLLM) ----
     # This ensures the worker responds to health checks even when vLLM is busy.
