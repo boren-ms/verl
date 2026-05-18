@@ -36,7 +36,7 @@ eval:
 data:
   source_config: null        # REQUIRED: path to dataset YAML
   output_path: null          # REQUIRED: where to write result_details*.jsonl
-  max_concurrent: 512        # ≈ 64/GPU × 8 GPUs
+  max_concurrent: 2048        # ≈ 64/GPU × 8 GPUs
   max_tokens: 1024
   max_audio_dur: 40.0
   num_egs: null              # null → all examples
