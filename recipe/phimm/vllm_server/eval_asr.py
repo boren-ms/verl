@@ -165,34 +165,38 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
     try:
         if not bf.exists(output_path):
             return done_paths, next_part_idx, n_saved, tn_err, tn_ref, tn_edge
-        # Collect every part index that has either a parquet OR a summary json.
-        # Summary-only entries (parquet deleted/never written) still carry the
-        # audio_paths we need to skip re-running them.
+        # Collect every part entry. We key by the textual stem (after stripping
+        # the parquet/summary suffix) so that old-format ``part-236`` and
+        # new-format ``part-000236`` are treated as distinct entries — both may
+        # carry unique audio_paths from separate runs.
         parts = list(bf.glob(os.path.join(output_path, f"{PART_PREFIX}*{PART_SUFFIX}")))
         summaries = list(bf.glob(os.path.join(output_path, f"{PART_PREFIX}*{SUMMARY_SUFFIX}")))
 
-        idx_to_part: dict[int, str | None] = {}
+        stem_to_files: dict[str, dict[str, str]] = {}
         for part_file in parts:
-            stem = os.path.basename(part_file)
-            num_str = stem.removeprefix(PART_PREFIX).removesuffix(PART_SUFFIX)
-            try:
-                idx_to_part[int(num_str)] = part_file
-            except ValueError:
-                continue
+            base = os.path.basename(part_file)
+            stem = base.removesuffix(PART_SUFFIX)
+            stem_to_files.setdefault(stem, {})["parquet"] = part_file
         for sfile in summaries:
-            stem = os.path.basename(sfile)
-            num_str = stem.removeprefix(PART_PREFIX).removesuffix(SUMMARY_SUFFIX)
-            try:
-                idx = int(num_str)
-            except ValueError:
-                continue
-            idx_to_part.setdefault(idx, None)
+            base = os.path.basename(sfile)
+            stem = base.removesuffix(SUMMARY_SUFFIX)
+            stem_to_files.setdefault(stem, {})["summary"] = sfile
 
-        for part_idx in sorted(idx_to_part):
-            part_file = idx_to_part[part_idx]
-            summary_file = _part_summary_path(output_path, part_idx)
+        def _stem_idx(stem: str) -> int:
+            try:
+                return int(stem.removeprefix(PART_PREFIX))
+            except ValueError:
+                return -1
+
+        for stem in sorted(stem_to_files, key=lambda s: (_stem_idx(s), s)):
+            entry = stem_to_files[stem]
+            part_idx = _stem_idx(stem)
+            if part_idx < 0:
+                continue
+            summary_file = entry.get("summary") or os.path.join(output_path, f"{stem}{SUMMARY_SUFFIX}")
+            part_file = entry.get("parquet")
             summary = None
-            if bf.exists(summary_file):
+            if entry.get("summary"):
                 try:
                     with bf.BlobFile(summary_file, "r") as f:
                         summary = json.load(f)
@@ -201,7 +205,7 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
                     summary = None
             if summary is None:
                 if part_file is None:
-                    logger.warning("Resume: no summary and no parquet for index %d; skipping", part_idx)
+                    logger.warning("Resume: no summary and no parquet for %s; skipping", stem)
                     continue
                 try:
                     summary = _summary_from_part(part_file)
@@ -221,11 +225,11 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
             tn_ref += int(summary.get("n_ref", 0) or 0)
             tn_edge += int(summary.get("n_edge", 0) or 0)
 
-        if idx_to_part:
+        if stem_to_files:
             logger.info(
                 "Resume: loaded %d rows from %d part file(s); next part index=%d",
                 n_saved,
-                len(idx_to_part),
+                len(stem_to_files),
                 next_part_idx,
             )
     except Exception as e:
