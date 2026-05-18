@@ -16,7 +16,7 @@ tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.
 #   common_word_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_words.count.txt
 #   common_word_num: 1000
 add_task_info:
-  task: lang_asr
+  task: lang_asr_en
 post_process:
   add_field:
     fields:

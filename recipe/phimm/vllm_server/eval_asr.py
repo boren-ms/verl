@@ -259,19 +259,19 @@ async def run_evaluation(cfg: DictConfig):
     import httpx
     from recipe.phimm.reward.asr_edge import eval_score
     from recipe.phimm.utils.shared import parse_asr_response
-    from recipe.phimm.data.prompts import get_task_prompt
 
     proxy_url = cfg.eval.proxy_url
     max_concurrent = int(cfg.data.max_concurrent)
     max_tokens = int(cfg.data.max_tokens)
     max_audio_dur = float(cfg.data.max_audio_dur)
     num_egs = cfg.data.get("num_egs")
-    text_norm = cfg.data.get("text_norm")
     output_path = cfg.data.get("output_path")
-    task = cfg.data.get("task", "asr")
     log_interval = max(int(cfg.eval.get("log_interval", 100)), 1)
     save_interval = max(int(cfg.eval.get("save_interval", 10000)), 1)
     resume = bool(cfg.eval.get("resume", True))
+    wer_kwargs = cfg.eval.get("wer_kwargs", {}) or {}
+    if OmegaConf.is_config(wer_kwargs):
+        wer_kwargs = OmegaConf.to_container(wer_kwargs, resolve=True)
 
     # Always wait for the proxy to report ≥1 healthy backend before sending traffic.
     if not wait_proxy_ready(proxy_url, timeout=float(cfg.eval.get("wait_timeout", 600.0))):
@@ -279,10 +279,7 @@ async def run_evaluation(cfg: DictConfig):
 
     dataset = load_dataset(cfg.data.get("source_config"), num_egs=num_egs)
     total = len(dataset)
-    logger.info("Loaded %d samples", total)
-
-    prompt_text = get_task_prompt(task, rand=False)
-    logger.info("Using task=%s prompt=%r", task, prompt_text)
+    logger.info("Loaded %d samples (wer_kwargs=%s)", total, wer_kwargs)
 
     # High-concurrency client
     client = httpx.AsyncClient(
@@ -290,10 +287,6 @@ async def run_evaluation(cfg: DictConfig):
         limits=httpx.Limits(max_connections=max_concurrent + 50, max_keepalive_connections=100),
     )
     semaphore = asyncio.Semaphore(max_concurrent)
-
-    wer_kwargs = {}
-    if text_norm:
-        wer_kwargs["text_norm"] = text_norm
 
     # Shared counters
     completed = 0
@@ -348,11 +341,18 @@ async def run_evaluation(cfg: DictConfig):
         sample = dataset[idx]
         audio_path = sample.get("audio_path") or sample.get("audio_file") or sample.get("audio_chunk")
         text = sample.get("Transcription") or sample.get("text")
+        prompt = sample.get("prompt")
+        assert audio_path, f"sample {idx} missing audio_path/audio_file/audio_chunk"
+        assert prompt, f"sample {idx} missing prompt (set add_task_info in the source_config)"
+        # Strip the <audio>\n placeholder added by add_task_info — the worker
+        # server builds the audio chat content separately.
+        if prompt.startswith("<audio>\n"):
+            prompt = prompt[len("<audio>\n"):]
         if audio_path in done_paths:
             return
         payload = {
             "audio_path": audio_path,
-            "prompt": prompt_text,
+            "prompt": prompt,
             "max_tokens": max_tokens,
             "temperature": 0.0,
             "max_audio_dur": max_audio_dur,
@@ -376,7 +376,7 @@ async def run_evaluation(cfg: DictConfig):
         row = {
             "audio_path": audio_path,
             "text": text,
-            "prompt": prompt_text,
+            "prompt": prompt,
             "response": parse_asr_response(response_str).get("text"),
             "raw_response": response_str,
             **score,

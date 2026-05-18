@@ -12,6 +12,9 @@ eval:
   save_interval: 10000
   resume: true
   wait_timeout: 600.0
+  # Forwarded as kwargs to recipe.phimm.reward.asr_edge.eval_score.
+  wer_kwargs:
+    text_norm: openasr_en
 
 # Dataset + client-side request settings
 data:
@@ -21,5 +24,3 @@ data:
   max_tokens: 1024
   max_audio_dur: 40.0
   num_egs: 100              # null → all examples
-  text_norm: openasr_en            # e.g. openasr_en
-  task: lang_asr_en         # prompt task: asr | rare_asr | biasing | lang_asr[_<lang>] | lang_asr_lex[_<lang>]
