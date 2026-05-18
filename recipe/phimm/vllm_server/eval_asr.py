@@ -15,18 +15,17 @@ GPU utilization optimizations (targeting >90%):
 - High concurrency (512 default, ~64 per GPU): keeps vLLM batches full.
 - Continuous streaming: all requests fire concurrently, semaphore governs parallelism.
 
-Usage:
+Configuration is loaded from ``eval_config.yaml`` via Hydra. Override any
+field on the command line with Hydra-style key=value tokens, e.g.::
+
     python -m recipe.phimm.vllm_server.eval_asr \\
-        --proxy-url http://proxy-host:8000 \\
-        --model /path/to/model \\
-        --data-tsv az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv \\
-        --output-path /tmp/eval_results \\
-        --max-concurrent 512
+        eval.proxy_url=http://proxy-host:8000 \\
+        data.num_egs=100 \\
+        data.max_concurrent=256
 """
 
 from __future__ import annotations
 
-import argparse
 import asyncio
 import json
 import logging
@@ -35,6 +34,9 @@ import os
 import sys
 import time
 from pathlib import Path
+
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
 sys.path.insert(0, str(Path(__file__).parents[3]))
 
@@ -54,7 +56,27 @@ def extract_response_text(result: dict) -> str:
         return ""
 
 
-async def run_evaluation(args):
+def wait_proxy_ready(proxy_url: str, timeout: float = 600.0, poll_interval: float = 2.0) -> bool:
+    """Poll the proxy's ``/ready`` endpoint until it returns 200 (≥1 healthy
+    backend) or ``timeout`` seconds elapse.
+    """
+    import httpx
+    logger.info("Waiting for proxy %s to become ready (timeout=%.0fs)...", proxy_url, timeout)
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            r = httpx.get(f"{proxy_url}/ready", timeout=10)
+            if r.status_code == 200:
+                logger.info("Proxy ready: %s", r.json())
+                return True
+        except httpx.HTTPError as e:
+            logger.debug("Proxy not reachable yet: %s", e)
+        time.sleep(poll_interval)
+    logger.error("Timed out waiting for proxy %s to become ready", proxy_url)
+    return False
+
+
+async def run_evaluation(cfg: DictConfig):
     """Pipelined evaluation: sends audio paths to workers, scores results locally."""
     import httpx
     from recipe.phimm.reward.asr_edge import eval_score
@@ -62,24 +84,37 @@ async def run_evaluation(args):
     from recipe.phimm.data.dataset import create_audio_dataset
     from recipe.phimm.data.prompts import get_task_prompt
 
+    proxy_url = cfg.eval.proxy_url
+    max_concurrent = int(cfg.data.max_concurrent)
+    max_tokens = int(cfg.data.max_tokens)
+    max_audio_dur = float(cfg.data.max_audio_dur)
+    num_egs = cfg.data.get("num_egs")
+    text_norm = cfg.data.get("text_norm")
+    output_path = cfg.data.get("output_path")
+    log_interval = max(int(cfg.eval.get("log_interval", 100)), 1)
+
+    # Always wait for the proxy to report ≥1 healthy backend before sending traffic.
+    if not wait_proxy_ready(proxy_url, timeout=float(cfg.eval.get("wait_timeout", 600.0))):
+        raise RuntimeError(f"Proxy {proxy_url} did not become ready")
+
     # Load dataset metadata (no audio loading here — workers do that)
-    logger.info("Loading dataset from %s", args.data_tsv)
+    logger.info("Loading dataset from %s", cfg.data.tsv_path)
     ds_conf = {
         "dataset_name": "tsv",
-        "tsv_paths": args.data_tsv,
+        "tsv_paths": cfg.data.tsv_path,
         "add_task_info": {"task": "asr"},
         "post_process": {
             "add_field": {"fields": {"data_source": "asr"}},
             "verl_format": {"prompt_key": "prompt"},
         },
     }
-    if args.num_egs:
-        ds_conf["num_egs"] = args.num_egs
+    if num_egs:
+        ds_conf["num_egs"] = int(num_egs)
 
     dataset = create_audio_dataset(**ds_conf)
     # Ensure num_egs limit is applied (create_audio_dataset may not filter before map)
-    if args.num_egs and len(dataset) > args.num_egs:
-        dataset = dataset.select(range(args.num_egs))
+    if num_egs and len(dataset) > int(num_egs):
+        dataset = dataset.select(range(int(num_egs)))
     total = len(dataset)
     logger.info("Loaded %d samples", total)
 
@@ -88,20 +123,19 @@ async def run_evaluation(args):
     # High-concurrency client
     client = httpx.AsyncClient(
         timeout=httpx.Timeout(600.0, connect=30.0),
-        limits=httpx.Limits(max_connections=args.max_concurrent + 50, max_keepalive_connections=100),
+        limits=httpx.Limits(max_connections=max_concurrent + 50, max_keepalive_connections=100),
     )
-    semaphore = asyncio.Semaphore(args.max_concurrent)
+    semaphore = asyncio.Semaphore(max_concurrent)
 
     wer_kwargs = {}
-    if args.text_norm:
-        wer_kwargs["text_norm"] = args.text_norm
+    if text_norm:
+        wer_kwargs["text_norm"] = text_norm
 
     # Shared counters
     all_results = []
     tn_err, tn_ref, tn_edge = 0, 0, 0
     completed = 0
     t_start = time.time()
-    log_interval = max(args.log_interval, 1)
 
     async def _process_one(idx: int):
         """Send one audio path to worker, score the result."""
@@ -125,15 +159,15 @@ async def run_evaluation(args):
         payload = {
             "audio_path": audio_path,
             "prompt": prompt_text,
-            "max_tokens": args.max_tokens,
+            "max_tokens": max_tokens,
             "temperature": 0.0,
-            "max_audio_dur": args.max_audio_dur,
+            "max_audio_dur": max_audio_dur,
         }
 
         async with semaphore:
             try:
                 resp = await client.post(
-                    f"{args.proxy_url}/asr/transcribe",
+                    f"{proxy_url}/asr/transcribe",
                     json=payload,
                     timeout=600.0,
                 )
@@ -168,7 +202,7 @@ async def run_evaluation(args):
 
     try:
         # Fire ALL requests concurrently — semaphore governs parallelism
-        logger.info("Launching %d requests (max_concurrent=%d)", total, args.max_concurrent)
+        logger.info("Launching %d requests (max_concurrent=%d)", total, max_concurrent)
         tasks = [asyncio.create_task(_process_one(i)) for i in range(total)]
         await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -196,10 +230,10 @@ async def run_evaluation(args):
     )
 
     # Save results
-    if args.output_path:
+    if output_path:
         import blobfile as bf
-        bf.makedirs(args.output_path)
-        output_file = os.path.join(args.output_path, "result_details.jsonl")
+        bf.makedirs(output_path)
+        output_file = os.path.join(output_path, "result_details.jsonl")
         with bf.BlobFile(output_file, "w") as f:
             for r in all_results:
                 row = {k: (v if not isinstance(v, float) or not (math.isnan(v) or math.isinf(v)) else str(v))
@@ -207,7 +241,7 @@ async def run_evaluation(args):
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
         logger.info("Saved results to %s", output_file)
 
-        summary_file = os.path.join(args.output_path, "summary.json")
+        summary_file = os.path.join(output_path, "summary.json")
         with bf.BlobFile(summary_file, "w") as f:
             json.dump({
                 "wer": overall_wer,
@@ -222,28 +256,12 @@ async def run_evaluation(args):
         logger.info("Saved summary to %s", summary_file)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="ASR evaluation via vLLM proxy")
-    parser.add_argument("--proxy-url", required=True, help="FastAPI proxy URL")
-    parser.add_argument("--model", required=True, help="Model path (for basename in API)")
-    parser.add_argument("--model-name", default=None, help="Model name for API")
-    parser.add_argument(
-        "--data-tsv",
-        default="az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv",
-        help="Path to LibriSpeech TSV",
-    )
-    parser.add_argument("--output-path", default=None, help="Output directory for results")
-    parser.add_argument("--max-concurrent", type=int, default=512,
-                        help="Max concurrent requests (default 512 ≈ 64/GPU × 8 GPUs)")
-    parser.add_argument("--max-tokens", type=int, default=1024, help="Max tokens for generation")
-    parser.add_argument("--max-audio-dur", type=float, default=40.0, help="Max audio duration in seconds")
-    parser.add_argument("--num-egs", type=int, default=None, help="Limit number of examples")
-    parser.add_argument("--text-norm", default=None, help="Text normalization (e.g. openasr_en)")
-    parser.add_argument("--log-interval", type=int, default=100, help="Log every N completions")
-    args = parser.parse_args()
-
-    asyncio.run(run_evaluation(args))
+@hydra.main(config_path=".", config_name="eval_config", version_base=None)
+def main(cfg: DictConfig) -> None:
+    logger.info("Config:\n%s", OmegaConf.to_yaml(cfg, resolve=True))
+    asyncio.run(run_evaluation(cfg))
 
 
 if __name__ == "__main__":
     main()
+

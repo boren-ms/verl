@@ -302,6 +302,19 @@ async def proxy_health():
     return {"status": "ok", "healthy_backends": healthy, "total_backends": len(backends)}
 
 
+@app.get("/ready")
+async def proxy_ready():
+    """Liveness/readiness probe: 200 when at least 1 backend is healthy, else 503.
+    Clients can poll this to wait for the cluster to come online."""
+    healthy, total = await registry.healthy_count()
+    if healthy < 1:
+        raise HTTPException(
+            status_code=503,
+            detail=f"No healthy backends (healthy={healthy}, total={total})",
+        )
+    return {"status": "ready", "healthy": healthy, "total": total}
+
+
 # ---- Proxy forwarding: zero-copy with retry ----
 
 async def _forward_request(request: Request, path: str, max_retries: int = 2):
