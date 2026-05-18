@@ -61,6 +61,7 @@ def wait_proxy_ready(proxy_url: str, timeout: float = 600.0, poll_interval: floa
     backend) or ``timeout`` seconds elapse.
     """
     import httpx
+
     logger.info("Waiting for proxy %s to become ready (timeout=%.0fs)...", proxy_url, timeout)
     deadline = time.time() + timeout
     while time.time() < deadline:
@@ -159,20 +160,8 @@ async def run_evaluation(cfg: DictConfig):
         nonlocal tn_err, tn_ref, tn_edge, completed
 
         sample = dataset[idx]
-        audio_path = sample.get("audio_path", sample.get("audio_file", ""))
-        # Ground truth can be in multiple places depending on dataset format
-        reward_model = sample.get("reward_model", {})
-        if isinstance(reward_model, str):
-            import json as _json
-            try:
-                reward_model = _json.loads(reward_model)
-            except Exception:
-                reward_model = {}
-        text = reward_model.get("ground_truth", "") if reward_model else ""
-        if not text:
-            text = sample.get("Transcription", sample.get("text", ""))
-
-        # Lightweight request: just the audio path (worker does the heavy lifting)
+        audio_path = sample.get("audio_path") or sample.get("audio_file") or sample.get("audio_chunk")
+        text = sample.get("Transcription") or sample.get("text")
         payload = {
             "audio_path": audio_path,
             "prompt": prompt_text,
@@ -180,7 +169,6 @@ async def run_evaluation(cfg: DictConfig):
             "temperature": 0.0,
             "max_audio_dur": max_audio_dur,
         }
-
         async with semaphore:
             try:
                 resp = await client.post(
@@ -197,9 +185,14 @@ async def run_evaluation(cfg: DictConfig):
         # Score (CPU-only, fast)
         response_str = extract_response_text(result)
         score = eval_score(response_str, text, **wer_kwargs)
-        score["response"] = parse_asr_response(response_str).get("text")
-        score["raw_response"] = response_str
-        row = {"text": text, "audio_path": audio_path, "prompt": prompt_text, **score}
+        row = {
+            "audio_path": audio_path,
+            "text": text,
+            "prompt": prompt_text,
+            "response": parse_asr_response(response_str).get("text"),
+            "raw_response": response_str,
+            **score,
+        }
 
         tn_err += row["n_err"]
         tn_ref += row["n_ref"]
@@ -213,7 +206,12 @@ async def run_evaluation(cfg: DictConfig):
             wer = tn_err / max(tn_ref, 1)
             logger.info(
                 "%d/%d (%.1f req/s) | WER: %.2f%% [%d/%d] | Edge: %.2f%%",
-                completed, total, rps, wer * 100, tn_err, tn_ref,
+                completed,
+                total,
+                rps,
+                wer * 100,
+                tn_err,
+                tn_ref,
                 tn_edge / max(tn_ref, 1) * 100,
             )
 
@@ -235,41 +233,44 @@ async def run_evaluation(cfg: DictConfig):
     overall_wer = tn_err / max(tn_ref, 1)
     overall_edge = tn_edge / max(tn_ref, 1)
     logger.info(
-        "=== FINAL RESULTS ===\n"
-        "  WER: %.2f%% [%d/%d]\n"
-        "  Edge WER: %.2f%%\n"
-        "  Total samples: %d\n"
-        "  Elapsed: %.1fs (%.1f req/s)",
-        overall_wer * 100, tn_err, tn_ref,
+        "=== FINAL RESULTS ===\n  WER: %.2f%% [%d/%d]\n  Edge WER: %.2f%%\n  Total samples: %d\n  Elapsed: %.1fs (%.1f req/s)",
+        overall_wer * 100,
+        tn_err,
+        tn_ref,
         overall_edge * 100,
         len(all_results),
-        elapsed, len(all_results) / max(elapsed, 0.1),
+        elapsed,
+        len(all_results) / max(elapsed, 0.1),
     )
 
     # Save results
     if output_path:
         import blobfile as bf
+
         bf.makedirs(output_path)
         output_file = os.path.join(output_path, "result_details.jsonl")
         with bf.BlobFile(output_file, "w") as f:
             for r in all_results:
-                row = {k: (v if not isinstance(v, float) or not (math.isnan(v) or math.isinf(v)) else str(v))
-                       for k, v in r.items()}
+                row = {k: (v if not isinstance(v, float) or not (math.isnan(v) or math.isinf(v)) else str(v)) for k, v in r.items()}
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
         logger.info("Saved results to %s", output_file)
 
         summary_file = os.path.join(output_path, "summary.json")
         with bf.BlobFile(summary_file, "w") as f:
-            json.dump({
-                "wer": overall_wer,
-                "edge_wer": overall_edge,
-                "n_err": tn_err,
-                "n_ref": tn_ref,
-                "n_edge": tn_edge,
-                "total_samples": len(all_results),
-                "elapsed_s": elapsed,
-                "req_per_sec": len(all_results) / max(elapsed, 0.1),
-            }, f, indent=2)
+            json.dump(
+                {
+                    "wer": overall_wer,
+                    "edge_wer": overall_edge,
+                    "n_err": tn_err,
+                    "n_ref": tn_ref,
+                    "n_edge": tn_edge,
+                    "total_samples": len(all_results),
+                    "elapsed_s": elapsed,
+                    "req_per_sec": len(all_results) / max(elapsed, 0.1),
+                },
+                f,
+                indent=2,
+            )
         logger.info("Saved summary to %s", summary_file)
 
 
@@ -281,4 +282,3 @@ def main(cfg: DictConfig) -> None:
 
 if __name__ == "__main__":
     main()
-

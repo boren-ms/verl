@@ -296,7 +296,7 @@ def create_chunk_datasets(
     return chunks2dataset(chunks, chunk_types, num_proc, streaming)
 
 
-@cached(FIFOCache(maxsize=100))
+@cached(FIFOCache(maxsize=5))
 def load_chunk_example(chunk_path):
     """Load a single example from the chunk file."""
     chunk_path = resolve_path(chunk_path)

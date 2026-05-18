@@ -69,19 +69,27 @@ def _to_mono(data, source):
     return data
 
 
+def _is_chunk_spec(path: str) -> bool:
+    """Return True if ``path`` looks like a chunk spec ``file:<count>:<index>``."""
+    parts = path.rsplit(":", 2)
+    return len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit()
+
+
+def _load_chunk(spec):
+    result = load_chunk_example(spec)
+    if isinstance(result, list):
+        result = result[0]  # "audios" chunk type returns list of (data, sr)
+    return result
+
+
 def load_raw_audio(x):
     """Load audio data from the input dictionary."""
     if (audio := x.get("audio", None)) and (sr := x.get("sr", None)):
         return _to_mono(audio, "inline audio"), sr
-    if audio_path := x.get("audio_path", None) or x.get("audio_file", None):
-        data, sr = sf_read(audio_path)
-        return _to_mono(data, audio_path), sr
-    if audio_chunk := x.get("audio_chunk", None):
-        result = load_chunk_example(audio_chunk)
-        if isinstance(result, list):
-            result = result[0]  # "audios" chunk type returns list of (data, sr)
-        data, sr = result
-        return _to_mono(data, audio_chunk), sr
+    source = x.get("audio_path") or x.get("audio_file") or x.get("audio_chunk")
+    if source:
+        data, sr = _load_chunk(source) if _is_chunk_spec(source) else sf_read(source)
+        return _to_mono(data, source), sr
     raise ValueError("No audio data found in the input dictionary.")
 
 
@@ -91,22 +99,17 @@ def load_audio(x, max_dur=None, min_dur=0.16):
 
 
 def load_raw_audios(x):  # x is batched
-    audio_paths = x.get("audio_path", [])
-    audio_chunks = x.get("audio_chunk", [])
     from itertools import zip_longest
 
+    audio_paths = x.get("audio_path") or x.get("audio_file") or []
+    audio_chunks = x.get("audio_chunk", [])
+
     for audio_path, audio_chunk in zip_longest(audio_paths, audio_chunks, fillvalue=None):
-        if audio_path:
-            data, sr = sf_read(audio_path)
-            yield _to_mono(data, audio_path), sr
-        elif audio_chunk:
-            result = load_chunk_example(audio_chunk)
-            if isinstance(result, list):
-                result = result[0]  # "audios" chunk type returns list of (data, sr)
-            data, sr = result
-            yield _to_mono(data, audio_chunk), sr
-        else:
+        source = audio_path or audio_chunk
+        if not source:
             raise ValueError("No audio data found in the input dictionary.")
+        data, sr = _load_chunk(source) if _is_chunk_spec(source) else sf_read(source)
+        yield _to_mono(data, source), sr
 
 
 def load_audios(x, max_dur=None, min_dur=0.16):  # x is batched

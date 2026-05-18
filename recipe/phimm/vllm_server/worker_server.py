@@ -71,24 +71,15 @@ bf.configure(
 
 
 
-def _load_and_encode_audio(
-    audio_path: str | None = None,
-    audio_chunk: str | None = None,
-    max_dur: float = 40.0,
-) -> str:
-    """Load audio from blob/local path or chunk spec, encode to base64 WAV.
+def _load_and_encode_audio(audio_path: str, max_dur: float = 40.0) -> str:
+    """Load audio from a path and encode to base64 WAV.
 
-    ``load_audio`` handles ``audio_path`` (``az://`` or local) and
-    ``audio_chunk`` (``file:count:index`` spec).
+    ``load_audio`` handles both plain blob/local paths (``az://`` or local
+    filesystem) and chunk specs of the form ``file:<count>:<index>``.
     """
-    x: dict = {}
-    if audio_path:
-        x["audio_path"] = audio_path
-    if audio_chunk:
-        x["audio_chunk"] = audio_chunk
-    if not x:
-        raise ValueError("Either audio_path or audio_chunk must be provided.")
-    audio, sr = load_audio(x, max_dur=max_dur)
+    if not audio_path:
+        raise ValueError("audio_path must be provided.")
+    audio, sr = load_audio({"audio_path": audio_path}, max_dur=max_dur)
 
     buf = io.BytesIO()
     sf.write(buf, audio, sr, format="WAV")
@@ -123,11 +114,11 @@ def _build_chat_messages(prompt_text: str, audio_b64: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 class TranscribeRequest(BaseModel):
-    audio_path: str | None = Field(
-        default=None, description="Path to audio file (local or az:// blob)"
-    )
-    audio_chunk: str | None = Field(
-        default=None, description="Chunk spec 'file:count:index' for chunked audio datasets"
+    audio_path: str = Field(
+        ...,
+        description=(
+            "Path to audio (local, az:// blob, or chunk spec 'file:count:index')."
+        ),
     )
     prompt: str = Field(
         default="Transcribe the audio clip into text.",
@@ -210,7 +201,6 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
                 functools.partial(
                     _load_and_encode_audio,
                     audio_path=req.audio_path,
-                    audio_chunk=req.audio_chunk,
                     max_dur=req.max_audio_dur,
                 ),
             )
