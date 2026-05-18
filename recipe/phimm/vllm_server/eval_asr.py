@@ -82,7 +82,7 @@ def _summarize_rows(rows: list[dict]) -> dict:
         n_err += int(r.get("n_err", 0) or 0)
         n_ref += int(r.get("n_ref", 0) or 0)
         n_edge += int(r.get("n_edge", 0) or 0)
-        ap = r.get("audio_path")
+        ap = r.get("audio_path") or r.get("audio_chunk")
         if ap is not None:
             audio_paths.append(ap)
     return {
@@ -107,10 +107,7 @@ def write_part(output_path: str, rows: list[dict], part_idx: int) -> str:
     bf.makedirs(output_path)
     sanitized = []
     for r in rows:
-        sanitized.append({
-            k: (v if not isinstance(v, float) or not (math.isnan(v) or math.isinf(v)) else str(v))
-            for k, v in r.items()
-        })
+        sanitized.append({k: (v if not isinstance(v, float) or not (math.isnan(v) or math.isinf(v)) else str(v)) for k, v in r.items()})
     part_file = _part_path(output_path, part_idx)
     table = pa.Table.from_pylist(sanitized)
     with bf.BlobFile(part_file, "wb") as f:
@@ -129,14 +126,17 @@ def _summary_from_part(part_file: str) -> dict:
     with bf.BlobFile(part_file, "rb") as f:
         pf = pq.ParquetFile(f)
         cols = set(pf.schema_arrow.names)
-        wanted = [c for c in ("audio_path", "n_err", "n_ref", "n_edge") if c in cols]
+        wanted = [c for c in ("audio_path", "audio_chunk", "n_err", "n_ref", "n_edge") if c in cols]
         table = pf.read(columns=wanted) if wanted else pf.read()
-    data = table.to_pydict()
-    audio_paths = [ap for ap in (data.get("audio_path") or []) if ap is not None]
+    df = table.to_pandas()
+    df["path"] = df.apply(lambda r: r.get("audio_path") or r.get("audio_chunk"), axis=1)
+    audio_paths = df["path"].dropna().tolist()
+
     def _sum(col: str) -> int:
-        return int(sum(int(v or 0) for v in (data.get(col) or [])))
+        return int(df[col].fillna(0).astype(int).sum()) if col in df.columns else 0
+
     return {
-        "count": table.num_rows,
+        "count": len(df),
         "n_err": _sum("n_err"),
         "n_ref": _sum("n_ref"),
         "n_edge": _sum("n_edge"),
@@ -278,10 +278,7 @@ def ensure_proxy_ready(cfg: DictConfig) -> None:
     # Only auto-launch when the proxy is on this host; otherwise a remote
     # proxy is expected to be already running.
     if launcher_enabled and not _proxy_is_local(proxy_url):
-        logger.info(
-            "Proxy host in %s is not local (%s); disabling launcher",
-            proxy_url, socket.gethostname(),
-        )
+        logger.info("Proxy host in %s is not local (%s); disabling launcher", proxy_url, socket.gethostname())
         launcher_enabled = False
 
     if not _proxy_healthy(proxy_url) and launcher_enabled:
@@ -295,13 +292,9 @@ def ensure_proxy_ready(cfg: DictConfig) -> None:
         proxy_host = str(vllm_cfg.proxy.host)
         proxy_port = int(vllm_cfg.proxy.port)
 
-        logger.info(
-            "Proxy unreachable at %s; auto-launching proxy on %s:%d (config=%s)",
-            proxy_url, proxy_host, proxy_port, vllm_config,
-        )
+        logger.info("Proxy unreachable at %s; auto-launching proxy on %s:%d (config=%s)", proxy_url, proxy_host, proxy_port, vllm_config)
         subprocess.Popen(
-            [sys.executable, "-m", "recipe.phimm.vllm_server.fastapi_proxy",
-             "--host", proxy_host, "--port", str(proxy_port)],
+            [sys.executable, "-m", "recipe.phimm.vllm_server.fastapi_proxy", "--host", proxy_host, "--port", str(proxy_port)],
             start_new_session=True,
         )
 
@@ -312,15 +305,11 @@ def ensure_proxy_ready(cfg: DictConfig) -> None:
                 break
             time.sleep(1.0)
         else:
-            raise RuntimeError(
-                f"Auto-launched proxy did not become reachable at {proxy_url} within {proxy_wait:.0f}s"
-            )
+            raise RuntimeError(f"Auto-launched proxy did not become reachable at {proxy_url} within {proxy_wait:.0f}s")
 
         logger.info("Proxy up; launching vLLM workers (num_gpus=%s)", vllm_cfg.cluster.num_gpus)
         subprocess.Popen(
-            [sys.executable, "-m", "recipe.phimm.vllm_server.launch_vllm_servers",
-             "--config-path", str(config_dir), "--config-name", vllm_config,
-             f"cluster.proxy_url={proxy_url}"],
+            [sys.executable, "-m", "recipe.phimm.vllm_server.launch_vllm_servers", "--config-path", str(config_dir), "--config-name", vllm_config, f"cluster.proxy_url={proxy_url}"],
             start_new_session=True,
         )
 
@@ -463,7 +452,7 @@ async def run_evaluation(cfg: DictConfig):
         # Strip the <audio>\n placeholder added by add_task_info — the worker
         # server builds the audio chat content separately.
         if prompt.startswith("<audio>\n"):
-            prompt = prompt[len("<audio>\n"):]
+            prompt = prompt[len("<audio>\n") :]
         if audio_path in done_paths:
             return
         payload = {
