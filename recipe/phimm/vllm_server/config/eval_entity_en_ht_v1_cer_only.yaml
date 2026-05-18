@@ -1,0 +1,14 @@
+# Config for ASR evaluation client (eval_asr.py) on
+# entity_en_ht_v1_cer_only subset.
+# Mirrors recipe/phimm/config/gen/gen_entity_en_ht_v1_cer_only.yaml.
+#
+# Usage:
+#   python -m recipe.phimm.vllm_server.eval_asr --config-name=eval_entity_en_ht_v1_cer_only
+
+defaults:
+  - eval_base
+  - _self_
+
+data:
+  source_config: data/train_data/entity/entity_en_ht_v1_cer_only.yaml
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/entity_en_ht_v1_cer_only

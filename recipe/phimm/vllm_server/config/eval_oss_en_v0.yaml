@@ -1,0 +1,14 @@
+# Config for ASR evaluation client (eval_asr.py) on
+# oss en_v0 subset.
+# Mirrors recipe/phimm/config/gen/gen_oss_en_v0.yaml.
+#
+# Usage:
+#   python -m recipe.phimm.vllm_server.eval_asr --config-name=eval_oss_en_v0
+
+defaults:
+  - eval_base
+  - _self_
+
+data:
+  source_config: data/train_data/oss/en_v0.yaml
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_en_v0
