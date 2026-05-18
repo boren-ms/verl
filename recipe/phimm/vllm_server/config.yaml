@@ -1,0 +1,53 @@
+# Config for multi-node vLLM server evaluation
+# Reference: recipe/phimm/config/gen/gen_oss_ls.yaml
+#
+# Usage with Hydra:
+#   python -m recipe.phimm.vllm_server.launch_vllm_servers
+#   python -m recipe.phimm.vllm_server.launch_vllm_servers server.max_num_seqs=64
+#   python -m recipe.phimm.vllm_server.launch_vllm_servers --config-name=config_librispeech
+#
+# Usage with run_eval.sh (passes Hydra overrides via HYDRA_OVERRIDES env var):
+#   HYDRA_OVERRIDES="server.max_num_seqs=64 proxy.port=9000" bash run_eval.sh --role all
+
+# Model config (Qwen 3.5 Audio)
+model:
+  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/
+  trust_remote_code: true
+
+# Data config (LibriSpeech)
+data:
+  tsv_path: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
+  output_path: /tmp/vllm_eval_results
+  max_concurrent: 1024
+  max_audio_dur: 40.0
+  max_tokens: 1024
+  text_norm: null
+  num_egs: null  # null = all examples
+
+# vLLM server config (per-GPU, TP=1)
+server:
+  gpu_memory_utilization: 0.95
+  max_model_len: 4096
+  max_num_seqs: 128
+  max_num_batched_tokens: 65536
+  dtype: bfloat16
+  enforce_eager: false
+  disable_prefix_caching: true
+  performance_mode: throughput  # balanced | interactivity | throughput
+
+# Worker sidecar config
+worker:
+  audio_workers: 8       # thread pool size for audio loading
+  max_vllm_concurrency: 256  # max concurrent requests to local vLLM
+
+# Proxy config
+proxy:
+  host: "0.0.0.0"
+  port: 8000
+
+# Cluster / node config
+cluster:
+  num_gpus: 8
+  base_port: 8101       # worker ports 8101-8108, vLLM ports 8201-8208
+  startup_timeout: 600.0
+  proxy_url: null       # null = auto-detect from proxy.host/proxy.port
