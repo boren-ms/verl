@@ -36,6 +36,6 @@ proxy:
 
 # Cluster / node config
 cluster:
-  num_gpus: 1
+  num_gpus: 8
   startup_timeout: 600.0
   proxy_url: null       # null = auto-detect from proxy.host/proxy.port

@@ -5,16 +5,19 @@
 #   python -m recipe.phimm.vllm_server.eval_asr eval.proxy_url=http://host:8000
 #   python -m recipe.phimm.vllm_server.eval_asr --config-name=eval data.num_egs=100
 
-# Endpoint to send requests to (FastAPI proxy in front of the vLLM workers)
 eval:
   proxy_url: http://localhost:8000
   log_interval: 100
   save_interval: 10000
   resume: true
   wait_timeout: 600.0
-  # Forwarded as kwargs to recipe.phimm.reward.asr_edge.eval_score.
   wer_kwargs:
     text_norm: openasr_en
+  # Auto-launch proxy + vLLM servers when the proxy is unreachable.
+  launcher:
+    enabled: true
+    vllm_config: vllm        # name of launcher Hydra config in this directory
+    proxy_wait: 30.0         # seconds to wait for the spawned proxy /health
 
 # Dataset + client-side request settings
 data:

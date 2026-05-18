@@ -31,6 +31,7 @@ import json
 import logging
 import math
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -69,10 +70,6 @@ def _part_path(output_path: str, part_idx: int) -> str:
 
 def _part_summary_path(output_path: str, part_idx: int) -> str:
     return os.path.join(output_path, f"{PART_PREFIX}{part_idx:0{PART_DIGITS}d}{SUMMARY_SUFFIX}")
-
-
-def _part_glob(output_path: str) -> str:
-    return os.path.join(output_path, f"{PART_PREFIX}*{PART_SUFFIX}")
 
 
 def _summarize_rows(rows: list[dict]) -> dict:
@@ -119,15 +116,11 @@ def write_part(output_path: str, rows: list[dict], part_idx: int) -> str:
 
 
 def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int, int, int]:
-    """Rebuild resume state from per-part summary files in ``output_path``.
+    """Rebuild resume state from per-part summary JSONs in ``output_path``.
 
-    For each ``data_NNNNNN.jsonl`` we expect a sibling
-    ``data_NNNNNN.summary.json`` written by :func:`write_part`. The summary
-    holds the per-part WER counters and the list of completed ``audio_path``
-    values, so resume only has to read these small JSON files.
-
-    Falls back to scanning a part's JSONL rows if its summary is missing or
-    unreadable (e.g. produced by an older run).
+    Reads only ``data_NNNNNN.summary.json`` files written by :func:`write_part`
+    (each holds per-part WER counters + the list of completed ``audio_path``
+    values). Parts without a summary are skipped — they'll be re-run.
 
     Returns ``(done_paths, next_part_idx, n_saved, tn_err, tn_ref, tn_edge)``.
     On any failure, returns empty/zero state so the caller starts fresh.
@@ -140,44 +133,25 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
     if not output_path:
         return done_paths, next_part_idx, n_saved, tn_err, tn_ref, tn_edge
 
-    def _load_from_jsonl(part_file: str) -> dict:
-        rows = []
-        with bf.BlobFile(part_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    rows.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-        return _summarize_rows(rows)
-
     try:
         if not bf.exists(output_path):
             return done_paths, next_part_idx, n_saved, tn_err, tn_ref, tn_edge
-        existing = sorted(bf.glob(_part_glob(output_path)))
-        for part in existing:
-            stem = os.path.basename(part)
-            num_str = stem.removeprefix(PART_PREFIX).removesuffix(PART_SUFFIX)
+        summaries = sorted(bf.glob(os.path.join(output_path, f"{PART_PREFIX}*{SUMMARY_SUFFIX}")))
+        for summary_file in summaries:
+            stem = os.path.basename(summary_file)
+            num_str = stem.removeprefix(PART_PREFIX).removesuffix(SUMMARY_SUFFIX)
             try:
                 part_idx = int(num_str)
             except ValueError:
                 continue
+            try:
+                with bf.BlobFile(summary_file, "r") as f:
+                    summary = json.load(f)
+            except Exception as e:
+                logger.warning("Resume: bad summary %s (%s); skipping", summary_file, e)
+                continue
+
             next_part_idx = max(next_part_idx, part_idx + 1)
-
-            summary_file = _part_summary_path(output_path, part_idx)
-            summary: dict | None = None
-            if bf.exists(summary_file):
-                try:
-                    with bf.BlobFile(summary_file, "r") as f:
-                        summary = json.load(f)
-                except Exception as e:
-                    logger.warning("Resume: bad summary %s (%s); falling back to JSONL", summary_file, e)
-                    summary = None
-            if summary is None:
-                summary = _load_from_jsonl(part)
-
             for ap in summary.get("audio_paths", []) or []:
                 if ap and ap not in done_paths:
                     done_paths.add(ap)
@@ -186,11 +160,11 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
             tn_ref += int(summary.get("n_ref", 0) or 0)
             tn_edge += int(summary.get("n_edge", 0) or 0)
 
-        if existing:
+        if summaries:
             logger.info(
-                "Resume: loaded %d rows from %d existing part summary(ies); next part index=%d",
+                "Resume: loaded %d rows from %d summary file(s); next part index=%d",
                 n_saved,
-                len(existing),
+                len(summaries),
                 next_part_idx,
             )
     except Exception as e:
@@ -200,25 +174,92 @@ def load_resume_state(output_path: str | None) -> tuple[set[str], int, int, int,
     return done_paths, next_part_idx, n_saved, tn_err, tn_ref, tn_edge
 
 
-def wait_proxy_ready(proxy_url: str, timeout: float = 600.0, poll_interval: float = 2.0) -> bool:
-    """Poll the proxy's ``/ready`` endpoint until it returns 200 (≥1 healthy
-    backend) or ``timeout`` seconds elapse.
+def _proxy_healthy(proxy_url: str, timeout: float = 2.0) -> bool:
+    """Return True if ``proxy_url/health`` responds 200 within ``timeout`` seconds."""
+    import httpx
+
+    try:
+        r = httpx.get(f"{proxy_url}/health", timeout=timeout)
+        return r.status_code == 200
+    except httpx.HTTPError:
+        return False
+
+
+def ensure_proxy_ready(cfg: DictConfig) -> None:
+    """Make sure the proxy at ``cfg.eval.proxy_url`` is reachable and reports
+    ≥1 healthy backend before returning.
+
+    Steps:
+      1. If ``/health`` responds 200, skip straight to (3).
+      2. Otherwise — unless ``cfg.eval.launcher.enabled`` is false — spawn the
+         proxy and vLLM launcher as detached background subprocesses. The
+         launcher reads its full config from
+         ``<eval-script-dir>/<vllm_config>.yaml`` (default ``vllm.yaml``).
+         Subprocesses are intentionally not cleaned up so subsequent eval runs
+         can reuse them.
+      3. Poll ``/ready`` (proxy reports ready when ≥1 backend is registered)
+         until it returns 200 or ``cfg.eval.wait_timeout`` elapses.
+
+    Raises ``RuntimeError`` if the proxy never becomes ready.
     """
     import httpx
 
-    logger.info("Waiting for proxy %s to become ready (timeout=%.0fs)...", proxy_url, timeout)
-    deadline = time.time() + timeout
+    proxy_url = cfg.eval.proxy_url
+    wait_timeout = float(cfg.eval.get("wait_timeout", 600.0))
+    launcher_cfg = cfg.eval.get("launcher") or {}
+    launcher_enabled = bool(launcher_cfg.get("enabled", True))
+
+    if not _proxy_healthy(proxy_url) and launcher_enabled:
+        vllm_config = str(launcher_cfg.get("vllm_config", "vllm"))
+        script_dir = Path(__file__).resolve().parent
+        vllm_cfg_path = script_dir / f"{vllm_config}.yaml"
+        if not vllm_cfg_path.exists():
+            raise FileNotFoundError(f"Launcher config not found: {vllm_cfg_path}")
+        vllm_cfg = OmegaConf.load(vllm_cfg_path)
+        proxy_host = str(vllm_cfg.proxy.host)
+        proxy_port = int(vllm_cfg.proxy.port)
+
+        logger.info(
+            "Proxy unreachable at %s; auto-launching proxy on %s:%d (config=%s)",
+            proxy_url, proxy_host, proxy_port, vllm_config,
+        )
+        subprocess.Popen(
+            [sys.executable, "-m", "recipe.phimm.vllm_server.fastapi_proxy",
+             "--host", proxy_host, "--port", str(proxy_port)],
+            start_new_session=True,
+        )
+
+        proxy_wait = float(launcher_cfg.get("proxy_wait", 30.0))
+        deadline = time.time() + proxy_wait
+        while time.time() < deadline:
+            if _proxy_healthy(proxy_url):
+                break
+            time.sleep(1.0)
+        else:
+            raise RuntimeError(
+                f"Auto-launched proxy did not become reachable at {proxy_url} within {proxy_wait:.0f}s"
+            )
+
+        logger.info("Proxy up; launching vLLM workers (num_gpus=%s)", vllm_cfg.cluster.num_gpus)
+        subprocess.Popen(
+            [sys.executable, "-m", "recipe.phimm.vllm_server.launch_vllm_servers",
+             "--config-path", str(script_dir), "--config-name", vllm_config,
+             f"cluster.proxy_url={proxy_url}"],
+            start_new_session=True,
+        )
+
+    logger.info("Waiting for proxy %s to become ready (timeout=%.0fs)...", proxy_url, wait_timeout)
+    deadline = time.time() + wait_timeout
     while time.time() < deadline:
         try:
             r = httpx.get(f"{proxy_url}/ready", timeout=10)
             if r.status_code == 200:
                 logger.info("Proxy ready: %s", r.json())
-                return True
+                return
         except httpx.HTTPError as e:
             logger.debug("Proxy not reachable yet: %s", e)
-        time.sleep(poll_interval)
-    logger.error("Timed out waiting for proxy %s to become ready", proxy_url)
-    return False
+        time.sleep(2.0)
+    raise RuntimeError(f"Proxy {proxy_url} did not become ready within {wait_timeout:.0f}s")
 
 
 def load_dataset(source_config, num_egs: int | None = None) -> Dataset:
@@ -273,9 +314,8 @@ async def run_evaluation(cfg: DictConfig):
     if OmegaConf.is_config(wer_kwargs):
         wer_kwargs = OmegaConf.to_container(wer_kwargs, resolve=True)
 
-    # Always wait for the proxy to report ≥1 healthy backend before sending traffic.
-    if not wait_proxy_ready(proxy_url, timeout=float(cfg.eval.get("wait_timeout", 600.0))):
-        raise RuntimeError(f"Proxy {proxy_url} did not become ready")
+    # Auto-launch (if needed) and wait for the proxy to report ≥1 healthy backend.
+    ensure_proxy_ready(cfg)
 
     dataset = load_dataset(cfg.data.get("source_config"), num_egs=num_egs)
     total = len(dataset)
