@@ -38,4 +38,4 @@ proxy:
 cluster:
   num_gpus: 8
   startup_timeout: 600.0
-  proxy_url: null       # null = auto-detect from proxy.host/proxy.port
+  proxy_url: http://verl-n1-i0-0:8000  # always register workers to this proxy

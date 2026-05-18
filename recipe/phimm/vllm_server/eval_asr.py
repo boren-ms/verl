@@ -31,10 +31,12 @@ import json
 import logging
 import math
 import os
+import socket
 import subprocess
 import sys
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 import blobfile as bf
 import hydra
@@ -225,6 +227,31 @@ def _proxy_healthy(proxy_url: str, timeout: float = 2.0) -> bool:
         return False
 
 
+def _proxy_is_local(proxy_url: str) -> bool:
+    """Return True if ``proxy_url``'s host refers to this machine.
+
+    Matches loopback names, the current short/FQDN hostname, and any IP bound
+    to a local interface.
+    """
+    host = (urlparse(proxy_url).hostname or "").lower()
+    if not host:
+        return False
+    if host in ("localhost", "127.0.0.1", "::1", "0.0.0.0"):
+        return True
+    local_names = {socket.gethostname().lower(), socket.getfqdn().lower()}
+    if host in local_names or host.split(".")[0] in {n.split(".")[0] for n in local_names}:
+        return True
+    try:
+        host_ip = socket.gethostbyname(host)
+    except OSError:
+        return False
+    try:
+        local_ips = {info[4][0] for info in socket.getaddrinfo(socket.gethostname(), None)}
+    except OSError:
+        local_ips = set()
+    return host_ip in local_ips or host_ip.startswith("127.")
+
+
 def ensure_proxy_ready(cfg: DictConfig) -> None:
     """Make sure the proxy at ``cfg.eval.proxy_url`` is reachable and reports
     ≥1 healthy backend before returning.
@@ -248,6 +275,14 @@ def ensure_proxy_ready(cfg: DictConfig) -> None:
     wait_timeout = float(cfg.eval.get("wait_timeout", 600.0))
     launcher_cfg = cfg.eval.get("launcher") or {}
     launcher_enabled = bool(launcher_cfg.get("enabled", True))
+    # Only auto-launch when the proxy is on this host; otherwise a remote
+    # proxy is expected to be already running.
+    if launcher_enabled and not _proxy_is_local(proxy_url):
+        logger.info(
+            "Proxy host in %s is not local (%s); disabling launcher",
+            proxy_url, socket.gethostname(),
+        )
+        launcher_enabled = False
 
     if not _proxy_healthy(proxy_url) and launcher_enabled:
         vllm_config = str(launcher_cfg.get("vllm_config", "vllm"))
