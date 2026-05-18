@@ -76,15 +76,45 @@ def wait_proxy_ready(proxy_url: str, timeout: float = 600.0, poll_interval: floa
     return False
 
 
+def load_dataset(source_config, num_egs: int | None = None) -> Dataset:
+    """Load an eval dataset from a source_config (YAML path, dict, or list).
+
+    Strips verl_format post-processing (eval only needs raw fields), applies
+    ``num_egs`` to each source's loader, concatenates a dict-of-datasets into
+    one, and truncates to ``num_egs`` if the loader didn't already.
+    """
+    from recipe.phimm.data.dataset import create_datasets
+    from recipe.phimm.cache_dataset import _load_source_config, _strip_verl_format
+    from datasets import concatenate_datasets
+
+    if source_config is None:
+        raise ValueError("source_config is required (path to a dataset YAML or an inline dict).")
+    if OmegaConf.is_config(source_config):
+        source_config = OmegaConf.to_container(source_config, resolve=True)
+    logger.info("Loading dataset from source_config=%s", source_config)
+    dataset_config = _strip_verl_format(_load_source_config(source_config))
+    if num_egs:
+        if isinstance(dataset_config, dict):
+            dataset_config["num_egs"] = int(num_egs)
+        elif isinstance(dataset_config, list):
+            for item in dataset_config:
+                if isinstance(item, dict):
+                    item["num_egs"] = int(num_egs)
+
+    ds_obj = create_datasets(dataset_config)
+    if isinstance(ds_obj, dict):
+        ds_obj = concatenate_datasets(list(ds_obj.values()))
+    if num_egs and len(ds_obj) > int(num_egs):
+        ds_obj = ds_obj.select(range(int(num_egs)))
+    return ds_obj
+
+
 async def run_evaluation(cfg: DictConfig):
     """Pipelined evaluation: sends audio paths to workers, scores results locally."""
     import httpx
     from recipe.phimm.reward.asr_edge import eval_score
     from recipe.phimm.utils.shared import parse_asr_response
-    from recipe.phimm.data.dataset import create_datasets
     from recipe.phimm.data.prompts import get_task_prompt
-    from recipe.phimm.cache_dataset import _load_source_config, _strip_verl_format
-    from datasets import concatenate_datasets
 
     proxy_url = cfg.eval.proxy_url
     max_concurrent = int(cfg.data.max_concurrent)
@@ -100,30 +130,7 @@ async def run_evaluation(cfg: DictConfig):
     if not wait_proxy_ready(proxy_url, timeout=float(cfg.eval.get("wait_timeout", 600.0))):
         raise RuntimeError(f"Proxy {proxy_url} did not become ready")
 
-    # Load dataset config from a YAML source (e.g. recipe/phimm/config/data/train_data/ls_raw.yaml)
-    # or an inline dict/list. verl_format post-processing is stripped — eval only needs raw fields.
-    source_config = cfg.data.get("source_config")
-    if source_config is None:
-        raise ValueError("data.source_config is required (path to a dataset YAML or an inline dict).")
-    if isinstance(source_config, DictConfig) or hasattr(source_config, "_content"):
-        source_config = OmegaConf.to_container(source_config, resolve=True)
-    logger.info("Loading dataset from source_config=%s", source_config)
-    dataset_config = _strip_verl_format(_load_source_config(source_config))
-    if num_egs:
-        if isinstance(dataset_config, dict):
-            dataset_config["num_egs"] = int(num_egs)
-        elif isinstance(dataset_config, list):
-            for item in dataset_config:
-                if isinstance(item, dict):
-                    item["num_egs"] = int(num_egs)
-
-    ds_obj = create_datasets(dataset_config)
-    if isinstance(ds_obj, dict):
-        ds_obj = concatenate_datasets(list(ds_obj.values()))
-    dataset = ds_obj
-    # Ensure num_egs limit is applied (loaders may not filter before map)
-    if num_egs and len(dataset) > int(num_egs):
-        dataset = dataset.select(range(int(num_egs)))
+    dataset = load_dataset(cfg.data.get("source_config"), num_egs=num_egs)
     total = len(dataset)
     logger.info("Loaded %d samples", total)
 

@@ -14,7 +14,10 @@ eval:
 
 # Dataset + client-side request settings
 data:
-  tsv_path: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
+  # Path (relative to recipe/phimm/config or absolute) to a dataset YAML such as
+  # data/train_data/ls_raw.yaml, or an inline dict / list of dicts. The
+  # post_process.verl_format section is stripped automatically for eval.
+  source_config: data/train_data/ls_raw.yaml
   output_path: /tmp/vllm_eval_results
   max_concurrent: 512        # ≈ 64/GPU × 8 GPUs
   max_tokens: 1024
