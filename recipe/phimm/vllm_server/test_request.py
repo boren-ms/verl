@@ -16,17 +16,21 @@ import time
 
 import httpx
 
+from recipe.phimm.data.prompts import get_task_prompt
+
 
 DEFAULT_AUDIO_PATH = (
     "az://orngwus2cresco/data/boren/data/LibriSpeech/"
     "train-clean-360/115/122944/115-122944-0026.flac"
 )
+DEFAULT_TASK = "lang_asr"
+DEFAULT_PROMPT = get_task_prompt(DEFAULT_TASK, rand=False)
 
 
 def send_test_request(
     proxy_url: str = "http://localhost:8000",
     audio_path: str = DEFAULT_AUDIO_PATH,
-    prompt: str = "Transcribe the audio clip into text.",
+    prompt: str = DEFAULT_PROMPT,
     max_tokens: int = 1024,
     max_audio_dur: float = 40.0,
     timeout: float = 600.0,
@@ -60,7 +64,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--proxy-url", default="http://localhost:8000")
     parser.add_argument("--audio-path", default=DEFAULT_AUDIO_PATH)
-    parser.add_argument("--prompt", default="Transcribe the audio clip into text.")
+    parser.add_argument("--prompt", default=DEFAULT_PROMPT)
     parser.add_argument("--max-tokens", type=int, default=1024)
     parser.add_argument("--max-audio-dur", type=float, default=40.0)
     parser.add_argument("--timeout", type=float, default=600.0)
