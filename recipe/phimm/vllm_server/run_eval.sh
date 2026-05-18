@@ -47,6 +47,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONFIG_DIR="$SCRIPT_DIR/config"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$PROJECT_ROOT"
 export PYTHONPATH="$PROJECT_ROOT:${PYTHONPATH:-}"
@@ -69,11 +70,11 @@ done
 case "$ROLE" in
     eval)
         exec python -m recipe.phimm.vllm_server.eval_asr \
-            --config-path "$SCRIPT_DIR" --config-name "$EVAL_CONFIG" "${ARGS[@]}"
+            --config-path "$CONFIG_DIR" --config-name "$EVAL_CONFIG" "${ARGS[@]}"
         ;;
     worker)
         exec python -m recipe.phimm.vllm_server.launch_vllm_servers \
-            --config-path "$SCRIPT_DIR" --config-name "$VLLM_CONFIG" "${ARGS[@]}"
+            --config-path "$CONFIG_DIR" --config-name "$VLLM_CONFIG" "${ARGS[@]}"
         ;;
     *)
         echo "[ERROR] Unknown role: $ROLE (use: eval, worker)"; exit 1;;
