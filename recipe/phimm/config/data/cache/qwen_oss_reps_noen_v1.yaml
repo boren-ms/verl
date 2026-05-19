@@ -5,10 +5,10 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_en_v0/*.parquet
   post_process:
     keep_samples:
-      has_tail_repetitions:
+      has_repeat:
         field: response
         min_reps: 4
 
-output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_tail_rep/no_en_v1.jsonl
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/no_en_v1.jsonl
 include_verl_format: false
 overwrite: true

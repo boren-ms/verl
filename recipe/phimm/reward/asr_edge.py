@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 import logging
 import re
 from recipe.phimm.utils.languages import get_language_code
-from recipe.phimm.utils.shared import has_brackets, has_tail_repetition, parse_asr_response
+from recipe.phimm.utils.shared import has_brackets, has_repeat, parse_asr_response
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
 
@@ -150,11 +150,11 @@ def _parse_response(solution_str, **kwargs):
     trans_dict = parse_asr_response(solution_str)
     hyp_text = trans_dict["text"]
     pred_lang = (trans_dict["lang"] or "").lower()
-    tail_rep_opts = kwargs.get("tail_rep") or {}
-    p_tail_rep = has_tail_repetition(
+    repeat_opts = kwargs.get("repeat") or {}
+    p_repeat = has_repeat(
         hyp_text,
-        min_reps=tail_rep_opts.get("min_reps", 4),
-        max_ngram=tail_rep_opts.get("max_ngram", 5),
+        min_reps=repeat_opts.get("min_reps", 4),
+        max_ngram=repeat_opts.get("max_ngram", 5),
     )
 
     return {
@@ -163,7 +163,7 @@ def _parse_response(solution_str, **kwargs):
         "p_lang": float(pred_lang == tgt_lang),
         "p_fmt": float(bool(trans_dict["formatted"])),
         "p_bracket": float(has_brackets(hyp_text)),
-        "p_tail_rep": float(p_tail_rep),
+        "p_repeat": float(p_repeat),
     }
 
 
@@ -174,7 +174,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
     gamma = kwargs.get("gamma", 1)
-    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_tail_rep"]
+    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_repeat"]
 
     if metric == "wer":
         score = -(err.wer(**betas) ** gamma) if is_good else -1
@@ -198,7 +198,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "p_fmt": parsed["p_fmt"],
         "p_lang": parsed["p_lang"],
         "p_bracket": parsed["p_bracket"],
-        "p_tail_rep": parsed["p_tail_rep"],
+        "p_repeat": parsed["p_repeat"],
     }
 
 
@@ -216,7 +216,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "p_fmt": parsed["p_fmt"],
         "p_lang": parsed["p_lang"],
         "p_bracket": parsed["p_bracket"],
-        "p_tail_rep": parsed["p_tail_rep"],
+        "p_repeat": parsed["p_repeat"],
     }
 
 
@@ -239,7 +239,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
         "p_fmt": parsed["p_fmt"],
         "p_lang": parsed["p_lang"],
         "p_bracket": parsed["p_bracket"],
-        "p_tail_rep": parsed["p_tail_rep"],
+        "p_repeat": parsed["p_repeat"],
     }
 
 

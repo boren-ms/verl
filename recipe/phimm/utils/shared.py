@@ -268,13 +268,16 @@ def strip_repetitions(text, min_reps=4):
     return text
 
 
-def has_tail_repetition(text, min_reps=4, max_ngram=5):
-    """Return True if the text ends with an n-gram (size 1..max_ngram) repeated >= min_reps times.
+def has_repeat(text, min_reps=4, max_ngram=5):
+    """Return True if the text contains any n-gram (size 1..max_ngram) repeated >= min_reps times consecutively.
+
+    Scans the full text, not just the tail.
 
     Examples (min_reps=4):
         "the the the marketing and and and and and and and and"  -> True (and x8)
         "as we have access to of of of of of of of of of of"     -> True (of x10)
         "we want to grow is it is it is it is it is it is it"    -> True ("is it" x6)
+        "foo foo foo foo then more normal words after that here" -> True (foo x4)
         "this is a normal sentence."                              -> False
     """
     words = text.split() if isinstance(text, str) else list(text or [])
@@ -284,14 +287,15 @@ def has_tail_repetition(text, min_reps=4, max_ngram=5):
     for ng in range(1, max_ngram + 1):
         if n < ng * min_reps:
             continue
-        tail = tuple(words[-ng:])
-        reps = 1
-        pos = n - 2 * ng
-        while pos >= 0 and tuple(words[pos:pos + ng]) == tail:
-            reps += 1
-            pos -= ng
-        if reps >= min_reps:
-            return True
+        for start in range(0, n - ng * min_reps + 1):
+            ngram = tuple(words[start:start + ng])
+            reps = 1
+            pos = start + ng
+            while pos + ng <= n and tuple(words[pos:pos + ng]) == ngram:
+                reps += 1
+                pos += ng
+            if reps >= min_reps:
+                return True
     return False
 
 
@@ -310,8 +314,8 @@ def parse_asr_response(response):
     m = re.search(r"<lang=([^>]+)>", response)
     lang = m.group(1) if m else None
     text, formatted = _parse_transcription(response)
-    new_text = strip_repetitions(text)
-    return {"text": text, "lang": lang, "formatted": formatted, "new_text": new_text}
+    # new_text = strip_repetitions(text)
+    return {"text": text, "lang": lang, "formatted": formatted}
 
 
 def _parse_transcription(raw_text):

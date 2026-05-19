@@ -41,7 +41,7 @@ from recipe.phimm.utils.shared import (
     unbatch,
     has_brackets as has_brackets_fn,
     parse_asr_response,
-    has_tail_repetition,
+    has_repeat,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.languages import get_language_name
@@ -815,15 +815,15 @@ def _has_brackets(example):
     return has_brackets_fn(text)
 
 
-def _has_tail_repetitions(example, opts):
-    """Check whether example[field] ends with a repeated n-gram."""
+def _has_repeat(example, opts):
+    """Check whether example[field] contains a repeated n-gram."""
     field = opts.get("field", "response")
     min_reps = opts.get("min_reps", 4)
     max_ngram = opts.get("max_ngram", 5)
     text = example.get(field, "") or ""
     if not text:
         return False
-    return has_tail_repetition(text, min_reps=min_reps, max_ngram=max_ngram)
+    return has_repeat(text, min_reps=min_reps, max_ngram=max_ngram)
 
 
 # Matches uppercase single-letter abbreviations like "U. S.", "U. P. S.",
@@ -846,7 +846,7 @@ def _has_spaced_abbrev(example, opts):
 
 
 def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
-                 has_tail_repetitions=None, has_spaced_abbrev=None,
+                 has_repeat=None, has_spaced_abbrev=None,
                  wer_range=None, error_count_range=None, edge_wer_range=None, **kwargs):
     """Keep samples matching ANY enabled criterion (OR logic).
 
@@ -854,7 +854,7 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
         has_bad_fmt: truthy — bad format in ASR response
         has_bad_lang: truthy — wrong language
         has_brackets: truthy — bracketed/parenthesized text
-        has_tail_repetitions: truthy or dict {field, min_reps, max_ngram} — trailing n-gram repetition
+        has_repeat: truthy or dict {field, min_reps, max_ngram} — repeated n-gram
         has_spaced_abbrev: truthy or dict {field} — spaced single-letter abbreviations
             like "U. S." (should be "US") or "U. P. S." (should be "UPS")
         wer_range: [lo, hi] — WER range
@@ -873,9 +873,9 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
     if has_brackets:
         checks.append(("has_brackets", lambda ex: _has_brackets(ex)))
 
-    if has_tail_repetitions:
-        tail_opts = dict(has_tail_repetitions) if isinstance(has_tail_repetitions, dict) else {}
-        checks.append(("has_tail_repetitions", lambda ex, _o=tail_opts: _has_tail_repetitions(ex, _o)))
+    if has_repeat:
+        repeat_opts = dict(has_repeat) if isinstance(has_repeat, dict) else {}
+        checks.append(("has_repeat", lambda ex, _o=repeat_opts: _has_repeat(ex, _o)))
 
     if has_spaced_abbrev:
         abbrev_opts = dict(has_spaced_abbrev) if isinstance(has_spaced_abbrev, dict) else {}

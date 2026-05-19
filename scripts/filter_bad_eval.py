@@ -2,7 +2,7 @@
 """Filter eval rollout utterances using openasr_eval.
 
 For each utterance in an eval result jsonl, run `openasr_eval(output, gts, extra_info={...})`
-and keep utterances where any of {p_fmt, p_lang, p_bracket, p_tail_rep} is not 1.0.
+and keep utterances where any of {p_fmt, p_lang, p_bracket, p_repeat} is not 1.0.
 
 The output jsonl has the original record plus a `source` field naming the original
 dataset directory, and a `metrics` field with the openasr_eval result.
@@ -23,12 +23,12 @@ from recipe.phimm.reward.asr_edge import openasr_eval  # noqa: E402
 
 # For each metric, the value indicating a *failure* (problematic utterance).
 # p_fmt / p_lang: 1.0 = pass, 0.0 = fail
-# p_bracket / p_tail_rep: 0.0 = pass (clean), 1.0 = fail (problem detected)
+# p_bracket / p_repeat: 0.0 = pass (clean), 1.0 = fail (problem detected)
 FAIL_VALUE = {
     "p_fmt": 0.0,
     "p_lang": 0.0,
     "p_bracket": 1.0,
-    "p_tail_rep": 1.0,
+    "p_repeat": 1.0,
 }
 GATING_KEYS = tuple(FAIL_VALUE.keys())
 
