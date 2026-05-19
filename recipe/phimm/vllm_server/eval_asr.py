@@ -401,7 +401,6 @@ async def run_evaluation(cfg: DictConfig):
     max_concurrent = int(cfg.data.max_concurrent)
     max_tokens = int(cfg.data.max_tokens)
     max_audio_dur = float(cfg.data.max_audio_dur)
-    request_timeout = float(cfg.data.get("request_timeout", 600.0))
     num_egs = cfg.data.get("num_egs")
     output_path = cfg.data.get("output_path")
     log_interval = max(int(cfg.eval.get("log_interval", 100)), 1)
@@ -420,7 +419,6 @@ async def run_evaluation(cfg: DictConfig):
 
     # High-concurrency client
     client = httpx.AsyncClient(
-        timeout=httpx.Timeout(request_timeout, connect=30.0),
         limits=httpx.Limits(max_connections=max_concurrent + 50, max_keepalive_connections=100),
     )
     semaphore = asyncio.Semaphore(max_concurrent)

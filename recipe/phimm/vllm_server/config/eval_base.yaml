@@ -40,4 +40,3 @@ data:
   max_tokens: 1024
   max_audio_dur: 40.0
   num_egs: null              # null → all examples
-  request_timeout: 120.0     # per-request HTTP timeout (seconds); avoids hanging on stuck workers
