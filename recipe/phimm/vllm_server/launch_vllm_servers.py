@@ -161,6 +161,7 @@ def launch_worker_server(
     worker_port: int,
     model_path: str,
     num_workers: int = 4,
+    max_vllm_concurrency: int = 128,
 ) -> subprocess.Popen:
     """Launch a worker sidecar server that wraps a local vLLM instance."""
     cmd = [
@@ -169,6 +170,7 @@ def launch_worker_server(
         "--port", str(worker_port),
         "--model", model_path,
         "--num-workers", str(num_workers),
+        "--max-vllm-concurrency", str(max_vllm_concurrency),
     ]
 
     log_file = f"/tmp/worker_{worker_port}.log"
@@ -296,6 +298,7 @@ def run_servers(cfg: DictConfig) -> None:
         worker_proc = launch_worker_server(
             vllm_port, worker_port, model_path,
             num_workers=cfg.worker.audio_workers,
+            max_vllm_concurrency=int(cfg.worker.get("max_vllm_concurrency", cfg.server.max_num_seqs)),
         )
         vllm_procs.append(vllm_proc)
         worker_procs.append(worker_proc)

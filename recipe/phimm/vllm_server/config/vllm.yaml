@@ -19,7 +19,7 @@ model:
 server:
   gpu_memory_utilization: 0.95
   max_model_len: 4096
-  max_num_seqs: 128
+  max_num_seqs: 256
   max_num_batched_tokens: 65536
   enforce_eager: false
   disable_prefix_caching: true
@@ -28,6 +28,7 @@ server:
 # Worker sidecar config
 worker:
   audio_workers: 8       # thread pool size for audio loading
+  max_vllm_concurrency: 256  # max concurrent /v1/chat/completions in flight per worker
 
 # Proxy config
 proxy:
