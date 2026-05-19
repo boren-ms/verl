@@ -131,6 +131,12 @@ def launch_vllm_server(
     """Launch a single vLLM server on a specific GPU (internal port)."""
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+    # Enable the qwen35_audio out-of-tree plugin (registers Qwen3_5AudioForCausalLM
+    # with vLLM's ModelRegistry and installs the audio multimodal processor).
+    # See plugins/qwen35_audio/README.md for the verified stack.
+    env.setdefault("VLLM_PLUGINS", "qwen35_audio")
+    env.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
+    env.setdefault("QWEN35_AUDIO_DISABLE_CUDNN", "1")
 
     cmd = [
         sys.executable, "-m", "vllm.entrypoints.openai.api_server",
@@ -140,6 +146,7 @@ def launch_vllm_server(
         "--trust-remote-code",
         "--dtype", "bfloat16",
         "--disable-log-stats",
+        "--limit-mm-per-prompt", '{"audio": 1}',
     ]
     if extra_args:
         cmd.extend(extra_args)
