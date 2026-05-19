@@ -1,0 +1,16 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_en_v1/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_en_v0/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_no_en_v0/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_no_en_v1/*.parquet
+  post_process:
+    keep_samples:
+      has_tail_repetitions:
+        field: response
+        min_reps: 4
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_tail_rep/all.jsonl
+include_verl_format: false
+overwrite: true
