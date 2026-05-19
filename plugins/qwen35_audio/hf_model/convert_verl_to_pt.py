@@ -192,6 +192,65 @@ def _load_and_merge(shard_paths: list[str], workers: int = 8) -> "OrderedDict[st
 
 
 # -----------------------------------------------------------------------------
+# Key remapping to match reference DeepSpeed/PEFT layout
+# -----------------------------------------------------------------------------
+
+
+_LORA_RE = re.compile(r"^(?P<prefix>.+)\.lora_(?P<ab>[AB])\.(?P<adapter>[^.]+)\.(?P<tail>weight|bias)$")
+
+
+def _remap_keys(state_dict: "OrderedDict[str, torch.Tensor]",
+                target_adapter_name: str = "default",
+                strip_prefix: str = "base_model.model.") -> "OrderedDict[str, torch.Tensor]":
+    """Rewrite verl/PEFT keys to match reference checkpoint layout.
+
+    Transformations (applied in order):
+      1. Strip ``strip_prefix`` (default ``base_model.model.``) from every key.
+      2. For every LoRA module (any key matching ``<prefix>.lora_[AB].<adapter>.<tail>``):
+           - rename adapter -> ``target_adapter_name`` (default ``default``).
+           - rewrite the base parameter ``<prefix>.<tail>`` to ``<prefix>.base_layer.<tail>``.
+    """
+    # Pass 1: strip outer LoRA wrapper prefix.
+    stripped: "OrderedDict[str, torch.Tensor]" = OrderedDict()
+    for k, v in state_dict.items():
+        if strip_prefix and k.startswith(strip_prefix):
+            stripped[k[len(strip_prefix):]] = v
+        else:
+            stripped[k] = v
+
+    # Pass 2: discover which module prefixes are LoRA-wrapped, and rename adapter.
+    lora_prefixes: set[str] = set()
+    renamed: "OrderedDict[str, torch.Tensor]" = OrderedDict()
+    for k, v in stripped.items():
+        m = _LORA_RE.match(k)
+        if m:
+            lora_prefixes.add(m.group("prefix"))
+            new_k = f"{m.group('prefix')}.lora_{m.group('ab')}.{target_adapter_name}.{m.group('tail')}"
+            renamed[new_k] = v
+        else:
+            renamed[k] = v
+
+    # Pass 3: insert .base_layer before .weight/.bias for keys whose module prefix is LoRA-wrapped.
+    final: "OrderedDict[str, torch.Tensor]" = OrderedDict()
+    for k, v in renamed.items():
+        # only the *direct* base param needs `.base_layer.` inserted; lora_A/lora_B keys are already handled above.
+        if "lora_A." in k or "lora_B." in k:
+            final[k] = v
+            continue
+        new_k = k
+        for tail in ("weight", "bias"):
+            suffix = "." + tail
+            if k.endswith(suffix):
+                prefix = k[: -len(suffix)]
+                if prefix in lora_prefixes:
+                    new_k = f"{prefix}.base_layer.{tail}"
+                break
+        final[new_k] = v
+
+    return final
+
+
+# -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 
@@ -205,6 +264,12 @@ def main():
     ap.add_argument("--local-cache", default=None,
                     help="Local cache dir for downloaded shards (required if --input is remote).")
     ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--lora-adapter-name", default="default",
+                    help="Rename PEFT adapter to this name in the output (default: 'default').")
+    ap.add_argument("--strip-prefix", default="base_model.model.",
+                    help="Strip this prefix from every key (default: 'base_model.model.').")
+    ap.add_argument("--no-remap", action="store_true",
+                    help="Skip key remapping (keep raw verl/PEFT key names).")
     args = ap.parse_args()
 
     actor_dir = _resolve_actor_dir(args.input)
@@ -233,6 +298,16 @@ def main():
     shard_paths = [p for _, _, p in shards]
     print("[3/4] Merging FSDP shards")
     state_dict = _load_and_merge(shard_paths, workers=args.workers)
+
+    if not args.no_remap:
+        before = len(state_dict)
+        state_dict = _remap_keys(
+            state_dict,
+            target_adapter_name=args.lora_adapter_name,
+            strip_prefix=args.strip_prefix,
+        )
+        print(f"       Remapped keys: {before} -> {len(state_dict)} "
+              f"(strip_prefix={args.strip_prefix!r}, adapter={args.lora_adapter_name!r})")
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
