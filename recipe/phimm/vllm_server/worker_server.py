@@ -243,13 +243,12 @@ def _build_llm(
     enforce_eager: bool,
     enable_prefix_caching: bool,
     max_num_batched_tokens: int | None,
-    enable_ngram: bool = True,
 ):
     from vllm import LLM
 
     logger.info(
-        "Loading vLLM LLM from %s (max_model_len=%d, max_num_seqs=%d, gpu_mem=%.2f, ngram=%s)",
-        model_path, max_model_len, max_num_seqs, gpu_memory_utilization, enable_ngram,
+        "Loading vLLM LLM from %s (max_model_len=%d, max_num_seqs=%d, gpu_mem=%.2f, ngram=True)",
+        model_path, max_model_len, max_num_seqs, gpu_memory_utilization,
     )
     kwargs = dict(
         model=model_path,
@@ -264,8 +263,7 @@ def _build_llm(
         enforce_eager=enforce_eager,
         enable_prefix_caching=enable_prefix_caching,
     )
-    if enable_ngram:
-        kwargs["logits_processors"] = [NGRAM_LOGITS_PROCESSOR]
+    kwargs["logits_processors"] = [NGRAM_LOGITS_PROCESSOR]
     if max_num_batched_tokens is not None:
         kwargs["max_num_batched_tokens"] = int(max_num_batched_tokens)
     t0 = time.time()
@@ -288,7 +286,6 @@ def create_worker_app(
     stop_token_ids: tuple[int, ...] | None = None,
     ngram_size: int = DEFAULT_NGRAM_SIZE,
     ngram_window_size: int = DEFAULT_NGRAM_WINDOW_SIZE,
-    enable_ngram: bool = True,
 ) -> FastAPI:
     """Build a FastAPI app that owns an in-process ``vllm.LLM`` engine."""
 
@@ -315,7 +312,6 @@ def create_worker_app(
                 enforce_eager=enforce_eager,
                 enable_prefix_caching=enable_prefix_caching,
                 max_num_batched_tokens=max_num_batched_tokens,
-                enable_ngram=enable_ngram,
             ),
         )
         batcher = LLMBatcher(
@@ -386,12 +382,11 @@ def create_worker_app(
             max_tokens=int(req.max_tokens),
             stop_token_ids=list(stop_token_ids),
             repetition_penalty=1.0,
-        )
-        if enable_ngram:
-            sp_kwargs["extra_args"] = {
+            extra_args={
                 "ngram_size": int(ngram_size),
                 "window_size": int(ngram_window_size),
-            }
+            },
+        )
         sampling_params = SamplingParams(**sp_kwargs)
 
         try:
@@ -438,9 +433,6 @@ def main() -> None:
                         help="NGram size for the repetition-suppression logits processor.")
     parser.add_argument("--ngram-window-size", type=int, default=DEFAULT_NGRAM_WINDOW_SIZE,
                         help="Look-back window (tokens) for the n-gram logits processor.")
-    parser.add_argument("--enable-ngram", action=argparse.BooleanOptionalAction, default=True,
-                        help="Enable the deepseek_ocr NGramPerReqLogitsProcessor. Enabled by default; "
-                             "pass --no-enable-ngram to disable.")
 
     args = parser.parse_args()
 
@@ -464,7 +456,6 @@ def main() -> None:
         stop_token_ids=tuple(args.stop_token_id) if args.stop_token_id else None,
         ngram_size=args.ngram_size,
         ngram_window_size=args.ngram_window_size,
-        enable_ngram=args.enable_ngram,
     )
 
     logger.info("Worker server on :%d (model=%s)", args.port, args.model)
