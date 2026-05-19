@@ -242,12 +242,13 @@ def _build_llm(
     enforce_eager: bool,
     enable_prefix_caching: bool,
     max_num_batched_tokens: int | None,
+    enable_ngram: bool = False,
 ):
     from vllm import LLM
 
     logger.info(
-        "Loading vLLM LLM from %s (max_model_len=%d, max_num_seqs=%d, gpu_mem=%.2f)",
-        model_path, max_model_len, max_num_seqs, gpu_memory_utilization,
+        "Loading vLLM LLM from %s (max_model_len=%d, max_num_seqs=%d, gpu_mem=%.2f, ngram=%s)",
+        model_path, max_model_len, max_num_seqs, gpu_memory_utilization, enable_ngram,
     )
     kwargs = dict(
         model=model_path,
@@ -261,8 +262,9 @@ def _build_llm(
         gpu_memory_utilization=gpu_memory_utilization,
         enforce_eager=enforce_eager,
         enable_prefix_caching=enable_prefix_caching,
-        logits_processors=[NGRAM_LOGITS_PROCESSOR],
     )
+    if enable_ngram:
+        kwargs["logits_processors"] = [NGRAM_LOGITS_PROCESSOR]
     if max_num_batched_tokens is not None:
         kwargs["max_num_batched_tokens"] = int(max_num_batched_tokens)
     t0 = time.time()
@@ -285,6 +287,7 @@ def create_worker_app(
     stop_token_ids: tuple[int, ...] | None = None,
     ngram_size: int = DEFAULT_NGRAM_SIZE,
     ngram_window_size: int = DEFAULT_NGRAM_WINDOW_SIZE,
+    enable_ngram: bool = False,
 ) -> FastAPI:
     """Build a FastAPI app that owns an in-process ``vllm.LLM`` engine."""
 
@@ -311,6 +314,7 @@ def create_worker_app(
                 enforce_eager=enforce_eager,
                 enable_prefix_caching=enable_prefix_caching,
                 max_num_batched_tokens=max_num_batched_tokens,
+                enable_ngram=enable_ngram,
             ),
         )
         batcher = LLMBatcher(
@@ -378,13 +382,18 @@ def create_worker_app(
             raise HTTPException(status_code=400, detail=f"Failed to load audio: {e}") from e
 
         prompt = PROMPT_TEMPLATE.format(prompt=req.prompt)
-        sampling_params = SamplingParams(
+        sp_kwargs = dict(
             temperature=float(req.temperature),
             max_tokens=int(req.max_tokens),
             stop_token_ids=list(stop_token_ids),
             repetition_penalty=1.0,
-            extra_args={"ngram_size": int(ngram_size), "window_size": int(ngram_window_size)},
         )
+        if enable_ngram:
+            sp_kwargs["extra_args"] = {
+                "ngram_size": int(ngram_size),
+                "window_size": int(ngram_window_size),
+            }
+        sampling_params = SamplingParams(**sp_kwargs)
 
         try:
             fut = _state["batcher"].submit(prompt, (audio, sr), sampling_params)
@@ -430,6 +439,10 @@ def main() -> None:
                         help="NGram size for the repetition-suppression logits processor.")
     parser.add_argument("--ngram-window-size", type=int, default=DEFAULT_NGRAM_WINDOW_SIZE,
                         help="Look-back window (tokens) for the n-gram logits processor.")
+    parser.add_argument("--enable-ngram", action="store_true",
+                        help="Enable the deepseek_ocr NGramPerReqLogitsProcessor. Disabled by default "
+                             "because it has been observed to silently produce empty outputs on "
+                             "Qwen3.5-Audio after the first micro-batch.")
 
     args = parser.parse_args()
 
@@ -453,6 +466,7 @@ def main() -> None:
         stop_token_ids=tuple(args.stop_token_id) if args.stop_token_id else None,
         ngram_size=args.ngram_size,
         ngram_window_size=args.ngram_window_size,
+        enable_ngram=args.enable_ngram,
     )
 
     logger.info("Worker server on :%d (model=%s)", args.port, args.model)

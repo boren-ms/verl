@@ -133,6 +133,12 @@ def launch_worker_server(
         cmd.append("--enable-prefix-caching")
     for stop_id in cfg.worker.get("stop_token_ids", []) or []:
         cmd.extend(["--stop-token-id", str(stop_id)])
+    if cfg.worker.get("enable_ngram", False):
+        cmd.append("--enable-ngram")
+        if cfg.worker.get("ngram_size") is not None:
+            cmd.extend(["--ngram-size", str(cfg.worker.ngram_size)])
+        if cfg.worker.get("ngram_window_size") is not None:
+            cmd.extend(["--ngram-window-size", str(cfg.worker.ngram_window_size)])
 
     log_file = f"/tmp/worker_{port}.log"
     logger.info("Launching in-process LLM worker on GPU %d, port %d (log: %s)",
