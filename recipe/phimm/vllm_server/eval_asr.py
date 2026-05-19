@@ -479,6 +479,7 @@ async def run_evaluation(cfg: DictConfig):
         prompt = sample.get("prompt")
         assert audio_path, f"sample {idx} missing audio_path/audio_file/audio_chunk"
         assert prompt, f"sample {idx} missing prompt (set add_task_info in the source_config)"
+        prompt = re.sub(r"<audio>\n", "", prompt)
         if audio_path in done_paths:
             return
         payload = {

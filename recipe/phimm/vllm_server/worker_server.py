@@ -73,7 +73,7 @@ from recipe.phimm.utils.audio import load_audio  # noqa: E402
 logger = logging.getLogger("worker_server")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
-PROMPT_TEMPLATE = "<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+PROMPT_TEMPLATE = "<|im_start|>user\n<audio>\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 DEFAULT_STOP_TOKEN_IDS = (248044, 248046)
 NGRAM_LOGITS_PROCESSOR = "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor"
 DEFAULT_NGRAM_SIZE = 15
