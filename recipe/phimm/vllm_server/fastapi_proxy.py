@@ -231,12 +231,12 @@ async def get_client() -> httpx.AsyncClient:
     if _client is None:
         # High-concurrency pool: 1000 connections to sustain heavy request loads
         limits = httpx.Limits(
-            max_connections=1000,
+            max_connections=4096,
             max_keepalive_connections=200,
             keepalive_expiry=30.0,
         )
         _client = httpx.AsyncClient(
-            timeout=httpx.Timeout(600.0, connect=10.0),
+            timeout=None,
             limits=limits,
         )
     return _client
@@ -317,7 +317,7 @@ async def proxy_ready():
 
 # ---- Proxy forwarding: zero-copy with retry ----
 
-async def _forward_request(request: Request, path: str, max_retries: int = 2):
+async def _forward_request(request: Request, path: str, max_retries: int = 5):
     """Forward a request to the least-loaded healthy backend.
 
     Uses zero-copy forwarding: raw response bytes are passed through without
