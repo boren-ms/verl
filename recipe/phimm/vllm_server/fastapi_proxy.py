@@ -366,6 +366,12 @@ async def proxy_v1(request: Request, path: str):
     return await _forward_request(request, f"v1/{path}")
 
 
+@app.post("/asr/transcribe")
+async def proxy_asr_transcribe(request: Request):
+    """Forward single or batched transcription payloads to workers."""
+    return await _forward_request(request, "asr/transcribe")
+
+
 @app.api_route("/asr/{path:path}", methods=["GET", "POST"])
 async def proxy_asr(request: Request, path: str):
     """Forward ASR requests to worker sidecars (audio loading happens on workers)."""

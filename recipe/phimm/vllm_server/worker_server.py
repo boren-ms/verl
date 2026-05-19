@@ -62,7 +62,6 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-import blobfile as bf
 import numpy as np
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -116,17 +115,20 @@ class LLMBatcher:
         self.llm = llm
         self.max_batch_size = max(int(max_batch_size), 1)
         self.max_wait_seconds = max(float(max_wait_seconds), 0.0)
-        self._queue: "queue.Queue[tuple]" = queue.Queue()
+        self._queue: queue.Queue[tuple] = queue.Queue()
         self._stopping = False
         self._thread = threading.Thread(target=self._run, name="LLMBatcher", daemon=True)
         self._thread.start()
 
-    def submit(self, prompt: str, mm_audio, sampling_params) -> concurrent.futures.Future:
+    def submit(self, requests: list[tuple[str, object, object]]) -> list[concurrent.futures.Future]:
         if self._stopping:
             raise RuntimeError("LLMBatcher is shutting down")
-        fut: concurrent.futures.Future = concurrent.futures.Future()
-        self._queue.put((prompt, mm_audio, sampling_params, fut))
-        return fut
+        futures: list[concurrent.futures.Future] = []
+        for prompt, mm_audio, sampling_params in requests:
+            fut: concurrent.futures.Future = concurrent.futures.Future()
+            self._queue.put((prompt, mm_audio, sampling_params, fut))
+            futures.append(fut)
+        return futures
 
     def shutdown(self) -> None:
         self._stopping = True
@@ -194,7 +196,7 @@ class LLMBatcher:
                 continue
             elapsed = time.time() - t0
 
-            for fut, out in zip(futures, outputs):
+            for fut, out in zip(futures, outputs, strict=True):
                 if fut.done():
                     continue
                 try:
@@ -214,7 +216,7 @@ class LLMBatcher:
 # Request / response models
 # ---------------------------------------------------------------------------
 
-class TranscribeRequest(BaseModel):
+class TranscribeSample(BaseModel):
     audio_path: str = Field(
         ...,
         description=(
@@ -222,12 +224,19 @@ class TranscribeRequest(BaseModel):
         ),
     )
     prompt: str = Field(
-        default="Transcribe the audio clip into text.",
-        description="ASR prompt text (will be wrapped in the model's chat format).",
+        ...,
+        description="Per-sample ASR prompt text.",
     )
+
+
+class TranscribeRequest(BaseModel):
     max_tokens: int = Field(default=1024)
     temperature: float = Field(default=0.0)
     max_audio_dur: float = Field(default=40.0, description="Max audio duration in seconds")
+    samples: list[TranscribeSample] = Field(
+        ...,
+        description="Batch of samples to transcribe in one request.",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -360,48 +369,65 @@ def create_worker_app(
         if not _state["ready"]:
             raise HTTPException(status_code=503, detail="LLM not yet loaded")
 
-        _stats["active"] += 1
+        if len(req.samples) == 0:
+            raise HTTPException(status_code=400, detail="samples must not be empty")
+        items = req.samples
+
+        _stats["active"] += len(items)
         loop = asyncio.get_event_loop()
         request_id = uuid.uuid4().hex[:12]
 
         try:
-            audio, sr = await loop.run_in_executor(
-                thread_pool,
-                functools.partial(
-                    _load_audio_array,
-                    audio_path=req.audio_path,
-                    max_dur=req.max_audio_dur,
-                ),
+            audio_specs = await asyncio.gather(
+                *[
+                    loop.run_in_executor(
+                        thread_pool,
+                        functools.partial(
+                            _load_audio_array,
+                            audio_path=sample.audio_path,
+                            max_dur=float(req.max_audio_dur),
+                        ),
+                    )
+                    for sample in items
+                ]
             )
         except Exception as e:
-            _stats["active"] -= 1
+            _stats["active"] -= len(items)
             _stats["errors"] += 1
             raise HTTPException(status_code=400, detail=f"Failed to load audio: {e}") from e
-        sp_kwargs = dict(
-            temperature=float(req.temperature),
-            max_tokens=int(req.max_tokens),
-            stop_token_ids=list(stop_token_ids),
-            repetition_penalty=1.0,
-            extra_args={
-                "ngram_size": int(ngram_size),
-                "window_size": int(ngram_window_size),
-            },
-        )
-        sampling_params = SamplingParams(**sp_kwargs)
 
         try:
-            fut = _state["batcher"].submit(req.prompt, (audio, sr), sampling_params)
-            text = await asyncio.wrap_future(fut)
+            sp_kwargs = dict(
+                temperature=float(req.temperature),
+                max_tokens=int(req.max_tokens),
+                stop_token_ids=list(stop_token_ids),
+                repetition_penalty=1.0,
+                extra_args={
+                    "ngram_size": int(ngram_size),
+                    "window_size": int(ngram_window_size),
+                },
+            )
+            sampling_params = SamplingParams(**sp_kwargs)
+
+            submit_requests = []
+            for sample, audio_spec in zip(items, audio_specs, strict=True):
+                submit_requests.append((sample.prompt, audio_spec, sampling_params))
+
+            futures = _state["batcher"].submit(submit_requests)
+            texts = await asyncio.gather(*[asyncio.wrap_future(fut) for fut in futures])
         except Exception as e:
-            _stats["active"] -= 1
+            _stats["active"] -= len(items)
             _stats["errors"] += 1
-            logger.exception("Generation failed for request %s", request_id)
+            logger.exception("Generation failed for request %s (batch=%d)", request_id, len(items))
             raise HTTPException(status_code=500, detail=f"Generation failed: {e}") from e
 
-        _stats["active"] -= 1
-        _stats["completed"] += 1
+        _stats["active"] -= len(items)
+        _stats["completed"] += len(items)
 
-        return {"text": text}
+        return {
+            "results": [{"text": text} for text in texts],
+            "batch_size": len(texts),
+        }
 
     return app
 
