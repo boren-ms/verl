@@ -498,8 +498,8 @@ async def run_evaluation(cfg: DictConfig):
                 resp.raise_for_status()
                 result = resp.json()
             except Exception as e:
-                logger.error("Sample %d failed: %s", idx, e)
-                result = {"error": str(e)}
+                logger.error("Sample %d failed: %r", idx, e)
+                result = {"error": repr(e)}
 
         # Score (CPU-only, fast)
         response_str = extract_response_text(result)
