@@ -383,6 +383,11 @@ def load_dataset(source_config, num_egs: int | None = None) -> Dataset:
     return ds_obj
 
 
+def format_prompt(prompt: str) -> str:
+    """Format a raw prompt string into the expected conversational format."""
+    PROMPT_TEMPLATE ="<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+    return PROMPT_TEMPLATE.format(prompt=prompt)
+
 async def run_evaluation(cfg: DictConfig):
     """Pipelined evaluation: sends audio paths to workers, scores results locally."""
     import httpx
@@ -476,7 +481,7 @@ async def run_evaluation(cfg: DictConfig):
             return
         payload = {
             "audio_path": audio_path,
-            "prompt": prompt,
+            "prompt": format_prompt(prompt),
             "max_tokens": max_tokens,
             "temperature": 0.0,
             "max_audio_dur": max_audio_dur,
