@@ -3,7 +3,7 @@
 {{- '<|im_start|>user\n' }}
 {%- for item in message['content'] %}
 {%- if item['type'] == 'audio_url' or item['type'] == 'input_audio' %}
-{{- '<audio>' }}
+{{- '<audio>\n' }}
 {%- elif item['type'] == 'text' %}
 {{- item['text'] }}
 {%- endif %}
