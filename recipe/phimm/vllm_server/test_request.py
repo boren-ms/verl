@@ -17,6 +17,7 @@ import time
 import httpx
 
 from recipe.phimm.data.prompts import get_task_prompt
+from recipe.phimm.vllm_server.eval_asr import PROMPT_TEMPLATE
 
 
 DEFAULT_AUDIO_PATH = (
@@ -38,7 +39,7 @@ def send_test_request(
     """Send one /asr/transcribe request and return the parsed response."""
     payload = {
         "audio_path": audio_path,
-        "prompt": prompt,
+        "prompt": PROMPT_TEMPLATE.format(prompt=prompt),
         "max_tokens": max_tokens,
         "temperature": 0.0,
         "max_audio_dur": max_audio_dur,

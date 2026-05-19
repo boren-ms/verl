@@ -107,10 +107,6 @@ def launch_worker_server(
     """Spawn the in-process vLLM worker server bound to a specific GPU."""
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
-    # Enable the qwen35_audio out-of-tree plugin (registers
-    # Qwen3_5AudioForCausalLM with vLLM's ModelRegistry and installs the audio
-    # multimodal processor). See plugins/qwen35_audio/README.md for the
-    # verified stack.
     env.setdefault("VLLM_PLUGINS", "qwen35_audio")
     env.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
     env.setdefault("QWEN35_AUDIO_DISABLE_CUDNN", "1")
@@ -133,12 +129,14 @@ def launch_worker_server(
         cmd.append("--enable-prefix-caching")
     for stop_id in cfg.worker.get("stop_token_ids", []) or []:
         cmd.extend(["--stop-token-id", str(stop_id)])
-    if cfg.worker.get("enable_ngram", False):
+    if cfg.worker.get("enable_ngram", True):
         cmd.append("--enable-ngram")
         if cfg.worker.get("ngram_size") is not None:
             cmd.extend(["--ngram-size", str(cfg.worker.ngram_size)])
         if cfg.worker.get("ngram_window_size") is not None:
             cmd.extend(["--ngram-window-size", str(cfg.worker.ngram_window_size)])
+    else:
+        cmd.append("--no-enable-ngram")
 
     log_file = f"/tmp/worker_{port}.log"
     logger.info("Launching in-process LLM worker on GPU %d, port %d (log: %s)",

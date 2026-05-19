@@ -8,8 +8,10 @@ generation API directly — the same pattern as
 ``plugins/qwen35_audio/scripts/run_qwen35_audio_vllm.py``:
 
 * Audio is loaded from blob/local paths on the worker (co-located with GPU).
-* The prompt string is rendered with the model's expected ``<audio>`` /
-  chat-special-token format directly — no Jinja chat template is required.
+* The prompt string is passed through to vLLM verbatim — the client (e.g.
+  ``recipe.phimm.vllm_server.eval_asr``) is responsible for wrapping the
+  task prompt with the model's expected ``<audio>`` / chat-special-token
+  template before sending it.
 * The raw waveform + sample-rate is passed via ``multi_modal_data={"audio": ...}``.
 * ``LLM.generate`` is called with a batch of pending requests (micro-batching)
   to keep the GPU saturated while still giving each HTTP caller a single
@@ -73,7 +75,6 @@ from recipe.phimm.utils.audio import load_audio  # noqa: E402
 logger = logging.getLogger("worker_server")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
-PROMPT_TEMPLATE = "<|im_start|>user\n<audio>\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 DEFAULT_STOP_TOKEN_IDS = (248044, 248046)
 NGRAM_LOGITS_PROCESSOR = "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor"
 DEFAULT_NGRAM_SIZE = 15
@@ -242,7 +243,7 @@ def _build_llm(
     enforce_eager: bool,
     enable_prefix_caching: bool,
     max_num_batched_tokens: int | None,
-    enable_ngram: bool = False,
+    enable_ngram: bool = True,
 ):
     from vllm import LLM
 
@@ -287,7 +288,7 @@ def create_worker_app(
     stop_token_ids: tuple[int, ...] | None = None,
     ngram_size: int = DEFAULT_NGRAM_SIZE,
     ngram_window_size: int = DEFAULT_NGRAM_WINDOW_SIZE,
-    enable_ngram: bool = False,
+    enable_ngram: bool = True,
 ) -> FastAPI:
     """Build a FastAPI app that owns an in-process ``vllm.LLM`` engine."""
 
@@ -380,8 +381,6 @@ def create_worker_app(
             _stats["active"] -= 1
             _stats["errors"] += 1
             raise HTTPException(status_code=400, detail=f"Failed to load audio: {e}") from e
-
-        prompt = PROMPT_TEMPLATE.format(prompt=req.prompt)
         sp_kwargs = dict(
             temperature=float(req.temperature),
             max_tokens=int(req.max_tokens),
@@ -396,7 +395,7 @@ def create_worker_app(
         sampling_params = SamplingParams(**sp_kwargs)
 
         try:
-            fut = _state["batcher"].submit(prompt, (audio, sr), sampling_params)
+            fut = _state["batcher"].submit(req.prompt, (audio, sr), sampling_params)
             text = await asyncio.wrap_future(fut)
         except Exception as e:
             _stats["active"] -= 1
@@ -439,10 +438,9 @@ def main() -> None:
                         help="NGram size for the repetition-suppression logits processor.")
     parser.add_argument("--ngram-window-size", type=int, default=DEFAULT_NGRAM_WINDOW_SIZE,
                         help="Look-back window (tokens) for the n-gram logits processor.")
-    parser.add_argument("--enable-ngram", action="store_true",
-                        help="Enable the deepseek_ocr NGramPerReqLogitsProcessor. Disabled by default "
-                             "because it has been observed to silently produce empty outputs on "
-                             "Qwen3.5-Audio after the first micro-batch.")
+    parser.add_argument("--enable-ngram", action=argparse.BooleanOptionalAction, default=True,
+                        help="Enable the deepseek_ocr NGramPerReqLogitsProcessor. Enabled by default; "
+                             "pass --no-enable-ngram to disable.")
 
     args = parser.parse_args()
 

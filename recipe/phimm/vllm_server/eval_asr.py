@@ -71,6 +71,7 @@ PART_PREFIX = "part-"
 PART_SUFFIX = ".parquet"
 SUMMARY_SUFFIX = ".summary.json"
 PART_DIGITS = 6
+PROMPT_TEMPLATE = "<|im_start|>user\n<audio>\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 
 
 def _part_path(output_path: str, part_idx: int) -> str:
@@ -482,6 +483,7 @@ async def run_evaluation(cfg: DictConfig):
         assert audio_path, f"sample {idx} missing audio_path/audio_file/audio_chunk"
         assert prompt, f"sample {idx} missing prompt (set add_task_info in the source_config)"
         prompt = re.sub(r"<audio>\n", "", prompt)
+        prompt = PROMPT_TEMPLATE.format(prompt=prompt)
         if audio_path in done_paths:
             return
         payload = {

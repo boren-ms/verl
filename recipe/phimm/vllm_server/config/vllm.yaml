@@ -29,7 +29,7 @@ server:
 # concurrent HTTP requests into one LLM.generate call.
 worker:
   audio_workers: 8                 # thread pool size for audio loading
-  batch_max_wait_seconds: 0.02     # micro-batch coalescing window
+  batch_max_wait_seconds: 0.5     # micro-batch coalescing window
   # Stop tokens for the qwen35_audio fast-llm checkpoints (matches
   # plugins/qwen35_audio/scripts/run_qwen35_audio_vllm.py). Override per-model.
   stop_token_ids: [248044, 248046]
