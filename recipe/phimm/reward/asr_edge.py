@@ -174,7 +174,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
     gamma = kwargs.get("gamma", 1)
-    is_good = parsed["p_fmt"] and not parsed["p_bracket"]  # skip lang check, due to inaccurate lang tag
+    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_tail_rep"]
 
     if metric == "wer":
         score = -(err.wer(**betas) ** gamma) if is_good else -1
