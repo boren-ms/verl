@@ -251,6 +251,86 @@ def _remap_keys(state_dict: "OrderedDict[str, torch.Tensor]",
 
 
 # -----------------------------------------------------------------------------
+# LoRA merge + base_layer wrapping (for --match-lora-merged)
+# -----------------------------------------------------------------------------
+
+# Linear modules that the reference checkpoint stores as `<prefix>.<suffix>.base_layer.weight`
+# even when no LoRA adapters are attached. Anything not in this set keeps its plain `.weight`.
+LORA_TARGET_SUFFIXES = (
+    "in_proj_qkv", "out_proj",
+    "gate_proj", "up_proj", "down_proj",
+    "q_proj", "k_proj", "v_proj", "o_proj",
+)
+
+
+def _merge_lora_adapters(
+    state_dict: "OrderedDict[str, torch.Tensor]",
+    scaling: float = 1.0,
+) -> int:
+    """In-place: fold every ``lora_A``/``lora_B`` pair into its base weight, drop adapters.
+
+    Computes ``W <- W + scaling * (B @ A)`` in fp32 then casts back to W's original dtype.
+    Looks for the base weight at ``<prefix>.base_layer.weight`` first, then ``<prefix>.weight``.
+    Returns the number of adapter pairs merged.
+    """
+    # Group adapters by (prefix, adapter_name)
+    pairs: dict[tuple[str, str], dict[str, str]] = {}
+    for k in list(state_dict.keys()):
+        m = _LORA_RE.match(k)
+        if not m or m.group("tail") != "weight":
+            continue
+        key = (m.group("prefix"), m.group("adapter"))
+        pairs.setdefault(key, {})[m.group("ab")] = k
+
+    merged = 0
+    for (prefix, adapter), ab_keys in tqdm(list(pairs.items()), desc="Merging LoRA adapters"):
+        if "A" not in ab_keys or "B" not in ab_keys:
+            raise RuntimeError(f"Incomplete LoRA pair for {prefix} adapter={adapter}: {ab_keys}")
+        a_key, b_key = ab_keys["A"], ab_keys["B"]
+        a = state_dict[a_key]  # [r, in]
+        b = state_dict[b_key]  # [out, r]
+
+        base_key = None
+        for candidate in (f"{prefix}.base_layer.weight", f"{prefix}.weight"):
+            if candidate in state_dict:
+                base_key = candidate
+                break
+        if base_key is None:
+            raise RuntimeError(f"No base weight found for LoRA prefix {prefix}")
+
+        base = state_dict[base_key]
+        delta = (b.to(torch.float32) @ a.to(torch.float32)) * scaling
+        state_dict[base_key] = (base.to(torch.float32) + delta).to(base.dtype)
+        del state_dict[a_key]
+        del state_dict[b_key]
+        merged += 1
+    return merged
+
+
+def _wrap_base_layer(
+    state_dict: "OrderedDict[str, torch.Tensor]",
+    suffixes: tuple[str, ...] = LORA_TARGET_SUFFIXES,
+) -> "OrderedDict[str, torch.Tensor]":
+    """Rename ``...<suffix>.weight``/``.bias`` -> ``...<suffix>.base_layer.weight``/``.bias``.
+
+    Already-wrapped keys (``...<suffix>.base_layer.weight``) are left untouched.
+    """
+    out: "OrderedDict[str, torch.Tensor]" = OrderedDict()
+    for k, v in state_dict.items():
+        new_k = k
+        for suf in suffixes:
+            for tail in ("weight", "bias"):
+                tag = f".{suf}.{tail}"
+                if k.endswith(tag) and not k.endswith(f".{suf}.base_layer.{tail}"):
+                    new_k = k[: -len(tail)] + f"base_layer.{tail}"
+                    break
+            if new_k != k:
+                break
+        out[new_k] = v
+    return out
+
+
+# -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 
@@ -270,6 +350,17 @@ def main():
                     help="Strip this prefix from every key (default: 'base_model.model.').")
     ap.add_argument("--no-remap", action="store_true",
                     help="Skip key remapping (keep raw verl/PEFT key names).")
+    ap.add_argument("--match-lora-merged", action="store_true",
+                    help="Produce a 'lora_merged' style checkpoint: merge LoRA adapters "
+                         "into base weights, wrap LoRA-target linears with .base_layer.weight, "
+                         "and save the state_dict at the top level (no 'module' wrapper).")
+    ap.add_argument("--lora-scaling", type=float, default=None,
+                    help="LoRA scaling factor = alpha/rank. If unset, derived from "
+                         "--lora-alpha/--lora-rank, else defaults to 1.0.")
+    ap.add_argument("--lora-alpha", type=float, default=None,
+                    help="LoRA alpha (used to compute scaling if --lora-scaling unset).")
+    ap.add_argument("--lora-rank", type=int, default=None,
+                    help="LoRA rank (used to compute scaling if --lora-scaling unset).")
     args = ap.parse_args()
 
     actor_dir = _resolve_actor_dir(args.input)
@@ -309,10 +400,30 @@ def main():
         print(f"       Remapped keys: {before} -> {len(state_dict)} "
               f"(strip_prefix={args.strip_prefix!r}, adapter={args.lora_adapter_name!r})")
 
+    if args.match_lora_merged:
+        if args.lora_scaling is not None:
+            scaling = args.lora_scaling
+        elif args.lora_alpha is not None and args.lora_rank is not None:
+            scaling = args.lora_alpha / args.lora_rank
+        else:
+            scaling = 1.0
+        print(f"[3.5/4] LoRA-merged mode: scaling={scaling}")
+        before = len(state_dict)
+        merged = _merge_lora_adapters(state_dict, scaling=scaling)
+        print(f"        Merged {merged} LoRA adapter pairs ({before} -> {len(state_dict)} tensors)")
+        before = len(state_dict)
+        state_dict = _wrap_base_layer(state_dict)
+        wrapped = sum(1 for k in state_dict if k.endswith(".base_layer.weight") or k.endswith(".base_layer.bias"))
+        print(f"        Wrapped LoRA-target linears: {wrapped} keys end with .base_layer.weight/.bias")
+
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"[4/4] Saving {len(state_dict)} tensors -> {out_path}")
-    torch.save({"module": state_dict}, out_path)
+    if args.match_lora_merged:
+        # lora_merged reference is a bare OrderedDict at the top level (no "module" wrapper).
+        torch.save(state_dict, out_path)
+    else:
+        torch.save({"module": state_dict}, out_path)
 
     total_bytes = sum(t.numel() * t.element_size() for t in state_dict.values())
     print(f"       Done. {len(state_dict)} tensors, {total_bytes / 1e9:.2f} GB (bfloat16)")
