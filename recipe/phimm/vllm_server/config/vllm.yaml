@@ -24,6 +24,10 @@ server:
   enforce_eager: false
   disable_prefix_caching: true
   performance_mode: throughput  # balanced | interactivity | throughput
+  # Optional override for vLLM's chat template. Accepts either a path to a
+  # Jinja file or a raw template string. When null, vLLM uses the template
+  # bundled with the model's tokenizer_config.json.
+  chat_template: recipe/phimm/vllm_server/config/asr_chat_template.jinja
 
 # Worker sidecar config
 worker:

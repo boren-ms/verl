@@ -293,6 +293,9 @@ def run_servers(cfg: DictConfig) -> None:
             extra.append("--enforce-eager")
         if not cfg.server.disable_prefix_caching:
             extra.append("--enable-prefix-caching")
+        chat_template = cfg.server.get("chat_template")
+        if chat_template:
+            extra.extend(["--chat-template", str(chat_template)])
 
         vllm_proc = launch_vllm_server(gpu_id, model_path, vllm_port, extra_args=extra)
         worker_proc = launch_worker_server(
