@@ -10,4 +10,4 @@ defaults:
 
 data:
   source_config: data/train_data/ls_raw.yaml
-  output_path: az://orngwus2cresco/data/boren/data/verl/vllm_eval_asr/ls_raw_h100/
+  output_path: az://orngwus2cresco/data/boren/data/verl/vllm_eval_asr/ls_raw/
