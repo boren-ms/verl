@@ -417,12 +417,11 @@ async def run_evaluation(cfg: DictConfig):
     total = len(dataset)
     logger.info("Loaded %d samples (wer_kwargs=%s)", total, wer_kwargs)
 
-    # High-concurrency client. Generous timeouts: connect waits up to 60s for the
-    # proxy to accept the TCP handshake under heavy load; read waits up to 600s
-    # for the audio transcription to finish.
+    # High-concurrency client. No timeout: wait indefinitely for each
+    # transcription result regardless of how long inference takes.
     client = httpx.AsyncClient(
         limits=httpx.Limits(max_connections=max_concurrent + 50, max_keepalive_connections=100),
-        timeout=httpx.Timeout(600.0, connect=60.0),
+        timeout=None,
     )
     semaphore = asyncio.Semaphore(max_concurrent)
 
