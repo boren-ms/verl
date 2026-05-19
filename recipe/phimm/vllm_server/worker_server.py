@@ -75,6 +75,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname
 
 PROMPT_TEMPLATE = "<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 DEFAULT_STOP_TOKEN_IDS = (248044, 248046)
+NGRAM_LOGITS_PROCESSOR = "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor"
+DEFAULT_NGRAM_SIZE = 15
+DEFAULT_NGRAM_WINDOW_SIZE = 512
+
 
 def _load_audio_array(audio_path: str, max_dur: float) -> tuple[np.ndarray, int]:
     """Return a ``(waveform_float32, sample_rate)`` tuple for ``audio_path``."""
@@ -257,6 +261,7 @@ def _build_llm(
         gpu_memory_utilization=gpu_memory_utilization,
         enforce_eager=enforce_eager,
         enable_prefix_caching=enable_prefix_caching,
+        logits_processors=[NGRAM_LOGITS_PROCESSOR],
     )
     if max_num_batched_tokens is not None:
         kwargs["max_num_batched_tokens"] = int(max_num_batched_tokens)
@@ -278,6 +283,8 @@ def create_worker_app(
     audio_workers: int = 8,
     batch_max_wait_seconds: float = 0.02,
     stop_token_ids: tuple[int, ...] | None = None,
+    ngram_size: int = DEFAULT_NGRAM_SIZE,
+    ngram_window_size: int = DEFAULT_NGRAM_WINDOW_SIZE,
 ) -> FastAPI:
     """Build a FastAPI app that owns an in-process ``vllm.LLM`` engine."""
 
@@ -376,6 +383,7 @@ def create_worker_app(
             max_tokens=int(req.max_tokens),
             stop_token_ids=list(stop_token_ids),
             repetition_penalty=1.0,
+            extra_args={"ngram_size": int(ngram_size), "window_size": int(ngram_window_size)},
         )
 
         try:
@@ -418,6 +426,10 @@ def main() -> None:
                         help="Micro-batch coalescing window for LLM.generate calls.")
     parser.add_argument("--stop-token-id", action="append", type=int, default=None,
                         help="Override stop token id(s) for SamplingParams (repeatable).")
+    parser.add_argument("--ngram-size", type=int, default=DEFAULT_NGRAM_SIZE,
+                        help="NGram size for the repetition-suppression logits processor.")
+    parser.add_argument("--ngram-window-size", type=int, default=DEFAULT_NGRAM_WINDOW_SIZE,
+                        help="Look-back window (tokens) for the n-gram logits processor.")
 
     args = parser.parse_args()
 
@@ -439,6 +451,8 @@ def main() -> None:
         audio_workers=args.audio_workers,
         batch_max_wait_seconds=args.batch_max_wait_seconds,
         stop_token_ids=tuple(args.stop_token_id) if args.stop_token_id else None,
+        ngram_size=args.ngram_size,
+        ngram_window_size=args.ngram_window_size,
     )
 
     logger.info("Worker server on :%d (model=%s)", args.port, args.model)
