@@ -53,6 +53,11 @@ sys.path.insert(0, str(Path(__file__).parents[3]))
 
 from recipe.phimm.utils.audio import load_audio  # noqa: E402
 
+# Defaults matching plugins/qwen35_audio/scripts/run_qwen35_audio_vllm.py
+# so the served Qwen3.5-Audio model produces identical sampling behavior.
+DEFAULT_STOP_TOKEN_IDS = [248044, 248046]
+DEFAULT_VLLM_XARGS = {"ngram_size": 15, "window_size": 512}
+
 logger = logging.getLogger("worker_server")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
@@ -218,6 +223,9 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
             "messages": messages,
             "temperature": req.temperature,
             "max_tokens": req.max_tokens,
+            "stop_token_ids": DEFAULT_STOP_TOKEN_IDS,
+            "vllm_xargs": DEFAULT_VLLM_XARGS,
+            "repetition_penalty": 1.0,
         }
 
         client = await get_client()

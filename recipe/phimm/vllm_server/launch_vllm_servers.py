@@ -144,9 +144,12 @@ def launch_vllm_server(
         "--port", str(port),
         "--tensor-parallel-size", "1",
         "--trust-remote-code",
+        "--load-format", "auto",
         "--dtype", "bfloat16",
         "--disable-log-stats",
         "--limit-mm-per-prompt", '{"audio": 1}',
+        "--logits-processors",
+        "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor",
     ]
     if extra_args:
         cmd.extend(extra_args)
