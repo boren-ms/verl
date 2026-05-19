@@ -6,7 +6,7 @@ sidecars that handle the actual audio loading on the GPU node. This means
 the client only sends tiny JSON payloads — no audio I/O or base64 encoding.
 
 Data flow:
-  Client: {"audio_path": "az://...", "prompt": "..."} → Proxy → Worker → vLLM
+    Client: {"samples": [{"audio_path": "az://...", "prompt": "..."}], ...} → Proxy → Worker → vLLM
   Client only does: dataset iteration + WER scoring (both fast, CPU-only)
 
 GPU utilization optimizations (targeting >90%):
@@ -51,19 +51,27 @@ logger = logging.getLogger("eval_asr")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
 
-def extract_response_text(result: dict) -> str:
-    """Extract generated text from worker responses.
+def extract_response_texts(result: dict, expected_count: int) -> list[str]:
+    """Extract generated texts from a batched worker response.
 
-    Supports:
-    - {"text": "..."} (current worker response)
+    Returns exactly ``expected_count`` entries, padding with empty strings
+    when needed so caller-side scoring logic remains per-sample.
     """
-    if "error" in result:
-        return ""
-    if isinstance(result, str):
-        return result
-    text = result.get("text")
-    if isinstance(text, str):
-        return text
+    if expected_count <= 0:
+        return []
+    results = result.get("results")
+    assert results is not None, f"Missing 'results' in response: {result!r}"
+    assert isinstance(results, list), f"'results' should be a list: {result!r}"
+    
+    texts: list[str] = []
+    for item in results[:expected_count]:
+        if isinstance(item, dict) and isinstance(item.get("text"), str):
+            texts.append(item["text"])
+        else:
+            texts.append("")
+    if len(texts) < expected_count:
+        texts.extend([""] * (expected_count - len(texts)))
+    return texts
     raise ValueError(f"Unexpected response format: {result!r}")
 
 
@@ -400,6 +408,7 @@ async def run_evaluation(cfg: DictConfig):
 
     proxy_url = cfg.eval.proxy_url
     max_concurrent = int(cfg.data.max_concurrent)
+    request_batch_size = max(int(cfg.eval.get("request_batch_size", 16)), 1)
     max_tokens = int(cfg.data.max_tokens)
     max_audio_dur = float(cfg.data.max_audio_dur)
     num_egs = cfg.data.get("num_egs")
@@ -472,27 +481,34 @@ async def run_evaluation(cfg: DictConfig):
                 pending_rows[:0] = batch
                 next_part_idx = part_idx
 
-    async def _process_one(idx: int):
-        """Send one audio path to worker, score the result."""
+    async def _process_batch(indices: list[int]) -> None:
+        """Send a batch of audio paths to worker, score each sample result."""
         nonlocal tn_err, tn_ref, tn_edge, completed
 
-        sample = dataset[idx]
-        audio_path = sample.get("audio_path") or sample.get("audio_file") or sample.get("audio_chunk")
-        text = sample.get("Transcription") or sample.get("text")
-        prompt = sample.get("prompt")
-        assert audio_path, f"sample {idx} missing audio_path/audio_file/audio_chunk"
-        assert prompt, f"sample {idx} missing prompt (set add_task_info in the source_config)"
-        prompt = re.sub(r"<audio>\n", "", prompt)
-        prompt = PROMPT_TEMPLATE.format(prompt=prompt)
-        if audio_path in done_paths:
+        batch_items: list[tuple[int, str, str, str]] = []
+        for idx in indices:
+            sample = dataset[idx]
+            audio_path = sample.get("audio_path") or sample.get("audio_file") or sample.get("audio_chunk")
+            text = sample.get("Transcription") or sample.get("text")
+            prompt = sample.get("prompt")
+            assert audio_path, f"sample {idx} missing audio_path/audio_file/audio_chunk"
+            assert prompt, f"sample {idx} missing prompt (set add_task_info in the source_config)"
+            prompt = re.sub(r"<audio>\n", "", prompt)
+            prompt = PROMPT_TEMPLATE.format(prompt=prompt)
+            if audio_path in done_paths:
+                continue
+            batch_items.append((idx, audio_path, text, prompt))
+
+        if not batch_items:
             return
+
         payload = {
-            "audio_path": audio_path,
-            "prompt": prompt,
+            "samples": [{"audio_path": ap, "prompt": pr} for _, ap, _, pr in batch_items],
             "max_tokens": max_tokens,
             "temperature": 0.0,
             "max_audio_dur": max_audio_dur,
         }
+
         async with semaphore:
             try:
                 resp = await client.post(
@@ -501,50 +517,60 @@ async def run_evaluation(cfg: DictConfig):
                 )
                 resp.raise_for_status()
                 result = resp.json()
+                responses = extract_response_texts(result, len(batch_items))
             except Exception as e:
-                logger.error("Sample %d failed: %r", idx, e)
-                result = {"error": repr(e)}
+                logger.error("Batch request failed (%d samples): %r", len(batch_items), e)
+                responses = [f"<error>{e}</error>"] * len(batch_items)
 
-        # Score (CPU-only, fast)
-        response_str = extract_response_text(result)
-        score = eval_score(response_str, text, **wer_kwargs)
-        row = {
-            "audio_path": audio_path,
-            "text": text,
-            "prompt": prompt,
-            "response": parse_asr_response(response_str).get("text"),
-            "raw_response": response_str,
-            **score,
-        }
+        for (_, audio_path, text, prompt), response_str in zip(batch_items, responses, strict=True):
+            # Score (CPU-only, fast)
+            score = eval_score(response_str, text, **wer_kwargs)
+            row = {
+                "audio_path": audio_path,
+                "text": text,
+                "prompt": prompt,
+                "response": parse_asr_response(response_str).get("text"),
+                "raw_response": response_str,
+                **score,
+            }
 
-        tn_err += row["n_err"]
-        tn_ref += row["n_ref"]
-        tn_edge += row["n_edge"]
-        completed += 1
-        done_paths.add(audio_path)
-        pending_rows.append(row)
+            tn_err += row["n_err"]
+            tn_ref += row["n_ref"]
+            tn_edge += row["n_edge"]
+            completed += 1
+            done_paths.add(audio_path)
+            pending_rows.append(row)
+
+            if completed % log_interval == 0:
+                elapsed = time.time() - t_start
+                rps = completed / max(elapsed, 0.1)
+                wer = tn_err / max(tn_ref, 1)
+                logger.info(
+                    "%d/%d (%.1f req/s) | WER: %.2f%% [%d/%d] | Edge: %.2f%%",
+                    completed,
+                    total,
+                    rps,
+                    wer * 100,
+                    tn_err,
+                    tn_ref,
+                    tn_edge / max(tn_ref, 1) * 100,
+                )
 
         await _flush_pending()
 
-        if completed % log_interval == 0:
-            elapsed = time.time() - t_start
-            rps = completed / max(elapsed, 0.1)
-            wer = tn_err / max(tn_ref, 1)
-            logger.info(
-                "%d/%d (%.1f req/s) | WER: %.2f%% [%d/%d] | Edge: %.2f%%",
-                completed,
-                total,
-                rps,
-                wer * 100,
-                tn_err,
-                tn_ref,
-                tn_edge / max(tn_ref, 1) * 100,
-            )
-
     try:
-        # Fire ALL requests concurrently — semaphore governs parallelism
-        logger.info("Launching %d requests (max_concurrent=%d)", total, max_concurrent)
-        tasks = [asyncio.create_task(_process_one(i)) for i in range(total)]
+        # Fire ALL batched requests concurrently — semaphore governs parallelism.
+        index_batches = [
+            list(range(i, min(i + request_batch_size, total)))
+            for i in range(0, total, request_batch_size)
+        ]
+        logger.info(
+            "Launching %d batched requests (batch_size=%d, max_concurrent=%d)",
+            len(index_batches),
+            request_batch_size,
+            max_concurrent,
+        )
+        tasks = [asyncio.create_task(_process_batch(batch)) for batch in index_batches]
         await asyncio.gather(*tasks, return_exceptions=True)
 
         for i, t in enumerate(tasks):

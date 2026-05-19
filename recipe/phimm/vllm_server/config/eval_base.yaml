@@ -22,6 +22,7 @@ eval:
   proxy_url: http://verl-n1-i0-0:8000
   log_interval: 100
   save_interval: 10000
+  request_batch_size: 16    # samples sent per /asr/transcribe HTTP call
   resume: true
   wait_timeout: 600.0
   wer_kwargs:

@@ -38,8 +38,12 @@ def send_test_request(
 ) -> dict:
     """Send one /asr/transcribe request and return the parsed response."""
     payload = {
-        "audio_path": audio_path,
-        "prompt": PROMPT_TEMPLATE.format(prompt=prompt),
+        "samples": [
+            {
+                "audio_path": audio_path,
+                "prompt": PROMPT_TEMPLATE.format(prompt=prompt),
+            }
+        ],
         "max_tokens": max_tokens,
         "temperature": 0.0,
         "max_audio_dur": max_audio_dur,
@@ -54,7 +58,7 @@ def send_test_request(
     resp.raise_for_status()
     data = resp.json()
     try:
-        text = data["choices"][0]["message"]["content"]
+        text = data["results"][0]["text"]
         print(f"  response   = {text!r}")
     except (KeyError, IndexError):
         print(f"  raw        = {json.dumps(data)[:500]}")
