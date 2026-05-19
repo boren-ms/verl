@@ -1,24 +1,15 @@
 """
-Launch multiple vLLM server instances on a single node (one per GPU with TP=1),
-each with a worker sidecar that handles audio loading locally.
+Launch one in-process vLLM ``LLM`` worker per GPU (TP=1) on a single node.
 
-Per-GPU architecture:
-    - vLLM on an auto-selected available local port
-    - Worker sidecar on an auto-selected available local port
-  - Worker handles audio loading from blob/local storage, builds chat messages,
-    forwards to local vLLM — the proxy only sees the worker port.
+Each worker process owns its own ``vllm.LLM`` engine (no separate vLLM HTTP
+server is spawned anymore — see ``worker_server.py`` for the new design that
+calls ``llm.generate`` directly, modelled on
+``plugins/qwen35_audio/scripts/run_qwen35_audio_vllm.py``).
 
-The worker sidecar eliminates the client-side audio loading bottleneck:
-  Client sends: {"audio_path": "az://...", "prompt": "..."}  (tiny, fast)
-  Worker does:  load audio → encode → build chat msg → call vLLM → return result
-
-GPU utilization optimizations (targeting >90%):
-- gpu_memory_utilization=0.95: maximize KV cache for larger batches
-- max_num_seqs=128: allow more concurrent sequences for continuous batching
-- max_num_batched_tokens=65536: increase token budget per iteration
-- performance_mode=throughput: optimize scheduler for throughput
-- CUDA graphs (no enforce_eager): reduce kernel launch overhead
-- Parallel server startup and health polling
+Per-GPU layout:
+    - One worker process bound to ``CUDA_VISIBLE_DEVICES=<gpu_id>``.
+    - Worker exposes a FastAPI app on an auto-selected free port.
+    - Worker registers itself with the central FastAPI proxy.
 
 Usage (Hydra config):
     python -m recipe.phimm.vllm_server.launch_vllm_servers \\
@@ -29,10 +20,6 @@ Usage (Hydra config):
     python -m recipe.phimm.vllm_server.launch_vllm_servers \\
         server.max_num_seqs=64 \\
         server.gpu_memory_utilization=0.9
-
-    # Use a different config file:
-    python -m recipe.phimm.vllm_server.launch_vllm_servers \\
-        --config-name=config_librispeech
 """
 
 from __future__ import annotations
@@ -62,9 +49,9 @@ def get_node_ip() -> str:
         return "127.0.0.1"
 
 
-def wait_for_server(host: str, port: int, timeout: float = 600.0) -> bool:
-    """Wait until the vLLM server at host:port responds to /health."""
-    url = f"http://{host}:{port}/health"
+def wait_for_server(host: str, port: int, path: str = "/ready", timeout: float = 600.0) -> bool:
+    """Wait until the worker at ``host:port`` responds 200 on ``path``."""
+    url = f"http://{host}:{port}{path}"
     start = time.time()
     while time.time() - start < timeout:
         try:
@@ -79,7 +66,7 @@ def wait_for_server(host: str, port: int, timeout: float = 600.0) -> bool:
 
 def register_with_proxy(proxy_url: str, backend_url: str, max_retries: int = 10) -> bool:
     """Register a backend URL with the FastAPI proxy."""
-    for i in range(max_retries):
+    for _ in range(max_retries):
         try:
             resp = requests.post(
                 f"{proxy_url}/admin/register",
@@ -111,119 +98,77 @@ def find_available_port(reserved_ports: set[int]) -> int:
     raise RuntimeError("Failed to find an available port")
 
 
-def allocate_port_pairs(num_gpus: int, reserved_ports: set[int] | None = None) -> list[tuple[int, int]]:
-    """Allocate (vLLM_port, worker_port) pairs for each GPU."""
-    reserved = set(reserved_ports or set())
-    pairs: list[tuple[int, int]] = []
-    for _ in range(num_gpus):
-        vllm_port = find_available_port(reserved)
-        worker_port = find_available_port(reserved)
-        pairs.append((vllm_port, worker_port))
-    return pairs
-
-
-def launch_vllm_server(
+def launch_worker_server(
     gpu_id: int,
     model_path: str,
     port: int,
-    extra_args: list[str] | None = None,
+    cfg: DictConfig,
 ) -> subprocess.Popen:
-    """Launch a single vLLM server on a specific GPU (internal port)."""
+    """Spawn the in-process vLLM worker server bound to a specific GPU."""
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
-    # Enable the qwen35_audio out-of-tree plugin (registers Qwen3_5AudioForCausalLM
-    # with vLLM's ModelRegistry and installs the audio multimodal processor).
-    # See plugins/qwen35_audio/README.md for the verified stack.
+    # Enable the qwen35_audio out-of-tree plugin (registers
+    # Qwen3_5AudioForCausalLM with vLLM's ModelRegistry and installs the audio
+    # multimodal processor). See plugins/qwen35_audio/README.md for the
+    # verified stack.
     env.setdefault("VLLM_PLUGINS", "qwen35_audio")
     env.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
     env.setdefault("QWEN35_AUDIO_DISABLE_CUDNN", "1")
 
     cmd = [
-        sys.executable, "-m", "vllm.entrypoints.openai.api_server",
-        "--model", model_path,
-        "--port", str(port),
-        "--tensor-parallel-size", "1",
-        "--trust-remote-code",
-        "--load-format", "auto",
-        "--dtype", "bfloat16",
-        "--disable-log-stats",
-        "--limit-mm-per-prompt", '{"audio": 1}',
-        "--logits-processors",
-        "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor",
-    ]
-    if extra_args:
-        cmd.extend(extra_args)
-
-    log_file = f"/tmp/vllm_{port}.log"
-    logger.info("Launching vLLM on GPU %d, internal port %d (log: %s)", gpu_id, port, log_file)
-    fh = open(log_file, "w")
-    proc = subprocess.Popen(
-        cmd,
-        env=env,
-        stdout=fh,
-        stderr=subprocess.STDOUT,
-    )
-    return proc
-
-
-def launch_worker_server(
-    vllm_port: int,
-    worker_port: int,
-    model_path: str,
-    num_workers: int = 4,
-    max_vllm_concurrency: int = 128,
-) -> subprocess.Popen:
-    """Launch a worker sidecar server that wraps a local vLLM instance."""
-    cmd = [
         sys.executable, "-m", "recipe.phimm.vllm_server.worker_server",
-        "--vllm-port", str(vllm_port),
-        "--port", str(worker_port),
+        "--port", str(port),
         "--model", model_path,
-        "--num-workers", str(num_workers),
-        "--max-vllm-concurrency", str(max_vllm_concurrency),
+        "--max-model-len", str(cfg.server.max_model_len),
+        "--max-num-seqs", str(cfg.server.max_num_seqs),
+        "--gpu-memory-utilization", str(cfg.server.gpu_memory_utilization),
+        "--audio-workers", str(cfg.worker.audio_workers),
+        "--batch-max-wait-seconds", str(cfg.worker.get("batch_max_wait_seconds", 0.02)),
     ]
+    if cfg.server.get("max_num_batched_tokens") is not None:
+        cmd.extend(["--max-num-batched-tokens", str(cfg.server.max_num_batched_tokens)])
+    if cfg.server.get("enforce_eager", False):
+        cmd.append("--enforce-eager")
+    if not cfg.server.get("disable_prefix_caching", True):
+        cmd.append("--enable-prefix-caching")
+    for stop_id in cfg.worker.get("stop_token_ids", []) or []:
+        cmd.extend(["--stop-token-id", str(stop_id)])
 
-    log_file = f"/tmp/worker_{worker_port}.log"
-    logger.info("Launching worker sidecar on port %d → vLLM port %d (log: %s)", worker_port, vllm_port, log_file)
+    log_file = f"/tmp/worker_{port}.log"
+    logger.info("Launching in-process LLM worker on GPU %d, port %d (log: %s)",
+                gpu_id, port, log_file)
     fh = open(log_file, "w")
-    proc = subprocess.Popen(
-        cmd,
-        stdout=fh,
-        stderr=subprocess.STDOUT,
-    )
-    return proc
+    return subprocess.Popen(cmd, env=env, stdout=fh, stderr=subprocess.STDOUT)
 
 
-def _wait_and_register(gpu_id: int, vllm_proc: subprocess.Popen, worker_proc: subprocess.Popen,
-                       host: str, vllm_port: int, worker_port: int,
-                       proxy_url: str, timeout: float) -> tuple[int, bool]:
-    """Wait for vLLM + worker to be ready, then register worker with proxy."""
-    logger.info("GPU %d: waiting for vLLM on :%d ...", gpu_id, vllm_port)
-    if not wait_for_server("localhost", vllm_port, timeout=timeout):
-        logger.error("GPU %d: vLLM failed to start", gpu_id)
-        if vllm_proc.poll() is not None:
-            stdout = vllm_proc.stdout.read().decode() if vllm_proc.stdout else ""
-            logger.error("GPU %d vLLM exited code %d:\n%s", gpu_id, vllm_proc.returncode, stdout[-2000:])
-        return gpu_id, False
-
-    logger.info("GPU %d: vLLM ready, waiting for worker on :%d ...", gpu_id, worker_port)
-    if not wait_for_server(host, worker_port, timeout=60):
-        logger.error("GPU %d: worker sidecar failed to start", gpu_id)
+def _wait_and_register(
+    gpu_id: int,
+    worker_proc: subprocess.Popen,
+    host: str,
+    worker_port: int,
+    proxy_url: str,
+    timeout: float,
+) -> tuple[int, bool]:
+    """Wait for the worker's LLM to finish loading, then register with the proxy."""
+    logger.info("GPU %d: waiting for worker on :%d (model load may take minutes) ...",
+                gpu_id, worker_port)
+    if not wait_for_server(host, worker_port, path="/ready", timeout=timeout):
+        logger.error("GPU %d: worker failed to become ready", gpu_id)
         if worker_proc.poll() is not None:
             stdout = worker_proc.stdout.read().decode() if worker_proc.stdout else ""
-            logger.error("GPU %d worker exited code %d:\n%s", gpu_id, worker_proc.returncode, stdout[-2000:])
+            logger.error("GPU %d worker exited code %d:\n%s",
+                         gpu_id, worker_proc.returncode, stdout[-2000:])
         return gpu_id, False
 
-    # Register the WORKER port (not vLLM port) with the proxy
-    url = f"http://{host}:{worker_port}"
-    ok = register_with_proxy(proxy_url, url)
+    backend_url = f"http://{host}:{worker_port}"
+    ok = register_with_proxy(proxy_url, backend_url)
     if ok:
-        logger.info("GPU %d ready: worker :%d → vLLM :%d, registered with proxy", gpu_id, worker_port, vllm_port)
+        logger.info("GPU %d ready: worker %s registered with proxy", gpu_id, backend_url)
     return gpu_id, ok
 
 
 def prepare_model_path(cfg_model: DictConfig) -> str:
-    """Resolve the model directory vLLM should load.
+    """Resolve the model directory the LLM should load.
 
     Always returns ``cfg_model.local_path``. If ``cfg_model.remote_path`` is
     set and ``local_path`` does not yet exist (or is empty), the remote tree is
@@ -245,7 +190,9 @@ def prepare_model_path(cfg_model: DictConfig) -> str:
 
     if not remote_path:
         if not local.exists():
-            raise FileNotFoundError(f"model.local_path {local_path} does not exist and model.remote_path is unset")
+            raise FileNotFoundError(
+                f"model.local_path {local_path} does not exist and model.remote_path is unset"
+            )
         return local_path
 
     logger.info("Syncing model %s → %s ...", remote_path, local_path)
@@ -260,7 +207,7 @@ def prepare_model_path(cfg_model: DictConfig) -> str:
 
 
 def run_servers(cfg: DictConfig) -> None:
-    """Main entry point — launch vLLM + worker servers from Hydra config."""
+    """Main entry point — launch in-process LLM workers from Hydra config."""
     node_ip = get_node_ip()
     num_gpus = cfg.cluster.num_gpus
 
@@ -273,95 +220,66 @@ def run_servers(cfg: DictConfig) -> None:
             proxy_host = node_ip
         proxy_url = f"http://{proxy_host}:{cfg.proxy.port}"
 
-    logger.info("Node IP: %s, launching %d GPU workers (vLLM + sidecar)", node_ip, num_gpus)
+    logger.info("Node IP: %s, launching %d in-process LLM workers", node_ip, num_gpus)
     logger.info("Config:\n%s", OmegaConf.to_yaml(cfg, resolve=True))
 
-    # Ensure model is cached locally (vLLM always loads from local_path).
+    # Ensure model is cached locally (workers always load from local_path).
     model_path = prepare_model_path(cfg.model)
 
-    # Auto-select free ports for every (vLLM, worker) pair.
-    reserved_ports = {int(cfg.proxy.port)}
-    port_pairs = allocate_port_pairs(num_gpus, reserved_ports=reserved_ports)
-    logger.info("Allocated port pairs (vLLM, worker): %s", port_pairs)
+    # Auto-select free ports for every worker.
+    reserved_ports: set[int] = {int(cfg.proxy.port)}
+    worker_ports = [find_available_port(reserved_ports) for _ in range(num_gpus)]
+    logger.info("Allocated worker ports: %s", worker_ports)
 
-    vllm_procs: list[subprocess.Popen] = []
     worker_procs: list[subprocess.Popen] = []
-
-    # Build vLLM extra args from config
     for gpu_id in range(num_gpus):
-        vllm_port, worker_port = port_pairs[gpu_id]
+        proc = launch_worker_server(gpu_id, model_path, worker_ports[gpu_id], cfg)
+        worker_procs.append(proc)
 
-        extra = [
-            "--gpu-memory-utilization", str(cfg.server.gpu_memory_utilization),
-            "--max-model-len", str(cfg.server.max_model_len),
-            "--max-num-seqs", str(cfg.server.max_num_seqs),
-            "--max-num-batched-tokens", str(cfg.server.max_num_batched_tokens),
-            "--performance-mode", cfg.server.performance_mode,
-            "--enable-chunked-prefill",
-        ]
-        if cfg.server.enforce_eager:
-            extra.append("--enforce-eager")
-        if not cfg.server.disable_prefix_caching:
-            extra.append("--enable-prefix-caching")
-        chat_template = cfg.server.get("chat_template")
-        if chat_template:
-            extra.extend(["--chat-template", str(chat_template)])
-
-        vllm_proc = launch_vllm_server(gpu_id, model_path, vllm_port, extra_args=extra)
-        worker_proc = launch_worker_server(
-            vllm_port, worker_port, model_path,
-            num_workers=cfg.worker.audio_workers,
-            max_vllm_concurrency=int(cfg.worker.get("max_vllm_concurrency", cfg.server.max_num_seqs)),
-        )
-        vllm_procs.append(vllm_proc)
-        worker_procs.append(worker_proc)
-
-    all_procs = vllm_procs + worker_procs
-
-    def shutdown(signum, frame):
-        logger.info("Shutting down all processes...")
-        for proc in all_procs:
+    def shutdown(_signum, _frame):
+        logger.info("Shutting down all worker processes...")
+        for proc in worker_procs:
             proc.terminate()
-        for proc in all_procs:
-            proc.wait(timeout=30)
+        for proc in worker_procs:
+            try:
+                proc.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                proc.kill()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)
 
-    # Wait for all servers in PARALLEL and register as each becomes ready
+    # Wait for every worker in PARALLEL and register each as it becomes ready
     startup_timeout = cfg.cluster.startup_timeout
-    logger.info("Polling all %d GPU workers concurrently...", num_gpus)
+    logger.info("Polling all %d workers concurrently...", num_gpus)
     with ThreadPoolExecutor(max_workers=num_gpus) as pool:
         futures = {
             pool.submit(
                 _wait_and_register,
-                gpu_id, vllm_procs[gpu_id], worker_procs[gpu_id],
-                node_ip,
-                port_pairs[gpu_id][0],
-                port_pairs[gpu_id][1],
+                gpu_id, worker_procs[gpu_id],
+                node_ip, worker_ports[gpu_id],
                 proxy_url, startup_timeout,
             ): gpu_id
             for gpu_id in range(num_gpus)
         }
         succeeded = 0
         for future in as_completed(futures):
-            gpu_id, ok = future.result()
+            _, ok = future.result()
             if ok:
                 succeeded += 1
 
-    logger.info("%d/%d GPU workers ready. Monitoring...", succeeded, num_gpus)
+    logger.info("%d/%d workers ready. Monitoring...", succeeded, num_gpus)
 
     # Monitor loop
     try:
         while True:
             for i in range(num_gpus):
-                if vllm_procs[i].poll() is not None:
-                    logger.warning("GPU %d vLLM (PID %d) exited code %d",
-                                   i, vllm_procs[i].pid, vllm_procs[i].returncode)
                 if worker_procs[i].poll() is not None:
-                    logger.warning("GPU %d worker (PID %d) exited code %d",
-                                   i, worker_procs[i].pid, worker_procs[i].returncode)
+                    logger.warning(
+                        "GPU %d worker (PID %d) exited code %d",
+                        i, worker_procs[i].pid, worker_procs[i].returncode,
+                    )
             time.sleep(10)
     except KeyboardInterrupt:
         shutdown(None, None)

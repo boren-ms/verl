@@ -52,13 +52,19 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname
 
 
 def extract_response_text(result: dict) -> str:
-    """Extract the generated text from OpenAI chat completion response."""
+    """Extract generated text from worker responses.
+
+    Supports:
+    - {"text": "..."} (current worker response)
+    """
     if "error" in result:
         return ""
-    try:
-        return result["choices"][0]["message"]["content"]
-    except (KeyError, IndexError):
-        return ""
+    if isinstance(result, str):
+        return result
+    text = result.get("text")
+    if isinstance(text, str):
+        return text
+    raise ValueError(f"Unexpected response format: {result!r}")
 
 
 PART_PREFIX = "part-"
@@ -395,10 +401,11 @@ async def run_evaluation(cfg: DictConfig):
     max_concurrent = int(cfg.data.max_concurrent)
     max_tokens = int(cfg.data.max_tokens)
     max_audio_dur = float(cfg.data.max_audio_dur)
+    request_timeout = float(cfg.data.get("request_timeout", 600.0))
     num_egs = cfg.data.get("num_egs")
     output_path = cfg.data.get("output_path")
     log_interval = max(int(cfg.eval.get("log_interval", 100)), 1)
-    save_interval = max(int(cfg.eval.get("save_interval", 10000)), 1)
+    save_interval = max(int(cfg.eval.get("save_interval", 1000)), 1)
     resume = bool(cfg.eval.get("resume", True))
     wer_kwargs = cfg.eval.get("wer_kwargs", {}) or {}
     if OmegaConf.is_config(wer_kwargs):
@@ -413,7 +420,7 @@ async def run_evaluation(cfg: DictConfig):
 
     # High-concurrency client
     client = httpx.AsyncClient(
-        timeout=httpx.Timeout(600.0, connect=30.0),
+        timeout=httpx.Timeout(request_timeout, connect=30.0),
         limits=httpx.Limits(max_connections=max_concurrent + 50, max_keepalive_connections=100),
     )
     semaphore = asyncio.Semaphore(max_concurrent)
@@ -489,7 +496,6 @@ async def run_evaluation(cfg: DictConfig):
                 resp = await client.post(
                     f"{proxy_url}/asr/transcribe",
                     json=payload,
-                    timeout=600.0,
                 )
                 resp.raise_for_status()
                 result = resp.json()

@@ -1,117 +1,232 @@
 """
-Worker sidecar server — runs alongside each vLLM instance (one per GPU).
+Worker server — runs one in-process vLLM ``LLM`` engine per GPU.
 
-Handles the CPU-heavy audio loading and chat message construction on the GPU
-node, so the client only needs to send a lightweight audio path. This avoids:
-- Slow blob storage reads on the client side
-- Large base64-encoded audio payloads over the network
-- Client-side CPU bottleneck blocking GPU inference
+This replaces the previous architecture (vLLM OpenAI HTTP server + sidecar
+proxy). Instead of forwarding chat-completion requests over HTTP and relying
+on vLLM's chat-template / multimodal request parsing, we use vLLM's Python
+generation API directly — the same pattern as
+``plugins/qwen35_audio/scripts/run_qwen35_audio_vllm.py``:
+
+* Audio is loaded from blob/local paths on the worker (co-located with GPU).
+* The prompt string is rendered with the model's expected ``<audio>`` /
+  chat-special-token format directly — no Jinja chat template is required.
+* The raw waveform + sample-rate is passed via ``multi_modal_data={"audio": ...}``.
+* ``LLM.generate`` is called with a batch of pending requests (micro-batching)
+  to keep the GPU saturated while still giving each HTTP caller a single
+  response.
 
 Architecture (per GPU):
-  ┌────────────────────────────────────┐
-  │  Worker Server (port 8101)         │
-  │  ┌──────────────────────────────┐  │
-  │  │ /asr/transcribe              │  │
-  │  │  1. Load audio from path     │  │
-  │  │  2. Encode to base64         │  │
-  │  │  3. Build chat message       │  │
-  │  │  4. Forward to local vLLM    │──┼──► vLLM (port 8201)
-  │  └──────────────────────────────┘  │
-  │  /v1/* → proxy to vLLM             │
-  │  /health → proxy to vLLM           │
-  └────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────────┐
+  │  Worker process (CUDA_VISIBLE_DEVICES=<gpu_id>, port=<port>)   │
+  │                                                                │
+  │  FastAPI                                                       │
+  │   ├─ POST /asr/transcribe ── load audio ──┐                    │
+  │   │                                       ▼                    │
+  │   │                          ┌─────────────────────────┐       │
+  │   │                          │  LLMBatcher (bg thread) │       │
+  │   │                          │   gather pending reqs   │       │
+  │   │                          │   → llm.generate(batch) │       │
+  │   │                          └──────────┬──────────────┘       │
+  │   │                                     ▼                      │
+  │   │                          ┌─────────────────────────┐       │
+  │   │                          │   vllm.LLM (in-process) │       │
+  │   │                          └─────────────────────────┘       │
+  │   │                                     │                      │
+  │   │      ◄────── response text ─────────┘                      │
+  │   ├─ GET /health    → {"status": "ok"}                         │
+  │   └─ GET /ready     → only OK once the LLM has finished loading│
+  └────────────────────────────────────────────────────────────────┘
 
-Usage:
-    python -m recipe.phimm.vllm_server.worker_server \
-        --vllm-port 8201 \
-        --port 8101 \
-        --model /path/to/model
+The proxy / eval client API is unchanged: clients still POST a tiny
+``{"audio_path": ..., "prompt": ...}`` payload to ``/asr/transcribe`` and
+receive an OpenAI-chat-completions-shaped JSON response so existing
+``recipe.phimm.vllm_server.eval_asr`` code keeps working untouched.
 """
 
 from __future__ import annotations
 
 import argparse
 import asyncio
-import base64
+import concurrent.futures
 import functools
-import io
 import logging
+import os
+import queue
 import sys
+import threading
+import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-import httpx
-import soundfile as sf
-import uvicorn
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import Response
-from pydantic import BaseModel, Field
 import blobfile as bf
+import numpy as np
+import uvicorn
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 sys.path.insert(0, str(Path(__file__).parents[3]))
 
 from recipe.phimm.utils.audio import load_audio  # noqa: E402
 
-# Defaults matching plugins/qwen35_audio/scripts/run_qwen35_audio_vllm.py
-# so the served Qwen3.5-Audio model produces identical sampling behavior.
-DEFAULT_STOP_TOKEN_IDS = [248044, 248046]
-DEFAULT_VLLM_XARGS = {"ngram_size": 15, "window_size": 512}
-
 logger = logging.getLogger("worker_server")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
 # ---------------------------------------------------------------------------
-# Audio utilities (run in thread pool to avoid blocking the event loop)
+# Prompt format — matches recipe/phimm/vllm_server/config/asr_chat_template.jinja
+# ---------------------------------------------------------------------------
+PROMPT_TEMPLATE = (
+    "<|im_start|>user\n<audio>\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+)
+
+# Default stop tokens for the Qwen3.5-Audio fast-llm checkpoints
+DEFAULT_STOP_TOKEN_IDS = (248044, 248046)
+
+
+# ---------------------------------------------------------------------------
+# Blobfile config — same tight retry/timeout policy as the old worker
 # ---------------------------------------------------------------------------
 
-# Configure blobfile: limit retries (default=unlimited!) and reduce timeouts
-# to prevent permanent thread stalls when Azure connections go stale.
 bf.configure(
-    retry_limit=3,           # Fail after 3 retries (default: unlimited = hang forever)
-    read_timeout=15,         # 15s read timeout (default: 30s)
-    connect_timeout=5,       # 5s connect timeout (default: 10s)
-    connection_pool_max_size=32,  # Smaller pool = less stale connection state
+    retry_limit=3,
+    read_timeout=15,
+    connect_timeout=5,
+    connection_pool_max_size=32,
 )
 
 
+# ---------------------------------------------------------------------------
+# Audio loading helpers (run in a thread pool — release the event loop)
+# ---------------------------------------------------------------------------
 
-def _load_and_encode_audio(audio_path: str, max_dur: float = 40.0) -> str:
-    """Load audio from a path and encode to base64 WAV.
-
-    ``load_audio`` handles both plain blob/local paths (``az://`` or local
-    filesystem) and chunk specs of the form ``file:<count>:<index>``.
-    """
+def _load_audio_array(audio_path: str, max_dur: float) -> tuple[np.ndarray, int]:
+    """Return a ``(waveform_float32, sample_rate)`` tuple for ``audio_path``."""
     if not audio_path:
         raise ValueError("audio_path must be provided.")
     audio, sr = load_audio({"audio_path": audio_path}, max_dur=max_dur)
-
-    buf = io.BytesIO()
-    sf.write(buf, audio, sr, format="WAV")
-    buf.seek(0)
-    return base64.b64encode(buf.read()).decode("utf-8")
+    audio = np.asarray(audio, dtype=np.float32)
+    return audio, int(sr)
 
 
-def _build_chat_messages(prompt_text: str, audio_b64: str) -> list[dict]:
-    """Build OpenAI-compatible chat messages with inline audio."""
-    return [
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "input_audio",
-                    "input_audio": {
-                        "data": audio_b64,
-                        "format": "wav",
-                    },
-                },
-                {
-                    "type": "text",
-                    "text": prompt_text,
-                },
-            ],
-        }
-    ]
+# ---------------------------------------------------------------------------
+# LLM batcher — collects pending requests, calls ``llm.generate`` on a thread
+# ---------------------------------------------------------------------------
+
+class LLMBatcher:
+    """Micro-batches incoming generation requests and runs them on the LLM.
+
+    vLLM's ``LLM.generate(prompts, sampling_params)`` accepts a list of
+    prompts and (optionally) a parallel list of ``SamplingParams``, batching
+    them together with continuous-batching semantics under the hood. We expose
+    a per-request ``submit`` API and let a single background thread drain the
+    queue, so multiple concurrent HTTP handlers can share a single GPU efficiently.
+    """
+
+    _SENTINEL: tuple = ("__shutdown__",)
+
+    def __init__(
+        self,
+        llm,
+        *,
+        max_batch_size: int,
+        max_wait_seconds: float,
+    ) -> None:
+        self.llm = llm
+        self.max_batch_size = max(int(max_batch_size), 1)
+        self.max_wait_seconds = max(float(max_wait_seconds), 0.0)
+        self._queue: "queue.Queue[tuple]" = queue.Queue()
+        self._stopping = False
+        self._thread = threading.Thread(target=self._run, name="LLMBatcher", daemon=True)
+        self._thread.start()
+
+    def submit(self, prompt: str, mm_audio, sampling_params) -> concurrent.futures.Future:
+        if self._stopping:
+            raise RuntimeError("LLMBatcher is shutting down")
+        fut: concurrent.futures.Future = concurrent.futures.Future()
+        self._queue.put((prompt, mm_audio, sampling_params, fut))
+        return fut
+
+    def shutdown(self) -> None:
+        self._stopping = True
+        self._queue.put(self._SENTINEL)
+        self._thread.join(timeout=30)
+
+    def _gather_batch(self) -> list[tuple]:
+        items: list[tuple] = []
+        try:
+            first = self._queue.get()
+        except Exception:
+            return items
+        if first is self._SENTINEL:
+            items.append(first)
+            return items
+        items.append(first)
+
+        deadline = time.monotonic() + self.max_wait_seconds
+        while len(items) < self.max_batch_size:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            try:
+                nxt = self._queue.get(timeout=remaining)
+            except queue.Empty:
+                break
+            if nxt is self._SENTINEL:
+                # Re-queue so the next loop iteration can see it after we
+                # finish the current batch.
+                self._queue.put(self._SENTINEL)
+                break
+            items.append(nxt)
+        return items
+
+    def _run(self) -> None:
+        logger.info("LLMBatcher started (max_batch=%d, max_wait=%.3fs)",
+                    self.max_batch_size, self.max_wait_seconds)
+        while True:
+            batch = self._gather_batch()
+            if not batch:
+                continue
+            if batch[0] is self._SENTINEL:
+                logger.info("LLMBatcher received shutdown sentinel")
+                return
+
+            prompts_payload = [
+                {"prompt": p, "multi_modal_data": {"audio": [mm]}}
+                for p, mm, _, _ in batch
+            ]
+            params_list = [sp for _, _, sp, _ in batch]
+            futures = [fut for _, _, _, fut in batch]
+
+            t0 = time.time()
+            try:
+                outputs = self.llm.generate(
+                    prompts_payload,
+                    sampling_params=params_list,
+                    use_tqdm=False,
+                )
+            except Exception as e:
+                logger.exception("LLM.generate failed on batch of %d", len(batch))
+                for fut in futures:
+                    if not fut.done():
+                        fut.set_exception(e)
+                continue
+            elapsed = time.time() - t0
+
+            for fut, out in zip(futures, outputs):
+                if fut.done():
+                    continue
+                try:
+                    text = out.outputs[0].text
+                except (AttributeError, IndexError) as e:
+                    fut.set_exception(e)
+                    continue
+                fut.set_result(text)
+
+            logger.info(
+                "Batch %d done in %.2fs (%.1f req/s)",
+                len(batch), elapsed, len(batch) / max(elapsed, 1e-3),
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -127,7 +242,7 @@ class TranscribeRequest(BaseModel):
     )
     prompt: str = Field(
         default="Transcribe the audio clip into text.",
-        description="ASR prompt text",
+        description="ASR prompt text (will be wrapped in the model's chat format).",
     )
     max_tokens: int = Field(default=1024)
     temperature: float = Field(default=0.0)
@@ -135,76 +250,141 @@ class TranscribeRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Worker server factory
+# Worker app factory
 # ---------------------------------------------------------------------------
 
-def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
-                      max_vllm_concurrency: int = 256) -> FastAPI:
-    """Create a FastAPI worker app that wraps a local vLLM instance.
+def _build_llm(
+    *,
+    model_path: str,
+    max_model_len: int,
+    max_num_seqs: int,
+    gpu_memory_utilization: float,
+    enforce_eager: bool,
+    enable_prefix_caching: bool,
+    max_num_batched_tokens: int | None,
+):
+    from vllm import LLM
 
-    Args:
-        vllm_url: URL of the local vLLM server (e.g. http://localhost:8201)
-        model_name: Model name to use in OpenAI API calls
-        num_workers: Thread pool size for audio loading
-        max_vllm_concurrency: Max concurrent requests to vLLM (prevents event loop saturation)
-    """
+    logger.info(
+        "Loading vLLM LLM from %s (max_model_len=%d, max_num_seqs=%d, gpu_mem=%.2f)",
+        model_path, max_model_len, max_num_seqs, gpu_memory_utilization,
+    )
+    kwargs = dict(
+        model=model_path,
+        trust_remote_code=True,
+        max_model_len=max_model_len,
+        max_num_seqs=max_num_seqs,
+        load_format="auto",
+        dtype="bfloat16",
+        tensor_parallel_size=1,
+        limit_mm_per_prompt={"audio": 1},
+        gpu_memory_utilization=gpu_memory_utilization,
+        enforce_eager=enforce_eager,
+        enable_prefix_caching=enable_prefix_caching,
+    )
+    if max_num_batched_tokens is not None:
+        kwargs["max_num_batched_tokens"] = int(max_num_batched_tokens)
+    t0 = time.time()
+    llm = LLM(**kwargs)
+    logger.info("LLM loaded in %.1fs", time.time() - t0)
+    return llm
 
-    app = FastAPI(title="vLLM Worker Server")
-    thread_pool = ThreadPoolExecutor(max_workers=num_workers)
-    # Limit concurrent requests to vLLM to prevent overwhelming its event loop
-    vllm_semaphore = asyncio.Semaphore(max_vllm_concurrency)
-    _client: httpx.AsyncClient | None = None
+
+def create_worker_app(
+    *,
+    model_path: str,
+    max_model_len: int = 4096,
+    max_num_seqs: int = 256,
+    gpu_memory_utilization: float = 0.95,
+    enforce_eager: bool = False,
+    enable_prefix_caching: bool = False,
+    max_num_batched_tokens: int | None = None,
+    audio_workers: int = 8,
+    batch_max_wait_seconds: float = 0.02,
+    stop_token_ids: tuple[int, ...] | None = None,
+) -> FastAPI:
+    """Build a FastAPI app that owns an in-process ``vllm.LLM`` engine."""
+
+    from vllm import SamplingParams
+
+    stop_token_ids = tuple(stop_token_ids or DEFAULT_STOP_TOKEN_IDS)
+
+    app = FastAPI(title="vLLM Worker (in-process LLM)")
+    thread_pool = ThreadPoolExecutor(max_workers=audio_workers)
     _stats = {"completed": 0, "active": 0, "errors": 0}
-
-    async def get_client() -> httpx.AsyncClient:
-        nonlocal _client
-        if _client is None:
-            _client = httpx.AsyncClient(
-                timeout=httpx.Timeout(60.0, connect=10.0),
-                limits=httpx.Limits(max_connections=64, max_keepalive_connections=32),
-            )
-        return _client
+    _state: dict = {"llm": None, "batcher": None, "ready": False}
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        loop = asyncio.get_event_loop()
+        llm = await loop.run_in_executor(
+            None,
+            functools.partial(
+                _build_llm,
+                model_path=model_path,
+                max_model_len=max_model_len,
+                max_num_seqs=max_num_seqs,
+                gpu_memory_utilization=gpu_memory_utilization,
+                enforce_eager=enforce_eager,
+                enable_prefix_caching=enable_prefix_caching,
+                max_num_batched_tokens=max_num_batched_tokens,
+            ),
+        )
+        batcher = LLMBatcher(
+            llm,
+            max_batch_size=max_num_seqs,
+            max_wait_seconds=batch_max_wait_seconds,
+        )
+        _state["llm"] = llm
+        _state["batcher"] = batcher
+        _state["ready"] = True
+        logger.info("Worker ready (model=%s)", model_path)
+
         async def _monitor():
             while True:
                 await asyncio.sleep(10)
                 logger.info(
-                    "HEARTBEAT: completed=%d active=%d errors=%d pool_threads=%d",
+                    "HEARTBEAT: completed=%d active=%d errors=%d",
                     _stats["completed"], _stats["active"], _stats["errors"],
-                    thread_pool._work_queue.qsize(),
                 )
         monitor_task = asyncio.create_task(_monitor())
         try:
             yield
         finally:
             monitor_task.cancel()
-            nonlocal _client
-            if _client:
-                await _client.aclose()
+            _state["ready"] = False
+            try:
+                batcher.shutdown()
+            except Exception:
+                logger.exception("Failed to cleanly shut down LLMBatcher")
             thread_pool.shutdown(wait=False)
 
     app.router.lifespan_context = lifespan
 
-    # ---- Core endpoint: ASR transcription ----
+    @app.get("/health")
+    async def health():
+        return {"status": "ok"}
+
+    @app.get("/ready")
+    async def ready():
+        if not _state["ready"]:
+            raise HTTPException(status_code=503, detail="LLM not yet loaded")
+        return {"status": "ready"}
 
     @app.post("/asr/transcribe")
     async def transcribe(req: TranscribeRequest):
-        """Load audio from path, build chat message, forward to local vLLM.
+        if not _state["ready"]:
+            raise HTTPException(status_code=503, detail="LLM not yet loaded")
 
-        The heavy audio I/O runs in a thread pool so multiple requests can
-        load audio concurrently without blocking each other.
-        """
         _stats["active"] += 1
         loop = asyncio.get_event_loop()
+        request_id = uuid.uuid4().hex[:12]
 
-        # CPU/IO-bound: load audio in thread pool
         try:
-            audio_b64 = await loop.run_in_executor(
+            audio, sr = await loop.run_in_executor(
                 thread_pool,
                 functools.partial(
-                    _load_and_encode_audio,
+                    _load_audio_array,
                     audio_path=req.audio_path,
                     max_dur=req.max_audio_dur,
                 ),
@@ -214,68 +394,27 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
             _stats["errors"] += 1
             raise HTTPException(status_code=400, detail=f"Failed to load audio: {e}") from e
 
-        # Build chat message
-        messages = _build_chat_messages(req.prompt, audio_b64)
+        prompt = PROMPT_TEMPLATE.format(prompt=req.prompt)
+        sampling_params = SamplingParams(
+            temperature=float(req.temperature),
+            max_tokens=int(req.max_tokens),
+            stop_token_ids=list(stop_token_ids),
+            repetition_penalty=1.0,
+        )
 
-        # Forward to local vLLM (rate-limited to prevent event loop saturation)
-        payload = {
-            "model": model_name,
-            "messages": messages,
-            "temperature": req.temperature,
-            "max_tokens": req.max_tokens,
-            "stop_token_ids": DEFAULT_STOP_TOKEN_IDS,
-            "vllm_xargs": DEFAULT_VLLM_XARGS,
-            "repetition_penalty": 1.0,
-        }
-
-        client = await get_client()
-        async with vllm_semaphore:
-            try:
-                resp = await client.post(f"{vllm_url}/v1/chat/completions", json=payload)
-                _stats["active"] -= 1
-                _stats["completed"] += 1
-                return Response(
-                    content=resp.content,
-                    status_code=resp.status_code,
-                    media_type=resp.headers.get("content-type", "application/json"),
-                )
-            except httpx.ConnectError as e:
-                _stats["active"] -= 1
-                _stats["errors"] += 1
-                raise HTTPException(status_code=502, detail="Local vLLM server not available") from e
-            except httpx.ReadTimeout as e:
-                _stats["active"] -= 1
-                _stats["errors"] += 1
-                raise HTTPException(status_code=504, detail="Local vLLM server timed out") from e
-
-    # ---- Proxy: forward /v1/* to local vLLM ----
-
-    @app.api_route("/v1/{path:path}", methods=["GET", "POST"])
-    async def proxy_v1(request: Request, path: str):
-        client = await get_client()
-        body = await request.body()
-        headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
         try:
-            resp = await client.request(
-                method=request.method,
-                url=f"{vllm_url}/v1/{path}",
-                content=body,
-                headers=headers,
-            )
-            return Response(
-                content=resp.content,
-                status_code=resp.status_code,
-                media_type=resp.headers.get("content-type", "application/json"),
-            )
-        except (httpx.ConnectError, httpx.ReadTimeout) as e:
-            raise HTTPException(status_code=502, detail=str(e)) from e
+            fut = _state["batcher"].submit(prompt, (audio, sr), sampling_params)
+            text = await asyncio.wrap_future(fut)
+        except Exception as e:
+            _stats["active"] -= 1
+            _stats["errors"] += 1
+            logger.exception("Generation failed for request %s", request_id)
+            raise HTTPException(status_code=500, detail=f"Generation failed: {e}") from e
 
-    # ---- Health: lightweight self-check (does NOT proxy to vLLM) ----
-    # This ensures the worker responds to health checks even when vLLM is busy.
+        _stats["active"] -= 1
+        _stats["completed"] += 1
 
-    @app.get("/health")
-    async def health():
-        return {"status": "ok"}
+        return {"text": text}
 
     return app
 
@@ -284,24 +423,49 @@ def create_worker_app(vllm_url: str, model_name: str, num_workers: int = 8,
 # CLI — standalone launch (also used by launch_vllm_servers.py)
 # ---------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser(description="vLLM worker sidecar server")
-    parser.add_argument("--vllm-port", type=int, required=True, help="Port of the local vLLM server")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="vLLM in-process worker server")
     parser.add_argument("--port", type=int, required=True, help="Port for this worker server")
-    parser.add_argument("--model", required=True, help="Model name for API calls")
+    parser.add_argument("--model", required=True, help="Path to local model directory")
     parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--num-workers", type=int, default=16, help="Thread pool workers for audio loading")
-    parser.add_argument("--max-vllm-concurrency", type=int, default=8,
-                        help="Max concurrent requests to local vLLM (prevents event loop saturation)")
+
+    parser.add_argument("--max-model-len", type=int, default=4096)
+    parser.add_argument("--max-num-seqs", type=int, default=256)
+    parser.add_argument("--gpu-memory-utilization", type=float, default=0.95)
+    parser.add_argument("--max-num-batched-tokens", type=int, default=None)
+    parser.add_argument("--enforce-eager", action="store_true")
+    parser.add_argument("--enable-prefix-caching", action="store_true")
+
+    parser.add_argument("--audio-workers", type=int, default=8,
+                        help="Thread pool size for audio loading (CPU/IO bound).")
+    parser.add_argument("--batch-max-wait-seconds", type=float, default=0.02,
+                        help="Micro-batch coalescing window for LLM.generate calls.")
+    parser.add_argument("--stop-token-id", action="append", type=int, default=None,
+                        help="Override stop token id(s) for SamplingParams (repeatable).")
+
     args = parser.parse_args()
 
-    vllm_url = f"http://localhost:{args.vllm_port}"
-    # Use full model path as model name (vLLM registers the model with its full path)
-    model_name = args.model.rstrip("/")
-    app = create_worker_app(vllm_url, model_name, num_workers=args.num_workers,
-                            max_vllm_concurrency=args.max_vllm_concurrency)
+    # Mirror the qwen35_audio plugin smoke-test environment so the in-process
+    # LLM picks up the right model architecture & avoids the cuDNN attention
+    # path that has been observed to crash on H100s.
+    os.environ.setdefault("VLLM_PLUGINS", "qwen35_audio")
+    os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
+    os.environ.setdefault("QWEN35_AUDIO_DISABLE_CUDNN", "1")
 
-    logger.info("Worker server on :%d → vLLM on :%d (model=%s)", args.port, args.vllm_port, model_name)
+    app = create_worker_app(
+        model_path=args.model.rstrip("/"),
+        max_model_len=args.max_model_len,
+        max_num_seqs=args.max_num_seqs,
+        gpu_memory_utilization=args.gpu_memory_utilization,
+        enforce_eager=args.enforce_eager,
+        enable_prefix_caching=args.enable_prefix_caching,
+        max_num_batched_tokens=args.max_num_batched_tokens,
+        audio_workers=args.audio_workers,
+        batch_max_wait_seconds=args.batch_max_wait_seconds,
+        stop_token_ids=tuple(args.stop_token_id) if args.stop_token_id else None,
+    )
+
+    logger.info("Worker server on :%d (model=%s)", args.port, args.model)
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
 

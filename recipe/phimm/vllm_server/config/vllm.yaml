@@ -15,7 +15,8 @@ model:
   remote_path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/
   local_path: /tmp/vllm_models/fast-llm-2605-qwen3-5-9b-s2-st-example-90000
 
-# vLLM server config (per-GPU, TP=1)
+# vLLM engine config (per-GPU, TP=1). Consumed by the in-process LLM in
+# recipe.phimm.vllm_server.worker_server (no separate vLLM HTTP server).
 server:
   gpu_memory_utilization: 0.95
   max_model_len: 4096
@@ -23,16 +24,15 @@ server:
   max_num_batched_tokens: 65536
   enforce_eager: false
   disable_prefix_caching: true
-  performance_mode: throughput  # balanced | interactivity | throughput
-  # Optional override for vLLM's chat template. Accepts either a path to a
-  # Jinja file or a raw template string. When null, vLLM uses the template
-  # bundled with the model's tokenizer_config.json.
-  chat_template: recipe/phimm/vllm_server/config/asr_chat_template.jinja
 
-# Worker sidecar config
+# Worker config — the worker process owns its vLLM LLM engine and micro-batches
+# concurrent HTTP requests into one LLM.generate call.
 worker:
-  audio_workers: 8       # thread pool size for audio loading
-  max_vllm_concurrency: 256  # max concurrent /v1/chat/completions in flight per worker
+  audio_workers: 8                 # thread pool size for audio loading
+  batch_max_wait_seconds: 0.02     # micro-batch coalescing window
+  # Stop tokens for the qwen35_audio fast-llm checkpoints (matches
+  # plugins/qwen35_audio/scripts/run_qwen35_audio_vllm.py). Override per-model.
+  stop_token_ids: [248044, 248046]
 
 # Proxy config
 proxy:
