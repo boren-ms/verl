@@ -73,32 +73,8 @@ from recipe.phimm.utils.audio import load_audio  # noqa: E402
 logger = logging.getLogger("worker_server")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
-# ---------------------------------------------------------------------------
-# Prompt format — matches recipe/phimm/vllm_server/config/asr_chat_template.jinja
-# ---------------------------------------------------------------------------
-PROMPT_TEMPLATE = (
-    "<|im_start|>user\n<audio>\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
-)
-
-# Default stop tokens for the Qwen3.5-Audio fast-llm checkpoints
+PROMPT_TEMPLATE = "<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 DEFAULT_STOP_TOKEN_IDS = (248044, 248046)
-
-
-# ---------------------------------------------------------------------------
-# Blobfile config — same tight retry/timeout policy as the old worker
-# ---------------------------------------------------------------------------
-
-bf.configure(
-    retry_limit=3,
-    read_timeout=15,
-    connect_timeout=5,
-    connection_pool_max_size=32,
-)
-
-
-# ---------------------------------------------------------------------------
-# Audio loading helpers (run in a thread pool — release the event loop)
-# ---------------------------------------------------------------------------
 
 def _load_audio_array(audio_path: str, max_dur: float) -> tuple[np.ndarray, int]:
     """Return a ``(waveform_float32, sample_rate)`` tuple for ``audio_path``."""
