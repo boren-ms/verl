@@ -384,9 +384,19 @@ def load_dataset(source_config, num_egs: int | None = None) -> Dataset:
 
 
 def format_prompt(prompt: str) -> str:
-    """Format a raw prompt string into the expected conversational format."""
-    PROMPT_TEMPLATE ="<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
-    return PROMPT_TEMPLATE.format(prompt=prompt)
+    """Identity passthrough.
+
+    Historically this wrapped the prompt with raw chat-template tokens
+    (``<|im_start|>user\\n...``), but that caused double-templating because
+    the worker forwards the request to vLLM's ``/v1/chat/completions``
+    endpoint, which applies the model's chat template again. The worker
+    request is the HTTP analogue of offline
+    ``LLM.generate({"prompt": templated_text, "multi_modal_data": {"audio": [(wav, fs)]}})``
+    — vLLM's chat_utils builds both the templated prompt and the
+    ``multi_modal_data`` dict internally from the chat message blocks. Keep
+    this function for backward compatibility / future custom shaping.
+    """
+    return prompt
 
 async def run_evaluation(cfg: DictConfig):
     """Pipelined evaluation: sends audio paths to workers, scores results locally."""
@@ -477,11 +487,17 @@ async def run_evaluation(cfg: DictConfig):
         prompt = sample.get("prompt")
         assert audio_path, f"sample {idx} missing audio_path/audio_file/audio_chunk"
         assert prompt, f"sample {idx} missing prompt (set add_task_info in the source_config)"
+        # NOTE: do NOT pre-apply chat template here. The worker forwards the
+        # prompt as the text content of a chat message and vLLM's
+        # /v1/chat/completions applies the chat template once on the server
+        # side, producing a prompt + multi_modal_data equivalent to offline
+        # LLM.generate({"prompt": templated_text, "multi_modal_data": {"audio": [(wav, fs)]}}).
+        # Pre-templating client-side caused double-templating (WER 11.30% → 27.17%).
         if audio_path in done_paths:
             return
         payload = {
             "audio_path": audio_path,
-            "prompt": format_prompt(prompt),
+            "prompt": prompt,
             "max_tokens": max_tokens,
             "temperature": 0.0,
             "max_audio_dur": max_audio_dur,
