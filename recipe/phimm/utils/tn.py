@@ -5,6 +5,7 @@ import jiwer.transforms as tr
 from recipe.phimm.utils.shared import is_list
 from recipe.phimm.utils.open_asr_normalizer import EnglishTextNormalizer as OpenASREnglishNormalizer
 from recipe.phimm.utils.open_asr_normalizer import BasicMultilingualTextNormalizer as OpenASRMultilingualNormalizer
+from recipe.phimm.utils.open_asr_normalizer import PortugueseNormalizer as OpenASRPortugueseNormalizer
 
 
 class RemovePunctuationExclude(tr.RemovePunctuation):
@@ -69,6 +70,7 @@ TN_DICT = {
     "simple_with_tag": simple_with_tag,
     "openasr_en": OpenASREnglishNormalizer(),
     "openasr_ml": OpenASRMultilingualNormalizer(),
+    "openasr_pt": OpenASRPortugueseNormalizer(remove_diacritics=False),
 }
 
 

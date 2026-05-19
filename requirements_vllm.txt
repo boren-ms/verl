@@ -20,6 +20,7 @@ pre-commit
 # ray[default]==2.46.0  # DO NOT uncomment — keep the base image's Ray version
 # vllm inference deps (installed --no-deps to avoid protobuf/ray conflicts)
 model-hosting-container-standards==0.1.15
+prometheus-fastapi-instrumentator==7.1.0
 compressed-tensors
 depyf
 openai-harmony

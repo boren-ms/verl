@@ -9,6 +9,7 @@ from .normalizer import EnglishTextNormalizer
 
 _en_normalizer = None
 _ml_normalizer = None
+_pt_normalizer = None
 _zh_normalizer = None
 
 def _get_en_normalizer():
@@ -24,6 +25,14 @@ def _get_ml_normalizer():
         from .data_utils import MultilingualNormalizer
         _ml_normalizer = MultilingualNormalizer(remove_diacritics=False)
     return _ml_normalizer
+
+
+def _get_pt_normalizer():
+    global _pt_normalizer
+    if _pt_normalizer is None:
+        from .data_utils import PortugueseNormalizer
+        _pt_normalizer = PortugueseNormalizer(remove_diacritics=False)
+    return _pt_normalizer
 
 
 def _get_zh_normalizer():
@@ -62,6 +71,10 @@ def normalize_for_wer(hyp, ref, lang="en"):
         normalizer = _get_zh_normalizer()
         ref_norm = normalizer(ref.strip())
         hyp_norm = normalizer(hyp.strip())
+    elif lang in ("pt", "pt-br", "pt-pt"):
+        normalizer = _get_pt_normalizer()
+        ref_norm = normalizer(ref.strip(), lang=lang)
+        hyp_norm = normalizer(hyp.strip(), lang=lang)
     else:
         normalizer = _get_ml_normalizer()
         ref_norm = normalizer(ref.strip(), lang=lang)

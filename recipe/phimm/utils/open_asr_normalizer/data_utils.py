@@ -37,6 +37,22 @@ class MultilingualNormalizer(BasicMultilingualTextNormalizer):
         return s
 
 
+class PortugueseNormalizer(MultilingualNormalizer):
+    """MultilingualNormalizer + Portuguese orthographic modernizer.
+
+    Maps pre-1911 etymological spellings and pre-Acordo-Ortográfico-de-1990
+    forms (``cabellos``, ``hontem``, ``directo``, ``óptimo`` ...) to modern
+    post-reform Portuguese, so WER between archaic references (e.g. MLS /
+    LibriVox) and modern model outputs is not inflated by purely
+    orthographic differences.
+    """
+
+    def __call__(self, s, lang=None):
+        s = super().__call__(s, lang=lang)
+        from .pt_modernize import modernize_text
+        return modernize_text(s)
+
+
 def get_text(sample):
     if "text" in sample:
         return sample["text"]
