@@ -14,7 +14,6 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 import torch
-import torchaudio.functional as F
 
 REMOTE_MODEL_PATH = (
     "az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/"
@@ -145,6 +144,8 @@ def load_audio(audio_path: str) -> tuple[np.ndarray, int]:
     if waveform.ndim == 2:
         waveform = waveform.mean(axis=1)
     if sample_rate != TARGET_SAMPLE_RATE:
+        import torchaudio.functional as F
+
         waveform = F.resample(
             torch.from_numpy(waveform),
             sample_rate,
