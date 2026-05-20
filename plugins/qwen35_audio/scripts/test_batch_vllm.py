@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Batch inference test: multiple LibriSpeech audio samples."""
+import argparse
 import os, sys, time
 import numpy as np
 import soundfile as sf
@@ -38,6 +39,11 @@ def stage_audio(name: str) -> str:
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--tensor-parallel-size", type=int, default=8)
+    parser.add_argument("--gpu-memory-utilization", type=float, default=0.15)
+    args = parser.parse_args()
+
     # Stage and load all audio files
     waveforms = []
     for name in AUDIO_FILES:
@@ -54,8 +60,9 @@ def main():
     llm = LLM(
         model=MODEL, trust_remote_code=True,
         max_model_len=4096, max_num_seqs=len(waveforms) + 1, dtype="bfloat16",
-        tensor_parallel_size=8, limit_mm_per_prompt={"audio": 1},
-        gpu_memory_utilization=0.15,
+        tensor_parallel_size=args.tensor_parallel_size,
+        limit_mm_per_prompt={"audio": 1},
+        gpu_memory_utilization=args.gpu_memory_utilization,
     )
     print("model loaded")
 
