@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Convert phi-fastllm eval result `.txt` files (JSON arrays) into JSONL.
+"""Convert phi-fastllm ASR eval `.txt` results directly to the final layout.
 
-Each input `.txt` is a JSON list of objects with parallel-list fields
-`generated_texts`, `audio_ids`, `label`. We flatten each list element into one
-JSON line with fields `audio_id`, `label`, `hyp` (first generation) and
-`generated_texts` (full n-best). Output is written next to the input as
-`<same-stem>.jsonl` on the same blob path.
+Source:
+    <root>/eval_output/<dataset>/<seed>/generate_<name>.txt    # JSON array
+
+Target:
+    <root>/jsonl_results/<dataset>/<name>.jsonl                # unique
+    <root>/jsonl_results/<dataset>/<name>_1.jsonl, _2.jsonl    # extra seeds
+
+Within each ``<dataset>/<name>`` group the first seed (alphabetical) gets the
+unsuffixed name; additional seeds get ``_1``, ``_2``, ... — no suffix is added
+when only one seed exists.
 """
 from __future__ import annotations
 
@@ -15,59 +20,85 @@ import io
 import json
 import re
 import sys
-from typing import Iterable
 
 import blobfile as bf
 
-ROOT = (
+DEFAULT_ROOT = (
     "az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/"
-    "fast-llm-2605-qwen3-5-9b-s2-st-example/90000/eval_output"
+    "fast-llm-2605-qwen3-5-9b-s2-st-example/90000"
 )
+DEFAULT_SRC_SUBDIR = "eval_output"
+DEFAULT_DST_SUBDIR = "jsonl_results"
 
 AUX_SUFFIXES = ("_eer", "_ewer", "_disfluencytolerant_ter")
 
 
-def is_main_result(path: str) -> bool:
-    if not path.endswith(".txt"):
-        return False
-    name = path.rsplit("/", 1)[-1]
-    if not name.startswith("generate_"):
+def is_main_result(name: str) -> bool:
+    if not name.endswith(".txt") or not name.startswith("generate_"):
         return False
     stem = name[:-4]
     return not any(stem.endswith(s) for s in AUX_SUFFIXES)
 
 
-def iter_inputs(root: str, workers: int = 16) -> Iterable[str]:
-    # Structure: <root>/<dataset>/<seed>/generate_*.txt
-    # Use parallel listdir at each level; faster than bf.glob.
-    datasets = [d.rstrip("/") for d in bf.listdir(root)]
+def base_name(fname: str) -> str:
+    """``generate_foo.txt`` -> ``foo``."""
+    n = fname[:-4] if fname.endswith(".txt") else fname
+    if n.startswith("generate_"):
+        n = n[len("generate_") :]
+    return n
 
-    def list_seeds(ds: str) -> list[str]:
-        return [s.rstrip("/") for s in bf.listdir(f"{root}/{ds}")]
 
-    def list_files(ds_seed: tuple[str, str]) -> list[str]:
+def discover(src_root: str, workers: int) -> list[tuple[str, str, str, str]]:
+    """Return [(dataset, base, seed, src_full_path), ...]."""
+    datasets = sorted(d.rstrip("/") for d in bf.listdir(src_root))
+
+    def list_seeds(ds: str) -> list[tuple[str, str]]:
+        return [(ds, s.rstrip("/")) for s in bf.listdir(f"{src_root}/{ds}")]
+
+    def list_files(ds_seed: tuple[str, str]) -> list[tuple[str, str, str, str]]:
         ds, seed = ds_seed
-        base = f"{root}/{ds}/{seed}"
-        return [f"{base}/{n}" for n in bf.listdir(base) if is_main_result(f"{base}/{n}")]
+        base = f"{src_root}/{ds}/{seed}"
+        try:
+            entries = bf.listdir(base)
+        except (NotADirectoryError, FileNotFoundError):
+            return []
+        return [(ds, base_name(n), seed, f"{base}/{n}") for n in entries if is_main_result(n)]
 
     with cf.ThreadPoolExecutor(max_workers=workers) as ex:
         ds_seeds: list[tuple[str, str]] = []
-        for ds, seeds in zip(datasets, ex.map(list_seeds, datasets)):
-            for s in seeds:
-                ds_seeds.append((ds, s))
-        for files in ex.map(list_files, ds_seeds):
-            yield from files
+        for seeds in ex.map(list_seeds, datasets):
+            ds_seeds.extend(seeds)
+        out: list[tuple[str, str, str, str]] = []
+        for batch in ex.map(list_files, ds_seeds):
+            out.extend(batch)
+    return out
 
 
-def convert_one(src: str, *, overwrite: bool = False) -> tuple[str, int, str]:
-    dst = src[:-4] + ".jsonl"
+def plan_targets(
+    items: list[tuple[str, str, str, str]], dst_root: str
+) -> list[tuple[str, str]]:
+    """Group by (dataset, base); assign ``_1``/``_2``/... to extra seeds."""
+    groups: dict[tuple[str, str], list[tuple[str, str]]] = {}
+    for ds, base, seed, src in items:
+        groups.setdefault((ds, base), []).append((seed, src))
+
+    plan: list[tuple[str, str]] = []
+    for (ds, base), members in groups.items():
+        members.sort(key=lambda x: x[0])
+        for i, (_seed, src) in enumerate(members):
+            name = f"{base}.jsonl" if i == 0 else f"{base}_{i}.jsonl"
+            plan.append((src, f"{dst_root}/{ds}/{name}"))
+    return plan
+
+
+def convert_one(src: str, dst: str, *, overwrite: bool) -> tuple[str, str, int, str]:
     if not overwrite and bf.exists(dst):
-        return src, -1, "skip-exists"
+        return src, dst, -1, "skip-exists"
     try:
         with bf.BlobFile(src, "rb") as f:
             data = json.load(io.TextIOWrapper(f, encoding="utf-8"))
     except Exception as e:  # noqa: BLE001
-        return src, 0, f"read-error: {e!r}"
+        return src, dst, 0, f"read-error: {e!r}"
 
     lines: list[str] = []
     for entry in data:
@@ -92,41 +123,54 @@ def convert_one(src: str, *, overwrite: bool = False) -> tuple[str, int, str]:
     payload = ("\n".join(lines) + "\n").encode("utf-8")
     with bf.BlobFile(dst, "wb") as f:
         f.write(payload)
-    return src, len(lines), "ok"
+    return src, dst, len(lines), "ok"
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--root", default=ROOT)
-    ap.add_argument("--workers", type=int, default=16)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument("--root", default=DEFAULT_ROOT)
+    ap.add_argument("--src-subdir", default=DEFAULT_SRC_SUBDIR)
+    ap.add_argument("--dst-subdir", default=DEFAULT_DST_SUBDIR)
+    ap.add_argument("--workers", type=int, default=32)
     ap.add_argument("--overwrite", action="store_true")
-    ap.add_argument("--filter", default="", help="regex to match input path")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--filter", default="", help="regex matched against `<dataset>/<base>`")
     args = ap.parse_args()
 
-    pat = re.compile(args.filter) if args.filter else None
-    inputs = [p for p in iter_inputs(args.root, workers=args.workers) if not pat or pat.search(p)]
-    print(f"found {len(inputs)} input files", file=sys.stderr)
+    src_root = f"{args.root}/{args.src_subdir}"
+    dst_root = f"{args.root}/{args.dst_subdir}"
+
+    items = discover(src_root, args.workers)
+    if args.filter:
+        pat = re.compile(args.filter)
+        items = [it for it in items if pat.search(f"{it[0]}/{it[1]}")]
+    print(f"discovered {len(items)} source .txt files", file=sys.stderr)
+
+    plan = plan_targets(items, dst_root)
+    print(f"planned {len(plan)} writes", file=sys.stderr)
+
+    src_marker = f"/{args.src_subdir}/"
+    dst_marker = f"/{args.dst_subdir}/"
+
     if args.dry_run:
-        for p in inputs[:20]:
-            print(p)
+        for s, d in plan[:40]:
+            print(f"{s.split(src_marker, 1)[-1]} -> {d.split(dst_marker, 1)[-1]}")
+        if len(plan) > 40:
+            print(f"... ({len(plan)} total)")
         return 0
 
-    ok = skipped = errored = 0
+    counts: dict[str, int] = {}
     with cf.ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futs = [ex.submit(convert_one, p, overwrite=args.overwrite) for p in inputs]
+        futs = [ex.submit(convert_one, s, d, overwrite=args.overwrite) for s, d in plan]
         for fut in cf.as_completed(futs):
-            src, n, status = fut.result()
-            short = src.rsplit("/eval_output/", 1)[-1]
-            if status == "ok":
-                ok += 1
-            elif status == "skip-exists":
-                skipped += 1
-            else:
-                errored += 1
-            print(f"[{status}] n={n} {short}")
-    print(f"done. ok={ok} skipped={skipped} errored={errored}", file=sys.stderr)
-    return 0 if errored == 0 else 1
+            _src, dst, n, status = fut.result()
+            key = "ok" if status == "ok" else ("skip-exists" if status == "skip-exists" else "error")
+            counts[key] = counts.get(key, 0) + 1
+            print(f"[{status}] n={n} {dst.split(dst_marker, 1)[-1]}")
+    print(f"done. {counts}", file=sys.stderr)
+    return 0 if counts.get("error", 0) == 0 else 1
 
 
 if __name__ == "__main__":
