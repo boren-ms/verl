@@ -23,6 +23,7 @@ eval:
   log_interval: 100
   save_interval: 10000
   request_batch_size: 16    # samples sent per /asr/transcribe HTTP call
+  max_concurrent: 128      # 64 requests in flight at once (client-side concurrency)
   resume: true
   wait_timeout: 600.0
   wer_kwargs:
@@ -37,7 +38,6 @@ eval:
 data:
   source_config: null        # REQUIRED: path to dataset YAML
   output_path: null          # REQUIRED: where to write result_details*.jsonl
-  max_concurrent: 1024        # ≈ 64/GPU × 64 GPUs; caps in-flight ITEMS across all batches
   max_tokens: 1024
   max_audio_dur: 40.0
   num_egs: null              # null → all examples

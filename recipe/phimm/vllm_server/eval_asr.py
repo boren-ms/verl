@@ -21,7 +21,7 @@ field on the command line with Hydra-style key=value tokens, e.g.::
     python -m recipe.phimm.vllm_server.eval_asr \\
         eval.proxy_url=http://proxy-host:8000 \\
         data.num_egs=100 \\
-        data.max_concurrent=256
+        eval.max_concurrent=256
 """
 
 from __future__ import annotations
@@ -407,7 +407,7 @@ async def run_evaluation(cfg: DictConfig):
     from recipe.phimm.utils.shared import parse_asr_response
 
     proxy_url = cfg.eval.proxy_url
-    max_concurrent = int(cfg.data.max_concurrent)
+    max_concurrent = int(cfg.eval.max_concurrent)
     request_batch_size = max(int(cfg.eval.get("request_batch_size", 16)), 1)
     max_tokens = int(cfg.data.max_tokens)
     max_audio_dur = float(cfg.data.max_audio_dur)
@@ -527,10 +527,11 @@ async def run_evaluation(cfg: DictConfig):
                         "Batch request attempt %d/10 failed (%d samples): %r",
                         attempt + 1, len(batch_items), e,
                     )
-                    await asyncio.sleep(1.0 * (attempt + 1))
+                    await asyncio.sleep(min(60.0, 2.0 ** attempt))
             if responses is None:
-                logger.error("Batch request giving up after 3 attempts (%d samples): %r", len(batch_items), last_err)
-                responses = [f"<error>{last_err}</error>"] * len(batch_items)
+                raise RuntimeError(
+                    f"Batch request failed after 10 attempts ({len(batch_items)} samples): {last_err!r}"
+                ) from last_err
 
         for (_, audio_path, text, prompt), response_str in zip(batch_items, responses, strict=True):
             # Score (CPU-only, fast)
