@@ -1183,11 +1183,14 @@ def add_task_info(ds, **kwargs):
     rand = kwargs.get("rand", False)
     forced = kwargs.get("forced", False)
     language = kwargs.get("language", "English")
+    prompt_suffix = kwargs.get("prompt_suffix", None)
 
     def add_task_info_fn(egs):
         prompt = egs.get("prompt", None)
         if forced or prompt is None:
             prompt_txt = get_task_prompt(task=task, rand=rand)
+            if prompt_suffix:
+                prompt_txt = f"{prompt_txt} {prompt_suffix}"
             prompt = prompt_format.format(prompt_txt)
         task_language = None
         if task.startswith("lang_asr_lex_"):
