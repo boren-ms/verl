@@ -49,13 +49,15 @@ class BackendRegistry:
     ensuring all GPUs stay busy even when request latencies vary.
     """
 
-    def __init__(self):
+    def __init__(self, max_inflight_per_backend: int = 4):
         self._backends: list[str] = []  # e.g. ["http://10.0.0.1:8001", ...]
         self._healthy: dict[str, bool] = {}
         self._pending: dict[str, int] = {}  # url -> in-flight request count
         self._lock = asyncio.Lock()
         self._counter: int = 0  # fallback tiebreaker for round-robin among equal-load backends
         self._changed = asyncio.Event()  # signalled on every register/unregister
+        # Per-backend concurrency cap; cluster capacity = cap * healthy_count.
+        self.max_inflight_per_backend: int = max_inflight_per_backend
 
     async def register(self, url: str) -> dict:
         """Register a backend. Idempotent — registering the same URL twice is a no-op."""
@@ -156,6 +158,47 @@ class BackendRegistry:
         async with self._lock:
             healthy = sum(1 for v in self._healthy.values() if v)
             return healthy, len(self._backends)
+
+    async def load_snapshot(self) -> dict:
+        """Return current load/capacity snapshot for readiness reporting."""
+        async with self._lock:
+            healthy = sum(1 for v in self._healthy.values() if v)
+            total = len(self._backends)
+            in_flight = sum(
+                self._pending.get(u, 0) for u in self._backends if self._healthy.get(u, False)
+            )
+            capacity = healthy * self.max_inflight_per_backend
+            return {
+                "healthy": healthy,
+                "total": total,
+                "in_flight": in_flight,
+                "capacity": capacity,
+                "max_inflight_per_backend": self.max_inflight_per_backend,
+            }
+
+    async def try_acquire_backend(self) -> str | None:
+        """Like next_backend(), but returns None if all healthy backends are at capacity.
+
+        Routes to the healthy backend with the fewest in-flight requests and
+        only admits the request when that backend is still under the per-backend cap.
+        """
+        async with self._lock:
+            healthy = [
+                (url, self._pending.get(url, 0))
+                for url in self._backends
+                if self._healthy.get(url, False)
+            ]
+            if not healthy:
+                return None
+            min_pending = min(p for _, p in healthy)
+            if min_pending >= self.max_inflight_per_backend:
+                return None
+            candidates = [url for url, p in healthy if p == min_pending]
+            idx = self._counter % len(candidates)
+            self._counter += 1
+            chosen = candidates[idx]
+            self._pending[chosen] = self._pending.get(chosen, 0) + 1
+            return chosen
 
     async def wait_for_backends(self, min_count: int, timeout: float = 600.0) -> bool:
         """Block until at least min_count healthy backends are registered."""
@@ -304,15 +347,21 @@ async def proxy_health():
 
 @app.get("/ready")
 async def proxy_ready():
-    """Liveness/readiness probe: 200 when at least 1 backend is healthy, else 503.
-    Clients can poll this to wait for the cluster to come online."""
-    healthy, total = await registry.healthy_count()
-    if healthy < 1:
+    """Readiness probe: 200 only when at least 1 backend is healthy AND the
+    cluster is not overloaded (total in-flight < capacity). Returns 503 with
+    a structured reason otherwise so clients can back off."""
+    snap = await registry.load_snapshot()
+    if snap["healthy"] < 1:
         raise HTTPException(
             status_code=503,
-            detail=f"No healthy backends (healthy={healthy}, total={total})",
+            detail={"reason": "no_healthy_backends", **snap},
         )
-    return {"status": "ready", "healthy": healthy, "total": total}
+    if snap["in_flight"] >= snap["capacity"]:
+        raise HTTPException(
+            status_code=503,
+            detail={"reason": "overloaded", **snap},
+        )
+    return {"status": "ready", **snap}
 
 
 # ---- Proxy forwarding: zero-copy with retry ----
@@ -323,14 +372,28 @@ async def _forward_request(request: Request, path: str, max_retries: int = 5):
     Uses zero-copy forwarding: raw response bytes are passed through without
     JSON deserialization/reserialization, eliminating proxy CPU overhead.
     On failure, marks backend unhealthy and retries on the next-least-loaded.
+    Applies per-backend concurrency limits; returns 503 with Retry-After when
+    the cluster is at capacity so callers can back off.
     """
+    # Admission control: bounce immediately when overloaded rather than queueing
+    # unbounded work that would also keep /ready stuck in overload.
+    backend_url = await registry.try_acquire_backend()
+    if backend_url is None:
+        snap = await registry.load_snapshot()
+        reason = "overloaded" if snap["healthy"] >= 1 else "no_healthy_backends"
+        return Response(
+            content=f'{{"error":"{reason}","in_flight":{snap["in_flight"]},"capacity":{snap["capacity"]}}}',
+            status_code=503,
+            media_type="application/json",
+            headers={"Retry-After": "1"},
+        )
+
     client = await get_client()
     body = await request.body()
     headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
 
     last_error = None
     for attempt in range(1 + max_retries):
-        backend_url = await registry.next_backend()
         target_url = f"{backend_url}/{path}"
         try:
             resp = await client.request(
@@ -357,6 +420,12 @@ async def _forward_request(request: Request, path: str, max_retries: int = 5):
             last_error = e
             logger.warning("Backend %s read timeout (attempt %d/%d): %s",
                            backend_url, attempt + 1, 1 + max_retries, e)
+
+        # Retry on next backend if still under capacity; otherwise give up.
+        next_url = await registry.try_acquire_backend()
+        if next_url is None:
+            break
+        backend_url = next_url
 
     raise HTTPException(status_code=502, detail=f"All retries exhausted: {last_error}")
 
@@ -388,7 +457,12 @@ def main():
     parser.add_argument("--port", type=int, default=8000, help="Proxy listen port")
     parser.add_argument("--backends", nargs="*", default=[], help="Pre-register backend URLs")
     parser.add_argument("--workers", type=int, default=1, help="Number of uvicorn workers (1 recommended for shared registry)")
+    parser.add_argument("--max-inflight-per-backend", type=int, default=64,
+                        help="Per-backend in-flight request cap; cluster capacity = cap * healthy_backends. "
+                             "When exceeded, /ready returns 503 (overloaded) and new requests get 503 + Retry-After.")
     args = parser.parse_args()
+
+    registry.max_inflight_per_backend = args.max_inflight_per_backend
 
     # Pre-register backends if provided
     async def _pre_register():

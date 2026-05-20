@@ -266,6 +266,54 @@ def _proxy_healthy(proxy_url: str, timeout: float = 2.0) -> bool:
         return False
 
 
+async def _wait_proxy_ready(
+    client,
+    proxy_url: str,
+    timeout: float = 600.0,
+    poll_interval: float = 2.0,
+) -> None:
+    """Poll ``proxy_url/ready`` until it returns 200 or ``timeout`` elapses.
+
+    Used by request retries so the client backs off while the proxy reports
+    503 (e.g. ``reason=overloaded`` or ``no_healthy_backends``). Raises
+    ``TimeoutError`` after ``timeout`` seconds (default 10 minutes) so a
+    permanently-down proxy doesn't hang the eval forever.
+    """
+    import httpx
+
+    deadline = time.monotonic() + timeout
+    backoff_logged = False
+    while True:
+        try:
+            r = await client.get(f"{proxy_url}/ready", timeout=5.0)
+            if r.status_code == 200:
+                if backoff_logged:
+                    logger.info("Proxy %s ready again", proxy_url)
+                return
+            if not backoff_logged:
+                try:
+                    detail = r.json()
+                except Exception:
+                    detail = r.text
+                logger.info(
+                    "Proxy %s not ready (status=%d, detail=%s); waiting...",
+                    proxy_url, r.status_code, detail,
+                )
+                backoff_logged = True
+        except httpx.HTTPError as e:
+            if not backoff_logged:
+                logger.info(
+                    "Proxy %s /ready unreachable (%r); waiting...",
+                    proxy_url, e,
+                )
+                backoff_logged = True
+        if time.monotonic() >= deadline:
+            raise TimeoutError(
+                f"Proxy {proxy_url} did not become ready within {timeout:.0f}s"
+            )
+        await asyncio.sleep(poll_interval)
+
+
 def _proxy_is_local(proxy_url: str) -> bool:
     """Return True if ``proxy_url``'s host refers to this machine.
 
@@ -330,10 +378,14 @@ def ensure_proxy_ready(cfg: DictConfig) -> None:
         vllm_cfg = OmegaConf.load(vllm_cfg_path)
         proxy_host = str(vllm_cfg.proxy.host)
         proxy_port = int(vllm_cfg.proxy.port)
+        max_inflight = int(OmegaConf.select(vllm_cfg, "proxy.max_inflight_per_backend", default=4))
 
-        logger.info("Proxy unreachable at %s; auto-launching proxy on %s:%d (config=%s)", proxy_url, proxy_host, proxy_port, vllm_config)
+        logger.info("Proxy unreachable at %s; auto-launching proxy on %s:%d (config=%s, max_inflight_per_backend=%d)",
+                    proxy_url, proxy_host, proxy_port, vllm_config, max_inflight)
         subprocess.Popen(
-            [sys.executable, "-m", "recipe.phimm.vllm_server.fastapi_proxy", "--host", proxy_host, "--port", str(proxy_port)],
+            [sys.executable, "-m", "recipe.phimm.vllm_server.fastapi_proxy",
+             "--host", proxy_host, "--port", str(proxy_port),
+             "--max-inflight-per-backend", str(max_inflight)],
             start_new_session=True,
         )
 
@@ -416,6 +468,7 @@ async def run_evaluation(cfg: DictConfig):
     log_interval = max(int(cfg.eval.get("log_interval", 100)), 1)
     save_interval = max(int(cfg.eval.get("save_interval", 1000)), 1)
     resume = bool(cfg.eval.get("resume", True))
+    wait_timeout = float(cfg.eval.get("wait_timeout", 600.0))
     wer_kwargs = cfg.eval.get("wer_kwargs", {}) or {}
     if OmegaConf.is_config(wer_kwargs):
         wer_kwargs = OmegaConf.to_container(wer_kwargs, resolve=True)
@@ -512,6 +565,8 @@ async def run_evaluation(cfg: DictConfig):
             responses = None
             last_err: Exception | None = None
             for attempt in range(10):
+                if attempt > 0:
+                    await _wait_proxy_ready(client, proxy_url, timeout=wait_timeout)
                 try:
                     resp = await client.post(
                         f"{proxy_url}/asr/transcribe",
@@ -527,7 +582,6 @@ async def run_evaluation(cfg: DictConfig):
                         "Batch request attempt %d/10 failed (%d samples): %r",
                         attempt + 1, len(batch_items), e,
                     )
-                    await asyncio.sleep(min(60.0, 2.0 ** attempt))
             if responses is None:
                 raise RuntimeError(
                     f"Batch request failed after 10 attempts ({len(batch_items)} samples): {last_err!r}"

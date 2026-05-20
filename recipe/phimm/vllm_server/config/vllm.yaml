@@ -38,9 +38,12 @@ worker:
 proxy:
   host: "0.0.0.0"
   port: 8000
+  # Per-backend in-flight request cap. Cluster capacity = cap * healthy_backends.
+  max_inflight_per_backend: 4
 
 # Cluster / node config
 cluster:
   num_gpus: 8
   startup_timeout: 600.0
+  wait_timeout: 600.0
   proxy_url: http://verl-n1-i0-0:8000  # always register workers to this proxy
