@@ -236,7 +236,7 @@ async def get_client() -> httpx.AsyncClient:
             keepalive_expiry=30.0,
         )
         _client = httpx.AsyncClient(
-            timeout=None,
+            timeout=httpx.Timeout(connect=10.0, read=300.0, write=30.0, pool=60.0),
             limits=limits,
         )
     return _client

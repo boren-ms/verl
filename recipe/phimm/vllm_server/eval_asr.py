@@ -427,11 +427,10 @@ async def run_evaluation(cfg: DictConfig):
     total = len(dataset)
     logger.info("Loaded %d samples (wer_kwargs=%s)", total, wer_kwargs)
 
-    # High-concurrency client. No timeout: wait indefinitely for each
-    # transcription result regardless of how long inference takes.
+    # High-concurrency client. 
     client = httpx.AsyncClient(
         limits=httpx.Limits(max_connections=max_concurrent + 50, max_keepalive_connections=100),
-        timeout=None,
+        timeout=httpx.Timeout(connect=10.0, read=300.0, write=30.0, pool=60.0),
     )
     semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -510,17 +509,28 @@ async def run_evaluation(cfg: DictConfig):
         }
 
         async with semaphore:
-            try:
-                resp = await client.post(
-                    f"{proxy_url}/asr/transcribe",
-                    json=payload,
-                )
-                resp.raise_for_status()
-                result = resp.json()
-                responses = extract_response_texts(result, len(batch_items))
-            except Exception as e:
-                logger.error("Batch request failed (%d samples): %r", len(batch_items), e)
-                responses = [f"<error>{e}</error>"] * len(batch_items)
+            responses = None
+            last_err: Exception | None = None
+            for attempt in range(10):
+                try:
+                    resp = await client.post(
+                        f"{proxy_url}/asr/transcribe",
+                        json=payload,
+                    )
+                    resp.raise_for_status()
+                    result = resp.json()
+                    responses = extract_response_texts(result, len(batch_items))
+                    break
+                except Exception as e:
+                    last_err = e
+                    logger.warning(
+                        "Batch request attempt %d/10 failed (%d samples): %r",
+                        attempt + 1, len(batch_items), e,
+                    )
+                    await asyncio.sleep(1.0 * (attempt + 1))
+            if responses is None:
+                logger.error("Batch request giving up after 3 attempts (%d samples): %r", len(batch_items), last_err)
+                responses = [f"<error>{last_err}</error>"] * len(batch_items)
 
         for (_, audio_path, text, prompt), response_str in zip(batch_items, responses, strict=True):
             # Score (CPU-only, fast)
