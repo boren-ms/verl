@@ -25,9 +25,9 @@ rollout:
   temperature: 0.0
   top_k: -1
   top_p: 1
-  gpu_memory_utilization: 0.90   # more KV cache => larger concurrent batches (H100 ~6GB held by FSDP weights)
-  max_num_batched_tokens: 196608 # 16k * 12, more prompts prefilled per step
-  max_num_seqs: 4096             # more concurrent decodes; LS responses are short
+  gpu_memory_utilization: 0.85   # leave headroom for prefill activations on H100
+  max_num_batched_tokens: 131072 # 16k * 8 prefilled per step
+  max_num_seqs: 2048             # concurrent decodes
   enforce_eager: false
   enable_chunked_prefill: true   # keep: interleaves prefill of long prompts with ongoing decodes
   free_cache_engine: true     
