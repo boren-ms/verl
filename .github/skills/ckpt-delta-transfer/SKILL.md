@@ -35,6 +35,7 @@ This avoids downloading the full ~18GB checkpoint over the WAN — only the delt
 | `DELTA_NAME` | Name for the delta file (default: `delta_v1.pt`) | `delta_v1.pt` |
 | `CKPT_FILE` | Checkpoint filename inside each directory (default: `lora_merged_model_states.pt`) | `lora_merged_model_states.pt` |
 | `BASE_LOCAL` | Local path to baseline checkpoint (for apply step) | `~/data/ckp/fast-llm-.../90000/lora_merged_model_states.pt` |
+| `BASE_HF_PATH` | Blob path to baseline HF model dir (has `config.json`) | `speech/projects/phi-fastllm-2605/amlt-results/.../90000/qwen_hf/` |
 
 ## Procedure
 
@@ -148,12 +149,12 @@ mkdir -p "$DST/splits" && cd "$DST"
 bbb cp "$SRC/${STEM}.md5" "${STEM}.md5"
 bbb cp "$SRC/splits.md5" splits/splits.md5
 
-# List and download parts in parallel
+# List and download parts in parallel (P=4 is reliable; P=16 can overwhelm local bandwidth)
 bbb ls "$SRC/" | grep -E "${STEM}\.(z[0-9]+|zip)$" > parts.list
 N=$(wc -l < parts.list); echo "$N parts to download"
 
 t0=$SECONDS
-xargs -a parts.list -n 1 -P 16 -I {} bbb cp --concurrency 4 -q "{}" splits/
+xargs -a parts.list -P 4 -I {} bbb cp -q "{}" splits/
 echo "Download took $((SECONDS - t0))s"
 
 # Verify part checksums
@@ -198,13 +199,28 @@ cd ~/code/verl
 python scripts/ckpt_delta.py apply \
   --baseline <BASE_LOCAL> \
   --delta <LOCAL_DEST>/<DELTA_NAME> \
-  --new <LOCAL_DEST>/<CKPT_FILE>
+  --new <LOCAL_DEST>/mp_rank_00_model_states.pt
 ```
 
 This produces a checkpoint identical to the original new checkpoint:
 - Same flat key naming (no `.base_layer.` infix)
 - Same `{"module": OrderedDict[...]}` wrapping
 - Same tensor values
+- Named `mp_rank_00_model_states.pt` for compatibility with the vLLM/eval loading conventions
+
+#### Step 7b — Copy config.json from local baseline model folder
+
+The eval/vLLM loader expects `config.json` alongside the weights. Copy it from the local baseline folder:
+
+```bash
+cp $(dirname <BASE_LOCAL>)/config.json <LOCAL_DEST>/config.json
+```
+
+If `config.json` is not in the local baseline folder yet, download it first:
+```bash
+bbb cp "az://orngwus2cresco/data/<base_hf_path>/config.json" $(dirname <BASE_LOCAL>)/config.json
+cp $(dirname <BASE_LOCAL>)/config.json <LOCAL_DEST>/config.json
+```
 
 #### Step 8 — Verify (optional)
 
