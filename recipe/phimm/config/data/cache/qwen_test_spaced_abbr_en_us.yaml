@@ -1,0 +1,11 @@
+source_config:
+  dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/jsonl_results/sr_en-US_lid1/*.jsonl
+  post_process:
+    keep_samples:
+      has_spaced_abbrev: true
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen_test/qwen_spaced_abbr/en_us.jsonl
+include_verl_format: false
+overwrite: true
