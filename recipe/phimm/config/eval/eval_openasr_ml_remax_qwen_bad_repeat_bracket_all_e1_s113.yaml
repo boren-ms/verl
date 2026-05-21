@@ -11,6 +11,8 @@ defaults:
 actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/
+  rollout:
+    enforce_eager: false
 
 trainer:
   resume_mode: resume_path
