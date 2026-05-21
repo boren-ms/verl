@@ -155,6 +155,10 @@ def log_examples(ds, num_examine=1):
 
 @ray.remote(num_cpus=1)
 def main_task(config):
+    # Register the `eval` resolver inside the remote worker process so
+    # interpolations like `${eval:...}` resolve when Ray spins up a fresh worker.
+    if not OmegaConf.has_resolver("eval"):
+        OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
     pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
     OmegaConf.resolve(config)
     # breakpoint()
