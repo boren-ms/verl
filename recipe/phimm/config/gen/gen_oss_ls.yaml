@@ -13,21 +13,21 @@ model:
 
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_ls
-  batch_size: 2048               # large dispatch -> vLLM stays saturated end-to-end
+  batch_size: 1024               # large dispatch -> vLLM stays saturated end-to-end
   output_split_size: 20000       # fewer parquet writes; larger chunks per blob upload
-  num_workers: 32                # more producers feeding the prep_queue
-  prefetch_factor: 4
-  pin_memory: true
+  num_workers: 16                # producers feeding the prep_queue (kept small to bound host RAM with audio)
+  prefetch_factor: 2
+  pin_memory: false              # audio batches are big; pinned memory would balloon host RSS
   persistent_workers: true
-  prefetch_depth: 6              # deeper prep<->generate<->consume pipeline
+  prefetch_depth: 3              # prep<->generate<->consume pipeline depth (host RAM bound)
 
 rollout:
   temperature: 0.0
   top_k: -1
   top_p: 1
-  gpu_memory_utilization: 0.85   # leave headroom for prefill activations on H100
+  gpu_memory_utilization: 0.78   # share H100 with FSDP shard (~9-18GB) + vLLM weights + KV cache
   max_num_batched_tokens: 131072 # 16k * 8 prefilled per step
-  max_num_seqs: 2048             # concurrent decodes
+  max_num_seqs: 1024             # concurrent decodes (matches input batch)
   enforce_eager: false
-  enable_chunked_prefill: true   # keep: interleaves prefill of long prompts with ongoing decodes
+  enable_chunked_prefill: true   # interleaves prefill of long prompts with ongoing decodes
   free_cache_engine: true     
