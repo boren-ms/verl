@@ -30,5 +30,4 @@ rollout:
   max_num_seqs: 4096             # more concurrent decodes; LS responses are short
   enforce_eager: false
   enable_chunked_prefill: true   # keep: interleaves prefill of long prompts with ongoing decodes
-  free_cache_engine: true
-  swap_space: 0     
+  free_cache_engine: true     
