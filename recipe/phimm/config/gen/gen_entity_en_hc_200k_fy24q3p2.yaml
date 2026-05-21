@@ -18,3 +18,7 @@ data:
   num_workers: 4
   persistent_workers: false
   prefetch_factor: 2
+
+rollout:
+  # Leave headroom for torch.compile / inductor benchmark allocations during init.
+  gpu_memory_utilization: 0.6
