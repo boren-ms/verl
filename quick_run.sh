@@ -26,7 +26,13 @@ echo "[INFO] Preparing environment ..."
 python3 ray_tool.py prepare_env # prepare on all ray nodes
 
 echo "[INFO] Running ${config_name} ..."
-ray job submit --working-dir="${cwd}"  \
+# VLLM_USE_V1=0 forces the legacy vLLM engine to avoid a known v1 cudagraph+LoRA
+# IndexError in column_parallel_linear.set_lora when target_modules uses packed
+# names (qkv_proj, gate_up_proj). Override at job-submit time via VLLM_USE_V1
+# env in your shell to opt back into v1.
+: "${VLLM_USE_V1:=0}"
+ray job submit --working-dir="${cwd}" \
+--runtime-env-json="{\"env_vars\":{\"VLLM_USE_V1\":\"${VLLM_USE_V1}\"}}" \
 --no-wait -- \
 python3 -m ${module} \
 --config-name "${config_name}" \
