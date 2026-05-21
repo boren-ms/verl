@@ -10,10 +10,6 @@ val_reward:
     path: recipe/phimm/reward/asr_edge.py
     name: openasr_eval
 
-actor_rollout_ref:
-  rollout:
-    max_num_batched_tokens: 4096
-    max_num_seqs: 128
 
 trainer:
   val_only: True
