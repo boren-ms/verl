@@ -8,8 +8,8 @@ data:
   train_files: null
   val_files: null
   trust_remote_code: true
-  max_prompt_length: 1024
-  max_response_length: 256
+  max_prompt_length: 400
+  max_response_length: 200
   dataloader_num_workers: 8        # bounded to keep host RAM safe with audio batches
   prefetch_factor: 2
   persistent_workers: true
@@ -60,8 +60,8 @@ actor_rollout_ref:
       min_lr_ratio: 0.1
 
     fsdp_config:
-      param_offload: false
-      optimizer_offload: false
+      param_offload: true
+      optimizer_offload: true
       use_orig_params: true
     strategy: fsdp2
   model:
@@ -76,7 +76,7 @@ actor_rollout_ref:
     exclude_modules: "model.embed_tokens_extend.*" # must have
     enable_gradient_checkpointing: False
   rollout:
-    n: 4
+    n: 16
     max_num_batched_tokens: 131072  # 16k * 8 prefilled per step
     max_num_seqs: 1024              # concurrent decodes (matches input batch)
     dtype: bfloat16                 # should align with FSDP
@@ -88,12 +88,13 @@ actor_rollout_ref:
     response_length: ${data.max_response_length}
     val_kwargs:
       temperature: 0.0
+      top_p: 1.0
     gpu_memory_utilization: 0.78
     load_format: safetensors
-    enforce_eager: false
     stop: ["<|im_end|>"]
     stop_token_ids: [248044, 248046]
     layered_summon: true
+    enforce_eager: false
     enable_chunked_prefill: true
     free_cache_engine: true
   ref:
