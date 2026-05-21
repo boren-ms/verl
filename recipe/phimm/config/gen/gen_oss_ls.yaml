@@ -25,7 +25,7 @@ rollout:
   temperature: 0.0
   top_k: -1
   top_p: 1
-  gpu_memory_utilization: 0.95   # more KV cache => larger concurrent batches
+  gpu_memory_utilization: 0.90   # more KV cache => larger concurrent batches (H100 ~6GB held by FSDP weights)
   max_num_batched_tokens: 196608 # 16k * 12, more prompts prefilled per step
   max_num_seqs: 4096             # more concurrent decodes; LS responses are short
   enforce_eager: false
