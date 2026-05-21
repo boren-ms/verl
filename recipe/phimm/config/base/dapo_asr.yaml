@@ -8,8 +8,8 @@ data:
   train_files: null
   val_files: null
   trust_remote_code: true
-  max_prompt_length: 400
-  max_response_length: 200
+  max_prompt_length: 384
+  max_response_length: 128
   dataloader_num_workers: 8        # bounded to keep host RAM safe with audio batches
   prefetch_factor: 2
   persistent_workers: true
@@ -77,7 +77,7 @@ actor_rollout_ref:
     enable_gradient_checkpointing: False
   rollout:
     n: 16
-    max_num_batched_tokens: 131072  # 16k * 8 prefilled per step
+    max_num_batched_tokens: 524288  # 512*1024
     max_num_seqs: 1024              # concurrent decodes (matches input batch)
     dtype: bfloat16                 # should align with FSDP
     log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
