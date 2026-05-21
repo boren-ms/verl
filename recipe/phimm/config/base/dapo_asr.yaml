@@ -83,10 +83,13 @@ actor_rollout_ref:
       temperature: 0.0
     gpu_memory_utilization: 0.8
     load_format: safetensors
-    enforce_eager: True
+    enforce_eager: false
     stop: ["<|im_end|>"]
     stop_token_ids: [248044, 248046]
     layered_summon: true
+    enable_chunked_prefill: true
+    free_cache_engine: true
+    swap_space: 0       
   ref:
     strategy: fsdp2
     log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
