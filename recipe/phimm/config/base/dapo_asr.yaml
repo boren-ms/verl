@@ -8,7 +8,7 @@ data:
   train_files: null
   val_files: null
   trust_remote_code: true
-  max_prompt_length: 512
+  max_prompt_length: 1024
   max_response_length: 256
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   dataloader_num_workers: 8        # bounded to keep host RAM safe with audio batches
