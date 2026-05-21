@@ -25,8 +25,8 @@ rollout:
   temperature: 0.0
   top_k: -1 # 0 for hf rollout, -1 for vllm rollout
   top_p: 1
-  prompt_length: 7168
-  max_num_batched_tokens: 131072 # 16k * 8 prefilled per step
+  max_model_len: 1536
+  max_num_batched_tokens: ${rollout.max_model_len*rollout.max_num_seqs} # 16k * 8 prefilled per step
   max_num_seqs: 1024             # concurrent decodes (matches input batch)
   dtype: bfloat16 # should align with FSDP
   gpu_memory_utilization: 0.78   # share H100 with FSDP shard + vLLM weights + KV cache
