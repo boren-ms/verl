@@ -10,7 +10,7 @@ data:
   trust_remote_code: true
   max_prompt_length: 512
   max_response_length: 256
-  max_model_length: ${data.max_prompt_length + data.max_response_length}
+  max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   dataloader_num_workers: 8        # bounded to keep host RAM safe with audio batches
   prefetch_factor: 2
   persistent_workers: true
@@ -78,7 +78,7 @@ actor_rollout_ref:
     enable_gradient_checkpointing: False
   rollout:
     n: 16
-    max_num_batched_tokens: ${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}  # 512*1024
+    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}  # 512*1024
     max_num_seqs: 1024              # concurrent decodes (matches input batch)
     dtype: bfloat16                 # should align with FSDP
     log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
