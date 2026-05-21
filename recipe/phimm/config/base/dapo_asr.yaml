@@ -2,13 +2,18 @@ defaults:
   - ppo_trainer
   - _self_
 
+nccl_timeout: 1800
+
 data:
   train_files: null
   val_files: null
   trust_remote_code: true
-  max_prompt_length: 7168
-  max_response_length: 512
-  dataloader_num_workers: 0
+  max_prompt_length: 1024
+  max_response_length: 256
+  dataloader_num_workers: 8        # bounded to keep host RAM safe with audio batches
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false                 # audio batches are big; pinned memory would balloon host RSS
   train_batch_size: 8
   max_audio_dur: 80 # max audio duration in seconds
   gen_batch_size: ${data.train_batch_size}
@@ -72,7 +77,9 @@ actor_rollout_ref:
     enable_gradient_checkpointing: False
   rollout:
     n: 4
-    max_num_batched_tokens: 16384
+    max_num_batched_tokens: 131072  # 16k * 8 prefilled per step
+    max_num_seqs: 1024              # concurrent decodes (matches input batch)
+    dtype: bfloat16                 # should align with FSDP
     log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
     tensor_model_parallel_size: 1
     name: vllm
@@ -81,7 +88,7 @@ actor_rollout_ref:
     response_length: ${data.max_response_length}
     val_kwargs:
       temperature: 0.0
-    gpu_memory_utilization: 0.8
+    gpu_memory_utilization: 0.78
     load_format: safetensors
     enforce_eager: false
     stop: ["<|im_end|>"]
@@ -89,7 +96,6 @@ actor_rollout_ref:
     layered_summon: true
     enable_chunked_prefill: true
     free_cache_engine: true
-    swap_space: 0       
   ref:
     strategy: fsdp2
     log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
