@@ -84,12 +84,12 @@ BASELINE_METRICS: Dict[str, float] = {
 }
 
 WER_LINE_RE = re.compile(
-    r"val-aux/(?P<dataset>[a-zA-Z0-9_]+)/wer/mean@1[:=]\s*(?P<value>[0-9.eE+-]+)"
+    r"val-aux/(?P<dataset>[a-zA-Z0-9_]+)/p_err/mean@1[:=]\s*(?P<value>[0-9.eE+-]+)"
 )
 
 
 def parse_wer_lines(text: str) -> Dict[str, float]:
-    """Extract the latest ``val-aux/<ds>/wer/mean@1`` value per dataset."""
+    """Extract the latest ``val-aux/<ds>/p_err/mean@1`` value per dataset."""
     out: Dict[str, float] = {}
     for m in WER_LINE_RE.finditer(text):
         try:

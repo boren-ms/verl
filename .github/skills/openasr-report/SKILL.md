@@ -44,8 +44,8 @@ Formatting:
 
 1. Determine the model label (e.g. `remax_qwen_bad_bracket_e1a@step80`).
 2. Collect per-dataset metrics from one of:
-   - **Ray job(s)**: `--from-ray <node> <job-id>`. Repeat for separate openasr / openasr_ml jobs. The script runs `brix ssh <node> -- ray job logs <id>` and parses `val-aux/<dataset>/wer/mean@1:<float>`.
-   - **Text dump**: `--from-text <path>` containing lines like `val-aux/ami/wer/mean@1:0.1351`.
+   - **Ray job(s)**: `--from-ray <node> <job-id>`. Repeat for separate openasr / openasr_ml jobs. The script runs `brix ssh <node> -- ray job logs <id>` and parses `val-aux/<dataset>/p_err/mean@1:<float>`.
+   - **Text dump**: `--from-text <path>` containing lines like `val-aux/ami/p_err/mean@1:0.1351`.
    - **JSON**: `--metrics <path>` with `{"ami": 0.1351, ...}` (fractions, not percent).
 3. Optionally pass `--extend-xlsx <prior.xlsx>` to append the new model as the next column after the existing baseline/model columns.
 4. Run [scripts/build_openasr_xlsx.py](./scripts/build_openasr_xlsx.py). Output defaults to `tmp/openasr_report/<label>.xlsx`.
