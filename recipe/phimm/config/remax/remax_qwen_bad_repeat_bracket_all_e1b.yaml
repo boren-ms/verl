@@ -50,3 +50,6 @@ trainer:
   save_freq: 10
   val_before_train: true
   dedup_responses: false
+  use_dynamic_bsz: true
+  ppo_max_token_len_per_gpu: 20480
+  launch_reward_fn_async: true
