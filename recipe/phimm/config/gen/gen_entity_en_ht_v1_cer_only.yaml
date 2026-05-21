@@ -13,3 +13,16 @@ model:
 
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/entity_en_ht_v1_cer_only
+  batch_size: 1024
+  output_split_size: 20000
+
+rollout:
+  temperature: 0.0
+  top_k: -1
+  top_p: 1
+  gpu_memory_utilization: 0.92
+  max_num_batched_tokens: 131072  # 16k * 8
+  max_num_seqs: 2048
+  enforce_eager: false
+  enable_chunked_prefill: true
+  free_cache_engine: true
