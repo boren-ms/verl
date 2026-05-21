@@ -13,17 +13,3 @@ model:
 
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/entity_en_ht_v1_cer_only
-  batch_size: 4096          # feed more requests per dispatch so vLLM stays saturated
-  output_split_size: 20000
-
-rollout:
-  temperature: 0.0
-  top_k: -1
-  top_p: 1
-  gpu_memory_utilization: 0.95   # more KV cache => larger concurrent batches
-  max_num_batched_tokens: 196608 # 16k * 12, more prompts prefilled per step
-  max_num_seqs: 2048
-  enforce_eager: false
-  enable_chunked_prefill: true   # keep: interleaves prefill of long prompts with ongoing decodes
-  free_cache_engine: true
-  swap_space: 0                  # disable CPU KV swap; avoids H2D/D2H stalls when KV is tight
