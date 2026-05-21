@@ -11,6 +11,7 @@ import random
 import socket
 import blobfile as bf
 import pandas as pd
+import pyarrow as pa
 import pyarrow.parquet as pq
 import pyarrow.json as pjson
 import pyarrow.csv as pcsv
@@ -159,7 +160,15 @@ def _expand_paths(file_paths, ext="parquet"):
 def _load_expanded_datasets(file_paths, ext, load_fn):
     data_files = [file_paths] if isinstance(file_paths, str) else file_paths
     datasets = [load_fn(file_path) for file_path in _expand_paths(data_files, ext=ext)]
-    return concatenate_datasets(datasets) if len(datasets) > 1 else datasets[0]
+    if len(datasets) <= 1:
+        return datasets[0]
+    try:
+        return concatenate_datasets(datasets)
+    except ValueError as e:
+        rank_print(f"[WARN] concatenate_datasets failed ({e}); retrying with pyarrow permissive promotion")
+        tables = [ds.data.table if hasattr(ds.data, "table") else ds._data.table for ds in datasets]
+        merged = pa.concat_tables(tables, promote_options="permissive")
+        return Dataset(merged)
 
 
 def parquet_dataset(parquet_paths, **kwargs):
