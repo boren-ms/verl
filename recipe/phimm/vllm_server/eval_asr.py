@@ -50,29 +50,55 @@ from datasets import Dataset
 logger = logging.getLogger("eval_asr")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
+# Patterns that indicate the "response" text is actually an HTTP/transport
+# error (e.g. from httpx.HTTPStatusError or a proxy/worker error body) rather
+# than a real model transcription. Any response matching these MUST be rejected
+# so it never gets written into the output parquet.
+_ERROR_RESPONSE_PATTERNS = (
+    "Server error '",        # httpx HTTPStatusError 5xx
+    "Client error '",        # httpx HTTPStatusError 4xx
+    "All retries exhausted", # proxy 502 detail
+    "no_healthy_backends",
+    "overloaded",
+    "Generation failed:",    # worker 500 detail
+    "Failed to load audio:", # worker 400 detail
+)
+
+
+def _looks_like_error_response(text: str | None) -> bool:
+    """Return True if ``text`` is an HTTP/transport error string, not a real response."""
+    if not text:
+        return False
+    s = text.strip()
+    return any(s.startswith(p) or p in s[:200] for p in _ERROR_RESPONSE_PATTERNS)
+
 
 def extract_response_texts(result: dict, expected_count: int) -> list[str]:
     """Extract generated texts from a batched worker response.
 
-    Returns exactly ``expected_count`` entries, padding with empty strings
-    when needed so caller-side scoring logic remains per-sample.
+    Raises ``ValueError`` if the response shape is wrong OR if any item carries
+    a transport-error string instead of a real generation. The caller's retry
+    loop will treat this as a failed attempt rather than write garbage.
     """
     if expected_count <= 0:
         return []
     results = result.get("results")
-    assert results is not None, f"Missing 'results' in response: {result!r}"
-    assert isinstance(results, list), f"'results' should be a list: {result!r}"
-    
+    if results is None or not isinstance(results, list):
+        raise ValueError(f"Malformed worker response (no 'results' list): {str(result)[:300]!r}")
+    if len(results) < expected_count:
+        raise ValueError(
+            f"Worker returned {len(results)} results, expected {expected_count}: {str(result)[:300]!r}"
+        )
+
     texts: list[str] = []
     for item in results[:expected_count]:
-        if isinstance(item, dict) and isinstance(item.get("text"), str):
-            texts.append(item["text"])
-        else:
-            texts.append("")
-    if len(texts) < expected_count:
-        texts.extend([""] * (expected_count - len(texts)))
+        if not isinstance(item, dict) or not isinstance(item.get("text"), str):
+            raise ValueError(f"Bad result item: {item!r}")
+        text = item["text"]
+        if _looks_like_error_response(text):
+            raise ValueError(f"Worker returned an error-shaped text, refusing to save: {text[:200]!r}")
+        texts.append(text)
     return texts
-    raise ValueError(f"Unexpected response format: {result!r}")
 
 
 PART_PREFIX = "part-"
@@ -588,6 +614,16 @@ async def run_evaluation(cfg: DictConfig):
                 ) from last_err
 
         for (_, audio_path, text, prompt), response_str in zip(batch_items, responses, strict=True):
+            # Final guard: never persist HTTP error strings as a "response".
+            # extract_response_texts should already reject these and trigger a
+            # retry, but defend at the write boundary too. Skip the sample
+            # (don't mark done) so it can be retried on a later eval run.
+            if _looks_like_error_response(response_str):
+                logger.warning(
+                    "Dropping error-shaped response for %s (not writing to parquet): %r",
+                    audio_path, response_str[:200],
+                )
+                continue
             # Score (CPU-only, fast)
             score = eval_score(response_str, text, **wer_kwargs)
             row = {
