@@ -57,7 +57,59 @@ def register() -> None:
 
     _maybe_disable_cudnn()
     _maybe_register_qwen35_config()
+    _patch_lora_supported_modules()
     ModelRegistry.register_model(ARCHITECTURE, _resolve_model_class())
+
+
+# Modules that exist on Qwen3.5's GatedDeltaNet (linear-attention) blocks but
+# whose `packed_modules_mapping` in upstream vLLM does not match the actual
+# `output_sizes` (n_slices) of the underlying MergedColumnParallelLinear. When
+# vLLM v1 captures CUDA graphs with LoRA enabled it builds dummy LoRAs for
+# every wrapped Linear and then calls `set_lora` which iterates `range(n_slices)`
+# and indexes `lora_a[i]` — for these layers `n_slices` (e.g. 4 for
+# in_proj_qkvz) is larger than `len(packed_modules_mapping[name])` (=2),
+# producing `IndexError: list index out of range` in
+# column_parallel_linear.set_lora.
+#
+# Our training target_modules only covers transformer linears
+# (qkv_proj / o_proj / gate_up_proj / down_proj), so excluding these
+# GatedDeltaNet layers from LoRA wrapping is safe and matches the training
+# configuration.
+_LORA_EXCLUDED_MODULE_SUFFIXES = (
+    "in_proj_qkvz",
+    "in_proj_ba",
+    "conv1d",
+)
+
+
+def _patch_lora_supported_modules() -> None:
+    """Filter vLLM's auto-discovered LoRA-supported modules.
+
+    Wraps `vllm.lora.utils.get_supported_lora_modules` to drop module suffixes
+    that have a broken `packed_modules_mapping` in upstream vLLM (see comment
+    on `_LORA_EXCLUDED_MODULE_SUFFIXES`). This must run before `LLM(...)` is
+    constructed so the LoRA model manager never wraps these layers.
+    """
+    try:
+        from vllm.lora import model_manager as _lora_model_manager
+        from vllm.lora import utils as _lora_utils
+    except Exception:
+        return
+
+    if getattr(_lora_utils.get_supported_lora_modules, "_qwen35_audio_patched", False):
+        return
+
+    original = _lora_utils.get_supported_lora_modules
+
+    def get_supported_lora_modules(model):  # type: ignore[no-untyped-def]
+        modules = original(model)
+        return [m for m in modules if m not in _LORA_EXCLUDED_MODULE_SUFFIXES]
+
+    get_supported_lora_modules._qwen35_audio_patched = True  # type: ignore[attr-defined]
+    _lora_utils.get_supported_lora_modules = get_supported_lora_modules
+    # `vllm.lora.model_manager` imports the symbol at module load time, so we
+    # have to rebind the already-imported reference as well.
+    _lora_model_manager.get_supported_lora_modules = get_supported_lora_modules
 
 
 def _maybe_disable_cudnn() -> None:
