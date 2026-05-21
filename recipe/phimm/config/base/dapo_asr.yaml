@@ -94,7 +94,7 @@ actor_rollout_ref:
     stop: ["<|im_end|>"]
     stop_token_ids: [248044, 248046]
     layered_summon: true
-    enforce_eager: false
+    enforce_eager: true # for better error visibility; can disable for perf
     enable_chunked_prefill: true
     free_cache_engine: true
   ref:
