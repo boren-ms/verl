@@ -2,7 +2,7 @@ defaults:
   - generation
   - _self_
 
-nccl_timeout: 7200
+nccl_timeout: 1800
 
 trainer:
   experiment_name: phimm_asr_gen # required for logging
@@ -29,12 +29,12 @@ rollout:
   gpu_memory_utilization: 0.85   # share H100 with FSDP shard + vLLM weights + KV cache
   log_prob_micro_batch_size_per_gpu: 8
   prompt_length: 2048
-  response_length: 1024
+  response_length: 512
   load_format: dummy # need to force reload from fsdp to vllm
   enforce_eager: false
   enable_chunked_prefill: true   # interleaves prefill of long prompts with ongoing decodes
   free_cache_engine: true
-  max_model_len: 3072            # prompt_length(2048) + response_length(1024)
+  max_model_len: 2560            # prompt_length(2048) + response_length(512)
   no_repeat_ngram_size: 15
   stop: ["<|im_end|>"]
   stop_token_ids: [248044, 248046]
