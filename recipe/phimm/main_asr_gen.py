@@ -122,6 +122,7 @@ def run_generation(config) -> None:
                 "NCCL_DEBUG": "WARN",
                 "VLLM_LOGGING_LEVEL": "WARN",
                 "HF_HUB_OFFLINE": "1",
+                "PYTORCH_ALLOC_CONF": "expandable_segments:True",
                 **env_vars,
             },
             "excludes": [str(cwd() / ".git")],

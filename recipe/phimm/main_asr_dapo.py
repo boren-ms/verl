@@ -63,6 +63,7 @@ def run_ppo(config) -> None:
                 "VLLM_SLEEP_LEVEL": "1",
                 "VLLM_PLUGINS": "qwen35_audio",
                 "HF_HUB_OFFLINE": "1",
+                "PYTORCH_ALLOC_CONF": "expandable_segments:True",
                 **env_vars,
             },
             "excludes": [str(cwd() / ".git")],
