@@ -20,5 +20,5 @@ data:
   prefetch_factor: 2
 
 rollout:
-  # 0.85 from base OOM'd at vLLM init (76.58/79.10 GiB used + 8.64 GiB reserved-unallocated).
-  gpu_memory_utilization: 0.6
+  # Smaller batches to reduce vLLM init memory peak (base gmu=0.85 OOM'd with 128 seqs).
+  max_num_seqs: 64
