@@ -22,6 +22,7 @@ rollout:
   top_p: 1
   prompt_length: 2048
   response_length: 1024
+  max_model_len: ${eval:${prompt_length}+${response_length}}
   # for vllm rollout
   dtype: bfloat16 # should align with FSDP
   gpu_memory_utilization: 0.85
@@ -30,9 +31,8 @@ rollout:
   free_cache_engine: True
   load_format: auto
   tensor_model_parallel_size: 1
-  max_num_batched_tokens: ${eval:${rollout.max_model_len}*${rollout.max_num_seqs}} # 16k * 8 prefilled per step
-  max_model_len: null
   max_num_seqs: 16
+  max_num_batched_tokens: ${eval:${rollout.max_model_len}*${rollout.max_num_seqs}} # 16k * 8 prefilled per step
   log_prob_micro_batch_size: null # will be deprecated, use log_prob_micro_batch_size_per_gpu
   log_prob_micro_batch_size_per_gpu: 8
   # for hf rollout
