@@ -74,7 +74,7 @@ Extend an existing xlsx with another model column:
 
 ## Baseline
 
-Column `A` is the fixed `Qwen3.5-audio` baseline embedded in the script. Override with `--baseline <json>` and `--baseline-label <name>` if needed.
+Column `A` is the fixed `Qwen3.5-audio` baseline embedded in the script — currently the `fast-llm-2605-qwen3-5-9b-s2-st-example-r2 @ step 90000` checkpoint (OpenASR avg 4.95%, OpenASR-ML avg 2.87%). Override with `--baseline <json>` and `--baseline-label <name>` if needed.
 
 ## Python Environment
 

@@ -57,30 +57,33 @@ OPENASR_ML_GROUPS: List[Tuple[str, List[str]]] = [
 ]
 
 BASELINE_LABEL = "Qwen3.5-audio"
+# Baseline = fast-llm-2605-qwen3-5-9b-s2-st-example-r2 @ step 90000
+# Captured 2026-05-22 from Ray jobs raysubmit_AkJUtDv4nPuJ3Gta (verl-n1-i0, openasr)
+# and raysubmit_F9u4EHAY5CQsvBjY (verl-n1-i4, openasr_ml).
 BASELINE_METRICS: Dict[str, float] = {
     # OpenASR
-    "ami": 0.0807,
-    "earnings22": 0.0791,
-    "gigaspeech": 0.0874,
+    "ami": 0.0814,
+    "earnings22": 0.0788,
+    "gigaspeech": 0.0876,
     "ls_clean": 0.0154,
-    "ls_other": 0.0283,
-    "spgispeech": 0.0318,
-    "tedlium": 0.0241,
-    "voxpopuli": 0.0538,
+    "ls_other": 0.0287,
+    "spgispeech": 0.0269,
+    "tedlium": 0.0240,
+    "voxpopuli": 0.0531,
     # OpenASR_ML
-    "de_fleurs": 0.0227,
-    "de_mcv": 0.0194,
-    "es_fleurs": 0.0305,
-    "es_mcv": 0.0229,
-    "es_mls": 0.0279,
-    "fr_fleurs": 0.0334,
-    "fr_mcv": 0.0426,
-    "fr_mls": 0.0264,
-    "it_fleurs": 0.0125,
+    "de_fleurs": 0.0238,
+    "de_mcv": 0.0193,
+    "es_fleurs": 0.0289,
+    "es_mcv": 0.0224,
+    "es_mls": 0.0280,
+    "fr_fleurs": 0.0315,
+    "fr_mcv": 0.0430,
+    "fr_mls": 0.0276,
+    "it_fleurs": 0.0123,
     "it_mcv": 0.0183,
-    "it_mls": 0.0508,
-    "pt_fleurs": 0.0349,
-    "pt_mls": 0.0367,
+    "it_mls": 0.0512,
+    "pt_fleurs": 0.0308,
+    "pt_mls": 0.0342,
 }
 
 WER_LINE_RE = re.compile(
