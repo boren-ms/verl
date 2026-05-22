@@ -56,6 +56,21 @@ echo "${SAS:0:60}..."
 ```
 `--permissions rwcl` = read, write, create, list.
 
+**Persist the refreshed SAS back to the cache** so future tools / sessions pick it up:
+```bash
+python3 -c "
+import json, os, urllib.parse
+path = '/home/boren/.sas/azure_blob_sas_cache.json'
+v = json.load(open(path))
+sas = os.environ['SAS']
+expiry = urllib.parse.parse_qs(sas)['se'][0]
+v['https://tsstd01safn.blob.core.windows.net/data'] = {'sas': sas, 'expiry_utc': expiry}
+json.dump(v, open(path, 'w'), indent=2)
+print('cache updated, sp=rcwl, se=', expiry)
+"
+```
+Do this whenever you regenerate (or the cached `sp` lacks `w`+`c`, or the cached `se` is past/near expiry). Preserve the existing dict shape (`{"sas": ..., "expiry_utc": ...}`) and the other accounts' entries.
+
 After generating, switch back to the green tenant if other tools need it:
 ```bash
 az login --tenant 8b9ebe14-d942-49e7-ace9-14496d0caff0 >/dev/null 2>&1
