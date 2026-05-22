@@ -1,0 +1,11 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/entity_en_ht_v1_cer_only/*.parquet
+  post_process:
+    keep_samples:
+      wer_range: [0.3, 0.8]
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/entity_en_ht_v1_cer_only_wer30_80/data.jsonl
+include_verl_format: false
+overwrite: true
