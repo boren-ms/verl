@@ -29,7 +29,7 @@ rollout:
   max_num_batched_tokens: ${eval:${rollout.max_model_len}*${rollout.max_num_seqs}} # 16k * 8 prefilled per step
   max_num_seqs: 1024             # concurrent decodes (matches input batch)
   dtype: bfloat16 # should align with FSDP
-  gpu_memory_utilization: 0.78   # share H100 with FSDP shard + vLLM weights + KV cache
+  gpu_memory_utilization: 0.7   # share H100 with FSDP shard + vLLM weights + KV cache
   log_prob_micro_batch_size_per_gpu: 8
   load_format: dummy # need to force reload from fsdp to vllm
   enforce_eager: false

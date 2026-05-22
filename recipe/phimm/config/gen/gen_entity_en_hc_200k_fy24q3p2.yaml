@@ -18,10 +18,3 @@ data:
   num_workers: 4
   persistent_workers: false
   prefetch_factor: 2
-
-rollout:
-  # Leave headroom for torch.compile / inductor benchmark allocations during init.
-  gpu_memory_utilization: 0.6
-  # Skip torch.compile / CUDA graph capture entirely: prior runs OOM'd in
-  # inductor benchmark_combo_kernel even at 0.6 utilization.
-  enforce_eager: true
