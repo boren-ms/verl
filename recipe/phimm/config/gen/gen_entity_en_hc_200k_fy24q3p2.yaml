@@ -13,11 +13,6 @@ model:
 
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_hc_200k_entity_fy24q3p2
-  # Reduce shmem pressure: prior runs crashed with `unable to mmap ... Cannot allocate memory`
-  # in the dataloader producer after ~330 batches due to accumulated shmem state.
-  num_workers: 4
-  persistent_workers: false
-  prefetch_factor: 2
 
 rollout:
   # Smaller batches to reduce vLLM init memory peak (base gmu=0.85 OOM'd with 128 seqs).
