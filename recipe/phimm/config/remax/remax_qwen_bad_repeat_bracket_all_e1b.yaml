@@ -29,9 +29,9 @@ actor_rollout_ref:
     temperature: 0.7
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
-    gpu_memory_utilization: 0.6
+    gpu_memory_utilization: 0.55
     enforce_eager: false # CUDA graph for perf; lower gpu_mem_util to fit compile
-    max_num_seqs: 64
+    max_num_seqs: 50
     
   actor:
     ppo_micro_batch_size_per_gpu: 8
