@@ -32,7 +32,6 @@ actor_rollout_ref:
     gpu_memory_utilization: 0.6
     enforce_eager: false # CUDA graph for perf; lower gpu_mem_util to fit compile
     max_num_seqs: 64
-    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
     
   actor:
     ppo_micro_batch_size_per_gpu: 8
