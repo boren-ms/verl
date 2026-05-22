@@ -29,13 +29,11 @@ rollout:
   dtype: bfloat16 # should align with FSDP
   gpu_memory_utilization: 0.85   # share H100 with FSDP shard + vLLM weights + KV cache
   log_prob_micro_batch_size_per_gpu: 8
-  prompt_length: 2048
-  response_length: 512
   load_format: dummy # need to force reload from fsdp to vllm
+  max_num_seqs: 16
   enforce_eager: false
   enable_chunked_prefill: true   # interleaves prefill of long prompts with ongoing decodes
   free_cache_engine: true
-  max_model_len: 2560            # prompt_length(2048) + response_length(512)
   no_repeat_ngram_size: 15
   stop: ["<|im_end|>"]
   stop_token_ids: [248044, 248046]
