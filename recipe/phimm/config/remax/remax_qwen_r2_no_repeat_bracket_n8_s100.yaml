@@ -46,7 +46,7 @@ data:
   max_response_length: 512
   train_batch_size: 64
   dataloader_num_workers: 0
-  prefetch_factor: 1
+  prefetch_factor: null
 trainer:
   nnodes: 1
   total_epochs: 1
