@@ -30,7 +30,7 @@ actor_rollout_ref:
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
   actor:
-    ppo_micro_batch_size_per_gpu: 8
+    ppo_micro_batch_size_per_gpu: 4
     ppo_mini_batch_size: 64
     optim:
       lr: 5e-6
