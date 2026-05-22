@@ -11,12 +11,12 @@ data:
   max_prompt_length: 2048
   max_response_length: 1024
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
-  dataloader_num_workers: 2        # bounded to keep host RAM safe with audio batches
+  dataloader_num_workers: 1        # bounded to keep host RAM safe with audio batches
   prefetch_factor: 2
-  persistent_workers: true
+  persistent_workers: false
   pin_memory: false                 # audio batches are big; pinned memory would balloon host RSS
   train_batch_size: 8
-  max_audio_dur: 80 # max audio duration in seconds
+  max_audio_dur: 40 # max audio duration in seconds
   gen_batch_size: ${data.train_batch_size}
   val_batch_size: 1024
   shuffle: false
