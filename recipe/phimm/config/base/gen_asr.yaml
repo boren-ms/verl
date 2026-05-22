@@ -11,10 +11,10 @@ data:
   path: null
   batch_size: 1024              # large dispatch -> vLLM stays saturated end-to-end
   output_split_size: 20000      # fewer parquet writes; larger chunks per blob upload
-  num_workers: 16               # bounded to keep host RAM safe with audio batches
+  num_workers: 4               # bounded to keep host RAM safe with audio batches
   prefetch_factor: 2
   pin_memory: false             # audio batches are big; pinned memory would balloon host RSS
-  persistent_workers: true
+  persistent_workers: false    # avoid shmem buildup over many batches leading to OOM after ~330 batches in prior runs
   prefetch_depth: 3             # prep<->generate<->consume pipeline depth (host RAM bound)
 
 model:
