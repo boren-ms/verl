@@ -16,6 +16,7 @@ data:
   pin_memory: false             # audio batches are big; pinned memory would balloon host RSS
   persistent_workers: false    # avoid shmem buildup over many batches leading to OOM after ~330 batches in prior runs
   prefetch_depth: 3             # prep<->generate<->consume pipeline depth (host RAM bound)
+  max_audio_dur: 30             # cap audio length to avoid one rank stalling on extremely long samples (NCCL timeout)
 
 model:
   path: null
