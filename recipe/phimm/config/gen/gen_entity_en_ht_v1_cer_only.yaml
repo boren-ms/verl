@@ -16,3 +16,7 @@ data:
   num_workers: 4
   prefetch_factor: 2
   persistent_workers: false
+
+rollout:
+  gpu_memory_utilization: 0.6
+  enforce_eager: false
