@@ -13,3 +13,6 @@ model:
 
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/entity_en_ht_v1_cer_only
+  num_workers: 4
+  prefetch_factor: 2
+  persistent_workers: false
