@@ -856,12 +856,13 @@ def _has_repeat(example, opts):
     ref_field = opts.get("ref_field", "text")
     min_reps = opts.get("min_reps", 4)
     max_ngram = opts.get("max_ngram", 5)
+    tn_name = opts.get("text_norm", "openasr_en")
     hyp = example.get(hyp_field, "") or ""
     if not hyp:
         return False
     ref = example.get(ref_field, "") or ""
-    hyp = hyp.lower()
-    ref = ref.lower()
+    hyp = text_norm(hyp, tn_name)
+    ref = text_norm(ref, tn_name)
     if not ref:
         return has_repeat(hyp, min_reps=min_reps, max_ngram=max_ngram)
     for piece in find_wrong_pieces(ref, hyp):
