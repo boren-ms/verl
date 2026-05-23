@@ -6,8 +6,8 @@ source_config:
     keep_samples:
       has_repeat:
         field: response
-        min_reps: 4
+        min_reps: 2
 
-output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_entity_en_ht_v1_cer_only_reps/error_only.jsonl
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_entity_en_ht_v1_cer_only_reps_v1a/error_only.jsonl
 include_verl_format: false
 overwrite: true
