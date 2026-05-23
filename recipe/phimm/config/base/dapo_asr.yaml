@@ -11,10 +11,10 @@ data:
   max_prompt_length: 1024
   max_response_length: 512
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
-  dataloader_num_workers: 1        # bounded to keep host RAM safe with audio batches
+  dataloader_num_workers: 1
   prefetch_factor: 2
   persistent_workers: false
-  pin_memory: false                 # audio batches are big; pinned memory would balloon host RSS
+  pin_memory: false
   train_batch_size: 8
   max_audio_dur: 40 # max audio duration in seconds
   gen_batch_size: ${data.train_batch_size}
@@ -78,9 +78,9 @@ actor_rollout_ref:
     enable_gradient_checkpointing: False
   rollout:
     n: 16
-    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}  # 512*1024
-    max_num_seqs: 16              # concurrent decodes (matches input batch)
-    dtype: bfloat16                 # should align with FSDP
+    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}} # 512*1024
+    max_num_seqs: 16 # concurrent decodes (matches input batch)
+    dtype: bfloat16 # should align with FSDP
     log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
     tensor_model_parallel_size: 1
     name: vllm
