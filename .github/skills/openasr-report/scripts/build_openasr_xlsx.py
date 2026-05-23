@@ -103,7 +103,10 @@ def parse_wer_lines(text: str) -> Dict[str, float]:
 
 
 def fetch_ray_logs(node: str, job_id: str) -> str:
-    cmd = ["brix", "ssh", node, "--", "bash", "-l", "-c", f"ray job logs {job_id} 2>&1"]
+    # brix ssh joins trailing args by space, so wrap the remote command in a single
+    # pre-quoted string to preserve `bash -l -c "..."` argument boundaries.
+    remote = f"bash -l -c 'ray job logs {job_id} 2>&1'"
+    cmd = ["brix", "ssh", node, "--", remote]
     proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if proc.returncode != 0:
         print(
