@@ -25,19 +25,72 @@ Comprehensive monitoring skill that combines node discovery, job status checking
 - Python env: `/home/boren/.virtualenvs/openai/bin/python` (for openpyxl/reports)
 - Code repo: `/home/boren/code/verl`
 
+## Parallelism — CRITICAL
+
+**ALWAYS maximize parallelism.** Every phase should run tasks concurrently when possible:
+
+1. **Phase 2 (Status Check)**: Query ALL nodes in a single bash command using background jobs (`&` + `wait`). Never check nodes sequentially.
+   ```bash
+   # GOOD — all nodes in parallel
+   for node in i1 i3 i11 i12; do
+     (kubectl ... exec verl-n1-$node-0 -- bash -l -c '...') &
+   done
+   wait
+   
+   # BAD — one node at a time
+   kubectl ... exec verl-n1-i1-0 -- ...
+   kubectl ... exec verl-n1-i3-0 -- ...
+   ```
+
+2. **Phase 2 (Combined query)**: Combine ray job status + GPU snapshot + progress logs into ONE kubectl exec per node (not 3 separate calls):
+   ```bash
+   kubectl ... exec <node>-0 -- bash -l -c '
+     STATUS=$(ray job status <id> 2>&1 | grep -oP "RUNNING|SUCCEEDED|FAILED")
+     GPU=$(nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader,nounits | head -1)
+     PROG=$(ray job logs <id> 2>&1 | grep -E "Training Progress|len reward_extra|Batch " | tail -1)
+     echo "$STATUS|$GPU|$PROG"
+   '
+   ```
+
+3. **Phase 3 (Auto-Fix)**: If multiple nodes need fixes, run `bpush` + resubmit for each in parallel.
+
+4. **Phase 4 (Auto-Eval)**: If multiple training jobs complete on different nodes, submit evals on ALL nodes simultaneously.
+
+5. **Tool calls**: Use parallel tool calls when possible — e.g., launch multiple `task` agents for independent node operations, or make multiple `bash` calls in the same response.
+
 ## Full Pipeline Procedure
 
 ### Phase 1 — Discover Nodes
 
 ```bash
-kubectl --context prod-westus2-cw-6 -n boren get pods -o name | grep verl | sed 's|pod/||; s|-0$//' | sort -u
+kubectl --context prod-westus2-cw-6 -n boren get pods -o name | grep verl | sed 's|pod/||; s|-0$||' | sort -u
 ```
 
 ### Phase 2 — Check All Jobs (Status + Progress)
 
-For **each node in parallel**, run two checks:
+**Run ALL nodes in parallel** in a single bash command. Combine status + GPU + progress into one kubectl exec per node.
 
-#### 2a. Job listing with Ray status
+#### 2a. Combined parallel query (preferred — single bash call)
+```bash
+for info in "i1:<job_id>" "i3:<job_id>" "i11:<job_id>" "i12:<job_id>"; do
+  node=$(echo $info | cut -d: -f1); jid=$(echo $info | cut -d: -f2)
+  (kubectl --context prod-westus2-cw-6 -n boren exec verl-n1-$node-0 -- bash -l -c "
+    STATUS=\$(ray job status $jid 2>&1 | grep -oP 'RUNNING|SUCCEEDED|FAILED')
+    ENTRY=\$(ray job list 2>&1 | grep $jid | grep -oP \"entrypoint='[^']+\" | sed \"s/entrypoint='//\")
+    CONFIG=\$(echo \$ENTRY | grep -oP '(?<=--config-name )\S+')
+    EXPNAME=\$(echo \$ENTRY | grep -oP '(?<=experiment_name=)\S+')
+    CKPT=\$(echo \$ENTRY | grep -oP 'global_step_\d+')
+    GPU0=\$(nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader,nounits | head -1)
+    PROG=\$(ray job logs $jid 2>&1 | grep -E 'Training Progress|len reward_extra|Batch ' | tail -1)
+    echo \"$node|$jid|\$STATUS|\$CONFIG|\$EXPNAME|\$CKPT|\$GPU0|\$PROG\"
+  " 2>/dev/null) &
+done
+wait
+```
+
+This replaces separate 2a/2b phases — everything in one parallel sweep.
+
+#### 2a-fallback. If job IDs are unknown, discover first
 ```bash
 kubectl --context prod-westus2-cw-6 -n boren exec <node>-0 -- bash -l -c \
   'python /root/code/verl/ray_job.py list 2>/dev/null'
