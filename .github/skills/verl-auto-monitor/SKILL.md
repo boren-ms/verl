@@ -52,32 +52,54 @@ Detect job type from entrypoint:
 - `main_asr_eval` → **Eval**
 - `main_asr_gen` → **DataGen**
 
+**Extract job name** from entrypoint for identifiable display:
+- Training: extract `--config-name <name>` → e.g. `remax_qwen_r2_no_repeat_bracket_n8_s100_v1`
+- Eval: extract `--config-name <eval_config>` + `trainer.experiment_name=<name>` → e.g. `eval_openasr · no_repeat_n8_e1@step105`
+- DataGen: extract `--config-name <name>` → e.g. `gen_entity_en_hc_200k_fy24q3p2`
+
 **Training** (RUNNING):
 ```bash
 ray job logs <job_id> 2>&1 | grep 'Training Progress' | tail -1
 ```
+Parse: `X/Y [elapsed<remaining, speed]` → "Step X/Y (Z%)"
 
 **Eval** (RUNNING):
 ```bash
 ray job logs <job_id> 2>&1 | grep 'len reward_extra' | tail -1
 ```
+Parse: `len reward_extra_infos_dict['score']: N` → "N samples scored"
 
 **DataGen** (RUNNING):
 ```bash
 ray job logs <job_id> 2>&1 | grep -E 'Batch ' | tail -1
 ```
+Parse: `(Batch X/Y)` → "Batch X/Y (Z%)"
 
 #### 2c. Report table
 
+**IMPORTANT**: The report table must be **detailed and identifiable** — each row should clearly show:
+1. **Job Name**: The full config/experiment name so you can tell jobs apart (not just "eval" or "train")
+2. **Job ID**: The `raysubmit_*` ID for traceability
+3. **Checkpoint**: For eval jobs, which checkpoint is being evaluated (e.g. `@step105`)
+4. **Concrete progress**: Actual numbers, not vague descriptions
+
 ```
-| Node | Job ID | Type | Config | Ray Status | Progress | Notes |
-|------|--------|------|--------|------------|----------|-------|
+## verl Status — HH:MM UTC
+
+| Node | Job ID | Type | Job Name | Ray Status | Progress |
+|------|--------|------|----------|------------|----------|
+| i1   | raysubmit_abc123 | Train | remax_qwen_r2_no_repeat_bracket_n8_e1 | 🔄 RUNNING | Step 150/205 (73%) ~4.7min/step |
+| i3   | raysubmit_def456 | DataGen | gen_entity_en_hc_200k_fy24q3p2 | 🔄 RUNNING | Batch 700/2265 (31%) |
+| i10  | raysubmit_ghi789 | Eval | eval_openasr · no_repeat_n8_e1 @ step100 | 🔄 RUNNING | 25K/~130K samples |
+| i11  | raysubmit_jkl012 | Train | remax_qwen_r2_no_repeat_bracket_n8_s100_v1 | 💥 FAILED | NCCL timeout → auto-retrying |
+| i12  | — | — | — | ⬜ IDLE | last: SUCCEEDED |
 ```
 
-- RUNNING → 🔄 with progress
-- SUCCEEDED → ✅ with final step/checkpoint
-- FAILED → 💥 with error summary
-- IDLE → ⬜ no active jobs
+**Status icons:**
+- 🔄 RUNNING → with concrete progress (step N/M, batch N/M, N samples scored)
+- ✅ SUCCEEDED → with final step/checkpoint info
+- 💥 FAILED → with error summary and auto-action taken
+- ⬜ IDLE → with last job status
 
 #### 2d. GPU Health Check (1-min average utilization)
 
@@ -295,14 +317,24 @@ Use the `manage_schedule` tool with an appropriate interval (default: 10 minutes
 ```
 ## verl Status — HH:MM UTC
 
-| Node | Type | Config | Status | Progress |
-|------|------|--------|--------|----------|
-| i1   | Train | no_repeat_n8_e1 | ✅ SUCCEEDED | 205/205 → auto-eval queued |
-| i3   | DataGen | entity_en_hc | 🔄 RUNNING | 695/2265 (31%) |
-| i10  | Eval | eval_openasr | 🔄 RUNNING | scoring... |
-| i11  | Train | no_repeat_s100 | 💥 FAILED | NCCL timeout → auto-retrying |
-| i12  | — | — | ⬜ IDLE | last: SUCCEEDED |
+| Node | Job ID | Type | Job Name | Status | Progress |
+|------|--------|------|----------|--------|----------|
+| i1   | raysubmit_Dh3dswXv7rWRWhur | Eval | eval_openasr · no_repeat_bracket_n8_e1 @ step105 | 🔄 RUNNING | 25K samples scored |
+| i3   | raysubmit_RxkdFaFgTwa1zhf7 | DataGen | gen_entity_en_hc_200k_fy24q3p2 | 🔄 RUNNING | Batch 705/2265 (31%) |
+| i10  | raysubmit_GJsWDYwu9biwDUmb | Eval | eval_openasr · no_repeat_bracket_n8_e1 @ step100 | 🔄 RUNNING | Loading model |
+| i11  | raysubmit_gFgtRHVRnhTbv45S | Train | remax_qwen_r2_no_repeat_bracket_n8_s100_v1 | 🔄 RUNNING | Step 6/205 (3%) ~6.5min/step |
+| i12  | raysubmit_fGPkRYJMVdDtm5nf | Train | remax_qwen_r2_reps_n8_s100_v1 (resume→23) | 🔄 RUNNING | Step 14/23 (61%) ~6.8min/step |
+
+Auto-actions: i10 ✅ completed eval_openasr_ml → submitted next from queue
 ```
+
+**Key principles for identifiable reports:**
+1. Always show the **full config name** (e.g. `remax_qwen_r2_no_repeat_bracket_n8_s100_v1`, not `n8_s100`)
+2. For eval jobs, show **both** the eval config and the model/checkpoint being evaluated (e.g. `eval_openasr · no_repeat_bracket_n8_e1 @ step105`)
+3. Always include the **ray job ID** for traceability
+4. Show **concrete numbers** in progress (step 14/23, batch 705/2265, 25K samples), not vague text
+5. For training, include **per-step time** when available (e.g. `~6.5min/step`)
+6. Note any special context: `(resume→23)`, `(retry after NCCL crash)`, `(from queue)`
 
 ### Post-eval report summary
 ```
