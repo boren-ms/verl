@@ -36,21 +36,37 @@ kubectl --context prod-westus2-cw-6 -n boren get pods -o name | grep verl | sed 
 
 Or use the known set if already established in conversation context.
 
-### 2. For each node, find running jobs
+### 2. For each node, list jobs and check status
 
+Use `ray_job.py list` to get all jobs with their Ray status (RUNNING/SUCCEEDED/FAILED/STOPPED) in one call:
 ```bash
 kubectl --context prod-westus2-cw-6 -n boren exec <node>-0 -- bash -l -c \
-  'ray job list 2>&1 | grep "SUBMISSION.*RUNNING" | grep -oP "submission_id='\''(raysubmit_[^'\'']+)"'
+  'python /root/code/verl/ray_job.py list 2>/dev/null'
 ```
 
-If no RUNNING submission jobs, report the node as **IDLE**.
+This returns a compact listing with job IDs, entrypoints, and statuses. If the output shows no RUNNING submission jobs, report the node as **IDLE** and note the last job's status.
+
+**Additionally**, check the Ray job status directly for known job IDs to confirm RUNNING vs SUCCEEDED vs FAILED:
+```bash
+kubectl --context prod-westus2-cw-6 -n boren exec <node>-0 -- bash -l -c \
+  'ray job status <job_id> 2>&1 | tail -3'
+```
+
+This is critical because log-based checks (`grep "Training Progress"`) only show the last logged progress — a job may have SUCCEEDED or FAILED since the last progress line was written.
+
+**Always check both** — `ray job status` for the authoritative state, and logs for progress details.
+
+If no RUNNING submission jobs, report the node as **IDLE** and include the last job's final status (SUCCEEDED/FAILED).
 
 ### 3. Get job details per type
 
 #### Training jobs (GRPO/ReMax/PPO)
-Check progress and latest val metrics:
+Check both status and progress:
 ```bash
-# Progress bar
+# Ray job status (authoritative — always check this)
+ray job status <job_id> 2>&1 | tail -3
+
+# Progress bar (from logs)
 ray job logs <job_id> 2>&1 | grep "Training Progress" | tail -n 1
 
 # Current step
@@ -66,14 +82,32 @@ ray job logs <job_id> 2>&1 | grep "wandb.*View run" | tail -n 1
 ray job list 2>&1 | grep <job_id> | grep -oP "entrypoint='[^']+'"
 ```
 
-#### Data generation jobs
-Check batch progress:
+#### Eval jobs
+Check status and scoring progress:
 ```bash
+# Ray job status (authoritative)
+ray job status <job_id> 2>&1 | tail -3
+
+# Scoring progress
+ray job logs <job_id> 2>&1 | grep "len reward_extra" | tail -n 1
+
+# Final metrics (if completed)
+ray job logs <job_id> 2>&1 | grep "val-aux.*p_err" | tail -n 1
+```
+
+#### Data generation jobs
+Check status and batch progress:
+```bash
+# Ray job status (authoritative)
+ray job status <job_id> 2>&1 | tail -3
+
+# Batch progress
 ray job logs <job_id> 2>&1 | grep -E "Batch |Overall|All Done" | tail -n 3
 ```
 
 #### Detect job type
-- Training: entrypoint contains `main_asr_dapo` or `main_asr`
+- Training: entrypoint contains `main_asr_dapo` or `main_asr_remax`
+- Eval: entrypoint contains `main_asr_eval`
 - Data generation: entrypoint contains `main_asr_gen` or `quick_run`
 
 ### 4. Report format
@@ -81,22 +115,39 @@ ray job logs <job_id> 2>&1 | grep -E "Batch |Overall|All Done" | tail -n 3
 Present results as a markdown table:
 
 ```
-| Node | Job ID | Config/Type | Status | Progress | Key Metrics |
-|------|--------|-------------|--------|----------|-------------|
+| Node | Job ID | Config/Type | Ray Status | Progress | Key Metrics |
+|------|--------|-------------|------------|----------|-------------|
 ```
 
+The **Ray Status** column must reflect the actual `ray job status` output (RUNNING/SUCCEEDED/FAILED/STOPPED), not inferred from logs.
+
 Include:
-- For training: step X/Y (Z%), latest val p_err for key datasets, W&B link
-- For data gen: batch X/Y (Z%)
-- For idle: last job status (FAILED/SUCCEEDED) and reason if FAILED
+- For training (RUNNING): step X/Y (Z%), latest val p_err for key datasets, W&B link
+- For training (SUCCEEDED): ✅ final step, checkpoint path, total time
+- For eval (RUNNING): scoring progress
+- For eval (SUCCEEDED): ✅ final metrics
+- For data gen (RUNNING): batch X/Y (Z%)
+- For FAILED: 💥 error type and brief reason
+- For idle (no jobs): last job status and reason if FAILED
 - For loading: current stage (model loading, FSDP wrap, CUDA graph capture, etc.)
+
+Flag SUCCEEDED and FAILED jobs prominently with ✅ and 💥 emoji.
 
 ### 5. Failed job diagnostics
 
-If a job FAILED, briefly note the error type:
+If a job FAILED (detected via `ray job status`), get error details:
+```bash
+ray job logs <job_id> 2>&1 | grep -E "Error|Traceback|OOM|killed|NCCL" | tail -n 5
+```
+
+Briefly note the error type:
+- `NCCL timeout` / `WorkNCCL.*timeout` → NCCL collective timeout (often OOM-related)
+- `ActorDiedError` + `SIGKILL` → OOM killed by system
 - `ActorUnavailableError` → pod restart/connection reset (infrastructure)
-- `OutOfMemoryError` → OOM
+- `OutOfMemoryError` / `CUDA out of memory` → GPU OOM
+- `ValueError: Total available GPUs 0` → GPU contention (another job using GPUs)
 - `RayTaskError` → code error (show last traceback line)
+- `ModuleNotFoundError` → missing dependency (run `ray_tool.py prepare_env`)
 
 ## Tips
 - Use `kubectl exec` instead of `rcall-brix ssh` — it's faster and avoids Informer sync timeouts
