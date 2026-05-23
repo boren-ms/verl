@@ -58,10 +58,9 @@ class Error:
 
 def _norm_text(text, name=None, lang="english"):
 
-    from recipe.phimm.utils.tn import text_norm as apply_text_norm
+    from recipe.phimm.utils.tn import default_tn_name, text_norm as apply_text_norm
 
-    if name is None:
-        name = "openasr_en" if lang.lower() == "english" else "openasr_ml"
+    name = name or default_tn_name(lang)
     return apply_text_norm(text.strip(), name=name)
 
 
@@ -152,12 +151,13 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     hyp_text = trans_dict["text"]
     pred_lang = (trans_dict["lang"] or "").lower()
     repeat_opts = kwargs.get("repeat") or {}
-    norm_name = kwargs.get("text_norm")
     p_repeat = has_repeat_error(
-        _norm_text(ground_truth, name=norm_name, lang=tgt_lang) if ground_truth else "",
-        _norm_text(hyp_text, name=norm_name, lang=tgt_lang) if hyp_text else "",
+        hyp_text,
+        ground_truth,
         min_reps=repeat_opts.get("min_reps", 4),
         max_ngram=repeat_opts.get("max_ngram", 5),
+        tn_name=kwargs.get("text_norm"),
+        lang=tgt_lang,
     )
 
     return {

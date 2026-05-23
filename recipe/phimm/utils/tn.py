@@ -74,6 +74,11 @@ TN_DICT = {
 }
 
 
+def default_tn_name(lang="english"):
+    """Return the default text-norm name for a language."""
+    return "openasr_en" if (lang or "english").lower() == "english" else "openasr_ml"
+
+
 def text_norm(txt, name=None):
     """Normalize tokens by removing leading and trailing whitespace."""
     name = name or "english"  # Default to EnglishTextNormalizer

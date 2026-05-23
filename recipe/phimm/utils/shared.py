@@ -257,14 +257,14 @@ def strip_repetitions(text, min_reps=4):
     words = text.split()
     for ng in range(1, 6):
         for start in range(len(words) - ng * min_reps):
-            ngram = tuple(words[start:start+ng])
+            ngram = tuple(words[start : start + ng])
             reps = 0
             pos = start
-            while pos + ng <= len(words) and tuple(words[pos:pos+ng]) == ngram:
+            while pos + ng <= len(words) and tuple(words[pos : pos + ng]) == ngram:
                 reps += 1
                 pos += ng
             if reps >= min_reps:
-                return ' '.join(words[:start + ng])
+                return " ".join(words[: start + ng])
     return text
 
 
@@ -288,10 +288,10 @@ def has_repeat(text, min_reps=4, max_ngram=5):
         if n < ng * min_reps:
             continue
         for start in range(0, n - ng * min_reps + 1):
-            ngram = tuple(words[start:start + ng])
+            ngram = tuple(words[start : start + ng])
             reps = 1
             pos = start + ng
-            while pos + ng <= n and tuple(words[pos:pos + ng]) == ngram:
+            while pos + ng <= n and tuple(words[pos : pos + ng]) == ngram:
                 reps += 1
                 pos += ng
             if reps >= min_reps:
@@ -299,16 +299,23 @@ def has_repeat(text, min_reps=4, max_ngram=5):
     return False
 
 
-def has_repeat_error(ref, hyp, min_reps=4, max_ngram=5):
+def has_repeat_error(hyp, ref=None, min_reps=4, max_ngram=5, tn_name=None, lang="english"):
     """Return True if the error portion of ``hyp`` (vs ``ref``) contains a repeated n-gram.
 
     Aligns ``ref`` vs ``hyp`` at the word level and runs ``has_repeat`` only on
     the hyp segments inside non-equal opcodes (insertions/substitutions). When
-    ``ref`` is empty, falls back to scanning the full hyp. Inputs are expected
-    to be already text-normalized by the caller.
+    ``ref`` is empty or None, falls back to scanning the full hyp. If ``tn_name``
+    is given, both inputs are passed through ``text_norm(..., tn_name)`` first;
+    if ``tn_name`` is None but ``lang`` is given, ``default_tn_name(lang)`` is
+    used. Otherwise the caller is expected to pre-normalize.
     """
     if not hyp:
         return False
+    from recipe.phimm.utils.tn import default_tn_name, text_norm
+
+    tn_name = tn_name or default_tn_name(lang)
+    hyp = text_norm(hyp, tn_name)
+    ref = text_norm(ref or "", tn_name)
     if not ref:
         return has_repeat(hyp, min_reps=min_reps, max_ngram=max_ngram)
     from difflib import SequenceMatcher
@@ -348,20 +355,20 @@ def _parse_transcription(raw_text):
 
     Returns (text, formatted) where formatted is True if <TXT> tags were found.
     """
-    txt_matches = re.findall(r'<TXT>(.*?)</TXT>', raw_text, re.DOTALL)
+    txt_matches = re.findall(r"<TXT>(.*?)</TXT>", raw_text, re.DOTALL)
     if txt_matches:
-        return ' '.join(m.strip() for m in txt_matches), True
-    m = re.search(r'<TXT>(.*)', raw_text, re.DOTALL)
+        return " ".join(m.strip() for m in txt_matches), True
+    m = re.search(r"<TXT>(.*)", raw_text, re.DOTALL)
     if m:
-        return re.sub(r'</TXT>?(?:</ASR[^>]*>)?$', '', m.group(1)).strip(), False
-    m = re.search(r'Transcription:\s*(.*)', raw_text, re.DOTALL)
+        return re.sub(r"</TXT>?(?:</ASR[^>]*>)?$", "", m.group(1)).strip(), False
+    m = re.search(r"Transcription:\s*(.*)", raw_text, re.DOTALL)
     if m:
         text = m.group(1).strip()
-        text = re.sub(r'<\|end\|>.*', '', text).strip()
-        text = re.sub(r'<[^>]+>', ' ', text)
-        return re.sub(r'\s+', ' ', text).strip(), False
-    raw_text = re.sub(r'^Audio\s+Language:\s*\w+\s*\n?', '', raw_text).strip()
-    if '<|end|>' in raw_text:
-        raw_text = raw_text[:raw_text.index('<|end|>')]
-    raw_text = re.sub(r'<[^>]+>', ' ', raw_text)
-    return re.sub(r'\s+', ' ', raw_text).strip(), False
+        text = re.sub(r"<\|end\|>.*", "", text).strip()
+        text = re.sub(r"<[^>]+>", " ", text)
+        return re.sub(r"\s+", " ", text).strip(), False
+    raw_text = re.sub(r"^Audio\s+Language:\s*\w+\s*\n?", "", raw_text).strip()
+    if "<|end|>" in raw_text:
+        raw_text = raw_text[: raw_text.index("<|end|>")]
+    raw_text = re.sub(r"<[^>]+>", " ", raw_text)
+    return re.sub(r"\s+", " ", raw_text).strip(), False
