@@ -23,41 +23,78 @@ One of:
 
 If none provided, ask the user for the paper URL/ID.
 
-## Source Fetching Strategy (HTML-first, PDF-fallback)
+## Source Fetching Strategy (TeX-first, HTML-next, PDF-fallback)
 
-**Always try the HTML version first.** It preserves structure, math (MathJax), figure URLs, and tables far better than PDF text extraction.
+For arXiv papers, **prefer the TeX source first**, then the rendered HTML, then PDF only as a last resort. TeX source preserves the exact equations, table source, figure file references, and section structure that the authors wrote — far richer than the HTML render and dramatically better than PDF text extraction.
+
+For non-arXiv URLs / local PDFs, skip to the HTML or PDF step directly (TeX is usually unavailable).
 
 ### Step 1 — Normalize the input
 
 From any arXiv input, derive:
-- `abs_url`  = `https://arxiv.org/abs/<id>`
-- `html_url` = `https://arxiv.org/html/<id>` (also try `https://arxiv.org/html/<id>v1`, `v2`, … if bare id fails)
-- `pdf_url`  = `https://arxiv.org/pdf/<id>`
+- `abs_url`    = `https://arxiv.org/abs/<id>`
+- `tex_url`    = `https://arxiv.org/src/<id>` (also try `https://arxiv.org/e-print/<id>` — same content, gzip tar)
+- `html_url`   = `https://arxiv.org/html/<id>` (also try `https://arxiv.org/html/<id>v1`, `v2`, … if bare id fails)
+- `pdf_url`    = `https://arxiv.org/pdf/<id>`
 
-For non-arXiv URLs, try the given URL as-is; if it looks like a PDF, skip to PDF fallback.
+For non-arXiv URLs, use the given URL as-is; if it looks like a PDF, jump straight to Step 4.
 
-### Step 2 — Try HTML
+### Step 2 — Try TeX source (preferred for arXiv)
+
+Download and unpack:
+
+```bash
+mkdir -p /tmp/paper_<id> && cd /tmp/paper_<id>
+curl -sSL -A "Mozilla/5.0" "$tex_url" -o source.tar.gz
+# arXiv source is usually gzip; sometimes a single .tex.gz, sometimes a tar.gz of a project
+file source.tar.gz
+# Try tar first; if that fails, treat as a raw gzipped tex
+( tar -xzf source.tar.gz 2>/dev/null ) || ( gunzip -c source.tar.gz > main.tex )
+ls -la
+```
+
+A successful unpack should yield one or more `.tex` files plus figure assets (`.pdf`, `.png`, `.jpg`, `.eps`). Identify the main file:
+- Look for `\documentclass` and `\begin{document}` — usually in `main.tex`, `paper.tex`, `ms.tex`, or `<arxiv-id>.tex`.
+- If multiple `.tex` files exist, the one containing `\begin{document}` and `\title{...}` is the main entry; the rest are `\input{}`/`\include{}` chapters.
+
+Extract from the TeX source:
+- **Title, authors, abstract** (`\title`, `\author`, `\begin{abstract}`)
+- **Section structure** (`\section`, `\subsection`)
+- **Figures**: `\includegraphics{path}` — record each figure file path and its `\caption{...}` and `\label{fig:...}`. Convert non-PNG figures to PNG for embedding:
+  - `.pdf` → `pdftoppm -png -r 150 fig.pdf fig` (then crop whitespace if needed)
+  - `.eps` → `convert -density 150 fig.eps fig.png` (ImageMagick) or `epstopdf` + `pdftoppm`
+  - `.png` / `.jpg` → use directly
+- **Tables**: copy the `\begin{table}...\end{table}` LaTeX blocks; reconstruct as HTML `<table>` (Pandoc is convenient: `pandoc -f latex -t html5 snippet.tex` for a single table snippet)
+- **Equations**: copy `equation`, `align`, `gather` environments verbatim — MathJax renders them directly when wrapped in `$$ ... $$` or `\[ ... \]`
+- **Citations**: keep `\cite{...}` keys for traceability but you don't need to resolve them all
+
+Tools you should expect to have: `curl`, `tar`, `gunzip`, `file`, `pdftoppm`, `pdfcrop` (optional), `convert` (ImageMagick), `pandoc` (optional but very useful for table conversion).
+
+### Step 3 — Fall back to HTML
+
+If TeX source is unavailable (rare; some old papers, withdrawn papers, or papers submitted as PDF-only):
 
 Fetch `html_url` (try `fetch_webpage`, then `open_browser_page` + `read_page` if blocked).
 
 A successful HTML fetch should contain section headings, paragraphs, `<figure>`/`<img>` tags, `<table>` tags, and MathJax/LaTeX spans (`\(...\)`, `$$...$$`, or `<math>`).
 
 Record:
-- All figure image URLs (resolve to absolute URLs, typically `https://arxiv.org/html/<id>/extracted/...` or `.../x1.png`)
+- All figure image URLs (resolve to absolute URLs, typically `https://arxiv.org/html/<id>/extracted/...` or `.../x1.png`) — you may either external-link them or download + base64-embed for a fully self-contained file
 - All table HTML blocks (keep original `<table>` markup)
 - Section structure (Abstract, Introduction, Method, Experiments, …)
 - Key display equations
 
-### Step 3 — Fallback to PDF
+### Step 4 — Fall back to PDF
 
-Only if the HTML version is unavailable (404, empty, or clearly not rendered):
+Only if both TeX and HTML are unavailable (404, empty, or clearly not rendered):
 1. Download the PDF: `curl -sSL "$pdf_url" -o /tmp/paper_<id>.pdf`
 2. Extract text: `pdftotext -layout /tmp/paper_<id>.pdf -` (or `pdfplumber` in Python)
-3. Extract figures as images: `pdfimages -all /tmp/paper_<id>.pdf /tmp/paper_<id>_img`, then **embed each figure as a base64 `data:image/...;base64,...` URI** inside the `<img src="...">` so the report stays a single file (matches the HTML-path single-file guarantee).
+3. Extract figures as images: `pdfimages -all /tmp/paper_<id>.pdf /tmp/paper_<id>_img`. Many modern papers use vector figures that `pdfimages` cannot recover — in that case, render full pages with `pdftoppm -png -r 110 paper.pdf page` and crop each figure region with PIL.
+4. Embed each figure as a base64 `data:image/...;base64,...` URI inside `<img src="...">` so the report stays a single file.
    - **Auto-switch rule:** if the resulting HTML would exceed ~20 MB (e.g. many large figures), instead write images to a sibling folder `paper_notes/<id>_assets/` and reference them via relative path. Note this in the report header so the user knows the HTML is no longer standalone.
-4. Tables from PDF are unreliable — reconstruct the most important 1–3 tables manually from the extracted text and clearly mark them as "重建表格 (reconstructed from PDF)".
+5. Tables from PDF are unreliable — reconstruct the most important 1–3 tables manually from the extracted text and clearly mark them as "重建表格 (reconstructed from PDF)".
 
-Tell the user briefly which path was used (HTML vs PDF fallback).
+Tell the user briefly which path was used (TeX vs HTML vs PDF fallback).
 
 ## Output: HTML Report
 
@@ -146,13 +183,13 @@ Use [report_template.html](./assets/report_template.html) as the starting point.
 
 ## Procedure Summary
 
-1. Normalize input → derive `html_url` / `pdf_url`.
-2. Fetch HTML; if fails, fall back to PDF and extract.
+1. Normalize input → derive `tex_url` / `html_url` / `pdf_url`.
+2. **Try TeX source first** (`arxiv.org/src/<id>`); unpack and locate the main `.tex` plus figure assets. If TeX unavailable, try the HTML render; if that also fails, fall back to PDF extraction.
 3. Read the paper end-to-end; identify sections, figures, tables, key equations.
 4. Draft each section in Chinese using the structure above.
-5. Copy/refer to figures (URLs) and tables (HTML) verbatim from source; add 中文解释.
+5. Copy/refer to figures, tables, and equations from the chosen source — convert TeX figures to PNG (`pdftoppm` / ImageMagick) and TeX tables to HTML (`pandoc` works well); add 中文解释 for each.
 6. Render the final HTML from [report_template.html](./assets/report_template.html) and save to `paper_notes/<id>_zh.html`.
-7. Report the output path to the user; offer to open it in a browser preview.
+7. Report the output path **and which source path was used** (TeX / HTML / PDF) to the user; offer to open it in a browser preview.
 
 ## Quality Checklist
 
@@ -170,6 +207,7 @@ Use [report_template.html](./assets/report_template.html) as the starting point.
 ## Anti-patterns
 
 - ❌ 把英文摘要直接机器翻译堆上去 — 必须有提炼与解读
+- ❌ **跳过 TeX 源直接抓 HTML/PDF**（对 arXiv 论文而言）— TeX 源公式/表格/图片路径最完整，应优先
 - ❌ 跳过 HTML 直接抓 PDF — 信息损失严重，公式/表格基本不可用
 - ❌ 只贴图不解释 — 每张图/表/公式都要配中文 explanation
 - ❌ 输出 Markdown 而不是 HTML — 用户明确要求 well-designed HTML
