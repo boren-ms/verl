@@ -79,6 +79,53 @@ ray job logs <job_id> 2>&1 | grep -E 'Batch ' | tail -1
 - FAILED → 💥 with error summary
 - IDLE → ⬜ no active jobs
 
+#### 2d. GPU Health Check (1-min average utilization)
+
+For each node with a RUNNING job, check the **1-minute average** GPU utilization to detect silently crashed/hung jobs (Ray status still shows RUNNING but GPUs are idle).
+
+```bash
+kubectl --context prod-westus2-cw-6 -n boren exec <node>-0 -- bash -l -c \
+  'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits && echo "---DMON---" && timeout 60 nvidia-smi dmon -s u -d 5 -c 12 2>/dev/null'
+```
+
+This runs `nvidia-smi dmon` for 60 seconds (12 samples × 5s interval) to get a 1-minute rolling GPU utilization average.
+
+**Parsing the dmon output:**
+- Each line has columns: `gpu_idx  sm_util  mem_util  enc_util  dec_util`
+- Average `sm_util` across all GPUs and all 12 samples = **1-min avg GPU util**
+- Skip header lines (starting with `#`)
+
+**Interpretation thresholds:**
+
+| 1-min Avg GPU Util | Memory Loaded (>30G/GPU) | Diagnosis | Action |
+|--------------------|--------------------------|-----------|--------|
+| >10% | Yes | ✅ **Healthy** — actively computing | None |
+| 0-10% | Yes | ⚠️ **Possibly stalled** — loaded but idle | Check Ray job logs for errors; may be between steps (save/val), wait one more cycle before acting |
+| 0% | No (<5G/GPU) | 🔄 **Loading** — model not yet loaded | Normal during startup (first 5-10 min). If >15 min, may be stuck |
+| 0% | Yes (>30G/GPU) | 💥 **Likely crashed** — model loaded but no compute | Check `ray job status` — if still RUNNING, check logs for hang/deadlock. If FAILED, trigger Phase 3 auto-fix |
+
+**Quick single-shot check (when dmon is too slow):**
+```bash
+kubectl --context prod-westus2-cw-6 -n boren exec <node>-0 -- bash -l -c \
+  'for i in $(seq 1 6); do nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits; sleep 10; done'
+```
+This takes 6 samples over 60 seconds. Average across all samples and GPUs for 1-min avg.
+
+**Add GPU columns to the status table:**
+
+```
+| Node | Job | Type | Ray Status | Progress | GPU Util (1m avg) | GPU Mem | Health |
+|------|-----|------|------------|----------|-------------------|---------|--------|
+```
+
+**Auto-action on low GPU util:**
+1. If a RUNNING job shows 0% GPU util for 1 min AND memory is loaded (>30G/GPU):
+   - First, check `ray job logs <job_id> 2>&1 | tail -20` for recent errors
+   - If logs show NCCL timeout, deadlock, or no new output for >10 min → mark as **crashed**
+   - Trigger Phase 3 (Auto-Fix) for the crashed job
+2. If GPU util is 0% but memory is <5G/GPU → job is still loading, skip
+3. If GPU util is low (1-10%) with high memory → likely doing checkpoint save or validation pass, wait
+
 ### Phase 3 — Auto-Fix Failures
 
 When a job has FAILED status, automatically diagnose and attempt recovery.
