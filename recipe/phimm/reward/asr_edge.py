@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 import logging
 import re
 from recipe.phimm.utils.languages import get_language_code
-from recipe.phimm.utils.shared import has_brackets, has_repeat, parse_asr_response
+from recipe.phimm.utils.shared import has_brackets, has_repeat_error, parse_asr_response
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
 
@@ -56,11 +56,13 @@ class Error:
         )
 
 
-def _norm_text(text, norm_name="english"):
+def _norm_text(text, name=None, lang="english"):
 
     from recipe.phimm.utils.tn import text_norm as apply_text_norm
 
-    return apply_text_norm(text.strip(), name=norm_name)
+    if name is None:
+        name = "openasr_en" if lang.lower() == "english" else "openasr_ml"
+    return apply_text_norm(text.strip(), name=name)
 
 
 def _count_ops(ref_words, hyp_words):
@@ -130,12 +132,11 @@ def acc_to_bucket(acc, n_buckets=10, lo=0.8, hi=1.0):
 
 
 def measure(hyp, ref, tgt_lang="english", **kwargs):
-    default_norm = "openasr_en" if tgt_lang.lower() == "english" else "openasr_ml"
-    norm_name = kwargs.get("text_norm", default_norm)
+    norm_name = kwargs.get("text_norm")
     unit = kwargs.get("unit", "word")
     compound_norm = kwargs.get("compound_norm", False)
-    ref_text = _norm_text(ref, norm_name=norm_name)
-    hyp_text = _norm_text(hyp, norm_name=norm_name)
+    ref_text = _norm_text(ref, name=norm_name, lang=tgt_lang)
+    hyp_text = _norm_text(hyp, name=norm_name, lang=tgt_lang)
     if compound_norm:
         [ref_text], [hyp_text] = normalize_compound_pairs([ref_text], [hyp_text])
     ref_units = _split_units(ref_text, unit=unit)
@@ -143,7 +144,7 @@ def measure(hyp, ref, tgt_lang="english", **kwargs):
     return _count_ops(ref_units, hyp_units)
 
 
-def _parse_response(solution_str, **kwargs):
+def _parse_response(solution_str, ground_truth=None, **kwargs):
     """Shared parsing: extract target language, parse ASR response, check lang/format."""
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower()
@@ -151,8 +152,10 @@ def _parse_response(solution_str, **kwargs):
     hyp_text = trans_dict["text"]
     pred_lang = (trans_dict["lang"] or "").lower()
     repeat_opts = kwargs.get("repeat") or {}
-    p_repeat = has_repeat(
-        hyp_text,
+    norm_name = kwargs.get("text_norm")
+    p_repeat = has_repeat_error(
+        _norm_text(ground_truth, name=norm_name, lang=tgt_lang) if ground_truth else "",
+        _norm_text(hyp_text, name=norm_name, lang=tgt_lang) if hyp_text else "",
         min_reps=repeat_opts.get("min_reps", 4),
         max_ngram=repeat_opts.get("max_ngram", 5),
     )
@@ -169,7 +172,7 @@ def _parse_response(solution_str, **kwargs):
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
-    parsed = _parse_response(solution_str, **kwargs)
+    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
     err = measure(parsed["hyp_text"], ground_truth, tgt_lang=parsed["tgt_lang"], **kwargs)
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
@@ -204,7 +207,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
 def eval_score(solution_str, ground_truth, **kwargs):
     """Validation scoring: returns raw error counts for aggregation."""
-    parsed = _parse_response(solution_str, **kwargs)
+    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
     err = measure(parsed["hyp_text"], ground_truth, tgt_lang=parsed["tgt_lang"], **kwargs)
 
     return {
@@ -227,7 +230,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
     """
     from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
 
-    parsed = _parse_response(solution_str, **kwargs)
+    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
     logger.info("openasr_eval language check: tgt_lang=%s p_lang=%s", parsed["tgt_lang"], parsed["p_lang"])
     result = measure_wer(parsed["hyp_text"], ground_truth, lang=get_language_code(parsed["tgt_lang"]))
 

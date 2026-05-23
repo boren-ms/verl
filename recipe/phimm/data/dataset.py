@@ -42,7 +42,7 @@ from recipe.phimm.utils.shared import (
     unbatch,
     has_brackets as has_brackets_fn,
     parse_asr_response,
-    has_repeat,
+    has_repeat_error,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.languages import get_language_name
@@ -863,12 +863,7 @@ def _has_repeat(example, opts):
     ref = example.get(ref_field, "") or ""
     hyp = text_norm(hyp, tn_name)
     ref = text_norm(ref, tn_name)
-    if not ref:
-        return has_repeat(hyp, min_reps=min_reps, max_ngram=max_ngram)
-    for piece in find_wrong_pieces(ref, hyp):
-        if has_repeat(piece, min_reps=min_reps, max_ngram=max_ngram):
-            return True
-    return False
+    return has_repeat_error(ref, hyp, min_reps=min_reps, max_ngram=max_ngram)
 
 
 # Matches uppercase single-letter abbreviations like "U. S.", "U. P. S.",

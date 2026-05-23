@@ -299,6 +299,31 @@ def has_repeat(text, min_reps=4, max_ngram=5):
     return False
 
 
+def has_repeat_error(ref, hyp, min_reps=4, max_ngram=5):
+    """Return True if the error portion of ``hyp`` (vs ``ref``) contains a repeated n-gram.
+
+    Aligns ``ref`` vs ``hyp`` at the word level and runs ``has_repeat`` only on
+    the hyp segments inside non-equal opcodes (insertions/substitutions). When
+    ``ref`` is empty, falls back to scanning the full hyp. Inputs are expected
+    to be already text-normalized by the caller.
+    """
+    if not hyp:
+        return False
+    if not ref:
+        return has_repeat(hyp, min_reps=min_reps, max_ngram=max_ngram)
+    from difflib import SequenceMatcher
+
+    ref_words = ref.split()
+    hyp_words = hyp.split()
+    sm = SequenceMatcher(None, ref_words, hyp_words, autojunk=False)
+    for tag, _i1, _i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal" or j1 == j2:
+            continue
+        if has_repeat(hyp_words[j1:j2], min_reps=min_reps, max_ngram=max_ngram):
+            return True
+    return False
+
+
 def parse_asr_response(response):
     """Extract text and language from an ASR response string.
 
