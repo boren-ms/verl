@@ -11,6 +11,6 @@ source_config:
         field: response
         min_reps: 2
 
-output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps_v1a/error_only.jsonl
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/error_only_v1a.jsonl
 include_verl_format: false
 overwrite: true
