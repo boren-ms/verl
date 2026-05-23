@@ -350,7 +350,7 @@ def tsv_dataset(tsv_paths, **kwargs):
         return ds.add_column("dir", [tsv_dir] * len(ds))
 
     ds = _load_expanded_datasets(tsv_paths, ext="tsv", load_fn=load_tsv)
-    # ds = stream_shuffle(ds, **kwargs) # need stream or shuffle 
+    # ds = stream_shuffle(ds, **kwargs) # need stream or shuffle
 
     def load_sample(egs):
         """Process a single sample."""
@@ -824,15 +824,50 @@ def _has_brackets(example):
     return has_brackets_fn(text)
 
 
+def find_wrong_pieces(ref, hyp):
+    """Return hyp word segments that fall inside non-equal alignment opcodes.
+
+    Aligns ``ref`` vs ``hyp`` at the word level and returns one list of hyp
+    words per insertion/substitution opcode. Pure-deletion opcodes are skipped.
+    """
+    ref_words = (ref or "").split()
+    hyp_words = (hyp or "").split()
+    from difflib import SequenceMatcher
+    sm = SequenceMatcher(None, ref_words, hyp_words, autojunk=False)
+    pieces = []
+    for tag, _i1, _i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal" or j1 == j2:
+            continue
+        pieces.append(hyp_words[j1:j2])
+    return pieces
+
+
 def _has_repeat(example, opts):
-    """Check whether example[field] contains a repeated n-gram."""
-    field = opts.get("field", "response")
+    """Check whether the error part of example[hyp_field] contains a repeated n-gram.
+
+    Aligns the hypothesis (``hyp_field``, default ``response``) against the
+    reference (``ref_field``, default ``text``) at the word level and runs
+    ``has_repeat`` only on the hypothesis segments that fall inside non-equal
+    opcodes (insertions/substitutions). This avoids flagging legitimately
+    repeated words in the reference itself. If no reference is available, falls
+    back to scanning the full hypothesis.
+    """
+    hyp_field = opts.get("hyp_field", "response")
+    ref_field = opts.get("ref_field", "text")
     min_reps = opts.get("min_reps", 4)
     max_ngram = opts.get("max_ngram", 5)
-    text = example.get(field, "") or ""
-    if not text:
+    hyp = example.get(hyp_field, "") or ""
+    if not hyp:
         return False
-    return has_repeat(text, min_reps=min_reps, max_ngram=max_ngram)
+    ref = example.get(ref_field, "") or ""
+    hyp = hyp.lower()
+    ref = ref.lower()
+    if not ref:
+        return has_repeat(hyp, min_reps=min_reps, max_ngram=max_ngram)
+    for piece in find_wrong_pieces(ref, hyp):
+        if has_repeat(piece, min_reps=min_reps, max_ngram=max_ngram):
+            return True
+    return False
 
 
 # Matches uppercase single-letter abbreviations like "U. S.", "U. P. S.",
@@ -846,17 +881,28 @@ _SPACED_ABBREV_RE = re.compile(r"\b[A-Z]\.,?\s*(?:[A-Z]\.,?\s*)*[A-Z](?:\.,?)?(?
 
 
 def _has_spaced_abbrev(example, opts):
-    """Check whether example[field] contains a spaced single-letter abbreviation."""
-    field = opts.get("field", "response")
-    text = example.get(field, "") or ""
-    if not text:
+    """Check whether the error part of example[hyp_field] contains a spaced abbreviation.
+
+    Aligns hyp (``hyp_field``, default ``response``) vs ref (``ref_field``,
+    default ``text``) and runs the regex only on hyp segments inside non-equal
+    opcodes (insertions/substitutions). Falls back to scanning the full hyp
+    when no reference is available.
+    """
+    hyp_field = opts.get("hyp_field", "response")
+    ref_field = opts.get("ref_field", "text")
+    hyp = example.get(hyp_field, "") or ""
+    if not hyp:
         return False
-    return bool(_SPACED_ABBREV_RE.search(text))
+    ref = example.get(ref_field, "") or ""
+    if not ref:
+        return bool(_SPACED_ABBREV_RE.search(hyp))
+    for piece in find_wrong_pieces(ref, hyp):
+        if _SPACED_ABBREV_RE.search(" ".join(piece)):
+            return True
+    return False
 
 
-def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None,
-                 has_repeat=None, has_spaced_abbrev=None,
-                 wer_range=None, error_count_range=None, edge_wer_range=None, **kwargs):
+def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None, has_repeat=None, has_spaced_abbrev=None, wer_range=None, error_count_range=None, edge_wer_range=None, **kwargs):
     """Keep samples matching ANY enabled criterion (OR logic).
 
     Args:
@@ -1183,7 +1229,6 @@ def overlap_prefix(ds, **kwargs):
 
     ds = ds.map(add_overlap_prefix, with_indices=True, **pop_map_kwargs(kwargs))
     return ds
-
 
 
 def add_task_info(ds, **kwargs):
