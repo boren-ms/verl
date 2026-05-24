@@ -1,5 +1,5 @@
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_way.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
   add_task_info:
     task: lang_asr
     forced: True
@@ -10,7 +10,7 @@
     verl_format:
       prompt_key: prompt
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_way.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
   add_task_info:
     task: lang_asr
     forced: True
