@@ -11,8 +11,8 @@ data:
   path: null
   batch_size: 1024              # large dispatch -> vLLM stays saturated end-to-end
   output_split_size: 20000      # fewer parquet writes; larger chunks per blob upload
-  num_workers: 1               # bounded to keep host RAM safe with audio batches
-  prefetch_factor: 2
+  num_workers: 4               # bounded to keep host RAM safe with audio batches
+  prefetch_factor: 4
   pin_memory: false             # audio batches are big; pinned memory would balloon host RSS
   persistent_workers: false    # avoid shmem buildup over many batches leading to OOM after ~330 batches in prior runs
   prefetch_depth: 3             # prep<->generate<->consume pipeline depth (host RAM bound)
@@ -30,7 +30,7 @@ rollout:
   gpu_memory_utilization: 0.85   # share H100 with FSDP shard + vLLM weights + KV cache
   log_prob_micro_batch_size_per_gpu: 8
   load_format: dummy # need to force reload from fsdp to vllm
-  max_num_seqs: 16
+  max_num_seqs: 32
   enforce_eager: false
   enable_chunked_prefill: true   # interleaves prefill of long prompts with ongoing decodes
   free_cache_engine: true
