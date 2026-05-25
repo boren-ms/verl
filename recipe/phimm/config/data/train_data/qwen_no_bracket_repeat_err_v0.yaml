@@ -1,0 +1,16 @@
+- dataset_name: jsonl
+  jsonl_paths:
+      - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+      - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_reps/error_only_wav.jsonl
+      - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_entity_en_ht_v1_cer_only_reps/error_only_wav.jsonl
+      - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/error_only_wav.jsonl
+
+  add_task_info:
+      task: lang_asr
+      forced: True
+  post_process:
+      add_field:
+          fields:
+              data_source: asr
+      verl_format:
+          prompt_key: prompt
