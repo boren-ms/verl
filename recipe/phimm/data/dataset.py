@@ -1064,20 +1064,28 @@ def to_user_msg(prompt):
     return [{"role": "user", "content": prompt}]
 
 
+def _extra_info_value(egs, key):
+    """Get extra_info value with defaults for required keys."""
+    value = egs.get(key)
+    if key == "id" and not value:
+        audio_ref = egs.get("audio_path") or egs.get("audio_chunk") or egs.get("audio_file") or ""
+        value = Path(str(audio_ref)).stem if audio_ref else "unknown_id"
+    if key == "language" and not value:
+        value = "English"
+    return value
+
+
 def verl_format_ds(ds, **kwargs):
     """Format the dataset for verl training."""
     prompt_key = kwargs.get("prompt_key", "prompt")
-    extra_keys = kwargs.get("extra_keys", ["id", "keywords", "language"])
-
-    def _extra_default(key):
-        return [""] if key == "keywords" else ""
+    extra_keys = kwargs.get("extra_keys", ["id", "language"])
 
     def map_fn(egs):
         text = egs.get("text", "")
         result = {
             prompt_key: to_user_msg(egs[prompt_key]),
             "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
-            "extra_info": {key: (egs.get(key) if egs.get(key) is not None else _extra_default(key)) for key in extra_keys},
+            "extra_info": {key: _extra_info_value(egs, key) for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),
         }
         return result
