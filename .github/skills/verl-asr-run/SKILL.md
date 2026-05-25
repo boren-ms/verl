@@ -1,12 +1,12 @@
 ---
 name: verl-asr-run
-description: 'Submit and monitor ASR training or evaluation jobs on remote verl Brix nodes until completion, reporting metrics in structured tables. Use when: running RL training (ReMax, GRPO), automatically running post-training OpenASR/OpenASR-ML evals, evaluating checkpoints on LibriSpeech/OpenASR/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "eval_openasr", "eval_openasr_ml", "check WER", "monitor job", "check training status", "push and submit", "run config on node".'
+description: 'Run the full ASR stack on remote verl Brix nodes: training -> checkpoint evaluation (`eval_openasr`, `eval_openasr_ml`) -> report generation (`openasr-report`), while continuously monitoring until completion with structured metrics. Use when: running RL training (ReMax, GRPO), automatically running post-training OpenASR/OpenASR-ML evals, generating standardized OpenASR/OpenASR-ML reports, evaluating checkpoints on LibriSpeech/OpenASR/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "eval_openasr", "eval_openasr_ml", "check WER", "monitor job", "check training status", "push and submit", "run config on node", "training evaluation report".'
 argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0, or eval_libri_h100'
 ---
 
 # verl ASR Run
 
-Submit a training or evaluation job on a remote verl Brix node via `submit_job.sh`, **continuously monitor until completion** reporting metrics in structured tables, automatically run post-training OpenASR evals when applicable, and optionally perform word error analysis on validation output.
+Run a full ASR pipeline on a remote verl Brix node: **training -> evaluation -> report**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, automatically evaluate the trained checkpoint on `eval_openasr` and `eval_openasr_ml` (treat user phrase `openasr_eval` as `eval_openasr_ml`), then generate a final comparison report with the `openasr-report` skill. Optionally perform word error analysis on validation output.
 
 Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
@@ -17,7 +17,7 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 - User wants to submit any verl ASR job to a remote node and monitor until completion
 - User asks to monitor an existing job — "check status", "update", "how's the job"
 - User needs to fix code, push, and resubmit after a failure
-- User wants training followed by automatic `eval_openasr` and `eval_openasr_ml` evaluation on the completed checkpoint
+- User wants full stack execution: training followed by `eval_openasr`, `eval_openasr_ml`, and report generation
 - User wants word-level error analysis on verl validation JSONL output
 - User wants to run multiple jobs (see batch submission below)
 
@@ -28,7 +28,8 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 | **config** | Yes | — | `remax_ls_lr05`, `eval_libri_h100`, `gen_libri` |
 | **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
-| **post_train_eval** | No | `eval_openasr`, `eval_openasr_ml` for training jobs | `none`, `eval_openasr_ml` |
+| **post_train_eval** | No | Always run `eval_openasr` and `eval_openasr_ml` for training jobs | `eval_openasr,eval_openasr_ml` |
+| **report** | No | `openasr-report` after both evals succeed | `openasr-report` |
 | **word_error_sets** | No | `1` (first data source only) | `all` (all data sources) |
 
 ## Job Types
@@ -131,7 +132,9 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
    - `remax_*` → ReMax training (uses `main_asr_remax`)
    - Everything else → training (uses `main_asr_dapo`)
 - **model_path**: Usually baked into the config. If the user specifies a custom model path, it will be passed as a hydra override.
-- **post_train_eval**: For training jobs, default to automatically running `eval_openasr` and `eval_openasr_ml` on the completed checkpoint unless the user explicitly opts out. For eval or generation jobs, do not start additional evals unless requested.
+- **post_train_eval**: For training jobs, always run both `eval_openasr` and `eval_openasr_ml` on the completed checkpoint as part of the full-stack pipeline.
+- **openasr_eval alias**: If user requests `openasr_eval`, map it to `eval_openasr_ml`.
+- **report**: After both post-training evals succeed, always generate the OpenASR report using the `openasr-report` skill.
 - **word_error_sets**: Default `1` — only analyze the first data source. If user says "all", analyze all data sources.
 
 ### Step 2 — Push code and submit the job
@@ -323,7 +326,7 @@ If all quality metrics are at their ideal values (p_fmt = 100%, p_lang = 100%, p
 
 **Show ALL steps observed — accumulate across monitoring checks to compare progression.**
 
-### Step 4 — Final summary (when SUCCEEDED)
+### Step 4 — Training summary (when SUCCEEDED)
 
 When the job completes, provide:
 1. **Full validation metrics table** across ALL val steps (complete trajectory)
@@ -333,11 +336,11 @@ When the job completes, provide:
 5. **Total training time** (from first step to last step)
 6. **Trend summary**: did WER improve? By how much? Best val step?
 
-For training jobs, Step 4 is an interim training summary. Continue to Step 4a and do not give the final response until the automatic OpenASR eval jobs have also completed or failed.
+For training jobs, Step 4 is an interim training summary. Continue to Step 4a and do not give the final response until both automatic OpenASR eval jobs complete successfully and Step 4b report generation is finished.
 
-### Step 4a — Automatic post-training OpenASR evals
+### Step 4a — Mandatory post-training OpenASR evals
 
-When a training job succeeds and `post_train_eval` is not `none`, automatically evaluate the completed checkpoint with:
+When a training job succeeds, automatically evaluate the completed checkpoint with both:
 
 1. `recipe/phimm/config/eval/eval_openasr.yaml`
 2. `recipe/phimm/config/eval/eval_openasr_ml.yaml`
@@ -380,12 +383,37 @@ brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepar
 
 Where `{EVAL_CONFIG}` is `eval_openasr` or `eval_openasr_ml`. Track both Ray job IDs separately. If either eval fails, diagnose and fix using Step 3f, then resubmit the failed eval before continuing.
 
-Post-training final report requirements:
+### Step 4b — Generate final OpenASR report
+
+After both eval jobs (`eval_openasr`, `eval_openasr_ml`) succeed, generate the final report using the `openasr-report` skill.
+
+Required behavior:
+- Invoke the `/openasr-report` skill and follow its argument contract.
+- Prefer `--from-ray` using the two eval job IDs (one for `eval_openasr`, one for `eval_openasr_ml`) on their node(s).
+- Use model label `{TRAIN_CONFIG}@step{LATEST_STEP}` unless user provided a custom label.
+- Run the skill script command:
+
+   ```bash
+   /home/boren/.virtualenvs/openai/bin/python \
+      .github/skills/openasr-report/scripts/build_openasr_xlsx.py \
+      "{MODEL_LABEL}" \
+      --from-ray {OPENASR_NODE} {OPENASR_JOB_ID} \
+      --from-ray {OPENASR_ML_NODE} {OPENASR_ML_JOB_ID} \
+      --out tmp/openasr_report/{MODEL_LABEL}.xlsx
+   ```
+
+- If extending an existing report, pass `--extend-xlsx {PRIOR_XLSX}`.
+- Ensure the report includes baseline (fixed Qwen3.5-audio), new model column, per-language rows, and overall averages.
+- Save/report the final xlsx artifact path and include it in the final response.
+- If report generation fails, diagnose/fix and retry before finishing.
+
+Post-training final response requirements:
 1. Show the training final summary from Step 4.
 2. Show a separate validation metrics table for `eval_openasr`.
 3. Show a separate validation metrics table for `eval_openasr_ml`, including per-dataset rows, per-language average rows, and the overall average row.
 4. Include W&B and Ray links for the training job and both eval jobs when available.
 5. State which checkpoint path was evaluated.
+6. Include the `openasr-report` xlsx output path and a brief report summary.
 
 #### W&B result check (optional post-job):
 ```bash
@@ -479,6 +507,7 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 | Val metrics | `brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep -E \"val-core\|val-aux\" \| tail -n 30"'` |
 | Stop job | `brix ssh {NODE} -- 'bash -l -c "ray job stop {JOB_ID}"'` |
 | Check errors | `brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep -E \"Traceback\|Error\" \| tail -n 20"'` |
+| Build OpenASR report | `/home/boren/.virtualenvs/openai/bin/python .github/skills/openasr-report/scripts/build_openasr_xlsx.py "{MODEL_LABEL}" --from-ray {OPENASR_NODE} {OPENASR_JOB_ID} --from-ray {OPENASR_ML_NODE} {OPENASR_ML_JOB_ID} --out tmp/openasr_report/{MODEL_LABEL}.xlsx` |
 | W&B results | `python ./wandb_result.py --metric val-aux search '{CONFIG}'` |
 | List jobs | `brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list"'` |
 
@@ -503,7 +532,7 @@ bash submit_jobs_repeat.sh
 - Parse `step:N - key:val - key:val` format into structured table rows
 - When monitoring, report the current phase and what to expect next
 - On failure, show the error, diagnose, and proceed to fix without asking
-- **Do not stop monitoring** until the job is SUCCEEDED or FAILED
+- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `eval_openasr` SUCCEEDED, `eval_openasr_ml` SUCCEEDED, and `openasr-report` generated
 
 ## Dependent Skills
 
@@ -511,4 +540,5 @@ bash submit_jobs_repeat.sh
 |-------|-------|---------|
 | **remote-development** | 0, 2 | Node discovery, sync, remote commands |
 | **persistent-job-monitor** | 3 | Long-running training job monitoring |
+| **openasr-report** | 4b | Generate standardized OpenASR/OpenASR-ML xlsx report |
 | **asr-word-error-analysis** | 5 | Word-level error analysis on validation JSONL |
