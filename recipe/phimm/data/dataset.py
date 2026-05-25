@@ -1074,7 +1074,7 @@ def verl_format_ds(ds, **kwargs):
         result = {
             prompt_key: to_user_msg(egs[prompt_key]),
             "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
-            "extra_info": {key: egs.get(key, None) for key in extra_keys},
+            "extra_info": {key: (egs.get(key) if egs.get(key) is not None else "") for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),
         }
         return result
