@@ -225,7 +225,11 @@ def get_values(lst, key, default=None):
     return [get_value(d, key, default) for d in lst]
 
 
-BRACKET_PATTERN = re.compile(r"<[^>]*>|\[[^\]]*\]|\{[^}]*\}|\([^)]*\)")
+BRACKET_PATTERN = re.compile(
+    r"<[^>]*>|\[[^\]]*\]|\{[^}]*\}|\([^)]*\)|"
+    r"（[^）]*）|［[^］]*］|｛[^｝]*｝|＜[^＞]*＞|"
+    r"【[^】]*】|〔[^〕]*〕|〈[^〉]*〉|《[^》]*》|「[^」]*」|『[^』]*』|〖[^〗]*〗|｟[^｠]*｠"
+)
 BRACKET_EXCLUDE = re.compile(r"^<nonspeech>$", re.IGNORECASE)
 
 
