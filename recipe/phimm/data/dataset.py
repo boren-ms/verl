@@ -689,6 +689,48 @@ def augment_audio(ds, **kwargs):
     return ds
 
 
+def audio_chunk_to_path(ds, **kwargs):
+    """Convert ``audio_chunk`` specs to ``audio_path`` strings.
+
+    Conversion rule: replace ``:`` with ``,`` and append ``.wav``.
+    Existing destination paths are preserved.
+    """
+    dst_field = kwargs.get("dst_field", "audio_path")
+    skip_existing = kwargs.get("skip_existing", True)
+
+    def map_batch(batch, indices):
+        out_paths = []
+        for example, idx in zip(unbatch(batch), indices, strict=True):
+            existing_path = str(example.get(dst_field, "") or "")
+            if skip_existing and existing_path:
+                out_paths.append(existing_path)
+                continue
+            chunk_spec = str(example.get("audio_chunk", "") or "")
+            if not chunk_spec:
+                out_paths.append(existing_path)
+                continue
+            converted = chunk_spec.replace(":", ",")
+            if not converted.lower().endswith(".wav"):
+                converted = f"{converted}.wav"
+            try:
+                if not bf.exists(converted):
+                    if not converted.startswith("az://"):
+                        Path(converted).parent.mkdir(parents=True, exist_ok=True)
+                    audio, sr = load_raw_audio(example)
+                    sf_write(converted, audio, sr)
+            except Exception as e:
+                print(f"[WARN] audio_chunk_to_path failed for index {idx}: {e}")
+                out_paths.append(existing_path)
+                continue
+            out_paths.append(converted)
+        return {dst_field: out_paths}
+
+    map_kwargs = pop_map_kwargs(kwargs)
+    map_kwargs.setdefault("batch_size", 16)
+    ds = ds.map(map_batch, batched=True, with_indices=True, **map_kwargs, desc="Converting chunk specs to audio paths")
+    return ds
+
+
 def add_rare_keywords(ds, **kwargs):
     tn_name = kwargs.get("tn_name", "english")
     rare_ratio = kwargs.get("rare_ratio", None)
@@ -1198,6 +1240,8 @@ def process_ds(ds, **kwargs):
     if "extract_chat" in kwargs:
         chat_kwargs = kwargs.get("extract_chat") or {}
         ds = extract_chat(ds, **merge_kwargs(map_kwargs, chat_kwargs))
+    if audio_chunk_to_path_kwargs := kwargs.get("audio_chunk_to_path", {}):
+        ds = audio_chunk_to_path(ds, **merge_kwargs(map_kwargs, audio_chunk_to_path_kwargs))
     if input_egs_limit := kwargs.get("input_egs_limit", None):
         ds = limit_ds(ds, egs_limit=input_egs_limit)
     if filter_by_keywords_kwargs := kwargs.get("filter_by_keywords", {}):
