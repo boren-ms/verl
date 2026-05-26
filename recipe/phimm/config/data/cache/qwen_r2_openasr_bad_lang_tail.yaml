@@ -1,0 +1,14 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_r2_openasr/*.parquet
+  post_process:
+    keep_samples:
+      has_tail_hallucination:
+        min_words: 3
+      has_bad_lang: true
+
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_r2_openasr_bad_lang_tail/all.jsonl
+include_verl_format: false
+overwrite: true
