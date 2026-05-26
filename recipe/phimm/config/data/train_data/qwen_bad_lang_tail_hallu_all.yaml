@@ -11,3 +11,7 @@
         data_source: asr
     verl_format:
       prompt_key: prompt
+  # train data sample counts:
+  #   qwen_oss_bad_lang/all.jsonl:    38,145
+  #   qwen_oss_tail_hallu/all.jsonl:  47,339
+  #   total:                          85,484
