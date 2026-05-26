@@ -182,7 +182,10 @@ def compute_score(solution_str, ground_truth, **kwargs):
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
     gamma = kwargs.get("gamma", 1)
-    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_repeat"] and not parsed["p_kw_missing"]
+    kw_missing = kwargs.get("keyword_missing") or {}
+    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_repeat"] 
+    if kw_missing:
+        is_good = is_good and not parsed["p_kw_missing"]
 
     if metric == "wer":
         score = -(err.wer(**betas) ** gamma) if is_good else -1
