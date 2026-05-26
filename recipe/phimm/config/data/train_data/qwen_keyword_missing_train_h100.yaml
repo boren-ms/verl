@@ -1,0 +1,23 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_entity_en_ht_v1_cer_only_keyword_missing/train.jsonl
+  add_task_info:
+    task: lang_asr
+    forced: True
+  post_process:
+    add_field:
+      fields:
+        data_source: qwen_entity_en_ht_v1_cer_only_keyword_missing
+    verl_format:
+      prompt_key: prompt
+
+# - dataset_name: jsonl
+#   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_keyword_missing/train.jsonl
+#   add_task_info:
+#     task: lang_asr
+#     forced: True
+#   post_process:
+#     add_field:
+#       fields:
+#         data_source: qwen_en_hc_200k_entity_fy24q3p2_keyword_missing
+#     verl_format:
+#       prompt_key: prompt
