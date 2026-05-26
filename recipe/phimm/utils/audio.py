@@ -48,7 +48,9 @@ def limit_audio(x, fs, max_dur=None, min_dur=0.16):
     x_dur = len(x)/fs
     if x_dur < min_dur:
         print(f"Padding audio {x_dur:.2f} ->  {min_dur:.2f} seconds.")
-        x = np.pad(x, (0, int(min_dur * fs) - len(x)), mode="edge")
+        pad_len = int(min_dur * fs) - len(x)
+        pad_mode = "edge" if len(x) > 0 else "constant"
+        x = np.pad(x, (0, pad_len), mode=pad_mode)
         
     if max_dur is not None and x_dur > max_dur:
         print(f"Truncating audio {x_dur:.2f} ->  {max_dur} seconds.")
