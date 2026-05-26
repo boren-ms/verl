@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 import logging
 import re
 from recipe.phimm.utils.languages import get_language_code
-from recipe.phimm.utils.shared import has_brackets, has_repeat_error, parse_asr_response
+from recipe.phimm.utils.shared import has_brackets, has_repeat_error, has_missing_keyword, parse_asr_response
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
 
@@ -159,6 +159,10 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         tn_name=kwargs.get("text_norm"),
         lang=tgt_lang,
     )
+    keyword_opts = kwargs.get("keyword_missing") or {}
+    keywords = extra_info.get("keywords") or []
+    keyword_norm = keyword_opts.get("text_norm", None)
+    p_kw_missing = has_missing_keyword(keywords, hyp_text, norm_name=keyword_norm, lang=tgt_lang)
 
     return {
         "hyp_text": hyp_text,
@@ -167,6 +171,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "p_fmt": float(bool(trans_dict["formatted"])),
         "p_bracket": float(has_brackets(hyp_text)),
         "p_repeat": float(p_repeat),
+        "p_kw_missing": float(p_kw_missing),
     }
 
 
@@ -177,7 +182,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
     gamma = kwargs.get("gamma", 1)
-    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_repeat"]
+    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_repeat"] and not parsed["p_kw_missing"]
 
     if metric == "wer":
         score = -(err.wer(**betas) ** gamma) if is_good else -1
@@ -202,6 +207,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "p_lang": parsed["p_lang"],
         "p_bracket": parsed["p_bracket"],
         "p_repeat": parsed["p_repeat"],
+        "p_kw_missing": parsed["p_kw_missing"],
     }
 
 
@@ -220,6 +226,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "p_lang": parsed["p_lang"],
         "p_bracket": parsed["p_bracket"],
         "p_repeat": parsed["p_repeat"],
+        "p_kw_missing": parsed["p_kw_missing"],
     }
 
 
@@ -243,6 +250,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
         "p_lang": parsed["p_lang"],
         "p_bracket": parsed["p_bracket"],
         "p_repeat": parsed["p_repeat"],
+        "p_kw_missing": parsed["p_kw_missing"],
     }
 
 

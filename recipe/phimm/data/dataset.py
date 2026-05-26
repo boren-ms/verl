@@ -43,6 +43,7 @@ from recipe.phimm.utils.shared import (
     has_brackets as has_brackets_fn,
     parse_asr_response,
     has_repeat_error,
+    has_missing_keyword,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.languages import get_language_name
@@ -856,12 +857,14 @@ def _has_repeat(example, opts):
     ref_field = opts.get("ref_field", "text")
     min_reps = opts.get("min_reps", 4)
     max_ngram = opts.get("max_ngram", 5)
-    tn_name = opts.get("text_norm", "openasr_en")
+    tn_name = opts.get("text_norm", None)
+    lang_field = opts.get("lang_field", "language")
+    lang = opts.get("lang", example.get(lang_field, "english"))
     hyp = example.get(hyp_field, "")
     if not hyp:
         return False
     ref = example.get(ref_field, "")
-    return has_repeat_error(hyp, ref, min_reps=min_reps, max_ngram=max_ngram, tn_name=tn_name)
+    return has_repeat_error(hyp, ref, min_reps=min_reps, max_ngram=max_ngram, tn_name=tn_name, lang=lang)
 
 
 # Matches uppercase single-letter abbreviations like "U. S.", "U. P. S.",
@@ -896,7 +899,33 @@ def _has_spaced_abbrev(example, opts):
     return False
 
 
-def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None, has_repeat=None, has_spaced_abbrev=None, wer_range=None, error_count_range=None, edge_wer_range=None, **kwargs):
+def _keyword_missing(example, opts):
+    keywords_field = opts.get("keywords_field", "keywords")
+    response_field = opts.get("response_field", "response")
+    norm_name = opts.get("text_norm", None)
+    lang_field = opts.get("lang_field", "language")
+    lang = opts.get("lang", example.get(lang_field, "english"))
+    return has_missing_keyword(
+        example.get(keywords_field),
+        example.get(response_field, ""),
+        norm_name=norm_name,
+        lang=lang,
+    )
+
+
+def keep_samples(
+    ds,
+    has_bad_fmt=None,
+    has_bad_lang=None,
+    has_brackets=None,
+    has_repeat=None,
+    has_spaced_abbrev=None,
+    keyword_missing=None,
+    wer_range=None,
+    error_count_range=None,
+    edge_wer_range=None,
+    **kwargs,
+):
     """Keep samples matching ANY enabled criterion (OR logic).
 
     Args:
@@ -906,6 +935,9 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None, has
         has_repeat: truthy or dict {field, min_reps, max_ngram} — repeated n-gram
         has_spaced_abbrev: truthy or dict {field} — spaced single-letter abbreviations
             like "U. S." (should be "US") or "U. P. S." (should be "UPS")
+        keyword_missing: truthy or dict — keep if any keyword phrase is missing in
+            response after normalization. Dict options:
+            {keywords_field, response_field, norm}
         wer_range: [lo, hi] — WER range
         error_count_range: [lo, hi] — error count range
         edge_wer_range: [lo, hi] — edge WER range
@@ -929,6 +961,10 @@ def keep_samples(ds, has_bad_fmt=None, has_bad_lang=None, has_brackets=None, has
     if has_spaced_abbrev:
         abbrev_opts = dict(has_spaced_abbrev) if isinstance(has_spaced_abbrev, dict) else {}
         checks.append(("has_spaced_abbrev", lambda ex, _o=abbrev_opts: _has_spaced_abbrev(ex, _o)))
+
+    if keyword_missing:
+        missing_opts = dict(keyword_missing) if isinstance(keyword_missing, dict) else {}
+        checks.append(("keyword_missing", lambda ex, _o=missing_opts: _keyword_missing(ex, _o)))
 
     if wr := to_list(wer_range):
         checks.append(("wer", lambda ex, _r=wr: _check_field(ex, "wer", _r)))
