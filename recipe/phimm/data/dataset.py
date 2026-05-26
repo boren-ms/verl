@@ -44,6 +44,7 @@ from recipe.phimm.utils.shared import (
     parse_asr_response,
     has_repeat_error,
     has_missing_keyword,
+    has_tail_hallucination,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.languages import get_language_name
@@ -941,6 +942,23 @@ def _has_spaced_abbrev(example, opts):
     return False
 
 
+def _has_tail_hallucination(example, opts):
+    """Adapter: read fields from ``example`` and call shared ``has_tail_hallucination``."""
+    hyp_field = opts.get("hyp_field", "response")
+    ref_field = opts.get("ref_field", "text")
+    min_words = opts.get("min_words", 3)
+    tn_name = opts.get("text_norm", None)
+    lang_field = opts.get("lang_field", "language")
+    lang = opts.get("lang", example.get(lang_field, "english"))
+    return has_tail_hallucination(
+        example.get(hyp_field, ""),
+        example.get(ref_field, ""),
+        min_words=min_words,
+        tn_name=tn_name,
+        lang=lang,
+    )
+
+
 def _keyword_missing(example, opts):
     keywords_field = opts.get("keywords_field", "keywords")
     response_field = opts.get("response_field", "response")
@@ -962,6 +980,7 @@ def keep_samples(
     has_brackets=None,
     has_repeat=None,
     has_spaced_abbrev=None,
+    has_tail_hallucination=None,
     keyword_missing=None,
     wer_range=None,
     error_count_range=None,
@@ -977,6 +996,8 @@ def keep_samples(
         has_repeat: truthy or dict {field, min_reps, max_ngram} — repeated n-gram
         has_spaced_abbrev: truthy or dict {field} — spaced single-letter abbreviations
             like "U. S." (should be "US") or "U. P. S." (should be "UPS")
+        has_tail_hallucination: truthy or dict {hyp_field, ref_field, min_words, text_norm}
+            — hyp ends with >= min_words inserted words not present in ref tail
         keyword_missing: truthy or dict — keep if any keyword phrase is missing in
             response after normalization. Dict options:
             {keywords_field, response_field, norm}
@@ -1003,6 +1024,10 @@ def keep_samples(
     if has_spaced_abbrev:
         abbrev_opts = dict(has_spaced_abbrev) if isinstance(has_spaced_abbrev, dict) else {}
         checks.append(("has_spaced_abbrev", lambda ex, _o=abbrev_opts: _has_spaced_abbrev(ex, _o)))
+
+    if has_tail_hallucination:
+        tail_opts = dict(has_tail_hallucination) if isinstance(has_tail_hallucination, dict) else {}
+        checks.append(("has_tail_hallucination", lambda ex, _o=tail_opts: _has_tail_hallucination(ex, _o)))
 
     if keyword_missing:
         missing_opts = dict(keyword_missing) if isinstance(keyword_missing, dict) else {}

@@ -337,6 +337,43 @@ def has_repeat_error(hyp, ref=None, min_reps=4, max_ngram=5, tn_name=None, lang=
     return False
 
 
+def has_tail_hallucination(hyp, ref=None, min_words=3, tn_name=None, lang="english"):
+    """Return True if ``hyp`` ends with hallucinated insertions vs ``ref``.
+
+    Aligns ``ref`` vs ``hyp`` at the word level. Returns True when the final
+    alignment opcode is ``insert`` (or ``replace`` whose hyp side extends to
+    the end of hyp) and the number of trailing hyp-only words is
+    ``>= min_words``. Returns False when either side is empty. If ``tn_name``
+    is given, both inputs are passed through ``text_norm(..., tn_name)`` first;
+    if ``tn_name`` is None but ``lang`` is given, ``default_tn_name(lang)`` is
+    used.
+    """
+    if not hyp or not ref:
+        return False
+    from recipe.phimm.utils.tn import default_tn_name, text_norm
+
+    tn_name = tn_name or default_tn_name(lang)
+    hyp = text_norm(hyp, tn_name)
+    ref = text_norm(ref, tn_name)
+    ref_words = ref.split()
+    hyp_words = hyp.split()
+    if not hyp_words or not ref_words:
+        return False
+    from difflib import SequenceMatcher
+
+    sm = SequenceMatcher(None, ref_words, hyp_words, autojunk=False)
+    opcodes = sm.get_opcodes()
+    if not opcodes:
+        return False
+    tag, i1, i2, j1, j2 = opcodes[-1]
+    if tag not in ("insert", "replace"):
+        return False
+    if j2 != len(hyp_words):
+        return False
+    n_extra = (j2 - j1) - (i2 - i1)
+    return n_extra >= min_words
+
+
 def to_keyword_list(raw_keywords):
     """Normalize a keyword field into a list of strings.
 

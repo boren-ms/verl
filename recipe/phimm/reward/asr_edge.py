@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 import logging
 import re
 from recipe.phimm.utils.languages import get_language_code
-from recipe.phimm.utils.shared import has_brackets, has_repeat_error, has_missing_keyword, parse_asr_response
+from recipe.phimm.utils.shared import has_brackets, has_repeat_error, has_missing_keyword, has_tail_hallucination, parse_asr_response
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
 
@@ -163,6 +163,14 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     keywords = extra_info.get("keywords") or []
     keyword_norm = keyword_opts.get("text_norm", None)
     p_kw_missing = has_missing_keyword(keywords, hyp_text, norm_name=keyword_norm, lang=tgt_lang)
+    tail_opts = kwargs.get("tail_hallucination") or {}
+    p_tail_hallu = has_tail_hallucination(
+        hyp_text,
+        ground_truth,
+        min_words=tail_opts.get("min_words", 3),
+        tn_name=tail_opts.get("text_norm"),
+        lang=tgt_lang,
+    )
 
     return {
         "hyp_text": hyp_text,
@@ -172,6 +180,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "p_bracket": float(has_brackets(hyp_text)),
         "p_repeat": float(p_repeat),
         "p_kw_missing": float(p_kw_missing),
+        "p_tail_hallu": float(p_tail_hallu),
     }
 
 
@@ -186,6 +195,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
     is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_repeat"] 
     if kw_missing:
         is_good = is_good and not parsed["p_kw_missing"]
+    if kwargs.get("tail_hallucination"):
+        is_good = is_good and not parsed["p_tail_hallu"]
 
     if metric == "wer":
         score = -(err.wer(**betas) ** gamma) if is_good else -1
@@ -211,6 +222,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "p_bracket": parsed["p_bracket"],
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
+        "p_tail_hallu": parsed["p_tail_hallu"],
     }
 
 
@@ -230,6 +242,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "p_bracket": parsed["p_bracket"],
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
+        "p_tail_hallu": parsed["p_tail_hallu"],
     }
 
 
@@ -254,6 +267,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
         "p_bracket": parsed["p_bracket"],
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
+        "p_tail_hallu": parsed["p_tail_hallu"],
     }
 
 
