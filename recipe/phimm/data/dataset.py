@@ -1073,7 +1073,7 @@ def _extra_info_value(egs, key):
     if key == "language" and not value:
         value = "English"
     if key == "keywords" and value is None:
-        value = []
+        value = [""]
     return value
 
 
