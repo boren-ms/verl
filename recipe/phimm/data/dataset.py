@@ -1072,13 +1072,15 @@ def _extra_info_value(egs, key):
         value = Path(str(audio_ref)).stem if audio_ref else "unknown_id"
     if key == "language" and not value:
         value = "English"
+    if key == "keywords" and value is None:
+        value = []
     return value
 
 
 def verl_format_ds(ds, **kwargs):
     """Format the dataset for verl training."""
     prompt_key = kwargs.get("prompt_key", "prompt")
-    extra_keys = kwargs.get("extra_keys", ["id", "language"])
+    extra_keys = kwargs.get("extra_keys", ["id", "language", "keywords"])
 
     def map_fn(egs):
         text = egs.get("text", "")
