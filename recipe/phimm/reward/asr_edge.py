@@ -172,10 +172,12 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         lang=tgt_lang,
     )
 
+    # <nonspeech> hyp has no language content; treat p_lang as correct.
+    is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
     return {
         "hyp_text": hyp_text,
         "tgt_lang": tgt_lang,
-        "p_lang": float(pred_lang == tgt_lang),
+        "p_lang": 1.0 if is_nonspeech else float(pred_lang == tgt_lang),
         "p_fmt": float(bool(trans_dict["formatted"])),
         "p_bracket": float(has_brackets(hyp_text)),
         "p_repeat": float(p_repeat),
