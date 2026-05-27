@@ -93,11 +93,17 @@ class RLHFDataset(Dataset):
     def __len__(self):
         return len(self.ds)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i, _depth: int = 0):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
-        row_dict: dict = self.ds[i]
+        try:
+            row_dict: dict = self.ds[i]
+        except FileNotFoundError as e:
+            if _depth >= 16:
+                raise
+            logger.warning("Skipping row %d due to FileNotFoundError loading row: %s", i, e)
+            return self.__getitem__((i + 1) % len(self.ds), _depth=_depth + 1)
         messages = row_dict[self.prompt_key]
 
         # Use processor.apply_chat_template if available; fall back to tokenizer
@@ -115,7 +121,13 @@ class RLHFDataset(Dataset):
         raw_prompt = f"{raw_prompt}{prefix}"
         # print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
 
-        audios = [load_audio(row_dict, self.max_audio_dur)]
+        try:
+            audios = [load_audio(row_dict, self.max_audio_dur)]
+        except FileNotFoundError as e:
+            if _depth >= 16:
+                raise
+            logger.warning("Skipping row %d due to FileNotFoundError loading audio: %s", i, e)
+            return self.__getitem__((i + 1) % len(self.ds), _depth=_depth + 1)
 
         row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
         model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")

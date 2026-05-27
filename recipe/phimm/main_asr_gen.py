@@ -251,7 +251,17 @@ def main_task(config):
 
     def producer():
         try:
-            for batch_idx, batch_dict in enumerate(dataloader):
+            it = iter(dataloader)
+            batch_idx = -1
+            while True:
+                batch_idx += 1
+                try:
+                    batch_dict = next(it)
+                except StopIteration:
+                    break
+                except FileNotFoundError as e:
+                    print(f"[producer] Skipping batch due to FileNotFoundError: {e}")
+                    continue
                 global_batch_idx = start_batch_idx + batch_idx
                 prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
                 texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
