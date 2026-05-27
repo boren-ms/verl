@@ -28,7 +28,7 @@ class Error:
         return self.n_sub + self.n_del + self.n_ins
 
     def accuracy(self, **betas):
-        return max(1 - self.wer(**betas), 0.0)
+        return 1 - self.wer(**betas)
 
     def wer(self, **betas):
         n_edit = self.edit_distance(**betas)
@@ -211,6 +211,8 @@ def _is_good_response(parsed, checks=DEFAULT_CHECKS):
             return False
     return True
 
+def clip(x, lo=-1.0, hi=1.0):
+    return max(lo, min(hi, x))
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
@@ -223,7 +225,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     is_good = _is_good_response(parsed, checks=checks)
 
     if metric == "wer":
-        score = -(err.wer(**betas) ** gamma) if is_good else -1
+        score = -(err.wer(**betas) ** gamma)
     elif metric == "ed":
         score = -(err.edit_distance(**betas) ** gamma)
     elif metric == "bucket":
@@ -231,9 +233,14 @@ def compute_score(solution_str, ground_truth, **kwargs):
             err.accuracy(**betas),
             n_buckets=kwargs.get("n_buckets", 10),
             lo=kwargs.get("bucket_lo", 0.8),
-        ) if is_good else -1
+        )
     else:
-        score = err.accuracy(**betas) ** gamma if is_good else -1
+        acc = err.accuracy(**betas)
+        sign = 1 if acc >= 0 else -1
+        score = (abs(acc) ** gamma) * sign
+
+    # good (-1, 1), bad: -2
+    score = clip(score, -1.0, 1.0) if is_good else -2.0
 
     return {
         "score": score,
