@@ -192,7 +192,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
     gamma = kwargs.get("gamma", 1)
     kw_missing = kwargs.get("keyword_missing") or {}
-    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_repeat"] 
+    is_good = parsed["p_fmt"] and parsed["p_lang"] and not parsed["p_bracket"] and not parsed["p_repeat"] 
     if kw_missing:
         is_good = is_good and not parsed["p_kw_missing"]
     if kwargs.get("tail_hallucination"):
