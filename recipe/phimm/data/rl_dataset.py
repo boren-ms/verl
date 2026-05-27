@@ -114,11 +114,14 @@ class RLHFDataset(Dataset):
             tokenize=False,
             **self.apply_chat_template_kwargs,
         )
+        print(f"raw_prompt after chat template [{i}]: {raw_prompt}  with messages: {messages}")
         # Remove empty thinking block injected by Qwen3.5 chat template
         raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
+        print(f"raw_prompt before prefix [{i}]: {raw_prompt}")
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
         raw_prompt = f"{raw_prompt}{prefix}"
+        print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
         # print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
 
         try:
