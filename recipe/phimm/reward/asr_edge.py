@@ -214,31 +214,20 @@ def _is_good_response(parsed, checks=DEFAULT_CHECKS):
 def clip(x, lo=-1.0, hi=1.0):
     return max(lo, min(hi, x))
 
+def signed_pow(x, gamma):
+    sign = 1 if x >= 0 else -1
+    return (abs(x) ** gamma) * sign
+
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
     err = measure(parsed["hyp_text"], ground_truth, tgt_lang=parsed["tgt_lang"], **kwargs)
     betas = kwargs.get("betas", {})
-    metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
     gamma = kwargs.get("gamma", 1)
     checks = kwargs.get("checks", DEFAULT_CHECKS)
     is_good = _is_good_response(parsed, checks=checks)
 
-    if metric == "wer":
-        score = -(err.wer(**betas) ** gamma)
-    elif metric == "ed":
-        score = -(err.edit_distance(**betas) ** gamma)
-    elif metric == "bucket":
-        score = acc_to_bucket(
-            err.accuracy(**betas),
-            n_buckets=kwargs.get("n_buckets", 10),
-            lo=kwargs.get("bucket_lo", 0.8),
-        )
-    else:
-        acc = err.accuracy(**betas)
-        sign = 1 if acc >= 0 else -1
-        score = (abs(acc) ** gamma) * sign
-
+    score = signed_pow(err.accuracy(**betas), gamma)
     # good (-1, 1), bad: -2
     score = clip(score, -1.0, 1.0) if is_good else -2.0
 
