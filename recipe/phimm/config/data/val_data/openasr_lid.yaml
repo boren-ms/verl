@@ -8,6 +8,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
   add_task_info:
     task: lang_asr_en
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
@@ -25,6 +26,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
   add_task_info:
     task: lang_asr_en
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
@@ -42,6 +44,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/audio/"
   add_task_info:
     task: lang_asr_lex_en
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
@@ -59,6 +62,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/audio/"
   add_task_info:
     task: lang_asr_lex_en
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
@@ -76,6 +80,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/audio/"
   add_task_info:
     task: lang_asr_lex_en
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
@@ -93,6 +98,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
   add_task_info:
     task: lang_asr_en
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
@@ -110,6 +116,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/tedlium/audio/"
   add_task_info:
     task: lang_asr_lex_en
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
@@ -127,6 +134,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/audio/"
   add_task_info:
     task: lang_asr_en
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
