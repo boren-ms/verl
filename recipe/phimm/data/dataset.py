@@ -24,7 +24,7 @@ from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
 from recipe.phimm.data.error_simu import ErrorSimulator
 from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
-from recipe.phimm.data.prompts import get_task_prompt_and_prefix, get_task_output
+from recipe.phimm.data.prompts import resolve_task_language, get_task_prompt, get_task_prefix, get_task_output
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
 from recipe.phimm.data.audio_augment import AudioAugmenter, safe_audio_stem
@@ -235,7 +235,7 @@ def ls_bias_dataset(jsonl_path, bias_key=None, with_gt=False, min_word_len=None,
         if bias_sort:
             bias_words = sorted(bias_words)
         bias_str = ", ".join(tag_pieces(bias_words, tag=tag))
-        prompt, _prefix = get_task_prompt_and_prefix(task="biasing" if bias_str else "asr")
+        prompt = get_task_prompt(task="biasing" if bias_str else "asr")
         audio_path = update_dir(example["audio_path"], src_dir="/root/data", dst_dir=data_dir)
         words = example.get("text", "").strip().split()
         words = tag_pieces(words, tag=tag, specified=gt_words, norm=biasing_text_norm)
@@ -306,7 +306,7 @@ def entity_dataset(
         bias_words.update(distractors[: max(0, max_bias - len(bias_words))])
 
         bias_str = ", ".join(tag_pieces(bias_words, tag=tag))
-        prompt, _prefix = get_task_prompt_and_prefix(task="biasing" if bias_str else "asr")
+        prompt = get_task_prompt(task="biasing" if bias_str else "asr")
 
         return {
             "prompt": prompt_format.format(f"{prompt} {bias_str}"),
@@ -400,10 +400,10 @@ def bias_sampling(ds, **kwargs):
         """Process a sample from the dataset."""
         context, text, keywords = bias_sampler.sample(sample["text"])
         if context:
-            prompt, _prefix = get_task_prompt_and_prefix(task="biasing", rand=rand_prompt)
+            prompt = get_task_prompt(task="biasing", rand=rand_prompt)
             prompt = f"{prompt} {context}"
         else:
-            prompt, _prefix = get_task_prompt_and_prefix(task="asr", rand=rand_prompt)
+            prompt = get_task_prompt(task="asr", rand=rand_prompt)
         return {
             "prompt": prompt_format.format(prompt),
             "text": text,  # text is updated
@@ -877,6 +877,7 @@ def find_wrong_pieces(ref, hyp):
     ref_words = (ref or "").split()
     hyp_words = (hyp or "").split()
     from difflib import SequenceMatcher
+
     sm = SequenceMatcher(None, ref_words, hyp_words, autojunk=False)
     pieces = []
     for tag, _i1, _i2, j1, j2 in sm.get_opcodes():
@@ -1349,25 +1350,22 @@ def add_task_info(ds, **kwargs):
     """Add a prompt to the dataset."""
     task = kwargs.get("task", "asr")
     rand = kwargs.get("rand", False)
-    forced = kwargs.get("forced", False)
     language = kwargs.get("language", "English")
-    prompt_suffix = kwargs.get("prompt_suffix", None)
+    prompt_suffix = kwargs.get("prompt_suffix", "")
+    prefix_prob = float(kwargs.get("prefix_prob", 1.0))
 
     def add_task_info_fn(egs):
-        task_language = None
-        if task.startswith("lang_asr_lex_"):
-            task_language = task.removeprefix("lang_asr_lex_")
-        elif task.startswith("lang_asr_") and task != "lang_asr_lex":
-            task_language = task.removeprefix("lang_asr_")
-        lang = get_language_name(task_language or egs.get("language") or language)
-        prompt_txt, prefix = get_task_prompt_and_prefix(task=task, rand=rand)
-        prompt = egs.get("prompt", None)
-        if forced or prompt is None:
-            if prompt_suffix:
-                prompt_txt = f"{prompt_txt} {prompt_suffix}"
-            prompt = prompt_format.format(prompt_txt)
+        lang = resolve_task_language(task, lang=egs.get("language") or language)
+        prompt = get_task_prompt(task=task, rand=rand)
+        prompt = f"{prompt}{prompt_suffix}"
+        prefix = get_task_prefix(task, lang=lang, prob=prefix_prob)
         gt_output = get_task_output(task=task, lang=lang, text=egs.get("text", ""))
-        return {"prompt": prompt, "prefix": prefix, "gt_output": gt_output, "language": lang}
+        return {
+            "prompt": prompt_format.format(prompt),
+            "prefix": prefix,
+            "gt_output": gt_output,
+            "language": lang,
+        }
 
     ds = ds.map(add_task_info_fn, **pop_map_kwargs(kwargs))
     return ds
