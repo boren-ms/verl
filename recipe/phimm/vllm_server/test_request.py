@@ -16,7 +16,7 @@ import time
 
 import httpx
 
-from recipe.phimm.data.prompts import get_task_prompt
+from recipe.phimm.data.prompts import get_task_prompt_and_prefix
 from recipe.phimm.vllm_server.eval_asr import PROMPT_TEMPLATE
 
 
@@ -25,7 +25,7 @@ DEFAULT_AUDIO_PATH = (
     "train-clean-360/115/122944/115-122944-0026.flac"
 )
 DEFAULT_TASK = "lang_asr"
-DEFAULT_PROMPT = get_task_prompt(DEFAULT_TASK, rand=False)
+DEFAULT_PROMPT, _DEFAULT_PREFIX = get_task_prompt_and_prefix(DEFAULT_TASK, rand=False)
 
 
 def send_test_request(

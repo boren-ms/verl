@@ -19,48 +19,57 @@ def _get_lang_asr_language(task, prefix, default=None):
     return get_language_name(lid) if lid else default
 
 
-def _format_task_output(tag, lang, text):
-    prefix = f"Audio Language: {lang}.\n"
-    return f"{prefix}<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
+def _resolve_task_language(task, lang=None):
+    task_language = _get_explicit_task_language(task)
+    return get_language_name(task_language or lang or "English")
 
 
-def get_task_prompt(task="asr", rand=False):
-    """Get the prompt for the specified task."""
-    if task == "asr":
-        return rand_prompt(ASR_PROMPTS, rand=rand)
-    elif task == "rare_asr":
-        prompt = rand_prompt(ASR_PROMPTS, rand=rand)
-        return f"{prompt} Pay extra attention to rare words."
-    elif task == "biasing":
-        return rand_prompt(BIASING_PROMPTS, rand=rand)
-    elif task.startswith("lang_asr_lex"):
-        prompt = rand_prompt(LANG_ASR_LEX_PROMPTS, rand=rand)
-        lang = _get_lang_asr_language(task, "lang_asr_lex")
-        if lang:
-            prompt = f"{prompt} Audio Language: {lang}\n"
-        return prompt
-    elif task.startswith("lang_asr"):
-        prompt = rand_prompt(LANG_ASR_PROMPTS, rand=rand)
-        lang = _get_lang_asr_language(task, "lang_asr")
-        if lang:
-            prompt = f"{prompt} Audio Language: {lang}\n"
-        return prompt
+def _get_explicit_task_language(task):
+    if task.startswith("lang_asr_lex"):
+        return _get_lang_asr_language(task, "lang_asr_lex")
+    if task.startswith("lang_asr"):
+        return _get_lang_asr_language(task, "lang_asr")
+    return None
+
+
+def _get_task_output_tag(task):
+    if task.startswith("lang_asr_lex"):
+        return "ASR_LEXICAL"
+    elif task in ("asr", "rare_asr", "biasing") or task.startswith("lang_asr"):
+        return "ASR"
     else:
         raise ValueError(f"Unknown task: {task}")
+
+
+def _format_task_output(tag, lang, text):
+    return f"Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
+
+
+def get_task_prompt_and_prefix(task="asr", rand=False):
+    """Get the prompt and assistant prefix for the specified task."""
+    if task == "asr":
+        prompt = rand_prompt(ASR_PROMPTS, rand=rand)
+    elif task == "rare_asr":
+        prompt = rand_prompt(ASR_PROMPTS, rand=rand)
+        prompt = f"{prompt} Pay extra attention to rare words."
+    elif task == "biasing":
+        prompt = rand_prompt(BIASING_PROMPTS, rand=rand)
+    elif task.startswith("lang_asr_lex"):
+        prompt = rand_prompt(LANG_ASR_LEX_PROMPTS, rand=rand)
+    elif task.startswith("lang_asr"):
+        prompt = rand_prompt(LANG_ASR_PROMPTS, rand=rand)
+    else:
+        raise ValueError(f"Unknown task: {task}")
+
+    lang = _get_explicit_task_language(task)
+    prefix = f"Audio Language: {lang}\n" if lang else ""
+    return prompt, prefix
 
 
 def get_task_output(task="asr", lang="English", text=""):
     """Get the expected output format for the specified task."""
-    if task in ("asr", "rare_asr", "biasing"):
-        return _format_task_output("ASR", lang, text)
-    elif task.startswith("lang_asr_lex"):
-        lang = _get_lang_asr_language(task, "lang_asr_lex", default=lang)
-        return _format_task_output("ASR_LEXICAL", lang, text)
-    elif task.startswith("lang_asr"):
-        lang = _get_lang_asr_language(task, "lang_asr", default=lang)
-        return _format_task_output("ASR", lang, text)
-    else:
-        raise ValueError(f"Unknown task: {task}")
+    lang = _resolve_task_language(task, lang=lang)
+    return _format_task_output(_get_task_output_tag(task), lang, text)
     
 
 
