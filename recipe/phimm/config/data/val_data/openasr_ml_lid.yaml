@@ -3,7 +3,6 @@
   cache_name: auto_openasr_ml_fleurs_de
   add_task_info:
     task: lang_asr_de
-    forced: True
     language: German
   post_process:
     add_field:
@@ -17,7 +16,6 @@
   cache_name: auto_openasr_ml_fleurs_fr
   add_task_info:
     task: lang_asr_fr
-    forced: True
     language: French
   post_process:
     add_field:
@@ -31,7 +29,6 @@
   cache_name: auto_openasr_ml_fleurs_it
   add_task_info:
     task: lang_asr_it
-    forced: True
     language: Italian
   post_process:
     add_field:
@@ -45,7 +42,6 @@
   cache_name: auto_openasr_ml_fleurs_es
   add_task_info:
     task: lang_asr_es
-    forced: True
     language: Spanish
   post_process:
     add_field:
@@ -59,7 +55,6 @@
   cache_name: auto_openasr_ml_fleurs_pt
   add_task_info:
     task: lang_asr_pt
-    forced: True
     language: Portuguese
   post_process:
     add_field:
@@ -73,7 +68,6 @@
   cache_name: auto_openasr_ml_mcv_de
   add_task_info:
     task: lang_asr_de
-    forced: True
     language: German
   post_process:
     add_field:
@@ -87,7 +81,6 @@
   cache_name: auto_openasr_ml_mcv_fr
   add_task_info:
     task: lang_asr_fr
-    forced: True
     language: French
   post_process:
     add_field:
@@ -101,7 +94,6 @@
   cache_name: auto_openasr_ml_mcv_it
   add_task_info:
     task: lang_asr_it
-    forced: True
     language: Italian
   post_process:
     add_field:
@@ -115,7 +107,6 @@
   cache_name: auto_openasr_ml_mcv_es
   add_task_info:
     task: lang_asr_es
-    forced: True
     language: Spanish
   post_process:
     add_field:
@@ -143,7 +134,6 @@
   cache_name: auto_openasr_ml_mls_fr
   add_task_info:
     task: lang_asr_fr
-    forced: True
     language: French
   post_process:
     add_field:
@@ -157,7 +147,6 @@
   cache_name: auto_openasr_ml_mls_it
   add_task_info:
     task: lang_asr_it
-    forced: True
     language: Italian
   post_process:
     add_field:
@@ -171,7 +160,6 @@
   cache_name: auto_openasr_ml_mls_es
   add_task_info:
     task: lang_asr_es
-    forced: True
     language: Spanish
   post_process:
     add_field:
@@ -185,7 +173,6 @@
   cache_name: auto_openasr_ml_mls_pt
   add_task_info:
     task: lang_asr_pt
-    forced: True
     language: Portuguese
   post_process:
     add_field:

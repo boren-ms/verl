@@ -4,7 +4,6 @@
   cache_name: auto_clean_0
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -17,7 +16,6 @@
   cache_name: auto_other_0
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -27,7 +25,6 @@
 - cache_name: auto_entity_Gaming
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -43,7 +40,6 @@
 - cache_name: auto_entity_Insurance
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -59,7 +55,6 @@
 - cache_name: auto_entity_K12HigherEdu
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -75,7 +70,6 @@
 - cache_name: auto_entity_Retail
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -91,7 +85,6 @@
 - cache_name: auto_entity_ScienceTech
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:

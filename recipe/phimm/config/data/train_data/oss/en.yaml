@@ -9,7 +9,6 @@
   num_proc: auto
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -34,7 +33,6 @@
         text: sft.0.messages.1.content
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -45,7 +43,6 @@
 - dataset_name: tsv
   tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
   add_task_info:
-    forced: True
     task: lang_asr
   post_process:
     add_field:

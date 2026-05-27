@@ -8,7 +8,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
   add_task_info:
     task: lang_asr
-    forced: True
     prompt_suffix: "No repeat words"
   post_process:
     add_field:
@@ -45,7 +44,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
   add_task_info:
     task: lang_asr
-    forced: True
     prompt_suffix: "No repeat words"
   post_process:
     add_field:
@@ -64,7 +62,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/audio/"
   add_task_info:
     task: lang_asr_lex
-    forced: True
     prompt_suffix: "No repeat words"
   post_process:
     add_field:
@@ -83,7 +80,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/audio/"
   add_task_info:
     task: lang_asr_lex
-    forced: True
     prompt_suffix: "No repeat words"
   post_process:
     add_field:
@@ -102,7 +98,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/audio/"
   add_task_info:
     task: lang_asr_lex
-    forced: True
     prompt_suffix: "No repeat words"
   post_process:
     add_field:
@@ -121,7 +116,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
   add_task_info:
     task: lang_asr
-    forced: True
     prompt_suffix: "No repeat words"
   post_process:
     add_field:
@@ -140,7 +134,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/tedlium/audio/"
   add_task_info:
     task: lang_asr_lex
-    forced: True
     prompt_suffix: "No repeat words"
   post_process:
     add_field:
@@ -159,7 +152,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/audio/"
   add_task_info:
     task: lang_asr
-    forced: True
     prompt_suffix: "No repeat words"
   post_process:
     add_field:

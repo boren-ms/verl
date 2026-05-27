@@ -12,4 +12,3 @@ post_process:
 add_task_info:
   # task: asr
   task: lang_asr
-  forced: True

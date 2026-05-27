@@ -12,7 +12,6 @@ pre_process:
       text: sft.0.messages.1.content
 add_task_info:
   task: lang_asr
-  forced: True
 post_process:
   trim_silence:
     rand_cut_ms: 300

@@ -4,7 +4,6 @@
   cache_name: auto_qwen_entity_en_ht_v1_cer_only_keyword_missing_h100
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -18,7 +17,6 @@
   cache_name: auto_qwen_en_hc_200k_entity_fy24q3p2_keyword_missing_h100
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:

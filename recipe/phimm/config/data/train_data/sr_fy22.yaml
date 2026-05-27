@@ -16,4 +16,3 @@ post_process:
     prompt_key: prompt
 add_task_info:
   task: asr
-  forced: True

@@ -3,7 +3,6 @@ parquet_paths: az://orngwus2cresco/data/boren/data/verl/aligned/ls_raw.parquet
 num_proc: auto
 add_task_info:
   task: lang_asr
-  forced: True
 post_process:
   trim_tailing:
     max_cut_rate: 0.1

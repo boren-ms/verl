@@ -8,7 +8,6 @@ chunk_types:
 num_proc: auto
 add_task_info:
   task: lang_asr
-  forced: True
 post_process:
   add_field:
     fields:

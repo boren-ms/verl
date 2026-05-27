@@ -4,7 +4,6 @@
   cache_name: auto_openasr_qwen_bad_case
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -17,7 +16,6 @@
   cache_name: auto_openasr_ml_qwen_bad_case
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:

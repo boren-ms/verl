@@ -15,7 +15,6 @@ add_rare_keywords:
   rare_ratio: 0.5
 add_task_info:
   task: rare_asr
-  forced: True
 post_process:
   add_field:
     fields:

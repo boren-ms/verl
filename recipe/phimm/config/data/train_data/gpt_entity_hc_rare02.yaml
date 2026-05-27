@@ -24,7 +24,6 @@
     rare_ratio: 1.0
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -48,7 +47,6 @@
     rare_ratio: 0.2
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -72,7 +70,6 @@
     rare_ratio: 0.2
   add_task_info:
     task: rare_asr
-    forced: True
   post_process:
     add_field:
       fields:

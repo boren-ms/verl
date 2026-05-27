@@ -4,7 +4,6 @@
   cache_name: auto_qwen_r2_openasr_bad_lang_tail
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:
@@ -17,7 +16,6 @@
   cache_name: auto_qwen_r2_openasr_ml_bad_lang_tail
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:

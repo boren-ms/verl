@@ -15,7 +15,6 @@
   cache_name: auto_openasr_ml_bad_fmt_lang_bracket
   add_task_info:
     task: lang_asr
-    forced: True
   post_process:
     add_field:
       fields:

@@ -8,7 +8,6 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/audio/"
   add_task_info:
     task: lang_asr_lex
-    forced: True
   post_process:
     add_field:
       fields:

@@ -11,7 +11,6 @@ pre_process:
     min_dur_ms: 300
 add_task_info:
   task: lang_asr
-  forced: True
 post_process:
   add_field:
     fields:

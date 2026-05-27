@@ -3,7 +3,6 @@ source_config:
   parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
   add_task_info:
     task: lang_asr
-    forced: true
   post_process:
     filter_text_with_numbers:
       text_norm: english

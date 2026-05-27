@@ -4,7 +4,6 @@
     - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_tail_hallu/all.jsonl
   add_task_info:
     task: lang_asr
-    forced: True
     prefix_prob: 1
   post_process:
     add_field:
