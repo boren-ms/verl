@@ -1,0 +1,26 @@
+- dataset_name: jsonl  # 422 samples
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_r2_openasr_bad_lang_tail/all.jsonl
+  cache_name: auto_qwen_r2_openasr_bad_lang_tail_pp1
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 1
+  post_process:
+    add_field:
+      fields:
+        data_source: en_lang_tail
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl  # 188 samples
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_r2_openasr_ml_bad_lang_tail/all.jsonl
+  cache_name: auto_qwen_r2_openasr_ml_bad_lang_tail_pp1
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 1
+  post_process:
+    add_field:
+      fields:
+        data_source: ml_lang_tail
+    verl_format:
+      prompt_key: prompt

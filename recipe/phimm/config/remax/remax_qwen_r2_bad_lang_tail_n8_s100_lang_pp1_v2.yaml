@@ -6,7 +6,7 @@ hydra:
 defaults:
   - dapo_asr
   - data/train_data/qwen_bad_lang_tail_hallu_all_pp1
-  - data/val_data/qwen_r2_bad_lang_tail
+  - data/val_data/qwen_r2_bad_lang_tail_pp1
   - _self_
 
 custom_reward_function:
