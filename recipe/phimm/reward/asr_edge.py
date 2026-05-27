@@ -184,6 +184,32 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     }
 
 
+# Mapping from check name -> (parsed key, expected_truthy)
+# expected_truthy=True means the check passes when parsed[key] is truthy (e.g. lang, fmt match)
+# expected_truthy=False means the check passes when parsed[key] is falsy (e.g. no bracket/repeat)
+_CHECK_SPEC = {
+    "lang": ("p_lang", True),
+    "fmt": ("p_fmt", True),
+    "bracket": ("p_bracket", False),
+    "repeat": ("p_repeat", False),
+    "keyword": ("p_kw_missing", False),
+    "tail_hallu": ("p_tail_hallu", False),
+}
+
+DEFAULT_CHECKS = ("fmt", "bracket", "repeat", "tail_hallu")
+
+
+def _is_good_response(parsed, checks=DEFAULT_CHECKS):
+    for name in checks:
+        if name not in _CHECK_SPEC:
+            raise ValueError(f"Unknown check: {name!r}. Expected one of {list(_CHECK_SPEC)}.")
+        key, expected_truthy = _CHECK_SPEC[name]
+        ok = bool(parsed[key]) if expected_truthy else not bool(parsed[key])
+        if not ok:
+            return False
+    return True
+
+
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
@@ -191,12 +217,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
     betas = kwargs.get("betas", {})
     metric = kwargs.get("metric", "acc")  # wer, acc, ed, bucket
     gamma = kwargs.get("gamma", 1)
-    kw_missing = kwargs.get("keyword_missing") or {}
-    is_good = parsed["p_fmt"] and not parsed["p_bracket"] and not parsed["p_repeat"] 
-    if kw_missing:
-        is_good = is_good and not parsed["p_kw_missing"]
-    if kwargs.get("tail_hallucination"):
-        is_good = is_good and not parsed["p_tail_hallu"]
+    checks = kwargs.get("checks", DEFAULT_CHECKS)
+    is_good = _is_good_response(parsed, checks=checks)
 
     if metric == "wer":
         score = -(err.wer(**betas) ** gamma) if is_good else -1
