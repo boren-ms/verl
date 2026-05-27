@@ -139,7 +139,8 @@ class DAPORewardManager(AbstractRewardManager):
                 pfx = f"[{already_print_data_sources[data_source]}]"
                 print(f"======{pfx}=====")
                 print(f"{pfx}[prompt]", prompt_str)
-                print(f"{pfx}[keywords]", extra_info.get("keywords", None))
+                for _k, _v in extra_info.items():
+                    print(f"{pfx}[{_k}]", _v)
                 print(f"{pfx}[ground_truth]", ground_truth)
                 print(f"{pfx}[response]", response_str)
                 scores = [f"score_baseline={score_baseline}"]

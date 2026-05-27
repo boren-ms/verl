@@ -146,10 +146,10 @@ def measure(hyp, ref, tgt_lang="english", **kwargs):
 def _parse_response(solution_str, ground_truth=None, **kwargs):
     """Shared parsing: extract target language, parse ASR response, check lang/format."""
     extra_info = kwargs.get("extra_info") or {}
-    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower()
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
     trans_dict = parse_asr_response(solution_str)
     hyp_text = trans_dict["text"]
-    pred_lang = (trans_dict["lang"] or "").lower()
+    pred_lang = (trans_dict["lang"] or "").lower().strip()
     repeat_opts = kwargs.get("repeat") or {}
     p_repeat = has_repeat_error(
         hyp_text,
