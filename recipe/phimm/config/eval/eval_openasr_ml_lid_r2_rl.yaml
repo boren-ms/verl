@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_asr
-  - data/val_data/openasr_ml
+  - data/val_data/openasr_ml_lid
   - _self_
 
 actor_rollout_ref:
@@ -14,4 +14,4 @@ actor_rollout_ref:
 
 trainer:
   resume_mode: resume_path
-  resume_from_path: az://orngwus2cresco/data/boren/outputs/verl_repeat/remax_qwen_bad_repeat_bracket_all_e1/global_step_113
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/verl_repeat/remax_qwen_r2_no_repeat_bracket_n8_s100/global_step_106
