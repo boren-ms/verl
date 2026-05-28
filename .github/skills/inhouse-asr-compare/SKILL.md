@@ -1,6 +1,6 @@
 ---
 name: inhouse-asr-compare
-description: Compare two in-house ASR eval JSON dumps (records with `UtteranceId`, `UtteranceTERMetrics`, and `Metrics[*].EntityInfo`) on a chosen TER metric (default `DisfluencyTolerant_TER`) and optionally on entity recognition (EER/EWER), emitting standalone HTML reports that show ONLY positions where the baseline and target hypotheses disagree. Use for utterance-level model-vs-model TER debugging on in-house eval outputs, splitting disagreements into formatting (punc/cap/itn) vs lexical (sub/ins/del) vs entity (EER/EWER/recall/precision) categories, ranking improved/degraded utterances by per-category edit delta, and producing HTML with a sticky left sidebar, a sortable summary table (with per-category breakdown deltas), and word-aligned diff blocks. Triggers: "compare in-house eval", "TER disagreement report", "per-utterance TER diff", "improved/degraded utterances", "compare two in-house ASR JSON dumps", "EER compare", "entity error compare".
+description: Compare in-house ASR eval JSON dumps (records with `UtteranceId`, `UtteranceTERMetrics`, and `Metrics[*].EntityInfo`) on a chosen TER metric (default `DisfluencyTolerant_TER`) and optionally on entity recognition (EER/EWER). Two modes — (1) baseline-vs-target HTML reports that show only positions where the two models disagree, and (2) single-model HTML reports that show only positions where one model diverges from the reference. Use for utterance-level TER debugging, splitting disagreements into formatting (punc/cap/itn) vs lexical (sub/ins/del) vs entity (EER/EWER/recall/precision) categories, ranking improved/degraded (compare mode) or worst (single-model mode) utterances, and producing HTML with a sticky left sidebar, a sortable summary table, and word-aligned diff blocks. Triggers: "compare in-house eval", "TER disagreement report", "per-utterance TER diff", "improved/degraded utterances", "compare two in-house ASR JSON dumps", "EER compare", "entity error compare", "single model ref diff", "one model vs reference", "show errors vs reference".
 ---
 
 # In-house ASR TER Compare
@@ -102,8 +102,32 @@ For each diff row, `row_category()`:
 
 Lexical decomposition (`lex_sub / lex_ins / lex_del`) is computed by walking `word_align` and counting `lexical*` tags: `:NULL` → del, `NULL:` → ins, else sub. Per-category totals (`punc / cap / itn / lexical / fmt = punc+cap+itn`) come straight from `ter_category_info.ter_categories.*.number_of_edits`.
 
+## Single-model mode (one model vs reference)
+When only one model is provided, use `single_model_ref_diff.py` instead of `compare_ter_disagree.py`. It reads one JSON dump and emits HTML pages that show ONLY positions where the model's hypothesis diverges from the reference (no baseline/target diff, just edits vs ref).
+
+```bash
+/home/boren/.virtualenvs/openai/bin/python .github/skills/inhouse-asr-compare/scripts/single_model_ref_diff.py \
+  --model-path tmp/my_model.json \
+  --model-name my_model \
+  --metric DisfluencyTolerant_TER \
+  --output-dir tmp/my_model_ref_diff \
+  --top-n 50 \
+  --include-entity
+```
+
+Flags mirror the compare script except there is only `--model-path` / `--model-name` (no baseline/target pair). Each category produces a single "worst" page sorted by that category's edit count (descending), so there is no improved/degraded split:
+
+- `{stem}.fmt.worst-topN.html`
+- `{stem}.lexical.worst-topN.html`
+- `{stem}.entity.worst-topN.html` (with `--include-entity`)
+- `{stem}.summary.json`
+
+`stem = {model-name}.{metric}.ref-diff`.
+
+Per-utterance cards show a 3-row diff block (`#` / `ref` / `{model-name}`) with only ref positions where the model edited (sub/del/ins/fmt) or inserted tokens. Stats chips show absolute counts (no deltas). Summary table totals show pooled TER over displayed utterances.
+
 ## Presenting reports
-After generating, read filenames from `{stem}.summary.json` `reports` and present all four as workspace-relative markdown links:
+After generating (compare mode), read filenames from `{stem}.summary.json` `reports` and present all four as workspace-relative markdown links:
 
 - Lexical improved: [tmp/ter_compare_disagree/...lexical.improved-topN.html](tmp/ter_compare_disagree/baseline__vs__target.DisfluencyTolerant_TER.disagree.lexical.improved-topN.html)
 - Lexical degraded: [tmp/ter_compare_disagree/...lexical.degraded-topN.html](tmp/ter_compare_disagree/baseline__vs__target.DisfluencyTolerant_TER.disagree.lexical.degraded-topN.html)
