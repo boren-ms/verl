@@ -1,0 +1,27 @@
+- dataset_name: jsonl
+  # Collect all en-US subsets under InhouseASR_2605.
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-US/*/*.jsonl
+#   cache_name: auto_inhouse_2605_en
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        # DisplayTranscription is display-form with <disfluency> tags and entity
+        # annotations; needed for GetMetrics --verbatim mode to emit
+        # UtteranceTERMetrics (DisfluencyTolerant_TER) and entity counts (EER).
+        text: DisplayTranscription
+    path_map:
+      # rename_fields runs after path_map in process_ds, so rewrite on WavPath
+      # (the original field in the JSONL) before it's copied into audio_path.
+      field: WavPath
+      src_part: "/datablob1/users/ruchaofan/Evaluation/InhouseASR_2605/"
+      dst_part: "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/"
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: inhouse_2605_en
+    verl_format:
+      prompt_key: prompt
