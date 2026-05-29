@@ -39,6 +39,11 @@ WAV_AZ_PREFIX = "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/Inho
 WAV_LOCAL_PREFIX = "/datablob1/users/ruchaofan/Evaluation/InhouseASR_2605/"
 
 DEFAULT_CORPORA = [
+    "Conversation_DTEST_FY21Q1_en-US",
+    "Conversation_OnlineMeetings_DTEST_FY25Q3_en-US_DTEST_OfflineDataCollection",
+    "CustomerSpeechDomainSet_DTEST_Banking_Entity_FY23Q4_en-US_DTEST",
+    "CustomerSpeechDomainSet_DTEST_Medical_Entity_FY23Q4_en-US_DTEST",
+    "Dictation_Commonset_OfficeOffline_FY24Q3_en-US_DTEST_OfflineDataCollection",
     "OnlineMeetings_CS_Product_FY22_en-US_DTEST",
     "OnlineMeetings_CS_Shiproom_FY22_en-US_DTEST",
 ]
