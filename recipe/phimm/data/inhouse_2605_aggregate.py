@@ -1,32 +1,37 @@
 """Aggregate per-segment hyps into per-parent DTER for InhouseASR_2605_seg eval.
 
-The SVAD-segmented eval writes one parquet row per segment (with the FULL parent
-reference duplicated on every row). Per-row DTER is meaningless; the real metric
-is DTER(concat(hyp_seg) vs full_ref) per parent wav, then aggregated per corpus.
+The SVAD-segmented eval writes one verl ``val_data_gen/<data_source>/<step>.jsonl``
+row per segment (with the FULL parent reference duplicated on every row as
+``gts``). Per-row DTER is meaningless; the real metric is
+``DTER(concat(hyp_seg) vs full_ref)`` per parent wav, then aggregated per corpus.
+
+Each row contains at least: ``input, output, gts, score, data_source, audio_path``.
+``audio_path`` has the form ``<wav>#<start>:<end>`` so we group by stripping the
+``#start:end`` suffix and sort segments by start.
 
 Usage:
     python -m recipe.phimm.data.inhouse_2605_aggregate \\
-        --eval-dir az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_eval/<model>/
+        --val-data-dir az://.../val_data_gen \\
+        [--step 0]
 """
 
 from __future__ import annotations
 import argparse
-import io
 import json
 import os
-import re
 from collections import defaultdict
 
 import blobfile as bf
 
-from recipe.phimm.reward.asr_inhouse_measure import _clean_ref, _compute_dter, ensure_pack_dir
-
-
-_CORPUS_RE = re.compile(r"/InhouseASR_2605/(?:en-US/)?([^/]+)/")
+from recipe.phimm.reward.asr_inhouse_measure import (
+    _clean_ref,
+    _compute_dter,
+    ensure_pack_dir,
+)
+from recipe.phimm.utils.shared import parse_asr_response
 
 
 def _parent_key(audio_path: str) -> str:
-    """Strip the ``#start:end`` time-range suffix to get the parent wav path."""
     return audio_path.split("#", 1)[0]
 
 
@@ -40,42 +45,61 @@ def _seg_start(audio_path: str) -> float:
         return 0.0
 
 
-def _corpus_from_path(audio_path: str) -> str:
-    m = _CORPUS_RE.search(audio_path)
-    return m.group(1) if m else "unknown"
+def _iter_rows(val_data_dir: str, step: int | None):
+    sources = [p.rstrip("/") for p in bf.glob(os.path.join(val_data_dir, "*/"))]
+    print(f"Found {len(sources)} data_source dirs under {val_data_dir}", flush=True)
+    for src_dir in sources:
+        files = list(bf.glob(os.path.join(src_dir, "*.jsonl")))
+        if not files:
+            continue
+        if step is not None:
+            files = [f for f in files if os.path.basename(f) == f"{step}.jsonl"]
+        else:
+            def _step_of(p):
+                try:
+                    return int(os.path.basename(p).removesuffix(".jsonl"))
+                except ValueError:
+                    return -1
+            files = [max(files, key=_step_of)]
+        for f in files:
+            with bf.BlobFile(f, "r") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    d = json.loads(line)
+                    ap = d.get("audio_path") or ""
+                    yield (
+                        d.get("data_source", os.path.basename(src_dir)),
+                        ap,
+                        d.get("gts") or "",
+                        d.get("output") or "",
+                    )
 
 
-def _iter_rows(eval_dir: str):
-    import pyarrow.parquet as pq
-    parts = sorted(bf.glob(os.path.join(eval_dir, "data_*.parquet")))
-    if not parts:
-        parts = sorted(bf.glob(os.path.join(eval_dir, "part-*.parquet")))
-    print(f"Found {len(parts)} parquet parts", flush=True)
-    for pf in parts:
-        with bf.BlobFile(pf, "rb") as f:
-            t = pq.ParquetFile(f).read(columns=["audio_path", "text", "response"]).to_pandas()
-        for _, r in t.iterrows():
-            yield r["audio_path"], r["text"], r["response"]
+def aggregate(val_data_dir: str, step: int | None = None) -> dict:
+    ensure_pack_dir(None)
 
-
-def aggregate(eval_dir: str) -> dict:
-    ensure_pack_dir(None)  # warm up dotnet/TER
-    # parent_key -> {"ref": str, "segs": [(start, hyp)], "corpus": str}
     by_parent: dict[str, dict] = {}
-    for ap, text, resp in _iter_rows(eval_dir):
+    rows_seen = 0
+    for corpus, ap, gts, output in _iter_rows(val_data_dir, step):
+        if not ap:
+            continue
+        rows_seen += 1
         pk = _parent_key(ap)
-        d = by_parent.setdefault(pk, {"ref": text, "segs": [], "corpus": _corpus_from_path(ap)})
-        d["segs"].append((_seg_start(ap), resp or ""))
+        d = by_parent.setdefault(pk, {"ref": gts, "segs": [], "corpus": corpus})
+        hyp = (parse_asr_response(output) or {}).get("text") or ""
+        d["segs"].append((_seg_start(ap), hyp))
+    print(f"Loaded {rows_seen} segment rows -> {len(by_parent)} parents", flush=True)
 
-    # Per-corpus accumulators.
     corp_err: dict[str, int] = defaultdict(int)
     corp_ref: dict[str, int] = defaultdict(int)
     corp_parents: dict[str, int] = defaultdict(int)
-
     per_parent_rows = []
+
     for pk, d in by_parent.items():
         segs = sorted(d["segs"], key=lambda x: x[0])
-        hyp_full = " ".join(s for _, s in segs).strip()
+        hyp_full = " ".join(s for _, s in segs if s).strip()
         ref_full = _clean_ref(d["ref"] or "")
         n_err, n_ref, dter = _compute_dter(ref_full, hyp_full)
         corp = d["corpus"]
@@ -91,7 +115,6 @@ def aggregate(eval_dir: str) -> dict:
             "dter": dter,
         })
 
-    # Print per-corpus.
     print(f"\n{'Corpus':<70} {'N_parent':>8} {'N_err':>8} {'N_ref':>8} {'DTER%':>8}")
     print("-" * 110)
     total_err = total_ref = total_parents = 0
@@ -100,23 +123,27 @@ def aggregate(eval_dir: str) -> dict:
         total_err += e
         total_ref += r
         total_parents += p
-        print(f"{c:<70} {p:>8} {e:>8} {r:>8} {(e/max(r,1)*100):>8.2f}")
+        print(f"{c:<70} {p:>8} {e:>8} {r:>8} {(e / max(r, 1) * 100):>8.2f}")
     print("-" * 110)
-    print(f"{'OVERALL':<70} {total_parents:>8} {total_err:>8} {total_ref:>8} {(total_err/max(total_ref,1)*100):>8.2f}")
+    print(f"{'OVERALL':<70} {total_parents:>8} {total_err:>8} {total_ref:>8} "
+          f"{(total_err / max(total_ref, 1) * 100):>8.2f}")
 
-    # Write summary.
+    tag = step if step is not None else "latest"
     summary = {
-        "eval_dir": eval_dir,
-        "per_corpus": {c: {"n_parent": corp_parents[c], "n_err": corp_err[c],
-                            "n_ref": corp_ref[c], "dter": corp_err[c] / max(corp_ref[c], 1)}
-                       for c in corp_err},
+        "val_data_dir": val_data_dir,
+        "step": step,
+        "per_corpus": {
+            c: {"n_parent": corp_parents[c], "n_err": corp_err[c],
+                 "n_ref": corp_ref[c], "dter": corp_err[c] / max(corp_ref[c], 1)}
+            for c in corp_err
+        },
         "overall": {"n_parent": total_parents, "n_err": total_err, "n_ref": total_ref,
                     "dter": total_err / max(total_ref, 1)},
     }
-    out_summary = os.path.join(eval_dir, "aggregate_summary.json")
+    out_summary = os.path.join(val_data_dir, f"aggregate_summary_{tag}.json")
     with bf.BlobFile(out_summary, "w") as f:
         json.dump(summary, f, indent=2)
-    out_details = os.path.join(eval_dir, "aggregate_per_parent.jsonl")
+    out_details = os.path.join(val_data_dir, f"aggregate_per_parent_{tag}.jsonl")
     with bf.BlobFile(out_details, "w") as f:
         for row in per_parent_rows:
             f.write(json.dumps(row) + "\n")
@@ -126,11 +153,13 @@ def aggregate(eval_dir: str) -> dict:
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--eval-dir", required=True,
-                   help="Eval output dir containing data_*.parquet (az:// or local).")
+    p.add_argument("--val-data-dir", required=True,
+                   help="Verl trainer val_data_gen dir (az:// or local).")
+    p.add_argument("--step", type=int, default=None,
+                   help="Specific eval step jsonl to aggregate (default: latest per data_source).")
     return p.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    aggregate(args.eval_dir)
+    aggregate(args.val_data_dir, args.step)

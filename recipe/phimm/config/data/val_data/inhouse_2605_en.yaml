@@ -15,3 +15,6 @@
   post_process:
     verl_format:
       prompt_key: prompt
+      # audio_path carries the "<wav>#start:end" chunk spec — needed for
+      # post-hoc per-parent aggregation (group segments by parent wav).
+      extra_keys: ["id", "language", "keywords", "prefix", "audio_path"]
