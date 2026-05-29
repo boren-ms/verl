@@ -13,14 +13,15 @@ import uuid
 
 from recipe.phimm.utils.shared import parse_asr_response
 
-# Strip leading "[start end]" timing token emitted in DisplayTranscription.
-_TIME_PREFIX_RE = re.compile(r"^\s*\[\s*-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?\s*\]\s*")
+# Strip "[start end]" timing tokens emitted anywhere in DisplayTranscription.
+_TIME_MARKER_RE = re.compile(r"\[\s*-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?\s*\]")
 
 
 def _clean_ref(text: str) -> str:
     if not text:
         return ""
-    return _TIME_PREFIX_RE.sub("", text).strip()
+    cleaned = _TIME_MARKER_RE.sub(" ", text)
+    return re.sub(r"\s+", " ", cleaned).strip()
 
 logger = logging.getLogger(__name__)
 

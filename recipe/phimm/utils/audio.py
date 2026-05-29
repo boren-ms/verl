@@ -77,7 +77,42 @@ def _is_chunk_spec(path: str) -> bool:
     return len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit()
 
 
+def _is_time_chunk_spec(path: str) -> bool:
+    """Return True if ``path`` looks like a time-range spec ``file#<start_sec>:<end_sec>``."""
+    if "#" not in path:
+        return False
+    _, _, tail = path.rpartition("#")
+    if ":" not in tail:
+        return False
+    s, _, e = tail.partition(":")
+    try:
+        float(s)
+        float(e)
+        return True
+    except ValueError:
+        return False
+
+
+def _load_time_chunk(spec):
+    file_path, _, tail = spec.rpartition("#")
+    s_str, _, e_str = tail.partition(":")
+    start_sec = float(s_str)
+    end_sec = float(e_str)
+    if not bf.exists(file_path):
+        raise FileNotFoundError(f"File {file_path} does not exist.")
+    with bf.BlobFile(file_path, "rb") as f:
+        info = sf.info(f)
+    sr = info.samplerate
+    start_frame = max(0, int(start_sec * sr))
+    stop_frame = max(start_frame + 1, int(end_sec * sr))
+    with bf.BlobFile(file_path, "rb") as f:
+        audio, sr = sf.read(f, start=start_frame, stop=stop_frame)
+    return audio, sr
+
+
 def _load_chunk(spec):
+    if _is_time_chunk_spec(spec):
+        return _load_time_chunk(spec)
     result = load_chunk_example(spec)
     if isinstance(result, list):
         result = result[0]  # "audios" chunk type returns list of (data, sr)
@@ -90,7 +125,10 @@ def load_raw_audio(x):
         return _to_mono(audio, "inline audio"), sr
     source = x.get("audio_path") or x.get("audio_file") or x.get("audio_chunk")
     if source:
-        data, sr = _load_chunk(source) if _is_chunk_spec(source) else sf_read(source)
+        if _is_chunk_spec(source) or _is_time_chunk_spec(source):
+            data, sr = _load_chunk(source)
+        else:
+            data, sr = sf_read(source)
         return _to_mono(data, source), sr
     raise ValueError("No audio data found in the input dictionary.")
 
@@ -110,7 +148,10 @@ def load_raw_audios(x):  # x is batched
         source = audio_path or audio_chunk
         if not source:
             raise ValueError("No audio data found in the input dictionary.")
-        data, sr = _load_chunk(source) if _is_chunk_spec(source) else sf_read(source)
+        if _is_chunk_spec(source) or _is_time_chunk_spec(source):
+            data, sr = _load_chunk(source)
+        else:
+            data, sr = sf_read(source)
         yield _to_mono(data, source), sr
 
 
