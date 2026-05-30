@@ -100,14 +100,6 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
 
         already_print_data_sources: dict[str, int] = {}
 
-        # Per-row records, keyed by original row index, so the dumped
-        # ``reward_extra_info`` columns stay aligned with the trainer's row-order
-        # ``input`` / ``output`` / ``score`` lists (the group iteration order
-        # below is NOT the row order). ``parent_audio_path`` + ``concat_hyp`` are
-        # added so the dump can be collapsed to one row per long-audio recording.
-        row_extra: dict[int, dict] = {}
-        extra_keys_order: list[str] = []
-
         for parent, members in groups.items():
             members.sort(key=lambda m: (m["seg_start"], m["i"]))
             concat_hyp = " ".join(m["response"].strip() for m in members if m["response"].strip())
@@ -127,18 +119,15 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
 
             if isinstance(result, dict):
                 score = float(result.get("score", 0.0))
-                result_dict = dict(result)
+                result_dict = result
             else:
                 score = float(result)
                 result_dict = {"score": score}
-            result_dict["parent_audio_path"] = parent
-            result_dict["concat_hyp"] = concat_hyp
-            if not extra_keys_order:
-                extra_keys_order = list(result_dict.keys())
 
             for m in members:
                 reward_tensor[m["i"], max(m["valid_response_length"] - 1, 0)] = score
-                row_extra[m["i"]] = result_dict
+                for k, v in result_dict.items():
+                    reward_extra_info[k].append(v)
 
             if data_source not in already_print_data_sources:
                 already_print_data_sources[data_source] = 0
@@ -148,13 +137,6 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
                 print(f"[long_audio_grouped][hyp] {concat_hyp[:500]}{'...' if len(concat_hyp) > 500 else ''}")
                 print(f"[long_audio_grouped][ref] {str(ground_truth)[:500]}{'...' if len(str(ground_truth)) > 500 else ''}")
                 print(f"[long_audio_grouped][result] {result_dict}")
-
-        # Emit reward_extra_info columns in row order (length == n) so they stay
-        # aligned with the trainer's per-row dump lists.
-        for i in range(n):
-            rec = row_extra.get(i, {})
-            for k in extra_keys_order:
-                reward_extra_info[k].append(rec.get(k))
 
         if return_dict:
             return {"reward_tensor": reward_tensor, "reward_extra_info": reward_extra_info}
