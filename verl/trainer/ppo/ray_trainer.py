@@ -438,10 +438,17 @@ class RayPPOTrainer:
         except Exception as e:
             print(f"Warning: Could not set total_training_steps in config. Structure missing? Error: {e}")
 
-    def _dump_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path, data_sources=None, extra_infos=None):
+    def _dump_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path, data_sources=None, extra_infos=None, group_key=None):
         """Dump rollout/validation samples as JSONL, split per data_source.
 
         Supports remote paths (e.g. az://) via blobfile.
+
+        When ``group_key`` names a column (e.g. ``parent_audio_path``), rows that
+        share the same key value are collapsed into a single representative row
+        so the dump is per-recording rather than per-segment (long-audio case).
+        The representative keeps the first member's columns; if a ``concat_hyp``
+        column is present its value replaces ``output`` so the dumped hyp is the
+        full concatenated transcript.
         """
         bf.makedirs(dump_path)
 
@@ -468,12 +475,32 @@ class RayPPOTrainer:
             for ek in all_keys:
                 base_data[ek] = [ei.get(ek) if ei else None for ei in extra_infos]
 
+        # Collapse per-group (e.g. long-audio segments -> one row per parent).
+        if group_key and group_key in base_data:
+            keys = base_data[group_key]
+            order = []
+            seen = set()
+            for i in range(n):
+                gk = keys[i]
+                # Rows without a group key (or unique) are kept individually.
+                if gk is None or gk not in seen:
+                    if gk is not None:
+                        seen.add(gk)
+                    order.append(i)
+            collapsed = {k: [v[i] for i in order] for k, v in base_data.items()}
+            if "concat_hyp" in base_data:
+                collapsed["output"] = [base_data["concat_hyp"][i] for i in order]
+                if self.dump_fn:
+                    collapsed["clean_output"] = [self.dump_fn(o) for o in collapsed["output"]]
+            base_data = collapsed
+            n = len(order)
+
         # Group indices by data_source
-        if data_sources is not None and len(data_sources) == n:
+        if "data_source" in base_data:
             from collections import defaultdict
             source_indices = defaultdict(list)
             for i in range(n):
-                source_indices[str(data_sources[i])].append(i)
+                source_indices[str(base_data["data_source"][i])].append(i)
         else:
             source_indices = {"all": list(range(n))}
 
@@ -523,6 +550,7 @@ class RayPPOTrainer:
                 reward_extra_infos_dict=reward_extra_infos_to_dump,
                 dump_path=rollout_data_dir,
                 extra_infos=extra_infos,
+                group_key=self.config.trainer.get("dump_group_key", None),
             )
 
     def _maybe_log_val_generations(self, inputs, outputs, scores):
@@ -691,6 +719,7 @@ class RayPPOTrainer:
                 dump_path=val_data_dir,
                 data_sources=data_sources,
                 extra_infos=sample_extra_infos,
+                group_key=self.config.trainer.get("dump_group_key", None),
             )
 
         for key_info, lst in reward_extra_infos_dict.items():
