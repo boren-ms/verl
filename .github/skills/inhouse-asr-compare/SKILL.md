@@ -30,6 +30,27 @@ Each input is a JSON list of records:
 
 The script joins on `UtteranceId`. Both files must use the same reference (the `display_form_tx` stream).
 
+### verl long-eval `details.jsonl` (auto-detected)
+Both scripts also natively read verl `main_long_eval_asr` outputs — a `.jsonl` file with one JSON object per line (no manual conversion needed). Format is auto-detected: a file starting with `[` is treated as an in-house JSON list, otherwise each line is parsed as a verl record. A record looks like:
+
+```json
+{
+  "parent_audio_path": ".../wav/<guid>_0.wav",
+  "id": "...", "data_source": "...", "language": "en",
+  "ref": "ref text", "hyp": "hyp text",
+  "dter": 0.1859, "dter_n_err": 7777, "dter_n_ref": 41826,
+  "eer": 0.0, "eer_n_err": 0, "eer_n_ref": 0,
+  "dter_detail": {"word_align": [...], "word_ter_class": [...], "ter_category_info": {...}}
+}
+```
+
+Conversion to the internal schema:
+- `UtteranceId` = recording GUID extracted from `parent_audio_path` (`/wav/<guid>_0.wav`), which matches the in-house `UtteranceId` for the same recording. Falls back to `id` if no GUID is found.
+- A single `UtteranceTERMetrics` entry is synthesized from `dter_detail`; `display_ter = dter * 100`, `number_of_tokens = dter_n_ref`, `number_of_edits = dter_n_err`. The long-eval pipeline computes only a disfluency-tolerant TER, so the same detail is used regardless of the `--metric` requested.
+- You can mix formats — e.g. a verl `details.jsonl` as `--baseline-path` and an in-house JSON as `--target-path` — as long as the recording GUIDs join.
+
+Limitation: verl records carry no rich `Metrics[*].EntityInfo`, so `--include-entity` is a no-op for them (all-zero entity entries). Use in-house JSON dumps on both sides for entity comparison.
+
 ## Python environment
 Always use `/home/boren/.virtualenvs/openai/bin/python`. Standard library only — no extra deps required.
 

@@ -472,14 +472,113 @@ def render_diff_table(rows: list, baseline_name: str, target_name: str,
     return ''.join(blocks)
 
 
+def _iter_raw_records(path: Path):
+    """Yield raw dict records from either an in-house JSON list dump or a verl
+    long-eval `details.jsonl` (one JSON object per line). Detection is by the
+    first non-whitespace character: `[` -> JSON array, otherwise line-delimited
+    JSON. A single top-level JSON object is also accepted.
+    """
+    text = path.read_text()
+    stripped = text.lstrip()
+    if stripped.startswith("["):
+        data = json.loads(text)
+        for rec in data:
+            yield rec
+        return
+    if stripped.startswith("{") and path.suffix.lower() != ".jsonl":
+        # Could be a single object or JSONL with a leading `{`; try whole-file
+        # parse first, fall back to line-by-line.
+        try:
+            data = json.loads(text)
+            if isinstance(data, dict):
+                yield data
+                return
+            for rec in data:
+                yield rec
+            return
+        except json.JSONDecodeError:
+            pass
+    for line in text.splitlines():
+        line = line.strip()
+        if line:
+            yield json.loads(line)
+
+
+def _is_verl_long_eval(rec: dict) -> bool:
+    """True for verl `main_long_eval_asr` per-recording records, which carry a
+    `dter_detail` block instead of `UtteranceTERMetrics`."""
+    return "dter_detail" in rec and "UtteranceTERMetrics" not in rec
+
+
+def _verl_uid(rec: dict) -> str:
+    """Recording id for a verl long-eval record. Prefer the audio GUID embedded
+    in `parent_audio_path` (e.g. `.../wav/<guid>_0.wav`), which matches the
+    in-house `UtteranceId`. Fall back to `id` or the raw parent path."""
+    p = rec.get("parent_audio_path") or ""
+    m = re.search(r"/([0-9a-fA-F][0-9a-fA-F-]{7,})(?:_\d+)?\.wav", p)
+    if m:
+        return m.group(1)
+    return rec.get("id") or p or ""
+
+
+def _verl_to_inhouse(rec: dict, metric: str) -> dict:
+    """Convert one verl long-eval record into an in-house-style record carrying a
+    single `UtteranceTERMetrics` entry (named `metric`) built from `dter_detail`.
+    The long-eval pipeline only computes a disfluency-tolerant TER, so the same
+    detail is surfaced regardless of the requested `metric` name."""
+    dd = rec.get("dter_detail") or {}
+    align = dd.get("word_align") or []
+    refs, hyps = [], []
+    for cell in align:
+        if ":" in cell:
+            r, h = cell.split(":", 1)
+        else:
+            r = h = cell
+        if r != "NULL":
+            refs.append(r)
+        if h != "NULL":
+            hyps.append(h)
+    return {
+        "UtteranceId": _verl_uid(rec),
+        "DataSetID": rec.get("data_source"),
+        "UtteranceTERMetrics": [{
+            "MetricName": metric,
+            "ter_info": {
+                "number_of_tokens": int(rec.get("dter_n_ref") or 0),
+                "number_of_edits": int(rec.get("dter_n_err") or 0),
+                "display_ter": float(rec.get("dter") or 0.0) * 100.0,
+            },
+            "display_form_tx": " ".join(refs),
+            "display_form_hyp": " ".join(hyps),
+            "word_align": align,
+            "word_ter_class": dd.get("word_ter_class") or [],
+            "ter_category_info": dd.get("ter_category_info") or {},
+        }],
+    }
+
+
 def load_entity_info(path: Path, entity_metric: str) -> dict:
     """Return {uid: entity_dict} extracted from top-level Metrics[*].EntityInfo
     matching MetricName == entity_metric. Records without that metric, or with
     empty EntityInfo, get an all-zero entry so deltas are well-defined.
+
+    Verl long-eval `details.jsonl` records carry no rich EntityInfo block, so
+    they yield all-zero entity entries (entity comparison is a no-op for them).
     """
-    data = json.loads(path.read_text())
     out = {}
-    for rec in data:
+    for rec in _iter_raw_records(path):
+        if _is_verl_long_eval(rec):
+            uid = _verl_uid(rec)
+            if uid:
+                out[uid] = {
+                    "n_trans_ents": 0, "n_reco_ents": 0,
+                    "n_trans_matched": 0, "n_reco_matched": 0,
+                    "n_ent_words": 0, "n_ent_ins": 0, "n_ent_del": 0,
+                    "n_ent_sub": 0, "n_ent_edits": 0,
+                    "eer": -1.0, "ewer": -1.0, "recall": -1.0, "precision": -1.0,
+                    "alignment_str": "", "trans_uniq": {}, "reco_uniq": {},
+                }
+            continue
         uid = rec.get("UtteranceId")
         if not uid:
             continue
@@ -526,9 +625,10 @@ def load_entity_info(path: Path, entity_metric: str) -> dict:
 
 
 def load_records(path: Path, metric: str) -> dict:
-    data = json.loads(path.read_text())
     out = {}
-    for rec in data:
+    for rec in _iter_raw_records(path):
+        if _is_verl_long_eval(rec):
+            rec = _verl_to_inhouse(rec, metric)
         uid = rec.get("UtteranceId")
         chosen = None
         for m in rec.get("UtteranceTERMetrics") or []:

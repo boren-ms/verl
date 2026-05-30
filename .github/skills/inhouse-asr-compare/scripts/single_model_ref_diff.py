@@ -224,7 +224,7 @@ def card_html_single(uid: str, m: dict, model_name: str, category: str | None = 
     m_idx = index_alignment(m["align"], m["classes"])
     rows = diff_rows_single(m_idx)
     if category is not None:
-        rows = filter_rows_by_category_single(rows, category, m_idx)
+        rows = filter_rows_by_category_single(rows, category)
     n_diff = sum(1 for r in rows if r["kind"] in ("diff", "trailing"))
     if n_diff == 0:
         return None
