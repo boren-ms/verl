@@ -24,8 +24,6 @@ data:
   max_audio_dur: 50
   max_prompt_length: 4096
   max_response_length: 1024
-  # -1 = entire validation set in a single batch, so long_audio_grouped
-  # sees all segments of every parent in one reward call.
   val_batch_size: -1
 
 actor_rollout_ref:
