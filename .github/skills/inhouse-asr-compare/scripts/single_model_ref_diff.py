@@ -19,8 +19,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from compare_ter_disagree import (  # noqa: E402
     CSS,
+    FMT_BUCKETS,
     _dedupe_runs,
     bucket_for,
+    fmt_subtype,
     index_alignment,
     load_entity_info,
     load_records,
@@ -47,7 +49,7 @@ def diff_rows_single(m_idx):
     n = len(refs)
     for i in range(n):
         ref = refs[i]
-        m_hyp, m_b = per.get(i, (None, "eq"))
+        m_hyp, m_b, m_sub = per.get(i, (None, "eq", ""))
         mi = _dedupe_runs([h for h, _ in ins_map.get(i, [])])
         # Skip positions where the model matches ref exactly (no edit, no ins).
         if m_b in ("eq", "relax") and m_hyp == ref and not mi:
@@ -63,6 +65,7 @@ def diff_rows_single(m_idx):
             "m_hyp": m_hyp,
             "m_bucket": m_b,
             "m_ins": mi,
+            "m_sub": m_sub,
         })
         last_kept = i
     if last_kept >= 0 and last_kept < n - 1:
@@ -82,30 +85,73 @@ def row_category_single(row: dict) -> str | None:
         return None
     if row["m_ins"] or row["m_bucket"] in {"sub", "del", "ins"}:
         return "lexical"
-    if row["m_bucket"] == "fmt":
+    if row["m_bucket"] in FMT_BUCKETS:
         return "fmt"
     return "fmt"
 
 
-def filter_rows_by_category_single(rows: list, category: str) -> list:
-    kept: list = []
-    prev_idx = -1
+def filter_rows_by_category_single(rows: list, category: str,
+                                   m_idx=None, n_ctx: int = 2) -> list:
+    # 1) Select the divergence rows (and trailing) for this page.
+    kept_diffs: list = []
+    trailing: list = []
     for r in rows:
         if r["kind"] == "gap":
             continue
         if r["kind"] == "trailing":
             if category == "lexical":
-                kept.append(r)
+                trailing.append(r)
             continue
         if row_category_single(r) != category:
             continue
-        if prev_idx >= 0 and r["ref_idx"] - prev_idx > 1:
-            kept.append({"kind": "gap", "skipped": r["ref_idx"] - prev_idx - 1})
-        elif prev_idx < 0 and r["ref_idx"] > 0:
-            kept.append({"kind": "gap", "skipped": r["ref_idx"]})
-        kept.append(r)
-        prev_idx = r["ref_idx"]
-    return kept
+        kept_diffs.append(r)
+
+    if not kept_diffs and not trailing:
+        return []
+
+    kept_map = {r["ref_idx"]: r for r in kept_diffs}
+
+    # 2) No ref context available -> old gap-only layout.
+    if not m_idx or n_ctx <= 0:
+        out: list = []
+        prev_idx = -1
+        for i in sorted(kept_map):
+            if prev_idx >= 0 and i - prev_idx > 1:
+                out.append({"kind": "gap", "skipped": i - prev_idx - 1})
+            elif prev_idx < 0 and i > 0:
+                out.append({"kind": "gap", "skipped": i})
+            out.append(kept_map[i])
+            prev_idx = i
+        out.extend(trailing)
+        return out
+
+    # 3) Expand each kept divergence with up to n_ctx context words per side.
+    refs, per, _ = m_idx
+    n = len(refs)
+    show: set[int] = set()
+    for i in kept_map:
+        for j in range(i - n_ctx, i + n_ctx + 1):
+            if 0 <= j < n:
+                show.add(j)
+
+    out = []
+    prev_idx = -1
+    for i in sorted(show):
+        if prev_idx >= 0 and i - prev_idx > 1:
+            out.append({"kind": "gap", "skipped": i - prev_idx - 1})
+        elif prev_idx < 0 and i > 0:
+            out.append({"kind": "gap", "skipped": i})
+        if i in kept_map:
+            out.append(kept_map[i])
+        else:
+            m_hyp, _, _ = per.get(i, (None, "eq", ""))
+            out.append({"kind": "ctx", "ref_idx": i, "ref": refs[i],
+                        "hyp": m_hyp})
+        prev_idx = i
+    if prev_idx >= 0 and prev_idx < n - 1:
+        out.append({"kind": "gap", "skipped": n - 1 - prev_idx})
+    out.extend(trailing)
+    return out
 
 
 def render_diff_table_single(rows: list, model_name: str, cols_per_row: int = 12) -> str:
@@ -130,8 +176,16 @@ def render_diff_table_single(rows: list, model_name: str, cols_per_row: int = 12
                 "cls": "diff-col",
             })
             continue
+        if row["kind"] == "ctx":
+            cols.append({
+                "idx": str(row["ref_idx"]),
+                "ref": html.escape(row["ref"]),
+                "m": '<span class="ctx-ditto">·</span>',
+                "cls": "ctx-cell",
+            })
+            continue
         m_cell = (render_ins_list(row["m_ins"]) + (" " if row["m_ins"] else "")
-                  + render_token(row["m_hyp"], row["m_bucket"]))
+                  + render_token(row["m_hyp"], row["m_bucket"], row.get("m_sub", "")))
         cols.append({
             "idx": str(row["ref_idx"]),
             "ref": html.escape(row["ref"]),
@@ -170,7 +224,7 @@ def card_html_single(uid: str, m: dict, model_name: str, category: str | None = 
     m_idx = index_alignment(m["align"], m["classes"])
     rows = diff_rows_single(m_idx)
     if category is not None:
-        rows = filter_rows_by_category_single(rows, category)
+        rows = filter_rows_by_category_single(rows, category, m_idx)
     n_diff = sum(1 for r in rows if r["kind"] in ("diff", "trailing"))
     if n_diff == 0:
         return None
@@ -389,7 +443,10 @@ def render_page_single(title: str, items: list, model_name: str, summary: dict,
         '<span class="tok-sub">substitution</span>'
         '<span class="tok-del">deletion</span>'
         '<span class="tok-ins">insertion</span>'
-        '<span class="tok-fmt">formatting (punc/cap/itn)</span>'
+        '<span class="tok-punc">punc</span>'
+        '<span class="tok-cap">cap</span>'
+        '<span class="tok-itn">itn</span>'
+        '<span class="tok-others">other fmt</span>'
         '<span class="tok-relax">relaxation (forgiven)</span>'
         '<span class="none">∅ = absent / deleted</span>'
         '<br>Showing only positions where the model diverges from the reference.'

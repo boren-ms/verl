@@ -34,6 +34,36 @@ def split_align(cell: str) -> tuple[str, str]:
     return r, h
 
 
+# Detailed formatting buckets (subtypes of the generic "fmt" category).
+FMT_BUCKETS = ("punc", "cap", "itn", "others")
+
+# Human-readable names for punctuation / capitalization transition endpoints.
+_PUNC_NAMES = {"none": "∅", "comma": ",", "period": ".",
+               "question": "?", "exclamation": "!", "unknown": "?"}
+_CAP_NAMES = {"lower": "lc", "upper": "UC", "title": "Tc", "mixed": "mC"}
+
+
+def fmt_subtype(tag: str) -> str:
+    """Return a short readable label for a formatting `word_ter_class` tag, e.g.
+    `punc_comma_2_none` -> ",→∅", `cap_lower_2_upper` -> "lc→UC",
+    `itn_money` -> "money". Returns "" for non-formatting / empty tags.
+    """
+    if not tag:
+        return ""
+    if tag.startswith("punc_") or tag.startswith("cap_"):
+        names = _PUNC_NAMES if tag.startswith("punc_") else _CAP_NAMES
+        body = tag.split("_", 1)[1]
+        if "_2_" in body:
+            x, y = body.split("_2_", 1)
+            return f"{names.get(x, x)}→{names.get(y, y)}"
+        return body
+    if tag.startswith("itn_"):
+        return tag[len("itn_"):]
+    if tag == "others" or tag.startswith("others"):
+        return "other"
+    return ""
+
+
 def bucket_for(tags: list[str], cell: str) -> str:
     tag = tags[0] if tags else ""
     if not tag:
@@ -46,17 +76,22 @@ def bucket_for(tags: list[str], cell: str) -> str:
         if cell.startswith("NULL:"):
             return "ins"
         return "sub"
-    return "fmt"  # punc / cap / itn
+    # Formatting edits: keep the detailed subtype (punc / cap / itn / others)
+    # rather than collapsing them all into a generic "fmt" bucket.
+    prefix = tag.split("_", 1)[0]
+    if prefix in FMT_BUCKETS:
+        return prefix
+    return "others"
 
 
 def index_alignment(align: list[str], classes: list[list[str]]):
     """Return:
       ref_tokens: list[str] of ref tokens in order
-      per_ref: dict ref_idx -> (hyp_token_or_None, bucket)  # the paired hyp for that ref slot
+      per_ref: dict ref_idx -> (hyp_token_or_None, bucket, subtype)  # paired hyp for that ref slot
       insertions: dict ref_idx -> list[(hyp_token, bucket)]  # inserted before ref_idx
     """
     ref_tokens: list[str] = []
-    per_ref: dict[int, tuple[str | None, str]] = {}
+    per_ref: dict[int, tuple[str | None, str, str]] = {}
     insertions: dict[int, list[tuple[str, str]]] = {}
     ref_idx = 0
     for cell, tags in zip(align, classes):
@@ -64,7 +99,8 @@ def index_alignment(align: list[str], classes: list[list[str]]):
         b = bucket_for(tags, cell)
         if ref_tok != "NULL":
             ref_tokens.append(ref_tok)
-            per_ref[ref_idx] = (None if hyp_tok == "NULL" else hyp_tok, b)
+            sub = fmt_subtype(tags[0] if tags else "") if b in FMT_BUCKETS else ""
+            per_ref[ref_idx] = (None if hyp_tok == "NULL" else hyp_tok, b, sub)
             ref_idx += 1
         else:
             insertions.setdefault(ref_idx, []).append((hyp_tok, b))
@@ -104,8 +140,8 @@ def diff_rows(b_idx, t_idx):
     last_kept = -1
     for i in range(n):
         ref = b_refs[i]
-        b_hyp, b_b = b_per.get(i, (None, "eq"))
-        t_hyp, t_b = t_per.get(i, (None, "eq"))
+        b_hyp, b_b, b_sub = b_per.get(i, (None, "eq", ""))
+        t_hyp, t_b, t_sub = t_per.get(i, (None, "eq", ""))
         bi = [h for h, _ in b_ins.get(i, [])]
         ti = [h for h, _ in t_ins.get(i, [])]
         bi = _dedupe_runs(bi)
@@ -124,8 +160,8 @@ def diff_rows(b_idx, t_idx):
             "kind": "diff",
             "ref_idx": i,
             "ref": ref,
-            "b_hyp": b_hyp, "b_bucket": b_b, "b_ins": bi,
-            "t_hyp": t_hyp, "t_bucket": t_b, "t_ins": ti,
+            "b_hyp": b_hyp, "b_bucket": b_b, "b_ins": bi, "b_sub": b_sub,
+            "t_hyp": t_hyp, "t_bucket": t_b, "t_ins": ti, "t_sub": t_sub,
         })
         last_kept = i
     if last_kept >= 0 and last_kept < n - 1:
@@ -152,7 +188,7 @@ def row_category(row: dict) -> str | None:
     buckets = {row["b_bucket"], row["t_bucket"]}
     if row["b_ins"] or row["t_ins"] or buckets & {"sub", "del", "ins"}:
         return "lexical"
-    if "fmt" in buckets:
+    if buckets & set(FMT_BUCKETS):
         return "fmt"
     # Both sides eq/relax but somehow recorded differently — lump with fmt.
     return "fmt"
@@ -172,21 +208,27 @@ def _norm_seq(tokens) -> tuple:
     return tuple(_norm_token(t) for t in tokens if _norm_token(t))
 
 
-def filter_rows_by_category(rows: list, category: str) -> list:
+def filter_rows_by_category(rows: list, category: str,
+                            b_idx=None, t_idx=None, n_ctx: int = 2) -> list:
     """Keep only rows of the given category and regenerate gap markers.
 
     For category == 'lexical' we additionally drop rows where the two models'
     hypotheses are identical after lowercase + strip-punctuation normalization
     (so pure case / punctuation disagreements never leak into the lexical page).
+
+    `b_idx` / `t_idx` are the `(ref_tokens, per_ref, insertions)` triples; when
+    provided, up to `n_ctx` reference words on each side of every kept
+    divergence are emitted as muted "ctx" rows so the error is shown in context.
     """
-    kept: list = []
-    prev_idx = -1
+    # 1) Select the divergence rows (and trailing) that belong on this page.
+    kept_diffs: list = []
+    trailing: list = []
     for r in rows:
         if r["kind"] == "gap":
             continue
         if r["kind"] == "trailing":
             if category == "lexical":
-                kept.append(r)
+                trailing.append(r)
             continue
         if row_category(r) != category:
             continue
@@ -195,13 +237,55 @@ def filter_rows_by_category(rows: list, category: str) -> list:
             t_norm = (_norm_token(r["t_hyp"]),) + _norm_seq(r["t_ins"])
             if b_norm == t_norm:
                 continue
-        if prev_idx >= 0 and r["ref_idx"] - prev_idx > 1:
-            kept.append({"kind": "gap", "skipped": r["ref_idx"] - prev_idx - 1})
-        elif prev_idx < 0 and r["ref_idx"] > 0:
-            kept.append({"kind": "gap", "skipped": r["ref_idx"]})
-        kept.append(r)
-        prev_idx = r["ref_idx"]
-    return kept
+        kept_diffs.append(r)
+
+    if not kept_diffs and not trailing:
+        return []
+
+    kept_map = {r["ref_idx"]: r for r in kept_diffs}
+
+    # 2) Without ref-token context, fall back to the old gap-only layout.
+    if not b_idx or not t_idx or n_ctx <= 0:
+        out: list = []
+        prev_idx = -1
+        for i in sorted(kept_map):
+            if prev_idx >= 0 and i - prev_idx > 1:
+                out.append({"kind": "gap", "skipped": i - prev_idx - 1})
+            elif prev_idx < 0 and i > 0:
+                out.append({"kind": "gap", "skipped": i})
+            out.append(kept_map[i])
+            prev_idx = i
+        out.extend(trailing)
+        return out
+
+    # 3) Expand each kept divergence with up to n_ctx context words per side.
+    b_refs, b_per, _ = b_idx
+    t_refs, _, _ = t_idx
+    n = min(len(b_refs), len(t_refs))
+    show: set[int] = set()
+    for i in kept_map:
+        for j in range(i - n_ctx, i + n_ctx + 1):
+            if 0 <= j < n:
+                show.add(j)
+
+    out = []
+    prev_idx = -1
+    for i in sorted(show):
+        if prev_idx >= 0 and i - prev_idx > 1:
+            out.append({"kind": "gap", "skipped": i - prev_idx - 1})
+        elif prev_idx < 0 and i > 0:
+            out.append({"kind": "gap", "skipped": i})
+        if i in kept_map:
+            out.append(kept_map[i])
+        else:
+            b_hyp, _, _ = b_per.get(i, (None, "eq", ""))
+            out.append({"kind": "ctx", "ref_idx": i, "ref": b_refs[i],
+                        "hyp": b_hyp})
+        prev_idx = i
+    if prev_idx >= 0 and prev_idx < n - 1:
+        out.append({"kind": "gap", "skipped": n - 1 - prev_idx})
+    out.extend(trailing)
+    return out
 
 
 # ---- HTML ---------------------------------------------------------------------
@@ -258,8 +342,16 @@ table.diff tr.ref td.cell.both-same { background: #f5f9ff; }
 .tok-del   { background: #ffd7d5; color: #82071e; text-decoration: line-through; padding: 0 3px; border-radius: 3px; }
 .tok-ins   { background: #d1f4d4; color: #0a5f1e; padding: 0 3px; border-radius: 3px; }
 .tok-fmt   { background: #e0e7ff; color: #2c2e7a; padding: 0 3px; border-radius: 3px; }
+.tok-punc  { background: #e0e7ff; color: #2c2e7a; padding: 0 3px; border-radius: 3px; }
+.tok-cap   { background: #d6f0f5; color: #0b5566; padding: 0 3px; border-radius: 3px; }
+.tok-itn   { background: #fde2f3; color: #8a1d63; padding: 0 3px; border-radius: 3px; }
+.tok-others{ background: #ececec; color: #444; padding: 0 3px; border-radius: 3px; }
 .tok-relax { background: #f0e6ff; color: #5a2a99; padding: 0 3px; border-radius: 3px; }
 .none      { color: #b88; font-style: italic; }
+.fmt-sub   { display: block; font-size: 9px; line-height: 1.2; margin-top: 2px; color: #555; font-family: ui-monospace, Menlo, monospace; letter-spacing: -0.02em; }
+table.diff td.ctx-cell { background: #fcfcfd; color: #99a; }
+table.diff tr.ref td.cell.ctx-cell { background: #fcfcfd; color: #8a909a; font-weight: 500; }
+.ctx-ditto { color: #c2c8d0; }
 .ins-chip  { display: inline-block; margin-right: 2px; }
 .ent-block { margin-top: 10px; padding: 8px 10px; border: 1px solid #d8dde3; border-radius: 5px; background: #fff; }
 .ent-label { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
@@ -277,10 +369,14 @@ details.toc-wrap > summary { cursor: pointer; font-size: 13px; font-weight: 600;
 """
 
 
-def render_token(tok: str | None, bucket: str) -> str:
+def render_token(tok: str | None, bucket: str, sub: str = "") -> str:
     if tok is None:
-        return '<span class="none">∅</span>'
-    return f'<span class="tok-{bucket}">{html.escape(tok)}</span>'
+        base = '<span class="none">∅</span>'
+    else:
+        base = f'<span class="tok-{bucket}">{html.escape(tok)}</span>'
+    if sub:
+        base += f'<span class="fmt-sub">{html.escape(sub)}</span>'
+    return base
 
 
 def render_ins_list(tokens: list[str]) -> str:
@@ -321,14 +417,24 @@ def render_diff_table(rows: list, baseline_name: str, target_name: str,
                 "cls": "diff-col",
             })
             continue
+        if row["kind"] == "ctx":
+            ditto = '<span class="ctx-ditto">·</span>'
+            cols.append({
+                "idx": str(row["ref_idx"]),
+                "ref": html.escape(row["ref"]),
+                "b": ditto,
+                "t": ditto,
+                "cls": "ctx-cell",
+            })
+            continue
         both_same = (row["b_hyp"] == row["t_hyp"]
                      and row["b_bucket"] == row["t_bucket"]
                      and row["b_ins"] == row["t_ins"])
         cls = "both-same" if both_same else "diff-col"
         b_cell = (render_ins_list(row["b_ins"]) + (" " if row["b_ins"] else "")
-                  + render_token(row["b_hyp"], row["b_bucket"]))
+                  + render_token(row["b_hyp"], row["b_bucket"], row.get("b_sub", "")))
         t_cell = (render_ins_list(row["t_ins"]) + (" " if row["t_ins"] else "")
-                  + render_token(row["t_hyp"], row["t_bucket"]))
+                  + render_token(row["t_hyp"], row["t_bucket"], row.get("t_sub", "")))
         cols.append({
             "idx": str(row["ref_idx"]),
             "ref": html.escape(row["ref"]),
@@ -480,7 +586,7 @@ def card_html(uid: str, b: dict, t: dict, baseline_name: str, target_name: str,
         warn = ""
     rows = diff_rows(b_idx, t_idx)
     if category is not None:
-        rows = filter_rows_by_category(rows, category)
+        rows = filter_rows_by_category(rows, category, b_idx, t_idx)
     n_diff = sum(1 for r in rows if r["kind"] in ("diff", "trailing"))
     if n_diff == 0:
         return None
@@ -795,7 +901,10 @@ def render_page(title: str, items: list, baseline_name: str, target_name: str, s
         '<span class="tok-sub">substitution</span>'
         '<span class="tok-del">deletion</span>'
         '<span class="tok-ins">insertion</span>'
-        '<span class="tok-fmt">formatting (punc/cap/itn)</span>'
+        '<span class="tok-punc">punc</span>'
+        '<span class="tok-cap">cap</span>'
+        '<span class="tok-itn">itn</span>'
+        '<span class="tok-others">other fmt</span>'
         '<span class="tok-relax">relaxation (forgiven)</span>'
         '<span class="none">∅ = absent / deleted</span>'
         '<br>Rows shaded blue: baseline and target produced the same (non-ref) output. '

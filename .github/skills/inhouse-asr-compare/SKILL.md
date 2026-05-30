@@ -95,12 +95,17 @@ Main panel:
 - **Per-utterance cards** (anchor = slugified `UtteranceId`):
   - Stats chips show only the page's own category — lexical pages show `lexical: B→T (Δ)` + `lex breakdown: sub/ins/del`; fmt pages show `fmt: B→T (Δ)` + `fmt breakdown: punc/cap/itn`. TER, total edits, and disagreement-cell count are always shown.
   - Diff table is the standard 4-row block (`#`, `ref`, baseline-name, target-name), wrapped every 12 columns to prevent horizontal overflow.
+  - Diff tokens are color-coded by edit bucket: lexical edits as `sub` / `del` / `ins`, and formatting edits by their **detailed subtype** `punc` / `cap` / `itn` / `others` (each its own color) rather than one generic "fmt" color. So on the fmt page you can see at a glance which formatting dimension diverged.
+  - Each formatting token carries a small monospace **subtype badge** beneath it (from `fmt_subtype()`): punctuation/capitalization transitions render as `from→to` (e.g. `,→∅`, `.→,`, `lc→UC`), ITN edits show their kind (e.g. `num`, `money`, `ordinal`), and anything else shows `other`.
+  - **Context words:** each kept divergence is surrounded by up to 2 reference words on each side (muted "ctx" cells; the model rows show a faint `·` ditto to indicate agreement at those positions). Longer agreement runs between error clusters still collapse to a `… N …` gap marker. Context width is the `n_ctx=2` argument to `filter_rows_by_category()`.
   - Rows are filtered to positions where baseline and target diverge (not just where they differ from ref). On lexical pages a normalization pass (lowercase + strip surrounding punctuation) drops case-/punct-only differences. Consecutive identical insertion tokens (e.g. `+the +the +the` from forced-alignment artifacts) collapse to one.
 
 ## Category classification
 For each diff row, `row_category()`:
-- `lexical` — any side has `sub`, `del`, or `ins` bucket, or recorded insertions on either side.
-- `fmt`     — both sides are `eq`/`relax`/`fmt`-only.
+- `lexical` — any side has `sub`, `del`, or `ins` bucket, or recorded insertions on either side. The lexical page therefore only surfaces genuine lexical (sub/ins/del) disagreements.
+- `fmt`     — both sides are `eq`/`relax`/formatting-only (`punc` / `cap` / `itn` / `others`). The fmt page surfaces only formatting disagreements and colors each token by its detailed subtype.
+
+The per-token formatting bucket is derived in `bucket_for()` from the `word_ter_class` tag prefix: `punc_*` → `punc`, `cap_*` → `cap`, `itn_*` → `itn`, anything else → `others` (`FMT_BUCKETS = ("punc", "cap", "itn", "others")`).
 
 Lexical decomposition (`lex_sub / lex_ins / lex_del`) is computed by walking `word_align` and counting `lexical*` tags: `:NULL` → del, `NULL:` → ins, else sub. Per-category totals (`punc / cap / itn / lexical / fmt = punc+cap+itn`) come straight from `ter_category_info.ter_categories.*.number_of_edits`.
 
