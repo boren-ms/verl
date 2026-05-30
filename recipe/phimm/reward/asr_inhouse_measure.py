@@ -162,29 +162,49 @@ def _get_ter_backend(locale: str = "en-us"):
     return _TER_BACKEND
 
 
-def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float, list[str]]:
-    """Return (n_err, n_ref, dter_fraction, word_align) for DTER.
+def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float, dict | None]:
+    """Return ``(n_err, n_ref, dter_fraction, detail)`` for DTER.
+
+    ``detail`` is a single ``UtteranceTERMetrics``-style entry (the same shape
+    consumed by the ``inhouse-asr-compare`` skill) carrying the word-level
+    alignment, per-word TER classes, and category breakdown. It is ``None`` when
+    the backend fails.
 
     GetMetrics CLI emits an empty ``UtteranceTERMetrics`` for single-utterance
-    runs, so go through the Python ``dfmetrics`` TER backend directly.
+    runs, so go through the Python ``dfmetrics`` TER backend directly. The
+    backend returns ``{"summary": {...}, "sent_details": [{...}]}`` where the
+    per-utterance ``word_align`` / ``word_ter_class`` / ``ter_category_info`` /
+    ``display_form_*`` fields live under ``sent_details[0]`` (NOT the top level).
     """
     try:
         backend = _get_ter_backend()
         result = backend.compute_ter_from_strings(transcription=ref, recognition=hyp) or {}
     except Exception as e:
         logger.warning("DTER computation failed: %s", e)
-        return 0, 0, 0.0, []
+        return 0, 0, 0.0, None
 
-    info = (result.get("summary") or {}).get("ter_info") or {}
+    summary = result.get("summary") or {}
+    info = summary.get("ter_info") or {}
     n_err = int(info.get("number_of_edits") or 0)
     n_ref = int(info.get("number_of_tokens") or 0)
     raw = float(info.get("display_ter") or 0.0)
-    word_align = list(result.get("word_align") or [])
     # dfmetrics returns display_ter as a percentage (e.g. 42.85), normalize to fraction.
     dter = raw / 100.0 if raw > 1.5 else raw
     if n_ref > 0 and (n_err > 0 and dter == 0.0):
         dter = n_err / n_ref
-    return n_err, n_ref, dter, word_align
+
+    sent_details = result.get("sent_details") or []
+    sd = sent_details[0] if sent_details else {}
+    detail = {
+        "MetricName": "DisfluencyTolerant_TER",
+        "ter_info": dict(sd.get("ter_info") or info),
+        "display_form_tx": sd.get("display_form_tx", ref),
+        "display_form_hyp": sd.get("display_form_hyp", hyp),
+        "word_align": list(sd.get("word_align") or []),
+        "word_ter_class": list(sd.get("word_ter_class") or []),
+        "ter_category_info": sd.get("ter_category_info") or summary.get("ter_category_info") or {},
+    }
+    return n_err, n_ref, dter, detail
 
 
 def get_metrics(trans: str, reco: str, *args: str, pack_dir: str | Path | None = None):
@@ -262,22 +282,32 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     ``score = 1 - dter`` is exposed for the trainer's reward aggregation.
     """
     pack_dir = kwargs.get("pack_dir", DEFAULT_PACK_DIR)
+    # The dfmetrics TER backend used by `_compute_dter` shells out to `dotnet`
+    # (via fstalign), so the SpeechInsight pack must be installed and its dotnet
+    # runtime exported onto PATH/DOTNET_ROOT *before* DTER runs. `_compute_eer`
+    # also relies on this, but it runs after DTER, so set it up up-front here.
+    ensure_pack_dir(pack_dir)
     parsed = parse_asr_response(solution_str)
     hyp_text = parsed.get("text") or ""
     ref_text = _clean_ref(ground_truth)
 
-    dter_n_err, dter_n_ref, dter, dter_word_align = _compute_dter(ref_text, hyp_text)
+    dter_n_err, dter_n_ref, dter, dter_detail = _compute_dter(ref_text, hyp_text)
     eer_n_err, eer_n_ref, eer = _compute_eer(ref_text, hyp_text, pack_dir=pack_dir)
 
     # `dter_n_*` / `eer_n_*` are picked up by `update_var2metric2val` and
     # collapsed into corpus edit-weighted ratios. `dter` is the shorthand name
-    # for DisfluencyTolerant TER throughout this scorer path.
+    # for DisfluencyTolerant TER throughout this scorer path. `dter_detail` is a
+    # full `UtteranceTERMetrics` entry (word_align / word_ter_class /
+    # ter_category_info / display_form_*) so the dumped val_data_gen JSONL can be
+    # converted for the `inhouse-asr-compare` skill; it is skipped during metric
+    # aggregation because it is a non-scalar value.
     return {
         "score": 1.0 - dter,
         "dter": dter,
         "dter_n_err": dter_n_err,
         "dter_n_ref": dter_n_ref,
-        "dter_word_align": dter_word_align,
+        "dter_detail": dter_detail,
+        "dter_word_align": (dter_detail or {}).get("word_align", []),
         "eer": eer,
         "eer_n_err": eer_n_err,
         "eer_n_ref": eer_n_ref,
