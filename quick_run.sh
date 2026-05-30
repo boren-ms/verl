@@ -13,7 +13,9 @@ pushd "$cwd" > /dev/null
 
 module="recipe.phimm.main_asr_dapo"
 
-if [[ "$config_name" == gen_* ]]; then
+if [[ "$config_name" == long_eval_* ]]; then
+    module="recipe.phimm.main_long_eval_asr"
+elif [[ "$config_name" == gen_* ]]; then
     module="recipe.phimm.main_asr_gen"
 elif [[ "$config_name" == eval_* ]]; then
     module="recipe.phimm.main_asr_eval"

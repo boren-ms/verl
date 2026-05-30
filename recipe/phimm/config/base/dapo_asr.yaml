@@ -129,7 +129,3 @@ trainer:
   val_before_train: false
   val_only: False
   validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen
-  # When set, collapse dumped validation rows that share this column value into
-  # one representative row (e.g. `parent_audio_path` -> per long-audio recording
-  # instead of per VAD segment). null keeps the default per-row dump.
-  dump_group_key: null

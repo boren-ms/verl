@@ -196,10 +196,6 @@ def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float, dict | None]:
     sent_details = result.get("sent_details") or []
     sd = sent_details[0] if sent_details else {}
     detail = {
-        "MetricName": "DisfluencyTolerant_TER",
-        "ter_info": dict(sd.get("ter_info") or info),
-        "display_form_tx": sd.get("display_form_tx", ref),
-        "display_form_hyp": sd.get("display_form_hyp", hyp),
         "word_align": list(sd.get("word_align") or []),
         "word_ter_class": list(sd.get("word_ter_class") or []),
         "ter_category_info": sd.get("ter_category_info") or summary.get("ter_category_info") or {},
@@ -294,20 +290,12 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     dter_n_err, dter_n_ref, dter, dter_detail = _compute_dter(ref_text, hyp_text)
     eer_n_err, eer_n_ref, eer = _compute_eer(ref_text, hyp_text, pack_dir=pack_dir)
 
-    # `dter_n_*` / `eer_n_*` are picked up by `update_var2metric2val` and
-    # collapsed into corpus edit-weighted ratios. `dter` is the shorthand name
-    # for DisfluencyTolerant TER throughout this scorer path. `dter_detail` is a
-    # full `UtteranceTERMetrics` entry (word_align / word_ter_class /
-    # ter_category_info / display_form_*) so the dumped val_data_gen JSONL can be
-    # converted for the `inhouse-asr-compare` skill; it is skipped during metric
-    # aggregation because it is a non-scalar value.
     return {
         "score": 1.0 - dter,
         "dter": dter,
         "dter_n_err": dter_n_err,
         "dter_n_ref": dter_n_ref,
         "dter_detail": dter_detail,
-        "dter_word_align": (dter_detail or {}).get("word_align", []),
         "eer": eer,
         "eer_n_err": eer_n_err,
         "eer_n_ref": eer_n_ref,

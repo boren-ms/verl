@@ -1,0 +1,51 @@
+# Base config for gen-style long-audio ASR eval (recipe.phimm.main_long_eval_asr).
+#
+# Self-contained ASR rollout config layered directly on `generation` (NOT
+# `gen_asr`). Inlines the gen_asr knobs and adds the long-recording eval
+# defaults:
+#   svad_explode -> generate_sequences -> regroup per parent wav ->
+#   DisfluencyTolerant TER + entity EER (asr_inhouse_measure.eval_score).
+# Per-eval configs (e.g. long_eval_test) only need to set model.path, the
+# val_data default, and data.output_path.
+defaults:
+  - generation
+  - _self_
+
+nccl_timeout: 1800
+
+trainer:
+  experiment_name: phimm_long_eval # required for logging
+
+data:
+  num_workers: 4               # bounded to keep host RAM safe with audio batches
+  # SVAD caps at 40s, so 50 leaves headroom.
+  max_audio_dur: 50
+  max_prompt_length: 4096
+  # One generate_sequences batch covers many segments; 256 leaves headroom for
+  # a ~3600s recording (~90 segments at 40s each). Grouping happens after all
+  # batches finish, so this need NOT exceed the segment count.
+  batch_size: 256
+  # Passed through to asr_inhouse_measure.eval_score (DTER/EER backend).
+  measure_kwargs: {}
+
+model:
+  path: null
+  trust_remote_code: True
+
+rollout:
+  temperature: 0.0
+  top_k: -1 # 0 for hf rollout, -1 for vllm rollout
+  top_p: 1
+  dtype: bfloat16 # should align with FSDP
+  gpu_memory_utilization: 0.85   # share H100 with FSDP shard + vLLM weights + KV cache
+  log_prob_micro_batch_size_per_gpu: 8
+  prompt_length: 4096
+  response_length: 1024
+  load_format: dummy # need to force reload from fsdp to vllm
+  max_num_seqs: 24
+  enforce_eager: false
+  enable_chunked_prefill: true   # interleaves prefill of long prompts with ongoing decodes
+  free_cache_engine: true
+  no_repeat_ngram_size: 15
+  stop: ["<|im_end|>"]
+  stop_token_ids: [248044, 248046]
