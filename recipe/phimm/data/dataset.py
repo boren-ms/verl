@@ -732,6 +732,101 @@ def audio_chunk_to_path(ds, **kwargs):
     return ds
 
 
+def svad_explode(ds, **kwargs):
+    """Run Smart VAD on each row's audio_path and explode into per-segment rows.
+
+    For every row whose ``audio_path`` is a plain wav URI (no ``#start:end``
+    chunk spec already), load the audio, run :class:`SVadChunker`
+    (``max_len_sec=max_len_sec``), and emit one row per detected segment
+    with ``audio_path`` rewritten to ``wav#start:end``. All other columns are
+    preserved on every child row. ``seg_index`` / ``n_segments`` / ``seg_start``
+    / ``seg_end`` / ``parent_audio_path`` are added so downstream aggregation
+    can group hyps by parent.
+
+    Rows already carrying a time-range chunk spec are passed through unchanged
+    (with ``seg_index=0`` / ``n_segments=1``). Short wavs (<= ``max_len_sec``)
+    also pass through as a single row.
+    """
+    from recipe.phimm.utils.audio import _is_time_chunk_spec, resample_audio
+    from recipe.phimm.utils.svad.svad import SVadChunker
+    import soundfile as sf
+
+    max_len_sec = float(kwargs.get("max_len_sec", 30.0))
+    min_seg_sec = float(kwargs.get("min_seg_sec", 0.1))
+    audio_key = kwargs.get("audio_key", "audio_path")
+    target_sr = int(kwargs.get("target_sr", 16000))
+    skip_existing_chunks = kwargs.get("skip_existing_chunks", True)
+    # Optional path prefix rewrite, e.g. {"/datablob1/": "az://orngwus2cresco/data/speech/"}
+    path_replace = dict(kwargs.get("path_replace", {}) or {})
+
+    def _translate(p: str) -> str:
+        for src, dst in path_replace.items():
+            if p.startswith(src):
+                return dst + p[len(src):]
+        return p
+
+    chunker = SVadChunker(max_len_sec=max_len_sec, verbose=False)
+
+    def _load_mono_16k(path: str):
+        with bf.BlobFile(path, "rb") as f:
+            data, sr = sf.read(f)
+        if data.ndim == 2:
+            data = data.mean(axis=1)
+        import numpy as np
+        data = np.asarray(data, dtype=np.float32)
+        if sr != target_sr:
+            data, sr = resample_audio(data, sr, target_sr)
+        return data, sr
+
+    def _explode_one(row: dict) -> list[dict]:
+        path = str(row.get(audio_key, "") or "")
+        if not path:
+            return [row]
+        path = _translate(path)
+        row[audio_key] = path
+        if skip_existing_chunks and _is_time_chunk_spec(path):
+            out = dict(row)
+            out.setdefault("seg_index", 0)
+            out.setdefault("n_segments", 1)
+            out.setdefault("parent_audio_path", path.rsplit("#", 1)[0])
+            return [out]
+        try:
+            audio, sr = _load_mono_16k(path)
+        except Exception as exc:
+            print(f"[svad_explode] FAILED to load {path}: {exc}")
+            return [row]
+        dur = len(audio) / sr
+        if dur <= max_len_sec:
+            out = dict(row)
+            out["seg_index"] = 0
+            out["n_segments"] = 1
+            out["seg_start"] = 0.0
+            out["seg_end"] = round(dur, 3)
+            out["parent_audio_path"] = path
+            return [out]
+        spans = chunker.chunk(audio, sr)
+        kept = [(s, e) for (s, e) in spans if (e - s) >= min_seg_sec]
+        if not kept:
+            return [row]
+        rows_out = []
+        for idx, (s, e) in enumerate(kept):
+            child = dict(row)
+            child[audio_key] = f"{path}#{round(float(s), 3)}:{round(float(e), 3)}"
+            child["seg_index"] = idx
+            child["n_segments"] = len(kept)
+            child["seg_start"] = round(float(s), 3)
+            child["seg_end"] = round(float(e), 3)
+            child["parent_audio_path"] = path
+            rows_out.append(child)
+        print(f"[svad_explode] {path}: {dur:.1f}s -> {len(kept)} segments")
+        return rows_out
+
+    exploded: list[dict] = []
+    for row in ds:
+        exploded.extend(_explode_one(dict(row)))
+    return Dataset.from_list(exploded)
+
+
 def add_rare_keywords(ds, **kwargs):
     tn_name = kwargs.get("tn_name", "english")
     rare_ratio = kwargs.get("rare_ratio", None)
@@ -1270,6 +1365,8 @@ def process_ds(ds, **kwargs):
         ds = extract_chat(ds, **merge_kwargs(map_kwargs, chat_kwargs))
     if audio_chunk_to_path_kwargs := kwargs.get("audio_chunk_to_path", {}):
         ds = audio_chunk_to_path(ds, **merge_kwargs(map_kwargs, audio_chunk_to_path_kwargs))
+    if svad_explode_kwargs := kwargs.get("svad_explode", {}):
+        ds = svad_explode(ds, **merge_kwargs(map_kwargs, svad_explode_kwargs))
     if input_egs_limit := kwargs.get("input_egs_limit", None):
         ds = limit_ds(ds, egs_limit=input_egs_limit)
     if filter_by_keywords_kwargs := kwargs.get("filter_by_keywords", {}):

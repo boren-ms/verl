@@ -395,6 +395,11 @@ class RayPPOTrainer:
         )
 
         val_batch_size = self.config.data.val_batch_size or gen_batch_size
+        # val_batch_size: -1 -> single batch covering the entire validation set
+        # (needed by reward managers that must see all rows of a group at once,
+        # e.g. long_audio_grouped which concats per-parent segment hyps).
+        if isinstance(val_batch_size, int) and val_batch_size < 0:
+            val_batch_size = len(self.val_dataset)
         self.val_dataloader = StatefulDataLoader(
             dataset=self.val_dataset,
             batch_size=val_batch_size,

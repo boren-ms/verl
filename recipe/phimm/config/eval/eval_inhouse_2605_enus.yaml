@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_asr
-  - data/val_data/inhouse_2605_en
+  - data/val_data/inhouse_2605_enus
   - _self_
 
 val_reward:
@@ -13,20 +13,20 @@ val_reward:
     path: recipe/phimm/reward/asr_inhouse_measure.py
     name: eval_score
 
-# verl's get_custom_reward_fn caches sys.modules["custom_module"] from the
-# first load (train reward). val_only=True so the train reward never runs,
-# but the cached module must be the inhouse one for val_reward.eval_score
-# to resolve correctly. Override the top-level path too.
 custom_reward_function:
   path: recipe/phimm/reward/asr_inhouse_measure.py
   name: eval_score
 
+reward_model:
+  reward_manager: long_audio_grouped
+
 data:
-  # Segments range up to ~47s and ~230 output tokens; bump from defaults
-  # (40 / 1024 / 512) so segments aren't truncated.
   max_audio_dur: 50
   max_prompt_length: 4096
   max_response_length: 1024
+  # -1 = entire validation set in a single batch, so long_audio_grouped
+  # sees all segments of every parent in one reward call.
+  val_batch_size: -1
 
 actor_rollout_ref:
   model:
