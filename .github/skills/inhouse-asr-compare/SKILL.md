@@ -82,7 +82,9 @@ There is no "overall" page — only improved and degraded per category. Sort key
 ## HTML report anatomy
 Each page is a single self-contained HTML file (embedded CSS, no JS).
 
-Left **sticky sidebar**:
+A fixed-position **toggle button** in the top-left (`☰ hide` / `☰ show`) collapses or expands the sidebar — pure CSS via a hidden checkbox, so no script is required and the page stays self-contained.
+
+Left **sticky sidebar** (hidden when toggle is checked):
 - "Reports" nav: link to `summary.json` and to all 4 sibling category pages (current page highlighted).
 - "Utterances · Δ lex" / "Δ fmt" ordered list — each entry is the `UtteranceId` plus its category-edit delta chip (red = worse, green = better). Clicking jumps to the matching card.
 
