@@ -272,7 +272,7 @@ def score_segments(segments, measure_kwargs):
     for parent, members in tqdm(groups.items(), total=len(groups), desc="score"):
         members.sort(key=lambda m: m["seg_start"])
         concat_hyp = " ".join(m["response"].strip() for m in members if m["response"].strip())
-        raw_responses = [m["raw_response"] for m in members]
+        responses = [m["response"] for m in members]
         head = members[0]
         ref = head["ref"]
         data_source = head["data_source"] or "all"
@@ -287,7 +287,7 @@ def score_segments(segments, measure_kwargs):
             "n_segments": len(members),
             "ref": ref,
             "hyp": concat_hyp,
-            "raw_response": raw_responses,
+            "response": responses,
             "dter": score.get("dter"),
             "dter_n_err": score.get("dter_n_err"),
             "dter_n_ref": score.get("dter_n_ref"),
