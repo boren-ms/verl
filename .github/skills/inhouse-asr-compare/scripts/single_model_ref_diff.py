@@ -410,7 +410,9 @@ def render_page_single(title: str, items: list, model_name: str, summary: dict,
     return (
         f'<!doctype html><html><head><meta charset="utf-8">'
         f'<title>{html.escape(title)}</title><style>{CSS}</style></head>'
-        f'<body><div class="layout">{sidebar_html}<div class="main">{head}{body}</div></div></body></html>'
+        f'<body><input type="checkbox" id="sb-toggle" class="sb-toggle">'
+        f'<label for="sb-toggle" class="sb-toggle-btn" title="Toggle sidebar"></label>'
+        f'<div class="layout">{sidebar_html}<div class="main">{head}{body}</div></div></body></html>'
     )
 
 

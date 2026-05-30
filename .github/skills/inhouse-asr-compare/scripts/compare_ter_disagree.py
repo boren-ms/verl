@@ -209,6 +209,13 @@ def filter_rows_by_category(rows: list, category: str) -> list:
 CSS = """
 :root { color-scheme: light dark; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; margin: 0; }
+.sb-toggle { position: absolute; opacity: 0; pointer-events: none; }
+.sb-toggle-btn { position: fixed; top: 8px; left: 208px; z-index: 20; cursor: pointer; background: #fff; border: 1px solid #d0d7de; border-radius: 4px; padding: 2px 8px; font-size: 14px; line-height: 1.4; box-shadow: 0 1px 2px rgba(0,0,0,0.08); user-select: none; transition: left 0.15s ease; color: #1f2328; }
+.sb-toggle-btn:hover { background: #f6f8fa; }
+.sb-toggle-btn::before { content: "\\2630  hide"; }
+.sb-toggle:checked ~ .sb-toggle-btn { left: 8px; }
+.sb-toggle:checked ~ .sb-toggle-btn::before { content: "\\2630  show"; }
+.sb-toggle:checked ~ .layout .sidebar { display: none; }
 .layout { display: flex; align-items: flex-start; }
 .sidebar { position: sticky; top: 0; align-self: flex-start; width: 240px; max-height: 100vh; overflow-y: auto; border-right: 1px solid #d0d7de; background: #f6f8fa; padding: 16px 12px; font-size: 12px; box-sizing: border-box; }
 .sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #555; margin: 0 0 8px 0; }
@@ -813,7 +820,9 @@ def render_page(title: str, items: list, baseline_name: str, target_name: str, s
     return (
         f'<!doctype html><html><head><meta charset="utf-8">'
         f'<title>{html.escape(title)}</title><style>{CSS}</style></head>'
-        f'<body><div class="layout">{sidebar_html}<div class="main">{head}{body}</div></div></body></html>'
+        f'<body><input type="checkbox" id="sb-toggle" class="sb-toggle">'
+        f'<label for="sb-toggle" class="sb-toggle-btn" title="Toggle sidebar"></label>'
+        f'<div class="layout">{sidebar_html}<div class="main">{head}{body}</div></div></body></html>'
     )
 
 
