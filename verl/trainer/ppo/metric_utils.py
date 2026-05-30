@@ -387,7 +387,13 @@ def calc_maj_val(data: list[dict[str, Any]], vote_key: str, val_key: str) -> flo
 
 def update_var2metric2val(var2metric2val: dict[str, dict[str, float]]):
     output = var2metric2val.copy()
-    prefixs = {"n_": "p_", "nb_": "pb_", "nu_": "pu_"}
+    prefixs = {
+        "n_": "p_",
+        "nb_": "pb_",
+        "nu_": "pu_",
+        "dter_n_": "dter_p_",
+        "eer_n_": "eer_p_",
+    }
     remove_vars = set()
     for n_pfx, p_pfx in prefixs.items():
         ref_var = f"{n_pfx}ref"
@@ -398,7 +404,9 @@ def update_var2metric2val(var2metric2val: dict[str, dict[str, float]]):
         for var_name, metric2val in var2metric2val.items():
             if not var_name.startswith(n_pfx) or var_name == ref_var:
                 continue
-            pvar_name = var_name.replace(n_pfx, p_pfx)
+            if var_name in remove_vars:
+                continue
+            pvar_name = p_pfx + var_name[len(n_pfx):]
             if pvar_name in output:
                 continue
             for name, val in metric2val.items():

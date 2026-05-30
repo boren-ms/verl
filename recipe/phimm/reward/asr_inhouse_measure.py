@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
 import logging
 import os
@@ -30,24 +29,6 @@ DEFAULT_REMOTE_PACK_ROOT = "az://orngwus2cresco/data/speech/users/ruchaofan/pack
 TER_WHEEL_NAME = "ter-2.10.0-py3-none-any.whl"
 DOTNET_TAR_NAME = "dotnet-runtime-8.0.0-linux-x64.tar.gz"
 _SETUP_DONE: set[str] = set()
-
-
-@dataclass
-class Error:
-    n_sub: int = 0
-    n_del: int = 0
-    n_ins: int = 0
-    n_ref: int = 0
-
-    @property
-    def n_err(self) -> int:
-        return self.n_sub + self.n_del + self.n_ins
-
-    @property
-    def wer(self) -> float:
-        if self.n_ref == 0:
-            return 0.0
-        return self.n_err / self.n_ref
 
 
 def _metric_bin(pack_dir: Path) -> Path:
@@ -250,172 +231,54 @@ def get_metrics(trans: str, reco: str, *args: str, pack_dir: str | Path | None =
     return record
 
 
-def _extract_dter(record: dict) -> tuple[int, int, float]:
-    """Return (n_err, n_ref, ter) for DisfluencyTolerant_TER if emitted by CLI.
+def _compute_eer(ref: str, hyp: str, pack_dir: str | Path | None = None) -> tuple[int, int, float]:
+    """Return (n_err, n_ref, eer) by calling SpeechInsight GetMetrics.
 
-    GetMetrics single-utterance runs usually leave ``UtteranceTERMetrics`` empty;
-    prefer ``_compute_dter`` which calls the dfmetrics TER backend directly.
+    EER = (NumTransEnts - NumTransEntsMatched) / NumTransEnts, taken from the
+    first ``EntityInfo`` block in ``UtteranceResults.json``. Returns zeros when
+    GetMetrics fails or the utterance has no annotated entities.
     """
-    for metric in record.get("UtteranceTERMetrics") or []:
-        if metric.get("MetricName") != "DisfluencyTolerant_TER":
-            continue
-        info = metric.get("ter_info") or {}
-        n_err = int(info.get("number_of_edits") or 0)
-        n_ref = int(info.get("number_of_tokens") or 0)
-        raw = float(info.get("display_ter") or 0.0)
-        ter = raw / 100.0 if raw > 1.5 else raw
-        if n_ref > 0 and (n_err > 0 and ter == 0.0):
-            ter = n_err / n_ref
-        return n_err, n_ref, ter
-    return 0, 0, 0.0
-
-
-def _pick_int(d: dict, keys: list[str]) -> int | None:
-    for k in keys:
-        if k in d and d.get(k) is not None:
-            try:
-                return int(d.get(k))
-            except (TypeError, ValueError):
-                continue
-    return None
-
-
-def _extract_eer(entity_info: dict | None) -> tuple[int, int, float, int]:
-    """Return (n_err, n_ref, eer, fallback_from_word_level).
-
-    Primary path: SpeechInsight's ``EntityInfo`` exposes ``NumTransEnts`` (total
-    entities in the reference) and ``NumTransEntsMatched`` (correctly recognized
-    entities). EER = (NumTransEnts - NumTransEntsMatched) / NumTransEnts.
-
-    Falls back to entity-word-level errors if entity-level counts are missing.
-    """
-    if not entity_info:
-        return 0, 0, 0.0, 0
-
-    n_ref = int(entity_info.get("NumTransEnts") or 0)
-    if n_ref > 0:
-        n_matched = int(entity_info.get("NumTransEntsMatched") or 0)
-        n_err = max(n_ref - n_matched, 0)
-        return n_err, n_ref, n_err / n_ref, 0
-
-    # Fallback: word-level entity errors (only used if utterance had no entities,
-    # in which case both counts are 0 anyway).
-    w_sub = int(entity_info.get("NumEntWordSub") or 0)
-    w_del = int(entity_info.get("NumEntWordDel") or 0)
-    w_ins = int(entity_info.get("NumEntWordIns") or 0)
-    w_ref = int(entity_info.get("NumEntWords") or 0)
-    w_err = w_sub + w_del + w_ins
-    if w_ref > 0:
-        return w_err, w_ref, w_err / w_ref, 1
-    return 0, 0, 0.0, 0
-
-
-def get_wers(trans: str, reco: str, *args: str, pack_dir: str | Path | None = None):
-    metrics = get_metrics(trans, reco, *args, pack_dir=pack_dir)
-    if metrics is None:
-        return None, None
-    metric_list = metrics.get("Metrics", []) or []
+    record = get_metrics(ref, hyp, "--verbatim", pack_dir=pack_dir)
+    if not record:
+        return 0, 0, 0.0
+    metric_list = record.get("Metrics") or []
     if not metric_list:
-        return None, None
-    first_metric = metric_list[0]
-    ewer = Error(
-        n_sub=first_metric["EntityInfo"]["NumEntWordSub"],
-        n_del=first_metric["EntityInfo"]["NumEntWordDel"],
-        n_ins=first_metric["EntityInfo"]["NumEntWordIns"],
-        n_ref=first_metric["EntityInfo"]["NumEntWords"],
-    )
-    wer = Error(
-        n_sub=first_metric["WERInfo"]["Substitutions"],
-        n_del=first_metric["WERInfo"]["Deletions"],
-        n_ins=first_metric["WERInfo"]["Insertions"],
-        n_ref=first_metric["WERInfo"]["TXWords"],
-    )
-    return wer, ewer
+        return 0, 0, 0.0
+    entity_info = metric_list[0].get("EntityInfo") or {}
+    n_ref = int(entity_info.get("NumTransEnts") or 0)
+    if n_ref == 0:
+        return 0, 0, 0.0
+    n_matched = int(entity_info.get("NumTransEntsMatched") or 0)
+    n_err = max(n_ref - n_matched, 0)
+    return n_err, n_ref, n_err / n_ref
 
 
 def eval_score(solution_str: str, ground_truth: str, **kwargs):
-    """Inhouse TER/EWER scorer for eval_asr.py.
+    """Inhouse DTER/EER scorer for eval_asr.py.
 
-    Returns keys compatible with the eval aggregator:
-    score, n_err, n_ref, nb_err, nb_ref.
+    Reports only DisfluencyTolerant TER (DTER, via dfmetrics Python backend)
+    and entity recognition error rate (EER, from SpeechInsight EntityInfo).
+    ``score = 1 - dter`` is exposed for the trainer's reward aggregation.
     """
     pack_dir = kwargs.get("pack_dir", DEFAULT_PACK_DIR)
     parsed = parse_asr_response(solution_str)
     hyp_text = parsed.get("text") or ""
     ref_text = _clean_ref(ground_truth)
 
-    # --verbatim: tran/reco both display form; tran may have <disfluency> tags
-    # and entity annotations. Produces WERInfo + EntityInfo + UtteranceTERMetrics
-    # (including DisfluencyTolerant_TER) in UtteranceResults.json.
-    record = get_metrics(ref_text, hyp_text, "--verbatim", pack_dir=pack_dir)
-    if record is None:
-        return {
-            "score": 0.0,
-            "n_err": 0,
-            "n_ref": 0,
-            "nb_err": 0,
-            "nb_ref": 0,
-            "dter": 0.0,
-            "dter_n_err": 0,
-            "dter_n_ref": 0,
-            "eer": 0.0,
-            "ne_err": 0,
-            "ne_ref": 0,
-            "metric_error": 1,
-            "eer_from_word_level": 0,
-        }
+    dter_n_err, dter_n_ref, dter = _compute_dter(ref_text, hyp_text)
+    eer_n_err, eer_n_ref, eer = _compute_eer(ref_text, hyp_text, pack_dir=pack_dir)
 
-    metric_list = record.get("Metrics", []) or []
-    if not metric_list:
-        return {
-            "score": 0.0,
-            "n_err": 0,
-            "n_ref": 0,
-            "nb_err": 0,
-            "nb_ref": 0,
-            "dter": 0.0,
-            "dter_n_err": 0,
-            "dter_n_ref": 0,
-            "eer": 0.0,
-            "ne_err": 0,
-            "ne_ref": 0,
-            "metric_error": 1,
-            "eer_from_word_level": 0,
-        }
-
-    first_metric = metric_list[0]
-    wer = Error(
-        n_sub=first_metric["WERInfo"]["Substitutions"],
-        n_del=first_metric["WERInfo"]["Deletions"],
-        n_ins=first_metric["WERInfo"]["Insertions"],
-        n_ref=first_metric["WERInfo"]["TXWords"],
-    )
-    ewer = Error(
-        n_sub=first_metric["EntityInfo"]["NumEntWordSub"],
-        n_del=first_metric["EntityInfo"]["NumEntWordDel"],
-        n_ins=first_metric["EntityInfo"]["NumEntWordIns"],
-        n_ref=first_metric["EntityInfo"]["NumEntWords"],
-    )
-
-    # Try the CLI-emitted UtteranceTERMetrics first (rare for single-utterance
-    # runs); fall back to the dfmetrics Python TER backend.
-    dter_n_err, dter_n_ref, dter = _extract_dter(record)
-    if dter_n_ref == 0:
-        dter_n_err, dter_n_ref, dter = _compute_dter(ref_text, hyp_text)
-
-    ne_err, ne_ref, eer, eer_from_word_level = _extract_eer(first_metric.get("EntityInfo") or {})
-
+    # `dter_n_*` / `eer_n_*` are picked up by `update_var2metric2val` and
+    # collapsed into corpus edit-weighted ratios:
+    #   dter_p_err = sum(dter_n_err) / sum(dter_n_ref)
+    #   eer_p_err  = sum(eer_n_err)  / sum(eer_n_ref)
+    # Per-utterance `dter` / `eer` stay around for the unweighted mean@1.
     return {
-        "score": 1.0 - wer.wer,
-        "n_err": wer.n_err,
-        "n_ref": wer.n_ref,
-        "nb_err": ewer.n_err,
-        "nb_ref": ewer.n_ref,
+        "score": 1.0 - dter,
         "dter": dter,
         "dter_n_err": dter_n_err,
         "dter_n_ref": dter_n_ref,
         "eer": eer,
-        "ne_err": ne_err,
-        "ne_ref": ne_ref,
-        "eer_from_word_level": eer_from_word_level,
+        "eer_n_err": eer_n_err,
+        "eer_n_ref": eer_n_ref,
     }
