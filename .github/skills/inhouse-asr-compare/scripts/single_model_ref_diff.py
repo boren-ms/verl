@@ -91,7 +91,8 @@ def row_category_single(row: dict) -> str | None:
 
 
 def filter_rows_by_category_single(rows: list, category: str,
-                                   m_idx=None, n_ctx: int = 2) -> list:
+                                   m_idx=None, n_ctx: int = 2,
+                                   seg_starts=None) -> list:
     # 1) Select the divergence rows (and trailing) for this page.
     kept_diffs: list = []
     trailing: list = []
@@ -133,6 +134,13 @@ def filter_rows_by_category_single(rows: list, category: str,
         for j in range(i - n_ctx, i + n_ctx + 1):
             if 0 <= j < n:
                 show.add(j)
+    # Also reveal n_ctx words on each side of every segment boundary so the
+    # words adjacent to a boundary are visible even without a nearby error.
+    for r, _seg in (seg_starts or []):
+        b = int(r)
+        for j in range(b - n_ctx, b + n_ctx + 1):
+            if 0 <= j < n:
+                show.add(j)
 
     out = []
     prev_idx = -1
@@ -154,12 +162,31 @@ def filter_rows_by_category_single(rows: list, category: str,
     return out
 
 
-def render_diff_table_single(rows: list, model_name: str, cols_per_row: int = 12) -> str:
+def render_diff_table_single(rows: list, model_name: str, cols_per_row: int = 12,
+                             seg_starts=None) -> str:
     if not rows:
         return '<div class="meta">No disagreements — model matches ref everywhere.</div>'
 
+    boundaries = sorted(([int(r), int(n)] for r, n in (seg_starts or [])),
+                        key=lambda x: x[0])
+    _bi = [0]
+
     cols = []
+
+    def _flush_segs(upto_ref):
+        while _bi[0] < len(boundaries) and boundaries[_bi[0]][0] <= upto_ref:
+            n = boundaries[_bi[0]][1]
+            cols.append({
+                "idx": f'<span class="seg-num">S{n}</span>',
+                "ref": '<span class="seg-bar">┊</span>',
+                "m": '<span class="seg-bar">┊</span>',
+                "cls": "seg-cell",
+            })
+            _bi[0] += 1
+
     for row in rows:
+        if row["kind"] in ("diff", "ctx"):
+            _flush_segs(row["ref_idx"])
         if row["kind"] == "gap":
             cols.append({
                 "idx": "…",
@@ -193,6 +220,8 @@ def render_diff_table_single(rows: list, model_name: str, cols_per_row: int = 12
             "cls": "diff-col",
         })
 
+    _flush_segs(float("inf"))
+
     def chunk(seq, n):
         for i in range(0, len(seq), n):
             yield seq[i:i + n]
@@ -223,8 +252,10 @@ def card_html_single(uid: str, m: dict, model_name: str, category: str | None = 
         return entity_card_html_single(uid, m, model_name)
     m_idx = index_alignment(m["align"], m["classes"])
     rows = diff_rows_single(m_idx)
+    seg_starts = m.get("seg_starts") if category in ("fmt", "lexical") else None
     if category is not None:
-        rows = filter_rows_by_category_single(rows, category)
+        rows = filter_rows_by_category_single(rows, category, m_idx,
+                                              seg_starts=seg_starts)
     n_diff = sum(1 for r in rows if r["kind"] in ("diff", "trailing"))
     if n_diff == 0:
         return None
@@ -246,11 +277,12 @@ def card_html_single(uid: str, m: dict, model_name: str, category: str | None = 
         )
     parts.append(f'<span>diff cells: {n_diff}</span>')
     stats = "".join(parts)
+    seg_starts = m.get("seg_starts") if category in ("fmt", "lexical") else None
     return (
         f'<div class="card">'
         f'<h2 id="{html.escape(slugify(uid))}">{html.escape(uid)}</h2>'
         f'<div class="stats">{stats}</div>'
-        f'{render_diff_table_single(rows, model_name)}'
+        f'{render_diff_table_single(rows, model_name, seg_starts=seg_starts)}'
         f'</div>'
     )
 

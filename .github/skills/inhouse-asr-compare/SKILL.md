@@ -49,6 +49,8 @@ Conversion to the internal schema:
 - A single `UtteranceTERMetrics` entry is synthesized from `dter_detail`; `display_ter = dter * 100`, `number_of_tokens = dter_n_ref`, `number_of_edits = dter_n_err`. The long-eval pipeline computes only a disfluency-tolerant TER, so the same detail is used regardless of the `--metric` requested.
 - You can mix formats — e.g. a verl `details.jsonl` as `--baseline-path` and an in-house JSON as `--target-path` — as long as the recording GUIDs join.
 
+Segment boundaries: when a verl record carries per-segment responses (the `responses` field — a list of plain segment strings — or the legacy `raw_response` field with one `<TXT>` block per segment), the **lexical and fmt pages** draw a thin amber boundary marker (`┊` with an `S{n}` label) before the reference token that begins each segment, so you can see where one segment response ends and the next starts. Boundaries are mapped onto reference positions by accumulating consumed hypothesis characters across `word_align`. Up to 2 reference words on each side of every boundary are shown as muted context rows (the same window used around errors), so the words adjacent to a boundary are always visible. `responses` is preferred when present; markers appear only for inputs that provide `responses` or `raw_response`.
+
 Limitation: verl records carry no rich `Metrics[*].EntityInfo`, so `--include-entity` is a no-op for them (all-zero entity entries). Use in-house JSON dumps on both sides for entity comparison.
 
 ## Python environment

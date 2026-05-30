@@ -209,7 +209,8 @@ def _norm_seq(tokens) -> tuple:
 
 
 def filter_rows_by_category(rows: list, category: str,
-                            b_idx=None, t_idx=None, n_ctx: int = 2) -> list:
+                            b_idx=None, t_idx=None, n_ctx: int = 2,
+                            seg_starts=None) -> list:
     """Keep only rows of the given category and regenerate gap markers.
 
     For category == 'lexical' we additionally drop rows where the two models'
@@ -219,6 +220,9 @@ def filter_rows_by_category(rows: list, category: str,
     `b_idx` / `t_idx` are the `(ref_tokens, per_ref, insertions)` triples; when
     provided, up to `n_ctx` reference words on each side of every kept
     divergence are emitted as muted "ctx" rows so the error is shown in context.
+    `seg_starts` (list of ``[ref_idx, seg_num]``) additionally forces up to
+    `n_ctx` reference words on each side of every segment boundary to be shown,
+    so the words adjacent to a boundary are visible even when no error is near.
     """
     # 1) Select the divergence rows (and trailing) that belong on this page.
     kept_diffs: list = []
@@ -267,6 +271,13 @@ def filter_rows_by_category(rows: list, category: str,
         for j in range(i - n_ctx, i + n_ctx + 1):
             if 0 <= j < n:
                 show.add(j)
+    # Also reveal n_ctx words on each side of every segment boundary so the
+    # words adjacent to a boundary are visible even without a nearby error.
+    for r, _seg in (seg_starts or []):
+        b = int(r)
+        for j in range(b - n_ctx, b + n_ctx + 1):
+            if 0 <= j < n:
+                show.add(j)
 
     out = []
     prev_idx = -1
@@ -300,8 +311,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Ar
 .sb-toggle:checked ~ .sb-toggle-btn { left: 8px; }
 .sb-toggle:checked ~ .sb-toggle-btn::before { content: "\\2630  show"; }
 .sb-toggle:checked ~ .layout .sidebar { display: none; }
-.layout { display: flex; align-items: flex-start; }
-.sidebar { position: sticky; top: 0; align-self: flex-start; width: 240px; max-height: 100vh; overflow-y: auto; border-right: 1px solid #d0d7de; background: #f6f8fa; padding: 16px 12px; font-size: 12px; box-sizing: border-box; }
+.sb-toggle:checked ~ .layout .main { margin-left: 0; }
+.layout { display: block; }
+.sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; width: 240px; overflow-y: auto; border-right: 1px solid #d0d7de; background: #f6f8fa; padding: 16px 12px; font-size: 12px; box-sizing: border-box; }
 .sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #555; margin: 0 0 8px 0; }
 .sidebar .nav { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #d0d7de; }
 .sidebar .nav a { display: block; padding: 3px 6px; border-radius: 4px; text-decoration: none; color: #0969da; font-size: 11px; }
@@ -315,7 +327,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Ar
 .sidebar .d-pos { color: #b00020; font-weight: 600; margin-left: 4px; }
 .sidebar .d-neg { color: #006622; font-weight: 600; margin-left: 4px; }
 .sidebar .d-zero { color: #888; margin-left: 4px; }
-.main { flex: 1; padding: 24px; max-width: 1400px; min-width: 0; }
+.main { margin-left: 240px; padding: 24px; max-width: 1400px; min-width: 0; }
 h1 { font-size: 20px; }
 .meta { color: #666; font-size: 13px; margin-bottom: 14px; line-height: 1.55; }
 .legend { font-size: 12px; color: #444; margin-bottom: 18px; }
@@ -352,6 +364,10 @@ table.diff tr.ref td.cell.both-same { background: #f5f9ff; }
 table.diff td.ctx-cell { background: #fcfcfd; color: #99a; }
 table.diff tr.ref td.cell.ctx-cell { background: #fcfcfd; color: #8a909a; font-weight: 500; }
 .ctx-ditto { color: #c2c8d0; }
+table.diff td.seg-cell { background: #fff7ed; border: none; padding: 0 2px; width: 1px; }
+table.diff tr.ref td.cell.seg-cell { background: #fff7ed; }
+.seg-bar { display: inline-block; color: #d97706; font-weight: 700; }
+.seg-num { display: inline-block; font-size: 9px; font-weight: 700; color: #b45309; font-family: ui-monospace, Menlo, monospace; }
 .ins-chip  { display: inline-block; margin-right: 2px; }
 .ent-block { margin-top: 10px; padding: 8px 10px; border: 1px solid #d8dde3; border-radius: 5px; background: #fff; }
 .ent-label { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
@@ -388,16 +404,39 @@ def render_ins_list(tokens: list[str]) -> str:
 
 
 def render_diff_table(rows: list, baseline_name: str, target_name: str,
-                      cols_per_row: int = 12) -> str:
+                      cols_per_row: int = 12, seg_starts=None) -> str:
     """Row-wise layout that wraps: each visual block has 3 rows
     (ref / baseline / target), and we emit a new block every `cols_per_row`
     disagreement positions. No horizontal overflow.
+
+    When `seg_starts` (list of ``[ref_idx, seg_num]``) is supplied, a thin
+    segment-boundary marker column is injected before the reference token that
+    begins each segment, so per-segment response boundaries are visible.
     """
     if not rows:
         return '<div class="meta">No disagreements — ref, baseline, and target all match.</div>'
 
+    boundaries = sorted(([int(r), int(n)] for r, n in (seg_starts or [])),
+                        key=lambda x: x[0])
+    _bi = [0]
+
     cols = []
+
+    def _flush_segs(upto_ref):
+        while _bi[0] < len(boundaries) and boundaries[_bi[0]][0] <= upto_ref:
+            n = boundaries[_bi[0]][1]
+            cols.append({
+                "idx": f'<span class="seg-num">S{n}</span>',
+                "ref": '<span class="seg-bar">┊</span>',
+                "b": '<span class="seg-bar">┊</span>',
+                "t": '<span class="seg-bar">┊</span>',
+                "cls": "seg-cell",
+            })
+            _bi[0] += 1
+
     for row in rows:
+        if row["kind"] in ("diff", "ctx"):
+            _flush_segs(row["ref_idx"])
         if row["kind"] == "gap":
             cols.append({
                 "idx": "…",
@@ -442,6 +481,8 @@ def render_diff_table(rows: list, baseline_name: str, target_name: str,
             "t": t_cell,
             "cls": cls,
         })
+
+    _flush_segs(float("inf"))
 
     def chunk(seq, n):
         for i in range(0, len(seq), n):
@@ -521,6 +562,52 @@ def _verl_uid(rec: dict) -> str:
     return rec.get("id") or p or ""
 
 
+def _segment_ref_starts(align: list, segments) -> list:
+    """Map verl per-segment responses onto reference-token positions.
+
+    The long-eval `hyp` is the space-join of each segment's text, so segment
+    boundaries fall at known offsets in the hypothesis token stream. We walk
+    `word_align`, accumulating consumed hypothesis characters, and record the
+    reference-token index at which each new segment begins.
+
+    `segments` is the per-segment text list — either the `responses` field
+    (plain segment strings) or the legacy `raw_response` field (each item an
+    `<ASR>...<TXT>...</TXT></ASR>` wrapper). When a `<TXT>...</TXT>` block is
+    present it is extracted; otherwise the string is used as-is.
+
+    Returns a list of ``[ref_idx, seg_num]`` pairs (``seg_num`` 1-based) meaning
+    "segment ``seg_num`` starts immediately before reference token ``ref_idx``".
+    Returns ``[]`` when there are fewer than two segments.
+    """
+    segs = []
+    for s in segments or []:
+        s = s or ""
+        m = re.search(r"<TXT>(.*?)</TXT>", s, re.S)
+        text = m.group(1) if m else s
+        segs.append(re.sub(r"\s+", "", text))
+    if len(segs) <= 1:
+        return []
+    seg_char_ends = []
+    acc = 0
+    for s in segs:
+        acc += len(s)
+        seg_char_ends.append(acc)
+    consumed = 0
+    seg_idx = 0
+    ref_count = 0
+    starts = []
+    for cell in align:
+        r, h = split_align(cell)
+        if h != "NULL":
+            consumed += len(re.sub(r"\s+", "", h))
+        if r != "NULL":
+            ref_count += 1
+        while seg_idx < len(seg_char_ends) - 1 and consumed >= seg_char_ends[seg_idx]:
+            starts.append([ref_count, seg_idx + 1])
+            seg_idx += 1
+    return starts
+
+
 def _verl_to_inhouse(rec: dict, metric: str) -> dict:
     """Convert one verl long-eval record into an in-house-style record carrying a
     single `UtteranceTERMetrics` entry (named `metric`) built from `dter_detail`.
@@ -541,6 +628,8 @@ def _verl_to_inhouse(rec: dict, metric: str) -> dict:
     return {
         "UtteranceId": _verl_uid(rec),
         "DataSetID": rec.get("data_source"),
+        "_seg_starts": _segment_ref_starts(
+            align, rec.get("responses") or rec.get("raw_response")),
         "UtteranceTERMetrics": [{
             "MetricName": metric,
             "ter_info": {
@@ -667,6 +756,7 @@ def load_records(path: Path, metric: str) -> dict:
             "punc_edits": cat_edits.get("punc", 0),
             "cap_edits": cat_edits.get("cap", 0),
             "itn_edits": cat_edits.get("itn", 0),
+            "seg_starts": rec.get("_seg_starts") or [],
             "entity": None,
         }
     return out
@@ -685,8 +775,10 @@ def card_html(uid: str, b: dict, t: dict, baseline_name: str, target_name: str,
     else:
         warn = ""
     rows = diff_rows(b_idx, t_idx)
+    seg_starts = b.get("seg_starts") if category in ("fmt", "lexical") else None
     if category is not None:
-        rows = filter_rows_by_category(rows, category, b_idx, t_idx)
+        rows = filter_rows_by_category(rows, category, b_idx, t_idx,
+                                       seg_starts=seg_starts)
     n_diff = sum(1 for r in rows if r["kind"] in ("diff", "trailing"))
     if n_diff == 0:
         return None
@@ -740,7 +832,7 @@ def card_html(uid: str, b: dict, t: dict, baseline_name: str, target_name: str,
         f'<h2 id="{html.escape(slugify(uid))}">{html.escape(uid)}</h2>'
         f'<div class="stats">{stats}</div>'
         f'{warn}'
-        f'{render_diff_table(rows, baseline_name, target_name)}'
+        f'{render_diff_table(rows, baseline_name, target_name, seg_starts=seg_starts)}'
         f'</div>'
     )
 
