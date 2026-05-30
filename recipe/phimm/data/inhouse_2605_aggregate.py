@@ -101,7 +101,7 @@ def aggregate(val_data_dir: str, step: int | None = None) -> dict:
         segs = sorted(d["segs"], key=lambda x: x[0])
         hyp_full = " ".join(s for _, s in segs if s).strip()
         ref_full = _clean_ref(d["ref"] or "")
-        n_err, n_ref, dter = _compute_dter(ref_full, hyp_full)
+        n_err, n_ref, dter, _ = _compute_dter(ref_full, hyp_full)
         corp = d["corpus"]
         corp_err[corp] += n_err
         corp_ref[corp] += n_ref

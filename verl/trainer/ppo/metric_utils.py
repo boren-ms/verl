@@ -478,7 +478,10 @@ def process_validation_metrics(
     for data_source, uid2var2vals in data_src2uid2var2vals.items():
         for uid, var2vals in uid2var2vals.items():
             for var_name, var_vals in var2vals.items():
-                if isinstance(var_vals[0], str):
+                # Validation summaries only support scalar numeric values. Keep
+                # structured extras like word alignments in the dumped JSONL,
+                # but skip them during metric aggregation.
+                if isinstance(var_vals[0], str) or not np.isscalar(var_vals[0]):
                     continue
 
                 metric = {}

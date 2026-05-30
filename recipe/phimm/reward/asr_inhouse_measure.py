@@ -162,8 +162,8 @@ def _get_ter_backend(locale: str = "en-us"):
     return _TER_BACKEND
 
 
-def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float]:
-    """Return (n_err, n_ref, dter_fraction) for DisfluencyTolerant_TER.
+def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float, list[str]]:
+    """Return (n_err, n_ref, dter_fraction, word_align) for DTER.
 
     GetMetrics CLI emits an empty ``UtteranceTERMetrics`` for single-utterance
     runs, so go through the Python ``dfmetrics`` TER backend directly.
@@ -173,17 +173,18 @@ def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float]:
         result = backend.compute_ter_from_strings(transcription=ref, recognition=hyp) or {}
     except Exception as e:
         logger.warning("DTER computation failed: %s", e)
-        return 0, 0, 0.0
+        return 0, 0, 0.0, []
 
     info = (result.get("summary") or {}).get("ter_info") or {}
     n_err = int(info.get("number_of_edits") or 0)
     n_ref = int(info.get("number_of_tokens") or 0)
     raw = float(info.get("display_ter") or 0.0)
+    word_align = list(result.get("word_align") or [])
     # dfmetrics returns display_ter as a percentage (e.g. 42.85), normalize to fraction.
     dter = raw / 100.0 if raw > 1.5 else raw
     if n_ref > 0 and (n_err > 0 and dter == 0.0):
         dter = n_err / n_ref
-    return n_err, n_ref, dter
+    return n_err, n_ref, dter, word_align
 
 
 def get_metrics(trans: str, reco: str, *args: str, pack_dir: str | Path | None = None):
@@ -265,19 +266,18 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     hyp_text = parsed.get("text") or ""
     ref_text = _clean_ref(ground_truth)
 
-    dter_n_err, dter_n_ref, dter = _compute_dter(ref_text, hyp_text)
+    dter_n_err, dter_n_ref, dter, dter_word_align = _compute_dter(ref_text, hyp_text)
     eer_n_err, eer_n_ref, eer = _compute_eer(ref_text, hyp_text, pack_dir=pack_dir)
 
     # `dter_n_*` / `eer_n_*` are picked up by `update_var2metric2val` and
-    # collapsed into corpus edit-weighted ratios:
-    #   dter_p_err = sum(dter_n_err) / sum(dter_n_ref)
-    #   eer_p_err  = sum(eer_n_err)  / sum(eer_n_ref)
-    # Per-utterance `dter` / `eer` stay around for the unweighted mean@1.
+    # collapsed into corpus edit-weighted ratios. `dter` is the shorthand name
+    # for DisfluencyTolerant TER throughout this scorer path.
     return {
         "score": 1.0 - dter,
         "dter": dter,
         "dter_n_err": dter_n_err,
         "dter_n_ref": dter_n_ref,
+        "dter_word_align": dter_word_align,
         "eer": eer,
         "eer_n_err": eer_n_err,
         "eer_n_ref": eer_n_ref,
