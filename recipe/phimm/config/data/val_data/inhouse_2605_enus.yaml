@@ -23,7 +23,7 @@
   post_process:
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "keywords", "prefix", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-US/Conversation_OnlineMeetings_DTEST_FY25Q3_en-US_DTEST_OfflineDataCollection/test.jsonl
@@ -44,7 +44,7 @@
   post_process:
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "keywords", "prefix", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-US/CustomerSpeechDomainSet_DTEST_Banking_Entity_FY23Q4_en-US_DTEST/test.jsonl
@@ -65,7 +65,7 @@
   post_process:
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "keywords", "prefix", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-US/CustomerSpeechDomainSet_DTEST_Medical_Entity_FY23Q4_en-US_DTEST/test.jsonl
@@ -86,7 +86,7 @@
   post_process:
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "keywords", "prefix", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-US/Dictation_Commonset_OfficeOffline_FY24Q3_en-US_DTEST_OfflineDataCollection/test.jsonl
@@ -107,7 +107,7 @@
   post_process:
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "keywords", "prefix", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-US/OnlineMeetings_CS_Product_FY22_en-US_DTEST/test.jsonl
@@ -128,7 +128,7 @@
   post_process:
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "keywords", "prefix", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-US/OnlineMeetings_CS_Shiproom_FY22_en-US_DTEST/test.jsonl
@@ -149,4 +149,4 @@
   post_process:
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "keywords", "prefix", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

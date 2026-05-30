@@ -34,6 +34,7 @@ spins up a rollout worker group, so it is cheap to run for eval-only sweeps.
 
 import json
 import os
+import re
 from collections import defaultdict
 from pathlib import Path
 from pprint import pprint
@@ -215,16 +216,19 @@ def generate_segments(wg, dataloader, tokenizer):
             prompt_length = data_item.batch["prompts"].shape[-1]
             valid_response_length = int(data_item.batch["attention_mask"][prompt_length:].sum())
             valid_response_ids = data_item.batch["responses"][:valid_response_length]
-            response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
+            raw_response = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
             eos = tokenizer.eos_token
-            if eos and response_str.endswith(eos):
-                response_str = response_str[: -len(eos)]
+            if eos and raw_response.endswith(eos):
+                raw_response = raw_response[: -len(eos)]
+            response_str = parse_asr_response(raw_response).get("text") or ""
+            response_str = re.sub(r"<nonspeech>", "", response_str, flags=re.IGNORECASE).strip()
 
             extra = extras[i] if extras[i] else {}
             segments.append(
                 {
                     "parent": _parent_key(extra, audio_paths[i], fallback=f"__row_{batch_idx}_{i}__"),
                     "seg_start": _seg_start(extra),
+                    "raw_response": raw_response,
                     "response": response_str,
                     "ref": refs[i],
                     "prompt": prompts[i],
@@ -251,23 +255,24 @@ def _micro(a):
     }
 
 
-def score_segments(segments, measure_kwargs, num_examine):
+def score_segments(segments, measure_kwargs):
     """Group segments by parent, concat hyps, score once per recording.
 
-    Returns ``(details, measures)`` where ``details`` is the per-recording list
-    and ``measures`` carries the micro-averaged overall/by_source TER + EER.
+    Returns a dict keyed by ``data_source`` mapping to
+    ``{"details": [...], "measure": {...}}`` (per-recording detail list plus the
+    micro-averaged TER + EER for that source).
     """
     groups: dict[str, list[dict]] = defaultdict(list)
     for seg in segments:
         groups[seg["parent"]].append(seg)
 
-    details: list[dict] = []
+    details_by_source: dict[str, list[dict]] = defaultdict(list)
     agg = defaultdict(lambda: {"dter_n_err": 0, "dter_n_ref": 0, "eer_n_err": 0, "eer_n_ref": 0, "n": 0})
 
-    n_printed = 0
     for parent, members in tqdm(groups.items(), total=len(groups), desc="score"):
         members.sort(key=lambda m: m["seg_start"])
         concat_hyp = " ".join(m["response"].strip() for m in members if m["response"].strip())
+        raw_responses = [m["raw_response"] for m in members]
         head = members[0]
         ref = head["ref"]
         data_source = head["data_source"] or "all"
@@ -282,6 +287,7 @@ def score_segments(segments, measure_kwargs, num_examine):
             "n_segments": len(members),
             "ref": ref,
             "hyp": concat_hyp,
+            "raw_response": raw_responses,
             "dter": score.get("dter"),
             "dter_n_err": score.get("dter_n_err"),
             "dter_n_ref": score.get("dter_n_ref"),
@@ -290,28 +296,45 @@ def score_segments(segments, measure_kwargs, num_examine):
             "eer_n_ref": score.get("eer_n_ref"),
             "dter_detail": score.get("dter_detail"),
         }
-        details.append(rec)
+        details_by_source[data_source].append(rec)
 
-        for key in (data_source, "__overall__"):
-            a = agg[key]
-            a["dter_n_err"] += int(score.get("dter_n_err") or 0)
-            a["dter_n_ref"] += int(score.get("dter_n_ref") or 0)
-            a["eer_n_err"] += int(score.get("eer_n_err") or 0)
-            a["eer_n_ref"] += int(score.get("eer_n_ref") or 0)
-            a["n"] += 1
+        a = agg[data_source]
+        a["dter_n_err"] += int(score.get("dter_n_err") or 0)
+        a["dter_n_ref"] += int(score.get("dter_n_ref") or 0)
+        a["eer_n_err"] += int(score.get("eer_n_err") or 0)
+        a["eer_n_ref"] += int(score.get("eer_n_ref") or 0)
+        a["n"] += 1
 
-        if n_printed < num_examine:
-            n_printed += 1
-            print(f"--- {parent} ({len(members)} segments) ---")
-            print(f"  DTER: {(score.get('dter') or 0.0):.2%}  EER: {(score.get('eer') or 0.0):.2%}")
-            print(f"  Ref: {str(rec['ref'])[:300]}")
-            print(f"  Hyp: {str(rec['hyp'])[:300]}")
-
-    measures = {
-        "overall": _micro(agg["__overall__"]),
-        "by_source": {src: _micro(a) for src, a in agg.items() if src != "__overall__"},
+    return {
+        src: {"details": details_by_source[src], "measure": _micro(a)}
+        for src, a in agg.items()
     }
-    return details, measures
+
+
+def _slug(src: str) -> str:
+    return "".join(c if c.isalnum() or c in ("-", "_", ".") else "_" for c in str(src))
+
+
+def write_results(results_by_source, output_dir):
+    """Write per-data-source details JSONL + measures JSON under ``output_dir``.
+
+    Each source is written to its own subdirectory (``{output_dir}/{slug}/``).
+    """
+    for src, res in results_by_source.items():
+        slug = _slug(src)
+        details_path = f"{output_dir}/{slug}/details.jsonl"
+        measures_path = f"{output_dir}/{slug}/measures.json"
+        _write_jsonl(res["details"], details_path)
+        _write_json(res["measure"], measures_path)
+
+        m = res["measure"]
+        print(
+            f"[{src}] DTER: {m['dter']:.2%} [{m['dter_n_err']}/{m['dter_n_ref']}]  "
+            f"EER: {m['eer']:.2%} [{m['eer_n_err']}/{m['eer_n_ref']}]  "
+            f"on {m['n_recordings']} recordings"
+        )
+        print(f"  Saved per-recording details to {details_path}")
+        print(f"  Saved aggregate measures to {measures_path}")
 
 
 @ray.remote(num_cpus=1)
@@ -324,9 +347,6 @@ def main_task(config):
     output_dir = config.data.get("output_path", None)
     assert output_dir is not None, "Please specify data.output_path"
     output_dir = output_dir.rstrip("/")
-    details_path = f"{output_dir}/result_details.jsonl"
-    measures_path = f"{output_dir}/measures.json"
-    num_examine = config.data.get("eval_num_examine", 1)
 
     measure_kwargs = config.data.get("measure_kwargs", {})
     if OmegaConf.is_config(measure_kwargs):
@@ -337,19 +357,11 @@ def main_task(config):
     wg = build_worker_group(config)
 
     segments = generate_segments(wg, dataloader, tokenizer)
-    details, measures = score_segments(segments, measure_kwargs, num_examine)
+    results_by_source = score_segments(segments, measure_kwargs)
 
-    _write_jsonl(details, details_path)
-    _write_json(measures, measures_path)
+    write_results(results_by_source, output_dir)
 
-    overall = measures["overall"]
-    print(
-        f"Overall DTER: {overall['dter']:.2%} [{overall['dter_n_err']}/{overall['dter_n_ref']}]  "
-        f"EER: {overall['eer']:.2%} [{overall['eer_n_err']}/{overall['eer_n_ref']}]  "
-        f"on {overall['n_recordings']} recordings ({len(segments)} segments)"
-    )
-    print(f"Saved per-recording details to {details_path}")
-    print(f"Saved aggregate measures to {measures_path}")
+    print(f"Scored {len(segments)} segments across {len(results_by_source)} data sources")
     print("All Done")
 
 
