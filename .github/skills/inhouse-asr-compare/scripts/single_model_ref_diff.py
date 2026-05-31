@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from compare_ter_disagree import (  # noqa: E402
     CSS,
     FMT_BUCKETS,
+    TOGGLE_JS,
     _dedupe_runs,
     bucket_for,
     fmt_subtype,
@@ -501,7 +502,8 @@ def render_page_single(title: str, items: list, model_name: str, summary: dict,
         f'<title>{html.escape(title)}</title><style>{CSS}</style></head>'
         f'<body><input type="checkbox" id="sb-toggle" class="sb-toggle">'
         f'<label for="sb-toggle" class="sb-toggle-btn" title="Toggle sidebar"></label>'
-        f'<div class="layout">{sidebar_html}<div class="main">{head}{body}</div></div></body></html>'
+        f'<div class="layout">{sidebar_html}<div class="main">{head}{body}</div></div>'
+        f'<script>{TOGGLE_JS}</script></body></html>'
     )
 
 

@@ -385,6 +385,45 @@ details.toc-wrap > summary { cursor: pointer; font-size: 13px; font-weight: 600;
 """
 
 
+# Tiny self-contained script: keep the utterance under the viewport top fixed
+# in place when the sidebar is toggled. The CSS checkbox still does the actual
+# show/hide, so the page degrades gracefully (just with a scroll jump) if JS is
+# disabled. We continuously track the first card at/below the viewport top and,
+# on toggle, re-pin it to the same vertical offset after the width reflow.
+TOGGLE_JS = """
+(function () {
+  var cb = document.getElementById('sb-toggle');
+  if (!cb) return;
+  var anchor = null, anchorTop = 0, ticking = false;
+  function capture() {
+    var cards = document.getElementsByClassName('card');
+    for (var i = 0; i < cards.length; i++) {
+      var r = cards[i].getBoundingClientRect();
+      if (r.bottom > 0) { anchor = cards[i]; anchorTop = r.top; return; }
+    }
+    anchor = null;
+  }
+  window.addEventListener('scroll', function () {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(function () { capture(); ticking = false; });
+    }
+  }, { passive: true });
+  cb.addEventListener('change', function () {
+    if (!anchor) capture();
+    if (!anchor) return;
+    var a = anchor, top = anchorTop;
+    requestAnimationFrame(function () {
+      var nt = a.getBoundingClientRect().top;
+      window.scrollBy(0, nt - top);
+      capture();
+    });
+  });
+  capture();
+})();
+"""
+
+
 def render_token(tok: str | None, bucket: str, sub: str = "") -> str:
     if tok is None:
         base = '<span class="none">∅</span>'
@@ -1123,7 +1162,8 @@ def render_page(title: str, items: list, baseline_name: str, target_name: str, s
         f'<title>{html.escape(title)}</title><style>{CSS}</style></head>'
         f'<body><input type="checkbox" id="sb-toggle" class="sb-toggle">'
         f'<label for="sb-toggle" class="sb-toggle-btn" title="Toggle sidebar"></label>'
-        f'<div class="layout">{sidebar_html}<div class="main">{head}{body}</div></div></body></html>'
+        f'<div class="layout">{sidebar_html}<div class="main">{head}{body}</div></div>'
+        f'<script>{TOGGLE_JS}</script></body></html>'
     )
 
 
