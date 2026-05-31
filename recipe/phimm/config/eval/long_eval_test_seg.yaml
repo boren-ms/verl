@@ -1,0 +1,22 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - long_eval_asr
+  - data/val_data/long_eval_test_seg
+  - _self_
+
+# Pre-segmented long-audio eval (recipe.phimm.main_long_eval_asr).
+# Identical to long_eval_test except the audio is chunked OFFLINE by
+# recipe.phimm.data.long_audio_vad_explode (same SVAD logic), so the val_data
+# default carries no svad_explode pre_process. Base knobs live in
+# base/long_eval_asr.yaml; only set per-eval fields here.
+# Results: {output_path}/result_details.jsonl + {output_path}/measures.json
+
+model:
+  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example-r2/90000/qwen_hf/
+
+data:
+  output_path: az://orngwus2cresco/data/boren/data/verl/eval_qwen/long_audio_test_seg

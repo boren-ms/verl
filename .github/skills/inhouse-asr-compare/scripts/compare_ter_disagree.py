@@ -305,7 +305,7 @@ CSS = """
 :root { color-scheme: light dark; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; margin: 0; }
 .sb-toggle { position: absolute; opacity: 0; pointer-events: none; }
-.sb-toggle-btn { position: fixed; top: 8px; left: 208px; z-index: 20; cursor: pointer; background: #fff; border: 1px solid #d0d7de; border-radius: 4px; padding: 2px 8px; font-size: 14px; line-height: 1.4; box-shadow: 0 1px 2px rgba(0,0,0,0.08); user-select: none; transition: left 0.15s ease; color: #1f2328; }
+.sb-toggle-btn { position: fixed; top: 8px; left: 208px; z-index: 20; cursor: pointer; background: #fff; border: 1px solid #d0d7de; border-radius: 4px; padding: 2px 8px; font-size: 14px; line-height: 1.4; box-shadow: 0 1px 2px rgba(0,0,0,0.08); user-select: none; transition: left 0.08s ease-out; will-change: left; color: #1f2328; }
 .sb-toggle-btn:hover { background: #f6f8fa; }
 .sb-toggle-btn::before { content: "\\2630  hide"; }
 .sb-toggle:checked ~ .sb-toggle-btn { left: 8px; }
@@ -332,7 +332,7 @@ h1 { font-size: 20px; }
 .meta { color: #666; font-size: 13px; margin-bottom: 14px; line-height: 1.55; }
 .legend { font-size: 12px; color: #444; margin-bottom: 18px; }
 .legend span { padding: 1px 6px; border-radius: 3px; margin-right: 8px; }
-.card { border: 1px solid #d0d7de; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; background: #fafbfc; }
+.card { border: 1px solid #d0d7de; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; background: #fafbfc; content-visibility: auto; contain-intrinsic-size: auto 480px; }
 .card h2 { font-size: 13px; margin: 0 0 10px 0; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }
 .stats { font-size: 12px; color: #333; margin-bottom: 10px; }
 .stats span { display: inline-block; margin-right: 12px; padding: 2px 8px; background: #eef2f7; border-radius: 4px; }
