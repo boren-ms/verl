@@ -103,9 +103,9 @@ Under `--output-dir`, the script writes four HTML pages plus a JSON summary (six
 There is no "overall" page — only improved and degraded per category. Sort key is the page's own category (`lex_edits` delta on lexical pages, `fmt_edits` delta on fmt pages).
 
 ## HTML report anatomy
-Each page is a single self-contained HTML file (embedded CSS, no JS).
+Each page is a single self-contained HTML file (embedded CSS plus one tiny inline script — no external assets).
 
-A fixed-position **toggle button** in the top-left (`☰ hide` / `☰ show`) collapses or expands the sidebar — pure CSS via a hidden checkbox, so no script is required and the page stays self-contained.
+A fixed-position **toggle button** in the top-left (`☰ hide` / `☰ show`) collapses or expands the sidebar. The show/hide itself is pure CSS via a hidden checkbox (works even with JS disabled); a small inline script only keeps the utterance currently under the viewport top fixed in place, so toggling never scroll-jumps you off the card you are reading. Native scroll anchoring is disabled (`overflow-anchor: none`) so that correction is exact even though full-width reflow changes the document height.
 
 Left **sticky sidebar** (hidden when toggle is checked):
 - "Reports" nav: link to `summary.json` and to all 4 sibling category pages (current page highlighted).
