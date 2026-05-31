@@ -1,0 +1,27 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_hc_200k_entity_fy24q3p2/*.parquet
+  post_process:
+    keep_samples:
+      num_proc: 32
+      has_ter_category:
+        ref_field: text
+        hyp_field: response
+        # Keep a sample if ANY requested category/subgroup has at least the
+        # given number of edits (number_of_edits in ter_category_info).
+        min_edits: 1
+        categories:
+          # punc subgroups
+          punc_none_2_comma: 1
+          punc_none_2_period: 1
+          punc_none_2_question: 1
+          punc_comma_2_period: 1
+          punc_period_2_comma: 1
+          # cap subgroups
+          cap_lower_2_upper: 1
+          cap_upper_2_lower: 1
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_ter_category/error_only.jsonl
+include_verl_format: false
+overwrite: true

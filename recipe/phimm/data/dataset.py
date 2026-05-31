@@ -1069,6 +1069,79 @@ def _keyword_missing(example, opts):
     )
 
 
+def _flatten_ter_category_edits(ter_category_info):
+    """Flatten a ``ter_category_info`` block into ``{name: number_of_edits}``.
+
+    Merges the top-level ``ter_categories`` (punc/cap/itn/lexical/others) and
+    every ``*_subgroups`` map (punc_subgroups/cap_subgroups/itn_subgroups, etc.)
+    into a single flat dict. Subgroup names are already disjoint from the
+    top-level category names, so no collisions occur.
+    """
+    edits = {}
+    info = ter_category_info or {}
+    for key, group in info.items():
+        if not isinstance(group, dict):
+            continue
+        if key != "ter_categories" and not key.endswith("_subgroups"):
+            continue
+        for name, stats in group.items():
+            if isinstance(stats, dict):
+                edits[name] = int(stats.get("number_of_edits") or 0)
+    return edits
+
+
+def _parse_ter_category_thresholds(categories, default_min):
+    """Normalize the ``categories`` option into ``{name: min_edits}``.
+
+    Accepts a dict ``{name: min_edits}``, a list/tuple of names (each using
+    ``default_min``), or a single string name.
+    """
+    if categories is None:
+        return {}
+    if isinstance(categories, str):
+        return {categories: default_min}
+    if isinstance(categories, dict):
+        return {str(name): int(to_int(thr, default=default_min) or default_min) for name, thr in categories.items()}
+    if is_list(categories):
+        return {str(name): default_min for name in categories}
+    return {}
+
+
+def _has_ter_category(example, opts):
+    """Keep if requested TER category subgroups have at least minimal edits.
+
+    Computes DisfluencyTolerant TER between the reference (``ref_field``,
+    default ``text``) and hypothesis (``hyp_field``, default ``response``),
+    then inspects the ``ter_category_info`` edit breakdown. ``categories`` maps
+    a category or subgroup name to the minimum ``number_of_edits`` required;
+    names may be top-level categories (``punc``, ``cap``, ``itn``, ``lexical``,
+    ``others``) or fine-grained subgroups (``punc_none_2_comma``,
+    ``cap_lower_2_upper``, ``itn_num``, ...). Returns True if ANY requested
+    category meets its threshold (OR logic).
+    """
+    from recipe.phimm.reward.asr_inhouse_measure import _compute_dter, ensure_pack_dir
+
+    ref_field = opts.get("ref_field", "text")
+    hyp_field = opts.get("hyp_field", "response")
+    default_min = int(to_int(opts.get("min_edits", 1), default=1) or 1)
+    thresholds = _parse_ter_category_thresholds(opts.get("categories"), default_min)
+    if not thresholds:
+        return False
+
+    ref = example.get(ref_field, "") or ""
+    hyp = example.get(hyp_field, "") or ""
+    if not ref or not hyp:
+        return False
+
+    ensure_pack_dir(opts.get("pack_dir"))
+    _n_err, _n_ref, _dter, detail = _compute_dter(ref, hyp)
+    if not detail:
+        return False
+
+    edits = _flatten_ter_category_edits(detail.get("ter_category_info"))
+    return any(edits.get(name, 0) >= min_edits for name, min_edits in thresholds.items())
+
+
 def keep_samples(
     ds,
     has_bad_fmt=None,
@@ -1077,6 +1150,7 @@ def keep_samples(
     has_repeat=None,
     has_spaced_abbrev=None,
     has_tail_hallucination=None,
+    has_ter_category=None,
     keyword_missing=None,
     wer_range=None,
     error_count_range=None,
@@ -1094,6 +1168,12 @@ def keep_samples(
             like "U. S." (should be "US") or "U. P. S." (should be "UPS")
         has_tail_hallucination: truthy or dict {hyp_field, ref_field, min_words, text_norm}
             — hyp ends with >= min_words inserted words not present in ref tail
+        has_ter_category: dict {ref_field, hyp_field, min_edits, categories} — keep
+            if any requested TER category/subgroup has at least ``min_edits``
+            edits. ``categories`` maps a category or subgroup name (e.g.
+            ``punc_none_2_comma``, ``cap_lower_2_upper``, ``itn_num``, ``punc``,
+            ``lexical``) to a minimum edit count, or is a list of names that all
+            use the shared ``min_edits`` default (1).
         keyword_missing: truthy or dict — keep if any keyword phrase is missing in
             response after normalization. Dict options:
             {keywords_field, response_field, norm}
@@ -1124,6 +1204,10 @@ def keep_samples(
     if has_tail_hallucination:
         tail_opts = dict(has_tail_hallucination) if isinstance(has_tail_hallucination, dict) else {}
         checks.append(("has_tail_hallucination", lambda ex, _o=tail_opts: _has_tail_hallucination(ex, _o)))
+
+    if has_ter_category:
+        ter_opts = dict(has_ter_category) if isinstance(has_ter_category, dict) else {}
+        checks.append(("has_ter_category", lambda ex, _o=ter_opts: _has_ter_category(ex, _o)))
 
     if keyword_missing:
         missing_opts = dict(keyword_missing) if isinstance(keyword_missing, dict) else {}
