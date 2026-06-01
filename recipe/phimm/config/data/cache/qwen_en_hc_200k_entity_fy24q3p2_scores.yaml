@@ -4,6 +4,7 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_hc_200k_entity_fy24q3p2/part-*.parquet
   post_process:
     add_measures:
+      num_proc: 96
       scorers:
         - shortcut: inhouse
         - shortcut: openasr

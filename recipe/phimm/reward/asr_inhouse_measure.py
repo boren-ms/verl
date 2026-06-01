@@ -278,6 +278,7 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     ``score = 1 - dter`` is exposed for the trainer's reward aggregation.
     """
     pack_dir = kwargs.get("pack_dir", DEFAULT_PACK_DIR)
+    compute_eer = kwargs.get("compute_eer", False)
     # The dfmetrics TER backend used by `_compute_dter` shells out to `dotnet`
     # (via fstalign), so the SpeechInsight pack must be installed and its dotnet
     # runtime exported onto PATH/DOTNET_ROOT *before* DTER runs. `_compute_eer`
@@ -288,15 +289,17 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     ref_text = _clean_ref(ground_truth)
 
     dter_n_err, dter_n_ref, dter, dter_detail = _compute_dter(ref_text, hyp_text)
-    eer_n_err, eer_n_ref, eer = _compute_eer(ref_text, hyp_text, pack_dir=pack_dir)
 
-    return {
+    result = {
         "score": 1.0 - dter,
         "dter": dter,
         "dter_n_err": dter_n_err,
         "dter_n_ref": dter_n_ref,
         "dter_detail": dter_detail,
-        "eer": eer,
-        "eer_n_err": eer_n_err,
-        "eer_n_ref": eer_n_ref,
     }
+    if compute_eer:
+        eer_n_err, eer_n_ref, eer = _compute_eer(ref_text, hyp_text, pack_dir=pack_dir)
+        result["eer"] = eer
+        result["eer_n_err"] = eer_n_err
+        result["eer_n_ref"] = eer_n_ref
+    return result
