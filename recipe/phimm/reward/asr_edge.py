@@ -97,6 +97,26 @@ def _count_ops(ref_words, hyp_words):
     return err
 
 
+def _compute_fmt_errors(ref, hyp, **kwargs):
+    """Return ``(punc_edits, cap_edits)`` from DisfluencyTolerant TER.
+
+    Delegates to ``asr_inhouse_measure._compute_dter`` (the dfmetrics TER
+    backend) and reads punctuation / capitalization edit counts out of the
+    ``ter_category_info`` breakdown. Returns ``(0, 0)`` when the backend is
+    unavailable or fails so callers can degrade gracefully.
+    """
+    from recipe.phimm.reward.asr_inhouse_measure import _clean_ref, _compute_dter, ensure_pack_dir
+
+    ensure_pack_dir(kwargs.get("pack_dir"))
+    _, _, _, detail = _compute_dter(_clean_ref(ref), hyp or "")
+    if not detail:
+        return 0, 0
+    cats = (detail.get("ter_category_info") or {}).get("ter_categories") or {}
+    punc = int((cats.get("punc") or {}).get("number_of_edits") or 0)
+    cap = int((cats.get("cap") or {}).get("number_of_edits") or 0)
+    return punc, cap
+
+
 def _split_units(text, unit="word"):
     if unit.lower() in {"word", "words"}:
         return text.split()
@@ -174,6 +194,16 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
 
     # <nonspeech> hyp has no language content; treat p_lang as correct.
     is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
+
+    # Punctuation / capitalization checks rely on the (heavy) DisfluencyTolerant
+    # TER backend, so only run them when a punc/cap check is actually requested.
+    checks = kwargs.get("checks", DEFAULT_CHECKS)
+    p_punc, p_cap = 0.0, 0.0
+    if ground_truth is not None and any(c in ("punc", "cap") for c in checks):
+        punc_err, cap_err = _compute_fmt_errors(ground_truth, hyp_text, **kwargs)
+        p_punc = float(punc_err > 0)
+        p_cap = float(cap_err > 0)
+
     return {
         "hyp_text": hyp_text,
         "tgt_lang": tgt_lang,
@@ -183,6 +213,8 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "p_repeat": float(p_repeat),
         "p_kw_missing": float(p_kw_missing),
         "p_tail_hallu": float(p_tail_hallu),
+        "p_punc": p_punc,
+        "p_cap": p_cap,
     }
 
 
@@ -196,6 +228,8 @@ _CHECK_SPEC = {
     "repeat": ("p_repeat", False),
     "keyword": ("p_kw_missing", False),
     "tail_hallu": ("p_tail_hallu", False),
+    "punc": ("p_punc", False),
+    "cap": ("p_cap", False),
 }
 
 DEFAULT_CHECKS = ("fmt", "bracket", "repeat", "tail_hallu")
@@ -243,6 +277,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
         "p_tail_hallu": parsed["p_tail_hallu"],
+        "p_punc": parsed["p_punc"],
+        "p_cap": parsed["p_cap"],
     }
 
 
@@ -263,6 +299,8 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
         "p_tail_hallu": parsed["p_tail_hallu"],
+        "p_punc": parsed["p_punc"],
+        "p_cap": parsed["p_cap"],
     }
 
 
@@ -288,6 +326,8 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
         "p_tail_hallu": parsed["p_tail_hallu"],
+        "p_punc": parsed["p_punc"],
+        "p_cap": parsed["p_cap"],
     }
 
 
