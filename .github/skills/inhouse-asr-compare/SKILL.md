@@ -31,7 +31,7 @@ Each input is a JSON list of records:
 The script joins on `UtteranceId`. Both files must use the same reference (the `display_form_tx` stream).
 
 ### verl long-eval `details.jsonl` (auto-detected)
-Both scripts also natively read verl `main_long_eval_asr` outputs — a `.jsonl` file with one JSON object per line (no manual conversion needed). Format is auto-detected: a file starting with `[` is treated as an in-house JSON list, otherwise each line is parsed as a verl record. A record looks like:
+Both scripts also natively read verl `main_long_eval_asr` outputs — a `.jsonl` file with one JSON object tmp/MAI-15.json vs  per line (no manual conversion needed). Format is auto-detected: a file starting with `[` is treated as an in-house JSON list, otherwise each line is parsed as a verl record. A record looks like:
 
 ```json
 {
