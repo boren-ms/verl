@@ -191,7 +191,10 @@ class TaskRunner:
 
         if reward_func := config.get("val_reward", {}).get("custom_reward_function", {}):
             config.custom_reward_function = reward_func
-        # Note that we always use function-based RM for validation
+        # Allow val_reward to use a different reward manager (e.g. long_audio_grouped)
+        saved_reward_manager = config.reward_model.reward_manager
+        if val_rm := config.get("val_reward", {}).get("reward_manager"):
+            config.reward_model.reward_manager = val_rm
         val_reward_fn = load_reward_manager(
             config,
             tokenizer,
@@ -199,6 +202,7 @@ class TaskRunner:
             max_resp_len=config.data.max_response_length,
             overlong_buffer_cfg=config.reward_model.overlong_buffer,
         )
+        config.reward_model.reward_manager = saved_reward_manager
         resource_pool_manager = ResourcePoolManager(resource_pool_spec=resource_pool_spec, mapping=mapping)
 
         trainer = RayDAPOTrainer(
