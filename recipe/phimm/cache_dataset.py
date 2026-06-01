@@ -108,6 +108,8 @@ def cache_dataset(
     output_path: str,
     include_verl_format: bool = False,
     overwrite: bool = False,
+    part_size: int | None = None,
+    ext: str | None = None,
 ) -> dict[str, Any]:
     output_path = _resolve_path(output_path)
     if bf.exists(output_path) and not overwrite:
@@ -124,18 +126,21 @@ def cache_dataset(
     dataset = _as_dataset(create_datasets(dataset_config))
 
     print(f"Writing to: {output_path}")
-    save_dataset(dataset, output_path, overwrite=overwrite)
+    save_dataset(dataset, output_path, overwrite=overwrite, part_size=part_size, ext=ext)
     return cache_summary(source_config, output_path, overwrite, skipped=False, dataset=dataset)
 
 
 @hydra.main(config_path="config/data/cache", config_name="gen_ls_raw_rp_edge_nodigits", version_base=None)
 def main(config: DictConfig) -> None:
     cfg = OmegaConf.to_container(config, resolve=True)
+    part_size = cfg.get("part_size")
     cache_dataset(
         source_config=cfg["source_config"],
         output_path=str(cfg["output_path"]),
         include_verl_format=bool(cfg.get("include_verl_format", False)),
         overwrite=bool(cfg.get("overwrite", False)),
+        part_size=int(part_size) if part_size is not None else None,
+        ext=cfg.get("ext"),
     )
 
 

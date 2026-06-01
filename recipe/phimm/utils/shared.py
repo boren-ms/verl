@@ -133,23 +133,86 @@ def _mkdir_parent(path: str) -> None:
     Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
 
 
+def _mkdir(path: str) -> None:
+    if path.startswith("az://"):
+        return
+    Path(path).expanduser().mkdir(parents=True, exist_ok=True)
+
+
 def _ensure_can_write(output_path: str, overwrite: bool = False) -> None:
     if bf.exists(output_path) and not overwrite:
         raise FileExistsError(f"Output already exists: {output_path}. Set overwrite=true to replace it.")
     _mkdir_parent(output_path)
 
 
-def save_dataset(dataset: Dataset, output_path: str, overwrite: bool = False) -> None:
-    suffix = Path(urlparse(output_path).path).suffix.lstrip(".").lower()
-    if suffix not in {"jsonl", "parquet"}:
-        raise ValueError(f"Unsupported output path extension: {output_path}. Use a .jsonl or .parquet path.")
+def _infer_ext(output_path: str) -> str | None:
+    return Path(urlparse(output_path).path).suffix.lstrip(".").lower() or None
 
-    _ensure_can_write(output_path, overwrite=overwrite)
-    with bf.BlobFile(output_path, "wb") as file_obj:
-        if suffix == "jsonl":
+
+def _write_single(dataset: Dataset, path: str, ext: str) -> None:
+    with bf.BlobFile(path, "wb") as file_obj:
+        if ext == "jsonl":
             dataset.to_json(file_obj, force_ascii=False)
         else:
             dataset.to_parquet(file_obj)
+
+
+def save_dataset(
+    dataset: Dataset,
+    output_path: str,
+    overwrite: bool = False,
+    part_size: int | None = None,
+    ext: str | None = None,
+) -> None:
+    """Save a HF Dataset to disk (local or az://).
+
+    Args:
+        dataset: The dataset to save.
+        output_path: A file path (.jsonl/.parquet) or a folder path.
+        overwrite: Whether to overwrite existing files.
+        part_size: If set, split into parts of this many rows.
+            When *output_path* is a file, parts are saved next to it as
+            ``<stem>-00000-of-NNNNN.<ext>``.  When it is a folder, parts
+            are written inside it.
+        ext: Output format when *output_path* is a folder (``jsonl`` or
+            ``parquet``).  Ignored when *output_path* already has a
+            recognised extension.
+    """
+    suffix = _infer_ext(output_path)
+    is_folder = suffix not in {"jsonl", "parquet"}
+
+    if is_folder:
+        ext = (ext or "jsonl").lower()
+        if ext not in {"jsonl", "parquet"}:
+            raise ValueError(f"Unsupported ext={ext!r}. Use 'jsonl' or 'parquet'.")
+    else:
+        ext = suffix
+
+    if part_size is None or part_size <= 0 or len(dataset) <= part_size:
+        # ---- single-file output ----
+        if is_folder:
+            output_file = f"{output_path.rstrip('/')}/data.{ext}"
+        else:
+            output_file = output_path
+        _ensure_can_write(output_file, overwrite=overwrite)
+        _write_single(dataset, output_file, ext)
+        return
+
+    # ---- multi-part output ----
+    n_parts = (len(dataset) + part_size - 1) // part_size
+    if is_folder:
+        _mkdir(output_path)
+    for i in range(n_parts):
+        shard = dataset.select(range(i * part_size, min((i + 1) * part_size, len(dataset))))
+        if is_folder:
+            part_path = f"{output_path.rstrip('/')}/part-{i:05d}-of-{n_parts:05d}.{ext}"
+        else:
+            stem = Path(urlparse(output_path).path).stem
+            parent = output_path[: output_path.rfind(stem)]
+            part_path = f"{parent}{stem}-{i:05d}-of-{n_parts:05d}.{ext}"
+        _ensure_can_write(part_path, overwrite=overwrite)
+        _write_single(shard, part_path, ext)
+        print(f"  Wrote part {i + 1}/{n_parts}: {part_path} ({len(shard)} rows)")
 
 
 @functools.cache

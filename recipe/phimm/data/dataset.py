@@ -1233,6 +1233,122 @@ def keep_samples(
     return ds
 
 
+# ---------------------------------------------------------------------------
+# add_measures — attach per-sample scorer outputs as new columns
+# ---------------------------------------------------------------------------
+
+# Built-in scorer shortcuts: name → (module_path, function_name)
+_SCORER_SHORTCUTS = {
+    "inhouse": ("recipe/phimm/reward/asr_inhouse_measure.py", "eval_score"),
+    "openasr": ("recipe/phimm/reward/asr_edge.py", "openasr_eval"),
+    "eval": ("recipe/phimm/reward/asr_edge.py", "eval_score"),
+}
+
+
+def _load_scorer_fn(spec):
+    """Dynamically import a scorer function from *spec*.
+
+    *spec* is a dict with ``path`` + ``name`` (module file path and function
+    name) **or** a plain string that maps to a built-in shortcut.
+    Returns ``(fn, kwargs, prefix)`` ready for calling.
+    """
+    import importlib.util as _ilu
+
+    if isinstance(spec, str):
+        spec = {"shortcut": spec}
+
+    shortcut = spec.get("shortcut")
+    if shortcut:
+        if shortcut not in _SCORER_SHORTCUTS:
+            raise ValueError(f"Unknown scorer shortcut {shortcut!r}. Known: {list(_SCORER_SHORTCUTS)}")
+        mod_path, fn_name = _SCORER_SHORTCUTS[shortcut]
+        prefix = spec.get("prefix", shortcut)
+    else:
+        mod_path = spec["path"]
+        fn_name = spec["name"]
+        prefix = spec.get("prefix", fn_name)
+
+    kwargs = dict(spec.get("kwargs") or {})
+
+    # resolve relative paths to repo root
+    mod_file = Path(mod_path)
+    if not mod_file.is_absolute():
+        mod_file = Path(__file__).parents[3] / mod_file
+    if not mod_file.exists():
+        raise FileNotFoundError(f"Scorer module not found: {mod_file}")
+
+    mod_name = f"_scorer_{prefix}_{fn_name}"
+    cached = sys.modules.get(mod_name)
+    if cached is None:
+        _spec = _ilu.spec_from_file_location(mod_name, str(mod_file))
+        cached = _ilu.module_from_spec(_spec)
+        sys.modules[mod_name] = cached
+        _spec.loader.exec_module(cached)
+
+    fn = getattr(cached, fn_name)
+    return fn, kwargs, prefix
+
+
+def add_measures(ds, scorers=None, solution_field=None, ground_truth_field=None, **kwargs):
+    """Map each sample through one or more scorer functions and add their outputs.
+
+    Config example (inside ``post_process``)::
+
+        add_measures:
+          scorers:
+            - shortcut: inhouse          # prefix defaults to "inhouse"
+            - shortcut: openasr
+              prefix: oa                  # custom prefix
+            - path: recipe/phimm/reward/asr_edge.py
+              name: eval_score
+              prefix: edge
+              kwargs:
+                text_norm: english
+          solution_field: raw_response    # field containing model output
+          ground_truth_field: text        # field containing reference text
+
+    Each scorer's returned dict is merged into the sample with keys prefixed
+    by ``{prefix}_``. Dict/list values (e.g. ``dter_detail``) are JSON-
+    serialised to avoid Arrow schema issues across rows.
+    """
+    if not scorers:
+        rank_print("[add_measures] No scorers configured, skipping.")
+        return ds
+
+    if isinstance(scorers, (str, dict)):
+        scorers = [scorers]
+
+    loaded = []
+    for spec in scorers:
+        fn, fn_kwargs, prefix = _load_scorer_fn(spec)
+        loaded.append((fn, fn_kwargs, prefix))
+        rank_print(f"[add_measures] Loaded scorer: {prefix} → {fn.__module__}.{fn.__name__}")
+
+    sol_field = solution_field or "raw_response"
+    gt_field = ground_truth_field or "text"
+
+    scores_field = kwargs.pop("scores_field", "scores")
+
+    def _measure_map(example):
+        solution_str = example.get(sol_field) or example.get("response") or ""
+        ground_truth = example.get(gt_field) or ""
+        extra_info = {"language": example.get("language", "english")}
+        groups = {}
+        for fn, fn_kwargs, prefix in loaded:
+            try:
+                result = fn(solution_str, ground_truth, extra_info=extra_info, **fn_kwargs)
+            except Exception as e:
+                rank_print(f"[add_measures] scorer {prefix} failed: {e}")
+                result = {}
+            groups[prefix] = result or {}
+        return {scores_field: json.dumps(groups, ensure_ascii=False)}
+
+    map_kwargs = pop_map_kwargs(kwargs)
+    ds = ds.map(_measure_map, **map_kwargs, desc="Adding measures")
+    rank_print(f"[add_measures] Done. {len(ds)} samples, added columns from {[p for _, _, p in loaded]}")
+    return ds
+
+
 def filter_text_with_numbers(ds, **kwargs):
     field = kwargs.get("field", "text")
     norm_name = kwargs.get("text_norm", kwargs.get("tn_name", "identity"))
@@ -1483,6 +1599,8 @@ def process_ds(ds, **kwargs):
         ds = limit_ds(ds, egs_limit=output_egs_limit)
     if add_field_kwargs := kwargs.get("add_field", {}):
         ds = add_field_ds(ds, **merge_kwargs(map_kwargs, add_field_kwargs))
+    if measures_kw := kwargs.get("add_measures", {}):
+        ds = add_measures(ds, **merge_kwargs(map_kwargs, measures_kw))
     if verl_format_kwargs := kwargs.get("verl_format", {}):
         ds = verl_format_ds(ds, **merge_kwargs(map_kwargs, verl_format_kwargs))
     return ds
