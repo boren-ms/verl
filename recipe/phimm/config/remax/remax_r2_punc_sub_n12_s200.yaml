@@ -15,6 +15,7 @@ custom_reward_function:
   reward_kwargs:
     gamma: 0.1
     unit: char
+    text_norm: identity
     checks:
       - fmt
       - punc
@@ -25,8 +26,6 @@ val_reward:
   custom_reward_function:
     path: recipe/phimm/reward/asr_inhouse_measure.py
     name: eval_score
-    reward_kwargs:
-      compute_eer: true
 
 actor_rollout_ref:
   rollout:
