@@ -1,0 +1,22 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_hc_200k_entity_fy24q3p2/*.parquet
+  post_process:
+    keep_samples:
+      num_proc: 32
+      has_ter_category:
+        ref_field: text
+        hyp_field: response
+        # Substituted punctuation: comma/period -> a different (non-none) mark.
+        # OR over the subgroups: keep if ANY has at least min_edits edits.
+        min_edits: 1
+        categories:
+          punc_comma_2_period: 1
+          punc_period_2_comma: 1
+          punc_period_2_question: 1
+          punc_question_2_period: 1
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_ter_punc_sub/error_only.jsonl
+include_verl_format: false
+overwrite: true
