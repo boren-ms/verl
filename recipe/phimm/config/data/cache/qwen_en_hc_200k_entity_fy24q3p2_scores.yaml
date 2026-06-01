@@ -1,0 +1,14 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_hc_200k_entity_fy24q3p2/part-*.parquet
+  post_process:
+    add_measures:
+      scorers:
+        - shortcut: inhouse
+        - shortcut: openasr
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/
+include_verl_format: false
+overwrite: true
+part_size: 20000
