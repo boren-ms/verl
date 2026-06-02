@@ -67,21 +67,28 @@ def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
     function_name = reward_fn_config.get("name")
     assert function_name is not None
 
-    module = sys.modules.get("custom_module", None)
-    if module is None:
-        if not Path(file_path).is_absolute():
-            file_path = str(Path(__file__).parents[3] / file_path)
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Reward function file '{file_path}' not found.")
+    if not Path(file_path).is_absolute():
+        file_path = str(Path(__file__).parents[3] / file_path)
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Reward function file '{file_path}' not found.")
 
-        spec = importlib.util.spec_from_file_location("custom_module", file_path)
+    # Cache loaded modules per resolved file path. A single shared cache key
+    # (e.g. "custom_module") breaks when more than one custom reward file is
+    # loaded in the same process (e.g. a training reward and a different
+    # `val_reward` function): the second load would silently reuse the first
+    # module and `getattr` the wrong same-named function.
+    module_key = f"custom_reward_module::{file_path}"
+    module = sys.modules.get(module_key, None)
+    if module is None:
+        spec = importlib.util.spec_from_file_location(module_key, file_path)
         assert spec is not None
         module = importlib.util.module_from_spec(spec)
         try:
-            sys.modules["custom_module"] = module
+            sys.modules[module_key] = module
             assert spec.loader is not None
             spec.loader.exec_module(module)
         except Exception as e:
+            del sys.modules[module_key]
             raise RuntimeError(f"Error loading module from '{file_path}': {e}") from e
 
     if not hasattr(module, function_name):
