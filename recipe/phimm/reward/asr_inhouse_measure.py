@@ -162,6 +162,23 @@ def _get_ter_backend(locale: str = "en-us"):
     return _TER_BACKEND
 
 
+def _category_edits(ter_category_info: dict | None) -> dict[str, int]:
+    """Extract per-category edit counts from ``ter_category_info``.
+
+    Returns a dict with keys ``dter_n_punc``, ``dter_n_cap``, ``dter_n_itn``,
+    ``dter_n_lex`` (zero when the category is missing).
+    """
+    cats = ((ter_category_info or {}).get("ter_categories") or {})
+    def _n(k: str) -> int:
+        return int(((cats.get(k) or {}).get("number_of_edits")) or 0)
+    return {
+        "dter_n_punc": _n("punc"),
+        "dter_n_cap": _n("cap"),
+        "dter_n_itn": _n("itn"),
+        "dter_n_lex": _n("lexical"),
+    }
+
+
 def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float, dict | None]:
     """Return ``(n_err, n_ref, dter_fraction, detail)`` for DTER.
 
@@ -297,6 +314,7 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
         "dter_n_ref": dter_n_ref,
         "dter_detail": dter_detail,
     }
+    result.update(_category_edits((dter_detail or {}).get("ter_category_info")))
     if compute_eer:
         eer_n_err, eer_n_ref, eer = _compute_eer(ref_text, hyp_text, pack_dir=pack_dir)
         result["eer"] = eer
