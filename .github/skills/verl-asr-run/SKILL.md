@@ -1,23 +1,23 @@
 ---
 name: verl-asr-run
-description: 'Run the full ASR stack on remote verl Brix nodes: training -> checkpoint evaluation (`eval_openasr`, `eval_openasr_ml`) -> report generation (`openasr-report`), while continuously monitoring until completion with structured metrics. Use when: running RL training (ReMax, GRPO), automatically running post-training OpenASR/OpenASR-ML evals, generating standardized OpenASR/OpenASR-ML reports, evaluating checkpoints on LibriSpeech/OpenASR/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "eval_openasr", "eval_openasr_ml", "check WER", "monitor job", "check training status", "push and submit", "run config on node", "training evaluation report".'
+description: 'Run the full ASR stack on remote verl Brix nodes: training -> checkpoint evaluation (`long_eval_inhouse_2605_enus_seg`) -> report generation, while continuously monitoring until completion with structured metrics. Use when: running RL training (ReMax, GRPO), automatically running the post-training in-house long-audio eval, evaluating checkpoints on LibriSpeech/in-house/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "long_eval_inhouse", "check WER", "monitor job", "check training status", "push and submit", "run config on node", "training evaluation report".'
 argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0, or eval_libri_h100'
 ---
 
 # verl ASR Run
 
-Run a full ASR pipeline on a remote verl Brix node: **training -> evaluation -> report**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, automatically evaluate the trained checkpoint on `eval_openasr` and `eval_openasr_ml` (treat user phrase `openasr_eval` as `eval_openasr_ml`), then generate a final comparison report with the `openasr-report` skill. Optionally perform word error analysis on validation output.
+Run a full ASR pipeline on a remote verl Brix node: **training -> evaluation -> report**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, automatically evaluate the trained checkpoint on `long_eval_inhouse_2605_enus_seg`, then report the aggregate TER/EER measures. Optionally perform word error analysis on validation output.
 
 Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
 ## When to Use
 
 - User wants to **train** an ASR model with RL (ReMax, GRPO) — "run training", "submit job", "train on node"
-- User wants to **evaluate** a checkpoint — "run eval", "evaluate on librispeech", "eval_openasr", "check WER"
+- User wants to **evaluate** a checkpoint — "run eval", "evaluate on librispeech", "long_eval_inhouse", "check WER"
 - User wants to submit any verl ASR job to a remote node and monitor until completion
 - User asks to monitor an existing job — "check status", "update", "how's the job"
 - User needs to fix code, push, and resubmit after a failure
-- User wants full stack execution: training followed by `eval_openasr`, `eval_openasr_ml`, and report generation
+- User wants full stack execution: training followed by the `long_eval_inhouse_2605_enus_seg` eval and report generation
 - User wants word-level error analysis on verl validation JSONL output
 - User wants to run multiple jobs (see batch submission below)
 
@@ -28,8 +28,8 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 | **config** | Yes | — | `remax_ls_lr05`, `eval_libri_h100`, `gen_libri` |
 | **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
-| **post_train_eval** | No | Always run `eval_openasr` and `eval_openasr_ml` for training jobs | `eval_openasr,eval_openasr_ml` |
-| **report** | No | `openasr-report` after both evals succeed | `openasr-report` |
+| **post_train_eval** | No | Always run `long_eval_inhouse_2605_enus_seg` for training jobs | `long_eval_inhouse_2605_enus_seg` |
+| **report** | No | TER/EER measures summary after the eval succeeds | `measures.json` summary |
 | **word_error_sets** | No | `1` (first data source only) | `all` (all data sources) |
 
 ## Job Types
@@ -40,6 +40,7 @@ Determined by config name prefix:
 |--------|--------|------|-------|
 | `remax_*` | `recipe.phimm.main_asr_remax` | Training | RL training with validation at intervals |
 | `grpo_*` and other training configs | `recipe.phimm.main_asr_dapo` | Training | RL training with validation at intervals |
+| `long_eval_*` | `recipe.phimm.main_long_eval_asr` | Long-audio eval | Gen-style eval; SVAD-explode -> generate -> regroup -> TER/EER; writes `result_details.jsonl` + `measures.json` |
 | `eval_*` | `recipe.phimm.main_asr_eval` | Eval-only | `val_only: True`, runs validation then exits |
 | `gen_*` | `recipe.phimm.main_asr_gen` | Generation | Inference/generation only |
 
@@ -55,6 +56,7 @@ Determined by config name prefix:
 | Config | Datasets | Notes |
 |--------|----------|-------|
 | `eval_libri_h100` | LibriSpeech (h100 subset) | Fast eval |
+| `long_eval_inhouse_2605_enus_seg` | In-house 2605 en-US (pre-segmented) | Long-audio gen-style eval; TER/EER measures (default post-training eval) |
 | `eval_openasr` | OpenASR (ami, common_voice, earnings22, etc.) | Full OpenASR suite |
 | `eval_openasr_ml` | OpenASR-ML (FLEURS, MCV, MLS by language) | Multilingual OpenASR suite; report per-language and overall averages |
 
@@ -132,9 +134,8 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
    - `remax_*` → ReMax training (uses `main_asr_remax`)
    - Everything else → training (uses `main_asr_dapo`)
 - **model_path**: Usually baked into the config. If the user specifies a custom model path, it will be passed as a hydra override.
-- **post_train_eval**: For training jobs, always run both `eval_openasr` and `eval_openasr_ml` on the completed checkpoint as part of the full-stack pipeline.
-- **openasr_eval alias**: If user requests `openasr_eval`, map it to `eval_openasr_ml`.
-- **report**: After both post-training evals succeed, always generate the OpenASR report using the `openasr-report` skill.
+- **post_train_eval**: For training jobs, always run `long_eval_inhouse_2605_enus_seg` on the completed checkpoint as part of the full-stack pipeline.
+- **report**: After the post-training eval succeeds, summarize the aggregate TER/EER from `measures.json` (Step 4b).
 - **word_error_sets**: Default `1` — only analyze the first data source. If user says "all", analyze all data sources.
 
 ### Step 2 — Push code and submit the job
@@ -336,20 +337,19 @@ When the job completes, provide:
 5. **Total training time** (from first step to last step)
 6. **Trend summary**: did WER improve? By how much? Best val step?
 
-For training jobs, Step 4 is an interim training summary. Continue to Step 4a and do not give the final response until both automatic OpenASR eval jobs complete successfully and Step 4b report generation is finished.
+For training jobs, Step 4 is an interim training summary. Continue to Step 4a and do not give the final response until the automatic `long_eval_inhouse_2605_enus_seg` eval completes successfully and Step 4b report generation is finished.
 
-### Step 4a — Mandatory post-training OpenASR evals
+### Step 4a — Mandatory post-training in-house long-audio eval
 
-When a training job succeeds, automatically evaluate the completed checkpoint with both:
+When a training job succeeds, automatically evaluate the completed checkpoint with:
 
-1. `recipe/phimm/config/eval/eval_openasr.yaml`
-2. `recipe/phimm/config/eval/eval_openasr_ml.yaml`
+1. `recipe/phimm/config/eval/long_eval_inhouse_2605_enus_seg.yaml`
 
-Use the same trained checkpoint for both evals:
+Use the trained checkpoint as the eval model:
 - Prefer the best checkpoint by validation WER if the training log clearly identifies it.
 - Otherwise pick the latest available checkpoint from the training output directory by selecting the highest numeric `global_step_*` path.
 - Use the final checkpoint path from the last successful `save_checkpoint` log line only if checkpoint directory listing is unavailable.
-- Load the checkpoint with trainer resume fields: `trainer.resume_mode=resume_path` and `trainer.resume_from_path={CHECKPOINT_PATH}`. Do not add `actor_rollout_ref.model.path` just for checkpoint evaluation; the resume path is the required checkpoint reference.
+- The `long_eval_*` job is gen-style (`recipe.phimm.main_long_eval_asr`) and loads the model via `model.path` (an HF-format export), NOT via `trainer.resume_from_path`. Point `model.path` at the checkpoint's HF export directory (e.g. the `*/qwen_hf/` subdir produced for that step). Also override `data.output_path` to a unique location so results are not overwritten.
 
 To find the latest checkpoint, derive `{TRAIN_OUTPUT_DIR}` from the training config's `trainer.default_hdfs_dir` or from the observed checkpoint path, usually:
 
@@ -363,57 +363,53 @@ Then list and select the largest step number:
 bbb ls {TRAIN_OUTPUT_DIR}/ | grep 'global_step_' | sed -E 's#.*/global_step_([0-9]+)/?#\1 #' | sort -n | tail -1
 ```
 
-Set `{CHECKPOINT_PATH}` to `{TRAIN_OUTPUT_DIR}/global_step_{LATEST_STEP}` and report both the selected step and path before submitting eval jobs.
+Set `{CHECKPOINT_PATH}` to the HF export under `{TRAIN_OUTPUT_DIR}/global_step_{LATEST_STEP}` (e.g. `.../global_step_{LATEST_STEP}/qwen_hf/`) and report both the selected step and path before submitting the eval job.
 
-For explicit eval config files, follow this pattern:
+Run the eval as a normal remote job and monitor it through Step 3 until `SUCCEEDED` or `FAILED`. Use the same node if it is free; otherwise repeat Step 0 to find or resume a free node. Always sync code before submitting the post-training eval.
 
-```yaml
-trainer:
-  resume_mode: resume_path
-  resume_from_path: {CHECKPOINT_PATH}
-```
-
-Run each eval as a normal remote job and monitor it through Step 3 until `SUCCEEDED` or `FAILED`. Use the same node if it is free; otherwise repeat Step 0 to find or resume a free node. Always sync code before submitting the first post-training eval.
-
-Because `submit_job.sh` does not support arbitrary hydra overrides, use a direct Ray submission for checkpoint evals:
+Because `submit_job.sh` does not support arbitrary hydra overrides, use a direct Ray submission for the checkpoint eval:
 
 ```bash
-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_asr_eval --config-name {EVAL_CONFIG} trainer.experiment_name={TRAIN_CONFIG}_{EVAL_CONFIG} trainer.resume_mode=resume_path trainer.resume_from_path={CHECKPOINT_PATH}"'
+brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_long_eval_asr --config-name long_eval_inhouse_2605_enus_seg trainer.experiment_name={TRAIN_CONFIG}_long_eval_inhouse_2605_enus_seg model.path={CHECKPOINT_PATH} data.output_path=az://orngwus2cresco/data/boren/data/verl/eval/{TRAIN_CONFIG}_step{LATEST_STEP}/inhouse_2605_enus_seg"'
 ```
 
-Where `{EVAL_CONFIG}` is `eval_openasr` or `eval_openasr_ml`. Track both Ray job IDs separately. If either eval fails, diagnose and fix using Step 3f, then resubmit the failed eval before continuing.
+Track the Ray job ID. If the eval fails, diagnose and fix using Step 3f, then resubmit before continuing.
 
-### Step 4b — Generate final OpenASR report
+### Step 4b — Report the in-house TER/EER measures
 
-After both eval jobs (`eval_openasr`, `eval_openasr_ml`) succeed, generate the final report using the `openasr-report` skill.
+After the eval job succeeds, summarize the aggregate measures it produced.
+
+The long-audio eval writes two artifacts per data source under `{OUTPUT_PATH}/{DATA_SOURCE}/`:
+- `result_details.jsonl` — per-recording `ref`/`hyp`, `dter`, `eer`, and `dter_detail`.
+- `measures.json` — micro-averaged TER + EER for that source.
 
 Required behavior:
-- Invoke the `/openasr-report` skill and follow its argument contract.
-- Prefer `--from-ray` using the two eval job IDs (one for `eval_openasr`, one for `eval_openasr_ml`) on their node(s).
-- Use model label `{TRAIN_CONFIG}@step{LATEST_STEP}` unless user provided a custom label.
-- Run the skill script command:
+- Read `measures.json` from the eval `data.output_path` (download via `bbb cp` if it is on blob).
+- Report the key fields: `dter` (DisfluencyTolerant TER), `eer` (entity error rate), and the supporting counts (`dter_n_err`/`dter_n_ref`, `eer_n_err`/`eer_n_ref`, `n_recordings`).
+- Present TER and EER as percentages (×100) with a `%` suffix.
+- Use model label `{TRAIN_CONFIG}@step{LATEST_STEP}` unless the user provided a custom label.
 
-   ```bash
-   /home/boren/.virtualenvs/openai/bin/python \
-      .github/skills/openasr-report/scripts/build_openasr_xlsx.py \
-      "{MODEL_LABEL}" \
-      --from-ray {OPENASR_NODE} {OPENASR_JOB_ID} \
-      --from-ray {OPENASR_ML_NODE} {OPENASR_ML_JOB_ID} \
-      --out tmp/openasr_report/{MODEL_LABEL}.xlsx
-   ```
+Example measures fetch:
 
-- If extending an existing report, pass `--extend-xlsx {PRIOR_XLSX}`.
-- Ensure the report includes baseline (fixed Qwen3.5-audio), new model column, per-language rows, and overall averages.
-- Save/report the final xlsx artifact path and include it in the final response.
-- If report generation fails, diagnose/fix and retry before finishing.
+```bash
+bbb cp {OUTPUT_PATH}/{DATA_SOURCE}/measures.json /tmp/verl_eval/measures.json
+cat /tmp/verl_eval/measures.json
+```
+
+Report the measures in a table:
+
+| Model | Dataset | TER (dter) | EER | n_recordings |
+|-------|---------|------------|-----|--------------|
+| {TRAIN_CONFIG}@step{LATEST_STEP} | inhouse_2605_enus_seg | 8.91% | 4.20% | N |
+
+For deeper utterance-level inspection of `result_details.jsonl`, use the **inhouse-asr-compare** or **asr-word-error-analysis** skill.
 
 Post-training final response requirements:
 1. Show the training final summary from Step 4.
-2. Show a separate validation metrics table for `eval_openasr`.
-3. Show a separate validation metrics table for `eval_openasr_ml`, including per-dataset rows, per-language average rows, and the overall average row.
-4. Include W&B and Ray links for the training job and both eval jobs when available.
-5. State which checkpoint path was evaluated.
-6. Include the `openasr-report` xlsx output path and a brief report summary.
+2. Show the TER/EER measures table for `long_eval_inhouse_2605_enus_seg`.
+3. Include W&B and Ray links for the training job and the eval job when available.
+4. State which checkpoint path was evaluated.
+5. Include the eval `data.output_path` (location of `result_details.jsonl` + `measures.json`).
 
 #### W&B result check (optional post-job):
 ```bash
@@ -486,8 +482,9 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 ## Important Notes
 
 - The verl configs use hydra. The config search path is `recipe/phimm/config/` with base configs in `recipe/phimm/config/base/`.
-- `quick_run.sh` determines the module automatically: configs starting with `gen_*` use `main_asr_gen`, configs starting with `eval_*` use `main_asr_eval`, configs starting with `remax_*` use `main_asr_remax`, and other training configs use `main_asr_dapo`.
+- `quick_run.sh` determines the module automatically: configs starting with `long_eval_*` use `main_long_eval_asr`, configs starting with `gen_*` use `main_asr_gen`, configs starting with `eval_*` use `main_asr_eval`, configs starting with `remax_*` use `main_asr_remax`, and other training configs use `main_asr_dapo`.
 - Eval configs inherit from `base/eval_asr.yaml` which sets `val_only: True` — only validation runs, no training.
+- `long_eval_*` configs inherit from `base/long_eval_asr.yaml` (gen-style): SVAD-explode -> generate -> regroup per recording -> DisfluencyTolerant TER + entity EER, writing `result_details.jsonl` + `measures.json` under `data.output_path`. They load the model via `model.path` (HF export), not `trainer.resume_from_path`.
 - Training configs inherit from `base/dapo_asr.yaml` (or `grpo_asr.yaml`, `grpo_asr_full.yaml`) — full RL training with periodic validation.
 - The remote workspace is at `/root/code/verl` on Brix nodes.
 - **Always push code first** before submitting jobs. Use `bpush {NODE}` or `submit_job.sh` (which pushes automatically). Never submit a job without syncing code first.
@@ -507,7 +504,7 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 | Val metrics | `brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep -E \"val-core\|val-aux\" \| tail -n 30"'` |
 | Stop job | `brix ssh {NODE} -- 'bash -l -c "ray job stop {JOB_ID}"'` |
 | Check errors | `brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} \| grep -E \"Traceback\|Error\" \| tail -n 20"'` |
-| Build OpenASR report | `/home/boren/.virtualenvs/openai/bin/python .github/skills/openasr-report/scripts/build_openasr_xlsx.py "{MODEL_LABEL}" --from-ray {OPENASR_NODE} {OPENASR_JOB_ID} --from-ray {OPENASR_ML_NODE} {OPENASR_ML_JOB_ID} --out tmp/openasr_report/{MODEL_LABEL}.xlsx` |
+| Fetch TER/EER measures | `bbb cp {OUTPUT_PATH}/{DATA_SOURCE}/measures.json /tmp/verl_eval/measures.json && cat /tmp/verl_eval/measures.json` |
 | W&B results | `python ./wandb_result.py --metric val-aux search '{CONFIG}'` |
 | List jobs | `brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list"'` |
 
@@ -532,7 +529,7 @@ bash submit_jobs_repeat.sh
 - Parse `step:N - key:val - key:val` format into structured table rows
 - When monitoring, report the current phase and what to expect next
 - On failure, show the error, diagnose, and proceed to fix without asking
-- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `eval_openasr` SUCCEEDED, `eval_openasr_ml` SUCCEEDED, and `openasr-report` generated
+- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `long_eval_inhouse_2605_enus_seg` SUCCEEDED, and the TER/EER measures summary generated
 
 ## Dependent Skills
 
@@ -540,5 +537,5 @@ bash submit_jobs_repeat.sh
 |-------|-------|---------|
 | **remote-development** | 0, 2 | Node discovery, sync, remote commands |
 | **persistent-job-monitor** | 3 | Long-running training job monitoring |
-| **openasr-report** | 4b | Generate standardized OpenASR/OpenASR-ML xlsx report |
+| **inhouse-asr-compare** | 4b | Inspect `result_details.jsonl` / TER/EER per-utterance diffs |
 | **asr-word-error-analysis** | 5 | Word-level error analysis on validation JSONL |
