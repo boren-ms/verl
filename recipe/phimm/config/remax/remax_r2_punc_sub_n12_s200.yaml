@@ -18,8 +18,6 @@ custom_reward_function:
     text_norm: identity
     checks:
       - fmt
-      - punc
-      - cap
 
 val_reward:
   reward_manager: long_audio_grouped

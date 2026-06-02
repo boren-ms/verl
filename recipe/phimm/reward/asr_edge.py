@@ -215,6 +215,8 @@ _CHECK_SPEC = {
     "repeat": ("p_repeat", False),
     "keyword": ("p_kw_missing", False),
     "tail_hallu": ("p_tail_hallu", False),
+    "punc": ("n_punc", False),
+    "cap": ("n_cap", False),
 }
 
 DEFAULT_CHECKS = ("fmt", "bracket", "repeat", "tail_hallu")
