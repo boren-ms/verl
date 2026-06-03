@@ -1,0 +1,14 @@
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00000-of-00116.jsonl
+  add_task_info:
+    task: lang_asr
+  post_process:
+    rename_fields:
+      mappings:
+        text: punc_refined
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
