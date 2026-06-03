@@ -139,6 +139,29 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
     --out tmp/inhouse_dter_report/remax_r2_punc_h2k_n12_s200_step32_seg.xlsx
   ```
 
+- `--schema nlnl_seg`: the 3 nl-NL TER corpora from the segmented long-audio eval
+  `inhouse_2605_nlnl` (the two `Conversation_DomainSet_*_Entity_*` sets are excluded).
+  `data_source` keys are the short corpus names. Column `A` is the fixed
+  `Qwen3.5-audio` baseline (`eval_qwen/inhouse_2605_nlnl`), embedded as
+  micro-DTER (`dter_n_err / dter_n_ref`):
+
+  | Locale | Dataset | DTER% |
+  |---|---|---|
+  | nl-NL | average | 21.46 |
+  | nl-NL | Conversation_DTEST_FY23Q2 | 24.72 |
+  | nl-NL | Conversation_OnlineMeetings_DTEST_FY23Q1 | 23.94 |
+  | nl-NL | Dictation_DTEST_L_D_FY23Q4 | 15.73 |
+
+  Example:
+
+  ```bash
+  /home/boren/.virtualenvs/openai/bin/python \
+    .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+    "remax_r2_nlnl@step32" \
+    --schema nlnl_seg --metrics tmp/nlnl_target.json \
+    --out tmp/inhouse_dter_report/remax_r2_nlnl_step32_seg.xlsx
+  ```
+
 ## Python Environment
 
 Use `/home/boren/.virtualenvs/openai/bin/python`; the system Python lacks `openpyxl`.

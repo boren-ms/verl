@@ -86,10 +86,31 @@ ENUS_SEG_BASELINE_METRICS: Dict[str, float] = {
     "OnlineMeetings_CS_Shiproom_FY22": 10158 / 39042,           # 0.26018
 }
 
+# ---------------------------------------------------------------------------
+# Alternate schema: inhouse_2605_nlnl (segmented long-audio eval).
+# 3 nl-NL TER corpora (the two Conversation_DomainSet_*_Entity_* sets are excluded).
+# data_source keys are the short corpus names emitted by recipe.phimm long-audio eval.
+# ---------------------------------------------------------------------------
+NLNL_SEG_GROUPS: List[Tuple[str, List[str]]] = [
+    ("nl-NL", [
+        "Conversation_DTEST_FY23Q2",
+        "Conversation_OnlineMeetings_DTEST_FY23Q1",
+        "Dictation_DTEST_L_D_FY23Q4",
+    ]),
+]
+
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_nlnl), micro-DTER = n_err / n_ref.
+NLNL_SEG_BASELINE_METRICS: Dict[str, float] = {
+    "Conversation_DTEST_FY23Q2": 11359 / 45958,                 # 0.24716
+    "Conversation_OnlineMeetings_DTEST_FY23Q1": 11148 / 46574,  # 0.23936
+    "Dictation_DTEST_L_D_FY23Q4": 6391 / 40642,                 # 0.15725
+}
+
 # Registry of selectable schemas: name -> (groups, baseline_metrics).
 SCHEMAS: Dict[str, Tuple[List[Tuple[str, List[str]]], Dict[str, float]]] = {
     "default": (INHOUSE_GROUPS, BASELINE_METRICS),
     "enus_seg": (ENUS_SEG_GROUPS, ENUS_SEG_BASELINE_METRICS),
+    "nlnl_seg": (NLNL_SEG_GROUPS, NLNL_SEG_BASELINE_METRICS),
 }
 
 # Match: val-aux/<corpus>/<key>/mean@1:<float>   where <key> ∈ {dter, dter_n_err, dter_n_ref}
@@ -385,7 +406,8 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Dataset schema / embedded baseline to compare against. "
             "'default' = 6-dataset en-US+nl-NL canonical; "
-            "'enus_seg' = 5 en-US TER corpora from inhouse_2605_enus_seg."
+            "'enus_seg' = 5 en-US TER corpora from inhouse_2605_enus_seg; "
+            "'nlnl_seg' = 3 nl-NL TER corpora from inhouse_2605_nlnl (entity sets excluded)."
         ),
     )
     p.add_argument("--from-ray", nargs=2, metavar=("NODE", "JOB_ID"), action="append", default=[])
