@@ -97,20 +97,6 @@ def _count_ops(ref_words, hyp_words):
     return err
 
 
-def _compute_fmt_errors_lite(ref, hyp):
-    """Return ``(punc_edits, cap_edits)`` using lightweight jiwer-based measure.
-
-    No dependency on DTER / dfmetrics / dotnet.  Uses word-level alignment and
-    Unicode punctuation classification instead.
-    """
-    from recipe.phimm.reward.punc_cap_measure import compute_punc_cap_errors
-
-    result = compute_punc_cap_errors(ref or "", hyp or "")
-    n_punc = result["punc_errors"]
-    n_cap = result["cap_errors"]
-    return n_punc, n_cap
-
-
 def _split_units(text, unit="word"):
     if unit.lower() in {"word", "words"}:
         return text.split()
@@ -189,8 +175,6 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     # <nonspeech> hyp has no language content; treat p_lang as correct.
     is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
 
-    n_punc, n_cap = _compute_fmt_errors_lite(ground_truth, hyp_text)
-
     return {
         "hyp_text": hyp_text,
         "tgt_lang": tgt_lang,
@@ -200,8 +184,6 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "p_repeat": float(p_repeat),
         "p_kw_missing": float(p_kw_missing),
         "p_tail_hallu": float(p_tail_hallu),
-        "n_punc": n_punc,
-        "n_cap": n_cap,
     }
 
 
@@ -215,8 +197,6 @@ _CHECK_SPEC = {
     "repeat": ("p_repeat", False),
     "keyword": ("p_kw_missing", False),
     "tail_hallu": ("p_tail_hallu", False),
-    "punc": ("n_punc", False),
-    "cap": ("n_cap", False),
 }
 
 DEFAULT_CHECKS = ("fmt", "bracket", "repeat", "tail_hallu")
@@ -264,8 +244,6 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
         "p_tail_hallu": parsed["p_tail_hallu"],
-        "n_punc": parsed["n_punc"],
-        "n_cap": parsed["n_cap"],
     }
 
 
@@ -286,8 +264,6 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
         "p_tail_hallu": parsed["p_tail_hallu"],
-        "n_punc": parsed["n_punc"],
-        "n_cap": parsed["n_cap"],
     }
 
 
@@ -313,8 +289,6 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
         "p_repeat": parsed["p_repeat"],
         "p_kw_missing": parsed["p_kw_missing"],
         "p_tail_hallu": parsed["p_tail_hallu"],
-        "n_punc": parsed["n_punc"],
-        "n_cap": parsed["n_cap"],
     }
 
 

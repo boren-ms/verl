@@ -3,11 +3,10 @@
 import pytest
 
 from recipe.phimm.reward.punc_cap_measure import (
-    EditDetail,
     _is_pure_punc,
     _strip_punc,
     classify_edit,
-    compute_punc_cap_errors,
+    compuate_fmt_acc,
 )
 
 
@@ -99,117 +98,61 @@ class TestClassifyEdit:
         assert "lex" not in cats
 
 
-# ── compute_punc_cap_errors ──────────────────────────────────────────────
+# ── compuate_fmt_acc ──────────────────────────────────────────────
 
-class TestComputePuncCapErrors:
+class TestComputeFmtAcc:
     def test_identical(self):
-        r = compute_punc_cap_errors("Hello world", "Hello world")
-        assert r["punc_errors"] == 0
-        assert r["cap_errors"] == 0
-        assert r["lex_errors"] == 0
-        assert r["total_errors"] == 0
-        assert r["n_ref"] == 2
+        r = compuate_fmt_acc("Hello world", "Hello world")
+        assert r["punc"] == 1.0
+        assert r["cap"] == 1.0
+        assert r["lex"] == 1.0
 
     def test_pure_punc_diffs(self):
-        r = compute_punc_cap_errors("Hello, world.", "Hello world")
-        assert r["punc_errors"] == 2
-        assert r["cap_errors"] == 0
-        assert r["lex_errors"] == 0
+        # Both ref words carry punctuation and both are wrong → punc acc 0.
+        r = compuate_fmt_acc("Hello, world.", "Hello world")
+        assert r["punc"] == pytest.approx(0.0)
+        assert r["cap"] == 1.0
+        assert r["lex"] == 1.0
 
     def test_pure_cap_diffs(self):
-        r = compute_punc_cap_errors("The Quick Brown Fox", "the quick brown fox")
-        assert r["cap_errors"] == 4  # The→the, Quick→quick, Brown→brown, Fox→fox
-        assert r["punc_errors"] == 0
-        assert r["lex_errors"] == 0
+        r = compuate_fmt_acc("The Quick Brown Fox", "the quick brown fox")
+        assert r["cap"] == pytest.approx(0.0)
+        assert r["punc"] == 1.0
+        assert r["lex"] == 1.0
 
-    def test_mixed_punc_cap_lexical(self):
-        # jiwer alignment may not pair Hello,→hello (it can choose any
-        # minimum-cost alignment), so only assert on totals.
-        r = compute_punc_cap_errors("Hello, World.", "hello world cat")
-        assert r["punc_errors"] >= 1  # at least one punc-bearing word mismatched
-        assert r["total_errors"] == 3
+    def test_lexical_error(self):
+        # One lexical substitution out of three reference words.
+        r = compuate_fmt_acc("the cat sat", "the dog sat")
+        assert r["lex"] == pytest.approx(2.0 / 3.0)
 
     def test_empty_ref_and_hyp(self):
-        r = compute_punc_cap_errors("", "")
-        assert r["punc_errors"] == 0
-        assert r["cap_errors"] == 0
-        assert r["n_ref"] == 0
-        assert r["punc_error_rate"] == 0.0
-        assert r["cap_error_rate"] == 0.0
+        r = compuate_fmt_acc("", "")
+        assert r["punc"] == 1.0
+        assert r["cap"] == 1.0
+        assert r["lex"] == 1.0
 
     def test_empty_hyp(self):
-        r = compute_punc_cap_errors("Hello world", "")
-        assert r["total_errors"] == 2  # two deletions
-        assert r["n_ref"] == 2
+        # Both reference words deleted → lexical accuracy 0.
+        r = compuate_fmt_acc("Hello world", "")
+        assert r["lex"] == pytest.approx(0.0)
 
     def test_empty_ref(self):
-        r = compute_punc_cap_errors("", "Hello world")
-        assert r["total_errors"] == 2  # two insertions
-        assert r["n_ref"] == 0
+        # No reference words → accuracies default to 1.0.
+        r = compuate_fmt_acc("", "Hello world")
+        assert r["punc"] == 1.0
+        assert r["cap"] == 1.0
+        assert r["lex"] == 1.0
 
     def test_none_inputs(self):
-        r = compute_punc_cap_errors(None, None)
-        assert r["punc_errors"] == 0
-        assert r["n_ref"] == 0
+        r = compuate_fmt_acc(None, None)
+        assert r["punc"] == 1.0
+        assert r["cap"] == 1.0
+        assert r["lex"] == 1.0
 
-    def test_inserted_punc_token(self):
-        r = compute_punc_cap_errors("Hello world", "Hello , world")
-        # The comma is an inserted pure-punctuation token.
-        assert r["punc_errors"] >= 1
-
-    def test_deleted_punc_token(self):
-        # Standalone period as a separate token in ref.
-        r = compute_punc_cap_errors("Hello world .", "Hello world")
-        assert r["punc_errors"] >= 1
-
-    def test_error_rates(self):
-        r = compute_punc_cap_errors("Hello, World.", "hello world")
-        # 2 ref words, punc_errors=2 (comma+period), cap_errors=2 (Hello→hello, World→world)
-        assert r["punc_error_rate"] == pytest.approx(1.0)   # 2/2
-        assert r["cap_error_rate"] == pytest.approx(1.0)     # 2/2
-
-    def test_details_populated(self):
-        r = compute_punc_cap_errors("Hello, world.", "hello world")
-        assert len(r["details"]) > 0
-        for d in r["details"]:
-            assert isinstance(d, EditDetail)
-            assert d.op in ("sub", "ins", "del")
-            assert len(d.categories) > 0
-
-    def test_apostrophe_contraction(self):
-        r = compute_punc_cap_errors("don't", "dont")
-        assert r["punc_errors"] == 1
-        assert r["lex_errors"] == 0
-
-    def test_multi_sentence(self):
-        ref = "The cat sat on the mat. It was happy."
-        hyp = "the cat sat on the mat it was happy"
-        r = compute_punc_cap_errors(ref, hyp)
-        # "The" → "the" (cap), "mat." → "mat" (punc), "happy." → "happy" (punc)
-        assert r["cap_errors"] >= 1
-        assert r["punc_errors"] >= 2
-
-
-# ── _compute_fmt_errors_lite (integration) ───────────────────────────────
-
-class TestFmtErrorsLiteIntegration:
-    def test_basic(self):
-        from recipe.phimm.reward.asr_edge import _compute_fmt_errors_lite
-
-        punc, cap = _compute_fmt_errors_lite("Hello, World.", "hello world")
-        assert punc == 2
-        assert cap == 2
-
-    def test_no_errors(self):
-        from recipe.phimm.reward.asr_edge import _compute_fmt_errors_lite
-
-        punc, cap = _compute_fmt_errors_lite("hello world", "hello world")
-        assert punc == 0
-        assert cap == 0
-
-    def test_none_inputs(self):
-        from recipe.phimm.reward.asr_edge import _compute_fmt_errors_lite
-
-        punc, cap = _compute_fmt_errors_lite(None, None)
-        assert punc == 0
-        assert cap == 0
+    def test_accuracies_upper_bounded(self):
+        # Raw accuracies are not clipped here (clipping happens in
+        # compute_score); they are always <= 1.0 but may go negative
+        # when errors exceed the reference count.
+        r = compuate_fmt_acc("Hello, World.", "hello world cat dog")
+        for k in ("punc", "cap", "lex"):
+            assert r[k] <= 1.0

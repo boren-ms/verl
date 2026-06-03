@@ -17,6 +17,7 @@ from jiwer import process_words
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _is_punc_char(c: str) -> bool:
     """Return True if *c* is a Unicode punctuation character."""
     return unicodedata.category(c).startswith("P")
@@ -45,9 +46,11 @@ def _punc_signature(word: str) -> str:
 # Edit classification
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class EditDetail:
     """One aligned edit between ref and hyp."""
+
     op: str  # "sub", "ins", "del"
     ref_word: str | None
     hyp_word: str | None
@@ -100,8 +103,9 @@ def classify_edit(ref_word: str, hyp_word: str) -> set[str]:
 # Main entry point
 # ---------------------------------------------------------------------------
 
-def compute_punc_cap_errors(ref: str, hyp: str) -> dict:
-    """Compute punctuation and capitalisation error counts.
+
+def compuate_fmt_acc(ref: str, hyp: str) -> dict:
+    """Compute punctuation, capitalisation and lexical accuracies.
 
     Parameters
     ----------
@@ -114,14 +118,9 @@ def compute_punc_cap_errors(ref: str, hyp: str) -> dict:
     -------
     dict with keys:
 
-    * ``punc_errors``  – number of edits involving punctuation.
-    * ``cap_errors``   – number of edits involving capitalisation.
-    * ``lex_errors`` – number of edits involving a real word change.
-    * ``total_errors`` – total edits (S + D + I), same as WER numerator.
-    * ``n_ref``        – reference word count.
-    * ``punc_error_rate`` – ``punc_errors / n_ref`` (0 when n_ref == 0).
-    * ``cap_error_rate``  – ``cap_errors / n_ref``.
-    * ``details``      – list of :class:`EditDetail` (one per edit).
+    * ``punc`` – ``1 - punc_err / punc_ref`` (1.0 when punc_ref == 0).
+    * ``cap``  – ``1 - cap_err / cap_ref`` (1.0 when cap_ref == 0).
+    * ``lex``  – ``1 - lex_err / n_ref`` (1.0 when n_ref == 0).
     """
     ref = (ref or "").strip()
     hyp = (hyp or "").strip()
@@ -193,28 +192,69 @@ def compute_punc_cap_errors(ref: str, hyp: str) -> dict:
                     lex_err += 1
 
     n_ref = len(ref_words)
-    total_err = output.substitutions + output.deletions + output.insertions
+    punc_ref = sum(1 for w in ref_words if any(_is_punc_char(c) for c in w))
+    cap_ref = sum(1 for w in ref_words if any(c.isupper() for c in w))
 
     return {
-        "punc_errors": punc_err,
-        "cap_errors": cap_err,
-        "lex_errors": lex_err,
-        "total_errors": total_err,
-        "n_ref": n_ref,
-        "punc_error_rate": punc_err / n_ref if n_ref else 0.0,
-        "cap_error_rate": cap_err / n_ref if n_ref else 0.0,
-        "details": details,
+        "punc": 1.0 - (punc_err / punc_ref if punc_ref else 0.0),
+        "cap": 1.0 - (cap_err / cap_ref if cap_ref else 0.0),
+        "lex": 1.0 - (lex_err / n_ref if n_ref else 0.0),
     }
 
 
 def _empty_result() -> dict:
     return {
-        "punc_errors": 0,
-        "cap_errors": 0,
-        "lex_errors": 0,
-        "total_errors": 0,
-        "n_ref": 0,
-        "punc_error_rate": 0.0,
-        "cap_error_rate": 0.0,
-        "details": [],
+        "punc": 1.0,
+        "cap": 1.0,
+        "lex": 1.0,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Reward / scoring
+# ---------------------------------------------------------------------------
+
+
+def clip(x, lo=-1.0, hi=1.0):
+    return max(lo, min(hi, x))
+
+
+def signed_pow(x, gamma):
+    sign = 1 if x >= 0 else -1
+    return (abs(x) ** gamma) * sign
+
+
+def compute_score(solution_str, ground_truth, **kwargs):
+    """Combined lexical + formatting reward.
+
+    Uses :func:`recipe.phimm.reward.asr_edge.measure` for the lexical accuracy
+    and :func:`compuate_fmt_acc` for punctuation/capitalisation accuracy::
+
+        score = acc + betas["punc"] * punc + betas["cap"] * cap + betas["lex"] * lex
+    """
+    from recipe.phimm.reward.asr_edge import measure
+    from recipe.phimm.utils.shared import parse_asr_response
+
+    betas = kwargs.get("betas", {})
+    trans_dict = parse_asr_response(solution_str)
+    hyp_text = trans_dict["text"]
+
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
+    unit = kwargs.pop("unit", "char").lower()
+    err = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit=unit, **kwargs)
+
+    result = compuate_fmt_acc(ground_truth or "", hyp_text or "")
+    result["char"] = err.accuracy()
+
+    score = 0.0
+    for k in ("char", "punc", "cap", "lex"):
+        score += betas.get(k, 1.0) * clip(result.get(k, 1.0), 0.0, 1.0)
+
+    return {
+        "score": score,
+        "char_acc": result["char"],
+        "punc_acc": result["punc"],
+        "cap_acc": result["cap"],
+        "lex_acc": result["lex"],
     }
