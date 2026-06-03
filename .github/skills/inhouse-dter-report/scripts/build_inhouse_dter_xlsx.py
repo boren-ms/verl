@@ -62,6 +62,36 @@ BASELINE_METRICS: Dict[str, float] = {
     "Dictation_DTEST_L_D_FY23Q4_nl-NL_DTEST": 0.1570,
 }
 
+# ---------------------------------------------------------------------------
+# Alternate schema: inhouse_2605_enus_seg (segmented long-audio eval).
+# 5 en-US TER corpora (the two CustomerSpeechDomainSet_* Entity sets are excluded).
+# data_source keys are the short corpus names emitted by recipe.phimm long-audio eval.
+# ---------------------------------------------------------------------------
+ENUS_SEG_GROUPS: List[Tuple[str, List[str]]] = [
+    ("en-US", [
+        "Conversation_DTEST_FY21Q1",
+        "Conversation_OnlineMeetings_DTEST_FY25Q3",
+        "Dictation_Commonset_OfficeOffline_FY24Q3",
+        "OnlineMeetings_CS_Product_FY22_FullMeeting",
+        "OnlineMeetings_CS_Shiproom_FY22",
+    ]),
+]
+
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_enus_seg), micro-DTER = n_err / n_ref.
+ENUS_SEG_BASELINE_METRICS: Dict[str, float] = {
+    "Conversation_DTEST_FY21Q1": 7766 / 41826,                  # 0.18567
+    "Conversation_OnlineMeetings_DTEST_FY25Q3": 6395 / 47149,   # 0.13563
+    "Dictation_Commonset_OfficeOffline_FY24Q3": 3888 / 38383,   # 0.10129
+    "OnlineMeetings_CS_Product_FY22_FullMeeting": 8165 / 35020,  # 0.23315
+    "OnlineMeetings_CS_Shiproom_FY22": 10158 / 39042,           # 0.26018
+}
+
+# Registry of selectable schemas: name -> (groups, baseline_metrics).
+SCHEMAS: Dict[str, Tuple[List[Tuple[str, List[str]]], Dict[str, float]]] = {
+    "default": (INHOUSE_GROUPS, BASELINE_METRICS),
+    "enus_seg": (ENUS_SEG_GROUPS, ENUS_SEG_BASELINE_METRICS),
+}
+
 # Match: val-aux/<corpus>/<key>/mean@1:<float>   where <key> ∈ {dter, dter_n_err, dter_n_ref}
 DTER_LINE_RE = re.compile(
     r"val-aux/(?P<dataset>[A-Za-z0-9_.\-]+)/(?P<key>dter|dter_n_err|dter_n_ref)/mean@1[:=]\s*(?P<value>[0-9.eE+-]+)"
@@ -348,6 +378,16 @@ def read_existing_xlsx(path: Path) -> List[Tuple[str, Dict[str, float]]]:
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("label", help="New model label (column header).")
+    p.add_argument(
+        "--schema",
+        choices=sorted(SCHEMAS),
+        default="default",
+        help=(
+            "Dataset schema / embedded baseline to compare against. "
+            "'default' = 6-dataset en-US+nl-NL canonical; "
+            "'enus_seg' = 5 en-US TER corpora from inhouse_2605_enus_seg."
+        ),
+    )
     p.add_argument("--from-ray", nargs=2, metavar=("NODE", "JOB_ID"), action="append", default=[])
     p.add_argument("--from-text", action="append", default=[])
     p.add_argument("--metrics", help="JSON file: {dataset: dter_fraction}.")
@@ -366,6 +406,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+
+    # Select dataset schema + embedded baseline. _row_layout / _project_to_canonical
+    # read the module-level INHOUSE_GROUPS, so rebind it for the chosen schema.
+    global INHOUSE_GROUPS
+    schema_groups, schema_baseline = SCHEMAS[args.schema]
+    INHOUSE_GROUPS = schema_groups
 
     raw_metrics = load_metrics(args)
     if not raw_metrics:
@@ -388,7 +434,7 @@ def main() -> int:
         columns = []
 
     if not columns:
-        baseline_metrics = BASELINE_METRICS
+        baseline_metrics = schema_baseline
         if args.baseline:
             baseline_metrics = {k: float(v) for k, v in json.loads(Path(args.baseline).read_text()).items()}
         columns = [(args.baseline_label, baseline_metrics)]

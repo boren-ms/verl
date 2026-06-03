@@ -109,6 +109,36 @@ Column `A` is the fixed `Qwen3.5-audio` baseline embedded in the script:
 
 Override with `--baseline <json>` and `--baseline-label <name>` if needed.
 
+## Schemas
+
+Select the dataset schema (and its embedded baseline) with `--schema`:
+
+- `--schema default` (default): the 6-dataset en-US + nl-NL canonical schema above.
+- `--schema enus_seg`: the 5 en-US TER corpora from the segmented long-audio eval
+  `inhouse_2605_enus_seg` (the two `CustomerSpeechDomainSet_*` Entity sets are excluded).
+  `data_source` keys are the short corpus names. Column `A` is the fixed
+  `Qwen3.5-audio` baseline (`eval_qwen/inhouse_2605_enus_seg`), embedded as
+  micro-DTER (`dter_n_err / dter_n_ref`):
+
+  | Locale | Dataset | DTER% |
+  |---|---|---|
+  | en-US | average | 18.32 |
+  | en-US | Conversation_DTEST_FY21Q1 | 18.57 |
+  | en-US | Conversation_OnlineMeetings_DTEST_FY25Q3 | 13.56 |
+  | en-US | Dictation_Commonset_OfficeOffline_FY24Q3 | 10.13 |
+  | en-US | OnlineMeetings_CS_Product_FY22_FullMeeting | 23.32 |
+  | en-US | OnlineMeetings_CS_Shiproom_FY22 | 26.02 |
+
+  Example:
+
+  ```bash
+  /home/boren/.virtualenvs/openai/bin/python \
+    .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+    "remax_r2_punc_h2k_n12_s200@step32" \
+    --schema enus_seg --metrics tmp/seg_target.json \
+    --out tmp/inhouse_dter_report/remax_r2_punc_h2k_n12_s200_step32_seg.xlsx
+  ```
+
 ## Python Environment
 
 Use `/home/boren/.virtualenvs/openai/bin/python`; the system Python lacks `openpyxl`.
