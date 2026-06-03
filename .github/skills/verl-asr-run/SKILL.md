@@ -29,7 +29,7 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 | **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
 | **post_train_eval** | No | Always run `long_eval_inhouse_2605_enus_seg` for training jobs | `long_eval_inhouse_2605_enus_seg` |
-| **report** | No | TER/EER measures summary after the eval succeeds | `measures.json` summary |
+| **report** | No | In-house DTER `.xlsx` report (inhouse-dter-report) + TER/EER summary after the eval succeeds | `inhouse_dter_report/*.xlsx` |
 | **word_error_sets** | No | `1` (first data source only) | `all` (all data sources) |
 
 ## Job Types
@@ -135,7 +135,7 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
    - Everything else → training (uses `main_asr_dapo`)
 - **model_path**: Usually baked into the config. If the user specifies a custom model path, it will be passed as a hydra override.
 - **post_train_eval**: For training jobs, always run `long_eval_inhouse_2605_enus_seg` on the completed checkpoint as part of the full-stack pipeline.
-- **report**: After the post-training eval succeeds, summarize the aggregate TER/EER from `measures.json` (Step 4b).
+- **report**: After the post-training eval succeeds, build the canonical in-house DTER `.xlsx` report with the **inhouse-dter-report** skill (`--schema enus_seg`) and surface the headline TER/EER from `measures.json` (Step 4b).
 - **word_error_sets**: Default `1` — only analyze the first data source. If user says "all", analyze all data sources.
 
 ### Step 2 — Push code and submit the job
@@ -375,38 +375,57 @@ brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepar
 
 Track the Ray job ID. If the eval fails, diagnose and fix using Step 3f, then resubmit before continuing.
 
-### Step 4b — Report the in-house TER/EER measures
+### Step 4b — Report the in-house DTER measures via the **inhouse-dter-report** skill
 
-After the eval job succeeds, summarize the aggregate measures it produced.
+After the eval job succeeds, generate the canonical in-house DTER comparison report using the **inhouse-dter-report** skill. This is the required reporting mechanism for the in-house evaluation — it builds the standardized `.xlsx` report that inserts the trained model as a new column next to the fixed `Qwen3.5-audio` baseline (column A) with per-locale, overall, and WERR columns.
 
 The long-audio eval writes two artifacts per data source under `{OUTPUT_PATH}/{DATA_SOURCE}/`:
 - `result_details.jsonl` — per-recording `ref`/`hyp`, `dter`, `eer`, and `dter_detail`.
 - `measures.json` — micro-averaged TER + EER for that source.
 
-Required behavior:
-- Read `measures.json` from the eval `data.output_path` (download via `bbb cp` if it is on blob).
-- Report the key fields: `dter` (DisfluencyTolerant TER), `eer` (entity error rate), and the supporting counts (`dter_n_err`/`dter_n_ref`, `eer_n_err`/`eer_n_ref`, `n_recordings`).
-- Present TER and EER as percentages (×100) with a `%` suffix.
-- Use model label `{TRAIN_CONFIG}@step{LATEST_STEP}` unless the user provided a custom label.
+The Ray job logs also emit per-corpus `val-aux/<corpus>/dter_n_err/mean@1` and `val-aux/<corpus>/dter_n_ref/mean@1` aggregates, from which the **inhouse-dter-report** script recovers the canonical **micro-DTER** (`dter_n_err / dter_n_ref`).
 
-Example measures fetch:
+Required behavior:
+- Invoke the **inhouse-dter-report** skill with `--schema enus_seg` (the schema matching `long_eval_inhouse_2605_enus_seg`'s 5 en-US TER corpora).
+- Use model label `{TRAIN_CONFIG}@step{LATEST_STEP}` unless the user provided a custom label.
+- Prefer sourcing directly from the eval Ray job logs with `--from-ray {NODE} {EVAL_JOB_ID}` so the micro-DTER is parsed from `val-aux/<corpus>/dter_n_err|dter_n_ref/mean@1`.
+- If the eval job logs are unavailable, fall back to `--metrics <json>` built from each data source's `measures.json` (download via `bbb cp`), passing per-corpus `dter` fractions.
+
+Build the report:
+
+```bash
+/home/boren/.virtualenvs/openai/bin/python \
+  .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+  "{TRAIN_CONFIG}@step{LATEST_STEP}" \
+  --schema enus_seg \
+  --from-ray {NODE} {EVAL_JOB_ID} \
+  --out tmp/inhouse_dter_report/{TRAIN_CONFIG}_step{LATEST_STEP}_seg.xlsx
+```
+
+To extend an existing report with this model as an additional column, add `--extend-xlsx <prior.xlsx>`.
+
+Refer to the **inhouse-dter-report** skill (`.github/skills/inhouse-dter-report/SKILL.md`) for schema details, baseline values, the micro-DTER recovery formula, and additional options.
+
+Also surface the headline measures inline from `measures.json` so the user sees the result without opening the xlsx:
 
 ```bash
 bbb cp {OUTPUT_PATH}/{DATA_SOURCE}/measures.json /tmp/verl_eval/measures.json
 cat /tmp/verl_eval/measures.json
 ```
 
-Report the measures in a table:
+Report the per-corpus DTER table (from the generated xlsx) and the headline measures:
 
 | Model | Dataset | TER (dter) | EER | n_recordings |
 |-------|---------|------------|-----|--------------|
 | {TRAIN_CONFIG}@step{LATEST_STEP} | inhouse_2605_enus_seg | 8.91% | 4.20% | N |
 
+Present TER and EER as percentages (×100) with a `%` suffix. State the path to the generated `.xlsx` report.
+
 For deeper utterance-level inspection of `result_details.jsonl`, use the **inhouse-asr-compare** or **asr-word-error-analysis** skill.
 
 Post-training final response requirements:
 1. Show the training final summary from Step 4.
-2. Show the TER/EER measures table for `long_eval_inhouse_2605_enus_seg`.
+2. Show the in-house DTER comparison report (xlsx path + per-corpus DTER/WERR) built with the **inhouse-dter-report** skill, plus the headline TER/EER measures for `long_eval_inhouse_2605_enus_seg`.
 3. Include W&B and Ray links for the training job and the eval job when available.
 4. State which checkpoint path was evaluated.
 5. Include the eval `data.output_path` (location of `result_details.jsonl` + `measures.json`).
@@ -529,7 +548,7 @@ bash submit_jobs_repeat.sh
 - Parse `step:N - key:val - key:val` format into structured table rows
 - When monitoring, report the current phase and what to expect next
 - On failure, show the error, diagnose, and proceed to fix without asking
-- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `long_eval_inhouse_2605_enus_seg` SUCCEEDED, and the TER/EER measures summary generated
+- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `long_eval_inhouse_2605_enus_seg` SUCCEEDED, and the in-house DTER `.xlsx` report (inhouse-dter-report) plus TER/EER measures summary generated
 
 ## Dependent Skills
 
@@ -537,5 +556,6 @@ bash submit_jobs_repeat.sh
 |-------|-------|---------|
 | **remote-development** | 0, 2 | Node discovery, sync, remote commands |
 | **persistent-job-monitor** | 3 | Long-running training job monitoring |
+| **inhouse-dter-report** | 4b | Build the canonical in-house DTER `.xlsx` comparison report (`--schema enus_seg`) |
 | **inhouse-asr-compare** | 4b | Inspect `result_details.jsonl` / TER/EER per-utterance diffs |
 | **asr-word-error-analysis** | 5 | Word-level error analysis on validation JSONL |
