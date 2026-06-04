@@ -14,11 +14,15 @@ custom_reward_function:
   name: compute_score
   reward_kwargs:
     unit: char
-    betas:
-      char: 1.0
-      punc: 0.5
-      cap: 0.5
-      lex: 0.5
+    scores:
+      char: 
+        beta: 1.0
+      punc: 
+        beta: 0.5
+      cap:  
+        beta: 0.5
+      lex:  
+        beta: 0.5
 
 val_reward:
   reward_manager: long_audio_grouped

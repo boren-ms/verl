@@ -228,14 +228,26 @@ def compute_score(solution_str, ground_truth, **kwargs):
     """Combined lexical + formatting reward.
 
     Uses :func:`recipe.phimm.reward.asr_edge.measure` for the lexical accuracy
-    and :func:`compuate_fmt_acc` for punctuation/capitalisation accuracy::
+    and :func:`compuate_fmt_acc` for punctuation/capitalisation accuracy.
 
-        score = acc + betas["punc"] * punc + betas["cap"] * cap + betas["lex"] * lex
+    Only the components listed in ``scores`` contribute to the reward. The
+    contribution of each component ``k`` is::
+
+        beta * signed_pow(clip(acc_k, 0, 1), gamma)
+
+    Both ``beta`` and ``gamma`` default to ``1.0`` when omitted.
+
+    Configuration example (YAML)::
+
+        reward_kwargs:
+          scores:
+            char: {beta: 1.0, gamma: 0.5}
+            punc: {beta: 0.5, gamma: 0.2}
     """
     from recipe.phimm.reward.asr_edge import measure
     from recipe.phimm.utils.shared import parse_asr_response
 
-    betas = kwargs.get("betas", {})
+    scores = kwargs.get("scores") or {}
     trans_dict = parse_asr_response(solution_str)
     hyp_text = trans_dict["text"]
 
@@ -248,8 +260,12 @@ def compute_score(solution_str, ground_truth, **kwargs):
     result["char"] = err.accuracy()
 
     score = 0.0
-    for k in ("char", "punc", "cap", "lex"):
-        score += betas.get(k, 1.0) * clip(result.get(k, 1.0), 0.0, 1.0)
+    for k, cfg in scores.items():
+        cfg = cfg or {}
+        beta = float(cfg.get("beta", 1.0))
+        gamma = float(cfg.get("gamma", 1.0))
+        acc = clip(result.get(k, 1.0), -1.0, 1.0)
+        score += beta * signed_pow(acc, gamma)
 
     return {
         "score": score,
