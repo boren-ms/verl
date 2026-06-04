@@ -107,10 +107,109 @@ NLNL_SEG_BASELINE_METRICS: Dict[str, float] = {
 }
 
 # Registry of selectable schemas: name -> (groups, baseline_metrics).
+# ---------------------------------------------------------------------------
+# Alternate schema: inhouse_2605_dadk (segmented long-audio eval).
+# 3 da-DK TER corpora. data_source keys are the short corpus names.
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_dadk), micro-DTER = n_err / n_ref.
+# ---------------------------------------------------------------------------
+DADK_SEG_GROUPS: List[Tuple[str, List[str]]] = [
+    ("da-DK", [
+        "Conversation_DTEST_FY21Q3",
+        "Conversation_OnlineMeetings_DTEST_FY23Q1",
+        "Dictation_DTEST_L_D_FY23Q4",
+    ]),
+]
+
+DADK_SEG_BASELINE_METRICS: Dict[str, float] = {
+    "Conversation_DTEST_FY21Q3": 13725 / 58149,                 # 0.23603
+    "Conversation_OnlineMeetings_DTEST_FY23Q1": 11911 / 48951,  # 0.24332
+    "Dictation_DTEST_L_D_FY23Q4": 10003 / 44482,                # 0.22488
+}
+
+# ---------------------------------------------------------------------------
+# Alternate schema: inhouse_2605_huhu (segmented long-audio eval).
+# 3 hu-HU TER corpora. data_source keys are the short corpus names.
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_huhu), micro-DTER = n_err / n_ref.
+# ---------------------------------------------------------------------------
+HUHU_SEG_GROUPS: List[Tuple[str, List[str]]] = [
+    ("hu-HU", [
+        "Conversation_DTEST_FY22Q4",
+        "Conversation_OnlineMeetings_DTEST_FY24Q2",
+        "Dictation_DTEST_L_D_FY25Q2",
+    ]),
+]
+
+HUHU_SEG_BASELINE_METRICS: Dict[str, float] = {
+    "Conversation_DTEST_FY22Q4": 7655 / 33569,                  # 0.22804
+    "Conversation_OnlineMeetings_DTEST_FY24Q2": 7676 / 35005,   # 0.21928
+    "Dictation_DTEST_L_D_FY25Q2": 7557 / 31098,                 # 0.24301
+}
+
+# ---------------------------------------------------------------------------
+# Alternate schema: inhouse_2605_nbno (segmented long-audio eval).
+# 3 nb-NO TER corpora. data_source keys are the short corpus names.
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_nbno), micro-DTER = n_err / n_ref.
+# ---------------------------------------------------------------------------
+NBNO_SEG_GROUPS: List[Tuple[str, List[str]]] = [
+    ("nb-NO", [
+        "Conversation_DTEST_FY21Q3",
+        "Conversation_OnlineMeetings_DTEST_FY23Q1",
+        "Dictation_DTEST_L_D_FY23Q4",
+    ]),
+]
+
+NBNO_SEG_BASELINE_METRICS: Dict[str, float] = {
+    "Conversation_DTEST_FY21Q3": 10345 / 47273,                 # 0.21884
+    "Conversation_OnlineMeetings_DTEST_FY23Q1": 7803 / 37996,   # 0.20536
+    "Dictation_DTEST_L_D_FY23Q4": 8584 / 40601,                 # 0.21142
+}
+
+# ---------------------------------------------------------------------------
+# Combined schema: the three new locales (da-DK, hu-HU, nb-NO) in one report.
+# Canonical names carry a locale suffix to avoid short-name collisions between
+# da-DK and nb-NO (which share corpus short names). Baseline = Qwen3.5-audio.
+# When sourcing from a single-locale eval job, pass --metrics with these
+# suffixed keys (or build per-locale reports with the dadk/huhu/nbno schemas).
+# ---------------------------------------------------------------------------
+NEWLOCS_SEG_GROUPS: List[Tuple[str, List[str]]] = [
+    ("da-DK", [
+        "Conversation_DTEST_FY21Q3_da-DK",
+        "Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK",
+        "Dictation_DTEST_L_D_FY23Q4_da-DK",
+    ]),
+    ("hu-HU", [
+        "Conversation_DTEST_FY22Q4_hu-HU",
+        "Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU",
+        "Dictation_DTEST_L_D_FY25Q2_hu-HU",
+    ]),
+    ("nb-NO", [
+        "Conversation_DTEST_FY21Q3_nb-NO",
+        "Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO",
+        "Dictation_DTEST_L_D_FY23Q4_nb-NO",
+    ]),
+]
+
+NEWLOCS_SEG_BASELINE_METRICS: Dict[str, float] = {
+    "Conversation_DTEST_FY21Q3_da-DK": 13725 / 58149,
+    "Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK": 11911 / 48951,
+    "Dictation_DTEST_L_D_FY23Q4_da-DK": 10003 / 44482,
+    "Conversation_DTEST_FY22Q4_hu-HU": 7655 / 33569,
+    "Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU": 7676 / 35005,
+    "Dictation_DTEST_L_D_FY25Q2_hu-HU": 7557 / 31098,
+    "Conversation_DTEST_FY21Q3_nb-NO": 10345 / 47273,
+    "Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO": 7803 / 37996,
+    "Dictation_DTEST_L_D_FY23Q4_nb-NO": 8584 / 40601,
+}
+
+# Registry of selectable schemas: name -> (groups, baseline_metrics).
 SCHEMAS: Dict[str, Tuple[List[Tuple[str, List[str]]], Dict[str, float]]] = {
     "default": (INHOUSE_GROUPS, BASELINE_METRICS),
     "enus_seg": (ENUS_SEG_GROUPS, ENUS_SEG_BASELINE_METRICS),
     "nlnl_seg": (NLNL_SEG_GROUPS, NLNL_SEG_BASELINE_METRICS),
+    "dadk_seg": (DADK_SEG_GROUPS, DADK_SEG_BASELINE_METRICS),
+    "huhu_seg": (HUHU_SEG_GROUPS, HUHU_SEG_BASELINE_METRICS),
+    "nbno_seg": (NBNO_SEG_GROUPS, NBNO_SEG_BASELINE_METRICS),
+    "newlocs_seg": (NEWLOCS_SEG_GROUPS, NEWLOCS_SEG_BASELINE_METRICS),
 }
 
 # Match: val-aux/<corpus>/<key>/mean@1:<float>   where <key> ∈ {dter, dter_n_err, dter_n_ref}
@@ -398,7 +497,12 @@ def read_existing_xlsx(path: Path) -> List[Tuple[str, Dict[str, float]]]:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("label", help="New model label (column header).")
+    p.add_argument("label", nargs="?", help="New model label (column header). Optional with --baseline-only.")
+    p.add_argument(
+        "--baseline-only",
+        action="store_true",
+        help="Emit only the embedded baseline column (no model/WERR columns). Useful for registering or publishing a schema's baseline numbers.",
+    )
     p.add_argument(
         "--schema",
         choices=sorted(SCHEMAS),
@@ -407,7 +511,11 @@ def parse_args() -> argparse.Namespace:
             "Dataset schema / embedded baseline to compare against. "
             "'default' = 6-dataset en-US+nl-NL canonical; "
             "'enus_seg' = 5 en-US TER corpora from inhouse_2605_enus_seg; "
-            "'nlnl_seg' = 3 nl-NL TER corpora from inhouse_2605_nlnl (entity sets excluded)."
+            "'nlnl_seg' = 3 nl-NL TER corpora from inhouse_2605_nlnl; "
+            "'dadk_seg' = 3 da-DK corpora from inhouse_2605_dadk; "
+            "'huhu_seg' = 3 hu-HU corpora from inhouse_2605_huhu; "
+            "'nbno_seg' = 3 nb-NO corpora from inhouse_2605_nbno; "
+            "'newlocs_seg' = combined da-DK + hu-HU + nb-NO (locale-suffixed keys)."
         ),
     )
     p.add_argument("--from-ray", nargs=2, metavar=("NODE", "JOB_ID"), action="append", default=[])
@@ -434,6 +542,21 @@ def main() -> int:
     global INHOUSE_GROUPS
     schema_groups, schema_baseline = SCHEMAS[args.schema]
     INHOUSE_GROUPS = schema_groups
+
+    # Baseline-only mode: emit just the embedded (or overridden) baseline column.
+    if args.baseline_only:
+        baseline_metrics = schema_baseline
+        if args.baseline:
+            baseline_metrics = {k: float(v) for k, v in json.loads(Path(args.baseline).read_text()).items()}
+        columns = [(args.baseline_label, baseline_metrics)]
+        out_path = Path(args.out or f"tmp/inhouse_dter_report/{args.schema}_baseline.xlsx")
+        build_workbook(columns, out_path)
+        print(out_path)
+        return 0
+
+    if args.label is None:
+        print("[error] label is required unless --baseline-only is set.", file=sys.stderr)
+        return 2
 
     raw_metrics = load_metrics(args)
     if not raw_metrics:

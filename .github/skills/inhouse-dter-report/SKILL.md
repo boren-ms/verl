@@ -162,6 +162,77 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
     --out tmp/inhouse_dter_report/remax_r2_nlnl_step32_seg.xlsx
   ```
 
+- `--schema dadk_seg`: the 3 da-DK TER corpora from the segmented long-audio eval
+  `inhouse_2605_dadk`. `data_source` keys are the short corpus names. Column `A`
+  is the fixed `Qwen3.5-audio` baseline (`eval_qwen/inhouse_2605_dadk`), embedded
+  as micro-DTER (`dter_n_err / dter_n_ref`):
+
+  | Locale | Dataset | DTER% |
+  |---|---|---|
+  | da-DK | average | 23.47 |
+  | da-DK | Conversation_DTEST_FY21Q3 | 23.60 |
+  | da-DK | Conversation_OnlineMeetings_DTEST_FY23Q1 | 24.33 |
+  | da-DK | Dictation_DTEST_L_D_FY23Q4 | 22.49 |
+
+- `--schema huhu_seg`: the 3 hu-HU TER corpora from the segmented long-audio eval
+  `inhouse_2605_huhu`. `data_source` keys are the short corpus names. Column `A`
+  is the fixed `Qwen3.5-audio` baseline (`eval_qwen/inhouse_2605_huhu`), embedded
+  as micro-DTER (`dter_n_err / dter_n_ref`):
+
+  | Locale | Dataset | DTER% |
+  |---|---|---|
+  | hu-HU | average | 23.01 |
+  | hu-HU | Conversation_DTEST_FY22Q4 | 22.80 |
+  | hu-HU | Conversation_OnlineMeetings_DTEST_FY24Q2 | 21.93 |
+  | hu-HU | Dictation_DTEST_L_D_FY25Q2 | 24.30 |
+
+- `--schema nbno_seg`: the 3 nb-NO TER corpora from the segmented long-audio eval
+  `inhouse_2605_nbno`. `data_source` keys are the short corpus names. Column `A`
+  is the fixed `Qwen3.5-audio` baseline (`eval_qwen/inhouse_2605_nbno`), embedded
+  as micro-DTER (`dter_n_err / dter_n_ref`):
+
+  | Locale | Dataset | DTER% |
+  |---|---|---|
+  | nb-NO | average | 21.19 |
+  | nb-NO | Conversation_DTEST_FY21Q3 | 21.88 |
+  | nb-NO | Conversation_OnlineMeetings_DTEST_FY23Q1 | 20.54 |
+  | nb-NO | Dictation_DTEST_L_D_FY23Q4 | 21.14 |
+
+  Per-locale example:
+
+  ```bash
+  /home/boren/.virtualenvs/openai/bin/python \
+    .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+    "my_model@step32" \
+    --schema dadk_seg --from-ray verl-n1-i2 raysubmit_XXXX \
+    --out tmp/inhouse_dter_report/my_model_step32_dadk.xlsx
+  ```
+
+- `--schema newlocs_seg`: the combined da-DK + hu-HU + nb-NO report (9 corpora,
+  3 per locale). Canonical dataset keys carry a locale suffix
+  (e.g. `Conversation_DTEST_FY21Q3_da-DK`) because da-DK and nb-NO share corpus
+  short names. Column `A` is the fixed `Qwen3.5-audio` baseline embedded as
+  micro-DTER:
+
+  | Locale | Dataset | DTER% |
+  |---|---|---|
+  | da-DK | average | 23.47 |
+  | hu-HU | average | 23.01 |
+  | nb-NO | average | 21.19 |
+  | overall | average | 22.56 |
+
+  Because the per-locale eval jobs emit unsuffixed `data_source` keys, supply the
+  suffixed values via `--metrics` (or build the three per-locale reports above and
+  combine manually). To publish just the embedded baseline column, use
+  `--baseline-only`:
+
+  ```bash
+  /home/boren/.virtualenvs/openai/bin/python \
+    .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+    --schema newlocs_seg --baseline-only \
+    --out tmp/inhouse_dter_report/inhouse_2605_newlocs_baseline.xlsx
+  ```
+
 ## Python Environment
 
 Use `/home/boren/.virtualenvs/openai/bin/python`; the system Python lacks `openpyxl`.
