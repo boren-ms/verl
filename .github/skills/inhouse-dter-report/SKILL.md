@@ -208,29 +208,14 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
     --out tmp/inhouse_dter_report/my_model_step32_dadk.xlsx
   ```
 
-- `--schema newlocs_seg`: the combined da-DK + hu-HU + nb-NO report (9 corpora,
-  3 per locale). Canonical dataset keys carry a locale suffix
-  (e.g. `Conversation_DTEST_FY21Q3_da-DK`) because da-DK and nb-NO share corpus
-  short names. Column `A` is the fixed `Qwen3.5-audio` baseline embedded as
-  micro-DTER:
-
-  | Locale | Dataset | DTER% |
-  |---|---|---|
-  | da-DK | average | 23.47 |
-  | hu-HU | average | 23.01 |
-  | nb-NO | average | 21.19 |
-  | overall | average | 22.56 |
-
-  Because the per-locale eval jobs emit unsuffixed `data_source` keys, supply the
-  suffixed values via `--metrics` (or build the three per-locale reports above and
-  combine manually). To publish just the embedded baseline column, use
+  To publish just the embedded baseline column for any schema, use
   `--baseline-only`:
 
   ```bash
   /home/boren/.virtualenvs/openai/bin/python \
     .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
-    --schema newlocs_seg --baseline-only \
-    --out tmp/inhouse_dter_report/inhouse_2605_newlocs_baseline.xlsx
+    --schema dadk_seg --baseline-only \
+    --out tmp/inhouse_dter_report/inhouse_2605_dadk_baseline.xlsx
   ```
 
 ## Python Environment
