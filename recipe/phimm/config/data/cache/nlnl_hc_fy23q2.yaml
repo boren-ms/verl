@@ -1,0 +1,9 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+
+source_config: data/train_data/nlnl_hc_fy23q2.yaml
+output_path: az://orngwus2cresco/data/boren/data/verl/cached/nlnl_hc_fy23q2/data.jsonl
+include_verl_format: false
+overwrite: false
