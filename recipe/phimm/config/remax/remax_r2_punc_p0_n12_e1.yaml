@@ -14,7 +14,7 @@ custom_reward_function:
   name: compute_score
   reward_kwargs:
     unit: char
-    scores:
+    measures:
       char: 
         beta: 1.0
       punc: 

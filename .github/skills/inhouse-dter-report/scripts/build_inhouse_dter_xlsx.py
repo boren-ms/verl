@@ -179,6 +179,13 @@ DTER_LINE_RE = re.compile(
     r"val-aux/(?P<dataset>[A-Za-z0-9_.\-]+)/(?P<key>dter|dter_n_err|dter_n_ref)/mean@1[:=]\s*(?P<value>[0-9.eE+-]+)"
 )
 
+# Match the long_eval summary line, e.g.:
+#   [Conversation_DTEST_FY21Q3] DTER: 23.51% [13668/58149]  EER: 0.00% [0/0]  on 34 recordings
+# The bracketed [n_err/n_ref] counts yield the exact micro-DTER per corpus.
+DTER_SUMMARY_RE = re.compile(
+    r"\[(?P<dataset>[A-Za-z0-9_.\-]+)\]\s+DTER:\s+[0-9.]+%\s+\[(?P<n_err>[0-9]+)/(?P<n_ref>[0-9]+)\]"
+)
+
 LOCALE_SUFFIX_RE = re.compile(r"_[a-z]{2}-[A-Z]{2}(?:_.*)?$")
 
 
@@ -190,11 +197,17 @@ def _canonical_lookup(parsed: Dict[str, float], canonical: str) -> Optional[floa
     short = LOCALE_SUFFIX_RE.sub("", canonical)
     if short != canonical and short in parsed:
         return parsed[short]
-    # Case-insensitive search.
-    ci = {k.lower(): v for k, v in parsed.items()}
+    # Build suffix-stripped, case-insensitive views of the parsed keys so that
+    # either side carrying a locale suffix (e.g. `..._hu-HU`) still matches.
+    norm: Dict[str, float] = {}
+    for k, v in parsed.items():
+        norm.setdefault(k.lower(), v)
+        ks = LOCALE_SUFFIX_RE.sub("", k)
+        if ks != k:
+            norm.setdefault(ks.lower(), v)
     for cand in (canonical.lower(), short.lower()):
-        if cand in ci:
-            return ci[cand]
+        if cand in norm:
+            return norm[cand]
     return None
 
 
@@ -222,6 +235,13 @@ def parse_dter_lines(text: str) -> Dict[str, float]:
             n_ref[ds] = v
         else:  # 'dter'
             macro[ds] = v
+
+    # Long-audio eval summary lines: [<corpus>] DTER: x% [n_err/n_ref] ...
+    # These carry exact micro-DTER counts and take precedence.
+    for m in DTER_SUMMARY_RE.finditer(text):
+        ds = m.group("dataset")
+        n_err[ds] = float(m.group("n_err"))
+        n_ref[ds] = float(m.group("n_ref"))
 
     out: Dict[str, float] = {}
     for ds in set(n_err) | set(n_ref) | set(macro):

@@ -13,7 +13,7 @@ custom_reward_function:
   path: recipe/phimm/reward/punc_cap_measure.py
   name: compute_score
   reward_kwargs:
-    scores:
+    measures:
       char: {beta: 1.0, gamma: 0.1}
       punc: {beta: 1.0, gamma: 1.0}
 

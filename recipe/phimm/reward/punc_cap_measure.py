@@ -266,6 +266,43 @@ def signed_pow(x, gamma):
     return (abs(x) ** gamma) * sign
 
 
+def reduce_scores(scores, mode="sum"):
+    """Reduce a list of scores into a single value.
+
+    Modes: "sum", "mean", "multiply", "geometric", "harmonic".
+    """
+    if not scores:
+        return 0.0
+    if mode == "multiply":
+        score = 1.0
+        for s in scores:
+            score *= s
+        return score
+    elif mode == "mean":
+        return sum(scores) / len(scores)
+    elif mode == "geometric":
+        product = 1.0
+        for s in scores:
+            product *= abs(s)
+        return product ** (1.0 / len(scores))
+    elif mode == "harmonic":
+        try:
+            return len(scores) / sum(1.0 / s for s in scores)
+        except ZeroDivisionError:
+            return 0.0
+    else:
+        return sum(scores)
+
+
+def scale_score(acc, cfg):
+    """Compute a single weighted score from an accuracy value and config."""
+    cfg = cfg or {}
+    beta = float(cfg.get("beta", 1.0))
+    gamma = float(cfg.get("gamma", 1.0))
+    acc = clip(acc, 0.0, 1.0)
+    return beta * signed_pow(acc, gamma)
+
+
 def compute_score(solution_str, ground_truth, **kwargs):
     """Combined lexical + formatting reward.
 
@@ -282,6 +319,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Configuration example (YAML)::
 
         reward_kwargs:
+          reduce: sum            # "sum" (default), "mean", or "multiply"
           scores:
             char: {beta: 1.0, gamma: 0.5}
             punc: {beta: 0.5, gamma: 0.2}
@@ -289,7 +327,9 @@ def compute_score(solution_str, ground_truth, **kwargs):
     from recipe.phimm.reward.asr_edge import measure
     from recipe.phimm.utils.shared import parse_asr_response
 
-    scores = kwargs.get("scores") or {}
+    measures = kwargs.get("measures") or {}
+    reduce = kwargs.get("reduce", "sum").lower()
+    gamma = float(kwargs.get("gamma", 1.0))
     trans_dict = parse_asr_response(solution_str)
     hyp_text = trans_dict["text"]
 
@@ -301,16 +341,11 @@ def compute_score(solution_str, ground_truth, **kwargs):
     result = compuate_fmt_acc(ground_truth or "", hyp_text or "")
     result["char"] = err.accuracy()
 
-    score = 0.0
-    for k, cfg in scores.items():
-        cfg = cfg or {}
-        beta = float(cfg.get("beta", 1.0))
-        gamma = float(cfg.get("gamma", 1.0))
-        acc = clip(result.get(k, 1.0), -1.0, 1.0)
-        score += beta * signed_pow(acc, gamma)
+    scores = [scale_score(result.get(k, 1.0), cfg) for k, cfg in measures.items()]
+    score = reduce_scores(scores, reduce)
 
     return {
-        "score": score,
+        "score": signed_pow(score, gamma),
         "char_acc": result["char"],
         "punc_acc": result["punc"],
         "cap_acc": result["cap"],
