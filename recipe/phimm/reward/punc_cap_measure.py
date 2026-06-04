@@ -18,9 +18,36 @@ from jiwer import process_words
 # ---------------------------------------------------------------------------
 
 
+# Regular punctuation marks that matter for ASR punc accuracy.
+# Excludes apostrophes, hyphens, quotes, brackets, etc.
+REGULAR_PUNC = set(".,?!;:;。？！、，：；…")
+
+
 def _is_punc_char(c: str) -> bool:
     """Return True if *c* is a Unicode punctuation character."""
     return unicodedata.category(c).startswith("P")
+
+
+def _is_regular_punc(c: str) -> bool:
+    """Return True if *c* is a regular (sentence-level) punctuation mark."""
+    return c in REGULAR_PUNC
+
+
+def _is_edge_punc(word: str, idx: int) -> bool:
+    """Return True if char at *idx* is a regular punctuation at a word edge.
+
+    Only punctuation at the very start or end of *word* counts.  Mid-word
+    punctuation (e.g. the ``.`` in ``4.5`` or ``U.S.A``) is ignored.
+    """
+    if not _is_regular_punc(word[idx]):
+        return False
+    # Walk outward — all chars between idx and the nearest edge must also be punc.
+    # e.g. "Hello," → comma is edge; "4.5" → period is NOT edge.
+    # Left edge: every char from 0..idx is punc.
+    left_ok = all(_is_punc_char(word[j]) for j in range(0, idx))
+    # Right edge: every char from idx..end is punc.
+    right_ok = all(_is_punc_char(word[j]) for j in range(idx + 1, len(word)))
+    return left_ok or right_ok
 
 
 def _strip_punc(word: str) -> str:
@@ -33,13 +60,28 @@ def _is_pure_punc(word: str) -> bool:
     return len(word) > 0 and all(_is_punc_char(c) for c in word)
 
 
+def _has_regular_punc(word: str) -> bool:
+    """Return True if *word* has regular punctuation at a word edge."""
+    return any(_is_edge_punc(word, i) for i in range(len(word)))
+
+
+def _is_pure_regular_punc(word: str) -> bool:
+    """Return True if *word* consists entirely of regular punctuation marks."""
+    return len(word) > 0 and all(_is_regular_punc(c) for c in word)
+
+
 def _punc_signature(word: str) -> str:
-    """Return a string encoding punctuation positions & characters.
+    """Return a string encoding edge regular-punctuation positions & characters.
 
     E.g. ``"Hello,"`` → ``",5"`` (comma at index 5).
     Used to detect whether two tokens differ only in punctuation attachment.
+    Only considers regular punctuation at word edges.
     """
-    return "".join(c + str(i) for i, c in enumerate(word) if _is_punc_char(c))
+    return "".join(
+        c + str(i)
+        for i, c in enumerate(word)
+        if _is_edge_punc(word, i)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -163,11 +205,11 @@ def compuate_fmt_acc(ref: str, hyp: str) -> dict:
             for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
                 rw = ref_words[ri]
                 cats: set[str] = set()
-                if _is_pure_punc(rw):
+                if _is_pure_regular_punc(rw):
                     cats.add("punc")
                 else:
                     cats.add("lex")
-                    if any(_is_punc_char(c) for c in rw):
+                    if _has_regular_punc(rw):
                         cats.add("punc")
                 details.append(EditDetail(op="del", ref_word=rw, hyp_word=None, categories=cats))
                 if "punc" in cats:
@@ -179,11 +221,11 @@ def compuate_fmt_acc(ref: str, hyp: str) -> dict:
             for hi in range(chunk.hyp_start_idx, chunk.hyp_end_idx):
                 hw = hyp_words[hi]
                 cats: set[str] = set()
-                if _is_pure_punc(hw):
+                if _is_pure_regular_punc(hw):
                     cats.add("punc")
                 else:
                     cats.add("lex")
-                    if any(_is_punc_char(c) for c in hw):
+                    if _has_regular_punc(hw):
                         cats.add("punc")
                 details.append(EditDetail(op="ins", ref_word=None, hyp_word=hw, categories=cats))
                 if "punc" in cats:
@@ -192,7 +234,7 @@ def compuate_fmt_acc(ref: str, hyp: str) -> dict:
                     lex_err += 1
 
     n_ref = len(ref_words)
-    punc_ref = sum(1 for w in ref_words if any(_is_punc_char(c) for c in w))
+    punc_ref = sum(1 for w in ref_words if _has_regular_punc(w))
     cap_ref = sum(1 for w in ref_words if any(c.isupper() for c in w))
 
     return {
