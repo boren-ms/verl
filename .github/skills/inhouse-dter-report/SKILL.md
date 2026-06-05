@@ -240,8 +240,8 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
 - `--schema all_seg`: **all 6 locales × 3 corpora in one sheet** — the combined
   segmented long-audio eval (`inhouse_2605_5lang_seg_v2`). Internal keys are
   the per-corpus slug directory names (e.g. `enus_conv_fy21q1`,
-  `dadk_conv_om_fy23q1`); display labels are the short corpus names (with a
-  locale suffix on the rows where short names would collide across locales).
+  `dadk_conv_om_fy23q1`); display labels are the short corpus names prefixed with
+  the locale code (e.g. `en-US_Conversation_DTEST_FY21Q1`).
   Column `A` is the fixed `Qwen3.5-audio` baseline (assembled from the per-locale
   baselines above). Rows: 3 en-US + 3 nl-NL + 3 da-DK + 3 hu-HU + 3 nb-NO + 3 cs-CZ,
   with 6 per-locale `<locale> avg` rows and one `overall avg` row:
@@ -249,29 +249,29 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
   | Locale | Dataset (display) | Slug | DTER% |
   |---|---|---|---|
   | en-US | average | — | 14.09 |
-  | en-US | Conversation_DTEST_FY21Q1 | `enus_conv_fy21q1` | 18.57 |
-  | en-US | Conversation_OnlineMeetings_DTEST_FY25Q3 | `enus_conv_om_fy25q3` | 13.56 |
-  | en-US | Dictation_Commonset_OfficeOffline_FY24Q3 | `enus_dict_office_fy24q3` | 10.13 |
+  | en-US | en-US_Conversation_DTEST_FY21Q1 | `enus_conv_fy21q1` | 18.57 |
+  | en-US | en-US_Conversation_OnlineMeetings_DTEST_FY25Q3 | `enus_conv_om_fy25q3` | 13.56 |
+  | en-US | en-US_Dictation_Commonset_OfficeOffline_FY24Q3 | `enus_dict_office_fy24q3` | 10.13 |
   | nl-NL | average | — | 21.46 |
-  | nl-NL | Conversation_DTEST_FY23Q2 | `nlnl_conv_fy23q2` | 24.72 |
-  | nl-NL | Conversation_OnlineMeetings_DTEST_FY23Q1 | `nlnl_conv_om_fy23q1` | 23.94 |
-  | nl-NL | Dictation_DTEST_L_D_FY23Q4 | `nlnl_dict_fy23q4` | 15.73 |
+  | nl-NL | nl-NL_Conversation_DTEST_FY23Q2 | `nlnl_conv_fy23q2` | 24.72 |
+  | nl-NL | nl-NL_Conversation_OnlineMeetings_DTEST_FY23Q1 | `nlnl_conv_om_fy23q1` | 23.94 |
+  | nl-NL | nl-NL_Dictation_DTEST_L_D_FY23Q4 | `nlnl_dict_fy23q4` | 15.73 |
   | da-DK | average | — | 23.47 |
-  | da-DK | Conversation_DTEST_FY21Q3_da-DK | `dadk_conv_fy21q3` | 23.60 |
-  | da-DK | Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK | `dadk_conv_om_fy23q1` | 24.33 |
-  | da-DK | Dictation_DTEST_L_D_FY23Q4_da-DK | `dadk_dict_fy23q4` | 22.49 |
+  | da-DK | da-DK_Conversation_DTEST_FY21Q3 | `dadk_conv_fy21q3` | 23.60 |
+  | da-DK | da-DK_Conversation_OnlineMeetings_DTEST_FY23Q1 | `dadk_conv_om_fy23q1` | 24.33 |
+  | da-DK | da-DK_Dictation_DTEST_L_D_FY23Q4 | `dadk_dict_fy23q4` | 22.49 |
   | hu-HU | average | — | 23.01 |
-  | hu-HU | Conversation_DTEST_FY22Q4_hu-HU | `huhu_conv_fy22q4` | 22.80 |
-  | hu-HU | Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU | `huhu_conv_om_fy24q2` | 21.93 |
-  | hu-HU | Dictation_DTEST_L_D_FY25Q2_hu-HU | `huhu_dict_fy25q2` | 24.30 |
+  | hu-HU | hu-HU_Conversation_DTEST_FY22Q4 | `huhu_conv_fy22q4` | 22.80 |
+  | hu-HU | hu-HU_Conversation_OnlineMeetings_DTEST_FY24Q2 | `huhu_conv_om_fy24q2` | 21.93 |
+  | hu-HU | hu-HU_Dictation_DTEST_L_D_FY25Q2 | `huhu_dict_fy25q2` | 24.30 |
   | nb-NO | average | — | 21.19 |
-  | nb-NO | Conversation_DTEST_FY21Q3_nb-NO | `nbno_conv_fy21q3` | 21.88 |
-  | nb-NO | Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO | `nbno_conv_om_fy23q1` | 20.54 |
-  | nb-NO | Dictation_DTEST_L_D_FY23Q4_nb-NO | `nbno_dict_fy23q4` | 21.14 |
+  | nb-NO | nb-NO_Conversation_DTEST_FY21Q3 | `nbno_conv_fy21q3` | 21.88 |
+  | nb-NO | nb-NO_Conversation_OnlineMeetings_DTEST_FY23Q1 | `nbno_conv_om_fy23q1` | 20.54 |
+  | nb-NO | nb-NO_Dictation_DTEST_L_D_FY23Q4 | `nbno_dict_fy23q4` | 21.14 |
   | cs-CZ | average | — | 17.08 |
-  | cs-CZ | Conversation_DTEST_FY23Q2_cs-CZ | `cscz_conv_fy23q2` | 23.75 |
-  | cs-CZ | Conversation_OnlineMeetings_DTEST_FY24Q2_cs-CZ | `cscz_conv_om_fy24q2` | 14.42 |
-  | cs-CZ | Dictation_DTEST_L_D_FY24Q2_cs-CZ | `cscz_dict_fy24q2` | 13.07 |
+  | cs-CZ | cs-CZ_Conversation_DTEST_FY23Q2 | `cscz_conv_fy23q2` | 23.75 |
+  | cs-CZ | cs-CZ_Conversation_OnlineMeetings_DTEST_FY24Q2 | `cscz_conv_om_fy24q2` | 14.42 |
+  | cs-CZ | cs-CZ_Dictation_DTEST_L_D_FY24Q2 | `cscz_dict_fy24q2` | 13.07 |
   | overall | average | — | 20.05 |
 
   The source for a model column is the canonical eval directory layout

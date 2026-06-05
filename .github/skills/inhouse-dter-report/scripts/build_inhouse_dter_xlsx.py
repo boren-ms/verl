@@ -195,41 +195,42 @@ CSCZ_SEG_BASELINE_METRICS: Dict[str, float] = {
 # across locales (whereas the short corpus names collide, e.g.
 # `Conversation_DTEST_FY21Q3` exists for both da-DK and nb-NO).
 #
-# Display labels are the short corpus names shown in the report (matching the
-# canonical figure layout). The 3 en-US corpora here are the "DTEST" subset
+# Display labels are the short corpus names prefixed with the locale code
+# (e.g. `en-US_Conversation_DTEST_FY21Q1`) so each row is unambiguous and sorts
+# by locale. The 3 en-US corpora here are the "DTEST" subset
 # used in the cross-locale report — the two `OnlineMeetings_CS_*` Entity sets
 # from the en-US-only schema are intentionally excluded.
 # ---------------------------------------------------------------------------
 ALL_SEG_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
     ("en-US", [
-        ("enus_conv_fy21q1", "Conversation_DTEST_FY21Q1"),
-        ("enus_conv_om_fy25q3", "Conversation_OnlineMeetings_DTEST_FY25Q3"),
-        ("enus_dict_office_fy24q3", "Dictation_Commonset_OfficeOffline_FY24Q3"),
+        ("enus_conv_fy21q1", "en-US_Conversation_DTEST_FY21Q1"),
+        ("enus_conv_om_fy25q3", "en-US_Conversation_OnlineMeetings_DTEST_FY25Q3"),
+        ("enus_dict_office_fy24q3", "en-US_Dictation_Commonset_OfficeOffline_FY24Q3"),
     ]),
     ("nl-NL", [
-        ("nlnl_conv_fy23q2", "Conversation_DTEST_FY23Q2"),
-        ("nlnl_conv_om_fy23q1", "Conversation_OnlineMeetings_DTEST_FY23Q1"),
-        ("nlnl_dict_fy23q4", "Dictation_DTEST_L_D_FY23Q4"),
+        ("nlnl_conv_fy23q2", "nl-NL_Conversation_DTEST_FY23Q2"),
+        ("nlnl_conv_om_fy23q1", "nl-NL_Conversation_OnlineMeetings_DTEST_FY23Q1"),
+        ("nlnl_dict_fy23q4", "nl-NL_Dictation_DTEST_L_D_FY23Q4"),
     ]),
     ("da-DK", [
-        ("dadk_conv_fy21q3", "Conversation_DTEST_FY21Q3_da-DK"),
-        ("dadk_conv_om_fy23q1", "Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK"),
-        ("dadk_dict_fy23q4", "Dictation_DTEST_L_D_FY23Q4_da-DK"),
+        ("dadk_conv_fy21q3", "da-DK_Conversation_DTEST_FY21Q3"),
+        ("dadk_conv_om_fy23q1", "da-DK_Conversation_OnlineMeetings_DTEST_FY23Q1"),
+        ("dadk_dict_fy23q4", "da-DK_Dictation_DTEST_L_D_FY23Q4"),
     ]),
     ("hu-HU", [
-        ("huhu_conv_fy22q4", "Conversation_DTEST_FY22Q4_hu-HU"),
-        ("huhu_conv_om_fy24q2", "Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU"),
-        ("huhu_dict_fy25q2", "Dictation_DTEST_L_D_FY25Q2_hu-HU"),
+        ("huhu_conv_fy22q4", "hu-HU_Conversation_DTEST_FY22Q4"),
+        ("huhu_conv_om_fy24q2", "hu-HU_Conversation_OnlineMeetings_DTEST_FY24Q2"),
+        ("huhu_dict_fy25q2", "hu-HU_Dictation_DTEST_L_D_FY25Q2"),
     ]),
     ("nb-NO", [
-        ("nbno_conv_fy21q3", "Conversation_DTEST_FY21Q3_nb-NO"),
-        ("nbno_conv_om_fy23q1", "Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO"),
-        ("nbno_dict_fy23q4", "Dictation_DTEST_L_D_FY23Q4_nb-NO"),
+        ("nbno_conv_fy21q3", "nb-NO_Conversation_DTEST_FY21Q3"),
+        ("nbno_conv_om_fy23q1", "nb-NO_Conversation_OnlineMeetings_DTEST_FY23Q1"),
+        ("nbno_dict_fy23q4", "nb-NO_Dictation_DTEST_L_D_FY23Q4"),
     ]),
     ("cs-CZ", [
-        ("cscz_conv_fy23q2", "Conversation_DTEST_FY23Q2_cs-CZ"),
-        ("cscz_conv_om_fy24q2", "Conversation_OnlineMeetings_DTEST_FY24Q2_cs-CZ"),
-        ("cscz_dict_fy24q2", "Dictation_DTEST_L_D_FY24Q2_cs-CZ"),
+        ("cscz_conv_fy23q2", "cs-CZ_Conversation_DTEST_FY23Q2"),
+        ("cscz_conv_om_fy24q2", "cs-CZ_Conversation_OnlineMeetings_DTEST_FY24Q2"),
+        ("cscz_dict_fy24q2", "cs-CZ_Dictation_DTEST_L_D_FY24Q2"),
     ]),
 ]
 
