@@ -165,7 +165,29 @@ NBNO_SEG_BASELINE_METRICS: Dict[str, float] = {
 }
 
 # ---------------------------------------------------------------------------
-# Combined schema: inhouse_2605_5lang_seg_v2 (all 5 locales × 3 corpora).
+# Alternate schema: inhouse_2605_cscz (segmented long-audio eval).
+# 3 cs-CZ TER corpora. Uses new-style (slug, display) tuples so the internal
+# key matches the per-corpus slug emitted by the long-audio eval (summary line
+# `[cscz_conv_fy23q2] DTER: ...`, blob dir `cscz_conv_fy23q2/measures.json`, and
+# `val-aux/cscz_conv_fy23q2/dter_n_err/mean@1`).
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_cscz), micro-DTER = n_err / n_ref.
+# ---------------------------------------------------------------------------
+CSCZ_SEG_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
+    ("cs-CZ", [
+        ("cscz_conv_fy23q2", "Conversation_DTEST_FY23Q2"),
+        ("cscz_conv_om_fy24q2", "Conversation_OnlineMeetings_DTEST_FY24Q2"),
+        ("cscz_dict_fy24q2", "Dictation_DTEST_L_D_FY24Q2"),
+    ]),
+]
+
+CSCZ_SEG_BASELINE_METRICS: Dict[str, float] = {
+    "cscz_conv_fy23q2": 10218 / 43021,     # 0.23751
+    "cscz_conv_om_fy24q2": 5514 / 38232,   # 0.14422
+    "cscz_dict_fy24q2": 5212 / 39881,      # 0.13069
+}
+
+# ---------------------------------------------------------------------------
+# Combined schema: inhouse_2605_5lang_seg_v2 (6 locales × 3 corpora).
 #
 # Internal keys are the per-corpus slug directory names produced by the
 # segmented long-audio eval (e.g. `enus_conv_fy21q1`). Each slug carries its
@@ -204,6 +226,11 @@ ALL_SEG_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
         ("nbno_conv_om_fy23q1", "Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO"),
         ("nbno_dict_fy23q4", "Dictation_DTEST_L_D_FY23Q4_nb-NO"),
     ]),
+    ("cs-CZ", [
+        ("cscz_conv_fy23q2", "Conversation_DTEST_FY23Q2_cs-CZ"),
+        ("cscz_conv_om_fy24q2", "Conversation_OnlineMeetings_DTEST_FY24Q2_cs-CZ"),
+        ("cscz_dict_fy24q2", "Dictation_DTEST_L_D_FY24Q2_cs-CZ"),
+    ]),
 ]
 
 # Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_5lang_seg_v2), micro-DTER per
@@ -230,6 +257,10 @@ ALL_SEG_BASELINE_METRICS: Dict[str, float] = {
     "nbno_conv_fy21q3": NBNO_SEG_BASELINE_METRICS["Conversation_DTEST_FY21Q3"],
     "nbno_conv_om_fy23q1": NBNO_SEG_BASELINE_METRICS["Conversation_OnlineMeetings_DTEST_FY23Q1"],
     "nbno_dict_fy23q4": NBNO_SEG_BASELINE_METRICS["Dictation_DTEST_L_D_FY23Q4"],
+    # cs-CZ
+    "cscz_conv_fy23q2": CSCZ_SEG_BASELINE_METRICS["cscz_conv_fy23q2"],
+    "cscz_conv_om_fy24q2": CSCZ_SEG_BASELINE_METRICS["cscz_conv_om_fy24q2"],
+    "cscz_dict_fy24q2": CSCZ_SEG_BASELINE_METRICS["cscz_dict_fy24q2"],
 }
 
 # Registry of selectable schemas: name -> (groups, baseline_metrics).
@@ -242,6 +273,7 @@ SCHEMAS: Dict[str, Tuple[List[Tuple[str, List]], Dict[str, float]]] = {
     "dadk_seg": (DADK_SEG_GROUPS, DADK_SEG_BASELINE_METRICS),
     "huhu_seg": (HUHU_SEG_GROUPS, HUHU_SEG_BASELINE_METRICS),
     "nbno_seg": (NBNO_SEG_GROUPS, NBNO_SEG_BASELINE_METRICS),
+    "cscz_seg": (CSCZ_SEG_GROUPS, CSCZ_SEG_BASELINE_METRICS),
     "all_seg": (ALL_SEG_GROUPS, ALL_SEG_BASELINE_METRICS),
 }
 
@@ -708,7 +740,8 @@ def parse_args() -> argparse.Namespace:
             "'dadk_seg' = 3 da-DK corpora from inhouse_2605_dadk; "
             "'huhu_seg' = 3 hu-HU corpora from inhouse_2605_huhu; "
             "'nbno_seg' = 3 nb-NO corpora from inhouse_2605_nbno; "
-            "'all_seg' = 15 corpora across 5 locales from inhouse_2605_5lang_seg_v2."
+            "'cscz_seg' = 3 cs-CZ corpora from inhouse_2605_cscz; "
+            "'all_seg' = 18 corpora across 6 locales from inhouse_2605_5lang_seg_v2."
         ),
     )
     p.add_argument("--from-ray", nargs=2, metavar=("NODE", "JOB_ID"), action="append", default=[])

@@ -61,7 +61,7 @@ Both `mean@1` aggregates share the same sample count per corpus, so the ratio eq
 
    The positional label plus the flags above build a **single** model column. To combine **multiple local results into one workbook in a single command** — each becoming its own column (B, C, D, ...) — use `--model` instead (next step).
 3. **Multiple model columns (single command)**: pass `--model <label> <path>` once per model. `<path>` is auto-detected as one of:
-   - an `az://` URL or local directory containing per-corpus `<slug>/measures.json` files (the canonical segmented long-audio eval output, e.g. `az://orngwus2cresco/.../inhouse_2605_5lang_seg_v2/`) — used together with `--schema all_seg` to populate **all 5 locales in one sheet** from a single source path;
+   - an `az://` URL or local directory containing per-corpus `<slug>/measures.json` files (the canonical segmented long-audio eval output, e.g. `az://orngwus2cresco/.../inhouse_2605_5lang_seg_v2/`) — used together with `--schema all_seg` to populate **all 6 locales in one sheet** from a single source path;
    - a JSON `{dataset: dter_fraction}` mapping;
    - or a text log (the `val-aux/...` and/or `[<corpus>] DTER: ...` lines).
    Each `--model` becomes its own column in the order given, after the baseline. You may mix a positional-label column with additional `--model` columns; the positional column comes first. This replaces the need to chain `--extend-xlsx` through intermediate files when you already have all the local result files.
@@ -224,14 +224,27 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
   | nb-NO | Conversation_OnlineMeetings_DTEST_FY23Q1 | 20.54 |
   | nb-NO | Dictation_DTEST_L_D_FY23Q4 | 21.14 |
 
-- `--schema all_seg`: **all 5 locales × 3 corpora in one sheet** — the combined
+- `--schema cscz_seg`: the 3 cs-CZ TER corpora from the segmented long-audio eval
+  `inhouse_2605_cscz`. Internal keys are the per-corpus slug directory names
+  (`cscz_conv_fy23q2`, `cscz_conv_om_fy24q2`, `cscz_dict_fy24q2`); display labels
+  are the short corpus names. Column `A` is the fixed `Qwen3.5-audio` baseline
+  (`eval_qwen/inhouse_2605_cscz`), embedded as micro-DTER (`dter_n_err / dter_n_ref`):
+
+  | Locale | Dataset | DTER% |
+  |---|---|---|
+  | cs-CZ | average | 17.08 |
+  | cs-CZ | Conversation_DTEST_FY23Q2 | 23.75 |
+  | cs-CZ | Conversation_OnlineMeetings_DTEST_FY24Q2 | 14.42 |
+  | cs-CZ | Dictation_DTEST_L_D_FY24Q2 | 13.07 |
+
+- `--schema all_seg`: **all 6 locales × 3 corpora in one sheet** — the combined
   segmented long-audio eval (`inhouse_2605_5lang_seg_v2`). Internal keys are
   the per-corpus slug directory names (e.g. `enus_conv_fy21q1`,
   `dadk_conv_om_fy23q1`); display labels are the short corpus names (with a
   locale suffix on the rows where short names would collide across locales).
   Column `A` is the fixed `Qwen3.5-audio` baseline (assembled from the per-locale
-  baselines above). Rows: 3 en-US + 3 nl-NL + 3 da-DK + 3 hu-HU + 3 nb-NO,
-  with 5 per-locale `<locale> avg` rows and one `overall avg` row:
+  baselines above). Rows: 3 en-US + 3 nl-NL + 3 da-DK + 3 hu-HU + 3 nb-NO + 3 cs-CZ,
+  with 6 per-locale `<locale> avg` rows and one `overall avg` row:
 
   | Locale | Dataset (display) | Slug | DTER% |
   |---|---|---|---|
@@ -255,7 +268,11 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
   | nb-NO | Conversation_DTEST_FY21Q3_nb-NO | `nbno_conv_fy21q3` | 21.88 |
   | nb-NO | Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO | `nbno_conv_om_fy23q1` | 20.54 |
   | nb-NO | Dictation_DTEST_L_D_FY23Q4_nb-NO | `nbno_dict_fy23q4` | 21.14 |
-  | overall | average | — | 20.64 |
+  | cs-CZ | average | — | 17.08 |
+  | cs-CZ | Conversation_DTEST_FY23Q2_cs-CZ | `cscz_conv_fy23q2` | 23.75 |
+  | cs-CZ | Conversation_OnlineMeetings_DTEST_FY24Q2_cs-CZ | `cscz_conv_om_fy24q2` | 14.42 |
+  | cs-CZ | Dictation_DTEST_L_D_FY24Q2_cs-CZ | `cscz_dict_fy24q2` | 13.07 |
+  | overall | average | — | 20.05 |
 
   The source for a model column is the canonical eval directory layout
   `<root>/<slug>/measures.json` (each `measures.json` carries `dter`,
