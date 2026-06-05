@@ -16,7 +16,7 @@ Generate an Excel report (`.xlsx`) that compares a new model column against the 
 
 ## Layout
 
-Single sheet `inhouse_dter`:
+Primary sheet `inhouse_dter`:
 
 - **Row 2** `Header`: `Baseline`, `<model-label-1>`, `<model-label-2>`, ..., `WERR` (one per non-baseline model column).
 - **Row 3** `Column`: `A`, `B`, `C`, ..., `A->B`, `A->C`, ...
@@ -40,6 +40,13 @@ Formatting:
 - `overall avg` row: light green.
 - WERR columns carry a 3-color scale rule (red ← 0 → green) with midpoint fixed at 0.
 - Numeric cells formatted as `0.00%`.
+
+Second sheet `overall_improve_degrade`:
+
+- One row per non-baseline model, sorted by overall WERR from best improvement to largest degradation.
+- Columns: `Rank`, `Model`, `Direction`, `Baseline overall DTER`, `Model overall DTER`, `DTER delta`, `WERR`, `Datasets`.
+- `DTER delta` is `Baseline overall DTER - Model overall DTER`; positive values are improvements.
+- `Datasets` shows how many schema datasets contributed to that model's overall average.
 
 ## Micro vs macro DTER
 

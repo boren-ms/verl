@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build an in-house DTER xlsx report (en-US + nl-NL corpora).
 
-Layout (single sheet `inhouse_dter`):
+Layout:
+    Sheet `inhouse_dter`:
   Row 2  : Header | Baseline | <model-label-1> | ... | WERR(s)
   Row 3  : Column | A        | B               | ... | A->B, ...
   Row 4-6 : en-US datasets
@@ -10,6 +11,9 @@ Layout (single sheet `inhouse_dter`):
   Row 11  : nl-NL avg
   Row 12  : overall avg
   WERR columns: 1 - <model>/Baseline per non-baseline model column.
+
+    Sheet `overall_improve_degrade`:
+    One row per non-baseline model, sorted by overall WERR versus baseline.
 
 Metrics are micro-DTER (sum_edits / sum_tokens), recovered per corpus from verl
 `val-aux/<corpus>/dter_n_err/mean@1` and `val-aux/<corpus>/dter_n_ref/mean@1`.
@@ -33,6 +37,8 @@ from openpyxl.utils import get_column_letter
 HEADER_FILL = PatternFill(start_color="FFD9E1F2", end_color="FFD9E1F2", fill_type="solid")  # light blue
 LANG_AVG_FILL = PatternFill(start_color="FFFFF2CC", end_color="FFFFF2CC", fill_type="solid")  # light yellow
 OVERALL_AVG_FILL = PatternFill(start_color="FFE2EFDA", end_color="FFE2EFDA", fill_type="solid")  # light green
+IMPROVE_FILL = PatternFill(start_color="FFC6EFCE", end_color="FFC6EFCE", fill_type="solid")  # green
+DEGRADE_FILL = PatternFill(start_color="FFFFC7CE", end_color="FFFFC7CE", fill_type="solid")  # red
 
 # ---------------------------------------------------------------------------
 # Fixed schema: (locale, [canonical dataset names in report])
@@ -649,6 +655,8 @@ def build_workbook(columns: List[Tuple[str, Dict[str, float]]], out_path: Path) 
         if base_v and tgt_v is not None:
             ws.cell(row=r, column=wc, value=float(1 - tgt_v / base_v)).font = bold
 
+    _add_overall_improve_degrade_sheet(wb, columns, all_data_keys, overall_per_col)
+
     # Formatting.
     pct_fmt = "0.00%"
     for rr in range(DATA_START, overall_avg_row + 1):
@@ -688,6 +696,99 @@ def build_workbook(columns: List[Tuple[str, Dict[str, float]]], out_path: Path) 
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(out_path)
+
+
+def _add_overall_improve_degrade_sheet(
+    wb: Workbook,
+    columns: List[Tuple[str, Dict[str, float]]],
+    all_data_keys: List[str],
+    overall_per_col: List[Optional[float]],
+) -> None:
+    """Add a workbook-level improve/degrade summary for non-baseline models."""
+    if len(columns) <= 1:
+        return
+
+    ws = wb.create_sheet("overall_improve_degrade")
+    bold = Font(bold=True)
+    center = Alignment(horizontal="center", vertical="center")
+    pct_fmt = "0.00%"
+
+    ws.cell(row=1, column=1, value="Overall improve/degrade").font = Font(bold=True, size=14)
+    headers = [
+        "Rank",
+        "Model",
+        "Direction",
+        "Baseline overall DTER",
+        "Model overall DTER",
+        "DTER delta",
+        "WERR",
+        "Datasets",
+    ]
+    for col, header in enumerate(headers, start=1):
+        cell = ws.cell(row=2, column=col, value=header)
+        cell.font = bold
+        cell.fill = HEADER_FILL
+        cell.alignment = center
+
+    baseline_overall = overall_per_col[0] if overall_per_col else None
+    summary_rows: List[Tuple[float, str, Optional[float], Optional[float], Optional[float], int]] = []
+    for i, (label, metrics) in enumerate(columns[1:], start=1):
+        model_overall = overall_per_col[i] if i < len(overall_per_col) else None
+        dter_delta = None
+        werr = None
+        if baseline_overall is not None and model_overall is not None:
+            dter_delta = baseline_overall - model_overall
+            if baseline_overall:
+                werr = 1 - model_overall / baseline_overall
+        dataset_count = sum(1 for key in all_data_keys if key in metrics)
+        sort_value = werr if werr is not None else float("-inf")
+        summary_rows.append((sort_value, label, model_overall, dter_delta, werr, dataset_count))
+
+    summary_rows.sort(key=lambda row: row[0], reverse=True)
+
+    for rank, (_sort_value, label, model_overall, dter_delta, werr, dataset_count) in enumerate(summary_rows, start=1):
+        row = rank + 2
+        direction = "improve" if (werr is not None and werr >= 0) else "degrade"
+        direction_fill = IMPROVE_FILL if direction == "improve" else DEGRADE_FILL
+        values = [
+            rank,
+            label,
+            direction,
+            baseline_overall,
+            model_overall,
+            dter_delta,
+            werr,
+            f"{dataset_count}/{len(all_data_keys)}",
+        ]
+        for col, value in enumerate(values, start=1):
+            cell = ws.cell(row=row, column=col, value=value)
+            if col in (1, 3, 4, 5, 6, 7, 8):
+                cell.alignment = center
+            if col in (4, 5, 6, 7):
+                cell.number_format = pct_fmt
+            if col == 3:
+                cell.fill = direction_fill
+
+    ws.column_dimensions["A"].width = 10
+    ws.column_dimensions["B"].width = 42
+    ws.column_dimensions["C"].width = 14
+    ws.column_dimensions["D"].width = 22
+    ws.column_dimensions["E"].width = 22
+    ws.column_dimensions["F"].width = 14
+    ws.column_dimensions["G"].width = 14
+    ws.column_dimensions["H"].width = 12
+    ws.freeze_panes = "A3"
+    ws.auto_filter.ref = f"A2:H{max(2, len(summary_rows) + 2)}"
+
+    if summary_rows:
+        for col_letter in ("F", "G"):
+            rng = f"{col_letter}3:{col_letter}{len(summary_rows) + 2}"
+            rule = ColorScaleRule(
+                start_type="num", start_value=-1, start_color="FFF8696B",
+                mid_type="num", mid_value=0, mid_color="FFFFFFFF",
+                end_type="num", end_value=1, end_color="FF63BE7B",
+            )
+            ws.conditional_formatting.add(rng, rule)
 
 
 def read_existing_xlsx(path: Path) -> List[Tuple[str, Dict[str, float]]]:
