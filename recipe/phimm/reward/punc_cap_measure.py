@@ -146,7 +146,7 @@ def classify_edit(ref_word: str, hyp_word: str) -> set[str]:
 # ---------------------------------------------------------------------------
 
 
-def compuate_fmt_acc(ref: str, hyp: str) -> dict:
+def compute_fmt_acc(ref: str, hyp: str) -> dict:
     """Compute punctuation, capitalisation and lexical accuracies.
 
     Parameters
@@ -257,6 +257,30 @@ def _empty_result() -> dict:
 # ---------------------------------------------------------------------------
 
 
+def _parse_response(solution_str, ground_truth=None, **kwargs):
+    """Extract hyp text, target language, fmt/lang accuracy, and char/punc/cap/lex accuracies."""
+    from recipe.phimm.reward.asr_edge import measure
+    from recipe.phimm.utils.shared import parse_asr_response
+
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
+    trans_dict = parse_asr_response(solution_str)
+    hyp_text = trans_dict["text"]
+    pred_lang = (trans_dict["lang"] or "").lower().strip()
+    is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
+
+    unit = kwargs.pop("unit", "char").lower()
+    error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit=unit, **kwargs)
+    fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
+
+    return {
+        "char": error.accuracy(),
+        **fmts,
+        "lang": 1.0 if is_nonspeech else float(pred_lang == tgt_lang),
+        "fmt": float(bool(trans_dict["formatted"])),
+    }
+
+
 def clip(x, lo=-1.0, hi=1.0):
     return max(lo, min(hi, x))
 
@@ -307,7 +331,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     """Combined lexical + formatting reward.
 
     Uses :func:`recipe.phimm.reward.asr_edge.measure` for the lexical accuracy
-    and :func:`compuate_fmt_acc` for punctuation/capitalisation accuracy.
+    and :func:`compute_fmt_acc` for punctuation/capitalisation accuracy.
 
     Only the components listed in ``scores`` contribute to the reward. The
     contribution of each component ``k`` is::
@@ -324,30 +348,17 @@ def compute_score(solution_str, ground_truth, **kwargs):
             char: {beta: 1.0, gamma: 0.5}
             punc: {beta: 0.5, gamma: 0.2}
     """
-    from recipe.phimm.reward.asr_edge import measure
-    from recipe.phimm.utils.shared import parse_asr_response
-
+    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
+    is_good = parsed["fmt"] > 0
+    
     measures = kwargs.get("measures") or {}
     reduce = kwargs.get("reduce", "sum").lower()
     gamma = float(kwargs.get("gamma", 1.0))
-    trans_dict = parse_asr_response(solution_str)
-    hyp_text = trans_dict["text"]
-
-    extra_info = kwargs.get("extra_info") or {}
-    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    unit = kwargs.pop("unit", "char").lower()
-    err = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit=unit, **kwargs)
-
-    result = compuate_fmt_acc(ground_truth or "", hyp_text or "")
-    result["char"] = err.accuracy()
-
-    scores = [scale_score(result.get(k, 1.0), cfg) for k, cfg in measures.items()]
+    scores = [scale_score(parsed.get(k, 1.0), cfg) for k, cfg in measures.items()]
     score = reduce_scores(scores, reduce)
+    score = signed_pow(score, gamma)
 
     return {
-        "score": signed_pow(score, gamma),
-        "char_acc": result["char"],
-        "punc_acc": result["punc"],
-        "cap_acc": result["cap"],
-        "lex_acc": result["lex"],
+        "score": score if is_good else -1.0,
+        **parsed,
     }
