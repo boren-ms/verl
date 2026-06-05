@@ -1,12 +1,12 @@
 ---
 name: verl-asr-run
-description: 'Run the full ASR stack on remote verl Brix nodes: training -> checkpoint evaluation (`long_eval_inhouse_2605_enus_seg`) -> report generation, while continuously monitoring until completion with structured metrics. Use when: running RL training (ReMax, GRPO), automatically running the post-training in-house long-audio eval, evaluating checkpoints on LibriSpeech/in-house/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "long_eval_inhouse", "check WER", "monitor job", "check training status", "push and submit", "run config on node", "training evaluation report".'
+description: 'Run the full ASR stack on remote verl Brix nodes: training -> checkpoint evaluation (`long_eval_inhouse_2605_5lang_seg`) -> report generation, while continuously monitoring until completion with structured metrics. Use when: running RL training (ReMax, GRPO), automatically running the post-training in-house long-audio 5-locale eval, evaluating checkpoints on LibriSpeech/in-house/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, pushing code and resubmitting after fixes, and analyzing per-dataset WER with word-level error breakdowns. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate on librispeech", "long_eval_inhouse", "check WER", "monitor job", "check training status", "push and submit", "run config on node", "training evaluation report".'
 argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0, or eval_libri_h100'
 ---
 
 # verl ASR Run
 
-Run a full ASR pipeline on a remote verl Brix node: **training -> evaluation -> report**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, automatically evaluate the trained checkpoint on `long_eval_inhouse_2605_enus_seg`, then report the aggregate TER/EER measures. Optionally perform word error analysis on validation output.
+Run a full ASR pipeline on a remote verl Brix node: **training -> evaluation -> report**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, automatically evaluate the trained checkpoint on `long_eval_inhouse_2605_5lang_seg` (all 5 locales: en-US, da-DK, hu-HU, nb-NO, nl-NL), then report the aggregate TER/EER measures. Optionally perform word error analysis on validation output.
 
 Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
@@ -17,7 +17,7 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 - User wants to submit any verl ASR job to a remote node and monitor until completion
 - User asks to monitor an existing job — "check status", "update", "how's the job"
 - User needs to fix code, push, and resubmit after a failure
-- User wants full stack execution: training followed by the `long_eval_inhouse_2605_enus_seg` eval and report generation
+- User wants full stack execution: training followed by the `long_eval_inhouse_2605_5lang_seg` eval and report generation
 - User wants word-level error analysis on verl validation JSONL output
 - User wants to run multiple jobs (see batch submission below)
 
@@ -28,8 +28,8 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 | **config** | Yes | — | `remax_ls_lr05`, `eval_libri_h100`, `gen_libri` |
 | **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
-| **post_train_eval** | No | Always run `long_eval_inhouse_2605_enus_seg` for training jobs | `long_eval_inhouse_2605_enus_seg` |
-| **report** | No | In-house DTER `.xlsx` report (inhouse-dter-report) + TER/EER summary after the eval succeeds | `inhouse_dter_report/*.xlsx` |
+| **post_train_eval** | No | Always run `long_eval_inhouse_2605_5lang_seg` for training jobs | `long_eval_inhouse_2605_5lang_seg` |
+| **report** | No | In-house DTER `.xlsx` report (inhouse-dter-report, `--schema all_seg`) + TER/EER summary after the eval succeeds | `inhouse_dter_report/*.xlsx` |
 | **word_error_sets** | No | `1` (first data source only) | `all` (all data sources) |
 
 ## Job Types
@@ -56,7 +56,8 @@ Determined by config name prefix:
 | Config | Datasets | Notes |
 |--------|----------|-------|
 | `eval_libri_h100` | LibriSpeech (h100 subset) | Fast eval |
-| `long_eval_inhouse_2605_enus_seg` | In-house 2605 en-US (pre-segmented) | Long-audio gen-style eval; TER/EER measures (default post-training eval) |
+| `long_eval_inhouse_2605_5lang_seg` | In-house 2605 5 locales (en-US, da-DK, hu-HU, nb-NO, nl-NL, pre-segmented) | Long-audio gen-style eval; TER/EER measures (**default post-training eval**) |
+| `long_eval_inhouse_2605_enus_seg` | In-house 2605 en-US only (pre-segmented) | Long-audio gen-style eval; en-US TER/EER only |
 | `eval_openasr` | OpenASR (ami, common_voice, earnings22, etc.) | Full OpenASR suite |
 | `eval_openasr_ml` | OpenASR-ML (FLEURS, MCV, MLS by language) | Multilingual OpenASR suite; report per-language and overall averages |
 
@@ -134,8 +135,8 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
    - `remax_*` → ReMax training (uses `main_asr_remax`)
    - Everything else → training (uses `main_asr_dapo`)
 - **model_path**: Usually baked into the config. If the user specifies a custom model path, it will be passed as a hydra override.
-- **post_train_eval**: For training jobs, always run `long_eval_inhouse_2605_enus_seg` on the completed checkpoint as part of the full-stack pipeline.
-- **report**: After the post-training eval succeeds, build the canonical in-house DTER `.xlsx` report with the **inhouse-dter-report** skill (`--schema enus_seg`) and surface the headline TER/EER from `measures.json` (Step 4b).
+- **post_train_eval**: For training jobs, always run `long_eval_inhouse_2605_5lang_seg` on the completed checkpoint as part of the full-stack pipeline (covers en-US, da-DK, hu-HU, nb-NO, nl-NL).
+- **report**: After the post-training eval succeeds, build the canonical in-house DTER `.xlsx` report with the **inhouse-dter-report** skill (`--schema all_seg`) and surface the headline TER/EER from `measures.json` (Step 4b).
 - **word_error_sets**: Default `1` — only analyze the first data source. If user says "all", analyze all data sources.
 
 ### Step 2 — Push code and submit the job
@@ -337,13 +338,13 @@ When the job completes, provide:
 5. **Total training time** (from first step to last step)
 6. **Trend summary**: did WER improve? By how much? Best val step?
 
-For training jobs, Step 4 is an interim training summary. Continue to Step 4a and do not give the final response until the automatic `long_eval_inhouse_2605_enus_seg` eval completes successfully and Step 4b report generation is finished.
+For training jobs, Step 4 is an interim training summary. Continue to Step 4a and do not give the final response until the automatic `long_eval_inhouse_2605_5lang_seg` eval completes successfully and Step 4b report generation is finished.
 
 ### Step 4a — Mandatory post-training in-house long-audio eval
 
 When a training job succeeds, automatically evaluate the completed checkpoint with:
 
-1. `recipe/phimm/config/eval/long_eval_inhouse_2605_enus_seg.yaml`
+1. `recipe/phimm/config/eval/long_eval_inhouse_2605_5lang_seg.yaml` (covers all 5 locales: en-US, da-DK, hu-HU, nb-NO, nl-NL)
 
 Use the trained checkpoint as the eval model:
 - Prefer the best checkpoint by validation WER if the training log clearly identifies it.
@@ -370,8 +371,10 @@ Run the eval as a normal remote job and monitor it through Step 3 until `SUCCEED
 Because `submit_job.sh` does not support arbitrary hydra overrides, use a direct Ray submission for the checkpoint eval:
 
 ```bash
-brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_long_eval_asr --config-name long_eval_inhouse_2605_enus_seg trainer.experiment_name={TRAIN_CONFIG}_long_eval_inhouse_2605_enus_seg model.path={CHECKPOINT_PATH} data.output_path=az://orngwus2cresco/data/boren/data/verl/eval/{TRAIN_CONFIG}_step{LATEST_STEP}/inhouse_2605_enus_seg"'
+brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m recipe.phimm.main_long_eval_asr --config-name long_eval_inhouse_2605_5lang_seg trainer.experiment_name={TRAIN_CONFIG}_long_eval_inhouse_2605_5lang_seg model.path={CHECKPOINT_PATH} data.output_path=az://orngwus2cresco/data/boren/data/verl/eval/{TRAIN_CONFIG}_step{LATEST_STEP}/inhouse_2605_5lang_seg_v2"'
 ```
+
+The output path uses the `inhouse_2605_5lang_seg_v2` directory convention so each per-corpus slug (e.g. `enus_conv_fy21q1`, `dadk_conv_om_fy23q1`) lands directly under it as `{OUTPUT_PATH}/<slug>/measures.json` — the layout expected by `--schema all_seg`.
 
 Track the Ray job ID. If the eval fails, diagnose and fix using Step 3f, then resubmit before continuing.
 
@@ -386,20 +389,32 @@ The long-audio eval writes two artifacts per data source under `{OUTPUT_PATH}/{D
 The Ray job logs also emit per-corpus `val-aux/<corpus>/dter_n_err/mean@1` and `val-aux/<corpus>/dter_n_ref/mean@1` aggregates, from which the **inhouse-dter-report** script recovers the canonical **micro-DTER** (`dter_n_err / dter_n_ref`).
 
 Required behavior:
-- Invoke the **inhouse-dter-report** skill with `--schema enus_seg` (the schema matching `long_eval_inhouse_2605_enus_seg`'s 5 en-US TER corpora).
+- Invoke the **inhouse-dter-report** skill with `--schema all_seg` (the schema matching `long_eval_inhouse_2605_5lang_seg`'s 5 locales × 3 corpora — en-US, nl-NL, da-DK, hu-HU, nb-NO).
 - Use model label `{TRAIN_CONFIG}@step{LATEST_STEP}` unless the user provided a custom label.
-- Prefer sourcing directly from the eval Ray job logs with `--from-ray {NODE} {EVAL_JOB_ID}` so the micro-DTER is parsed from `val-aux/<corpus>/dter_n_err|dter_n_ref/mean@1`.
-- If the eval job logs are unavailable, fall back to `--metrics <json>` built from each data source's `measures.json` (download via `bbb cp`), passing per-corpus `dter` fractions.
+- Prefer sourcing directly from the per-corpus `measures.json` blob layout with `--model <label> {OUTPUT_PATH}/` — the script auto-discovers each `<slug>/measures.json` under the eval output directory and recovers micro-DTER.
+- Alternatively, source from the eval Ray job logs with `--from-ray {NODE} {EVAL_JOB_ID}` so the micro-DTER is parsed from `val-aux/<corpus>/dter_n_err|dter_n_ref/mean@1`.
+- If neither is available, fall back to `--metrics <json>` built from each data source's `measures.json` (download via `bbb cp`), passing per-corpus `dter` fractions.
 
-Build the report:
+Build the report (preferred: directly from the eval output blob):
+
+```bash
+/home/boren/.virtualenvs/openai/bin/python \
+  .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+  --schema all_seg \
+  --model "{TRAIN_CONFIG}@step{LATEST_STEP}" \
+    az://orngwus2cresco/data/boren/data/verl/eval/{TRAIN_CONFIG}_step{LATEST_STEP}/inhouse_2605_5lang_seg_v2/ \
+  --out tmp/inhouse_dter_report/{TRAIN_CONFIG}_step{LATEST_STEP}_all_seg.xlsx
+```
+
+Or, sourcing from the eval Ray job logs:
 
 ```bash
 /home/boren/.virtualenvs/openai/bin/python \
   .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
   "{TRAIN_CONFIG}@step{LATEST_STEP}" \
-  --schema enus_seg \
+  --schema all_seg \
   --from-ray {NODE} {EVAL_JOB_ID} \
-  --out tmp/inhouse_dter_report/{TRAIN_CONFIG}_step{LATEST_STEP}_seg.xlsx
+  --out tmp/inhouse_dter_report/{TRAIN_CONFIG}_step{LATEST_STEP}_all_seg.xlsx
 ```
 
 To extend an existing report with this model as an additional column, add `--extend-xlsx <prior.xlsx>`.
@@ -413,11 +428,16 @@ bbb cp {OUTPUT_PATH}/{DATA_SOURCE}/measures.json /tmp/verl_eval/measures.json
 cat /tmp/verl_eval/measures.json
 ```
 
-Report the per-corpus DTER table (from the generated xlsx) and the headline measures:
+Report the per-corpus DTER table (from the generated xlsx — all 5 locales × 3 corpora plus per-locale and overall average rows) and the per-locale headline measures:
 
-| Model | Dataset | TER (dter) | EER | n_recordings |
-|-------|---------|------------|-----|--------------|
-| {TRAIN_CONFIG}@step{LATEST_STEP} | inhouse_2605_enus_seg | 8.91% | 4.20% | N |
+| Model | Locale | Dataset | TER (dter) | EER | n_recordings |
+|-------|--------|---------|------------|-----|--------------|
+| {TRAIN_CONFIG}@step{LATEST_STEP} | en-US | average | 14.09% | 4.20% | N |
+| {TRAIN_CONFIG}@step{LATEST_STEP} | nl-NL | average | 21.46% | ... | N |
+| {TRAIN_CONFIG}@step{LATEST_STEP} | da-DK | average | 23.47% | ... | N |
+| {TRAIN_CONFIG}@step{LATEST_STEP} | hu-HU | average | 23.01% | ... | N |
+| {TRAIN_CONFIG}@step{LATEST_STEP} | nb-NO | average | 21.19% | ... | N |
+| {TRAIN_CONFIG}@step{LATEST_STEP} | overall | average | 20.64% | ... | N |
 
 Present TER and EER as percentages (×100) with a `%` suffix. State the path to the generated `.xlsx` report.
 
@@ -425,10 +445,10 @@ For deeper utterance-level inspection of `result_details.jsonl`, use the **inhou
 
 Post-training final response requirements:
 1. Show the training final summary from Step 4.
-2. Show the in-house DTER comparison report (xlsx path + per-corpus DTER/WERR) built with the **inhouse-dter-report** skill, plus the headline TER/EER measures for `long_eval_inhouse_2605_enus_seg`.
+2. Show the in-house DTER comparison report (xlsx path + per-locale and overall DTER/WERR across all 5 locales) built with the **inhouse-dter-report** skill (`--schema all_seg`), plus the headline TER/EER measures for `long_eval_inhouse_2605_5lang_seg`.
 3. Include W&B and Ray links for the training job and the eval job when available.
 4. State which checkpoint path was evaluated.
-5. Include the eval `data.output_path` (location of `result_details.jsonl` + `measures.json`).
+5. Include the eval `data.output_path` (location of per-corpus `result_details.jsonl` + `measures.json`).
 
 #### W&B result check (optional post-job):
 ```bash
@@ -548,7 +568,7 @@ bash submit_jobs_repeat.sh
 - Parse `step:N - key:val - key:val` format into structured table rows
 - When monitoring, report the current phase and what to expect next
 - On failure, show the error, diagnose, and proceed to fix without asking
-- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `long_eval_inhouse_2605_enus_seg` SUCCEEDED, and the in-house DTER `.xlsx` report (inhouse-dter-report) plus TER/EER measures summary generated
+- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `long_eval_inhouse_2605_5lang_seg` SUCCEEDED, and the in-house DTER `.xlsx` report (inhouse-dter-report, `--schema all_seg`) plus TER/EER measures summary generated
 
 ## Dependent Skills
 
@@ -556,6 +576,6 @@ bash submit_jobs_repeat.sh
 |-------|-------|---------|
 | **remote-development** | 0, 2 | Node discovery, sync, remote commands |
 | **persistent-job-monitor** | 3 | Long-running training job monitoring |
-| **inhouse-dter-report** | 4b | Build the canonical in-house DTER `.xlsx` comparison report (`--schema enus_seg`) |
+| **inhouse-dter-report** | 4b | Build the canonical in-house DTER `.xlsx` comparison report (`--schema all_seg`) |
 | **inhouse-asr-compare** | 4b | Inspect `result_details.jsonl` / TER/EER per-utterance diffs |
 | **asr-word-error-analysis** | 5 | Word-level error analysis on validation JSONL |
