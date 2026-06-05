@@ -192,6 +192,40 @@ def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int):
     return data_list
 
 
+def load_chunk_sample(chunk_path):
+    """Load a single example from a chunk file, seeking past preceding entries.
+
+    Accepts the same ``"file:count:index"`` format as :func:`load_chunk_example`.
+    """
+    chunk_path = resolve_path(chunk_path)
+    chunk_file, chunk_count, chunk_index = chunk_path.rsplit(":", 2)
+    index = int(chunk_index)
+    chunk_type = chunk_file.split(".")[-1]
+    ENDIAN = "little"
+    with bf.BlobFile(chunk_file, "rb") as f:
+        target_type = f.read(len(chunk_type.encode())).decode()
+        if chunk_type.lower() != target_type.lower():
+            raise ValueError(f"Type mismatch in {chunk_file}: expected {chunk_type}, got {target_type}")
+        f.read(4)  # skip version
+        for i in range(index + 1):
+            egs_i = int.from_bytes(f.read(4), byteorder=ENDIAN)
+            if egs_i != i:
+                raise ValueError(f"Corrupted index in {chunk_file}: expected {i}, got {egs_i}")
+            if target_type.lower() == "audios":
+                n_audios = int.from_bytes(f.read(4), byteorder=ENDIAN)
+                if i == index:
+                    return [parse_data(f.read(int.from_bytes(f.read(4), byteorder=ENDIAN)), "audio") for _ in range(n_audios)]
+                for _ in range(n_audios):
+                    f.seek(int.from_bytes(f.read(4), byteorder=ENDIAN), 1)
+            else:
+                data_size = int.from_bytes(f.read(4), byteorder=ENDIAN)
+                if target_type.lower() == "label":
+                    data_size = int.from_bytes(f.read(2), byteorder=ENDIAN)
+                if i == index:
+                    return parse_data(f.read(data_size), chunk_type)
+                f.seek(data_size, 1)
+
+
 def load_chunk_info(manifest_file, **kwargs):
     assert bf.exists(manifest_file), f"Chunk info file {manifest_file} does not exist."
     with bf.BlobFile(manifest_file, "r") as f:
