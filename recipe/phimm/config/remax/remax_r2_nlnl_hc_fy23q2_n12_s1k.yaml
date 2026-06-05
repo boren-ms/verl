@@ -6,7 +6,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/nlnl_hc_fy23q2
-  - data/val_data/inhouse_2605_nlnl_seg
+  - data/val_data/nlnl_conv_fy23q2
   - _self_
 
 custom_reward_function:
