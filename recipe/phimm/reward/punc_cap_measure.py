@@ -349,7 +349,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
             punc: {beta: 0.5, gamma: 0.2}
     """
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
-    is_good = parsed["fmt"] > 0
+    is_good = parsed["fmt"] > 0.0 and parsed["lang"] > 0.0
     
     measures = kwargs.get("measures") or {}
     reduce = kwargs.get("reduce", "sum").lower()
