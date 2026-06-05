@@ -1,7 +1,7 @@
 ---
 name: inhouse-dter-report
 description: Build an in-house DTER xlsx comparison report for a trained verl ASR model, with the new model inserted as the next column (B, C, D, ...) next to the fixed Qwen3.5-audio baseline (column A) and per-model WERR columns. Use when summarizing eval_inhouse_2605 (or similar in-house DTER) results from a Ray job, blob checkpoint dir, or local metrics file into the standardized Excel report with per-locale and overall averages, comparing a new checkpoint against the inhouse baseline, or extending an existing xlsx inhouse-DTER report with another model column.
-argument-hint: '<model-label> [--from-ray <node> <job-id> [<job-id> ...]] | [--from-text <file>] | [--metrics <json>] [--extend-xlsx <xlsx>] [--out <xlsx>]'
+argument-hint: '<model-label> [--from-ray <node> <job-id> [<job-id> ...]] | [--from-text <file>] | [--metrics <json>] | [--model <label> <path> ...] [--extend-xlsx <xlsx>] [--out <xlsx>]'
 ---
 
 # In-house DTER Comparison Report (xlsx)
@@ -56,10 +56,17 @@ Both `mean@1` aggregates share the same sample count per corpus, so the ratio eq
 1. Determine the model label (e.g. `remax_qwen_inhouse_e1a@step80`).
 2. Collect per-corpus aggregates from one of:
    - **Ray job(s)**: `--from-ray <node> <job-id>`. Repeat for separate jobs. The script runs `brix ssh <node> -- ray job logs <id>` and parses `val-aux/<corpus>/dter_n_err/mean@1` and `val-aux/<corpus>/dter_n_ref/mean@1`, then computes the micro-DTER per corpus.
-   - **Text dump**: `--from-text <path>` containing the same `val-aux/...` lines.
+   - **Text dump**: `--from-text <path>` containing the same `val-aux/...` lines (or `[<corpus>] DTER: x% [n_err/n_ref]` long-eval summary lines).
    - **JSON**: `--metrics <path>` with `{"Conversation_DTEST_FY21Q1_en-US": 0.1828, ...}` (fractions, not percent).
-3. Optionally pass `--extend-xlsx <prior.xlsx>` to append the new model as the next column after the existing baseline/model columns.
-4. Run [scripts/build_inhouse_dter_xlsx.py](./scripts/build_inhouse_dter_xlsx.py). Output defaults to `tmp/inhouse_dter_report/<label>.xlsx`.
+
+   The positional label plus the flags above build a **single** model column. To combine **multiple local results into one workbook in a single command** — each becoming its own column (B, C, D, ...) — use `--model` instead (next step).
+3. **Multiple model columns (single command)**: pass `--model <label> <path>` once per model. `<path>` is auto-detected as one of:
+   - an `az://` URL or local directory containing per-corpus `<slug>/measures.json` files (the canonical segmented long-audio eval output, e.g. `az://orngwus2cresco/.../inhouse_2605_5lang_seg_v2/`) — used together with `--schema all_seg` to populate **all 5 locales in one sheet** from a single source path;
+   - a JSON `{dataset: dter_fraction}` mapping;
+   - or a text log (the `val-aux/...` and/or `[<corpus>] DTER: ...` lines).
+   Each `--model` becomes its own column in the order given, after the baseline. You may mix a positional-label column with additional `--model` columns; the positional column comes first. This replaces the need to chain `--extend-xlsx` through intermediate files when you already have all the local result files.
+4. Optionally pass `--extend-xlsx <prior.xlsx>` to append the new model column(s) after the existing baseline/model columns of an existing report.
+5. Run [scripts/build_inhouse_dter_xlsx.py](./scripts/build_inhouse_dter_xlsx.py). Output defaults to `tmp/inhouse_dter_report/<first-label>.xlsx`.
 
 ### Dataset name matching
 
@@ -91,6 +98,25 @@ Extend an existing xlsx with another model column:
   --extend-xlsx tmp/inhouse_dter_report/prior_report.xlsx \
   --out tmp/inhouse_dter_report/combined.xlsx
 ```
+
+Combine **multiple local result files into a single workbook in one command** —
+each `--model <label> <path>` becomes its own column (B, C, D, ...) next to the
+baseline (A), with a matching `WERR` column (`A->B`, `A->C`, ...). Each `<path>`
+is auto-detected as a JSON metrics file or a text eval log:
+
+```bash
+/home/boren/.virtualenvs/openai/bin/python \
+  .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+  --schema enus_seg \
+  --model "step480@enus" tmp/logs/step480_enus.log \
+  --model "step560@enus" tmp/logs/step560_enus.log \
+  --model "qwen_ref"     tmp/metrics/qwen_enus.json \
+  --out tmp/inhouse_dter_report/enus_step_sweep.xlsx
+```
+
+You can also start from a positional-label column and add more with `--model`
+(the positional column is first), or append the `--model` columns onto an
+existing report via `--extend-xlsx`.
 
 ## Baseline
 
@@ -197,6 +223,67 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
   | nb-NO | Conversation_DTEST_FY21Q3 | 21.88 |
   | nb-NO | Conversation_OnlineMeetings_DTEST_FY23Q1 | 20.54 |
   | nb-NO | Dictation_DTEST_L_D_FY23Q4 | 21.14 |
+
+- `--schema all_seg`: **all 5 locales × 3 corpora in one sheet** — the combined
+  segmented long-audio eval (`inhouse_2605_5lang_seg_v2`). Internal keys are
+  the per-corpus slug directory names (e.g. `enus_conv_fy21q1`,
+  `dadk_conv_om_fy23q1`); display labels are the short corpus names (with a
+  locale suffix on the rows where short names would collide across locales).
+  Column `A` is the fixed `Qwen3.5-audio` baseline (assembled from the per-locale
+  baselines above). Rows: 3 en-US + 3 nl-NL + 3 da-DK + 3 hu-HU + 3 nb-NO,
+  with 5 per-locale `<locale> avg` rows and one `overall avg` row:
+
+  | Locale | Dataset (display) | Slug | DTER% |
+  |---|---|---|---|
+  | en-US | average | — | 14.09 |
+  | en-US | Conversation_DTEST_FY21Q1 | `enus_conv_fy21q1` | 18.57 |
+  | en-US | Conversation_OnlineMeetings_DTEST_FY25Q3 | `enus_conv_om_fy25q3` | 13.56 |
+  | en-US | Dictation_Commonset_OfficeOffline_FY24Q3 | `enus_dict_office_fy24q3` | 10.13 |
+  | nl-NL | average | — | 21.46 |
+  | nl-NL | Conversation_DTEST_FY23Q2 | `nlnl_conv_fy23q2` | 24.72 |
+  | nl-NL | Conversation_OnlineMeetings_DTEST_FY23Q1 | `nlnl_conv_om_fy23q1` | 23.94 |
+  | nl-NL | Dictation_DTEST_L_D_FY23Q4 | `nlnl_dict_fy23q4` | 15.73 |
+  | da-DK | average | — | 23.47 |
+  | da-DK | Conversation_DTEST_FY21Q3_da-DK | `dadk_conv_fy21q3` | 23.60 |
+  | da-DK | Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK | `dadk_conv_om_fy23q1` | 24.33 |
+  | da-DK | Dictation_DTEST_L_D_FY23Q4_da-DK | `dadk_dict_fy23q4` | 22.49 |
+  | hu-HU | average | — | 23.01 |
+  | hu-HU | Conversation_DTEST_FY22Q4_hu-HU | `huhu_conv_fy22q4` | 22.80 |
+  | hu-HU | Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU | `huhu_conv_om_fy24q2` | 21.93 |
+  | hu-HU | Dictation_DTEST_L_D_FY25Q2_hu-HU | `huhu_dict_fy25q2` | 24.30 |
+  | nb-NO | average | — | 21.19 |
+  | nb-NO | Conversation_DTEST_FY21Q3_nb-NO | `nbno_conv_fy21q3` | 21.88 |
+  | nb-NO | Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO | `nbno_conv_om_fy23q1` | 20.54 |
+  | nb-NO | Dictation_DTEST_L_D_FY23Q4_nb-NO | `nbno_dict_fy23q4` | 21.14 |
+  | overall | average | — | 20.64 |
+
+  The source for a model column is the canonical eval directory layout
+  `<root>/<slug>/measures.json` (each `measures.json` carries `dter`,
+  `dter_n_err`, `dter_n_ref`). Pass it directly via `--model <label> <root>`
+  — the script lists subdirs and reads each `measures.json`, locally or over
+  `az://` (using `bbb ls` / `bbb cat`).
+
+  Example — build the full 5-locale report from a single blob path:
+
+  ```bash
+  /home/boren/.virtualenvs/openai/bin/python \
+    .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+    --schema all_seg \
+    --model "remax_r2_punc_p0_n12_s1k@step560" \
+      az://orngwus2cresco/data/boren/data/verl/eval/remax_r2_punc_p0_n12_s1k_step560/inhouse_2605_5lang_seg_v2/ \
+    --out tmp/inhouse_dter_report/remax_r2_punc_p0_n12_s1k_step560_all_seg.xlsx
+  ```
+
+  Stack multiple checkpoints into a single workbook (each its own column):
+
+  ```bash
+  /home/boren/.virtualenvs/openai/bin/python \
+    .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+    --schema all_seg \
+    --model "step310" az://.../remax_r2_punc_p0_n12_s1k_step310/inhouse_2605_5lang_seg_v2/ \
+    --model "step560" az://.../remax_r2_punc_p0_n12_s1k_step560/inhouse_2605_5lang_seg_v2/ \
+    --out tmp/inhouse_dter_report/remax_r2_punc_p0_n12_s1k_sweep_all_seg.xlsx
+  ```
 
   Per-locale example:
 

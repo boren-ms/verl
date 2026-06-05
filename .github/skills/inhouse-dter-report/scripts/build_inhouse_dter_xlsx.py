@@ -164,15 +164,105 @@ NBNO_SEG_BASELINE_METRICS: Dict[str, float] = {
     "Dictation_DTEST_L_D_FY23Q4": 8584 / 40601,                 # 0.21142
 }
 
+# ---------------------------------------------------------------------------
+# Combined schema: inhouse_2605_5lang_seg_v2 (all 5 locales × 3 corpora).
+#
+# Internal keys are the per-corpus slug directory names produced by the
+# segmented long-audio eval (e.g. `enus_conv_fy21q1`). Each slug carries its
+# own `measures.json` with `dter_n_err` / `dter_n_ref`, so slugs are unique
+# across locales (whereas the short corpus names collide, e.g.
+# `Conversation_DTEST_FY21Q3` exists for both da-DK and nb-NO).
+#
+# Display labels are the short corpus names shown in the report (matching the
+# canonical figure layout). The 3 en-US corpora here are the "DTEST" subset
+# used in the cross-locale report — the two `OnlineMeetings_CS_*` Entity sets
+# from the en-US-only schema are intentionally excluded.
+# ---------------------------------------------------------------------------
+ALL_SEG_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
+    ("en-US", [
+        ("enus_conv_fy21q1", "Conversation_DTEST_FY21Q1"),
+        ("enus_conv_om_fy25q3", "Conversation_OnlineMeetings_DTEST_FY25Q3"),
+        ("enus_dict_office_fy24q3", "Dictation_Commonset_OfficeOffline_FY24Q3"),
+    ]),
+    ("nl-NL", [
+        ("nlnl_conv_fy23q2", "Conversation_DTEST_FY23Q2"),
+        ("nlnl_conv_om_fy23q1", "Conversation_OnlineMeetings_DTEST_FY23Q1"),
+        ("nlnl_dict_fy23q4", "Dictation_DTEST_L_D_FY23Q4"),
+    ]),
+    ("da-DK", [
+        ("dadk_conv_fy21q3", "Conversation_DTEST_FY21Q3_da-DK"),
+        ("dadk_conv_om_fy23q1", "Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK"),
+        ("dadk_dict_fy23q4", "Dictation_DTEST_L_D_FY23Q4_da-DK"),
+    ]),
+    ("hu-HU", [
+        ("huhu_conv_fy22q4", "Conversation_DTEST_FY22Q4_hu-HU"),
+        ("huhu_conv_om_fy24q2", "Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU"),
+        ("huhu_dict_fy25q2", "Dictation_DTEST_L_D_FY25Q2_hu-HU"),
+    ]),
+    ("nb-NO", [
+        ("nbno_conv_fy21q3", "Conversation_DTEST_FY21Q3_nb-NO"),
+        ("nbno_conv_om_fy23q1", "Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO"),
+        ("nbno_dict_fy23q4", "Dictation_DTEST_L_D_FY23Q4_nb-NO"),
+    ]),
+]
+
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_5lang_seg_v2), micro-DTER per
+# slug. Numbers match the per-locale embedded baselines above (en-US uses the
+# 3 DTEST corpora; the OnlineMeetings_CS_* sets are excluded here).
+ALL_SEG_BASELINE_METRICS: Dict[str, float] = {
+    # en-US (subset of ENUS_SEG_BASELINE_METRICS)
+    "enus_conv_fy21q1": ENUS_SEG_BASELINE_METRICS["Conversation_DTEST_FY21Q1"],
+    "enus_conv_om_fy25q3": ENUS_SEG_BASELINE_METRICS["Conversation_OnlineMeetings_DTEST_FY25Q3"],
+    "enus_dict_office_fy24q3": ENUS_SEG_BASELINE_METRICS["Dictation_Commonset_OfficeOffline_FY24Q3"],
+    # nl-NL
+    "nlnl_conv_fy23q2": NLNL_SEG_BASELINE_METRICS["Conversation_DTEST_FY23Q2"],
+    "nlnl_conv_om_fy23q1": NLNL_SEG_BASELINE_METRICS["Conversation_OnlineMeetings_DTEST_FY23Q1"],
+    "nlnl_dict_fy23q4": NLNL_SEG_BASELINE_METRICS["Dictation_DTEST_L_D_FY23Q4"],
+    # da-DK
+    "dadk_conv_fy21q3": DADK_SEG_BASELINE_METRICS["Conversation_DTEST_FY21Q3"],
+    "dadk_conv_om_fy23q1": DADK_SEG_BASELINE_METRICS["Conversation_OnlineMeetings_DTEST_FY23Q1"],
+    "dadk_dict_fy23q4": DADK_SEG_BASELINE_METRICS["Dictation_DTEST_L_D_FY23Q4"],
+    # hu-HU
+    "huhu_conv_fy22q4": HUHU_SEG_BASELINE_METRICS["Conversation_DTEST_FY22Q4"],
+    "huhu_conv_om_fy24q2": HUHU_SEG_BASELINE_METRICS["Conversation_OnlineMeetings_DTEST_FY24Q2"],
+    "huhu_dict_fy25q2": HUHU_SEG_BASELINE_METRICS["Dictation_DTEST_L_D_FY25Q2"],
+    # nb-NO
+    "nbno_conv_fy21q3": NBNO_SEG_BASELINE_METRICS["Conversation_DTEST_FY21Q3"],
+    "nbno_conv_om_fy23q1": NBNO_SEG_BASELINE_METRICS["Conversation_OnlineMeetings_DTEST_FY23Q1"],
+    "nbno_dict_fy23q4": NBNO_SEG_BASELINE_METRICS["Dictation_DTEST_L_D_FY23Q4"],
+}
+
 # Registry of selectable schemas: name -> (groups, baseline_metrics).
-SCHEMAS: Dict[str, Tuple[List[Tuple[str, List[str]]], Dict[str, float]]] = {
+# `groups` entries may use either bare strings (key == display label) or
+# `(internal_key, display_label)` tuples; `_normalize_groups` handles both.
+SCHEMAS: Dict[str, Tuple[List[Tuple[str, List]], Dict[str, float]]] = {
     "default": (INHOUSE_GROUPS, BASELINE_METRICS),
     "enus_seg": (ENUS_SEG_GROUPS, ENUS_SEG_BASELINE_METRICS),
     "nlnl_seg": (NLNL_SEG_GROUPS, NLNL_SEG_BASELINE_METRICS),
     "dadk_seg": (DADK_SEG_GROUPS, DADK_SEG_BASELINE_METRICS),
     "huhu_seg": (HUHU_SEG_GROUPS, HUHU_SEG_BASELINE_METRICS),
     "nbno_seg": (NBNO_SEG_GROUPS, NBNO_SEG_BASELINE_METRICS),
+    "all_seg": (ALL_SEG_GROUPS, ALL_SEG_BASELINE_METRICS),
 }
+
+
+def _normalize_groups(groups: List[Tuple[str, List]]) -> List[Tuple[str, List[Tuple[str, str]]]]:
+    """Normalize a schema's groups to `(locale, [(internal_key, display_label)])`.
+
+    Legacy schemas store each dataset as a bare string; treat it as both key and
+    display label. New-style schemas (e.g. `all_seg`) already use `(key, display)`.
+    """
+    out: List[Tuple[str, List[Tuple[str, str]]]] = []
+    for locale, items in groups:
+        pairs: List[Tuple[str, str]] = []
+        for item in items:
+            if isinstance(item, str):
+                pairs.append((item, item))
+            else:
+                k, d = item
+                pairs.append((str(k), str(d)))
+        out.append((locale, pairs))
+    return out
 
 # Match: val-aux/<corpus>/<key>/mean@1:<float>   where <key> ∈ {dter, dter_n_err, dter_n_ref}
 DTER_LINE_RE = re.compile(
@@ -285,14 +375,128 @@ def load_metrics(args: argparse.Namespace) -> Dict[str, float]:
     return metrics
 
 
-def _project_to_canonical(parsed: Dict[str, float]) -> Dict[str, float]:
-    """Map parsed metrics to the canonical dataset names used in the report."""
+def load_source_file(path: str) -> Dict[str, float]:
+    """Load one local result into a raw {dataset_or_slug: dter_fraction} dict.
+
+    Auto-detects the source kind:
+      * a path/URL ending in ``/`` or that is a local directory, **or** an
+        ``az://`` URL, is treated as a directory of ``<slug>/measures.json``
+        files (see :func:`load_dir_metrics`) — this is the canonical form for
+        the segmented long-audio eval (e.g. ``inhouse_2605_5lang_seg_v2``);
+      * a JSON object mapping dataset -> numeric fraction (the ``--metrics``
+        format);
+      * otherwise a text log containing ``val-aux/<corpus>/dter_n_err|dter_n_ref``
+        lines and/or ``[<corpus>] DTER: x% [n_err/n_ref]`` long-eval summary
+        lines, parsed via :func:`parse_dter_lines`.
+    """
+    # Directory / blob: `<root>/<slug>/measures.json` layout.
+    if path.startswith("az://") or path.endswith("/") or Path(path).is_dir():
+        return load_dir_metrics(path)
+
+    text = Path(path).read_text()
+    try:
+        data = json.loads(text)
+    except (json.JSONDecodeError, ValueError):
+        data = None
+    if isinstance(data, dict) and data and all(
+        isinstance(v, (int, float)) and not isinstance(v, bool) for v in data.values()
+    ):
+        return {k: float(v) for k, v in data.items()}
+    return parse_dter_lines(text)
+
+
+def load_dir_metrics(root: str) -> Dict[str, float]:
+    """Read a tree of per-corpus ``<slug>/measures.json`` into ``{slug: dter}``.
+
+    Supports both local directories and ``az://`` URLs (via ``bbb ls`` /
+    ``bbb cat``). ``dter`` is the micro-DTER reported by the long-audio eval
+    (``dter_n_err / dter_n_ref``); the ``dter`` field in ``measures.json`` is
+    already that ratio, so we use it directly when present.
+    """
     out: Dict[str, float] = {}
-    for _, datasets in INHOUSE_GROUPS:
-        for ds in datasets:
-            v = _canonical_lookup(parsed, ds)
+    if root.startswith("az://"):
+        listing = subprocess.run(
+            ["bbb", "ls", root.rstrip("/") + "/"],
+            capture_output=True, text=True, check=False,
+        )
+        if listing.returncode != 0:
+            print(f"[warn] bbb ls {root} failed:\n{listing.stderr[-500:]}", file=sys.stderr)
+            return out
+        # bbb ls wraps long lines; flatten and recover URLs.
+        raw = listing.stdout.replace("\n", "")
+        # Each blob URL starts with az:// and ends just before the next az://.
+        entries = [tok for tok in re.split(r"(?=az://)", raw) if tok.startswith("az://")]
+        slugs: List[str] = []
+        for entry in entries:
+            entry = entry.strip()
+            # Subdirectories end with `/`; we want their basename as the slug.
+            if entry.endswith("/"):
+                slug = entry.rstrip("/").rsplit("/", 1)[-1]
+                slugs.append(slug)
+        for slug in slugs:
+            url = f"{root.rstrip('/')}/{slug}/measures.json"
+            proc = subprocess.run(
+                ["bbb", "cat", url], capture_output=True, text=True, check=False,
+            )
+            if proc.returncode != 0:
+                print(f"[warn] bbb cat {url} failed:\n{proc.stderr[-300:]}", file=sys.stderr)
+                continue
+            try:
+                m = json.loads(proc.stdout)
+            except json.JSONDecodeError:
+                print(f"[warn] could not parse {url}", file=sys.stderr)
+                continue
+            dter = _measures_to_dter(m)
+            if dter is not None:
+                out[slug] = dter
+        return out
+
+    # Local directory.
+    base = Path(root)
+    if not base.is_dir():
+        print(f"[warn] {root} is not a directory", file=sys.stderr)
+        return out
+    for child in sorted(base.iterdir()):
+        if not child.is_dir():
+            continue
+        mfile = child / "measures.json"
+        if not mfile.exists():
+            continue
+        try:
+            m = json.loads(mfile.read_text())
+        except json.JSONDecodeError:
+            print(f"[warn] could not parse {mfile}", file=sys.stderr)
+            continue
+        dter = _measures_to_dter(m)
+        if dter is not None:
+            out[child.name] = dter
+    return out
+
+
+def _measures_to_dter(m: Dict) -> Optional[float]:
+    """Pull micro-DTER from a ``measures.json`` dict.
+
+    Prefers the exact ``dter_n_err / dter_n_ref`` ratio; falls back to the
+    pre-computed ``dter`` field.
+    """
+    n_err = m.get("dter_n_err")
+    n_ref = m.get("dter_n_ref")
+    if isinstance(n_err, (int, float)) and isinstance(n_ref, (int, float)) and n_ref > 0:
+        return float(n_err) / float(n_ref)
+    v = m.get("dter")
+    if isinstance(v, (int, float)):
+        return float(v)
+    return None
+
+
+def _project_to_canonical(parsed: Dict[str, float]) -> Dict[str, float]:
+    """Map parsed metrics to the canonical internal keys used in the report."""
+    out: Dict[str, float] = {}
+    for _, datasets in _normalize_groups(INHOUSE_GROUPS):
+        for key, _display in datasets:
+            v = _canonical_lookup(parsed, key)
             if v is not None:
-                out[ds] = v
+                out[key] = v
     return out
 
 
@@ -304,23 +508,29 @@ COLUMN_ROW = 3
 DATA_START = 4
 
 
-def _row_layout() -> Tuple[List[Tuple[str, str]], int]:
+def _row_layout() -> Tuple[List[Tuple[str, str, str]], int]:
     """Return (rows, overall_avg_row).
 
-    Each row is ('data'|'lang_avg', label). The overall avg row index is the
-    row index immediately following the last layout row.
+    Each row is ``(kind, internal_key, display_label)`` where ``kind`` is
+    ``'data'`` or ``'lang_avg'``. For ``lang_avg`` rows ``internal_key`` is the
+    locale and ``display_label`` is the ``<locale> avg`` text. The overall avg
+    row index is the row immediately following the last layout row.
     """
-    rows: List[Tuple[str, str]] = []
-    for locale, datasets in INHOUSE_GROUPS:
-        for ds in datasets:
-            rows.append(("data", ds))
-        rows.append(("lang_avg", f"{locale} avg"))
+    rows: List[Tuple[str, str, str]] = []
+    for locale, datasets in _normalize_groups(INHOUSE_GROUPS):
+        for key, display in datasets:
+            rows.append(("data", key, display))
+        rows.append(("lang_avg", locale, f"{locale} avg"))
     overall_avg_row = DATA_START + len(rows)
     return rows, overall_avg_row
 
 
 def build_workbook(columns: List[Tuple[str, Dict[str, float]]], out_path: Path) -> None:
-    """``columns`` is a list of (label, canonical metrics dict). First is the baseline."""
+    """``columns`` is a list of (label, canonical metrics dict). First is the baseline.
+
+    Metrics dicts are keyed by each schema's *internal key* (e.g. the slug for
+    `all_seg` or the canonical corpus name for the other schemas).
+    """
 
     wb = Workbook()
     ws = wb.active
@@ -354,14 +564,14 @@ def build_workbook(columns: List[Tuple[str, Dict[str, float]]], out_path: Path) 
     current_lang_start: Optional[int] = None
     lang_avg_rows: List[int] = []
 
-    for offset, (kind, label) in enumerate(layout):
+    for offset, (kind, key, display) in enumerate(layout):
         r = DATA_START + offset
-        ws.cell(row=r, column=1, value=label)
+        ws.cell(row=r, column=1, value=display)
         if kind == "data":
             if current_lang_start is None:
                 current_lang_start = r
             for i, (_, metrics) in enumerate(columns):
-                v = metrics.get(label)
+                v = metrics.get(key)
                 if v is not None:
                     ws.cell(row=r, column=model_cols[i], value=float(v))
             for j, wc in enumerate(werr_cols):
@@ -371,12 +581,13 @@ def build_workbook(columns: List[Tuple[str, Dict[str, float]]], out_path: Path) 
             lang_avg_rows.append(r)
             ws.cell(row=r, column=1).font = bold
             assert current_lang_start is not None
-            group_datasets = [
-                lbl for k, lbl in layout[offset - (r - current_lang_start):offset] if k == "data"
+            group_keys = [
+                k for (kk, k, _d) in layout[offset - (r - current_lang_start):offset]
+                if kk == "data"
             ]
             lang_avg_per_col: List[Optional[float]] = []
             for i, (_, metrics) in enumerate(columns):
-                vals = [metrics[ds] for ds in group_datasets if ds in metrics]
+                vals = [metrics[k] for k in group_keys if k in metrics]
                 avg = sum(vals) / len(vals) if vals else None
                 lang_avg_per_col.append(avg)
                 if avg is not None:
@@ -391,10 +602,10 @@ def build_workbook(columns: List[Tuple[str, Dict[str, float]]], out_path: Path) 
     # Overall avg row (mean across all data datasets).
     r = overall_avg_row
     ws.cell(row=r, column=1, value="overall avg").font = bold
-    all_data = [lbl for kind, lbl in layout if kind == "data"]
+    all_data_keys = [k for kk, k, _d in layout if kk == "data"]
     overall_per_col: List[Optional[float]] = []
     for i, (_, metrics) in enumerate(columns):
-        vals = [metrics[ds] for ds in all_data if ds in metrics]
+        vals = [metrics[k] for k in all_data_keys if k in metrics]
         avg = sum(vals) / len(vals) if vals else None
         overall_per_col.append(avg)
         if avg is not None:
@@ -465,14 +676,14 @@ def read_existing_xlsx(path: Path) -> List[Tuple[str, Dict[str, float]]]:
 
     metrics_per_col: List[Dict[str, float]] = [dict() for _ in model_cols]
     layout, _ = _row_layout()
-    for offset, (kind, label) in enumerate(layout):
+    for offset, (kind, key, _display) in enumerate(layout):
         if kind != "data":
             continue
         r = DATA_START + offset
         for i, mc in enumerate(model_cols):
             v = ws.cell(row=r, column=mc).value
             if isinstance(v, (int, float)):
-                metrics_per_col[i][label] = float(v)
+                metrics_per_col[i][key] = float(v)
 
     return [(label, m) for label, m in zip(labels, metrics_per_col)]
 
@@ -496,12 +707,34 @@ def parse_args() -> argparse.Namespace:
             "'nlnl_seg' = 3 nl-NL TER corpora from inhouse_2605_nlnl; "
             "'dadk_seg' = 3 da-DK corpora from inhouse_2605_dadk; "
             "'huhu_seg' = 3 hu-HU corpora from inhouse_2605_huhu; "
-            "'nbno_seg' = 3 nb-NO corpora from inhouse_2605_nbno."
+            "'nbno_seg' = 3 nb-NO corpora from inhouse_2605_nbno; "
+            "'all_seg' = 15 corpora across 5 locales from inhouse_2605_5lang_seg_v2."
         ),
     )
     p.add_argument("--from-ray", nargs=2, metavar=("NODE", "JOB_ID"), action="append", default=[])
     p.add_argument("--from-text", action="append", default=[])
     p.add_argument("--metrics", help="JSON file: {dataset: dter_fraction}.")
+    p.add_argument(
+        "--model",
+        "-m",
+        nargs=2,
+        metavar=("LABEL", "PATH"),
+        action="append",
+        default=[],
+        help=(
+            "Add a model column from a single local result (repeatable). PATH "
+            "is auto-detected as one of: an `az://` URL or local directory "
+            "containing `<slug>/measures.json` per corpus (the canonical "
+            "segmented long-audio eval layout, e.g. "
+            "`az://.../inhouse_2605_5lang_seg_v2/`); a JSON "
+            "`{dataset: dter_fraction}` mapping; or a text log containing "
+            "'val-aux/<corpus>/dter_n_err|dter_n_ref/mean@1' lines and/or "
+            "'[<corpus>] DTER: x% [n_err/n_ref]' long-eval summary lines. Each "
+            "--model becomes its own column (B, C, D, ...), in the order "
+            "given, after the baseline (and any --extend-xlsx columns). "
+            "Combine multiple local results into one workbook in a single command."
+        ),
+    )
     p.add_argument("--baseline", help="Override baseline metrics JSON.")
     p.add_argument("--baseline-label", default=BASELINE_LABEL)
     p.add_argument(
@@ -535,22 +768,52 @@ def main() -> int:
         print(out_path)
         return 0
 
-    if args.label is None:
-        print("[error] label is required unless --baseline-only is set.", file=sys.stderr)
-        return 2
-
-    raw_metrics = load_metrics(args)
-    if not raw_metrics:
-        print("[error] no metrics collected; pass --from-ray/--from-text/--metrics.", file=sys.stderr)
-        return 2
-    new_metrics = _project_to_canonical(raw_metrics)
-    if not new_metrics:
+    if args.label is None and not args.model:
         print(
-            "[error] none of the parsed metrics map to canonical in-house dataset names.\n"
-            f"  parsed keys: {sorted(raw_metrics)[:10]}{'...' if len(raw_metrics) > 10 else ''}",
+            "[error] provide a model column via the positional label (+ "
+            "--metrics/--from-text/--from-ray) and/or one or more --model LABEL PATH, "
+            "unless --baseline-only is set.",
             file=sys.stderr,
         )
         return 2
+
+    def _project_or_die(raw: Dict[str, float], who: str) -> Optional[Dict[str, float]]:
+        if not raw:
+            print(f"[error] {who}: no metrics collected.", file=sys.stderr)
+            return None
+        proj = _project_to_canonical(raw)
+        if not proj:
+            print(
+                f"[error] {who}: none of the parsed metrics map to canonical "
+                f"in-house dataset names for schema '{args.schema}'.\n"
+                f"  parsed keys: {sorted(raw)[:10]}{'...' if len(raw) > 10 else ''}",
+                file=sys.stderr,
+            )
+            return None
+        return proj
+
+    # Assemble the new model columns, in order: the positional-label column first
+    # (built from --metrics/--from-text/--from-ray), then each --model file.
+    new_columns: List[Tuple[str, Dict[str, float]]] = []
+
+    if args.label is not None:
+        proj = _project_or_die(load_metrics(args), f"positional label '{args.label}'")
+        if proj is None:
+            return 2
+        new_columns.append((args.label, proj))
+    elif args.metrics or args.from_text or args.from_ray:
+        print(
+            "[error] --metrics/--from-text/--from-ray require the positional label. "
+            "Use --model LABEL PATH to attach a label per local result file.",
+            file=sys.stderr,
+        )
+        return 2
+
+    for label, path in args.model:
+        proj = _project_or_die(load_source_file(path), f"--model '{label}' ({path})")
+        if proj is None:
+            return 2
+        new_columns.append((label, proj))
 
     if args.extend_xlsx:
         columns = read_existing_xlsx(Path(args.extend_xlsx))
@@ -565,11 +828,12 @@ def main() -> int:
             baseline_metrics = {k: float(v) for k, v in json.loads(Path(args.baseline).read_text()).items()}
         columns = [(args.baseline_label, baseline_metrics)]
 
-    columns.append((args.label, new_metrics))
+    columns.extend(new_columns)
 
+    first_label = new_columns[0][0]
     out_path = Path(
         args.out
-        or f"tmp/inhouse_dter_report/{args.label.replace('/', '_').replace('@', '_')}.xlsx"
+        or f"tmp/inhouse_dter_report/{first_label.replace('/', '_').replace('@', '_')}.xlsx"
     )
     build_workbook(columns, out_path)
     print(out_path)
