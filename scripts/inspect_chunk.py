@@ -52,8 +52,8 @@ def summarize(ds, n=5, save_audio=None):
         print(f"\n--- Sample {i} ---")
         for k, v in sample.items():
             if k == "audio_chunk" and save_audio and v:
-                from recipe.phimm.data.chunk import load_chunk_example
-                audio = load_chunk_example(v)
+                from recipe.phimm.data.chunk import load_chunk_sample
+                audio = load_chunk_sample(v)
                 if isinstance(audio, list):
                     audio_data, sr = audio[0]
                 else:

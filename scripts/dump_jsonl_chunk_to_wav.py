@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).parents[1]))
 import blobfile as bf
 import soundfile as sf
 
-from recipe.phimm.data.chunk import load_chunk_example, resolve_path
+from recipe.phimm.data.chunk import load_chunk_sample, resolve_path
 from recipe.phimm.utils.audio import _is_chunk_spec
 
 
@@ -79,7 +79,7 @@ def main():
             continue
 
         # Load audio from chunk
-        result = load_chunk_example(chunk_spec)
+        result = load_chunk_sample(chunk_spec)
         if isinstance(result, list):
             result = result[0]
         data, sr = result

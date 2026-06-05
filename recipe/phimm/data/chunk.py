@@ -357,7 +357,7 @@ if __name__ == "__main__":
     with open(example_jsonl_file, "w") as jf:
         for i, example in enumerate(generate_examples(spec_file, chunk_types=chunk_types, max_chunks=2)):
             rank_print(f"Example {i}: {example}")
-            data, fs = load_chunk_example(example["audio_chunk"])
+            data, fs = load_chunk_sample(example["audio_chunk"])
             wav_name = f"egs_{i}.wav"
             wav_path = output_dir / wav_name
             with open(wav_path, "wb") as f:
