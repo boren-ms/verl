@@ -3,10 +3,11 @@
 import pytest
 
 from recipe.phimm.reward.punc_cap_measure import (
+    check_fmt,
     _is_pure_punc,
     _strip_punc,
     classify_edit,
-    compuate_fmt_acc,
+    compute_fmt_acc,
 )
 
 
@@ -102,49 +103,49 @@ class TestClassifyEdit:
 
 class TestComputeFmtAcc:
     def test_identical(self):
-        r = compuate_fmt_acc("Hello world", "Hello world")
+        r = compute_fmt_acc("Hello world", "Hello world")
         assert r["punc"] == 1.0
         assert r["cap"] == 1.0
         assert r["lex"] == 1.0
 
     def test_pure_punc_diffs(self):
         # Both ref words carry punctuation and both are wrong → punc acc 0.
-        r = compuate_fmt_acc("Hello, world.", "Hello world")
+        r = compute_fmt_acc("Hello, world.", "Hello world")
         assert r["punc"] == pytest.approx(0.0)
         assert r["cap"] == 1.0
         assert r["lex"] == 1.0
 
     def test_pure_cap_diffs(self):
-        r = compuate_fmt_acc("The Quick Brown Fox", "the quick brown fox")
+        r = compute_fmt_acc("The Quick Brown Fox", "the quick brown fox")
         assert r["cap"] == pytest.approx(0.0)
         assert r["punc"] == 1.0
         assert r["lex"] == 1.0
 
     def test_lexical_error(self):
         # One lexical substitution out of three reference words.
-        r = compuate_fmt_acc("the cat sat", "the dog sat")
+        r = compute_fmt_acc("the cat sat", "the dog sat")
         assert r["lex"] == pytest.approx(2.0 / 3.0)
 
     def test_empty_ref_and_hyp(self):
-        r = compuate_fmt_acc("", "")
+        r = compute_fmt_acc("", "")
         assert r["punc"] == 1.0
         assert r["cap"] == 1.0
         assert r["lex"] == 1.0
 
     def test_empty_hyp(self):
         # Both reference words deleted → lexical accuracy 0.
-        r = compuate_fmt_acc("Hello world", "")
+        r = compute_fmt_acc("Hello world", "")
         assert r["lex"] == pytest.approx(0.0)
 
     def test_empty_ref(self):
         # No reference words → accuracies default to 1.0.
-        r = compuate_fmt_acc("", "Hello world")
+        r = compute_fmt_acc("", "Hello world")
         assert r["punc"] == 1.0
         assert r["cap"] == 1.0
         assert r["lex"] == 1.0
 
     def test_none_inputs(self):
-        r = compuate_fmt_acc(None, None)
+        r = compute_fmt_acc(None, None)
         assert r["punc"] == 1.0
         assert r["cap"] == 1.0
         assert r["lex"] == 1.0
@@ -153,6 +154,49 @@ class TestComputeFmtAcc:
         # Raw accuracies are not clipped here (clipping happens in
         # compute_score); they are always <= 1.0 but may go negative
         # when errors exceed the reference count.
-        r = compuate_fmt_acc("Hello, World.", "hello world cat dog")
+        r = compute_fmt_acc("Hello, World.", "hello world cat dog")
         for k in ("punc", "cap", "lex"):
             assert r[k] <= 1.0
+
+
+# ── check_fmt ─────────────────────────────────────────────────────────────
+
+
+class TestCheckFmt:
+    def test_accepts_asr(self):
+        s = "Audio Language: English.\n<ASR><lang=English><TXT>Hello world</TXT></ASR>"
+        assert check_fmt(s)
+
+    def test_accepts_asr_star(self):
+        s = (
+            "Audio Language: English.\n"
+            "<ASR_LEXICAL><lang=English><TXT>Hello world</TXT></ASR_LEXICAL>"
+        )
+        assert check_fmt(s)
+
+    def test_rejects_lang_mismatch(self):
+        s = "Audio Language: English.\n<ASR><lang=French><TXT>Hello world</TXT></ASR>"
+        assert not check_fmt(s)
+
+    def test_rejects_unknown_tag(self):
+        s = "Audio Language: English.\n<XYZ><lang=English><TXT>Hello world</TXT></XYZ>"
+        assert not check_fmt(s)
+
+    def test_rejects_mismatched_closing_tag(self):
+        s = "Audio Language: English.\n<ASR><lang=English><TXT>Hello world</TXT></ASR_LEXICAL>"
+        assert not check_fmt(s)
+
+    def test_accepts_missing_period_in_header(self):
+        s = "Audio Language: English\n<ASR><lang=English><TXT>Hello world</TXT></ASR>"
+        assert check_fmt(s)
+
+    def test_rejects_malformed_txt_tags(self):
+        s = "Audio Language: English.\n<ASR><lang=English><TXT>Hello world</TXT><TXT></ASR>"
+        assert not check_fmt(s)
+
+    def test_rejects_trailing_text_after_closing_tag(self):
+        s = "Audio Language: English.\n<ASR><lang=English><TXT>Hello world</TXT></ASR>...adafda "
+        assert not check_fmt(s)
+
+    def test_rejects_non_string(self):
+        assert not check_fmt(None)

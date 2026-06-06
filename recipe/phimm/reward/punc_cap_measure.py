@@ -7,10 +7,18 @@ reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from dataclasses import dataclass, field
 
 from jiwer import process_words
+
+
+_TASK_OUTPUT_RE = re.compile(
+    r"^Audio Language: (?P<header_lang>[^\n.]+)\.?\n"
+    r"<(?P<tag>ASR(?:_[^>]+)?)><lang=(?P<body_lang>[^>]+)><TXT>(?P<text>.*)</TXT></(?P=tag)>$",
+    re.DOTALL,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -277,8 +285,25 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "char": error.accuracy(),
         **fmts,
         "lang": 1.0 if is_nonspeech else float(pred_lang == tgt_lang),
-        "fmt": float(bool(trans_dict["formatted"])),
+        "fmt": float(check_fmt(solution_str)),
     }
+
+
+def check_fmt(solution_str: str) -> bool:
+    """Return True if ``solution_str`` matches ``_format_task_output`` format.
+
+    Expected format:
+    ``Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>``
+    where tag is ``ASR`` or ``ASR_*`` and the two language fields match.
+    """
+    if not isinstance(solution_str, str):
+        return False
+
+    match = _TASK_OUTPUT_RE.match(solution_str.strip())
+    if not match:
+        return False
+
+    return match.group("header_lang").strip() == match.group("body_lang").strip()
 
 
 def clip(x, lo=-1.0, hi=1.0):
