@@ -122,15 +122,18 @@ Each slide is a `<section>` inside reveal.js. Use **vertical layout** — conten
 > Slides are built **around** figures, formulas, and tables — these are the primary content. Bullets **surround** them (above/below) to explain, interpret, or annotate. Keep bullet text **short and compact**: one line per bullet, no full sentences when a phrase suffices.
 >
 > - **Figure/formula/table first:** Place the visual element prominently; bullets explain it.
+> - **Maximize figure usage:** Every figure extracted from the paper should appear on at least one slide. If a figure relates to a slide's topic, include it — even on Detail slides that also have equations. Prefer showing a figure over leaving a text-only slide.
 > - **Compact bullets:** Use terse, information-dense phrasing — e.g., `$\lambda\!=\!5$ → biasing errors weighted 6× vs general` instead of a full sentence.
 > - **Full-width tables:** Use original column names from the paper source (e.g., "test-clean" not "cl"). Include all data columns and values — never abbreviate.
 > - **Centered formulas:** Equation boxes use `width: fit-content; margin: auto` to shrink to content and center.
 > - **Spacing:** Leave clear vertical gaps between sections (headings, equations, tables, bullets).
 
 **Slide 1 — Title & Highlight** (combined on one slide):
-- Title, authors, affiliations, venue, arXiv links as badges
-- Highlight box at bottom (translucent): Problem → Proposal → Result (3 lines)
-- Uses dark gradient background
+- Light background (`#f8fafc`) — clean, readable, professional
+- Title, authors, affiliations, venue, arXiv links as colored badges
+- Leave a clear vertical gap (margin/spacer) between the title/author/badges section and the TL;DR box — they should feel like two distinct zones
+- TL;DR box at bottom with left blue accent border: Problem → Proposal → Result (3 lines, generous `line-height: 1.85`, `padding: 18px 24px`)
+- Use color highlights in TL;DR: `.hl-red` for problem, `.hl-orange` for method, `.hl-green` for results
 - This is the "hook" — the audience should immediately know what the paper achieved
 
 **Slide 2 — Problem & Motivation:**
@@ -146,6 +149,7 @@ Each slide is a `<section>` inside reveal.js. Use **vertical layout** — conten
 
 **Slides 4–6 — Details** (one per key technique, typically 1–3 slides):
 - Each slide: equation box(es) or figure at top → compact bullets below explaining it
+- **Include the relevant figure on every detail slide that has one** — if the paper has a figure illustrating a technique, it must appear on that technique's detail slide alongside its equations
 - Key equations in `.eq-box` with label; core equation gets `.eq-star` (gold left border)
 - Keep bullets terse: what the equation does, what each term means, key hyperparameter values
 - Figures with `<figcaption>` referencing figure number
@@ -194,8 +198,11 @@ Use the same slide structure as Part A, translated to Chinese. Same reveal.js fr
 > - **公式居中：** 公式框自适应内容宽度并居中显示。
 
 **幻灯片 1 — 标题与亮点**（合并为一页）:
-- 英文标题 + 中文副标题，作者，机构，会议，arXiv 链接
-- 亮点信息框：问题 → 方案 → 结果
+- 浅色背景（`#f8fafc`），整洁专业
+- 英文标题 + 中文副标题，作者，机构，会议，arXiv 彩色链接徽章
+- 标题/作者区与亮点信息框之间留出明显垂直间距（margin/spacer），形成两个独立区域
+- 亮点信息框：左侧蓝色边框，问题 → 方案 → 结果（3 行，宽行高 `1.85`，大内边距 `18px 24px`）
+- 使用颜色高亮：`.hl-red` 标注问题，`.hl-orange` 标注方法，`.hl-green` 标注结果
 
 **幻灯片 2 — 问题与动机**:
 - 4–6 个要点，用具体数字量化当前方法的不足
@@ -206,6 +213,7 @@ Use the same slide structure as Part A, translated to Chinese. Same reveal.js fr
 
 **幻灯片 4–6 — 细节**（每项关键技术一页，1–3 页）:
 - 公式/图在上，简洁要点在下
+- **每页细节如有对应图，必须包含该图** — 图与公式可同时出现在一页上
 - 包含实现细节：超参数、训练配置、架构选择
 
 **幻灯片 7 — 结果**:
@@ -259,16 +267,17 @@ Reveal.on('slidechanged', () => {
 /* Headings — generous bottom margin for spacing */
 .reveal h2 { font-size: 1.15em; border-bottom: 2px solid #1a6fb5; margin-bottom: 18px; }
 
-/* Content — margin: 10px+ between sections */
-.reveal ul, .reveal ol { font-size: 0.78em; line-height: 1.45; margin: 10px 0; }
-.reveal p { font-size: 0.8em; margin-bottom: 8px; }
+/* Content — unified 0.68em for all body text (bullets, tables, paragraphs) */
+.reveal ul, .reveal ol { font-size: 0.68em; line-height: 1.45; margin: 10px 0; }
+.reveal p { font-size: 0.68em; margin-bottom: 8px; }
 .reveal figure { margin: 0 0 12px 0; }
+.reveal figcaption { font-size: 0.58em; }
 
-/* Tables — full width, original column names, generous spacing */
-.reveal table { font-size: 0.52em; width: 100%; white-space: nowrap; margin: 10px auto 14px; }
+/* Tables — same 0.68em as body text for visual consistency */
+.reveal table { font-size: 0.68em; width: 100%; white-space: nowrap; margin: 10px auto 14px; }
 .reveal table th { background: #dbeafe; }
 .reveal table .best { color: #be123c; font-weight: 700; }
-.table-caption { font-size: 0.48em; margin-bottom: 14px; }
+.table-caption { font-size: 0.62em; margin-bottom: 14px; }
 
 /* Equation boxes — fit content width, centered, with spacing */
 .eq-box { width: fit-content; max-width: 100%; margin: 10px auto;
@@ -281,11 +290,40 @@ Reveal.on('slidechanged', () => {
 .tag-claim { background: #dbeafe; color: #1e40af; }
 .tag-both { background: #fef3c7; color: #92400e; }
 
-/* Title slide */
-.title-slide { background: linear-gradient(135deg, #0f2a5c 0%, #1a6fb5 60%, #0d7d6b 100%); }
-/* TL;DR box on title slide: semi-transparent white */
-/* background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); */
+/* Title slide — light theme */
+.title-slide { background: #f8fafc; }
+.title-slide h1 { color: #0f172a; border: none; text-align: center; }
+.title-slide .meta { color: #475569; text-align: center; }
+.title-slide .badges a { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd; }
+/* TL;DR box — left-accent, generous padding, wide row spacing, separated from title */
+.tldr-box { background: #f0f9ff; border-left: 4px solid #1a6fb5;
+            padding: 18px 24px; margin-top: 72px; font-size: 0.68em; line-height: 3.7; }
+.tldr-box strong { color: #1a6fb5; }
+
+/* Color highlights — used on every slide to mark key content */
+.hl-red { color: #dc2626; font-weight: 700; }    /* problems, failures, regressions */
+.hl-green { color: #16a34a; font-weight: 700; }  /* improvements, positive results */
+.hl-orange { color: #d97706; font-weight: 700; } /* methods, innovations, key hyperparams */
 ```
+
+### Color Highlighting
+
+Use `<span class="hl-red|hl-green|hl-orange">...</span>` on **every slide** to draw attention to key content:
+
+| Class | Color | Use for |
+|-------|-------|---------|
+| `.hl-red` | Red (#dc2626) | Problems, failures, regressions, limitations, degraded metrics |
+| `.hl-green` | Green (#16a34a) | Improvements, positive results, best numbers, gains |
+| `.hl-orange` | Orange (#d97706) | Proposed methods, innovations, key hyperparameters, future directions |
+
+**Guidelines:**
+- Every slide should have at least 1–2 highlighted spans — not just the TL;DR box.
+- Highlight specific numbers, method names, and key phrases — not entire sentences.
+- On Problem slides: red for failure metrics, orange for unexplored opportunities.
+- On Solution/Detail slides: orange for method names and hyperparams, green for benefits.
+- On Results slides: green for best numbers and improvements, red for regressions.
+- On Ablation slides: green for best configs, red for worst/degraded configs.
+- On Conclusion slides: green for claimed gains, red for limitations.
 
 ### Key Layout Rules
 
@@ -296,9 +334,11 @@ Reveal.on('slidechanged', () => {
 4. **Include all table values** from original paper. If paper shows BWER with (WER/UWER), include all three.
 5. **Equation boxes centered** with `width: fit-content; margin: auto`.
 6. **Clear spacing** between content sections — 10-18px margins between headings, equations, tables, and bullet lists.
-7. **Section titles with emoji** prefix: 🎯 📊 🔬 ⚙️ ⚠️ 💡 📌 🧪
-8. **Images**: external files in `_assets/` directory, `max-height` constrained (200-280px).
-9. **Chinese slides** use Chinese font stack: `'PingFang SC', 'Microsoft YaHei', ...`
+7. **Unified font size** — tables, bullets, and paragraphs all use **0.68em** so text and data share the same visual weight on every slide.
+8. **Section titles with emoji** prefix: 🎯 📊 🔬 ⚙️ ⚠️ 💡 📌 🧪
+9. **Images**: external files in `_assets/` directory, `max-height` constrained (200-280px).
+    - **Use every extracted figure** on at least one slide. Do not leave figures unused in `_assets/` — each one should appear where it is most relevant.
+10. **Chinese slides** use Chinese font stack: `'PingFang SC', 'Microsoft YaHei', ...`
 10. **Horizontal navigation** (left/right arrows) — slides are siblings, not nested.
 11. **Compact bullet style** — terse, information-dense phrasing. One line per bullet when possible. Use `\!=\!` for tight spacing in inline math.
 
@@ -338,10 +378,12 @@ Formulas must render correctly in the browser. Follow these rules:
 - [ ] Slide 2: Problem & Motivation with specific numbers quantifying the gap
 - [ ] Slide 3: Solution overview figure with high-level bullets (no equations yet)
 - [ ] Slides 4–6: Details with equations, figures, and compact explanatory bullets
+- [ ] Every extracted figure from the paper appears on at least one slide
 - [ ] Tables use original column names from paper — no abbreviations
 - [ ] All table values from paper preserved (never omit data)
 - [ ] Equation boxes centered with `width: fit-content`
 - [ ] Clear spacing between content sections (10-18px margins)
+- [ ] Color highlights (red/green/orange) on every slide — key numbers, methods, failures marked
 - [ ] Slide 9: Conclusion combines contributions (tagged) + limitations
 - [ ] MathJax renders correctly (HTML-escaped `<` in subscripts, `\mathcal` works)
 - [ ] Re-renders on slide change via `slidechanged` event
@@ -354,9 +396,11 @@ Formulas must render correctly in the browser. Follow these rules:
 - [ ] 幻灯片 1：标题与亮点合并为一页
 - [ ] 幻灯片 2：问题与动机，用具体数字量化差距
 - [ ] 幻灯片 3：方案概览图，下方有中文要点
+- [ ] 所有提取的图均出现在至少一页幻灯片中
 - [ ] 表格使用论文原始列名，数据完整不省略
 - [ ] 公式框居中，自适应内容宽度
 - [ ] 内容区域间距清晰（10-18px）
+- [ ] 每页均有颜色高亮（红/绿/橙）标注关键数字、方法、问题
 - [ ] 幻灯片 9：总结 = 贡献（带标签） + 局限与未来
 - [ ] MathJax 公式正确渲染（下标中 `<` 已 HTML 转义）
 - [ ] 顶部 badge 区链接回 arXiv abs / html / pdf
@@ -377,6 +421,8 @@ Formulas must render correctly in the browser. Follow these rules:
 - ❌ **Skipping TeX source** for arXiv papers — TeX has the richest data
 - ❌ Skipping HTML and going straight to PDF — information loss is severe
 - ❌ Figures/tables without explanation — every visual must have a caption/explanation
+- ❌ **Omitting available figures** — if a figure was extracted to `_assets/`, it must appear on a slide; do not leave figures unused
 - ❌ Outputting Markdown — must be well-designed HTML
 - ❌ Standalone "Key Equations" or "Key Tables" sections — embed where discussed
 - ❌ Vague takeaway bullets (e.g., "method is effective") — each must cite figure/table/equation
+- ❌ **No color highlights** — every slide must use `.hl-red` / `.hl-green` / `.hl-orange` to mark key content
