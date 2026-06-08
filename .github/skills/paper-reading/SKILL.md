@@ -69,6 +69,11 @@ Extract from the TeX source:
 - **Tables**: copy `\begin{table}...\end{table}` blocks; reconstruct as HTML tables
 - **Equations**: copy `equation`, `align`, `gather` environments verbatim for MathJax rendering
 
+After converting/copying all figures to `_assets/`, **trim whitespace borders** so figures render as large as possible in slides:
+```bash
+cd paper_notes/<short-name>_assets && for f in *.png; do convert "$f" -trim +repage "$f"; done
+```
+
 ### Step 3 — Fall back to HTML
 
 If TeX source is unavailable, fetch `html_url`. Record figure URLs, table HTML, section structure, and key equations.
