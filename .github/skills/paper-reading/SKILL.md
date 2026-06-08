@@ -114,56 +114,66 @@ Generate this deck **first**. All text in English.
 
 ### Slide Structure (English)
 
-Each slide is a `<section>` inside reveal.js. Use **vertical layout** — content stacked top-to-bottom within each slide (no side-by-side two-column layouts). Bullets always appear **below** figures/equations/tables.
+The deck follows a narrative arc: **hook → gap → idea → mechanics → evidence → dissection → takeaways**. Slides are built around figures, formulas, and tables — visual elements are the primary content, with compact bullets explaining them.
 
-> **Layout principles:**
-> - **Vertical stacking:** Figures, equations, and tables at top; bullets below. Never use two-column `flexbox` layouts.
-> - **Figure-first:** Overview/method diagrams appear prominently before explanatory text.
-> - **Full-width tables:** Use original column names from the paper source (e.g., "test-clean" not "cl"). Tables span full slide width. Include all data columns and values from original — never abbreviate.
+Each slide is a `<section>` inside reveal.js. Use **vertical layout** — content stacked top-to-bottom within each slide (no side-by-side two-column layouts).
+
+> **Core principle — Visual-centric, compact bullets:**
+> Slides are built **around** figures, formulas, and tables — these are the primary content. Bullets **surround** them (above/below) to explain, interpret, or annotate. Keep bullet text **short and compact**: one line per bullet, no full sentences when a phrase suffices.
+>
+> - **Figure/formula/table first:** Place the visual element prominently; bullets explain it.
+> - **Compact bullets:** Use terse, information-dense phrasing — e.g., `$\lambda\!=\!5$ → biasing errors weighted 6× vs general` instead of a full sentence.
+> - **Full-width tables:** Use original column names from the paper source (e.g., "test-clean" not "cl"). Include all data columns and values — never abbreviate.
 > - **Centered formulas:** Equation boxes use `width: fit-content; margin: auto` to shrink to content and center.
 > - **Spacing:** Leave clear vertical gaps between sections (headings, equations, tables, bullets).
 
-**Slide 1 — Title + TL;DR** (combined on one slide):
+**Slide 1 — Title & Highlight** (combined on one slide):
 - Title, authors, affiliations, venue, arXiv links as badges
-- TL;DR as a translucent info box at bottom: Problem → Proposal → Result (3 lines)
+- Highlight box at bottom (translucent): Problem → Proposal → Result (3 lines)
 - Uses dark gradient background
+- This is the "hook" — the audience should immediately know what the paper achieved
 
-**Slide 2 — Overview Figure:**
-- Paper's most representative figure displayed prominently (centered)
-- 2–3 bullets below explaining what the figure shows
+**Slide 2 — Problem & Motivation:**
+- 4–6 bullet points explaining what problem exists and why this work is needed
+- Reference specific numbers from the paper's tables to quantify the gap
+- Focus on: what fails today, why it matters, what metric captures the gap
 
-**Slide 3 — Motivation & Problem:**
-- 4–6 bullet points explaining why this work is needed
-- Reference specific numbers from the paper's tables
+**Slide 3 — Solution (High-Level):**
+- Paper's most representative overview figure displayed prominently (centered)
+- 3–4 compact bullets below stating the core idea / approach at a high level
+- No equations yet — this is the "big picture" slide
+- Answer: "What is the key insight?" and "How does it differ from prior work?"
 
-**Slides 4–6 — Method slides** (one per key technique):
-- Each slide: equation box(es) or figure at top → bullets below
-- Key equations in `.eq-box` with label and 1-line explanation
-- Core equation gets `.eq-star` (gold left border)
+**Slides 4–6 — Details** (one per key technique, typically 1–3 slides):
+- Each slide: equation box(es) or figure at top → compact bullets below explaining it
+- Key equations in `.eq-box` with label; core equation gets `.eq-star` (gold left border)
+- Keep bullets terse: what the equation does, what each term means, key hyperparameter values
 - Figures with `<figcaption>` referencing figure number
+- Adjust the number of detail slides to match the paper's complexity (1 for simple papers, 3 for multi-component methods)
 
-**Slide 7 — Main Results:**
+**Slide 7 — Results:**
 - Full results table with original column names and all values from paper
-- Use `BWER (WER/UWER)` format if paper uses it — preserve cell structure
-- Table caption + 2–3 takeaway bullets below
+- Table caption + 2–3 compact takeaway bullets citing specific numbers
+- Every bullet references a concrete number or comparison from the table
 
-**Slide 8 — Ablation Studies:**
+**Slide 8 — Ablation:**
 - Tables stacked vertically (not side-by-side)
-- Each table with caption, then summary bullets below
+- Each table with caption, then compact summary bullets below
+- If the paper has no ablation, merge insights into the Results slide and skip this
 
-**Slide 9 — Key Insights & Contributions:**
-- Tagged list: `[Novel]` / `[Claim]` / `[Novel+Claim]`
-- Each with left border accent via `.insights li` style
-
-**Slide 10 — Limitations & Future Work:**
-- Bullet list of stated limitations + critical observations
-- Brief "Future" note at bottom
+**Slide 9 — Conclusion:**
+- **Contributions** (top half): Tagged list with `[Novel]` / `[Claim]` / `[Novel+Claim]`
+  - Each with left border accent via `.insights li` style
+- **Limitations & Future Work** (bottom half): 3–5 bullet points
+  - Stated limitations from the paper + your critical observations
+  - Brief "Future" note at the end
+- This slide wraps the story: what was achieved, what remains open
 
 ### Optional Slides (English)
 
 Include only if the paper warrants:
-- **Reproduction Notes** — Key hyperparams, data scale, training recipe
-- **Related Work Comparison** — Side-by-side table with closest baselines
+- **Context (Related Work)** — Include only when prior art is essential to understanding the contribution.
+- **Reproduction Notes** — Key hyperparams, data scale, training recipe (if not covered in Details slides)
 
 ---
 
@@ -175,36 +185,43 @@ Use the same slide structure as Part A, translated to Chinese. Same reveal.js fr
 
 ### Slide Structure (Chinese)
 
+中文幻灯片遵循与英文相同的叙事弧线：**引子 → 问题 → 方案 → 细节 → 结果 → 消融 → 总结**。围绕图/公式/表组织内容，要点简洁。
+
 > **排版总原则：**
-> - **垂直堆叠：** 图/公式/表在上，要点在下。不使用双栏布局。
-> - **图优先：** 概览图居中显示在解释文字之前。
+> - **图/公式/表为主，要点为辅：** 视觉元素居上，简洁要点在下解释。
+> - **垂直堆叠：** 不使用双栏布局。
 > - **完整表格：** 使用论文原始列名，包含所有数据列和数值。
 > - **公式居中：** 公式框自适应内容宽度并居中显示。
 
-**幻灯片 1 — 标题 + TL;DR**（合并为一页）:
+**幻灯片 1 — 标题与亮点**（合并为一页）:
 - 英文标题 + 中文副标题，作者，机构，会议，arXiv 链接
-- TL;DR 信息框：问题 → 方案 → 结果
+- 亮点信息框：问题 → 方案 → 结果
 
-**幻灯片 2 — 概览图**
+**幻灯片 2 — 问题与动机**:
+- 4–6 个要点，用具体数字量化当前方法的不足
 
-**幻灯片 3 — 研究动机与问题**
+**幻灯片 3 — 方案（高层概览）**:
+- 概览图居中，下方 2–4 条要点说明核心思路
+- 不涉及公式——先讲"做什么"再讲"怎么做"
 
-**幻灯片 4–6 — 方法**（每项关键技术一页）:
-- 公式/图在上，要点在下
+**幻灯片 4–6 — 细节**（每项关键技术一页，1–3 页）:
+- 公式/图在上，简洁要点在下
+- 包含实现细节：超参数、训练配置、架构选择
 
-**幻灯片 7 — 主要结果**
+**幻灯片 7 — 结果**:
+- 完整结果表，使用论文原始列名和所有数值
 
-**幻灯片 8 — 消融实验**
+**幻灯片 8 — 消融实验**:
+- 表格垂直堆叠，每表配简洁说明要点
 
-**幻灯片 9 — 核心要点与贡献**:
-- 标签：`[创新]` / `[论断]` / `[创新+论断]`
-
-**幻灯片 10 — 局限与个人评价**
+**幻灯片 9 — 总结**:
+- 上半部分：贡献列表，标签 `[创新]` / `[论断]` / `[创新+论断]`
+- 下半部分：局限与未来工作（3–5 条）
 
 ### Optional Slides (Chinese)
 
-- **复现要点** — 关键超参、数据规模、训练配方
-- **相关工作对比** — 与最相近基线的对比表
+- **背景（相关工作）** — 仅在前人工作对理解贡献至关重要时才包含
+- **复现要点** — 关键超参、数据规模、训练配方（若细节页未涵盖）
 
 ---
 
@@ -274,6 +291,7 @@ Reveal.on('slidechanged', () => {
 
 1. **Vertical stacking only** — no two-column `flexbox` / `.cols` layouts. Content flows top-to-bottom: figure/equation → bullets.
 2. **Title + TL;DR combined** on slide 1 (not separate slides).
+3. **Context (Related Work) is optional** — include only when prior art is essential to understanding the contribution.
 3. **Tables use original names** from the paper source — never abbreviate column headers (e.g., use "test-clean" not "cl", "Edit Level" not "Edit", "Reference Aware" not "Ref").
 4. **Include all table values** from original paper. If paper shows BWER with (WER/UWER), include all three.
 5. **Equation boxes centered** with `width: fit-content; margin: auto`.
@@ -282,6 +300,20 @@ Reveal.on('slidechanged', () => {
 8. **Images**: external files in `_assets/` directory, `max-height` constrained (200-280px).
 9. **Chinese slides** use Chinese font stack: `'PingFang SC', 'Microsoft YaHei', ...`
 10. **Horizontal navigation** (left/right arrows) — slides are siblings, not nested.
+11. **Compact bullet style** — terse, information-dense phrasing. One line per bullet when possible. Use `\!=\!` for tight spacing in inline math.
+
+### MathJax Formula Rendering Best Practices
+
+Formulas must render correctly in the browser. Follow these rules:
+
+1. **HTML-escape `<` in math:** Inside `$$...$$` or `$...$`, use `&lt;` for the `<` symbol (e.g., `o_{i,&lt;t}`) since the browser parses HTML before MathJax processes the math.
+2. **Use `\!` for negative thin space** (e.g., `1\!-\!\epsilon`) — MathJax 3 supports this.
+3. **`\text{}` and `\mathrm{}`** both work in MathJax 3 for roman-text inside math.
+4. **`\mathcal{}` renders correctly** — use for calligraphic letters like `\mathcal{ED}`, `\mathcal{J}`.
+5. **Display math `$$...$$`** inside `.eq-box` divs — the div provides styling; the `$$` triggers MathJax block rendering.
+6. **Re-render on slide change** — the `slidechanged` event handler calls `MathJax.typesetPromise()` to ensure formulas render when navigating.
+7. **Avoid `\begin{align}` inside `$$`** — use `\begin{aligned}` (the `*`-free environment) inside `$$...$$` for multi-line aligned equations.
+8. **Test complex formulas** — if a formula has subscripts with `<`, fractions with `\frac`, or calligraphic fonts, verify they render by checking the HTML in a browser.
 
 ---
 
@@ -291,7 +323,7 @@ Reveal.on('slidechanged', () => {
 2. **Try TeX source first**; if unavailable, try HTML; if that also fails, fall back to PDF.
 3. Read the paper end-to-end; identify sections, figures, tables, key equations.
 4. Convert TeX figures to PNG (`pdftoppm` / ImageMagick); save to `paper_notes/<short-name>_assets/`.
-5. **Generate English slides first** (`_en.html`): ~10 reveal.js slides using vertical layout.
+5. **Generate English slides first** (`_en.html`): ~9 reveal.js slides following the narrative arc (Title & Highlight → Problem & Motivation → Solution → Details → Results → Ablation → Conclusion). Optionally add Context (Related Work) if essential.
 6. **Generate Chinese slides second** (`_zh.html`): same structure, all text in Chinese.
 7. Save both files to `paper_notes/`.
 8. Report both output paths and which source was used (TeX / HTML / PDF).
@@ -302,25 +334,31 @@ Reveal.on('slidechanged', () => {
 - [ ] All body text in English
 - [ ] reveal.js slide deck with horizontal navigation
 - [ ] Vertical content layout within each slide (no two-column flexbox)
-- [ ] Title + TL;DR combined on slide 1
-- [ ] Overview figure on slide 2 with explanatory bullets below
+- [ ] Slide 1: Title & Highlight combined (not separate slides)
+- [ ] Slide 2: Problem & Motivation with specific numbers quantifying the gap
+- [ ] Slide 3: Solution overview figure with high-level bullets (no equations yet)
+- [ ] Slides 4–6: Details with equations, figures, and compact explanatory bullets
 - [ ] Tables use original column names from paper — no abbreviations
 - [ ] All table values from paper preserved (never omit data)
 - [ ] Equation boxes centered with `width: fit-content`
 - [ ] Clear spacing between content sections (10-18px margins)
-- [ ] MathJax renders correctly; re-renders on slide change
+- [ ] Slide 9: Conclusion combines contributions (tagged) + limitations
+- [ ] MathJax renders correctly (HTML-escaped `<` in subscripts, `\mathcal` works)
+- [ ] Re-renders on slide change via `slidechanged` event
 - [ ] Badge links to arXiv abs / html / pdf on title slide
 
 ### Chinese Slides (`_zh.html`)
 - [ ] 所有正文为中文；英文术语首次出现时给出中译
 - [ ] reveal.js 幻灯片，水平导航
 - [ ] 每页内容垂直堆叠（不使用双栏布局）
-- [ ] 标题 + TL;DR 合并为第一页
-- [ ] 概览图在第二页，下方有中文要点
+- [ ] 幻灯片 1：标题与亮点合并为一页
+- [ ] 幻灯片 2：问题与动机，用具体数字量化差距
+- [ ] 幻灯片 3：方案概览图，下方有中文要点
 - [ ] 表格使用论文原始列名，数据完整不省略
 - [ ] 公式框居中，自适应内容宽度
 - [ ] 内容区域间距清晰（10-18px）
-- [ ] MathJax 公式正确渲染
+- [ ] 幻灯片 9：总结 = 贡献（带标签） + 局限与未来
+- [ ] MathJax 公式正确渲染（下标中 `<` 已 HTML 转义）
 - [ ] 顶部 badge 区链接回 arXiv abs / html / pdf
 
 ## Anti-patterns
@@ -331,6 +369,10 @@ Reveal.on('slidechanged', () => {
 - ❌ **Abbreviated column names** — use "test-clean" not "cl", "Edit Level" not "Edit"
 - ❌ **Omitting table values** — include all data from original paper tables
 - ❌ **Separate TL;DR slide** — merge into title slide
+- ❌ **Skipping Related Work** — Context slide is optional; include only when it helps tell the story
+- ❌ **Verbose bullet text** — keep bullets compact and information-dense; one line per bullet
+- ❌ **Equations on the Solution slide** — slide 3 is high-level only; equations go in Details slides
+- ❌ **Separate Contributions and Limitations slides** — merge into one Conclusion slide
 - ❌ Pasting raw abstract without analysis — must provide synthesis and interpretation
 - ❌ **Skipping TeX source** for arXiv papers — TeX has the richest data
 - ❌ Skipping HTML and going straight to PDF — information loss is severe
