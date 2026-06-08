@@ -79,7 +79,7 @@ Only if both TeX and HTML are unavailable:
 1. Download: `curl -sSL "$pdf_url" -o /tmp/paper_<id>.pdf`
 2. Text: `pdftotext -layout /tmp/paper_<id>.pdf -`
 3. Figures: `pdfimages -all` or `pdftoppm -png -r 110`
-4. Embed figures as base64 or write to `paper_notes/<id>_assets/` if HTML exceeds ~20 MB
+4. Embed figures as base64 or write to `paper_notes/<short-name>_assets/` if HTML exceeds ~20 MB
 
 Tell the user which source was used (TeX / HTML / PDF).
 
@@ -90,10 +90,17 @@ Tell the user which source was used (TeX / HTML / PDF).
 Write **two** self-contained `.html` files to `paper_notes/`:
 
 ```
-paper_notes/<arxiv_id_or_slug>_en.html    ← English (generated first)
-paper_notes/<arxiv_id_or_slug>_zh.html    ← Chinese (generated second)
-paper_notes/<arxiv_id_or_slug>_assets/    ← Extracted figures (shared)
+paper_notes/<short-name>_en.html    ← English (generated first)
+paper_notes/<short-name>_zh.html    ← Chinese (generated second)
+paper_notes/<short-name>_assets/    ← Extracted figures (shared)
 ```
+
+**Naming convention:** Use a short, descriptive kebab-case name derived from the paper title — not just the arXiv ID. Examples:
+- `rlbr-contextual-biasing` (not `2601.13409`)
+- `on-policy-distillation` (not `2601.18734`)
+- `grpo-math-reasoning` (not `2402.03300`)
+
+Keep it to 2–4 words that capture the paper's core topic. This makes files easier to find and distinguish.
 
 The `paper_notes/` directory is git-ignored. Create it if absent.
 
@@ -283,7 +290,7 @@ Reveal.on('slidechanged', () => {
 1. Normalize input → derive `tex_url` / `html_url` / `pdf_url`.
 2. **Try TeX source first**; if unavailable, try HTML; if that also fails, fall back to PDF.
 3. Read the paper end-to-end; identify sections, figures, tables, key equations.
-4. Convert TeX figures to PNG (`pdftoppm` / ImageMagick); save to `paper_notes/<id>_assets/`.
+4. Convert TeX figures to PNG (`pdftoppm` / ImageMagick); save to `paper_notes/<short-name>_assets/`.
 5. **Generate English slides first** (`_en.html`): ~10 reveal.js slides using vertical layout.
 6. **Generate Chinese slides second** (`_zh.html`): same structure, all text in Chinese.
 7. Save both files to `paper_notes/`.
