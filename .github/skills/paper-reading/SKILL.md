@@ -297,7 +297,8 @@ Reveal.on('slidechanged', () => {
 .title-slide .badges a { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd; }
 /* TL;DR box — left-accent, generous padding, wide row spacing, separated from title */
 .tldr-box { background: #f0f9ff; border-left: 4px solid #1a6fb5;
-            padding: 18px 24px; margin-top: 72px; font-size: 0.68em; line-height: 3.7; }
+            padding: 18px 24px; margin-top: 72px; font-size: 0.68em;
+            line-height: 3.7; text-align: left; }
 .tldr-box strong { color: #1a6fb5; }
 
 /* Color highlights — used on every slide to mark key content */
