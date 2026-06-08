@@ -201,37 +201,80 @@ Use the same slide structure as Part A, translated to Chinese. Same reveal.js fr
 
 ---
 
-## Design Requirements — Poster-style Layout (Both Languages)
+## Design Requirements — reveal.js Slide Decks (Both Languages)
 
-Both English and Chinese reports use the **academic poster** visual style — dense but clear, letting the reader grasp the paper in a single screen.
+Both decks use **reveal.js 5.2.1** (CDN-loaded) with the **white theme**, MathJax 3, and a consistent CSS stylesheet.
 
-**Layout skeleton (top to bottom):**
+### reveal.js Setup
 
-1. **Top Banner**: Dark gradient header; left side shows title (large) + authors/venue; right side has badge area with arXiv ID, year, abs/html/pdf link buttons
-2. **TL;DR block**: Gold/warm highlight bar, 1–2 sentences
-3. **Multi-column card grid (CSS Grid)**: 2–3 column grid of **cards**, each with a colored header bar + section title with emoji. **First grid row must be hero figures** (1–2 key figures spanning 2 columns)
-4. **Subsequent rows**: Cards grouped by topic — key takeaways / contributions / method / main table / ablations / setup / limitations / reviewer notes
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/theme/white.css">
+<script>window.MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]}}</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+```
 
-**Visual requirements:**
+```javascript
+Reveal.initialize({
+  hash: true, slideNumber: 'c/t',
+  width: 1280, height: 720, margin: 0.08,
+  transition: 'slide', center: false, plugins: []
+});
+Reveal.on('slidechanged', () => {
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+});
+```
 
-- Font: 16–17px body, 17–18px TL;DR, 13–14px tables/captions, 17px section titles
-- Line height: 1.6–1.7
-- Card gap: 12–14px; card padding: 12–16px
-- Colors: light warm background + white cards + dark-blue/burgundy/olive-green accent colors
-- Section titles with emoji prefix (🎯 📊 🔬 ⚙️ ⚠️ 💡 📌 🧪 🏆)
-- Contribution tags: pink `[Novel/创新]`, blue `[Claim/论断]`, gold `[Novel+Claim/创新+论断]` with left color bar
-- Key equations: light background box + `(N) Name` label; ★ for core equations with red border
-- Tables: light-blue header, zebra rows, best values in red bold `class="best"`
-- Single-file HTML: zero external dependencies except MathJax CDN; images as external URLs or base64
-- **Full-width responsive**: `width: 100%; max-width: 100%` with `clamp(16px, 2.5vw, 40px)` padding — fills any screen width
-- Responsive: ≤900px collapses to single column
+### CSS Design System
 
-**Information integrity:**
+```css
+/* Base */
+.reveal { font-size: 24px; }
+.reveal .slides section { overflow: hidden; padding: 20px 30px; }
 
-- **Never omit key numbers** from main/ablation tables for aesthetics
-- **Never duplicate** — same info appears only once across sections
-- Convert long paragraphs to bullet lists; bold key terms
-- Equation explanations: 2–3 lines max; table captions: 3 lines max
+/* Headings — generous bottom margin for spacing */
+.reveal h2 { font-size: 1.15em; border-bottom: 2px solid #1a6fb5; margin-bottom: 18px; }
+
+/* Content — margin: 10px+ between sections */
+.reveal ul, .reveal ol { font-size: 0.78em; line-height: 1.45; margin: 10px 0; }
+.reveal p { font-size: 0.8em; margin-bottom: 8px; }
+.reveal figure { margin: 0 0 12px 0; }
+
+/* Tables — full width, original column names, generous spacing */
+.reveal table { font-size: 0.52em; width: 100%; white-space: nowrap; margin: 10px auto 14px; }
+.reveal table th { background: #dbeafe; }
+.reveal table .best { color: #be123c; font-weight: 700; }
+.table-caption { font-size: 0.48em; margin-bottom: 14px; }
+
+/* Equation boxes — fit content width, centered, with spacing */
+.eq-box { width: fit-content; max-width: 100%; margin: 10px auto;
+           font-size: 0.72em; overflow-x: auto; text-align: center; }
+.eq-box.eq-star { border-left: 4px solid #d97706; background: #fffbeb; }
+
+/* Tags for contributions */
+.tag { font-size: 0.52em; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+.tag-new { background: #fce7f3; color: #9d174d; }
+.tag-claim { background: #dbeafe; color: #1e40af; }
+.tag-both { background: #fef3c7; color: #92400e; }
+
+/* Title slide */
+.title-slide { background: linear-gradient(135deg, #0f2a5c 0%, #1a6fb5 60%, #0d7d6b 100%); }
+/* TL;DR box on title slide: semi-transparent white */
+/* background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); */
+```
+
+### Key Layout Rules
+
+1. **Vertical stacking only** — no two-column `flexbox` / `.cols` layouts. Content flows top-to-bottom: figure/equation → bullets.
+2. **Title + TL;DR combined** on slide 1 (not separate slides).
+3. **Tables use original names** from the paper source — never abbreviate column headers (e.g., use "test-clean" not "cl", "Edit Level" not "Edit", "Reference Aware" not "Ref").
+4. **Include all table values** from original paper. If paper shows BWER with (WER/UWER), include all three.
+5. **Equation boxes centered** with `width: fit-content; margin: auto`.
+6. **Clear spacing** between content sections — 10-18px margins between headings, equations, tables, and bullet lists.
+7. **Section titles with emoji** prefix: 🎯 📊 🔬 ⚙️ ⚠️ 💡 📌 🧪
+8. **Images**: external files in `_assets/` directory, `max-height` constrained (200-280px).
+9. **Chinese slides** use Chinese font stack: `'PingFang SC', 'Microsoft YaHei', ...`
+10. **Horizontal navigation** (left/right arrows) — slides are siblings, not nested.
 
 ---
 
@@ -240,49 +283,51 @@ Both English and Chinese reports use the **academic poster** visual style — de
 1. Normalize input → derive `tex_url` / `html_url` / `pdf_url`.
 2. **Try TeX source first**; if unavailable, try HTML; if that also fails, fall back to PDF.
 3. Read the paper end-to-end; identify sections, figures, tables, key equations.
-4. Convert TeX figures to PNG (`pdftoppm` / ImageMagick); convert TeX tables to HTML.
-5. **Generate English report first** (`_en.html`): draft all sections in English using the poster layout.
-6. **Generate Chinese report second** (`_zh.html`): reuse the same figures/tables/equations, write all sections in Chinese.
+4. Convert TeX figures to PNG (`pdftoppm` / ImageMagick); save to `paper_notes/<id>_assets/`.
+5. **Generate English slides first** (`_en.html`): ~10 reveal.js slides using vertical layout.
+6. **Generate Chinese slides second** (`_zh.html`): same structure, all text in Chinese.
 7. Save both files to `paper_notes/`.
 8. Report both output paths and which source was used (TeX / HTML / PDF).
 
 ## Quality Checklist
 
-### English Report (`_en.html`)
+### English Slides (`_en.html`)
 - [ ] All body text in English
-- [ ] Poster-style multi-column card layout (Banner + TL;DR + Grid Cards)
-- [ ] Overview figure at top (hero position in first grid row) with explanatory paragraph
-- [ ] Other figures placed inline in relevant section cards
-- [ ] Key Takeaways each reference specific figure/table/equation numbers; tables embedded as evidence
-- [ ] Core Contributions use `[Novel]/[Claim]/[Novel+Claim]` tags; no duplication with other sections
-- [ ] Tables embedded under takeaways/results, not in standalone section; key numbers preserved
-- [ ] Equations inline in method only when necessary
-- [ ] HTML renders correctly with MathJax, collapses to single column at ≤900px
-- [ ] Top badge area links to arXiv abs / html / pdf
+- [ ] reveal.js slide deck with horizontal navigation
+- [ ] Vertical content layout within each slide (no two-column flexbox)
+- [ ] Title + TL;DR combined on slide 1
+- [ ] Overview figure on slide 2 with explanatory bullets below
+- [ ] Tables use original column names from paper — no abbreviations
+- [ ] All table values from paper preserved (never omit data)
+- [ ] Equation boxes centered with `width: fit-content`
+- [ ] Clear spacing between content sections (10-18px margins)
+- [ ] MathJax renders correctly; re-renders on slide change
+- [ ] Badge links to arXiv abs / html / pdf on title slide
 
-### Chinese Report (`_zh.html`)
+### Chinese Slides (`_zh.html`)
 - [ ] 所有正文为中文；英文术语首次出现时给出中译
-- [ ] 海报式多列卡片布局（Banner + TL;DR + Grid Cards）
-- [ ] 概览图置顶（位于卡片网格第一行 hero 位），并有中文导读
-- [ ] 其它图分散到相关章节卡片就近放置
-- [ ] 核心要点每条都引用了具体的图/表/公式编号；适合用数字说明的要点就近嵌入表格
-- [ ] 核心贡献用 `[创新]/[论断]/[创新+论断]` 标签，未与其它章节重复
-- [ ] 表格作为论据嵌入到要点/结果之下；关键数字未省略
-- [ ] 公式仅在方法叙述需要时就近嵌入
-- [ ] HTML 单文件可直接打开，公式正确渲染，≤900px 自动单列
+- [ ] reveal.js 幻灯片，水平导航
+- [ ] 每页内容垂直堆叠（不使用双栏布局）
+- [ ] 标题 + TL;DR 合并为第一页
+- [ ] 概览图在第二页，下方有中文要点
+- [ ] 表格使用论文原始列名，数据完整不省略
+- [ ] 公式框居中，自适应内容宽度
+- [ ] 内容区域间距清晰（10-18px）
+- [ ] MathJax 公式正确渲染
 - [ ] 顶部 badge 区链接回 arXiv abs / html / pdf
 
 ## Anti-patterns
 
-- ❌ **Generating only one language** — must produce both English and Chinese reports
-- ❌ **Generating Chinese first** — English report must be generated first
+- ❌ **Generating only one language** — must produce both English and Chinese slides
+- ❌ **Generating Chinese first** — English slides must be generated first
+- ❌ **Two-column layouts** — never use `flexbox` `.cols` for side-by-side content; stack vertically
+- ❌ **Abbreviated column names** — use "test-clean" not "cl", "Edit Level" not "Edit"
+- ❌ **Omitting table values** — include all data from original paper tables
+- ❌ **Separate TL;DR slide** — merge into title slide
 - ❌ Pasting raw abstract without analysis — must provide synthesis and interpretation
 - ❌ **Skipping TeX source** for arXiv papers — TeX has the richest data
 - ❌ Skipping HTML and going straight to PDF — information loss is severe
 - ❌ Figures/tables without explanation — every visual must have a caption/explanation
 - ❌ Outputting Markdown — must be well-designed HTML
-- ❌ Multiple output files per language — single HTML file per language (images external or base64)
-- ❌ Dumping all figures into a "Key Figures" section — place inline where discussed
-- ❌ Standalone "Key Equations" or "Key Tables" sections — embed where needed
-- ❌ Separate "Innovations" and "Claims" sections with duplicated content — merge into one "Core Contributions" section
+- ❌ Standalone "Key Equations" or "Key Tables" sections — embed where discussed
 - ❌ Vague takeaway bullets (e.g., "method is effective") — each must cite figure/table/equation
