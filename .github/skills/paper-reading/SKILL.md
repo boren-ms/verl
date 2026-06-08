@@ -1,17 +1,17 @@
 ---
 name: paper-reading
-description: "Read an academic paper (arXiv or other URL/PDF) and produce TWO well-designed HTML reports: first an English report, then a Chinese (简体中文) report. Both use a poster-style layout with figures, tables, and formulas. Use when: read paper, paper reading, paper summary, paper report, 读论文, 论文精读, summarize arxiv paper, 中文论文解读, generate paper HTML report, arxiv 2xxx.xxxxx, paper walkthrough, 论文笔记."
+description: "Read an academic paper (arXiv or other URL/PDF) and produce TWO well-designed HTML slide decks (reveal.js): first an English deck, then a Chinese (简体中文) deck. Both use reveal.js with vertical layout, MathJax formulas, and figures/tables from TeX source. Use when: read paper, paper reading, paper summary, paper report, 读论文, 论文精读, summarize arxiv paper, 中文论文解读, generate paper HTML report, arxiv 2xxx.xxxxx, paper walkthrough, 论文笔记, paper slides."
 argument-hint: "arXiv abs/html/pdf URL, arXiv ID (e.g. 2405.22263), or local PDF path"
 ---
 
-# Paper Reading (Dual-Language HTML Reports)
+# Paper Reading (Dual-Language reveal.js Slide Decks)
 
-Produce **two** self-contained, well-designed HTML reports for an academic paper:
+Produce **two** self-contained reveal.js HTML slide decks for an academic paper:
 
-1. **English report** (`_en.html`) — generated **first**
-2. **Chinese report** (`_zh.html`) — generated **second**, using the same extracted data
+1. **English slides** (`_en.html`) — generated **first**
+2. **Chinese slides** (`_zh.html`) — generated **second**, using the same extracted data
 
-Both reports use an academic-poster visual style with inline figures, tables, and MathJax equations.
+Both decks use reveal.js (CDN-loaded) with MathJax equations, inline figures, and faithful tables from the original source.
 
 ## When to Use
 
@@ -85,99 +85,119 @@ Tell the user which source was used (TeX / HTML / PDF).
 
 ---
 
-## Output: Two HTML Reports
+## Output: Two HTML Slide Decks
 
 Write **two** self-contained `.html` files to `paper_notes/`:
 
 ```
 paper_notes/<arxiv_id_or_slug>_en.html    ← English (generated first)
 paper_notes/<arxiv_id_or_slug>_zh.html    ← Chinese (generated second)
+paper_notes/<arxiv_id_or_slug>_assets/    ← Extracted figures (shared)
 ```
 
 The `paper_notes/` directory is git-ignored. Create it if absent.
 
-Both reports share the same figures and source data. Both use the poster-style layout described below.
+Both decks share the same figures. Both use the reveal.js slide format described below.
 
 ---
 
-## Part A — English Report (`_en.html`)
+## Part A — English Slides (`_en.html`)
 
-Generate this report **first**. All text in English.
+Generate this deck **first**. All text in English.
 
-### Required Sections (English)
+### Slide Structure (English)
+
+Each slide is a `<section>` inside reveal.js. Use **vertical layout** — content stacked top-to-bottom within each slide (no side-by-side two-column layouts). Bullets always appear **below** figures/equations/tables.
 
 > **Layout principles:**
-> - **Figure-first:** The paper's overview/method diagram (typically Fig. 1 or 2) must appear at the **top** of the report (right after TL;DR) as the visual entry point.
-> - **Explain via figure:** Key Takeaways and Method sections must **explicitly reference figure numbers** (e.g., "see Fig. 1 ②").
-> - **No duplication:** Innovations and Claims are **merged** into a single "Core Contributions" section. Each item is tagged and written only once.
+> - **Vertical stacking:** Figures, equations, and tables at top; bullets below. Never use two-column `flexbox` layouts.
+> - **Figure-first:** Overview/method diagrams appear prominently before explanatory text.
+> - **Full-width tables:** Use original column names from the paper source (e.g., "test-clean" not "cl"). Tables span full slide width. Include all data columns and values from original — never abbreviate.
+> - **Centered formulas:** Equation boxes use `width: fit-content; margin: auto` to shrink to content and center.
+> - **Spacing:** Leave clear vertical gaps between sections (headings, equations, tables, bullets).
 
-1. **Paper Info** — Title, authors, affiliations, arXiv ID, publication date, links (abs/html/pdf)
-2. **TL;DR** — 1–2 sentence summary: what was done + key result
-3. **Overview Figure** — The paper's most representative figure displayed prominently; with a short paragraph explaining what it shows and where the core idea sits in it
-4. **Key Takeaways** — 3–6 bullet points; **each must reference a specific figure/table/equation number** and preferably include an inline table as evidence when numeric comparison is relevant
-5. **Core Contributions** — Merged innovations + claims, each prefixed with a tag:
-   - `[Novel]` — methodological/algorithmic novelty (vs. prior work)
-   - `[Claim]` — experimentally-supported conclusion (must cite §/Fig./Table)
-   - `[Novel+Claim]` — both novel and experimentally validated
-6. **Method** — Describe the method flow in English; **each sub-step must reference its corresponding figure**; include key equations inline with MathJax (`$$ ... $$`) and 1–2 line explanations. Do NOT create a separate "Key Equations" section.
-7. **Results** — Summarize main numbers and comparisons; embed the primary results table inline with English captions
-8. **Limitations & Future Work** — Authors' stated limitations + your critical observations
-9. **Reviewer Notes** — Applicability, reproducibility assessment, relation to current work
+**Slide 1 — Title + TL;DR** (combined on one slide):
+- Title, authors, affiliations, venue, arXiv links as badges
+- TL;DR as a translucent info box at bottom: Problem → Proposal → Result (3 lines)
+- Uses dark gradient background
 
-> **Figure/Table/Equation placement rules:**
-> - Figures, tables, and equations are **never in standalone sections**
-> - Figures: overview figure at top; others placed inline in the section that discusses them
-> - Tables: embedded as evidence under Key Takeaways or Results, each with a 1-line caption explaining its point
-> - Equations: only when necessary for understanding the method, placed inline; omit if not essential
+**Slide 2 — Overview Figure:**
+- Paper's most representative figure displayed prominently (centered)
+- 2–3 bullets below explaining what the figure shows
 
-### Optional Sections (English)
+**Slide 3 — Motivation & Problem:**
+- 4–6 bullet points explaining why this work is needed
+- Reference specific numbers from the paper's tables
 
-Include only if the paper warrants or user requests deeper coverage:
-- **Reproduction Notes / Pseudo-code** — Key hyperparams, data scale, training recipe
-- **Related Work Comparison** — Side-by-side comparison table with closest baselines
-- **Ablation Analysis** — Per-component ablation interpretation
-- **Datasets & Benchmarks** — List of data/metrics used
+**Slides 4–6 — Method slides** (one per key technique):
+- Each slide: equation box(es) or figure at top → bullets below
+- Key equations in `.eq-box` with label and 1-line explanation
+- Core equation gets `.eq-star` (gold left border)
+- Figures with `<figcaption>` referencing figure number
+
+**Slide 7 — Main Results:**
+- Full results table with original column names and all values from paper
+- Use `BWER (WER/UWER)` format if paper uses it — preserve cell structure
+- Table caption + 2–3 takeaway bullets below
+
+**Slide 8 — Ablation Studies:**
+- Tables stacked vertically (not side-by-side)
+- Each table with caption, then summary bullets below
+
+**Slide 9 — Key Insights & Contributions:**
+- Tagged list: `[Novel]` / `[Claim]` / `[Novel+Claim]`
+- Each with left border accent via `.insights li` style
+
+**Slide 10 — Limitations & Future Work:**
+- Bullet list of stated limitations + critical observations
+- Brief "Future" note at bottom
+
+### Optional Slides (English)
+
+Include only if the paper warrants:
+- **Reproduction Notes** — Key hyperparams, data scale, training recipe
+- **Related Work Comparison** — Side-by-side table with closest baselines
 
 ---
 
-## Part B — Chinese Report (`_zh.html`)
+## Part B — Chinese Slides (`_zh.html`)
 
-Generate this report **second**, after the English report. All body text in Chinese (简体中文). English technical terms should be given a Chinese translation on first occurrence.
+Generate this deck **second**, after the English slides. All body text in Chinese (简体中文). English technical terms should be given a Chinese translation on first occurrence.
 
-Use [report_template.html](./assets/report_template.html) as reference (but apply the poster-style layout below).
+Use the same slide structure as Part A, translated to Chinese. Same reveal.js framework, same vertical layout rules, same figure/table/equation placement.
 
-### Required Sections (in Chinese)
+### Slide Structure (Chinese)
 
 > **排版总原则：**
-> - **图优先 (figure-first)：** 概览图必须放到报告**最顶部**（紧跟 TL;DR 之后）
-> - **以图说事 (explain-via-figure)：** 各章节要**显式引用图编号**
-> - **不重复 (no-duplication)：** 「创新点」与「主要论断」**合并为一节**「核心贡献」
+> - **垂直堆叠：** 图/公式/表在上，要点在下。不使用双栏布局。
+> - **图优先：** 概览图居中显示在解释文字之前。
+> - **完整表格：** 使用论文原始列名，包含所有数据列和数值。
+> - **公式居中：** 公式框自适应内容宽度并居中显示。
 
-1. **论文信息 (Paper Info)** — 标题(原文+中译)、作者、机构、arXiv ID、发表时间、原文链接(abs/html/pdf)
-2. **TL;DR 一句话总结** — 1–2 句中文概括
-3. **🖼️ 概览图 (Overview Figure)** — **置顶**显示论文最能代表全局思路的一张图；配中文导读
-4. **核心要点 (Key Takeaways)** — 3–6 条要点；**每条挂接到具体的图/表/公式编号**，适合用数字对比说明时**就近嵌入表格**
-5. **核心贡献 (Contributions)** — **合并"创新点"+"主要论断"**：
-   - `[创新]` 方法/算法/工程上的新颖之处
-   - `[论断]` 实验证据声明的结论（必附 §/Fig./Table 出处）
-   - `[创新+论断]` 既是新方法又被实验验证
-6. **方法 (Method)** — 中文叙述方法流程；**每个子步骤引用对应图编号**；必要公式就近嵌入
-7. **实验结果 (Results)** — 中文小结主要数字与对比；就近嵌入主结果表
-8. **局限与未来工作 (Limitations & Future Work)** — 作者承认的局限 + 批判性思考
-9. **个人评价 (Reviewer Notes)** — 适用场景、是否值得复现、与当前工作的关联
+**幻灯片 1 — 标题 + TL;DR**（合并为一页）:
+- 英文标题 + 中文副标题，作者，机构，会议，arXiv 链接
+- TL;DR 信息框：问题 → 方案 → 结果
 
-> **关于图/表/公式的放置：**
-> - 图、表、公式都**不单独成节**
-> - 图：概览图置顶，其它就近放到相关章节
-> - 表：作为要点/结果的论据嵌入，配中文解读
-> - 公式：仅在方法叙述需要时就近嵌入
+**幻灯片 2 — 概览图**
 
-### Optional Sections (Chinese)
+**幻灯片 3 — 研究动机与问题**
 
-- **复现要点 / 伪代码** — 关键超参、数据规模、训练配方
+**幻灯片 4–6 — 方法**（每项关键技术一页）:
+- 公式/图在上，要点在下
+
+**幻灯片 7 — 主要结果**
+
+**幻灯片 8 — 消融实验**
+
+**幻灯片 9 — 核心要点与贡献**:
+- 标签：`[创新]` / `[论断]` / `[创新+论断]`
+
+**幻灯片 10 — 局限与个人评价**
+
+### Optional Slides (Chinese)
+
+- **复现要点** — 关键超参、数据规模、训练配方
 - **相关工作对比** — 与最相近基线的对比表
-- **消融实验解读** — 逐项消融的中文解释
-- **数据集与评测** — 数据/指标清单
 
 ---
 
