@@ -172,7 +172,8 @@ Each slide is a `<section>` inside reveal.js. Use **vertical layout** — conten
 
 **Slide 8+ — Ablation** (one slide per table/experiment):
 - **One topic per slide**: if the paper has multiple ablation tables (e.g., Table 2 for hyperparameter sweep, Table 3 for strategy comparison), put each on its **own slide** with a descriptive subtitle (e.g., "Ablation: Biasing Weight λ", "Ablation: RLBR Strategy")
-- Each slide: table with caption → 2–3 compact takeaway bullets below
+- **Same rule for figures**: if an ablation slide would contain multiple figures covering different topics (e.g., model scaling vs approximation quality), split them into separate slides. Only combine figures on the same slide when they support the same statement.
+- Each slide: table or figure with caption → 2–3 compact takeaway bullets below
 - If the paper has no ablation, merge insights into the Results slide and skip this
 
 **Contributions slide:**
@@ -233,7 +234,8 @@ Use the same slide structure as Part A, translated to Chinese. Same reveal.js fr
 
 **幻灯片 8+ — 消融实验**（每张表/实验独立一页）:
 - **每页只讲一个主题**：若论文有多张消融表（如表 2 超参搜索、表 3 策略对比），每张表单独一页，标题加描述性副标题
-- 每页：表格 + 标题 → 下方 2–3 条简洁要点
+- **图片同理**：若一页包含多张讲述不同主题的图（如模型缩放 vs 近似质量），拆分为独立幻灯片。仅当多图支持同一论点时才可合并
+- 每页：表格或图片 + 标题 → 下方 2–3 条简洁要点
 
 **贡献页**（独立一页）:
 - 贡献列表，标签 `[创新]` / `[论断]` / `[创新+论断]`
@@ -357,7 +359,7 @@ Use `<span class="hl-red|hl-green|hl-orange">...</span>` on **every slide** to d
 
 1. **Vertical stacking only** — no two-column `flexbox` / `.cols` layouts. Content flows top-to-bottom: figure/equation → bullets.
 2. **Title + TL;DR combined** on slide 1 (not separate slides).
-3. **One topic per slide** — never combine two distinct topics (e.g., two ablation tables, or contributions + limitations) on the same slide. Split into separate slides.
+3. **One topic per slide** — never combine two distinct topics (e.g., two ablation tables, or contributions + limitations, or figures about different experiments) on the same slide. Split into separate slides. Only combine multiple figures/tables when they support the same statement.
 4. **Context (Related Work) is optional** — include only when prior art is essential to understanding the contribution.
 5. **Tables use original names** from the paper source — never abbreviate column headers (e.g., use "test-clean" not "cl", "Edit Level" not "Edit", "Reference Aware" not "Ref").
 4. **Include all table values** from original paper. If paper shows BWER with (WER/UWER), include all three.
@@ -451,7 +453,8 @@ Formulas must render correctly in the browser. Follow these rules:
 - ❌ **Skipping Related Work** — Context slide is optional; include only when it helps tell the story
 - ❌ **Verbose bullet text** — keep bullets compact and information-dense; one line per bullet
 - ❌ **Equations on the Solution slide** — slide 3 is high-level only; equations go in Details slides
-- ❌ **Separate Contributions and Limitations slides** — merge into one Conclusion slide
+- ❌ **Combining contributions and limitations on one slide** — they should be separate slides
+- ❌ **Combining figures about different topics** on one slide — split into separate slides; only combine when figures support the same statement
 - ❌ Pasting raw abstract without analysis — must provide synthesis and interpretation
 - ❌ **Skipping TeX source** for arXiv papers — TeX has the richest data
 - ❌ Skipping HTML and going straight to PDF — information loss is severe
