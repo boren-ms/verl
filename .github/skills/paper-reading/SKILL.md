@@ -133,9 +133,13 @@ Each slide is a `<section>` inside reveal.js. Use **vertical layout** — conten
 > - **Centered formulas:** Equation boxes use `width: fit-content; margin: auto` to shrink to content and center.
 > - **Spacing:** Leave clear vertical gaps between sections (headings, equations, tables, bullets).
 
+**Language switch link** — visible on **every** slide (not just the title):
+- Place `<div class="lang-switch">` inside `<div class="reveal">` but **before** `<div class="slides">` so it persists across all slides
+- EN deck: `<div class="lang-switch"><a href="<short-name>_zh.html">🌐 中文版</a></div>`
+- ZH deck: `<div class="lang-switch"><a href="<short-name>_en.html">🌐 English</a></div>`
+
 **Slide 1 — Title & Highlight** (combined on one slide):
 - Light background (`#f8fafc`) — clean, readable, professional
-- **Language switch link** in the top-right corner: `<div class="lang-switch"><a href="<short-name>_zh.html">🌐 中文版</a></div>` (in the EN deck; the ZH deck links back to `_en.html` with `🌐 English`)
 - Title, authors, affiliations, venue, arXiv links as colored badges
 - Leave a clear vertical gap (margin/spacer) between the title/author/badges section and the TL;DR box — they should feel like two distinct zones
 - TL;DR box at bottom with left blue accent border: Problem → Proposal → Result (3 lines, generous `line-height: 1.85`, `padding: 18px 24px`)
@@ -205,7 +209,6 @@ Use the same slide structure as Part A, translated to Chinese. Same reveal.js fr
 
 **幻灯片 1 — 标题与亮点**（合并为一页）:
 - 浅色背景（`#f8fafc`），整洁专业
-- **语言切换链接**位于右上角：`<div class="lang-switch"><a href="<short-name>_en.html">🌐 English</a></div>`
 - 英文标题 + 中文副标题，作者，机构，会议，arXiv 彩色链接徽章
 - 标题/作者区与亮点信息框之间留出明显垂直间距（margin/spacer），形成两个独立区域
 - 亮点信息框：左侧蓝色边框，问题 → 方案 → 结果（3 行，宽行高 `1.85`，大内边距 `18px 24px`）
@@ -262,6 +265,14 @@ Reveal.initialize({
 Reveal.on('slidechanged', () => {
   if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
 });
+// Keep lang-switch href in sync with current slide
+var langLink = document.querySelector('.lang-switch a');
+if (langLink) {
+  var base = langLink.getAttribute('href').split('#')[0];
+  function syncLang() { langLink.href = base + '#/' + Reveal.getIndices().h; }
+  Reveal.on('slidechanged', syncLang);
+  syncLang();
+}
 ```
 
 ### CSS Design System
@@ -302,8 +313,8 @@ Reveal.on('slidechanged', () => {
 .title-slide h1 { color: #0f172a; border: none; text-align: center; }
 .title-slide .meta { color: #475569; text-align: center; }
 .title-slide .badges a { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd; }
-/* Language switch link — top-right of title slide */
-.lang-switch { position: absolute; top: 18px; right: 30px; font-size: 0.48em; }
+/* Language switch link — visible on EVERY slide; placed inside .reveal but outside .slides */
+.lang-switch { position: absolute; top: 18px; right: 30px; font-size: 12px; z-index: 100; }
 .lang-switch a { color: #1e40af; text-decoration: none; background: #dbeafe;
                   border: 1px solid #93c5fd; padding: 3px 10px; border-radius: 12px; }
 /* TL;DR box — left-accent, generous padding, wide row spacing, separated from title */
