@@ -1242,6 +1242,17 @@ def main():
             return te["n_ent_edits"] - be["n_ent_edits"]
         return s["t"]["fmt_edits"] - s["b"]["fmt_edits"]
 
+    def cat_target_edits(s, cat_key):
+        """Return the target model's absolute error count for a category."""
+        if cat_key == "lexical":
+            return s["t"]["lex_edits"]
+        if cat_key == "entity":
+            te = s["t"].get("entity")
+            return te["n_ent_edits"] if te else 0
+        if cat_key == "fmt":
+            return s["t"]["fmt_edits"]
+        return s["t"]["edits"]
+
     reports = {}
     pages: list = []
     categories = [
@@ -1258,7 +1269,13 @@ def main():
         cat_degraded = sorted([s for s in summaries if cat_delta(s, cat_key) > 0],
                               key=lambda s: cat_delta(s, cat_key),
                               reverse=True)[: args.top_n]
-        splits = [("improved", cat_improved), ("degraded", cat_degraded)]
+        # Top-errors: all utterances sorted by absolute delta of errors
+        # (largest magnitude first), regardless of sign.
+        cat_top_errors = sorted(summaries,
+                                key=lambda s: abs(cat_delta(s, cat_key)),
+                                reverse=True)[: args.top_n]
+        splits = [("improved", cat_improved), ("degraded", cat_degraded),
+                  ("top-errors", cat_top_errors)]
         for label, subset in splits:
             items = []
             toc_entries = []
@@ -1272,10 +1289,15 @@ def main():
                         "cat_delta": cat_delta(s, cat_key),
                         "ter_delta": s["ter_delta"],
                         "edits_delta": s["edits_delta"],
+                        "target_edits": cat_target_edits(s, cat_key),
                     })
             filename = f"{stem}.{cat_key}.{label}-top{len(subset)}.html"
+            if label == "top-errors":
+                sort_desc = f"sorted by |{cat_key} \u0394|"
+            else:
+                sort_desc = f"sorted by {cat_key} \u0394"
             title = (f"TER disagreement — {cat_label} — {label} "
-                     f"(sorted by {cat_key} \u0394) "
+                     f"({sort_desc}) "
                      f"({len(items)}/{len(subset)} utterances) [{args.metric}]")
             pages.append({
                 "cat_key": cat_key, "cat_label": cat_label, "label": label,
