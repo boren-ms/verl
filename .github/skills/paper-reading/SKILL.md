@@ -135,6 +135,7 @@ Each slide is a `<section>` inside reveal.js. Use **vertical layout** — conten
 
 **Slide 1 — Title & Highlight** (combined on one slide):
 - Light background (`#f8fafc`) — clean, readable, professional
+- **Language switch link** in the top-right corner: `<div class="lang-switch"><a href="<short-name>_zh.html">🌐 中文版</a></div>` (in the EN deck; the ZH deck links back to `_en.html` with `🌐 English`)
 - Title, authors, affiliations, venue, arXiv links as colored badges
 - Leave a clear vertical gap (margin/spacer) between the title/author/badges section and the TL;DR box — they should feel like two distinct zones
 - TL;DR box at bottom with left blue accent border: Problem → Proposal → Result (3 lines, generous `line-height: 1.85`, `padding: 18px 24px`)
@@ -204,6 +205,7 @@ Use the same slide structure as Part A, translated to Chinese. Same reveal.js fr
 
 **幻灯片 1 — 标题与亮点**（合并为一页）:
 - 浅色背景（`#f8fafc`），整洁专业
+- **语言切换链接**位于右上角：`<div class="lang-switch"><a href="<short-name>_en.html">🌐 English</a></div>`
 - 英文标题 + 中文副标题，作者，机构，会议，arXiv 彩色链接徽章
 - 标题/作者区与亮点信息框之间留出明显垂直间距（margin/spacer），形成两个独立区域
 - 亮点信息框：左侧蓝色边框，问题 → 方案 → 结果（3 行，宽行高 `1.85`，大内边距 `18px 24px`）
@@ -300,6 +302,10 @@ Reveal.on('slidechanged', () => {
 .title-slide h1 { color: #0f172a; border: none; text-align: center; }
 .title-slide .meta { color: #475569; text-align: center; }
 .title-slide .badges a { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd; }
+/* Language switch link — top-right of title slide */
+.lang-switch { position: absolute; top: 18px; right: 30px; font-size: 0.48em; }
+.lang-switch a { color: #1e40af; text-decoration: none; background: #dbeafe;
+                  border: 1px solid #93c5fd; padding: 3px 10px; border-radius: 12px; }
 /* TL;DR box — left-accent, generous padding, wide row spacing, separated from title */
 .tldr-box { background: #f0f9ff; border-left: 4px solid #1a6fb5;
             padding: 18px 24px; margin-top: 72px; font-size: 0.68em;
@@ -394,6 +400,7 @@ Formulas must render correctly in the browser. Follow these rules:
 - [ ] MathJax renders correctly (HTML-escaped `<` in subscripts, `\mathcal` works)
 - [ ] Re-renders on slide change via `slidechanged` event
 - [ ] Badge links to arXiv abs / html / pdf on title slide
+- [ ] Language switch link on title slide (top-right, links to `_zh.html`)
 
 ### Chinese Slides (`_zh.html`)
 - [ ] 所有正文为中文；英文术语首次出现时给出中译
@@ -410,6 +417,7 @@ Formulas must render correctly in the browser. Follow these rules:
 - [ ] 幻灯片 9：总结 = 贡献（带标签） + 局限与未来
 - [ ] MathJax 公式正确渲染（下标中 `<` 已 HTML 转义）
 - [ ] 顶部 badge 区链接回 arXiv abs / html / pdf
+- [ ] 标题页右上角有语言切换链接（指向 `_en.html`）
 
 ## Anti-patterns
 
