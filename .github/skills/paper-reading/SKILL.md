@@ -170,18 +170,20 @@ Each slide is a `<section>` inside reveal.js. Use **vertical layout** — conten
 - Table caption + 2–3 compact takeaway bullets citing specific numbers
 - Every bullet references a concrete number or comparison from the table
 
-**Slide 8 — Ablation:**
-- Tables stacked vertically (not side-by-side)
-- Each table with caption, then compact summary bullets below
+**Slide 8+ — Ablation** (one slide per table/experiment):
+- **One topic per slide**: if the paper has multiple ablation tables (e.g., Table 2 for hyperparameter sweep, Table 3 for strategy comparison), put each on its **own slide** with a descriptive subtitle (e.g., "Ablation: Biasing Weight λ", "Ablation: RLBR Strategy")
+- Each slide: table with caption → 2–3 compact takeaway bullets below
 - If the paper has no ablation, merge insights into the Results slide and skip this
 
-**Slide 9 — Conclusion:**
-- **Contributions** (top half): Tagged list with `[Novel]` / `[Claim]` / `[Novel+Claim]`
+**Contributions slide:**
+- Tagged list with `[Novel]` / `[Claim]` / `[Novel+Claim]`
   - Each with left border accent via `.insights li` style
-- **Limitations & Future Work** (bottom half): 3–5 bullet points
-  - Stated limitations from the paper + your critical observations
-  - Brief "Future" note at the end
-- This slide wraps the story: what was achieved, what remains open
+- This slide answers: what are the paper's key contributions?
+
+**Limitations & Future Work slide** (separate from Contributions):
+- 3–5 bullet points covering stated limitations + your critical observations
+- Brief "Future" note at the end
+- This slide answers: what remains open or unverified?
 
 ### Optional Slides (English)
 
@@ -229,12 +231,15 @@ Use the same slide structure as Part A, translated to Chinese. Same reveal.js fr
 **幻灯片 7 — 结果**:
 - 完整结果表，使用论文原始列名和所有数值
 
-**幻灯片 8 — 消融实验**:
-- 表格垂直堆叠，每表配简洁说明要点
+**幻灯片 8+ — 消融实验**（每张表/实验独立一页）:
+- **每页只讲一个主题**：若论文有多张消融表（如表 2 超参搜索、表 3 策略对比），每张表单独一页，标题加描述性副标题
+- 每页：表格 + 标题 → 下方 2–3 条简洁要点
 
-**幻灯片 9 — 总结**:
-- 上半部分：贡献列表，标签 `[创新]` / `[论断]` / `[创新+论断]`
-- 下半部分：局限与未来工作（3–5 条）
+**贡献页**（独立一页）:
+- 贡献列表，标签 `[创新]` / `[论断]` / `[创新+论断]`
+
+**局限与未来工作页**（独立一页，与贡献分开）:
+- 3–5 条要点：论文明确局限 + 审视性观察 + 未来方向
 
 ### Optional Slides (Chinese)
 
@@ -352,8 +357,9 @@ Use `<span class="hl-red|hl-green|hl-orange">...</span>` on **every slide** to d
 
 1. **Vertical stacking only** — no two-column `flexbox` / `.cols` layouts. Content flows top-to-bottom: figure/equation → bullets.
 2. **Title + TL;DR combined** on slide 1 (not separate slides).
-3. **Context (Related Work) is optional** — include only when prior art is essential to understanding the contribution.
-3. **Tables use original names** from the paper source — never abbreviate column headers (e.g., use "test-clean" not "cl", "Edit Level" not "Edit", "Reference Aware" not "Ref").
+3. **One topic per slide** — never combine two distinct topics (e.g., two ablation tables, or contributions + limitations) on the same slide. Split into separate slides.
+4. **Context (Related Work) is optional** — include only when prior art is essential to understanding the contribution.
+5. **Tables use original names** from the paper source — never abbreviate column headers (e.g., use "test-clean" not "cl", "Edit Level" not "Edit", "Reference Aware" not "Ref").
 4. **Include all table values** from original paper. If paper shows BWER with (WER/UWER), include all three.
 5. **Equation boxes centered** with `width: fit-content; margin: auto`.
 6. **Clear spacing** between content sections — 10-18px margins between headings, equations, tables, and bullet lists.
@@ -386,7 +392,7 @@ Formulas must render correctly in the browser. Follow these rules:
 2. **Try TeX source first**; if unavailable, try HTML; if that also fails, fall back to PDF.
 3. Read the paper end-to-end; identify sections, figures, tables, key equations.
 4. Convert TeX figures to PNG (`pdftoppm` / ImageMagick); save to `paper_notes/<short-name>_assets/`.
-5. **Generate English slides first** (`_en.html`): ~9 reveal.js slides following the narrative arc (Title & Highlight → Problem & Motivation → Solution → Details → Results → Ablation → Conclusion). Optionally add Context (Related Work) if essential.
+5. **Generate English slides first** (`_en.html`): ~10–12 reveal.js slides following the narrative arc (Title & Highlight → Problem & Motivation → Solution → Details → Results → Ablation (one slide per table) → Contributions → Limitations & Future). Optionally add Context (Related Work) if essential.
 6. **Generate Chinese slides second** (`_zh.html`): same structure, all text in Chinese.
 7. Save both files to `paper_notes/`.
 8. Report both output paths and which source was used (TeX / HTML / PDF).
@@ -407,7 +413,9 @@ Formulas must render correctly in the browser. Follow these rules:
 - [ ] Equation boxes centered with `width: fit-content`
 - [ ] Clear spacing between content sections (10-18px margins)
 - [ ] Color highlights (red/green/orange) on every slide — key numbers, methods, failures marked
-- [ ] Slide 9: Conclusion combines contributions (tagged) + limitations
+- [ ] Ablation: each table/experiment on its own slide with descriptive subtitle
+- [ ] Contributions slide: tagged list ([Novel] / [Claim] / [Novel+Claim])
+- [ ] Limitations & Future Work: separate slide from Contributions
 - [ ] MathJax renders correctly (HTML-escaped `<` in subscripts, `\mathcal` works)
 - [ ] Re-renders on slide change via `slidechanged` event
 - [ ] Badge links to arXiv abs / html / pdf on title slide
@@ -425,7 +433,9 @@ Formulas must render correctly in the browser. Follow these rules:
 - [ ] 公式框居中，自适应内容宽度
 - [ ] 内容区域间距清晰（10-18px）
 - [ ] 每页均有颜色高亮（红/绿/橙）标注关键数字、方法、问题
-- [ ] 幻灯片 9：总结 = 贡献（带标签） + 局限与未来
+- [ ] 消融实验：每张表/实验独立一页，标题含描述性副标题
+- [ ] 贡献页：独立一页，带标签列表（[创新] / [论断] / [创新+论断]）
+- [ ] 局限与未来工作：独立一页，与贡献分开
 - [ ] MathJax 公式正确渲染（下标中 `<` 已 HTML 转义）
 - [ ] 顶部 badge 区链接回 arXiv abs / html / pdf
 - [ ] 标题页右上角有语言切换链接（指向 `_en.html`）
