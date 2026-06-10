@@ -85,22 +85,20 @@ When `--include-entity` is passed, the script also walks each top-level record's
 - `EntityAlignmentAsString` (rendered verbatim in cards)
 - `ListTransUniqEnts`, `ListRecoUniqEnts` (rendered as `name×count` chips)
 
-Two extra reports are emitted: `{stem}.entity.improved-topN.html` and `{stem}.entity.degraded-topN.html`, ranked by Δ `NumEntEdits`. Cards are filtered to utterances that have at least one entity on either side (trans or reco). The summary table shows per-utterance Δ `ent edits`, Δ `ent words`, Δ `EWER`, Δ `EER`, Δ `recall`, Δ `precision`, plus a totals row that micro-averages EER/EWER/recall/precision over the displayed utterances (so the overall row reflects pooled rates, not arithmetic means). Each entity card shows the chip stats above and a side-by-side block of each model's `EntityAlignmentAsString`.
+One extra report is emitted: `{stem}.entity.top-errors-topN.html`, ranked by absolute Δ `NumEntEdits`. Cards are filtered to utterances that have at least one entity on either side (trans or reco). The summary table shows per-utterance Δ `ent edits`, Δ `ent words`, Δ `EWER`, Δ `EER`, Δ `recall`, Δ `precision`, plus a totals row that micro-averages EER/EWER/recall/precision over the displayed utterances (so the overall row reflects pooled rates, not arithmetic means). Each entity card shows the chip stats above and a side-by-side block of each model's `EntityAlignmentAsString`.
 
 ## Output layout
-Under `--output-dir`, the script writes four HTML pages plus a JSON summary (six pages with `--include-entity`):
+Under `--output-dir`, the script writes three HTML pages plus a JSON summary (four pages with `--include-entity`):
 
-- `{stem}.fmt.improved-topN.html`     — utterances where target made fewer formatting edits (sorted by Δ fmt edits, most-improved first)
-- `{stem}.fmt.degraded-topN.html`     — target made more formatting edits (sorted by Δ fmt edits, worst first)
-- `{stem}.lexical.improved-topN.html` — target made fewer lexical sub/ins/del edits
-- `{stem}.lexical.degraded-topN.html` — target made more lexical sub/ins/del edits
-- `{stem}.entity.improved-topN.html`  — (with `--include-entity`) target made fewer entity-word edits
-- `{stem}.entity.degraded-topN.html`  — (with `--include-entity`) target made more entity-word edits
+- `{stem}.overall.top-errors-topN.html`   — largest absolute total-edit deltas, regardless of sign
+- `{stem}.fmt.top-errors-topN.html`   — largest absolute formatting-edit deltas, regardless of sign
+- `{stem}.lexical.top-errors-topN.html` — largest absolute lexical-edit deltas, regardless of sign
+- `{stem}.entity.top-errors-topN.html` — (with `--include-entity`) largest absolute entity-word edit deltas, regardless of sign
 - `{stem}.summary.json`               — dataset-level TER, improved/degraded/unchanged counts, and the `reports` map of generated HTML paths
 
 `stem = {baseline-name}__vs__{target-name}.{metric}.disagree`.
 
-There is no "overall" page — only improved and degraded per category. Sort key is the page's own category (`lex_edits` delta on lexical pages, `fmt_edits` delta on fmt pages).
+Overall pages use the utterance's total edit delta (`target edits - baseline edits`). Category pages use the page's own category (`lex_edits` delta on lexical pages, `fmt_edits` delta on fmt pages, entity-word edit delta on entity pages). Only `top-errors` pages are emitted; improved/degraded pages are intentionally omitted. Each top-errors page is filtered to nonzero-delta utterances and sorted by absolute delta magnitude.
 
 ## HTML report anatomy
 Each page is a single self-contained HTML file (embedded CSS plus one tiny inline script — no external assets).
@@ -108,15 +106,16 @@ Each page is a single self-contained HTML file (embedded CSS plus one tiny inlin
 A fixed-position **toggle button** in the top-left (`☰ hide` / `☰ show`) collapses or expands the sidebar. The show/hide itself is pure CSS via a hidden checkbox (works even with JS disabled); a small inline script only keeps the utterance currently under the viewport top fixed in place, so toggling never scroll-jumps you off the card you are reading. Native scroll anchoring is disabled (`overflow-anchor: none`) so that correction is exact even though full-width reflow changes the document height.
 
 Left **sticky sidebar** (hidden when toggle is checked):
-- "Reports" nav: link to `summary.json` and to all 4 sibling category pages (current page highlighted).
-- "Utterances · Δ lex" / "Δ fmt" ordered list — each entry is the `UtteranceId` plus its category-edit delta chip (red = worse, green = better). Clicking jumps to the matching card.
+- "Reports" nav: link to `summary.json` and to all sibling pages (current page highlighted).
+- "Utterances · Δ edits" / "Δ lex" / "Δ fmt" ordered list — each entry is the `UtteranceId` plus its page-specific delta chip (red = worse, green = better). Clicking jumps to the matching card.
 
 Main panel:
 - **Summary table** (open `<details>`) listing every utterance on the page, with an "overall" row pinned at the top of the body:
-  - Columns: `#`, `UtteranceId`, `Δ {cat} edits`, **per-category breakdown deltas** (`Δ sub / Δ ins / Δ del` on lexical pages; `Δ punc / Δ cap / Δ itn` on fmt pages), `Δ edits`, `Δ TER`, baseline TER, target TER.
+  - Overall page columns: `#`, `UtteranceId`, `Δ edits`, `Δ lex`, `Δ fmt`, `Δ TER`, baseline TER, target TER.
+  - Category page columns: `#`, `UtteranceId`, `Δ {cat} edits`, **per-category breakdown deltas** (`Δ sub / Δ ins / Δ del` on lexical pages; `Δ punc / Δ cap / Δ itn` on fmt pages), `Δ edits`, `Δ TER`, baseline TER, target TER.
   - Overall row shows summed deltas and micro-averaged TER over the displayed utterances.
 - **Per-utterance cards** (anchor = slugified `UtteranceId`):
-  - Stats chips show only the page's own category — lexical pages show `lexical: B→T (Δ)` + `lex breakdown: sub/ins/del`; fmt pages show `fmt: B→T (Δ)` + `fmt breakdown: punc/cap/itn`. TER, total edits, and disagreement-cell count are always shown.
+  - Stats chips show the page's own focus. Overall pages show both lexical and fmt chips; lexical pages show `lexical: B→T (Δ)` + `lex breakdown: sub/ins/del`; fmt pages show `fmt: B→T (Δ)` + `fmt breakdown: punc/cap/itn`. TER, total edits, and disagreement-cell count are always shown.
   - Diff table is the standard 4-row block (`#`, `ref`, baseline-name, target-name), wrapped every 12 columns to prevent horizontal overflow.
   - Diff tokens are color-coded by edit bucket: lexical edits as `sub` / `del` / `ins`, and formatting edits by their **detailed subtype** `punc` / `cap` / `itn` / `others` (each its own color) rather than one generic "fmt" color. So on the fmt page you can see at a glance which formatting dimension diverged.
   - Each formatting token carries a small monospace **subtype badge** beneath it (from `fmt_subtype()`): punctuation/capitalization transitions render as `from→to` (e.g. `,→∅`, `.→,`, `lc→UC`), ITN edits show their kind (e.g. `num`, `money`, `ordinal`), and anything else shows `other`.
@@ -157,11 +156,10 @@ Flags mirror the compare script except there is only `--model-path` / `--model-n
 Per-utterance cards show a 3-row diff block (`#` / `ref` / `{model-name}`) with only ref positions where the model edited (sub/del/ins/fmt) or inserted tokens. Stats chips show absolute counts (no deltas). Summary table totals show pooled TER over displayed utterances.
 
 ## Presenting reports
-After generating (compare mode), read filenames from `{stem}.summary.json` `reports` and present all four as workspace-relative markdown links:
+After generating (compare mode), read filenames from `{stem}.summary.json` `reports` and present the overall, lexical, and fmt top-errors pages as workspace-relative markdown links. The labels and path patterns are:
 
-- Lexical improved: [tmp/ter_compare_disagree/...lexical.improved-topN.html](tmp/ter_compare_disagree/baseline__vs__target.DisfluencyTolerant_TER.disagree.lexical.improved-topN.html)
-- Lexical degraded: [tmp/ter_compare_disagree/...lexical.degraded-topN.html](tmp/ter_compare_disagree/baseline__vs__target.DisfluencyTolerant_TER.disagree.lexical.degraded-topN.html)
-- Fmt improved:     [tmp/ter_compare_disagree/...fmt.improved-topN.html](tmp/ter_compare_disagree/baseline__vs__target.DisfluencyTolerant_TER.disagree.fmt.improved-topN.html)
-- Fmt degraded:     [tmp/ter_compare_disagree/...fmt.degraded-topN.html](tmp/ter_compare_disagree/baseline__vs__target.DisfluencyTolerant_TER.disagree.fmt.degraded-topN.html)
+- Overall top errors: `tmp/ter_compare_disagree/...overall.top-errors-topN.html`
+- Lexical top errors: `tmp/ter_compare_disagree/...lexical.top-errors-topN.html`
+- Fmt top errors: `tmp/ter_compare_disagree/...fmt.top-errors-topN.html`
 
 Use the actual filenames from the summary; do not truncate.

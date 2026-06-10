@@ -815,7 +815,7 @@ def card_html(uid: str, b: dict, t: dict, baseline_name: str, target_name: str,
     else:
         warn = ""
     rows = diff_rows(b_idx, t_idx)
-    seg_starts = b.get("seg_starts") if category in ("fmt", "lexical") else None
+    seg_starts = b.get("seg_starts") if category in (None, "fmt", "lexical") else None
     if category is not None:
         rows = filter_rows_by_category(rows, category, b_idx, t_idx,
                                        seg_starts=seg_starts)
@@ -1026,11 +1026,16 @@ def render_toc(entries: list, cat_key: str) -> str:
         return ""
     if cat_key == "entity":
         return _render_entity_toc(entries)
-    cat_label = "Δ lex edits" if cat_key == "lexical" else "Δ fmt edits"
+    show_total_edit_col = cat_key != "overall"
     if cat_key == "lexical":
+        cat_label = "Δ lex edits"
         sub_keys = [("sub", "lex_sub"), ("ins", "lex_ins"), ("del", "lex_del")]
-    else:
+    elif cat_key == "fmt":
+        cat_label = "Δ fmt edits"
         sub_keys = [("punc", "punc_edits"), ("cap", "cap_edits"), ("itn", "itn_edits")]
+    else:
+        cat_label = "Δ edits"
+        sub_keys = [("lex", "lex_edits"), ("fmt", "fmt_edits")]
 
     def cls(v):
         return "delta-pos" if v > 0 else ("delta-neg" if v < 0 else "")
@@ -1050,14 +1055,18 @@ def render_toc(entries: list, cat_key: str) -> str:
             f'{sgn(e["t"][k] - e["b"][k])}</td>'
             for _, k in sub_keys
         )
+        edit_cell = (
+            f'<td class="num {cls(ed)}">{sgn(ed)}</td>'
+            if show_total_edit_col else ""
+        )
         rows.append(
             f'<tr>'
             f'<td class="num">{i}</td>'
             f'<td class="uid"><a href="#{html.escape(anchor)}">{html.escape(uid)}</a></td>'
             f'<td class="num {cls(cd)}">{sgn(cd)}</td>'
             + sub_cells
-            + f'<td class="num {cls(ed)}">{sgn(ed)}</td>'
-            f'<td class="num {cls(td)}">{td:+.2f}pp</td>'
+            + edit_cell
+            + f'<td class="num {cls(td)}">{td:+.2f}pp</td>'
             f'<td class="num">{e["b"]["ter"]:.2f}%</td>'
             f'<td class="num">{e["t"]["ter"]:.2f}%</td>'
             f'</tr>'
@@ -1082,23 +1091,25 @@ def render_toc(entries: list, cat_key: str) -> str:
         f'<td class="uid">overall ({len(entries)} utts)</td>'
         f'<td class="num {cls(tot_cd)}">{tot_cd:+d}</td>'
         + tot_sub_cells
-        + f'<td class="num {cls(tot_ed)}">{tot_ed:+d}</td>'
-        f'<td class="num {cls(ter_delta_overall)}">{ter_delta_overall:+.2f}pp</td>'
+        + (f'<td class="num {cls(tot_ed)}">{tot_ed:+d}</td>' if show_total_edit_col else "")
+        + f'<td class="num {cls(ter_delta_overall)}">{ter_delta_overall:+.2f}pp</td>'
         f'<td class="num">{b_ter_overall:.2f}%</td>'
         f'<td class="num">{t_ter_overall:.2f}%</td>'
         f'</tr>'
     )
     sub_headers = "".join(f'<th>Δ {lbl}</th>' for lbl, _ in sub_keys)
+    edit_header = '<th>Δ edits</th>' if show_total_edit_col else ''
     return (
         f'<details class="toc-wrap" open>'
         f'<summary>Utterances ({len(entries)}) — click row to jump</summary>'
         f'<table class="toc"><thead><tr>'
         f'<th>#</th><th>UtteranceId</th><th>{cat_label}</th>'
         + sub_headers
-        + f'<th>Δ edits</th><th>Δ TER</th>'
-        f'<th>baseline TER</th><th>target TER</th>'
-        f'</tr></thead>'
-        f'<tbody>'
+        + edit_header
+        + '<th>Δ TER</th>'
+        '<th>baseline TER</th><th>target TER</th>'
+        '</tr></thead>'
+        '<tbody>'
         + totals_row
         + "".join(rows)
         + '</tbody></table></details>'
@@ -1119,7 +1130,12 @@ def render_sidebar(entries: list, cat_key: str, nav_html: str = "") -> str:
             f'<li><a href="#{html.escape(anchor)}">{html.escape(uid)}'
             f'<span class="{cls}">{sign}{cd}</span></a></li>'
         )
-    label = {"lexical": "Δ lex", "fmt": "Δ fmt", "entity": "Δ ent edits"}.get(cat_key, "Δ")
+    label = {
+        "overall": "Δ edits",
+        "lexical": "Δ lex",
+        "fmt": "Δ fmt",
+        "entity": "Δ ent edits",
+    }.get(cat_key, "Δ")
     body = (
         f'<h3>Utterances · {label}</h3><ol>{"".join(items)}</ol>'
         if entries else ""
@@ -1230,11 +1246,13 @@ def main():
     stem = f"{bname}__vs__{tname}.{args.metric}.disagree"
     summary_filename = f"{stem}.summary.json"
 
-    # Per-category deltas drive sorting and split membership: lexical pages
-    # use lex_edits delta, fmt pages use fmt_edits delta.
+    # Per-focus deltas drive top-error sorting: overall pages use total edit
+    # delta, lexical pages use lex_edits delta, fmt pages use fmt_edits delta.
     def cat_delta(s, cat_key):
         if cat_key == "lexical":
             return s["t"]["lex_edits"] - s["b"]["lex_edits"]
+        if cat_key == "overall":
+            return s["edits_delta"]
         if cat_key == "entity":
             be, te = s["b"].get("entity"), s["t"].get("entity")
             if not be or not te:
@@ -1256,55 +1274,45 @@ def main():
     reports = {}
     pages: list = []
     categories = [
+        ("overall", "overall edits"),
         ("fmt", "formatting (punc/cap/itn)"),
         ("lexical", "lexical (sub/ins/del)"),
     ]
     if args.include_entity:
         categories.append(("entity", f"entity ({args.entity_metric})"))
     for cat_key, cat_label in categories:
-        # Splits are recomputed per category using its own delta so each page's
-        # 'improved' / 'degraded' set matches what that page actually shows.
-        cat_improved = sorted([s for s in summaries if cat_delta(s, cat_key) < 0],
-                              key=lambda s: cat_delta(s, cat_key))[: args.top_n]
-        cat_degraded = sorted([s for s in summaries if cat_delta(s, cat_key) > 0],
-                              key=lambda s: cat_delta(s, cat_key),
-                              reverse=True)[: args.top_n]
-        # Top-errors: all utterances sorted by absolute delta of errors
-        # (largest magnitude first), regardless of sign.
-        cat_top_errors = sorted(summaries,
-                                key=lambda s: abs(cat_delta(s, cat_key)),
-                                reverse=True)[: args.top_n]
-        splits = [("improved", cat_improved), ("degraded", cat_degraded),
-                  ("top-errors", cat_top_errors)]
-        for label, subset in splits:
-            items = []
-            toc_entries = []
-            for s in subset:
-                card = card_html(s["utt_id"], s["b"], s["t"], bname, tname, category=cat_key)
-                if card is not None:
-                    items.append(card)
-                    toc_entries.append({
-                        "utt_id": s["utt_id"],
-                        "b": s["b"], "t": s["t"],
-                        "cat_delta": cat_delta(s, cat_key),
-                        "ter_delta": s["ter_delta"],
-                        "edits_delta": s["edits_delta"],
-                        "target_edits": cat_target_edits(s, cat_key),
-                    })
-            filename = f"{stem}.{cat_key}.{label}-top{len(subset)}.html"
-            if label == "top-errors":
-                sort_desc = f"sorted by |{cat_key} \u0394|"
-            else:
-                sort_desc = f"sorted by {cat_key} \u0394"
-            title = (f"TER disagreement — {cat_label} — {label} "
-                     f"({sort_desc}) "
-                     f"({len(items)}/{len(subset)} utterances) [{args.metric}]")
-            pages.append({
-                "cat_key": cat_key, "cat_label": cat_label, "label": label,
-                "filename": filename, "title": title,
-                "items": items, "toc_entries": toc_entries,
-            })
-            reports.setdefault(cat_key, {})[label] = str(out_dir / filename)
+        subset = sorted(
+            [s for s in summaries if cat_delta(s, cat_key) != 0],
+            key=lambda s: abs(cat_delta(s, cat_key)),
+            reverse=True,
+        )[: args.top_n]
+        items = []
+        toc_entries = []
+        card_category = None if cat_key == "overall" else cat_key
+        for s in subset:
+            card = card_html(s["utt_id"], s["b"], s["t"], bname, tname,
+                             category=card_category)
+            if card is not None:
+                items.append(card)
+                toc_entries.append({
+                    "utt_id": s["utt_id"],
+                    "b": s["b"], "t": s["t"],
+                    "cat_delta": cat_delta(s, cat_key),
+                    "ter_delta": s["ter_delta"],
+                    "edits_delta": s["edits_delta"],
+                    "target_edits": cat_target_edits(s, cat_key),
+                })
+        label = "top-errors"
+        filename = f"{stem}.{cat_key}.{label}-top{len(subset)}.html"
+        title = (f"TER disagreement — {cat_label} — top errors "
+                 f"(sorted by |{cat_key} \u0394|) "
+                 f"({len(items)}/{len(subset)} utterances) [{args.metric}]")
+        pages.append({
+            "cat_key": cat_key, "cat_label": cat_label, "label": label,
+            "filename": filename, "title": title,
+            "items": items, "toc_entries": toc_entries,
+        })
+        reports.setdefault(cat_key, {})[label] = str(out_dir / filename)
 
     def build_nav(current_filename: str) -> str:
         rows = ['<a href="' + html.escape(summary_filename) + '">summary.json</a>']
