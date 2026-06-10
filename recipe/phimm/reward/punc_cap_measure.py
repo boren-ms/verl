@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from jiwer import process_words
 
@@ -104,49 +104,26 @@ class EditDetail:
     op: str  # "sub", "ins", "del"
     ref_word: str | None
     hyp_word: str | None
-    categories: set[str] = field(default_factory=set)  # subset of {"punc", "cap", "lex"}
+    category: str | None = None  # one of {"punc", "cap", "lex"} or None
 
 
-def classify_edit(ref_word: str, hyp_word: str) -> set[str]:
-    """Classify a substitution pair into ``{"punc", "cap", "lex"}``.
+def classify_edit(ref_word: str, hyp_word: str) -> str:
+    """Classify a substitution pair into one of ``{"punc", "cap", "lex"}``.
 
-    A single substitution may belong to more than one category.
-
-    * **punc** – the words differ in punctuation attachment (e.g. ``"Hello,"``
-      vs ``"Hello"``).
-    * **cap** – the words differ in capitalisation (e.g. ``"Hello"`` vs
-      ``"hello"``).
-        * **lex** – the base words (stripped of punctuation, compared
-      case-insensitively) are different.
+    Priority: ``lex`` > ``punc`` > ``cap`` — each edit counts as exactly one
+    category, the most severe one.
     """
-    cats: set[str] = set()
-
     ref_base = _strip_punc(ref_word)
     hyp_base = _strip_punc(hyp_word)
 
-    # Check if the underlying word is the same (ignoring case + punc).
-    if ref_base.lower() == hyp_base.lower():
-        # Pure formatting difference.
-        if _punc_signature(ref_word) != _punc_signature(hyp_word):
-            cats.add("punc")
-        if ref_base != hyp_base:  # case differs
-            cats.add("cap")
-        # Edge-case: identical after stripping but original strings still
-        # differ (e.g. different whitespace normalisation) — treat as punc.
-        if not cats:
-            cats.add("punc")
-    else:
-        cats.add("lex")
-        # There may still be a punc/cap component on top of the lexical error.
-        if _punc_signature(ref_word) != _punc_signature(hyp_word):
-            cats.add("punc")
-        if ref_base.lower() == hyp_base.lower():
-            # Should not reach here (handled above) — defensive.
-            cats.add("cap")
-        elif ref_base != hyp_base and ref_base.lower() != hyp_base.lower():
-            pass  # genuine lexical difference
-
-    return cats
+    if ref_base.lower() != hyp_base.lower():
+        return "lex"
+    if _punc_signature(ref_word) != _punc_signature(hyp_word):
+        return "punc"
+    if ref_base != hyp_base:
+        return "cap"
+    # Identical after stripping but original strings still differ — treat as punc.
+    return "punc"
 
 
 # ---------------------------------------------------------------------------
@@ -186,10 +163,23 @@ def compute_fmt_acc(ref: str, hyp: str) -> dict:
     punc_err = 0
     cap_err = 0
     lex_err = 0
+    punc_hit = 0
+    cap_hit = 0
+    lex_hit = 0
     details: list[EditDetail] = []
 
     for chunk in output.alignments[0]:
         if chunk.type == "equal":
+            # Equal-aligned words count as hits per category independently:
+            # punc hit if the word has edge regular punctuation; cap hit if
+            # it contains any uppercase; lex hit always.
+            for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
+                rw = ref_words[ri]
+                lex_hit += 1
+                if _has_regular_punc(rw):
+                    punc_hit += 1
+                if any(c.isupper() for c in rw):
+                    cap_hit += 1
             continue
 
         if chunk.type == "substitute":
@@ -199,56 +189,44 @@ def compute_fmt_acc(ref: str, hyp: str) -> dict:
             ):
                 rw = ref_words[ri]
                 hw = hyp_words[hi]
-                cats = classify_edit(rw, hw)
-                d = EditDetail(op="sub", ref_word=rw, hyp_word=hw, categories=cats)
-                details.append(d)
-                if "punc" in cats:
+                cat = classify_edit(rw, hw)
+                details.append(EditDetail(op="sub", ref_word=rw, hyp_word=hw, category=cat))
+                if cat == "punc":
                     punc_err += 1
-                if "cap" in cats:
+                elif cat == "cap":
                     cap_err += 1
-                if "lex" in cats:
+                elif cat == "lex":
                     lex_err += 1
 
         elif chunk.type == "delete":
             for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
                 rw = ref_words[ri]
-                cats: set[str] = set()
-                if _is_pure_regular_punc(rw):
-                    cats.add("punc")
-                else:
-                    cats.add("lex")
-                    if _has_regular_punc(rw):
-                        cats.add("punc")
-                details.append(EditDetail(op="del", ref_word=rw, hyp_word=None, categories=cats))
-                if "punc" in cats:
+                cat = "punc" if _is_pure_regular_punc(rw) else "lex"
+                details.append(EditDetail(op="del", ref_word=rw, hyp_word=None, category=cat))
+                if cat == "punc":
                     punc_err += 1
-                if "lex" in cats:
+                else:
                     lex_err += 1
 
         elif chunk.type == "insert":
             for hi in range(chunk.hyp_start_idx, chunk.hyp_end_idx):
                 hw = hyp_words[hi]
-                cats: set[str] = set()
-                if _is_pure_regular_punc(hw):
-                    cats.add("punc")
-                else:
-                    cats.add("lex")
-                    if _has_regular_punc(hw):
-                        cats.add("punc")
-                details.append(EditDetail(op="ins", ref_word=None, hyp_word=hw, categories=cats))
-                if "punc" in cats:
+                cat = "punc" if _is_pure_regular_punc(hw) else "lex"
+                details.append(EditDetail(op="ins", ref_word=None, hyp_word=hw, category=cat))
+                if cat == "punc":
                     punc_err += 1
-                if "lex" in cats:
+                else:
                     lex_err += 1
 
-    n_ref = len(ref_words)
-    punc_ref = sum(1 for w in ref_words if _has_regular_punc(w))
-    cap_ref = sum(1 for w in ref_words if any(c.isupper() for c in w))
+    # Per-category denominator = hits + errors (all ops attributed to category).
+    punc_n = punc_hit + punc_err
+    cap_n = cap_hit + cap_err
+    lex_n = lex_hit + lex_err
 
     return {
-        "punc": 1.0 - (punc_err / punc_ref if punc_ref else 0.0),
-        "cap": 1.0 - (cap_err / cap_ref if cap_ref else 0.0),
-        "lex": 1.0 - (lex_err / n_ref if n_ref else 0.0),
+        "punc": 1.0 - (punc_err / punc_n if punc_n else 0.0),
+        "cap": 1.0 - (cap_err / cap_n if cap_n else 0.0),
+        "lex": 1.0 - (lex_err / lex_n if lex_n else 0.0),
     }
 
 

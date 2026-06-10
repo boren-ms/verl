@@ -63,40 +63,32 @@ class TestIsPurePunc:
 
 class TestClassifyEdit:
     def test_punc_only_trailing(self):
-        cats = classify_edit("Hello,", "Hello")
-        assert cats == {"punc"}
+        assert classify_edit("Hello,", "Hello") == "punc"
 
     def test_punc_only_period(self):
-        cats = classify_edit("world.", "world")
-        assert cats == {"punc"}
+        assert classify_edit("world.", "world") == "punc"
 
     def test_cap_only(self):
-        cats = classify_edit("Hello", "hello")
-        assert cats == {"cap"}
+        assert classify_edit("Hello", "hello") == "cap"
 
     def test_cap_only_uppercase(self):
-        cats = classify_edit("the", "The")
-        assert cats == {"cap"}
+        assert classify_edit("the", "The") == "cap"
 
-    def test_punc_and_cap(self):
-        cats = classify_edit("Hello,", "hello")
-        assert cats == {"punc", "cap"}
+    def test_punc_and_cap_prefers_punc(self):
+        # Priority: lex > punc > cap → punc wins over cap.
+        assert classify_edit("Hello,", "hello") == "punc"
 
     def test_lexical(self):
-        cats = classify_edit("cat", "dog")
-        assert cats == {"lex"}
+        assert classify_edit("cat", "dog") == "lex"
 
-    def test_lexical_with_punc_diff(self):
-        cats = classify_edit("cat,", "dog")
-        assert "lex" in cats
-        assert "punc" in cats
+    def test_lexical_with_punc_diff_prefers_lex(self):
+        # Priority: lex > punc > cap → lex wins over punc.
+        assert classify_edit("cat,", "dog") == "lex"
 
     def test_same_word(self):
         # Identical words should never reach classify_edit in practice
-        # (they would be "equal"), but if they do, it should return punc
-        # as a fallback.
-        cats = classify_edit("hello", "hello")
-        assert "lex" not in cats
+        # (they would be "equal"), but if they do, fallback is "punc".
+        assert classify_edit("hello", "hello") == "punc"
 
 
 # ── compuate_fmt_acc ──────────────────────────────────────────────
@@ -138,11 +130,12 @@ class TestComputeFmtAcc:
         assert r["lex"] == pytest.approx(0.0)
 
     def test_empty_ref(self):
-        # No reference words → accuracies default to 1.0.
+        # No reference words → punc/cap have no events (default 1.0); lex
+        # gets 2 insertion errors out of 2 (denominator = hits+errs = 0+2).
         r = compute_fmt_acc("", "Hello world")
         assert r["punc"] == 1.0
         assert r["cap"] == 1.0
-        assert r["lex"] == 1.0
+        assert r["lex"] == pytest.approx(0.0)
 
     def test_none_inputs(self):
         r = compute_fmt_acc(None, None)
