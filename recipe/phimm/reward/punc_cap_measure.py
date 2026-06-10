@@ -348,7 +348,9 @@ def scale_score(acc, cfg):
     cfg = cfg or {}
     beta = float(cfg.get("beta", 1.0))
     gamma = float(cfg.get("gamma", 1.0))
-    acc = clip(acc, 0.0, 1.0)
+    lo = float(cfg.get("low", 0.0))
+    hi = float(cfg.get("high", 1.0))
+    acc = clip(acc, lo, hi)
     return beta * signed_pow(acc, gamma)
 
 
@@ -361,7 +363,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Only the components listed in ``scores`` contribute to the reward. The
     contribution of each component ``k`` is::
 
-        beta * signed_pow(clip(acc_k, 0, 1), gamma)
+        beta * signed_pow(clip(acc_k, lo, hi), gamma)
 
     Both ``beta`` and ``gamma`` default to ``1.0`` when omitted.
 
@@ -370,7 +372,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
         reward_kwargs:
           reduce: sum            # "sum" (default), "mean", or "multiply"
           scores:
-            char: {beta: 1.0, gamma: 0.5}
+            char: {beta: 1.0, gamma: 0.5, low: 0.0, high: 1.0}
             punc: {beta: 0.5, gamma: 0.2}
     """
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
