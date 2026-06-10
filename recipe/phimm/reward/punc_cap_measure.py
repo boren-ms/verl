@@ -143,11 +143,8 @@ def compute_fmt_acc(ref: str, hyp: str) -> dict:
 
     Returns
     -------
-    dict with keys:
-
-    * ``punc`` – ``1 - punc_err / punc_ref`` (1.0 when punc_ref == 0).
-    * ``cap``  – ``1 - cap_err / cap_ref`` (1.0 when cap_ref == 0).
-    * ``lex``  – ``1 - lex_err / n_ref`` (1.0 when n_ref == 0).
+    dict with keys ``punc``, ``cap``, ``lex`` mapping to ``1 - err / (hit + err)``
+    (defaults to 1.0 when ``hit + err == 0``).
     """
     ref = (ref or "").strip()
     hyp = (hyp or "").strip()
@@ -160,12 +157,11 @@ def compute_fmt_acc(ref: str, hyp: str) -> dict:
     ref_words: list[str] = output.references[0]
     hyp_words: list[str] = output.hypotheses[0]
 
-    punc_err = 0
-    cap_err = 0
-    lex_err = 0
-    punc_hit = 0
-    cap_hit = 0
-    lex_hit = 0
+    counts: dict[str, dict[str, int]] = {
+        "punc": {"err": 0, "hit": 0},
+        "cap": {"err": 0, "hit": 0},
+        "lex": {"err": 0, "hit": 0},
+    }
     details: list[EditDetail] = []
 
     for chunk in output.alignments[0]:
@@ -175,11 +171,11 @@ def compute_fmt_acc(ref: str, hyp: str) -> dict:
             # it contains any uppercase; lex hit always.
             for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
                 rw = ref_words[ri]
-                lex_hit += 1
+                counts["lex"]["hit"] += 1
                 if _has_regular_punc(rw):
-                    punc_hit += 1
+                    counts["punc"]["hit"] += 1
                 if any(c.isupper() for c in rw):
-                    cap_hit += 1
+                    counts["cap"]["hit"] += 1
             continue
 
         if chunk.type == "substitute":
@@ -191,51 +187,32 @@ def compute_fmt_acc(ref: str, hyp: str) -> dict:
                 hw = hyp_words[hi]
                 cat = classify_edit(rw, hw)
                 details.append(EditDetail(op="sub", ref_word=rw, hyp_word=hw, category=cat))
-                if cat == "punc":
-                    punc_err += 1
-                elif cat == "cap":
-                    cap_err += 1
-                elif cat == "lex":
-                    lex_err += 1
+                counts[cat]["err"] += 1
 
         elif chunk.type == "delete":
             for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
                 rw = ref_words[ri]
                 cat = "punc" if _is_pure_regular_punc(rw) else "lex"
                 details.append(EditDetail(op="del", ref_word=rw, hyp_word=None, category=cat))
-                if cat == "punc":
-                    punc_err += 1
-                else:
-                    lex_err += 1
+                counts[cat]["err"] += 1
 
         elif chunk.type == "insert":
             for hi in range(chunk.hyp_start_idx, chunk.hyp_end_idx):
                 hw = hyp_words[hi]
                 cat = "punc" if _is_pure_regular_punc(hw) else "lex"
                 details.append(EditDetail(op="ins", ref_word=None, hyp_word=hw, category=cat))
-                if cat == "punc":
-                    punc_err += 1
-                else:
-                    lex_err += 1
+                counts[cat]["err"] += 1
 
-    # Per-category denominator = hits + errors (all ops attributed to category).
-    punc_n = punc_hit + punc_err
-    cap_n = cap_hit + cap_err
-    lex_n = lex_hit + lex_err
+    return {cat: _accuracy(c["err"], c["hit"]) for cat, c in counts.items()}
 
-    return {
-        "punc": 1.0 - (punc_err / punc_n if punc_n else 0.0),
-        "cap": 1.0 - (cap_err / cap_n if cap_n else 0.0),
-        "lex": 1.0 - (lex_err / lex_n if lex_n else 0.0),
-    }
+
+def _accuracy(err: int, hit: int) -> float:
+    n = err + hit
+    return 1.0 - (err / n if n else 0.0)
 
 
 def _empty_result() -> dict:
-    return {
-        "punc": 1.0,
-        "cap": 1.0,
-        "lex": 1.0,
-    }
+    return {"punc": 1.0, "cap": 1.0, "lex": 1.0}
 
 
 # ---------------------------------------------------------------------------
