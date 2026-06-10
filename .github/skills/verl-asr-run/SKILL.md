@@ -6,7 +6,7 @@ argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0,
 
 # verl ASR Run
 
-Run a full ASR pipeline on a remote verl Brix node: **training -> evaluation -> report**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, automatically evaluate the trained checkpoint on `long_eval_inhouse_2605_all_seg` (all locales: en-US, da-DK, hu-HU, nb-NO, nl-NL, cs-CZ), then report the aggregate TER/EER measures. Optionally perform word error analysis on validation output.
+Run a full ASR pipeline on a remote verl Brix node: **training -> evaluation -> report -> persistent auto-monitor**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, automatically evaluate the trained checkpoint on `long_eval_inhouse_2605_all_seg` (all locales: en-US, da-DK, hu-HU, nb-NO, nl-NL, cs-CZ), then report the aggregate TER/EER measures. Optionally perform word error analysis on validation output. After submission, always install a `/every 5m update job status and autofix job` schedule (Step 6) so status updates and auto-fixes continue without manual re-prompting.
 
 Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
@@ -580,6 +580,32 @@ If the blob path has no JSONL files (validation data dir not configured or uploa
 2. Suggest re-running with `trainer.validation_data_dir` set in the config or as a hydra override.
 3. If the user agrees, re-submit the job with the override and repeat from Step 2.
 
+### Step 6 — Persistent auto-monitor with `/every` (final step)
+
+After the synchronous monitoring loop in Step 3 returns control to the user (job submitted and still RUNNING, or training job that will run for hours/days), **always** install a recurring background monitor as the last action of the turn so the user does not have to manually re-prompt for status updates.
+
+Emit exactly this slash command as the final line of your response, on its own line, with no surrounding code fence and no extra text after it:
+
+```
+/every 5m update job status and autofix job
+```
+
+This schedules VS Code Copilot to re-invoke the agent every 5 minutes with the prompt `update job status and autofix job`. Each scheduled invocation must:
+
+1. **Re-discover the active job(s)** for the tracked `{NODE}` / `{CONFIG}` pair (training job, post-training eval job, or both if the pipeline is mid-handoff) by running `ray_job.py list` and matching on `{CONFIG}` and `{TRAIN_CONFIG}_long_eval_inhouse_2605_all_seg`.
+2. **Reprint the status header** from Step 3g (Job ID, status, progress, node, config, W&B URL, Ray URL, GPU utilization) for every active job.
+3. **Append new rows** to the training-metrics, `p_err`, `p_edge`, and quality-metrics tables for any new steps observed since the previous poll. Do not re-print the entire historical table — only the new rows, plus a one-line trend summary ("score/mean +0.012 vs last poll, p_err 4.98% → 4.71%").
+4. **Autofix on failure** without asking: if any tracked job is `FAILED`, pull the traceback (`ray job logs {JOB_ID} | tail -n 40`), diagnose using the failure patterns in Step 3f, edit the code locally, run `bpush {NODE}`, and resubmit via Step 2. Record the new job ID and continue monitoring it under the same `/every` schedule.
+5. **Advance the pipeline** automatically when a stage completes:
+   - Training `SUCCEEDED` → run Step 4a (HF export), then Step 4b (`long_eval_inhouse_2605_all_seg`).
+   - Eval `SUCCEEDED` → run Step 4c (inhouse-dter-report `--schema all_seg`) and present the final DTER/EER summary.
+6. **Stop the schedule** with `/every stop` (emitted as the final line) only after the full stack is complete: training `SUCCEEDED`, post-training eval `SUCCEEDED`, in-house DTER `.xlsx` report generated, and the headline TER/EER table presented. Until then, every scheduled response must end with `/every 5m update job status and autofix job` to keep the loop alive.
+
+**Rules**:
+- `/every` lines must appear verbatim and must be the **very last line** of the assistant message — no trailing prose, no markdown blockquotes, no code fences around them.
+- Never install `/every` for a job that has already reached a terminal state at the time of response — emit `/every stop` instead.
+- The persistent loop replaces manual user pings; do not ask the user "should I keep checking?" — just schedule it.
+
 ## Quality Checks
 
 - **Step 2**: `ray job submit` output shows a job ID. If it errors, check `ray_tool.py prepare_env` ran.
@@ -639,6 +665,7 @@ bash submit_jobs_repeat.sh
 - When monitoring, report the current phase and what to expect next
 - On failure, show the error, diagnose, and proceed to fix without asking
 - **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `long_eval_inhouse_2605_all_seg` SUCCEEDED, and the in-house DTER `.xlsx` report (inhouse-dter-report, `--schema all_seg`) plus TER/EER measures summary generated
+- **End every non-terminal response with `/every 5m update job status and autofix job`** on its own final line (see Step 6). Replace with `/every stop` only once the full stack is complete.
 
 ## Dependent Skills
 
