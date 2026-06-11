@@ -647,6 +647,9 @@ def compute_remax_outcome_advantage(
                     elif a < 0 and min_neg is not None and min_neg < -1e-8:
                         advantages[i] = advantages[i] / (-min_neg)  # scale to [-1, 0]
 
+        if config is not None and config.get("binary_adv", False):
+            advantages = torch.sign(advantages) * response_mask
+
     return advantages, returns
 
 
