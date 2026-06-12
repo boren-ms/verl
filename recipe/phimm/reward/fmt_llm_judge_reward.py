@@ -105,7 +105,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     # LLM judge formatting scores
     server = kwargs.get("server", "http://verl-n1-i5-0:8000")
     model = kwargs.get("model", "Qwen3.5-35B-A3B")
-    baseline = extra_info.get("greedy_hyp") or ground_truth or ""
+    baseline = extra_info.get("greedy_hyp") or ground_truth
 
     if is_nonspeech:
         fmt_scores = {"punc": 0.5, "cap": 0.5, "digital": 0.5}
@@ -151,13 +151,10 @@ def compute_score(solution_str, ground_truth, **kwargs):
     """
     extra_info = kwargs.get("extra_info") or {}
     greedy_hyp = extra_info.get("greedy_hyp")
-    if not greedy_hyp:
-        import sys
-        print(
-            "[fmt_llm_judge_reward] WARNING: greedy_hyp not found in "
-            "extra_info['greedy_hyp']. Using ground_truth as fallback baseline.",
-            file=sys.stderr,
-        )
+    assert greedy_hyp, (
+        "greedy_hyp must be provided in extra_info['greedy_hyp']. "
+        "Ensure the ReMax greedy baseline rollout populates this field."
+    )
 
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
     is_good = parsed["fmt"] > 0.0 and parsed["lang"] > 0.0
