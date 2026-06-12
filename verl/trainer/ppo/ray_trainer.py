@@ -1106,6 +1106,20 @@ class RayPPOTrainer:
                             reward_baseline_tensor = self.reward_fn(batch)
                             reward_baseline_tensor = reward_baseline_tensor.sum(dim=-1)
 
+                            # Decode greedy baseline responses and store in extra_info
+                            # so downstream reward functions (e.g. fmt_llm_judge_reward)
+                            # can use them as comparison baselines.
+                            greedy_responses = gen_baseline_output.batch["responses"]
+                            greedy_hyps = self.tokenizer.batch_decode(greedy_responses, skip_special_tokens=True)
+                            if "extra_info" not in batch.non_tensor_batch:
+                                batch.non_tensor_batch["extra_info"] = [{} for _ in range(len(batch))]
+                            for i, hyp in enumerate(greedy_hyps):
+                                ei = batch.non_tensor_batch["extra_info"][i]
+                                if isinstance(ei, dict):
+                                    ei["greedy_hyp"] = hyp
+                                else:
+                                    batch.non_tensor_batch["extra_info"][i] = {"greedy_hyp": hyp}
+
                             batch.pop(batch_keys=list(gen_baseline_output.batch.keys()))
 
                             batch.batch["reward_baselines"] = reward_baseline_tensor
