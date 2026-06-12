@@ -25,5 +25,4 @@ python -m vllm.entrypoints.openai.api_server \
     --max-num-seqs 256 \
     --enable-chunked-prefill \
     --enable-prefix-caching \
-    --num-scheduler-steps 5 \
     --served-model-name Qwen3.5-35B-A3B
