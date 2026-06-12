@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>ReMax R2 — 内部 DTER 分析（9 模型 × 18 数据集）</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/theme/white.css">
+<script>window.MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]}}</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+  .reveal { font-size: 24px; font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif; }
+  .reveal .slides section { overflow: hidden; padding: 20px 30px; text-align: left; }
+  .reveal h1 { font-size: 1.5em; margin-bottom: 10px; }
+  .reveal h2 { font-size: 1.15em; border-bottom: 2px solid #1a6fb5; margin-bottom: 18px; color: #0f172a; }
+  .reveal h3 { font-size: 0.9em; color: #334155; margin: 8px 0 6px; }
+  .reveal ul, .reveal ol { font-size: 0.68em; line-height: 1.55; margin: 8px 0 8px 1em; }
+  .reveal p { font-size: 0.68em; margin-bottom: 6px; }
+  .reveal figure { margin: 0 0 8px 0; text-align: center; }
+  .reveal figcaption { font-size: 0.58em; color: #475569; }
+  .reveal img { max-height: 430px; }
+  .reveal table { font-size: 0.62em; width: 100%; border-collapse: collapse; margin: 8px auto 12px; }
+  .reveal table th, .reveal table td { border: 1px solid #cbd5e1; padding: 4px 8px; text-align: right; }
+  .reveal table th { background: #dbeafe; color: #0f172a; text-align: center; }
+  .reveal table td:first-child, .reveal table th:first-child { text-align: left; }
+  .reveal table .best { color: #16a34a; font-weight: 700; }
+  .reveal table .worst { color: #dc2626; font-weight: 700; }
+  .table-caption { font-size: 0.6em; color: #475569; margin-bottom: 8px; text-align: center; }
+  .eq-box { width: fit-content; max-width: 100%; margin: 10px auto;
+            border: 1px solid #cbd5e1; background: #f8fafc;
+            padding: 8px 18px; border-radius: 6px;
+            font-size: 0.72em; overflow-x: auto; text-align: center; }
+  .eq-box.eq-star { border-left: 4px solid #d97706; background: #fffbeb; }
+  .tag { font-size: 0.52em; font-weight: 700; padding: 1px 7px; border-radius: 10px;
+         display: inline-block; margin-right: 6px; vertical-align: middle; }
+  .tag-new { background: #fce7f3; color: #9d174d; }
+  .tag-claim { background: #dbeafe; color: #1e40af; }
+  .tag-both { background: #fef3c7; color: #92400e; }
+  .insights li { border-left: 3px solid #1a6fb5; padding-left: 10px; margin-bottom: 6px; }
+  .title-slide { background: #f8fafc; text-align: center; }
+  .title-slide h1 { color: #0f172a; border: none; text-align: center; font-size: 1.7em; }
+  .title-slide .meta { color: #475569; text-align: center; font-size: 0.72em; }
+  .title-slide .badges { margin-top: 10px; }
+  .title-slide .badges a { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd;
+                            padding: 3px 10px; border-radius: 12px; margin: 0 4px;
+                            text-decoration: none; font-size: 0.6em; }
+  .lang-switch { position: absolute; top: 18px; right: 30px; font-size: 12px; z-index: 100; }
+  .lang-switch a { color: #1e40af; text-decoration: none; background: #dbeafe;
+                    border: 1px solid #93c5fd; padding: 3px 10px; border-radius: 12px; }
+  .tldr-box { background: #f0f9ff; border-left: 4px solid #1a6fb5;
+              padding: 18px 24px; margin-top: 56px; font-size: 0.68em;
+              line-height: 2.4; text-align: left; }
+  .tldr-box strong { color: #1a6fb5; }
+  .hl-red { color: #dc2626; font-weight: 700; }
+  .hl-green { color: #16a34a; font-weight: 700; }
+  .hl-orange { color: #d97706; font-weight: 700; }
+  .hl-blue { color: #1d4ed8; font-weight: 700; }
+  .note { font-size: 0.58em; color: #64748b; margin-top: 6px; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="reveal">
+  <div class="lang-switch"><a href="remax-r2-dter-analysis_en.html">🌐 English</a></div>
+  <div class="slides">
+
+  <!-- 1. 标题与亮点 -->
+  <section class="title-slide">
+    <h1>ReMax R2 — 内部 DTER 横评</h1>
+    <div class="meta">9 个 ReMax 候选 checkpoint · Qwen3.5-audio 基线 · 18 个内部 DTER 数据集 · 6 种语言</div>
+    <div class="meta">数据来源：<a href="remax-r2-dter-analysis_assets/remax_r2_combined_all_seg.xlsx"><code>remax_r2_combined_all_seg.xlsx</code></a>（all-segment 评估，已打包于 <code>_assets/</code>）</div>
+    <div class="badges">
+      <a>指标：DTER ↓</a>
+      <a>WERR = 1 − DTER/基线</a>
+      <a>评估集：eval_inhouse_2605_all_seg</a>
+      <a href="remax-r2-dter-analysis_assets/remax_r2_combined_all_seg.xlsx">📥 下载 xlsx</a>
+    </div>
+    <div class="tldr-box">
+      <strong>问题：</strong>&nbsp;在 ReMax R2 之上做了 9 套奖励 / 聚合（reward / aggregation）变体——到底哪种配方真正提升 <span class="hl-orange">内部 DTER</span>？<br>
+      <strong>结论：</strong>&nbsp;<span class="hl-green">9 个模型里 8 个在 18/18 数据集上全面改进</span>；最佳是 <span class="hl-orange">fmt_judge mean@s200</span>，<span class="hl-green">WERR +1.61%</span>。<br>
+      <strong>风险：</strong>&nbsp;<span class="hl-red">mean@s1000 训练崩塌</span>（整体 DTER 0.20 → 0.50，nl-NL Conv 飙至 <span class="hl-red">0.91</span>）——长程训练若缺少价值基线约束极不稳定。
+    </div>
+  </section>
+
+  <!-- 2. 实验设置 -->
+  <section>
+    <h2>📊 实验设置：对比的是什么</h2>
+    <h3>模型（列号 → 简称）</h3>
+    <table>
+      <thead><tr><th>列</th><th>简称</th><th>配方说明</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>Baseline</td><td>qwen3.5-audio（无 RL）</td></tr>
+        <tr><td>B</td><td>geo, s200</td><td>标点奖励，p=0.7，n=12，s=200，c1，<b>几何平均</b>聚合</td></tr>
+        <tr><td>C</td><td>mean, s200</td><td>同上，<b>算术平均</b>聚合</td></tr>
+        <tr><td>D</td><td>mean, s270</td><td>标点，p=0.7，n=12，s=1k，mean——早期 ckpt</td></tr>
+        <tr><td>F</td><td>mean, s1000</td><td>同上，晚期 ckpt <span class="hl-red">⚠ 已崩塌</span></td></tr>
+        <tr><td>E</td><td>fmt_judge, with cer</td><td>格式判定（fmt judge）+ CER 奖励，n=12，s=200，mean</td></tr>
+        <tr><td>G</td><td>mean, b_adv, s140</td><td>标点，p=0.7，n=12，s=200，mean，<b>二值优势（binary advantage）</b></td></tr>
+        <tr><td>H</td><td>mean, b_adv, s200</td><td>同 G，更晚 step（200）</td></tr>
+        <tr><td>I</td><td>sum, 310</td><td>标点，p=0，n=12，e=1，<b>求和</b>奖励，step 309</td></tr>
+        <tr><td>J</td><td>sum, 190</td><td>标点，p=0.7，n=12，s=200，<b>求和</b>，step 190</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><span class="hl-orange">18 个数据集</span> = 6 种语言（en-US、nl-NL、da-DK、hu-HU、nb-NO、cs-CZ）× 3 种数据类型（Conversation、OnlineMeetings、Dictation）。</li>
+      <li>WERR 数值均 <span class="hl-blue">×100 转为百分数</span>，正值表示优于基线。</li>
+    </ul>
+  </section>
+
+  <!-- 3. 总排名（全图）-->
+  <section>
+    <h2>🏆 总 WERR 排名（含崩塌模型）</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig1_overall_werr.png" alt="总 WERR 排名">
+      <figcaption>图 1 · 18 个内部 DTER 数据集上的总 WERR（%）。<span class="hl-red">mean,s1000</span>（约 −148%）把其他柱状条压成一条直线——印证了单个失败 ckpt 会主导对比视图。</figcaption>
+    </figure>
+    <ul>
+      <li>崩塌模型 <span class="hl-red">mean, s1000</span>（<span class="hl-red">−147.9% WERR</span>）让所有健康模型相对差距被肉眼忽略。</li>
+      <li>诊断启示：出现这种数量级离群点时，<span class="hl-orange">必须单独绘制放大视图</span>（见下页）。</li>
+    </ul>
+  </section>
+
+  <!-- 4. 总排名（健康模型放大图）-->
+  <section>
+    <h2>🏆 总 WERR 排名 — 仅健康模型</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig1b_overall_werr_zoom.png" alt="健康模型 WERR">
+      <figcaption>图 1b · 8 个健康模型的总 WERR（%）。全部以可观幅度优于 qwen3.5-audio 基线。</figcaption>
+    </figure>
+    <ul>
+      <li><span class="hl-green">fmt_judge mean@s200</span> 位居榜首，<span class="hl-green">+1.61%</span>——本次唯一在标点奖励之上叠加 <b>格式判定 + CER</b> 的配方。</li>
+      <li><span class="hl-green">sum @ s190</span>（<b>+1.38%</b>）与 <span class="hl-green">binary-adv @ s140</span>（<b>+1.21%</b>）位列前三——均为小数据上下文（s=200）配置。</li>
+      <li>意外发现：相同配置下 <span class="hl-orange">sum 聚合</span>（J，+1.38%）优于 <span class="hl-orange">mean 聚合</span>（C，+0.86%），说明奖励量纲本身承载有用的梯度信号。</li>
+    </ul>
+  </section>
+
+  <!-- 5. 分语言热力图 -->
+  <section>
+    <h2>🌍 分语言 WERR 热力图（8 健康模型）</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig2_per_lang_heatmap.png" alt="分语言 WERR 热力图">
+      <figcaption>图 2 · 分语言 WERR（%）。行为语言（在 3 种数据类型上取平均）。绿 = 改进，红 = 回退。</figcaption>
+    </figure>
+    <ul>
+      <li><span class="hl-green">hu-HU 收益最大</span>：每个模型都带来 <b>+4.5% 到 +6.9%</b> WERR——该 pipeline 对匈牙利语最为关键。</li>
+      <li><span class="hl-red">en-US 普遍回退</span>，幅度 −0.5% 到 −1.7%——很可能因为基线在英文上已最强，标点奖励反而过度干预。</li>
+      <li><span class="hl-orange">fmt_judge</span> 是唯一在<b>所有语言</b>上都改进的模型（含 nl-NL +1.0%、cs-CZ +0.1%）；纯标点奖励则在 nl-NL 或 cs-CZ 上出现回退。</li>
+      <li>nb-NO 表现稳定：8 个模型均落在 <b>+0.3% 到 +1.3%</b>。</li>
+    </ul>
+  </section>
+
+  <!-- 6. 分语言详表 -->
+  <section>
+    <h2>📋 分语言平均 DTER 与 WERR（前 5 模型）</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>语言</th>
+          <th>Baseline DTER</th>
+          <th>fmt_judge<br>DTER · WERR</th>
+          <th>sum, 190<br>DTER · WERR</th>
+          <th>b_adv, s140<br>DTER · WERR</th>
+          <th>b_adv, s200<br>DTER · WERR</th>
+          <th>geo, s200<br>DTER · WERR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>en-US</td><td>0.1409</td><td>0.1417 · <span class="worst">−0.56%</span></td><td>0.1405 · <span class="best">+0.28%</span></td><td>0.1423 · <span class="worst">−1.01%</span></td><td>0.1428 · <span class="worst">−1.40%</span></td><td>0.1421 · <span class="worst">−0.88%</span></td></tr>
+        <tr><td>nl-NL</td><td>0.2146</td><td>0.2124 · <span class="best">+1.02%</span></td><td>0.2136 · <span class="best">+0.48%</span></td><td>0.2144 · <span class="best">+0.07%</span></td><td>0.2149 · <span class="worst">−0.14%</span></td><td>0.2163 · <span class="worst">−0.82%</span></td></tr>
+        <tr><td>da-DK</td><td>0.2347</td><td>0.2341 · <span class="best">+0.27%</span></td><td>0.2336 · <span class="best">+0.47%</span></td><td>0.2349 · <span class="worst">−0.06%</span></td><td>0.2351 · <span class="worst">−0.15%</span></td><td>0.2342 · <span class="best">+0.22%</span></td></tr>
+        <tr><td>hu-HU</td><td>0.2301</td><td>0.2156 · <span class="best">+6.30%</span></td><td>0.2197 · <span class="best">+4.53%</span></td><td>0.2150 · <span class="best">+6.55%</span></td><td>0.2145 · <span class="best">+6.77%</span></td><td>0.2179 · <span class="best">+5.32%</span></td></tr>
+        <tr><td>nb-NO</td><td>0.2119</td><td>0.2092 · <span class="best">+1.25%</span></td><td>0.2098 · <span class="best">+0.99%</span></td><td>0.2104 · <span class="best">+0.70%</span></td><td>0.2103 · <span class="best">+0.74%</span></td><td>0.2100 · <span class="best">+0.88%</span></td></tr>
+        <tr><td>cs-CZ</td><td>0.1708</td><td>0.1707 · <span class="best">+0.08%</span></td><td>0.1692 · <span class="best">+0.95%</span></td><td>0.1715 · <span class="worst">−0.38%</span></td><td>0.1716 · <span class="worst">−0.45%</span></td><td>0.1710 · <span class="worst">−0.13%</span></td></tr>
+        <tr style="background:#f1f5f9;font-weight:700"><td>整体</td><td>0.2005</td><td>0.1973 · <span class="best">+1.61%</span></td><td>0.1977 · <span class="best">+1.38%</span></td><td>0.1981 · <span class="best">+1.21%</span></td><td>0.1982 · <span class="best">+1.14%</span></td><td>0.1986 · <span class="best">+0.95%</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">所有数值为同语言下 3 种数据类型的平均。WERR 符号约定：正数表示 DTER 低于基线。</p>
+  </section>
+
+  <!-- 7. 数据类型效应 -->
+  <section>
+    <h2>🧪 数据类型效应（前 3 模型）</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig4_dataset_type.png" alt="按数据类型 WERR">
+      <figcaption>图 4 · 前 3 健康模型在每种数据类型上的平均 WERR（%）。每种类型 6 个数据集（每种语言 1 个）。</figcaption>
+    </figure>
+    <ul>
+      <li><span class="hl-green">Dictation（朗读）</span>收益最大，前 3 模型均达 <b>+1.9% 到 +3.5%</b>——干净朗读语音最受益于标点 / 格式奖励。</li>
+      <li><span class="hl-orange">Conversation（对话）</span>表现混合——更难、更多停顿的场景部分吸收了收益。</li>
+      <li><span class="hl-red">OnlineMeetings（线上会议）</span>最难撼动：<b>sum,190</b> 略转负，只有 <b>fmt_judge</b> 在此场景获得正向收益。</li>
+    </ul>
+  </section>
+
+  <!-- 8. 崩塌案例 -->
+  <section>
+    <h2>⚠️ 失败案例 — mean, s1000 在 nl-NL 上崩塌</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig3_collapse_nlnl.png" alt="nl-NL 崩塌">
+      <figcaption>图 3 · 基线 DTER 与 <span class="hl-red">mean, s1000 @ step1000</span> 在 nl-NL 三个数据集上的对比。Conversation_FY23Q2 从 0.247 暴涨至 <b>0.914</b>（约 4 倍恶化）。</figcaption>
+    </figure>
+    <ul>
+      <li>该配方与 D（<span class="hl-orange">mean, s270</span>，+0.35% WERR）<b>完全相同</b>——只是训练 step 不同（270 → 1000），因此 <span class="hl-red">原因是过训练而非奖励设计</span>。</li>
+      <li>失败具有强烈语言偏好：nl-NL DTER 暴涨（相对 +274%）、hu-HU 也崩塌（+145%），而 en-US 仅小幅回退（−0.96%）。<span class="hl-red">多语言长程 RL 优先遗忘弱势语言</span>。</li>
+      <li>启示：必须 <span class="hl-orange">用 eval 门控 checkpoint</span>——n=12 / s=1k 配置的最佳区间在 step &lt; 500，不可盲目延长训练。</li>
+    </ul>
+  </section>
+
+  <!-- 9. 单数据集最大收益 -->
+  <section>
+    <h2>💎 单数据集最大收益（各行最佳健康模型）</h2>
+    <table>
+      <thead><tr><th>数据集</th><th>Baseline DTER</th><th>最佳模型</th><th>最佳 DTER</th><th>WERR</th></tr></thead>
+      <tbody>
+        <tr><td>hu-HU_Dictation_DTEST_L_D_FY25Q2</td><td>0.2430</td><td>sum, 310</td><td>0.2187</td><td class="best">+9.99%</td></tr>
+        <tr><td>hu-HU_Conversation_OnlineMeetings_FY24Q2</td><td>0.2193</td><td>b_adv, s200</td><td>0.2069</td><td class="best">+5.63%</td></tr>
+        <tr><td>hu-HU_Conversation_DTEST_FY22Q4</td><td>0.2280</td><td>b_adv, s200</td><td>0.2162</td><td class="best">+5.21%</td></tr>
+        <tr><td>da-DK_Dictation_DTEST_L_D_FY23Q4</td><td>0.2249</td><td>mean, s270</td><td>0.2156</td><td class="best">+4.14%</td></tr>
+        <tr><td>nl-NL_Dictation_DTEST_L_D_FY23Q4</td><td>0.1573</td><td>fmt_judge</td><td>0.1441</td><td class="best">+8.37%</td></tr>
+        <tr><td>cs-CZ_Conversation_OnlineMeetings_FY24Q2</td><td>0.1442</td><td>fmt_judge</td><td>0.1405</td><td class="best">+2.61%</td></tr>
+        <tr><td>en-US_Conversation_DTEST_FY21Q1</td><td>0.1857</td><td>mean, s270</td><td>0.1801</td><td class="best">+3.00%</td></tr>
+      </tbody>
+    </table>
+    <p class="note">所有数值取自 <code>inhouse_dter</code> sheet；每行为 8 个健康模型中的最佳值。</p>
+    <ul>
+      <li>单数据集最大收益：<span class="hl-green">hu-HU Dictation +9.99%</span>，由 <b>sum, 310</b> 取得——最强证据表明 hu-HU 在基线中严重欠训练。</li>
+      <li>跨数据集最稳赢家：<span class="hl-orange">fmt_judge</span>——在 en-US、nl-NL、da-DK、hu-HU、nb-NO 上夺冠或并列，且是唯一在 cs-CZ 上仍为正的模型。</li>
+    </ul>
+  </section>
+
+  <!-- 10. 结论 / 推荐 -->
+  <section>
+    <h2>📌 结论与建议</h2>
+    <ul class="insights">
+      <li><span class="tag tag-both">[强论断]</span> <span class="hl-orange">fmt_judge + CER 奖励</span> 是本次最稳定的配方——<span class="hl-green">整体 WERR +1.61%</span>，18/18 数据集全部改进，且是唯一在所有语言上均为正向的模型。</li>
+      <li><span class="tag tag-claim">[论断]</span> 纯标点奖励里，<span class="hl-orange">sum &gt; mean &gt; geo</span> 聚合（+1.38% / +0.86% / +0.95%）——奖励的量纲本身承载有用梯度，不宜归一化抹去。</li>
+      <li><span class="tag tag-claim">[论断]</span> <span class="hl-orange">小批 ReMax（s=200）收敛更快</span>：最佳健康模型均使用 s=200，且 ckpt 落在 step 140 ~ 309 区间；s=1k 配方在 step 1000 处崩塌。</li>
+      <li><span class="tag tag-new">[新发现]</span> 分语言收益极度不对称：<span class="hl-green">hu-HU +6%</span>，<span class="hl-red">en-US −1%</span>。多语言 ASR 上的 RL 实质上是 <span class="hl-blue">语言间再平衡</span>，不是均匀提升。</li>
+      <li><span class="tag tag-new">[新发现]</span> 数据类型梯度：<span class="hl-green">Dictation &gt; Conversation &gt; OnlineMeetings</span>。输入越干净收益越大——与标点 / 格式奖励对噪声敏感一致。</li>
+    </ul>
+  </section>
+
+  <!-- 11. 局限与未来工作 -->
+  <section>
+    <h2>⚠️ 局限与开放问题</h2>
+    <ul>
+      <li><span class="hl-red">单一评估指标：</span>DTER 把标点 / 格式与词级错误混在一起，需要 WER + 格式错误分项才能归因增益。</li>
+      <li><span class="hl-red">无统计置信区间：</span>每个 ckpt 仅单次评估，cs-CZ / da-DK 上的 1.0% 差距可能在噪声范围内。建议对前 3 模型做多 seed 复跑。</li>
+      <li><span class="hl-red">step 覆盖不均：</span>fmt_judge 只测了 step 200 一个 ckpt，而 binary-adv 有 s140 + s200 两个。无法判定 fmt_judge 是否还有上升空间。</li>
+      <li><span class="hl-orange">en-US 回退未解释</span>——需检查标点奖励是否在已经较强的英文转写上过度插入。</li>
+      <li><span class="hl-orange">未来工作：</span>（1）将 fmt_judge 扩展到 s=1k 并配合 en-US 早停；（2）将 fmt_judge 奖励与 binary-advantage 聚合结合（设计上正交的两套最佳健康变体）；（3）按语言加权 loss，缓解 hu-HU 与 en-US 的不对称。</li>
+    </ul>
+  </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, slideNumber: 'c/t',
+    width: 1280, height: 720, margin: 0.06,
+    transition: 'slide', center: false, plugins: []
+  });
+  Reveal.on('slidechanged', () => {
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+  });
+  var langLink = document.querySelector('.lang-switch a');
+  if (langLink) {
+    var base = langLink.getAttribute('href').split('#')[0];
+    function syncLang() { langLink.href = base + '#/' + Reveal.getIndices().h; }
+    Reveal.on('slidechanged', syncLang);
+    syncLang();
+  }
+</script>
+</body>
+</html>

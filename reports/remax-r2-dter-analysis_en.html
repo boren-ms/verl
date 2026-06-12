@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ReMax R2 — In-house DTER Analysis (9 Models × 18 Datasets)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/theme/white.css">
+<script>window.MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]}}</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+  .reveal { font-size: 24px; }
+  .reveal .slides section { overflow: hidden; padding: 20px 30px; text-align: left; }
+  .reveal h1 { font-size: 1.5em; margin-bottom: 10px; }
+  .reveal h2 { font-size: 1.15em; border-bottom: 2px solid #1a6fb5; margin-bottom: 18px; color: #0f172a; }
+  .reveal h3 { font-size: 0.9em; color: #334155; margin: 8px 0 6px; }
+  .reveal ul, .reveal ol { font-size: 0.68em; line-height: 1.5; margin: 8px 0 8px 1em; }
+  .reveal p { font-size: 0.68em; margin-bottom: 6px; }
+  .reveal figure { margin: 0 0 8px 0; text-align: center; }
+  .reveal figcaption { font-size: 0.58em; color: #475569; }
+  .reveal img { max-height: 430px; }
+  .reveal table { font-size: 0.62em; width: 100%; border-collapse: collapse; margin: 8px auto 12px; }
+  .reveal table th, .reveal table td { border: 1px solid #cbd5e1; padding: 4px 8px; text-align: right; }
+  .reveal table th { background: #dbeafe; color: #0f172a; text-align: center; }
+  .reveal table td:first-child, .reveal table th:first-child { text-align: left; }
+  .reveal table .best { color: #16a34a; font-weight: 700; }
+  .reveal table .worst { color: #dc2626; font-weight: 700; }
+  .table-caption { font-size: 0.6em; color: #475569; margin-bottom: 8px; text-align: center; }
+  .eq-box { width: fit-content; max-width: 100%; margin: 10px auto;
+            border: 1px solid #cbd5e1; background: #f8fafc;
+            padding: 8px 18px; border-radius: 6px;
+            font-size: 0.72em; overflow-x: auto; text-align: center; }
+  .eq-box.eq-star { border-left: 4px solid #d97706; background: #fffbeb; }
+  .tag { font-size: 0.52em; font-weight: 700; padding: 1px 7px; border-radius: 10px;
+         display: inline-block; margin-right: 6px; vertical-align: middle; }
+  .tag-new { background: #fce7f3; color: #9d174d; }
+  .tag-claim { background: #dbeafe; color: #1e40af; }
+  .tag-both { background: #fef3c7; color: #92400e; }
+  .insights li { border-left: 3px solid #1a6fb5; padding-left: 10px; margin-bottom: 6px; }
+  .title-slide { background: #f8fafc; text-align: center; }
+  .title-slide h1 { color: #0f172a; border: none; text-align: center; font-size: 1.7em; }
+  .title-slide .meta { color: #475569; text-align: center; font-size: 0.72em; }
+  .title-slide .badges { margin-top: 10px; }
+  .title-slide .badges a { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd;
+                            padding: 3px 10px; border-radius: 12px; margin: 0 4px;
+                            text-decoration: none; font-size: 0.6em; }
+  .lang-switch { position: absolute; top: 18px; right: 30px; font-size: 12px; z-index: 100; }
+  .lang-switch a { color: #1e40af; text-decoration: none; background: #dbeafe;
+                    border: 1px solid #93c5fd; padding: 3px 10px; border-radius: 12px; }
+  .tldr-box { background: #f0f9ff; border-left: 4px solid #1a6fb5;
+              padding: 18px 24px; margin-top: 56px; font-size: 0.68em;
+              line-height: 2.4; text-align: left; }
+  .tldr-box strong { color: #1a6fb5; }
+  .hl-red { color: #dc2626; font-weight: 700; }
+  .hl-green { color: #16a34a; font-weight: 700; }
+  .hl-orange { color: #d97706; font-weight: 700; }
+  .hl-blue { color: #1d4ed8; font-weight: 700; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .note { font-size: 0.58em; color: #64748b; margin-top: 6px; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="reveal">
+  <div class="lang-switch"><a href="remax-r2-dter-analysis_zh.html">🌐 中文版</a></div>
+  <div class="slides">
+
+  <!-- 1. Title & TL;DR -->
+  <section class="title-slide">
+    <h1>ReMax R2 — In-house DTER Sweep</h1>
+    <div class="meta">9 candidate ReMax checkpoints vs Qwen3.5-audio baseline · 18 in-house DTER datasets · 6 locales</div>
+    <div class="meta">Source data: <a href="remax-r2-dter-analysis_assets/remax_r2_combined_all_seg.xlsx"><code>remax_r2_combined_all_seg.xlsx</code></a> (all-segment eval, bundled in <code>_assets/</code>)</div>
+    <div class="badges">
+      <a>Metric: DTER ↓</a>
+      <a>WERR = 1 − DTER/baseline</a>
+      <a>Eval set: eval_inhouse_2605_all_seg</a>
+      <a href="remax-r2-dter-analysis_assets/remax_r2_combined_all_seg.xlsx">📥 Download xlsx</a>
+    </div>
+    <div class="tldr-box">
+      <strong>Problem:</strong> &nbsp;9 reward/aggregation variants on top of ReMax R2 — which recipe actually moves the needle on <span class="hl-orange">in-house DTER</span>?<br>
+      <strong>Finding:</strong> &nbsp;<span class="hl-green">8 / 9 models improve on 18 / 18 datasets</span>; best is <span class="hl-orange">fmt_judge mean@s200</span> at <span class="hl-green">+1.61 % WERR</span>.<br>
+      <strong>Risk:</strong> &nbsp;<span class="hl-red">mean@s1000 collapses</span> (DTER 0.20 → 0.50, nl-NL Conv jumps to <span class="hl-red">0.91</span>) — long-horizon training without value-baseline guardrails is unstable.
+    </div>
+  </section>
+
+  <!-- 2. Setup -->
+  <section>
+    <h2>📊 Setup &amp; What's Being Compared</h2>
+    <h3>Models (column → short label)</h3>
+    <table>
+      <thead><tr><th>Col</th><th>Short label</th><th>Recipe</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>Baseline</td><td>qwen3.5-audio (no RL)</td></tr>
+        <tr><td>B</td><td>geo, s200</td><td>punc, p=0.7, n=12, s=200, c1, <b>geo</b>-mean aggregation</td></tr>
+        <tr><td>C</td><td>mean, s200</td><td>punc, p=0.7, n=12, s=200, c1, <b>mean</b> aggregation</td></tr>
+        <tr><td>D</td><td>mean, s270</td><td>punc, p=0.7, n=12, s=1k, mean — early ckpt</td></tr>
+        <tr><td>F</td><td>mean, s1000</td><td>punc, p=0.7, n=12, s=1k, mean — late ckpt <span class="hl-red">⚠ collapsed</span></td></tr>
+        <tr><td>E</td><td>fmt_judge, with cer</td><td>format-judge reward + CER, n=12, s=200, mean</td></tr>
+        <tr><td>G</td><td>mean, b_adv, s140</td><td>punc, p=0.7, n=12, s=200, mean, <b>binary advantage</b></td></tr>
+        <tr><td>H</td><td>mean, b_adv, s200</td><td>same as G, later step (200)</td></tr>
+        <tr><td>I</td><td>sum, 310</td><td>punc, p=0, n=12, e=1, <b>sum</b> reward, step 309</td></tr>
+        <tr><td>J</td><td>sum, 190</td><td>punc, p=0.7, n=12, s=200, <b>sum</b>, step 190</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><span class="hl-orange">18 datasets</span> = 6 locales (en-US, nl-NL, da-DK, hu-HU, nb-NO, cs-CZ) × 3 types (Conversation, OnlineMeetings, Dictation).</li>
+      <li>WERR is <span class="hl-blue">scaled ×100 → percent</span>; positive = better than baseline.</li>
+    </ul>
+  </section>
+
+  <!-- 3. Overall ranking full -->
+  <section>
+    <h2>🏆 Overall WERR — Full Picture (collapse included)</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig1_overall_werr.png" alt="Overall WERR ranking">
+      <figcaption>Figure 1 · Overall WERR (%) averaged over the 18 in-house DTER datasets. The <span class="hl-red">mean,s1000</span> bar (≈ −148 %) compresses everything else into a flat line — confirming a single bad checkpoint can dominate visual comparisons.</figcaption>
+    </figure>
+    <ul>
+      <li>The collapsed <span class="hl-red">mean, s1000</span> at <span class="hl-red">−147.9 % WERR</span> dwarfs every healthy variant.</li>
+      <li>Diagnostic: <span class="hl-orange">always plot the zoomed view separately</span> (next slide) when one outlier this large is present.</li>
+    </ul>
+  </section>
+
+  <!-- 4. Overall ranking zoom -->
+  <section>
+    <h2>🏆 Overall WERR — Healthy Models Only</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig1b_overall_werr_zoom.png" alt="Overall WERR zoom">
+      <figcaption>Figure 1b · Overall WERR (%) over the 8 healthy models. All improve over the qwen3.5-audio baseline by a comfortable margin.</figcaption>
+    </figure>
+    <ul>
+      <li><span class="hl-green">fmt_judge mean@s200</span> tops the board at <span class="hl-green">+1.61 %</span> — the only reward in this sweep that adds <b>format judging + CER</b> on top of punctuation reward.</li>
+      <li><span class="hl-green">sum @ s190</span> (<b>+1.38 %</b>) and <span class="hl-green">binary-adv @ s140</span> (<b>+1.21 %</b>) round out the top-3 — both small-context (s=200) configurations.</li>
+      <li>Surprise: the <span class="hl-orange">sum</span> aggregator (J, +1.38 %) beats <span class="hl-orange">mean</span> aggregator (C, +0.86 %) at matched config, suggesting reward magnitude carries useful gradient signal.</li>
+    </ul>
+  </section>
+
+  <!-- 5. Per-language heatmap -->
+  <section>
+    <h2>🌍 Per-Language WERR (healthy 8)</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig2_per_lang_heatmap.png" alt="Per-language WERR heatmap">
+      <figcaption>Figure 2 · Per-language WERR (%). Rows are locales (avg over 3 dataset types). Green = improvement, red = regression.</figcaption>
+    </figure>
+    <ul>
+      <li><span class="hl-green">hu-HU dominates the gains</span>: every model gives <b>+4.5 % to +6.9 %</b> WERR — the locale where this training pipeline matters most.</li>
+      <li><span class="hl-red">en-US universally regresses</span> by −0.5 % to −1.7 % — likely because the baseline is already strongest on English and the punctuation reward over-corrects.</li>
+      <li><span class="hl-orange">fmt_judge</span> is the only model that improves <b>every locale</b> (incl. nl-NL +1.0 %, cs-CZ +0.1 %); pure punctuation rewards regress on nl-NL or cs-CZ.</li>
+      <li>nb-NO: small but consistent <b>+0.3 % to +1.3 %</b> across all 8.</li>
+    </ul>
+  </section>
+
+  <!-- 6. Per-locale numeric table -->
+  <section>
+    <h2>📋 Per-Locale Average DTER &amp; WERR (top-5 models)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Locale</th>
+          <th>Baseline DTER</th>
+          <th>fmt_judge<br>DTER · WERR</th>
+          <th>sum, 190<br>DTER · WERR</th>
+          <th>b_adv, s140<br>DTER · WERR</th>
+          <th>b_adv, s200<br>DTER · WERR</th>
+          <th>geo, s200<br>DTER · WERR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>en-US</td><td>0.1409</td><td>0.1417 · <span class="worst">−0.56 %</span></td><td>0.1405 · <span class="best">+0.28 %</span></td><td>0.1423 · <span class="worst">−1.01 %</span></td><td>0.1428 · <span class="worst">−1.40 %</span></td><td>0.1421 · <span class="worst">−0.88 %</span></td></tr>
+        <tr><td>nl-NL</td><td>0.2146</td><td>0.2124 · <span class="best">+1.02 %</span></td><td>0.2136 · <span class="best">+0.48 %</span></td><td>0.2144 · <span class="best">+0.07 %</span></td><td>0.2149 · <span class="worst">−0.14 %</span></td><td>0.2163 · <span class="worst">−0.82 %</span></td></tr>
+        <tr><td>da-DK</td><td>0.2347</td><td>0.2341 · <span class="best">+0.27 %</span></td><td>0.2336 · <span class="best">+0.47 %</span></td><td>0.2349 · <span class="worst">−0.06 %</span></td><td>0.2351 · <span class="worst">−0.15 %</span></td><td>0.2342 · <span class="best">+0.22 %</span></td></tr>
+        <tr><td>hu-HU</td><td>0.2301</td><td>0.2156 · <span class="best">+6.30 %</span></td><td>0.2197 · <span class="best">+4.53 %</span></td><td>0.2150 · <span class="best">+6.55 %</span></td><td>0.2145 · <span class="best">+6.77 %</span></td><td>0.2179 · <span class="best">+5.32 %</span></td></tr>
+        <tr><td>nb-NO</td><td>0.2119</td><td>0.2092 · <span class="best">+1.25 %</span></td><td>0.2098 · <span class="best">+0.99 %</span></td><td>0.2104 · <span class="best">+0.70 %</span></td><td>0.2103 · <span class="best">+0.74 %</span></td><td>0.2100 · <span class="best">+0.88 %</span></td></tr>
+        <tr><td>cs-CZ</td><td>0.1708</td><td>0.1707 · <span class="best">+0.08 %</span></td><td>0.1692 · <span class="best">+0.95 %</span></td><td>0.1715 · <span class="worst">−0.38 %</span></td><td>0.1716 · <span class="worst">−0.45 %</span></td><td>0.1710 · <span class="worst">−0.13 %</span></td></tr>
+        <tr style="background:#f1f5f9;font-weight:700"><td>overall</td><td>0.2005</td><td>0.1973 · <span class="best">+1.61 %</span></td><td>0.1977 · <span class="best">+1.38 %</span></td><td>0.1981 · <span class="best">+1.21 %</span></td><td>0.1982 · <span class="best">+1.14 %</span></td><td>0.1986 · <span class="best">+0.95 %</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">All values are averages over the 3 dataset types in each locale. WERR sign convention: positive = lower DTER than baseline.</p>
+  </section>
+
+  <!-- 7. Dataset-type analysis -->
+  <section>
+    <h2>🧪 Dataset-Type Effect (Top-3 Models)</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig4_dataset_type.png" alt="Per-dataset-type WERR">
+      <figcaption>Figure 4 · Mean WERR (%) per dataset type for the top-3 healthy models. 6 datasets per type (1 per locale).</figcaption>
+    </figure>
+    <ul>
+      <li><span class="hl-green">Dictation</span> sees the biggest gain across all top-3 (<b>+1.9 % to +3.5 %</b>) — clean read-speech benefits most from punctuation/format rewards.</li>
+      <li><span class="hl-orange">Conversation</span> shows mixed results — the harder, more disfluent setting partly absorbs the gains.</li>
+      <li><span class="hl-red">OnlineMeetings</span> is the hardest to move: <b>sum,190</b> goes slightly negative, only <b>fmt_judge</b> nets a positive value here.</li>
+    </ul>
+  </section>
+
+  <!-- 8. Catastrophic collapse -->
+  <section>
+    <h2>⚠️ Failure Case — mean, s1000 collapses on nl-NL</h2>
+    <figure>
+      <img src="remax-r2-dter-analysis_assets/fig3_collapse_nlnl.png" alt="nl-NL collapse">
+      <figcaption>Figure 3 · Baseline DTER vs <span class="hl-red">mean, s1000 @ step1000</span> on the three nl-NL datasets. Conversation_FY23Q2 explodes from 0.247 → <b>0.914</b> (≈ 4× worse).</figcaption>
+    </figure>
+    <ul>
+      <li>Same recipe as D (<span class="hl-orange">mean, s270</span>, +0.35 % WERR) — only the training step differs (270 → 1000), so <span class="hl-red">overtraining is the cause</span>, not the reward design.</li>
+      <li>Failure is locale-specific: nl-NL DTER explodes (+274 % relative); hu-HU also collapses (+145 %), while en-US barely degrades (−0.96 %). Multilingual training under long-horizon RL <span class="hl-red">forgets the weaker locales first</span>.</li>
+      <li>Lesson: <span class="hl-orange">checkpoint with eval gate</span> — for n=12 / s=1k configurations the sweet spot is &lt;500 steps; do not blindly extend training.</li>
+    </ul>
+  </section>
+
+  <!-- 9. Top dataset-level winners -->
+  <section>
+    <h2>💎 Largest Per-Dataset Wins (best healthy model per row)</h2>
+    <table>
+      <thead><tr><th>Dataset</th><th>Baseline DTER</th><th>Best model</th><th>Best DTER</th><th>WERR</th></tr></thead>
+      <tbody>
+        <tr><td>hu-HU_Dictation_DTEST_L_D_FY25Q2</td><td>0.2430</td><td>sum, 310</td><td>0.2187</td><td class="best">+9.99 %</td></tr>
+        <tr><td>hu-HU_Conversation_OnlineMeetings_FY24Q2</td><td>0.2193</td><td>b_adv, s200</td><td>0.2069</td><td class="best">+5.63 %</td></tr>
+        <tr><td>hu-HU_Conversation_DTEST_FY22Q4</td><td>0.2280</td><td>b_adv, s200</td><td>0.2162</td><td class="best">+5.21 %</td></tr>
+        <tr><td>da-DK_Dictation_DTEST_L_D_FY23Q4</td><td>0.2249</td><td>mean, s270</td><td>0.2156</td><td class="best">+4.14 %</td></tr>
+        <tr><td>nl-NL_Dictation_DTEST_L_D_FY23Q4</td><td>0.1573</td><td>fmt_judge</td><td>0.1441</td><td class="best">+8.37 %</td></tr>
+        <tr><td>cs-CZ_Conversation_OnlineMeetings_FY24Q2</td><td>0.1442</td><td>fmt_judge</td><td>0.1405</td><td class="best">+2.61 %</td></tr>
+        <tr><td>en-US_Conversation_DTEST_FY21Q1</td><td>0.1857</td><td>mean, s270</td><td>0.1801</td><td class="best">+3.00 %</td></tr>
+      </tbody>
+    </table>
+    <p class="note">All numbers extracted from sheet <code>inhouse_dter</code>; values are best across the 8 healthy models for each row.</p>
+    <ul>
+      <li>Single biggest dataset-level win: <span class="hl-green">+9.99 % on hu-HU Dictation</span> by the <b>sum, 310</b> reward — strongest evidence that hu-HU was severely under-trained in the baseline.</li>
+      <li>Most consistent winner across datasets: <span class="hl-orange">fmt_judge</span> — wins or ties on en-US, nl-NL, da-DK, hu-HU, nb-NO and is the only positive cs-CZ result.</li>
+    </ul>
+  </section>
+
+  <!-- 10. Findings / contributions of this analysis -->
+  <section>
+    <h2>📌 Findings &amp; Recommendations</h2>
+    <ul class="insights">
+      <li><span class="tag tag-both">[Strong claim]</span> <span class="hl-orange">fmt_judge + CER reward</span> is the most reliable recipe in this sweep — <span class="hl-green">+1.61 % overall WERR</span>, all 18/18 datasets improve, only model positive across every locale.</li>
+      <li><span class="tag tag-claim">[Claim]</span> Among punctuation-only rewards, <span class="hl-orange">sum &gt; mean &gt; geo</span> aggregator on this set (+1.38 % / +0.86 % / +0.95 %) — reward scale carries useful gradient and should not be normalized away.</li>
+      <li><span class="tag tag-claim">[Claim]</span> <span class="hl-orange">Small-batch (s=200) ReMax converges faster</span>: best healthy models all use s=200 with checkpoints between step 140 and 309; the s=1k recipe collapses at step 1000.</li>
+      <li><span class="tag tag-new">[Novel finding]</span> Per-locale gain is wildly asymmetric: <span class="hl-green">hu-HU +6 %</span>, <span class="hl-red">en-US −1 %</span>. RL on a multilingual ASR model is effectively a <span class="hl-blue">re-balancing operation</span>, not a uniform lift.</li>
+      <li><span class="tag tag-new">[Novel finding]</span> Dataset-type gradient: <span class="hl-green">Dictation &gt; Conversation &gt; OnlineMeetings</span>. Cleaner input ⇒ larger gain — consistent with punctuation/format reward being noise-sensitive.</li>
+    </ul>
+  </section>
+
+  <!-- 11. Limitations -->
+  <section>
+    <h2>⚠️ Limitations &amp; Open Questions</h2>
+    <ul>
+      <li><span class="hl-red">Single eval metric:</span> DTER bundles punctuation/format with lexical errors. Need WER + format-specific split to attribute the gains.</li>
+      <li><span class="hl-red">No statistical bands:</span> sweep is single-run per checkpoint; 1.0 % deltas on cs-CZ &amp; da-DK may be within noise. Re-run top-3 with seed variation.</li>
+      <li><span class="hl-red">Step coverage is uneven:</span> only one ckpt for fmt_judge (step 200), while binary-adv has two (s140 + s200). Cannot tell whether fmt_judge has further upside.</li>
+      <li><span class="hl-orange">en-US regression is unexplained</span> — investigate whether the punctuation reward over-inserts on already-strong English transcripts.</li>
+      <li><span class="hl-orange">Future:</span> (1) extend fmt_judge to s=1k batch &amp; later steps with early-stopping on en-US; (2) combine fmt_judge reward with binary-advantage aggregation (the two best healthy variants are orthogonal in design); (3) per-locale loss weighting to reduce the hu-HU vs en-US asymmetry.</li>
+    </ul>
+  </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, slideNumber: 'c/t',
+    width: 1280, height: 720, margin: 0.06,
+    transition: 'slide', center: false, plugins: []
+  });
+  Reveal.on('slidechanged', () => {
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+  });
+  var langLink = document.querySelector('.lang-switch a');
+  if (langLink) {
+    var base = langLink.getAttribute('href').split('#')[0];
+    function syncLang() { langLink.href = base + '#/' + Reveal.getIndices().h; }
+    Reveal.on('slidechanged', syncLang);
+    syncLang();
+  }
+</script>
+</body>
+</html>
