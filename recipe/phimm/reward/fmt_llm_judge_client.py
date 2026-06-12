@@ -74,6 +74,7 @@ def query_server(messages: list[dict], server: str, model: str, temperature: flo
         "messages": messages,
         "temperature": temperature,
         "max_tokens": 1024,
+        "chat_template_kwargs": {"enable_thinking": False},
     }
     resp = requests.post(url, json=payload, timeout=120)
     resp.raise_for_status()
