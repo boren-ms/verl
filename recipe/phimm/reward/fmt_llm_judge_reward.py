@@ -152,8 +152,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
     extra_info = kwargs.get("extra_info") or {}
     greedy_hyp = extra_info.get("greedy_hyp")
     assert greedy_hyp, (
-        "greedy_hyp must be provided in extra_info['greedy_hyp']. "
-        "Ensure the ReMax greedy baseline rollout populates this field."
+        f"greedy_hyp must be provided in extra_info['greedy_hyp']. "
+        f"Got keys: {list(extra_info.keys())}, kwargs keys: {list(kwargs.keys())}"
     )
 
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)

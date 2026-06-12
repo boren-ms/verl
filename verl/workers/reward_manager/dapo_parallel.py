@@ -1,0 +1,192 @@
+# Copyright 2024 Bytedance Ltd. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+
+import torch
+
+from verl import DataProto
+from verl.utils.reward_score import default_compute_score
+from verl.workers.reward_manager import register
+from verl.workers.reward_manager.abstract import AbstractRewardManager
+
+
+@register("dapo_parallel")
+class DAPOParallelRewardManager(AbstractRewardManager):
+    """Parallel variant of :class:`DAPORewardManager`.
+
+    Identical scoring/printing semantics (overlong buffer penalty,
+    ``skip_examine``, ``reward_baselines`` print, EOS stripping,
+    ``extra_info`` round-trip), but the per-sample ``compute_score``
+    calls are dispatched concurrently via a thread pool.
+
+    Use when ``compute_score`` is dominated by I/O-bound long calls
+    (e.g. HTTP requests to an LLM judge server).
+    """
+
+    def __init__(
+        self,
+        tokenizer,
+        num_examine,
+        compute_score=None,
+        reward_fn_key="data_source",
+        max_resp_len=None,
+        overlong_buffer_cfg=None,
+        num_workers: int = 32,
+    ) -> None:
+        self.tokenizer = tokenizer
+        self.num_examine = num_examine
+        self.compute_score = compute_score or default_compute_score
+        self.reward_fn_key = reward_fn_key
+        self.overlong_buffer_cfg = overlong_buffer_cfg
+        self.max_resp_len = max_resp_len
+        self.num_workers = max(1, int(num_workers))
+
+        if self.overlong_buffer_cfg is not None:
+            assert self.max_resp_len is not None, (
+                f"max_resp_len must be provided if {overlong_buffer_cfg=}, but got None"
+            )
+            assert self.max_resp_len >= self.overlong_buffer_cfg.len, (
+                "max_resp_len must be larger than overlong_buffer.len"
+            )
+
+    def _prepare_item(self, data_item):
+        prompt_ids = data_item.batch["prompts"]
+        prompt_length = prompt_ids.shape[-1]
+
+        valid_prompt_length = data_item.batch["attention_mask"][:prompt_length].sum()
+        valid_prompt_ids = prompt_ids[-valid_prompt_length:]
+
+        response_ids = data_item.batch["responses"]
+        valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
+        valid_response_ids = response_ids[:valid_response_length]
+
+        prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=True)
+        response_str = self.tokenizer.decode(valid_response_ids, skip_special_tokens=True)
+        eos_token = self.tokenizer.eos_token
+        if eos_token and response_str.endswith(eos_token):
+            response_str = response_str[: -len(eos_token)]
+
+        ground_truth = data_item.non_tensor_batch["reward_model"]["ground_truth"]
+        data_source = data_item.non_tensor_batch[self.reward_fn_key]
+        extra_info = data_item.non_tensor_batch.get("extra_info", None)
+        skip_examine = data_item.meta_info.get("skip_examine", False)
+        score_baseline = (
+            data_item.batch["reward_baselines"].item() if "reward_baselines" in data_item.batch else None
+        )
+
+        return {
+            "prompt_str": prompt_str,
+            "response_str": response_str,
+            "ground_truth": ground_truth,
+            "data_source": data_source,
+            "extra_info": extra_info,
+            "skip_examine": skip_examine,
+            "score_baseline": score_baseline,
+            "valid_response_length": int(valid_response_length),
+        }
+
+    def __call__(self, data: DataProto, return_dict: bool = False):
+        if "rm_scores" in data.batch.keys():
+            if return_dict:
+                reward_extra_keys = data.meta_info.get("reward_extra_keys", [])
+                reward_extra_info = {key: data.non_tensor_batch[key] for key in reward_extra_keys}
+                return {"reward_tensor": data.batch["rm_scores"], "reward_extra_info": reward_extra_info}
+            else:
+                return data.batch["rm_scores"]
+
+        reward_tensor = torch.zeros_like(data.batch["responses"], dtype=torch.float32)
+        reward_extra_info: dict[str, list] = defaultdict(list)
+
+        # Pre-decode and gather per-sample inputs serially (cheap, tokenizer calls).
+        items = [self._prepare_item(data[i]) for i in range(len(data))]
+
+        def _score_one(item):
+            return self.compute_score(
+                data_source=item["data_source"],
+                solution_str=item["response_str"],
+                ground_truth=item["ground_truth"],
+                extra_info=item["extra_info"],
+            )
+
+        n = len(items)
+        if n == 0:
+            results: list = []
+        else:
+            workers = min(self.num_workers, n)
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                results = list(pool.map(_score_one, items))
+
+        already_print_data_sources: dict = {}
+
+        for i, (item, result) in enumerate(zip(items, results, strict=True)):
+            extra_info = item["extra_info"]
+            # Mirror DAPORewardManager: merge any extra_info returned by the score fn.
+            if isinstance(result, dict) and extra_info is not None:
+                extra_info.update(result.pop("extra_info", {}))
+
+            if isinstance(result, dict):
+                score = result["score"]
+                for key, value in result.items():
+                    reward_extra_info[key].append(value)
+            else:
+                score = result
+                reward_extra_info["acc"].append(score)
+
+            reward = score
+            valid_response_length = item["valid_response_length"]
+
+            if self.overlong_buffer_cfg is not None and self.overlong_buffer_cfg.enable:
+                overlong_buffer_len = self.overlong_buffer_cfg.len
+                expected_len = self.max_resp_len - overlong_buffer_len
+                exceed_len = valid_response_length - expected_len
+                overlong_penalty_factor = self.overlong_buffer_cfg.penalty_factor
+                overlong_reward = min(-exceed_len / overlong_buffer_len * overlong_penalty_factor, 0)
+                reward += overlong_reward
+                if self.overlong_buffer_cfg.log:
+                    reward_extra_info["overlong_reward"].append(overlong_reward)
+                    reward_extra_info["overlong"].append(overlong_reward < 0)
+
+            reward_tensor[i, valid_response_length - 1] = reward
+
+            data_source = item["data_source"]
+            if data_source not in already_print_data_sources:
+                already_print_data_sources[data_source] = 0
+
+            if already_print_data_sources[data_source] < self.num_examine and not item["skip_examine"]:
+                already_print_data_sources[data_source] += 1
+                pfx = f"[{already_print_data_sources[data_source]}]"
+                print(f"======{pfx}=====")
+                print(f"{pfx}[prompt]", item["prompt_str"])
+                if extra_info:
+                    for _k, _v in extra_info.items():
+                        print(f"{pfx}[{_k}]", _v)
+                print(f"{pfx}[ground_truth]", item["ground_truth"])
+                print(f"{pfx}[response]", item["response_str"])
+                scores = [f"score_baseline={item['score_baseline']}"]
+                if isinstance(result, dict):
+                    for key, value in result.items():
+                        scores.append(f"{key}={value}")
+                else:
+                    scores.append(f"score={score}")
+                print(pfx, "; ".join(scores))
+
+        if return_dict:
+            return {
+                "reward_tensor": reward_tensor,
+                "reward_extra_info": reward_extra_info,
+            }
+        else:
+            return reward_tensor
