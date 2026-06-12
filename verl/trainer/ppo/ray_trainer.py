@@ -1094,6 +1094,7 @@ class RayPPOTrainer:
                     if self.config.algorithm.adv_estimator == AdvantageEstimator.REMAX:
                         if self.reward_fn is None:
                             raise ValueError("A reward_fn is required for REMAX advantage estimation.")
+                        greedy_hyps = None
 
                         with marked_timer("gen_max", timing_raw, color="purple"):
                             gen_baseline_batch = deepcopy(gen_batch)
@@ -1103,12 +1104,10 @@ class RayPPOTrainer:
                             else:
                                 gen_baseline_output = self.async_rollout_manager.generate_sequences(gen_baseline_batch)
                             batch = batch.union(gen_baseline_output)
-                            reward_baseline_tensor = self.reward_fn(batch)
-                            reward_baseline_tensor = reward_baseline_tensor.sum(dim=-1)
 
                             # Decode greedy baseline responses and store in extra_info
-                            # so downstream reward functions (e.g. fmt_llm_judge_reward)
-                            # can use them as comparison baselines.
+                            # BEFORE computing rewards, so downstream reward functions
+                            # (e.g. fmt_llm_judge_reward) can use them as comparison baselines.
                             greedy_responses = gen_baseline_output.batch["responses"]
                             greedy_hyps = self.tokenizer.batch_decode(greedy_responses, skip_special_tokens=True)
                             if "extra_info" not in batch.non_tensor_batch:
@@ -1119,6 +1118,9 @@ class RayPPOTrainer:
                                     ei["greedy_hyp"] = hyp
                                 else:
                                     batch.non_tensor_batch["extra_info"][i] = {"greedy_hyp": hyp}
+
+                            reward_baseline_tensor = self.reward_fn(batch)
+                            reward_baseline_tensor = reward_baseline_tensor.sum(dim=-1)
 
                             batch.pop(batch_keys=list(gen_baseline_output.batch.keys()))
 
@@ -1156,6 +1158,19 @@ class RayPPOTrainer:
                     batch.meta_info["global_token_num"] = torch.sum(batch.batch["attention_mask"], dim=-1).tolist()
 
                     with marked_timer("reward", timing_raw, color="yellow"):
+                        # Ensure greedy_hyp is in extra_info for the main reward computation.
+                        # It may have been overwritten by batch.union(gen_batch_output) above.
+                        if self.config.algorithm.adv_estimator == AdvantageEstimator.REMAX and greedy_hyps is not None:
+                            if "extra_info" not in batch.non_tensor_batch:
+                                batch.non_tensor_batch["extra_info"] = [{} for _ in range(len(batch))]
+                            n_rollout = self.config.actor_rollout_ref.rollout.n
+                            for i in range(len(batch)):
+                                ei = batch.non_tensor_batch["extra_info"][i]
+                                if not isinstance(ei, dict):
+                                    ei = {}
+                                    batch.non_tensor_batch["extra_info"][i] = ei
+                                ei["greedy_hyp"] = greedy_hyps[i // n_rollout]
+
                         # compute reward model score
                         if self.use_rm and "rm_scores" not in batch.batch.keys():
                             reward_tensor = self.rm_wg.compute_rm_score(batch)
