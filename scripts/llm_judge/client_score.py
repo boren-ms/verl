@@ -46,6 +46,8 @@ If the target is better than the baseline, score higher; if worse, score lower; 
 
 You MUST respond with ONLY a JSON object in this exact format (no other text):
 {"punc": <1-5>, "cap": <1-5>, "digital": <1-5>}
+
+IMPORTANT: Do NOT include any thinking, explanation, or analysis. Output ONLY the JSON object, nothing else.
 """
 
 USER_TEMPLATE = """\
@@ -68,7 +70,7 @@ def query_server(messages: list[dict], server: str, model: str, temperature: flo
         "model": model,
         "messages": messages,
         "temperature": temperature,
-        "max_tokens": 64,
+        "max_tokens": 1024,
     }
     resp = requests.post(url, json=payload, timeout=120)
     resp.raise_for_status()
@@ -77,24 +79,27 @@ def query_server(messages: list[dict], server: str, model: str, temperature: flo
 
 
 def parse_scores(raw: str) -> dict:
-    """Parse JSON scores from LLM response. Handles markdown code blocks."""
+    """Parse JSON scores from LLM response. Handles thinking blocks, markdown fences."""
     # Strip markdown code fences if present
     cleaned = re.sub(r"```(?:json)?\s*", "", raw).strip().rstrip("`")
-    # Find JSON object
-    match = re.search(r"\{[^}]+\}", cleaned)
-    if not match:
-        raise ValueError(f"Could not parse JSON from response: {raw!r}")
-    obj = json.loads(match.group())
-    scores = {
-        "punc": int(obj["punc"]),
-        "cap": int(obj["cap"]),
-        "digital": int(obj["digital"]),
-    }
-    # Validate range
-    for k, v in scores.items():
-        if not 1 <= v <= 5:
-            raise ValueError(f"Score {k}={v} out of range [1,5]")
-    return scores
+    # Find JSON object containing our keys anywhere in the response
+    # This handles cases where the model outputs thinking text before JSON
+    for match in re.finditer(r"\{[^}]*\}", cleaned):
+        try:
+            obj = json.loads(match.group())
+            if "punc" in obj and "cap" in obj and "digital" in obj:
+                scores = {
+                    "punc": int(obj["punc"]),
+                    "cap": int(obj["cap"]),
+                    "digital": int(obj["digital"]),
+                }
+                for k, v in scores.items():
+                    if not 1 <= v <= 5:
+                        raise ValueError(f"Score {k}={v} out of range [1,5]")
+                return scores
+        except (json.JSONDecodeError, KeyError, ValueError):
+            continue
+    raise ValueError(f"Could not parse JSON scores from response: {raw!r}")
 
 
 def score_single(baseline: str, hypothesis: str, server: str, model: str) -> dict:
