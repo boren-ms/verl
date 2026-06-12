@@ -76,11 +76,9 @@ def judge_fmt(hyp_text: str, baseline: str, server: str, model: str) -> dict:
     """
     scores = {"punc": 2, "cap": 2, "digital": 2}
     if hyp_text and baseline:
-        try:
-            scores = query_judge(baseline, hyp_text, server, model)
-        except Exception as e:
-            import sys
-            print(f"[fmt_llm_judge] Judge query failed: {e}", file=sys.stderr)
+        import sys
+        print(f"[fmt_llm_judge] Querying judge: server={server} model={model}", file=sys.stderr)
+        scores = query_judge(baseline, hyp_text, server, model)
 
     return {
         "punc": (scores["punc"] - 1) / 2.0,

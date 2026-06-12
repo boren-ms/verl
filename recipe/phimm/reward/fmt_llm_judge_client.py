@@ -14,6 +14,7 @@ import json
 import re
 
 import requests
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 
 # ---------------------------------------------------------------------------
@@ -106,10 +107,17 @@ def parse_scores(raw: str) -> dict:
     raise ValueError(f"Could not parse JSON scores from response: {raw!r}")
 
 
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, max=16),
+    retry=retry_if_exception_type((requests.RequestException, ValueError)),
+    reraise=True,
+)
 def query_judge(baseline: str, hypothesis: str, server: str, model: str) -> dict:
     """Query the LLM judge server and return {punc, cap, digital} scores (1-3).
 
     Scores: 3 = better than baseline, 2 = similar, 1 = worse.
+    Retries up to 5 times with exponential backoff on request/parse failures.
     """
     messages = build_messages(baseline, hypothesis)
     raw = query_server(messages, server, model)
