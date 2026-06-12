@@ -20,9 +20,5 @@ python -m vllm.entrypoints.openai.api_server \
     --max-model-len 8192 \
     --trust-remote-code \
     --dtype bfloat16 \
-    --kv-cache-dtype fp8_e5m2 \
-    --gpu-memory-utilization 0.95 \
-    --max-num-seqs 256 \
-    --enable-chunked-prefill \
-    --enable-prefix-caching \
+    --gpu-memory-utilization 0.9 \
     --served-model-name Qwen3.5-35B-A3B
