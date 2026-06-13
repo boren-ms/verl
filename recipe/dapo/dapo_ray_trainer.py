@@ -144,13 +144,32 @@ class RayDAPOTrainer(RayPPOTrainer):
                         timing_raw.update(gen_batch_output.meta_info["timing"])
                         gen_batch_output.meta_info.pop("timing", None)
 
+                    greedy_hyps = None
                     if self.config.algorithm.adv_estimator == AdvantageEstimator.REMAX:
                         with marked_timer("gen_max", timing_raw, "red"):
                             gen_baseline_batch = deepcopy(gen_batch)
                             gen_baseline_batch.meta_info["validate"] = True
                             gen_baseline_output = self.actor_rollout_wg.generate_sequences(gen_baseline_batch)
-                            # breakpoint()
+
+                            # Decode greedy baseline responses and inject into extra_info
+                            # so downstream reward functions (e.g. fmt_llm_judge_reward) can
+                            # use them as comparison baselines.
+                            greedy_responses = gen_baseline_output.batch["responses"]
+                            greedy_hyps = self.tokenizer.batch_decode(greedy_responses, skip_special_tokens=True)
+
                             new_batch = new_batch.union(gen_baseline_output)
+
+                            if "extra_info" not in new_batch.non_tensor_batch:
+                                new_batch.non_tensor_batch["extra_info"] = np.array(
+                                    [{} for _ in range(len(new_batch))], dtype=object
+                                )
+                            for i, hyp in enumerate(greedy_hyps):
+                                ei = new_batch.non_tensor_batch["extra_info"][i]
+                                if isinstance(ei, dict):
+                                    ei["greedy_hyp"] = hyp
+                                else:
+                                    new_batch.non_tensor_batch["extra_info"][i] = {"greedy_hyp": hyp}
+
                             new_batch.meta_info["skip_examine"] = True
                             reward_baseline_tensor = self.reward_fn(new_batch)
                             new_batch.meta_info.pop("skip_examine", None)
@@ -170,6 +189,21 @@ class RayDAPOTrainer(RayPPOTrainer):
                     new_batch = new_batch.union(gen_batch_output)
 
                     with marked_timer("reward", timing_raw, "yellow"):
+                        # Re-inject greedy_hyp into extra_info after repeat+union
+                        # (repeat creates new arrays, union may overwrite non_tensor_batch).
+                        if greedy_hyps is not None:
+                            n_rollout = self.config.actor_rollout_ref.rollout.n
+                            if "extra_info" not in new_batch.non_tensor_batch:
+                                new_batch.non_tensor_batch["extra_info"] = np.array(
+                                    [{} for _ in range(len(new_batch))], dtype=object
+                                )
+                            for i in range(len(new_batch)):
+                                ei = new_batch.non_tensor_batch["extra_info"][i]
+                                if not isinstance(ei, dict):
+                                    ei = {}
+                                    new_batch.non_tensor_batch["extra_info"][i] = ei
+                                ei["greedy_hyp"] = greedy_hyps[i // n_rollout]
+
                         # compute scores. Support both model and function-based.
                         # We first compute the scores using reward model. Then, we call reward_fn to combine
                         # the results from reward model and rule-based results.
