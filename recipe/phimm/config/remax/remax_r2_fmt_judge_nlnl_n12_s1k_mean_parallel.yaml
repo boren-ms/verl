@@ -5,8 +5,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/qwen_en_hc_punc_p0_7_plus_nlnl_hc_punc
-  - data/val_data/enus_conv_fy21q1_seg
+  - data/train_data/nlnl_hc_fy23q2_punc
+  - data/val_data/nlnl_conv_fy23q2
   - _self_
 
 custom_reward_function:
@@ -62,7 +62,7 @@ data:
 trainer:
   nnodes: 1
   total_epochs: 1
-  total_training_steps: 200
+  total_training_steps: 1000
   test_freq: 10
   save_freq: 10
   val_before_train: true
