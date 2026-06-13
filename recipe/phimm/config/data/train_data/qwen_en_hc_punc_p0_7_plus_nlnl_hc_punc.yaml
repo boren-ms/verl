@@ -1,0 +1,42 @@
+# Mixed training data: en-US HC (punc-scored) + nl-NL HC (punc-scored)
+# Combines qwen_en_hc_200k_entity_fy24q3p2_punc_p0_7 and nlnl_hc_fy23q2_punc.
+
+# en-US HC 200k entity FY24Q3p2 — punc scores (p>=0.7)
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00000-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00001-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00002-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00003-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00004-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00005-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00006-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00007-of-00116.jsonl
+  add_task_info:
+    task: lang_asr
+  post_process:
+    rename_fields:
+      mappings:
+        text: punc_refined
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
+
+# nl-NL HC FY23Q2 — punc scores
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached/nlnl_hc_fy23q2/punc.jsonl
+  add_task_info:
+    task: lang_asr
+    language: Dutch
+  post_process:
+    rename_fields:
+      mappings:
+        text: punc_refined
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
