@@ -37,6 +37,49 @@ except ImportError:  # pragma: no cover
     from torch.distributed._tensor import DTensor
 
 
+def _install_torch_compat_shims():
+    """Stub modules/classes that torch>=2.7 pickles but torch 2.6 lacks."""
+    import importlib
+    import sys
+    import types
+
+    # 1. torch.distributed._mesh_layout._MeshLayout
+    mod_name = "torch.distributed._mesh_layout"
+    if mod_name not in sys.modules:
+        mod = types.ModuleType(mod_name)
+
+        class _MeshLayout:
+            def __init__(self, *args, **kwargs):
+                pass
+
+        mod._MeshLayout = _MeshLayout
+        sys.modules[mod_name] = mod
+
+    # 2. torch.distributed.tensor._dtensor_spec.ShardOrderEntry
+    spec_name = "torch.distributed.tensor._dtensor_spec"
+    spec_mod = sys.modules.get(spec_name) or importlib.import_module(spec_name)
+    if not hasattr(spec_mod, "ShardOrderEntry"):
+
+        class ShardOrderEntry:
+            def __init__(self, *args, **kwargs):
+                pass
+
+        spec_mod.ShardOrderEntry = ShardOrderEntry
+
+    # 3. DeviceMesh.mesh_dim_names property (only _mesh_dim_names exists in 2.6)
+    from torch.distributed.device_mesh import DeviceMesh
+
+    if not hasattr(DeviceMesh, "mesh_dim_names") or not isinstance(
+        getattr(DeviceMesh, "mesh_dim_names", None), property
+    ):
+        DeviceMesh.mesh_dim_names = property(
+            lambda self: getattr(self, "_mesh_dim_names", None)
+        )
+
+
+_install_torch_compat_shims()
+
+
 SHARD_RE = re.compile(r"model_world_size_(\d+)_rank_(\d+)\.pt$")
 
 
