@@ -105,7 +105,12 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     # LLM judge formatting scores
     server = kwargs.get("server", "http://verl-n1-i5-0:8000")
     model = kwargs.get("model", "Qwen3.5-35B-A3B")
-    baseline = extra_info.get("greedy_hyp") or ground_truth
+    baseline_raw = extra_info.get("greedy_hyp")
+    if baseline_raw:
+        baseline_dict = parse_asr_response(str(baseline_raw))
+        baseline = (baseline_dict.get("text") or "").strip()
+    else:
+        baseline = (ground_truth or "").strip()
 
     if is_nonspeech:
         fmt_scores = {"punc": 0.5, "cap": 0.5, "digital": 0.5}
