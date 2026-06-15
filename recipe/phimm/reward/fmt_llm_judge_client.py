@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -78,27 +77,10 @@ def query_server(messages: list[dict], server: str, model: str, temperature: flo
         "max_tokens": 1024,
         "chat_template_kwargs": {"enable_thinking": False},
     }
-    print(
-        "[fmt_llm_judge_client] Request URL: " + url,
-        file=sys.stderr,
-    )
-    print(
-        "[fmt_llm_judge_client] Full request payload: "
-        + json.dumps(payload, ensure_ascii=False, indent=2),
-        file=sys.stderr,
-    )
     resp = requests.post(url, json=payload, timeout=120)
-    print(
-        "[fmt_llm_judge_client] Raw HTTP response body: " + resp.text,
-        file=sys.stderr,
-    )
     resp.raise_for_status()
     data = resp.json()
     content = data["choices"][0]["message"]["content"]
-    print(
-        "[fmt_llm_judge_client] Parsed response content: " + str(content),
-        file=sys.stderr,
-    )
     return content
 
 
