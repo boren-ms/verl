@@ -1,6 +1,6 @@
 ---
 name: inhouse-dter-html
-description: Turn an in-house DTER xlsx comparison report (sheets `inhouse_dter` + `overall_improve_degrade`, produced by the `inhouse-dter-report` skill) into a self-contained Chart.js HTML visualization. Use when summarizing an inhouse-DTER xlsx as bar charts, generating a single-file HTML report next to the xlsx, showing per-locale DTER averages plus per-dataset WERR deltas vs baseline, and rendering the overall improve/degrade ranking with full data tables. Triggers "html report for inhouse xlsx", "use chart for inhouse_dter", "visualize DTER report", "chart-based dter report".
+description: Turn an in-house DTER xlsx comparison report (sheets `inhouse_dter` + `overall_improve_degrade`, produced by the `inhouse-dter-report` skill) into a self-contained Chart.js HTML visualization. Use when summarizing an inhouse-DTER xlsx as bar charts, generating a single-file HTML report next to the xlsx, showing per-locale WERR averages plus per-dataset WERR deltas vs baseline, and rendering the overall improve/degrade ranking with full data tables. Triggers "html report for inhouse xlsx", "use chart for inhouse_dter", "visualize DTER report", "chart-based dter report".
 argument-hint: '<path-to-xlsx> [--out <path-to-html>] [--baseline-label <name>] [--title <text>]'
 ---
 
@@ -75,10 +75,10 @@ Write a single self-contained file using **Chart.js 4 from CDN** (`https://cdn.j
    - Meta line: source xlsx path, baseline label, dataset count, locale count.
    - **TL;DR box** (`background:#f0f9ff; border-left:4px solid #1a6fb5`) summarizing in 2–3 lines: best model, overall WERR, and best/worst locale behavior. Use `.hl-green` for gains, `.hl-red` for regressions, `.hl-orange` for method/checkpoint names.
 
-2. **Section 1 — Per-locale DTER averages**
-   - Bar chart with grouped bars per locale: baseline DTER vs model DTER.
-   - Y axis is percent and should auto-range (chart-specific min/max).
-   - Show bar value labels in `.2%` format.
+2. **Section 1 — Per-locale WERR averages**
+   - Bar chart with grouped bars per locale: one bar per model showing WERR (Word Error Rate Reduction).
+   - Y axis is percent (signed, can be positive or negative) and should auto-range (chart-specific min/max).
+   - Show bar value labels in `.2%` format with sign indicator.
 
 3. **Section 2 — Dataset WERR Delta Vs Baseline (Pre-Locale Charts)**
    - Bar chart over all datasets, ordered locale-by-locale.

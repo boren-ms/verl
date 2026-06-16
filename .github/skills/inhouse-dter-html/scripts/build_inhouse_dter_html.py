@@ -69,7 +69,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
     </header>
 
     <section>
-      <h2>Section 1 - Per-locale DTER averages</h2>
+      <h2>Section 1 - Per-locale WERR averages</h2>
       <div class="chart-box tall"><canvas id="locale-dter-chart"></canvas></div>
     </section>
 
@@ -302,23 +302,18 @@ function buildHeader() {
   ].filter(Boolean).join('<br>');
 }
 
-function buildLocaleDterChart() {
+function buildLocaleWerrChart() {
   const labels = DATA.lang_order;
   const chartDatasets = [];
-  chartDatasets.push({
-    label: DATA.baseline_label,
-    data: labels.map((lang) => DATA.lang_avgs[lang].dter[0]),
-    backgroundColor: '#1a6fb5',
-  });
   DATA.models.forEach((model, idx) => {
     chartDatasets.push({
       label: model,
-      data: labels.map((lang) => DATA.lang_avgs[lang].dter[idx + 1]),
-      backgroundColor: colorCycle(idx + 1),
+      data: labels.map((lang) => DATA.lang_avgs[lang].werr[idx]),
+      backgroundColor: labels.map((lang) => colorForLang(lang)),
     });
   });
   const allVals = chartDatasets.flatMap((d) => d.data);
-  const range = seriesRange(allVals, { clamp01: true });
+  const range = seriesRange(allVals, { includeZero: true });
 
   new Chart(document.getElementById('locale-dter-chart'), {
     type: 'bar',
@@ -329,10 +324,15 @@ function buildLocaleDterChart() {
         legend: { position: 'top' },
       },
       scales: {
+        x: {
+          ticks: { 
+            color: (context) => colorForLang(labels[context.index])
+          }
+        },
         y: {
           min: range.min,
           max: range.max,
-          ticks: { callback: (v) => (v * 100).toFixed(2) + '%' }
+          ticks: { callback: (v) => (v >= 0 ? '+' : '') + (v * 100).toFixed(2) + '%' }
         }
       }
     },
@@ -454,7 +454,7 @@ function buildTakeaways() {
 }
 
 buildHeader();
-buildLocaleDterChart();
+buildLocaleWerrChart();
 buildDatasetWerrChart();
 buildRankingTable();
 buildDataTables();
