@@ -25,6 +25,15 @@ Optional:
 
 If only an xlsx path is given, infer everything and proceed.
 
+Run-specific target for this request:
+- Input xlsx: `tmp/inhouse_dter_report/remax_r2_punc_p0_7_n12_s200_mean_step200_all_seg.xlsx`
+- Output html: `tmp/inhouse_dter_report/remax_r2_punc_p0_7_n12_s200_mean_step200_all_seg.html`
+- Example: `python .github/skills/inhouse-dter-html/scripts/build_inhouse_dter_html.py tmp/inhouse_dter_report/remax_r2_punc_p0_7_n12_s200_mean_step200_all_seg.xlsx --out tmp/inhouse_dter_report/remax_r2_punc_p0_7_n12_s200_mean_step200_all_seg.html`
+
+Visual parity target:
+- When this run-specific target is used, generate an html with the same layout style and section ordering as `tmp/inhouse_dter_report/remax_r2_punc_p0_7_n12_s200_mean_step200_all_seg.html` (header + TL;DR, Section 1..5 charts/tables/takeaways).
+- Keep the page self-contained and preserve the same CSS theme tokens and Chart.js CDN usage from this skill.
+
 ## XLSX Schema Expected
 
 Sheet `inhouse_dter`:

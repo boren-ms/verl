@@ -6,28 +6,13 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from openpyxl import load_workbook
 
 
 HEADER_ROW = 2
-COLUMN_ROW = 3
 DATA_START = 4
-LANG_COLORS = {
-    "en-US": "#16a34a",
-    "nl-NL": "#dc2626",
-    "da-DK": "#d97706",
-    "hu-HU": "#7c3aed",
-    "nb-NO": "#0ea5e9",
-    "cs-CZ": "#be185d",
-    "fr-FR": "#0891b2",
-    "de-DE": "#a16207",
-    "es-ES": "#9333ea",
-    "it-IT": "#65a30d",
-    "ja-JP": "#db2777",
-    "ko-KR": "#0d9488",
-}
 
 
 TEMPLATE = r"""<!DOCTYPE html>
@@ -67,15 +52,10 @@ tr.overall  { background:#dcfce7; font-weight:700; }
 .tag-improve { background:#dcfce7; color:#15803d; }
 .tag-degrade { background:#fee2e2; color:#b91c1c; }
 .meta { color:#334155; font-size:13px; line-height:1.7; }
-.two-col { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-.small-multiples { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-.panel { border:1px solid var(--border); border-radius:6px; padding:12px; }
-.panel h3 { margin:0 0 8px; color:#0f172a; font-size:14px; }
 ul.takeaways { margin:0; padding-left:20px; line-height:1.8; }
-.muted { color:#64748b; }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
 @media (max-width: 960px) {
-  .chart-grid, .two-col, .small-multiples { grid-template-columns:1fr; }
+  .chart-grid { grid-template-columns:1fr; }
   body { padding: 16px; }
 }
   </style>
@@ -89,37 +69,28 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
     </header>
 
     <section>
-      <h2>Section 1 — Overall DTER + WERR</h2>
-      <div class="chart-grid">
-        <div class="chart-box"><canvas id="overall-dter-chart"></canvas></div>
-        <div class="chart-box"><canvas id="overall-werr-chart"></canvas></div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Section 2 — Per-locale averages</h2>
+      <h2>Section 1 - Per-locale DTER averages</h2>
       <div class="chart-box tall"><canvas id="locale-dter-chart"></canvas></div>
-      <div class="chart-box tall"><canvas id="locale-werr-chart"></canvas></div>
     </section>
 
     <section>
-      <h2>Section 3 — Per-locale small multiples</h2>
-      <div class="small-multiples" id="small-multiples"></div>
+      <h2>Section 2 - Dataset WERR Delta Vs Baseline (Pre-Locale Charts)</h2>
+      <div class="chart-box tall"><canvas id="dataset-werr-chart"></canvas></div>
     </section>
 
     <section>
-      <h2>Section 4 — Overall improve / degrade ranking table</h2>
+      <h2>Section 3 - Overall improve / degrade ranking table</h2>
       <table id="ranking-table"></table>
     </section>
 
     <section>
-      <h2>Section 5 — Full per-dataset tables</h2>
+      <h2>Section 4 - Full per-dataset tables</h2>
       <div id="dter-table-wrap"></div>
       <div id="werr-table-wrap"></div>
     </section>
 
     <section>
-      <h2>Section 6 — Takeaways</h2>
+      <h2>Section 5 - Takeaways</h2>
       <ul class="takeaways" id="takeaways"></ul>
     </section>
   </div>
@@ -133,8 +104,8 @@ const LANG_COLORS = {
   'fr-FR':'#0891b2', 'de-DE':'#a16207', 'es-ES':'#9333ea',
   'it-IT':'#65a30d', 'ja-JP':'#db2777', 'ko-KR':'#0d9488'
 };
-const fmtPct = v => v == null ? '' : (v * 100).toFixed(2) + '%';
-const fmtSigned = v => v == null ? '' : (v >= 0 ? '+' : '') + (v * 100).toFixed(2) + '%';
+const fmtPct    = v => v == null ? '' : (v*100).toFixed(2) + '%';
+const fmtSigned = v => v == null ? '' : (v >= 0 ? '+' : '') + (v*100).toFixed(2) + '%';
 
 function escapeHtml(value) {
   return String(value)
@@ -149,49 +120,174 @@ function colorForLang(lang) {
   return LANG_COLORS[lang] || '#475569';
 }
 
-function alpha(hex, opacity) {
-  const clean = hex.replace('#', '');
-  const r = Number.parseInt(clean.slice(0, 2), 16);
-  const g = Number.parseInt(clean.slice(2, 4), 16);
-  const b = Number.parseInt(clean.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+function colorCycle(i) {
+  const colors = ['#1a6fb5', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#0891b2', '#9333ea'];
+  return colors[i % colors.length];
 }
 
-function datasetStroke(index) {
-  const cycle = [[], [6, 4], [2, 3], [8, 3], [3, 2, 1, 2]];
-  return cycle[index % cycle.length];
+function shortDatasetName(name, maxLen = 26) {
+  if (!name || typeof name !== 'string') return '';
+  const parts = name.split('_');
+  let shortName = parts.length > 1 ? parts.slice(1).join('_') : name;
+  shortName = shortName
+    .replaceAll('Conversation', 'Conv')
+    .replaceAll('OnlineMeetings', 'OnlineMtg')
+    .replaceAll('Dictation', 'Dict')
+    .replaceAll('Commonset', 'Common')
+    .replaceAll('OfficeOffline', 'OfficeOff');
+  shortName = shortName
+    .replaceAll('_DTEST_', '_')
+    .replaceAll('_FY', '_')
+    .replaceAll('_Q', 'Q')
+    .replaceAll('_L_D_', '_')
+    .replaceAll('_', '-');
+  if (shortName.length > maxLen) {
+    shortName = shortName.slice(0, Math.max(4, maxLen - 3)) + '...';
+  }
+  return shortName;
 }
 
-function localeStats() {
-  return DATA.lang_order.map((lang) => {
-    const avg = DATA.lang_avgs[lang];
-    const werr = avg.werr || [];
-    const best = werr.length ? Math.max(...werr) : null;
-    const worst = werr.length ? Math.min(...werr) : null;
-    const collapseIdx = werr.findIndex((value) => value != null && value < 0);
-    return {
-      lang,
-      best,
-      worst,
-      collapseIdx,
-      collapseStep: collapseIdx >= 0 ? DATA.models[collapseIdx] : null,
-    };
+function displayDatasetName(row) {
+  if (!row || !row.name) return '';
+  if (row.kind !== 'data') return row.name;
+  return shortDatasetName(row.name, 30);
+}
+
+function seriesRange(values, opts = {}) {
+  const { clamp01 = false, includeZero = false } = opts;
+  let lo = Infinity;
+  let hi = -Infinity;
+  values.forEach((v) => {
+    if (v == null) return;
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
   });
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) {
+    return clamp01 ? { min: 0, max: 1 } : { min: -0.05, max: 0.05 };
+  }
+  if (includeZero) {
+    lo = Math.min(lo, 0);
+    hi = Math.max(hi, 0);
+  }
+
+  const span = hi - lo;
+  const pad = Math.max(0.002, span * 0.15, Math.abs(hi) * 0.02, Math.abs(lo) * 0.02);
+  let min = lo - pad;
+  let max = hi + pad;
+
+  if (max <= min) {
+    min -= 0.01;
+    max += 0.01;
+  }
+
+  if (clamp01) {
+    min = Math.max(0, min);
+    max = Math.min(1, max);
+  }
+
+  return {
+    min,
+    max,
+  };
+}
+
+const valueLabelPlugin = {
+  id: 'valueLabelPlugin',
+  afterDatasetsDraw(chart, args, options) {
+    const { ctx, chartArea } = chart;
+    ctx.save();
+    ctx.font = '11px -apple-system, Segoe UI, Helvetica Neue, Arial, sans-serif';
+    ctx.fillStyle = '#334155';
+    ctx.textAlign = 'center';
+    chart.data.datasets.forEach((dataset, dsIdx) => {
+      const meta = chart.getDatasetMeta(dsIdx);
+      if (meta.hidden) return;
+      meta.data.forEach((bar, i) => {
+        const val = dataset.data[i];
+        if (val == null) return;
+        const isPositive = val >= 0;
+        ctx.textBaseline = isPositive ? 'bottom' : 'top';
+        let y = isPositive ? (bar.y - 4) : (bar.y + 4);
+        y = Math.max(chartArea.top + 2, Math.min(chartArea.bottom - 2, y));
+        ctx.fillText(fmtPct(val), bar.x, y);
+      });
+    });
+    ctx.restore();
+  }
+};
+
+const twoLayerTickPlugin = {
+  id: 'twoLayerTickPlugin',
+  afterDraw(chart, args, options) {
+    const datasets = options.datasets || [];
+    if (!datasets.length) return;
+    const { ctx, chartArea, scales } = chart;
+    const x = scales.x;
+    if (!x) return;
+    ctx.save();
+    ctx.textAlign = 'center';
+
+    // Top layer: dataset names colored by locale.
+    ctx.font = '11px -apple-system, Segoe UI, Helvetica Neue, Arial, sans-serif';
+    ctx.textBaseline = 'top';
+    datasets.forEach((row, idx) => {
+      ctx.fillStyle = colorForLang(row.lang);
+      const xp = x.getPixelForValue(idx);
+      const yBase = chartArea.bottom + 10 + ((idx % 2) * 8);
+      ctx.save();
+      ctx.translate(xp, yBase);
+      ctx.rotate(-0.8);
+      ctx.textAlign = 'right';
+      ctx.fillText(shortDatasetName(row.name, 16), 0, 0);
+      ctx.restore();
+    });
+
+    // Bottom layer: locale labels once per contiguous locale group.
+    ctx.font = '700 12px -apple-system, Segoe UI, Helvetica Neue, Arial, sans-serif';
+    ctx.textBaseline = 'top';
+    let i = 0;
+    while (i < datasets.length) {
+      const lang = datasets[i].lang;
+      let j = i;
+      while (j + 1 < datasets.length && datasets[j + 1].lang === lang) {
+        j += 1;
+      }
+      const xStart = x.getPixelForValue(i);
+      const xEnd = x.getPixelForValue(j);
+      const center = (xStart + xEnd) / 2;
+      ctx.fillStyle = colorForLang(lang);
+      ctx.fillText(lang, center, chartArea.bottom + 82);
+      i = j + 1;
+    }
+    ctx.restore();
+  }
+};
+
+function bestModelIndex() {
+  let idx = 0;
+  let best = -Infinity;
+  DATA.overall.werr.forEach((v, i) => {
+    if (v != null && v > best) {
+      best = v;
+      idx = i;
+    }
+  });
+  return idx;
 }
 
 function buildHeader() {
-  const overallWerrs = DATA.overall.werr.filter((value) => value != null);
-  const bestIdx = overallWerrs.reduce((best, value, index, arr) => {
-    return arr[best] > value ? best : index;
-  }, 0);
-  const worstIdx = overallWerrs.reduce((worst, value, index, arr) => {
-    return arr[worst] < value ? worst : index;
-  }, 0);
+  const bestIdx = bestModelIndex();
   const bestModel = DATA.models[bestIdx];
-  const worstModel = DATA.models[worstIdx];
-  const stats = localeStats();
-  const bestLocale = stats.reduce((acc, item) => (acc == null || (item.best ?? -Infinity) > (acc.best ?? -Infinity)) ? item : acc, null);
-  const worstLocale = stats.reduce((acc, item) => (acc == null || (item.worst ?? Infinity) < (acc.worst ?? Infinity)) ? item : acc, null);
+  const bestOverall = DATA.overall.werr[bestIdx];
+  let bestLocale = null;
+  let worstLocale = null;
+  DATA.lang_order.forEach((lang) => {
+    const w = DATA.lang_avgs[lang].werr[bestIdx];
+    if (w == null) return;
+    if (!bestLocale || w > bestLocale.werr) bestLocale = { lang, werr: w };
+    if (!worstLocale || w < worstLocale.werr) worstLocale = { lang, werr: w };
+  });
+
   document.getElementById('report-title').textContent = DATA.title;
   document.getElementById('report-meta').innerHTML = [
     `Source xlsx: <code>${escapeHtml(DATA.source)}</code>`,
@@ -200,162 +296,103 @@ function buildHeader() {
     `Locale count: <strong>${DATA.lang_order.length}</strong>`
   ].join(' · ');
   document.getElementById('report-tldr').innerHTML = [
-    `Best overall model is <span class="hl-orange">${escapeHtml(bestModel)}</span> at <span class="hl-green">${fmtSigned(overallWerrs[bestIdx])}</span> WERR, while the weakest is <span class="hl-orange">${escapeHtml(worstModel)}</span> at <span class="hl-red">${fmtSigned(overallWerrs[worstIdx])}</span>.`,
-    `Overall WERR spans from <span class="hl-red">${fmtSigned(Math.min(...overallWerrs))}</span> to <span class="hl-green">${fmtSigned(Math.max(...overallWerrs))}</span> across ${DATA.models.length} checkpoints/models.`,
-    `${bestLocale ? `Fastest locale gain is <span class="hl-green">${escapeHtml(bestLocale.lang)}</span> at <span class="hl-green">${fmtSigned(bestLocale.best)}</span>` : ''}${bestLocale && worstLocale ? ', ' : ''}${worstLocale ? `and the sharpest collapse is <span class="hl-red">${escapeHtml(worstLocale.lang)}</span> at <span class="hl-red">${fmtSigned(worstLocale.worst)}</span>` : ''}.`
-  ].join('<br>');
+    `Best model is <span class="hl-orange">${escapeHtml(bestModel)}</span> with overall WERR <span class="hl-green">${fmtSigned(bestOverall)}</span>.`,
+    `${bestLocale ? `Best locale behavior at this checkpoint is <span class="hl-green">${escapeHtml(bestLocale.lang)}</span> (<span class="hl-green">${fmtSigned(bestLocale.werr)}</span>).` : ''}`,
+    `${worstLocale ? `Weakest locale behavior is <span class="hl-red">${escapeHtml(worstLocale.lang)}</span> (<span class="hl-red">${fmtSigned(worstLocale.werr)}</span>).` : ''}`
+  ].filter(Boolean).join('<br>');
 }
 
-function makeChart(id, config) {
-  return new Chart(document.getElementById(id), config);
-}
-
-function buildOverallCharts() {
-  const labels = [DATA.baseline_label].concat(DATA.models);
-  makeChart('overall-dter-chart', {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Overall DTER',
-        data: DATA.overall.dter,
-        borderColor: '#1a6fb5',
-        backgroundColor: 'rgba(26,111,181,0.15)',
-        borderWidth: 3,
-        tension: 0.2,
-        fill: false,
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { y: { ticks: { callback: (v) => `${(v * 100).toFixed(0)}%` } } }
-    }
+function buildLocaleDterChart() {
+  const labels = DATA.lang_order;
+  const chartDatasets = [];
+  chartDatasets.push({
+    label: DATA.baseline_label,
+    data: labels.map((lang) => DATA.lang_avgs[lang].dter[0]),
+    backgroundColor: '#1a6fb5',
   });
-  makeChart('overall-werr-chart', {
-    type: 'bar',
-    data: {
-      labels: DATA.models,
-      datasets: [{
-        label: 'Overall WERR',
-        data: DATA.overall.werr,
-        backgroundColor: DATA.overall.werr.map((value) => value >= 0 ? '#16a34a' : '#dc2626'),
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { y: { ticks: { callback: (v) => `${(v * 100).toFixed(0)}%` } } }
-    }
-  });
-}
-
-function buildLocaleCharts() {
-  const labels = [DATA.baseline_label].concat(DATA.models);
-  makeChart('locale-dter-chart', {
-    type: 'line',
-    data: {
-      labels,
-      datasets: DATA.lang_order.map((lang) => ({
-        label: lang,
-        data: DATA.lang_avgs[lang].dter,
-        borderColor: colorForLang(lang),
-        backgroundColor: alpha(colorForLang(lang), 0.12),
-        tension: 0.15,
-      }))
-    },
-    options: {
-      maintainAspectRatio: false,
-      scales: { y: { ticks: { callback: (v) => `${(v * 100).toFixed(0)}%` } } }
-    }
-  });
-  makeChart('locale-werr-chart', {
-    type: 'line',
-    data: {
-      labels: DATA.models,
-      datasets: DATA.lang_order.map((lang) => ({
-        label: lang,
-        data: DATA.lang_avgs[lang].werr,
-        borderColor: colorForLang(lang),
-        backgroundColor: alpha(colorForLang(lang), 0.12),
-        tension: 0.15,
-      }))
-    },
-    options: {
-      maintainAspectRatio: false,
-      scales: { y: { ticks: { callback: (v) => `${(v * 100).toFixed(0)}%` } } }
-    }
-  });
-}
-
-function buildSmallMultiples() {
-  const wrap = document.getElementById('small-multiples');
-  const labels = [DATA.baseline_label].concat(DATA.models);
-  DATA.lang_order.forEach((lang, langIndex) => {
-    const panel = document.createElement('div');
-    panel.className = 'panel';
-    const title = document.createElement('h3');
-    title.textContent = `${lang} (${DATA.datasets_by_lang[lang].length} datasets)`;
-    const chartBox = document.createElement('div');
-    chartBox.className = 'chart-box';
-    chartBox.style.height = '280px';
-    const canvas = document.createElement('canvas');
-    canvas.id = `lang-chart-${langIndex}`;
-    chartBox.appendChild(canvas);
-    panel.appendChild(title);
-    panel.appendChild(chartBox);
-    wrap.appendChild(panel);
-    const baseColor = colorForLang(lang);
-    const datasets = DATA.datasets_by_lang[lang].map((row, index) => ({
-      label: row.name,
-      data: row.dter,
-      borderColor: alpha(baseColor, Math.max(0.35, 0.85 - index * 0.1)),
-      backgroundColor: alpha(baseColor, 0.08),
-      tension: 0.15,
-      borderDash: datasetStroke(index),
-      borderWidth: 2,
-    }));
-    datasets.push({
-      label: `${lang} avg`,
-      data: DATA.lang_avgs[lang].dter,
-      borderColor: baseColor,
-      backgroundColor: alpha(baseColor, 0.12),
-      tension: 0.15,
-      borderDash: [10, 4],
-      borderWidth: 3,
+  DATA.models.forEach((model, idx) => {
+    chartDatasets.push({
+      label: model,
+      data: labels.map((lang) => DATA.lang_avgs[lang].dter[idx + 1]),
+      backgroundColor: colorCycle(idx + 1),
     });
-    new Chart(canvas, {
-      type: 'line',
-      data: { labels, datasets },
-      options: {
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            min: 0,
-            max: 1.0,
-            ticks: { callback: (v) => `${(v * 100).toFixed(0)}%` }
-          }
+  });
+  const allVals = chartDatasets.flatMap((d) => d.data);
+  const range = seriesRange(allVals, { clamp01: true });
+
+  new Chart(document.getElementById('locale-dter-chart'), {
+    type: 'bar',
+    data: { labels, datasets: chartDatasets },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+      },
+      scales: {
+        y: {
+          min: range.min,
+          max: range.max,
+          ticks: { callback: (v) => (v * 100).toFixed(2) + '%' }
         }
       }
-    });
+    },
+    plugins: [valueLabelPlugin]
+  });
+}
+
+function buildDatasetWerrChart() {
+  const bestIdx = bestModelIndex();
+  const labels = DATA.datasets.map((r) => shortDatasetName(r.name, 16));
+  const vals = DATA.datasets.map((r) => r.werr[bestIdx]);
+  const barColors = DATA.datasets.map((r) => colorForLang(r.lang));
+  const range = seriesRange(vals, { includeZero: true });
+
+  new Chart(document.getElementById('dataset-werr-chart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: `WERR delta vs baseline (${DATA.models[bestIdx]})`,
+        data: vals,
+        backgroundColor: barColors,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: { padding: { bottom: 150 } },
+      plugins: {
+        legend: { display: true },
+        twoLayerTickPlugin: { datasets: DATA.datasets },
+      },
+      scales: {
+        x: { ticks: { display: false } },
+        y: {
+          min: range.min,
+          max: range.max,
+          ticks: { callback: (v) => (v * 100).toFixed(2) + '%' }
+        }
+      }
+    },
+    plugins: [valueLabelPlugin, twoLayerTickPlugin]
   });
 }
 
 function buildRankingTable() {
   const table = document.getElementById('ranking-table');
   const headers = ['Rank', 'Model', 'Direction', 'Baseline overall DTER', 'Model overall DTER', 'DTER delta', 'WERR', 'Datasets'];
-  const head = `<thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead>`;
+  const head = `<thead><tr>${headers.map((h) => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>`;
   const body = DATA.ranking.map((row) => {
-    const tagClass = row.direction === 'improve' ? 'tag-improve' : 'tag-degrade';
+    const dir = (row.direction || '').toLowerCase();
+    const tagClass = dir === 'improve' ? 'tag-improve' : 'tag-degrade';
     return `<tr>
-      <td>${row.rank}</td>
-      <td>${escapeHtml(row.model)}</td>
-      <td><span class="legend-tag ${tagClass}">${escapeHtml(row.direction)}</span></td>
+      <td>${row.rank ?? ''}</td>
+      <td>${escapeHtml(row.model ?? '')}</td>
+      <td><span class="legend-tag ${tagClass}">${escapeHtml(row.direction ?? '')}</span></td>
       <td>${fmtPct(row.baseline_overall_dter)}</td>
       <td>${fmtPct(row.model_overall_dter)}</td>
       <td class="${row.dter_delta >= 0 ? 'pos' : 'neg'}">${fmtSigned(row.dter_delta)}</td>
       <td class="${row.werr >= 0 ? 'pos' : 'neg'}">${fmtSigned(row.werr)}</td>
-      <td>${escapeHtml(row.datasets)}</td>
+      <td>${escapeHtml(row.datasets ?? '')}</td>
     </tr>`;
   }).join('');
   table.innerHTML = head + `<tbody>${body}</tbody>`;
@@ -369,55 +406,56 @@ function rowClass(kind) {
 
 function buildDataTables() {
   const dterHeaders = ['Dataset', DATA.baseline_label].concat(DATA.models);
-  const dterHead = `<thead><tr>${dterHeaders.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead>`;
-  const dterBody = DATA.ordered_rows.map((row) => {
-    return `<tr class="${rowClass(row.kind)}"><td>${escapeHtml(row.name)}</td>${row.dter.map((value) => `<td>${fmtPct(value)}</td>`).join('')}</tr>`;
-  }).join('');
-  document.getElementById('dter-table-wrap').innerHTML = `<div class="muted">Full DTER table</div><table>${dterHead}<tbody>${dterBody}</tbody></table>`;
+  const dterHead = `<thead><tr>${dterHeaders.map((h) => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>`;
+  const dterBody = DATA.ordered_rows.map((row) => (
+    `<tr class="${rowClass(row.kind)}"><td>${escapeHtml(displayDatasetName(row))}</td>${row.dter.map((v) => `<td>${fmtPct(v)}</td>`).join('')}</tr>`
+  )).join('');
+  document.getElementById('dter-table-wrap').innerHTML = `<div>Full DTER table</div><table>${dterHead}<tbody>${dterBody}</tbody></table>`;
 
   const werrHeaders = ['Dataset'].concat(DATA.models);
-  const werrHead = `<thead><tr>${werrHeaders.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead>`;
-  const werrBody = DATA.ordered_rows.map((row) => {
-    return `<tr class="${rowClass(row.kind)}"><td>${escapeHtml(row.name)}</td>${row.werr.map((value) => {
-      const cls = value == null ? '' : (value >= 0 ? 'pos' : 'neg');
-      return `<td class="${cls}">${fmtSigned(value)}</td>`;
-    }).join('')}</tr>`;
-  }).join('');
-  document.getElementById('werr-table-wrap').innerHTML = `<div class="muted" style="margin-top:18px;">Full WERR table</div><table>${werrHead}<tbody>${werrBody}</tbody></table>`;
+  const werrHead = `<thead><tr>${werrHeaders.map((h) => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>`;
+  const werrBody = DATA.ordered_rows.map((row) => (
+    `<tr class="${rowClass(row.kind)}"><td>${escapeHtml(displayDatasetName(row))}</td>${row.werr.map((v) => `<td class="${v == null ? '' : (v >= 0 ? 'pos' : 'neg')}">${fmtSigned(v)}</td>`).join('')}</tr>`
+  )).join('');
+  document.getElementById('werr-table-wrap').innerHTML = `<div style="margin-top:16px;">Full WERR table</div><table>${werrHead}<tbody>${werrBody}</tbody></table>`;
 }
 
 function buildTakeaways() {
   const items = [];
-  const overall = DATA.overall.werr.map((value, index) => ({ model: DATA.models[index], werr: value, dter: DATA.overall.dter[index + 1] }));
-  const best = overall.reduce((acc, item) => acc == null || item.werr > acc.werr ? item : acc, null);
-  const worst = overall.reduce((acc, item) => acc == null || item.werr < acc.werr ? item : acc, null);
-  const collapse = overall.find((item) => item.werr < 0);
-  const localeSummary = localeStats().sort((a, b) => (b.best ?? -Infinity) - (a.best ?? -Infinity));
-  const topLocale = localeSummary[0];
-  const bottomLocale = localeSummary.reduce((acc, item) => acc == null || (item.worst ?? Infinity) < (acc.worst ?? Infinity) ? item : acc, null);
-  const latest = overall[overall.length - 1];
-  const previous = overall.length >= 2 ? overall[overall.length - 2] : null;
-  items.push(`Best checkpoint/model is <span class="hl-orange">${escapeHtml(best.model)}</span> with overall DTER <span class="hl-green">${fmtPct(best.dter)}</span> and WERR <span class="hl-green">${fmtSigned(best.werr)}</span>.`);
+  const overall = DATA.models.map((m, i) => ({ model: m, werr: DATA.overall.werr[i], dter: DATA.overall.dter[i + 1] }));
+  const best = overall.reduce((acc, x) => (!acc || x.werr > acc.werr ? x : acc), null);
+  const collapse = overall.find((x) => x.werr < 0);
+  const worstLocales = DATA.lang_order.map((lang) => ({ lang, werr: DATA.lang_avgs[lang].werr[bestModelIndex()] }))
+    .filter((x) => x.werr != null)
+    .sort((a, b) => a.werr - b.werr);
+
+  if (best) {
+    items.push(`Best checkpoint is <span class="hl-orange">${escapeHtml(best.model)}</span> at overall DTER <span class="hl-green">${fmtPct(best.dter)}</span> and WERR <span class="hl-green">${fmtSigned(best.werr)}</span>.`);
+  }
+  if (worstLocales.length) {
+    const worst = worstLocales[0];
+    const second = worstLocales[1] || worst;
+    items.push(`Largest degradation risk locales at the best checkpoint are <span class="hl-red">${escapeHtml(worst.lang)}</span> (${fmtSigned(worst.werr)}) and <span class="hl-red">${escapeHtml(second.lang)}</span> (${fmtSigned(second.werr)}).`);
+  }
   if (collapse) {
-    items.push(`Collapse begins at <span class="hl-orange">${escapeHtml(collapse.model)}</span>, where overall WERR flips to <span class="hl-red">${fmtSigned(collapse.werr)}</span>.`);
+    items.push(`Overall collapse starts at <span class="hl-orange">${escapeHtml(collapse.model)}</span> where WERR becomes <span class="hl-red">${fmtSigned(collapse.werr)}</span>.`);
   } else {
-    items.push(`No checkpoint in this sweep regresses below baseline overall; every model stays at or above <span class="hl-green">0.00%</span> WERR.`);
+    items.push(`No overall collapse is observed in this sheet; all compared models remain at or above <span class="hl-green">0.00%</span> WERR.`);
   }
-  if (topLocale) {
-    items.push(`Strongest locale gain is <span class="hl-green">${escapeHtml(topLocale.lang)}</span> at <span class="hl-green">${fmtSigned(topLocale.best)}</span>; weakest locale is <span class="hl-red">${escapeHtml(bottomLocale.lang)}</span> at <span class="hl-red">${fmtSigned(bottomLocale.worst)}</span>.`);
+  if (overall.length > 1) {
+    const last = overall[overall.length - 1];
+    const prev = overall[overall.length - 2];
+    const delta = (last.werr ?? 0) - (prev.werr ?? 0);
+    items.push(`Late-stage movement from <span class="hl-orange">${escapeHtml(prev.model)}</span> to <span class="hl-orange">${escapeHtml(last.model)}</span> is <span class="${delta >= 0 ? 'hl-green' : 'hl-red'}">${fmtSigned(delta)}</span>.`);
   }
-  if (previous) {
-    const delta = latest.werr - previous.werr;
-    items.push(`Late-stage movement from <span class="hl-orange">${escapeHtml(previous.model)}</span> to <span class="hl-orange">${escapeHtml(latest.model)}</span> is <span class="${delta >= 0 ? 'hl-green' : 'hl-red'}">${fmtSigned(delta)}</span> WERR, which indicates ${Math.abs(delta) < 0.002 ? 'a plateau' : delta > 0 ? 'continued improvement' : 'a late regression'}.`);
-  }
-  items.push(`Suggested next step: keep <span class="hl-orange">${escapeHtml(best.model)}</span> as the working checkpoint and inspect the locales that turn <span class="hl-red">negative</span> earliest before extending the run.`);
-  document.getElementById('takeaways').innerHTML = items.slice(0, 5).map((item) => `<li>${item}</li>`).join('');
+  items.push(`Suggested next step: keep <span class="hl-orange">${escapeHtml(best ? best.model : DATA.models[0] || 'best checkpoint')}</span> as default and focus error analysis on the most negative locale WERR bars in Section 2.`);
+
+  document.getElementById('takeaways').innerHTML = items.slice(0, 5).map((x) => `<li>${x}</li>`).join('');
 }
 
 buildHeader();
-buildOverallCharts();
-buildLocaleCharts();
-buildSmallMultiples();
+buildLocaleDterChart();
+buildDatasetWerrChart();
 buildRankingTable();
 buildDataTables();
 buildTakeaways();
@@ -427,12 +465,22 @@ buildTakeaways();
 """
 
 
+def _maybe_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    return None
+
+
 def _compute_werr(baseline: Optional[float], model: Optional[float], cell_value: Any) -> Optional[float]:
     if isinstance(cell_value, (int, float)):
         return float(cell_value)
-    if baseline and model is not None:
-        return 1 - float(model) / float(baseline)
-    return None
+    if baseline is None or model is None:
+        return None
+    if baseline == 0:
+        return None
+    return 1 - float(model) / float(baseline)
 
 
 def _row_kind(name: str) -> str:
@@ -464,44 +512,42 @@ def _load_report(xlsx_path: Path, baseline_label: str, title: str) -> Dict[str, 
             break
         model_labels.append(str(value))
         col += 1
-    n_models = 1 + len(model_labels)
-    model_cols = list(range(2, 2 + n_models))
-    werr_cols = list(range(2 + n_models, 2 + n_models + len(model_labels)))
+
+    n_value_cols = 1 + len(model_labels)
+    value_cols = list(range(2, 2 + n_value_cols))
+    werr_cols = list(range(2 + n_value_cols, 2 + n_value_cols + len(model_labels)))
 
     rows: List[Dict[str, Any]] = []
-    datasets_by_lang: Dict[str, List[Dict[str, Any]]] = {}
+    datasets: List[Dict[str, Any]] = []
     lang_avgs: Dict[str, Dict[str, Any]] = {}
     lang_order: List[str] = []
+    datasets_by_lang: Dict[str, List[Dict[str, Any]]] = {}
     overall: Optional[Dict[str, Any]] = None
-    row_idx = DATA_START
-    dataset_count = 0
 
+    row_idx = DATA_START
     while True:
-        name = ws.cell(row=row_idx, column=1).value
-        if not name:
+        raw_name = ws.cell(row=row_idx, column=1).value
+        if raw_name is None:
             break
-        name = str(name)
+        name = str(raw_name)
         kind = _row_kind(name)
         lang = _row_lang(name, kind)
-        dter = []
-        for mc in model_cols:
-            value = ws.cell(row=row_idx, column=mc).value
-            dter.append(float(value) if value is not None else None)
+        dter: List[Optional[float]] = []
+        for vc in value_cols:
+            value = ws.cell(row=row_idx, column=vc).value
+            dter.append(float(value) if isinstance(value, (int, float)) else None)
+
         baseline = dter[0]
         werr: List[Optional[float]] = []
-        for idx, wc in enumerate(werr_cols, start=1):
-            cell_value = ws.cell(row=row_idx, column=wc).value
-            werr.append(_compute_werr(baseline, dter[idx], cell_value))
-        row = {
-            "name": name,
-            "lang": lang,
-            "kind": kind,
-            "dter": dter,
-            "werr": werr,
-        }
+        for i, wc in enumerate(werr_cols, start=1):
+            werr_cell = ws.cell(row=row_idx, column=wc).value
+            werr.append(_compute_werr(baseline, dter[i], werr_cell))
+
+        row = {"name": name, "lang": lang, "kind": kind, "dter": dter, "werr": werr}
         rows.append(row)
+
         if kind == "data":
-            dataset_count += 1
+            datasets.append(row)
             datasets_by_lang.setdefault(lang, []).append(row)
             if lang not in lang_order:
                 lang_order.append(lang)
@@ -511,7 +557,11 @@ def _load_report(xlsx_path: Path, baseline_label: str, title: str) -> Dict[str, 
                 lang_order.append(lang)
         else:
             overall = row
+
         row_idx += 1
+
+    if overall is None:
+        raise ValueError("Missing overall avg row in inhouse_dter sheet")
 
     ranking: List[Dict[str, Any]] = []
     rank_row = 3
@@ -521,24 +571,24 @@ def _load_report(xlsx_path: Path, baseline_label: str, title: str) -> Dict[str, 
             break
         ranking.append(
             {
-                "rank": int(rank),
-                "model": str(rank_ws.cell(row=rank_row, column=2).value),
-                "direction": str(rank_ws.cell(row=rank_row, column=3).value),
+                "rank": rank,
+                "model": rank_ws.cell(row=rank_row, column=2).value,
+                "direction": rank_ws.cell(row=rank_row, column=3).value,
                 "baseline_overall_dter": _maybe_float(rank_ws.cell(row=rank_row, column=4).value),
                 "model_overall_dter": _maybe_float(rank_ws.cell(row=rank_row, column=5).value),
                 "dter_delta": _maybe_float(rank_ws.cell(row=rank_row, column=6).value),
                 "werr": _maybe_float(rank_ws.cell(row=rank_row, column=7).value),
-                "datasets": str(rank_ws.cell(row=rank_row, column=8).value),
+                "datasets": rank_ws.cell(row=rank_row, column=8).value,
             }
         )
         rank_row += 1
 
-    if overall is None:
-        raise ValueError("Missing overall avg row in inhouse_dter sheet")
-
     ordered_rows: List[Dict[str, Any]] = []
+    ordered_datasets: List[Dict[str, Any]] = []
     for lang in lang_order:
-        ordered_rows.extend(datasets_by_lang.get(lang, []))
+        lang_rows = datasets_by_lang.get(lang, [])
+        ordered_rows.extend(lang_rows)
+        ordered_datasets.extend(lang_rows)
         if lang in lang_avgs:
             ordered_rows.append(lang_avgs[lang])
     ordered_rows.append(overall)
@@ -547,25 +597,16 @@ def _load_report(xlsx_path: Path, baseline_label: str, title: str) -> Dict[str, 
         "title": title,
         "source": str(xlsx_path),
         "baseline_label": baseline_label,
-        "baseline": baseline_label,
         "steps": [baseline_label] + model_labels,
         "models": model_labels,
-        "dataset_count": dataset_count,
-        "lang_order": lang_order,
-        "datasets": [row for row in rows if row["kind"] == "data"],
-        "datasets_by_lang": datasets_by_lang,
+        "datasets": ordered_datasets,
         "lang_avgs": lang_avgs,
         "overall": overall,
         "ranking": ranking,
         "ordered_rows": ordered_rows,
-        "lang_colors": LANG_COLORS,
+        "lang_order": lang_order,
+        "dataset_count": len(datasets),
     }
-
-
-def _maybe_float(value: Any) -> Optional[float]:
-    if value is None:
-        return None
-    return float(value)
 
 
 def build_html(data: Dict[str, Any]) -> str:
@@ -574,11 +615,42 @@ def build_html(data: Dict[str, Any]) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("xlsx", help="Path to in-house DTER xlsx.")
-    parser.add_argument("--out", help="Output html path. Defaults to <xlsx-stem>.html next to the xlsx.")
-    parser.add_argument("--baseline-label", default="Qwen3.5-audio", help="Label shown for the baseline column.")
-    parser.add_argument("--title", help="Report title. Defaults to the xlsx stem.")
+    parser.add_argument("xlsx", help="Path to in-house DTER xlsx")
+    parser.add_argument("--out", help="Output html path")
+    parser.add_argument("--baseline-label", default="Qwen3.5-audio", help="Label shown for baseline")
+    parser.add_argument("--title", help="Report title")
     return parser.parse_args()
+
+
+def _summary(data: Dict[str, Any]) -> str:
+    overall_werr = data["overall"]["werr"]
+    valid = [(i, v) for i, v in enumerate(overall_werr) if v is not None]
+    if not valid:
+        return "Summary best=none worst=none collapse=none"
+
+    best_i, best_v = max(valid, key=lambda x: x[1])
+    collapse_i = next((i for i, v in enumerate(overall_werr) if v is not None and v < 0), None)
+    collapse_label = data["models"][collapse_i] if collapse_i is not None else "none"
+
+    worst_locale = "none"
+    worst_locale_v: Optional[float] = None
+    for lang in data["lang_order"]:
+        row = data["lang_avgs"].get(lang)
+        if not row:
+            continue
+        v = row["werr"][best_i]
+        if v is None:
+            continue
+        if worst_locale_v is None or v < worst_locale_v:
+            worst_locale_v = v
+            worst_locale = lang
+
+    return (
+        "Summary "
+        f"best={data['models'][best_i]}:{best_v:.4f} "
+        f"worst_locale={worst_locale}:{(worst_locale_v if worst_locale_v is not None else 0.0):.4f} "
+        f"collapse={collapse_label}"
+    )
 
 
 def main() -> None:
@@ -586,25 +658,18 @@ def main() -> None:
     xlsx_path = Path(args.xlsx).resolve()
     out_path = Path(args.out).resolve() if args.out else xlsx_path.with_suffix(".html")
     title = args.title or xlsx_path.stem
+
     data = _load_report(xlsx_path, baseline_label=args.baseline_label, title=title)
     html = build_html(data)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(html, encoding="utf-8")
-    if "__DATA__" in html:
+
+    written = out_path.read_text(encoding="utf-8")
+    if "__DATA__" in written:
         raise RuntimeError("__DATA__ placeholder remained in output")
 
-    overall_werr = data["overall"]["werr"]
-    best_idx, best_value = max(enumerate(overall_werr), key=lambda item: item[1])
-    worst_idx, worst_value = min(enumerate(overall_werr), key=lambda item: item[1])
-    collapse_idx = next((idx for idx, value in enumerate(overall_werr) if value < 0), None)
-    collapse_label = data["models"][collapse_idx] if collapse_idx is not None else "none"
     print(f"Wrote {out_path} {out_path.stat().st_size}")
-    print(
-        "Summary "
-        f"best={data['models'][best_idx]}:{best_value:.4f} "
-        f"worst={data['models'][worst_idx]}:{worst_value:.4f} "
-        f"collapse={collapse_label}"
-    )
+    print(_summary(data))
 
 
 if __name__ == "__main__":
