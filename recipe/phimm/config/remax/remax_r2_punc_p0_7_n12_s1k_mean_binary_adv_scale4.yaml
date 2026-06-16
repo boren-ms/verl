@@ -25,6 +25,7 @@ val_reward:
     name: eval_score
 
 actor_rollout_ref:
+  nccl_timeout: 3600
   rollout:
     n: 12
     gt_rollout: false
