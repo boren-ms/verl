@@ -109,8 +109,8 @@ def parse_scores(raw: str) -> dict:
 
 
 @retry(
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(multiplier=1, max=16),
+    stop=stop_after_attempt(30),
+    wait=wait_exponential(multiplier=2, max=60),
     retry=retry_if_exception_type((requests.RequestException, ValueError)),
     reraise=True,
 )

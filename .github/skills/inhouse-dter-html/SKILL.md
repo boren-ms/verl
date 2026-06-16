@@ -1,6 +1,6 @@
 ---
 name: inhouse-dter-html
-description: Turn an in-house DTER xlsx comparison report (sheets `inhouse_dter` + `overall_improve_degrade`, produced by the `inhouse-dter-report` skill) into a self-contained Chart.js HTML visualization. Use when summarizing a multi-checkpoint or multi-model inhouse-DTER xlsx as charts, generating a single-file HTML report next to the xlsx, visualizing per-locale DTER/WERR trajectories across training steps, plotting small-multiple panels per locale, or rendering the overall improve/degrade ranking with charts and full data tables. Triggers "html report for inhouse xlsx", "use chart for inhouse_dter", "visualize DTER report", "chart-based dter report".
+description: Turn an in-house DTER xlsx comparison report (sheets `inhouse_dter` + `overall_improve_degrade`, produced by the `inhouse-dter-report` skill) into a self-contained Chart.js HTML visualization. Use when summarizing an inhouse-DTER xlsx as bar charts, generating a single-file HTML report next to the xlsx, showing per-locale DTER averages plus per-dataset WERR deltas vs baseline, and rendering the overall improve/degrade ranking with full data tables. Triggers "html report for inhouse xlsx", "use chart for inhouse_dter", "visualize DTER report", "chart-based dter report".
 argument-hint: '<path-to-xlsx> [--out <path-to-html>] [--baseline-label <name>] [--title <text>]'
 ---
 
@@ -64,33 +64,34 @@ Write a single self-contained file using **Chart.js 4 from CDN** (`https://cdn.j
 1. **Header**
    - Title (paper-reading style: light card, blue left accent border).
    - Meta line: source xlsx path, baseline label, dataset count, locale count.
-   - **TL;DR box** (`background:#f0f9ff; border-left:4px solid #1a6fb5`) summarizing in 2–3 lines: best model, overall WERR range, which locales collapse/improve fastest. Use `.hl-green` for gains, `.hl-red` for regressions, `.hl-orange` for method/checkpoint names.
+   - **TL;DR box** (`background:#f0f9ff; border-left:4px solid #1a6fb5`) summarizing in 2–3 lines: best model, overall WERR, and best/worst locale behavior. Use `.hl-green` for gains, `.hl-red` for regressions, `.hl-orange` for method/checkpoint names.
 
-2. **Section 1 — Overall DTER + WERR** (2 charts side by side in a 2-column CSS grid)
-   - Left: line chart of overall DTER across `[baseline, model_1, ..., model_N]`. Y axis percent.
-   - Right: bar chart of overall WERR per model. Bars colored green if `>=0`, red if `<0`.
+2. **Section 1 — Per-locale DTER averages**
+   - Bar chart with grouped bars per locale: baseline DTER vs model DTER.
+   - Y axis is percent and should auto-range (chart-specific min/max).
+   - Show bar value labels in `.2%` format.
 
-3. **Section 2 — Per-locale averages**
-   - Tall line chart: one series per locale of DTER across all columns (baseline first).
-   - Line chart: one series per locale of WERR across all model columns.
-   - Use a deterministic locale color palette; if a locale isn't in the palette, fall back to gray.
+3. **Section 2 — Dataset WERR Delta Vs Baseline (Pre-Locale Charts)**
+   - Bar chart over all datasets, ordered locale-by-locale.
+   - Bar values are dataset-level WERR deltas (`1 - model/baseline`).
+   - Bars colored by locale (`LANG_COLORS`; fallback gray).
+   - Show bar value labels in `.2%` format.
+   - Use a **two-layer custom x-axis tick renderer**:
+     - Top layer: dataset names, colored by locale.
+     - Bottom layer: locale names, bold and colored by locale, rendered once per contiguous locale group (do not duplicate locale text per dataset bar).
 
-4. **Section 3 — Per-locale small multiples**
-   - CSS grid (2 columns). One panel per locale.
-   - Each panel: line chart with one series per dataset in that locale + a dashed "locale avg" series.
-   - Y axis fixed to `[0, 1.0]` so degradation magnitude is comparable across panels.
-
-5. **Section 4 — Overall improve / degrade ranking table**
+4. **Section 3 — Overall improve / degrade ranking table**
    - Render the `overall_improve_degrade` sheet as a table.
    - Color the `Direction` cell with a pill: green pill for `improve`, red pill for `degrade`.
    - Format DTER/WERR cells as percentages; signed for WERR/delta.
 
-6. **Section 5 — Full per-dataset tables**
+5. **Section 4 — Full per-dataset tables**
    - Full DTER table: rows ordered locale-by-locale (datasets first, then `<lang> avg` highlighted yellow), final `overall avg` highlighted green.
    - WERR table immediately below with the same row ordering; cells colored red/green based on sign.
 
-7. **Section 6 — Takeaways**
-   - 4–6 bullets that cite specific numbers: best checkpoint, where collapse begins, locale ranking of degradation, whether late steps plateau, suggested next step (e.g. early stop, language-coverage penalty). Use `.hl-*` spans throughout.
+6. **Section 5 — Takeaways**
+   - 4–6 bullets that cite specific numbers: best checkpoint, locale ranking of degradation, and suggested next step.
+   - Use `.hl-*` spans throughout.
 
 ### 3. Styling (must match)
 
@@ -164,12 +165,11 @@ Do **not** use Python f-strings for the whole template (the JS / CSS contain `{`
 ## Quality Checklist
 
 - [ ] File is **self-contained** (one html, only CDN fetch is Chart.js).
-- [ ] All N model columns from the xlsx are visualized — do not hardcode 5 steps.
 - [ ] Locales are derived from the xlsx, not hardcoded.
 - [ ] WERR computed from values when the xlsx cell is a formula string.
-- [ ] Baseline value is shown as the first point on every DTER line chart.
-- [ ] WERR bars use green for `>=0`, red for `<0`.
-- [ ] Per-locale small multiples y-axis fixed to `[0, 1.0]`.
+- [ ] Per-locale DTER section is bar-based and includes bar labels in `.2%` format.
+- [ ] Dataset WERR-delta section is bar-based and bars are colored by locale.
+- [ ] Dataset WERR-delta x-axis is two-layer: dataset (top) + locale (bottom), with locale shown once per locale group.
 - [ ] Locale-avg rows in tables highlighted yellow; `overall avg` highlighted green.
 - [ ] Ranking table preserves the order from `overall_improve_degrade` and renders direction as a colored pill.
 - [ ] TL;DR + Takeaways cite specific numbers and use `.hl-red` / `.hl-green` / `.hl-orange` spans.
@@ -182,5 +182,6 @@ Do **not** use Python f-strings for the whole template (the JS / CSS contain `{`
 - ❌ Using Python f-strings to assemble the HTML — `{` in CSS/JS will explode. Use `str.replace('__DATA__', ...)`.
 - ❌ Embedding Chart.js source inline — keep the CDN script tag; the file should stay small (~25 KB).
 - ❌ Writing a separate `_data.json` sidecar — the HTML must be a single file.
-- ❌ Skipping the small-multiples section — per-locale panels are the most informative view of catastrophic forgetting.
+- ❌ Duplicating locale text on every dataset tick in the pre-locale WERR chart.
+- ❌ Leaving the dataset x-axis as a single flat label line when two-layer locale+dataset ticks are required.
 - ❌ Omitting the TL;DR / Takeaways with concrete numbers — a bare chart dump is not useful.
