@@ -68,6 +68,7 @@ class AlgoConfig(BaseConfig):
         adv_estimator (str): Advantage estimator type: "gae", "grpo", "reinforce_plus_plus", etc.
         norm_adv_by_std_in_grpo (bool): Whether to normalize advantages by std (specific to GRPO).
         binary_adv (bool): Whether to binarize ReMax advantages to sign-only scores.
+        binary_adv_scale (float): Multiplicative scale applied after ReMax binarization.
         use_kl_in_reward (bool): Whether to enable in-reward KL penalty.
         kl_penalty (str): How to estimate KL divergence: "kl", "abs", "mse", "low_var_kl", or "full".
         kl_ctrl (KLControlConfig): KL control configuration.
@@ -83,6 +84,7 @@ class AlgoConfig(BaseConfig):
     norm_adv_by_mean_in_grpo: bool = True
     norm_adv_in_remax: bool = False
     binary_adv: bool = False
+    binary_adv_scale: float = 1.0
     use_kl_in_reward: bool = False
     kl_penalty: str = "kl"
     kl_ctrl: KLControlConfig = field(default_factory=KLControlConfig)

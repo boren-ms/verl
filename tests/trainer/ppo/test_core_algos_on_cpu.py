@@ -241,5 +241,52 @@ def test_compute_remax_outcome_advantage_binary_adv():
     assert torch.equal(returns, expected_returns)
 
 
+def test_compute_remax_outcome_advantage_binary_adv_scale():
+    token_level_rewards = torch.tensor(
+        [
+            [0.0, 0.8, 0.0],
+            [0.0, 0.2, 0.0],
+            [0.0, 0.5, 0.0],
+        ],
+        dtype=torch.float,
+    )
+    reward_baselines = torch.tensor([0.5, 0.5, 0.5], dtype=torch.float)
+    response_mask = torch.tensor(
+        [
+            [0.0, 1.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 1.0, 0.0],
+        ],
+        dtype=torch.float,
+    )
+
+    advantages, returns = compute_remax_outcome_advantage(
+        token_level_rewards=token_level_rewards,
+        reward_baselines=reward_baselines,
+        response_mask=response_mask,
+        config=AlgoConfig(adv_estimator="remax", binary_adv=True, binary_adv_scale=2.0),
+    )
+
+    expected_advantages = torch.tensor(
+        [
+            [0.0, 2.0, 0.0],
+            [0.0, -2.0, 0.0],
+            [0.0, 0.0, 0.0],
+        ],
+        dtype=torch.float,
+    )
+    expected_returns = torch.tensor(
+        [
+            [0.8, 0.8, 0.0],
+            [0.2, 0.2, 0.0],
+            [0.5, 0.5, 0.0],
+        ],
+        dtype=torch.float,
+    )
+
+    assert torch.equal(advantages, expected_advantages)
+    assert torch.equal(returns, expected_returns)
+
+
 if __name__ == "__main__":
     unittest.main()
