@@ -209,7 +209,7 @@ const valueLabelPlugin = {
         ctx.textBaseline = isPositive ? 'bottom' : 'top';
         let y = isPositive ? (bar.y - 4) : (bar.y + 4);
         y = Math.max(chartArea.top + 2, Math.min(chartArea.bottom - 2, y));
-        ctx.fillText(fmtPct(val), bar.x, y);
+        ctx.fillText(fmtSigned(val), bar.x, y);
       });
     });
     ctx.restore();
