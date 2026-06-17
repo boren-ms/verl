@@ -11,6 +11,23 @@ logger = logging.getLogger(__name__)
 
 TARGET_SAMPLE_RATE = 16000
 
+# Module-level chunk load mode: "cached" (default) or "sample"
+_chunk_load_mode = "cached"
+
+
+def set_chunk_load_mode(mode: str):
+    """Set the chunk loading strategy.
+
+    Args:
+        mode: "cached" to use load_chunk_example (ChunkManager, full chunk in memory),
+              "sample" to use load_chunk_sample (seek-based, one connection per sample).
+    """
+    global _chunk_load_mode
+    if mode not in ("cached", "sample"):
+        raise ValueError(f"Invalid chunk_load_mode: {mode!r}. Must be 'cached' or 'sample'.")
+    _chunk_load_mode = mode
+    logger.info("Chunk load mode set to: %s", mode)
+
 
 @cached(FIFOCache(maxsize=100))
 def sf_read(file_path):
@@ -112,7 +129,10 @@ def _load_time_chunk(spec):
 def _load_chunk(spec):
     if _is_time_chunk_spec(spec):
         return _load_time_chunk(spec)
-    result = load_chunk_example(spec)
+    if _chunk_load_mode == "sample":
+        result = load_chunk_sample(spec)
+    else:
+        result = load_chunk_example(spec)
     if isinstance(result, list):
         result = result[0]  # "audios" chunk type returns list of (data, sr)
     return result

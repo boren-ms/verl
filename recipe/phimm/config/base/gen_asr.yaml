@@ -17,6 +17,7 @@ data:
   persistent_workers: false    # avoid shmem buildup over many batches leading to OOM after ~330 batches in prior runs
   prefetch_depth: 3             # prep<->generate<->consume pipeline depth (host RAM bound)
   max_audio_dur: 40             # cap audio length to avoid one rank stalling on extremely long samples (NCCL timeout)
+  chunk_load_mode: cached       # "cached" uses load_chunk_example (ChunkManager, loads full chunk into memory); "sample" uses load_chunk_sample (seek-based, one blob connection per sample)
 
 model:
   path: null

@@ -12,7 +12,7 @@ from transformers import PreTrainedTokenizer, ProcessorMixin
 import verl.utils.torch_functional as verl_F
 from verl.utils.model import compute_position_id_with_mask
 from recipe.phimm.data.dataset import create_audio_dataset, get_num_proc
-from recipe.phimm.utils.audio import load_audio
+from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +68,8 @@ class RLHFDataset(Dataset):
         self.interleave_ds = config.get("interleave_ds", {})
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.max_audio_dur = config.get("max_audio_dur", 40)
+        if chunk_load_mode := config.get("chunk_load_mode", None):
+            set_chunk_load_mode(chunk_load_mode)
         self.prompt_key = config.get("prompt_key", "prompt")
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
