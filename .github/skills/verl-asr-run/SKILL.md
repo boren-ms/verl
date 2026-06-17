@@ -29,7 +29,7 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 | **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
 | **post_train_eval** | No | Always run `long_eval_inhouse_2605_all_seg` for training jobs | `long_eval_inhouse_2605_all_seg` |
-| **report** | No | In-house DTER `.xlsx` report (inhouse-dter-report, `--schema all_seg`) + TER/EER summary after the eval succeeds | `inhouse_dter_report/*.xlsx` |
+| **report** | No | In-house DTER `.xlsx` report (inhouse-dter-report, `--schema all_seg`) + HTML chart report (inhouse-dter-html) + TER/EER summary after the eval succeeds | `inhouse_dter_report/*.xlsx` + `*.html` |
 | **word_error_sets** | No | `1` (first data source only) | `all` (all data sources) |
 
 ## Job Types
@@ -511,14 +511,28 @@ Report the per-corpus DTER table (from the generated xlsx — all locales × 3 c
 
 Present TER and EER as percentages (×100) with a `%` suffix. State the path to the generated `.xlsx` report.
 
+#### 4c.2 Generate HTML chart report via the **inhouse-dter-html** skill
+
+After the `.xlsx` report is written, always generate a self-contained HTML visualization using the **inhouse-dter-html** skill. This produces a Chart.js-powered single-file HTML with per-locale WERR bar charts, per-dataset WERR deltas, ranking tables, and takeaway bullets — making results reviewable without opening Excel.
+
+```bash
+/home/boren/.virtualenvs/openai/bin/python \
+  .github/skills/inhouse-dter-html/scripts/build_inhouse_dter_html.py \
+  tmp/inhouse_dter_report/{TRAIN_CONFIG}_step{LATEST_STEP}_all_seg.xlsx \
+  --out tmp/inhouse_dter_report/{TRAIN_CONFIG}_step{LATEST_STEP}_all_seg.html
+```
+
+The HTML is written next to the xlsx with the same basename and `.html` extension. State the path to both the `.xlsx` and `.html` reports in the final response.
+
 For deeper utterance-level inspection of `result_details.jsonl`, use the **inhouse-asr-compare** or **asr-word-error-analysis** skill.
 
 Post-training final response requirements:
 1. Show the training final summary from Step 4.
-2. Show the in-house DTER comparison report (xlsx path + per-locale and overall DTER/WERR across all locales) built with the **inhouse-dter-report** skill (`--schema all_seg`), plus the headline TER/EER measures for `long_eval_inhouse_2605_all_seg`.
+2. Show the in-house DTER comparison report (xlsx path + HTML path + per-locale and overall DTER/WERR across all locales) built with the **inhouse-dter-report** skill (`--schema all_seg`) and visualized with the **inhouse-dter-html** skill, plus the headline TER/EER measures for `long_eval_inhouse_2605_all_seg`.
 3. Include W&B and Ray links for the training job and the eval job when available.
 4. State which checkpoint path was evaluated.
 5. Include the eval `data.output_path` (location of per-corpus `result_details.jsonl` + `measures.json`).
+6. Include the path to the generated `.html` chart report.
 
 #### W&B result check (optional post-job):
 ```bash
@@ -598,8 +612,8 @@ This schedules VS Code Copilot to re-invoke the agent every 5 minutes with the p
 4. **Autofix on failure** without asking: if any tracked job is `FAILED`, pull the traceback (`ray job logs {JOB_ID} | tail -n 40`), diagnose using the failure patterns in Step 3f, edit the code locally, run `bpush {NODE}`, and resubmit via Step 2. Record the new job ID and continue monitoring it under the same `/every` schedule.
 5. **Advance the pipeline** automatically when a stage completes:
    - Training `SUCCEEDED` → run Step 4a (HF export), then Step 4b (`long_eval_inhouse_2605_all_seg`).
-   - Eval `SUCCEEDED` → run Step 4c (inhouse-dter-report `--schema all_seg`) and present the final DTER/EER summary.
-6. **Stop the schedule** with `/every stop` (emitted as the final line) only after the full stack is complete: training `SUCCEEDED`, post-training eval `SUCCEEDED`, in-house DTER `.xlsx` report generated, and the headline TER/EER table presented. Until then, every scheduled response must end with `/every 5m update job status and autofix job` to keep the loop alive.
+   - Eval `SUCCEEDED` → run Step 4c (inhouse-dter-report `--schema all_seg` + inhouse-dter-html) and present the final DTER/EER summary.
+6. **Stop the schedule** with `/every stop` (emitted as the final line) only after the full stack is complete: training `SUCCEEDED`, post-training eval `SUCCEEDED`, in-house DTER `.xlsx` report generated, HTML chart report generated, and the headline TER/EER table presented. Until then, every scheduled response must end with `/every 5m update job status and autofix job` to keep the loop alive.
 
 **Rules**:
 - `/every` lines must appear verbatim and must be the **very last line** of the assistant message — no trailing prose, no markdown blockquotes, no code fences around them.
@@ -664,7 +678,7 @@ bash submit_jobs_repeat.sh
 - Parse `step:N - key:val - key:val` format into structured table rows
 - When monitoring, report the current phase and what to expect next
 - On failure, show the error, diagnose, and proceed to fix without asking
-- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `long_eval_inhouse_2605_all_seg` SUCCEEDED, and the in-house DTER `.xlsx` report (inhouse-dter-report, `--schema all_seg`) plus TER/EER measures summary generated
+- **Do not stop monitoring** until the full stack is complete: training SUCCEEDED, `long_eval_inhouse_2605_all_seg` SUCCEEDED, and the in-house DTER `.xlsx` report (inhouse-dter-report, `--schema all_seg`) + HTML chart report (inhouse-dter-html) plus TER/EER measures summary generated
 - **End every non-terminal response with `/every 5m update job status and autofix job`** on its own final line (see Step 6). Replace with `/every stop` only once the full stack is complete.
 
 ## Dependent Skills
@@ -674,5 +688,6 @@ bash submit_jobs_repeat.sh
 | **remote-development** | 0, 2 | Node discovery, sync, remote commands |
 | **persistent-job-monitor** | 3 | Long-running training job monitoring |
 | **inhouse-dter-report** | 4c | Build the canonical in-house DTER `.xlsx` comparison report (`--schema all_seg`) |
+| **inhouse-dter-html** | 4c | Generate self-contained Chart.js HTML visualization from the DTER `.xlsx` report |
 | **inhouse-asr-compare** | 4c | Inspect `result_details.jsonl` / TER/EER per-utterance diffs |
 | **asr-word-error-analysis** | 5 | Word-level error analysis on validation JSONL |
