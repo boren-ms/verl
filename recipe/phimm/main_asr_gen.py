@@ -353,9 +353,16 @@ async def _run_generation_async(config):
             if isinstance(audio_data, dict):
                 audio_data = audio_data.get("audio")
 
+            # Extract ground truth from reward_model dict or text field
+            gt_raw = _extract_scalar(batch.get("reward_model"), i)
+            if isinstance(gt_raw, dict):
+                ground_truth = gt_raw.get("ground_truth", gt_raw.get("gt_output", ""))
+            else:
+                ground_truth = _extract_scalar(batch.get("text"), i)
+
             batch_items.append({"prompt_ids": prompt_ids, "audio_data": audio_data})
             batch_meta.append({
-                "ground_truth": _extract_scalar(batch.get("text"), i),
+                "ground_truth": ground_truth,
                 "audio_path": _extract_scalar(batch.get("audio_path"), i),
                 "data_source": _extract_scalar(batch.get("data_source"), i),
                 "prompt": _extract_scalar(batch.get("raw_prompt"), i),
