@@ -4,7 +4,7 @@ import logging
 import numpy as np
 from pathlib import Path
 import soundfile as sf
-from recipe.phimm.data.chunk import load_chunk_sample
+from recipe.phimm.data.chunk import load_chunk_sample,load_chunk_example
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ def _load_time_chunk(spec):
 def _load_chunk(spec):
     if _is_time_chunk_spec(spec):
         return _load_time_chunk(spec)
-    result = load_chunk_sample(spec)
+    result = load_chunk_example(spec)
     if isinstance(result, list):
         result = result[0]  # "audios" chunk type returns list of (data, sr)
     return result
