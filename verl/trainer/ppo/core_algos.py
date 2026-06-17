@@ -638,7 +638,7 @@ def compute_remax_outcome_advantage(
         if config is not None and config.get("binary_adv", False):
             binary_adv_scale = config.get("binary_adv_scale", 1.0)
             signs = torch.sign(advantages)
-            if isinstance(binary_adv_scale, dict):
+            if isinstance(binary_adv_scale, (dict, DictConfig)):
                 pos_scale = float(binary_adv_scale.get("pos", 1.0))
                 neg_scale = float(binary_adv_scale.get("neg", 1.0))
                 scales = torch.where(signs > 0, pos_scale, neg_scale)
