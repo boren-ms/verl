@@ -40,7 +40,7 @@ def _scan_existing_parts(output_path: str) -> tuple[int, int]:
     try:
         import blobfile as bf
 
-        files = bf.listdir(output_path)
+        files = list(bf.listdir(output_path))
     except (FileNotFoundError, OSError):
         return 0, 0
 
@@ -118,7 +118,7 @@ async def _run_generation_async(config):
 
     from recipe.phimm.reward.asr_edge import eval_score
     from recipe.phimm.utils.shared import parse_asr_response
-    from verl.utils import hf_processor, hf_tokenizer
+    from verl.utils import hf_tokenizer
     from verl.utils.dataset.rl_dataset import collate_fn
     from verl.utils.hdfs_io import makedirs
     from verl.utils.import_utils import load_extern_object
@@ -128,17 +128,53 @@ async def _run_generation_async(config):
     _normalize_config(config)
 
     # ── tokenizer / processor ──────────────────────────────────────────
-    model_path = config.actor_rollout_ref.model.path
-    tokenizer = hf_tokenizer(model_path, trust_remote_code=True)
-    processor = hf_processor(model_path, trust_remote_code=True)
-    processor_sr = processor.feature_extractor.sampling_rate
+    from verl.utils.fs import copy_to_local
+
+    model_path = config.actor_rollout_ref.model.path.rstrip("/")
+    # Resolve az:// blob paths to local cache
+    if model_path.startswith("az://"):
+        import hashlib
+        import subprocess
+
+        cache_key = hashlib.md5(model_path.encode()).hexdigest()
+        local_model_path = os.path.join(
+            os.path.expanduser("~"), ".blobfile", cache_key,
+            model_path.split("/")[-1],
+        )
+        if not os.path.isdir(local_model_path) or not os.path.exists(
+            os.path.join(local_model_path, "config.json")
+        ):
+            os.makedirs(local_model_path, exist_ok=True)
+            logger.info("Syncing model from %s to %s", model_path, local_model_path)
+            subprocess.run(
+                ["bbb", "sync", "--concurrency", "64", model_path + "/", local_model_path + "/"],
+                check=True,
+            )
+        logger.info("Using local model path: %s", local_model_path)
+    else:
+        local_model_path = copy_to_local(model_path)
+
+    trust_remote_code = config.actor_rollout_ref.model.get("trust_remote_code", False)
+    tokenizer = hf_tokenizer(local_model_path, trust_remote_code=trust_remote_code)
+    # Use AutoProcessor directly — verl-mirror's hf_processor only handles VL models
+    from transformers import AutoProcessor
+    processor = AutoProcessor.from_pretrained(local_model_path, trust_remote_code=trust_remote_code)
+    processor_sr = getattr(
+        processor, "feature_extractor",
+        getattr(processor, "audio_feature_extractor", None),
+    ).sampling_rate
 
     # ── dataset / dataloader ───────────────────────────────────────────
     dataset_cls = load_extern_object(
         config.data.custom_cls.path,
         config.data.custom_cls.name,
     )
+    # Pass train_data directly as data_files (gen uses train_data by convention)
+    ds_conf = OmegaConf.select(config, "data.gen_data",
+              default=OmegaConf.select(config, "data.train_data",
+              default=OmegaConf.select(config, "data.val_data")))
     dataset = dataset_cls(
+        data_files=ds_conf,
         tokenizer=tokenizer,
         config=config.data,
         processor=processor,
@@ -306,23 +342,39 @@ async def _run_generation_async(config):
 
 @hydra.main(config_path="config/gen", config_name="gen_oss_ls", version_base=None)
 def main(config):
+    from pathlib import Path
     from pprint import pprint
 
     from recipe.phimm.utils.env import EnvMgr
 
+    # Register 'eval' resolver needed by rollout config interpolations
+    if not OmegaConf.has_resolver("eval"):
+        OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
+
     env_mgr = EnvMgr()
     env_vars = env_mgr.envs()
+    print(f"Cluster Env: {env_vars}")
 
-    ray.init(
-        runtime_env={
+    if not ray.is_initialized():
+        default_runtime_env = {
             "env_vars": {
                 "TOKENIZERS_PARALLELISM": "true",
                 "NCCL_DEBUG": "WARN",
+                "VLLM_LOGGING_LEVEL": "WARN",
+                "HF_HUB_OFFLINE": "1",
                 "VLLM_USE_V1": "1",
+                "PYTORCH_ALLOC_CONF": "expandable_segments:True",
                 **env_vars,
             },
-        },
-    )
+            "excludes": [str(Path(__file__).parents[2] / ".git")],
+        }
+        ray_init_kwargs = OmegaConf.to_container(
+            config.get("ray_kwargs", {}).get("ray_init", {}), resolve=True
+        ) or {}
+        runtime_env = {**default_runtime_env, **ray_init_kwargs.pop("runtime_env", {})}
+        ray_init_kwargs["runtime_env"] = runtime_env
+        print(f"ray init kwargs: {ray_init_kwargs}")
+        ray.init(**ray_init_kwargs)
 
     pprint(OmegaConf.to_container(config, resolve=True))
     asyncio.run(_run_generation_async(config))
