@@ -29,7 +29,7 @@ actor_rollout_ref:
     n: 12
     gt_rollout: false
     temperature: 1.2
-    calculate_log_probs: TRUE
+    calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.7
     max_num_seqs: 24

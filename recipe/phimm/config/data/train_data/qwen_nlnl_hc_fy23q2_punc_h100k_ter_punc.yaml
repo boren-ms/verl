@@ -4,9 +4,9 @@
   add_task_info:
     task: lang_asr
   post_process:
-    rename_fields:
-      mappings:
-        text: punc_refined
+    # rename_fields:
+    #   mappings:
+    #     text: punc_refined
     add_field:
       fields:
         data_source: asr
