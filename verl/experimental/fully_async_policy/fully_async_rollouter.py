@@ -405,9 +405,17 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
         tokenizer,
         processor=None,
         device_name=None,
+        local_model_path=None,
     ):
         # Store the tokenizer for text processing
         self.tokenizer = tokenizer
+        # If processor is None and local_model_path is provided, create processor
+        # in this actor (needed for trust_remote_code models that can't be serialized)
+        if processor is None and local_model_path is not None:
+            from verl.utils import hf_processor
+
+            trust_remote_code = config.data.get("trust_remote_code", False)
+            processor = hf_processor(local_model_path, trust_remote_code=trust_remote_code, use_fast=True)
         self.processor = processor
         self.config = config
         self.hybrid_engine = config.actor_rollout_ref.hybrid_engine

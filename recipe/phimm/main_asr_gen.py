@@ -121,7 +121,6 @@ async def _run_generation_async(config):
     from verl.utils import hf_tokenizer
     from verl.utils.dataset.rl_dataset import collate_fn
     from verl.utils.hdfs_io import makedirs
-    from verl.utils.import_utils import load_extern_object
     from verl.workers.rollout.llm_server import LLMServerManager
 
     OmegaConf.resolve(config)
@@ -154,26 +153,46 @@ async def _run_generation_async(config):
     else:
         local_model_path = copy_to_local(model_path)
 
+    # Update config so downstream replicas also use the resolved local path
+    OmegaConf.update(config, "actor_rollout_ref.model.path", local_model_path)
+
     trust_remote_code = config.actor_rollout_ref.model.get("trust_remote_code", False)
     tokenizer = hf_tokenizer(local_model_path, trust_remote_code=trust_remote_code)
-    # Use AutoProcessor directly — verl-mirror's hf_processor only handles VL models
+    # Use AutoProcessor directly — verl-mirror's hf_processor only handles VL models.
+    # Newer transformers (4.57+) has strict class-identity checks for custom
+    # processors that break when the same class is imported from two paths.
+    # Patch ProcessorMixin to relax the type check.
     from transformers import AutoProcessor
-    processor = AutoProcessor.from_pretrained(local_model_path, trust_remote_code=trust_remote_code)
+    from transformers.processing_utils import ProcessorMixin
+
+    _orig_check = ProcessorMixin.check_argument_for_proper_class
+
+    def _relaxed_check(self, attribute_name, arg):
+        try:
+            _orig_check(self, attribute_name, arg)
+        except (TypeError, ValueError):
+            pass  # allow name-matched custom classes loaded via trust_remote_code
+
+    ProcessorMixin.check_argument_for_proper_class = _relaxed_check
+    try:
+        processor = AutoProcessor.from_pretrained(
+            local_model_path, trust_remote_code=trust_remote_code
+        )
+    finally:
+        ProcessorMixin.check_argument_for_proper_class = _orig_check
     processor_sr = getattr(
         processor, "feature_extractor",
         getattr(processor, "audio_feature_extractor", None),
     ).sampling_rate
 
     # ── dataset / dataloader ───────────────────────────────────────────
-    dataset_cls = load_extern_object(
-        config.data.custom_cls.path,
-        config.data.custom_cls.name,
-    )
+    from recipe.phimm.data.rl_dataset import RLHFDataset
+
     # Pass train_data directly as data_files (gen uses train_data by convention)
     ds_conf = OmegaConf.select(config, "data.gen_data",
               default=OmegaConf.select(config, "data.train_data",
               default=OmegaConf.select(config, "data.val_data")))
-    dataset = dataset_cls(
+    dataset = RLHFDataset(
         data_files=ds_conf,
         tokenizer=tokenizer,
         config=config.data,
@@ -216,6 +235,22 @@ async def _run_generation_async(config):
     server_manager = await LLMServerManager.create(config=config)
     client = server_manager.get_client()
     logger.info("Server replicas ready")
+
+    def _write_parquet(df, dest_path):
+        """Write parquet to local temp file then copy to blob if az://."""
+        if dest_path.startswith("az://"):
+            import blobfile as bf
+            import tempfile
+
+            with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
+                df.to_parquet(tmp.name, index=False)
+                tmp_path = tmp.name
+            bf.makedirs(os.path.dirname(dest_path))
+            bf.copy(tmp_path, dest_path, overwrite=True)
+            os.remove(tmp_path)
+        else:
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            df.to_parquet(dest_path, index=False)
 
     # ── generation loop ────────────────────────────────────────────────
     all_results: list[dict] = []
@@ -309,7 +344,7 @@ async def _run_generation_async(config):
             chunk = all_results[:split_size]
             all_results = all_results[split_size:]
             part_file = os.path.join(output_path, f"part-{part_idx:05d}.parquet")
-            pd.DataFrame(chunk).to_parquet(part_file, index=False)
+            _write_parquet(pd.DataFrame(chunk), part_file)
             logger.info("Wrote %s (%d rows)", part_file, len(chunk))
             part_idx += 1
 
@@ -324,7 +359,7 @@ async def _run_generation_async(config):
     # ── write remainder ────────────────────────────────────────────────
     if all_results:
         part_file = os.path.join(output_path, f"part-{part_idx:05d}.parquet")
-        pd.DataFrame(all_results).to_parquet(part_file, index=False)
+        _write_parquet(pd.DataFrame(all_results), part_file)
         logger.info("Wrote %s (%d rows)", part_file, len(all_results))
 
     elapsed = time.time() - t0
@@ -362,7 +397,6 @@ def main(config):
                 "NCCL_DEBUG": "WARN",
                 "VLLM_LOGGING_LEVEL": "WARN",
                 "HF_HUB_OFFLINE": "1",
-                "VLLM_USE_V1": "1",
                 "PYTORCH_ALLOC_CONF": "expandable_segments:True",
                 **env_vars,
             },

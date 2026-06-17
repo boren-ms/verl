@@ -29,18 +29,19 @@ except ImportError:
 __all__ = ["copy", "exists", "makedirs"]
 
 _HDFS_PREFIX = "hdfs://"
+_BLOB_PREFIXES = ("az://", "gs://", "s3://")
 
 
 def is_non_local(path):
-    """Check if a path is a non-local (HDFS) path.
+    """Check if a path is a non-local path (HDFS or cloud blob storage).
 
     Args:
         path (str): The path to check.
 
     Returns:
-        bool: True if the path is an HDFS path, False otherwise.
+        bool: True if the path is a remote path, False otherwise.
     """
-    return path.startswith(_HDFS_PREFIX)
+    return path.startswith(_HDFS_PREFIX) or path.startswith(_BLOB_PREFIXES)
 
 
 def md5_encode(path: str) -> str:

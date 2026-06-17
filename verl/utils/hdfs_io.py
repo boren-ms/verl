@@ -20,12 +20,13 @@ logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_SFT_LOGGING_LEVEL", "WARN"))
 
 _HDFS_PREFIX = "hdfs://"
+_BLOB_PREFIXES = ("az://", "gs://", "s3://")
 
 _HDFS_BIN_PATH = shutil.which("hdfs")
 
 
 def exists(path: str, **kwargs) -> bool:
-    r"""Works like os.path.exists() but supports hdfs.
+    r"""Works like os.path.exists() but supports hdfs and blob storage.
 
     Test whether a path exists. Returns False for broken symbolic links.
 
@@ -35,6 +36,9 @@ def exists(path: str, **kwargs) -> bool:
     Returns:
         bool: True if the path exists, False otherwise
     """
+    if _is_blob(path):
+        import blobfile as bf
+        return bf.exists(path)
     if _is_non_local(path):
         return _exists(path, **kwargs)
     return os.path.exists(path)
@@ -48,7 +52,7 @@ def _exists(file_path: str):
 
 
 def makedirs(name, mode=0o777, exist_ok=False, **kwargs) -> None:
-    r"""Works like os.makedirs() but supports hdfs.
+    r"""Works like os.makedirs() but supports hdfs and blob storage.
 
     Super-mkdir; create a leaf directory and all intermediate ones.  Works like
     mkdir, except that any intermediate path segment (not just the rightmost)
@@ -63,7 +67,9 @@ def makedirs(name, mode=0o777, exist_ok=False, **kwargs) -> None:
         kwargs: keyword arguments for hdfs
 
     """
-    if _is_non_local(name):
+    if _is_blob(name):
+        pass  # blob storage doesn't need explicit directory creation
+    elif _is_non_local(name):
         # TODO(haibin.lin):
         # - handle OSError for hdfs(?)
         # - support exist_ok for hdfs(?)
@@ -98,7 +104,9 @@ def copy(src: str, dst: str, **kwargs) -> bool:
         str: destination file path
 
     """
-    if _is_non_local(src) or _is_non_local(dst):
+    if _is_blob(src) or _is_blob(dst):
+        return _copy_blob(src, dst)
+    elif _is_non_local(src) or _is_non_local(dst):
         # TODO(haibin.lin):
         # - handle SameFileError for hdfs files(?)
         # - return file destination for hdfs files
@@ -108,6 +116,33 @@ def copy(src: str, dst: str, **kwargs) -> bool:
             return shutil.copytree(src, dst, **kwargs)
         else:
             return shutil.copy(src, dst, **kwargs)
+
+
+def _is_blob(path: str) -> bool:
+    return path.startswith(_BLOB_PREFIXES)
+
+
+def _copy_blob(src: str, dst: str) -> bool:
+    """Copy files between blob storage and local filesystem using blobfile."""
+    import blobfile as bf
+
+    try:
+        if bf.isdir(src):
+            os.makedirs(dst, exist_ok=True)
+            for entry in bf.listdir(src):
+                src_child = os.path.join(src, entry) if not src.endswith("/") else src + entry
+                dst_child = os.path.join(dst, entry)
+                if bf.isdir(src_child):
+                    _copy_blob(src_child, dst_child)
+                else:
+                    bf.copy(src_child, dst_child, overwrite=True)
+        else:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            bf.copy(src, dst, overwrite=True)
+        return True
+    except Exception as e:
+        logger.warning(f"blobfile copy {src} -> {dst} failed: {e}")
+        return False
 
 
 def _copy(from_path: str, to_path: str, timeout: int = None) -> bool:
@@ -146,4 +181,4 @@ def _hdfs_cmd(cmd: str) -> str:
 
 
 def _is_non_local(path: str):
-    return path.startswith(_HDFS_PREFIX)
+    return path.startswith(_HDFS_PREFIX) or path.startswith(_BLOB_PREFIXES)

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=77.0.3", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vllm-qwen35-audio"
+version = "0.1.0"
+description = "Out-of-tree vLLM plugin for Qwen3.5-Audio"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "vllm",
+    "numpy",
+    "scipy",
+]
+
+[project.entry-points."vllm.general_plugins"]
+qwen35_audio = "vllm_qwen35_audio.plugin:register"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -67,6 +67,10 @@ class FullyAsyncTaskRunner:
 
         self.components["tokenizer"] = tokenizer
         self.components["processor"] = processor
+        # Store local_path so downstream actors can create their own processor
+        # (trust_remote_code processors can't be serialized across Ray actors)
+        self.components["local_model_path"] = local_path
+        self.components["trust_remote_code"] = trust_remote_code
         self.components["config"] = config
 
         print("[ASYNC MAIN] Creating worker mapping and resource pools...")
@@ -116,11 +120,24 @@ class FullyAsyncTaskRunner:
 
     def _create_rollouter(self, config) -> None:
         print("[ASYNC MAIN] Starting create rollouter...")
+        # For trust_remote_code models, the processor can't be serialized across
+        # Ray actors. Pass the local model path so the rollouter can create its own.
+        trust_remote_code = self.components["trust_remote_code"]
+        if trust_remote_code:
+            from verl.utils import hf_processor
+
+            processor = None
+            local_model_path = self.components["local_model_path"]
+        else:
+            processor = self.components["processor"]
+            local_model_path = None
+
         rollouter = FullyAsyncRollouter.remote(
             config=config,
             tokenizer=self.components["tokenizer"],
-            processor=self.components["processor"],
+            processor=processor,
             device_name=config.trainer.device,
+            local_model_path=local_model_path,
         )
 
         # set_hybrid_worker_group must be called BEFORE init_workers() so that

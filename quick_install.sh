@@ -46,6 +46,9 @@ if [ ! -f "${done_file}" ]; then
     # 3. Install this repo in editable mode (no deps, they're in requirements_vllm.txt)
     pip install --no-deps -e .
 
+    # 3b. Install Qwen3.5-Audio vLLM plugin (out-of-tree model support)
+    pip install --no-deps -e plugins/qwen35_audio
+
     # 4. Flash attention from pre-built wheel
     flash_attn_pkg="flash_attn-2.8.3+cu128torch2.10-cp312-cp312-linux_x86_64.whl"
     remote_pkg_path="az://orngwus2cresco/data/boren/data/packages/${flash_attn_pkg}"
