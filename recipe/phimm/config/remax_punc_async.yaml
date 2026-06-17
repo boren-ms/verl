@@ -1,0 +1,175 @@
+# ReMax ASR Punc+Cap Training Config
+# For verl-mirror SPMD trainer (main_ppo.py with serialized rollout/train)
+#
+# Based on the old recipe: remax_r2_punc_p0_7_n12_s1k_mean.yaml
+# Model: Qwen3.5-9B-S2-ST-Example-R2 (step 90000)
+# Train reward: punc_cap_measure (mean of char + punc accuracy)
+# Val metric: DTER via SpeechInsight (dter_p_err tracked every test_freq steps)
+#
+# Usage:
+#   python3 -m verl.trainer.main_ppo --config-path=../../recipe/phimm/config --config-name=remax_punc_async
+
+hydra:
+  searchpath:
+    - file://verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+# Data configuration - uses custom phimm audio dataset
+data:
+  train_files: null
+  val_files: null
+  train_batch_size: 64
+  val_batch_size: 64
+  max_prompt_length: 1204
+  max_response_length: 512
+  max_audio_dur: 40
+  shuffle: false
+  filter_overlong_prompts: false
+  truncation: right
+  prompt_key: prompt
+  return_raw_chat: true
+  return_multi_modal_inputs: true
+  dataloader_num_workers: 0
+  trust_remote_code: true
+  custom_cls:
+    path: recipe/phimm/data/rl_dataset.py
+    name: RLHFDataset
+  # phimm-specific: structured data configs for audio datasets (blob paths)
+  train_data:
+    - dataset_name: jsonl
+      jsonl_paths:
+        - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00000-of-00116.jsonl
+        - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00001-of-00116.jsonl
+        - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00002-of-00116.jsonl
+        - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00003-of-00116.jsonl
+        - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00004-of-00116.jsonl
+        - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00005-of-00116.jsonl
+        - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00006-of-00116.jsonl
+        - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00007-of-00116.jsonl
+      add_task_info:
+        task: lang_asr
+      post_process:
+        rename_fields:
+          mappings:
+            text: punc_refined
+        add_field:
+          fields:
+            data_source: asr
+        verl_format:
+          prompt_key: prompt
+  val_data:
+    - dataset_name: jsonl
+      jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-US/Conversation_DTEST_FY21Q1_en-US/test.jsonl
+      pre_process:
+        rename_fields:
+          mappings:
+            audio_path: WavPath
+            text: DisplayTranscription
+            data_source: CorpusName
+      add_task_info:
+        task: lang_asr
+        language: English
+      post_process:
+        verl_format:
+          prompt_key: prompt
+          extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# Algorithm: ReMAX
+algorithm:
+  adv_estimator: remax
+  use_kl_in_reward: false
+  kl_ctrl:
+    kl_coef: 0.0
+
+# Reward: unified punc_cap + DTER monitor
+# reward_kwargs.measures/reduce are forwarded to compute_score via _call_with_kwargs
+reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/unified_reward.py
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char:
+          beta: 1.0
+        punc:
+          beta: 1.0
+  num_workers: 8
+
+# Model: Qwen3.5-9B Audio (Round 2, step 90k)
+actor_rollout_ref:
+  nccl_timeout: 3600
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example-r2/90000/qwen_hf
+    trust_remote_code: true
+    use_remove_padding: true
+    use_fused_kernels: false
+    enable_gradient_checkpointing: false
+    lora_rank: 320
+    lora_alpha: 640
+    target_modules: "model.layers.*(qkv_proj|o_proj|gate_up_proj|down_proj).*"
+    exclude_modules: "model.embed_tokens_extend.*"
+  actor:
+    strategy: fsdp2
+    ppo_micro_batch_size_per_gpu: 6
+    ppo_mini_batch_size: 64
+    ppo_epochs: 1
+    use_kl_loss: false
+    kl_loss_coef: 0.0
+    clip_ratio_low: 0.2
+    clip_ratio_high: 0.28
+    loss_agg_mode: token-mean
+    entropy_coeff: 0
+    use_rollout_log_probs: true
+    optim:
+      lr: 5e-6
+      lr_warmup_steps_ratio: 0.1
+    fsdp_config:
+      param_offload: true
+      optimizer_offload: true
+      use_orig_params: true
+  rollout:
+    name: vllm
+    n: 12
+    temperature: 1.2
+    response_length: ${data.max_response_length}
+    dtype: bfloat16
+    tensor_model_parallel_size: 1
+    gpu_memory_utilization: 0.7
+    max_num_seqs: 24
+    enforce_eager: false
+    enable_chunked_prefill: true
+    free_cache_engine: true
+    load_format: safetensors
+    calculate_log_probs: true
+    log_prob_micro_batch_size_per_gpu: 12
+    layered_summon: true
+    val_kwargs:
+      temperature: 0.0
+      top_p: 1.0
+  ref:
+    strategy: fsdp2
+    fsdp_config:
+      param_offload: true
+
+# Trainer
+trainer:
+  project_name: verl_remax_punc
+  experiment_name: remax_r2_punc_p0_7_n12_s100_async
+  logger: ["console", "wandb"]
+  n_gpus_per_node: 8
+  nnodes: 1
+  total_epochs: 1
+  total_training_steps: 100
+  test_freq: 10
+  save_freq: 10
+  val_before_train: false
+  resume_mode: auto
+  balance_batch: true
+  critic_warmup: 0
+  default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
+  default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
+  validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen
