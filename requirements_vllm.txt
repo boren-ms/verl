@@ -1,0 +1,75 @@
+# requirements_vllm.txt — pinned versions from working verl-n1-i12 environment
+# Installed by quick_install.sh after `pip install --no-deps vllm==0.17.0`
+#
+# DO NOT add ray or protobuf here — they come from the base image.
+
+# PyTorch stack
+torch==2.10.0
+torchaudio==2.10.0
+torchvision==0.25.0
+torchdata==0.11.0
+
+# Core ML libraries
+transformers==5.7.0
+accelerate==1.14.0
+datasets==4.0.0
+peft==0.19.1
+safetensors==0.5.3
+tokenizers==0.22.2
+huggingface_hub==1.13.0
+liger_kernel==0.8.0
+tensordict>=0.10.0,<0.14.0
+numpy<2.0.0
+
+# vLLM inference deps (installed --no-deps to avoid protobuf/ray conflicts)
+flashinfer-python==0.6.4
+flashinfer-cubin==0.6.4
+xgrammar==0.1.29
+sentencepiece==0.2.1
+compressed-tensors
+depyf
+outlines_core
+partial-json-parser
+lm-format-enforcer
+gguf
+mistral_common
+blake3
+cbor2
+pydantic-extra-types
+kaldi-native-fbank
+rignore
+fastar
+quack-kernels
+llguidance
+
+# Verl project deps
+hydra-core==1.3.3
+pandas
+pyarrow>=19.0.0
+pybind11
+pylatexenc
+codetiming
+dill
+wandb
+packaging>=20.0
+uvicorn
+fastapi
+
+# Reward / eval deps
+latex2sympy2_extended
+math_verify
+blobfile
+scipy
+soundfile
+more-itertools
+whisper_normalizer
+jiwer>=4.0.0
+editdistance
+num2words
+evaluate
+tensorboard
+
+# Serving
+prometheus-fastapi-instrumentator
+model-hosting-container-standards
+openai-harmony
