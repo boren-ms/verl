@@ -11,10 +11,10 @@ data:
   path: null
   batch_size: 512              # large dispatch -> vLLM stays saturated end-to-end
   output_split_size: 20000      # fewer parquet writes; larger chunks per blob upload
-  num_workers: 4               # bounded to keep host RAM safe with audio batches
+  num_workers: 8               # more parallel blob I/O for audio chunk loading
   prefetch_factor: 4
   pin_memory: false             # audio batches are big; pinned memory would balloon host RSS
-  persistent_workers: false    # avoid shmem buildup over many batches leading to OOM after ~330 batches in prior runs
+  persistent_workers: true      # keep workers alive to retain ChunkManager cache across batches
   prefetch_depth: 3             # prep<->generate<->consume pipeline depth (host RAM bound)
   max_audio_dur: 40             # cap audio length to avoid one rank stalling on extremely long samples (NCCL timeout)
 
