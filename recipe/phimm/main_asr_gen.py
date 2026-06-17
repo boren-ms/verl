@@ -65,21 +65,33 @@ def _scan_existing_parts(output_path: str) -> tuple[int, int]:
 # Batch generation
 # ---------------------------------------------------------------------------
 
-async def _generate_batch(client, batch_items, sampling_params, processor_sr):
-    """Generate for all items in a batch concurrently via the load balancer."""
+async def _generate_batch(server_handles, batch_items, sampling_params, processor_sr):
+    """Generate for all items in a batch concurrently via round-robin servers."""
     tasks = []
-    for item in batch_items:
+    for i, item in enumerate(batch_items):
         request_id = uuid.uuid4().hex
+        server = server_handles[i % len(server_handles)]
+        multimodal_kwargs = {}
+        if item.get("audio_data") is not None:
+            multimodal_kwargs["audio_data"] = item["audio_data"]
+            multimodal_kwargs["mm_processor_kwargs"] = {"sampling_rate": processor_sr}
         tasks.append(
-            client.generate(
+            server.generate.remote(
                 request_id=request_id,
                 prompt_ids=item["prompt_ids"],
                 sampling_params=dict(sampling_params),
-                audio_data=item["audio_data"],
-                mm_processor_kwargs={"sampling_rate": processor_sr},
+                **multimodal_kwargs,
             )
         )
-    return await asyncio.gather(*tasks, return_exceptions=True)
+    # Gather ray remote calls
+    results = []
+    for task in tasks:
+        try:
+            result = await task
+            results.append(result)
+        except Exception as e:
+            results.append(e)
+    return results
 
 
 def _extract_scalar(arr, idx):
@@ -121,7 +133,7 @@ async def _run_generation_async(config):
     from verl.utils import hf_tokenizer
     from verl.utils.dataset.rl_dataset import collate_fn
     from verl.utils.hdfs_io import makedirs
-    from verl.workers.rollout.llm_server import LLMServerManager
+    from verl.workers.rollout.replica import get_rollout_replica_class
 
     OmegaConf.resolve(config)
     _normalize_config(config)
@@ -192,12 +204,21 @@ async def _run_generation_async(config):
     ds_conf = OmegaConf.select(config, "data.gen_data",
               default=OmegaConf.select(config, "data.train_data",
               default=OmegaConf.select(config, "data.val_data")))
-    dataset = RLHFDataset(
-        data_files=ds_conf,
-        tokenizer=tokenizer,
-        config=config.data,
-        processor=processor,
-    )
+    # Support both old verl (data_confs) and verl-mirror (data_files) RLHFDataset API
+    try:
+        dataset = RLHFDataset(
+            data_files=ds_conf,
+            tokenizer=tokenizer,
+            config=config.data,
+            processor=processor,
+        )
+    except TypeError:
+        dataset = RLHFDataset(
+            data_confs=ds_conf,
+            tokenizer=tokenizer,
+            config=config.data,
+            processor=processor,
+        )
     logger.info("Dataset loaded: %d examples", len(dataset))
 
     batch_size = config.data.batch_size
@@ -232,9 +253,33 @@ async def _run_generation_async(config):
 
     # ── launch vLLM server replicas ────────────────────────────────────
     logger.info("Launching vLLM server replicas …")
-    server_manager = await LLMServerManager.create(config=config)
-    client = server_manager.get_client()
-    logger.info("Server replicas ready")
+    rollout_config = config.actor_rollout_ref.rollout
+    model_config = config.actor_rollout_ref.model
+    tp_size = rollout_config.tensor_model_parallel_size
+    n_gpus = config.trainer.n_gpus_per_node * config.trainer.nnodes
+    num_replicas = n_gpus // tp_size
+
+    rollout_server_class = get_rollout_replica_class(rollout_config.name)
+    rollout_servers = [
+        rollout_server_class(
+            replica_rank=i,
+            config=rollout_config,
+            model_config=model_config,
+            gpus_per_node=config.trainer.n_gpus_per_node,
+        )
+        for i in range(num_replicas)
+    ]
+    await asyncio.gather(*[server.init_standalone() for server in rollout_servers])
+    server_handles = [server._server_handle for server in rollout_servers]
+    logger.info("Server replicas ready: %d replicas", len(server_handles))
+
+    # Simple round-robin load balancer for direct server access
+    _server_idx = [0]
+
+    def _next_server():
+        idx = _server_idx[0] % len(server_handles)
+        _server_idx[0] += 1
+        return server_handles[idx]
 
     def _write_parquet(df, dest_path):
         """Write parquet to local temp file then copy to blob if az://."""
@@ -274,10 +319,35 @@ async def _run_generation_async(config):
         batch_items = []
         batch_meta = []
         for i in range(offset, actual_bs):
-            attn = batch["attention_mask"][i]
-            ids = batch["input_ids"][i]
-            valid_len = int(attn.sum().item())
-            prompt_ids = ids[-valid_len:].tolist()
+            # Build prompt_ids with <audio> placeholder for vLLM's audio plugin.
+            # The dataset's input_ids have pre-expanded audio_pad tokens which
+            # the standalone vLLM plugin can't process — it needs the <audio>
+            # text placeholder that it will replace during input processing.
+            raw_ids = _extract_scalar(batch.get("raw_prompt_ids"), i)
+            if raw_ids is not None:
+                prompt_ids = list(raw_ids) if not isinstance(raw_ids, list) else raw_ids
+                # Insert <audio> token sequence if not already present
+                audio_tok_ids = tokenizer.encode("<audio>", add_special_tokens=False)
+                has_audio = any(
+                    prompt_ids[j:j + len(audio_tok_ids)] == audio_tok_ids
+                    for j in range(len(prompt_ids) - len(audio_tok_ids) + 1)
+                ) if len(audio_tok_ids) <= len(prompt_ids) else False
+                if not has_audio:
+                    # Find the position after <|im_start|>user\n and inject <audio>\n
+                    newline_tok = tokenizer.encode("\n", add_special_tokens=False)
+                    inject_pos = None
+                    for j in range(len(prompt_ids)):
+                        # After the first newline token (end of <|im_start|>user\n)
+                        if prompt_ids[j:j + len(newline_tok)] == newline_tok:
+                            inject_pos = j + len(newline_tok)
+                            break
+                    if inject_pos is not None:
+                        prompt_ids = prompt_ids[:inject_pos] + audio_tok_ids + newline_tok + prompt_ids[inject_pos:]
+            else:
+                attn = batch["attention_mask"][i]
+                ids = batch["input_ids"][i]
+                valid_len = int(attn.sum().item())
+                prompt_ids = ids[-valid_len:].tolist()
 
             audio_data = _extract_scalar(batch.get("multi_modal_data"), i)
             if isinstance(audio_data, dict):
@@ -297,7 +367,7 @@ async def _run_generation_async(config):
 
         # ── generate ───────────────────────────────────────────────────
         t_batch = time.time()
-        results = await _generate_batch(client, batch_items, sampling_params, processor_sr)
+        results = await _generate_batch(server_handles, batch_items, sampling_params, processor_sr)
         gen_time = time.time() - t_batch
 
         # ── decode + WER ───────────────────────────────────────────────

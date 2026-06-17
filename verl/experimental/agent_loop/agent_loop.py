@@ -77,6 +77,36 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 DEFAULT_ROUTING_CACHE_SIZE = 10000
 
 
+def _convert_audio_messages_to_text(messages: list[dict]) -> list[dict]:
+    """Convert multimodal audio content items to plain text with <audio> placeholders.
+
+    Chat templates for audio models (e.g. Qwen3.5-Audio) may not handle
+    ``{"type": "audio"}`` content items.  This function rewrites each message
+    so that audio items become the literal string ``<audio>`` while text items
+    are concatenated, producing a plain-string ``content`` that any chat
+    template can render.
+    """
+    converted = []
+    for msg in messages:
+        content = msg.get("content", "")
+        if isinstance(content, list):
+            parts = []
+            for item in content:
+                if isinstance(item, dict):
+                    if item.get("type") == "audio":
+                        parts.append("<audio>")
+                    elif item.get("type") == "text":
+                        parts.append(item.get("text", ""))
+                    else:
+                        parts.append(str(item.get("text", "")))
+                else:
+                    parts.append(str(item))
+            converted.append({**msg, "content": "\n".join(parts)})
+        else:
+            converted.append(msg)
+    return converted
+
+
 class AgentLoopMetrics(BaseModel):
     """Agent loop performance metrics."""
 
@@ -305,17 +335,40 @@ class AgentLoopBase(ABC):
                 ),
             )
 
-            model_inputs = build_multimodal_processor_inputs(
-                self.processor,
-                text=[raw_prompt],
-                images=images,
-                videos=videos,
-                audio=audios,
-                mm_processor_kwargs=mm_processor_kwargs
-                if mm_processor_kwargs is not None
-                else self._get_mm_processor_kwargs(audios),
-            )
-            prompt_ids = normalize_token_ids(model_inputs.pop("input_ids"))
+            if audios is not None:
+                # For audio models with vLLM backend, we must:
+                # 1. Insert <audio> placeholders into prompt text (chat templates
+                #    for audio models may not handle {"type":"audio"} content items)
+                # 2. Use tokenizer-only tokenization (not the full HF processor)
+                #    so <audio> stays as tokens for vLLM's multimodal processor
+                #    to expand into <|audio_pad|> tokens.
+                text_messages = _convert_audio_messages_to_text(messages)
+                raw_prompt = await self.loop.run_in_executor(
+                    None,
+                    lambda: apply_chat_template(
+                        self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer,
+                        text_messages,
+                        tools=tools,
+                        add_generation_prompt=True,
+                        tokenize=False,
+                        **self.apply_chat_template_kwargs,
+                    ),
+                )
+                # Remove empty thinking block injected by Qwen3.5 chat template
+                raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
+                prompt_ids = normalize_token_ids(self.tokenizer.encode(raw_prompt))
+            else:
+                model_inputs = build_multimodal_processor_inputs(
+                    self.processor,
+                    text=[raw_prompt],
+                    images=images,
+                    videos=videos,
+                    audio=audios,
+                    mm_processor_kwargs=mm_processor_kwargs
+                    if mm_processor_kwargs is not None
+                    else self._get_mm_processor_kwargs(audios),
+                )
+                prompt_ids = normalize_token_ids(model_inputs.pop("input_ids"))
         else:
             tokenized_prompt = await self.loop.run_in_executor(
                 None,
@@ -804,7 +857,7 @@ class AgentLoopWorker:
         mm_processor_kwargs: Optional[dict[str, Any]] = None,
     ) -> torch.Tensor:
         """Compute position ids for multi-modal inputs."""
-        if self.processor is None:
+        if self.processor is None or not hasattr(self.processor, "get_rope_index"):
             return compute_position_id_with_mask(attention_mask)  # (1, seq_len)
 
         multi_modal_kwargs = {

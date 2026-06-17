@@ -76,8 +76,20 @@ class Tracking:
             settings = None
             if config and config["trainer"].get("wandb_proxy", None):
                 settings = wandb.Settings(https_proxy=config["trainer"]["wandb_proxy"])
-            entity = os.environ.get("WANDB_ENTITY", None)
-            wandb.init(project=project_name, name=experiment_name, entity=entity, config=config, settings=settings)
+            key = config["trainer"].get("wandb_api_key", None) if config else None
+            host = config["trainer"].get("wandb_organization", "https://msaip.wandb.io") if config else "https://msaip.wandb.io"
+            key = os.environ.get("WANDB_API_KEY", key)
+            host = os.environ.get("WANDB_ORGANIZATION", host)
+            print("Logging WANDB host:", host)
+            # Self-hosted wandb keys (e.g. "local-..." prefix) can be >40 chars,
+            # which newer wandb SDK rejects in wandb.login(). Use env vars instead.
+            if key and len(key) > 40:
+                os.environ["WANDB_API_KEY"] = key
+                os.environ["WANDB_BASE_URL"] = host
+            else:
+                wandb.login(host=host, key=key, relogin=True)
+            entity = os.environ.get("WANDB_ENTITY", "genai")
+            wandb.init(entity=entity, project=project_name, name=experiment_name, config=config, settings=settings)
             self.logger["wandb"] = wandb
 
         if "trackio" in default_backend:

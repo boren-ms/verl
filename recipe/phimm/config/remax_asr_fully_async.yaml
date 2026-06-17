@@ -6,7 +6,7 @@
 #
 # Model: Qwen3.5-9B-S2-ST-Example-R2 (step 90000)
 # Train reward: asr_edge (char-level WER with gamma smoothing)
-# Algorithm: ReMax with fully async rollout/training
+# Algorithm: GRPO with fully async rollout/training
 #
 # Usage:
 #   python3 -m verl.experimental.fully_async_policy.fully_async_main \
@@ -34,7 +34,7 @@ rollout:
   nnodes: 1
   n_gpus_per_node: 4
   n: 8
-  total_rollout_steps: 128
+  total_rollout_steps: 512
 
 # ── Data ──────────────────────────────────────────────────────────────────
 data:
@@ -98,9 +98,9 @@ data:
           prompt_key: prompt
           extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
-# ── Algorithm: ReMax ──────────────────────────────────────────────────────
+# ── Algorithm: GRPO (ReMax not supported in fully async - no reward_baselines) ─
 algorithm:
-  adv_estimator: remax
+  adv_estimator: grpo
   use_kl_in_reward: false
   kl_ctrl:
     kl_coef: 0.0
@@ -133,8 +133,8 @@ actor_rollout_ref:
     exclude_modules: "model.embed_tokens_extend.*"
   actor:
     strategy: fsdp2
-    ppo_micro_batch_size_per_gpu: 4
-    ppo_mini_batch_size: 16        # samples per trainer step (pulled from queue)
+    ppo_micro_batch_size_per_gpu: 2
+    ppo_mini_batch_size: 8        # samples per trainer step (pulled from queue)
     ppo_epochs: 1
     use_kl_loss: false
     kl_loss_coef: 0.0
@@ -163,7 +163,7 @@ actor_rollout_ref:
     response_length: ${data.max_response_length}
     dtype: bfloat16
     tensor_model_parallel_size: 2
-    gpu_memory_utilization: 0.7
+    gpu_memory_utilization: 0.6
     max_num_seqs: 16
     enforce_eager: false
     enable_chunked_prefill: true
@@ -172,6 +172,7 @@ actor_rollout_ref:
     calculate_log_probs: true
     log_prob_use_dynamic_bsz: true
     disable_log_stats: false
+    layered_summon: true
     checkpoint_engine:
       backend: nccl
       update_weights_bucket_megabytes: 1024
@@ -188,16 +189,17 @@ actor_rollout_ref:
 
 # ── Trainer ───────────────────────────────────────────────────────────────
 trainer:
-  project_name: verl_remax_fully_async
+  project_name: verl_repeat
   experiment_name: remax_asr_fully_async
-  logger: ["console"]
+  logger: ["console", "wandb"]
   n_gpus_per_node: 4             # trainer GPU pool
   nnodes: 1
-  total_epochs: 2
-  test_freq: -1
-  save_freq: -1
+  total_epochs: 10
+  test_freq: 50
+  save_freq: 50
   val_before_train: false
   resume_mode: disable
   log_val_generations: 10
   default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
+  validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen
