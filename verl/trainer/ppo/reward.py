@@ -86,6 +86,34 @@ def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
         return partial(_call_with_kwargs_async, raw_fn, reward_kwargs)
 
 
+def get_val_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
+    """Load and return a validation reward function from config.val_reward.custom_reward_function.
+
+    If config.val_reward is not set, returns None (use the same reward as training).
+    """
+    val_reward_config = config.get("val_reward")
+    if val_reward_config is None:
+        return None
+
+    reward_fn_config = val_reward_config.get("custom_reward_function") or {}
+    module_path = reward_fn_config.get("path")
+    if not module_path:
+        return None
+
+    fn_name = reward_fn_config.get("name")
+    assert fn_name is not None
+
+    from verl.utils.import_utils import load_extern_object
+
+    raw_fn = load_extern_object(module_path=module_path, object_name=fn_name)
+
+    reward_kwargs = dict(reward_fn_config.get("reward_kwargs", {}))
+    if not inspect.iscoroutinefunction(raw_fn):
+        return partial(_call_with_kwargs, raw_fn, reward_kwargs)
+    else:
+        return partial(_call_with_kwargs_async, raw_fn, reward_kwargs)
+
+
 def resolve_reward_manager_cls(config: DictConfig) -> type[RewardManagerBase]:
     """Resolve the reward manager class from ``config`` without instantiating it."""
     reward_manager_cfg: RewardManagerConfig = config.reward.reward_manager

@@ -49,7 +49,7 @@ from verl.trainer.ppo.metric_utils import (
     process_validation_metrics,
     update_var2metric2val,
 )
-from verl.trainer.ppo.reward import extract_reward
+from verl.trainer.ppo.reward import extract_reward, get_val_reward_fn
 from verl.trainer.ppo.utils import (
     Role,
     WorkerType,
@@ -597,6 +597,68 @@ class RayPPOTrainer:
         batch_reward = self.reward_loop_manager.compute_rm_score(batch)
         return batch_reward
 
+    def _get_val_reward_fn(self):
+        """Lazily load and cache the val_reward function if configured."""
+        if not hasattr(self, "_val_reward_fn"):
+            self._val_reward_fn = get_val_reward_fn(self.config)
+        return self._val_reward_fn
+
+    def _recompute_val_reward(self, test_batch: DataProto) -> DataProto:
+        """Re-compute reward using val_reward function if configured.
+
+        Overwrites rm_scores and reward_extra_keys in the batch.
+        Returns the modified batch.
+        """
+        val_reward_fn = self._get_val_reward_fn()
+        if val_reward_fn is None:
+            return test_batch
+
+        response_ids = test_batch.batch["responses"]
+        response_length = response_ids.shape[-1]
+        attention_mask = test_batch.batch["attention_mask"]
+
+        scores = []
+        reward_extra_infos = []
+
+        for i in range(len(test_batch.batch["responses"])):
+            valid_len = attention_mask[i, -response_length:].sum().item()
+            valid_ids = response_ids[i, :int(valid_len)]
+            response_str = self.tokenizer.decode(valid_ids, skip_special_tokens=True)
+
+            data_source = test_batch.non_tensor_batch["data_source"][i] if "data_source" in test_batch.non_tensor_batch else "unknown"
+            ground_truth = test_batch.non_tensor_batch["reward_model"][i].get("ground_truth", "") if "reward_model" in test_batch.non_tensor_batch else ""
+            extra_info = test_batch.non_tensor_batch.get("extra_info", [{}])[i] if "extra_info" in test_batch.non_tensor_batch else {}
+
+            result = val_reward_fn(
+                data_source=data_source,
+                solution_str=response_str,
+                ground_truth=ground_truth,
+                extra_info=extra_info,
+            )
+
+            if isinstance(result, dict):
+                scores.append(result["score"])
+                reward_extra_infos.append(result)
+            else:
+                scores.append(result)
+                reward_extra_infos.append({"score": result})
+
+        # Overwrite rm_scores
+        response_mask = test_batch.batch.get("response_mask", attention_mask[:, -response_length:])
+        valid_lengths = response_mask.sum(dim=-1).long() - 1
+        rm_scores = torch.zeros_like(response_mask, dtype=torch.float32)
+        rm_scores[torch.arange(rm_scores.size(0)), valid_lengths.clamp(min=0)] = torch.tensor(scores, dtype=torch.float32)
+        test_batch.batch["rm_scores"] = rm_scores
+
+        # Overwrite reward_extra_keys in non_tensor_batch
+        if reward_extra_infos:
+            reward_extra_keys = list(reward_extra_infos[0].keys())
+            for key in reward_extra_keys:
+                test_batch.non_tensor_batch[key] = np.array([info.get(key, 0) for info in reward_extra_infos])
+            test_batch.meta_info["reward_extra_keys"] = reward_extra_keys
+
+        return test_batch
+
     def _validate(self, merged: bool = False):
         data_source_lst = []
         reward_extra_infos_dict: dict[str, list] = defaultdict(list)
@@ -677,6 +739,9 @@ class RayPPOTrainer:
             input_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in input_ids]
             sample_inputs.extend(input_texts)
             sample_uids.extend(test_batch.non_tensor_batch["uid"])
+
+            # Re-compute reward using val_reward function if configured
+            test_batch = self._recompute_val_reward(test_batch)
 
             # evaluate using reward_function
             reward_tensor, reward_extra_info = extract_reward(test_batch)
