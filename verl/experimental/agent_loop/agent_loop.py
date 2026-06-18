@@ -78,13 +78,13 @@ DEFAULT_ROUTING_CACHE_SIZE = 10000
 
 
 def _convert_audio_messages_to_text(messages: list[dict]) -> list[dict]:
-    """Convert multimodal audio content items to plain text with <audio> placeholders.
+    """Convert multimodal audio content items to plain text with audio placeholder tokens.
 
     Chat templates for audio models (e.g. Qwen3.5-Audio) may not handle
     ``{"type": "audio"}`` content items.  This function rewrites each message
-    so that audio items become the literal string ``<audio>`` while text items
-    are concatenated, producing a plain-string ``content`` that any chat
-    template can render.
+    so that audio items become ``<|audio_start|><|audio_end|>`` placeholder
+    tokens (which vLLM's multimodal processor will expand with the actual
+    audio features) while text items are concatenated.
     """
     converted = []
     for msg in messages:
@@ -94,7 +94,7 @@ def _convert_audio_messages_to_text(messages: list[dict]) -> list[dict]:
             for item in content:
                 if isinstance(item, dict):
                     if item.get("type") == "audio":
-                        parts.append("<audio>")
+                        parts.append("<|audio_start|><|audio_end|>")
                     elif item.get("type") == "text":
                         parts.append(item.get("text", ""))
                     else:
@@ -323,11 +323,20 @@ class AgentLoopBase(ABC):
             list[int]: Prompt token ids.
         """
         if self.processor is not None:
+            # Convert audio messages to text with proper placeholder tokens
+            # The Qwen3.5-Audio chat template doesn't handle {"type": "audio"} items,
+            # so we convert them to text with <|audio_start|><|audio_end|> placeholders.
+            # vLLM will find these special tokens and expand them with audio features.
+            if audios is not None:
+                text_messages = _convert_audio_messages_to_text(messages)
+            else:
+                text_messages = messages
+
             raw_prompt = await self.loop.run_in_executor(
                 None,
                 lambda: apply_chat_template(
-                    self.processor,
-                    messages,
+                    self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer,
+                    text_messages,
                     tools=tools,
                     add_generation_prompt=True,
                     tokenize=False,
@@ -341,21 +350,9 @@ class AgentLoopBase(ABC):
                 # Text-only: tokenize with just the tokenizer
                 prompt_ids = normalize_token_ids(self.tokenizer.encode(raw_prompt))
             else:
-                # Multimodal (audio/image/video): use the full processor to produce
-                # correct placeholder tokens (e.g. <|audio_start|>...<|audio_pad|>*N...<|audio_end|>
-                # for Qwen3.5-Audio). Tokenizer-only tokenization would produce wrong
-                # tokens for multimodal placeholders.
-                model_inputs = build_multimodal_processor_inputs(
-                    self.processor,
-                    text=[raw_prompt],
-                    images=images,
-                    videos=videos,
-                    audio=audios,
-                    mm_processor_kwargs=mm_processor_kwargs
-                    if mm_processor_kwargs is not None
-                    else self._get_mm_processor_kwargs(audios),
-                )
-                prompt_ids = normalize_token_ids(model_inputs.pop("input_ids"))
+                # Multimodal: tokenize with tokenizer so placeholder tokens stay as-is
+                # for vLLM's multimodal processor to expand.
+                prompt_ids = normalize_token_ids(self.tokenizer.encode(raw_prompt))
         else:
             tokenized_prompt = await self.loop.run_in_executor(
                 None,
