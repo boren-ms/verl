@@ -34,7 +34,7 @@ rollout:
   nnodes: 1
   n_gpus_per_node: 4
   n: 8
-  total_rollout_steps: 512
+#   total_rollout_steps: 512
 
 # ── Data ──────────────────────────────────────────────────────────────────
 data:
