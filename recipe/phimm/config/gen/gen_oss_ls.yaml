@@ -52,7 +52,7 @@ actor_rollout_ref:
     top_p: 1.0
     response_length: ${data.max_response_length}
     tensor_model_parallel_size: 1
-    gpu_memory_utilization: 0.85
+    gpu_memory_utilization: 0.75
     max_num_seqs: 24
     enforce_eager: false
     enable_chunked_prefill: true
