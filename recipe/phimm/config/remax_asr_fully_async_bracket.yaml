@@ -122,9 +122,9 @@ data:
         verl_format:
           prompt_key: prompt
 
-# ── Algorithm: ReMax ──────────────────────────────────────────────────────
+# ── Algorithm: GRPO (ReMax not supported in fully async - no reward_baselines) ─
 algorithm:
-  adv_estimator: remax
+  adv_estimator: grpo
   use_kl_in_reward: false
   kl_ctrl:
     kl_coef: 0.0
