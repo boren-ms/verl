@@ -65,8 +65,25 @@ def _scan_existing_parts(output_path: str) -> tuple[int, int]:
 # Batch generation
 # ---------------------------------------------------------------------------
 
-async def _generate_batch(server_handles, batch_items, sampling_params, processor_sr):
-    """Generate for all items in a batch concurrently via round-robin servers."""
+async def _generate_batch_client(client, batch_items, sampling_params, processor_sr):
+    """Generate via LLMServerClient (verl-mirror path)."""
+    tasks = []
+    for item in batch_items:
+        request_id = uuid.uuid4().hex
+        tasks.append(
+            client.generate(
+                request_id=request_id,
+                prompt_ids=item["prompt_ids"],
+                sampling_params=dict(sampling_params),
+                audio_data=item.get("audio_data"),
+                mm_processor_kwargs={"sampling_rate": processor_sr},
+            )
+        )
+    return await asyncio.gather(*tasks, return_exceptions=True)
+
+
+async def _generate_batch_direct(server_handles, batch_items, sampling_params, processor_sr):
+    """Generate via direct Ray server calls (old verl fallback)."""
     tasks = []
     for i, item in enumerate(batch_items):
         request_id = uuid.uuid4().hex
@@ -83,7 +100,6 @@ async def _generate_batch(server_handles, batch_items, sampling_params, processo
                 **multimodal_kwargs,
             )
         )
-    # Gather ray remote calls
     results = []
     for task in tasks:
         try:
@@ -133,7 +149,6 @@ async def _run_generation_async(config):
     from verl.utils import hf_tokenizer
     from verl.utils.dataset.rl_dataset import collate_fn
     from verl.utils.hdfs_io import makedirs
-    from verl.workers.rollout.replica import get_rollout_replica_class
 
     OmegaConf.resolve(config)
     _normalize_config(config)
@@ -252,40 +267,50 @@ async def _run_generation_async(config):
         sampling_params["stop_token_ids"] = list(stop_token_ids)
 
     # ── launch vLLM server replicas ────────────────────────────────────
+    # Prefer LLMServerManager (verl-mirror) for proper load balancing;
+    # fall back to direct RolloutReplica API (old verl compatibility).
     logger.info("Launching vLLM server replicas …")
-    rollout_config = config.actor_rollout_ref.rollout
-    model_config = config.actor_rollout_ref.model
-    tp_size = rollout_config.tensor_model_parallel_size
-    n_gpus = config.trainer.n_gpus_per_node * config.trainer.nnodes
-    num_replicas = n_gpus // tp_size
+    _use_server_manager = False
+    client = None
+    server_handles = None
 
-    rollout_server_class = get_rollout_replica_class(rollout_config.name)
-    rollout_servers = [
-        rollout_server_class(
-            replica_rank=i,
-            config=rollout_config,
-            model_config=model_config,
-            gpus_per_node=config.trainer.n_gpus_per_node,
-        )
-        for i in range(num_replicas)
-    ]
-    await asyncio.gather(*[server.init_standalone() for server in rollout_servers])
-    server_handles = [server._server_handle for server in rollout_servers]
-    logger.info("Server replicas ready: %d replicas", len(server_handles))
+    try:
+        from verl.workers.rollout.llm_server import LLMServerManager
 
-    # Simple round-robin load balancer for direct server access
-    _server_idx = [0]
+        server_manager = await LLMServerManager.create(config=config)
+        client = server_manager.get_client()
+        _use_server_manager = True
+        logger.info("Server replicas ready (LLMServerManager)")
+    except (ImportError, ModuleNotFoundError):
+        # Old verl: fall back to direct replica API
+        from verl.workers.rollout.replica import get_rollout_replica_class
 
-    def _next_server():
-        idx = _server_idx[0] % len(server_handles)
-        _server_idx[0] += 1
-        return server_handles[idx]
+        rollout_config = config.actor_rollout_ref.rollout
+        model_config = config.actor_rollout_ref.model
+        tp_size = rollout_config.tensor_model_parallel_size
+        n_gpus = config.trainer.n_gpus_per_node * config.trainer.nnodes
+        num_replicas = n_gpus // tp_size
+
+        rollout_server_class = get_rollout_replica_class(rollout_config.name)
+        rollout_servers = [
+            rollout_server_class(
+                replica_rank=i,
+                config=rollout_config,
+                model_config=model_config,
+                gpus_per_node=config.trainer.n_gpus_per_node,
+            )
+            for i in range(num_replicas)
+        ]
+        await asyncio.gather(*[server.init_standalone() for server in rollout_servers])
+        server_handles = [server._server_handle for server in rollout_servers]
+        logger.info("Server replicas ready (direct): %d replicas", len(server_handles))
 
     def _write_parquet(df, dest_path):
         """Write parquet to local temp file then copy to blob if az://."""
         if dest_path.startswith("az://"):
-            import blobfile as bf
             import tempfile
+
+            import blobfile as bf
 
             with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
                 df.to_parquet(tmp.name, index=False)
@@ -374,7 +399,10 @@ async def _run_generation_async(config):
 
         # ── generate ───────────────────────────────────────────────────
         t_batch = time.time()
-        results = await _generate_batch(server_handles, batch_items, sampling_params, processor_sr)
+        if _use_server_manager:
+            results = await _generate_batch_client(client, batch_items, sampling_params, processor_sr)
+        else:
+            results = await _generate_batch_direct(server_handles, batch_items, sampling_params, processor_sr)
         gen_time = time.time() - t_batch
 
         # ── decode + WER ───────────────────────────────────────────────
