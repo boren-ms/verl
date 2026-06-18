@@ -17,7 +17,6 @@ import time
 import uuid
 
 import hydra
-import numpy as np
 import pandas as pd
 import ray
 from omegaconf import OmegaConf
@@ -66,7 +65,7 @@ def _scan_existing_parts(output_path: str) -> tuple[int, int]:
 # ---------------------------------------------------------------------------
 
 async def _generate_batch_client(client, batch_items, sampling_params, processor_sr):
-    """Generate via LLMServerClient (verl-mirror path)."""
+    """Generate a batch of requests via LLMServerClient."""
     tasks = []
     for item in batch_items:
         request_id = uuid.uuid4().hex
@@ -81,45 +80,6 @@ async def _generate_batch_client(client, batch_items, sampling_params, processor
         )
     return await asyncio.gather(*tasks, return_exceptions=True)
 
-
-async def _generate_batch_direct(server_handles, batch_items, sampling_params, processor_sr):
-    """Generate via direct Ray server calls (old verl fallback)."""
-    tasks = []
-    for i, item in enumerate(batch_items):
-        request_id = uuid.uuid4().hex
-        server = server_handles[i % len(server_handles)]
-        multimodal_kwargs = {}
-        if item.get("audio_data") is not None:
-            multimodal_kwargs["audio_data"] = item["audio_data"]
-            multimodal_kwargs["mm_processor_kwargs"] = {"sampling_rate": processor_sr}
-        tasks.append(
-            server.generate.remote(
-                request_id=request_id,
-                prompt_ids=item["prompt_ids"],
-                sampling_params=dict(sampling_params),
-                **multimodal_kwargs,
-            )
-        )
-    results = []
-    for task in tasks:
-        try:
-            result = await task
-            results.append(result)
-        except Exception as e:
-            results.append(e)
-    return results
-
-
-def _extract_scalar(arr, idx):
-    """Safely extract a scalar from a numpy object array or tensor batch."""
-    if arr is None:
-        return None
-    val = arr[idx]
-    if isinstance(val, np.ndarray) and val.ndim == 0:
-        return val.item()
-    if isinstance(val, np.ndarray) and val.size == 1:
-        return val.flat[0]
-    return val
 
 
 # ---------------------------------------------------------------------------
@@ -142,12 +102,9 @@ def _normalize_config(config):
 
 async def _run_generation_async(config):
     """Async entry: launch servers, iterate dataset, generate, write parquet."""
-    from torchdata.stateful_dataloader import StatefulDataLoader
-
     from recipe.phimm.reward.asr_edge import eval_score
     from recipe.phimm.utils.shared import parse_asr_response
     from verl.utils import hf_tokenizer
-    from verl.utils.dataset.rl_dataset import collate_fn
     from verl.utils.hdfs_io import makedirs
 
     OmegaConf.resolve(config)
@@ -219,32 +176,15 @@ async def _run_generation_async(config):
     ds_conf = OmegaConf.select(config, "data.gen_data",
               default=OmegaConf.select(config, "data.train_data",
               default=OmegaConf.select(config, "data.val_data")))
-    # Support both old verl (data_confs) and verl-mirror (data_files) RLHFDataset API
-    try:
-        dataset = RLHFDataset(
-            data_files=ds_conf,
-            tokenizer=tokenizer,
-            config=config.data,
-            processor=processor,
-        )
-    except TypeError:
-        dataset = RLHFDataset(
-            data_confs=ds_conf,
-            tokenizer=tokenizer,
-            config=config.data,
-            processor=processor,
-        )
+    dataset = RLHFDataset(
+        data_files=ds_conf,
+        tokenizer=tokenizer,
+        config=config.data,
+        processor=processor,
+    )
     logger.info("Dataset loaded: %d examples", len(dataset))
 
     batch_size = config.data.batch_size
-    num_workers = config.data.get("num_workers", 4)
-    dataloader = StatefulDataLoader(
-        dataset=dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        collate_fn=collate_fn,
-        shuffle=False,
-    )
 
     # ── output / resume ────────────────────────────────────────────────
     output_path = config.data.output_path
@@ -267,43 +207,12 @@ async def _run_generation_async(config):
         sampling_params["stop_token_ids"] = list(stop_token_ids)
 
     # ── launch vLLM server replicas ────────────────────────────────────
-    # Prefer LLMServerManager (verl-mirror) for proper load balancing;
-    # fall back to direct RolloutReplica API (old verl compatibility).
+    from verl.workers.rollout.llm_server import LLMServerManager
+
     logger.info("Launching vLLM server replicas …")
-    _use_server_manager = False
-    client = None
-    server_handles = None
-
-    try:
-        from verl.workers.rollout.llm_server import LLMServerManager
-
-        server_manager = await LLMServerManager.create(config=config)
-        client = server_manager.get_client()
-        _use_server_manager = True
-        logger.info("Server replicas ready (LLMServerManager)")
-    except (ImportError, ModuleNotFoundError):
-        # Old verl: fall back to direct replica API
-        from verl.workers.rollout.replica import get_rollout_replica_class
-
-        rollout_config = config.actor_rollout_ref.rollout
-        model_config = config.actor_rollout_ref.model
-        tp_size = rollout_config.tensor_model_parallel_size
-        n_gpus = config.trainer.n_gpus_per_node * config.trainer.nnodes
-        num_replicas = n_gpus // tp_size
-
-        rollout_server_class = get_rollout_replica_class(rollout_config.name)
-        rollout_servers = [
-            rollout_server_class(
-                replica_rank=i,
-                config=rollout_config,
-                model_config=model_config,
-                gpus_per_node=config.trainer.n_gpus_per_node,
-            )
-            for i in range(num_replicas)
-        ]
-        await asyncio.gather(*[server.init_standalone() for server in rollout_servers])
-        server_handles = [server._server_handle for server in rollout_servers]
-        logger.info("Server replicas ready (direct): %d replicas", len(server_handles))
+    server_manager = await LLMServerManager.create(config=config)
+    client = server_manager.get_client()
+    logger.info("Server replicas ready (LLMServerManager)")
 
     def _write_parquet(df, dest_path):
         """Write parquet to local temp file then copy to blob if az://."""
@@ -327,82 +236,65 @@ async def _run_generation_async(config):
     total_n_err = 0
     total_n_ref = 0
     examples_done = 0
-    skipped = 0
+    n_total = len(dataset)
+    audio_tok_ids = tokenizer.encode("<audio>", add_special_tokens=False)
+    newline_tok = tokenizer.encode("\n", add_special_tokens=False)
     t0 = time.time()
 
-    for batch_idx, batch in enumerate(dataloader):
-        actual_bs = batch["input_ids"].shape[0]
-
-        # handle resume: skip already-processed examples
-        if skipped + actual_bs <= skip_count:
-            skipped += actual_bs
-            continue
-        offset = max(0, skip_count - skipped)
-        skipped = max(skipped, skip_count)
+    for batch_start in range(skip_count, n_total, batch_size):
+        batch_end = min(batch_start + batch_size, n_total)
+        batch_idx = batch_start // batch_size
 
         # ── prepare per-sample requests ────────────────────────────────
         batch_items = []
         batch_meta = []
-        for i in range(offset, actual_bs):
+        for idx in range(batch_start, batch_end):
+            item = dataset[idx]
+
             # Build prompt_ids with <audio> placeholder for vLLM's audio plugin.
-            # The dataset's input_ids have pre-expanded audio_pad tokens which
-            # the standalone vLLM plugin can't process — it needs the <audio>
-            # text placeholder that it will replace during input processing.
-            raw_ids = _extract_scalar(batch.get("raw_prompt_ids"), i)
+            raw_ids = item.get("raw_prompt_ids")
             if raw_ids is not None:
                 prompt_ids = list(raw_ids) if not isinstance(raw_ids, list) else raw_ids
-                # Insert <audio> token sequence if not already present
-                audio_tok_ids = tokenizer.encode("<audio>", add_special_tokens=False)
                 has_audio = any(
                     prompt_ids[j:j + len(audio_tok_ids)] == audio_tok_ids
                     for j in range(len(prompt_ids) - len(audio_tok_ids) + 1)
                 ) if len(audio_tok_ids) <= len(prompt_ids) else False
                 if not has_audio:
-                    # Find the position after <|im_start|>user\n and inject <audio>\n
-                    newline_tok = tokenizer.encode("\n", add_special_tokens=False)
                     inject_pos = None
                     for j in range(len(prompt_ids)):
-                        # After the first newline token (end of <|im_start|>user\n)
                         if prompt_ids[j:j + len(newline_tok)] == newline_tok:
                             inject_pos = j + len(newline_tok)
                             break
                     if inject_pos is not None:
                         prompt_ids = prompt_ids[:inject_pos] + audio_tok_ids + newline_tok + prompt_ids[inject_pos:]
             else:
-                attn = batch["attention_mask"][i]
-                ids = batch["input_ids"][i]
+                attn = item["attention_mask"]
+                ids = item["input_ids"]
                 valid_len = int(attn.sum().item())
                 prompt_ids = ids[-valid_len:].tolist()
 
-            audio_data = _extract_scalar(batch.get("multi_modal_data"), i)
+            audio_data = item.get("multi_modal_data")
             if isinstance(audio_data, dict):
                 audio_data = audio_data.get("audio")
 
-            # Extract ground truth from reward_model dict or text field
-            gt_raw = _extract_scalar(batch.get("reward_model"), i)
+            gt_raw = item.get("reward_model")
             if isinstance(gt_raw, dict):
                 ground_truth = gt_raw.get("ground_truth", gt_raw.get("gt_output", ""))
             else:
-                ground_truth = _extract_scalar(batch.get("text"), i)
+                ground_truth = item.get("text")
 
             batch_items.append({"prompt_ids": prompt_ids, "audio_data": audio_data})
             batch_meta.append({
                 "ground_truth": ground_truth,
-                "audio_path": _extract_scalar(batch.get("audio_path"), i),
-                "data_source": _extract_scalar(batch.get("data_source"), i),
-                "prompt": _extract_scalar(batch.get("raw_prompt"), i),
-                "extra_info": _extract_scalar(batch.get("extra_info"), i),
+                "audio_path": item.get("audio_path"),
+                "data_source": item.get("data_source"),
+                "prompt": item.get("raw_prompt"),
+                "extra_info": item.get("extra_info"),
             })
-
-        if not batch_items:
-            continue
 
         # ── generate ───────────────────────────────────────────────────
         t_batch = time.time()
-        if _use_server_manager:
-            results = await _generate_batch_client(client, batch_items, sampling_params, processor_sr)
-        else:
-            results = await _generate_batch_direct(server_handles, batch_items, sampling_params, processor_sr)
+        results = await _generate_batch_client(client, batch_items, sampling_params, processor_sr)
         gen_time = time.time() - t_batch
 
         # ── decode + WER ───────────────────────────────────────────────
