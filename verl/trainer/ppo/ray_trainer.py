@@ -662,6 +662,11 @@ class RayPPOTrainer:
             output_texts = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in output_ids]
             sample_outputs.extend(output_texts)
 
+            # Remove keys from gen output that conflict with test_batch to avoid
+            # assertion errors (async generation may return different input_ids/attention_mask)
+            for key in list(test_output_gen_batch.batch.keys()):
+                if key in test_batch.batch.keys():
+                    del test_output_gen_batch.batch[key]
             test_batch = test_batch.union(test_output_gen_batch)
             test_batch.meta_info["validate"] = True
 
