@@ -162,8 +162,8 @@ actor_rollout_ref:
     exclude_modules: "model.embed_tokens_extend.*"
   actor:
     strategy: fsdp2
-    ppo_micro_batch_size_per_gpu: 4
-    ppo_mini_batch_size: 64        # samples per trainer step
+    ppo_micro_batch_size_per_gpu: 2
+    ppo_mini_batch_size: 16        # samples per trainer step
     ppo_epochs: 1
     use_kl_loss: false
     kl_loss_coef: 0.0
