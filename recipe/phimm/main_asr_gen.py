@@ -325,15 +325,30 @@ async def _run_generation_async(config):
                 examples_done, n_total - skip_count, time.time() - t0, running_wer,
             )
 
-    # Feed tasks continuously — semaphore throttles concurrency
-    tasks = []
-    for idx in range(skip_count, n_total):
-        t = asyncio.create_task(_worker(idx))
-        tasks.append((idx, t))
+    # Feed tasks continuously — keep up to `concurrency` in-flight at all
+    # times so server replicas never sit idle between chunks.
+    pending_tasks: set[asyncio.Task] = set()
+    submit_idx = skip_count
 
-    # Process completions as they arrive
-    for idx, t in tasks:
-        await _collect(t, idx)
+    def _submit_one():
+        nonlocal submit_idx
+        if submit_idx < n_total:
+            t = asyncio.create_task(_worker(submit_idx))
+            t._item_idx = submit_idx
+            pending_tasks.add(t)
+            submit_idx += 1
+
+    # Seed initial batch
+    for _ in range(min(concurrency, n_total - skip_count)):
+        _submit_one()
+
+    while pending_tasks:
+        done, pending_tasks = await asyncio.wait(
+            pending_tasks, return_when=asyncio.FIRST_COMPLETED
+        )
+        for t in done:
+            await _collect(t, t._item_idx)
+            _submit_one()  # replace each finished task immediately
 
     # ── write remainder ────────────────────────────────────────────────
     if all_results:
