@@ -551,6 +551,39 @@ def calc_maj_val(data: list[dict[str, Any]], vote_key: str, val_key: str) -> flo
     return maj_val
 
 
+_RATIO_PREFIXES = {
+    "n_": "p_",
+    "nb_": "pb_",
+    "nu_": "pu_",
+    "dter_n_": "dter_p_",
+    "eer_n_": "eer_p_",
+}
+
+
+def update_var2metric2val(var2metric2val: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
+    """Remove raw numerator/reference variables that have been converted to weighted-average ratios.
+
+    The per-uid ratio variables (p_*) are computed inside process_validation_metrics
+    before aggregation, giving a weighted average (mean of per-uid ratios) rather than
+    micro-average (sum of numerators / sum of references).
+
+    This function strips the raw n_* and n_*ref variables from the final output.
+    """
+    output = dict(var2metric2val)
+    remove_vars = set()
+    for n_pfx in _RATIO_PREFIXES:
+        ref_var = f"{n_pfx}ref"
+        if ref_var not in var2metric2val:
+            continue
+        remove_vars.add(ref_var)
+        for var_name in var2metric2val:
+            if var_name.startswith(n_pfx) and var_name != ref_var:
+                remove_vars.add(var_name)
+    for var_name in remove_vars:
+        output.pop(var_name, None)
+    return output
+
+
 def process_validation_metrics(
     data_sources: list[str], sample_uids: list[str], infos_dict: dict[str, list[Any]], seed: int = 42
 ) -> dict[str, dict[str, dict[str, float]]]:
@@ -685,6 +718,28 @@ def process_validation_metrics(
                             metric[f"maj@{n}/std"] = maj_n_std
 
                 var_dict[var_name] = metric
+
+    # Compute weighted-average ratio variables per uid (p_xxx = n_xxx / n_ref per uid)
+    for data_source, uid2var2metric in data_src2uid2var2metric.items():
+        for uid, var_dict in uid2var2metric.items():
+            for n_pfx, p_pfx in _RATIO_PREFIXES.items():
+                ref_var = f"{n_pfx}ref"
+                ref_metric = var_dict.get(ref_var)
+                if not ref_metric:
+                    continue
+                for var_name in list(var_dict.keys()):
+                    if not var_name.startswith(n_pfx) or var_name == ref_var:
+                        continue
+                    pvar_name = p_pfx + var_name[len(n_pfx):]
+                    if pvar_name in var_dict:
+                        continue
+                    p_metric = {}
+                    for metric_name, val in var_dict[var_name].items():
+                        ref_val = ref_metric.get(metric_name)
+                        if ref_val:
+                            p_metric[metric_name] = val / ref_val
+                    if p_metric:
+                        var_dict[pvar_name] = p_metric
 
     # Aggregate metrics across uids
     data_src2var2metric2uid_vals = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
