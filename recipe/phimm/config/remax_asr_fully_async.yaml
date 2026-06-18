@@ -190,7 +190,7 @@ actor_rollout_ref:
 # ── Trainer ───────────────────────────────────────────────────────────────
 trainer:
   project_name: verl_repeat
-  experiment_name: remax_asr_fully_async
+  experiment_name: remax_asr_fully_async_v1
   logger: ["console", "wandb"]
   n_gpus_per_node: 4             # trainer GPU pool
   nnodes: 1
