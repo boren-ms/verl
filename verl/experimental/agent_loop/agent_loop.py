@@ -663,8 +663,9 @@ class AgentLoopWorker:
     ) -> dict[str, torch.Tensor]:
         """Right/left pad a flat list of token ids to a ``(1, max_length)`` tensor."""
         self.tokenizer.padding_side = padding_side
+        # Wrap as batch-of-one so tokenizer.pad() returns tensors correctly
         padded = self.tokenizer.pad(
-            {"input_ids": tokens},
+            {"input_ids": [tokens]},
             padding="max_length",
             max_length=max_length,
             return_tensors="pt",
