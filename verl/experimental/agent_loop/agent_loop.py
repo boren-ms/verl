@@ -334,30 +334,17 @@ class AgentLoopBase(ABC):
                     **self.apply_chat_template_kwargs,
                 ),
             )
+            # Remove empty thinking block injected by Qwen3.5 chat template
+            raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
 
-            if audios is not None:
-                # For audio models with vLLM backend, we must:
-                # 1. Insert <audio> placeholders into prompt text (chat templates
-                #    for audio models may not handle {"type":"audio"} content items)
-                # 2. Use tokenizer-only tokenization (not the full HF processor)
-                #    so <audio> stays as tokens for vLLM's multimodal processor
-                #    to expand into <|audio_pad|> tokens.
-                text_messages = _convert_audio_messages_to_text(messages)
-                raw_prompt = await self.loop.run_in_executor(
-                    None,
-                    lambda: apply_chat_template(
-                        self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer,
-                        text_messages,
-                        tools=tools,
-                        add_generation_prompt=True,
-                        tokenize=False,
-                        **self.apply_chat_template_kwargs,
-                    ),
-                )
-                # Remove empty thinking block injected by Qwen3.5 chat template
-                raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
+            if audios is None and images is None and videos is None:
+                # Text-only: tokenize with just the tokenizer
                 prompt_ids = normalize_token_ids(self.tokenizer.encode(raw_prompt))
             else:
+                # Multimodal (audio/image/video): use the full processor to produce
+                # correct placeholder tokens (e.g. <|audio_start|>...<|audio_pad|>*N...<|audio_end|>
+                # for Qwen3.5-Audio). Tokenizer-only tokenization would produce wrong
+                # tokens for multimodal placeholders.
                 model_inputs = build_multimodal_processor_inputs(
                     self.processor,
                     text=[raw_prompt],
