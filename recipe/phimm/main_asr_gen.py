@@ -7,17 +7,31 @@ Usage:
 """
 
 import asyncio
+import hashlib
 import logging
 import os
+import subprocess
+import tempfile
 import time
 import uuid
 from pathlib import Path
 from pprint import pprint
 
+import blobfile as bf
 import hydra
 import pandas as pd
 import ray
 from omegaconf import DictConfig, OmegaConf
+from transformers import AutoProcessor
+from transformers.processing_utils import ProcessorMixin
+
+from recipe.phimm.data.rl_dataset import RLHFDataset
+from recipe.phimm.reward.asr_edge import eval_score
+from recipe.phimm.utils.env import EnvMgr
+from verl.utils import hf_tokenizer
+from verl.utils.fs import copy_to_local
+from verl.utils.hdfs_io import makedirs
+from verl.workers.rollout.llm_server import LLMServerManager
 
 os.environ["NCCL_DEBUG"] = "WARN"
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
@@ -57,13 +71,8 @@ def _build_sampling_params(config):
 
 def _resolve_model_path(model_path: str) -> str:
     """Resolve az:// blob paths to a local cache; copy_to_local for others."""
-    from verl.utils.fs import copy_to_local
-
     if not model_path.startswith("az://"):
         return copy_to_local(model_path)
-
-    import hashlib
-    import subprocess
 
     cache_key = hashlib.md5(model_path.encode()).hexdigest()
     local = os.path.join(os.path.expanduser("~"), ".blobfile", cache_key, model_path.split("/")[-1])
@@ -77,9 +86,6 @@ def _resolve_model_path(model_path: str) -> str:
 
 def _load_processor(model_path: str, trust_remote_code: bool):
     """Load AutoProcessor with a relaxed type-check monkey-patch for custom processors."""
-    from transformers import AutoProcessor
-    from transformers.processing_utils import ProcessorMixin
-
     orig = ProcessorMixin.check_argument_for_proper_class
 
     def _relaxed(self, attribute_name, arg):
@@ -102,7 +108,6 @@ def _load_processor(model_path: str, trust_remote_code: bool):
 def _scan_existing_parts(output_path: str) -> tuple[int, int]:
     """Return (total_examples, next_part_idx) from contiguous parquet parts."""
     try:
-        import blobfile as bf
         files = list(bf.listdir(output_path))
     except (FileNotFoundError, OSError):
         return 0, 0
@@ -124,9 +129,6 @@ def _scan_existing_parts(output_path: str) -> tuple[int, int]:
 def _write_parquet(df: pd.DataFrame, dest_path: str):
     """Write parquet, transparently handling az:// blob destinations."""
     if dest_path.startswith("az://"):
-        import tempfile
-
-        import blobfile as bf
         with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
             df.to_parquet(tmp.name, index=False)
             tmp_path = tmp.name
@@ -191,11 +193,11 @@ def _prepare_item(item, audio_tok_ids, newline_tok):
 
 
 # ---------------------------------------------------------------------------
-# Generation + scoring (single item)
+# Generation + scoring
 # ---------------------------------------------------------------------------
 
 async def _generate_one(client, gen_input, sampling_params, processor_sr):
-    """Generate for a single item via LLMServerClient."""
+    """Generate for a single item. Returns raw token IDs or an Exception."""
     return await client.generate(
         request_id=uuid.uuid4().hex,
         prompt_ids=gen_input["prompt_ids"],
@@ -205,34 +207,25 @@ async def _generate_one(client, gen_input, sampling_params, processor_sr):
     )
 
 
-def _score_one(result, meta, tokenizer, eval_score, parse_asr_response):
-    """Decode a single generation result, compute WER, return (row, n_err, n_ref)."""
+def _score_one(result, meta, tokenizer, eval_score):
+    """Decode + score a single result. Returns (row, n_err, n_ref)."""
     gt = meta["ground_truth"]
+    base = {"text": gt, "audio_path": meta["audio_path"], "data_source": meta["data_source"]}
+
     if isinstance(result, Exception):
         logger.error("Generation failed: %s", result)
-        return {
-            "text": gt, "audio_path": meta["audio_path"],
-            "data_source": meta["data_source"],
-            "response": "", "raw_response": f"ERROR: {result}",
-            "n_err": 0, "n_ref": 0, "wer": 0.0, "n_edge": 0,
-        }, 0, 0
+        return {**base, "response": "", "raw_response": f"ERROR: {result}",
+                "n_err": 0, "n_ref": 0, "wer": 0.0, "n_edge": 0}, 0, 0
 
     raw_resp = tokenizer.decode(result.token_ids, skip_special_tokens=False)
-    parsed = parse_asr_response(raw_resp)
     gt_str = str(gt) if gt is not None else ""
     scores = eval_score(raw_resp, gt_str) if gt_str else {"n_err": 0, "n_ref": 0, "wer": 0.0, "n_edge": 0}
 
-    row = {
-        "text": gt, "audio_path": meta["audio_path"],
-        "data_source": meta["data_source"],
-        "response": parsed["text"], "raw_response": raw_resp,
-        **{k: scores[k] for k in ("n_err", "n_ref", "wer", "n_edge")},
-    }
+    row = {**base, "response": raw_resp, "raw_response": raw_resp,
+           "n_err": scores["n_err"], "n_ref": scores["n_ref"], "wer": scores["wer"], "n_edge": scores["n_edge"]}
     ei = meta.get("extra_info")
     if isinstance(ei, dict):
-        for k, v in ei.items():
-            if k not in row:
-                row[k] = v
+        row.update({k: v for k, v in ei.items() if k not in row})
     return row, scores["n_err"], scores["n_ref"]
 
 
@@ -242,13 +235,6 @@ def _score_one(result, meta, tokenizer, eval_score, parse_asr_response):
 
 async def _run_generation_async(config):
     """Launch servers, iterate dataset, generate, score, write parquet."""
-    from recipe.phimm.data.rl_dataset import RLHFDataset
-    from recipe.phimm.reward.asr_edge import eval_score
-    from recipe.phimm.utils.shared import parse_asr_response
-    from verl.utils import hf_tokenizer
-    from verl.utils.hdfs_io import makedirs
-    from verl.workers.rollout.llm_server import LLMServerManager
-
     OmegaConf.resolve(config)
     _normalize_config(config)
 
@@ -286,46 +272,68 @@ async def _run_generation_async(config):
     client = server_manager.get_client()
     logger.info("Server replicas ready")
 
-    # ── generation loop (item-by-item) ──────────────────────────────────
+    # ── generation loop (semaphore-bounded continuous feed) ───────────────
     n_total = len(dataset)
     audio_tok_ids = tokenizer.encode("<audio>", add_special_tokens=False)
     newline_tok = tokenizer.encode("\n", add_special_tokens=False)
+    concurrency = config.data.get("concurrency", config.data.batch_size)
     log_interval = config.data.get("log_interval", 100)
 
     all_results: list[dict] = []
     total_n_err = total_n_ref = examples_done = 0
     t0 = time.time()
+    sem = asyncio.Semaphore(concurrency)
 
-    for idx in range(skip_count, n_total):
-        item = dataset[idx]
-        gen_input, meta = _prepare_item(item, audio_tok_ids, newline_tok)
+    async def _worker(idx):
+        async with sem:
+            gen_input, meta = _prepare_item(dataset[idx], audio_tok_ids, newline_tok)
+            try:
+                result = await _generate_one(client, gen_input, sampling_params, processor_sr)
+            except Exception as exc:
+                result = exc
+            return idx, _score_one(result, meta, tokenizer, eval_score)
 
-        try:
-            result = await _generate_one(client, gen_input, sampling_params, processor_sr)
-        except Exception as exc:
-            result = exc
+    # Collect results in submission order via dict keyed by index
+    pending: dict[int, asyncio.Task] = {}
+    next_flush_idx = skip_count  # tracks the next index to flush in order
 
-        row, n_err, n_ref = _score_one(result, meta, tokenizer, eval_score, parse_asr_response)
-        all_results.append(row)
+    async def _collect(task, idx):
+        nonlocal total_n_err, total_n_ref, examples_done, next_flush_idx, part_idx
+        _, (row, n_err, n_ref) = await task
+        pending[idx] = row
         total_n_err += n_err
         total_n_ref += n_ref
         examples_done += 1
 
-        # Flush parquet parts
+        # Flush results that are contiguous from next_flush_idx (preserves order)
+        while next_flush_idx in pending:
+            all_results.append(pending.pop(next_flush_idx))
+            next_flush_idx += 1
+
+        # Write parquet parts
         while len(all_results) >= split_size:
-            chunk, all_results = all_results[:split_size], all_results[split_size:]
+            chunk, all_results[:] = all_results[:split_size], all_results[split_size:]
             part_file = os.path.join(output_path, f"part-{part_idx:05d}.parquet")
             _write_parquet(pd.DataFrame(chunk), part_file)
             logger.info("Wrote %s (%d rows)", part_file, len(chunk))
             part_idx += 1
 
-        # Progress
-        if examples_done % log_interval == 0 or idx == n_total - 1:
+        if examples_done % log_interval == 0:
             running_wer = (total_n_err / total_n_ref * 100) if total_n_ref > 0 else 0.0
             logger.info(
                 "%d/%d done | elapsed %.1fs | WER %.2f%%",
                 examples_done, n_total - skip_count, time.time() - t0, running_wer,
             )
+
+    # Feed tasks continuously — semaphore throttles concurrency
+    tasks = []
+    for idx in range(skip_count, n_total):
+        t = asyncio.create_task(_worker(idx))
+        tasks.append((idx, t))
+
+    # Process completions as they arrive
+    for idx, t in tasks:
+        await _collect(t, idx)
 
     # ── write remainder ────────────────────────────────────────────────
     if all_results:
@@ -348,8 +356,6 @@ async def _run_generation_async(config):
 
 @hydra.main(config_path="config/gen", config_name="gen_oss_ls", version_base=None)
 def main(config):
-    from recipe.phimm.utils.env import EnvMgr
-
     if not OmegaConf.has_resolver("eval"):
         OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
 
