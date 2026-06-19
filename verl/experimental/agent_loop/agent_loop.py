@@ -261,7 +261,11 @@ class AgentLoopBase(ABC):
     def _get_mm_processor_kwargs(self, audio_data: Optional[list[Any]] = None) -> dict[str, Any]:
         mm_processor_kwargs = dict(self.mm_processor_kwargs or {})
         if audio_data is not None and "sampling_rate" not in mm_processor_kwargs:
-            sampling_rate = getattr(getattr(self.processor, "feature_extractor", None), "sampling_rate", None)
+            # Try feature_extractor first, then audio_feature_extractor (Qwen3.5-Audio)
+            fe = getattr(self.processor, "feature_extractor", None) or getattr(
+                self.processor, "audio_feature_extractor", None
+            )
+            sampling_rate = getattr(fe, "sampling_rate", None)
             if sampling_rate is not None:
                 mm_processor_kwargs["sampling_rate"] = int(sampling_rate)
         return mm_processor_kwargs

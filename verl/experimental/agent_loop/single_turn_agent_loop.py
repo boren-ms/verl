@@ -63,11 +63,8 @@ class SingleTurnAgentLoop(AgentLoopBase):
         )
 
         # 3. generate sequences
-        # Unwrap audio tuples (wav, sr) → just wav arrays for vLLM plugin
-        vllm_audio_data = None
-        if audios:
-            vllm_audio_data = [a[0] if isinstance(a, tuple) else a for a in audios]
-        # Get raw prompt text for vLLM's multimodal processor (handles <audio> expansion)
+        # Pass audio data as-is (tuples of (wav, sr) from dataset)
+        # + raw prompt text for vLLM's multimodal processor
         prompt_text = getattr(self, "_last_raw_prompt", None) if audios else None
         metrics = {}
         with simple_timer("generate_sequences", metrics):
@@ -77,7 +74,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
                 sampling_params=sampling_params,
                 image_data=images,
                 video_data=videos,
-                audio_data=vllm_audio_data,
+                audio_data=audios,
                 mm_processor_kwargs=mm_processor_kwargs,
                 prompt_text=prompt_text,
             )
