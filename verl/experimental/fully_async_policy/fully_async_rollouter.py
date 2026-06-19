@@ -886,7 +886,17 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
                             async with self.lock:
                                 for task in actual_done:
                                     self.active_tasks.discard(task)
-                                    await task
+                                    try:
+                                        await task
+                                    except (asyncio.CancelledError, Exception) as e:
+                                        err_str = str(e).lower()
+                                        if "cancelled" in err_str or "canceled" in err_str:
+                                            print(
+                                                f"[FullyAsyncRollouter][Drain] Task cancelled during weight sync, "
+                                                f"discarding: {task.get_name()}"
+                                            )
+                                        else:
+                                            raise
                         if resume_future in done:
                             print(
                                 "[FullyAsyncRollouter][Processor] "
@@ -955,7 +965,9 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
         # Catch and retry after a brief wait for replicas to resume.
         # The exception may be asyncio.CancelledError, or ray.exceptions.RayTaskError
         # wrapping a TaskCancelledError (type name "RayTaskError" with "Cancelled" in str).
+        # Weight sync takes ~90s, so retries use longer waits (30s, 60s, 90s, 120s, 150s).
         max_retries = 5
+        retry_base_wait = 30  # seconds — must exceed typical weight sync duration / retries
         for attempt in range(max_retries):
             try:
                 ret = await self.async_rollout_manager.generate_sequences_single(rollout_sample.full_batch)
@@ -972,7 +984,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
                     raise
                 if attempt == max_retries - 1:
                     raise
-                wait_time = 5 * (attempt + 1)
+                wait_time = retry_base_wait * (attempt + 1)
                 print(
                     f"[FullyAsyncRollouter] Sample {rollout_sample.sample_id} cancelled "
                     f"(attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s... "
