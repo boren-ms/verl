@@ -63,6 +63,10 @@ class SingleTurnAgentLoop(AgentLoopBase):
         )
 
         # 3. generate sequences
+        # Unwrap audio tuples (wav, sr) → just wav arrays for vLLM plugin
+        vllm_audio_data = None
+        if audios:
+            vllm_audio_data = [a[0] if isinstance(a, tuple) else a for a in audios]
         metrics = {}
         with simple_timer("generate_sequences", metrics):
             output: TokenOutput = await self.server_manager.generate(
@@ -71,7 +75,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
                 sampling_params=sampling_params,
                 image_data=images,
                 video_data=videos,
-                audio_data=audios,
+                audio_data=vllm_audio_data,
                 mm_processor_kwargs=mm_processor_kwargs,
             )
         if metrics.get("num_preempted") is None:
