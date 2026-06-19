@@ -94,7 +94,7 @@ def _convert_audio_messages_to_text(messages: list[dict]) -> list[dict]:
             for item in content:
                 if isinstance(item, dict):
                     if item.get("type") == "audio":
-                        parts.append("<|audio_start|><|audio_pad|><|audio_end|>")
+                        parts.append("<audio>")
                     elif item.get("type") == "text":
                         parts.append(item.get("text", ""))
                     else:

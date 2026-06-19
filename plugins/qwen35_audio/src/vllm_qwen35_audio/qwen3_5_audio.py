@@ -295,10 +295,10 @@ class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProces
         tokenizer = self.info.get_tokenizer()
         input_ids = tokenizer.encode(prompt)
 
-        if not mm_data or not mm_data.get("audios"):
+        if not mm_data or (not mm_data.get("audios") and not mm_data.get("audio")):
             return BatchFeature(dict(input_ids=[input_ids]), tensor_type="pt")
 
-        audio_data = mm_data.get("audios", [])
+        audio_data = mm_data.get("audios") or mm_data.get("audio", [])
 
         audio_features_list = []
         audio_embed_sizes = []
