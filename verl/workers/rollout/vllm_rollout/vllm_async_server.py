@@ -466,6 +466,7 @@ class vLLMHttpServer:
         audio_data: Optional[list[Any]] = None,
         mm_processor_kwargs: Optional[dict[str, Any]] = None,
         priority: int = 0,
+        prompt_text: Optional[str] = None,
     ) -> TokenOutput:
         """Generate sequence with token-in-token-out."""
         prompt_ids = normalize_token_ids(prompt_ids)
@@ -517,7 +518,13 @@ class vLLMHttpServer:
         if audio_data is not None:
             multi_modal_data["audio"] = audio_data
 
-        prompt_kwargs = {"prompt_token_ids": prompt_ids, "multi_modal_data": multi_modal_data}
+        # For audio models: pass text prompt so vLLM's multimodal processor can
+        # handle <audio> placeholder expansion (tokenizing + inserting pad tokens).
+        # This is required for custom models where prompt_token_ids bypass the processor.
+        if prompt_text is not None and audio_data is not None:
+            prompt_kwargs = {"prompt": prompt_text, "multi_modal_data": multi_modal_data}
+        else:
+            prompt_kwargs = {"prompt_token_ids": prompt_ids, "multi_modal_data": multi_modal_data}
         if mm_processor_kwargs:
             prompt_kwargs["mm_processor_kwargs"] = mm_processor_kwargs
         try:

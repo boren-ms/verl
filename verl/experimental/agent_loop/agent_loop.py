@@ -325,8 +325,8 @@ class AgentLoopBase(ABC):
         if self.processor is not None:
             # Convert audio messages to text with proper placeholder tokens
             # The Qwen3.5-Audio chat template doesn't handle {"type": "audio"} items,
-            # so we convert them to text with <|audio_start|><|audio_end|> placeholders.
-            # vLLM will find these special tokens and expand them with audio features.
+            # so we convert them to text with <audio> placeholders.
+            # vLLM's plugin will find these and expand them with audio features.
             if audios is not None:
                 text_messages = _convert_audio_messages_to_text(messages)
             else:
@@ -345,6 +345,8 @@ class AgentLoopBase(ABC):
             )
             # Remove empty thinking block injected by Qwen3.5 chat template
             raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
+            # Store raw_prompt for vLLM text-based multimodal processing
+            self._last_raw_prompt = raw_prompt
 
             if audios is None and images is None and videos is None:
                 # Text-only: tokenize with just the tokenizer

@@ -67,6 +67,8 @@ class SingleTurnAgentLoop(AgentLoopBase):
         vllm_audio_data = None
         if audios:
             vllm_audio_data = [a[0] if isinstance(a, tuple) else a for a in audios]
+        # Get raw prompt text for vLLM's multimodal processor (handles <audio> expansion)
+        prompt_text = getattr(self, "_last_raw_prompt", None) if audios else None
         metrics = {}
         with simple_timer("generate_sequences", metrics):
             output: TokenOutput = await self.server_manager.generate(
@@ -77,6 +79,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
                 video_data=videos,
                 audio_data=vllm_audio_data,
                 mm_processor_kwargs=mm_processor_kwargs,
+                prompt_text=prompt_text,
             )
         if metrics.get("num_preempted") is None:
             metrics["num_preempted"] = output.num_preempted if output.num_preempted is not None else -1
