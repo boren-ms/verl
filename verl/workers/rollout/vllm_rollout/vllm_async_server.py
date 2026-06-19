@@ -28,7 +28,7 @@ from vllm import SamplingParams
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.entrypoints.cli.serve import run_headless
 from vllm.entrypoints.openai.api_server import build_app, init_app_state
-from vllm.inputs import TokensPrompt
+from vllm.inputs import TokensPrompt, TextPrompt
 from vllm.lora.request import LoRARequest
 from vllm.outputs import RequestOutput
 from vllm.usage.usage_lib import UsageContext
@@ -523,14 +523,17 @@ class vLLMHttpServer:
         # This is required for custom models where prompt_token_ids bypass the processor.
         if prompt_text is not None and audio_data is not None:
             prompt_kwargs = {"prompt": prompt_text, "multi_modal_data": multi_modal_data}
+            if mm_processor_kwargs:
+                prompt_kwargs["mm_processor_kwargs"] = mm_processor_kwargs
+            prompt = TextPrompt(**prompt_kwargs)
         else:
             prompt_kwargs = {"prompt_token_ids": prompt_ids, "multi_modal_data": multi_modal_data}
-        if mm_processor_kwargs:
-            prompt_kwargs["mm_processor_kwargs"] = mm_processor_kwargs
-        try:
-            prompt = TokensPrompt(**prompt_kwargs)
-        except TypeError:
-            prompt = prompt_kwargs
+            if mm_processor_kwargs:
+                prompt_kwargs["mm_processor_kwargs"] = mm_processor_kwargs
+            try:
+                prompt = TokensPrompt(**prompt_kwargs)
+            except TypeError:
+                prompt = prompt_kwargs
 
         # Add lora request
         lora_request = None
