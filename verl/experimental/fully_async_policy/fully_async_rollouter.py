@@ -950,7 +950,27 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
         rollout_sample.full_batch.non_tensor_batch["uid"] = np.array(
             [f"uid_{rollout_sample.sample_id}"] * len(rollout_sample.full_batch), dtype=object
         )
-        ret = await self.async_rollout_manager.generate_sequences_single(rollout_sample.full_batch)
+
+        # Retry logic: weight sync aborts vLLM replicas, cancelling in-flight tasks.
+        # Catch and retry after a brief wait for replicas to resume.
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                ret = await self.async_rollout_manager.generate_sequences_single(rollout_sample.full_batch)
+                break
+            except (asyncio.CancelledError, Exception) as e:
+                is_cancelled = isinstance(e, asyncio.CancelledError) or "CancelledError" in str(type(e).__name__)
+                if not is_cancelled:
+                    raise
+                if attempt == max_retries - 1:
+                    raise
+                wait_time = 5 * (attempt + 1)
+                logger.warning(
+                    f"[FullyAsyncRollouter] Sample {rollout_sample.sample_id} cancelled "
+                    f"(attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s..."
+                )
+                await asyncio.sleep(wait_time)
+
         rollout_sample.full_batch = ret
         # Re-set uid on output — agent loop worker returns a new DataProto without the input's non_tensor_batch
         rollout_sample.full_batch.non_tensor_batch["uid"] = np.array(
