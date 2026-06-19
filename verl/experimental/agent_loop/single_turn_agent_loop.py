@@ -38,11 +38,18 @@ class SingleTurnAgentLoop(AgentLoopBase):
     async def run(self, sampling_params: dict[str, Any], **kwargs) -> AgentLoopOutput:
         messages = list(kwargs["raw_prompt"])
 
-        # 1. extract multimodal inputs from messages
-        multi_modal_data = await self.process_multi_modal_info(messages)
-        images = multi_modal_data.get("images")
-        videos = multi_modal_data.get("videos")
-        audios = multi_modal_data.get("audios")
+        # 1. extract multimodal inputs — prefer pre-loaded data from dataset
+        pre_loaded_mm = kwargs.get("multi_modal_data")
+        if pre_loaded_mm and isinstance(pre_loaded_mm, dict):
+            # Dataset stores audio as {"audio": [(wav, sr), ...]}
+            audios = pre_loaded_mm.get("audios") or pre_loaded_mm.get("audio")
+            images = pre_loaded_mm.get("images") or pre_loaded_mm.get("image")
+            videos = pre_loaded_mm.get("videos") or pre_loaded_mm.get("video")
+        else:
+            multi_modal_data = await self.process_multi_modal_info(messages)
+            images = multi_modal_data.get("images")
+            videos = multi_modal_data.get("videos")
+            audios = multi_modal_data.get("audios")
         mm_processor_kwargs = self._get_mm_processor_kwargs(audios)
 
         # 2. apply chat template and tokenize
