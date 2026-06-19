@@ -168,6 +168,8 @@ actor_rollout_ref:
   rollout:
     name: vllm
     mode: async
+    mm_processor_kwargs:
+      sampling_rate: 16000
     n: ${rollout.n}
     temperature: 1.2
     response_length: ${data.max_response_length}
