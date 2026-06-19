@@ -124,6 +124,34 @@ class RLHFDataset(Dataset):
     def __len__(self):
         return len(self.ds)
 
+    @staticmethod
+    def _convert_messages_for_template(messages):
+        """Convert multimodal content items to text for chat template compatibility.
+
+        The Qwen3.5 chat template doesn't handle {"type": "audio"} content items.
+        This converts audio items to <audio> placeholder text while preserving
+        the message structure for template rendering.
+        """
+        converted = []
+        for msg in messages:
+            content = msg.get("content", "")
+            if isinstance(content, list):
+                parts = []
+                for item in content:
+                    if isinstance(item, dict):
+                        if item.get("type") == "audio":
+                            parts.append("<audio>")
+                        elif item.get("type") == "text":
+                            parts.append(item.get("text", ""))
+                        else:
+                            parts.append(str(item.get("text", "")))
+                    else:
+                        parts.append(str(item))
+                converted.append({**msg, "content": "\n".join(parts)})
+            else:
+                converted.append(msg)
+        return converted
+
     def __getitem__(self, i):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
@@ -131,23 +159,23 @@ class RLHFDataset(Dataset):
         row_dict: dict = self.ds[i]
         messages = row_dict[self.prompt_key]
 
+        # Convert audio content items to text placeholders before applying chat template.
+        # Qwen3.5 chat template doesn't handle {"type": "audio"} items natively.
+        chat_messages = self._convert_messages_for_template(messages)
+
         # Use processor.apply_chat_template if available; fall back to tokenizer
         _chat_obj = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
         raw_prompt = _chat_obj.apply_chat_template(
-            messages,
+            chat_messages,
             add_generation_prompt=True,
             tokenize=False,
             **self.apply_chat_template_kwargs,
         )
-        # print(f"raw_prompt after chat template [{i}]: {raw_prompt}  with messages: {messages}")
         # Remove empty thinking block injected by Qwen3.5 chat template
         raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
-        # print(f"raw_prompt before prefix [{i}]: {raw_prompt}")
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
         raw_prompt = f"{raw_prompt}{prefix}"
-        # print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
-        # print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
 
@@ -188,6 +216,10 @@ class RLHFDataset(Dataset):
 
         raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
         row_dict["raw_prompt_ids"] = raw_prompt_ids
+        # Store rendered prompt text for vLLM's multimodal text-based tokenization.
+        # This contains proper audio placeholders (e.g., <|audio_bos|><|AUDIO|><|audio_eos|>)
+        # that vLLM's internal tokenizer can process correctly.
+        row_dict["full_prompt_text"] = raw_prompt
         # encode prompts without chat template
         if self.return_raw_chat:
             row_dict["raw_prompt"] = messages

@@ -524,10 +524,16 @@ class vLLMHttpServer:
             multi_modal_data["audio"] = audio_data
 
         prompt_kwargs = {"prompt_token_ids": prompt_ids, "multi_modal_data": multi_modal_data}
+        # For multimodal prompts (audio/image/video), use prompt_text when available.
+        # The external tokenizer may not have multimodal placeholder tokens (e.g., <|AUDIO|>)
+        # in its vocab, so vLLM's internal tokenizer (loaded with the model) handles it.
+        use_text_prompt = prompt_text is not None and multi_modal_data
+        if use_text_prompt:
+            prompt_kwargs = {"prompt": prompt_text, "multi_modal_data": multi_modal_data}
         if mm_processor_kwargs:
             prompt_kwargs["mm_processor_kwargs"] = mm_processor_kwargs
         try:
-            prompt = TokensPrompt(**prompt_kwargs)
+            prompt = TextPrompt(**prompt_kwargs) if use_text_prompt else TokensPrompt(**prompt_kwargs)
         except TypeError:
             prompt = prompt_kwargs
 
