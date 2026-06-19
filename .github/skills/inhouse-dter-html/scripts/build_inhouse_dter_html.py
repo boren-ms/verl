@@ -306,10 +306,13 @@ function buildLocaleWerrChart() {
   const labels = DATA.lang_order;
   const chartDatasets = [];
   DATA.models.forEach((model, idx) => {
+    const modelColor = colorCycle(idx);
     chartDatasets.push({
       label: model,
       data: labels.map((lang) => DATA.lang_avgs[lang].werr[idx]),
-      backgroundColor: labels.map((lang) => colorForLang(lang)),
+      backgroundColor: modelColor,
+      borderColor: modelColor,
+      borderWidth: 1,
     });
   });
   const allVals = chartDatasets.flatMap((d) => d.data);
