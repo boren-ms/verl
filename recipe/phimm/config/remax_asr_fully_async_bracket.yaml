@@ -46,6 +46,8 @@ data:
   val_batch_size: 1024
   max_prompt_length: 1204
   max_response_length: 512
+  mm_processor_kwargs:
+    sampling_rate: 16000
   max_audio_dur: 40
   shuffle: false
   filter_overlong_prompts: false
@@ -168,8 +170,6 @@ actor_rollout_ref:
   rollout:
     name: vllm
     mode: async
-    mm_processor_kwargs:
-      sampling_rate: 16000
     n: ${rollout.n}
     temperature: 1.2
     response_length: ${data.max_response_length}
