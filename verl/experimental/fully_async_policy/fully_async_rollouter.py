@@ -65,6 +65,7 @@ class FullyAsyncLLMServerClient(LLMServerClient):
         video_data: Optional[list[Any]] = None,
         audio_data: Optional[list[Any]] = None,
         mm_processor_kwargs: Optional[dict[str, Any]] = None,
+        prompt_text: Optional[str] = None,
     ) -> TokenOutput:
         """Generate tokens from prompt ids.
 
@@ -106,6 +107,7 @@ class FullyAsyncLLMServerClient(LLMServerClient):
                 video_data=video_data,
                 audio_data=audio_data,
                 mm_processor_kwargs=mm_processor_kwargs,
+                prompt_text=prompt_text if not final_output.token_ids else None,
             )
 
             # 2. merge output into final_output
