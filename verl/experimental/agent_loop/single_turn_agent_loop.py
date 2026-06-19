@@ -53,19 +53,21 @@ class SingleTurnAgentLoop(AgentLoopBase):
             audios = multi_modal_data.get("audios")
         mm_processor_kwargs = self._get_mm_processor_kwargs(audios)
 
-        # 2. apply chat template and tokenize
-        prompt_ids = await self.apply_chat_template(
-            messages,
-            images=images,
-            videos=videos,
-            audios=audios,
-            mm_processor_kwargs=mm_processor_kwargs,
-        )
+        # 2. Use raw_prompt_ids from dataset if available (same as main_asr_gen.py)
+        # This avoids re-tokenization issues with <audio> placeholder
+        raw_prompt_ids = kwargs.get("raw_prompt_ids")
+        if raw_prompt_ids is not None:
+            prompt_ids = list(raw_prompt_ids) if not isinstance(raw_prompt_ids, list) else raw_prompt_ids
+        else:
+            prompt_ids = await self.apply_chat_template(
+                messages,
+                images=images,
+                videos=videos,
+                audios=audios,
+                mm_processor_kwargs=mm_processor_kwargs,
+            )
 
-        # 3. generate sequences
-        # Pass audio data as-is (tuples of (wav, sr) from dataset)
-        # + raw prompt text for vLLM's multimodal processor
-        prompt_text = getattr(self, "_last_raw_prompt", None) if audios else None
+        # 3. generate sequences (same pattern as main_asr_gen.py)
         metrics = {}
         with simple_timer("generate_sequences", metrics):
             output: TokenOutput = await self.server_manager.generate(
@@ -76,7 +78,6 @@ class SingleTurnAgentLoop(AgentLoopBase):
                 video_data=videos,
                 audio_data=audios,
                 mm_processor_kwargs=mm_processor_kwargs,
-                prompt_text=prompt_text,
             )
         if metrics.get("num_preempted") is None:
             metrics["num_preempted"] = output.num_preempted if output.num_preempted is not None else -1
