@@ -114,6 +114,11 @@ class FullyAsyncTaskRunner:
         ray.get(self.components["trainer"]._fit_update_weights.remote())
 
         if config.trainer.get("val_before_train", True):
+            # Brief delay to allow all vLLM replicas to fully resume after weight sync.
+            # Without this, some replicas may not be ready, causing all validation
+            # traffic to route to a single GPU (race condition in resume_generation).
+            import time
+            time.sleep(3)
             ray.get(self.components["trainer"]._fit_validate.remote(True))
 
         print("[ASYNC MAIN] All components initialized successfully")

@@ -953,21 +953,30 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
 
         # Retry logic: weight sync aborts vLLM replicas, cancelling in-flight tasks.
         # Catch and retry after a brief wait for replicas to resume.
+        # The exception may be asyncio.CancelledError, or ray.exceptions.RayTaskError
+        # wrapping a TaskCancelledError (type name "RayTaskError" with "Cancelled" in str).
         max_retries = 5
         for attempt in range(max_retries):
             try:
                 ret = await self.async_rollout_manager.generate_sequences_single(rollout_sample.full_batch)
                 break
             except (asyncio.CancelledError, Exception) as e:
-                is_cancelled = isinstance(e, asyncio.CancelledError) or "CancelledError" in str(type(e).__name__)
+                err_str = f"{type(e).__name__}: {e}"
+                is_cancelled = (
+                    isinstance(e, asyncio.CancelledError)
+                    or "CancelledError" in err_str
+                    or "TaskCancelled" in err_str
+                    or "canceled" in str(e).lower()
+                )
                 if not is_cancelled:
                     raise
                 if attempt == max_retries - 1:
                     raise
                 wait_time = 5 * (attempt + 1)
-                logger.warning(
+                print(
                     f"[FullyAsyncRollouter] Sample {rollout_sample.sample_id} cancelled "
-                    f"(attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s..."
+                    f"(attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s... "
+                    f"Error: {err_str[:100]}"
                 )
                 await asyncio.sleep(wait_time)
 
