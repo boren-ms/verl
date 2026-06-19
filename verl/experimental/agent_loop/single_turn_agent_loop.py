@@ -45,6 +45,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
             audios = pre_loaded_mm.get("audios") or pre_loaded_mm.get("audio")
             images = pre_loaded_mm.get("images") or pre_loaded_mm.get("image")
             videos = pre_loaded_mm.get("videos") or pre_loaded_mm.get("video")
+            multi_modal_data = {"audios": audios, "images": images, "videos": videos}
         else:
             multi_modal_data = await self.process_multi_modal_info(messages)
             images = multi_modal_data.get("images")
