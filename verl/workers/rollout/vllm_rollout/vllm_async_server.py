@@ -219,6 +219,11 @@ class vLLMHttpServer:
         engine_kwargs = {key: val for key, val in engine_kwargs.items() if val is not None}
         if self.config.get("limit_images", None):  # support for multi-image data
             engine_kwargs["limit_mm_per_prompt"] = {"image": self.config.get("limit_images")}
+        # Ensure audio modality is enabled for audio models
+        if "limit_mm_per_prompt" not in engine_kwargs:
+            engine_kwargs["limit_mm_per_prompt"] = {"audio": 1}
+        elif "audio" not in engine_kwargs.get("limit_mm_per_prompt", {}):
+            engine_kwargs["limit_mm_per_prompt"]["audio"] = 1
         if self.config.cudagraph_capture_sizes:
             engine_kwargs["cuda_graph_sizes"] = self.config.cudagraph_capture_sizes
 
