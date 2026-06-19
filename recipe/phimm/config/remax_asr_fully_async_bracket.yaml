@@ -80,45 +80,26 @@ data:
             data_source: asr
         verl_format:
           prompt_key: prompt
-  # Validation data: OpenASR bad format + OpenASR ML bad bracket
+  # Validation data: LibriSpeech test-clean + test-other
   val_data:
-    - dataset_name: jsonl
-      jsonl_paths:
-        - az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/bad_fmt_lang.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/bad_fmt_lang.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/bad_fmt_lang.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/bad_fmt_lang.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/bad_fmt_lang.jsonl
-      cache_name: auto_openasr_bad_fmt_lang
-      add_task_info:
-        task: lang_asr
+    - dataset_name: ls_bias
+      jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+      data_dir: az://orngwus2cresco/data/boren/data/
+      cache_name: auto_clean_no
       post_process:
         add_field:
           fields:
-            data_source: openasr_bad_fmt_lang
+            data_source: clean_0
         verl_format:
           prompt_key: prompt
-    - dataset_name: jsonl
-      jsonl_paths:
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/pt/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/bad_fmt_lang_bracket.jsonl
-        - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/bad_fmt_lang_bracket.jsonl
-      cache_name: auto_openasr_ml_bad_fmt_lang_bracket
-      add_task_info:
-        task: lang_asr
+    - dataset_name: ls_bias
+      jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+      data_dir: az://orngwus2cresco/data/boren/data/
+      cache_name: auto_other_no
       post_process:
         add_field:
           fields:
-            data_source: openasr_ml_bad_fmt_lang_bracket
+            data_source: other_0
         verl_format:
           prompt_key: prompt
 
