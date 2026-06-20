@@ -30,6 +30,7 @@ data:
   max_response_length: 768
   return_raw_chat: true
   return_multi_modal_inputs: false
+  trust_remote_code: true
 
 rollout:
   nnodes: 1
