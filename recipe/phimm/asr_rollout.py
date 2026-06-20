@@ -63,8 +63,8 @@ def _write_parquet(df: pd.DataFrame, dest_path: str):
         df.to_parquet(dest_path, index=False)
 
 
-def _flush_results(results: list[dict], output_path: str, step: int):
-    path = os.path.join(output_path, f"step_{step}.parquet")
+def _flush_results(results: list[dict], output_path: str, part: int):
+    path = os.path.join(output_path, f"part_{part:05d}.parquet")
     _write_parquet(pd.DataFrame(results), path)
     print(f"[Consumer] Wrote {path} ({len(results)} rows)")
 
@@ -107,8 +107,8 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
 
 async def _consume_queue(mq_client: MessageQueueClient, tokenizer, output_path: str,
                          rollouter, save_freq: int = 100):
-    """Consume from MessageQueue, decode, write parquet every save_freq steps."""
-    all_results, examples_done, t0 = [], 0, time.time()
+    """Consume from MessageQueue, decode, write a parquet part every save_freq samples."""
+    all_results, examples_done, part, t0 = [], 0, 0, time.time()
 
     while True:
         result = await mq_client.get_sample()
@@ -121,17 +121,16 @@ async def _consume_queue(mq_client: MessageQueueClient, tokenizer, output_path: 
         all_results.append(_decode_rollout_sample(sample_bytes, tokenizer))
         examples_done += 1
 
-        global_steps = ray.get(rollouter.__ray_call__.remote(lambda self: self.global_steps))
-        if global_steps % save_freq == 0 and all_results:
-            _flush_results(all_results, output_path, global_steps)
+        if len(all_results) >= save_freq:
+            _flush_results(all_results, output_path, part)
             all_results = []
+            part += 1
             ray.get(rollouter.save_checkpoint.remote(output_path))
             rate = examples_done / (time.time() - t0)
-            print(f"[Consumer] step {global_steps} | {examples_done} samples | {rate:.1f} s/s")
+            print(f"[Consumer] {examples_done} samples | {rate:.1f} samples/s")
 
     if all_results:
-        global_steps = ray.get(rollouter.__ray_call__.remote(lambda self: self.global_steps))
-        _flush_results(all_results, output_path, global_steps)
+        _flush_results(all_results, output_path, part)
         ray.get(rollouter.save_checkpoint.remote(output_path))
 
     rate = examples_done / max(time.time() - t0, 1)
