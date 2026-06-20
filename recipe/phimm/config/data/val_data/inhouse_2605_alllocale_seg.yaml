@@ -43,42 +43,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ar-SA/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_ar-SA_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Arabic
-  post_process:
-    add_field:
-      fields:
-        data_source: arsa_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ar-SA/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_ar-SA_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Arabic
-  post_process:
-    add_field:
-      fields:
-        data_source: arsa_conv_medical_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ar-SA/Conversation_OnlineMeetings_DTEST_FY24Q2_ar-SA/test.jsonl
   pre_process:
     rename_fields:
@@ -246,42 +210,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/de-DE/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_de-DE_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: German
-  post_process:
-    add_field:
-      fields:
-        data_source: dede_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/de-DE/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_de-DE_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: German
-  post_process:
-    add_field:
-      fields:
-        data_source: dede_conv_medical_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/de-DE/Conversation_OnlineMeetings_DTEST_FY24Q3_de-DE_DTEST_OfflineDataCollection/test.jsonl
   pre_process:
     rename_fields:
@@ -337,42 +265,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-GB/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_en-GB_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: English
-  post_process:
-    add_field:
-      fields:
-        data_source: engb_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-GB/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_en-GB_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: English
-  post_process:
-    add_field:
-      fields:
-        data_source: engb_conv_medical_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-GB/Conversation_OnlineMeetings_DTEST_FY23Q1_en-GB_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -423,42 +315,6 @@
     add_field:
       fields:
         data_source: enin_conv_fy23q3
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-IN/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_en-IN_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: English
-  post_process:
-    add_field:
-      fields:
-        data_source: enin_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-IN/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_en-IN_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: English
-  post_process:
-    add_field:
-      fields:
-        data_source: enin_conv_medical_fy24q1
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
@@ -612,42 +468,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-ES/Conversation_DomainSet_DTEST_Banking_Entity_FY25Q2_es-ES_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Spanish
-  post_process:
-    add_field:
-      fields:
-        data_source: eses_conv_banking_fy25q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-ES/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_es-ES_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Spanish
-  post_process:
-    add_field:
-      fields:
-        data_source: eses_conv_medical_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-ES/Conversation_OnlineMeetings_DTEST_FY22Q4_es-ES_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -698,42 +518,6 @@
     add_field:
       fields:
         data_source: esmx_conv_fy23q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-MX/Conversation_DomainSet_DTEST_Banking_Entity_FY25Q2_es-MX_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Spanish
-  post_process:
-    add_field:
-      fields:
-        data_source: esmx_conv_banking_fy25q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-MX/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_es-MX_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Spanish
-  post_process:
-    add_field:
-      fields:
-        data_source: esmx_conv_medical_fy24q1
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
@@ -794,42 +578,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/fi-FI/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q2_fi-FI_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Finnish
-  post_process:
-    add_field:
-      fields:
-        data_source: fifi_conv_banking_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/fi-FI/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q2_fi-FI_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Finnish
-  post_process:
-    add_field:
-      fields:
-        data_source: fifi_conv_medical_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/fi-FI/Conversation_OnlineMeetings_DTEST_FY23Q1_fi-FI_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -885,42 +633,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/fr-FR/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_fr-FR_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: French
-  post_process:
-    add_field:
-      fields:
-        data_source: frfr_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/fr-FR/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_fr-FR_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: French
-  post_process:
-    add_field:
-      fields:
-        data_source: frfr_conv_medical_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/fr-FR/Conversation_OnlineMeetings_DTEST_FY23Q1_fr-FR_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -971,42 +683,6 @@
     add_field:
       fields:
         data_source: hiin_conv_fy23q3
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/hi-IN/Conversation_DomainSet_DTEST_Banking_Entity_FY25Q2_hi-IN_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Hindi
-  post_process:
-    add_field:
-      fields:
-        data_source: hiin_conv_banking_fy25q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/hi-IN/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_hi-IN_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Hindi
-  post_process:
-    add_field:
-      fields:
-        data_source: hiin_conv_medical_fy24q1
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
@@ -1122,42 +798,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/id-ID/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q2_id-ID_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Indonesian
-  post_process:
-    add_field:
-      fields:
-        data_source: idid_conv_banking_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/id-ID/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q2_id-ID_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Indonesian
-  post_process:
-    add_field:
-      fields:
-        data_source: idid_conv_medical_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/id-ID/Conversation_OnlineMeetings_DTEST_FY24Q2_id-ID/test.jsonl
   pre_process:
     rename_fields:
@@ -1208,42 +848,6 @@
     add_field:
       fields:
         data_source: itit_conv_fy23q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/it-IT/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_it-IT_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Italian
-  post_process:
-    add_field:
-      fields:
-        data_source: itit_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/it-IT/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_it-IT_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Italian
-  post_process:
-    add_field:
-      fields:
-        data_source: itit_conv_medical_fy24q1
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
@@ -1304,42 +908,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ja-JP/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_ja-JP_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Japanese
-  post_process:
-    add_field:
-      fields:
-        data_source: jajp_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ja-JP/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_ja-JP_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Japanese
-  post_process:
-    add_field:
-      fields:
-        data_source: jajp_conv_medical_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ja-JP/Conversation_OnlineMeetings_DTEST_FY23Q1_ja-JP_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -1390,42 +958,6 @@
     add_field:
       fields:
         data_source: kokr_conv_fy23q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ko-KR/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_ko-KR_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Korean
-  post_process:
-    add_field:
-      fields:
-        data_source: kokr_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ko-KR/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_ko-KR_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Korean
-  post_process:
-    add_field:
-      fields:
-        data_source: kokr_conv_medical_fy24q1
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
@@ -1600,42 +1132,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/pl-PL/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q2_pl-PL_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Polish
-  post_process:
-    add_field:
-      fields:
-        data_source: plpl_conv_banking_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/pl-PL/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q2_pl-PL_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Polish
-  post_process:
-    add_field:
-      fields:
-        data_source: plpl_conv_medical_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/pl-PL/Conversation_OnlineMeetings_DTEST_FY23Q1_pl-PL_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -1686,42 +1182,6 @@
     add_field:
       fields:
         data_source: ptbr_conv_fy23q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/pt-BR/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_pt-BR_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Portuguese
-  post_process:
-    add_field:
-      fields:
-        data_source: ptbr_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/pt-BR/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_pt-BR_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Portuguese
-  post_process:
-    add_field:
-      fields:
-        data_source: ptbr_conv_medical_fy24q1
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
@@ -1782,42 +1242,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ru-RU/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q2_ru-RU_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Russian
-  post_process:
-    add_field:
-      fields:
-        data_source: ruru_conv_banking_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ru-RU/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q2_ru-RU_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Russian
-  post_process:
-    add_field:
-      fields:
-        data_source: ruru_conv_medical_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/ru-RU/Conversation_OnlineMeetings_DTEST_FY23Q1_ru-RU_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -1868,42 +1292,6 @@
     add_field:
       fields:
         data_source: svse_conv_fy23q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/sv-SE/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q2_sv-SE_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Swedish
-  post_process:
-    add_field:
-      fields:
-        data_source: svse_conv_banking_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/sv-SE/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q2_sv-SE_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Swedish
-  post_process:
-    add_field:
-      fields:
-        data_source: svse_conv_medical_fy24q2
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
@@ -1964,42 +1352,6 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/tr-TR/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q2_tr-TR_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Turkish
-  post_process:
-    add_field:
-      fields:
-        data_source: trtr_conv_banking_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/tr-TR/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q2_tr-TR_DTEST_OfflineDataCollection/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Turkish
-  post_process:
-    add_field:
-      fields:
-        data_source: trtr_conv_medical_fy24q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/tr-TR/Conversation_OnlineMeetings_DTEST_FY24Q2_tr-TR/test.jsonl
   pre_process:
     rename_fields:
@@ -2050,42 +1402,6 @@
     add_field:
       fields:
         data_source: zhcn_conv_fy23q2
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/zh-CN/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_zh-CN_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Chinese
-  post_process:
-    add_field:
-      fields:
-        data_source: zhcn_conv_banking_fy24q1
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/zh-CN/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_zh-CN_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: Chinese
-  post_process:
-    add_field:
-      fields:
-        data_source: zhcn_conv_medical_fy24q1
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

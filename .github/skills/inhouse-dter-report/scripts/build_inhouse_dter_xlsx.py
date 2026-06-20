@@ -270,6 +270,254 @@ ALL_SEG_BASELINE_METRICS: Dict[str, float] = {
     "cscz_dict_fy24q2": CSCZ_SEG_BASELINE_METRICS["cscz_dict_fy24q2"],
 }
 
+# ---------------------------------------------------------------------------
+# Combined schema: inhouse_2605_alllocale_seg (25 locales × 3-5 corpora = 78 datasets).
+# The Banking_Entity / Medical_Entity domain sets are excluded for every locale.
+#
+# Internal keys are the per-corpus slug directory names produced by the
+# segmented long-audio eval (e.g. `arsa_conv_fy24q2`, `dede_conv_fy23q2`).
+# Display labels are prefixed with the locale code.
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_alllocale_seg), micro-DTER.
+# ---------------------------------------------------------------------------
+ALLLOCALE_SEG_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
+    ("ar-SA", [
+        ("arsa_conv_fy24q2", "ar-SA_Conversation_DTEST_FY24Q2"),
+        ("arsa_conv_fy26q3_msa", "ar-SA_Conversation_DTEST_FY26Q3_MSA"),
+        ("arsa_conv_om_fy24q2", "ar-SA_Conversation_OnlineMeetings_FY24Q2"),
+        ("arsa_dict_fy23q4", "ar-SA_Dictation_FY23Q4"),
+    ]),
+    ("cs-CZ", [
+        ("cscz_conv_fy23q2", "cs-CZ_Conversation_DTEST_FY23Q2"),
+        ("cscz_conv_om_fy24q2", "cs-CZ_Conversation_OnlineMeetings_FY24Q2"),
+        ("cscz_dict_fy24q2", "cs-CZ_Dictation_FY24Q2"),
+    ]),
+    ("da-DK", [
+        ("dadk_conv_fy21q3", "da-DK_Conversation_DTEST_FY21Q3"),
+        ("dadk_conv_om_fy23q1", "da-DK_Conversation_OnlineMeetings_FY23Q1"),
+        ("dadk_dict_fy23q4", "da-DK_Dictation_FY23Q4"),
+    ]),
+    ("de-DE", [
+        ("dede_conv_fy23q2", "de-DE_Conversation_DTEST_FY23Q2"),
+        ("dede_conv_om_fy24q3", "de-DE_Conversation_OnlineMeetings_FY24Q3"),
+        ("dede_dict_fy23q2", "de-DE_Dictation_FY23Q2"),
+    ]),
+    ("en-GB", [
+        ("engb_conv_fy23q2", "en-GB_Conversation_DTEST_FY23Q2"),
+        ("engb_conv_om_fy23q1", "en-GB_Conversation_OnlineMeetings_FY23Q1"),
+        ("engb_dict_office_fy21q3", "en-GB_Dictation_Office_FY21Q3"),
+    ]),
+    ("en-IN", [
+        ("enin_conv_fy23q3", "en-IN_Conversation_DTEST_FY23Q3"),
+        ("enin_conv_om_fy24q2", "en-IN_Conversation_OnlineMeetings_FY24Q2"),
+        ("enin_dict_fy23q2", "en-IN_Dictation_FY23Q2"),
+    ]),
+    ("en-US", [
+        ("enus_conv_fy21q1", "en-US_Conversation_DTEST_FY21Q1"),
+        ("enus_conv_om_fy25q3", "en-US_Conversation_OnlineMeetings_FY25Q3"),
+        ("enus_dict_office_fy24q3", "en-US_Dictation_Office_FY24Q3"),
+        ("enus_om_cs_product_fy22", "en-US_OnlineMeetings_CS_Product_FY22"),
+        ("enus_om_cs_shiproom_fy22", "en-US_OnlineMeetings_CS_Shiproom_FY22"),
+    ]),
+    ("es-ES", [
+        ("eses_conv_fy23q2", "es-ES_Conversation_DTEST_FY23Q2"),
+        ("eses_conv_om_fy22q4", "es-ES_Conversation_OnlineMeetings_FY22Q4"),
+        ("eses_dict_fy23q2", "es-ES_Dictation_FY23Q2"),
+    ]),
+    ("es-MX", [
+        ("esmx_conv_fy23q2", "es-MX_Conversation_DTEST_FY23Q2"),
+        ("esmx_conv_om_fy23q1", "es-MX_Conversation_OnlineMeetings_FY23Q1"),
+        ("esmx_dict_fy23q2", "es-MX_Dictation_FY23Q2"),
+    ]),
+    ("fi-FI", [
+        ("fifi_conv_fy23q2", "fi-FI_Conversation_DTEST_FY23Q2"),
+        ("fifi_conv_om_fy23q1", "fi-FI_Conversation_OnlineMeetings_FY23Q1"),
+        ("fifi_dict_fy23q4", "fi-FI_Dictation_FY23Q4"),
+    ]),
+    ("fr-FR", [
+        ("frfr_conv_fy23q2", "fr-FR_Conversation_DTEST_FY23Q2"),
+        ("frfr_conv_om_fy23q1", "fr-FR_Conversation_OnlineMeetings_FY23Q1"),
+        ("frfr_dict_fy23q2", "fr-FR_Dictation_FY23Q2"),
+    ]),
+    ("hi-IN", [
+        ("hiin_conv_fy23q3", "hi-IN_Conversation_DTEST_FY23Q3"),
+        ("hiin_conv_om_fy24q2", "hi-IN_Conversation_OnlineMeetings_FY24Q2"),
+        ("hiin_dict_fy23q2", "hi-IN_Dictation_FY23Q2"),
+    ]),
+    ("hu-HU", [
+        ("huhu_conv_fy22q4", "hu-HU_Conversation_DTEST_FY22Q4"),
+        ("huhu_conv_om_fy24q2", "hu-HU_Conversation_OnlineMeetings_FY24Q2"),
+        ("huhu_dict_fy25q2", "hu-HU_Dictation_FY25Q2"),
+    ]),
+    ("id-ID", [
+        ("idid_conv_fy23q2", "id-ID_Conversation_DTEST_FY23Q2"),
+        ("idid_conv_om_fy24q2", "id-ID_Conversation_OnlineMeetings_FY24Q2"),
+        ("idid_dict_fy24q2", "id-ID_Dictation_FY24Q2"),
+    ]),
+    ("it-IT", [
+        ("itit_conv_fy23q2", "it-IT_Conversation_DTEST_FY23Q2"),
+        ("itit_conv_om_fy23q1", "it-IT_Conversation_OnlineMeetings_FY23Q1"),
+        ("itit_dict_fy23q2", "it-IT_Dictation_FY23Q2"),
+    ]),
+    ("ja-JP", [
+        ("jajp_conv_fy23q2", "ja-JP_Conversation_DTEST_FY23Q2"),
+        ("jajp_conv_om_fy23q1", "ja-JP_Conversation_OnlineMeetings_FY23Q1"),
+        ("jajp_dict_fy23q2", "ja-JP_Dictation_FY23Q2"),
+    ]),
+    ("ko-KR", [
+        ("kokr_conv_fy23q2", "ko-KR_Conversation_DTEST_FY23Q2"),
+        ("kokr_conv_om_fy23q1", "ko-KR_Conversation_OnlineMeetings_FY23Q1"),
+        ("kokr_dict_fy23q2", "ko-KR_Dictation_FY23Q2"),
+    ]),
+    ("nb-NO", [
+        ("nbno_conv_fy21q3", "nb-NO_Conversation_DTEST_FY21Q3"),
+        ("nbno_conv_om_fy23q1", "nb-NO_Conversation_OnlineMeetings_FY23Q1"),
+        ("nbno_dict_fy23q4", "nb-NO_Dictation_FY23Q4"),
+    ]),
+    ("nl-NL", [
+        ("nlnl_conv_fy23q2", "nl-NL_Conversation_DTEST_FY23Q2"),
+        ("nlnl_conv_om_fy23q1", "nl-NL_Conversation_OnlineMeetings_FY23Q1"),
+        ("nlnl_dict_fy23q4", "nl-NL_Dictation_FY23Q4"),
+    ]),
+    ("pl-PL", [
+        ("plpl_conv_fy23q2", "pl-PL_Conversation_DTEST_FY23Q2"),
+        ("plpl_conv_om_fy23q1", "pl-PL_Conversation_OnlineMeetings_FY23Q1"),
+        ("plpl_dict_fy23q4", "pl-PL_Dictation_FY23Q4"),
+    ]),
+    ("pt-BR", [
+        ("ptbr_conv_fy23q2", "pt-BR_Conversation_DTEST_FY23Q2"),
+        ("ptbr_conv_om_fy23q1", "pt-BR_Conversation_OnlineMeetings_FY23Q1"),
+        ("ptbr_dict_fy23q2", "pt-BR_Dictation_FY23Q2"),
+    ]),
+    ("ru-RU", [
+        ("ruru_conv_fy23q2", "ru-RU_Conversation_DTEST_FY23Q2"),
+        ("ruru_conv_om_fy23q1", "ru-RU_Conversation_OnlineMeetings_FY23Q1"),
+        ("ruru_dict_fy23q4", "ru-RU_Dictation_FY23Q4"),
+    ]),
+    ("sv-SE", [
+        ("svse_conv_fy23q2", "sv-SE_Conversation_DTEST_FY23Q2"),
+        ("svse_conv_om_fy23q1", "sv-SE_Conversation_OnlineMeetings_FY23Q1"),
+        ("svse_dict_fy23q4", "sv-SE_Dictation_FY23Q4"),
+    ]),
+    ("tr-TR", [
+        ("trtr_conv_fy23q2", "tr-TR_Conversation_DTEST_FY23Q2"),
+        ("trtr_conv_om_fy24q2", "tr-TR_Conversation_OnlineMeetings_FY24Q2"),
+        ("trtr_dict_fy24q2", "tr-TR_Dictation_FY24Q2"),
+    ]),
+    ("zh-CN", [
+        ("zhcn_conv_fy23q2", "zh-CN_Conversation_DTEST_FY23Q2"),
+        ("zhcn_conv_om_fy22q4", "zh-CN_Conversation_OnlineMeetings_FY22Q4"),
+        ("zhcn_dict_fy23q2", "zh-CN_Dictation_FY23Q2"),
+    ]),
+]
+
+# Baseline = Qwen3.5-audio (eval_qwen/inhouse_2605_alllocale_seg), micro-DTER
+# per slug = n_err / n_ref.
+ALLLOCALE_SEG_BASELINE_METRICS: Dict[str, float] = {
+    # ar-SA
+    "arsa_conv_fy24q2": 12793 / 33313,
+    "arsa_conv_fy26q3_msa": 12807 / 33304,
+    "arsa_conv_om_fy24q2": 10227 / 30025,
+    "arsa_dict_fy23q4": 6229 / 26947,
+    # cs-CZ
+    "cscz_conv_fy23q2": 10214 / 43021,
+    "cscz_conv_om_fy24q2": 5530 / 38232,
+    "cscz_dict_fy24q2": 5224 / 39881,
+    # da-DK
+    "dadk_conv_fy21q3": 13716 / 58149,
+    "dadk_conv_om_fy23q1": 11914 / 48951,
+    "dadk_dict_fy23q4": 10002 / 44482,
+    # de-DE
+    "dede_conv_fy23q2": 7062 / 43420,
+    "dede_conv_om_fy24q3": 6400 / 39888,
+    "dede_dict_fy23q2": 5338 / 41762,
+    # en-GB
+    "engb_conv_fy23q2": 7716 / 45429,
+    "engb_conv_om_fy23q1": 7454 / 43297,
+    "engb_dict_office_fy21q3": 9910 / 53349,
+    # en-IN
+    "enin_conv_fy23q3": 10707 / 45526,
+    "enin_conv_om_fy24q2": 11911 / 42311,
+    "enin_dict_fy23q2": 5936 / 35103,
+    # en-US
+    "enus_conv_fy21q1": 7762 / 41826,
+    "enus_conv_om_fy25q3": 6383 / 47149,
+    "enus_dict_office_fy24q3": 3875 / 38383,
+    "enus_om_cs_product_fy22": 8162 / 35020,
+    "enus_om_cs_shiproom_fy22": 10169 / 39042,
+    # es-ES
+    "eses_conv_fy23q2": 7691 / 45078,
+    "eses_conv_om_fy22q4": 9331 / 45037,
+    "eses_dict_fy23q2": 5106 / 39957,
+    # es-MX
+    "esmx_conv_fy23q2": 7511 / 34329,
+    "esmx_conv_om_fy23q1": 8534 / 40793,
+    "esmx_dict_fy23q2": 5697 / 39034,
+    # fi-FI
+    "fifi_conv_fy23q2": 7392 / 31016,
+    "fifi_conv_om_fy23q1": 7318 / 28608,
+    "fifi_dict_fy23q4": 5096 / 26045,
+    # fr-FR
+    "frfr_conv_fy23q2": 7237 / 46051,
+    "frfr_conv_om_fy23q1": 10771 / 53382,
+    "frfr_dict_fy23q2": 7501 / 44877,
+    # hi-IN
+    "hiin_conv_fy23q3": 12857 / 55670,
+    "hiin_conv_om_fy24q2": 13905 / 48319,
+    "hiin_dict_fy23q2": 9049 / 33812,
+    # hu-HU
+    "huhu_conv_fy22q4": 7638 / 33569,
+    "huhu_conv_om_fy24q2": 7660 / 35005,
+    "huhu_dict_fy25q2": 7534 / 31098,
+    # id-ID
+    "idid_conv_fy23q2": 12953 / 38724,
+    "idid_conv_om_fy24q2": 7597 / 32722,
+    "idid_dict_fy24q2": 5456 / 35533,
+    # it-IT
+    "itit_conv_fy23q2": 6246 / 32857,
+    "itit_conv_om_fy23q1": 8065 / 37735,
+    "itit_dict_fy23q2": 6879 / 36771,
+    # ja-JP
+    "jajp_conv_fy23q2": 3933 / 3541,
+    "jajp_conv_om_fy23q1": 7814 / 7682,
+    "jajp_dict_fy23q2": 79732 / 79712,
+    # ko-KR
+    "kokr_conv_fy23q2": 9689 / 29162,
+    "kokr_conv_om_fy23q1": 5695 / 21644,
+    "kokr_dict_fy23q2": 70963 / 73458,
+    # nb-NO
+    "nbno_conv_fy21q3": 10357 / 47273,
+    "nbno_conv_om_fy23q1": 7821 / 37996,
+    "nbno_dict_fy23q4": 8619 / 40601,
+    # nl-NL
+    "nlnl_conv_fy23q2": 11376 / 45958,
+    "nlnl_conv_om_fy23q1": 11127 / 46574,
+    "nlnl_dict_fy23q4": 6379 / 40642,
+    # pl-PL
+    "plpl_conv_fy23q2": 8652 / 38654,
+    "plpl_conv_om_fy23q1": 7678 / 40428,
+    "plpl_dict_fy23q4": 7328 / 34551,
+    # pt-BR
+    "ptbr_conv_fy23q2": 6606 / 32368,
+    "ptbr_conv_om_fy23q1": 8214 / 42578,
+    "ptbr_dict_fy23q2": 5682 / 40117,
+    # ru-RU
+    "ruru_conv_fy23q2": 8359 / 37829,
+    "ruru_conv_om_fy23q1": 7996 / 30256,
+    "ruru_dict_fy23q4": 5017 / 35162,
+    # sv-SE
+    "svse_conv_fy23q2": 11673 / 47912,
+    "svse_conv_om_fy23q1": 7960 / 37218,
+    "svse_dict_fy23q4": 5403 / 36910,
+    # tr-TR
+    "trtr_conv_fy23q2": 8371 / 27120,
+    "trtr_conv_om_fy24q2": 7499 / 32783,
+    "trtr_dict_fy24q2": 4021 / 31868,
+    # zh-CN
+    "zhcn_conv_fy23q2": 4265 / 4057,
+    "zhcn_conv_om_fy22q4": 6553 / 6425,
+    "zhcn_dict_fy23q2": 2340 / 2014,
+}
+
 # Registry of selectable schemas: name -> (groups, baseline_metrics).
 # `groups` entries may use either bare strings (key == display label) or
 # `(internal_key, display_label)` tuples; `_normalize_groups` handles both.
@@ -282,6 +530,7 @@ SCHEMAS: Dict[str, Tuple[List[Tuple[str, List]], Dict[str, float]]] = {
     "nbno_seg": (NBNO_SEG_GROUPS, NBNO_SEG_BASELINE_METRICS),
     "cscz_seg": (CSCZ_SEG_GROUPS, CSCZ_SEG_BASELINE_METRICS),
     "all_seg": (ALL_SEG_GROUPS, ALL_SEG_BASELINE_METRICS),
+    "alllocale_seg": (ALLLOCALE_SEG_GROUPS, ALLLOCALE_SEG_BASELINE_METRICS),
 }
 
 

@@ -319,6 +319,44 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
     --out tmp/inhouse_dter_report/my_model_step32_dadk.xlsx
   ```
 
+- `--schema alllocale_seg`: **all 25 locales × 3-5 corpora = 78 datasets in one sheet** —
+  the combined segmented long-audio eval (`inhouse_2605_alllocale_seg`). The
+  `Conversation_*_Banking_Entity_*` and `Conversation_*_Medical_Entity_*` domain
+  sets are excluded for every locale. Covers:
+  ar-SA (4), cs-CZ (3), da-DK (3), de-DE (3), en-GB (3), en-IN (3), en-US (5),
+  es-ES (3), es-MX (3), fi-FI (3), fr-FR (3), hi-IN (3), hu-HU (3), id-ID (3),
+  it-IT (3), ja-JP (3), ko-KR (3), nb-NO (3), nl-NL (3), pl-PL (3), pt-BR (3),
+  ru-RU (3), sv-SE (3), tr-TR (3), zh-CN (3).
+  Internal keys are per-corpus slug directory names (e.g. `arsa_conv_fy24q2`,
+  `dede_conv_fy23q2`); display labels are locale-prefixed.
+  Column `A` is the fixed `Qwen3.5-audio` baseline
+  (`eval_qwen/inhouse_2605_alllocale_seg`), embedded as micro-DTER.
+
+  Selected per-locale baseline averages (micro-DTER over the remaining datasets):
+
+  | Locale | DTER% | #Datasets |
+  |---|---|---|
+  | en-US | 18.05 | 5 |
+  | en-GB | 17.65 | 3 |
+  | de-DE | 15.03 | 3 |
+  | fr-FR | 17.68 | 3 |
+  | es-ES | 17.01 | 3 |
+  | ja-JP | 100.60 | 3 |
+  | zh-CN | 105.30 | 3 |
+  | ko-KR | 69.49 | 3 |
+  | overall | 25.78 | 78 |
+
+  Example — build the full 25-locale report from a single blob path:
+
+  ```bash
+  /home/boren/.virtualenvs/openai/bin/python \
+    .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+    --schema alllocale_seg \
+    --model "my_model@step800" \
+      az://orngwus2cresco/data/boren/data/verl/eval/my_model_step800/inhouse_2605_alllocale_seg/ \
+    --out tmp/inhouse_dter_report/my_model_step800_alllocale_seg.xlsx
+  ```
+
   To publish just the embedded baseline column for any schema, use
   `--baseline-only`:
 
