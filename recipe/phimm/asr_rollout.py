@@ -184,7 +184,7 @@ async def _consume_queue(mq_client: MessageQueueClient, tokenizer, output_path: 
                          rollouter, save_freq: int = 100):
     """Consume from MessageQueue, decode, write a parquet part every save_freq samples."""
     all_results, examples_done, part, t0 = [], 0, 0, time.time()
-    tot_n_err, tot_n_ref = 0.0, 0.0
+    n_err, n_ref = 0.0, 0.0
 
     while True:
         result = await mq_client.get_sample()
@@ -198,8 +198,8 @@ async def _consume_queue(mq_client: MessageQueueClient, tokenizer, output_path: 
         all_results.append(row)
         examples_done += 1
         if row.get("n_ref") is not None:
-            tot_n_err += float(row.get("n_err") or 0.0)
-            tot_n_ref += float(row.get("n_ref") or 0.0)
+            n_err += float(row.get("n_err") or 0.0)
+            n_ref += float(row.get("n_ref") or 0.0)
 
         if len(all_results) >= save_freq:
             _flush_results(all_results, output_path, part)
@@ -213,12 +213,12 @@ async def _consume_queue(mq_client: MessageQueueClient, tokenizer, output_path: 
         _flush_results(all_results, output_path, part)
         ray.get(rollouter.save_checkpoint.remote(output_path))
 
-    overall_wer = (tot_n_err / tot_n_ref) if tot_n_ref > 0 else float("nan")
+    overall_wer = (n_err / n_ref) if n_ref > 0 else float("nan")
     summary = {
-        "examples": examples_done,
-        "total_n_err": tot_n_err,
-        "total_n_ref": tot_n_ref,
-        "overall_weighted_wer": overall_wer,
+        "n_egs": examples_done,
+        "n_err": n_err,
+        "n_ref": n_ref,
+        "wer": overall_wer,
     }
     summary_path = os.path.join(output_path, "summary.json")
     with bf.BlobFile(summary_path, "w") as f:
@@ -227,7 +227,7 @@ async def _consume_queue(mq_client: MessageQueueClient, tokenizer, output_path: 
     rate = examples_done / max(time.time() - t0, 1)
     print(f"\nDone: {examples_done} samples | {rate:.1f} samples/s | output: {output_path}")
     print(f"[Consumer] Overall weighted WER: {overall_wer:.4f} "
-          f"(n_err={tot_n_err:.0f} / n_ref={tot_n_ref:.0f}) | summary: {summary_path}")
+          f"(n_err={n_err:.0f} / n_ref={n_ref:.0f}) | summary: {summary_path}")
 
 
 async def _run_asr_rollout(config):
