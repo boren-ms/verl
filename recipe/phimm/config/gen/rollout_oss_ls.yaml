@@ -67,6 +67,15 @@ async_training:
   partial_rollout: false
   max_queue_size: 1000
 
+reward:
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.asr_edge
+    name: compute_score
+    reward_kwargs:
+      gamma: 0.1
+      unit: char
+  num_workers: 8
+
 trainer:
   n_gpus_per_node: 8
   nnodes: 1
