@@ -73,10 +73,6 @@ def _flush_results(results: list[dict], output_path: str, part: int):
 
 
 _TXT_RE = re.compile(r"<TXT>(.*?)</TXT>", re.DOTALL)
-_REWARD_DETAIL_KEYS = (
-    "wer", "n_ref", "n_err", "n_edge", "p_fmt", "p_lang",
-    "p_bracket", "p_repeat", "p_kw_missing", "p_tail_hallu",
-)
 
 
 def _ntb_get(ntb, key, default=None):
@@ -134,18 +130,9 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
 
     ntb = ret.non_tensor_batch
 
-    reward_score = None
-    rm_scores = ret.batch.get("rm_scores")
-    if rm_scores is not None:
-        scores_1d = rm_scores[0]
-        nonzero = scores_1d.nonzero(as_tuple=True)[0]
-        reward_score = scores_1d[nonzero[-1]].item() if len(nonzero) > 0 else scores_1d.sum().item()
-
     reward_detail = _ntb_get(ntb, "reward_extra_info")
     if not isinstance(reward_detail, dict):
         reward_detail = {}
-    if reward_score is None and "score" in reward_detail:
-        reward_score = reward_detail["score"]
 
     extra_info = _ntb_get(ntb, "extra_info")
     extra_info = extra_info if isinstance(extra_info, dict) else {}
@@ -166,24 +153,17 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
         "text": str(gt) if gt else "",
         "raw_response": raw_resp,
         "response": clean_resp,
-        "reward": reward_score,
         "data_source": _ntb_get(ntb, "data_source", "") or extra_info.get("data_source", ""),
         "audio_path": audio_path,
     }
-    for key in _REWARD_DETAIL_KEYS:
-        if key in reward_detail:
-            row[key] = reward_detail[key]
-        else:
-            val = _ntb_get(ntb, key)
-            if val is not None:
-                row[key] = val
+    row.update(reward_detail)
     return row
 
 
 async def _consume_queue(mq_client: MessageQueueClient, tokenizer, output_path: str,
                          rollouter, save_freq: int = 100):
     """Consume from MessageQueue, decode, write a parquet part every save_freq samples."""
-    all_results, examples_done, part, t0 = [], 0, 0, time.time()
+    all_results, examples_done, t0 = [], 0, time.time()
     n_err, n_ref = 0.0, 0.0
 
     while True:
@@ -202,15 +182,16 @@ async def _consume_queue(mq_client: MessageQueueClient, tokenizer, output_path: 
             n_ref += float(row.get("n_ref") or 0.0)
 
         if len(all_results) >= save_freq:
-            _flush_results(all_results, output_path, part)
+            global_step = ray.get(rollouter.get_global_steps.remote())
+            _flush_results(all_results, output_path, global_step)
             all_results = []
-            part += 1
             ray.get(rollouter.save_checkpoint.remote(output_path))
             rate = examples_done / (time.time() - t0)
             print(f"[Consumer] {examples_done} samples | {rate:.1f} samples/s")
 
     if all_results:
-        _flush_results(all_results, output_path, part)
+        global_step = ray.get(rollouter.get_global_steps.remote())
+        _flush_results(all_results, output_path, global_step)
         ray.get(rollouter.save_checkpoint.remote(output_path))
 
     overall_wer = (n_err / n_ref) if n_ref > 0 else float("nan")

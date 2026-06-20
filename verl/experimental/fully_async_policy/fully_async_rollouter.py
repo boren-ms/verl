@@ -621,6 +621,9 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
             val_metrics: dict = self._validate()
         return timing_raw | val_metrics
 
+    def get_global_steps(self) -> int:
+        return self.global_steps
+
     async def save_checkpoint(self, local_global_step_folder: str):
         # WARNING!: Due to the asynchronous nature, there are some in-flight samples
         # (pending/cancel/result queue and message queue).
