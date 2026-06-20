@@ -76,7 +76,6 @@ _REWARD_DETAIL_KEYS = (
     "wer", "n_ref", "n_err", "n_edge", "p_fmt", "p_lang",
     "p_bracket", "p_repeat", "p_kw_missing", "p_tail_hallu",
 )
-_DEBUG_KEYS_DUMPED = False
 
 
 def _ntb_get(ntb, key, default=None):
@@ -123,7 +122,6 @@ def _audio_from_raw_prompt(raw_prompt) -> str:
 
 
 def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
-    global _DEBUG_KEYS_DUMPED
     rollout_sample = ray.cloudpickle.loads(sample_bytes)
     ret = rollout_sample.full_batch
 
@@ -134,12 +132,6 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
     clean_resp = _clean_response(raw_resp, tokenizer, response_ids)
 
     ntb = ret.non_tensor_batch
-
-    if not _DEBUG_KEYS_DUMPED:
-        _DEBUG_KEYS_DUMPED = True
-        print(f"[Decode] non_tensor_batch keys: {sorted(ntb.keys())}")
-        print(f"[Decode] batch keys: {sorted(ret.batch.keys())}")
-        print(f"[Decode] reward_extra_info[0]: {_ntb_get(ntb, 'reward_extra_info')}")
 
     reward_score = None
     rm_scores = ret.batch.get("rm_scores")
