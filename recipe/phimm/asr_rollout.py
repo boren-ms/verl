@@ -9,6 +9,7 @@ Usage:
 import asyncio
 import hashlib
 import os
+import re
 import subprocess
 import tempfile
 import time
@@ -69,7 +70,42 @@ def _flush_results(results: list[dict], output_path: str, part: int):
     print(f"[Consumer] Wrote {path} ({len(results)} rows)")
 
 
+_TXT_RE = re.compile(r"<TXT>(.*?)</TXT>", re.DOTALL)
+_REWARD_DETAIL_KEYS = (
+    "wer", "n_ref", "n_err", "n_edge", "p_fmt", "p_lang",
+    "p_bracket", "p_repeat", "p_kw_missing", "p_tail_hallu",
+)
+_DEBUG_KEYS_DUMPED = False
+
+
+def _ntb_get(ntb, key, default=None):
+    """Read first element of a non_tensor_batch entry if present."""
+    if key in ntb:
+        try:
+            return ntb[key][0]
+        except (IndexError, TypeError, KeyError):
+            return default
+    return default
+
+
+def _clean_response(raw_resp: str, tokenizer, response_ids) -> str:
+    """Extract the transcription text from a raw ASR response.
+
+    Prefers the content inside <TXT>...</TXT>; falls back to a
+    special-token-stripped decode.
+    """
+    matches = _TXT_RE.findall(raw_resp)
+    if matches:
+        return matches[-1].strip()
+    if response_ids is not None:
+        return tokenizer.decode(
+            [t for t in response_ids[0].tolist() if t != 0], skip_special_tokens=True
+        ).strip()
+    return re.sub(r"<\|[^|]*\|>", "", raw_resp).strip()
+
+
 def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
+    global _DEBUG_KEYS_DUMPED
     rollout_sample = ray.cloudpickle.loads(sample_bytes)
     ret = rollout_sample.full_batch
 
@@ -77,6 +113,15 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
     raw_resp = tokenizer.decode(
         [t for t in response_ids[0].tolist() if t != 0], skip_special_tokens=False
     ) if response_ids is not None else ""
+    clean_resp = _clean_response(raw_resp, tokenizer, response_ids)
+
+    ntb = ret.non_tensor_batch
+
+    if not _DEBUG_KEYS_DUMPED:
+        _DEBUG_KEYS_DUMPED = True
+        print(f"[Decode] non_tensor_batch keys: {sorted(ntb.keys())}")
+        print(f"[Decode] batch keys: {sorted(ret.batch.keys())}")
+        print(f"[Decode] reward_extra_info[0]: {_ntb_get(ntb, 'reward_extra_info')}")
 
     reward_score = None
     rm_scores = ret.batch.get("rm_scores")
@@ -85,23 +130,43 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
         nonzero = scores_1d.nonzero(as_tuple=True)[0]
         reward_score = scores_1d[nonzero[-1]].item() if len(nonzero) > 0 else scores_1d.sum().item()
 
-    ntb = ret.non_tensor_batch
-    reward_model_data = ntb.get("reward_model", [None])[0] if "reward_model" in ntb else None
+    reward_detail = _ntb_get(ntb, "reward_extra_info")
+    if not isinstance(reward_detail, dict):
+        reward_detail = {}
+    if reward_score is None and "score" in reward_detail:
+        reward_score = reward_detail["score"]
+
+    reward_model_data = _ntb_get(ntb, "reward_model")
     gt = (reward_model_data.get("ground_truth", reward_model_data.get("gt_output", ""))
           if isinstance(reward_model_data, dict)
-          else (ntb.get("text", [""])[0] if "text" in ntb else ""))
+          else (_ntb_get(ntb, "ground_truth") or _ntb_get(ntb, "text") or ""))
+
+    audio_path = (_ntb_get(ntb, "audio_path") or _ntb_get(ntb, "audio")
+                  or _ntb_get(ntb, "wav_path") or "")
 
     row = {
-        "text": str(gt) if gt else "",
-        "response": raw_resp,
-        "reward": reward_score,
-        "data_source": ntb.get("data_source", [""])[0] if "data_source" in ntb else "",
-        "audio_path": ntb.get("audio_path", [""])[0] if "audio_path" in ntb else "",
         "sample_id": rollout_sample.sample_id,
+        "text": str(gt) if gt else "",
+        "raw_response": raw_resp,
+        "response": clean_resp,
+        "reward": reward_score,
+        "data_source": _ntb_get(ntb, "data_source", ""),
+        "audio_path": audio_path,
     }
-    extra_info = ntb.get("extra_info", [None])[0] if "extra_info" in ntb else None
+    for key in _REWARD_DETAIL_KEYS:
+        if key in reward_detail:
+            row[key] = reward_detail[key]
+        else:
+            val = _ntb_get(ntb, key)
+            if val is not None:
+                row[key] = val
+
+    extra_info = _ntb_get(ntb, "extra_info")
     if isinstance(extra_info, dict):
         row.update({k: v for k, v in extra_info.items() if k not in row})
+        if not row["audio_path"]:
+            row["audio_path"] = (extra_info.get("audio_path") or extra_info.get("audio")
+                                 or extra_info.get("wav_path") or "")
     return row
 
 
