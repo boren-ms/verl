@@ -48,6 +48,8 @@ actor_rollout_ref:
     name: vllm
     mode: async
     n: ${rollout.n}
+    nnodes: ${rollout.nnodes}
+    n_gpus_per_node: ${rollout.n_gpus_per_node}
     temperature: 0.0
     top_p: 1.0
     response_length: ${data.max_response_length}
