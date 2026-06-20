@@ -357,6 +357,31 @@ Select the dataset schema (and its embedded baseline) with `--schema`:
     --out tmp/inhouse_dter_report/my_model_step800_alllocale_seg.xlsx
   ```
 
+- `--schema alllocale_seg_nocjk`: the `alllocale_seg` schema **without the CJK
+  locales ja-JP, ko-KR, and zh-CN** — **22 locales × 3-5 corpora = 69 datasets**.
+  The DisfluencyTolerant TER measure tokenizes on whitespace/words, which is
+  inappropriate for languages without word boundaries (ja-JP, zh-CN) and the
+  space-sparse ko-KR dictation set; those locales report misleading >50-110%
+  DTER that swamps the `overall avg`. Dropping them makes the overall meaningful.
+  Same per-corpus slugs, display labels, and embedded `Qwen3.5-audio` baseline
+  values as `alllocale_seg`, just with the 3 CJK locale groups removed.
+
+  Baseline overall = **21.10%** (micro-DTER mean across the 69 non-CJK datasets).
+  The model source is the **same** `inhouse_2605_alllocale_seg` eval output dir;
+  the script simply reads the 69 non-CJK `<slug>/measures.json` files and ignores
+  the CJK ones.
+
+  Example — build the no-CJK 22-locale report from the same eval output:
+
+  ```bash
+  /home/boren/.virtualenvs/openai/bin/python \
+    .github/skills/inhouse-dter-report/scripts/build_inhouse_dter_xlsx.py \
+    --schema alllocale_seg_nocjk \
+    --model "my_model@step800" \
+      az://orngwus2cresco/data/boren/data/verl/eval/my_model_step800/inhouse_2605_alllocale_seg/ \
+    --out tmp/inhouse_dter_report/my_model_step800_alllocale_nocjk.xlsx
+  ```
+
   To publish just the embedded baseline column for any schema, use
   `--baseline-only`:
 

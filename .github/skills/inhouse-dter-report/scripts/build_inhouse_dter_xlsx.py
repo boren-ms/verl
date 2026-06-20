@@ -518,6 +518,28 @@ ALLLOCALE_SEG_BASELINE_METRICS: Dict[str, float] = {
     "zhcn_dict_fy23q2": 2340 / 2014,
 }
 
+# ---------------------------------------------------------------------------
+# Schema: inhouse_2605_alllocale_seg WITHOUT CJK locales (ja-JP, ko-KR, zh-CN).
+#
+# The DisfluencyTolerant TER measure tokenizes on whitespace/words, which is
+# inappropriate for languages without word boundaries (ja-JP, zh-CN) and the
+# space-sparse ko-KR dictation set. Those locales report misleading >50-110%
+# DTER that swamps the overall average. This schema drops them, leaving the
+# 22 space-delimited locales (69 datasets), so the `overall avg` is meaningful.
+# Groups and baseline are derived from ALLLOCALE_SEG_* (single source of truth).
+# ---------------------------------------------------------------------------
+_CJK_LOCALES = {"ja-JP", "ko-KR", "zh-CN"}
+ALLLOCALE_SEG_NOCJK_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
+    (locale, list(items))
+    for locale, items in ALLLOCALE_SEG_GROUPS
+    if locale not in _CJK_LOCALES
+]
+ALLLOCALE_SEG_NOCJK_BASELINE_METRICS: Dict[str, float] = {
+    key: ALLLOCALE_SEG_BASELINE_METRICS[key]
+    for _locale, items in ALLLOCALE_SEG_NOCJK_GROUPS
+    for key, _display in items
+}
+
 # Registry of selectable schemas: name -> (groups, baseline_metrics).
 # `groups` entries may use either bare strings (key == display label) or
 # `(internal_key, display_label)` tuples; `_normalize_groups` handles both.
@@ -531,6 +553,7 @@ SCHEMAS: Dict[str, Tuple[List[Tuple[str, List]], Dict[str, float]]] = {
     "cscz_seg": (CSCZ_SEG_GROUPS, CSCZ_SEG_BASELINE_METRICS),
     "all_seg": (ALL_SEG_GROUPS, ALL_SEG_BASELINE_METRICS),
     "alllocale_seg": (ALLLOCALE_SEG_GROUPS, ALLLOCALE_SEG_BASELINE_METRICS),
+    "alllocale_seg_nocjk": (ALLLOCALE_SEG_NOCJK_GROUPS, ALLLOCALE_SEG_NOCJK_BASELINE_METRICS),
 }
 
 
