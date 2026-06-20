@@ -27,6 +27,7 @@ from omegaconf import DictConfig
 from verl.experimental.agent_loop.agent_loop import AgentLoopManager
 from verl.experimental.fully_async_policy.detach_utils import (
     RolloutSample,
+    _is_remax,
     prepare_single_generation_data,
     safe_create_task,
 )
@@ -956,6 +957,39 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
                     task_set=self.active_tasks,
                 )
 
+    def _extract_remax_baseline(self, full_batch: DataProto) -> DataProto:
+        """Convert the trailing greedy baseline row into reward_baselines.
+
+        ``prepare_single_generation_data`` appends a single greedy baseline row
+        after the ``rollout.n`` sampled rows when the REMAX estimator is used.
+        After generation this row carries its own ``rm_scores``; we turn that
+        scalar reward into a per-row ``reward_baselines`` tensor for the sampled
+        rows and drop the baseline row so only the sampled rollouts flow
+        downstream (the trainer's ``compute_advantage`` consumes
+        ``reward_baselines`` for REMAX).
+        """
+        num_sampled = self.config.actor_rollout_ref.rollout.n
+        total = len(full_batch)
+        assert total == num_sampled + 1, (
+            f"REMAX expects {num_sampled} sampled rows + 1 greedy baseline row, got {total} rows"
+        )
+        assert "rm_scores" in full_batch.batch.keys(), (
+            "REMAX requires per-row rm_scores from the reward loop to build reward_baselines"
+        )
+
+        baseline_reward = full_batch.batch["rm_scores"][num_sampled].sum()
+        sampled_batch = full_batch.slice(0, num_sampled)
+        sampled_batch.batch["reward_baselines"] = torch.full(
+            (num_sampled,), baseline_reward, dtype=torch.float32
+        )
+        # DataProto.slice shares meta_info; trim the row-aligned per-sample metrics
+        # so the dropped baseline row is not re-expanded into length-(n+1)
+        # non_tensor arrays (processing_times/tool_calls_times) during assembly.
+        if "metrics" in sampled_batch.meta_info:
+            sampled_batch.meta_info = dict(sampled_batch.meta_info)
+            sampled_batch.meta_info["metrics"] = sampled_batch.meta_info["metrics"][:num_sampled]
+        return sampled_batch
+
     async def _process_single_sample_streaming(self, rollout_sample: RolloutSample):
         """Process a single sample streamingly"""
         # Calling asynchronous generation methods
@@ -1009,6 +1043,11 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
                 await asyncio.sleep(wait_time)
 
         rollout_sample.full_batch = ret
+        # REMAX: the last row is the greedy baseline. Slice it off, turn its scalar
+        # reward into per-row reward_baselines for the sampled rollouts, and keep
+        # only the sampled rows downstream (mirrors the hybrid trainer's REMAX path).
+        if _is_remax(self.config):
+            rollout_sample.full_batch = self._extract_remax_baseline(rollout_sample.full_batch)
         # Re-set uid on output — agent loop worker returns a new DataProto without the input's non_tensor_batch
         rollout_sample.full_batch.non_tensor_batch["uid"] = np.array(
             [f"uid_{rollout_sample.sample_id}"] * len(rollout_sample.full_batch), dtype=object

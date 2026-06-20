@@ -105,9 +105,9 @@ data:
         verl_format:
           prompt_key: prompt
 
-# ── Algorithm: GRPO (ReMax not supported in fully async - no reward_baselines) ─
+# ── Algorithm: ReMax (greedy baseline generated per prompt in fully async) ────
 algorithm:
-  adv_estimator: grpo
+  adv_estimator: remax
   use_kl_in_reward: false
   kl_ctrl:
     kl_coef: 0.0

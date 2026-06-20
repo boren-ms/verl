@@ -98,9 +98,9 @@ data:
           prompt_key: prompt
           extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
-# ── Algorithm: GRPO (ReMax not supported in fully async - no reward_baselines) ─
+# ── Algorithm: ReMax (greedy baseline generated per prompt in fully async) ────
 algorithm:
-  adv_estimator: grpo
+  adv_estimator: remax
   use_kl_in_reward: false
   kl_ctrl:
     kl_coef: 0.0

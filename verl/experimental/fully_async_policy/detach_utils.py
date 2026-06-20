@@ -24,6 +24,12 @@ from verl import DataProto
 from verl.trainer.ppo.ray_trainer import compute_response_mask
 
 
+def _is_remax(config) -> bool:
+    """Return True when the algorithm uses the ReMax advantage estimator."""
+    adv_estimator = config.algorithm.adv_estimator
+    return str(adv_estimator).lower() == "remax"
+
+
 @dataclass
 class RolloutSample:
     """Enhanced rollout sample containing both original batch info and AgentLoopOutput"""
@@ -66,9 +72,24 @@ def prepare_single_generation_data(batch_dict, config) -> DataProto:
     if not config.actor_rollout_ref.rollout.multi_turn.enable:
         full_batch.non_tensor_batch["agent_name"] = np.array(["single_turn_agent"] * len(full_batch), dtype=object)
 
+    rollout_n = config.actor_rollout_ref.rollout.n
+
     # Add global step count to generated data
-    full_batch = full_batch.repeat(repeat_times=config.actor_rollout_ref.rollout.n, interleave=True)
-    return full_batch
+    sampled_batch = full_batch.repeat(repeat_times=rollout_n, interleave=True)
+
+    if _is_remax(config):
+        # REMAX needs one sampled rollout group plus one greedy baseline per prompt.
+        # Append a single greedy baseline row (the original prompt) and tag every row
+        # with the per-sample __do_sample__ override honored by the agent loop
+        # (True -> sampled rollout, False -> greedy baseline). The baseline row is
+        # sliced off and converted into reward_baselines after generation.
+        baseline_batch = full_batch.slice(0, None)
+        combined_batch = DataProto.concat([sampled_batch, baseline_batch])
+        do_sample = np.array([True] * len(sampled_batch) + [False] * len(baseline_batch), dtype=bool)
+        combined_batch.non_tensor_batch["__do_sample__"] = do_sample
+        return combined_batch
+
+    return sampled_batch
 
 
 def addition_process(output: DataProto):
