@@ -18,6 +18,7 @@ from pprint import pprint
 
 import blobfile as bf
 import hydra
+import numpy as np
 import pandas as pd
 import ray
 from omegaconf import DictConfig, OmegaConf
@@ -104,6 +105,23 @@ def _clean_response(raw_resp: str, tokenizer, response_ids) -> str:
     return re.sub(r"<\|[^|]*\|>", "", raw_resp).strip()
 
 
+def _audio_from_raw_prompt(raw_prompt) -> str:
+    """Extract an audio path/url from chat-style raw_prompt messages."""
+    messages = raw_prompt
+    if isinstance(messages, np.ndarray):
+        messages = messages.tolist()
+    if not isinstance(messages, (list, tuple)):
+        return ""
+    for msg in messages:
+        content = msg.get("content") if isinstance(msg, dict) else None
+        if not isinstance(content, (list, tuple)):
+            continue
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "audio":
+                return str(item.get("audio") or item.get("audio_url") or "")
+    return ""
+
+
 def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
     global _DEBUG_KEYS_DUMPED
     rollout_sample = ray.cloudpickle.loads(sample_bytes)
@@ -136,13 +154,19 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
     if reward_score is None and "score" in reward_detail:
         reward_score = reward_detail["score"]
 
+    extra_info = _ntb_get(ntb, "extra_info")
+    extra_info = extra_info if isinstance(extra_info, dict) else {}
+
     reward_model_data = _ntb_get(ntb, "reward_model")
     gt = (reward_model_data.get("ground_truth", reward_model_data.get("gt_output", ""))
           if isinstance(reward_model_data, dict)
-          else (_ntb_get(ntb, "ground_truth") or _ntb_get(ntb, "text") or ""))
+          else (_ntb_get(ntb, "ground_truth") or _ntb_get(ntb, "text")
+                or extra_info.get("ground_truth") or extra_info.get("text") or ""))
 
     audio_path = (_ntb_get(ntb, "audio_path") or _ntb_get(ntb, "audio")
-                  or _ntb_get(ntb, "wav_path") or "")
+                  or _ntb_get(ntb, "wav_path")
+                  or extra_info.get("audio_path") or extra_info.get("audio")
+                  or _audio_from_raw_prompt(_ntb_get(ntb, "raw_prompt")) or "")
 
     row = {
         "sample_id": rollout_sample.sample_id,
@@ -150,7 +174,7 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
         "raw_response": raw_resp,
         "response": clean_resp,
         "reward": reward_score,
-        "data_source": _ntb_get(ntb, "data_source", ""),
+        "data_source": _ntb_get(ntb, "data_source", "") or extra_info.get("data_source", ""),
         "audio_path": audio_path,
     }
     for key in _REWARD_DETAIL_KEYS:
@@ -160,13 +184,6 @@ def _decode_rollout_sample(sample_bytes, tokenizer) -> dict:
             val = _ntb_get(ntb, key)
             if val is not None:
                 row[key] = val
-
-    extra_info = _ntb_get(ntb, "extra_info")
-    if isinstance(extra_info, dict):
-        row.update({k: v for k, v in extra_info.items() if k not in row})
-        if not row["audio_path"]:
-            row["audio_path"] = (extra_info.get("audio_path") or extra_info.get("audio")
-                                 or extra_info.get("wav_path") or "")
     return row
 
 

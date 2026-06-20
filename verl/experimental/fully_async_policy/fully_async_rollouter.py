@@ -961,6 +961,19 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
             [f"uid_{rollout_sample.sample_id}"] * len(rollout_sample.full_batch), dtype=object
         )
 
+        # Snapshot input metadata fields before generation overwrites full_batch.
+        # The agent loop worker returns a new DataProto without the input's
+        # non_tensor_batch, so carry over fields needed for downstream dumps.
+        _carry_keys = (
+            "audio_path", "audio", "wav_path", "text", "ground_truth",
+            "gt_output", "data_source", "reward_model", "extra_info", "index",
+        )
+        _carry_over = {
+            k: rollout_sample.full_batch.non_tensor_batch[k][0]
+            for k in _carry_keys
+            if k in rollout_sample.full_batch.non_tensor_batch
+        }
+
         # Retry logic: weight sync aborts vLLM replicas, cancelling in-flight tasks.
         # Catch and retry after a brief wait for replicas to resume.
         # The exception may be asyncio.CancelledError, or ray.exceptions.RayTaskError
@@ -997,6 +1010,13 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
         rollout_sample.full_batch.non_tensor_batch["uid"] = np.array(
             [f"uid_{rollout_sample.sample_id}"] * len(rollout_sample.full_batch), dtype=object
         )
+        # Re-attach carried-over input metadata (audio_path, ground truth text, etc.)
+        _out_len = len(rollout_sample.full_batch)
+        for _k, _v in _carry_over.items():
+            if _k not in rollout_sample.full_batch.non_tensor_batch:
+                rollout_sample.full_batch.non_tensor_batch[_k] = np.array(
+                    [_v] * _out_len, dtype=object
+                )
         rollout_sample.rollout_status = await self.get_statistics()
 
         success = await self.message_queue_client.put_sample(
