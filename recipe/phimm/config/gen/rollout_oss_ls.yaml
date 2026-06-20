@@ -1,0 +1,70 @@
+# python3 -m recipe.phimm.asr_rollout --config-path=../../recipe/phimm/config/gen --config-name=rollout_oss_ls
+hydra:
+  searchpath:
+    - file://verl/trainer/config
+defaults:
+  - ppo_trainer
+  - _self_
+
+data:
+  custom_cls:
+    path: recipe/phimm/data/rl_dataset.py
+    name: RLHFDataset
+  train_files:
+    - dataset_name: tsv
+      tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
+      add_task_info:
+        task: lang_asr
+      post_process:
+        add_field:
+          fields:
+            data_source: asr
+        verl_format:
+          prompt_key: prompt
+  val_files: ${data.train_files}
+  train_batch_size: 0
+  gen_batch_size: 1
+  output_path: az://orngwus2cresco/data/boren/data/verl/rollout_qwen/en_ls
+  save_freq: 50
+  max_prompt_length: 1024
+  max_response_length: 768
+  return_raw_chat: true
+  return_multi_modal_inputs: false
+
+actor_rollout_ref:
+  hybrid_engine: false
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf
+    trust_remote_code: true
+  actor:
+    ppo_mini_batch_size: 64
+  rollout:
+    name: vllm
+    mode: async
+    total_rollout_steps: 100
+    nnodes: 1
+    n_gpus_per_node: 8
+    temperature: 0.0
+    top_p: 1.0
+    response_length: ${data.max_response_length}
+    prompt_length: ${data.max_prompt_length}
+    tensor_model_parallel_size: 1
+    gpu_memory_utilization: 0.75
+    load_format: auto
+    calculate_log_probs: true
+
+async_training:
+  staleness_threshold: 1000
+  trigger_parameter_sync_step: 1
+  require_batches: 1
+  partial_rollout: false
+  max_queue_size: 1000
+
+trainer:
+  n_gpus_per_node: 8
+  nnodes: 1
+  total_epochs: 1
+  project_name: asr_rollout
+  experiment_name: en_ls
+  resume_mode: auto
+  default_local_dir: ./rollout_ckpt
