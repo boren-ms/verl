@@ -103,16 +103,6 @@ def default_compute_score(
 
         res = search_r1_like_qa_em.compute_score(solution_str, ground_truth)
 
-    elif data_source in ["asr", "lang_asr", "asr_edge"]:
-        from recipe.phimm.reward import asr_edge
-
-        reward_kwargs = dict(extra_info) if isinstance(extra_info, dict) else {}
-        reward_kwargs.update(kwargs)
-        reward_kwargs.setdefault("gamma", 0.1)
-        reward_kwargs.setdefault("unit", "char")
-        res = asr_edge.compute_score(solution_str, ground_truth, **reward_kwargs)
-
-
     else:
         raise NotImplementedError(f"Reward function is not implemented for {data_source=}")
 
