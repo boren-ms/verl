@@ -24,7 +24,7 @@ from omegaconf import DictConfig, OmegaConf
 from recipe.phimm.utils.env import EnvMgr
 from verl.experimental.fully_async_policy.fully_async_rollouter import FullyAsyncRollouter
 from verl.experimental.fully_async_policy.message_queue import MessageQueue, MessageQueueClient
-from verl.utils import hf_tokenizer
+from verl.utils import hf_tokenizer, hf_processor
 from verl.utils.fs import copy_to_local
 from verl.utils.hdfs_io import makedirs
 
@@ -146,6 +146,9 @@ async def _run_asr_rollout(config):
     OmegaConf.update(config, "actor_rollout_ref.model.path", local_model_path)
     tokenizer = hf_tokenizer(local_model_path,
                              trust_remote_code=config.actor_rollout_ref.model.get("trust_remote_code", False))
+    processor = hf_processor(local_model_path,
+                             trust_remote_code=config.actor_rollout_ref.model.get("trust_remote_code", False),
+                             use_fast=True)
 
     output_path = config.data.output_path
     makedirs(output_path, exist_ok=True)
@@ -156,7 +159,7 @@ async def _run_asr_rollout(config):
     mq_client = MessageQueueClient(mq_actor)
 
     rollouter = FullyAsyncRollouter.remote(config=config, tokenizer=tokenizer,
-                                           processor=None, local_model_path=local_model_path)
+                                           processor=processor, local_model_path=local_model_path)
     await rollouter.init_workers.remote()
     await rollouter.set_message_queue_client.remote(mq_client)
     await rollouter.set_max_required_samples.remote()
