@@ -132,11 +132,19 @@ class NCCLCheckpointEngine(CheckpointEngine):
             self._start_zmq_server()
 
     def prepare(self) -> MasterMetadata:
+        # Record this rank's CUDA device so the barrier and weight broadcast all
+        # operate on a single, consistent GPU (see init_process_group).
+        self.device_index = torch.cuda.current_device()
+
         # For master process, use cupy instead of torch to avoid memory register error
         # when `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`.
         if self.is_master:
-            self.send_buf = cp.zeros(self.bucket_size, dtype=cp.uint8)
-            self.recv_buf = cp.zeros(self.bucket_size, dtype=cp.uint8)
+            # Pin the cupy buffers to this rank's device. Otherwise cupy defaults
+            # to device 0, which may differ from torch's current device and would
+            # make the broadcast use a different GPU than the barrier.
+            with cp.cuda.Device(self.device_index):
+                self.send_buf = cp.zeros(self.bucket_size, dtype=cp.uint8)
+                self.recv_buf = cp.zeros(self.bucket_size, dtype=cp.uint8)
         else:
             self.send_buf = torch.zeros(self.bucket_size, dtype=torch.uint8, device="cuda")
             self.recv_buf = torch.zeros(self.bucket_size, dtype=torch.uint8, device="cuda")
@@ -222,9 +230,42 @@ class NCCLCheckpointEngine(CheckpointEngine):
 
         if self.rank > 0:
             self._connect_zmq_client(master_metadata)
+
+        # Restrict the ray.util.collective group to this rank's single GPU before
+        # the barrier. ray's `barrier()` falls back to ALL locally-visible GPUs
+        # when the group's `_used_gpu_indices` set is still empty; on a colocated
+        # single node (where one worker process can see every GPU) this builds an
+        # oversized NCCL group of `num_local_gpus * world_size` ranks with
+        # duplicate GPU assignments and fails with "Duplicate GPU detected".
+        # Seeding the rank's device keeps the group at one GPU per rank, matching
+        # the device used by the subsequent weight broadcast. On multi-node
+        # deployments each process sees a single GPU, so this is a no-op there.
+        self._restrict_collective_to_local_device()
+
         collective.barrier(self.group_name)
 
-        logger.info(f"init_process_group rank: {self.rank}, world_size: {self.world_size}")
+        logger.info(
+            f"init_process_group rank: {self.rank}, world_size: {self.world_size}, "
+            f"device: {getattr(self, 'device_index', None)}"
+        )
+
+    def _restrict_collective_to_local_device(self):
+        """Seed the collective group's used-GPU set with this rank's device.
+
+        Prevents ray.util.collective from defaulting to every locally-visible GPU
+        when no collective op has populated `_used_gpu_indices` yet.
+        """
+        from ray.util.collective.collective import get_group_handle
+
+        device_index = getattr(self, "device_index", None)
+        if device_index is None:
+            device_index = torch.cuda.current_device()
+            self.device_index = device_index
+
+        group = get_group_handle(self.group_name)
+        used_gpu_indices = getattr(group, "_used_gpu_indices", None)
+        if used_gpu_indices is not None:
+            used_gpu_indices.add(device_index)
 
     @torch.no_grad()
     async def send_weights(

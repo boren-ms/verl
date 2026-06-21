@@ -388,6 +388,13 @@ class CheckpointEngineManager:
         """Build process group for trainer and rollout replicas."""
         trainer = self.trainer
 
+        print(
+            f"[CKPT-DIAG] build_process_group: trainer.world_size={trainer.world_size} "
+            f"rollout.world_size={rollout.world_size} num_replicas={len(self.replicas)} "
+            f"replica_workers={[len(getattr(r, 'workers', [])) for r in self.replicas]}",
+            flush=True,
+        )
+
         # 1. prepare all workers
         metadata = ray.get(
             trainer.execute_checkpoint_engine(["prepare"] * trainer.world_size)
