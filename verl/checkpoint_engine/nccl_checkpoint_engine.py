@@ -40,6 +40,44 @@ logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 
 
+def _patch_ray_collective_constant_comm_key() -> None:
+    """Make ray.util.collective use a device-independent rendezvous key.
+
+    ray.util.collective derives the NCCL rendezvous/communicator key from each
+    rank's *physical* GPU index via ``_get_comm_key_from_devices`` (e.g. a rank on
+    GPU 4 produces key ``"4"``). The group key is then ``"<comm_key>@<group_name>"``
+    and rank 0 publishes the NCCL unique ID under that key while the other ranks
+    look it up.
+
+    This assumes every participating process sees its GPU as the *same* local
+    index (true on multi-node / 1-GPU-per-process deployments, where the index is
+    always ``0``). In a colocated single-node deployment the trainer master and the
+    rollout workers run on *different* absolute device indices (e.g. trainer on
+    GPU 4, rollout on GPUs 0-3), so their keys diverge and they never meet at the
+    rendezvous store ("Unable to meet other processes at the rendezvous store").
+
+    The checkpoint-engine collective only ever forms a single communicator per
+    group, so we force ``_get_comm_key_from_devices`` to return a constant. The
+    group name still namespaces the rendezvous key, and each rank's NCCL
+    communicator is still created on its own real device, so this is correct for
+    both colocated and disaggregated layouts (and a no-op when every rank is on
+    index 0).
+    """
+    from ray.util.collective.collective_group import nccl_collective_group as _ng
+
+    if getattr(_ng, "_verl_constant_comm_key_patched", False):
+        return
+
+    def _constant_comm_key_from_devices(devices):  # noqa: ANN001
+        return "verl_ckpt_engine"
+
+    _ng._get_comm_key_from_devices = _constant_comm_key_from_devices
+    _ng._verl_constant_comm_key_patched = True
+
+
+_patch_ray_collective_constant_comm_key()
+
+
 @dataclass
 class MasterMetadata:
     zmq_ip: str
@@ -231,16 +269,26 @@ class NCCLCheckpointEngine(CheckpointEngine):
         if self.rank > 0:
             self._connect_zmq_client(master_metadata)
 
-        # Restrict the ray.util.collective group to this rank's single GPU before
-        # the barrier. ray's `barrier()` falls back to ALL locally-visible GPUs
-        # when the group's `_used_gpu_indices` set is still empty; on a colocated
-        # single node (where one worker process can see every GPU) this builds an
-        # oversized NCCL group of `num_local_gpus * world_size` ranks with
-        # duplicate GPU assignments and fails with "Duplicate GPU detected".
-        # Seeding the rank's device keeps the group at one GPU per rank, matching
-        # the device used by the subsequent weight broadcast. On multi-node
-        # deployments each process sees a single GPU, so this is a no-op there.
-        self._restrict_collective_to_local_device()
+        # verl runs every worker with RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES
+        # set, so each colocated process sees ALL local GPUs and uses its true
+        # physical device index (set via LOCAL_RANK). That breaks two assumptions
+        # baked into ray.util.collective, which expects one GPU per process at
+        # local index 0:
+        #   1. barrier() falls back to EVERY visible GPU when the group's
+        #      `_used_gpu_indices` set is empty, building an oversized NCCL group
+        #      of `num_local_gpus * world_size` ranks with duplicate device
+        #      assignments ("Duplicate GPU detected").
+        #   2. the rendezvous/communicator cache key is derived from the device
+        #      index, so ranks living on different physical GPUs (e.g. trainer on
+        #      GPU 0, rollout on GPU 4) compute different keys and never exchange
+        #      the NCCL unique id ("Unable to meet other processes at the
+        #      rendezvous store").
+        # Pinning the group to this rank's single device fixes (1); forcing a
+        # device-independent rendezvous key fixes (2) while each rank still
+        # creates its communicator on its own physical GPU. On multi-node
+        # deployments each process sees a single GPU at index 0, so both are
+        # effectively no-ops.
+        self._pin_collective_to_local_device()
 
         collective.barrier(self.group_name)
 
@@ -249,11 +297,18 @@ class NCCLCheckpointEngine(CheckpointEngine):
             f"device: {getattr(self, 'device_index', None)}"
         )
 
-    def _restrict_collective_to_local_device(self):
-        """Seed the collective group's used-GPU set with this rank's device.
+    def _pin_collective_to_local_device(self):
+        """Make ray.util.collective work under NOSET on a colocated node.
 
-        Prevents ray.util.collective from defaulting to every locally-visible GPU
-        when no collective op has populated `_used_gpu_indices` yet.
+        Two adjustments on the live collective group:
+          1. Seed `_used_gpu_indices` with this rank's physical CUDA device so
+             barrier()/allreduce() operate on exactly one GPU (this rank's),
+             instead of falling back to every locally-visible GPU.
+          2. Replace the group's `_generate_group_key` with a device-independent
+             key so all ranks rendezvous under the same store entry and exchange
+             the NCCL unique id, even though they live on different physical GPUs.
+             Each rank still creates its communicator on its own device, so the
+             NCCL world stays at one rank per GPU.
         """
         from ray.util.collective.collective import get_group_handle
 
@@ -263,9 +318,24 @@ class NCCLCheckpointEngine(CheckpointEngine):
             self.device_index = device_index
 
         group = get_group_handle(self.group_name)
+        if group is None:
+            return
+
         used_gpu_indices = getattr(group, "_used_gpu_indices", None)
         if used_gpu_indices is not None:
             used_gpu_indices.add(device_index)
+
+        # Force a constant rendezvous key for this group so ranks on different
+        # physical GPUs still meet. Without this the key embeds the device index
+        # (e.g. "0@default" vs "4@default") and the rendezvous never completes.
+        if hasattr(group, "_generate_group_key") and not getattr(group, "_ckpt_key_pinned", False):
+            group_name = self.group_name
+
+            def _constant_group_key(_comm_key, _group_name=group_name):
+                return f"ckpt_engine@{_group_name}"
+
+            group._generate_group_key = _constant_group_key
+            group._ckpt_key_pinned = True
 
     @torch.no_grad()
     async def send_weights(
