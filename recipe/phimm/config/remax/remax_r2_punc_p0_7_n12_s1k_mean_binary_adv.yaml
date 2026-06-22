@@ -20,6 +20,7 @@
 hydra:
   searchpath:
     - pkg://verl.trainer.config
+    - file://recipe/phimm/config
     - file://recipe/phimm/config/async_base
 
 defaults:
