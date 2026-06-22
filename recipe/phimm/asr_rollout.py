@@ -2,8 +2,8 @@
 
 Usage:
     python3 -m recipe.phimm.asr_rollout \
-        --config-path=../../recipe/phimm/config/gen \
-        --config-name=gen_oss_ls
+        --config-path=../../recipe/phimm/config/rollout \
+        --config-name=rollout_oss_ls
 """
 
 import asyncio
@@ -245,7 +245,7 @@ async def _run_asr_rollout(config):
     await mq_client.shutdown()
 
 
-@hydra.main(config_path="config/gen", config_name="gen_oss_ls", version_base=None)
+@hydra.main(config_path="config/rollout", config_name="rollout_oss_ls", version_base=None)
 def main(config):
     if not OmegaConf.has_resolver("eval"):
         OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))

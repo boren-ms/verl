@@ -1,35 +1,69 @@
 #!/bin/bash
 set -xeuo pipefail
 
-config_file=$1
+# Usage: bash quick_run.sh <config> [extra hydra overrides...]
+#   <config> may be:
+#     - a file path:           recipe/phimm/config/remax/remax_r2_..._binary_adv.yaml
+#     - a name with subdir:    remax/remax_r2_..._binary_adv
+#     - a bare config name:    gen_oss_ls   (located automatically under the config root)
 
-config_base=$(basename "$config_file")
-config_name=${config_base%.*}
+config_input=$1
 
 cwd="$(dirname $(readlink -f $0))"
 echo "Current working directory: ${cwd}"
 pushd "$cwd" > /dev/null
 
-# Determine the module and config-path based on config name prefix
-# config_path is relative to the module's file location (Hydra convention)
-module="verl.trainer.main_ppo"
-config_path="../../recipe/phimm/config"
+config_root="recipe/phimm/config"
 
-if [[ "$config_name" == *fully_async* ]]; then
+# Normalize the input to a path relative to ${config_root} (no .yaml extension).
+config_rel=${config_input%.yaml}
+config_rel=${config_rel#./}
+config_rel=${config_rel#${config_root}/}
+
+config_file="${config_root}/${config_rel}.yaml"
+if [[ ! -f "$config_file" ]]; then
+    # Fall back to locating the config by its stem anywhere under the config root.
+    stem=$(basename "$config_rel")
+    found=$(find "$config_root" -name "${stem}.yaml" | head -n1)
+    if [[ -z "$found" ]]; then
+        echo "[ERROR] Could not find a config for '${config_input}' under ${config_root}" >&2
+        exit 1
+    fi
+    config_file="$found"
+    config_rel="${config_file#${config_root}/}"
+    config_rel="${config_rel%.yaml}"
+fi
+
+# Stem (used for --config-name, experiment_name and the log file) and subdir.
+config_name=$(basename "$config_rel")
+subdir=$(dirname "$config_rel")
+[[ "$subdir" == "." ]] && subdir=""
+
+# Determine the module and the base config-path (relative to the module's file
+# location, per the Hydra convention). Only modules that actually exist in this
+# repo are dispatched here.
+if grep -qiE 'fully_async' "$config_file" || [[ "$subdir" == "remax" ]]; then
+    # Fully-async RL training (ReMax/GRPO). Module: verl/experimental/fully_async_policy/.
     module="verl.experimental.fully_async_policy.fully_async_main"
-    config_path="../../../recipe/phimm/config"
-elif [[ "$config_name" == long_eval_* ]]; then
-    module="recipe.phimm.main_long_eval_asr"
-    config_path="config"
-elif [[ "$config_name" == gen_* ]]; then
+    base="../../../recipe/phimm/config"
+elif [[ "$subdir" == "rollout" || "$config_name" == rollout_* ]]; then
+    # Fully-async ASR rollout/generation. Module: recipe/phimm/asr_rollout.py.
+    module="recipe.phimm.asr_rollout"
+    base="config"
+elif [[ "$subdir" == "gen" || "$config_name" == gen_* ]]; then
+    # Batch ASR generation. Module: recipe/phimm/main_asr_gen.py.
     module="recipe.phimm.main_asr_gen"
-    config_path="config/gen"
-elif [[ "$config_name" == eval_* ]]; then
-    module="recipe.phimm.main_asr_eval"
-    config_path="config"
-elif [[ "$config_name" == remax_* ]]; then
-    module="recipe.phimm.main_asr_remax"
-    config_path="config"
+    base="config"
+else
+    # Default PPO trainer. Module: verl/trainer/main_ppo.py.
+    module="verl.trainer.main_ppo"
+    base="../../recipe/phimm/config"
+fi
+
+if [[ -n "$subdir" ]]; then
+    config_path="${base}/${subdir}"
+else
+    config_path="${base}"
 fi
 
 echo "[INFO] Preparing environment ..."

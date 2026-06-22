@@ -1,4 +1,4 @@
-# python3 -m recipe.phimm.asr_rollout --config-path=../../recipe/phimm/config/gen --config-name=rollout_oss_ls
+# python3 -m recipe.phimm.asr_rollout --config-path=../../recipe/phimm/config/rollout --config-name=rollout_oss_ls
 hydra:
   searchpath:
     - file://verl/trainer/config
