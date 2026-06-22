@@ -1,0 +1,83 @@
+# Base scaffolding for long-audio ASR rollout (recipe.phimm.long_asr_rollout).
+#
+# Combines the fully-async rollout engine (FullyAsyncRollouter + MessageQueue,
+# as in recipe.phimm.asr_rollout) with long-recording segmentation + per-parent
+# DTER/EER scoring (as in recipe.phimm.main_long_eval_asr):
+#   svad_explode -> FullyAsyncRollouter generate -> regroup per parent wav ->
+#   DisfluencyTolerant TER + entity EER (asr_inhouse_measure.eval_score).
+#
+# Experiment configs that include this base only need to set
+# actor_rollout_ref.model.path, the data/val_data/<...> dataset default (the
+# long-audio segments, reused from the gen-style long eval), and
+# data.output_path.
+defaults:
+  - ppo_trainer
+  - _self_
+
+data:
+  custom_cls:
+    path: recipe/phimm/data/rl_dataset.py
+    name: RLHFDataset
+  # The rollouter reads train_files/val_files; reuse the val_data dataset
+  # default (long-audio segments via svad_explode) for both so the same
+  # dataset yaml drives the segmentation as in main_long_eval_asr.
+  train_files: ${data.val_data}
+  val_files: ${data.val_data}
+  train_batch_size: 0
+  gen_batch_size: 1
+  output_path: null
+  max_prompt_length: 4096
+  max_response_length: 1024
+  # SVAD caps at 40s, so 50 leaves headroom for the audio embeddings.
+  max_audio_dur: 50
+  return_raw_chat: true
+  return_multi_modal_inputs: false
+  trust_remote_code: true
+  log_interval: 100
+  # Passed through to asr_inhouse_measure.eval_score (DTER/EER backend).
+  measure_kwargs: {}
+
+rollout:
+  nnodes: 1
+  n_gpus_per_node: 8
+  n: 1
+  # null => one full pass over the (post-explode) segment dataset.
+  total_rollout_steps: null
+
+actor_rollout_ref:
+  hybrid_engine: false
+  model:
+    path: null
+    trust_remote_code: true
+  actor:
+    ppo_mini_batch_size: 64
+  rollout:
+    name: vllm
+    mode: async
+    n: ${rollout.n}
+    nnodes: ${rollout.nnodes}
+    n_gpus_per_node: ${rollout.n_gpus_per_node}
+    temperature: 0.0
+    top_p: 1.0
+    response_length: ${data.max_response_length}
+    prompt_length: ${data.max_prompt_length}
+    tensor_model_parallel_size: 1
+    gpu_memory_utilization: 0.75
+    load_format: auto
+    calculate_log_probs: false
+
+async_training:
+  staleness_threshold: 1000
+  trigger_parameter_sync_step: 1
+  require_batches: 1
+  partial_rollout: false
+  max_queue_size: 1000
+
+trainer:
+  n_gpus_per_node: 8
+  nnodes: 1
+  total_epochs: 1
+  project_name: long_asr_rollout
+  experiment_name: long_audio_rollout
+  resume_mode: disable
+  default_local_dir: ./long_rollout_ckpt
