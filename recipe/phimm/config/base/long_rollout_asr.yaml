@@ -64,7 +64,8 @@ actor_rollout_ref:
     tensor_model_parallel_size: 1
     gpu_memory_utilization: 0.75
     load_format: auto
-    calculate_log_probs: false
+    # FullyAsyncRollouter._validate_config requires log_probs to be computed.
+    calculate_log_probs: true
 
 async_training:
   staleness_threshold: 1000
