@@ -81,11 +81,8 @@ async_training:
 # NotImplementedError for the inhouse data_sources.
 reward:
   custom_reward_function:
-    path: pkg://recipe.phimm.reward.asr_edge
-    name: compute_score
-    reward_kwargs:
-      gamma: 0.1
-      unit: char
+    path: pkg://recipe.phimm.reward.asr_inhouse_measure
+    name: dummy_score
   num_workers: 8
 
 trainer:

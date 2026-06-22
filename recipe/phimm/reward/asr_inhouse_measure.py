@@ -321,3 +321,12 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
         result["eer_n_err"] = eer_n_err
         result["eer_n_ref"] = eer_n_ref
     return result
+
+
+def dummy_score(solution_str: str, ground_truth: str, **kwargs):
+    """Dummy scorer matching ``eval_score``'s signature, always returns score 0.0.
+
+    Useful as a no-op placeholder (e.g. to skip the expensive DTER/EER backend
+    during pipeline smoke tests) while keeping the same return shape.
+    """
+    return {"score": 0.0}
