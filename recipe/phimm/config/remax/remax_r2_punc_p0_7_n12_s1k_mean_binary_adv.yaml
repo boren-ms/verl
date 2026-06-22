@@ -34,6 +34,15 @@ algorithm:
   binary_adv: true
   binary_adv_scale: 1.0
 
+# ── Actor memory: clear trainer actor_update OOM on the 9B audio model ──────
+# Shard params across all 4 trainer GPUs (fsdp_size=4) and cap the dynamic
+# per-GPU token budget so activations fit (default 32768 OOMs at fsdp_size=2).
+actor_rollout_ref:
+  actor:
+    ppo_max_token_len_per_gpu: 2048
+    fsdp_config:
+      fsdp_size: 4
+
 # ── Reward ────────────────────────────────────────────────────────────────
 reward:
   custom_reward_function:
