@@ -218,7 +218,26 @@ def find_latest_ckpt_path(path, directory_format="global_step_{}"):
     if path is None:
         return None
 
+    from verl.utils.fs import is_non_local
+
     tracker_file = get_checkpoint_tracker_filename(path)
+
+    if is_non_local(path):
+        # Remote checkpoint directory (HDFS or cloud blob storage).
+        import blobfile as bf
+
+        if not bf.exists(tracker_file):
+            print(f"Checkpoint tracker file does not exist: {tracker_file}")
+            return None
+        with bf.BlobFile(tracker_file, "rb") as f:
+            iteration = int(f.read().decode())
+        ckpt_path = os.path.join(path, directory_format.format(iteration))
+        if not bf.exists(ckpt_path):
+            print("Checkpoint does not exist:", ckpt_path)
+            return None
+        print("Found checkpoint:", ckpt_path)
+        return ckpt_path
+
     if not os.path.exists(tracker_file):
         if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
             print(f"Checkpoint tracker file does not exist: {tracker_file}")

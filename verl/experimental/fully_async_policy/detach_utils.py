@@ -230,6 +230,9 @@ class MetricsAggregator:
                 "fully_async/count/current_param_version",
                 "fully_async/count/dropped_stale_samples",
                 "training/global_step",  # TODO change name to: total_step
+                "training/step",
+                "training/progress",
+                "training/epoch",
             ],
         }
 

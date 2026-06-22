@@ -421,7 +421,14 @@ class FullyAsyncTrainer(SeparateRayPPOTrainer):
         Args:
             batch_dict: Raw data dictionary
         """
-        self.metrics = {"training/global_step": self.global_steps, "training/epoch": self.epoch}
+        self.metrics = {
+            "training/global_step": self.global_steps,
+            "training/epoch": self.epoch,
+            "training/step": self.current_param_version,
+            "training/progress": (
+                self.current_param_version / self.total_train_steps if self.total_train_steps else 0.0
+            ),
+        }
         self.timing_raw = {}
         # reward message
         self.future_reward = None
@@ -699,30 +706,43 @@ class FullyAsyncTrainer(SeparateRayPPOTrainer):
         if self.config.trainer.resume_mode == "disable":
             return 0
 
-        # load from hdfs
-        if self.config.trainer.default_hdfs_dir is not None:
-            raise NotImplementedError("load from hdfs is not implemented yet")
-        else:
-            checkpoint_folder = self.config.trainer.default_local_dir  # TODO: check path
-            if not os.path.isabs(checkpoint_folder):
-                working_dir = os.getcwd()
-                checkpoint_folder = os.path.join(working_dir, checkpoint_folder)
-            global_step_folder = find_latest_ckpt_path(checkpoint_folder)  # None if no latest
+        from verl.utils.fs import is_non_local
+
+        local_dir = self.config.trainer.default_local_dir
+        remote_dir = self.config.trainer.default_hdfs_dir
+
+        # Find the latest checkpoint folder on the remote (hdfs/blob) store, if configured.
+        remote_step_folder = find_latest_ckpt_path(remote_dir)  # None if no remote dir or no latest
+
+        # Find the latest checkpoint folder on the local store.
+        if not os.path.isabs(local_dir):
+            local_dir = os.path.join(os.getcwd(), local_dir)
+        local_step_folder = find_latest_ckpt_path(local_dir)  # None if no latest
 
         # find global_step_folder
         if self.config.trainer.resume_mode == "auto":
-            if global_step_folder is None:
+            if local_step_folder is None and remote_step_folder is None:
+                print("[FullyAsyncTrainer] Training from scratch")
                 return 0
         else:
             if self.config.trainer.resume_mode == "resume_path":
-                assert isinstance(self.config.trainer.resume_from_path, str), "resume ckpt must be str type"
-                assert "global_step_" in self.config.trainer.resume_from_path, (
-                    "resume ckpt must specify the global_steps"
-                )
-                global_step_folder = self.config.trainer.resume_from_path
-                if not os.path.isabs(global_step_folder):
-                    working_dir = os.getcwd()
-                    global_step_folder = os.path.join(working_dir, global_step_folder)
+                resume_path = self.config.trainer.resume_from_path
+                assert isinstance(resume_path, str), "resume ckpt must be str type"
+                assert "global_step_" in resume_path, "resume ckpt must specify the global_steps"
+                if is_non_local(resume_path):
+                    remote_step_folder = resume_path
+                    local_step_folder = None
+                else:
+                    if not os.path.isabs(resume_path):
+                        resume_path = os.path.join(os.getcwd(), resume_path)
+                    local_step_folder = resume_path
+                    remote_step_folder = None
+
+        # Prefer the remote checkpoint when default_hdfs_dir is configured; the worker's
+        # load_checkpoint resolves remote paths via copy_to_local automatically.
+        global_step_folder = remote_step_folder if remote_step_folder is not None else local_step_folder
+        assert global_step_folder is not None, "No checkpoint folder found to resume from"
+
         print(f"[FullyAsyncTrainer] Load from checkpoint folder: {global_step_folder}")
         # set global step
         self.current_param_version = int(global_step_folder.split("global_step_")[-1])
