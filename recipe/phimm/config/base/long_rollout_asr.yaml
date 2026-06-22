@@ -74,6 +74,20 @@ async_training:
   partial_rollout: false
   max_queue_size: 1000
 
+# Per-segment reward for the FullyAsyncRollouter reward loop. This value is not
+# used for the final long-audio results (the consumer rescores per parent
+# recording via asr_inhouse_measure.eval_score); a lightweight edge reward just
+# keeps the reward loop from falling back to default_compute_score, which raises
+# NotImplementedError for the inhouse data_sources.
+reward:
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.asr_edge
+    name: compute_score
+    reward_kwargs:
+      gamma: 0.1
+      unit: char
+  num_workers: 8
+
 trainer:
   n_gpus_per_node: 8
   nnodes: 1
