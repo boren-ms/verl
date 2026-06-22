@@ -416,7 +416,7 @@ class RayPPOTrainer:
         )
 
         val_batch_size = self.config.data.val_batch_size  # Prefer config value if set
-        if val_batch_size is None:
+        if val_batch_size is None or val_batch_size <= 0:
             val_batch_size = len(self.val_dataset)
 
         self.val_dataloader = StatefulDataLoader(
