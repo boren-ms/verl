@@ -46,6 +46,10 @@ if grep -qiE 'fully_async' "$config_file" || [[ "$subdir" == "remax" ]]; then
     # Fully-async RL training (ReMax/GRPO). Module: verl/experimental/fully_async_policy/.
     module="verl.experimental.fully_async_policy.fully_async_main"
     base="../../../recipe/phimm/config"
+elif [[ "$config_name" == long_rollout_* ]]; then
+    # Fully-async long-audio ASR rollout. Module: recipe/phimm/long_asr_rollout.py.
+    module="recipe.phimm.long_asr_rollout"
+    base="config"
 elif [[ "$subdir" == "rollout" || "$config_name" == rollout_* ]]; then
     # Fully-async ASR rollout/generation. Module: recipe/phimm/asr_rollout.py.
     module="recipe.phimm.asr_rollout"
