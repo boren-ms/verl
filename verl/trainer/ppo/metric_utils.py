@@ -669,8 +669,10 @@ def process_validation_metrics(
             var_dict = uid_dict.setdefault(uid, {})
 
             for var_name, var_vals in var2vals.items():
-                # skip empty or string values
-                if not var_vals or isinstance(var_vals[0], str):
+                # Validation summaries only support scalar numeric values. Keep
+                # structured extras like word alignments / dter_detail in the
+                # dumped JSONL, but skip them during metric aggregation.
+                if not var_vals or isinstance(var_vals[0], str) or not np.isscalar(var_vals[0]):
                     continue
 
                 # compute mean and std
