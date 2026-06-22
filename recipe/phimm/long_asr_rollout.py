@@ -39,7 +39,6 @@ import logging
 import os
 import re
 import time
-from pathlib import Path
 from pprint import pprint
 
 import blobfile as bf
@@ -48,7 +47,12 @@ import ray
 from omegaconf import OmegaConf
 
 # Rollout engine + sample-decoding helpers (reused from the short-audio rollout).
-from recipe.phimm.asr_rollout import _normalize_config, _ntb_get, _resolve_model_path
+from recipe.phimm.asr_rollout import (
+    _ntb_get,
+    init_ray,
+    prepare_model,
+    run_rollout_engine,
+)
 
 # Long-recording grouping / scoring helpers (reused from the gen-style long eval).
 from recipe.phimm.main_long_eval_asr import (
@@ -57,11 +61,8 @@ from recipe.phimm.main_long_eval_asr import (
     score_segments,
     write_results,
 )
-from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.utils.shared import parse_asr_response
-from verl.experimental.fully_async_policy.fully_async_rollouter import FullyAsyncRollouter
-from verl.experimental.fully_async_policy.message_queue import MessageQueue, MessageQueueClient
-from verl.utils import hf_tokenizer
+from verl.experimental.fully_async_policy.message_queue import MessageQueueClient
 
 os.environ["NCCL_DEBUG"] = "WARN"
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
@@ -194,15 +195,7 @@ async def _consume_segments(
 
 
 async def _run_long_asr_rollout(config) -> None:
-    OmegaConf.resolve(config)
-    _normalize_config(config)
-
-    local_model_path = _resolve_model_path(config.actor_rollout_ref.model.path.rstrip("/"))
-    OmegaConf.update(config, "actor_rollout_ref.model.path", local_model_path)
-    tokenizer = hf_tokenizer(
-        local_model_path,
-        trust_remote_code=config.actor_rollout_ref.model.get("trust_remote_code", False),
-    )
+    local_model_path, tokenizer = prepare_model(config)
 
     output_dir = OmegaConf.select(config, "data.output_path", default=None)
     assert output_dir is not None, "Please specify data.output_path"
@@ -213,27 +206,12 @@ async def _run_long_asr_rollout(config) -> None:
         measure_kwargs = OmegaConf.to_container(measure_kwargs, resolve=True)
     log_interval = config.data.get("log_interval", 100)
 
-    mq_actor = MessageQueue.remote(
-        config=config, max_queue_size=config.async_training.get("max_queue_size", 1000)
-    )
-    mq_client = MessageQueueClient(mq_actor)
+    async def consume(mq_client, rollouter):
+        await _consume_segments(
+            mq_client, tokenizer, rollouter, output_dir, measure_kwargs, log_interval
+        )
 
-    rollouter = FullyAsyncRollouter.remote(
-        config=config, tokenizer=tokenizer, processor=None, local_model_path=local_model_path
-    )
-    await rollouter.init_workers.remote()
-    await rollouter.set_message_queue_client.remote(mq_client)
-    await rollouter.set_max_required_samples.remote()
-    ray.get(rollouter.load_checkpoint.remote())
-
-    rollouter_future = rollouter.fit.remote()
-    await _consume_segments(mq_client, tokenizer, rollouter, output_dir, measure_kwargs, log_interval)
-
-    try:
-        await asyncio.wrap_future(rollouter_future.future())
-    except Exception as e:  # noqa: BLE001
-        print(f"[LongASRRollout] Rollouter: {e}")
-    await mq_client.shutdown()
+    await run_rollout_engine(config, tokenizer, local_model_path, consume, tag="LongASRRollout")
 
 
 @hydra.main(config_path="config/rollout", config_name="long_rollout_test", version_base=None)
@@ -241,27 +219,7 @@ def main(config):
     if not OmegaConf.has_resolver("eval"):
         OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
 
-    env_vars = EnvMgr().envs()
-
-    if not ray.is_initialized():
-        ray_init_kwargs = (
-            OmegaConf.to_container(config.get("ray_kwargs", {}).get("ray_init", {}), resolve=True) or {}
-        )
-        runtime_env = {
-            "env_vars": {
-                "TOKENIZERS_PARALLELISM": "true",
-                "NCCL_DEBUG": "WARN",
-                "VLLM_LOGGING_LEVEL": "WARN",
-                "HF_HUB_OFFLINE": "1",
-                "PYTORCH_ALLOC_CONF": "expandable_segments:True",
-                **env_vars,
-            },
-            "excludes": [str(Path(__file__).parents[2] / ".git")],
-            **ray_init_kwargs.pop("runtime_env", {}),
-        }
-        ray_init_kwargs["runtime_env"] = runtime_env
-        ray.init(**ray_init_kwargs)
-
+    init_ray(config)
     pprint(OmegaConf.to_container(config, resolve=True))
     asyncio.run(_run_long_asr_rollout(config))
 
