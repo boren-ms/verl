@@ -1,0 +1,16 @@
+dataset_name: cached
+cache_path: az://orngwus2cresco/data/boren/data/cache_datasets/hcv2_fy22_info_tag/
+num_proc: auto
+pre_process:
+  input_egs_limit: 100000
+#   filter_by_keywords:
+#     min_num: 1
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
+add_task_info:
+  # task: asr
+  task: lang_asr

@@ -1,0 +1,27 @@
+dataset_name: chunk
+# Domain	#hrs	#utt	sec/utt
+# Insurance	120.5	15985.0	27
+# Gaming	319.8	43378.0	27
+# K12_Higher_Education	279.6	35790.0	28
+# Retail	201.6	26680.0	27
+# Science_And_Tech	376.1	47714.7	28
+# Total	1297.7	169547.7	28
+specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk_merged.json
+    chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk
+  - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk_merged.json
+    chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Gaming_43k/base_chunk
+  - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk_merged.json
+    chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/K12_Higher_Education_36k/base_chunk
+  - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk_merged.json
+    chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Retail_26k/base_chunk
+  - manifest_file: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk_merged.json
+    chunk_path: az://orngwus2cresco/data/boren/data/inhouse/entity_data/entity_chunk/Science_And_Tech_48k/base_chunk
+add_task_info:
+  task: rare_asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

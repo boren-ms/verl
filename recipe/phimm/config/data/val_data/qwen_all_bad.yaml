@@ -1,0 +1,24 @@
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/qwen_bad_case/eval_openasr_qwen.jsonl
+  cache_name: auto_openasr_qwen_bad_case
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: openasr_qwen_bad_case
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/qwen_bad_case/eval_openasr_ml_qwen.jsonl
+  cache_name: auto_openasr_ml_qwen_bad_case
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: openasr_ml_qwen_bad_case
+    verl_format:
+      prompt_key: prompt

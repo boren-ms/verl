@@ -1,0 +1,92 @@
+# Auto-generated pre-segmented variant of inhouse_2605_engb.
+# If locale-specific presegment data is not uploaded yet, these paths
+# still follow the canonical InhouseASR_2605_seg_presegment layout.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-GB/Conversation_DTEST_FY23Q2_en-GB_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: engb_conversation_dtest_fy23q2_en_gb_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-GB/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_en-GB_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: engb_conversation_domainset_dtest_banking_entity_fy24q1_en_gb_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-GB/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_en-GB_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: engb_conversation_domainset_dtest_medical_entity_fy24q1_en_gb_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-GB/Conversation_OnlineMeetings_DTEST_FY23Q1_en-GB_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: engb_conversation_onlinemeetings_dtest_fy23q1_en_gb_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-GB/Dictation_Commonset_OfficeOffline_FY21Q3_en-GB_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: engb_dictation_commonset_officeoffline_fy21q3_en_gb_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

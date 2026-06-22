@@ -1,0 +1,110 @@
+# All 3 InhouseASR_2605 da-DK D-test sets (one test.jsonl per subdir, used
+# in-place via blobfile — no copy). Per-corpus aggregation is keyed on
+# CorpusName -> data_source. WavPath in source uses /datablob1/...;
+# svad_explode rewrites the prefix to az:// in-place before loading audio.
+# Each folder is declared as its own section so it can be selected/weighted
+# individually.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/da-DK/Conversation_DTEST_FY21Q3_da-DK_DTEST/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+        data_source: CorpusName
+  add_task_info:
+    task: lang_asr
+    language: Danish
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# - dataset_name: jsonl
+#   jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/da-DK/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q2_da-DK_DTEST_OfflineDataCollection/test.jsonl
+#   pre_process:
+#     svad_explode:
+#       max_len_sec: 40.0
+#       audio_key: WavPath
+#       path_replace:
+#         /datablob1/: az://orngwus2cresco/data/speech/
+#     rename_fields:
+#       mappings:
+#         audio_path: WavPath
+#         text: DisplayTranscription
+#         data_source: CorpusName
+#   add_task_info:
+#     task: lang_asr
+#     language: Danish
+#   post_process:
+#     verl_format:
+#       prompt_key: prompt
+#       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# - dataset_name: jsonl
+#   jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/da-DK/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q2_da-DK_DTEST_OfflineDataCollection/test.jsonl
+#   pre_process:
+#     svad_explode:
+#       max_len_sec: 40.0
+#       audio_key: WavPath
+#       path_replace:
+#         /datablob1/: az://orngwus2cresco/data/speech/
+#     rename_fields:
+#       mappings:
+#         audio_path: WavPath
+#         text: DisplayTranscription
+#         data_source: CorpusName
+#   add_task_info:
+#     task: lang_asr
+#     language: Danish
+#   post_process:
+#     verl_format:
+#       prompt_key: prompt
+#       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/da-DK/Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK_DTEST/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+        data_source: CorpusName
+  add_task_info:
+    task: lang_asr
+    language: Danish
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/da-DK/Dictation_DTEST_L_D_FY23Q4_da-DK_DTEST/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+        data_source: CorpusName
+  add_task_info:
+    task: lang_asr
+    language: Danish
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

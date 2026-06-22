@@ -1,0 +1,16 @@
+# @package data.train_data
+dataset_name: chunk
+specs:
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_ht_split/engineer_telephony_8khz.json    # Engineer_Telephony_8kHz (2 sources)
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

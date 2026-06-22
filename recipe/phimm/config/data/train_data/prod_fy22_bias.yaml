@@ -1,0 +1,29 @@
+dataset_name: cached
+cache_path: az://orngwus2cresco/data/boren/data/cache_datasets/hcv2_fy22_info_tag/
+num_proc: auto
+pre_process:
+  path_map:
+    field: audio_chunk
+    src_part: "az://orngwus2cresco/data"
+    dst_part: "az://orngwus2cresco/data"
+  filter_by_keywords:
+    min_num: 1
+biasing:
+  buffer_size: 100000
+  max_piece_len: 1
+  bias_prob: 0.8
+  hit_prob: 1
+  miss_prob: 1
+  context_prob: 1 # prob for context
+  sample_range: [0, 1000] # all rare words
+  sampling_version: v2
+  hit_ratio: [0.9, 1.0]
+  log_interval: 10000 # print biasing every 10000 samples
+  common_word_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_word_num: 1000
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

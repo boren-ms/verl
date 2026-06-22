@@ -1,0 +1,25 @@
+- dataset_name: jsonl
+  # One-record JSONL pointing at a long meeting wav with its full
+  # DisplayTranscription as reference. Each child segment row inherits the
+  # parent text, so post-eval aggregation
+  # (recipe.phimm.data.inhouse_2605_aggregate) can concat per-parent hyps
+  # and compute TER vs the full reference.
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/long_audio_test/sample_210d3d05.jsonl
+  pre_process:
+    # svad_explode runs BEFORE rename_fields in process_ds, so target the
+    # raw WavPath field; rename_fields then maps WavPath -> audio_path.
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+        data_source: CorpusName
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "keywords", "prefix", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]

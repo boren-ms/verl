@@ -1,0 +1,10 @@
+dataset_name: parquet
+parquet_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
+add_task_info:
+  task: lang_asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

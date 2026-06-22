@@ -1,0 +1,16 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/h100.jsonl
+  cache_name: auto_librispeech_h100_lang_lex
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/librispeech/audio/"
+  add_task_info:
+    task: lang_asr_lex
+  post_process:
+    add_field:
+      fields:
+        data_source: librispeech
+    verl_format:
+      prompt_key: prompt

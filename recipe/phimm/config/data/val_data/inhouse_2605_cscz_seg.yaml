@@ -1,0 +1,61 @@
+# Pre-segmented variant of inhouse_2605_cscz. Each long meeting wav has already
+# been chunked offline by recipe.phimm.data.long_audio_vad_explode (same SVAD
+# logic as the on-the-fly svad_explode, max_len_sec=40), so every row here is
+# already one segment carrying WavPath#start:end plus seg_index / n_segments /
+# seg_start / seg_end / parent_audio_path. WavPath was rewritten to az:// during
+# the offline explode, so no svad_explode pre_process and no path_replace are
+# needed — we only rename the raw fields and emit the verl prompt. Per-corpus
+# aggregation stays keyed on CorpusName -> data_source.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/cs-CZ/Conversation_DTEST_FY23Q2_cs-CZ_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Czech
+  post_process:
+    add_field:
+      fields:
+        data_source: cscz_conv_fy23q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/cs-CZ/Conversation_OnlineMeetings_DTEST_FY24Q2_cs-CZ/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Czech
+  post_process:
+    add_field:
+      fields:
+        data_source: cscz_conv_om_fy24q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/cs-CZ/Dictation_DTEST_L_D_FY24Q2_cs-CZ_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Czech
+  post_process:
+    add_field:
+      fields:
+        data_source: cscz_dict_fy24q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

@@ -1,0 +1,92 @@
+# Auto-generated pre-segmented variant of inhouse_2605_esmx.
+# If locale-specific presegment data is not uploaded yet, these paths
+# still follow the canonical InhouseASR_2605_seg_presegment layout.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-MX/Conversation_DTEST_FY23Q2_es-MX_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Spanish
+  post_process:
+    add_field:
+      fields:
+        data_source: esmx_conversation_dtest_fy23q2_es_mx_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-MX/Conversation_DomainSet_DTEST_Banking_Entity_FY25Q2_es-MX_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Spanish
+  post_process:
+    add_field:
+      fields:
+        data_source: esmx_conversation_domainset_dtest_banking_entity_fy25q2_es_mx_dtest_offlinedatacollection
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-MX/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_es-MX_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Spanish
+  post_process:
+    add_field:
+      fields:
+        data_source: esmx_conversation_domainset_dtest_medical_entity_fy24q1_es_mx_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-MX/Conversation_OnlineMeetings_DTEST_FY23Q1_es-MX_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Spanish
+  post_process:
+    add_field:
+      fields:
+        data_source: esmx_conversation_onlinemeetings_dtest_fy23q1_es_mx_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/es-MX/Dictation_DTEST_L_D_FY23Q2_es-MX_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Spanish
+  post_process:
+    add_field:
+      fields:
+        data_source: esmx_dictation_dtest_l_d_fy23q2_es_mx_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

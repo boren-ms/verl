@@ -1,0 +1,18 @@
+dataset_name: chunk
+specs:
+  # soruce https://highperf01scus.blob.core.windows.net/data/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_nlnl_hc.json
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/Tire2_S2S/Data_HC/nl-NL/FY23Q2/BingYouTube/3_ChunkFiles400_WER/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/Tire2_S2S/Data_HC/nl-NL/FY23Q2/BingYouTube/3_ChunkFiles400_WER/ChunkFiles/
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+  language: Dutch
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

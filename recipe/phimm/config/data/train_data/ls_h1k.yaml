@@ -1,0 +1,10 @@
+dataset_name: tsv
+tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/h1k.tsv
+add_task_info:
+  task: asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

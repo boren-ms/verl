@@ -1,0 +1,92 @@
+# Auto-generated pre-segmented variant of inhouse_2605_hiin.
+# If locale-specific presegment data is not uploaded yet, these paths
+# still follow the canonical InhouseASR_2605_seg_presegment layout.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/hi-IN/Conversation_DTEST_FY23Q3_hi-IN_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Hindi
+  post_process:
+    add_field:
+      fields:
+        data_source: hiin_conversation_dtest_fy23q3_hi_in_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/hi-IN/Conversation_DomainSet_DTEST_Banking_Entity_FY25Q2_hi-IN_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Hindi
+  post_process:
+    add_field:
+      fields:
+        data_source: hiin_conversation_domainset_dtest_banking_entity_fy25q2_hi_in_dtest_offlinedatacollection
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/hi-IN/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_hi-IN_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Hindi
+  post_process:
+    add_field:
+      fields:
+        data_source: hiin_conversation_domainset_dtest_medical_entity_fy24q1_hi_in_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/hi-IN/Conversation_OnlineMeetings_DTEST_FY24Q2_hi-IN/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Hindi
+  post_process:
+    add_field:
+      fields:
+        data_source: hiin_conversation_onlinemeetings_dtest_fy24q2_hi_in
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/hi-IN/Dictation_DTEST_L_D_FY23Q2_hi-IN_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Hindi
+  post_process:
+    add_field:
+      fields:
+        data_source: hiin_dictation_dtest_l_d_fy23q2_hi_in_dtest
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

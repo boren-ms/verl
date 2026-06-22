@@ -1,0 +1,16 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/repeat_bad_cases.jsonl
+  cache_name: auto_spgispeech_repeat
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: spgispeech_repeat
+    verl_format:
+      prompt_key: prompt

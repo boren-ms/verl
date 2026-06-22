@@ -1,0 +1,29 @@
+dataset_name: chunk
+# specs: [/home/boren/data/inhouse/data_spec/asr_chunk_inhouse_en_egs.json]
+# specs: [/home/boren/data/inhouse/data_spec/local_debug.json]
+# specs: [/home/boren/data/inhouse/data_spec/local_entity_debug.json]
+specs: 
+  - manifest_file: /home/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk_merged.json
+    chunk_path: /home/boren/data/inhouse/entity_data/entity_chunk/Insurance_16k/base_chunk
+
+pre_process:
+  output_egs_limit: 50
+# cache_name: auto_train
+num_proc: 1
+# add_rare_keywords:
+#   common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
+#   common_num: 10000
+#   rare_ratio: 0.5
+add_task_info:
+  task: asr
+  # forced: True
+post_process:
+  input_egs_limit: 100
+  # filter_by_keywords:
+  #   min_num: 1
+  output_egs_limit: 40
+  verl_format:
+    prompt_key: prompt
+  add_field:
+    fields:
+      data_source: asr

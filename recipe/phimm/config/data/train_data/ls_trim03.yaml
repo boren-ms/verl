@@ -1,0 +1,21 @@
+dataset_name: parquet
+parquet_paths: az://orngwus2cresco/data/boren/data/LibriSpeechTrim03/dataset.parquet
+num_proc: auto
+pre_process:
+  filter_short_audio:
+    min_dur_ms: 300
+  path_map:
+    field: audio_file
+    src_part: "az://orngwus2cresco/data"
+    dst_part: "az://orngwus2cresco/data"
+  rename_fields:
+    mappings:
+      audio_path: audio_file
+add_task_info:
+  task: lang_asr_lex
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

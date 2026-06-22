@@ -1,0 +1,18 @@
+dataset_name: chunk
+specs:
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_ht.json    # 182 data sources
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+# pre_process:
+#   filter_short_audio:
+#     min_dur_ms: 300
+add_task_info:
+  task: lang_asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

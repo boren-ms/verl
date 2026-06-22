@@ -1,0 +1,23 @@
+# @package data.train_data
+dataset_name: chunk
+specs:
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_ami.json
+chunk_types:
+  - audios
+  - sft.0.messages.1.content
+num_proc: auto
+pre_process:
+  rename_fields:
+    mappings:
+      text: sft.0.messages.1.content
+add_task_info:
+  task: lang_asr
+post_process:
+  trim_silence:
+    rand_cut_ms: 300
+    output_dir: az://orngwus2cresco/data/boren/data/verl/trimmed/ami_trim03
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

@@ -1,0 +1,259 @@
+- cache_name: auto_entity_Gaming
+  post_process:
+    add_field:
+      fields:
+        data_source: Gaming_0
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 0
+- cache_name: auto_entity_Insurance
+  post_process:
+    add_field:
+      fields:
+        data_source: Insurance_0
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 0
+- cache_name: auto_entity_K12HigherEdu
+  post_process:
+    add_field:
+      fields:
+        data_source: K12HigherEdu_0
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 0
+- cache_name: auto_entity_Retail
+  post_process:
+    add_field:
+      fields:
+        data_source: Retail_0
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 0
+- cache_name: auto_entity_ScienceTech
+  post_process:
+    add_field:
+      fields:
+        data_source: ScienceTech_0
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 0
+- cache_name: auto_entity_Gaming
+  post_process:
+    add_field:
+      fields:
+        data_source: Gaming_100
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 100
+- cache_name: auto_entity_Insurance
+  post_process:
+    add_field:
+      fields:
+        data_source: Insurance_100
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 100
+- cache_name: auto_entity_K12HigherEdu
+  post_process:
+    add_field:
+      fields:
+        data_source: K12HigherEdu_100
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 100
+- cache_name: auto_entity_Retail
+  post_process:
+    add_field:
+      fields:
+        data_source: Retail_100
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 100
+- cache_name: auto_entity_ScienceTech
+  post_process:
+    add_field:
+      fields:
+        data_source: ScienceTech_100
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 100
+- cache_name: auto_entity_Gaming
+  post_process:
+    add_field:
+      fields:
+        data_source: Gaming_500
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Gaming_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 500
+- cache_name: auto_entity_Insurance
+  post_process:
+    add_field:
+      fields:
+        data_source: Insurance_500
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Insurance_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 500
+- cache_name: auto_entity_K12HigherEdu
+  post_process:
+    add_field:
+      fields:
+        data_source: K12HigherEdu_500
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_K12HigherEdu_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 500
+- cache_name: auto_entity_Retail
+  post_process:
+    add_field:
+      fields:
+        data_source: Retail_500
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_Retail_Entity_FY24Q4_en-US_DTEST_OfflineDataCollection/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 500
+- cache_name: auto_entity_ScienceTech
+  post_process:
+    add_field:
+      fields:
+        data_source: ScienceTech_500
+    verl_format:
+      prompt_key: prompt
+  dataset_name: inhouse_entity
+  data_dir: az://orngwus2cresco/data/boren/data/
+  src_dir: /home/boren/data/
+  jsonl_path: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR/EWER/en-US-entity-v3/Conversation_DomainSet_DTEST_ScienceTech_Entity_FY24Q1_en-US_DTEST/segments.jsonl
+  distractor_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_rare_words.txt
+  max_bias: 500
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_clean_0
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_0
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_other_0
+  post_process:
+    add_field:
+      fields:
+        data_source: other_0
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_clean_100
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_100
+    verl_format:
+      prompt_key: prompt
+  bias_key: distractors # distractors
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  bias_key: distractors # distractors
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_other_100
+  post_process:
+    add_field:
+      fields:
+        data_source: other_100
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_500.jsonl
+  bias_key: distractors # distractors
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_clean_500
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_500
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_500.jsonl
+  bias_key: distractors # distractors
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_other_500
+  post_process:
+    add_field:
+      fields:
+        data_source: other_500
+    verl_format:
+      prompt_key: prompt

@@ -1,0 +1,32 @@
+# nl-NL conversation-only subset of inhouse_2605_nlnl_seg.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/nl-NL/Conversation_DTEST_FY23Q2_nl-NL_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+        data_source: CorpusName
+  add_task_info:
+    task: lang_asr
+    language: Dutch
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# - dataset_name: jsonl
+#   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/nl-NL/Conversation_OnlineMeetings_DTEST_FY23Q1_nl-NL_DTEST/test.jsonl
+#   pre_process:
+#     rename_fields:
+#       mappings:
+#         audio_path: WavPath
+#         text: DisplayTranscription
+#         data_source: CorpusName
+#   add_task_info:
+#     task: lang_asr
+#     language: Dutch
+#   post_process:
+#     verl_format:
+#       prompt_key: prompt
+#       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

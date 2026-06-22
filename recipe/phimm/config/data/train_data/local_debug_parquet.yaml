@@ -1,0 +1,26 @@
+dataset_name: parquet
+parquet_paths: /root/outputs/phimm_gen_chunk/part-*.parquet
+
+pre_process:
+  output_egs_limit: 50
+  filter_by_wer:
+    wer_range: [0.0, 0.5]
+# cache_name: auto_train
+num_proc: 1
+add_rare_keywords:
+  common_file: /home/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_num: 10000
+  rare_ratio: 0.5
+add_task_info:
+  task: asr
+  # forced: True
+post_process:
+  input_egs_limit: 100
+  # filter_by_keywords:
+  #   min_num: 1
+  output_egs_limit: 40
+  verl_format:
+    prompt_key: prompt
+  add_field:
+    fields:
+      data_source: asr

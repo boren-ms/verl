@@ -1,0 +1,58 @@
+# @package data.train_data
+dataset_name: chunk
+specs:
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_en_asr_2k.json          # 1999.67 hours, number of examples: 0.484M, average duration: 14.87s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_de_asr.json             # 1966.50 hours, number of examples: 0.470M, average duration: 15.06s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_es_asr.json             # 929.73 hours, number of examples: 0.224M, average duration: 14.97s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_fr_asr.json             # 1076.58 hours, number of examples: 0.258M, average duration: 15.01s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_it_asr.json             # 247.38 hours, number of examples: 0.060M, average duration: 14.94s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_it_asr.json        
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pt_asr.json             # 160.96 hours, number of examples: 0.038M, average duration: 15.44s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pt_asr.json        
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pl_asr.json             # 103.65 hours, number of examples: 0.025M, average duration: 14.90s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pl_asr.json
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_nl_asr.json             # 1554.24 hours, number of examples: 0.374M, average duration: 14.95s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_zh_asr_3k.json              # 3000.23 hours, number of examples: 4.290M, average duration: 2.52s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_gigaspeech_2k5.json    # 2498.74 hours, number of examples: 2.124M, average duration: 4.24s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json             # 1688.26 hours, number of examples: 1.070M, average duration: 5.68s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_de.json             # 1801.81 hours, number of examples: 1.136M, average duration: 5.71s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json             # 901.72 hours, number of examples: 0.623M, average duration: 5.21s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fr.json             # 1514.72 hours, number of examples: 1.055M, average duration: 5.17s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_it.json             # 489.32 hours, number of examples: 0.333M, average duration: 5.29s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json             # 18.82 hours, number of examples: 0.014M, average duration: 4.97s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json             # 48.12 hours, number of examples: 0.042M, average duration: 4.11s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json             # 84.63 hours, number of examples: 0.059M, average duration: 5.18s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json                
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_tier2.json          # 603.61 hours, number of examples: 0.486M, average duration: 4.47s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_en.json        # 1045.21 hours, number of examples: 0.365M, average duration: 10.31s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_de.json        # 529.29 hours, number of examples: 0.217M, average duration: 8.78s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_es.json        # 303.85 hours, number of examples: 0.102M, average duration: 10.74s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_fr.json        # 411.40 hours, number of examples: 0.147M, average duration: 10.07s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_it.json        # 156.13 hours, number of examples: 0.045M, average duration: 12.45s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_es.json
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_it.json
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_tier2.json     # 549.45 hours, number of examples: 0.201M, average duration: 9.84s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_fleurs.json              # 159.75 hours, number of examples: 0.050M, average duration: 11.39s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_fleurs_tier2.json        # 212.54 hours, number of examples: 0.069M, average duration: 11.13s
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_ami.json         # 0.11M * 2
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_earnings.json    # 0.05M * 2    # 0.27M * 2
+  - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/wavllm_chunk_asr.json
+chunk_types:
+  - audios
+  - sft.0.messages.1.content
+num_proc: auto
+pre_process:
+  rename_fields:
+    mappings:
+      text: sft.0.messages.1.content
+add_task_info:
+  task: lang_asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

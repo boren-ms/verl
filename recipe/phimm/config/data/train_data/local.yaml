@@ -1,0 +1,22 @@
+dataset_name: tsv
+# nug_egs: 5000
+tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/debug.tsv
+pre_process:
+  output_egs_limit: 50
+num_proc: 1
+add_rare_keywords:
+  common_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_words.count.txt
+  common_num: 1000
+add_task_info:
+  task: asr
+  # forced: True
+post_process:
+  input_egs_limit: 100
+  filter_by_keywords:
+    min_num: 1
+  output_egs_limit: 40
+  verl_format:
+    prompt_key: prompt
+  add_field:
+    fields:
+      data_source: asr

@@ -1,0 +1,23 @@
+# @package data.train_data
+# Multilingual datasets missing from noen.yaml
+# fleurs includes en alongside other langs; tier2 datasets are non-English only
+
+- dataset_name: chunk
+  specs:
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_tier2.json          # 603.61 hours, number of examples: 0.486M, average duration: 4.47s  (ar,cs,da,fi,he,hi,hu,ko,nl,pl,ru,sv,th,tr)
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_tier2.json     # 549.45 hours, number of examples: 0.201M, average duration: 9.84s  (cs,fi,hu,nl,pl)
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_fleurs.json              # 159.75 hours, number of examples: 0.050M, average duration: 11.39s  (de,en,es,fr,it,ja,ko,pt,zh — includes en)
+    - az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_fleurs_tier2.json        # 212.54 hours, number of examples: 0.069M, average duration: 11.13s  (ar,cs,da,fi,he,hi,hu,nl,pl,ru,sv,th,tr)
+  chunk_types:
+    - audios
+    - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr
+  post_process:
+    verl_format:
+      prompt_key: prompt

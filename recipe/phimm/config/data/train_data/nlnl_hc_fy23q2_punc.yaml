@@ -1,0 +1,15 @@
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached/nlnl_hc_fy23q2/punc.jsonl
+  add_task_info:
+    task: lang_asr
+    language: Dutch
+  post_process:
+    rename_fields:
+      mappings:
+        text: punc_refined
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt

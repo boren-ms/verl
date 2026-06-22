@@ -1,0 +1,32 @@
+# @package data.train_data
+# Subset of entity_en_hc_200k limited to FY24Q3-2_AdjustBoundary_BiasLM
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Autos_Vehicles/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Comedy/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Education/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Entertainment/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Film_Animation/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Gaming/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Howto_Style/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Music/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/News_Politics/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Nonprofits_Activism/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/People_Blogs/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Pets_Animals/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Science_Technology/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Sports/samples/
+    - az://orngwus2cresco/data/boren/data/audio_desc_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_hc_fy24_200k/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Travel_Events/samples/
+  pre_process:
+    extract_chat:
+      metadata_key: metadata
+    filter_by_keywords:
+      min_num: 1
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: en_hc_200k_entity_fy24q3p2
+    verl_format:
+      prompt_key: prompt

@@ -243,6 +243,12 @@ def main(config):
 
     start_time = time()
     auto_set_device(config)
+    # Auto-derive trainer.experiment_name from the Hydra config (file) name when not set,
+    # so each experiment yaml is identified by its own filename without hardcoding.
+    if not config.trainer.get("experiment_name"):
+        from hydra.core.hydra_config import HydraConfig
+
+        config.trainer.experiment_name = HydraConfig.get().job.config_name
     # TODO: unify rollout config with actor_rollout_ref
     config.actor_rollout_ref.rollout.nnodes = config.rollout.nnodes
     config.actor_rollout_ref.rollout.n_gpus_per_node = config.rollout.n_gpus_per_node

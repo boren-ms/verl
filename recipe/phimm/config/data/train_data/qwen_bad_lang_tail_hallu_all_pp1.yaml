@@ -1,0 +1,17 @@
+- dataset_name: jsonl
+  jsonl_paths: 
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_bad_lang/all.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_tail_hallu/all.jsonl
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 1
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+    verl_format:
+      prompt_key: prompt
+  # train data sample counts:
+  #   qwen_oss_bad_lang/all.jsonl:    38,145
+  #   qwen_oss_tail_hallu/all.jsonl:  47,339
+  #   total:                          85,484
