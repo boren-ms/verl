@@ -603,8 +603,45 @@ class RayPPOTrainer:
             self._val_reward_fn = get_val_reward_fn(self.config)
         return self._val_reward_fn
 
+    @staticmethod
+    def _val_parent_key(extra_info: dict, fallback: str) -> str:
+        """Group key for long-audio segmented validation.
+
+        Segments produced by ``svad_explode`` carry ``parent_audio_path`` (and a
+        per-segment ``seg_start``) so that every segment of one recording can be
+        grouped and scored together. ``WavPath`` style values may embed a
+        ``#start:end`` suffix, so strip it before keying. Falls back to a unique
+        per-row key (i.e. no grouping) when no parent identifier is present.
+        """
+        if extra_info:
+            for k in ("parent_audio_path", "audio_path"):
+                v = extra_info.get(k)
+                if v:
+                    return str(v).split("#", 1)[0]
+        return fallback
+
+    @staticmethod
+    def _val_seg_start(extra_info: dict) -> float:
+        if not extra_info:
+            return 0.0
+        v = extra_info.get("seg_start")
+        try:
+            return float(v) if v is not None else 0.0
+        except (TypeError, ValueError):
+            return 0.0
+
     def _recompute_val_reward(self, test_batch: DataProto) -> DataProto:
         """Re-compute reward using val_reward function if configured.
+
+        When ``val_reward.reward_manager == "long_audio_grouped"`` the per-segment
+        hypotheses of one long recording are concatenated (ordered by
+        ``seg_start``) and scored once against the recording's full reference
+        (every segment row carries that same reference), with the aggregate result
+        assigned back to each member row. Otherwise each row is scored on its own.
+
+        Grouping requires all segments of a parent to be present in ``test_batch``;
+        this holds because long-audio validation uses ``data.val_batch_size=-1``
+        (the whole val set is a single batch).
 
         Overwrites rm_scores and reward_extra_keys in the batch.
         Returns the modified batch.
@@ -616,11 +653,14 @@ class RayPPOTrainer:
         response_ids = test_batch.batch["responses"]
         response_length = response_ids.shape[-1]
         attention_mask = test_batch.batch["attention_mask"]
+        n = len(test_batch.batch["responses"])
 
-        scores = []
-        reward_extra_infos = []
+        val_reward_cfg = self.config.get("val_reward") or {}
+        group_segments = val_reward_cfg.get("reward_manager") == "long_audio_grouped"
 
-        for i in range(len(test_batch.batch["responses"])):
+        # Decode every row's hypothesis and gather its scoring inputs up front.
+        rows = []
+        for i in range(n):
             valid_len = attention_mask[i, -response_length:].sum().item()
             valid_ids = response_ids[i, :int(valid_len)]
             response_str = self.tokenizer.decode(valid_ids, skip_special_tokens=True)
@@ -629,19 +669,47 @@ class RayPPOTrainer:
             ground_truth = test_batch.non_tensor_batch["reward_model"][i].get("ground_truth", "") if "reward_model" in test_batch.non_tensor_batch else ""
             extra_info = test_batch.non_tensor_batch.get("extra_info", [{}])[i] if "extra_info" in test_batch.non_tensor_batch else {}
 
+            group_key = self._val_parent_key(extra_info, f"__row_{i}__") if group_segments else f"__row_{i}__"
+            rows.append({
+                "i": i,
+                "response": response_str,
+                "data_source": data_source,
+                "ground_truth": ground_truth,
+                "extra_info": extra_info,
+                "group": group_key,
+                "seg_start": self._val_seg_start(extra_info) if group_segments else 0.0,
+            })
+
+        # Group rows (single-row groups when not grouping) and score once per group.
+        groups: dict[str, list[dict]] = defaultdict(list)
+        for r in rows:
+            groups[r["group"]].append(r)
+
+        # Row-aligned outputs so reward_extra_info stays consistent with sample_uids.
+        scores: list = [0.0] * n
+        reward_extra_infos: list = [{"score": 0.0}] * n
+        for members in groups.values():
+            members_sorted = sorted(members, key=lambda m: (m["seg_start"], m["i"]))
+            concat_hyp = " ".join(m["response"].strip() for m in members_sorted if m["response"].strip())
+            head = members_sorted[0]
+
             result = val_reward_fn(
-                data_source=data_source,
-                solution_str=response_str,
-                ground_truth=ground_truth,
-                extra_info=extra_info,
+                data_source=head["data_source"],
+                solution_str=concat_hyp,
+                ground_truth=head["ground_truth"],
+                extra_info=head["extra_info"],
             )
 
             if isinstance(result, dict):
-                scores.append(result["score"])
-                reward_extra_infos.append(result)
+                score = result["score"]
+                result_dict = result
             else:
-                scores.append(result)
-                reward_extra_infos.append({"score": result})
+                score = result
+                result_dict = {"score": result}
+
+            for m in members:
+                scores[m["i"]] = score
+                reward_extra_infos[m["i"]] = result_dict
 
         # Overwrite rm_scores
         response_mask = test_batch.batch.get("response_mask", attention_mask[:, -response_length:])
