@@ -19,7 +19,7 @@ custom_reward_function:
       punc: {beta: 1.0}
 
 val_reward:
-  reward_manager: long_audio_grouped
+  group_segment: true
   custom_reward_function:
     path: recipe/phimm/reward/asr_inhouse_measure.py
     name: eval_score

@@ -633,7 +633,7 @@ class RayPPOTrainer:
     def _recompute_val_reward(self, test_batch: DataProto) -> DataProto:
         """Re-compute reward using val_reward function if configured.
 
-        When ``val_reward.reward_manager == "long_audio_grouped"`` the per-segment
+        When ``val_reward.group_segment`` is true the per-segment
         hypotheses of one long recording are concatenated (ordered by
         ``seg_start``) and scored once against the recording's full reference
         (every segment row carries that same reference), with the aggregate result
@@ -656,7 +656,7 @@ class RayPPOTrainer:
         n = len(test_batch.batch["responses"])
 
         val_reward_cfg = self.config.get("val_reward") or {}
-        group_segments = val_reward_cfg.get("reward_manager") == "long_audio_grouped"
+        group_segments = bool(val_reward_cfg.get("group_segment", False))
 
         # Decode every row's hypothesis and gather its scoring inputs up front.
         rows = []
