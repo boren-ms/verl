@@ -118,6 +118,13 @@ do_sample: True
 # number of responses (i.e. num sample times). > 1 for grpo
 n: 1
 
+# Block repeating n-grams of this size during generation (vLLM V1 per-request
+# logits processor). 0 disables it.
+no_repeat_ngram_size: 0
+
+# Sliding window (in tokens) used by the no-repeat-ngram logits processor.
+no_repeat_ngram_window_size: 100
+
 # The over_sample_rate parameter controls the early termination threshold for training rollouts,
 # where the system will abort remaining requests when (1 - over_sample_rate) * total_requests completions are reached.
 over_sample_rate: 0

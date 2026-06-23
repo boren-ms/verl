@@ -40,6 +40,8 @@ class SamplingConfig(BaseConfig):
     temperature: float = 1.0
     top_k: int = -1
     top_p: float = 1.0
+    no_repeat_ngram_size: int = 0
+    no_repeat_ngram_window_size: int = 100
     do_sample: bool = True
     n: int = 1
 
@@ -162,6 +164,8 @@ class RolloutConfig(BaseConfig):
     do_sample: bool = True
     n: int = 1
     repetition_penalty: float = 1.0
+    no_repeat_ngram_size: int = 0
+    no_repeat_ngram_window_size: int = 100
 
     # Early termination threshold for multi-turn rollout in sglang.
     # Abort remaining requests when (1 - over_sample_rate) * total_requests are completed.

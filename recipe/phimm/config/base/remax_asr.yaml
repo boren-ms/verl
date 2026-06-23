@@ -44,9 +44,12 @@ data:
   val_batch_size: -1
   max_prompt_length: 1204
   max_response_length: 512
+  max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   mm_processor_kwargs:
     sampling_rate: 16000
   max_audio_dur: 40
+  # seek-based loading, one connection per sample (fits async single-sample streaming)
+  chunk_load_mode: sample
   shuffle: false
   filter_overlong_prompts: false
   truncation: right
@@ -55,6 +58,8 @@ data:
   return_multi_modal_inputs: true
   dataloader_num_workers: 0
   trust_remote_code: true
+  eval_num_examine: 3
+  train_num_examine: ${actor_rollout_ref.rollout.n}
   custom_cls:
     path: pkg://recipe.phimm.data.rl_dataset
     name: RLHFDataset
@@ -102,8 +107,8 @@ actor_rollout_ref:
     ppo_max_token_len_per_gpu: 2048
     optim:
       lr: 5e-6
-      lr_warmup_steps: -1
-      weight_decay: 0.1
+      warmup_style: cosine
+      min_lr_ratio: 0.1
     fsdp_config:
       param_offload: true
       optimizer_offload: true
@@ -120,6 +125,10 @@ actor_rollout_ref:
     tensor_model_parallel_size: 1
     gpu_memory_utilization: 0.7
     max_num_seqs: 24
+    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
+    no_repeat_ngram_size: 15
+    stop: ["<|im_end|>"]
+    stop_token_ids: [248044, 248046]
     enforce_eager: false
     enable_chunked_prefill: true
     free_cache_engine: true

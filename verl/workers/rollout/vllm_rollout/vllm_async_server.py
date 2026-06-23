@@ -28,7 +28,7 @@ from vllm import SamplingParams
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.entrypoints.cli.serve import run_headless
 from vllm.entrypoints.openai.api_server import build_app, init_app_state
-from vllm.inputs import TokensPrompt, TextPrompt
+from vllm.inputs import TextPrompt, TokensPrompt
 from vllm.lora.request import LoRARequest
 from vllm.outputs import RequestOutput
 from vllm.usage.usage_lib import UsageContext
@@ -226,6 +226,17 @@ class vLLMHttpServer:
             engine_kwargs["limit_mm_per_prompt"]["audio"] = 1
         if self.config.cudagraph_capture_sizes:
             engine_kwargs["cuda_graph_sizes"] = self.config.cudagraph_capture_sizes
+
+        # Register the per-request no-repeat-ngram logits processor (vLLM V1) when
+        # enabled, mirroring vllm_rollout_spmd._ensure_ngram_processor. The actual
+        # ngram size / window are supplied per request via SamplingParams.extra_args
+        # in `generate`.
+        if self.config.get("no_repeat_ngram_size", 0):
+            ngram_fqcn = "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor"
+            logits_processors = list(engine_kwargs.get("logits_processors") or [])
+            if ngram_fqcn not in logits_processors:
+                logits_processors.append(ngram_fqcn)
+            engine_kwargs["logits_processors"] = logits_processors
 
         self._preprocess_engine_kwargs(engine_kwargs)
 
@@ -513,6 +524,16 @@ class vLLMHttpServer:
         sampling_params.setdefault("repetition_penalty", self.config.get("repetition_penalty", 1.0))
 
         sampling_params.setdefault("ignore_eos", self.config.get("ignore_eos", False))
+
+        # Pass no-repeat-ngram config via extra_args for the V1 per-request logits
+        # processor registered in launch_server, mirroring vllm_rollout_spmd.
+        ngram_size = self.config.get("no_repeat_ngram_size", 0)
+        if ngram_size:
+            extra_args = dict(sampling_params.get("extra_args") or {})
+            extra_args.setdefault("ngram_size", ngram_size)
+            extra_args.setdefault("ngram_window", self.config.get("no_repeat_ngram_window_size", 100))
+            sampling_params["extra_args"] = extra_args
+
         sampling_params = SamplingParams(max_tokens=max_tokens, **sampling_params)
         prompt_ids = qwen2_5_vl_dedup_image_tokens(prompt_ids, self.model_config.processor)
         multi_modal_data = {}
