@@ -81,6 +81,16 @@ val_reward:
 # the lower concurrency proven stable on remax_asr_fully_async_bracket, and the
 # lower rollout temperature shared with the sync config.
 actor_rollout_ref:
+  actor:
+    # The trainer actor update (forward/backward through the Qwen3.5-9B audio
+    # model's gated_delta_rule linear-attention) OOMs on the colocated trainer
+    # GPUs at the base ppo_max_token_len_per_gpu=8192 once rollout response
+    # lengths grow (observed CUDA OOM in update_actor at ~step 10). Lower the
+    # per-GPU dynamic-bsz token budget to the value proven stable on
+    # remax_asr_fully_async_bracket. Gradient checkpointing is NOT an option
+    # (Qwen3_5AudioForCausalLM does not support it); fsdp_size=4 (from base)
+    # already shards params/optimizer across all 4 trainer GPUs.
+    ppo_max_token_len_per_gpu: 2048
   rollout:
     max_num_seqs: 24
     gpu_memory_utilization: 0.7

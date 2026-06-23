@@ -107,7 +107,7 @@ actor_rollout_ref:
     # Per-GPU dynamic token budget. With fsdp_size=4 sharding params/optimizer
     # across all trainer GPUs, we can pack more sequences per microbatch for
     # better GPU utilization (max seq len is ~1716, default 32768 still OOMs).
-    ppo_max_token_len_per_gpu: 8192
+    ppo_max_token_len_per_gpu: 4096
     optim:
       lr: 5e-6
       warmup_style: cosine
