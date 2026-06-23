@@ -58,7 +58,36 @@ def is_fp8_model(vllm_config):
     return False
 
 
+def _unwrap_runnable(model):
+    # vLLM wraps the model in a CUDAGraphWrapper (or Ascend ACLGraphWrapper) when
+    # cudagraph capture is enabled. Such wrappers only expose the underlying module
+    # via ``__getattr__`` forwarding, so attribute paths like ``model``/``lm_head``
+    # cannot be traversed directly on the wrapper. Unwrap to the real ``runnable``
+    # module before traversing the module hierarchy.
+    seen = set()
+    while (
+        "GraphWrapper" in type(model).__name__
+        and hasattr(model, "runnable")
+        and id(model) not in seen
+    ):
+        seen.add(id(model))
+        model = model.runnable
+    return model
+
+
 def get_module_from_param_name(model, name: str):
+    # Unwrap the cudagraph wrapper so attribute traversal reaches the real module.
+    model = _unwrap_runnable(model)
+    # The synced checkpoint param names may differ from the vLLM module hierarchy
+    # (e.g. the Qwen3.5-Audio plugin maps ``model.layers.`` -> ``language_model.model.layers.``
+    # and ``lm_head.`` -> ``language_model.lm_head.``). Apply the model's
+    # ``hf_to_vllm_mapper`` so traversal matches the actual submodule names; otherwise
+    # FP8 weight detection silently fails and un-quantized weights corrupt the rollout.
+    mapper = getattr(model, "hf_to_vllm_mapper", None)
+    if mapper is not None:
+        mapped_name = mapper._map_name(name)
+        if mapped_name is not None:
+            name = mapped_name
     # Split the name into parts (e.g., 'layers', '0', 'self_attn', 'q_proj', 'weight')
     # The module path is all but the last part (the parameter's own name)
     path_parts = name.split(".")
