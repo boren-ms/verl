@@ -42,6 +42,14 @@ actor_rollout_ref:
     ppo_max_token_len_per_gpu: 2048
     fsdp_config:
       fsdp_size: 4
+  rollout:
+    # Disable vLLM's multimodal processor cache (default 4 GiB). Its IPC
+    # sender/receiver cache desyncs across a fully-async parameter sync, raising
+    # "AssertionError: Expected a cached item for mm_hash=..." and deadlocking
+    # rollout generation after the first weight update. 0 = no cache.
+    engine_kwargs:
+      vllm:
+        mm_processor_cache_gb: 0
 
 # ── Reward ────────────────────────────────────────────────────────────────
 reward:
