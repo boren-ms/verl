@@ -843,10 +843,33 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
     # Add samples to the pending_queue
     async def _feed_samples(self):
         continuous_iterator = self._create_continuous_iterator()
+        _FEED_DONE = object()
 
-        for epoch, batch_dict in continuous_iterator:
+        def _next_sample():
+            """Blocking fetch + prep of the next sample.
+
+            Runs in a worker thread (via ``asyncio.to_thread``) so the synchronous
+            dataset load (audio decode / blob I/O) and ``prepare_single_generation_data``
+            overlap with in-flight generation instead of stalling the event loop. The
+            bounded ``pending_queue`` then acts as the prefetch buffer, keeping replicas
+            fed while the next sample is being loaded.
+            """
+            try:
+                epoch, batch_dict = next(continuous_iterator)
+            except StopIteration:
+                return _FEED_DONE
             # Similar to _prepare_generate_batch: Separate data
             full_batch = prepare_single_generation_data(batch_dict, self.config)
+            return epoch, full_batch
+
+        while True:
+            # Prefetch the next sample off the event loop. Hold dataloader_lock so the
+            # threaded iterator advance never races with save_checkpoint's state_dict().
+            async with self.dataloader_lock:
+                item = await asyncio.to_thread(_next_sample)
+            if item is _FEED_DONE:
+                break
+            epoch, full_batch = item
 
             sample_id = f"sample_{epoch}_{self.global_steps}"
 

@@ -127,8 +127,11 @@ actor_rollout_ref:
     max_num_seqs: 24
     max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
     no_repeat_ngram_size: 15
-    stop: ["<|im_end|>"]
-    stop_token_ids: [248044, 248046]
+    # NOTE: `stop` / `stop_token_ids` are intentionally omitted. The current
+    # RolloutConfig dataclass (verl/workers/config/rollout.py) has no such
+    # fields and omega_conf_to_dataclass rejects them ("unexpected keyword
+    # argument 'stop'"). The fully-async vLLM rollout does not read them from
+    # config (generation stops on the model's EOS); they were dead config.
     enforce_eager: false
     enable_chunked_prefill: true
     free_cache_engine: true

@@ -238,6 +238,11 @@ class TaskRunner:
         from verl.utils.fs import copy_to_local
 
         print(f"TaskRunner hostname: {socket.gethostname()}, PID: {os.getpid()}")
+        # Support `${eval:...}` interpolations used by phimm configs (e.g.
+        # max_model_length / max_num_batched_tokens). The phimm/fully-async
+        # entrypoints register this resolver; main_ppo must too so configs that
+        # compose base/remax_asr resolve in the TaskRunner actor process.
+        OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}), replace=True)
         pprint(OmegaConf.to_container(config, resolve=True))
         OmegaConf.resolve(config)
 

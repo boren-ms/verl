@@ -102,6 +102,14 @@ actor_rollout_ref:
     # Lower rollout temperature keeps samples competitive with the greedy
     # ReMax baseline so the continuous advantage stays well-scaled.
     temperature: 1.2
+    # Colocated weight sync: base/remax_asr uses the 'nccl' checkpoint engine to
+    # push weights across a process group between SEPARATE trainer and rollout
+    # pools (fully-async). Here trainer and rollout are colocated (hybrid_engine),
+    # so use the 'naive' (ColocatedCheckpointEngine) backend — a direct in-process
+    # weight sync. With 'nccl' the trainer tries to build an NCCL process group to
+    # the standalone vLLM replicas, which don't expose execute_checkpoint_engine.
+    checkpoint_engine:
+      backend: naive
 
 # ── Trainer: fresh-run checkpointing ──────────────────────────────────────
 # The classic synchronous RayPPOTrainer._load_checkpoint raises
