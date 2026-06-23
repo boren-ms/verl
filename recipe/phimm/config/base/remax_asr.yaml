@@ -72,6 +72,8 @@ algorithm:
     kl_coef: 0.0
   rollout_correction:
     bypass_mode: true
+    rollout_is: token            # token-level TIS (Truncated Importance Sampling)
+    rollout_is_threshold: 5      # truncate IS weights at upper bound 5.0
 
 # ── Model + Actor + Rollout + Ref ─────────────────────────────────────────
 actor_rollout_ref:
