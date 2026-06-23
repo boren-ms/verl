@@ -52,6 +52,17 @@ val_reward:
     path: pkg://recipe.phimm.reward.asr_inhouse_measure
     name: eval_score
 
+# ── Rollout: stabilize the first fully-async parameter sync ────────────────
+# Base remax_asr uses max_num_seqs=24 / gpu_mem=0.7; at that concurrency the
+# param sync at trigger_parameter_sync_step could not drain in-flight requests
+# before the NCCL weight update, timing out vLLM's sample_tokens RPC and killing
+# the rollout EngineCore. Use the lower concurrency proven stable on
+# remax_asr_fully_async_bracket.
+actor_rollout_ref:
+  rollout:
+    max_num_seqs: 16
+    gpu_memory_utilization: 0.6
+
 # ── Trainer ───────────────────────────────────────────────────────────────
 # Fresh run: disable auto-resume. With default_hdfs_dir set (blob sync target),
 # resume_mode=auto would hit the unimplemented "load from hdfs" path.
