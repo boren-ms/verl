@@ -894,6 +894,23 @@ class FSDPEngine(BaseEngine):
         peft_config_dict = peft_config.to_dict() if peft_config is not None else None
         return per_tensor_param, peft_config_dict
 
+    def get_peft_config(self):
+        """Return the LoRA peft config dict for adapter-mode sync, or None.
+
+        Lightweight counterpart to :meth:`get_per_tensor_param` that does not
+        materialize any weights. Returns None when LoRA is disabled or when
+        ``model.lora.merge=True`` (merge mode syncs full HF weights instead of
+        an adapter), so the disaggregated weight-sync path can decide whether a
+        two-phase base/adapter sync is required.
+        """
+        if self.model_config.lora.get("merge", False):
+            return None
+        peft_model = getattr(self.module, "_fsdp_wrapped_module", self.module)
+        if not hasattr(peft_model, "peft_config"):
+            return None
+        peft_config = peft_model.peft_config.get("default", None)
+        return peft_config.to_dict() if peft_config is not None else None
+
     def disable_adapter(self) -> ContextManager:
         return self.module.disable_adapter()
 

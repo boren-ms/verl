@@ -33,7 +33,7 @@ from verl.single_controller.base.decorator import Dispatch, make_nd_compute_data
 from verl.trainer.distillation import distillation_ppo_loss, is_distillation_enabled
 from verl.utils import tensordict_utils as tu
 from verl.utils.config import omega_conf_to_dataclass
-from verl.utils.device import get_device_name, get_torch_device, set_expandable_segments
+from verl.utils.device import get_device_id, get_device_name, get_torch_device, set_expandable_segments
 from verl.utils.distributed import initialize_global_process_group_ray, set_numa_affinity
 from verl.utils.flops_counter import FlopsCounter
 from verl.utils.import_utils import import_external_libs
@@ -509,6 +509,15 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     def init_model(self):
         model_config: HFModelConfig = omega_conf_to_dataclass(self.config.model)
 
+        # LoRA weight-sync state, used by both the colocated (naive) and the
+        # disaggregated (checkpoint-engine) update_weights paths. These must be
+        # defined even when this worker only owns the actor (async trainer pool,
+        # no local rollout) so the async LoRA sync can query/advance them.
+        # (base_sync_done is unused in merge-only mode but kept for the adapter path.)
+        self.base_sync_done: bool = "dummy" not in self.config.rollout.load_format
+        self.layered_summon = self.config.rollout.get("layered_summon", False)
+        self.peft_merge: bool = model_config.lora.get("merge", False)
+
         # 1. build reference model
         if "ref" in self.role:
             # TODO: align ref config with actor config
@@ -619,11 +628,6 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 config=rollout_config, model_config=model_config, device_mesh=rollout_device_mesh
             )
 
-            # used for LoRA (base_sync_done is unused in merge-only mode but kept for Phase 2 adapter path)
-            self.base_sync_done: bool = "dummy" not in self.config.rollout.load_format
-            self.layered_summon = self.config.rollout.get("layered_summon", False)
-            self.peft_merge: bool = model_config.lora.get("merge", False)
-
         # 4. build checkpoint engine
         if "actor" in self.role:
             checkpoint_engine_config = omega_conf_to_dataclass(self.config.rollout.checkpoint_engine)
@@ -673,7 +677,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         self.actor.save_checkpoint(local_path, hdfs_path, global_step, max_ckpt_to_keep)
 
     @register(dispatch_mode=Dispatch.ONE_TO_ALL, blocking=False)
-    async def update_weights(self, global_steps: int = None, mode: str = "auto"):
+    async def update_weights(self, global_steps: int = None, mode: str = "auto", base_sync_done: bool = True):
         """Update weights from trainer to rollout.
 
         1. For sync training with colocated trainer and rollout, update rollout directly from model engine.
@@ -683,7 +687,12 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
 
         LoRA handling: when model.lora.merge=True (peft_merge), LoRA is merged into
         base weights before sync. The engine returns full HF-keyed params with
-        peft_config=None, so the rollout receives a standard weight update.
+        peft_config=None, so the rollout receives a standard weight update. For
+        adapter-mode LoRA (merge=False), the disaggregated path is driven by the
+        :class:`CheckpointEngineManager`, which first sends the frozen base model
+        once (``base_sync_done=False``) and then the LoRA adapter every step
+        (``base_sync_done=True``); ``get_per_tensor_param`` returns the matching
+        tensors for each phase.
 
         Args:
             global_steps: Current global training step count, passed to rollout for logging/tracking.
@@ -697,6 +706,11 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                   :meth:`checkpoint_engine.send_weights` for asynchronous weight
                   transfer via checkpoint engine, suitable for disaggregated
                   trainer/rollout deployments.
+            base_sync_done: For the disaggregated (non-naive) path, selects which
+                weights to export. ``True`` (default) exports the LoRA adapter (or
+                full/merged weights when LoRA is disabled); ``False`` exports the
+                frozen base model for the one-time base sync. Ignored by the naive
+                path, which manages base/adapter phases internally.
         """
 
         # Resolve mode: "auto" falls back to config, explicit values take precedence
@@ -704,9 +718,24 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
 
         # 0. send_weights only for async training with disaggregated trainer and rollout
         if effective_mode != "naive":
-            per_tensor_param, _ = self.actor.engine.get_per_tensor_param()
+            per_tensor_param, _ = self.actor.engine.get_per_tensor_param(
+                layered_summon=self.layered_summon, base_sync_done=base_sync_done
+            )
+            # Adapter-mode LoRA params come back on CPU from collect_lora_params,
+            # but checkpoint-engine transports (NCCL/NIXL/...) broadcast from GPU.
+            # Move any host tensors to the compute device before sending.
+            device = get_device_id()
+            per_tensor_param = (
+                (name, param.to(device, non_blocking=True) if param.device.type == "cpu" else param)
+                for name, param in per_tensor_param
+            )
             await self.checkpoint_engine.send_weights(per_tensor_param, global_steps=global_steps)
+            # Mark the base model as synced once the adapter phase has run, so the
+            # manager only performs the one-time base sync.
+            if base_sync_done:
+                self.base_sync_done = True
             return
+
 
         set_expandable_segments(False)
         log_gpu_memory_usage("Before resume weights", logger=logger)
@@ -753,6 +782,30 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
 
         self.base_sync_done = True
         set_expandable_segments(True)
+
+    @register(dispatch_mode=Dispatch.ONE_TO_ALL, blocking=False)
+    def get_weight_sync_metadata(self) -> dict:
+        """Return LoRA metadata for the disaggregated (async) weight sync.
+
+        The :class:`CheckpointEngineManager` queries this before launching the
+        NCCL/NIXL weight broadcast to decide whether a one-time base sync is
+        required and what ``peft_config`` to forward to the rollout engine so it
+        can load the LoRA adapter.
+
+        Returns:
+            dict with keys:
+                - ``is_lora_adapter`` (bool): adapter-mode LoRA sync is active.
+                - ``peft_config`` (dict | None): adapter config for the rollout.
+                - ``base_sync_done`` (bool): base model already synced to rollout.
+        """
+        peft_config = None
+        if "actor" in self.role and not self.peft_merge:
+            peft_config = self.actor.engine.get_peft_config()
+        return {
+            "is_lora_adapter": peft_config is not None,
+            "peft_config": peft_config,
+            "base_sync_done": self.base_sync_done,
+        }
 
     @register(dispatch_mode=Dispatch.DP_COMPUTE, blocking=False)
     def execute_checkpoint_engine(self, method: str, *args, **kwargs):
