@@ -50,6 +50,11 @@ class FullyAsyncTaskRunner:
 
     def _initialize_components(self, config) -> None:
         print(f"[ASYNC MAIN] TaskRunner hostname: {socket.gethostname()}, PID: {os.getpid()}")
+        # The phimm configs (base/remax_asr.yaml) use ${eval:...} interpolations
+        # (e.g. max_model_length, rollout.max_num_batched_tokens). This Ray actor
+        # runs in its own process, so the driver's resolver registration does not
+        # propagate here — register the `eval` resolver before resolving config.
+        OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}), replace=True)
         pprint(OmegaConf.to_container(config, resolve=True))
         OmegaConf.resolve(config)
 
@@ -234,6 +239,10 @@ class FullyAsyncTaskRunner:
 @hydra.main(config_path="config", config_name="fully_async_ppo_trainer", version_base=None)
 def main(config):
     from verl.trainer.main_ppo import run_ppo
+
+    # Register the ${eval:...} resolver used by the phimm configs (base/remax_asr.yaml)
+    # for the driver-side config access below; the remote TaskRunner registers its own.
+    OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}), replace=True)
 
     # Ensure async training config exists
     if not hasattr(config, "async_training"):
