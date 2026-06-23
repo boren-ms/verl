@@ -97,6 +97,9 @@ actor_rollout_ref:
     use_rollout_log_probs: true
     use_dynamic_bsz: true
     grad_clip: 1.0
+    # Cap the dynamic per-GPU token budget so 9B-audio activations fit
+    # (default 32768 OOMs at fsdp_size=2 on the trainer pool).
+    ppo_max_token_len_per_gpu: 2048
     optim:
       lr: 5e-6
       lr_warmup_steps: -1
@@ -104,7 +107,8 @@ actor_rollout_ref:
     fsdp_config:
       param_offload: true
       optimizer_offload: true
-      fsdp_size: 2
+      # Shard params across all 4 trainer GPUs to clear actor_update OOM.
+      fsdp_size: 4
       strategy: fsdp2
   rollout:
     name: vllm
@@ -137,7 +141,7 @@ actor_rollout_ref:
     val_kwargs:
       temperature: 0.0
       top_p: 1.0
-      do_sample: true
+      do_sample: false
       n: 1
   ref:
     strategy: fsdp2
