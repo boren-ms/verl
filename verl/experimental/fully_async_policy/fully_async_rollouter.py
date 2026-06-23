@@ -37,7 +37,7 @@ from verl.protocol import DataProto
 from verl.single_controller.ray import RayResourcePool, RayWorkerGroup, ResourcePoolManager
 from verl.trainer.ppo.utils import need_reward_model
 from verl.utils import normalize_token_ids
-from verl.utils.checkpoint.checkpoint_manager import find_latest_ckpt_path
+from verl.utils.checkpoint.checkpoint_manager import resolve_resume_checkpoint_path
 from verl.utils.profiler import marked_timer
 from verl.utils.rollout_trace import rollout_trace_op
 from verl.utils.skip import SkipManager
@@ -661,35 +661,22 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
             print("[FullyAsyncRollouter] Resume mode is disabled, starting from scratch")
             return 0
 
-        # Determine checkpoint folder path
-        if self.config.trainer.default_hdfs_dir is not None:
-            raise NotImplementedError("[FullyAsyncRollouter] Load from hdfs is not implemented yet")
-        else:
-            checkpoint_folder = self.config.trainer.default_local_dir
-            if not os.path.isabs(checkpoint_folder):
-                working_dir = os.getcwd()
-                checkpoint_folder = os.path.join(working_dir, checkpoint_folder)
+        from verl.utils.fs import copy_to_local, is_non_local
 
-            global_step_folder = find_latest_ckpt_path(checkpoint_folder)
-
-        # Find and validate global_step_folder based on resume mode
-        if self.config.trainer.resume_mode == "auto":
-            if global_step_folder is None:
-                print("[FullyAsyncRollouter] Training from scratch (no checkpoint found)")
-                return 0
-        elif self.config.trainer.resume_mode == "resume_path":
-            assert isinstance(self.config.trainer.resume_from_path, str), (
-                "[FullyAsyncRollouter] resume_from_path must be str type"
-            )
-            assert "global_step_" in self.config.trainer.resume_from_path, (
-                "[FullyAsyncRollouter] resume_from_path must specify the global_steps"
-            )
-            global_step_folder = self.config.trainer.resume_from_path
-            if not os.path.isabs(global_step_folder):
-                working_dir = os.getcwd()
-                global_step_folder = os.path.join(working_dir, global_step_folder)
-        else:
-            raise ValueError(f"[FullyAsyncRollouter] Unknown resume_mode: {self.config.trainer.resume_mode}")
+        # Resolve the checkpoint folder to resume from. The dataloader state
+        # (data.pt) may live on the LOCAL checkpoint dir or be synced to the
+        # remote (hdfs/blob) store via default_hdfs_dir. Mirror the trainer's
+        # load_checkpoint: prefer the remote checkpoint when default_hdfs_dir is
+        # configured and resolve remote data.pt via copy_to_local.
+        global_step_folder = resolve_resume_checkpoint_path(
+            resume_mode=self.config.trainer.resume_mode,
+            default_local_dir=self.config.trainer.default_local_dir,
+            default_hdfs_dir=self.config.trainer.default_hdfs_dir,
+            resume_from_path=self.config.trainer.get("resume_from_path", None),
+        )
+        if global_step_folder is None:
+            print("[FullyAsyncRollouter] Training from scratch (no checkpoint found)")
+            return 0
 
         print(f"[FullyAsyncRollouter] Loading checkpoint from: {global_step_folder}")
 
@@ -700,15 +687,27 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
         )
         print(f"[FullyAsyncRollouter] Setting global_steps to {self.global_steps}")
 
-        # Load dataloader state
-        dataloader_local_path = os.path.join(global_step_folder, "data.pt")
-        if os.path.exists(dataloader_local_path):
+        # Load dataloader state. Resolve remote (hdfs/blob) paths to a local copy first.
+        dataloader_path = os.path.join(global_step_folder, "data.pt")
+        if is_non_local(dataloader_path):
+            try:
+                dataloader_local_path = copy_to_local(dataloader_path)
+            except Exception as e:
+                print(
+                    f"[FullyAsyncRollouter] Warning: Failed to fetch dataloader state from {dataloader_path} "
+                    f"({e}), will start from scratch"
+                )
+                dataloader_local_path = None
+        else:
+            dataloader_local_path = dataloader_path
+
+        if dataloader_local_path is not None and os.path.exists(dataloader_local_path):
             dataloader_state_dict = torch.load(dataloader_local_path, weights_only=False)
             self.train_dataloader.load_state_dict(dataloader_state_dict)
-            print(f"[FullyAsyncRollouter] Loaded dataloader state from {dataloader_local_path}")
+            print(f"[FullyAsyncRollouter] Loaded dataloader state from {dataloader_path}")
         else:
             print(
-                f"[FullyAsyncRollouter] Warning: No dataloader state found at {dataloader_local_path}, "
+                f"[FullyAsyncRollouter] Warning: No dataloader state found at {dataloader_path}, "
                 f"will start from scratch"
             )
 

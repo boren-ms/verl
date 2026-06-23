@@ -254,6 +254,66 @@ def find_latest_ckpt_path(path, directory_format="global_step_{}"):
     return ckpt_path
 
 
+def resolve_resume_checkpoint_path(
+    resume_mode: str,
+    default_local_dir: str,
+    default_hdfs_dir: str = None,
+    resume_from_path: str = None,
+):
+    """Resolve the checkpoint folder to resume from, preferring the remote store.
+
+    Shared resume-path resolution used by the fully async trainer and rollouter.
+    Looks up the latest checkpoint on both the remote (hdfs/blob) and local
+    stores, honoring ``resume_mode``:
+
+    - ``"auto"``: use the latest checkpoint found; returns ``None`` when neither
+      store has a checkpoint (i.e. train from scratch).
+    - ``"resume_path"``: use ``resume_from_path`` directly, treating it as remote
+      when it is a non-local path.
+
+    Args:
+        resume_mode: One of ``"auto"`` or ``"resume_path"``.
+        default_local_dir: Local checkpoint directory.
+        default_hdfs_dir: Remote (hdfs/blob) checkpoint directory, or ``None``.
+        resume_from_path: Explicit checkpoint folder for ``"resume_path"`` mode.
+
+    Returns:
+        str or None: The resolved ``global_step_*`` folder (remote preferred), or
+        ``None`` when ``resume_mode == "auto"`` and no checkpoint exists.
+    """
+    from verl.utils.fs import is_non_local
+
+    # Find the latest checkpoint folder on the remote (hdfs/blob) store, if configured.
+    remote_step_folder = find_latest_ckpt_path(default_hdfs_dir)  # None if no remote dir or no latest
+
+    # Find the latest checkpoint folder on the local store.
+    local_dir = default_local_dir
+    if local_dir is not None and not os.path.isabs(local_dir):
+        local_dir = os.path.join(os.getcwd(), local_dir)
+    local_step_folder = find_latest_ckpt_path(local_dir)  # None if no latest
+
+    if resume_mode == "auto":
+        if local_step_folder is None and remote_step_folder is None:
+            return None
+    elif resume_mode == "resume_path":
+        assert isinstance(resume_from_path, str), "resume_from_path must be str type"
+        assert "global_step_" in resume_from_path, "resume_from_path must specify the global_steps"
+        if is_non_local(resume_from_path):
+            remote_step_folder = resume_from_path
+            local_step_folder = None
+        else:
+            if not os.path.isabs(resume_from_path):
+                resume_from_path = os.path.join(os.getcwd(), resume_from_path)
+            local_step_folder = resume_from_path
+            remote_step_folder = None
+    else:
+        raise ValueError(f"Unknown resume_mode: {resume_mode}")
+
+    # Prefer the remote checkpoint when configured; worker / dataloader loaders
+    # resolve remote paths to a local copy automatically.
+    return remote_step_folder if remote_step_folder is not None else local_step_folder
+
+
 def get_checkpoint_tracker_filename(root_path: str):
     """
     Tracker file rescords the latest chckpoint during training to restart from.

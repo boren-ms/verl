@@ -35,7 +35,7 @@ from verl.single_controller.ray import RayClassWithInitArgs, RayWorkerGroup
 from verl.trainer.ppo import core_algos
 from verl.trainer.ppo.ray_trainer import ResourcePoolManager
 from verl.trainer.ppo.utils import Role, WorkerType, need_critic, need_reference_policy, need_reward_model
-from verl.utils.checkpoint.checkpoint_manager import find_latest_ckpt_path, should_save_ckpt_esi
+from verl.utils.checkpoint.checkpoint_manager import resolve_resume_checkpoint_path, should_save_ckpt_esi
 from verl.utils.config import omega_conf_to_dataclass
 from verl.utils.debug import marked_timer
 from verl.utils.tracking import Tracking
@@ -706,42 +706,15 @@ class FullyAsyncTrainer(SeparateRayPPOTrainer):
         if self.config.trainer.resume_mode == "disable":
             return 0
 
-        from verl.utils.fs import is_non_local
-
-        local_dir = self.config.trainer.default_local_dir
-        remote_dir = self.config.trainer.default_hdfs_dir
-
-        # Find the latest checkpoint folder on the remote (hdfs/blob) store, if configured.
-        remote_step_folder = find_latest_ckpt_path(remote_dir)  # None if no remote dir or no latest
-
-        # Find the latest checkpoint folder on the local store.
-        if not os.path.isabs(local_dir):
-            local_dir = os.path.join(os.getcwd(), local_dir)
-        local_step_folder = find_latest_ckpt_path(local_dir)  # None if no latest
-
-        # find global_step_folder
-        if self.config.trainer.resume_mode == "auto":
-            if local_step_folder is None and remote_step_folder is None:
-                print("[FullyAsyncTrainer] Training from scratch")
-                return 0
-        else:
-            if self.config.trainer.resume_mode == "resume_path":
-                resume_path = self.config.trainer.resume_from_path
-                assert isinstance(resume_path, str), "resume ckpt must be str type"
-                assert "global_step_" in resume_path, "resume ckpt must specify the global_steps"
-                if is_non_local(resume_path):
-                    remote_step_folder = resume_path
-                    local_step_folder = None
-                else:
-                    if not os.path.isabs(resume_path):
-                        resume_path = os.path.join(os.getcwd(), resume_path)
-                    local_step_folder = resume_path
-                    remote_step_folder = None
-
-        # Prefer the remote checkpoint when default_hdfs_dir is configured; the worker's
-        # load_checkpoint resolves remote paths via copy_to_local automatically.
-        global_step_folder = remote_step_folder if remote_step_folder is not None else local_step_folder
-        assert global_step_folder is not None, "No checkpoint folder found to resume from"
+        global_step_folder = resolve_resume_checkpoint_path(
+            resume_mode=self.config.trainer.resume_mode,
+            default_local_dir=self.config.trainer.default_local_dir,
+            default_hdfs_dir=self.config.trainer.default_hdfs_dir,
+            resume_from_path=self.config.trainer.get("resume_from_path", None),
+        )
+        if global_step_folder is None:
+            print("[FullyAsyncTrainer] Training from scratch")
+            return 0
 
         print(f"[FullyAsyncTrainer] Load from checkpoint folder: {global_step_folder}")
         # set global step
