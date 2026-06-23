@@ -751,6 +751,18 @@ class MegatronEngine(BaseEngine):
 
         return per_tensor_param, peft_config
 
+    def get_peft_config(self):
+        """Return the LoRA peft config for adapter-mode sync, or None.
+
+        Lightweight counterpart to :meth:`get_per_tensor_param` used by the
+        disaggregated (async) weight-sync path to detect adapter-mode LoRA
+        without exporting any weights. Returns None for full / merged syncs.
+        """
+        non_merge_lora_sync = self.peft_cls is not None and not self.model_config.lora.get("merge", False)
+        if not non_merge_lora_sync:
+            return None
+        return build_peft_config_for_vllm(self.model_config.lora)
+
     def disable_adapter(self) -> ContextManager:
         return self.peft_cls.disable_adapter(self.module)
 

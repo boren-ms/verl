@@ -172,6 +172,19 @@ class BaseEngine:
         """
         raise NotImplementedError
 
+    def get_peft_config(self) -> Optional[dict]:
+        """Return the LoRA/PEFT config dict for adapter-mode weight sync, or None.
+
+        Used by the disaggregated (async) weight-sync path to learn the adapter
+        config without materializing the full per-tensor parameter generator.
+        Backends that do not support PEFT keep the default and sync full weights.
+
+        Returns:
+            Optional[dict]: The peft config dict when adapter-mode LoRA sync is
+            active, otherwise None.
+        """
+        return None
+
     def get_data_parallel_size(self):
         raise NotImplementedError
 

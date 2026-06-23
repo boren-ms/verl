@@ -320,9 +320,11 @@ class CheckpointEngineWorker(Worker):
         initialize_global_process_group_ray(timeout_second=None, backend="cpu:gloo")
 
     @register(dispatch_mode=Dispatch.ONE_TO_ALL, blocking=False)
-    async def update_weights(self, global_steps: int = None):
+    async def update_weights(self, global_steps: int = None, peft_config: dict = None, base_sync_done: bool = False):
         weights = self.checkpoint_engine.receive_weights(global_steps=global_steps)
-        await self.server_adapter.update_weights(weights, global_steps=global_steps)
+        await self.server_adapter.update_weights(
+            weights, global_steps=global_steps, peft_config=peft_config, base_sync_done=base_sync_done
+        )
 
     @register(dispatch_mode=Dispatch.DP_COMPUTE, blocking=False)
     def execute_checkpoint_engine(self, method: str, *args, **kwargs):
@@ -495,11 +497,33 @@ class CheckpointEngineManager:
         # 4. build process group
         self.build_process_group(rollout)
 
+        # 4.5. query LoRA metadata to decide between a plain full-weight sync and
+        # the two-phase adapter sync (one-time base broadcast + per-step adapter).
+        meta = ray.get(self.trainer.get_weight_sync_metadata())[0]
+        is_lora_adapter = meta["is_lora_adapter"]
+        peft_config = meta["peft_config"]
+        need_base_sync = is_lora_adapter and not meta["base_sync_done"]
+
         # 5. update weights of all workers
-        ray.get(
-            trainer.update_weights(global_steps=global_steps, mode=self.backend)
-            + rollout.update_weights(global_steps=global_steps)
-        )
+        if is_lora_adapter:
+            # Phase 1 (once): broadcast the frozen base model; rollout loads it as
+            # a standard weight update so the LoRA adapter has a matching base.
+            if need_base_sync:
+                ray.get(
+                    trainer.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=False)
+                    + rollout.update_weights(global_steps=global_steps, peft_config=None, base_sync_done=False)
+                )
+            # Phase 2 (every step): broadcast the LoRA adapter; rollout swaps it in
+            # via peft_config without touching the base weights.
+            ray.get(
+                trainer.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=True)
+                + rollout.update_weights(global_steps=global_steps, peft_config=peft_config, base_sync_done=True)
+            )
+        else:
+            ray.get(
+                trainer.update_weights(global_steps=global_steps, mode=self.backend)
+                + rollout.update_weights(global_steps=global_steps)
+            )
 
         # 6. finalize all workers
         ray.get(
