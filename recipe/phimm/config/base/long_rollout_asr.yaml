@@ -64,6 +64,12 @@ actor_rollout_ref:
     tensor_model_parallel_size: 1
     gpu_memory_utilization: 0.75
     load_format: auto
+    # vLLM's custom all-reduce kernel fails with a CUDA "invalid argument" error
+    # (custom_all_reduce.cuh) when tensor_model_parallel_size > 1 on this 8-GPU
+    # topology; disable it so TP=4 rollout works. Harmless at TP=1 (no all-reduce).
+    engine_kwargs:
+      vllm:
+        disable_custom_all_reduce: true
     # FullyAsyncRollouter._validate_config requires log_probs to be computed.
     calculate_log_probs: true
 
