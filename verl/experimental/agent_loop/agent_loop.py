@@ -985,8 +985,23 @@ class AgentLoopWorker:
         input_ids = torch.cat([input.input_ids for input in inputs], dim=0)
         position_ids = torch.cat([input.position_ids for input in inputs], dim=0)
         optional_outputs = {}
-        if inputs[0].response_logprobs is not None:
-            optional_outputs["rollout_log_probs"] = torch.cat([input.response_logprobs for input in inputs], dim=0)
+        # A sample whose rollout was aborted/empty can carry response_logprobs=None
+        # while others in the same batch carry a [1, response_length] tensor. Guarding
+        # only on inputs[0] and torch.cat-ing the rest crashes ("expected Tensor ...
+        # got NoneType"). Zero-fill the missing ones (aborted responses are all padding,
+        # so zero logprobs are consistent with the [..]+[0.0]*pad padding above) to keep
+        # the batch aligned with the other per-sample tensors.
+        if any(input.response_logprobs is not None for input in inputs):
+            response_length = self.rollout_config.response_length
+            optional_outputs["rollout_log_probs"] = torch.cat(
+                [
+                    input.response_logprobs
+                    if input.response_logprobs is not None
+                    else torch.zeros(1, response_length)
+                    for input in inputs
+                ],
+                dim=0,
+            )
         if inputs[0].routed_experts is not None:
             optional_outputs["routed_experts"] = torch.cat([input.routed_experts for input in inputs], dim=0)
         if inputs[0].teacher_logprobs is not None and inputs[0].teacher_ids is not None:
