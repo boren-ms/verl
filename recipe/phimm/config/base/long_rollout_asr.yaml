@@ -79,6 +79,10 @@ async_training:
   require_batches: 1
   partial_rollout: false
   max_queue_size: 1000
+  # In-flight generation samples per rollout replica. null => 16 * tp_size, which
+  # keeps ~16 concurrent samples/GPU so TP>1 rollouts stay GPU-saturated. Raise to
+  # push more concurrent decodes per replica (higher GPU util, more KV-cache use).
+  concurrent_samples_per_replica: null
 
 # Per-segment reward for the FullyAsyncRollouter reward loop. This value is not
 # used for the final long-audio results (the consumer rescores per parent

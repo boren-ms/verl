@@ -551,7 +551,18 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
                 / (self.required_samples * self.config.async_training.trigger_parameter_sync_step)
             )
 
-            self.max_concurrent_samples = len(self.llm_server_manager.get_replicas()) * 16
+            # Cap on in-flight generation samples. Historically this was
+            # ``num_replicas * 16``, which under-feeds TP>1 rollouts: each replica
+            # spans ``tp_size`` GPUs but still only ran 16 concurrent sequences, so
+            # fewer replicas (TP=2 -> 4, TP=4 -> 2) meant lower total concurrency and
+            # idle GPUs. Scale the per-replica budget by ``tp_size`` so the in-flight
+            # count stays ~16 samples/GPU regardless of TP (override via
+            # ``async_training.concurrent_samples_per_replica``).
+            tp_size = self.config.actor_rollout_ref.rollout.get("tensor_model_parallel_size", 1) or 1
+            per_replica = self.config.async_training.get("concurrent_samples_per_replica", None)
+            if not per_replica:
+                per_replica = 16 * tp_size
+            self.max_concurrent_samples = len(self.llm_server_manager.get_replicas()) * per_replica
             self.max_concurrent_samples = min(self.max_concurrent_samples, self.max_required_samples)
             self.max_queue_size = self.max_required_samples
 
