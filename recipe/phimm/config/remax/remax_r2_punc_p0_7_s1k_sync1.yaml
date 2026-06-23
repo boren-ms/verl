@@ -91,9 +91,3 @@ actor_rollout_ref:
     max_num_seqs: 16
     gpu_memory_utilization: 0.6
     temperature: 1.0
-
-# ── Trainer ───────────────────────────────────────────────────────────────
-# Fresh run: disable auto-resume. With default_hdfs_dir set (blob sync target),
-# resume_mode=auto would hit the unimplemented "load from hdfs" path.
-trainer:
-  resume_mode: disable
