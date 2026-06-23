@@ -1,0 +1,59 @@
+# Fully Async ReMax ASR Training Config - Punc (binary advantage)
+# For Qwen3.5-9B Audio model with fully async policy (separate rollout + training GPUs)
+#
+# Composition:
+#   async_base/remax_asr   — shared model/actor/rollout/ref/trainer/data scaffolding
+#   data/train_data/qwen_en_hc_200k_entity_fy24q3p2_punc_p0_7
+#   data/val_data/enus_conv_fy21q1_seg
+#
+# Settings ported from:
+#   recipe/phimm/config/remax/remax_r2_punc_p0_7_n12_s1k_mean_binary_adv.yaml
+#
+# Train reward: punc_cap_measure (char + punc F-measure, reduce=mean)
+# Algorithm:    ReMax + binary advantage, fully async rollout/training
+#
+# Usage:
+#   python3 -m verl.experimental.fully_async_policy.fully_async_main \
+#       --config-path=../../../recipe/phimm/config \
+#       --config-name=remax_r2_punc_p0_7_n12_s1k_mean_binary_adv
+
+hydra:
+  searchpath:
+    - pkg://verl.trainer.config
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/async_base
+
+defaults:
+  - remax_asr
+  - data/train_data/qwen_en_hc_200k_entity_fy24q3p2_punc_p0_7
+  - data/val_data/enus_conv_fy21q1_seg
+  - _self_
+
+# ── Algorithm: ReMax + binary advantage ───────────────────────────────────
+algorithm:
+  binary_adv: true
+  binary_adv_scale: 1.0
+
+# ── Reward ────────────────────────────────────────────────────────────────
+reward:
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.punc_cap_measure
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        punc: {beta: 1.0}
+  num_workers: 8
+
+val_reward:
+  group_segment: true
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.asr_inhouse_measure
+    name: eval_score
+
+# ── Trainer ───────────────────────────────────────────────────────────────
+# Fresh run: disable auto-resume. With default_hdfs_dir set (blob sync target),
+# resume_mode=auto would hit the unimplemented "load from hdfs" path.
+trainer:
+  resume_mode: disable
