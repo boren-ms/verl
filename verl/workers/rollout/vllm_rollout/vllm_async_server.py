@@ -525,6 +525,16 @@ class vLLMHttpServer:
 
         sampling_params.setdefault("ignore_eos", self.config.get("ignore_eos", False))
 
+        # Pass through stop strings / stop token ids from the rollout config so
+        # generation halts at the configured chat-end markers, mirroring the
+        # eval/gen path (recipe/phimm/main_asr_gen.py:_build_sampling_params).
+        config_stop = self.config.get("stop", None)
+        if config_stop:
+            sampling_params.setdefault("stop", list(config_stop))
+        config_stop_token_ids = self.config.get("stop_token_ids", None)
+        if config_stop_token_ids:
+            sampling_params.setdefault("stop_token_ids", list(config_stop_token_ids))
+
         # Pass no-repeat-ngram config via extra_args for the V1 per-request logits
         # processor registered in launch_server, mirroring vllm_rollout_spmd.
         ngram_size = self.config.get("no_repeat_ngram_size", 0)

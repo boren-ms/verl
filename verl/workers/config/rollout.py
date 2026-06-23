@@ -167,6 +167,12 @@ class RolloutConfig(BaseConfig):
     no_repeat_ngram_size: int = 0
     no_repeat_ngram_window_size: int = 100
 
+    # Stop strings and stop token ids passed through to the inference engine
+    # (e.g. vLLM SamplingParams). Used to halt generation at configured
+    # chat-end markers. `None` leaves the engine to stop on the model's EOS.
+    stop: Optional[list] = None
+    stop_token_ids: Optional[list] = None
+
     # Early termination threshold for multi-turn rollout in sglang.
     # Abort remaining requests when (1 - over_sample_rate) * total_requests are completed.
     over_sample_rate: float = 0.0
