@@ -948,17 +948,28 @@ class vLLMHttpServer:
                 raise ValueError(f"Currently only support {_SUPPORTED_QUANTIZATION} quantization, got: {quantization}")
 
             if quantization == "fp8":
-                # Ignore MoE router layers for FP8 quantization
-                all_mlp_gate_layers = []
+                # Ignore MoE router layers for FP8 quantization, plus any hybrid
+                # linear-attention (GatedDeltaNet) packed projections. The latter
+                # (in_proj_qkvz / in_proj_ba) have tiny / unequal per-shard output
+                # dims that are not 128-block aligned, which breaks vLLM's blockwise
+                # FP8 merged weight_scale_inv loading ("start + length exceeds
+                # dimension size"). Keeping these small projections in bf16 is
+                # numerically safe and avoids the crash. vLLM maps these names
+                # through the model's hf_to_vllm_mapper automatically, so the raw
+                # ``model.layers.{i}.*`` naming is correct here.
+                ignored_layers = []
+                linear_attn_packed = ("linear_attn.in_proj_qkvz", "linear_attn.in_proj_ba")
                 for layer in range(self.model_config.hf_config.num_hidden_layers):
-                    all_mlp_gate_layers.append(f"model.layers.{layer}.mlp.gate")
+                    ignored_layers.append(f"model.layers.{layer}.mlp.gate")
+                    for proj in linear_attn_packed:
+                        ignored_layers.append(f"model.layers.{layer}.{proj}")
 
                 FP8_BLOCK_QUANT_KWARGS = {
                     "activation_scheme": "dynamic",
                     "fmt": "e4m3",
                     "quant_method": "fp8",
                     "weight_block_size": [128, 128],
-                    "ignored_layers": all_mlp_gate_layers,
+                    "ignored_layers": ignored_layers,
                 }
                 hf_overrides["quantization_config"] = dict(FP8_BLOCK_QUANT_KWARGS)
                 # Apply vllm fp8 patches
