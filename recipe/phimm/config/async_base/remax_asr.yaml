@@ -135,6 +135,7 @@ actor_rollout_ref:
     engine_kwargs:
       vllm:
         mm_processor_cache_gb: 0
+        disable_custom_all_reduce: true
     checkpoint_engine:
       backend: nccl
       update_weights_bucket_megabytes: 1024
