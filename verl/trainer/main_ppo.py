@@ -328,19 +328,27 @@ def create_rl_dataset(data_paths, data_config, tokenizer, processor, is_train=Tr
         dataset (Dataset): The dataset.
     """
 
+    import inspect
+
     from verl.utils.dataset.rl_dataset import get_dataset_class
 
     # Get the dataset class
     dataset_cls = get_dataset_class(data_config)
 
     # Instantiate the dataset using the determined dataset class
-    dataset = dataset_cls(
+    dataset_kwargs = dict(
         data_files=data_paths,
         tokenizer=tokenizer,
         processor=processor,
         config=data_config,
         max_samples=max_samples,
     )
+    # Forward the train/val split flag to dataset classes that support it.
+    # The phimm audio RLHFDataset selects train_data vs val_data based on this;
+    # without it, the train split silently falls back to val_data.
+    if "is_training" in inspect.signature(dataset_cls.__init__).parameters:
+        dataset_kwargs["is_training"] = is_train
+    dataset = dataset_cls(**dataset_kwargs)
 
     return dataset
 
