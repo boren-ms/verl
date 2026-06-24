@@ -93,3 +93,5 @@ val_reward:
     path: pkg://recipe.phimm.reward.asr_inhouse_measure
     name: eval_score
 
+trainer:
+  resume_mode: disable
