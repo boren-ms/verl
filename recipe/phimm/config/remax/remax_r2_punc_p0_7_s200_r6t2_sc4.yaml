@@ -15,8 +15,8 @@ trainer:
 
 async_training:
   staleness_threshold: 0.5
-  trigger_parameter_sync_step: 2
-  
+  trigger_parameter_sync_step: 4
+
 algorithm:
   binary_adv: true
   binary_adv_scale: 1.0
