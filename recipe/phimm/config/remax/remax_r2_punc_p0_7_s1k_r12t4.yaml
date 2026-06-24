@@ -54,6 +54,12 @@ trainer:
   nnodes: 1
   n_gpus_per_node: 4
   resume_mode: auto
+  # The random vLLM sample_tokens hang can strike during the pre-train
+  # validation generation; on a resume that means zero training progress before
+  # the engine dies, risking a resume->validate->hang->resume loop. Skip the
+  # pre-train validation so each (re)submit goes straight to training and saves
+  # checkpoints (periodic val still runs at test_freq during training).
+  val_before_train: false
 
 rollout:
   nnodes: 3
