@@ -27,4 +27,4 @@ actor_rollout_ref:
     tensor_model_parallel_size: 2
 
 data:
-  output_path: az://orngwus2cresco/data/boren/data/verl/rollout/inhouse_2605_all_seg_tp2
+  output_path: az://orngwus2cresco/data/boren/data/verl/rollout/r2_baseline/inhouse_2605_all_seg_tp2
