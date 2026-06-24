@@ -44,59 +44,33 @@ defaults:
   - data/train_data/qwen_en_hc_200k_entity_fy24q3p2_punc_p0_7
   - data/val_data/enus_conv_fy21q1_seg
   - _self_
-actor_rollout_ref:
-  actor:
-    # The trainer actor update (forward/backward through the Qwen3.5-9B audio
-    # model) OOMs on the colocated trainer GPUs at 4096 once rollout response
-    # lengths grow (observed CUDA OOM in actor_update_actor at step:0 -> step 1,
-    # GPU0 77GB/79GB on the 2nd node). Gradient checkpointing is unsupported and
-    # fsdp_size=4 (from base) already shards params/optimizer across the 4
-    # trainer GPUs; lower the per-GPU dynamic-bsz token budget to 2048 to clear
-    # the actor_update_actor OOM. (Do NOT use PYTORCH_ALLOC_CONF=
-    # expandable_segments:True here — it propagates to the shared ray runtime
-    # env and breaks the vLLM rollout CuMemAllocator: "Expandable segments are
-    # not compatible with memory pool".)
-    ppo_max_token_len_per_gpu: 2048
-  rollout:
-    max_num_seqs: 64
-    gpu_memory_utilization: 0.85
-    temperature: 1.2
 
-
+# ── GPU layout: 12 rollouter (3 nodes × 4) / 4 trainer (1 node) ────────────
+# Base remax_asr now defaults to a single-node 6 rollouter / 2 trainer split
+# with fsdp_size=2. This 2-node config keeps a 4-GPU trainer group (fsdp_size=4,
+# intra-node FSDP) and a 12-GPU rollouter pool tiled as 3 STRICT_PACK groups
+# of 4 so they tile alongside the trainer's 4-GPU group on the 8-GPU nodes.
 trainer:
   nnodes: 1
   n_gpus_per_node: 4
-  # auto-resume from the latest local/blob global_step_* checkpoint. The random
-  # vLLM "sample_tokens timed out" -> EngineDeadError hang makes the rollouter
-  # terminate the queue and the driver exit 0 (Ray reports SUCCEEDED) mid-run;
-  # resume_mode=auto lets a resubmit continue from the last checkpoint instead
-  # of restarting from scratch. fully_async load_checkpoint handles an empty
-  # blob (default_hdfs_dir) gracefully and prefers the latest checkpoint found.
   resume_mode: auto
 
 rollout:
   nnodes: 3
   n_gpus_per_node: 4
 
+actor_rollout_ref:
+  actor:
+    fsdp_config:
+      fsdp_size: 4  
+
 async_training:
   # concurrent_samples_per_replica=32 (12 replicas -> 384 in-flight) deadlocks
   # the rollouter pause/drain before the NCCL param sync: after the first sync
   # the Processor logs "waiting for remaining tasks to return..." and never
-  # resumes generation (active_tasks_size=0, GPUs idle, trainer starves at
-  # global_step 5). Lower to 8 (12*8=96 in-flight, still > required_samples=64)
-  # so in-flight requests drain quickly at each param sync.
+  # resumes generation. Lower to 8 (12*8=96 in-flight, still > required_samples
+  # =64) so in-flight requests drain quickly at each param sync.
   concurrent_samples_per_replica: 8
-  staleness_threshold: 0.5
-  trigger_parameter_sync_step: 4
-  # partial_rollout=true feeds partial/aborted rollout samples (the rollouter
-  # logs "Sample ... cancelled, retrying") into the actor update; those partial
-  # samples can be missing the audio mel input, so the model's audio encoder
-  # MeanVarianceNormLayer.forward computes `None - global_mean` and crashes with
-  # "unsupported operand type(s) for -: 'NoneType' and 'Parameter'"
-  # (cascade_encoder.py:370) mid-training (observed at global_step 24). Disable
-  # partial rollout so only complete samples (with audio) enter training.
-  partial_rollout: false
-  require_batches: 1
 
 algorithm:
   binary_adv: true
