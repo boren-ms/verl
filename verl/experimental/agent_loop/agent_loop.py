@@ -717,6 +717,15 @@ class AgentLoopWorker:
         if output.response_logprobs is not None:
             pad_size = self.rollout_config.response_length - len(output.response_logprobs)
             response_logprobs = torch.tensor(output.response_logprobs + [0.0] * pad_size).unsqueeze(0)
+        elif self.rollout_config.calculate_log_probs:
+            # vLLM returns response_logprobs=None for aborted/empty rollouts. When
+            # logprobs are requested (calculate_log_probs), emit a zero
+            # [1, response_length] tensor so EVERY rollout sample carries
+            # rollout_log_probs. Otherwise the key's presence becomes per-sample
+            # (absent for aborted samples), which crashes both _postprocess's
+            # torch.cat and the downstream DataProto.concat of mixed-key rollout
+            # samples (assemble_batch_from_rollout_samples) with a KeyError.
+            response_logprobs = torch.zeros(1, self.rollout_config.response_length)
 
         response_mask = response_mask_output["input_ids"] * response_output["attention_mask"]
         attention_mask = torch.cat([prompt_output["attention_mask"], response_output["attention_mask"]], dim=1)
