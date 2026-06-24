@@ -46,7 +46,15 @@ defaults:
   - _self_
 actor_rollout_ref:
   actor:
-    ppo_max_token_len_per_gpu: 4096
+    # The trainer actor update (forward/backward through the Qwen3.5-9B audio
+    # model) OOMs on the colocated trainer GPUs at 4096 once rollout response
+    # lengths grow (observed CUDA OOM in actor_update_actor at step:0 -> step 1,
+    # GPU0 77GB/79GB on the 2nd node). Gradient checkpointing is unsupported and
+    # fsdp_size=4 (from base) already shards params/optimizer across the 4
+    # trainer GPUs; lower the per-GPU dynamic-bsz token budget to 2048 (paired
+    # with PYTORCH_ALLOC_CONF=expandable_segments:True from constants_ppo) to
+    # clear the actor_update_actor OOM.
+    ppo_max_token_len_per_gpu: 2048
   rollout:
     max_num_seqs: 64
     gpu_memory_utilization: 0.85
