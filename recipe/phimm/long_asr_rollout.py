@@ -6,7 +6,7 @@ This combines two existing recipes:
   :mod:`recipe.phimm.asr_rollout` (``FullyAsyncRollouter`` feeding a
   ``MessageQueue`` that a consumer drains), and
 * the long-recording segmentation / per-parent regrouping + DTER/EER scoring
-  from :mod:`recipe.phimm.main_long_eval_asr`.
+  (grouping + scoring helpers defined below in this module).
 
 Pipeline:
 
@@ -25,7 +25,7 @@ Pipeline:
    (DisfluencyTolerant TER + entity EER).
 4. Per-recording results are written as JSONL and the aggregate TER/EER measures
    as JSON, split per ``data_source`` (same layout as
-   :func:`recipe.phimm.main_long_eval_asr.write_results`).
+   :func:`write_results`).
 
 Usage:
     python3 -m recipe.phimm.long_asr_rollout \
@@ -39,6 +39,7 @@ import logging
 import os
 import re
 import time
+from collections import defaultdict
 from pprint import pprint
 
 import blobfile as bf
@@ -53,14 +54,7 @@ from recipe.phimm.asr_rollout import (
     prepare_model,
     run_rollout_engine,
 )
-
-# Long-recording grouping / scoring helpers (reused from the gen-style long eval).
-from recipe.phimm.main_long_eval_asr import (
-    _parent_key,
-    _seg_start,
-    score_segments,
-    write_results,
-)
+from recipe.phimm.reward.asr_inhouse_measure import eval_score
 from recipe.phimm.utils.shared import parse_asr_response
 from verl.experimental.fully_async_policy.message_queue import MessageQueueClient
 
@@ -68,6 +62,140 @@ os.environ["NCCL_DEBUG"] = "WARN"
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Long-audio grouping + scoring helpers.
+#
+# These regroup exploded segments by parent recording, concatenate the
+# per-segment hypotheses, score each recording once against the full reference
+# (DisfluencyTolerant TER + entity EER via
+# :func:`recipe.phimm.reward.asr_inhouse_measure.eval_score`), and write
+# per-data-source ``details.jsonl`` + ``measures.json`` artifacts.
+# ---------------------------------------------------------------------------
+
+
+def _parent_key(extra_info: dict, audio_path, fallback: str) -> str:
+    """Resolve the parent recording id for grouping exploded segments."""
+    if extra_info:
+        for k in ("parent_audio_path", "audio_path"):
+            v = extra_info.get(k)
+            if v:
+                return str(v).split("#", 1)[0]
+    if audio_path:
+        return str(audio_path).split("#", 1)[0]
+    return fallback
+
+
+def _seg_start(extra_info: dict) -> float:
+    if not extra_info:
+        return 0.0
+    v = extra_info.get("seg_start")
+    try:
+        return float(v) if v is not None else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _write_jsonl(records: list, path: str) -> None:
+    bf.makedirs(os.path.dirname(path.rstrip("/")))
+    with bf.BlobFile(path, "w") as f:
+        for rec in records:
+            f.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
+
+
+def _write_json(obj, path: str) -> None:
+    bf.makedirs(os.path.dirname(path.rstrip("/")))
+    with bf.BlobFile(path, "w") as f:
+        f.write(json.dumps(obj, ensure_ascii=False, indent=2, default=str))
+
+
+def _micro(a: dict) -> dict:
+    return {
+        "dter": a["dter_n_err"] / max(a["dter_n_ref"], 1),
+        "dter_n_err": a["dter_n_err"],
+        "dter_n_ref": a["dter_n_ref"],
+        "eer": a["eer_n_err"] / max(a["eer_n_ref"], 1),
+        "eer_n_err": a["eer_n_err"],
+        "eer_n_ref": a["eer_n_ref"],
+        "n_recordings": a["n"],
+    }
+
+
+def score_segments(segments: list, measure_kwargs: dict) -> dict:
+    """Group segments by parent, concat hyps, score once per recording.
+
+    Returns a dict keyed by ``data_source`` mapping to
+    ``{"details": [...], "measure": {...}}`` (per-recording detail list plus the
+    micro-averaged TER + EER for that source).
+    """
+    groups: dict = defaultdict(list)
+    for seg in segments:
+        groups[seg["parent"]].append(seg)
+
+    details_by_source: dict = defaultdict(list)
+    agg = defaultdict(lambda: {"dter_n_err": 0, "dter_n_ref": 0, "eer_n_err": 0, "eer_n_ref": 0, "n": 0})
+
+    for parent, members in groups.items():
+        members.sort(key=lambda m: m["seg_start"])
+        concat_hyp = " ".join(m["response"].strip() for m in members if m["response"].strip())
+        responses = [m["response"] for m in members]
+        head = members[0]
+        ref = head["ref"]
+        data_source = head["data_source"] or "all"
+
+        score = eval_score(concat_hyp, ref, **measure_kwargs)
+
+        rec = {
+            "parent_audio_path": parent,
+            "id": head["id"],
+            "data_source": data_source,
+            "language": head["language"],
+            "n_segments": len(members),
+            "ref": ref,
+            "hyp": concat_hyp,
+            "response": responses,
+            "dter": score.get("dter"),
+            "dter_n_err": score.get("dter_n_err"),
+            "dter_n_ref": score.get("dter_n_ref"),
+            "eer": score.get("eer"),
+            "eer_n_err": score.get("eer_n_err"),
+            "eer_n_ref": score.get("eer_n_ref"),
+            "dter_detail": score.get("dter_detail"),
+        }
+        details_by_source[data_source].append(rec)
+
+        a = agg[data_source]
+        a["dter_n_err"] += int(score.get("dter_n_err") or 0)
+        a["dter_n_ref"] += int(score.get("dter_n_ref") or 0)
+        a["eer_n_err"] += int(score.get("eer_n_err") or 0)
+        a["eer_n_ref"] += int(score.get("eer_n_ref") or 0)
+        a["n"] += 1
+
+    return {src: {"details": details_by_source[src], "measure": _micro(a)} for src, a in agg.items()}
+
+
+def _slug(src: str) -> str:
+    return "".join(c if c.isalnum() or c in ("-", "_", ".") else "_" for c in str(src))
+
+
+def write_results(results_by_source: dict, output_dir: str) -> None:
+    """Write per-data-source details JSONL + measures JSON under ``output_dir``."""
+    for src, res in results_by_source.items():
+        slug = _slug(src)
+        details_path = f"{output_dir}/{slug}/details.jsonl"
+        measures_path = f"{output_dir}/{slug}/measures.json"
+        _write_jsonl(res["details"], details_path)
+        _write_json(res["measure"], measures_path)
+
+        m = res["measure"]
+        print(
+            f"[{src}] DTER: {m['dter']:.2%} [{m['dter_n_err']}/{m['dter_n_ref']}]  "
+            f"EER: {m['eer']:.2%} [{m['eer_n_err']}/{m['eer_n_ref']}]  "
+            f"on {m['n_recordings']} recordings"
+        )
+        print(f"  Saved per-recording details to {details_path}")
+        print(f"  Saved aggregate measures to {measures_path}")
 
 
 def _decode_rollout_segment(sample_bytes, tokenizer) -> dict:
@@ -181,9 +309,7 @@ async def _consume_segments(
         "eer_n_ref": tot["eer_n_ref"],
     }
     summary_path = f"{output_dir}/summary.json"
-    bf.makedirs(os.path.dirname(summary_path.rstrip("/")))
-    with bf.BlobFile(summary_path, "w") as f:
-        json.dump(summary, f, ensure_ascii=False, indent=2)
+    _write_json(summary, summary_path)
 
     rate = len(segments) / max(time.time() - t0, 1e-6)
     print(
