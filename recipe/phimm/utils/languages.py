@@ -60,8 +60,16 @@ LANG_NAME_MAPPING = {"mandarin": "chinese"}
 
 
 def get_language_name(lang):
-    """Convert any language identifier to its full name. e.g. "de" -> "German", "German" -> "German"."""
+    """Convert any language identifier to its full name. e.g. "de" -> "German", "German" -> "German".
+
+    A null/empty or "unknown" identifier resolves to "Unknown" (e.g. for
+    language-detection tasks where the spoken language is not specified).
+    """
+    if not lang:
+        return "Unknown"
     lang = lang.lower()
+    if lang == "unknown":
+        return "Unknown"
     lang = LANG_NAME_MAPPING.get(lang, lang)
     if lang in LANGUAGES:
         return lang.capitalize()

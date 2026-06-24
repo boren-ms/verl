@@ -21,7 +21,7 @@ def _get_lang_asr_language(task, prefix, default=None):
 
 def resolve_task_language(task, lang=None):
     task_language = _get_explicit_task_language(task)
-    return get_language_name(task_language or lang or "English")
+    return get_language_name(task_language or lang or "Unknown")
 
 
 def _get_explicit_task_language(task):
@@ -42,6 +42,7 @@ def _get_task_output_tag(task):
 
 
 def _format_task_output(tag, lang, text):
+    lang = lang or "Unknown"
     return f"Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
 
 
@@ -67,7 +68,8 @@ def get_task_prefix(task, lang, prob=1.0):
     """Get the assistant prefix for the specified task.
 
     Only tasks with an explicit language (``lang_asr*``) or an explicit ``lang``
-    argument emit a non-empty prefix.
+    argument emit a non-empty prefix. A null/empty ``lang`` resolves to
+    "Unknown" so the model detects the language itself.
     """
     if random.random() >= prob:
         return ""
@@ -79,7 +81,7 @@ def get_task_prefix(task, lang, prob=1.0):
 
 def get_task_output(task="asr", lang="English", text=""):
     """Get the expected output format for the specified task."""
-    return _format_task_output(_get_task_output_tag(task), lang, text)
+    return _format_task_output(_get_task_output_tag(task), get_language_name(lang), text)
     
 
 
