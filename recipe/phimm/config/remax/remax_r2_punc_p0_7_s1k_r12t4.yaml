@@ -73,7 +73,13 @@ rollout:
   n_gpus_per_node: 4
 
 async_training:
-  concurrent_samples_per_replica: 32
+  # concurrent_samples_per_replica=32 (12 replicas -> 384 in-flight) deadlocks
+  # the rollouter pause/drain before the NCCL param sync: after the first sync
+  # the Processor logs "waiting for remaining tasks to return..." and never
+  # resumes generation (active_tasks_size=0, GPUs idle, trainer starves at
+  # global_step 5). Lower to 8 (12*8=96 in-flight, still > required_samples=64)
+  # so in-flight requests drain quickly at each param sync.
+  concurrent_samples_per_replica: 8
   staleness_threshold: 0.5
   trigger_parameter_sync_step: 4
   partial_rollout: true
