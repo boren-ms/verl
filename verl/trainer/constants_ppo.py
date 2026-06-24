@@ -42,10 +42,6 @@ PPO_RAY_RUNTIME_ENV = {
         "HCCL_HOST_SOCKET_PORT_RANGE": "auto",
         "HCCL_NPU_SOCKET_PORT_RANGE": "auto",
         "HSA_NO_SCRATCH_RECLAIM": "1",
-        # Reduce CUDA allocator fragmentation OOMs in the FSDP actor update of
-        # large audio models (e.g. Qwen3.5-9B audio); see PyTorch memory mgmt.
-        "PYTORCH_ALLOC_CONF": "expandable_segments:True",
-        "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
         **_gb200_nccl_env,
     },
 }

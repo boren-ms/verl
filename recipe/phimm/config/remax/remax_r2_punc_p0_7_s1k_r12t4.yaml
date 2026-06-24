@@ -51,9 +51,11 @@ actor_rollout_ref:
     # lengths grow (observed CUDA OOM in actor_update_actor at step:0 -> step 1,
     # GPU0 77GB/79GB on the 2nd node). Gradient checkpointing is unsupported and
     # fsdp_size=4 (from base) already shards params/optimizer across the 4
-    # trainer GPUs; lower the per-GPU dynamic-bsz token budget to 2048 (paired
-    # with PYTORCH_ALLOC_CONF=expandable_segments:True from constants_ppo) to
-    # clear the actor_update_actor OOM.
+    # trainer GPUs; lower the per-GPU dynamic-bsz token budget to 2048 to clear
+    # the actor_update_actor OOM. (Do NOT use PYTORCH_ALLOC_CONF=
+    # expandable_segments:True here — it propagates to the shared ray runtime
+    # env and breaks the vLLM rollout CuMemAllocator: "Expandable segments are
+    # not compatible with memory pool".)
     ppo_max_token_len_per_gpu: 2048
   rollout:
     max_num_seqs: 64
