@@ -42,6 +42,7 @@ def _get_task_output_tag(task):
 
 
 def _format_task_output(tag, lang, text):
+    lang = lang or "Unknown"
     return f"Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
 
 
