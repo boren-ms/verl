@@ -66,7 +66,13 @@ actor_rollout_ref:
 trainer:
   nnodes: 1
   n_gpus_per_node: 4
-  resume_mode: disable
+  # auto-resume from the latest local/blob global_step_* checkpoint. The random
+  # vLLM "sample_tokens timed out" -> EngineDeadError hang makes the rollouter
+  # terminate the queue and the driver exit 0 (Ray reports SUCCEEDED) mid-run;
+  # resume_mode=auto lets a resubmit continue from the last checkpoint instead
+  # of restarting from scratch. fully_async load_checkpoint handles an empty
+  # blob (default_hdfs_dir) gracefully and prefers the latest checkpoint found.
+  resume_mode: auto
 
 rollout:
   nnodes: 3
