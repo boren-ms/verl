@@ -731,6 +731,12 @@ class FSDPEngine(BaseEngine):
             return
         self.optimizer_config.total_training_steps = total_training_steps
         self.lr_scheduler = self._build_lr_scheduler(self.optimizer)
+        # The checkpoint manager captured a reference to the original scheduler when it was
+        # created in init_workers(). Rebuilding above creates a brand new scheduler object, so
+        # the manager would otherwise restore checkpoint state into the discarded scheduler and
+        # leave the active one at last_epoch=0 (LR not correctly resumed). Re-point it here.
+        if getattr(self, "checkpoint_manager", None) is not None:
+            self.checkpoint_manager.lr_scheduler = self.lr_scheduler
         if self.rank == 0:
             logger.info(f"[FSDPEngine] Rebuilt LR scheduler with total_training_steps={total_training_steps}")
 
