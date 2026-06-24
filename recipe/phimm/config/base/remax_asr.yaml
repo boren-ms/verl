@@ -23,7 +23,7 @@ async_training:
   staleness_threshold: 0.5
   trigger_parameter_sync_step: 4
   require_batches: 1
-  partial_rollout: true
+  partial_rollout: false
   use_trainer_do_validate: false
 
 # ── Rollout GPU pool (separate from trainer) ──────────────────────────────
