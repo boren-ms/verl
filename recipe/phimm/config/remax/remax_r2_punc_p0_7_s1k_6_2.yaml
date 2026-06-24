@@ -39,6 +39,12 @@ actor_rollout_ref:
     fsdp_config:
       # Shard params across all 2 trainer GPUs.
       fsdp_size: 2
+    # With only 2 trainer GPUs (vs the base 4), each FSDP shard holds ~2x the
+    # 9B base-param weights, leaving far less headroom for actor-update
+    # activations. The base ppo_max_token_len_per_gpu=4096 OOMs GPU0 during
+    # actor_update_actor (gated_delta_rule intermediates). Halve the per-GPU
+    # dynamic token budget so the update fits on the 2-GPU trainer pool.
+    ppo_max_token_len_per_gpu: 2048
 
 trainer:
   n_gpus_per_node: 2
