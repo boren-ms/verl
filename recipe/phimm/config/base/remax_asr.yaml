@@ -152,7 +152,7 @@ rollout:
   nnodes: 1
   n_gpus_per_node: 6
   n: 12
-  total_rollout_steps: null      # null = use all data × total_epochs
+  total_rollout_steps: ${trainer.total_training_steps}
 
 # ── Trainer ───────────────────────────────────────────────────────────────
 trainer:
