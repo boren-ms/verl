@@ -60,6 +60,12 @@ trainer:
   # pre-train validation so each (re)submit goes straight to training and saves
   # checkpoints (periodic val still runs at test_freq during training).
   val_before_train: false
+  # The vLLM hang is most exposed during the long validation generation (it
+  # hung the step-100 periodic val, GPUs idle, no result). Validate less often
+  # (every 50 trainer steps instead of 10) to cut validation-hang exposure while
+  # still tracking the DTER trajectory; keep save_freq=10 for checkpoint
+  # granularity so resumes lose few steps.
+  test_freq: 50
 
 rollout:
   nnodes: 3
