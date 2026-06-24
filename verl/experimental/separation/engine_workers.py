@@ -157,3 +157,18 @@ class DetachActorWorker(ActorRolloutRefWorker):
         """
         if n in self.cpu_saved_models:
             del self.cpu_saved_models[n]
+
+    @register(dispatch_mode=Dispatch.ONE_TO_ALL)
+    def set_lr_scheduler_total_steps(self, total_training_steps):
+        """
+        Rebuild the actor engine's LR scheduler with an updated total_training_steps.
+
+        The fully async trainer creates the workers (and their LR schedulers) before the
+        true number of optimizer steps is known, so the initial schedule uses a stale value.
+        This rebuilds it once the trainer computes the real horizon.
+
+        Args:
+            total_training_steps: Number of optimizer steps the LR schedule should span.
+        """
+        self.actor.engine.set_lr_scheduler_total_steps(total_training_steps)
+

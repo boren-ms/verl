@@ -718,6 +718,22 @@ class FSDPEngine(BaseEngine):
         lr = self.lr_scheduler.get_last_lr()[0]  # only return the first group
         return lr
 
+    def set_lr_scheduler_total_steps(self, total_training_steps: int):
+        """
+        Rebuild the LR scheduler with an updated ``total_training_steps``.
+
+        The fully async trainer only learns the true number of optimizer steps after the
+        workers (and the initial scheduler) have already been created, so the initial
+        schedule is built with a stale value. Rebuilding here is safe because it happens
+        before training starts, while the optimizer has no accumulated state yet.
+        """
+        if self.engine_config.forward_only or self.optimizer is None or self.lr_scheduler is None:
+            return
+        self.optimizer_config.total_training_steps = total_training_steps
+        self.lr_scheduler = self._build_lr_scheduler(self.optimizer)
+        if self.rank == 0:
+            logger.info(f"[FSDPEngine] Rebuilt LR scheduler with total_training_steps={total_training_steps}")
+
     def to(self, device: str, model: bool = True, optimizer: bool = True, grad: bool = True):
         """
         Move FSDP model and/or optimizer to CPU or GPU with offload support.

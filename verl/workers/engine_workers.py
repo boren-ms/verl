@@ -169,6 +169,15 @@ class TrainingWorker(Worker, DistProfilerExtension):
         """
         self.engine.initialize()
 
+    @register(dispatch_mode=Dispatch.ONE_TO_ALL)
+    def set_lr_scheduler_total_steps(self, total_training_steps):
+        """Rebuild the engine's LR scheduler with an updated total_training_steps.
+
+        Used by the fully async trainer to fix the LR schedule horizon once the true
+        number of optimizer steps is known (after the scheduler was already created).
+        """
+        self.engine.set_lr_scheduler_total_steps(total_training_steps)
+
     def _postprocess_output(self, output, *, global_token_num, delta_time, forward_only, images_seqlens):
         """
 

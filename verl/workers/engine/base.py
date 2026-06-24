@@ -96,6 +96,20 @@ class BaseEngine:
         """
         raise NotImplementedError
 
+    def set_lr_scheduler_total_steps(self, total_training_steps: int):
+        """
+        Update the planned number of optimizer steps and rebuild the LR scheduler.
+
+        Default implementation is a no-op. Engines whose LR schedule horizon depends on
+        ``optimizer_config.total_training_steps`` (e.g. FSDP) override this. It is used by
+        the fully async trainer, which only learns the true number of optimizer steps after
+        the workers (and thus their initial schedulers) have already been constructed.
+
+        Args:
+            total_training_steps (int): The number of optimizer steps the scheduler should span.
+        """
+        return
+
     def forward_backward_batch(self, data: TensorDict, loss_function: Callable, forward_only=False) -> Any:
         """
         Perform a forward pass and optionally a backward pass on a batch of data.

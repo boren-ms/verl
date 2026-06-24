@@ -256,17 +256,36 @@ class FullyAsyncTrainer(SeparateRayPPOTrainer):
     def set_total_train_steps(self, total_training_steps):
         self.total_train_steps = total_training_steps
 
+        # The LR scheduler is advanced once per actor update (once per fit_step), and there
+        # are `trigger_parameter_sync_step` fit_steps per parameter version. So the schedule
+        # must span the number of optimizer steps, not the number of parameter versions.
+        optim_total_steps = total_training_steps * self.trigger_parameter_sync_step
+
         try:
             OmegaConf.set_struct(self.config, True)
             with open_dict(self.config):
                 if OmegaConf.select(self.config, "actor_rollout_ref.actor.optim"):
-                    self.config.actor_rollout_ref.actor.optim.total_training_steps = total_training_steps
+                    self.config.actor_rollout_ref.actor.optim.total_training_steps = optim_total_steps
                 if OmegaConf.select(self.config, "critic.optim"):
-                    self.config.critic.optim.total_training_steps = total_training_steps
+                    self.config.critic.optim.total_training_steps = optim_total_steps
         except Exception as e:
             print(f"Warning: Could not set total_training_steps in config. Structure missing? Error: {e}")
 
+        # The actor/critic workers (and their LR schedulers) were already created during
+        # init_workers() with a stale total_training_steps, because the true value is only
+        # known after the rollouter computes total_train_steps. Rebuild the schedulers now so
+        # the LR warmup/decay actually spans the real optimizer-step horizon.
+        self.actor_wg.set_lr_scheduler_total_steps(optim_total_steps)
+        if self.use_critic:
+            self.critic_wg.set_lr_scheduler_total_steps(optim_total_steps)
+        print(
+            f"[FullyAsyncTrainer] set_total_train_steps: total_train_steps={total_training_steps}, "
+            f"trigger_parameter_sync_step={self.trigger_parameter_sync_step}, "
+            f"lr_scheduler total_training_steps={optim_total_steps}"
+        )
+
         self.progress_bar = tqdm(total=self.total_train_steps, initial=0, desc="Training Progress")
+
 
     def get_actor_wg(self):
         """Get actor worker group"""
