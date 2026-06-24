@@ -90,6 +90,9 @@ actor_rollout_ref:
     use_dynamic_bsz: true
     grad_clip: 1.0
     ppo_max_token_len_per_gpu: 2048
+    checkpoint:
+      save_contents: ['model', 'optimizer', 'extra', 'hf_model']
+      load_contents: ['model', 'optimizer', 'extra']
     optim:
       lr: 5e-6
       warmup_style: cosine
