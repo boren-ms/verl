@@ -1,21 +1,7 @@
-# Fully Async ReMax ASR Training Config - Punc (binary advantage)
-# For Qwen3.5-9B Audio model with fully async policy (separate rollout + training GPUs)
-#
-# Composition:
-#   base/remax_asr   — shared model/actor/rollout/ref/trainer/data scaffolding
-#   data/train_data/qwen_en_hc_200k_entity_fy24q3p2_punc_p0_7
-#   data/val_data/enus_conv_fy21q1_seg
-#
-# Settings ported from:
-#   recipe/phimm/config/remax/remax_r2_punc_p0_7_n12_s1k_mean_binary_adv.yaml
-#
-# Train reward: punc_cap_measure (char + punc F-measure, reduce=mean)
-# Algorithm:    ReMax + binary advantage, fully async rollout/training
-#
-# Usage:
-#   python3 -m verl.experimental.fully_async_policy.fully_async_main \
-#       --config-path=../../../recipe/phimm/config \
-#       --config-name=remax_r2_punc_p0_7_n12_s1k_mean_binary_adv
+# ReMax ASR Training Config - Punc - ASYNC MODE (fully async policy)
+# For Qwen3.5-9B Audio model with a SEPARATE rollout GPU pool and ASYNCHRONOUS
+# parameter sync (verl fully-async policy: standalone vLLM rollout servers +
+# FSDP trainer pool, weights pushed every trigger_parameter_sync_step).
 
 hydra:
   searchpath:
@@ -29,7 +15,21 @@ defaults:
   - data/val_data/enus_conv_fy21q1_seg
   - _self_
 
-# ── Algorithm: ReMax + binary advantage ───────────────────────────────────
+actor_rollout_ref:
+  actor:
+    ppo_max_token_len_per_gpu: 4096
+  rollout:
+    max_num_seqs: 64
+    gpu_memory_utilization: 0.85
+    temperature: 1.2
+
+async_training:
+  concurrent_samples_per_replica: 32
+  # staleness_threshold: 0
+  # trigger_parameter_sync_step: 1
+  # partial_rollout: false
+  # require_batches: 1
+
 algorithm:
   binary_adv: true
   binary_adv_scale: 1.0
@@ -51,3 +51,6 @@ val_reward:
   custom_reward_function:
     path: pkg://recipe.phimm.reward.asr_inhouse_measure
     name: eval_score
+
+trainer:
+  resume_mode: disable
