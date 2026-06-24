@@ -145,7 +145,7 @@ async_training:
   require_batches: 1
   partial_rollout: false
   use_trainer_do_validate: false
-  concurrent_samples_per_replica: 32
+  concurrent_samples_per_replica: 12 # 12*6=72>64
 
 # ── Rollout GPU pool (separate from trainer) ──────────────────────────────
 rollout:
