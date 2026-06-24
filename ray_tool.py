@@ -405,6 +405,11 @@ def prepare_env(forced=False):
     # Install all deps from requirements_vllm.txt (includes vllm inference
     # deps, torch, flashinfer, and project deps — but NOT protobuf/ray).
     run_cmd("pip install -r requirements_vllm.txt", check=False)
+    # Some requirements_vllm.txt deps transitively pull protobuf>=6, which
+    # breaks the already-running Ray dashboard/workers that loaded the base
+    # image's protobuf 5.29.5 in memory (mismatched gencode/runtime versions).
+    # Force protobuf back to the base-image version after the deps install.
+    run_cmd("pip install --no-deps --force-reinstall protobuf==5.29.5", check=False)
     # run_cmd('pip install --no-deps "ray[default]==2.46.0"')
     run_cmd("pip install --no-deps -e .")
     run_cmd("pip install --no-deps -e plugins/qwen35_audio")
