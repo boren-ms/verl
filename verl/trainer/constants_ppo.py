@@ -46,10 +46,6 @@ PPO_RAY_RUNTIME_ENV = {
         "HCCL_HOST_SOCKET_PORT_RANGE": "auto",
         "HCCL_NPU_SOCKET_PORT_RANGE": "auto",
         "HSA_NO_SCRATCH_RECLAIM": "1",
-        # vLLM v1 declares an EngineCore dead if an RPC (e.g. sample_tokens)
-        # exceeds this timeout (default 300s); raise it to tolerate transient
-        # slow decodes / param-sync stalls before killing the rollout replica.
-        "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS": "1800",
         **_gb200_nccl_env,
     },
 }
