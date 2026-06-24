@@ -1,0 +1,26 @@
+# Single Dictation_SimuMixedLang_DTEST_FY26Q2_14 D-test set (locale zh-CN).
+# Simulated mixed-language / code-switching dictation. Used in-place via blobfile
+# — no copy. data_source is fixed to "mixlang_fy26q2" (not derived from
+# CorpusName). Uses `lang_asr` with an explicit None language, so it is resolved
+# per example (falling back to the default) rather than hard-coded.
+# WavPath in the orng test.jsonl is already az://, so no path_replace is needed.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/test_sets/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Unknown
+  post_process:
+    add_field:
+      fields:
+        data_source: mixlang_fy26q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
