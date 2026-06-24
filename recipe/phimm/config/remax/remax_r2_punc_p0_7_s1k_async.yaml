@@ -50,7 +50,10 @@ actor_rollout_ref:
     # remax_asr_fully_async_bracket. Gradient checkpointing is NOT an option
     # (Qwen3_5AudioForCausalLM does not support it); fsdp_size=4 (from base)
     # already shards params/optimizer across all 4 trainer GPUs.
-    ppo_max_token_len_per_gpu: 4096
+    # Even at 4096 the first actor update OOMs (GPU0 77GB/79GB) once response
+    # lengths grow; lower to 2048 (combined with PYTORCH_ALLOC_CONF=
+    # expandable_segments:True at submit) to clear the actor_update_actor OOM.
+    ppo_max_token_len_per_gpu: 2048
   rollout:
     max_num_seqs: 64
     gpu_memory_utilization: 0.85
