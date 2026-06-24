@@ -193,6 +193,47 @@ def _check_directory_structure(folder_path, record_file):
     return existing_entries == recorded_entries
 
 
+def to_local(file_name, local_path, hdfs_path=None):
+    """Resolve ``file_name`` to a local file, preferring remote (HDFS/blob) over local.
+
+    Tries ``hdfs_path`` first (downloading via ``copy_to_local``), then falls back
+    to ``local_path``. Returns the local filesystem path, or ``None`` if neither
+    source contains the file.
+    """
+    for remote_dir in [hdfs_path, local_path]:
+        if remote_dir is None:
+            continue
+        remote_file = os.path.join(remote_dir, file_name)
+        local_file = copy_to_local(remote_file)
+        if local_file is not None:
+            return local_file
+    return None
+
+
+def copy_to_remote(local_file, hdfs_path=None, overwrite=False):
+    """Upload a local file or directory into the remote (HDFS/blob) directory ``hdfs_path``.
+
+    For a file, it lands at ``hdfs_path/<basename>``. For a directory, its own
+    name and internal structure are preserved (files land under
+    ``hdfs_path/<basename(local_file)>/...``). No-op when ``hdfs_path`` is ``None``.
+    Returns the remote path on upload, otherwise the original local path.
+    """
+    if hdfs_path is None:
+        return local_file
+    from recipe.phimm.utils.shared import upload_file
+
+    remote_path = os.path.join(hdfs_path, os.path.basename(local_file.rstrip("/")))
+    if os.path.isdir(local_file):
+        for root, _, files in os.walk(local_file):
+            rel = os.path.relpath(root, local_file)
+            target_dir = remote_path if rel == "." else os.path.join(remote_path, rel)
+            for file_name in files:
+                upload_file(os.path.join(root, file_name), os.path.join(target_dir, file_name), overwrite=overwrite)
+    else:
+        upload_file(local_file, remote_path, overwrite=overwrite)
+    return remote_path
+
+
 def copy_to_local(
     src: str, cache_dir=None, filelock=".file.lock", verbose=False, always_recopy=False, use_shm: bool = False
 ) -> str:
