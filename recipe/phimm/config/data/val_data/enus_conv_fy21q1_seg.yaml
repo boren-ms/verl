@@ -8,11 +8,13 @@
       mappings:
         audio_path: WavPath
         text: DisplayTranscription
-        data_source: CorpusName
   add_task_info:
     task: lang_asr
     language: English
   post_process:
+    add_field:
+      fields:
+        data_source: enus_conv_fy21q1
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
