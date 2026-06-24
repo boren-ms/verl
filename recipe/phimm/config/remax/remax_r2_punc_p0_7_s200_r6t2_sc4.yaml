@@ -10,13 +10,12 @@ defaults:
   - data/val_data/enus_conv_fy21q1_seg
   - _self_
 
-# Fully-async trainer_steps = total_rollout_steps / (ppo_mini_batch_size * sync_step).
-# total_rollout_steps tracks total_training_steps; mini_batch=64, sync=4 => 768/256 = 3
-# trainer steps, matching sc1 (200/64 = 3) so the sc1-vs-sc4 sync-cadence comparison
-# runs the same number of trainer updates. (sc1's total_training_steps=200 gives 3;
-# sc4 needs 768 for the same 3.) Raise proportionally (N*64*sync_step) for longer runs.
+# Fully-async trainer_steps = total_rollout_steps / (ppo_mini_batch_size * sync_step),
+# and total_rollout_steps tracks total_training_steps. For 200 trainer steps with
+# mini_batch=64, sync=4: 200*64*4 = 51200 (=> 51200/256 = 200 trainer steps),
+# matching sc1's 200 trainer steps for an apples-to-apples sync-cadence comparison.
 trainer:
-  total_training_steps: 768
+  total_training_steps: 51200
 
 async_training:
   staleness_threshold: 0.5
