@@ -33,6 +33,10 @@ PPO_RAY_RUNTIME_ENV = {
         "NCCL_DEBUG": "WARN",
         "VLLM_LOGGING_LEVEL": "WARN",
         "VLLM_ALLOW_RUNTIME_LORA_UPDATING": "true",
+        # Raise the vLLM worker RPC timeout (default 300s) so heavy async-RL
+        # rollout/validation batches don't trip "RPC call to sample_tokens
+        # timed out" -> EngineDeadError under load.
+        "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS": "1800",
         "CUDA_DEVICE_MAX_CONNECTIONS": "1",
         # TODO: disable compile cache due to cache corruption issue
         # https://github.com/vllm-project/vllm/issues/31199
