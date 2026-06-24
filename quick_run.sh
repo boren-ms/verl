@@ -54,10 +54,6 @@ elif [[ "$subdir" == "rollout" || "$config_name" == rollout_* ]]; then
     # Fully-async ASR rollout/generation. Module: recipe/phimm/asr_rollout.py.
     module="recipe.phimm.asr_rollout"
     base="config"
-elif [[ "$subdir" == "gen" || "$config_name" == gen_* ]]; then
-    # Batch ASR generation. Module: recipe/phimm/main_asr_gen.py.
-    module="recipe.phimm.main_asr_gen"
-    base="config"
 else
     # Default PPO trainer. Module: verl/trainer/main_ppo.py.
     module="verl.trainer.main_ppo"
