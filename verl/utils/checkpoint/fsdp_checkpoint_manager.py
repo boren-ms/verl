@@ -29,7 +29,7 @@ from transformers import GenerationConfig, PreTrainedTokenizer, ProcessorMixin
 from transformers.dynamic_module_utils import custom_object_save
 
 from verl.utils.device import is_cuda_available
-from verl.utils.fs import copy_to_remote, is_non_local, local_mkdir_safe, to_local
+from verl.utils.fs import copy_to_remote, is_non_local, local_mkdir_safe, to_local, wait_for_remote_uploads
 from verl.utils.fsdp_utils import (
     fsdp_version,
     get_fsdp_full_state_dict,
@@ -295,6 +295,13 @@ class FSDPCheckpointManager(BaseCheckpointManager):
         # record the previous global step
         self.previous_global_step = global_step
 
+        # Drain in-flight uploads scheduled by the previous save before any rotation deletes old
+        # checkpoint dirs. ensure_checkpoint_capacity / register_checkpoint shutil.rmtree old
+        # global_step_* dirs (rank 0 only, but the dir holds every rank's shard), so all ranks must
+        # finish uploading and sync before rank 0 rotates, otherwise rmtree can race a live upload.
+        wait_for_remote_uploads(timeout=120)
+        torch.distributed.barrier()
+
         if self.rank == 0:
             self.ensure_checkpoint_capacity(max_ckpt_to_keep)
 
@@ -323,13 +330,13 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     model_state_dict = self.model.state_dict()
                     torch.save(model_state_dict, model_path)
                     log_with_rank(f"Saved model to {os.path.abspath(model_path)}", rank=self.rank, logger=logger)
-                    copy_to_remote(model_path, hdfs_path)
+                    copy_to_remote(model_path, hdfs_path, blocking=False)
 
                 if self.should_save_optimizer:
                     optimizer_state_dict = self.optimizer.state_dict()
                     torch.save(optimizer_state_dict, optim_path)
                     log_with_rank(f"Saved optim to {os.path.abspath(optim_path)}", rank=self.rank, logger=logger)
-                    copy_to_remote(optim_path, hdfs_path)
+                    copy_to_remote(optim_path, hdfs_path, blocking=False)
 
                 if self.should_save_extra:
                     lr_scheduler_state_dict = self.lr_scheduler.state_dict() if self.lr_scheduler is not None else None
@@ -339,7 +346,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     }
                     torch.save(extra_state_dict, extra_path)
                     log_with_rank(f"Saved extra_state to {os.path.abspath(extra_path)}", rank=self.rank, logger=logger)
-                    copy_to_remote(extra_path, hdfs_path)
+                    copy_to_remote(extra_path, hdfs_path, blocking=False)
 
         if self.rank == 0:
             # Save HF tokenizer/processor and model config on rank 0 to huggingface/ directory, no matter whether
@@ -390,16 +397,16 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             )
             with open(fsdp_config_path, "w") as f:
                 json.dump(asdict(fsdp_config), f, indent=4)
-            copy_to_remote(fsdp_config_path, hdfs_path)
+            copy_to_remote(fsdp_config_path, hdfs_path, blocking=False)
             lora_meta_path = self._save_lora_train_meta(local_path, unwrap_model)
             if lora_meta_path is not None:
-                copy_to_remote(lora_meta_path, hdfs_path)
+                copy_to_remote(lora_meta_path, hdfs_path, blocking=False)
 
             if not self.should_save_hf_model:
                 # The hf_model weights are not exported, so the huggingface/ dir (config,
                 # tokenizer/processor, generation config, custom modeling files) is complete now.
                 # Upload it here; when hf_model IS exported it is uploaded after the weights below.
-                copy_to_remote(hf_config_tokenizer_path, hdfs_path)
+                copy_to_remote(hf_config_tokenizer_path, hdfs_path, blocking=False)
 
         # wait for everyone to dump to local
         torch.distributed.barrier()
@@ -448,7 +455,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                 drop_tied_target_keys(state_dict, save_model, model_config)
 
                 save_model.save_pretrained(hf_local_path, state_dict=state_dict)
-                copy_to_remote(hf_local_path, hdfs_path)
+                copy_to_remote(hf_local_path, hdfs_path, blocking=False)
                 log_with_rank(
                     f"Saved hf_model to {os.path.abspath(hf_local_path)}",
                     rank=self.rank,

@@ -16,10 +16,13 @@
 # -*- coding: utf-8 -*-
 """File-system agnostic IO APIs"""
 
+import atexit
 import hashlib
 import os
 import shutil
 import tempfile
+import threading
+from concurrent.futures import Future, ThreadPoolExecutor
 
 try:
     from hdfs_io import copy, exists, makedirs  # for internal use only
@@ -30,6 +33,49 @@ __all__ = ["copy", "exists", "makedirs"]
 
 _HDFS_PREFIX = "hdfs://"
 _BLOB_PREFIXES = ("az://", "gs://", "s3://")
+
+# Background executor for non-blocking copy_to_remote uploads.
+_UPLOAD_EXECUTOR = None
+_UPLOAD_FUTURES: list[Future] = []
+_UPLOAD_LOCK = threading.Lock()
+
+
+def _get_upload_executor() -> ThreadPoolExecutor:
+    """Lazily create the shared thread pool used for async ``copy_to_remote`` uploads."""
+    global _UPLOAD_EXECUTOR
+    with _UPLOAD_LOCK:
+        if _UPLOAD_EXECUTOR is None:
+            max_workers = int(os.environ.get("VERL_COPY_TO_REMOTE_WORKERS", "4"))
+            _UPLOAD_EXECUTOR = ThreadPoolExecutor(
+                max_workers=max_workers, thread_name_prefix="copy_to_remote"
+            )
+            atexit.register(_UPLOAD_EXECUTOR.shutdown, wait=True)
+    return _UPLOAD_EXECUTOR
+
+
+def wait_for_remote_uploads(timeout=None):
+    """Block until all in-flight async ``copy_to_remote`` uploads have finished.
+
+    Re-raises the first exception encountered by any background upload. Call this
+    before any operation that depends on the uploads being complete (e.g. checkpoint
+    rotation that may delete the local files, or process shutdown).
+
+    Args:
+        timeout (float, optional): Per-future timeout in seconds. ``None`` waits
+            indefinitely.
+    """
+    with _UPLOAD_LOCK:
+        pending = _UPLOAD_FUTURES.copy()
+        _UPLOAD_FUTURES.clear()
+    first_error = None
+    for future in pending:
+        try:
+            future.result(timeout=timeout)
+        except Exception as e:  # noqa: BLE001 - surface the first failure after draining all
+            if first_error is None:
+                first_error = e
+    if first_error is not None:
+        raise first_error
 
 
 def is_non_local(path):
@@ -210,28 +256,55 @@ def to_local(file_name, local_path, hdfs_path=None):
     return None
 
 
-def copy_to_remote(local_file, hdfs_path=None, overwrite=False):
+def copy_to_remote(local_file, hdfs_path=None, overwrite=False, blocking=True):
     """Upload a local file or directory into the remote (HDFS/blob) directory ``hdfs_path``.
 
     For a file, it lands at ``hdfs_path/<basename>``. For a directory, its own
     name and internal structure are preserved (files land under
     ``hdfs_path/<basename(local_file)>/...``). No-op when ``hdfs_path`` is ``None``.
-    Returns the remote path on upload, otherwise the original local path.
+
+    Args:
+        local_file (str): Local file or directory to upload.
+        hdfs_path (str, optional): Remote destination directory. ``None`` disables upload.
+        overwrite (bool): Overwrite existing remote files. Defaults to ``False``.
+        blocking (bool): When ``True`` (default), upload synchronously and return the
+            remote path. When ``False``, schedule the upload on a background thread and
+            return a ``concurrent.futures.Future`` immediately so the caller is not
+            blocked. Use :func:`wait_for_remote_uploads` to await pending async uploads.
+
+    Returns:
+        When ``hdfs_path`` is ``None``: the original ``local_file``.
+        When ``blocking`` is ``True``: the remote path.
+        When ``blocking`` is ``False``: a ``Future`` resolving to the remote path.
     """
     if hdfs_path is None:
         return local_file
     from recipe.phimm.utils.shared import upload_file
 
     remote_path = os.path.join(hdfs_path, os.path.basename(local_file.rstrip("/")))
-    if os.path.isdir(local_file):
-        for root, _, files in os.walk(local_file):
-            rel = os.path.relpath(root, local_file)
-            target_dir = remote_path if rel == "." else os.path.join(remote_path, rel)
-            for file_name in files:
-                upload_file(os.path.join(root, file_name), os.path.join(target_dir, file_name), overwrite=overwrite)
-    else:
-        upload_file(local_file, remote_path, overwrite=overwrite)
-    return remote_path
+
+    def _do_upload():
+        if os.path.isdir(local_file):
+            for root, _, files in os.walk(local_file):
+                rel = os.path.relpath(root, local_file)
+                target_dir = remote_path if rel == "." else os.path.join(remote_path, rel)
+                for file_name in files:
+                    upload_file(
+                        os.path.join(root, file_name),
+                        os.path.join(target_dir, file_name),
+                        overwrite=overwrite,
+                    )
+        else:
+            upload_file(local_file, remote_path, overwrite=overwrite)
+        return remote_path
+
+    if blocking:
+        return _do_upload()
+
+    future = _get_upload_executor().submit(_do_upload)
+    with _UPLOAD_LOCK:
+        _UPLOAD_FUTURES.append(future)
+    return future
 
 
 def copy_to_local(
