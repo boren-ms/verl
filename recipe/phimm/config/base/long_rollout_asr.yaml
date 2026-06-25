@@ -45,6 +45,10 @@ data:
   prompt_key: prompt
   return_raw_chat: true
   return_multi_modal_inputs: true
+  # Eval must cover every segment: concatenate the per-corpus datasets instead of
+  # interleaving them (interleave stops at the shortest corpus, dropping segments
+  # from longer ones — the real cause of the all_seg segment loss).
+  interleave_datasets: false
   # Eval rollout is audio-load-bound (unlike trainer-bound remax which uses 0):
   # parallel workers keep the rollout replicas fed, otherwise GPUs starve.
   dataloader_num_workers: 8

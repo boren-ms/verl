@@ -94,6 +94,11 @@ class RLHFDataset(Dataset):
         self.is_training = is_training
         self.max_samples = max_samples
         self.interleave_ds = config.get("interleave_ds", {})
+        # Whether to interleave multiple datasets (training data mixing) or
+        # concatenate them. Evaluation/generation must cover every sample, so the
+        # long-audio rollout sets this False: interleave_datasets stops at the
+        # shortest dataset (first_exhausted), silently truncating longer corpora.
+        self.interleave_datasets = config.get("interleave_datasets", True)
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.max_audio_dur = config.get("max_audio_dur", 40)
         self.prompt_key = config.get("prompt_key", "prompt")
@@ -109,7 +114,7 @@ class RLHFDataset(Dataset):
 
     def load_datasets(self):
         data_sets = [create_audio_dataset(**data_conf) for data_conf in self.data_confs]
-        if self.is_training and len(data_sets) > 1:
+        if self.is_training and len(data_sets) > 1 and self.interleave_datasets:
             ds = datasets.interleave_datasets(data_sets, **self.interleave_ds)
         else:
             ds = datasets.concatenate_datasets(data_sets)
