@@ -147,7 +147,7 @@ async_training:
   trigger_parameter_sync_step: 4
   require_batches: 1
   partial_rollout: false
-  use_trainer_do_validate: false
+  use_trainer_do_validate: true
   concurrent_samples_per_replica: 12 # 12*6=72>64
   update_samples: ${eval:${async_training.require_batches}*${actor_rollout_ref.actor.ppo_mini_batch_size}*${async_training.trigger_parameter_sync_step}}
 
@@ -170,7 +170,7 @@ trainer:
   total_training_steps: null
   test_freq: 50
   save_freq: 50
-  val_before_train: true
+  val_before_train: false
   resume_mode: auto
   log_val_generations: 10
   default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
