@@ -41,7 +41,7 @@ data:
   prompt_key: prompt
   return_raw_chat: true
   return_multi_modal_inputs: true
-  dataloader_num_workers: 0
+  dataloader_num_workers: 8
   trust_remote_code: true
   eval_num_examine: 3
   train_num_examine: ${actor_rollout_ref.rollout.n}

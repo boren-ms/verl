@@ -45,7 +45,9 @@ data:
   prompt_key: prompt
   return_raw_chat: true
   return_multi_modal_inputs: true
-  dataloader_num_workers: 0
+  # Eval rollout is audio-load-bound (unlike trainer-bound remax which uses 0):
+  # parallel workers keep the rollout replicas fed, otherwise GPUs starve.
+  dataloader_num_workers: 8
   trust_remote_code: true
   log_interval: 100
   measure_kwargs: {}
