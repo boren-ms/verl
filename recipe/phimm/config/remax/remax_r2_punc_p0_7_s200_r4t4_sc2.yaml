@@ -12,7 +12,7 @@ defaults:
 
 async_training:
   staleness_threshold: 0.5
-  trigger_parameter_sync_step: 1
+  trigger_parameter_sync_step: 2
 
 rollout:
   total_updates: 200
