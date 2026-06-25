@@ -30,7 +30,12 @@ from transformers.dynamic_module_utils import custom_object_save
 
 from verl.utils.device import is_cuda_available
 from verl.utils.fs import copy_to_remote, is_non_local, local_mkdir_safe, to_local
-from verl.utils.fsdp_utils import fsdp_version, get_fsdp_full_state_dict, get_fsdp_state_ctx
+from verl.utils.fsdp_utils import (
+    fsdp_version,
+    get_fsdp_full_state_dict,
+    get_fsdp_state_ctx,
+    merged_lora_context,
+)
 from verl.utils.logger import log_with_rank
 from verl.utils.transformers_compat import drop_tied_target_keys, get_auto_model_for_vision2seq
 
@@ -52,6 +57,45 @@ class FSDPConfig:
 
     FSDP_version: int
     world_size: int
+
+
+def _get_hf_model_state_dict(model, merge_lora: bool = True):
+    """Gather the full model state dict used for the HuggingFace (``hf_model``) export.
+
+    For LoRA/PEFT models, when ``merge_lora`` is True (the default) the adapters are merged into the
+    base weights first so the exported ``model.safetensors`` is a complete, standalone checkpoint
+    that can be loaded directly for inference (e.g. vLLM) without the adapter. The merge happens
+    inside a context manager that restores the original (unmerged) training state afterwards, so
+    ongoing training is unaffected, and the PEFT key names are rewritten back to the base-model
+    naming expected by ``AutoModel.from_config(...)`` / vLLM, e.g.
+    ``base_model.model.model.layers.0...base_layer.weight`` -> ``model.layers.0...weight``. When
+    ``merge_lora`` is False, the raw (unmerged) full state dict is returned as-is.
+
+    ``get_fsdp_full_state_dict(rank0_only=True)`` and ``merged_lora_context`` are collectives, so
+    every rank must call this function, but only rank 0 receives the populated state dict (it is
+    empty on the other ranks).
+
+    Args:
+        model: The (FSDP-wrapped) model to export.
+        merge_lora: Whether to merge LoRA adapters into the base weights for PEFT models.
+    """
+    peft_model = getattr(model, "_fsdp_wrapped_module", model)
+    is_peft_model = bool(getattr(peft_model, "peft_config", None)) and fsdp_version(model) in (1, 2)
+
+    if not (is_peft_model and merge_lora):
+        return get_fsdp_full_state_dict(model, offload_to_cpu=True, rank0_only=True)
+
+    with merged_lora_context(model, backup_adapters=True):
+        state_dict = get_fsdp_full_state_dict(model, offload_to_cpu=True, rank0_only=True)
+    # Drop the (now-merged) LoRA adapter tensors and normalize PEFT key names (rank 0 only; the
+    # dict is empty on the other ranks).
+    return {
+        key.replace("_fsdp_wrapped_module.", "")
+        .replace("base_model.model.", "")
+        .replace(".base_layer.", "."): value
+        for key, value in state_dict.items()
+        if "lora_" not in key
+    }
 
 
 class FSDPCheckpointManager(BaseCheckpointManager):
@@ -351,13 +395,22 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             if lora_meta_path is not None:
                 copy_to_remote(lora_meta_path, hdfs_path)
 
+            if not self.should_save_hf_model:
+                # The hf_model weights are not exported, so the huggingface/ dir (config,
+                # tokenizer/processor, generation config, custom modeling files) is complete now.
+                # Upload it here; when hf_model IS exported it is uploaded after the weights below.
+                copy_to_remote(hf_config_tokenizer_path, hdfs_path)
+
         # wait for everyone to dump to local
         torch.distributed.barrier()
 
         if self.should_save_hf_model:
             # Only rank 0 will save hf model and,
-            # offload to cpu to save LLMs which may be too large to fit in one GPU
-            state_dict = get_fsdp_full_state_dict(self.model, offload_to_cpu=True, rank0_only=True)
+            # offload to cpu to save LLMs which may be too large to fit in one GPU.
+            # For LoRA/PEFT models the adapters are merged into the base weights so the export is a
+            # complete, inference-ready checkpoint. Every rank must call this (it runs collectives),
+            # but only rank 0 receives the populated state dict.
+            state_dict = _get_hf_model_state_dict(self.model)
 
             if self.rank == 0:
                 hf_local_path = os.path.join(local_path, "huggingface")
@@ -395,21 +448,18 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                 drop_tied_target_keys(state_dict, save_model, model_config)
 
                 save_model.save_pretrained(hf_local_path, state_dict=state_dict)
+                copy_to_remote(hf_local_path, hdfs_path)
                 log_with_rank(
                     f"Saved hf_model to {os.path.abspath(hf_local_path)}",
                     rank=self.rank,
                     logger=logger,
                     log_only_rank_0=True,
                 )
+
                 del state_dict
                 del save_model
 
-            # wait for rank0 to dump hf_model to local
             torch.distributed.barrier()
 
         if self.rank == 0:
-            # Upload the rank-0 huggingface artifacts (config, tokenizer/processor,
-            # generation config, custom modeling files, and the exported hf_model
-            # if requested) to remote once everything has been written locally.
-            copy_to_remote(os.path.join(local_path, "huggingface"), hdfs_path)
             self.register_checkpoint(local_path, max_ckpt_to_keep)
