@@ -10,8 +10,8 @@ defaults:
   - data/val_data/enus_conv_fy21q1_seg
   - _self_
 
-trainer:
-  total_training_steps: 200
+rollout:
+  total_updates: 200
 
 async_training:
   staleness_threshold: 0.5

@@ -10,11 +10,8 @@ defaults:
   - data/val_data/enus_conv_fy21q1_seg
   - _self_
 
-# Fully-async trainer_steps = total_rollout_steps / (ppo_mini_batch_size * sync_step),
-# and total_rollout_steps tracks total_training_steps. For 200 trainer steps with
-# mini_batch=64, sync=1: 200*64*1 = 12800 (=> 12800/64 = 200 trainer steps).
-trainer:
-  total_training_steps: 12800
+rollout:
+  total_updates: 200
 
 async_training:
   staleness_threshold: 0.5

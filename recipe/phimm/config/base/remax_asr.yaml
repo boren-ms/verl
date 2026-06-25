@@ -149,13 +149,15 @@ async_training:
   partial_rollout: false
   use_trainer_do_validate: false
   concurrent_samples_per_replica: 12 # 12*6=72>64
+  update_samples: ${eval:${async_training.require_batches}*${actor_rollout_ref.actor.ppo_mini_batch_size}*${async_training.trigger_parameter_sync_step}}
 
 # ── Rollout GPU pool (separate from trainer) ──────────────────────────────
 rollout:
   nnodes: 1
   n_gpus_per_node: 6
   n: 12
-  total_rollout_steps: null      # null = use all data × total_epochs
+  total_rollout_steps: ${eval:${async_training.update_samples}*${rollout.total_updates}}
+  total_updates: 1000
 
 # ── Trainer ───────────────────────────────────────────────────────────────
 trainer:
@@ -165,7 +167,7 @@ trainer:
   n_gpus_per_node: 2             # trainer GPU pool
   nnodes: 1
   total_epochs: 1
-  total_training_steps: 1000
+  total_training_steps: null
   test_freq: 10
   save_freq: 10
   val_before_train: true
