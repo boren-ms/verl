@@ -65,7 +65,13 @@ trainer:
   # (every 50 trainer steps instead of 10) to cut validation-hang exposure while
   # still tracking the DTER trajectory; keep save_freq=10 for checkpoint
   # granularity so resumes lose few steps.
-  test_freq: 50
+  # The long periodic validation generation reliably triggers the random vLLM
+  # sample_tokens hang (it hung the step-50 and step-100 validations for 20+ min
+  # with GPUs idle and no result), and because it lands on fixed step boundaries
+  # every resume re-hits and re-hangs there, blocking forward progress. Disable
+  # periodic validation during training (huge test_freq) so training runs
+  # unblocked; the model is evaluated by the dedicated in-house eval afterwards.
+  test_freq: 1000000
 
 rollout:
   nnodes: 3
