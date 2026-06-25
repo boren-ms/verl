@@ -27,7 +27,7 @@ data:
   train_batch_size: 0          # must be 0 for fully async
   gen_batch_size: 1            # single-sample streaming for async
   val_batch_size: -1
-  max_prompt_length: 1204
+  max_prompt_length: 1024
   max_response_length: 512
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   mm_processor_kwargs:

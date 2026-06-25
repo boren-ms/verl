@@ -299,7 +299,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
         # checkpoint dirs. ensure_checkpoint_capacity / register_checkpoint shutil.rmtree old
         # global_step_* dirs (rank 0 only, but the dir holds every rank's shard), so all ranks must
         # finish uploading and sync before rank 0 rotates, otherwise rmtree can race a live upload.
-        wait_for_remote_uploads(timeout=120)
+        wait_for_remote_uploads(timeout=1800)
         torch.distributed.barrier()
 
         if self.rank == 0:

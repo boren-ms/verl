@@ -15,26 +15,31 @@ defaults:
   - _self_
 
 data:
-  custom_cls:
-    path: recipe/phimm/data/rl_dataset.py
-    name: RLHFDataset
-  # The rollouter reads train_files/val_files; reuse the val_data dataset
-  # default (long-audio segments via svad_explode) for both so the same
-  # dataset yaml drives the segmentation as in main_long_eval_asr.
-  train_files: ${data.val_data}
-  val_files: ${data.val_data}
-  train_batch_size: 0
-  gen_batch_size: 1
-  output_path: null
-  max_prompt_length: 4096
-  max_response_length: 1024
-  # SVAD caps at 40s, so 50 leaves headroom for the audio embeddings.
-  max_audio_dur: 50
+  train_files: null
+  val_files: null
+  train_batch_size: 0          # must be 0 for fully async
+  gen_batch_size: 1            # single-sample streaming for async
+  val_batch_size: -1
+  max_prompt_length: 1024
+  max_response_length: 512
+  max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
+  mm_processor_kwargs:
+    sampling_rate: 16000
+  max_audio_dur: 40
+  chunk_load_mode: sample
+  shuffle: false
+  filter_overlong_prompts: false
+  truncation: right
+  prompt_key: prompt
   return_raw_chat: true
-  return_multi_modal_inputs: false
+  return_multi_modal_inputs: true
+  dataloader_num_workers: 0
   trust_remote_code: true
-  log_interval: 100
-  measure_kwargs: {}
+  eval_num_examine: 3
+  train_num_examine: ${actor_rollout_ref.rollout.n}
+  custom_cls:
+    path: pkg://recipe.phimm.data.rl_dataset
+    name: RLHFDataset
 
 rollout:
   nnodes: 1
@@ -64,6 +69,7 @@ actor_rollout_ref:
     load_format: auto
     engine_kwargs:
       vllm:
+        mm_processor_cache_gb: 0
         disable_custom_all_reduce: true
     calculate_log_probs: true
 
