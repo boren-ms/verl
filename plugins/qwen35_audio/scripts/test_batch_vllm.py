@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Batch inference test: multiple LibriSpeech audio samples."""
 import argparse
-import os, sys, time
+import os
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
 import numpy as np
 import soundfile as sf
-import shutil, subprocess
-from pathlib import Path
 
 os.environ.setdefault("VLLM_PLUGINS", "qwen35_audio")
 os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
@@ -13,11 +17,13 @@ os.environ.setdefault("QWEN35_AUDIO_DISABLE_CUDNN", "1")
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vllm_qwen35_audio.plugin import register
+
 register()
 
 from vllm import LLM, SamplingParams
 
-MODEL = "/root/data/qwen35_audio_test/models/qwen_hf-3368974083"
+MODEL = "az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example-r2/90000/qwen_hf"
+MODEL_LOCAL_ROOT = "/root/data/qwen35_audio_test/models"
 AUDIO_AZ_ROOT = "az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-360/115/122944"
 AUDIO_LOCAL_ROOT = "/root/data/qwen35_audio_test/audio"
 AUDIO_FILES = [f"115-122944-{i:04d}.flac" for i in range(11)]  # 0000..0010
@@ -38,11 +44,32 @@ def stage_audio(name: str) -> str:
     return local
 
 
+def stage_model(model: str) -> str:
+    """Return a local model dir. If `model` is a remote az:// path, download it."""
+    if not model.startswith("az://"):
+        return model
+    # Build a stable local dir name from the remote path.
+    rel = model[len("az://"):].rstrip("/")
+    local = os.path.join(MODEL_LOCAL_ROOT, rel.replace("/", "_"))
+    if os.path.isdir(local) and os.listdir(local):
+        print(f"model already staged at {local}")
+        return local
+    os.makedirs(local, exist_ok=True)
+    print(f"staging model {model} -> {local}")
+    subprocess.run(["bbb", "cp", "-r", model.rstrip("/") + "/", local], check=True)
+    return local
+
+
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model", type=str, default=MODEL,
+                        help="Local dir or remote az:// path to the HF model/checkpoint.")
     parser.add_argument("--tensor-parallel-size", type=int, default=8)
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.15)
     args = parser.parse_args()
+
+    model_path = stage_model(args.model)
+    print(f"model_path={model_path}")
 
     # Stage and load all audio files
     waveforms = []
@@ -58,7 +85,7 @@ def main():
     print(f"\nbatch_size={len(waveforms)}")
 
     llm = LLM(
-        model=MODEL, trust_remote_code=True,
+        model=model_path, trust_remote_code=True,
         max_model_len=4096, max_num_seqs=len(waveforms) + 1, dtype="bfloat16",
         tensor_parallel_size=args.tensor_parallel_size,
         limit_mm_per_prompt={"audio": 1},
