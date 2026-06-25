@@ -40,7 +40,8 @@ def stage_audio(name: str) -> str:
         return local
     os.makedirs(AUDIO_LOCAL_ROOT, exist_ok=True)
     print(f"staging {name}")
-    subprocess.run(["bbb", "cp", f"{AUDIO_AZ_ROOT}/{name}", local], check=True)
+    import blobfile as bf
+    bf.copy(f"{AUDIO_AZ_ROOT}/{name}", local, overwrite=True)
     return local
 
 
@@ -48,15 +49,24 @@ def stage_model(model: str) -> str:
     """Return a local model dir. If `model` is a remote az:// path, download it."""
     if not model.startswith("az://"):
         return model
+    import blobfile as bf
     # Build a stable local dir name from the remote path.
     rel = model[len("az://"):].rstrip("/")
     local = os.path.join(MODEL_LOCAL_ROOT, rel.replace("/", "_"))
+    remote = model.rstrip("/") + "/"
     if os.path.isdir(local) and os.listdir(local):
         print(f"model already staged at {local}")
         return local
     os.makedirs(local, exist_ok=True)
-    print(f"staging model {model} -> {local}")
-    subprocess.run(["bbb", "cp", "-r", model.rstrip("/") + "/", local], check=True)
+    print(f"staging model {remote} -> {local}")
+    for entry in bf.scandir(remote):
+        if entry.is_dir:
+            continue
+        dst = os.path.join(local, entry.name)
+        if os.path.exists(dst):
+            continue
+        print(f"  {entry.name}")
+        bf.copy(remote + entry.name, dst, overwrite=True)
     return local
 
 
