@@ -45,6 +45,12 @@ def parse_args():
     )
     base_op_parser.add_argument("--trust-remote-code", action="store_true", help="Whether to trust remote code")
     base_op_parser.add_argument(
+        "--merge-lora",
+        action="store_true",
+        help="Fold LoRA adapter weights into the base model and save a single merged HF model "
+        "(instead of writing a separate lora_adapter/). Rank/alpha are read from lora_train_meta.json.",
+    )
+    base_op_parser.add_argument(
         "--is-value-model",
         action="store_true",
         help="Whether the model is a value model (currently only Megatron supported)",
@@ -108,6 +114,7 @@ class ModelMergerConfig:
     test_hf_dir: Optional[str] = None
     tie_word_embedding: bool = False
     trust_remote_code: bool = False
+    merge_lora: bool = False
     is_value_model: bool = False
     local_dir: Optional[str] = None
     hf_model_config_path: Optional[str] = None
@@ -143,6 +150,7 @@ def generate_config_from_args(args: argparse.Namespace) -> ModelMergerConfig:
         "backend": args.backend,
         "tie_word_embedding": args.tie_word_embedding,
         "trust_remote_code": args.trust_remote_code,
+        "merge_lora": args.merge_lora,
         "is_value_model": args.is_value_model,
         "local_dir": args.local_dir,
         "hf_model_config_path": _default_hf_model_config_path(args.backend, args.local_dir),
@@ -387,7 +395,93 @@ class BaseModelMerger(ABC):
 
         return lora_path
 
+    def _merge_lora_into_base(self, state_dict: dict[str, torch.Tensor]) -> None:
+        """Fold LoRA adapter weights into the base weights in place.
+
+        For each adapted module ``W = W_base + (alpha / r) * (B @ A)``, then rename keys
+        back to the plain base-model names (stripping ``base_model.model.`` and
+        ``.base_layer``). Mirrors ``PeftModel.merge_and_unload()`` for standard
+        (non-rslora / non-dora) adapters; rank/alpha come from ``lora_train_meta.json``.
+        Changes ``state_dict`` in place.
+        """
+        lora_param_names = [name for name in state_dict if "lora_" in name]
+        if len(lora_param_names) == 0:
+            return
+
+        meta = self._load_lora_train_meta() or {}
+        meta_rank = meta.get("r")
+        meta_alpha = meta.get("lora_alpha")
+        if meta_alpha is None:
+            meta_path = os.path.join(self.config.local_dir, "lora_train_meta.json") if self.config.local_dir else "<unknown>"
+            raise ValueError(
+                f"Cannot fold LoRA with --merge-lora: 'lora_alpha' is missing from {meta_path}. "
+                "The merge scaling is alpha/r and cannot be inferred from the adapter weights; "
+                "provide lora_alpha (and r) in lora_train_meta.json."
+            )
+
+        prefixes = sorted({n.split(".lora_A.")[0] for n in lora_param_names if ".lora_A." in n})
+        for prefix in prefixes:
+            a_key = f"{prefix}.lora_A.default.weight"
+            b_key = f"{prefix}.lora_B.default.weight"
+            base_key = f"{prefix}.base_layer.weight"
+            if a_key not in state_dict or b_key not in state_dict or base_key not in state_dict:
+                warnings.warn(f"Skipping LoRA merge for {prefix}: missing A/B/base weight.", stacklevel=2)
+                continue
+            lora_a = state_dict.pop(a_key)
+            lora_b = state_dict.pop(b_key)
+            rank = meta_rank if meta_rank else lora_a.shape[0]
+            scaling = meta_alpha / rank
+            base_w = state_dict[base_key]
+            delta = (lora_b.to(torch.float32) @ lora_a.to(torch.float32)) * scaling
+            state_dict[base_key] = (base_w.to(torch.float32) + delta).to(base_w.dtype)
+
+        # drop any remaining lora params we did not fold (dropout/embedding/dora variants)
+        for name in list(state_dict.keys()):
+            if "lora_" in name:
+                state_dict.pop(name)
+
+        # rename base keys back to the plain base-model names
+        for name in list(state_dict.keys()):
+            key = (
+                name.replace("base_model.model.", "")
+                .replace(".base_layer.weight", ".weight")
+                .replace(".base_layer.bias", ".bias")
+            )
+            if key != name:
+                state_dict[key] = state_dict.pop(name)
+
+    def _prime_dynamic_module_cache(self) -> None:
+        """Pre-copy custom ``*.py`` from the HF config dir into the transformers dynamic-module
+        cache so ``trust_remote_code`` loading doesn't hit a ``FileNotFoundError`` when a
+        relative import (e.g. ``processing_*.py``) is read before transformers copies it.
+        """
+        if not self.config.trust_remote_code:
+            return
+        src = self.hf_model_config_path
+        if not src or not os.path.isdir(src):
+            return
+        try:
+            import glob
+            import shutil
+
+            from transformers.utils import HF_MODULES_CACHE
+        except Exception:
+            return
+        py_files = glob.glob(os.path.join(src, "*.py"))
+        if not py_files:
+            return
+        basename = os.path.basename(os.path.normpath(src))
+        dst = os.path.join(HF_MODULES_CACHE, "transformers_modules", basename)
+        os.makedirs(dst, exist_ok=True)
+        open(os.path.join(dst, "__init__.py"), "a").close()
+        for py in py_files:
+            try:
+                shutil.copy(py, os.path.join(dst, os.path.basename(py)))
+            except Exception:
+                pass
+
     def save_hf_model_and_tokenizer(self, state_dict: dict[str, torch.Tensor]):
+        self._prime_dynamic_module_cache()
         auto_model_class = self.get_transformers_auto_model_class()
         with init_empty_weights():
             model = auto_model_class.from_config(
@@ -396,9 +490,12 @@ class BaseModelMerger(ABC):
         model.to_empty(device="cpu")
         model = self.patch_model_generation_config(model)
 
-        lora_path = self.save_lora_adapter(state_dict)
-        if lora_path:
-            print(f"Saving lora adapter to {lora_path}")
+        if getattr(self.config, "merge_lora", False):
+            self._merge_lora_into_base(state_dict)
+        else:
+            lora_path = self.save_lora_adapter(state_dict)
+            if lora_path:
+                print(f"Saving lora adapter to {lora_path}")
 
         drop_tied_target_keys(state_dict, model, self.model_config)
 
