@@ -234,7 +234,7 @@ async def run_rollout_engine(config, tokenizer, local_model_path, consume_fn, *,
     while the rollouter is generating; it owns decoding/scoring/writing of results.
     """
     mq_actor = MessageQueue.remote(config=config,
-                                   max_queue_size=config.async_training.get("max_queue_size", 1000))
+                                   max_queue_size=config.async_training.get("max_queue_size", None))
     mq_client = MessageQueueClient(mq_actor)
 
     rollouter = FullyAsyncRollouter.remote(config=config, tokenizer=tokenizer,

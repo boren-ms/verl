@@ -15,17 +15,29 @@ defaults:
   - _self_
 
 data:
-  train_files: null
-  val_files: null
+  # Mirror remax_asr.yaml's data settings (single-sample async streaming, seek-based
+  # audio loading) so eval and training consume audio identically. Only the
+  # long-rollout-specific keys differ: train/val files reuse the val_data segment
+  # dataset, plus output_path / log_interval / measure_kwargs for scoring.
+  custom_cls:
+    path: pkg://recipe.phimm.data.rl_dataset
+    name: RLHFDataset
+  # The rollouter reads train_files/val_files; reuse the val_data dataset
+  # default (long-audio segments via svad_explode) for both so the same
+  # dataset yaml drives the segmentation as in main_long_eval_asr.
+  train_files: ${data.val_data}
+  val_files: ${data.val_data}
   train_batch_size: 0          # must be 0 for fully async
   gen_batch_size: 1            # single-sample streaming for async
   val_batch_size: -1
+  output_path: null
   max_prompt_length: 1024
   max_response_length: 512
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   mm_processor_kwargs:
     sampling_rate: 16000
   max_audio_dur: 40
+  # seek-based loading, one connection per sample (fits async single-sample streaming)
   chunk_load_mode: sample
   shuffle: false
   filter_overlong_prompts: false
@@ -35,11 +47,8 @@ data:
   return_multi_modal_inputs: true
   dataloader_num_workers: 0
   trust_remote_code: true
-  eval_num_examine: 3
-  train_num_examine: ${actor_rollout_ref.rollout.n}
-  custom_cls:
-    path: pkg://recipe.phimm.data.rl_dataset
-    name: RLHFDataset
+  log_interval: 100
+  measure_kwargs: {}
 
 rollout:
   nnodes: 1
@@ -69,7 +78,6 @@ actor_rollout_ref:
     load_format: auto
     engine_kwargs:
       vllm:
-        mm_processor_cache_gb: 0
         disable_custom_all_reduce: true
     calculate_log_probs: true
 
@@ -78,9 +86,9 @@ async_training:
   trigger_parameter_sync_step: 1
   require_batches: 1
   partial_rollout: false
-  # Unbounded queue (no maxlen) so the long all_seg eval never drops a segment
-  # when the consumer lags the rollout replicas. A bounded queue silently evicts
-  # the oldest queued segment under load, inflating DTER.
+  # Unbounded queue (deque maxlen=None) so the long-audio eval never drops a
+  # segment when the consumer lags the rollout replicas. A bounded queue silently
+  # evicts the oldest queued segment under load, inflating DTER.
   max_queue_size: null
   concurrent_samples_per_replica: 64
 
