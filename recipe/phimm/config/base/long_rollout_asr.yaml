@@ -78,7 +78,10 @@ async_training:
   trigger_parameter_sync_step: 1
   require_batches: 1
   partial_rollout: false
-  max_queue_size: 1000
+  # Unbounded queue (no maxlen) so the long all_seg eval never drops a segment
+  # when the consumer lags the rollout replicas. A bounded queue silently evicts
+  # the oldest queued segment under load, inflating DTER.
+  max_queue_size: null
   concurrent_samples_per_replica: 64
 
 reward:

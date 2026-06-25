@@ -31,9 +31,9 @@ class MessageQueue:
 
     def __init__(self, config: DictConfig, max_queue_size: int = 1000):
         self.config = config
-        if max_queue_size is None:
-            raise ValueError(f"max_queue_size cannot be None, got: {max_queue_size}")
-        self.max_queue_size = int(max_queue_size)
+        # max_queue_size=None makes the queue unbounded (deque(maxlen=None)), so no
+        # sample is ever dropped — required for lossless evaluation/generation.
+        self.max_queue_size = int(max_queue_size) if max_queue_size is not None else None
         self.queue = deque(maxlen=self.max_queue_size)
 
         self.val_queue = deque()
@@ -63,9 +63,10 @@ class MessageQueue:
             bool: Whether the sample was successfully put into the queue
         """
         async with self._lock:
-            # If queue is full, remove the oldest sample (rarely happens)
+            # If queue is full, remove the oldest sample (rarely happens).
+            # max_queue_size=None means unbounded: never drop.
             is_drop = False
-            if len(self.queue) >= self.max_queue_size:
+            if self.max_queue_size is not None and len(self.queue) >= self.max_queue_size:
                 self.queue.popleft()
                 self.dropped_samples += 1
                 is_drop = True
