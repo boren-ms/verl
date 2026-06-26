@@ -52,7 +52,6 @@ data:
   # Eval rollout is audio-load-bound (unlike trainer-bound remax which uses 0):
   # parallel workers keep the rollout replicas fed, otherwise GPUs starve.
   dataloader_num_workers: 8
-  trust_remote_code: true
   log_interval: 100
   measure_kwargs: {}
 
@@ -66,7 +65,7 @@ actor_rollout_ref:
   hybrid_engine: false
   model:
     path: null
-    trust_remote_code: true
+    trust_remote_code: false
   actor:
     ppo_mini_batch_size: 64
   rollout:
