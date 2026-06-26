@@ -111,7 +111,7 @@ actor_rollout_ref:
     dtype: bfloat16
     tensor_model_parallel_size: 1
     gpu_memory_utilization: 0.85
-    max_num_seqs: 64
+    max_num_seqs: 32
     max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
     no_repeat_ngram_size: 15
     stop_token_ids: [248044, 248046]
@@ -148,7 +148,7 @@ async_training:
   require_batches: 1
   partial_rollout: false
   use_trainer_do_validate: true
-  concurrent_samples_per_replica: 12 # 12*6=72>64
+  concurrent_samples_per_replica: 8 # 8*6=48<64
   update_samples: ${eval:${async_training.require_batches}*${actor_rollout_ref.actor.ppo_mini_batch_size}*${async_training.trigger_parameter_sync_step}}
 
 # ── Rollout GPU pool (separate from trainer) ──────────────────────────────
