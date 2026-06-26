@@ -16,7 +16,10 @@ rollout:
 async_training:
   staleness_threshold: 0.5
   trigger_parameter_sync_step: 4
-  use_trainer_do_validate: true
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 16
 
 algorithm:
   binary_adv: true
