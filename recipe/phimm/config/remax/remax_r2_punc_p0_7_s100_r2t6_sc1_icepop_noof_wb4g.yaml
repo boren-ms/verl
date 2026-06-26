@@ -32,6 +32,7 @@ actor_rollout_ref:
   rollout:
     log_prob_use_dynamic_bsz: false
     log_prob_micro_batch_size_per_gpu: 4
+    gpu_memory_utilization: 0.7   # leave room for the no-offload FSDP log-prob actor resident on the rollout GPUs
     checkpoint_engine:
       update_weights_bucket_megabytes: 4096   # 4G NCCL buckets (base uses 2048)
   ref:
