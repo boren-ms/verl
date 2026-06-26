@@ -21,7 +21,7 @@ trainer:
   save_freq: 100
 actor_rollout_ref:
   actor:
-    ppo_mini_batch_size: 16
+    ppo_mini_batch_size: 18
     fsdp_config:
       fsdp_size: 6   # shard across all 6 trainer GPUs (base uses 2)
 
