@@ -19,3 +19,4 @@ qwen35_audio = "vllm_qwen35_audio.plugin:register"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["vllm_qwen35_audio*", "hf_qwen35_audio*"]
