@@ -767,6 +767,7 @@ algorithm:
   norm_adv_by_std_in_grpo: true
   binary_adv: false
   binary_adv_scale: 1.0
+  remax_mask: false
   use_kl_in_reward: false
   kl_penalty: kl
   kl_ctrl:

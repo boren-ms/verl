@@ -1631,6 +1631,23 @@ class RayPPOTrainer:
                         reward_baseline_tensor = gen_baseline_output.batch["rm_scores"].sum(dim=-1)
                         batch.batch["reward_baselines"] = reward_baseline_tensor
 
+                        if self.config.algorithm.get("remax_mask", False):
+                            rollout_n = self.config.actor_rollout_ref.rollout.n
+                            sampled_resp = gen_batch_output.batch["responses"]
+                            sampled_rlen = sampled_resp.size(1)
+                            sampled_rmask = gen_batch_output.batch["attention_mask"][:, -sampled_rlen:]
+                            baseline_resp = gen_baseline_output.batch["responses"]
+                            baseline_rlen = baseline_resp.size(1)
+                            baseline_rmask = gen_baseline_output.batch["attention_mask"][:, -baseline_rlen:]
+                            baseline_index = np.arange(sampled_resp.size(0)) // rollout_n
+                            gen_batch_output.batch["remax_mask"] = core_algos.compute_remax_disagreement_mask(
+                                sampled_resp,
+                                sampled_rmask,
+                                baseline_resp,
+                                baseline_rmask,
+                                baseline_index=baseline_index,
+                            )
+
                         del gen_baseline_output
                     del combined_gen_batch, combined_gen_output
                     # repeat to align with repeated responses in rollout

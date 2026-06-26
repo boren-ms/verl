@@ -1017,6 +1017,22 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
         sampled_batch.batch["reward_baselines"] = torch.full(
             (num_sampled,), baseline_reward, dtype=torch.float32
         )
+
+        if self.config.algorithm.get("remax_mask", False):
+            from verl.trainer.ppo.core_algos import compute_remax_disagreement_mask
+
+            sampled_resp = sampled_batch.batch["responses"]
+            sampled_rlen = sampled_resp.size(1)
+            sampled_rmask = sampled_batch.batch["attention_mask"][:, -sampled_rlen:]
+            baseline_resp = full_batch.batch["responses"][num_sampled : num_sampled + 1]
+            baseline_rlen = baseline_resp.size(1)
+            baseline_rmask = full_batch.batch["attention_mask"][num_sampled : num_sampled + 1, -baseline_rlen:]
+            sampled_batch.batch["remax_mask"] = compute_remax_disagreement_mask(
+                sampled_resp,
+                sampled_rmask,
+                baseline_resp,
+                baseline_rmask,
+            )
         # DataProto.slice shares meta_info; trim the row-aligned per-sample metrics
         # so the dropped baseline row is not re-expanded into length-(n+1)
         # non_tensor arrays (processing_times/tool_calls_times) during assembly.

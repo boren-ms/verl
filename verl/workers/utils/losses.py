@@ -84,6 +84,9 @@ def ppo_loss(config: ActorConfig, model_output, data: TensorDict, dp_group=None)
 
     # select fields and convert to padded tensor
     fields = ["response_mask", "old_log_probs", "advantages"]
+    use_remax_mask = "remax_mask" in data.keys()
+    if use_remax_mask:
+        fields.append("remax_mask")
     if "rollout_is_weights" in data:
         fields.append("rollout_is_weights")
     if "ref_log_prob" in data:
@@ -91,6 +94,10 @@ def ppo_loss(config: ActorConfig, model_output, data: TensorDict, dp_group=None)
     data = data.select(*fields).to_padded_tensor()
 
     response_mask = data["response_mask"].to(bool)
+    if use_remax_mask:
+        # ReMax disagreement mask: restrict the loss to tokens that cannot be aligned
+        # to the greedy baseline (the "disagree" tokens).
+        response_mask = response_mask & data["remax_mask"].to(bool)
     # compute policy loss
     old_log_prob = data["old_log_probs"]
     advantages = data["advantages"]
