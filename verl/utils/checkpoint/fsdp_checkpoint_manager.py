@@ -357,11 +357,21 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             else:
                 unwrap_model = self.model
 
+            # For PEFT/LoRA runs ``unwrap_model`` is the PEFT (and FSDP) wrapper. Saving its config /
+            # custom code would point ``auto_map`` at the training-time wrapper class (e.g.
+            # ``_fully_shard.FSDPPeftModelForCausalLM``) and copy the FSDP helper modules instead of the
+            # real ``modeling_*.py`` -- the resulting huggingface/ dir is not loadable for inference and
+            # crashes ``verl.model_merger`` / vLLM ``trust_remote_code``. Export the underlying base HF
+            # model so ``auto_map`` and the copied custom files reference the real architecture class.
+            hf_export_model = unwrap_model
+            if getattr(unwrap_model, "peft_config", None) and hasattr(unwrap_model, "get_base_model"):
+                hf_export_model = unwrap_model.get_base_model()
+
             hf_config_tokenizer_path = os.path.join(local_path, "huggingface")
             local_mkdir_safe(hf_config_tokenizer_path)
-            model_config = unwrap_model.config
+            model_config = hf_export_model.config
             generation_config = None
-            if unwrap_model.can_generate() and hasattr(model_config, "name_or_path") and model_config.name_or_path:
+            if hf_export_model.can_generate() and hasattr(model_config, "name_or_path") and model_config.name_or_path:
                 try:
                     # Some model's name_or_path is empty if not initialized from pretrained,
                     # in this cases, we don't save generation config.
@@ -374,6 +384,12 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             if hasattr(model_config, "auto_map") and None in model_config.auto_map:
                 model_config.auto_map = {k: v for k, v in model_config.auto_map.items() if k is not None}
 
+            # If we have a custom model, we copy the file defining it in the folder and set the attributes so it can be
+            # loaded from the Hub. This must run *before* ``save_pretrained`` so the (possibly updated)
+            # ``auto_map`` written to ``config.json`` references the real modeling files we just copied.
+            if hasattr(model_config, "auto_map"):
+                custom_object_save(hf_export_model, hf_config_tokenizer_path, config=model_config)
+
             model_config.save_pretrained(hf_config_tokenizer_path)
             if self.processing_class is not None:
                 self.processing_class.save_pretrained(hf_config_tokenizer_path)
@@ -383,11 +399,6 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                 logger=logger,
                 log_only_rank_0=True,
             )
-
-            # If we have a custom model, we copy the file defining it in the folder and set the attributes so it can be
-            # loaded from the Hub.
-            if hasattr(model_config, "auto_map"):
-                custom_object_save(unwrap_model, hf_config_tokenizer_path, config=model_config)
 
             # Also save runtime FSDP config
             fsdp_config_path = os.path.join(local_path, "fsdp_config.json")
