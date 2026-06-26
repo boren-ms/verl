@@ -301,8 +301,8 @@ def main(config_path, tokenizer_path, data_files=None):
 
     from verl.utils import hf_processor, hf_tokenizer
 
-    tokenizer = hf_tokenizer(tokenizer_path, trust_remote_code=True)
-    processor = hf_processor(tokenizer_path, trust_remote_code=True)
+    tokenizer = hf_tokenizer(tokenizer_path, trust_remote_code=False)
+    processor = hf_processor(tokenizer_path, trust_remote_code=False)
     config = (
         OmegaConf.load(config_path)["data"]
         if config_path
