@@ -277,6 +277,7 @@ def init_ray(config):
     runtime_env = {
         "env_vars": {"TOKENIZERS_PARALLELISM": "true", "NCCL_DEBUG": "WARN",
                      "VLLM_LOGGING_LEVEL": "WARN", "HF_HUB_OFFLINE": "1",
+                     "VERL_USE_EXTERNAL_MODULES": "hf_qwen35_audio",
                      "PYTORCH_ALLOC_CONF": "expandable_segments:True", **env_vars},
         "excludes": [str(Path(__file__).parents[2] / ".git")],
         **ray_init_kwargs.pop("runtime_env", {}),
