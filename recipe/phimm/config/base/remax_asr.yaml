@@ -175,3 +175,11 @@ trainer:
   default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
   validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen
+
+# ── Ray runtime env ───────────────────────────────────────────────────────
+ray_kwargs:
+  ray_init:
+    runtime_env:
+      env_vars:
+        VERL_USE_EXTERNAL_MODULES: hf_qwen35_audio
+
