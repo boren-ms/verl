@@ -57,8 +57,27 @@ def register() -> None:
 
     _maybe_disable_cudnn()
     _maybe_register_qwen35_config()
+    _maybe_register_hf_audio_model()
     _patch_lora_supported_modules()
     ModelRegistry.register_model(ARCHITECTURE, _resolve_model_class())
+
+
+def _maybe_register_hf_audio_model() -> None:
+    """Register the self-contained HF Qwen3.5-Audio classes with Transformers.
+
+    Lets ``AutoConfig`` / ``AutoModelForCausalLM`` / ``AutoProcessor`` resolve
+    ``qwen3_5_audio`` checkpoints to the installed ``hf_model`` package instead of
+    per-checkpoint ``trust_remote_code`` ``*.py`` copies. Best-effort: the package
+    is optional, so a missing import must not break vLLM plugin registration.
+    """
+    try:
+        from hf_qwen35_audio import register_hf_audio_model
+    except Exception:
+        return
+    try:
+        register_hf_audio_model()
+    except Exception:
+        pass
 
 
 # Modules that exist on Qwen3.5's GatedDeltaNet (linear-attention) blocks but
