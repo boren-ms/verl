@@ -20,7 +20,13 @@ rollout:
 trainer:
   nnodes: 2
   n_gpus_per_node: 7
-  test_freq: 50
+  resume_mode: auto
+  # The long periodic validation generation intermittently triggers the random
+  # vLLM sample_tokens hang (step-200 validation froze ~13 min with one GPU
+  # pinned at 100%, others idle, no result), blocking progress and gating the
+  # checkpoint save. Disable periodic validation during training; DTER is
+  # measured by the dedicated post-training in-house eval instead.
+  test_freq: 1000000
   save_freq: 50
 actor_rollout_ref:
   actor:
