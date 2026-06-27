@@ -25,6 +25,12 @@ async_training:
   # whether to use trainer do_validate
   use_trainer_do_validate: False
 
+  # Opt-in: for adapter-mode LoRA, sync only the LoRA adapter each step (after a
+  # one-time base broadcast) instead of the full base model on the disaggregated
+  # (non-naive) checkpoint-engine path. When False, fall back to the legacy
+  # full-weight broadcast. Ignored for non-LoRA / merged-LoRA training.
+  lora_adapter_sync: False
+
 # Rollout config
 rollout:
 
