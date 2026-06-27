@@ -10,31 +10,26 @@ defaults:
   - data/val_data/enus_conv_fy21q1_seg
   - _self_
 
-# ── GPU layout: 2 rollouter / 6 trainer (base default is 6 rollouter / 2 trainer) ──
+# ── GPU layout: 1 rollouter / 7 trainer (base default is 6 rollouter / 2 trainer) ──
 rollout:
-  n_gpus_per_node: 2
+  n_gpus_per_node: 1
   total_updates: 100
-  n: 8
+  n: 12
 trainer:
-  n_gpus_per_node: 6
+  n_gpus_per_node: 7
   test_freq: 100
   save_freq: 100
 actor_rollout_ref:
   actor:
-    ppo_mini_batch_size: 18
+    ppo_mini_batch_size: 28
     # ── Fixed (non-dynamic) batch size for the PPO update ──
     use_dynamic_bsz: false
     fsdp_config:
-      fsdp_size: 6   # shard across all 6 trainer GPUs (base uses 2)
-      param_offload: false       # keep params resident on GPU (avoid CPU<->GPU gather each param-sync)
-      optimizer_offload: false   # keep optimizer state resident on GPU
+      fsdp_size: 7   # shard across all 7 trainer GPUs (base uses 2)
   # ── log_prob batch mode must match actor.use_dynamic_bsz (engine_workers assertion) ──
   rollout:
     log_prob_use_dynamic_bsz: false
     log_prob_micro_batch_size_per_gpu: 4
-    gpu_memory_utilization: 0.7   # leave room for the no-offload FSDP log-prob actor resident on the rollout GPUs
-    checkpoint_engine:
-      update_weights_bucket_megabytes: 4096   # 4G NCCL buckets (base uses 2048)
   ref:
     log_prob_use_dynamic_bsz: false
 
@@ -45,10 +40,6 @@ async_training:
 algorithm:
   binary_adv: true
   binary_adv_scale: 1.0
-  rollout_correction:
-    bypass_mode: true
-    rollout_is: token              # token-level IcePop
-    rollout_is_threshold: "0.5_5"  # IcePop bounds [lower, upper]: zero IS weights outside [0.5, 5.0]
 
 reward:
   custom_reward_function:
