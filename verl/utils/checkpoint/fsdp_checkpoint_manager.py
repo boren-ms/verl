@@ -390,6 +390,14 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             if hasattr(model_config, "auto_map"):
                 custom_object_save(hf_export_model, hf_config_tokenizer_path, config=model_config)
 
+            # ``custom_object_save`` re-populates ``auto_map`` via ``auto_map[obj._auto_class] = ...``; when the
+            # model's ``_auto_class`` is ``None`` (e.g. a plugin-registered architecture loaded with
+            # ``trust_remote_code=False``) this re-introduces a ``None`` key after the strip above. A ``None`` key
+            # makes ``config.save_pretrained`` -> ``json.dumps(..., sort_keys=True)`` raise
+            # "'<' not supported between instances of 'NoneType' and 'str'", so drop it again right before saving.
+            if hasattr(model_config, "auto_map") and None in model_config.auto_map:
+                model_config.auto_map = {k: v for k, v in model_config.auto_map.items() if k is not None}
+
             model_config.save_pretrained(hf_config_tokenizer_path)
             if self.processing_class is not None:
                 self.processing_class.save_pretrained(hf_config_tokenizer_path)
