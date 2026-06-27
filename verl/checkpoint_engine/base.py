@@ -378,6 +378,7 @@ class CheckpointEngineManager:
         config: CheckpointEngineConfig,
         trainer: RayWorkerGroup,
         replicas: list[RolloutReplica],
+        lora_adapter_sync: bool = False,
     ) -> None:
         self.config = config
         self.backend = config.backend
@@ -385,6 +386,10 @@ class CheckpointEngineManager:
         self.backend_cls = CheckpointEngineRegistry.get(config.backend)
         self.trainer = trainer
         self.replicas = replicas
+        # Opt-in (async_training.lora_adapter_sync): when True and the trainer is in
+        # adapter-mode LoRA, sync only the LoRA adapter every step (after a one-time
+        # base broadcast). When False, fall back to the legacy full-weight broadcast.
+        self.lora_adapter_sync = lora_adapter_sync
 
     def build_process_group(self, rollout: RayWorkerGroup):
         """Build process group for trainer and rollout replicas."""
@@ -500,15 +505,18 @@ class CheckpointEngineManager:
         # 4.5. query LoRA metadata to decide between a plain full-weight sync and
         # the two-phase adapter sync (one-time base broadcast + per-step adapter).
         meta = ray.get(self.trainer.get_weight_sync_metadata())[0]
-        is_lora_adapter = meta["is_lora_adapter"]
         peft_config = meta["peft_config"]
-        need_base_sync = is_lora_adapter and not meta["base_sync_done"]
+        # Adapter-only fast sync is opt-in (async_training.lora_adapter_sync). When
+        # disabled we ignore the adapter metadata and fall back to the legacy
+        # full-weight broadcast, even for adapter-mode LoRA.
+        adapter_fast_sync = meta["is_lora_adapter"] and self.lora_adapter_sync
 
         # 5. update weights of all workers
-        if is_lora_adapter:
-            # Phase 1 (once): broadcast the frozen base model; rollout loads it as
-            # a standard weight update so the LoRA adapter has a matching base.
-            if need_base_sync:
+        if adapter_fast_sync:
+            # Two-phase LoRA sync: one-time frozen-base broadcast, then per-step adapter.
+            if not meta["base_sync_done"]:
+                # Phase 1 (once): broadcast the frozen base model; rollout loads it
+                # as a standard weight update so the LoRA adapter has a matching base.
                 ray.get(
                     trainer.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=False)
                     + rollout.update_weights(global_steps=global_steps, peft_config=None, base_sync_done=False)
@@ -519,7 +527,16 @@ class CheckpointEngineManager:
                 trainer.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=True)
                 + rollout.update_weights(global_steps=global_steps, peft_config=peft_config, base_sync_done=True)
             )
+        elif meta["is_lora_adapter"]:
+            # Adapter-mode LoRA with fast sync disabled: legacy behavior, broadcast
+            # the full base model every step as a standard weight update (no adapter
+            # swap), exactly restoring the pre-feature full-model nccl sync.
+            ray.get(
+                trainer.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=False)
+                + rollout.update_weights(global_steps=global_steps, peft_config=None, base_sync_done=False)
+            )
         else:
+            # Non-LoRA or merged weights: standard full/merged weight sync.
             ray.get(
                 trainer.update_weights(global_steps=global_steps, mode=self.backend)
                 + rollout.update_weights(global_steps=global_steps)
