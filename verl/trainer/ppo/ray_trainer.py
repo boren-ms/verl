@@ -630,6 +630,30 @@ class RayPPOTrainer:
         except (TypeError, ValueError):
             return 0.0
 
+    def _maybe_log_val_example(self, num_examine, already_print, *, data_source, ground_truth, hyp, score, result):
+        """Print a few decoded validation groups per data source for debugging.
+
+        Symmetric to the train-side example logging in the async NaiveRewardManager,
+        gated by ``data.eval_num_examine`` and capped per ``data_source``.
+        """
+        if num_examine <= 0:
+            return
+        printed = already_print.get(data_source, 0)
+        if printed >= num_examine:
+            return
+        already_print[data_source] = printed + 1
+        pfx = f"[{already_print[data_source]}]"
+        print(f"====== val sample {pfx} (data_source={data_source}) ======")
+        print(f"{pfx}[ground_truth]", ground_truth)
+        print(f"{pfx}[response]", hyp)
+        scores = []
+        if isinstance(result, dict):
+            for key, value in result.items():
+                scores.append(f"{key}={value}")
+        else:
+            scores.append(f"score={score}")
+        print(pfx, "; ".join(scores))
+
     def _recompute_val_reward(self, test_batch: DataProto) -> DataProto:
         """Re-compute reward using val_reward function if configured.
 
@@ -685,6 +709,11 @@ class RayPPOTrainer:
         for r in rows:
             groups[r["group"]].append(r)
 
+        # Number of decoded val groups to print per data source (debugging),
+        # sourced from data.eval_num_examine; 0 disables example logging.
+        eval_num_examine = int(self.config.data.get("eval_num_examine", 0) or 0)
+        already_print_data_sources: dict[str, int] = {}
+
         # Row-aligned outputs so reward_extra_info stays consistent with sample_uids.
         scores: list = [0.0] * n
         reward_extra_infos: list = [{"score": 0.0}] * n
@@ -710,6 +739,16 @@ class RayPPOTrainer:
             for m in members:
                 scores[m["i"]] = score
                 reward_extra_infos[m["i"]] = result_dict
+
+            self._maybe_log_val_example(
+                eval_num_examine,
+                already_print_data_sources,
+                data_source=head["data_source"],
+                ground_truth=head["ground_truth"],
+                hyp=concat_hyp,
+                score=score,
+                result=result,
+            )
 
         # Overwrite rm_scores
         response_mask = test_batch.batch.get("response_mask", attention_mask[:, -response_length:])
