@@ -30,6 +30,11 @@ class NaiveRewardManager(RewardManagerBase):
         self.is_async_reward_score = inspect.iscoroutinefunction(self.compute_score)
         self.reward_router_address = reward_router_address
         self.reward_model_tokenizer = reward_model_tokenizer
+        # Number of decoded train samples to print per data source (debugging).
+        # Sourced from data.train_num_examine; 0 disables example logging.
+        data_cfg = getattr(config, "data", None)
+        self.num_examine = int((data_cfg.get("train_num_examine", 0) if data_cfg is not None else 0) or 0)
+        self._already_print_data_sources: dict[str, int] = {}
 
     async def run_single(self, data: DataProto) -> dict:
         data = data[-1:]  # for multi-sequence outputs, we only compute reward based on the last sequence
@@ -96,4 +101,52 @@ class NaiveRewardManager(RewardManagerBase):
 
         reward = score
 
+        self._maybe_log_example(
+            data_item=data_item,
+            data_source=data_source,
+            response_str=response_str,
+            ground_truth=ground_truth,
+            score=score,
+            result=result,
+        )
+
         return {"reward_score": reward, "reward_extra_info": reward_extra_info}
+
+    def _maybe_log_example(self, *, data_item, data_source, response_str, ground_truth, score, result):
+        """Print a few decoded train samples per data source for debugging.
+
+        Mirrors the example-logging behaviour of the legacy DAPO reward manager,
+        gated by ``data.train_num_examine``. Counting is per ``data_source`` and
+        capped at ``self.num_examine``.
+        """
+        if self.num_examine <= 0:
+            return
+
+        printed = self._already_print_data_sources.get(data_source, 0)
+        if printed >= self.num_examine:
+            return
+        self._already_print_data_sources[data_source] = printed + 1
+
+        prompt_str = None
+        try:
+            prompt_ids = data_item.batch["prompts"]
+            prompt_length = prompt_ids.shape[-1]
+            valid_prompt_length = data_item.batch["attention_mask"][:prompt_length].sum()
+            valid_prompt_ids = prompt_ids[-valid_prompt_length:]
+            prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=True)
+        except Exception:  # noqa: BLE001 - logging must never break reward computation
+            prompt_str = None
+
+        pfx = f"[{self._already_print_data_sources[data_source]}]"
+        print(f"====== train sample {pfx} (data_source={data_source}) ======")
+        if prompt_str is not None:
+            print(f"{pfx}[prompt]", prompt_str)
+        print(f"{pfx}[ground_truth]", ground_truth)
+        print(f"{pfx}[response]", response_str)
+        scores = []
+        if isinstance(result, dict):
+            for key, value in result.items():
+                scores.append(f"{key}={value}")
+        else:
+            scores.append(f"score={score}")
+        print(pfx, "; ".join(scores))
