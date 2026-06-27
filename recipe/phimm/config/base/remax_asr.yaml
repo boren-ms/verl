@@ -147,6 +147,9 @@ async_training:
   require_batches: 1
   partial_rollout: false
   use_trainer_do_validate: true
+  # LoRA runs: sync only the adapter each param version (one-time base broadcast)
+  # on the disaggregated checkpoint-engine path instead of the full base model.
+  lora_adapter_sync: true
   concurrent_samples_per_replica: 8 # 8*6=48<64
   update_samples: ${eval:${async_training.require_batches}*${actor_rollout_ref.actor.ppo_mini_batch_size}*${async_training.trigger_parameter_sync_step}}
 
