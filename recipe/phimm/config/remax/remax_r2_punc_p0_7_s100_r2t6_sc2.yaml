@@ -14,28 +14,24 @@ defaults:
 rollout:
   n_gpus_per_node: 2
   total_updates: 100
-  n: 8
+  n: 12
 trainer:
   n_gpus_per_node: 6
   test_freq: 100
   save_freq: 100
 actor_rollout_ref:
   actor:
-    ppo_mini_batch_size: 18
+    ppo_mini_batch_size: 30
     fsdp_config:
       fsdp_size: 6   # shard across all 6 trainer GPUs (base uses 2)
 
 async_training:
   staleness_threshold: 0.5
-  trigger_parameter_sync_step: 4
+  trigger_parameter_sync_step: 2
 
 algorithm:
   binary_adv: true
   binary_adv_scale: 1.0
-  rollout_correction:
-    bypass_mode: true
-    rollout_is: token              # token-level IcePop
-    rollout_is_threshold: "0.5_5"  # IcePop bounds [lower, upper]: zero IS weights outside [0.5, 5.0]
 
 reward:
   custom_reward_function:
