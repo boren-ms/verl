@@ -17,8 +17,8 @@ rollout:
   n: 12
 trainer:
   n_gpus_per_node: 7
-  test_freq: 100
-  save_freq: 100
+  test_freq: 20
+  save_freq: 20
 actor_rollout_ref:
   actor:
     ppo_mini_batch_size: 63
