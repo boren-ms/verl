@@ -230,8 +230,12 @@ class vLLMHttpServer:
         # Register the per-request no-repeat-ngram logits processor (vLLM V1) when
         # enabled, mirroring vllm_rollout_spmd._ensure_ngram_processor. The actual
         # ngram size / window are supplied per request via SamplingParams.extra_args
-        # in `generate`.
-        if self.config.get("no_repeat_ngram_size", 0):
+        # in `generate`. Register when ngram blocking is enabled for either the
+        # training rollout (top-level) or validation (val_kwargs), since the
+        # processor is engine-global and set once at launch.
+        val_kwargs = self.config.get("val_kwargs", None)
+        val_ngram_size = val_kwargs.get("no_repeat_ngram_size", 0) if val_kwargs is not None else 0
+        if self.config.get("no_repeat_ngram_size", 0) or val_ngram_size:
             ngram_fqcn = "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor"
             logits_processors = list(engine_kwargs.get("logits_processors") or [])
             if ngram_fqcn not in logits_processors:
@@ -537,11 +541,19 @@ class vLLMHttpServer:
 
         # Pass no-repeat-ngram config via extra_args for the V1 per-request logits
         # processor registered in launch_server, mirroring vllm_rollout_spmd.
-        ngram_size = self.config.get("no_repeat_ngram_size", 0)
+        # Honor a per-request override (e.g. validation supplying val_kwargs ngram)
+        # when present, otherwise fall back to the top-level rollout config. Pop the
+        # keys so they are not forwarded to SamplingParams, which rejects them.
+        ngram_size = sampling_params.pop("no_repeat_ngram_size", None)
+        ngram_window = sampling_params.pop("no_repeat_ngram_window_size", None)
+        if ngram_size is None:
+            ngram_size = self.config.get("no_repeat_ngram_size", 0)
+        if ngram_window is None:
+            ngram_window = self.config.get("no_repeat_ngram_window_size", 100)
         if ngram_size:
             extra_args = dict(sampling_params.get("extra_args") or {})
             extra_args.setdefault("ngram_size", ngram_size)
-            extra_args.setdefault("ngram_window", self.config.get("no_repeat_ngram_window_size", 100))
+            extra_args.setdefault("ngram_window", ngram_window)
             sampling_params["extra_args"] = extra_args
 
         sampling_params = SamplingParams(max_tokens=max_tokens, **sampling_params)

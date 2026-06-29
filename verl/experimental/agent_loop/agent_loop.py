@@ -555,6 +555,14 @@ class AgentLoopWorker:
             sampling_params["top_p"] = config.val_kwargs.top_p
             sampling_params["top_k"] = config.val_kwargs.top_k
             sampling_params["temperature"] = config.val_kwargs.temperature
+            # Forward validation-only no-repeat-ngram blocking when configured, so
+            # it can be applied independently of the training-rollout setting.
+            val_ngram_size = config.val_kwargs.get("no_repeat_ngram_size", 0)
+            if val_ngram_size:
+                sampling_params["no_repeat_ngram_size"] = val_ngram_size
+                sampling_params["no_repeat_ngram_window_size"] = config.val_kwargs.get(
+                    "no_repeat_ngram_window_size", 100
+                )
 
         # by default, we assume it's a single turn agent
         if "agent_name" not in batch.non_tensor_batch:
