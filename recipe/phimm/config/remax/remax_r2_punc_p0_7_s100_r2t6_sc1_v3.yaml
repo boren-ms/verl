@@ -1,0 +1,67 @@
+hydra:
+  searchpath:
+    - pkg://verl.trainer.config
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+
+defaults:
+  - remax_asr
+  - data/train_data/qwen_en_hc_200k_entity_fy24q3p2_punc_p0_7
+  - data/val_data/enus_conv_fy21q1_seg
+  - _self_
+
+# ── GPU layout: 1 rollouter / 7 trainer (base default is 6 rollouter / 2 trainer) ──
+rollout:
+  n_gpus_per_node: 2
+  total_updates: 100
+  n: 12
+trainer:
+  n_gpus_per_node: 6
+  test_freq: 20
+  save_freq: 20
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 60
+    fsdp_config:
+      fsdp_size: 6   # shard across all 6 trainer GPUs (base uses 2)
+  rollout:
+    # ── Disable no_repeat_ngram_size during training rollout, apply only on val ──
+    no_repeat_ngram_size: null
+    val_kwargs:
+      no_repeat_ngram_size: 15
+
+async_training:
+  staleness_threshold: 0.0
+  trigger_parameter_sync_step: 1
+
+algorithm:
+  binary_adv: true
+  binary_adv_scale: 1.0
+  # ── Option B: keep bypass, drop IS weighting + rejection sampling ──
+  # old_log_probs := rollout_log_probs (vLLM) is kept (no extra forward pass), so
+  # the PPO ratio = pi_FSDP/pi_vLLM and actor/ppo_kl stays nonzero (engine mismatch).
+  # rollout_is / rollout_rs are nulled out -> no IS-weight multiplier and no
+  # rejection sampling. With loss_type=ppo_clip the IS weights were not applied to
+  # the loss anyway, so this mainly removes rejection sampling + IS metrics.
+  rollout_correction:
+    bypass_mode: true
+    rollout_is: null
+    rollout_is_threshold: null
+    rollout_rs: null
+
+reward:
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.punc_cap_measure
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        punc: {beta: 1.0}
+  num_workers: 8
+
+val_reward:
+  group_segment: true
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.asr_inhouse_measure
+    name: eval_score
