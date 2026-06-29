@@ -88,7 +88,7 @@ actor_rollout_ref:
     use_rollout_log_probs: true
     use_dynamic_bsz: true
     grad_clip: 1.0
-    ppo_max_token_len_per_gpu: 3072
+    ppo_max_token_len_per_gpu: 2048
     # checkpoint:
     #   save_contents: ['model', 'optimizer', 'extra', 'hf_model']
     #   load_contents: ['model', 'optimizer', 'extra']
