@@ -21,6 +21,8 @@ elif [[ "$config_name" == eval_* ]]; then
     module="recipe.phimm.main_asr_eval"
 elif [[ "$config_name" == remax_* ]]; then
     module="recipe.phimm.main_asr_remax"
+elif [[ "$config_name" == grpo_* ]]; then
+    module="recipe.phimm.main_asr_grpo"
 fi
 
 # bash quick_install.sh # prepare on local node only
