@@ -373,6 +373,8 @@ class DataParallelPPOActor(BasePPOActor):
         ]
         if self.config.use_kl_loss:
             select_keys.append("ref_log_prob")
+        if "remax_mask" in data.batch.keys():
+            select_keys.append("remax_mask")
         if self.config.tis_imp_ratio_cap > 0:
             assert "rollout_log_probs" in data.batch.keys(), (
                 "Truncated Importance Sampling (TIS) requires to configure "
@@ -411,6 +413,10 @@ class DataParallelPPOActor(BasePPOActor):
                     micro_batch_metrics = {}
                     model_inputs = {**micro_batch.batch, **micro_batch.non_tensor_batch}
                     response_mask = model_inputs["response_mask"]
+                    if "remax_mask" in model_inputs:
+                        # ReMax disagreement mask: restrict the loss to tokens that cannot be
+                        # aligned to the greedy baseline (the "disagree" tokens).
+                        response_mask = response_mask * model_inputs["remax_mask"].to(response_mask.dtype)
                     old_log_prob = model_inputs["old_log_probs"]
                     rollout_log_probs = model_inputs["rollout_log_probs"] if self.config.tis_imp_ratio_cap > 0 else None
                     advantages = model_inputs["advantages"]

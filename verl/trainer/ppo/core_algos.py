@@ -20,6 +20,7 @@ implement PPO-like algorithms.
 
 __all__ = ["register_adv_est", "get_adv_estimator_fn", "AdvantageEstimator"]
 
+import difflib
 from collections import defaultdict
 from enum import Enum
 from typing import Any, Callable, Optional
@@ -573,6 +574,64 @@ def compute_reinforce_plus_plus_outcome_advantage(token_level_rewards: torch.Ten
         advantages = advantages * response_mask
 
     return advantages, returns
+
+
+def compute_remax_disagreement_mask(
+    response_ids: torch.Tensor,
+    response_mask: torch.Tensor,
+    baseline_ids: torch.Tensor,
+    baseline_mask: torch.Tensor,
+    baseline_index: Optional[np.ndarray] = None,
+) -> torch.Tensor:
+    """Compute the ReMax disagreement mask for sampled trajectories.
+
+    For each sampled trajectory, its response tokens are aligned against the tokens of
+    its (greedy) ReMax baseline using a longest-matching-block alignment
+    (``difflib.SequenceMatcher``). Tokens that cannot be aligned to the baseline (i.e.
+    the "disagree" tokens introduced by sampling) are marked with ``1``; tokens that
+    match the baseline are marked with ``0``. Padding/invalid tokens are always ``0``.
+
+    Args:
+        response_ids (torch.Tensor): sampled response token ids, shape (n, response_length).
+        response_mask (torch.Tensor): validity mask of sampled responses, shape (n, response_length).
+        baseline_ids (torch.Tensor): baseline response token ids, shape (m, baseline_length).
+        baseline_mask (torch.Tensor): validity mask of baseline responses, shape (m, baseline_length).
+        baseline_index (Optional[np.ndarray]): length-n array mapping each sampled row to its
+            baseline row. If ``None``, all sampled rows are aligned against baseline row 0.
+
+    Returns:
+        torch.Tensor: disagreement mask, shape (n, response_length), with the same dtype and
+        device as ``response_mask``. ``1`` marks tokens that disagree with the baseline.
+    """
+    n, response_length = response_ids.shape
+    resp_np = response_ids.detach().cpu().numpy()
+    resp_valid = response_mask.detach().cpu().numpy().astype(bool)
+    base_np = baseline_ids.detach().cpu().numpy()
+    base_valid = baseline_mask.detach().cpu().numpy().astype(bool)
+
+    if baseline_index is None:
+        baseline_index = np.zeros(n, dtype=np.int64)
+
+    out = np.zeros((n, response_length), dtype=np.int64)
+    for i in range(n):
+        valid_pos = np.nonzero(resp_valid[i])[0]
+        if valid_pos.size == 0:
+            continue
+        a = resp_np[i][valid_pos].tolist()
+        b_idx = int(baseline_index[i])
+        b = base_np[b_idx][base_valid[b_idx]].tolist()
+
+        matched = np.zeros(len(a), dtype=bool)
+        matcher = difflib.SequenceMatcher(a=a, b=b, autojunk=False)
+        for block in matcher.get_matching_blocks():
+            if block.size:
+                matched[block.a : block.a + block.size] = True
+
+        disagree_pos = valid_pos[~matched]
+        out[i, disagree_pos] = 1
+
+    remax_mask = torch.from_numpy(out).to(device=response_mask.device, dtype=response_mask.dtype)
+    return remax_mask
 
 
 @register_adv_est(AdvantageEstimator.REMAX)  # or simply: @register_adv_est("remax")

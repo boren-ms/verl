@@ -28,7 +28,11 @@ import torch
 from tqdm import tqdm
 
 from verl import DataProto
-from verl.trainer.ppo.core_algos import agg_loss, deduplicate_rollout_responses
+from verl.trainer.ppo.core_algos import (
+    agg_loss,
+    compute_remax_disagreement_mask,
+    deduplicate_rollout_responses,
+)
 
 from verl.utils.metric import reduce_metrics
 from verl.trainer.ppo.metric_utils import (
@@ -178,6 +182,23 @@ class RayDAPOTrainer(RayPPOTrainer):
                             new_batch.pop(batch_keys=list(gen_baseline_output.batch.keys()))
 
                             new_batch.batch["reward_baselines"] = reward_baseline_tensor
+
+                            if self.config.algorithm.get("remax_mask", False):
+                                rollout_n = self.config.actor_rollout_ref.rollout.n
+                                sampled_resp = gen_batch_output.batch["responses"]
+                                sampled_rlen = sampled_resp.size(1)
+                                sampled_rmask = gen_batch_output.batch["attention_mask"][:, -sampled_rlen:]
+                                baseline_resp = gen_baseline_output.batch["responses"]
+                                baseline_rlen = baseline_resp.size(1)
+                                baseline_rmask = gen_baseline_output.batch["attention_mask"][:, -baseline_rlen:]
+                                baseline_index = np.arange(sampled_resp.size(0)) // rollout_n
+                                gen_batch_output.batch["remax_mask"] = compute_remax_disagreement_mask(
+                                    sampled_resp,
+                                    sampled_rmask,
+                                    baseline_resp,
+                                    baseline_rmask,
+                                    baseline_index=baseline_index,
+                                )
 
                             del gen_baseline_batch, gen_baseline_output
 
