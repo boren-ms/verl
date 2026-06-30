@@ -965,17 +965,20 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         with simple_timer("generate_sequences", timing_generate):
             output = self.rollout.generate_sequences(prompts=prompts)
 
-        # We calculate the average timing across all ranks
-        # to make sure meta_info["timing"] is the same
-        timing_generate_topk_ratio, timing_generate_min, timing_generate_max = topk_reduce_ratio_min_max(
-            timing_generate["generate_sequences"]
-        )
-        timing_generate = reduce_timing(timing_generate)
+        # NOTE(boren): Skip the cross-rank timing-reduction collectives here. The all_gather in
+        # topk_reduce_ratio_min_max (performance.py) and the all_reduce in reduce_timing run on the
+        # default process group immediately after the vLLM rollout, and intermittently deadlock
+        # against vLLM's in-flight NCCL/CUDA work: py-spy shows one rank stuck inside vLLM
+        # (execute_model / _set_active_loras) while every other rank blocks in the all_gather,
+        # leaving GPUs spinning at ~100% util / ~115W with no progress. These reductions are
+        # telemetry-only (generation timing min/max/topk_ratio), so use local timings and avoid the
+        # post-rollout collective entirely.
+        _local_generate_time = timing_generate["generate_sequences"]
         timing_generate.update(
             {
-                "generation_timing/max": timing_generate_max,
-                "generation_timing/min": timing_generate_min,
-                "generation_timing/topk_ratio": timing_generate_topk_ratio,
+                "generation_timing/max": _local_generate_time,
+                "generation_timing/min": _local_generate_time,
+                "generation_timing/topk_ratio": -1.0,
             }
         )
         output.meta_info["timing"] = timing_generate
