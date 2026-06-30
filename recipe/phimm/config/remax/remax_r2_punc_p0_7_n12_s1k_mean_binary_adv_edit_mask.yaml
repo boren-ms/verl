@@ -45,7 +45,7 @@ algorithm:
   adv_estimator: remax
   binary_adv: true
   binary_adv_scale: 1.0
-  # remax_mask: true
+  remax_mask: true
 
 data:
   max_prompt_length: 1204
