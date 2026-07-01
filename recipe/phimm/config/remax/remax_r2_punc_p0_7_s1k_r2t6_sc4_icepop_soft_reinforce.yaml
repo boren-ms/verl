@@ -1,0 +1,59 @@
+hydra:
+  searchpath:
+    - pkg://verl.trainer.config
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+
+defaults:
+  - remax_asr
+  - data/train_data/qwen_en_hc_200k_entity_fy24q3p2_punc_p0_7
+  - data/val_data/enus_conv_fy21q1_seg
+  - _self_
+
+rollout:
+  n_gpus_per_node: 2
+  total_updates: 1000
+  n: 12
+trainer:
+  n_gpus_per_node: 6
+  test_freq: 50
+  save_freq: 50
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 30
+    fsdp_config:
+      fsdp_size: 6 
+
+async_training:
+  staleness_threshold: 0.5
+  trigger_parameter_sync_step: 4
+
+algorithm:
+  binary_adv: false
+  binary_adv_scale: 1.0
+  rollout_correction:
+    bypass_mode: true
+    # loss_type: reinforce makes the token-level IcePop IS weights actually multiply
+    # into the loss (pg = -A * logpi * w). Under the default ppo_clip the IS weights
+    # are computed for metrics ONLY and never applied, so async off-policy staleness
+    # goes uncorrected -> ReMax's one-sided (mostly-negative) advantages diverge.
+    loss_type: reinforce
+    rollout_is: token              # token-level IcePop
+    rollout_is_threshold: "0.5_5"  # IcePop bounds [lower, upper]: zero IS weights outside [0.5, 5.0]
+
+reward:
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.punc_cap_measure
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        punc: {beta: 1.0}
+  num_workers: 8
+
+val_reward:
+  group_segment: true
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.asr_inhouse_measure
+    name: eval_score
