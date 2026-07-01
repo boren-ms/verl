@@ -25,6 +25,8 @@ elif [[ "$config_name" == grpo_* ]]; then
     module="recipe.phimm.main_asr_grpo"
 elif [[ "$config_name" == gmpo_* ]]; then
     module="recipe.phimm.main_asr_grpo"
+elif [[ "$config_name" == gspo_* ]]; then
+    module="recipe.phimm.main_asr_grpo"
 elif [[ "$config_name" == rloo_* ]]; then
     module="recipe.phimm.main_asr_rloo"
 fi
