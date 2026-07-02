@@ -124,8 +124,9 @@ class TaskRunner:
         # instantiate tokenizer
         from verl.utils import hf_processor, hf_tokenizer
 
-        tokenizer = hf_tokenizer(local_path, trust_remote_code=True)
-        processor = hf_processor(local_path, trust_remote_code=True, use_fast=True)
+        trust_remote_code = config.actor_rollout_ref.model.get("trust_remote_code", False)
+        tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code)
+        processor = hf_processor(local_path, trust_remote_code=trust_remote_code, use_fast=True)
 
         from verl.single_controller.ray import RayWorkerGroup
 

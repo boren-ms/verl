@@ -88,6 +88,10 @@ def main(config):
 
 def run_eval(config) -> None:
     env_vars = get_env_vars()
+    # Register the custom Qwen3.5-Audio HF model in every Ray process via
+    # ``import verl`` so tokenizer/processor/config load with
+    # ``trust_remote_code=False`` (no dependency on per-checkpoint remote *.py files).
+    env_vars.setdefault("VERL_USE_EXTERNAL_MODULES", "hf_qwen35_audio")
     print(f"Cluster Env: {env_vars}")
     if not ray.is_initialized():
         default_runtime_env = {
@@ -95,6 +99,7 @@ def run_eval(config) -> None:
                 "TOKENIZERS_PARALLELISM": "true",
                 "NCCL_DEBUG": "WARN",
                 "VLLM_LOGGING_LEVEL": "WARN",
+                "VLLM_PLUGINS": "qwen35_audio",
                 "HF_HUB_OFFLINE": "1",
                 "PYTORCH_ALLOC_CONF": "expandable_segments:True",
                 **env_vars,
