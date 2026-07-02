@@ -101,6 +101,7 @@ class AdvantageEstimator(str, Enum):
     OPO = "opo"
     GRPO_PASSK = "grpo_passk"
     GPG = "gpg"
+    GDPO = "gdpo"
 
 
 ADV_ESTIMATOR_REGISTRY: dict[str, Any] = {}
@@ -321,6 +322,124 @@ def compute_grpo_outcome_advantage(
         scores = scores.unsqueeze(-1) * response_mask
 
     return scores, scores
+
+
+@register_adv_est(AdvantageEstimator.GDPO)  # or simply: @register_adv_est("gdpo")
+def compute_gdpo_outcome_advantage(
+    token_level_rewards: torch.Tensor,
+    response_mask: torch.Tensor,
+    index: np.ndarray,
+    epsilon: float = 1e-6,
+    norm_adv_by_std_in_grpo: bool = True,
+    norm_adv_by_mean_in_grpo: bool = True,
+    config: Optional[AlgoConfig] = None,
+    non_tensor_batch: Optional[dict] = None,
+    batch: Optional[dict] = None,
+    **kwargs,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    GDPO: Group reward-Decoupled Normalization Policy Optimization.
+
+    Instead of summing all reward dimensions first (like GRPO), GDPO normalizes
+    each reward dimension independently within each group before aggregation.
+    This prevents a dominant reward signal from drowning out weaker ones.
+
+    Mathematical formulation:
+        Step 1 - Group-wise decoupled normalization (via GRPO per dimension):
+            For each reward dimension k, within each group g:
+            A_k = (r_k - mu_group(r_k)) / (sigma_group(r_k) + eps)
+
+        Step 2 - Weighted aggregation:
+            A_sum = sum_k w_k * A_k
+
+        Step 3 - Batch-level normalization (via masked_whiten):
+            A_final = whiten(A_sum, response_mask)
+
+    Args:
+        token_level_rewards: (bs, response_length) - standard token-level rewards.
+            Used as fallback when per-dimension rewards are not provided.
+        response_mask: (bs, response_length)
+        index: (bs,) - group id per sample (from ``uid``).
+        epsilon: Numerical stability constant.
+        norm_adv_by_std_in_grpo: Whether to normalize by std in GRPO.
+        norm_adv_by_mean_in_grpo: Whether to subtract the group mean in GRPO.
+        config: Algorithm configuration (optional). Provides ``gdpo_reward_keys``
+            and optional ``gdpo_reward_weights``.
+        non_tensor_batch: Non-tensor batch data containing per-dimension reward scores.
+        batch: Batch data containing prompts, attention_mask, etc.
+
+    Note:
+        Ref GDPO (https://arxiv.org/abs/2601.05242).
+
+    Returns:
+        advantages: (bs, response_length)
+        returns: (bs, response_length) - same as advantages (outcome-only).
+    """
+    score_list = None
+    reward_weights = None
+
+    if config is not None and non_tensor_batch is not None and batch is not None:
+        gdpo_reward_keys = config.get("gdpo_reward_keys", None)
+        assert gdpo_reward_keys, (
+            "GDPO requires 'algorithm.gdpo_reward_keys' listing the individual reward "
+            "component keys returned by compute_score (e.g. ['char', 'punc'])."
+        )
+        device = token_level_rewards.device
+        prompt_length = batch["prompts"].size(1)
+        valid_response_length = batch["attention_mask"][:, prompt_length:].sum(dim=1) - 1
+
+        score_list = []
+        for key in gdpo_reward_keys:
+            assert key in non_tensor_batch, (
+                f"GDPO reward key '{key}' not found in non_tensor_batch. "
+                f"Available keys: {list(non_tensor_batch.keys())}. "
+                f"Make sure your compute_score returns a dict containing '{key}'."
+            )
+            comp = non_tensor_batch[key]
+            rm_score = torch.tensor(np.asarray(comp, dtype=np.float32), device=device)
+            rm_scores = torch.zeros_like(response_mask, dtype=torch.float32)
+            rm_scores[torch.arange(rm_scores.size(0), device=device), valid_response_length] = rm_score
+            score_list.append(rm_scores)
+
+        gdpo_weights = config.get("gdpo_reward_weights", None)
+        if gdpo_weights is not None:
+            reward_weights = list(gdpo_weights)
+
+    if score_list is None:
+        score_list = [token_level_rewards]
+
+    num_scores = len(score_list)
+
+    if reward_weights is not None:
+        assert len(reward_weights) == num_scores, (
+            f"GDPO 'gdpo_reward_weights' has {len(reward_weights)} entries but "
+            f"'gdpo_reward_keys' has {num_scores} entries; they must match."
+        )
+        weights = torch.tensor(reward_weights, dtype=torch.float32, device=token_level_rewards.device)
+    else:
+        weights = torch.ones(num_scores, dtype=torch.float32, device=token_level_rewards.device)
+
+    new_advantage = None
+
+    for i in range(num_scores):
+        normalized_score, _ = compute_grpo_outcome_advantage(
+            token_level_rewards=score_list[i],
+            response_mask=response_mask,
+            index=index,
+            epsilon=epsilon,
+            norm_adv_by_std_in_grpo=norm_adv_by_std_in_grpo,
+            norm_adv_by_mean_in_grpo=norm_adv_by_mean_in_grpo,
+            config=config,
+        )
+
+        if new_advantage is None:
+            new_advantage = weights[i] * normalized_score
+        else:
+            new_advantage = new_advantage + weights[i] * normalized_score
+
+    advantages = verl_F.masked_whiten(new_advantage, response_mask) * response_mask
+
+    return advantages, advantages
 
 
 @register_adv_est(AdvantageEstimator.GRPO_PASSK)  # or simply: @register_adv_est("grpo_passk")

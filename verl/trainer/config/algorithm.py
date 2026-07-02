@@ -80,8 +80,11 @@ class AlgoConfig(BaseConfig):
         use_pf_ppo (bool): Whether to enable preference feedback PPO.
         pf_ppo (dict[str, Any]): Preference feedback PPO settings.
         filter_groups (Optional[FilterGroupsConfig]): Filter groups configuration, used in DAPO and Entropy
+        gdpo_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score)
+            normalized independently within each group (GDPO adv_estimator only).
+        gdpo_reward_weights (Optional[list[float]]): Optional weights for each GDPO reward dimension;
+            must align with gdpo_reward_keys. Defaults to equal weights when omitted.
     """
-
     gamma: float = 1.0
     lam: float = 1.0
     adv_estimator: str = "gae"
@@ -97,3 +100,5 @@ class AlgoConfig(BaseConfig):
     use_pf_ppo: bool = False
     pf_ppo: dict[str, Any] = field(default_factory=dict)
     filter_groups: Optional[FilterGroupsConfig] = None
+    gdpo_reward_keys: Optional[list[str]] = None
+    gdpo_reward_weights: Optional[list[float]] = None
