@@ -444,6 +444,16 @@ class RayDAPOTrainer(RayPPOTrainer):
 
                 # collect metrics
                 metrics.update(compute_data_metrics(batch=batch, use_critic=self.use_critic))
+                # GDPO per-component reward metrics
+                gdpo_reward_keys = self.config.algorithm.get("gdpo_reward_keys", None)
+                if gdpo_reward_keys and self.config.algorithm.adv_estimator in ("gdpo", AdvantageEstimator.GDPO):
+                    for key in gdpo_reward_keys:
+                        if key in batch.non_tensor_batch:
+                            vals = np.asarray(batch.non_tensor_batch[key], dtype=np.float32)
+                            metrics[f"gdpo/{key}/mean"] = float(np.mean(vals))
+                            metrics[f"gdpo/{key}/std"] = float(np.std(vals))
+                            metrics[f"gdpo/{key}/max"] = float(np.max(vals))
+                            metrics[f"gdpo/{key}/min"] = float(np.min(vals))
                 metrics.update(compute_timing_metrics(batch=batch, timing_raw=timing_raw))
                 # TODO: implement actual tflpo and theoretical tflpo
                 n_gpus = self.resource_pool_manager.get_n_gpus()
