@@ -293,6 +293,13 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     # if the generation config isn't available, we don't save it
                     pass
 
+            # A plugin-registered architecture loaded with trust_remote_code=False (e.g. Qwen3.5-Audio
+            # via hf_qwen35_audio) can leave a ``None`` key in ``auto_map`` (AutoProcessor -> None).
+            # A ``None`` key makes ``save_pretrained`` -> ``json.dumps(..., sort_keys=True)`` raise
+            # "'<' not supported between instances of 'NoneType' and 'str'", so drop it before saving.
+            if hasattr(model_config, "auto_map") and isinstance(model_config.auto_map, dict) and None in model_config.auto_map:
+                model_config.auto_map = {k: v for k, v in model_config.auto_map.items() if k is not None}
+
             model_config.save_pretrained(hf_config_tokenizer_path)
             if self.processing_class is not None:
                 # breakpoint()
