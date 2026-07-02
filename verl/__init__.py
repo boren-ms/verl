@@ -22,6 +22,7 @@ from packaging.version import parse as parse_version
 
 from .protocol import DataProto
 from .utils.device import is_npu_available
+from .utils.import_utils import import_external_libs
 from .utils.logging_utils import set_basic_config
 
 version_folder = os.path.dirname(os.path.join(os.path.abspath(__file__)))
@@ -34,6 +35,16 @@ set_basic_config(level=logging.WARNING)
 
 
 __all__ = ["DataProto", "__version__"]
+
+
+# Import external modules listed in ``VERL_USE_EXTERNAL_MODULES`` (comma-separated)
+# at ``import verl`` time so that, in every Ray process (driver, TaskRunner, FSDP
+# actor/ref/critic workers and vLLM workers), custom model implementations register
+# themselves with the Transformers Auto* registries. This lets checkpoints load with
+# ``trust_remote_code=False`` (e.g. ``hf_qwen35_audio`` registers ``qwen3_5_audio``).
+modules = os.getenv("VERL_USE_EXTERNAL_MODULES", "")
+if modules:
+    import_external_libs([m.strip() for m in modules.split(",") if m.strip()])
 
 if os.getenv("VERL_USE_MODELSCOPE", "False").lower() == "true":
     if importlib.util.find_spec("modelscope") is None:

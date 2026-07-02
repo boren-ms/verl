@@ -53,6 +53,10 @@ def cwd():
 
 def run_ppo(config) -> None:
     env_vars = get_env_vars()
+    # Register the custom Qwen3.5-Audio HF model in every Ray process (TaskRunner +
+    # FSDP/vLLM workers) via ``import verl`` so checkpoints load with
+    # ``trust_remote_code=False`` (no dependency on per-checkpoint remote *.py files).
+    env_vars.setdefault("VERL_USE_EXTERNAL_MODULES", "hf_qwen35_audio")
     print(f"Cluster Env: {env_vars}")
     if not ray.is_initialized():
         # this is for local ray cluster
