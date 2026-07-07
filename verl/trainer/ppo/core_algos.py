@@ -760,12 +760,22 @@ def compute_remax_outcome_advantage(
     response_mask: torch.Tensor,
     config: Optional[AlgoConfig] = None,
     index: np.ndarray = None,
+    non_tensor_batch: Optional[dict] = None,
+    batch: Optional[dict] = None,
     **kwargs,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Compute advantage for ReMax, operating only on Outcome reward
     This implementation is based on the paper: https://arxiv.org/abs/2310.10505
     (with only one scalar reward for each response).
+
+    Multi-reward (GDPO-style) support:
+        When ``config.remax_reward_keys`` is provided, each named reward dimension is
+        handled independently: its own greedy baseline (stored as
+        ``reward_baselines_<key>``) is subtracted from the sampled per-dimension reward,
+        and the resulting per-dimension advantages are combined with optional
+        ``config.remax_reward_weights``. This mirrors how GDPO decouples reward
+        dimensions, but keeps the ReMax greedy-baseline formulation per dimension.
 
     Args:
         token_level_rewards: `(torch.Tensor)`
@@ -777,6 +787,12 @@ def compute_remax_outcome_advantage(
         config: (AlgoConfig) algorithm config
         index: `(np.ndarray)`
             index array for grouping (optional, used for norm_adv_in_remax)
+        non_tensor_batch: `(Optional[dict])`
+            Non-tensor batch data containing per-dimension sampled reward scores
+            (used when ``remax_reward_keys`` is set).
+        batch: `(Optional[dict])`
+            Batch data containing prompts, attention_mask, and per-dimension greedy
+            baselines ``reward_baselines_<key>`` (used when ``remax_reward_keys`` is set).
 
     Returns:
         advantages: `(torch.Tensor)`
@@ -786,8 +802,62 @@ def compute_remax_outcome_advantage(
     """
 
     with torch.no_grad():
-        returns = (token_level_rewards * response_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
-        advantages = returns - reward_baselines.unsqueeze(-1) * response_mask
+        remax_reward_keys = None
+        if config is not None:
+            remax_reward_keys = config.get("remax_reward_keys", None)
+
+        if remax_reward_keys and non_tensor_batch is not None and batch is not None:
+            # Multi-reward path: decouple each reward dimension, subtract its own
+            # greedy baseline, then aggregate with optional weights.
+            device = token_level_rewards.device
+            prompt_length = batch["prompts"].size(1)
+            valid_response_length = batch["attention_mask"][:, prompt_length:].sum(dim=1) - 1
+            row_idx = torch.arange(response_mask.size(0), device=device)
+
+            remax_weights = config.get("remax_reward_weights", None)
+            if remax_weights is not None:
+                assert len(remax_weights) == len(remax_reward_keys), (
+                    f"ReMax 'remax_reward_weights' has {len(remax_weights)} entries but "
+                    f"'remax_reward_keys' has {len(remax_reward_keys)} entries; they must match."
+                )
+                weights = torch.tensor(list(remax_weights), dtype=torch.float32, device=device)
+            else:
+                weights = torch.ones(len(remax_reward_keys), dtype=torch.float32, device=device)
+
+            returns = None
+            advantages = None
+            for i, key in enumerate(remax_reward_keys):
+                assert key in non_tensor_batch, (
+                    f"ReMax reward key '{key}' not found in non_tensor_batch. "
+                    f"Available keys: {list(non_tensor_batch.keys())}. "
+                    f"Make sure your compute_score returns a dict containing '{key}'."
+                )
+                baseline_key = f"reward_baselines_{key}"
+                assert baseline_key in batch, (
+                    f"ReMax per-dimension baseline '{baseline_key}' not found in batch. "
+                    f"Make sure the greedy baseline reward is computed with return_dict=True "
+                    f"and the '{key}' component is stored as '{baseline_key}'."
+                )
+
+                comp = non_tensor_batch[key]
+                rm_score = torch.tensor(np.asarray(comp, dtype=np.float32), device=device)
+                rm_scores = torch.zeros_like(response_mask, dtype=torch.float32)
+                rm_scores[row_idx, valid_response_length] = rm_score
+
+                baseline_k = batch[baseline_key].to(device=device, dtype=torch.float32)
+
+                returns_k = (rm_scores * response_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
+                advantages_k = returns_k - baseline_k.unsqueeze(-1) * response_mask
+
+                if returns is None:
+                    returns = weights[i] * returns_k
+                    advantages = weights[i] * advantages_k
+                else:
+                    returns = returns + weights[i] * returns_k
+                    advantages = advantages + weights[i] * advantages_k
+        else:
+            returns = (token_level_rewards * response_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
+            advantages = returns - reward_baselines.unsqueeze(-1) * response_mask
 
         # Asymmetric min/max normalization: independently scale positive and
         # negative advantages to [0, 1] and [-1, 0] per prompt group.

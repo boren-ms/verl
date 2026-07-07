@@ -84,6 +84,11 @@ class AlgoConfig(BaseConfig):
             normalized independently within each group (GDPO adv_estimator only).
         gdpo_reward_weights (Optional[list[float]]): Optional weights for each GDPO reward dimension;
             must align with gdpo_reward_keys. Defaults to equal weights when omitted.
+        remax_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score)
+            for which a separate greedy baseline is subtracted before weighted aggregation
+            (REMAX adv_estimator only). Mirrors gdpo_reward_keys for ReMax.
+        remax_reward_weights (Optional[list[float]]): Optional weights for each ReMax reward dimension;
+            must align with remax_reward_keys. Defaults to equal weights when omitted.
     """
     gamma: float = 1.0
     lam: float = 1.0
@@ -102,3 +107,5 @@ class AlgoConfig(BaseConfig):
     filter_groups: Optional[FilterGroupsConfig] = None
     gdpo_reward_keys: Optional[list[str]] = None
     gdpo_reward_weights: Optional[list[float]] = None
+    remax_reward_keys: Optional[list[str]] = None
+    remax_reward_weights: Optional[list[float]] = None

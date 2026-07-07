@@ -263,6 +263,13 @@ def compute_advantage(
             adv_kwargs["non_tensor_batch"] = data.non_tensor_batch
             adv_kwargs["batch"] = data.batch
 
+        # ReMax multi-reward: pass raw data for per-dimension reward + baseline extraction
+        if adv_estimator in (AdvantageEstimator.REMAX, "remax") and config is not None and config.get(
+            "remax_reward_keys", None
+        ):
+            adv_kwargs["non_tensor_batch"] = data.non_tensor_batch
+            adv_kwargs["batch"] = data.batch
+
         # calculate advantage estimator
         advantages, returns = adv_estimator_fn(**adv_kwargs)
         data.batch["advantages"] = advantages
@@ -1124,7 +1131,23 @@ class RayPPOTrainer:
                                 else:
                                     batch.non_tensor_batch["extra_info"][i] = {"greedy_hyp": hyp}
 
-                            reward_baseline_tensor = self.reward_fn(batch)
+                            remax_reward_keys = self.config.algorithm.get("remax_reward_keys", None)
+                            if remax_reward_keys:
+                                # Multi-reward ReMax: capture per-dimension greedy baselines
+                                # so each reward dimension can be decoupled in advantage calc.
+                                baseline_result = self.reward_fn(batch, return_dict=True)
+                                reward_baseline_tensor = baseline_result["reward_tensor"]
+                                baseline_extra = baseline_result.get("reward_extra_info", {})
+                                for key in remax_reward_keys:
+                                    assert key in baseline_extra, (
+                                        f"ReMax reward key '{key}' not found in greedy baseline "
+                                        f"reward_extra_info. Available keys: {list(baseline_extra.keys())}."
+                                    )
+                                    batch.batch[f"reward_baselines_{key}"] = torch.tensor(
+                                        np.asarray(baseline_extra[key], dtype=np.float32)
+                                    )
+                            else:
+                                reward_baseline_tensor = self.reward_fn(batch)
                             reward_baseline_tensor = reward_baseline_tensor.sum(dim=-1)
 
                             batch.pop(batch_keys=list(gen_baseline_output.batch.keys()))

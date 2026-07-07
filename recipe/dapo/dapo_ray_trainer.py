@@ -175,7 +175,23 @@ class RayDAPOTrainer(RayPPOTrainer):
                                     new_batch.non_tensor_batch["extra_info"][i] = {"greedy_hyp": hyp}
 
                             new_batch.meta_info["skip_examine"] = True
-                            reward_baseline_tensor = self.reward_fn(new_batch)
+                            remax_reward_keys = self.config.algorithm.get("remax_reward_keys", None)
+                            if remax_reward_keys:
+                                # Multi-reward ReMax: capture per-dimension greedy baselines
+                                # so each reward dimension can be decoupled in advantage calc.
+                                baseline_result = self.reward_fn(new_batch, return_dict=True)
+                                reward_baseline_tensor = baseline_result["reward_tensor"]
+                                baseline_extra = baseline_result.get("reward_extra_info", {})
+                                for key in remax_reward_keys:
+                                    assert key in baseline_extra, (
+                                        f"ReMax reward key '{key}' not found in greedy baseline "
+                                        f"reward_extra_info. Available keys: {list(baseline_extra.keys())}."
+                                    )
+                                    new_batch.batch[f"reward_baselines_{key}"] = torch.tensor(
+                                        np.asarray(baseline_extra[key], dtype=np.float32)
+                                    )
+                            else:
+                                reward_baseline_tensor = self.reward_fn(new_batch)
                             new_batch.meta_info.pop("skip_examine", None)
                             reward_baseline_tensor = reward_baseline_tensor.sum(dim=-1)
 
@@ -454,6 +470,20 @@ class RayDAPOTrainer(RayPPOTrainer):
                             metrics[f"gdpo/{key}/std"] = float(np.std(vals))
                             metrics[f"gdpo/{key}/max"] = float(np.max(vals))
                             metrics[f"gdpo/{key}/min"] = float(np.min(vals))
+                # ReMax multi-reward per-component metrics
+                remax_reward_keys = self.config.algorithm.get("remax_reward_keys", None)
+                if remax_reward_keys and self.config.algorithm.adv_estimator in ("remax", AdvantageEstimator.REMAX):
+                    for key in remax_reward_keys:
+                        if key in batch.non_tensor_batch:
+                            vals = np.asarray(batch.non_tensor_batch[key], dtype=np.float32)
+                            metrics[f"remax/{key}/mean"] = float(np.mean(vals))
+                            metrics[f"remax/{key}/std"] = float(np.std(vals))
+                            metrics[f"remax/{key}/max"] = float(np.max(vals))
+                            metrics[f"remax/{key}/min"] = float(np.min(vals))
+                        baseline_key = f"reward_baselines_{key}"
+                        if baseline_key in batch.batch:
+                            bvals = batch.batch[baseline_key].float()
+                            metrics[f"remax/{key}/baseline_mean"] = float(bvals.mean())
                 metrics.update(compute_timing_metrics(batch=batch, timing_raw=timing_raw))
                 # TODO: implement actual tflpo and theoretical tflpo
                 n_gpus = self.resource_pool_manager.get_n_gpus()
