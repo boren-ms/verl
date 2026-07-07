@@ -46,9 +46,10 @@ algorithm:
   # ReMax multi-reward (GDPO-style): each dimension is decoupled, its own greedy
   # baseline is subtracted, then dimensions are combined with the weights below.
   # These keys must be returned by compute_score (see punc_cap_measure.py).
-  remax_reward_keys: [char, punc]
+  # Shared config names with GDPO.
+  multi_reward_keys: [char, punc]
   # Optional per-dimension weights; equal weights when omitted.
-  remax_reward_weights: [1.0, 1.0]
+  multi_reward_weights: [1.0, 1.0]
 
 data:
   max_prompt_length: 1204

@@ -80,15 +80,13 @@ class AlgoConfig(BaseConfig):
         use_pf_ppo (bool): Whether to enable preference feedback PPO.
         pf_ppo (dict[str, Any]): Preference feedback PPO settings.
         filter_groups (Optional[FilterGroupsConfig]): Filter groups configuration, used in DAPO and Entropy
-        gdpo_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score)
-            normalized independently within each group (GDPO adv_estimator only).
-        gdpo_reward_weights (Optional[list[float]]): Optional weights for each GDPO reward dimension;
-            must align with gdpo_reward_keys. Defaults to equal weights when omitted.
-        remax_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score)
-            for which a separate greedy baseline is subtracted before weighted aggregation
-            (REMAX adv_estimator only). Mirrors gdpo_reward_keys for ReMax.
-        remax_reward_weights (Optional[list[float]]): Optional weights for each ReMax reward dimension;
-            must align with remax_reward_keys. Defaults to equal weights when omitted.
+        multi_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score).
+            For GDPO, each dimension is normalized independently within each group before aggregation.
+            For ReMax multi-reward, each dimension has its own greedy baseline subtracted before
+            weighted aggregation. Shared by both the GDPO and REMAX adv_estimators.
+        multi_reward_weights (Optional[list[float]]): Optional weights for each reward dimension;
+            must align with multi_reward_keys. Defaults to equal weights when omitted. Shared by
+            both the GDPO and REMAX adv_estimators.
     """
     gamma: float = 1.0
     lam: float = 1.0
@@ -105,7 +103,5 @@ class AlgoConfig(BaseConfig):
     use_pf_ppo: bool = False
     pf_ppo: dict[str, Any] = field(default_factory=dict)
     filter_groups: Optional[FilterGroupsConfig] = None
-    gdpo_reward_keys: Optional[list[str]] = None
-    gdpo_reward_weights: Optional[list[float]] = None
-    remax_reward_keys: Optional[list[str]] = None
-    remax_reward_weights: Optional[list[float]] = None
+    multi_reward_keys: Optional[list[str]] = None
+    multi_reward_weights: Optional[list[float]] = None
