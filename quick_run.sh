@@ -5,6 +5,7 @@ config_file=$1
 
 config_base=$(basename "$config_file")
 config_name=${config_base%.*}
+config_dir=$(dirname "$config_file")
 
 cwd="$(dirname $(readlink -f $0))"
 echo "Current working directory: ${cwd}"
@@ -41,6 +42,7 @@ echo "[INFO] Running ${config_name} ..."
 ray job submit --working-dir="${cwd}" \
 --no-wait -- \
 python3 -m ${module} \
+--config-dir "${config_dir}" \
 --config-name "${config_name}" \
 trainer.experiment_name="${config_name}" \
 2>&1 | tee "${config_name}.log"
