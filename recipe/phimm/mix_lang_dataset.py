@@ -10,28 +10,27 @@ single new sample. For every requested mix type (e.g. ``en_zh``, ``zh_en``,
 ``fr_it``, ``es_zh``) it produces ``--num-per-type`` samples.
 
 The concatenated audio is written to ``<output-dir>/wavs/<id>.wav`` (16 kHz mono)
-and one JSON object per mixed sample is appended to ``<output-dir>/<name>.jsonl``.
+and one JSON object per mixed sample is written to ``<output-dir>/<name>.jsonl``.
+Both local and blob (``az://`` / ``https://``) output dirs are supported.
 
 Example
 -------
-    # Explicit mix types
-    python -m recipe.phimm.mix_lang_dataset \
-        --mix-types en_zh,zh_en,fr_it,es_zh \
-        --num-per-type 100 \
-        --output-dir ~/data/mixed_lang
+    # Run with the default config
+    python -m recipe.phimm.mix_lang_dataset
 
-    # Auto-generate all directed pairs from a language list
+    # Pick a specific config
+    python -m recipe.phimm.mix_lang_dataset --config-name mix_cv15_test
+
+    # Override any field on the CLI (Hydra)
     python -m recipe.phimm.mix_lang_dataset \
-        --languages en,zh,fr,it,es \
-        --pair-mode permutations \
-        --num-per-type 100 \
-        --output-dir ~/data/mixed_lang
+        languages=en,zh,fr,it,es pair_mode=permutations \
+        num_per_type=100 output_dir=az://.../mixed_lang
 
 Each JSONL row looks like::
 
     {
       "id": "en_zh_0000",
-      "audio_path": "/abs/wavs/en_zh_0000.wav",
+      "audio_path": "<output-dir>/wavs/en_zh_0000.wav",
       "text": "<en transcription> <zh transcription>",
       "language": "en_zh",
       "mix_type": "en_zh",
@@ -45,13 +44,16 @@ Each JSONL row looks like::
 
 from __future__ import annotations
 
-import argparse
 import itertools
 import json
+import os
 import random
-from pathlib import Path
+from typing import Any
 
+import blobfile as bf
+import hydra
 import numpy as np
+from omegaconf import DictConfig, OmegaConf
 from tqdm import tqdm
 
 from recipe.phimm.data.chunk import load_chunk_info, load_examples, load_specs, resolve_path
@@ -63,77 +65,7 @@ from recipe.phimm.utils.audio import (
     sf_write,
 )
 
-DEFAULT_SPEC_TEMPLATE = (
-    "az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/"
-    "mlang_asr_data_2605/oss/asr_chunk_cv15_{lang}.json"
-)
 DEFAULT_TEXT_FIELD = "sft.0.messages.1.content"
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument(
-        "--mix-types",
-        type=str,
-        default=None,
-        help="Comma separated <langA>_<langB> mix types (order = audio/text order). "
-        "Mutually exclusive with --languages; defaults to en_zh,zh_en,fr_it,es_zh "
-        "when neither is given.",
-    )
-    parser.add_argument(
-        "--languages",
-        type=str,
-        default=None,
-        help="Comma separated language codes (e.g. en,zh,fr,it,es). Mix types are "
-        "auto-generated as pairs of distinct languages per --pair-mode.",
-    )
-    parser.add_argument(
-        "--pair-mode",
-        type=str,
-        default="permutations",
-        choices=("permutations", "combinations"),
-        help="With --languages: 'permutations' emits both directions (a_b and b_a); "
-        "'combinations' emits a single direction (a_b only).",
-    )
-    parser.add_argument("--num-per-type", type=int, default=100, help="Number of mixed samples per mix type.")
-    parser.add_argument(
-        "--spec-template",
-        type=str,
-        default=DEFAULT_SPEC_TEMPLATE,
-        help="Spec file path with a {lang} placeholder.",
-    )
-    parser.add_argument(
-        "--text-field",
-        type=str,
-        default=DEFAULT_TEXT_FIELD,
-        help="Dotted chunk field holding the transcription text.",
-    )
-    parser.add_argument("--output-dir", type=str, default="~/data/mixed_lang", help="Local output directory.")
-    parser.add_argument("--name", type=str, default="mixed", help="Base name for the output jsonl file.")
-    parser.add_argument("--gap-sec", type=float, default=0.3, help="Silence (seconds) inserted between the two audios.")
-    parser.add_argument("--max-dur", type=float, default=20.0, help="Max duration (seconds) per component audio.")
-    parser.add_argument("--sep", type=str, default=" ", help="Separator string between the two transcriptions.")
-    parser.add_argument("--seed", type=int, default=1234, help="Random seed.")
-    parser.add_argument(
-        "--max-chunks-per-lang",
-        type=int,
-        default=None,
-        help="Cap on chunks loaded per language (default: just enough to cover demand).",
-    )
-    parser.add_argument(
-        "--allow-reuse",
-        action="store_true",
-        help="Allow sampling with replacement when a language pool is too small.",
-    )
-    parser.add_argument(
-        "--chunk-load-mode",
-        type=str,
-        default="sample",
-        choices=("sample", "cached"),
-        help="'sample' seeks to each audio (fast for scattered random access); "
-        "'cached' loads the whole 400-audio chunk into memory.",
-    )
-    return parser.parse_args()
 
 
 def parse_mix_types(mix_types: str) -> list[tuple[str, str]]:
@@ -162,12 +94,15 @@ def mix_types_from_languages(languages: str, pair_mode: str) -> list[tuple[str, 
     return [(a, b) for a, b in combiner(langs, 2)]
 
 
-def resolve_mix_types(args: argparse.Namespace) -> list[tuple[str, str]]:
-    if args.languages and args.mix_types:
-        raise ValueError("Pass only one of --languages or --mix-types, not both.")
-    if args.languages:
-        return mix_types_from_languages(args.languages, args.pair_mode)
-    return parse_mix_types(args.mix_types or "en_zh,zh_en,fr_it,es_zh")
+def resolve_mix_types(mix_types: str | None, languages: str | None, pair_mode: str) -> list[tuple[str, str]]:
+    if languages and mix_types:
+        raise ValueError("Set only one of 'languages' or 'mix_types', not both.")
+    if languages:
+        return mix_types_from_languages(languages, pair_mode)
+    if mix_types:
+        return parse_mix_types(mix_types)
+    raise ValueError("Set one of 'mix_types' or 'languages' in the config (both are null by default).")
+
 
 
 def language_demand(pairs: list[tuple[str, str]], num_per_type: int) -> dict[str, int]:
@@ -179,12 +114,16 @@ def language_demand(pairs: list[tuple[str, str]], num_per_type: int) -> dict[str
     return demand
 
 
-def build_language_pool(lang: str, spec_template: str, text_field: str, need: int, max_chunks: int | None) -> list[dict]:
-    """Return a shuffled list of ``{audio_chunk, text, language}`` records for ``lang``."""
-    spec_file = spec_template.format(lang=lang)
-    specs = load_specs([spec_file])
+def build_language_pool(lang: str, spec_files, text_field: str, need: int, max_chunks: int | None) -> list[dict]:
+    """Return a shuffled list of ``{audio_chunk, text, language}`` records for ``lang``.
+
+    ``spec_files`` is a spec-file path (or list of paths) for this language.
+    """
+    if isinstance(spec_files, str):
+        spec_files = [spec_files]
+    specs = load_specs(list(spec_files))
     if not specs:
-        raise ValueError(f"No data_sources found in spec for language {lang!r} ({spec_file}).")
+        raise ValueError(f"No data_sources found in specs for language {lang!r} ({spec_files}).")
 
     chunks: list[dict] = []
     for spec in specs:
@@ -211,40 +150,82 @@ def build_language_pool(lang: str, spec_template: str, text_field: str, need: in
     return pool
 
 
-def load_component_audio(record: dict, max_dur: float) -> tuple[np.ndarray, int]:
-    """Load, downmix, resample and length-limit a single component's audio."""
+def load_component_audio(record: dict, max_dur: float | None) -> tuple[np.ndarray, int]:
+    """Load, downmix, resample to 16 kHz and length-limit a single component's audio."""
     data, sr = load_raw_audio(record)
     data, sr = limit_audio(np.asarray(data), sr, max_dur=max_dur)
+    assert sr == TARGET_SAMPLE_RATE, f"expected {TARGET_SAMPLE_RATE} Hz after resample, got {sr}"
     return data, sr
 
 
-def main() -> None:
-    args = parse_args()
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    set_chunk_load_mode(args.chunk_load_mode)
+def _resolve_output_dir(output_dir: str) -> str:
+    """Expand user paths for local dirs; leave blob URIs (``az://``/``https://``) as-is."""
+    if "://" in output_dir:
+        return output_dir.rstrip("/")
+    return os.path.abspath(os.path.expanduser(output_dir)).rstrip("/")
 
-    pairs = resolve_mix_types(args)
-    demand = language_demand(pairs, args.num_per_type)
 
-    output_dir = Path(args.output_dir).expanduser()
-    wav_dir = output_dir / "wavs"
-    wav_dir.mkdir(parents=True, exist_ok=True)
-    jsonl_path = output_dir / f"{args.name}.jsonl"
+def run_mix(cfg: dict[str, Any]) -> None:
+    seed = int(cfg.get("seed", 1234))
+    random.seed(seed)
+    np.random.seed(seed)
+    set_chunk_load_mode(str(cfg.get("chunk_load_mode", "sample")))
+
+    num_per_type = int(cfg.get("num_per_type", 100))
+    specs = cfg.get("specs") or {}
+    if not isinstance(specs, dict) or not specs:
+        raise ValueError("Config must provide a non-empty 'specs' mapping of {language: spec_path(s)}.")
+    # text_field may be a single global dotted field or a per-language mapping.
+    text_field_cfg = cfg.get("text_field", DEFAULT_TEXT_FIELD)
+
+    def text_field_for(lang: str) -> str:
+        if isinstance(text_field_cfg, dict):
+            if lang not in text_field_cfg:
+                raise ValueError(f"No text_field configured for language {lang!r}; add it under 'text_field'.")
+            return str(text_field_cfg[lang])
+        return str(text_field_cfg)
+
+    gap_sec_cfg = cfg.get("gap_sec", 0.3)
+    if isinstance(gap_sec_cfg, (list, tuple)):
+        if len(gap_sec_cfg) != 2:
+            raise ValueError(f"gap_sec range must have exactly 2 values [min, max], got {gap_sec_cfg}.")
+        gap_lo, gap_hi = float(gap_sec_cfg[0]), float(gap_sec_cfg[1])
+    else:
+        gap_lo = gap_hi = float(gap_sec_cfg)
+    if gap_lo > gap_hi:
+        gap_lo, gap_hi = gap_hi, gap_lo
+    max_dur_cfg = cfg.get("max_dur")
+    max_dur = float(max_dur_cfg) if max_dur_cfg is not None else None
+    sep = str(cfg.get("sep", " "))
+    allow_reuse = bool(cfg.get("allow_reuse", False))
+    max_chunks_per_lang = cfg.get("max_chunks_per_lang")
+    max_chunks_per_lang = int(max_chunks_per_lang) if max_chunks_per_lang is not None else None
+
+    pairs = resolve_mix_types(cfg.get("mix_types"), cfg.get("languages"), str(cfg.get("pair_mode", "permutations")))
+    demand = language_demand(pairs, num_per_type)
+    n_lang = len(demand)
+
+    output_dir = _resolve_output_dir(str(cfg.get("output_dir", "~/data/mixed_lang")))
+    wav_dir = bf.join(output_dir, "wavs")
+    bf.makedirs(wav_dir)
+    name = str(cfg.get("name", "mixed")).format(n_lang=n_lang, num_per_type=num_per_type)
+    jsonl_path = bf.join(output_dir, f"{name}.jsonl")
 
     print(f"Mix types: {pairs}")
     print(f"Per-language sample demand: {demand}")
+    print(f"Output dir: {output_dir}")
 
     # Build one pool per unique language.
     pools: dict[str, list[dict]] = {}
     cursors: dict[str, int] = {}
     for lang, need in demand.items():
-        max_chunks = args.max_chunks_per_lang
-        pool = build_language_pool(lang, args.spec_template, args.text_field, need, max_chunks)
-        if len(pool) < need and not args.allow_reuse:
+        if lang not in specs:
+            raise ValueError(f"No spec path configured for language {lang!r}; add it under 'specs'.")
+        pool = build_language_pool(lang, specs[lang], text_field_for(lang), need, max_chunks_per_lang)
+        if len(pool) < need and not allow_reuse:
             raise RuntimeError(
                 f"Language {lang!r} pool has only {len(pool)} usable samples but {need} are required. "
-                f"Increase --max-chunks-per-lang or pass --allow-reuse."
+                f"Increase max_chunks_per_lang or set allow_reuse=true."
             )
         print(f"  [{lang}] pool size = {len(pool)} (need {need})")
         pools[lang] = pool
@@ -254,7 +235,7 @@ def main() -> None:
         pool = pools[lang]
         idx = cursors[lang]
         if idx >= len(pool):
-            if not args.allow_reuse:
+            if not allow_reuse:
                 raise RuntimeError(f"Exhausted pool for language {lang!r}.")
             random.shuffle(pool)
             cursors[lang] = 0
@@ -262,34 +243,36 @@ def main() -> None:
         cursors[lang] = idx + 1
         return pool[idx]
 
-    gap = np.zeros(int(args.gap_sec * TARGET_SAMPLE_RATE), dtype=np.float32)
     n_written = 0
-    with open(jsonl_path, "w", encoding="utf-8") as out_f:
+    with bf.BlobFile(jsonl_path, "w") as out_f:
         for lang_a, lang_b in pairs:
             mix_type = f"{lang_a}_{lang_b}"
-            for i in tqdm(range(args.num_per_type), desc=f"mixing {mix_type}"):
+            for i in tqdm(range(num_per_type), desc=f"mixing {mix_type}"):
                 rec_a = draw(lang_a)
                 rec_b = draw(lang_b)
                 try:
-                    audio_a, _ = load_component_audio(rec_a, args.max_dur)
-                    audio_b, _ = load_component_audio(rec_b, args.max_dur)
+                    audio_a, _ = load_component_audio(rec_a, max_dur)
+                    audio_b, _ = load_component_audio(rec_b, max_dur)
                 except Exception as exc:  # noqa: BLE001 - skip unreadable audio, keep going
                     print(f"[WARN] skip {mix_type} #{i}: {exc}")
                     continue
 
+                gap_dur = random.uniform(gap_lo, gap_hi)
+                gap = np.zeros(int(gap_dur * TARGET_SAMPLE_RATE), dtype=np.float32)
                 mixed = np.concatenate([audio_a.astype(np.float32), gap, audio_b.astype(np.float32)])
                 sample_id = f"{mix_type}_{i:04d}"
-                wav_path = wav_dir / f"{sample_id}.wav"
-                sf_write(str(wav_path), mixed, TARGET_SAMPLE_RATE)
+                wav_path = bf.join(wav_dir, f"{sample_id}.wav")
+                sf_write(wav_path, mixed, TARGET_SAMPLE_RATE)
 
-                text = f"{rec_a['text']}{args.sep}{rec_b['text']}"
+                text = f"{rec_a['text']}{sep}{rec_b['text']}"
                 row = {
                     "id": sample_id,
-                    "audio_path": str(wav_path),
+                    "audio_path": wav_path,
                     "text": text,
                     "language": mix_type,
                     "mix_type": mix_type,
                     "duration": round(len(mixed) / TARGET_SAMPLE_RATE, 3),
+                    "gap": round(gap_dur, 3),
                     "components": [
                         {
                             "language": lang_a,
@@ -312,5 +295,12 @@ def main() -> None:
     print(f"Mixed wavs under {wav_dir}")
 
 
+@hydra.main(config_path="config/data/mix", config_name="mix_cv15", version_base=None)
+def main(config: DictConfig) -> None:
+    cfg = OmegaConf.to_container(config, resolve=True)
+    run_mix(cfg)
+
+
 if __name__ == "__main__":
     main()
+

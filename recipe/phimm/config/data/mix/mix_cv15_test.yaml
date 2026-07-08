@@ -1,0 +1,29 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+
+# Small smoke test: 3 samples per type, writes directly to blob (remote path).
+mix_types: en_zh,fr_it
+pair_mode: permutations
+
+num_per_type: 3
+seed: 7
+allow_reuse: false
+max_chunks_per_lang: 1
+
+specs:
+  en: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json
+  zh: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json
+  fr: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fr.json
+  it: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_it.json
+# text_field: single global value, or a per-language mapping.
+text_field: sft.0.messages.1.content
+chunk_load_mode: sample
+
+gap_sec: [0.0, 0.5]
+sep: " "
+
+# Remote output path (blob URI). WAVs go to <output_dir>/wavs/, jsonl to <output_dir>/<name>.jsonl
+output_dir: az://orngwus2cresco/data/boren/data/verl/mixed_lang_test
+name: mixed_4_3
