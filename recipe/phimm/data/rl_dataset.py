@@ -16,6 +16,11 @@ from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
 
 logger = logging.getLogger(__name__)
 
+try:
+    from hf_qwen35_audio.processing_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
+except Exception:  # pragma: no cover - fallback if plugin import path differs
+    AUDIO_PAD_TOKEN_ID = 248076
+
 
 def to_numpy(x):
     if isinstance(x, torch.Tensor):
@@ -156,6 +161,36 @@ class RLHFDataset(Dataset):
         row_dict["input_ids"] = input_ids[0]
         row_dict["attention_mask"] = attention_mask[0]
         row_dict["position_ids"] = position_ids[0]
+
+        # Prompt truncation (e.g. "right2") can drop the tail of the audio-placeholder
+        # block for overlong prompts, leaving fewer AUDIO_PAD tokens in input_ids than
+        # the stored audio_embed_sizes describe. That mismatch trips the assertion
+        # `audio_embed_sizes.sum() == len(positions)` in the model's audio embedding
+        # forward. Reconcile audio_embed_sizes with the surviving placeholder tokens so
+        # each sample stays internally consistent; the encoder still produces the full
+        # audio_set_tensor and only its aligned prefix frames are consumed.
+        if self.return_multi_modal_inputs:
+            mmi = row_dict.get("multi_modal_inputs")
+            if mmi is not None and "audio_embed_sizes" in mmi:
+                audio_embed_sizes = mmi["audio_embed_sizes"]
+                n_pad = int((row_dict["input_ids"] == AUDIO_PAD_TOKEN_ID).sum().item())
+                if int(audio_embed_sizes.sum().item()) != n_pad:
+                    remaining = n_pad
+                    new_sizes = []
+                    for sz in audio_embed_sizes.tolist():
+                        take = min(int(sz), remaining)
+                        new_sizes.append(take)
+                        remaining -= take
+                    logger.warning(
+                        "Reconciled audio_embed_sizes %s -> %s for sample %s (data source: %s) "
+                        "after prompt truncation dropped %s audio placeholder token(s).",
+                        audio_embed_sizes.tolist(),
+                        new_sizes,
+                        i,
+                        row_dict.get("data_source"),
+                        int(audio_embed_sizes.sum().item()) - n_pad,
+                    )
+                    mmi["audio_embed_sizes"] = torch.tensor(new_sizes, dtype=audio_embed_sizes.dtype)
 
         raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
         row_dict["raw_prompt_ids"] = raw_prompt_ids
