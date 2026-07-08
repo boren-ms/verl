@@ -80,12 +80,12 @@ class AlgoConfig(BaseConfig):
         use_pf_ppo (bool): Whether to enable preference feedback PPO.
         pf_ppo (dict[str, Any]): Preference feedback PPO settings.
         filter_groups (Optional[FilterGroupsConfig]): Filter groups configuration, used in DAPO and Entropy
-        multi_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score).
+        gdpo_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score).
             For GDPO, each dimension is normalized independently within each group before aggregation.
             For ReMax multi-reward, each dimension has its own greedy baseline subtracted before
             weighted aggregation. Shared by both the GDPO and REMAX adv_estimators.
-        multi_reward_weights (Optional[list[float]]): Optional weights for each reward dimension;
-            must align with multi_reward_keys. Defaults to equal weights when omitted. Shared by
+        gdpo_reward_weights (Optional[list[float]]): Optional weights for each reward dimension;
+            must align with gdpo_reward_keys. Defaults to equal weights when omitted. Shared by
             both the GDPO and REMAX adv_estimators.
     """
     gamma: float = 1.0
@@ -103,5 +103,5 @@ class AlgoConfig(BaseConfig):
     use_pf_ppo: bool = False
     pf_ppo: dict[str, Any] = field(default_factory=dict)
     filter_groups: Optional[FilterGroupsConfig] = None
-    multi_reward_keys: Optional[list[str]] = None
-    multi_reward_weights: Optional[list[float]] = None
+    gdpo_reward_keys: Optional[list[str]] = None
+    gdpo_reward_weights: Optional[list[float]] = None

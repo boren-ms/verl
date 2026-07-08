@@ -363,8 +363,8 @@ def compute_gdpo_outcome_advantage(
         epsilon: Numerical stability constant.
         norm_adv_by_std_in_grpo: Whether to normalize by std in GRPO.
         norm_adv_by_mean_in_grpo: Whether to subtract the group mean in GRPO.
-        config: Algorithm configuration (optional). Provides ``multi_reward_keys``
-            and optional ``multi_reward_weights``.
+        config: Algorithm configuration (optional). Provides ``gdpo_reward_keys``
+            and optional ``gdpo_reward_weights``.
         non_tensor_batch: Non-tensor batch data containing per-dimension reward scores.
         batch: Batch data containing prompts, attention_mask, etc.
 
@@ -379,9 +379,9 @@ def compute_gdpo_outcome_advantage(
     reward_weights = None
 
     if config is not None and non_tensor_batch is not None and batch is not None:
-        gdpo_reward_keys = config.get("multi_reward_keys", None)
+        gdpo_reward_keys = config.get("gdpo_reward_keys", None)
         assert gdpo_reward_keys, (
-            "GDPO requires 'algorithm.multi_reward_keys' listing the individual reward "
+            "GDPO requires 'algorithm.gdpo_reward_keys' listing the individual reward "
             "component keys returned by compute_score (e.g. ['char', 'punc'])."
         )
         device = token_level_rewards.device
@@ -401,7 +401,7 @@ def compute_gdpo_outcome_advantage(
             rm_scores[torch.arange(rm_scores.size(0), device=device), valid_response_length] = rm_score
             score_list.append(rm_scores)
 
-        gdpo_weights = config.get("multi_reward_weights", None)
+        gdpo_weights = config.get("gdpo_reward_weights", None)
         if gdpo_weights is not None:
             reward_weights = list(gdpo_weights)
 
@@ -412,8 +412,8 @@ def compute_gdpo_outcome_advantage(
 
     if reward_weights is not None:
         assert len(reward_weights) == num_scores, (
-            f"GDPO 'multi_reward_weights' has {len(reward_weights)} entries but "
-            f"'multi_reward_keys' has {num_scores} entries; they must match."
+            f"GDPO 'gdpo_reward_weights' has {len(reward_weights)} entries but "
+            f"'gdpo_reward_keys' has {num_scores} entries; they must match."
         )
         weights = torch.tensor(reward_weights, dtype=torch.float32, device=token_level_rewards.device)
     else:
@@ -770,11 +770,11 @@ def compute_remax_outcome_advantage(
     (with only one scalar reward for each response).
 
     Multi-reward (GDPO-style) support:
-        When ``config.multi_reward_keys`` is provided, each named reward dimension is
+        When ``config.gdpo_reward_keys`` is provided, each named reward dimension is
         handled independently: its own greedy baseline (stored as
         ``reward_baselines_<key>``) is subtracted from the sampled per-dimension reward,
         and the resulting per-dimension advantages are combined with optional
-        ``config.multi_reward_weights``. This mirrors how GDPO decouples reward
+        ``config.gdpo_reward_weights``. This mirrors how GDPO decouples reward
         dimensions, but keeps the ReMax greedy-baseline formulation per dimension.
 
     Args:
@@ -789,10 +789,10 @@ def compute_remax_outcome_advantage(
             index array for grouping (optional, used for norm_adv_in_remax)
         non_tensor_batch: `(Optional[dict])`
             Non-tensor batch data containing per-dimension sampled reward scores
-            (used when ``multi_reward_keys`` is set).
+            (used when ``gdpo_reward_keys`` is set).
         batch: `(Optional[dict])`
             Batch data containing prompts, attention_mask, and per-dimension greedy
-            baselines ``reward_baselines_<key>`` (used when ``multi_reward_keys`` is set).
+            baselines ``reward_baselines_<key>`` (used when ``gdpo_reward_keys`` is set).
 
     Returns:
         advantages: `(torch.Tensor)`
@@ -804,7 +804,7 @@ def compute_remax_outcome_advantage(
     with torch.no_grad():
         remax_reward_keys = None
         if config is not None:
-            remax_reward_keys = config.get("multi_reward_keys", None)
+            remax_reward_keys = config.get("gdpo_reward_keys", None)
 
         if remax_reward_keys and non_tensor_batch is not None and batch is not None:
             # Multi-reward path: decouple each reward dimension, subtract its own
@@ -814,11 +814,11 @@ def compute_remax_outcome_advantage(
             valid_response_length = batch["attention_mask"][:, prompt_length:].sum(dim=1) - 1
             row_idx = torch.arange(response_mask.size(0), device=device)
 
-            remax_weights = config.get("multi_reward_weights", None)
+            remax_weights = config.get("gdpo_reward_weights", None)
             if remax_weights is not None:
                 assert len(remax_weights) == len(remax_reward_keys), (
-                    f"'multi_reward_weights' has {len(remax_weights)} entries but "
-                    f"'multi_reward_keys' has {len(remax_reward_keys)} entries; they must match."
+                    f"'gdpo_reward_weights' has {len(remax_weights)} entries but "
+                    f"'gdpo_reward_keys' has {len(remax_reward_keys)} entries; they must match."
                 )
                 weights = torch.tensor(list(remax_weights), dtype=torch.float32, device=device)
             else:
