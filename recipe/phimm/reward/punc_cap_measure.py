@@ -232,12 +232,13 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     pred_lang = (trans_dict["lang"] or "").lower().strip()
     is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
 
-    unit = kwargs.pop("unit", "char").lower()
-    error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit=unit, **kwargs)
+    char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
+    word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
 
     return {
-        "char": error.accuracy(),
+        "char": char_error.accuracy(),
+        "word": word_error.accuracy(),
         **fmts,
         "lang": 1.0 if is_nonspeech else float(pred_lang == tgt_lang),
         "fmt": float(check_fmt(solution_str)),
