@@ -14,6 +14,9 @@ num_per_type: 100
 seed: 1234
 allow_reuse: false
 
+# --- Parallelism: threads for audio load/mix/write. 1 = sequential, <=0 = all CPUs ---
+num_workers: 8
+
 # --- Source specs: explicit spec path (or list of paths) per language ---
 specs:
   # tier1

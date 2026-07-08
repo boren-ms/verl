@@ -12,6 +12,9 @@ seed: 7
 allow_reuse: false
 max_chunks_per_lang: 1
 
+# threads for audio load/mix/write. 1 = sequential, <=0 = all CPUs
+num_workers: 4
+
 specs:
   en: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json
   zh: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json

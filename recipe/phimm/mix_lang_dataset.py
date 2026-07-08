@@ -48,6 +48,7 @@ import itertools
 import json
 import os
 import random
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 import blobfile as bf
@@ -200,6 +201,9 @@ def run_mix(cfg: dict[str, Any]) -> None:
     allow_reuse = bool(cfg.get("allow_reuse", False))
     max_chunks_per_lang = cfg.get("max_chunks_per_lang")
     max_chunks_per_lang = int(max_chunks_per_lang) if max_chunks_per_lang is not None else None
+    num_workers = int(cfg.get("num_workers", 1))
+    if num_workers < 1:
+        num_workers = os.cpu_count() or 1
 
     pairs = resolve_mix_types(cfg.get("mix_types"), cfg.get("languages"), str(cfg.get("pair_mode", "permutations")))
     demand = language_demand(pairs, num_per_type)
@@ -243,53 +247,88 @@ def run_mix(cfg: dict[str, Any]) -> None:
         cursors[lang] = idx + 1
         return pool[idx]
 
-    n_written = 0
-    with bf.BlobFile(jsonl_path, "w") as out_f:
-        for lang_a, lang_b in pairs:
-            mix_type = f"{lang_a}_{lang_b}"
-            for i in tqdm(range(num_per_type), desc=f"mixing {mix_type}"):
-                rec_a = draw(lang_a)
-                rec_b = draw(lang_b)
-                try:
-                    audio_a, _ = load_component_audio(rec_a, max_dur)
-                    audio_b, _ = load_component_audio(rec_b, max_dur)
-                except Exception as exc:  # noqa: BLE001 - skip unreadable audio, keep going
-                    print(f"[WARN] skip {mix_type} #{i}: {exc}")
-                    continue
-
-                gap_dur = random.uniform(gap_lo, gap_hi)
-                gap = np.zeros(int(gap_dur * TARGET_SAMPLE_RATE), dtype=np.float32)
-                mixed = np.concatenate([audio_a.astype(np.float32), gap, audio_b.astype(np.float32)])
-                sample_id = f"{mix_type}_{i:04d}"
-                wav_path = bf.join(wav_dir, f"{sample_id}.wav")
-                sf_write(wav_path, mixed, TARGET_SAMPLE_RATE)
-
-                text = f"{rec_a['text']}{sep}{rec_b['text']}"
-                row = {
-                    "id": sample_id,
-                    "audio_path": wav_path,
-                    "text": text,
-                    "language": mix_type,
+    # Phase 1: draw all sample specs sequentially so RNG (record draws + gap) is
+    # deterministic and pool cursors stay consistent regardless of worker count.
+    tasks: list[dict] = []
+    for lang_a, lang_b in pairs:
+        mix_type = f"{lang_a}_{lang_b}"
+        for i in range(num_per_type):
+            rec_a = draw(lang_a)
+            rec_b = draw(lang_b)
+            gap_dur = random.uniform(gap_lo, gap_hi)
+            tasks.append(
+                {
+                    "sample_id": f"{mix_type}_{i:04d}",
                     "mix_type": mix_type,
-                    "duration": round(len(mixed) / TARGET_SAMPLE_RATE, 3),
-                    "gap": round(gap_dur, 3),
-                    "components": [
-                        {
-                            "language": lang_a,
-                            "text": rec_a["text"],
-                            "audio_chunk": resolve_path(rec_a["audio_chunk"]),
-                            "duration": round(len(audio_a) / TARGET_SAMPLE_RATE, 3),
-                        },
-                        {
-                            "language": lang_b,
-                            "text": rec_b["text"],
-                            "audio_chunk": resolve_path(rec_b["audio_chunk"]),
-                            "duration": round(len(audio_b) / TARGET_SAMPLE_RATE, 3),
-                        },
-                    ],
+                    "lang_a": lang_a,
+                    "lang_b": lang_b,
+                    "rec_a": rec_a,
+                    "rec_b": rec_b,
+                    "gap_dur": gap_dur,
                 }
-                out_f.write(json.dumps(row, ensure_ascii=False) + "\n")
-                n_written += 1
+            )
+
+    def process_task(task: dict) -> dict | None:
+        """Load + mix + write one sample's audio; return its JSONL row (or None)."""
+        mix_type = task["mix_type"]
+        sample_id = task["sample_id"]
+        rec_a, rec_b = task["rec_a"], task["rec_b"]
+        try:
+            audio_a, _ = load_component_audio(rec_a, max_dur)
+            audio_b, _ = load_component_audio(rec_b, max_dur)
+        except Exception as exc:  # noqa: BLE001 - skip unreadable audio, keep going
+            print(f"[WARN] skip {sample_id}: {exc}")
+            return None
+
+        gap_dur = task["gap_dur"]
+        gap = np.zeros(int(gap_dur * TARGET_SAMPLE_RATE), dtype=np.float32)
+        mixed = np.concatenate([audio_a.astype(np.float32), gap, audio_b.astype(np.float32)])
+        wav_path = bf.join(wav_dir, f"{sample_id}.wav")
+        sf_write(wav_path, mixed, TARGET_SAMPLE_RATE)
+
+        text = f"{rec_a['text']}{sep}{rec_b['text']}"
+        return {
+            "id": sample_id,
+            "audio_path": wav_path,
+            "text": text,
+            "language": mix_type,
+            "mix_type": mix_type,
+            "duration": round(len(mixed) / TARGET_SAMPLE_RATE, 3),
+            "gap": round(gap_dur, 3),
+            "components": [
+                {
+                    "language": task["lang_a"],
+                    "text": rec_a["text"],
+                    "audio_chunk": resolve_path(rec_a["audio_chunk"]),
+                    "duration": round(len(audio_a) / TARGET_SAMPLE_RATE, 3),
+                },
+                {
+                    "language": task["lang_b"],
+                    "text": rec_b["text"],
+                    "audio_chunk": resolve_path(rec_b["audio_chunk"]),
+                    "duration": round(len(audio_b) / TARGET_SAMPLE_RATE, 3),
+                },
+            ],
+        }
+
+    # Phase 2: process (load/mix/write) in parallel, then persist rows.
+    n_written = 0
+    print(f"Processing {len(tasks)} samples with {num_workers} worker(s)...")
+    with bf.BlobFile(jsonl_path, "w") as out_f:
+        if num_workers == 1:
+            for task in tqdm(tasks, desc="mixing"):
+                row = process_task(task)
+                if row is not None:
+                    out_f.write(json.dumps(row, ensure_ascii=False) + "\n")
+                    n_written += 1
+        else:
+            with ThreadPoolExecutor(max_workers=num_workers) as executor:
+                futures = [executor.submit(process_task, task) for task in tasks]
+                for future in tqdm(as_completed(futures), total=len(futures), desc="mixing"):
+                    row = future.result()
+                    if row is not None:
+                        out_f.write(json.dumps(row, ensure_ascii=False) + "\n")
+                        n_written += 1
 
     print(f"Wrote {n_written} mixed samples to {jsonl_path}")
     print(f"Mixed wavs under {wav_dir}")
