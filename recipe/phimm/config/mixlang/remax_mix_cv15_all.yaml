@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/mix_cv15_tier1
+  - data/train_data/mix_cv15_all
   - data/val_data/mixlang_fy26q2_seg
   - _self_
 
@@ -17,7 +17,6 @@ custom_reward_function:
     measures:
       char: {beta: 1.0}
       word: {beta: 1.0}
-      # punc: {beta: 1.0}
 
 val_reward:
   reward_manager: long_audio_grouped
