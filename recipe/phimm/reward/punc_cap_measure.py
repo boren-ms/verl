@@ -342,6 +342,6 @@ def compute_score(solution_str, ground_truth, **kwargs):
     score = signed_pow(score, gamma)
 
     return {
-        "score": score if is_good else -1.0,
+        "score": score,
         **parsed,
     }
