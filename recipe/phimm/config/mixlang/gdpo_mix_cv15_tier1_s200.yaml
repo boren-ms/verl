@@ -10,7 +10,7 @@ defaults:
   - _self_
 
 custom_reward_function:
-  path: recipe/phimm/reward/punc_cap_measure.py
+  path: recipe/phimm/reward/mix_lang_measure.py
   name: compute_score
   reward_kwargs:
     reduce: mean
