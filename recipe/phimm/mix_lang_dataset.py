@@ -14,8 +14,16 @@ and one JSON object per mixed sample is appended to ``<output-dir>/<name>.jsonl`
 
 Example
 -------
+    # Explicit mix types
     python -m recipe.phimm.mix_lang_dataset \
         --mix-types en_zh,zh_en,fr_it,es_zh \
+        --num-per-type 100 \
+        --output-dir ~/data/mixed_lang
+
+    # Auto-generate all directed pairs from a language list
+    python -m recipe.phimm.mix_lang_dataset \
+        --languages en,zh,fr,it,es \
+        --pair-mode permutations \
         --num-per-type 100 \
         --output-dir ~/data/mixed_lang
 
@@ -38,6 +46,7 @@ Each JSONL row looks like::
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
 import random
 from pathlib import Path
@@ -66,8 +75,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--mix-types",
         type=str,
-        default="en_zh,zh_en,fr_it,es_zh",
-        help="Comma separated <langA>_<langB> mix types (order = audio/text order).",
+        default=None,
+        help="Comma separated <langA>_<langB> mix types (order = audio/text order). "
+        "Mutually exclusive with --languages; defaults to en_zh,zh_en,fr_it,es_zh "
+        "when neither is given.",
+    )
+    parser.add_argument(
+        "--languages",
+        type=str,
+        default=None,
+        help="Comma separated language codes (e.g. en,zh,fr,it,es). Mix types are "
+        "auto-generated as pairs of distinct languages per --pair-mode.",
+    )
+    parser.add_argument(
+        "--pair-mode",
+        type=str,
+        default="permutations",
+        choices=("permutations", "combinations"),
+        help="With --languages: 'permutations' emits both directions (a_b and b_a); "
+        "'combinations' emits a single direction (a_b only).",
     )
     parser.add_argument("--num-per-type", type=int, default=100, help="Number of mixed samples per mix type.")
     parser.add_argument(
@@ -125,6 +151,25 @@ def parse_mix_types(mix_types: str) -> list[tuple[str, str]]:
     return pairs
 
 
+def mix_types_from_languages(languages: str, pair_mode: str) -> list[tuple[str, str]]:
+    """Auto-generate distinct-language mix pairs from a comma-separated language list."""
+    langs = [lang.strip() for lang in languages.split(",") if lang.strip()]
+    # De-duplicate while preserving order.
+    langs = list(dict.fromkeys(langs))
+    if len(langs) < 2:
+        raise ValueError(f"Need at least 2 distinct languages to form pairs, got {langs}.")
+    combiner = itertools.permutations if pair_mode == "permutations" else itertools.combinations
+    return [(a, b) for a, b in combiner(langs, 2)]
+
+
+def resolve_mix_types(args: argparse.Namespace) -> list[tuple[str, str]]:
+    if args.languages and args.mix_types:
+        raise ValueError("Pass only one of --languages or --mix-types, not both.")
+    if args.languages:
+        return mix_types_from_languages(args.languages, args.pair_mode)
+    return parse_mix_types(args.mix_types or "en_zh,zh_en,fr_it,es_zh")
+
+
 def language_demand(pairs: list[tuple[str, str]], num_per_type: int) -> dict[str, int]:
     """Total number of samples each language must supply across all mix types."""
     demand: dict[str, int] = {}
@@ -153,7 +198,7 @@ def build_language_pool(lang: str, spec_template: str, text_field: str, need: in
         if examples:
             audio_chunks = examples.get("audio_chunk", [])
             texts = examples.get(text_field, [])
-            for audio_chunk, text in zip(audio_chunks, texts):
+            for audio_chunk, text in zip(audio_chunks, texts, strict=False):
                 if not audio_chunk or not (text and str(text).strip()):
                     continue
                 pool.append({"audio_chunk": audio_chunk, "text": str(text).strip(), "language": lang})
@@ -179,7 +224,7 @@ def main() -> None:
     np.random.seed(args.seed)
     set_chunk_load_mode(args.chunk_load_mode)
 
-    pairs = parse_mix_types(args.mix_types)
+    pairs = resolve_mix_types(args)
     demand = language_demand(pairs, args.num_per_type)
 
     output_dir = Path(args.output_dir).expanduser()
