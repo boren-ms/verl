@@ -205,6 +205,11 @@ def run_mix(cfg: dict[str, Any]) -> None:
     if num_workers < 1:
         num_workers = os.cpu_count() or 1
 
+    # Size blobfile's urllib3 connection pool to the worker count so parallel
+    # reads/writes don't overflow the default (10) and spam "Connection pool is
+    # full, discarding connection" warnings.
+    bf.configure(connection_pool_max_size=max(num_workers, 10))
+
     pairs = resolve_mix_types(cfg.get("mix_types"), cfg.get("languages"), str(cfg.get("pair_mode", "permutations")))
     demand = language_demand(pairs, num_per_type)
     n_lang = len(demand)
