@@ -23,6 +23,8 @@ val_reward:
   custom_reward_function:
     path: recipe/phimm/reward/asr_inhouse_measure.py
     name: eval_score
+    reward_kwargs:
+      locale: zh-cn
 
 actor_rollout_ref:
   rollout:
