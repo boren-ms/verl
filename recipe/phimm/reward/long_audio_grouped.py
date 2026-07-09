@@ -134,8 +134,8 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
             if already_print_data_sources[data_source] < self.num_examine:
                 already_print_data_sources[data_source] += 1
                 print(f"[long_audio_grouped] parent={parent} n_segments={len(members)}")
-                print(f"[long_audio_grouped][hyp] {concat_hyp[:500]}{'...' if len(concat_hyp) > 500 else ''}")
-                print(f"[long_audio_grouped][ref] {str(ground_truth)[:500]}{'...' if len(str(ground_truth)) > 500 else ''}")
+                print(f"[long_audio_grouped][hyp] {concat_hyp}")
+                print(f"[long_audio_grouped][ref] {ground_truth}")
                 print(f"[long_audio_grouped][result] {result_dict}")
 
         if return_dict:
