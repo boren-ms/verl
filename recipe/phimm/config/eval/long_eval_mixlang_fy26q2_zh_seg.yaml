@@ -21,3 +21,6 @@ model:
 
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_r2_baseline/long_audio_mixlang_fy26q2_zh_seg
+  # DTER/EER scored with the zh-cn TER backend for this mixed-language corpus.
+  measure_kwargs:
+    locale: zh-cn
