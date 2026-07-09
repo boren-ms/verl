@@ -1,0 +1,40 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+
+# --- Mix pair selection: auto-generate distinct-language pairs (all cv15 langs) ---
+languages: en,de,es,fr,it,ja,pt,zh
+pair_mode: permutations   # permutations (both directions) | combinations (one direction)
+
+# --- Sampling ---
+num_per_type: 1000
+seed: 1234
+allow_reuse: false
+
+# --- Parallelism: threads for audio load/mix/write. 1 = sequential, <=0 = all CPUs ---
+num_workers: 8
+
+# --- Source specs: explicit spec path (or list of paths) per language ---
+# All languages supported by CommonVoice-15 (cv15).
+specs:
+  en: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json
+  de: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_de.json
+  es: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json
+  fr: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fr.json
+  it: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_it.json
+  ja: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json
+  pt: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json
+  zh: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json
+# text_field: dotted chunk field holding the transcription. Either a single
+# global value, or a per-language mapping (e.g. en: sft.0.messages.1.content).
+text_field: sft.0.messages.1.content
+chunk_load_mode: sample   # sample (seek, fast) | cached (whole chunk)
+
+# --- Audio mixing (output is always 16 kHz mono) ---
+gap_sec: [0.0, 0.5]   # scalar for fixed gap, or [min, max] for a random gap per sample
+sep: " "
+
+# --- Output (local path or az:// / https:// blob URI) ---
+output_dir: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_tier1
+name: mixed_8_1000
