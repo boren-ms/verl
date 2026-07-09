@@ -1,0 +1,25 @@
+# Presegmented Dictation_SimuMixedLang_DTEST_FY26Q2_14 D-test set (locale zh-CN).
+# Simulated mixed-language / code-switching dictation. Each row is already one
+# SVAD segment (WavPath#start:end, parent_audio_path, seg_start) — ready for the
+# long_audio_grouped reward manager, so no on-the-fly svad_explode is needed.
+# data_source is fixed to "mixlang_fy26q2". Uses `lang_asr` with language
+# "Chinese" (locale zh-CN).
+# Presegmented offline via recipe.phimm.data.long_audio_vad_explode from the raw
+# .../Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: mixlang_fy26q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
