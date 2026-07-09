@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/mix_cv15_all
+  - data/train_data/mix_cv15_tier1
   - data/val_data/mixlang_fy26q2_zh_seg
   - _self_
 
@@ -17,6 +17,7 @@ custom_reward_function:
     measures:
       char: {beta: 1.0}
       word: {beta: 1.0}
+      # punc: {beta: 1.0}
 
 val_reward:
   reward_manager: long_audio_grouped
@@ -37,7 +38,7 @@ actor_rollout_ref:
     max_num_seqs: 24
   actor:
     tis_imp_ratio_cap: 5
-    ppo_micro_batch_size_per_gpu: 4
+    ppo_micro_batch_size_per_gpu: 6
     ppo_mini_batch_size: 64
     optim:
       lr: 5e-6
@@ -53,8 +54,8 @@ data:
   val_batch_size: -1
 trainer:
   nnodes: 1
-  total_epochs: 2
-  total_training_steps: 1000
+  total_epochs: 4
+  total_training_steps: 200
   test_freq: 10
   save_freq: 10
   val_before_train: true

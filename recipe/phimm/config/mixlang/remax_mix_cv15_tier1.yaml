@@ -6,7 +6,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/mix_cv15_tier1
-  - data/val_data/mixlang_fy26q2_seg
+  - data/val_data/mixlang_fy26q2_zh_seg
   - _self_
 
 custom_reward_function:
