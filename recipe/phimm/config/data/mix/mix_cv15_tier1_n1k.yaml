@@ -10,7 +10,7 @@ pair_mode: permutations   # permutations (both directions) | combinations (one d
 # --- Sampling ---
 num_per_type: 1000
 seed: 1234
-allow_reuse: false
+allow_reuse: true   # ja pool (~13.6k) < 14k demand at num_per_type=1000, so reuse is required
 
 # --- Parallelism: threads for audio load/mix/write. 1 = sequential, <=0 = all CPUs ---
 num_workers: 8
