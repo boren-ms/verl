@@ -8,6 +8,7 @@ hydra:
 # (the cv15_tier2 bundle broken out by language).
 languages: en,de,es,fr,it,ja,pt,zh,ar,cs,da,fi,he,hi,hu,ko,nl,pl,ru,sv,th,tr
 pair_mode: permutations   # permutations (both directions) | combinations (one direction)
+mix_size: 2               # languages concatenated per sample (2 = pairs, 3 = triples, ...). All distinct.
 
 # --- Sampling ---
 num_per_type: 1000

@@ -4,10 +4,13 @@
 """Build a code-switch / language-mixed ASR dataset (JSONL) from chunk specs.
 
 Given per-language chunk spec files (e.g. ``asr_chunk_cv15_en.json``,
-``asr_chunk_cv15_zh.json`` ...), this script randomly draws two utterances from
-two *different* languages and concatenates their audio and transcription into a
-single new sample. For every requested mix type (e.g. ``en_zh``, ``zh_en``,
-``fr_it``, ``es_zh``) it produces ``--num-per-type`` samples.
+``asr_chunk_cv15_zh.json`` ...), this script randomly draws two or more
+utterances from *different* languages and concatenates their audio and
+transcription into a single new sample. For every requested mix type
+(e.g. ``en_zh``, ``zh_en``, ``fr_it``, ``en_zh_fr``) it produces
+``--num-per-type`` samples. Every language inside a single mix type must be
+distinct; use ``mix_size`` (2, 3, ...) to control how many languages are
+concatenated when auto-generating mix types from a ``languages`` list.
 
 The concatenated audio is written to ``<output-dir>/wavs/<id>.wav`` (16 kHz mono)
 and one JSON object per mixed sample is written to ``<output-dir>/<name>.jsonl``.
@@ -69,49 +72,57 @@ from recipe.phimm.utils.audio import (
 DEFAULT_TEXT_FIELD = "sft.0.messages.1.content"
 
 
-def parse_mix_types(mix_types: str) -> list[tuple[str, str]]:
-    pairs = []
+def parse_mix_types(mix_types: str) -> list[tuple[str, ...]]:
+    combos = []
     for item in mix_types.split(","):
         item = item.strip()
         if not item:
             continue
         parts = item.split("_")
-        if len(parts) != 2 or not all(parts):
-            raise ValueError(f"Invalid mix type {item!r}; expected format <langA>_<langB> (e.g. en_zh).")
-        pairs.append((parts[0], parts[1]))
-    if not pairs:
+        if len(parts) < 2 or not all(parts):
+            raise ValueError(
+                f"Invalid mix type {item!r}; expected format <langA>_<langB>[_<langC>...] (e.g. en_zh or en_zh_fr)."
+            )
+        if len(set(parts)) != len(parts):
+            raise ValueError(f"Invalid mix type {item!r}; all languages in a mix type must be distinct.")
+        combos.append(tuple(parts))
+    if not combos:
         raise ValueError("No valid mix types provided.")
-    return pairs
+    return combos
 
 
-def mix_types_from_languages(languages: str, pair_mode: str) -> list[tuple[str, str]]:
-    """Auto-generate distinct-language mix pairs from a comma-separated language list."""
+def mix_types_from_languages(languages: str, pair_mode: str, mix_size: int) -> list[tuple[str, ...]]:
+    """Auto-generate distinct-language mix combos from a comma-separated language list."""
     langs = [lang.strip() for lang in languages.split(",") if lang.strip()]
     # De-duplicate while preserving order.
     langs = list(dict.fromkeys(langs))
-    if len(langs) < 2:
-        raise ValueError(f"Need at least 2 distinct languages to form pairs, got {langs}.")
+    if mix_size < 2:
+        raise ValueError(f"mix_size must be >= 2, got {mix_size}.")
+    if len(langs) < mix_size:
+        raise ValueError(f"Need at least {mix_size} distinct languages to form mix_size={mix_size} combos, got {langs}.")
     combiner = itertools.permutations if pair_mode == "permutations" else itertools.combinations
-    return [(a, b) for a, b in combiner(langs, 2)]
+    return [tuple(combo) for combo in combiner(langs, mix_size)]
 
 
-def resolve_mix_types(mix_types: str | None, languages: str | None, pair_mode: str) -> list[tuple[str, str]]:
+def resolve_mix_types(
+    mix_types: str | None, languages: str | None, pair_mode: str, mix_size: int
+) -> list[tuple[str, ...]]:
     if languages and mix_types:
         raise ValueError("Set only one of 'languages' or 'mix_types', not both.")
     if languages:
-        return mix_types_from_languages(languages, pair_mode)
+        return mix_types_from_languages(languages, pair_mode, mix_size)
     if mix_types:
         return parse_mix_types(mix_types)
     raise ValueError("Set one of 'mix_types' or 'languages' in the config (both are null by default).")
 
 
 
-def language_demand(pairs: list[tuple[str, str]], num_per_type: int) -> dict[str, int]:
+def language_demand(combos: list[tuple[str, ...]], num_per_type: int) -> dict[str, int]:
     """Total number of samples each language must supply across all mix types."""
     demand: dict[str, int] = {}
-    for lang_a, lang_b in pairs:
-        demand[lang_a] = demand.get(lang_a, 0) + num_per_type
-        demand[lang_b] = demand.get(lang_b, 0) + num_per_type
+    for combo in combos:
+        for lang in combo:
+            demand[lang] = demand.get(lang, 0) + num_per_type
     return demand
 
 
@@ -210,7 +221,12 @@ def run_mix(cfg: dict[str, Any]) -> None:
     # full, discarding connection" warnings.
     bf.configure(connection_pool_max_size=max(num_workers, 10))
 
-    pairs = resolve_mix_types(cfg.get("mix_types"), cfg.get("languages"), str(cfg.get("pair_mode", "permutations")))
+    pairs = resolve_mix_types(
+        cfg.get("mix_types"),
+        cfg.get("languages"),
+        str(cfg.get("pair_mode", "permutations")),
+        int(cfg.get("mix_size", 2)),
+    )
     demand = language_demand(pairs, num_per_type)
     n_lang = len(demand)
 
@@ -255,21 +271,19 @@ def run_mix(cfg: dict[str, Any]) -> None:
     # Phase 1: draw all sample specs sequentially so RNG (record draws + gap) is
     # deterministic and pool cursors stay consistent regardless of worker count.
     tasks: list[dict] = []
-    for lang_a, lang_b in pairs:
-        mix_type = f"{lang_a}_{lang_b}"
+    for combo in pairs:
+        mix_type = "_".join(combo)
         for i in range(num_per_type):
-            rec_a = draw(lang_a)
-            rec_b = draw(lang_b)
-            gap_dur = random.uniform(gap_lo, gap_hi)
+            recs = [draw(lang) for lang in combo]
+            # One gap between every consecutive pair of components.
+            gaps = [random.uniform(gap_lo, gap_hi) for _ in range(len(combo) - 1)]
             tasks.append(
                 {
                     "sample_id": f"{mix_type}_{i:04d}",
                     "mix_type": mix_type,
-                    "lang_a": lang_a,
-                    "lang_b": lang_b,
-                    "rec_a": rec_a,
-                    "rec_b": rec_b,
-                    "gap_dur": gap_dur,
+                    "langs": list(combo),
+                    "recs": recs,
+                    "gaps": gaps,
                 }
             )
 
@@ -277,21 +291,25 @@ def run_mix(cfg: dict[str, Any]) -> None:
         """Load + mix + write one sample's audio; return its JSONL row (or None)."""
         mix_type = task["mix_type"]
         sample_id = task["sample_id"]
-        rec_a, rec_b = task["rec_a"], task["rec_b"]
+        langs = task["langs"]
+        recs = task["recs"]
         try:
-            audio_a, _ = load_component_audio(rec_a, max_dur)
-            audio_b, _ = load_component_audio(rec_b, max_dur)
+            audios = [load_component_audio(rec, max_dur)[0].astype(np.float32) for rec in recs]
         except Exception as exc:  # noqa: BLE001 - skip unreadable audio, keep going
             print(f"[WARN] skip {sample_id}: {exc}")
             return None
 
-        gap_dur = task["gap_dur"]
-        gap = np.zeros(int(gap_dur * TARGET_SAMPLE_RATE), dtype=np.float32)
-        mixed = np.concatenate([audio_a.astype(np.float32), gap, audio_b.astype(np.float32)])
+        gaps = task["gaps"]
+        segments: list[np.ndarray] = []
+        for idx, audio in enumerate(audios):
+            segments.append(audio)
+            if idx < len(gaps):
+                segments.append(np.zeros(int(gaps[idx] * TARGET_SAMPLE_RATE), dtype=np.float32))
+        mixed = np.concatenate(segments)
         wav_path = bf.join(wav_dir, f"{sample_id}.wav")
         sf_write(wav_path, mixed, TARGET_SAMPLE_RATE)
 
-        text = f"{rec_a['text']}{sep}{rec_b['text']}"
+        text = sep.join(rec["text"] for rec in recs)
         return {
             "id": sample_id,
             "audio_path": wav_path,
@@ -299,20 +317,15 @@ def run_mix(cfg: dict[str, Any]) -> None:
             "language": mix_type,
             "mix_type": mix_type,
             "duration": round(len(mixed) / TARGET_SAMPLE_RATE, 3),
-            "gap": round(gap_dur, 3),
+            "gaps": [round(g, 3) for g in gaps],
             "components": [
                 {
-                    "language": task["lang_a"],
-                    "text": rec_a["text"],
-                    "audio_chunk": resolve_path(rec_a["audio_chunk"]),
-                    "duration": round(len(audio_a) / TARGET_SAMPLE_RATE, 3),
-                },
-                {
-                    "language": task["lang_b"],
-                    "text": rec_b["text"],
-                    "audio_chunk": resolve_path(rec_b["audio_chunk"]),
-                    "duration": round(len(audio_b) / TARGET_SAMPLE_RATE, 3),
-                },
+                    "language": lang,
+                    "text": rec["text"],
+                    "audio_chunk": resolve_path(rec["audio_chunk"]),
+                    "duration": round(len(audio) / TARGET_SAMPLE_RATE, 3),
+                }
+                for lang, rec, audio in zip(langs, recs, audios, strict=True)
             ],
         }
 

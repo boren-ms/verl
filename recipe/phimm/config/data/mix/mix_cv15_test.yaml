@@ -4,7 +4,8 @@ hydra:
     - file://verl/trainer/config
 
 # Small smoke test: 3 samples per type, writes directly to blob (remote path).
-mix_types: en_zh,fr_it
+# mix_types may join 2 or more distinct languages (e.g. en_zh or en_zh_fr).
+mix_types: en_zh,fr_it,en_zh_fr
 pair_mode: permutations
 
 num_per_type: 3
