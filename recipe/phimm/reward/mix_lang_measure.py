@@ -234,17 +234,6 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
     trans_dict = parse_asr_response(solution_str)
     hyp_text = trans_dict["text"]
-    is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
-
-    # Predicted language(s): use the full per-segment <lang=..> sequence when the
-    # response is a well-formed (possibly code-switch) task output, else fall
-    # back to the single language parsed from the raw response.
-    parsed_fmt = _parse_task_output(solution_str)
-    if parsed_fmt is not None:
-        pred_lang_code = "_".join(get_language_code(name) for name in parsed_fmt[1])
-    else:
-        pred_lang_code = get_language_code(trans_dict["lang"]) if trans_dict["lang"] else ""
-    tgt_lang_code = get_language_code(tgt_lang) if tgt_lang else ""
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
@@ -254,7 +243,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "char": char_error.accuracy(),
         "word": word_error.accuracy(),
         **fmts,
-        "lang": 1.0 if is_nonspeech else float(pred_lang_code == tgt_lang_code),
+        "lang": check_lang(solution_str, tgt_lang, trans_dict),
         "fmt": float(check_fmt(solution_str)),
     }
 
@@ -303,6 +292,48 @@ def _parse_task_output(solution_str):
     seg_langs = [lang for lang, _ in segments]
     seg_texts = [text for _, text in segments]
     return header_langs, seg_langs, seg_texts
+
+
+def _lang_code_set(lang) -> set[str]:
+    """Return the set of ISO language codes contained in *lang* (or empty set)."""
+    if not lang:
+        return set()
+    return {c for c in get_language_code(lang).split("_") if c}
+
+
+def check_lang(solution_str, tgt_lang, trans_dict=None) -> float:
+    """Language-identification score in ``[0, 1]`` with partial credit.
+
+    Predicted language(s) come from the per-segment ``<lang=..>`` sequence when
+    the response is a well-formed (possibly code-switch) task output, else from
+    the single language parsed from the raw response (``trans_dict["lang"]``).
+
+    The score is the Jaccard overlap between the predicted and target language
+    sets, so a code-switch output that identifies only some of the spoken
+    languages still earns proportional credit (``1.0`` = exact set match).
+
+    A ``<nonspeech>`` hypothesis always scores ``1.0`` (no language to judge).
+    """
+    hyp_text = trans_dict.get("text") if trans_dict else None
+    if (hyp_text or "").strip().lower() == "<nonspeech>":
+        return 1.0
+
+    tgt_codes = _lang_code_set(tgt_lang)
+
+    parsed = _parse_task_output(solution_str)
+    if parsed is not None:
+        pred_codes: set[str] = set()
+        for name in parsed[1]:
+            pred_codes |= _lang_code_set(name)
+    else:
+        single = trans_dict.get("lang") if trans_dict else None
+        pred_codes = _lang_code_set(single)
+
+    if not tgt_codes and not pred_codes:
+        return 1.0
+    if not tgt_codes or not pred_codes:
+        return 0.0
+    return len(pred_codes & tgt_codes) / len(pred_codes | tgt_codes)
 
 
 def check_fmt(solution_str: str) -> bool:
