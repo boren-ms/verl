@@ -12,8 +12,10 @@ transcription into a single new sample. For every requested mix type
 distinct; use ``mix_size`` (2, 3, ...) to control how many languages are
 concatenated when auto-generating mix types from a ``languages`` list.
 
-The concatenated audio is written to ``<output-dir>/wavs/<id>.wav`` (16 kHz mono)
-and one JSON object per mixed sample is written to ``<output-dir>/<name>.jsonl``.
+The concatenated audio is written to ``<output-dir>/wavs_<name>/<id>.wav`` (16 kHz
+mono) and one JSON object per mixed sample is written to ``<output-dir>/<name>.jsonl``.
+The per-config ``wavs_<name>`` folder keeps different configs from overwriting each
+other's audio when they share the same ``output_dir``.
 Both local and blob (``az://`` / ``https://``) output dirs are supported.
 
 Example
@@ -33,7 +35,7 @@ Each JSONL row looks like::
 
     {
       "id": "en_zh_0000",
-      "audio_path": "<output-dir>/wavs/en_zh_0000.wav",
+      "audio_path": "<output-dir>/wavs_<name>/en_zh_0000.wav",
       "text": "<en transcription> <zh transcription>",
       "language": "en_zh",
       "mix_type": "en_zh",
@@ -231,9 +233,11 @@ def run_mix(cfg: dict[str, Any]) -> None:
     n_lang = len(demand)
 
     output_dir = _resolve_output_dir(str(cfg.get("output_dir", "~/data/mixed_lang")))
-    wav_dir = bf.join(output_dir, "wavs")
-    bf.makedirs(wav_dir)
     name = str(cfg.get("name", "mixed")).format(n_lang=n_lang, num_per_type=num_per_type)
+    # Use a per-config wav folder so different configs don't overwrite each
+    # other's audio when they share the same output_dir.
+    wav_dir = bf.join(output_dir, f"wavs_{name}")
+    bf.makedirs(wav_dir)
     jsonl_path = bf.join(output_dir, f"{name}.jsonl")
 
     print(f"Mix types: {pairs}")
