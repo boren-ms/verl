@@ -20,7 +20,7 @@ data:
   chunk_load_mode: sample  # "cached" (ChunkManager, full chunk in memory) or "sample" (seek-based, one connection per sample)
   gen_batch_size: ${data.train_batch_size}
   val_batch_size: 1024
-  shuffle: false
+  shuffle: true
   custom_cls:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
