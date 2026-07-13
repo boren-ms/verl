@@ -39,7 +39,7 @@ def _call_with_kwargs(raw_fn, extra_kwargs, *args, **kwargs):
     return raw_fn(*args, **merged_kwargs)
 
 
-def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
+def get_custom_reward_fn(config: DictConfig, reward_fn_config: Optional[DictConfig] = None) -> Optional[RawRewardFn]:
     """Load and return a custom reward function from external file.
 
     Dynamically imports a reward function from a specified file path and wraps
@@ -59,7 +59,7 @@ def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
         AttributeError: If the specified function name isn't found in the module.
     """
 
-    reward_fn_config = config.get("custom_reward_function") or {}
+    reward_fn_config = reward_fn_config or config.get("custom_reward_function") or {}
     file_path = reward_fn_config.get("path")
     if not file_path:
         return None
@@ -102,6 +102,57 @@ def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
     return partial(_call_with_kwargs, raw_fn, reward_kwargs)
 
 
+def get_reward_fn_dispatcher(config: DictConfig) -> Optional[RawRewardFn]:
+    """Load reward functions registered for individual data sources.
+
+    Named ``reward_functions`` can be shared by mapping values in
+    ``reward_function_by_data_source`` to their registration names. The legacy
+    form where ``reward_functions`` is keyed directly by ``data.reward_fn_key``
+    (``data_source`` by default) remains supported. A top-level
+    ``custom_reward_function`` remains the fallback for unregistered sources.
+    """
+    reward_fn_configs = config.get("reward_functions") or {}
+    if not reward_fn_configs:
+        return get_custom_reward_fn(config)
+
+    reward_function_by_data_source = config.get("reward_function_by_data_source") or {}
+    if reward_function_by_data_source:
+        registered_reward_functions = {
+            name: get_custom_reward_fn(config, reward_fn_config)
+            for name, reward_fn_config in reward_fn_configs.items()
+        }
+        unknown = sorted(set(reward_function_by_data_source.values()) - set(registered_reward_functions))
+        if unknown:
+            raise ValueError(f"Unknown reward function registrations: {unknown}")
+        reward_functions = {
+            data_source: registered_reward_functions[registration]
+            for data_source, registration in reward_function_by_data_source.items()
+        }
+    else:
+        reward_functions = {
+            source: get_custom_reward_fn(config, reward_fn_config)
+            for source, reward_fn_config in reward_fn_configs.items()
+        }
+
+    missing = [source for source, reward_fn in reward_functions.items() if reward_fn is None]
+    if missing:
+        raise ValueError(f"Reward function registrations require a path: {missing}")
+
+    fallback_reward_fn = get_custom_reward_fn(config)
+
+    def dispatch_reward(data_source, *args, **kwargs):
+        reward_fn = reward_functions.get(data_source, fallback_reward_fn)
+        if reward_fn is None:
+            available = ", ".join(sorted(reward_functions))
+            raise ValueError(
+                f"No reward function registered for data source {data_source!r}. "
+                f"Available registrations: {available}. Configure custom_reward_function as a fallback."
+            )
+        return reward_fn(*args, data_source=data_source, **kwargs)
+
+    return dispatch_reward
+
+
 def load_reward_manager(
     config: DictConfig, tokenizer: Any, num_examine: int, **reward_kwargs: Any
 ) -> AbstractRewardManager:
@@ -130,7 +181,7 @@ def load_reward_manager(
     reward_manager_cls = get_reward_manager_cls(reward_manager_name)
 
     # Try to get a custom reward function based on the configuration
-    compute_score = get_custom_reward_fn(config)
+    compute_score = get_reward_fn_dispatcher(config)
     final_compute_score = compute_score
 
     if compute_score is None:
