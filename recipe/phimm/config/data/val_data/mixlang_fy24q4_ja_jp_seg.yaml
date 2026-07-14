@@ -1,0 +1,18 @@
+# Presegmented Conversation_CodeSwitching_DTEST_FY24Q4_ja-JP
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/codeswitch_real/Conversation_CodeSwitching_DTEST_FY24Q4_ja-JP/Conversation_CodeSwitching_DTEST_FY24Q4_ja-JP_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Japanese
+  post_process:
+    add_field:
+      fields:
+        data_source: mixlang_fy24q4_ja_jp
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

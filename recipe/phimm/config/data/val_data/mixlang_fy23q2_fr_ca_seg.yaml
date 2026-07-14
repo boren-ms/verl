@@ -1,0 +1,18 @@
+# Presegmented CodeSwitching_DTEST_FY23Q2_fr-CA
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/codeswitch_real/CodeSwitching_DTEST_FY23Q2_fr-CA/Conversation_CodeSwitching_en-CA_and_fr-CA_DTest_FY23Q2/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: French
+  post_process:
+    add_field:
+      fields:
+        data_source: mixlang_fy23q2_fr_ca
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
