@@ -123,12 +123,16 @@ def resolve_mix_types(
 
 
 
-def language_demand(combos: list[tuple[str, ...]], num_per_type: int) -> dict[str, int]:
-    """Total number of samples each language must supply across all mix types."""
+def language_demand(combos: list[tuple[str, ...]], num_per_type: int, draws_per_slot: int = 1) -> dict[str, int]:
+    """Total number of samples each language must supply across all mix types.
+
+    When *draws_per_slot* > 1 (target_duration mode), each language slot draws
+    multiple records so the demand is scaled accordingly.
+    """
     demand: dict[str, int] = {}
     for combo in combos:
         for lang in combo:
-            demand[lang] = demand.get(lang, 0) + num_per_type
+            demand[lang] = demand.get(lang, 0) + num_per_type * draws_per_slot
     return demand
 
 
@@ -212,10 +216,25 @@ def run_mix(cfg: dict[str, Any]) -> None:
         gap_lo = gap_hi = float(gap_sec_cfg)
     if gap_lo > gap_hi:
         gap_lo, gap_hi = gap_hi, gap_lo
-    max_dur_cfg = cfg.get("max_dur")
-    max_dur = float(max_dur_cfg) if max_dur_cfg is not None else None
     sep = str(cfg.get("sep", " "))
     allow_reuse = bool(cfg.get("allow_reuse", False))
+
+    # --- target_duration: randomize total mixed audio length ---
+    target_dur_cfg = cfg.get("target_duration")
+    if target_dur_cfg is not None:
+        if isinstance(target_dur_cfg, (list, tuple)):
+            if len(target_dur_cfg) != 2:
+                raise ValueError(f"target_duration range must have 2 values [min, max], got {target_dur_cfg}.")
+            target_dur_lo, target_dur_hi = float(target_dur_cfg[0]), float(target_dur_cfg[1])
+            if target_dur_lo > target_dur_hi:
+                target_dur_lo, target_dur_hi = target_dur_hi, target_dur_lo
+        else:
+            target_dur_lo = target_dur_hi = float(target_dur_cfg)
+    else:
+        target_dur_lo = target_dur_hi = 0.0  # sentinel: disabled
+    use_target_duration = target_dur_cfg is not None
+
+    max_component_utts = int(cfg.get("max_component_utts", 10))
     max_chunks_per_lang = cfg.get("max_chunks_per_lang")
     max_chunks_per_lang = int(max_chunks_per_lang) if max_chunks_per_lang is not None else None
     num_workers = int(cfg.get("num_workers", 1))
@@ -232,7 +251,8 @@ def run_mix(cfg: dict[str, Any]) -> None:
         cfg.get("languages"),
         int(cfg.get("mix_size", 2)),
     )
-    demand = language_demand(pairs, num_per_type)
+    draws_per_slot = max_component_utts if use_target_duration else 1
+    demand = language_demand(pairs, num_per_type, draws_per_slot)
     n_lang = len(demand)
 
     output_dir = _resolve_output_dir(str(cfg.get("output_dir", "~/data/mixed_lang")))
@@ -281,9 +301,23 @@ def run_mix(cfg: dict[str, Any]) -> None:
     for combo in pairs:
         mix_type = "_".join(combo)
         for i in range(num_per_type):
-            recs = [draw(lang) for lang in combo]
             # One gap between every consecutive pair of components.
             gaps = [random.uniform(gap_lo, gap_hi) for _ in range(len(combo) - 1)]
+
+            if use_target_duration:
+                # Draw a target duration for this sample and distribute randomly.
+                sample_target = random.uniform(target_dur_lo, target_dur_hi)
+                # Random partition: draw N weights from Dirichlet-like uniform splits.
+                weights = [random.random() for _ in combo]
+                weight_sum = sum(weights)
+                per_lang_targets = [sample_target * w / weight_sum for w in weights]
+                # Draw multiple candidate records per language slot.
+                recs = [[draw(lang) for _ in range(max_component_utts)] for lang in combo]
+            else:
+                # Single utterance per language, no duration constraint.
+                per_lang_targets = [float("inf")] * len(combo)
+                recs = [[draw(lang)] for lang in combo]
+
             tasks.append(
                 {
                     "sample_id": f"{mix_type}_{i:04d}",
@@ -291,8 +325,56 @@ def run_mix(cfg: dict[str, Any]) -> None:
                     "langs": list(combo),
                     "recs": recs,
                     "gaps": gaps,
+                    "per_lang_targets": per_lang_targets,
                 }
             )
+
+    def _build_component_audio(
+        rec_candidates: list[dict], per_lang_target: float
+    ) -> tuple[np.ndarray, list[dict]] | None:
+        """Concatenate multiple utterances for one language slot to reach *per_lang_target* seconds.
+
+        Returns (component_audio, used_records_with_durations) or None on failure.
+        Each used record gets a 'duration' key added (actual seconds used).
+        Gaps between intra-language utterances use the same gap_sec range as inter-language gaps.
+        When *per_lang_target* is inf, all candidates are used without a duration constraint.
+        """
+        parts: list[np.ndarray] = []
+        used: list[dict] = []
+        accumulated = 0.0
+
+        for rec in rec_candidates:
+            try:
+                audio, _ = load_component_audio(rec, max_dur=None)
+                audio = audio.astype(np.float32)
+            except Exception:  # noqa: BLE001
+                continue  # skip unreadable, try next candidate
+
+            remaining = per_lang_target - accumulated
+            if remaining <= 0:
+                break
+
+            # Add intra-language gap before this utterance (not before the first),
+            # drawn from the same gap_sec range used for inter-language gaps.
+            if parts and gap_hi > 0:
+                gap_dur = random.uniform(gap_lo, gap_hi)
+                intra_gap_samples = int(gap_dur * TARGET_SAMPLE_RATE)
+                if accumulated + gap_dur >= per_lang_target:
+                    break
+                parts.append(np.zeros(intra_gap_samples, dtype=np.float32))
+                accumulated += gap_dur
+
+            audio_dur = len(audio) / TARGET_SAMPLE_RATE
+            parts.append(audio)
+            accumulated += audio_dur
+            used.append({**rec, "duration": round(audio_dur, 3)})
+
+            if accumulated >= per_lang_target:
+                break
+
+        if not parts:
+            return None
+        return np.concatenate(parts), used
 
     def process_task(task: dict) -> dict | None:
         """Load + mix + write one sample's audio; return its JSONL row (or None)."""
@@ -300,15 +382,40 @@ def run_mix(cfg: dict[str, Any]) -> None:
         sample_id = task["sample_id"]
         langs = task["langs"]
         recs = task["recs"]
+        per_lang_targets = task["per_lang_targets"]
+
+        component_audios: list[np.ndarray] = []
+        component_meta: list[dict] = []
         try:
-            audios = [load_component_audio(rec, max_dur)[0].astype(np.float32) for rec in recs]
-        except Exception as exc:  # noqa: BLE001 - skip unreadable audio, keep going
+            for lang, rec_candidates, plt in zip(langs, recs, per_lang_targets, strict=True):
+                result = _build_component_audio(rec_candidates, plt)
+                if result is None:
+                    print(f"[WARN] skip {sample_id}: no usable audio for {lang}")
+                    return None
+                comp_audio, used_recs = result
+                component_audios.append(comp_audio)
+                comp_text = sep.join(r["text"] for r in used_recs)
+                component_meta.append({
+                    "language": lang,
+                    "text": comp_text,
+                    "duration": round(len(comp_audio) / TARGET_SAMPLE_RATE, 3),
+                    "utterances": [
+                        {
+                            "audio_chunk": resolve_path(r["audio_chunk"]),
+                            "text": r["text"],
+                            "duration": r["duration"],
+                        }
+                        for r in used_recs
+                    ],
+                })
+        except Exception as exc:  # noqa: BLE001
             print(f"[WARN] skip {sample_id}: {exc}")
             return None
 
+        # Assemble final mixed audio with inter-language gaps.
         gaps = task["gaps"]
         segments: list[np.ndarray] = []
-        for idx, audio in enumerate(audios):
+        for idx, audio in enumerate(component_audios):
             segments.append(audio)
             if idx < len(gaps):
                 segments.append(np.zeros(int(gaps[idx] * TARGET_SAMPLE_RATE), dtype=np.float32))
@@ -316,8 +423,8 @@ def run_mix(cfg: dict[str, Any]) -> None:
         wav_path = bf.join(wav_dir, f"{sample_id}.wav")
         sf_write(wav_path, mixed, TARGET_SAMPLE_RATE)
 
-        text = sep.join(rec["text"] for rec in recs)
-        return {
+        text = sep.join(m["text"] for m in component_meta)
+        row: dict[str, Any] = {
             "id": sample_id,
             "audio_path": wav_path,
             "text": text,
@@ -325,16 +432,11 @@ def run_mix(cfg: dict[str, Any]) -> None:
             "mix_type": mix_type,
             "duration": round(len(mixed) / TARGET_SAMPLE_RATE, 3),
             "gaps": [round(g, 3) for g in gaps],
-            "components": [
-                {
-                    "language": lang,
-                    "text": rec["text"],
-                    "audio_chunk": resolve_path(rec["audio_chunk"]),
-                    "duration": round(len(audio) / TARGET_SAMPLE_RATE, 3),
-                }
-                for lang, rec, audio in zip(langs, recs, audios, strict=True)
-            ],
+            "components": component_meta,
         }
+        if use_target_duration:
+            row["target_duration"] = round(sum(per_lang_targets), 3)
+        return row
 
     # Phase 2: process (load/mix/write) in parallel, then persist rows.
     n_written = 0
