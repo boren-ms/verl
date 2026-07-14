@@ -1,0 +1,52 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+
+# --- Mix selection: auto-generate ordered triples with distinct adjacent languages ---
+languages: en,de,es,fr,it,ja,pt,zh,ar,cs,da,fi,he,hi,hu,ko,nl,pl,ru,sv,th,tr
+mix_size: 3
+
+# --- Sampling ---
+num_per_type: 100
+seed: 1234
+allow_reuse: true
+
+# --- Parallelism: threads for audio load/mix/write. 1 = sequential, <=0 = all CPUs ---
+num_workers: 8
+
+# --- Source specs: explicit spec path (or list of paths) per language ---
+specs:
+  en: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json
+  de: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_de.json
+  es: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json
+  fr: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fr.json
+  it: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_it.json
+  ja: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json
+  pt: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json
+  zh: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json
+  ar: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ar.json
+  cs: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_cs.json
+  da: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_da.json
+  fi: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fi.json
+  he: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_he.json
+  hi: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_hi.json
+  hu: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_hu.json
+  ko: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ko.json
+  nl: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_nl.json
+  pl: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pl.json
+  ru: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ru.json
+  sv: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_sv.json
+  th: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_th.json
+  tr: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_tr.json
+
+text_field: sft.0.messages.1.content
+chunk_load_mode: sample
+
+# --- Audio mixing (output is always 16 kHz mono) ---
+gap_sec: [0.0, 0.5]
+sep: " "
+
+# --- Output (local path or az:// / https:// blob URI) ---
+output_dir: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all_3lang
+name: mix3_22_100

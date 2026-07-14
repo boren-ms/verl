@@ -5,12 +5,13 @@
 
 Given per-language chunk spec files (e.g. ``asr_chunk_cv15_en.json``,
 ``asr_chunk_cv15_zh.json`` ...), this script randomly draws two or more
-utterances from *different* languages and concatenates their audio and
+utterances from different adjacent languages and concatenates their audio and
 transcription into a single new sample. For every requested mix type
 (e.g. ``en_zh``, ``zh_en``, ``fr_it``, ``en_zh_fr``) it produces
-``--num-per-type`` samples. Every language inside a single mix type must be
-distinct; use ``mix_size`` (2, 3, ...) to control how many languages are
-concatenated when auto-generating mix types from a ``languages`` list.
+``--num-per-type`` samples. A language may recur after an intervening language
+(e.g. ``en_zh_en``), but adjacent components must differ. Use ``mix_size``
+(2, 3, ...) to control how many languages are concatenated when
+auto-generating mix types from a ``languages`` list.
 
 The concatenated audio is written to ``<output-dir>/wavs_<name>/<id>.wav`` (16 kHz
 mono) and one JSON object per mixed sample is written to ``<output-dir>/<name>.jsonl``.
@@ -28,7 +29,7 @@ Example
 
     # Override any field on the CLI (Hydra)
     python -m recipe.phimm.mix_lang_dataset \
-        languages=en,zh,fr,it,es pair_mode=permutations \
+        languages=en,zh,fr,it,es \
         num_per_type=100 output_dir=az://.../mixed_lang
 
 Each JSONL row looks like::
@@ -85,34 +86,37 @@ def parse_mix_types(mix_types: str) -> list[tuple[str, ...]]:
             raise ValueError(
                 f"Invalid mix type {item!r}; expected format <langA>_<langB>[_<langC>...] (e.g. en_zh or en_zh_fr)."
             )
-        if len(set(parts)) != len(parts):
-            raise ValueError(f"Invalid mix type {item!r}; all languages in a mix type must be distinct.")
+        if any(parts[index] == parts[index + 1] for index in range(len(parts) - 1)):
+            raise ValueError(f"Invalid mix type {item!r}; adjacent languages in a mix type must differ.")
         combos.append(tuple(parts))
     if not combos:
         raise ValueError("No valid mix types provided.")
     return combos
 
 
-def mix_types_from_languages(languages: str, pair_mode: str, mix_size: int) -> list[tuple[str, ...]]:
-    """Auto-generate distinct-language mix combos from a comma-separated language list."""
+def mix_types_from_languages(languages: str, mix_size: int) -> list[tuple[str, ...]]:
+    """Auto-generate mixes with distinct adjacent languages from a language list."""
     langs = [lang.strip() for lang in languages.split(",") if lang.strip()]
     # De-duplicate while preserving order.
     langs = list(dict.fromkeys(langs))
     if mix_size < 2:
         raise ValueError(f"mix_size must be >= 2, got {mix_size}.")
-    if len(langs) < mix_size:
-        raise ValueError(f"Need at least {mix_size} distinct languages to form mix_size={mix_size} combos, got {langs}.")
-    combiner = itertools.permutations if pair_mode == "permutations" else itertools.combinations
-    return [tuple(combo) for combo in combiner(langs, mix_size)]
+    if len(langs) < 2:
+        raise ValueError(f"Need at least 2 languages to form ordered mixes, got {langs}.")
+    return [
+        tuple(combo)
+        for combo in itertools.product(langs, repeat=mix_size)
+        if all(combo[index] != combo[index + 1] for index in range(len(combo) - 1))
+    ]
 
 
 def resolve_mix_types(
-    mix_types: str | None, languages: str | None, pair_mode: str, mix_size: int
+    mix_types: str | None, languages: str | None, mix_size: int
 ) -> list[tuple[str, ...]]:
     if languages and mix_types:
         raise ValueError("Set only one of 'languages' or 'mix_types', not both.")
     if languages:
-        return mix_types_from_languages(languages, pair_mode, mix_size)
+        return mix_types_from_languages(languages, mix_size)
     if mix_types:
         return parse_mix_types(mix_types)
     raise ValueError("Set one of 'mix_types' or 'languages' in the config (both are null by default).")
@@ -226,7 +230,6 @@ def run_mix(cfg: dict[str, Any]) -> None:
     pairs = resolve_mix_types(
         cfg.get("mix_types"),
         cfg.get("languages"),
-        str(cfg.get("pair_mode", "permutations")),
         int(cfg.get("mix_size", 2)),
     )
     demand = language_demand(pairs, num_per_type)
