@@ -1,0 +1,58 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+
+# --- Mix pair selection: auto-generate distinct-language pairs ---
+languages: en,de,es,fr,it,ja,pt,zh,ar,cs,da,fi,he,hi,hu,ko,nl,pl,ru,sv,th,tr
+mix_size: 2
+
+# --- Sampling ---
+num_per_type: 100
+seed: 1234
+allow_reuse: true
+
+# --- Target duration: each mixed sample aims for 20-40s total ---
+target_duration: [20.0, 40.0]
+max_component_utts: 10
+
+# --- Parallelism ---
+num_workers: 8
+
+# --- Source specs ---
+specs:
+  # tier1
+  en: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json
+  de: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_de.json
+  es: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json
+  fr: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fr.json
+  it: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_it.json
+  ja: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json
+  pt: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json
+  zh: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json
+  # tier2
+  ar: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ar.json
+  cs: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_cs.json
+  da: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_da.json
+  fi: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fi.json
+  he: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_he.json
+  hi: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_hi.json
+  hu: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_hu.json
+  ko: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ko.json
+  nl: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_nl.json
+  pl: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pl.json
+  ru: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ru.json
+  sv: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_sv.json
+  th: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_th.json
+  tr: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_tr.json
+
+text_field: sft.0.messages.1.content
+chunk_load_mode: sample
+
+# --- Audio mixing ---
+gap_sec: [0.0, 0.5]
+sep: " "
+
+# --- Output ---
+output_dir: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all_td20_40
+name: mixed_22_100_td20_40
