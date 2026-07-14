@@ -1,0 +1,21 @@
+# Conversation_CodeSwitching_DTEST_FY24Q4_pt-BR
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/codeswitch_real/Conversation_CodeSwitching_DTEST_FY24Q4_pt-BR/Conversation_CodeSwitching_DTEST_FY24Q4_pt-BR_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+        data_source: CorpusName
+  add_task_info:
+    task: lang_asr
+    language: Portuguese
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

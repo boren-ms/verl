@@ -1,0 +1,21 @@
+# Dictation_CodeSwitching_DTEST_FY23Q2_de-DE
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/codeswitch_real/Dictation_CodeSwitching_DTEST_FY23Q2_de-DE/Dictation_CodeSwitching_DTEST_FY23Q2_de-DE_DTEST/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+        data_source: CorpusName
+  add_task_info:
+    task: lang_asr
+    language: German
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
