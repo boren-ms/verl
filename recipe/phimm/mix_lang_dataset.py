@@ -240,6 +240,11 @@ def run_mix(cfg: dict[str, Any]) -> None:
     num_workers = int(cfg.get("num_workers", 1))
     if num_workers < 1:
         num_workers = os.cpu_count() or 1
+    manifest_checkpoint_rows = int(cfg.get("manifest_checkpoint_rows", 100))
+    if manifest_checkpoint_rows < 1:
+        raise ValueError(
+            f"manifest_checkpoint_rows must be >= 1, got {manifest_checkpoint_rows}."
+        )
 
     # Size blobfile's urllib3 connection pool to the worker count so parallel
     # reads/writes don't overflow the default (10) and spam "Connection pool is
@@ -263,9 +268,27 @@ def run_mix(cfg: dict[str, Any]) -> None:
     bf.makedirs(wav_dir)
     jsonl_path = bf.join(output_dir, f"{name}.jsonl")
 
+    completed_ids: set[str] = set()
+    if bf.exists(jsonl_path):
+        with bf.BlobFile(jsonl_path, "r") as in_f:
+            for line_number, line in enumerate(in_f, start=1):
+                if not line.strip():
+                    continue
+                try:
+                    row = json.loads(line)
+                    sample_id = row["id"]
+                except (json.JSONDecodeError, KeyError, TypeError) as exc:
+                    raise ValueError(
+                        f"Cannot resume from malformed row {line_number} in {jsonl_path}: {exc}"
+                    ) from exc
+                if not isinstance(sample_id, str) or not sample_id:
+                    raise ValueError(f"Cannot resume from row {line_number} in {jsonl_path}: invalid sample id.")
+                completed_ids.add(sample_id)
     print(f"Mix types: {pairs}")
     print(f"Per-language sample demand: {demand}")
     print(f"Output dir: {output_dir}")
+    if completed_ids:
+        print(f"Resuming from {len(completed_ids)} samples already recorded in {jsonl_path}")
 
     # Build one pool per unique language.
     pools: dict[str, list[dict]] = {}
@@ -438,26 +461,44 @@ def run_mix(cfg: dict[str, Any]) -> None:
             row["target_duration"] = round(sum(per_lang_targets), 3)
         return row
 
-    # Phase 2: process (load/mix/write) in parallel, then persist rows.
+    # Phase 2: process only missing tasks and append their rows to the
+    # existing manifest. Phase 1 still draws all specs to preserve the seeded
+    # pool cursor assignment for the tasks that remain.
+    pending_tasks = [task for task in tasks if task["sample_id"] not in completed_ids]
     n_written = 0
-    print(f"Processing {len(tasks)} samples with {num_workers} worker(s)...")
-    with bf.BlobFile(jsonl_path, "w") as out_f:
-        if num_workers == 1:
-            for task in tqdm(tasks, desc="mixing"):
-                row = process_task(task)
-                if row is not None:
-                    out_f.write(json.dumps(row, ensure_ascii=False) + "\n")
-                    n_written += 1
-        else:
-            with ThreadPoolExecutor(max_workers=num_workers) as executor:
-                futures = [executor.submit(process_task, task) for task in tasks]
-                for future in tqdm(as_completed(futures), total=len(futures), desc="mixing"):
-                    row = future.result()
-                    if row is not None:
-                        out_f.write(json.dumps(row, ensure_ascii=False) + "\n")
-                        n_written += 1
+    checkpoint_rows: list[dict] = []
 
-    print(f"Wrote {n_written} mixed samples to {jsonl_path}")
+    def write_checkpoint() -> None:
+        """Publish accumulated rows by closing the BlobFile append handle."""
+        nonlocal n_written
+        if not checkpoint_rows:
+            return
+        with bf.BlobFile(jsonl_path, "a") as out_f:
+            for row in checkpoint_rows:
+                out_f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        n_written += len(checkpoint_rows)
+        checkpoint_rows.clear()
+
+    print(f"Processing {len(pending_tasks)} of {len(tasks)} samples with {num_workers} worker(s)...")
+    if num_workers == 1:
+        for task in tqdm(pending_tasks, desc="mixing"):
+            row = process_task(task)
+            if row is not None:
+                checkpoint_rows.append(row)
+                if len(checkpoint_rows) >= manifest_checkpoint_rows:
+                    write_checkpoint()
+    else:
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            futures = [executor.submit(process_task, task) for task in pending_tasks]
+            for future in tqdm(as_completed(futures), total=len(futures), desc="mixing"):
+                row = future.result()
+                if row is not None:
+                    checkpoint_rows.append(row)
+                    if len(checkpoint_rows) >= manifest_checkpoint_rows:
+                        write_checkpoint()
+    write_checkpoint()
+
+    print(f"Wrote {n_written} mixed samples to {jsonl_path} ({len(completed_ids) + n_written} total)")
     print(f"Mixed wavs under {wav_dir}")
 
 
