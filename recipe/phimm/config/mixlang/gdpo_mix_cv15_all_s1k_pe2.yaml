@@ -64,4 +64,4 @@ trainer:
   total_training_steps: 1000
   test_freq: 100
   save_freq: 100
-  val_before_train: true
+  val_before_train: false
