@@ -1,0 +1,14 @@
+# Training data: code-switch / language-mixed cv15 all sets, including 20-40s targets.
+# (produced by recipe/phimm/config/data/mix/mix_cv15_all_td20_40.yaml and mix_cv15_all.yaml)
+dataset_name: jsonl
+jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all_td20_40/mixed_22_100_td20_40.jsonl
+  - az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
+add_task_info:
+  task: lang_asr
+post_process:
+  add_field:
+    fields:
+      data_source: mix_cv15_all_td20_40_plus_mix_cv15_all
+  verl_format:
+    prompt_key: prompt
