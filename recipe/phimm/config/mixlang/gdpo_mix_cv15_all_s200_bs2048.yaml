@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/mix_cv15_all_n1k
+  - data/train_data/mix_cv15_all
   - data/val_data/mixlang_fy26q2_zh_seg
   - _self_
 
@@ -17,6 +17,8 @@ custom_reward_function:
     measures:
       char: {beta: 1.0}
       word: {beta: 1.0}
+      fmt: {beta: 1.0}
+      lang: {beta: 1.0}
       # punc: {beta: 1.0}
 
 val_reward:
@@ -40,6 +42,7 @@ actor_rollout_ref:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 6
     ppo_mini_batch_size: 64
+    ppo_epochs: 1
     optim:
       lr: 5e-6
   model:
@@ -48,20 +51,19 @@ algorithm:
   adv_estimator: gdpo
   # GDPO normalizes each reward dimension independently within each group before
   # aggregating. These keys must be returned by compute_score (see punc_cap_measure.py).
-  gdpo_reward_keys: [char, word]
+  gdpo_reward_keys: [char, word, fmt, lang]
   # Optional per-dimension weights; equal weights when omitted.
-  gdpo_reward_weights: [1.0, 1.0]
+  gdpo_reward_weights: [1.0, 1.0, 1.0, 1.0]
 
 data:
-  shuffle: true
   max_prompt_length: 1204
   max_response_length: 512
-  train_batch_size: 64
+  train_batch_size: 2048
   val_batch_size: -1
 trainer:
   nnodes: 1
   total_epochs: 4
-  total_training_steps: 4000
-  test_freq: 10
-  save_freq: 10
+  total_training_steps: 200
+  test_freq: 20
+  save_freq: 20
   val_before_train: true
