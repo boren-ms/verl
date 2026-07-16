@@ -41,7 +41,19 @@ def _get_task_output_tag(task):
         raise ValueError(f"Unknown task: {task}")
 
 
-def _format_task_output(tag, lang, text):
+def _format_task_output(tag, lang, text, components=None):
+    if components:
+        languages = []
+        segments = []
+        for component in components:
+            component_lang = get_language_name(component.get("language", "Unknown"))
+            component_text = component.get("text", "")
+            languages.append(component_lang)
+            segments.append(f"<lang={component_lang}><TXT>{component_text}</TXT>")
+        header_langs = " and ".join(languages)
+        content = "\n".join(segments)
+        return f"Audio Language: {header_langs}.\n<{tag}>{content}</{tag}>"
+
     lang = lang or "Unknown"
     return f"Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
 
@@ -79,9 +91,9 @@ def get_task_prefix(task, lang, prob=1.0):
     raise ValueError(f"Unknown task: {task}")
 
 
-def get_task_output(task="asr", lang="English", text=""):
+def get_task_output(task="asr", lang="English", text="", components=None):
     """Get the expected output format for the specified task."""
-    return _format_task_output(_get_task_output_tag(task), get_language_name(lang), text)
+    return _format_task_output(_get_task_output_tag(task), get_language_name(lang), text, components)
     
 
 

@@ -1658,7 +1658,12 @@ def add_task_info(ds, **kwargs):
         prompt = get_task_prompt(task=task, rand=rand)
         prompt = f"{prompt}{prompt_suffix}"
         prefix = get_task_prefix(task, lang=lang, prob=prefix_prob)
-        gt_output = get_task_output(task=task, lang=lang, text=egs.get("text", ""))
+        gt_output = get_task_output(
+            task=task,
+            lang=lang,
+            text=egs.get("text", ""),
+            components=egs.get("components"),
+        )
         return {
             "prompt": prompt_format.format(prompt),
             "prefix": prefix,
