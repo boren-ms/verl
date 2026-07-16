@@ -333,7 +333,7 @@ def check_lang(solution_str, tgt_lang, trans_dict=None) -> float:
         return 1.0
     if not tgt_codes or not pred_codes:
         return 0.0
-    return len(pred_codes & tgt_codes) / len(pred_codes | tgt_codes)
+    return len(pred_codes & tgt_codes) / len(tgt_codes)
 
 
 def check_fmt(solution_str: str) -> bool:
