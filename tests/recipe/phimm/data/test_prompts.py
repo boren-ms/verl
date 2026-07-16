@@ -15,7 +15,7 @@ def test_get_task_output_formats_mixed_components():
 
     assert output == (
         "Audio Language: English and Chinese.\n"
-        "<ASR><lang=English><TXT>hello</TXT><lang=Chinese><TXT>你好</TXT></ASR>"
+        "<ASR><lang=English><TXT>hello</TXT>\n<lang=Chinese><TXT>你好</TXT></ASR>"
     )
     assert check_fmt(output)
 
