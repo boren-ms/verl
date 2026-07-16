@@ -40,7 +40,7 @@ actor_rollout_ref:
     max_num_seqs: 24
   actor:
     tis_imp_ratio_cap: 5
-    ppo_micro_batch_size_per_gpu: 6
+    ppo_micro_batch_size_per_gpu: 4
     ppo_mini_batch_size: 64
     ppo_epochs: 1
     optim:
