@@ -52,7 +52,7 @@ def _format_task_output(tag, lang, text, components=None):
             segments.append(f"<lang={component_lang}><TXT>{component_text}</TXT>")
         header_langs = " and ".join(languages)
         content = "\n".join(segments)
-        return f"Audio Language: {header_langs}.\n<{tag}>{content}</{tag}>"
+        return f"Audio Language: {header_langs}\n<{tag}>{content}</{tag}>"
 
     lang = lang or "Unknown"
     return f"Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
