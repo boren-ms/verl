@@ -1,0 +1,11 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/bad_cases/digits/test.jsonl
+  cache_name: bad_digits
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: bad_digits
+    verl_format:
+      prompt_key: prompt
