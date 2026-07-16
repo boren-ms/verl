@@ -1,0 +1,71 @@
+en-us:
+    - dataset_name: RepeatNumber_en-US_random_TTS_DTEST_FY27Q1
+      dataset_id: e7d7645b-c1bf-490b-9685-8c52cc40de81
+      # Utterance Count: 5886, Speech Hours: 7.01138194
+    - dataset_name: RepeatNumber_en-US_repeat_TTS_DTEST_FY27Q1
+      dataset_id: b6f3a15e-15b-44a-5117-a2b2ca76e08
+      # Utterance Count: 4685, Speech Hours: 5.03725094
+
+ja-jp:
+    - dataset_name: RepeatNumber_ja-JP_random_TTS_DTEST_FY27Q1
+      dataset_id: 9bc84021-e517-4fbb-0b83-af4120484203
+      # Utterance Count: 5650, Speech Hours: 7.00219917
+    - dataset_name: RepeatNumber_ja-JP_repeat_TTS_DTEST_FY27Q1
+      dataset_id: 8f40f3af-57fb-4f22-92b2-d99083d62c97b
+      # Utterance Count: 3704, Speech Hours: 5.24975694
+
+fr-fr:
+    - dataset_name: RepeatNumber_fr-FR_random_TTS_DTEST_FY27Q1
+      dataset_id: daa37a22-be98-4bd2-96b9-f14944ea81c1
+      # Utterance Count: 3727, Speech Hours: 7.03447917
+    - dataset_name: RepeatNumber_fr-FR_repeat_TTS_DTEST_FY27Q1
+      dataset_id: 43731a9d-6a64-4301-a13b-7a50fa635a26
+      # Utterance Count: 3192, Speech Hours: 5.98291067
+
+ko-kr:
+    - dataset_name: RepeatNumber_ko-KR_random_TTS_DTEST_FY27Q1
+      dataset_id: 2767852-be5-4a-b4-b905-51b3e8bd1d0
+      # Utterance Count: 9814, Speech Hours: 6.24421806
+    - dataset_name: RepeatNumber_ko-KR_repeat_TTS_DTEST_FY27Q1
+      dataset_id: 4e2c3e5-d6d9-4c10-a63-8f337706b345
+      # Utterance Count: 6985, Speech Hours: 5.37041691
+
+pt-br:
+    - dataset_name: RepeatNumber_pt-BR_random_TTS_DTEST_FY27Q1
+      dataset_id: ea47cbd-d1f1-47f7-9b17-e85e47e94c0c
+      # Utterance Count: 4089, Speech Hours: 6.26704361
+    - dataset_name: RepeatNumber_pt-BR_repeat_TTS_DTEST_FY27Q1
+      dataset_id: 29965f50-8f1b-450f-b800-68d2abf203e5
+      # Utterance Count: 2827, Speech Hours: 5.29408333
+
+zh-cn:
+    - dataset_name: RepeatNumber_zh-CN_repeat_TTS_DTEST_FY27Q1
+      dataset_id: a0829ebf-4ae7-4d95-8d88-f2aa04796a2b
+      # Utterance Count: 6209, Speech Hours: 5.18109375
+    - dataset_name: RepeatNumber_zh-CN_random_TTS_DTEST_FY27Q1
+      dataset_id: f60bd61-2a8e-4da9-8f1p-46f3b2e8e1be
+      # Utterance Count: 8090, Speech Hours: 7.02603889
+
+de-de:
+    - dataset_name: RepeatNumber_de-DE_repeat_TTS_DTEST_FY27Q1
+      dataset_id: af1f4e4c-82c-4288-b90b-e3ba355cc8bd
+      # Utterance Count: 3168, Speech Hours: 5.33135192
+    - dataset_name: RepeatNumber_de-DE_random_TTS_DTEST_FY27Q1
+      dataset_id: 9a8e7253-fb84-4b9b-a303-6aa46899028
+      # Utterance Count: 4297, Speech Hours: 6.90855208
+
+es-es:
+    - dataset_name: RepeatNumber_es-ES_repeat_TTS_DTEST_FY27Q1
+      dataset_id: ec35a3e2-7f404-46ad-9496-2346a1f39760
+      # Utterance Count: 2739, Speech Hours: 5.27584375
+    - dataset_name: RepeatNumber_es-ES_random_TTS_DTEST_FY27Q1
+      dataset_id: f996c03e-79d5-45b9-be4d-40da2e382b05
+      # Utterance Count: 3705, Speech Hours: 6.77584028
+
+it-it:
+    - dataset_name: RepeatNumber_it-IT_repeat_TTS_DTEST_FY27Q1
+      dataset_id: 87c5b5cc-bff8-43c4-bddd-2b9fabeca38
+      # Utterance Count: 2989, Speech Hours: 5.45093408
+    - dataset_name: RepeatNumber_it-IT_random_TTS_DTEST_FY27Q1
+      dataset_id: 7fc28246-88b5-45e4-84c8-c9219cb21c91
+      # Utterance Count: 4312, Speech Hours: 6.91603541
