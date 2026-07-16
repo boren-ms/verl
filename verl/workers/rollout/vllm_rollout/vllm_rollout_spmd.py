@@ -408,7 +408,7 @@ class vLLMRollout(BaseRollout):
                 if i % self.config.n == 0 and self.config.gt_rollout and not is_validate:
                     reward_i = non_tensor_batch["reward_model"][i]
                     gt_text = reward_i.get("gt_output", reward_i.get("ground_truth", ""))
-                    response[i] = self.tokenizer.encode(gt_text + "<|end|>")
+                    response[i] = self.tokenizer.encode(gt_text) + [self.tokenizer.eos_token_id]
 
             response = pad_2d_list_to_length(response, self.pad_token_id, max_length=self.config.response_length).to(
                 idx.device
