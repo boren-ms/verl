@@ -60,6 +60,7 @@ data:
   train_batch_size: 2048
   val_batch_size: -1
 trainer:
+  project_name: sr_digits
   nnodes: 1
   total_epochs: 4
   total_training_steps: 200
