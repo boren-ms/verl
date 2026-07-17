@@ -55,6 +55,7 @@ algorithm:
   gdpo_reward_weights: [1.0, 1.0, 1.0, 1.0, 1.0]
 
 data:
+  chunk_load_mode: cached
   max_prompt_length: 1204
   max_response_length: 512
   train_batch_size: 2048
