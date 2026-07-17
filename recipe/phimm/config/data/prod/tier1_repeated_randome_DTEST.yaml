@@ -5,7 +5,8 @@ en-us:
     - dataset_name: RepeatNumber_en-US_repeat_TTS_DTEST_FY27Q1
       dataset_id: b6f3a15e-15b-44a-5117-a2b2ca76e08
       # Utterance Count: 4685, Speech Hours: 5.03725094
-
+    # https://tsstd01wus2.blob.core.windows.net/data/am_data/gpt_tts/multi_locale_tts/tier1/en-us/txflow/RepeatNumber_en-US_random_TTS_DTEST_FY27Q1/
+    # https://tsstd01wus2.blob.core.windows.net/data/am_data/gpt_tts/multi_locale_tts/tier1/en-us/txflow/RepeatNumber_en-US_repeat_TTS_DTEST_FY27Q1/
 ja-jp:
     - dataset_name: RepeatNumber_ja-JP_random_TTS_DTEST_FY27Q1
       dataset_id: 9bc84021-e517-4fbb-0b83-af4120484203

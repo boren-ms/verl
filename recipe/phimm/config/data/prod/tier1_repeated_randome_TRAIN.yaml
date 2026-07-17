@@ -1,0 +1,130 @@
+# yamllint disable
+# --------------------------- IllinoisAccessibiltyData 2025 dataset --------------------------
+#
+# Data Set Information
+#       | Total Duration (Hours): 73697.78
+#       | de-de random
+#       | --- Chunk Number:     2756
+#       | --- Utterance Number: 1072921
+#       | --- Duration (Hours): 1753.34
+#       | de-de repeat
+#       | --- Chunk Number:     5973
+#       | --- Utterance Number: 2326266
+#       | --- Duration (Hours): 5158.87
+#       | en-us random
+#       | --- Chunk Number:     16577
+#       | --- Utterance Number: 6458144
+#       | --- Duration (Hours): 7708.68
+#       | en-us repeat
+#       | --- Chunk Number:     21351
+#       | --- Utterance Number: 8318685
+#       | --- Duration (Hours): 12472.14
+#       | es-ES random
+#       | --- Chunk Number:     3177
+#       | --- Utterance Number: 1237212
+#       | --- Duration (Hours): 2345.96
+#       | es-ES repeat
+#       | --- Chunk Number:     5227
+#       | --- Utterance Number: 2036043
+#       | --- Duration (Hours): 5223.31
+#       | fr-fr random
+#       | --- Chunk Number:     2326
+#       | --- Utterance Number: 906212
+#       | --- Duration (Hours): 1673.22
+#       | fr-fr repeat
+#       | --- Chunk Number:     4118
+#       | --- Utterance Number: 1604000
+#       | --- Duration (Hours): 3531.21
+#       | it-it random
+#       | --- Chunk Number:     2476
+#       | --- Utterance Number: 963912
+#       | --- Duration (Hours): 1570.04
+#       | it-it repeat
+#       | --- Chunk Number:     11018
+#       | --- Utterance Number: 4292308
+#       | --- Duration (Hours): 10165.00
+#       | ja-jp random
+#       | --- Chunk Number:     4520
+#       | --- Utterance Number: 1760607
+#       | --- Duration (Hours): 2327.22
+#       | ja-jp repeat
+#       | --- Chunk Number:     8025
+#       | --- Utterance Number: 3126232
+#       | --- Duration (Hours): 5835.38
+#       | ko-KR random
+#       | --- Chunk Number:     4027
+#       | --- Utterance Number: 1568645
+#       | --- Duration (Hours): 1123.21
+#       | ko-KR repeat
+#       | --- Chunk Number:     5307
+#       | --- Utterance Number: 2067869
+#       | --- Duration (Hours): 2080.67
+#       | pt-br random
+#       | --- Chunk Number:     2592
+#       | --- Utterance Number: 1009374
+#       | --- Duration (Hours): 1733.79
+#       | pt-br repeat
+#       | --- Chunk Number:     4815
+#       | --- Utterance Number: 1875412
+#       | --- Duration (Hours): 4661.61
+#       | zh-cn random
+#       | --- Chunk Number:     4796
+#       | --- Utterance Number: 1868470
+#       | --- Duration (Hours): 1620.17
+#       | zh-cn repeat
+#       | --- Chunk Number:     6214
+#       | --- Utterance Number: 2420943
+#       | --- Duration (Hours): 2713.94
+#       | --- File Type Count:  4
+#                   | --- Audio
+#                   | --- Feature
+#                   | --- Info
+#                   | --- Transcription
+
+# The permanent data location is at:
+#  - data_path: https://tsstd01wus2.blob.core.windows.net/data/am_data/gpt_tts/multi_locale_tts/tier1/[locale]/random/feature_extraction_sim/ChunkFiles/
+#    data_file: https://tsstd01wus2.blob.core.windows.net/data/am_data/gpt_tts/multi_locale_tts/tier1/[locale]/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+#  - data_path: https://tsstd01wus2.blob.core.windows.net/data/am_data/gpt_tts/multi_locale_tts/tier1/[locale]/repeat/feature_extraction_sim/ChunkFiles/
+#    data_file: https://tsstd01wus2.blob.core.windows.net/data/am_data/gpt_tts/multi_locale_tts/tier1/[locale]/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+# Usage:
+#    display format: display_gpt
+# Data were copied to highperf01scus blob
+# ------------------------------------------------------------------------------
+
+data_sets:
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/it-it/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/it-it/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/it-it/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/it-it/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/de-de/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/de-de/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/de-de/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/de-de/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/es-ES/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/es-ES/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/es-ES/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/es-ES/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/fr-fr/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/fr-fr/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/fr-fr/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/fr-fr/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/ja-jp/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/ja-jp/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/ja-jp/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/ja-jp/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/ko-KR/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/ko-KR/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/ko-KR/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/ko-KR/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/pt-br/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/pt-br/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/pt-br/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/pt-br/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/zh-cn/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/zh-cn/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/zh-cn/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/zh-cn/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/en-us/random/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/en-us/random/feature_extraction_sim/chunk_sanity_check/file_set.json
+    - data_path: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/en-us/repeat/feature_extraction_sim/ChunkFiles/
+      data_file: /datablob/am_data/gpt_tts/multi_locale_tts/tier1/en-us/repeat/feature_extraction_sim/chunk_sanity_check/file_set.json
