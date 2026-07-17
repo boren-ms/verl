@@ -1,7 +1,9 @@
 dataset_name: chunk
 specs:
-  - az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/repeat/feature_extraction_sim/h100.json
-  - az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/random/feature_extraction_sim/h100.json
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/repeat/feature_extraction_sim/h100.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/repeat/feature_extraction_sim/ChunkFiles
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/random/feature_extraction_sim/h100.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/random/feature_extraction_sim/ChunkFiles
 chunk_types:
   - audio
   - transcription
