@@ -254,13 +254,13 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
-    digit_n_err, digit_n_ref = score_digits(ground_truth, hyp_text)
-    digit_cer = digit_n_err / digit_n_ref if digit_n_ref else float(bool(digit_n_err))
+    digit_scores = score_digits(ground_truth, hyp_text)
 
     return {
         "char": char_error.accuracy(),
         "word": word_error.accuracy(),
-        "digit": 1.0 - digit_cer,
+        "digit_char": 1.0 - digit_scores["cer"],
+        "digit_word": 1.0 - digit_scores["wer"],
         **fmts,
         "lang": check_lang(solution_str, tgt_lang, trans_dict),
         "fmt": float(check_fmt(solution_str)),
@@ -457,45 +457,63 @@ def compute_score(solution_str, ground_truth, **kwargs):
     }
 
 
-def _digit_sequence(text: str | None) -> str:
-    """Extract numeral characters, normalizing standalone English digit words."""
-    digits = []
+def _digit_tokens(text: str | None) -> list[str]:
+    """Extract normalized individual digit words from text."""
+    tokens = []
     for token_match in _DIGIT_TOKEN_RE.finditer(text or ""):
         token = token_match.group()
         if token.isdigit():
-            digits.append(token)
+            tokens.extend(token)
         elif digit := _DIGIT_WORDS.get(token.lower()):
-            digits.append(digit)
-    return "".join(digits)
+            tokens.append(digit)
+    return tokens
 
 
-def score_digits(reference: str | None, hypothesis: str | None) -> tuple[int, int]:
-    """Return digit-only character errors and reference length."""
-    ref_digits = _digit_sequence(reference)
-    hyp_digits = _digit_sequence(hypothesis)
-    if not ref_digits:
-        return len(hyp_digits), 0
+def score_digits(reference: str | None, hypothesis: str | None) -> dict[str, int | float]:
+    """Return named digit-token WER and compact digit-sequence CER metrics.
 
-    alignment = process_characters(ref_digits, hyp_digits)
-    n_err = alignment.substitutions + alignment.deletions + alignment.insertions
-    return n_err, len(ref_digits)
+    Numeric runs and spoken digits are normalized into individual digit words,
+    so ``020`` and "zero two zero" align exactly for the word-error counts.
+    """
+    ref_tokens = _digit_tokens(reference)
+    hyp_tokens = _digit_tokens(hypothesis)
+    ref_digits = "".join(ref_tokens)
+    hyp_digits = "".join(hyp_tokens)
+
+    if not ref_tokens:
+        n_err, n_ref = len(hyp_tokens), 0
+        nc_err, nc_ref = len(hyp_digits), 0
+    else:
+        word_alignment = process_words(" ".join(ref_tokens), " ".join(hyp_tokens))
+        n_err = word_alignment.substitutions + word_alignment.deletions + word_alignment.insertions
+        n_ref = len(ref_tokens)
+        char_alignment = process_characters(ref_digits, hyp_digits)
+        nc_err = char_alignment.substitutions + char_alignment.deletions + char_alignment.insertions
+        nc_ref = len(ref_digits)
+
+    return {
+        "wer": n_err / n_ref if n_ref else float(bool(n_err)),
+        "n_err": n_err,
+        "n_ref": n_ref,
+        "cer": nc_err / nc_ref if nc_ref else float(bool(nc_err)),
+        "nc_err": nc_err,
+        "nc_ref": nc_ref,
+    }
 
 
 def eval_score(solution_str: str, ground_truth: str, **kwargs):
-    """Score character errors only on the digit sequence in an ASR response.
+    """Score normalized digit-word and character errors in an ASR response.
 
     Both Arabic numerals and standalone English digit words are normalized to
-    a compact digit string before character alignment. All non-digit content
-    is ignored, which keeps the validation metric focused on repeated numbers.
+    individual digit units before alignment. All non-digit content is ignored,
+    which keeps the validation metric focused on repeated numbers. ``cer`` is
+    computed from the returned character counts ``nc_err / nc_ref``.
     """
     from recipe.phimm.utils.shared import parse_asr_response
 
     hyp_text = parse_asr_response(solution_str).get("text") or ""
-    n_err, n_ref = score_digits(ground_truth, hyp_text)
-    cer = n_err / n_ref if n_ref else float(bool(n_err))
+    metrics = score_digits(ground_truth, hyp_text)
     return {
-        "score": 1.0 - cer,
-        "cer": cer,
-        "n_err": n_err,
-        "n_ref": n_ref,
+        "score": 1.0 - metrics["cer"],
+        **metrics,
     }
