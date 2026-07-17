@@ -1,7 +1,9 @@
 - dataset_name: jsonl
   jsonl_paths:
-    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/repeat_10pct.jsonl
-    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/random_10pct.jsonl
+    # - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/repeat_10pct.jsonl
+    # - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/random_10pct.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/repeat_10pct_audio_path.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/random_10pct_audio_path.jsonl
   cache_name: enus_digits_chunk_10
   add_task_info:
     task: lang_asr
