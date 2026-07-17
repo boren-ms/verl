@@ -1,0 +1,16 @@
+dataset_name: chunk
+specs:
+  - az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/repeat/feature_extraction_sim/h100.json
+  - az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/random/feature_extraction_sim/h100.json
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

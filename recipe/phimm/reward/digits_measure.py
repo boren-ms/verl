@@ -1,0 +1,501 @@
+"""Lightweight punctuation & capitalization error measurement.
+
+Uses ``jiwer`` for word-level alignment and simple Unicode-category-based
+classification to count punctuation and capitalization errors between a
+reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
+"""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from dataclasses import dataclass
+
+from jiwer import process_characters, process_words
+
+from recipe.phimm.utils.languages import get_language_code
+
+
+# Header line: ``Audio Language: {langs}.`` where {langs} may list several
+# languages (e.g. "English and Chinese") for code-switch / mixed audio.
+_HEADER_RE = re.compile(r"^Audio Language:\s*(?P<langs>[^\n]+?)\.?\n(?P<body>.*)$", re.DOTALL)
+# Body wrapper: ``<ASR>..</ASR>`` or ``<ASR_*>..</ASR_*>``.
+_TAG_RE = re.compile(r"^<(?P<tag>ASR(?:_[^>]+)?)>(?P<inner>.*)</(?P=tag)>$", re.DOTALL)
+# One ``<lang=X><TXT>..</TXT>`` segment (with optional surrounding whitespace);
+# several may appear back-to-back for code-switch / mixed audio.
+_SEGMENT_RE = re.compile(r"\s*<lang=(?P<lang>[^>]+)><TXT>(?P<text>.*?)</TXT>\s*", re.DOTALL)
+_DIGIT_TOKEN_RE = re.compile(r"\d+|[A-Za-z]+")
+_DIGIT_WORDS = {
+    "zero": "0",
+    "oh": "0",
+    "nought": "0",
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "five": "5",
+    "six": "6",
+    "seven": "7",
+    "eight": "8",
+    "nine": "9",
+}
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+# Regular punctuation marks that matter for ASR punc accuracy.
+# Excludes apostrophes, hyphens, quotes, brackets, etc.
+REGULAR_PUNC = set(".,?!;:;。？！、，：；…")
+
+
+def _is_punc_char(c: str) -> bool:
+    """Return True if *c* is a Unicode punctuation character."""
+    return unicodedata.category(c).startswith("P")
+
+
+def _is_regular_punc(c: str) -> bool:
+    """Return True if *c* is a regular (sentence-level) punctuation mark."""
+    return c in REGULAR_PUNC
+
+
+def _is_edge_punc(word: str, idx: int) -> bool:
+    """Return True if char at *idx* is a regular punctuation at a word edge.
+
+    Only punctuation at the very start or end of *word* counts.  Mid-word
+    punctuation (e.g. the ``.`` in ``4.5`` or ``U.S.A``) is ignored.
+    """
+    if not _is_regular_punc(word[idx]):
+        return False
+    # Walk outward — all chars between idx and the nearest edge must also be punc.
+    # e.g. "Hello," → comma is edge; "4.5" → period is NOT edge.
+    # Left edge: every char from 0..idx is punc.
+    left_ok = all(_is_punc_char(word[j]) for j in range(0, idx))
+    # Right edge: every char from idx..end is punc.
+    right_ok = all(_is_punc_char(word[j]) for j in range(idx + 1, len(word)))
+    return left_ok or right_ok
+
+
+def _strip_punc(word: str) -> str:
+    """Remove all Unicode punctuation characters from *word*."""
+    return "".join(c for c in word if not _is_punc_char(c))
+
+
+def _is_pure_punc(word: str) -> bool:
+    """Return True if *word* consists entirely of punctuation characters."""
+    return len(word) > 0 and all(_is_punc_char(c) for c in word)
+
+
+def _has_regular_punc(word: str) -> bool:
+    """Return True if *word* has regular punctuation at a word edge."""
+    return any(_is_edge_punc(word, i) for i in range(len(word)))
+
+
+def _is_pure_regular_punc(word: str) -> bool:
+    """Return True if *word* consists entirely of regular punctuation marks."""
+    return len(word) > 0 and all(_is_regular_punc(c) for c in word)
+
+
+def _punc_signature(word: str) -> str:
+    """Return a string encoding edge regular-punctuation positions & characters.
+
+    E.g. ``"Hello,"`` → ``",5"`` (comma at index 5).
+    Used to detect whether two tokens differ only in punctuation attachment.
+    Only considers regular punctuation at word edges.
+    """
+    return "".join(
+        c + str(i)
+        for i, c in enumerate(word)
+        if _is_edge_punc(word, i)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Edit classification
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class EditDetail:
+    """One aligned edit between ref and hyp."""
+
+    op: str  # "sub", "ins", "del"
+    ref_word: str | None
+    hyp_word: str | None
+    category: str | None = None  # one of {"punc", "cap", "lex"} or None
+
+
+def classify_edit(ref_word: str, hyp_word: str) -> str:
+    """Classify a substitution pair into one of ``{"punc", "cap", "lex"}``.
+
+    Priority: ``lex`` > ``punc`` > ``cap`` — each edit counts as exactly one
+    category, the most severe one.
+    """
+    ref_base = _strip_punc(ref_word)
+    hyp_base = _strip_punc(hyp_word)
+
+    if ref_base.lower() != hyp_base.lower():
+        return "lex"
+    if _punc_signature(ref_word) != _punc_signature(hyp_word):
+        return "punc"
+    if ref_base != hyp_base:
+        return "cap"
+    # Identical after stripping but original strings still differ — treat as punc.
+    return "punc"
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
+# ---------------------------------------------------------------------------
+
+
+def compute_fmt_acc(ref: str, hyp: str) -> dict:
+    """Compute punctuation, capitalisation and lexical accuracies.
+
+    Parameters
+    ----------
+    ref : str
+        Reference (ground-truth) text — should contain punctuation & casing.
+    hyp : str
+        Hypothesis text from the ASR model.
+
+    Returns
+    -------
+    dict with keys ``punc``, ``cap``, ``lex`` mapping to ``1 - err / (hit + err)``
+    (defaults to 1.0 when ``hit + err == 0``).
+    """
+    ref = (ref or "").strip()
+    hyp = (hyp or "").strip()
+
+    if not ref and not hyp:
+        return _empty_result()
+
+    output = process_words(ref, hyp)
+
+    ref_words: list[str] = output.references[0]
+    hyp_words: list[str] = output.hypotheses[0]
+
+    counts: dict[str, dict[str, int]] = {
+        "punc": {"err": 0, "hit": 0},
+        "cap": {"err": 0, "hit": 0},
+        "lex": {"err": 0, "hit": 0},
+    }
+    details: list[EditDetail] = []
+
+    for chunk in output.alignments[0]:
+        if chunk.type == "equal":
+            # Equal-aligned words count as hits per category independently:
+            # punc hit if the word has edge regular punctuation; cap hit if
+            # it contains any uppercase; lex hit always.
+            for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
+                rw = ref_words[ri]
+                counts["lex"]["hit"] += 1
+                if _has_regular_punc(rw):
+                    counts["punc"]["hit"] += 1
+                if any(c.isupper() for c in rw):
+                    counts["cap"]["hit"] += 1
+            continue
+
+        if chunk.type == "substitute":
+            for ri, hi in zip(
+                range(chunk.ref_start_idx, chunk.ref_end_idx),
+                range(chunk.hyp_start_idx, chunk.hyp_end_idx),
+                strict=False,
+            ):
+                rw = ref_words[ri]
+                hw = hyp_words[hi]
+                cat = classify_edit(rw, hw)
+                details.append(EditDetail(op="sub", ref_word=rw, hyp_word=hw, category=cat))
+                counts[cat]["err"] += 1
+
+        elif chunk.type == "delete":
+            for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
+                rw = ref_words[ri]
+                cat = "punc" if _is_pure_regular_punc(rw) else "lex"
+                details.append(EditDetail(op="del", ref_word=rw, hyp_word=None, category=cat))
+                counts[cat]["err"] += 1
+
+        elif chunk.type == "insert":
+            for hi in range(chunk.hyp_start_idx, chunk.hyp_end_idx):
+                hw = hyp_words[hi]
+                cat = "punc" if _is_pure_regular_punc(hw) else "lex"
+                details.append(EditDetail(op="ins", ref_word=None, hyp_word=hw, category=cat))
+                counts[cat]["err"] += 1
+
+    return {cat: _accuracy(c["err"], c["hit"]) for cat, c in counts.items()}
+
+
+def _accuracy(err: int, hit: int) -> float:
+    n = err + hit
+    return 1.0 - (err / n if n else 0.0)
+
+
+def _empty_result() -> dict:
+    return {"punc": 1.0, "cap": 1.0, "lex": 1.0}
+
+
+# ---------------------------------------------------------------------------
+# Reward / scoring
+# ---------------------------------------------------------------------------
+
+
+def _parse_response(solution_str, ground_truth=None, **kwargs):
+    """Extract hyp text, target language, fmt/lang accuracy, and char/punc/cap/lex accuracies."""
+    from recipe.phimm.reward.asr_edge import measure
+    from recipe.phimm.utils.shared import parse_asr_response
+
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
+    trans_dict = parse_asr_response(solution_str)
+    hyp_text = trans_dict["text"]
+
+    char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
+    word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
+    fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
+    digit_n_err, digit_n_ref = score_digits(ground_truth, hyp_text)
+    digit_cer = digit_n_err / digit_n_ref if digit_n_ref else float(bool(digit_n_err))
+
+    return {
+        "char": char_error.accuracy(),
+        "word": word_error.accuracy(),
+        "digit": 1.0 - digit_cer,
+        **fmts,
+        "lang": check_lang(solution_str, tgt_lang, trans_dict),
+        "fmt": float(check_fmt(solution_str)),
+    }
+
+
+def _split_langs(header: str) -> list[str]:
+    """Split a header language field into individual language tokens.
+
+    Handles single (``"English"``) and code-switch (``"English and Chinese"``,
+    ``"English Chinese"``) forms.
+    """
+    header = header.strip().rstrip(".")
+    header = re.sub(r"\band\b", " ", header, flags=re.IGNORECASE)
+    return [p for p in re.split(r"[,\s、&/]+", header) if p]
+
+
+def _parse_task_output(solution_str):
+    """Parse an ASR task output into ``(header_langs, seg_langs, seg_texts)``.
+
+    Supports one or more ``<lang=X><TXT>..</TXT>`` segments inside a single
+    ``<ASR>..</ASR>`` (or ``<ASR_*>..</ASR_*>``) block, as produced for
+    code-switch / language-mixed audio. Returns ``None`` when the string does
+    not match the expected format.
+    """
+    if not isinstance(solution_str, str):
+        return None
+    hm = _HEADER_RE.match(solution_str.strip())
+    if not hm:
+        return None
+    tm = _TAG_RE.match(hm.group("body").strip())
+    if not tm:
+        return None
+    inner = tm.group("inner")
+    # The body inner must consist solely of consecutive well-formed segments;
+    # any leftover text (junk, malformed tags) makes the output invalid.
+    segments = []
+    pos = 0
+    while pos < len(inner):
+        m = _SEGMENT_RE.match(inner, pos)
+        if not m:
+            return None
+        segments.append((m.group("lang").strip(), m.group("text")))
+        pos = m.end()
+    if not segments:
+        return None
+    header_langs = _split_langs(hm.group("langs"))
+    seg_langs = [lang for lang, _ in segments]
+    seg_texts = [text for _, text in segments]
+    return header_langs, seg_langs, seg_texts
+
+
+def _lang_code_set(lang) -> set[str]:
+    """Return the set of ISO language codes contained in *lang* (or empty set)."""
+    if not lang:
+        return set()
+    return {c for c in get_language_code(lang).split("_") if c}
+
+
+def check_lang(solution_str, tgt_lang, trans_dict=None) -> float:
+    """Language-identification score in ``[0, 1]`` with partial credit.
+
+    Predicted language(s) come from the per-segment ``<lang=..>`` sequence when
+    the response is a well-formed (possibly code-switch) task output, else from
+    the single language parsed from the raw response (``trans_dict["lang"]``).
+
+    The score is the Jaccard overlap between the predicted and target language
+    sets, so a code-switch output that identifies only some of the spoken
+    languages still earns proportional credit (``1.0`` = exact set match).
+
+    A ``<nonspeech>`` hypothesis always scores ``1.0`` (no language to judge).
+    """
+    hyp_text = trans_dict.get("text") if trans_dict else None
+    if (hyp_text or "").strip().lower() == "<nonspeech>":
+        return 1.0
+
+    tgt_codes = _lang_code_set(tgt_lang)
+
+    parsed = _parse_task_output(solution_str)
+    if parsed is not None:
+        pred_codes: set[str] = set()
+        for name in parsed[1]:
+            pred_codes |= _lang_code_set(name)
+    else:
+        single = trans_dict.get("lang") if trans_dict else None
+        pred_codes = _lang_code_set(single)
+
+    if not tgt_codes and not pred_codes:
+        return 1.0
+    if not tgt_codes or not pred_codes:
+        return 0.0
+    return len(pred_codes & tgt_codes) / len(tgt_codes)
+
+
+def check_fmt(solution_str: str) -> bool:
+    """Return True if ``solution_str`` matches ``_format_task_output`` format.
+
+    Expected format (single or code-switch / language-mixed)::
+
+        Audio Language: {langs}.
+        <{tag}><lang={l1}><TXT>{t1}</TXT>[<lang={l2}><TXT>{t2}</TXT>...]</{tag}>
+
+    where tag is ``ASR`` or ``ASR_*`` and the header languages match the
+    per-segment ``<lang=..>`` sequence.
+    """
+    parsed = _parse_task_output(solution_str)
+    if parsed is None:
+        return False
+    header_langs, seg_langs, _ = parsed
+    return [get_language_code(name) for name in header_langs] == [get_language_code(name) for name in seg_langs]
+
+
+def clip(x, lo=-1.0, hi=1.0):
+    return max(lo, min(hi, x))
+
+
+def signed_pow(x, gamma):
+    sign = 1 if x >= 0 else -1
+    return (abs(x) ** gamma) * sign
+
+
+def reduce_scores(scores, mode="sum"):
+    """Reduce a list of scores into a single value.
+
+    Modes: "sum", "mean", "multiply", "geometric", "harmonic".
+    """
+    if not scores:
+        return 0.0
+    if mode == "multiply":
+        score = 1.0
+        for s in scores:
+            score *= s
+        return score
+    elif mode == "mean":
+        return sum(scores) / len(scores)
+    elif mode == "geometric":
+        product = 1.0
+        for s in scores:
+            product *= abs(s)
+        return product ** (1.0 / len(scores))
+    elif mode == "harmonic":
+        try:
+            return len(scores) / sum(1.0 / s for s in scores)
+        except ZeroDivisionError:
+            return 0.0
+    else:
+        return sum(scores)
+
+
+def scale_score(acc, cfg):
+    """Compute a single weighted score from an accuracy value and config."""
+    cfg = cfg or {}
+    beta = float(cfg.get("beta", 1.0))
+    gamma = float(cfg.get("gamma", 1.0))
+    lo = float(cfg.get("low", 0.0))
+    hi = float(cfg.get("high", 1.0))
+    acc = clip(acc, lo, hi)
+    return beta * signed_pow(acc, gamma)
+
+
+def compute_score(solution_str, ground_truth, **kwargs):
+    """Combined lexical + formatting reward.
+
+    Uses :func:`recipe.phimm.reward.asr_edge.measure` for the lexical accuracy
+    and :func:`compute_fmt_acc` for punctuation/capitalisation accuracy.
+
+    Only the components listed in ``scores`` contribute to the reward. The
+    contribution of each component ``k`` is::
+
+        beta * signed_pow(clip(acc_k, lo, hi), gamma)
+
+    Both ``beta`` and ``gamma`` default to ``1.0`` when omitted.
+
+    Configuration example (YAML)::
+
+        reward_kwargs:
+          reduce: sum            # "sum" (default), "mean", or "multiply"
+          scores:
+            char: {beta: 1.0, gamma: 0.5, low: 0.0, high: 1.0}
+            punc: {beta: 0.5, gamma: 0.2}
+    """
+    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
+
+    measures = kwargs.get("measures") or {}
+    reduce = kwargs.get("reduce", "sum").lower()
+    gamma = float(kwargs.get("gamma", 1.0))
+    scores = [scale_score(parsed.get(k, 1.0), cfg) for k, cfg in measures.items()]
+    score = reduce_scores(scores, reduce)
+    score = signed_pow(score, gamma)
+
+    return {
+        "score": score,
+        **parsed,
+    }
+
+
+def _digit_sequence(text: str | None) -> str:
+    """Extract numeral characters, normalizing standalone English digit words."""
+    digits = []
+    for token_match in _DIGIT_TOKEN_RE.finditer(text or ""):
+        token = token_match.group()
+        if token.isdigit():
+            digits.append(token)
+        elif digit := _DIGIT_WORDS.get(token.lower()):
+            digits.append(digit)
+    return "".join(digits)
+
+
+def score_digits(reference: str | None, hypothesis: str | None) -> tuple[int, int]:
+    """Return digit-only character errors and reference length."""
+    ref_digits = _digit_sequence(reference)
+    hyp_digits = _digit_sequence(hypothesis)
+    if not ref_digits:
+        return len(hyp_digits), 0
+
+    alignment = process_characters(ref_digits, hyp_digits)
+    n_err = alignment.substitutions + alignment.deletions + alignment.insertions
+    return n_err, len(ref_digits)
+
+
+def eval_score(solution_str: str, ground_truth: str, **kwargs):
+    """Score character errors only on the digit sequence in an ASR response.
+
+    Both Arabic numerals and standalone English digit words are normalized to
+    a compact digit string before character alignment. All non-digit content
+    is ignored, which keeps the validation metric focused on repeated numbers.
+    """
+    from recipe.phimm.utils.shared import parse_asr_response
+
+    hyp_text = parse_asr_response(solution_str).get("text") or ""
+    n_err, n_ref = score_digits(ground_truth, hyp_text)
+    cer = n_err / n_ref if n_ref else float(bool(n_err))
+    return {
+        "score": 1.0 - cer,
+        "cer": cer,
+        "n_err": n_err,
+        "n_ref": n_ref,
+    }
