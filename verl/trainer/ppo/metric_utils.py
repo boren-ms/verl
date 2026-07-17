@@ -393,6 +393,7 @@ def update_var2metric2val(var2metric2val: dict[str, dict[str, float]]):
         "nu_": "pu_",
         "dter_n_": "dter_p_",
         "eer_n_": "eer_p_",
+        "nc_": "pc_",
     }
     remove_vars = set()
     for n_pfx, p_pfx in prefixs.items():
