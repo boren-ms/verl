@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/enus_digits_chunk_10
+  - data/train_data/enus_digits_jsonl_10
   - data/val_data/enus_digits_h100
   - _self_
 
