@@ -71,7 +71,7 @@ def load_metrics(args: argparse.Namespace) -> dict[str, float]:
 def build_workbook(columns: list[tuple[str, dict[str, float]]], out_path: Path) -> None:
     workbook = Workbook()
     sheet = workbook.active
-    sheet.title = "digits"
+    sheet.title = "CER"
     model_columns = list(range(2, 2 + len(columns)))
     reduction_columns = list(range(2 + len(columns), 1 + len(columns) * 2))
     bold = Font(bold=True)
@@ -91,7 +91,7 @@ def build_workbook(columns: list[tuple[str, dict[str, float]]], out_path: Path) 
 
     row = 4
     for dataset in DATASETS:
-        sheet.cell(row, 1, f"{dataset} Digit CER")
+        sheet.cell(row, 1, dataset)
         for index, (_, values) in enumerate(columns):
             value = values.get(dataset)
             if value is not None:
@@ -134,7 +134,8 @@ def build_workbook(columns: list[tuple[str, dict[str, float]]], out_path: Path) 
 
 
 def read_existing_xlsx(path: Path) -> list[tuple[str, dict[str, float]]]:
-    sheet = load_workbook(path, data_only=True)["digits"]
+    workbook = load_workbook(path, data_only=True)
+    sheet = workbook["CER"] if "CER" in workbook.sheetnames else workbook["digits"]
     columns: list[tuple[str, dict[str, float]]] = []
     for column in range(2, sheet.max_column + 1):
         if not isinstance(sheet.cell(3, column).value, str) or not sheet.cell(3, column).value.isalpha():

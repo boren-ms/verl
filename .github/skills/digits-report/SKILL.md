@@ -16,11 +16,12 @@ Generate an Excel report (`.xlsx`) for the two digits validation datasets. It co
 
 ## Layout
 
-Single sheet `digits`:
+Single sheet `CER`:
 
 - **Row 2** `Header`: `Baseline`, one column per added model, and one `CER reduction` column per non-baseline model.
 - **Row 3** `Column`: spreadsheet column labels and baseline-to-model comparison labels.
-- **Rows 4-5**: One `Digit CER` row per dataset.
+- **Rows 4-5**: One `Digit CER` row per dataset, displayed with the full
+  `enus_digits_random` and `enus_digits_repeat` names.
 - **CER reduction**: $1 - \frac{\text{model CER}}{\text{baseline CER}}$; positive values improve over the baseline.
 
 The baseline values are:
