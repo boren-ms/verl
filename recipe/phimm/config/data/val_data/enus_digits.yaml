@@ -1,0 +1,24 @@
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/txflow/RepeatNumber_en-US_random_TTS_DTEST_FY27Q1/RepeatNumber_en-US_random_TTS_DTEST_FY27Q1.jsonl
+  cache_name: enus_digits_random
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_digits_random
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/multi_locale_tts/tier1/en-us/txflow/RepeatNumber_en-US_repeat_TTS_DTEST_FY27Q1/RepeatNumber_en-US_repeat_TTS_DTEST_FY27Q1.jsonl
+  cache_name: enus_digits_repeat
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_digits_repeat
+    verl_format:
+      prompt_key: prompt
