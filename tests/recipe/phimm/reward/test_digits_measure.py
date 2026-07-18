@@ -2,7 +2,22 @@
 
 import pytest
 
-from recipe.phimm.reward.digits_measure import compute_score, eval_score, score_digits
+from recipe.phimm.reward.digits_measure import _digit_tokens, compute_score, eval_score, score_digits
+
+
+def test_digit_tokens_preserves_numeric_runs():
+    assert _digit_tokens("this 12123 asdfa 43") == ["12123", "43"]
+
+
+def test_score_digits_preserves_numeric_runs_for_word_errors():
+    assert score_digits("this 12123 asdfa 43", "adfadsfa12124 and 43") == {
+        "wer": pytest.approx(0.5),
+        "n_err": 1,
+        "n_ref": 2,
+        "cer": pytest.approx(1.0 / 7.0),
+        "nc_err": 1,
+        "nc_ref": 7,
+    }
 
 
 def test_score_digits_returns_error_and_reference_counts():

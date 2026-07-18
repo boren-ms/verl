@@ -458,12 +458,12 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
 
 def _digit_tokens(text: str | None) -> list[str]:
-    """Extract normalized individual digit words from text."""
+    """Extract normalized numeric runs and spoken digit words from text."""
     tokens = []
     for token_match in _DIGIT_TOKEN_RE.finditer(text or ""):
         token = token_match.group()
         if token.isdigit():
-            tokens.extend(token)
+            tokens.append(token)
         elif digit := _DIGIT_WORDS.get(token.lower()):
             tokens.append(digit)
     return tokens
