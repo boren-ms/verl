@@ -472,8 +472,9 @@ def _digit_tokens(text: str | None) -> list[str]:
 def score_digits(reference: str | None, hypothesis: str | None) -> dict[str, int | float]:
     """Return named digit-token WER and compact digit-sequence CER metrics.
 
-    Numeric runs and spoken digits are normalized into individual digit words,
-    so ``020`` and "zero two zero" align exactly for the word-error counts.
+    Numeric runs are preserved as tokens, while spoken digits map to their
+    numeric equivalents. WER therefore measures complete-run errors and CER
+    measures individual-digit errors in the compact sequence.
     """
     ref_tokens = _digit_tokens(reference)
     hyp_tokens = _digit_tokens(hypothesis)
@@ -504,9 +505,9 @@ def score_digits(reference: str | None, hypothesis: str | None) -> dict[str, int
 def eval_score(solution_str: str, ground_truth: str, **kwargs):
     """Score normalized digit-word and character errors in an ASR response.
 
-    Both Arabic numerals and standalone English digit words are normalized to
-    individual digit units before alignment. All non-digit content is ignored,
-    which keeps the validation metric focused on repeated numbers. ``cer`` is
+    Arabic numerals are preserved as numeric runs and standalone English digit
+    words are normalized to their numeric equivalent. All non-digit content is
+    ignored, which keeps validation focused on repeated numbers. ``cer`` is
     computed from the returned character counts ``nc_err / nc_ref``.
     """
     from recipe.phimm.utils.shared import parse_asr_response
