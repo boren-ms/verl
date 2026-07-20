@@ -5,8 +5,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/enus_digits_jsonl_100
-  - data/val_data/enus_digits
+  - data/train_data/enus_digits_jsonl_10
+  - data/val_data/enus_digits_h100
   - _self_
 
 custom_reward_function:
@@ -58,7 +58,7 @@ algorithm:
 data:
   chunk_load_mode: cached
   max_prompt_length: 1024
-  max_response_length: 512
+  max_response_length: 768
   train_batch_size: 2048
   val_batch_size: -1
 trainer:
