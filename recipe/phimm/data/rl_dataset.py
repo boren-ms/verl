@@ -84,6 +84,8 @@ class RLHFDataset(Dataset):
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
         self.return_multi_modal_inputs = config.get("return_multi_modal_inputs", True)
+        self.privileged_prompt_key = config.get("privileged_prompt_key", None)
+        self.max_privileged_prompt_length = config.get("max_privileged_prompt_length", self.max_prompt_length)
         self.ds = self.load_datasets()
 
     def load_datasets(self):
@@ -161,6 +163,42 @@ class RLHFDataset(Dataset):
         row_dict["input_ids"] = input_ids[0]
         row_dict["attention_mask"] = attention_mask[0]
         row_dict["position_ids"] = position_ids[0]
+
+        if self.privileged_prompt_key is not None:
+            privileged_messages = row_dict[self.privileged_prompt_key]
+            privileged_raw_prompt = _chat_obj.apply_chat_template(
+                privileged_messages,
+                add_generation_prompt=True,
+                tokenize=False,
+                **self.apply_chat_template_kwargs,
+            ).replace("<think>\n\n</think>\n\n", "")
+            privileged_raw_prompt = f"{privileged_raw_prompt}{prefix}"
+            privileged_model_inputs = self.processor(text=[privileged_raw_prompt], audios=audios, return_tensors="pt")
+            privileged_input_ids = privileged_model_inputs.pop("input_ids")
+            privileged_attention_mask = privileged_model_inputs.pop("attention_mask")
+            privileged_input_ids, privileged_attention_mask = verl_F.postprocess_data(
+                input_ids=privileged_input_ids,
+                attention_mask=privileged_attention_mask,
+                max_length=self.max_privileged_prompt_length,
+                pad_token_id=self.tokenizer.pad_token_id,
+                left_pad=True,
+                truncation=self.truncation,
+            )
+            row_dict["privileged_input_ids"] = privileged_input_ids[0]
+            row_dict["privileged_attention_mask"] = privileged_attention_mask[0]
+            row_dict["privileged_position_ids"] = compute_position_id_with_mask(privileged_attention_mask)[0]
+
+            if self.return_multi_modal_inputs:
+                privileged_inputs_dict = remove_empty_tensors(dict(privileged_model_inputs))
+                if "input_audio_embeds" in privileged_inputs_dict:
+                    privileged_inputs_dict["input_audio_embeds"] = privileged_inputs_dict["input_audio_embeds"].squeeze(0)
+                if privileged_inputs_dict.get("audio_attention_mask") is not None:
+                    privileged_inputs_dict["audio_attention_mask"] = privileged_inputs_dict["audio_attention_mask"].squeeze(0)
+                if "input_audio_embeds" in privileged_inputs_dict and privileged_inputs_dict.get("audio_attention_mask") is None:
+                    privileged_inputs_dict["audio_attention_mask"] = torch.ones(
+                        privileged_inputs_dict["input_audio_embeds"].shape[:-1], dtype=torch.long
+                    )
+                row_dict["privileged_multi_modal_inputs"] = privileged_inputs_dict
 
         # Prompt truncation (e.g. "right2") can drop the tail of the audio-placeholder
         # block for overlong prompts, leaving fewer AUDIO_PAD tokens in input_ids than

@@ -196,17 +196,18 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             self._register_dispatch_collect_info("actor", dp_rank=self.rank, is_collect=True)
 
         self.ulysses_sharding_manager = FSDPUlyssesShardingManager(self.ulysses_device_mesh)
-        self._lora_rank = self.config.model.get("lora_rank", 0)
-        self._is_lora = self._lora_rank > 0
-        self._adapter_merged = self.config.model.get("adapter_merged", True)
-        self._trainable_params = self.config.model.get("trainable_params", None)
-
         self.role = role
         assert self.role in ["actor", "rollout", "ref", "actor_rollout", "actor_rollout_ref"]
 
         self._is_actor = self.role in ["actor", "actor_rollout", "actor_rollout_ref"]
         self._is_rollout = self.role in ["rollout", "actor_rollout", "actor_rollout_ref"]
         self._is_ref = self.role in ["ref", "actor_rollout_ref"]
+        self._lora_rank = self.config.model.get("lora_rank", 0)
+        self._is_lora = self._lora_rank > 0 and not (
+            self.role == "ref" and self.config.ref.get("use_privileged_inputs", False)
+        )
+        self._adapter_merged = self.config.model.get("adapter_merged", True)
+        self._trainable_params = self.config.model.get("trainable_params", None)
         self.use_orig_params = self.config.actor.fsdp_config.get("use_orig_params", False)
 
         # TODO(haibin.lin):
@@ -847,7 +848,10 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         if self._is_ref:
             ref_model_path = self.config.model.path
             ref_model = self.config.ref.get("model", None)
-            if ref_model is not None:
+            use_privileged_inputs = self.config.ref.get("use_privileged_inputs", False)
+            if use_privileged_inputs and ref_model is not None and ref_model.get("path", ref_model_path) != ref_model_path:
+                raise ValueError("Privileged reference inputs require the reference model to use actor_rollout_ref.model.path.")
+            if ref_model is not None and not use_privileged_inputs:
                 ref_model_path = ref_model.get("path", self.config.model.path)
 
             if self.rank == 0:
@@ -1033,6 +1037,10 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     @register(dispatch_mode=make_nd_compute_dataproto_dispatch_fn(mesh_name="actor"))
     @DistProfiler.annotate(color="olive", role="ref_compute_log_prob")
     def compute_ref_log_prob(self, data: DataProto):
+        if self.config.ref.get("use_privileged_inputs", False):
+            from verl.trainer.ppo.privileged_reference import build_privileged_reference_batch
+
+            data = build_privileged_reference_batch(data)
         if self._is_lora:
             # if _is_lora, actor without lora applied is the ref
             data.meta_info["is_lora"] = True

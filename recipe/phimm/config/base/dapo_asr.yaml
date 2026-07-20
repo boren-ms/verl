@@ -17,6 +17,9 @@ data:
   pin_memory: false
   train_batch_size: 8
   max_audio_dur: 40 # max audio duration in seconds
+  # Optional dataset field containing teacher-only chat messages for on-policy distillation.
+  privileged_prompt_key: null
+  max_privileged_prompt_length: ${data.max_prompt_length}
   chunk_load_mode: sample  # "cached" (ChunkManager, full chunk in memory) or "sample" (seek-based, one connection per sample)
   gen_batch_size: ${data.train_batch_size}
   val_batch_size: 1024
@@ -102,6 +105,9 @@ actor_rollout_ref:
     free_cache_engine: true
   ref:
     strategy: fsdp2
+    # Enable with actor.use_kl_loss and supply data.privileged_prompt_key.
+    # With LoRA, this creates a standalone, adapter-free copy of model.path.
+    use_privileged_inputs: false
     log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
     fsdp_config:
       param_offload: true
