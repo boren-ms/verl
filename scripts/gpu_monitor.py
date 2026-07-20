@@ -20,6 +20,7 @@ import argparse
 import csv
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -110,7 +111,10 @@ def render(series: dict[int, GpuSeries], now: float, metric: str) -> str:
     headers = ["GPU", "now"] + [w[0] for w in WINDOWS]
     col_w = 7
     lines: list[str] = []
-    title = f"GPU utilization monitor ({label})  {time.strftime('%Y-%m-%d %H:%M:%S')}"
+    title = (
+        f"GPU utilization monitor ({label}) on {socket.gethostname()}  "
+        f"{time.strftime('%Y-%m-%d %H:%M:%S')}"
+    )
     lines.append(title)
     lines.append("-" * (col_w * len(headers)))
     lines.append("".join(h.rjust(col_w) for h in headers))
