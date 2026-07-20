@@ -24,7 +24,7 @@ data:
   custom_cls:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
-  eval_num_examine: 3
+  eval_num_examine: 20
   train_num_examine: ${actor_rollout_ref.rollout.n}
 
 # for training data
