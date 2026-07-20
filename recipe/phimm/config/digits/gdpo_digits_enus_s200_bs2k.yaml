@@ -39,7 +39,7 @@ actor_rollout_ref:
     gpu_memory_utilization: 0.7
   actor:
     tis_imp_ratio_cap: 5
-    ppo_micro_batch_size_per_gpu: 6
+    ppo_micro_batch_size_per_gpu: 4
     ppo_mini_batch_size: 64
     ppo_epochs: 1
     optim:
