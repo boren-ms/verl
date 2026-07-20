@@ -81,7 +81,7 @@ actor_rollout_ref:
   rollout:
     n: 16
     max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}} # 512*1024
-    max_num_seqs: 16 # concurrent decodes (matches input batch)
+    max_num_seqs: ${eval:${actor_rollout_ref.rollout.n}*2}
     dtype: bfloat16 # should align with FSDP
     log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
     tensor_model_parallel_size: 1
