@@ -36,6 +36,17 @@ except (ImportError, ModuleNotFoundError):
     TensorLoRARequest = None
 
 
+STABLE_LORA_ID = 1
+
+
+def replace_lora_adapter(llm_engine, lora_request: TensorLoRARequest) -> bool:
+    """Replace the single in-memory LoRA without changing its request ID."""
+    for lora_id in llm_engine.list_loras():
+        if not llm_engine.remove_lora(lora_id):
+            raise RuntimeError(f"Failed to remove vLLM LoRA adapter {lora_id}.")
+    return llm_engine.add_lora(lora_request)
+
+
 class VLLMHijack:
     @staticmethod
     def hijack():

@@ -15,7 +15,6 @@
 import inspect
 import logging
 import os
-import time
 from collections import OrderedDict
 
 from torch.distributed.device_mesh import DeviceMesh
@@ -45,7 +44,7 @@ from verl.utils.import_utils import deprecated
 from verl.utils.model import check_exclude_modules, check_target_modules, convert_weight_keys
 from verl.utils.profiler import GPUMemoryLogger, log_gpu_memory_usage, simple_timer
 from verl.utils.torch_functional import check_device_is_available
-from verl.utils.vllm import TensorLoRARequest, VLLMHijack, is_version_ge
+from verl.utils.vllm import STABLE_LORA_ID, TensorLoRARequest, VLLMHijack, is_version_ge, replace_lora_adapter
 
 from .base import BaseShardingManager
 
@@ -294,15 +293,16 @@ class FSDPVLLMShardingManager(BaseShardingManager):
         model = self.model_runner.model
         if peft_config:
             if self.base_sync_done:
-                lora_int_id = int(time.time_ns() % 0x7FFFFFFF)
                 lora_reqest = TensorLoRARequest(
-                    lora_name=f"{lora_int_id}",
-                    lora_int_id=lora_int_id,
+                    lora_name=f"{STABLE_LORA_ID}",
+                    lora_int_id=STABLE_LORA_ID,
                     lora_path="simon_lora_path",
                     peft_config=asdict(peft_config),
                     lora_tensors=updated_params,
                 )
-                self.inference_engine.llm_engine.add_lora(lora_reqest)
+                # Keep request mappings stable across syncs; vLLM 0.17 can
+                # deadlock while uploading changed LoRA mapping metadata.
+                replace_lora_adapter(self.inference_engine.llm_engine, lora_reqest)
                 logger.info(f"vLLM load weights, loaded_params: {len(updated_params)}")
                 return
             else:

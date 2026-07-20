@@ -33,7 +33,6 @@ import logging
 import os
 import pickle
 import socket
-import time
 from contextlib import contextmanager
 from dataclasses import asdict
 from types import MethodType
@@ -60,7 +59,7 @@ from verl.utils.device import is_npu_available
 from verl.utils.profiler import GPUMemoryLogger
 from verl.utils.ray_utils import ray_noset_visible_devices
 from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length, mask_tokens
-from verl.utils.vllm import TensorLoRARequest, VLLMHijack, is_version_ge
+from verl.utils.vllm import STABLE_LORA_ID, TensorLoRARequest, VLLMHijack, is_version_ge, replace_lora_adapter
 from verl.workers.config import HFModelConfig, RolloutConfig
 from verl.workers.rollout.base import BaseRollout
 
@@ -490,15 +489,16 @@ class vLLMRollout(BaseRollout):
         # breakpoint()
         peft_config, base_sync_done = kwargs.get("peft_config", None), kwargs.get("base_sync_done", False)
         if peft_config and base_sync_done:
-            lora_int_id = int(time.time_ns() % 0x7FFFFFFF)
             lora_reqest = TensorLoRARequest(
-                lora_name=f"{lora_int_id}",
-                lora_int_id=lora_int_id,
+                lora_name=f"{STABLE_LORA_ID}",
+                lora_int_id=STABLE_LORA_ID,
                 lora_path="simon_lora_path",
                 peft_config=asdict(peft_config),
                 lora_tensors=weights,
             )
-            self.inference_engine.llm_engine.add_lora(lora_reqest)
+            # Keep request mappings stable across syncs; vLLM 0.17 can
+            # deadlock while uploading changed LoRA mapping metadata.
+            replace_lora_adapter(self.inference_engine.llm_engine, lora_reqest)
             logger.info(f"vLLM load weights, loaded_params: {len(weights)}")
         else:
             from verl.utils.vllm.patch import patch_vllm_model
