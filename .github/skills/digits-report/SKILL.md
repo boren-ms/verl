@@ -1,12 +1,12 @@
 ---
 name: digits-report
-description: "Build a digits-dataset XLSX comparison report for a trained verl ASR model, with Digit CER for enus_digits_random and enus_digits_repeat, using the fixed Qwen3.5-audio baseline. Use when summarizing digit evaluation results, comparing digits CER, reporting enus_digits_random or enus_digits_repeat, or extending a digits report with another checkpoint."
+description: "Build a digits-dataset XLSX comparison report for a trained verl ASR model, with Digit CER and WER for enus_digits_random and enus_digits_repeat, using the fixed Qwen3.5-audio baseline. Use when summarizing digit evaluation results, comparing digits CER or WER, reporting enus_digits_random or enus_digits_repeat, or extending a digits report with another checkpoint."
 argument-hint: '<model-label> [--from-ray <node> <job-id> [<job-id> ...]] | [--from-text <file>] | [--metrics <json>] [--extend-xlsx <xlsx>] [--out <xlsx>]'
 ---
 
 # Digits Comparison Report (xlsx)
 
-Generate an Excel report (`.xlsx`) for the two digits validation datasets. It compares one or more models with the fixed `Qwen3.5-audio` baseline and reports digit character error rate (CER).
+Generate an Excel report (`.xlsx`) for the two digits validation datasets. It compares one or more models with the fixed `Qwen3.5-audio` baseline and reports digit character error rate (CER) and word error rate (WER).
 
 ## When to Use
 
@@ -16,30 +16,30 @@ Generate an Excel report (`.xlsx`) for the two digits validation datasets. It co
 
 ## Layout
 
-Single sheet `CER`:
+Two sheets, `CER` and `WER`, share the same layout:
 
-- **Row 2** `Header`: `Baseline`, one column per added model, and one `CER reduction` column per non-baseline model.
+- **Row 2** `Header`: `Baseline`, one column per added model, and one metric-reduction column per non-baseline model.
 - **Row 3** `Column`: spreadsheet column labels and baseline-to-model comparison labels.
-- **Rows 4-5**: One `Digit CER` row per dataset, displayed with the full
+- **Rows 4-5**: One metric row per dataset, displayed with the full
   `enus_digits_random` and `enus_digits_repeat` names.
-- **CER reduction**: $1 - \frac{\text{model CER}}{\text{baseline CER}}$; positive values improve over the baseline.
+- **Metric reduction**: $1 - \frac{\text{model metric}}{\text{baseline metric}}$; positive values improve over the baseline.
 
-The baseline values are:
+The fixed baseline values are:
 
-| Dataset | Digit CER |
-|---|---:|
-| `enus_digits_random` | 0.04% |
-| `enus_digits_repeat` | 0.92% |
+| Dataset | Digit CER | WER |
+|---|---:|---:|
+| `enus_digits_random` | 0.04% | 2.45% |
+| `enus_digits_repeat` | 0.92% | 10.59% |
 
-All numeric cells use percentage formatting. Header rows are light blue, metric rows are visually grouped by dataset, and CER-reduction columns use a red-white-green conditional scale.
+All numeric cells use percentage formatting. Header rows are light blue, metric rows are visually grouped by dataset, and reduction columns use a red-white-green conditional scale.
 
 ## Procedure
 
 1. Determine the model label, such as `remax_digits@step80`.
 2. Collect the metrics using one of these inputs:
-  - **Ray job(s)**: `--from-ray <node> <job-id>`. The script retrieves `ray job logs` and parses `val-aux/<dataset>/cer/mean@1:<float>`.
+  - **Ray job(s)**: `--from-ray <node> <job-id>`. The script retrieves `ray job logs` and parses `val-aux/<dataset>/(cer|wer)/mean@1:<float>`.
    - **Text dump**: `--from-text <path>` with the same metric lines.
-  - **JSON**: `--metrics <path>` using `{"enus_digits_random": 0.0004, "enus_digits_repeat": 0.0092}`. JSON values are fractions, not percentages.
+  - **JSON**: `--metrics <path>` using `{"enus_digits_random":{"cer":0.0004,"wer":0.0245},"enus_digits_repeat":{"cer":0.0092,"wer":0.1059}}`. JSON values are fractions, not percentages.
 3. Optionally pass `--extend-xlsx <prior.xlsx>` to append a model column.
 4. Run [scripts/build_digits_xlsx.py](./scripts/build_digits_xlsx.py). Output defaults to `tmp/digits_report/<label>.xlsx`.
 

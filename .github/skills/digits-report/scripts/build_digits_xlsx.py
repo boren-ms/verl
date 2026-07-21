@@ -17,35 +17,47 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 DATASETS = ("enus_digits_random", "enus_digits_repeat")
+METRICS = ("cer", "wer")
 BASELINE_LABEL = "Qwen3.5-audio"
 BASELINE_METRICS = {
-    "enus_digits_random": 0.0004,
-    "enus_digits_repeat": 0.0092,
+    "enus_digits_random": {
+        "cer": 0.0004,
+        "wer": 0.024464831804281346,
+    },
+    "enus_digits_repeat": {
+        "cer": 0.0092,
+        "wer": 0.10586979722518676,
+    },
 }
 METRIC_LINE_RE = re.compile(
-    r"val-aux/(?P<dataset>enus_digits_(?:random|repeat))/cer/mean@1[:=]\s*(?P<value>[0-9.eE+-]+)"
+    r"val-aux/(?P<dataset>enus_digits_(?:random|repeat))/"
+    r"(?P<metric>cer|wer)/mean@1[:=]\s*(?P<value>[0-9.eE+-]+)"
 )
 HEADER_FILL = PatternFill("solid", fgColor="FFD9E1F2")
 DATASET_FILL = PatternFill("solid", fgColor="FFF2F2F2")
 
 
-def parse_metrics(text: str) -> dict[str, float]:
-    metrics: dict[str, float] = {}
+def parse_metrics(text: str) -> dict[str, dict[str, float]]:
+    metrics: dict[str, dict[str, float]] = {}
     for match in METRIC_LINE_RE.finditer(text):
-        metrics[match["dataset"]] = float(match["value"])
+        metrics.setdefault(match["dataset"], {})[match["metric"]] = float(match["value"])
     return metrics
 
 
-def load_json_metrics(path: Path) -> dict[str, float]:
+def load_json_metrics(path: Path) -> dict[str, dict[str, float]]:
     raw: dict[str, Any] = json.loads(path.read_text())
-    metrics: dict[str, float] = {}
+    metrics: dict[str, dict[str, float]] = {}
     for dataset, values in raw.items():
         if dataset not in DATASETS:
             continue
         if isinstance(values, dict):
-            metrics[dataset] = float(values["cer"])
+            metrics[dataset] = {
+                metric: float(values[metric])
+                for metric in METRICS
+                if metric in values
+            }
         else:
-            metrics[dataset] = float(values)
+            metrics[dataset] = {"cer": float(values)}
     return metrics
 
 
@@ -57,21 +69,30 @@ def fetch_ray_logs(node: str, job_id: str) -> str:
     return result.stdout
 
 
-def load_metrics(args: argparse.Namespace) -> dict[str, float]:
-    metrics: dict[str, float] = {}
+def load_metrics(args: argparse.Namespace) -> dict[str, dict[str, float]]:
+    metrics: dict[str, dict[str, float]] = {}
+
+    def merge(values: dict[str, dict[str, float]]) -> None:
+        for dataset, metric_values in values.items():
+            metrics.setdefault(dataset, {}).update(metric_values)
+
     if args.metrics:
-        metrics.update(load_json_metrics(Path(args.metrics)))
+        merge(load_json_metrics(Path(args.metrics)))
     for text_path in args.from_text:
-        metrics.update(parse_metrics(Path(text_path).read_text()))
+        merge(parse_metrics(Path(text_path).read_text()))
     for node, job_id in args.from_ray:
-        metrics.update(parse_metrics(fetch_ray_logs(node, job_id)))
+        merge(parse_metrics(fetch_ray_logs(node, job_id)))
     return metrics
 
 
-def build_workbook(columns: list[tuple[str, dict[str, float]]], out_path: Path) -> None:
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "CER"
+def build_sheet(
+    workbook: Workbook,
+    title: str,
+    metric: str,
+    columns: list[tuple[str, dict[str, dict[str, float]]]],
+) -> None:
+    sheet = workbook.active if title == "CER" else workbook.create_sheet(title)
+    sheet.title = title
     model_columns = list(range(2, 2 + len(columns)))
     reduction_columns = list(range(2 + len(columns), 1 + len(columns) * 2))
     bold = Font(bold=True)
@@ -81,7 +102,7 @@ def build_workbook(columns: list[tuple[str, dict[str, float]]], out_path: Path) 
     for index, (label, _) in enumerate(columns[1:], start=3):
         sheet.cell(2, index, label).font = bold
     for column in reduction_columns:
-        sheet.cell(2, column, "CER reduction").font = bold
+        sheet.cell(2, column, f"{metric.upper()} reduction").font = bold
 
     sheet.cell(3, 1, "Column").font = bold
     for index, column in enumerate(model_columns):
@@ -93,7 +114,7 @@ def build_workbook(columns: list[tuple[str, dict[str, float]]], out_path: Path) 
     for dataset in DATASETS:
         sheet.cell(row, 1, dataset)
         for index, (_, values) in enumerate(columns):
-            value = values.get(dataset)
+            value = values.get(dataset, {}).get(metric)
             if value is not None:
                 sheet.cell(row, model_columns[index], value)
         for index, column in enumerate(reduction_columns, start=1):
@@ -129,23 +150,35 @@ def build_workbook(columns: list[tuple[str, dict[str, float]]], out_path: Path) 
                 end_type="num", end_value=1, end_color="FF63BE7B",
             ),
         )
+
+
+def build_workbook(
+    columns: list[tuple[str, dict[str, dict[str, float]]]],
+    out_path: Path,
+) -> None:
+    workbook = Workbook()
+    build_sheet(workbook, "CER", "cer", columns)
+    build_sheet(workbook, "WER", "wer", columns)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     workbook.save(out_path)
 
 
-def read_existing_xlsx(path: Path) -> list[tuple[str, dict[str, float]]]:
+def read_existing_xlsx(path: Path) -> list[tuple[str, dict[str, dict[str, float]]]]:
     workbook = load_workbook(path, data_only=True)
     sheet = workbook["CER"] if "CER" in workbook.sheetnames else workbook["digits"]
-    columns: list[tuple[str, dict[str, float]]] = []
+    columns: list[tuple[str, dict[str, dict[str, float]]]] = []
     for column in range(2, sheet.max_column + 1):
         if not isinstance(sheet.cell(3, column).value, str) or not sheet.cell(3, column).value.isalpha():
             break
         label = str(sheet.cell(2, column).value)
-        values: dict[str, float] = {}
-        for dataset_index, dataset in enumerate(DATASETS):
-            value = sheet.cell(4 + dataset_index, column).value
-            if isinstance(value, (int, float)):
-                values[dataset] = float(value)
+        values: dict[str, dict[str, float]] = {}
+        for metric, metric_sheet in (("cer", sheet), ("wer", workbook["WER"] if "WER" in workbook.sheetnames else None)):
+            if metric_sheet is None:
+                continue
+            for dataset_index, dataset in enumerate(DATASETS):
+                value = metric_sheet.cell(4 + dataset_index, column).value
+                if isinstance(value, (int, float)):
+                    values.setdefault(dataset, {})[metric] = float(value)
         columns.append((label, values))
     return columns
 
@@ -155,7 +188,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("label", help="New model label (column header).")
     parser.add_argument("--from-ray", nargs=2, metavar=("NODE", "JOB_ID"), action="append", default=[])
     parser.add_argument("--from-text", action="append", default=[])
-    parser.add_argument("--metrics", help="JSON metrics (fractions, not percentages).")
+    parser.add_argument(
+        "--metrics",
+        help="JSON metrics (fractions, not percentages), e.g. "
+        '{"enus_digits_random":{"cer":0.0004,"wer":0.02}}.',
+    )
     parser.add_argument("--extend-xlsx", help="Existing digits report to extend.")
     parser.add_argument("--out", help="Output path (default: tmp/digits_report/<label>.xlsx).")
     return parser.parse_args()
@@ -164,7 +201,12 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     new_metrics = load_metrics(args)
-    missing = [dataset for dataset in DATASETS if dataset not in new_metrics]
+    missing = [
+        f"{dataset}/{metric}"
+        for dataset in DATASETS
+        for metric in METRICS
+        if metric not in new_metrics.get(dataset, {})
+    ]
     if missing:
         print(f"[error] missing metrics for: {', '.join(missing)}", file=sys.stderr)
         return 2
