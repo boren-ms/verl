@@ -25,6 +25,8 @@ def resolve_task_language(task, lang=None):
 
 
 def _get_explicit_task_language(task):
+    if task.startswith("lang_asr_verb"):
+        return _get_lang_asr_language(task, "lang_asr_verb")
     if task.startswith("lang_asr_lex"):
         return _get_lang_asr_language(task, "lang_asr_lex")
     if task.startswith("lang_asr"):
@@ -33,6 +35,8 @@ def _get_explicit_task_language(task):
 
 
 def _get_task_output_tag(task):
+    if task.startswith("lang_asr_verb"):
+        return "ASR_VERBATIM"
     if task.startswith("lang_asr_lex"):
         return "ASR_LEXICAL"
     elif task in ("asr", "rare_asr", "biasing") or task.startswith("lang_asr"):
@@ -67,6 +71,8 @@ def get_task_prompt(task="asr", rand=False):
         prompt = f"{prompt} Pay extra attention to rare words."
     elif task == "biasing":
         prompt = rand_prompt(BIASING_PROMPTS, rand=rand)
+    elif task.startswith("lang_asr_verb"):
+        prompt = rand_prompt(LANG_ASR_VERB_PROMPTS, rand=rand)
     elif task.startswith("lang_asr_lex"):
         prompt = rand_prompt(LANG_ASR_LEX_PROMPTS, rand=rand)
     elif task.startswith("lang_asr"):
@@ -265,4 +271,9 @@ LANG_ASR_PROMPTS = [
 
 LANG_ASR_LEX_PROMPTS = [
     "Detect the language and transcribe the audio clip into text. Output must be in lexical format.",
+]
+
+
+LANG_ASR_VERB_PROMPTS = [
+    "Detect the language and transcribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.",
 ]
