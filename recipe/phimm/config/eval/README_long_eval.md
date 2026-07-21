@@ -115,6 +115,7 @@ For local outputs, use `ls`, `cat`, or `jq` on the same directory structure.
 - `rollout.response_length`: maximum generated token length per segment.
 - `rollout.no_repeat_ngram_size`: repetition control for long ASR outputs.
 - `data.measure_kwargs`: keyword arguments passed to `recipe.phimm.reward.asr_inhouse_measure.eval_score`.
+- `data.log_first_n_samples`: number of parent recordings to log per data source. Each preview includes the aggregate source measures and ordered per-segment prompt, reference, parsed response, and raw model response. Defaults to `3`; set to `0` to disable it.
 
 ## Completion Signal
 

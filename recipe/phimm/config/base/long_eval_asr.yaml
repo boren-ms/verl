@@ -27,6 +27,8 @@ data:
   batch_size: 256
   # Passed through to asr_inhouse_measure.eval_score (DTER/EER backend).
   measure_kwargs: {}
+  # Log ordered segment prompts and outputs for the first parent recordings in each source.
+  log_first_n_samples: 3
 
 model:
   path: null

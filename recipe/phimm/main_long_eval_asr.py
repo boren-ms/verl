@@ -260,6 +260,21 @@ def _micro(a):
     }
 
 
+def _segment_details(members: list[dict]) -> list[dict]:
+    """Keep the generated inputs and outputs for one long recording."""
+    return [
+        {
+            "seg_start": member["seg_start"],
+            "audio_path": member["audio_path"],
+            "prompt": member["prompt"],
+            "ref": member["ref"],
+            "response": member["response"],
+            "raw_response": member["raw_response"],
+        }
+        for member in members
+    ]
+
+
 def score_segments(segments, measure_kwargs):
     """Group segments by parent, concat hyps, score once per recording.
 
@@ -278,6 +293,7 @@ def score_segments(segments, measure_kwargs):
         members.sort(key=lambda m: m["seg_start"])
         concat_hyp = " ".join(m["response"].strip() for m in members if m["response"].strip())
         responses = [m["response"] for m in members]
+        segment_details = _segment_details(members)
         head = members[0]
         ref = head["ref"]
         data_source = head["data_source"] or "all"
@@ -293,6 +309,7 @@ def score_segments(segments, measure_kwargs):
             "ref": ref,
             "hyp": concat_hyp,
             "response": responses,
+            "segment_details": segment_details,
             "dter": score.get("dter"),
             "dter_n_err": score.get("dter_n_err"),
             "dter_n_ref": score.get("dter_n_ref"),
@@ -320,11 +337,23 @@ def _slug(src: str) -> str:
     return "".join(c if c.isalnum() or c in ("-", "_", ".") else "_" for c in str(src))
 
 
-def write_results(results_by_source, output_dir):
+def _log_sample_details(src: str, details: list[dict], measure: dict, n_samples: int) -> None:
+    """Log the first long-recording results and source-level measures."""
+    if n_samples <= 0:
+        return
+    samples = details[:n_samples]
+    print(
+        f"[{src}] First {len(samples)}/{len(details)} long-recording samples "
+        f"with aggregate measures:\n{json.dumps({'measure': measure, 'samples': samples}, ensure_ascii=False, indent=2, default=str)}"
+    )
+
+
+def write_results(results_by_source, output_dir, log_first_n_samples=0):
     """Write per-data-source details JSONL + measures JSON under ``output_dir``.
 
     Each source is written to its own subdirectory (``{output_dir}/{slug}/``).
     """
+    log_first_n_samples = int(log_first_n_samples or 0)
     for src, res in results_by_source.items():
         slug = _slug(src)
         details_path = f"{output_dir}/{slug}/details.jsonl"
@@ -340,6 +369,7 @@ def write_results(results_by_source, output_dir):
         )
         print(f"  Saved per-recording details to {details_path}")
         print(f"  Saved aggregate measures to {measures_path}")
+        _log_sample_details(src, res["details"], m, log_first_n_samples)
 
 
 @ray.remote(num_cpus=1)
@@ -364,7 +394,11 @@ def main_task(config):
     segments = generate_segments(wg, dataloader, tokenizer)
     results_by_source = score_segments(segments, measure_kwargs)
 
-    write_results(results_by_source, output_dir)
+    write_results(
+        results_by_source,
+        output_dir,
+        log_first_n_samples=config.data.get("log_first_n_samples", 0),
+    )
 
     print(f"Scored {len(segments)} segments across {len(results_by_source)} data sources")
     print("All Done")
