@@ -80,6 +80,8 @@ class RLHFDataset(Dataset):
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "right2")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
+        self.model_version = config.get("model_version")
+        self.remove_think = self.model_version != 2607
         self.num_proc = get_num_proc(config.get("num_proc", "auto"))
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
@@ -87,7 +89,10 @@ class RLHFDataset(Dataset):
         self.ds = self.load_datasets()
 
     def load_datasets(self):
-        data_sets = [create_audio_dataset(**data_conf) for data_conf in self.data_confs]
+        data_sets = [
+            create_audio_dataset(**{**data_conf, "model_version": self.model_version})
+            for data_conf in self.data_confs
+        ]
         if self.is_training and len(data_sets) > 1:
             ds = datasets.interleave_datasets(data_sets, **self.interleave_ds)
         else:
@@ -115,10 +120,8 @@ class RLHFDataset(Dataset):
             tokenize=False,
             **self.apply_chat_template_kwargs,
         )
-        # print(f"raw_prompt after chat template [{i}]: {raw_prompt}  with messages: {messages}")
-        # Remove empty thinking block injected by Qwen3.5 chat template
-        raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
-        # print(f"raw_prompt before prefix [{i}]: {raw_prompt}")
+        if self.remove_think:
+            raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
         raw_prompt = f"{raw_prompt}{prefix}"

@@ -53,6 +53,12 @@ from recipe.phimm.utils.storage import get_path_with_options
 prompt_format = "<audio>\n{}"
 
 
+def format_asr_prompt(prompt, model_version=None):
+    if model_version == 2607:
+        return f"{prompt}<audio>"
+    return prompt_format.format(prompt)
+
+
 def read_words(file_path, num=None, tn_name=None):
     """Read the top N lines from a file."""
     if file_path is None:
@@ -1650,6 +1656,7 @@ def add_task_info(ds, **kwargs):
     task = kwargs.get("task", "asr")
     rand = kwargs.get("rand", False)
     language = kwargs.get("language", "English")
+    model_version = kwargs.get("model_version")
     prompt_suffix = kwargs.get("prompt_suffix", "")
     prefix_prob = float(kwargs.get("prefix_prob", 0.0))
 
@@ -1665,7 +1672,7 @@ def add_task_info(ds, **kwargs):
             components=egs.get("components"),
         )
         return {
-            "prompt": prompt_format.format(prompt),
+            "prompt": format_asr_prompt(prompt, model_version=model_version),
             "prefix": prefix,
             "gt_output": gt_output,
             "language": lang,
@@ -1750,7 +1757,7 @@ def augment(ds, **kwargs):
     # if tag_entity_kwargs := kwargs.get("tag_entity", {}):
     #     ds = tag_entity(ds, **merge_kwargs(map_kwargs, tag_entity_kwargs))
     if add_task_info_kwargs := kwargs.get("add_task_info", {}):
-        ds = add_task_info(ds, **merge_kwargs(map_kwargs, add_task_info_kwargs))
+        ds = add_task_info(ds, **merge_kwargs(map_kwargs, {"model_version": kwargs.get("model_version")}, add_task_info_kwargs))
     if post_process_kwargs := kwargs.get("post_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, post_process_kwargs))
     return ds
