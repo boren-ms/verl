@@ -1,0 +1,135 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/data.jsonl
+  cache_name: auto_ami_verb
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: ami
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/data.jsonl
+  cache_name: auto_earnings22_verb
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/data.jsonl
+  cache_name: auto_gigaspeech_verb
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/audio/"
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: gigaspeech
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data.jsonl
+  cache_name: auto_ls_clean_verb
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/audio/"
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: ls_clean
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/data.jsonl
+  cache_name: auto_ls_other_verb
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/audio/"
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: ls_other
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/data.jsonl
+  cache_name: auto_spgispeech_verb
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: spgispeech
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/tedlium/data.jsonl
+  cache_name: auto_tedlium_verb
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/tedlium/audio/"
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: tedlium
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/data.jsonl
+  cache_name: auto_voxpopuli_verb
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/audio/"
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: voxpopuli
+    verl_format:
+      prompt_key: prompt
