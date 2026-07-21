@@ -1,0 +1,13 @@
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/repeat_audio_path.jsonl
+  cache_name: enus_digits_repeat_chunk_100
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_digits_repeat_chunk_100
+    verl_format:
+      prompt_key: prompt
