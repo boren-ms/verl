@@ -23,13 +23,12 @@ val_reward:
 
 actor_rollout_ref:
   rollout:
-    n: 8
+    n: 16
     gt_rollout: false
     temperature: 1
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.7
-    max_num_seqs: 16
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 8
