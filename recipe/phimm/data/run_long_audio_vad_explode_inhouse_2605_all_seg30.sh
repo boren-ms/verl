@@ -1,5 +1,6 @@
 #!/bin/bash
-# Pre-segment every corpus in inhouse_2605_all_seg.yaml via SVAD (30s segments).
+# Pre-segment every corpus in inhouse_2605_alllocale_seg.yaml via SVAD (30s segments).
+# Existing _30s JSONLs are skipped so interrupted batches can resume safely.
 # Run on a Brix node with /root/code/verl checked out.
 set -euo pipefail
 
@@ -20,34 +21,29 @@ run_lang() {
     --n-workers 32
 }
 
-run_lang en-US \
-  Conversation_DTEST_FY21Q1_en-US \
-  Conversation_OnlineMeetings_DTEST_FY25Q3_en-US_DTEST_OfflineDataCollection \
-  Dictation_Commonset_OfficeOffline_FY24Q3_en-US_DTEST_OfflineDataCollection \
-  OnlineMeetings_CS_Product_FY22_en-US_DTEST \
-  OnlineMeetings_CS_Shiproom_FY22_en-US_DTEST
+while IFS=$'\t' read -r lang corpora; do
+  read -r -a corpus_args <<< "$corpora"
+  run_lang "$lang" "${corpus_args[@]}"
+done < <(python - <<'PY'
+import collections
 
-run_lang da-DK \
-  Conversation_DTEST_FY21Q3_da-DK_DTEST \
-  Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK_DTEST \
-  Dictation_DTEST_L_D_FY23Q4_da-DK_DTEST
+import blobfile as bf
+import yaml
 
-run_lang hu-HU \
-  Conversation_DTEST_FY22Q4_hu-HU_DTEST \
-  Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU \
-  Dictation_DTEST_L_D_FY25Q2_hu-HU_DTEST_OfflineDataCollection
+with open("recipe/phimm/config/data/val_data/inhouse_2605_alllocale_seg.yaml") as stream:
+    entries = yaml.safe_load(stream)
 
-run_lang nb-NO \
-  Conversation_DTEST_FY21Q3_nb-NO_DTEST \
-  Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO_DTEST \
-  Dictation_DTEST_L_D_FY23Q4_nb-NO_DTEST
+missing = collections.defaultdict(list)
+source_prefix = "InhouseASR_2605_seg_presegment/"
+target_prefix = "InhouseASR_2605_seg_presegment_30s/"
+for entry in entries:
+    path = entry["jsonl_paths"]
+    locale, corpus = path.split(source_prefix, 1)[1].rsplit("/test.jsonl", 1)[0].split("/", 1)
+    target = path.replace(source_prefix, target_prefix)
+    if not bf.exists(target):
+        missing[locale].append(corpus)
 
-run_lang nl-NL \
-  Conversation_DTEST_FY23Q2_nl-NL_DTEST \
-  Conversation_OnlineMeetings_DTEST_FY23Q1_nl-NL_DTEST \
-  Dictation_DTEST_L_D_FY23Q4_nl-NL_DTEST
-
-run_lang cs-CZ \
-  Conversation_DTEST_FY23Q2_cs-CZ_DTEST \
-  Conversation_OnlineMeetings_DTEST_FY24Q2_cs-CZ \
-  Dictation_DTEST_L_D_FY24Q2_cs-CZ_DTEST_OfflineDataCollection
+for locale, corpora in missing.items():
+    print(locale, " ".join(corpora), sep="\t")
+PY
+)

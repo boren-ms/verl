@@ -5,13 +5,13 @@ description: Monitor and safely recover verl ASR Ray jobs on all Brix nodes. Use
 
 # verl Job Monitor and Auto-Fix
 
-Monitor all `verl-*` Brix nodes on `prod-westus2-cw-6`, report active and latest terminal submissions, and recover only confirmed failures or stalls.
+Every 15 minutes, monitor all `verl-*` Brix nodes on `prod-westus2-cw-6`, report active and latest terminal submissions, and recover only confirmed failures or stalls.
 
 ## Guardrails
 
 - Preserve job settings and resume behavior. Never add `enforce_eager`.
 - Do not manually start Ray. For a replacement pod, wait until it is 2/2 Ready and `/tmp/ray/session_latest` plus `ray status` are available.
-- Treat exactly one GPU at 100% utilization with every other GPU at 0% as a stalled rollout. Automatically rerun that job with its identical configuration.
+- Treat a job as a stalled rollout only after two consecutive polls show no step or log progress and exactly one GPU at 100% utilization while every other GPU is 0%. Automatically rerun that job with its identical configuration.
 - Use `ray job status` as the authoritative submission state. Do not infer status from GPU activity alone.
 - Never show Ray submission IDs in user-facing status tables.
 
@@ -26,7 +26,7 @@ kubectl --context prod-westus2-cw-6 -n boren exec verl-<node>-0 -- bash -l -c \
   'python /root/code/verl/ray_job.py list 2>/dev/null'
 ```
 
-For each active submission collect:
+For each active submission collect its `trainer.experiment_name`, authoritative Ray status, latest progress text, step, metrics, and per-GPU utilization:
 
 ```bash
 ray job status <submission-id>
@@ -36,7 +36,18 @@ timeout 30 ray job logs <submission-id> 2>&1 | grep -oP 'val-aux/[^ ]*(?:dter_p_
 nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits
 ```
 
-Report a table keyed by node and `trainer.experiment_name`: Ray status, progress, score/mean, p_err, phase, GPU utilization, and delta since the prior poll.
+Persist a snapshot keyed by node and `trainer.experiment_name` after each poll. On the next poll, compare the current step and latest progress text to that snapshot.
+
+Every 15-minute report must use this table:
+
+| Node | Experiment name | Ray status | Progress | Step | Delta since last check | GPU utils |
+| --- | --- | --- | --- | --- | --- | --- |
+
+- **Progress** is the current training percentage, evaluation/scoring count, loading phase, or latest meaningful log line.
+- **Step** is the latest extracted `step:N`; use `--` when the workload has no step.
+- **Delta since last check** is `+N steps`, `unchanged`, `new job`, or a terminal-state change.
+- **GPU utils** lists every GPU utilization in order, for example `99,98,0,0,0,0,0,0%`.
+- Include score/mean and p_err in the Progress cell when available.
 
 ## Failed Jobs
 
@@ -59,7 +70,7 @@ Do not change intentional training settings, switch configs, manually start Ray,
 
 ## Single-GPU Stall Recovery
 
-If a RUNNING job has exactly one GPU at 100% utilization while every other GPU is 0%:
+If a RUNNING job has the same step and progress text across two consecutive 15-minute polls, and each poll has exactly one GPU at 100% utilization while every other GPU is 0%:
 
 1. Stop the submission with `ray job stop <submission-id>`.
 2. Resubmit its identical configuration with the latest workspace.
