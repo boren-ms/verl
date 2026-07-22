@@ -1,0 +1,25 @@
+# Unsegmented nl-NL Conversation_DTEST_FY23Q2 evaluation set. Long recordings
+# are split on demand by svad_explode; do not replace this with an offline
+# pre-segmented source.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/nl-NL/Conversation_DTEST_FY23Q2_nl-NL_DTEST/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 30.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Dutch
+  post_process:
+    add_field:
+      fields:
+        data_source: nlnl_conv_fy23q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
