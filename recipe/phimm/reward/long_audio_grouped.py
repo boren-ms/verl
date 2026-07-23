@@ -100,6 +100,7 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
 
         already_print_data_sources: dict[str, int] = {}
 
+        processed_rows = 0
         for parent, members in groups.items():
             members.sort(key=lambda m: (m["seg_start"], m["i"]))
             concat_hyp = " ".join(m["response"].strip() for m in members if m["response"].strip())
@@ -124,10 +125,24 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
                 score = float(result)
                 result_dict = {"score": score}
 
+            member_count = len(members)
+            result_keys = set(result_dict)
+
+            # Different data sources can emit different metrics (for example,
+            # DTER for in-house audio and digit metrics for digit audio).
+            # Keep every metric list aligned to the input rows so validation
+            # aggregation and generation dumps can safely index them.
+            for key in list(reward_extra_info):
+                if key not in result_keys:
+                    reward_extra_info[key].extend([None] * member_count)
+            for key, value in result_dict.items():
+                if key not in reward_extra_info:
+                    reward_extra_info[key].extend([None] * processed_rows)
+                reward_extra_info[key].extend([value] * member_count)
+
             for m in members:
                 reward_tensor[m["i"], max(m["valid_response_length"] - 1, 0)] = score
-                for k, v in result_dict.items():
-                    reward_extra_info[k].append(v)
+            processed_rows += member_count
 
             if data_source not in already_print_data_sources:
                 already_print_data_sources[data_source] = 0

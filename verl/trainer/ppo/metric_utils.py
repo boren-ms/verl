@@ -472,7 +472,9 @@ def process_validation_metrics(
         uid = sample_uids[sample_idx]
         var2vals = data_src2uid2var2vals[data_source][uid]
         for var_name, var_vals in infos_dict.items():
-            var2vals[var_name].append(var_vals[sample_idx])
+            value = var_vals[sample_idx]
+            if value is not None:
+                var2vals[var_name].append(value)
 
     # Calculate metrics for each group
     data_src2uid2var2metric = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
