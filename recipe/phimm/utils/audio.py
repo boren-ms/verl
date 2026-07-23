@@ -1,18 +1,52 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
+from contextlib import contextmanager
 import logging
 import numpy as np
 from pathlib import Path
 import soundfile as sf
+import socket
+import time
 from recipe.phimm.data.chunk import load_chunk_sample, load_chunk_example
 
 logger = logging.getLogger(__name__)
 
 
 TARGET_SAMPLE_RATE = 16000
+AUDIO_READ_TIMEOUT_SECONDS = 120
+AUDIO_READ_ATTEMPTS = 3
 
 # Module-level chunk load mode: "cached" (default) or "sample"
 _chunk_load_mode = "cached"
+
+
+@contextmanager
+def _socket_timeout(timeout: float):
+    previous_timeout = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(timeout)
+    try:
+        yield
+    finally:
+        socket.setdefaulttimeout(previous_timeout)
+
+
+def _read_soundfile(file_path, **kwargs):
+    for attempt in range(1, AUDIO_READ_ATTEMPTS + 1):
+        try:
+            with _socket_timeout(AUDIO_READ_TIMEOUT_SECONDS):
+                with bf.BlobFile(file_path, "rb") as f:
+                    return sf.read(f, **kwargs)
+        except (bf.Error, OSError) as exc:
+            if attempt == AUDIO_READ_ATTEMPTS:
+                raise
+            logger.warning(
+                "Audio read failed for %s (attempt %d/%d): %s; retrying.",
+                file_path,
+                attempt,
+                AUDIO_READ_ATTEMPTS,
+                exc,
+            )
+            time.sleep(attempt)
 
 
 def set_chunk_load_mode(mode: str):
@@ -35,9 +69,7 @@ def sf_read(file_path):
     # print("Audio file:", file_path)
     if not bf.exists(file_path):
         raise FileNotFoundError(f"File {file_path} does not exist.")
-    with bf.BlobFile(file_path, "rb") as f:
-        audio, sr = sf.read(f)
-    return audio, sr
+    return _read_soundfile(file_path)
 
 
 def sf_write(file_path, audio, sr):
@@ -121,9 +153,7 @@ def _load_time_chunk(spec):
     sr = info.samplerate
     start_frame = max(0, int(start_sec * sr))
     stop_frame = max(start_frame + 1, int(end_sec * sr))
-    with bf.BlobFile(file_path, "rb") as f:
-        audio, sr = sf.read(f, start=start_frame, stop=stop_frame)
-    return audio, sr
+    return _read_soundfile(file_path, start=start_frame, stop=stop_frame)
 
 
 def _load_chunk(spec):

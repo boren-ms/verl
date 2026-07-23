@@ -124,10 +124,16 @@ class NaiveParallelRewardManager(AbstractRewardManager):
         for i, (item, score) in enumerate(zip(items, scores, strict=True)):
             if isinstance(score, dict):
                 reward = score["score"]
+                for key in reward_extra_info.keys() - score.keys():
+                    reward_extra_info[key].append(1.0)
                 for key, value in score.items():
+                    if key not in reward_extra_info:
+                        reward_extra_info[key].extend([1.0] * i)
                     reward_extra_info[key].append(value)
             else:
                 reward = score
+                for key in reward_extra_info:
+                    reward_extra_info[key].append(1.0)
 
             valid_response_length = item["valid_response_length"]
             reward_tensor[i, valid_response_length - 1] = reward

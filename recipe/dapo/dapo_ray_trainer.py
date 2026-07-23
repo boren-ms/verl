@@ -263,20 +263,9 @@ class RayDAPOTrainer(RayPPOTrainer):
                         new_batch.batch["token_level_scores"] = reward_tensor
 
                         if reward_extra_infos_dict:
-                            batch_size = len(new_batch)
-                            misaligned_keys = [
-                                key for key, values in reward_extra_infos_dict.items() if len(values) != batch_size
-                            ]
-                            if misaligned_keys:
-                                print(
-                                    "Skipping non-row-aligned reward extras for mixed-source training batch: "
-                                    f"{misaligned_keys} ({batch_size=})"
-                                )
-                                reward_extra_infos_dict = {
-                                    key: values
-                                    for key, values in reward_extra_infos_dict.items()
-                                    if len(values) == batch_size
-                                }
+                            assert all(
+                                len(values) == len(new_batch) for values in reward_extra_infos_dict.values()
+                            ), "Reward extras must be row-aligned before GDPO advantage computation."
                             new_batch.non_tensor_batch.update(
                                 {k: np.array(v) for k, v in reward_extra_infos_dict.items()}
                             )
