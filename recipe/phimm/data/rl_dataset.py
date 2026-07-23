@@ -70,6 +70,7 @@ class RLHFDataset(Dataset):
         self.processor = processor
         self.config = config
         self.is_training = is_training
+        self.use_interleave = config.get("use_interleave", True)
         self.interleave_ds = config.get("interleave_ds", {})
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.max_audio_dur = config.get("max_audio_dur", 40)
@@ -93,7 +94,7 @@ class RLHFDataset(Dataset):
             create_audio_dataset(**{**data_conf, "model_version": self.model_version})
             for data_conf in self.data_confs
         ]
-        if self.is_training and len(data_sets) > 1:
+        if self.is_training and self.use_interleave and len(data_sets) > 1:
             ds = datasets.interleave_datasets(data_sets, **self.interleave_ds)
         else:
             ds = datasets.concatenate_datasets(data_sets)

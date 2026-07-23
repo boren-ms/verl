@@ -4,9 +4,9 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - /grpo_asr
-  - /data/train_data/mix_cv15_all_enus_digits_jsonl_100@data.train_files
-  - /data/val_data/mixlang_fy26q2_zh_seg_enus_digits@data.val_files
+  - grpo_asr
+  - data/train_data/mix_cv15_all_enus_digits_jsonl_100
+  - data/val_data/mixlang_fy26q2_zh_seg_enus_digits
   - _self_
 
 reward_functions:
@@ -79,6 +79,7 @@ algorithm:
 
 data:
   trust_remote_code: false
+  use_interleave: false
   model_version: 2607
   max_prompt_length: 1024
   max_response_length: 512
