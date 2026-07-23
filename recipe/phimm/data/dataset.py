@@ -813,7 +813,10 @@ def svad_explode(ds, **kwargs):
         spans = chunker.chunk(audio, sr)
         kept = [(s, e) for (s, e) in spans if (e - s) >= min_seg_sec]
         if not kept:
-            return [row]
+            kept = [
+                (index * max_len_sec, min((index + 1) * max_len_sec, dur))
+                for index in range(math.ceil(dur / max_len_sec))
+            ]
         rows_out = []
         for idx, (s, e) in enumerate(kept):
             child = dict(row)

@@ -39,7 +39,7 @@ actor_rollout_ref:
     tis_imp_ratio_cap: 5
     ppo_mini_batch_size: 64
     use_dynamic_bsz: true
-    ppo_max_token_len_per_gpu: 6864
+    ppo_max_token_len_per_gpu: 6144
     optim:
       lr: 5e-6
   model:
