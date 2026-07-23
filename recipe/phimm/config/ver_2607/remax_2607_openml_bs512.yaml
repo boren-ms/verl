@@ -33,7 +33,7 @@ val_reward:
 
 actor_rollout_ref:
   rollout:
-    n: 16
+    n: 12
     gt_rollout: false
     temperature: 1.2
     calculate_log_probs: True
@@ -55,10 +55,11 @@ algorithm:
 
 data:
   trust_remote_code: false
+  use_interleave: false
   model_version: 2607
   max_prompt_length: 1024
   max_response_length: 512
-  train_batch_size: 2048
+  train_batch_size: 512
   val_batch_size: -1
 
 trainer:
