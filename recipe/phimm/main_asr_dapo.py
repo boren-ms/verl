@@ -20,7 +20,7 @@ import socket
 
 import hydra
 import ray
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, open_dict
 from pathlib import Path
 
 from verl.trainer.ppo.reward import load_reward_manager
@@ -49,6 +49,16 @@ def main(config):
 
 def cwd():
     return Path(__file__).parents[2]
+
+
+def _build_reward_config(config, reward_section):
+    reward_config = OmegaConf.merge(config)
+    overrides = config.get(reward_section, {})
+    with open_dict(reward_config):
+        for key in ("custom_reward_function", "reward_functions", "reward_function_by_data_source"):
+            if key in overrides:
+                reward_config[key] = overrides[key]
+    return reward_config
 
 
 def run_ppo(config) -> None:
@@ -183,31 +193,25 @@ class TaskRunner:
         if config.algorithm.use_kl_in_reward or config.actor_rollout_ref.actor.use_kl_loss:
             role_worker_mapping[Role.RefPolicy] = ray.remote(ActorRolloutRefWorker)
             mapping[Role.RefPolicy] = global_pool_id
-        # breakpoint()
-        if reward_func := config.get("train_reward", {}).get("custom_reward_function", {}):
-            config.custom_reward_function = reward_func
+        train_reward_config = _build_reward_config(config, "train_reward")
         reward_fn = load_reward_manager(
-            config,
+            train_reward_config,
             tokenizer,
             config.data.get("train_num_examine", 0),
             max_resp_len=config.data.max_response_length,
             overlong_buffer_cfg=config.reward_model.overlong_buffer,
         )
 
-        if reward_func := config.get("val_reward", {}).get("custom_reward_function", {}):
-            config.custom_reward_function = reward_func
-        # Allow val_reward to use a different reward manager (e.g. long_audio_grouped)
-        saved_reward_manager = config.reward_model.reward_manager
+        val_reward_config = _build_reward_config(config, "val_reward")
         if val_rm := config.get("val_reward", {}).get("reward_manager"):
-            config.reward_model.reward_manager = val_rm
+            val_reward_config.reward_model.reward_manager = val_rm
         val_reward_fn = load_reward_manager(
-            config,
+            val_reward_config,
             tokenizer,
             config.data.get("eval_num_examine", 1),
             max_resp_len=config.data.max_response_length,
             overlong_buffer_cfg=config.reward_model.overlong_buffer,
         )
-        config.reward_model.reward_manager = saved_reward_manager
         resource_pool_manager = ResourcePoolManager(resource_pool_spec=resource_pool_spec, mapping=mapping)
 
         trainer = RayDAPOTrainer(

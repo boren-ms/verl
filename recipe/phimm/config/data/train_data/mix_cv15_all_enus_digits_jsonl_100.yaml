@@ -1,0 +1,24 @@
+# Training data: mixed-language cv15 data plus en-US digits data.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: mix_cv15_all
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/repeat_audio_path.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/random_audio_path.jsonl
+  cache_name: enus_digits_chunk_100
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_digits_chunk_100
+    verl_format:
+      prompt_key: prompt

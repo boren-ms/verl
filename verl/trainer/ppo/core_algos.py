@@ -388,22 +388,29 @@ def compute_gdpo_outcome_advantage(
         prompt_length = batch["prompts"].size(1)
         valid_response_length = batch["attention_mask"][:, prompt_length:].sum(dim=1) - 1
 
-        score_list = []
-        for key in gdpo_reward_keys:
-            assert key in non_tensor_batch, (
-                f"GDPO reward key '{key}' not found in non_tensor_batch. "
-                f"Available keys: {list(non_tensor_batch.keys())}. "
-                f"Make sure your compute_score returns a dict containing '{key}'."
+        gdpo_weights = config.get("gdpo_reward_weights", None)
+        if gdpo_weights is not None:
+            assert len(gdpo_weights) == len(gdpo_reward_keys), (
+                f"GDPO 'gdpo_reward_weights' has {len(gdpo_weights)} entries but "
+                f"'gdpo_reward_keys' has {len(gdpo_reward_keys)} entries; they must match."
             )
+
+        score_list = []
+        reward_weights = [] if gdpo_weights is not None else None
+        for key_index, key in enumerate(gdpo_reward_keys):
+            if key not in non_tensor_batch:
+                continue
             comp = non_tensor_batch[key]
             rm_score = torch.tensor(np.asarray(comp, dtype=np.float32), device=device)
             rm_scores = torch.zeros_like(response_mask, dtype=torch.float32)
             rm_scores[torch.arange(rm_scores.size(0), device=device), valid_response_length] = rm_score
             score_list.append(rm_scores)
+            if reward_weights is not None:
+                reward_weights.append(gdpo_weights[key_index])
 
-        gdpo_weights = config.get("gdpo_reward_weights", None)
-        if gdpo_weights is not None:
-            reward_weights = list(gdpo_weights)
+        if not score_list:
+            score_list = None
+            reward_weights = None
 
     if score_list is None:
         score_list = [token_level_rewards]

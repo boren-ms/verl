@@ -15,6 +15,7 @@
 import random
 import unittest
 
+import numpy as np
 import pytest
 import torch
 
@@ -22,6 +23,7 @@ import verl.trainer.ppo.core_algos
 from verl.trainer.config import AlgoConfig
 from verl.trainer.ppo.core_algos import (
     compute_gae_advantage_return,
+    compute_gdpo_outcome_advantage,
     compute_remax_outcome_advantage,
     get_adv_estimator_fn,
     register_adv_est,
@@ -192,6 +194,48 @@ def test_multi_turn_compute_gae_advantage_return():
     assert torch.equal(adv1, adv2), f"{adv1=}, {adv2=}"
     assert torch.equal(ret1, ret2), f"{ret1=}, {ret2=}"
     print(f" [CORRECT] \n\n{adv1=}, \n\n{ret1=}")
+
+
+def test_compute_gdpo_skips_missing_reward_component():
+    token_level_rewards = torch.zeros((4, 2), dtype=torch.float)
+    response_mask = torch.tensor([[0.0, 1.0]] * 4)
+    index = np.array([0, 0, 1, 1])
+    batch = {
+        "prompts": torch.zeros((4, 1), dtype=torch.long),
+        "attention_mask": torch.ones((4, 3), dtype=torch.long),
+    }
+    non_tensor_batch = {
+        "char": np.array([0.0, 1.0, 0.0, 1.0]),
+        "lang": np.array([1.0, 0.0, 0.0, 1.0]),
+    }
+
+    advantages, returns = compute_gdpo_outcome_advantage(
+        token_level_rewards=token_level_rewards,
+        response_mask=response_mask,
+        index=index,
+        config=AlgoConfig(
+            adv_estimator="gdpo",
+            gdpo_reward_keys=["char", "digit_char", "lang"],
+            gdpo_reward_weights=[1.0, 100.0, 3.0],
+        ),
+        non_tensor_batch=non_tensor_batch,
+        batch=batch,
+    )
+    expected_advantages, expected_returns = compute_gdpo_outcome_advantage(
+        token_level_rewards=token_level_rewards,
+        response_mask=response_mask,
+        index=index,
+        config=AlgoConfig(
+            adv_estimator="gdpo",
+            gdpo_reward_keys=["char", "lang"],
+            gdpo_reward_weights=[1.0, 3.0],
+        ),
+        non_tensor_batch=non_tensor_batch,
+        batch=batch,
+    )
+
+    assert torch.allclose(advantages, expected_advantages)
+    assert torch.allclose(returns, expected_returns)
 
 
 def test_compute_remax_outcome_advantage_binary_adv():
