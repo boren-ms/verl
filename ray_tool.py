@@ -388,6 +388,7 @@ def prepare_env(forced=False):
     required = [
         "torch==2.10.0",
         "vllm==0.17.0",
+        "accelerate==1.14.0",
         "transformers==5.7.0",
         "huggingface-hub==1.13.0",
         "tokenizers==0.22.2",
