@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - long_eval_asr
-  - data/val_data/inhouse_2605_all_seg
+  - data/val_data/inhouse_2605_all_seg30
   - _self_
 
 # Combined pre-segmented InhouseASR_2605 eval for 6 locales:
