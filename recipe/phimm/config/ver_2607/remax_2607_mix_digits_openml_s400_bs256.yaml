@@ -73,6 +73,7 @@ val_reward:
     openasr_ml_bad_fmt_lang_bracket: openml
 
 actor_rollout_ref:
+  nccl_timeout: 3600
   rollout:
     n: 12
     gt_rollout: false
