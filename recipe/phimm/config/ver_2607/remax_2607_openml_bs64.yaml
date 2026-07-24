@@ -1,0 +1,71 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - grpo_asr
+  - data/train_data/qwen_bad_repeat_bracket_all
+  - data/val_data/openasr_all_bad
+  - _self_
+
+# custom_reward_function:
+#   path: recipe/phimm/reward/mix_lang_measure.py
+#   name: compute_score
+#   reward_kwargs:
+#     reduce: mean
+#     measures:
+#       char: {beta: 1.0}
+#       word: {beta: 1.0}
+#       fmt: {beta: 1.0}
+#       lang: {beta: 1.0}
+#       # punc: {beta: 1.0}
+custom_reward_function:
+  path: recipe/phimm/reward/asr_edge.py
+  name: compute_score
+  reward_kwargs:
+    gamma: 0.1
+    unit: char
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_edge.py
+    name: openasr_eval
+
+actor_rollout_ref:
+  rollout:
+    n: 12
+    gt_rollout: false
+    temperature: 1.2
+    calculate_log_probs: True
+    use_rollout_log_probs_as_old: true
+    gpu_memory_utilization: 0.7
+  actor:
+    tis_imp_ratio_cap: 5
+    ppo_micro_batch_size_per_gpu: 4
+    ppo_mini_batch_size: 64
+    ppo_epochs: 1
+    optim:
+      lr: 5e-6
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio/45000/qwen_hf/
+    trust_remote_code: false
+
+algorithm:
+  adv_estimator: remax
+
+data:
+  trust_remote_code: false
+  use_interleave: false
+  model_version: 2607
+  max_prompt_length: 1024
+  max_response_length: 512
+  train_batch_size: 64
+  val_batch_size: -1
+
+trainer:
+  nnodes: 1
+  total_epochs: 10
+  total_training_steps: 100
+  test_freq: 10
+  save_freq: 10
+  val_before_train: true
