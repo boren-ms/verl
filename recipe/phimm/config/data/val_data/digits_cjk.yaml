@@ -1,0 +1,103 @@
+# RepeatNumber TTS D-test FY27Q1 for CJK locales and modes.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/ja-JP/RepeateNumber_ja-JP_random_TTS_DTEST_FY27Q1/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  cache_name: jajp_digits_random
+  add_task_info:
+    task: lang_asr
+    language: Japanese
+  post_process:
+    add_field:
+      fields:
+        data_source: jajp_digits_random
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/ja-JP/RepeateNumber_ja-JP_repeat_TTS_DTEST_FY27Q1/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  cache_name: jajp_digits_repeat
+  add_task_info:
+    task: lang_asr
+    language: Japanese
+  post_process:
+    add_field:
+      fields:
+        data_source: jajp_digits_repeat
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/ko-KR/RepeateNumber_ko-KR_random_TTS_DTEST_FY27Q1/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  cache_name: kokr_digits_random
+  add_task_info:
+    task: lang_asr
+    language: Korean
+  post_process:
+    add_field:
+      fields:
+        data_source: kokr_digits_random
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/ko-KR/RepeateNumber_ko-KR_repeat_TTS_DTEST_FY27Q1/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  cache_name: kokr_digits_repeat
+  add_task_info:
+    task: lang_asr
+    language: Korean
+  post_process:
+    add_field:
+      fields:
+        data_source: kokr_digits_repeat
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/zh-CN/RepeateNumber_zh-CN_random_TTS_DTEST_FY27Q1/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  cache_name: zhcn_digits_random
+  add_task_info:
+    task: lang_asr
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: zhcn_digits_random
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/zh-CN/RepeateNumber_zh-CN_repeat_TTS_DTEST_FY27Q1/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  cache_name: zhcn_digits_repeat
+  add_task_info:
+    task: lang_asr
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: zhcn_digits_repeat
+    verl_format:
+      prompt_key: prompt
