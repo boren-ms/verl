@@ -44,7 +44,7 @@ reward_functions:
         fmt: {beta: 1.0}
         bracket: {beta: 1.0}
         repeat: {beta: 1.0}
-        tail_hallu: {beta: 1.0}
+        # tail_hallu: {beta: 1.0}
 
 reward_function_by_data_source:
   mix_cv15_all: mix_lang
@@ -76,7 +76,7 @@ actor_rollout_ref:
   rollout:
     n: 12
     gt_rollout: false
-    temperature: 1.0
+    temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.7
@@ -92,9 +92,7 @@ actor_rollout_ref:
     trust_remote_code: false
 
 algorithm:
-  adv_estimator: gdpo
-  gdpo_reward_keys: [char, word, digit_char, digit_word, fmt, lang, bracket, repeat, tail_hallu]
-  gdpo_reward_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  adv_estimator: remax
 
 data:
   trust_remote_code: false

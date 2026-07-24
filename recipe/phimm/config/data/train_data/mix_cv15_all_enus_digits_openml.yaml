@@ -29,7 +29,7 @@
   post_process:
     add_field:
       fields:
-        data_source: asr
+        data_source: oss_bad_cases
     verl_format:
       prompt_key: prompt
 - dataset_name: jsonl
@@ -39,6 +39,6 @@
   post_process:
     add_field:
       fields:
-        data_source: asr
+        data_source: oss_bad_cases
     verl_format:
       prompt_key: prompt
