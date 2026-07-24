@@ -199,7 +199,7 @@ _CHECK_SPEC = {
     "tail_hallu": ("p_tail_hallu", False),
 }
 
-DEFAULT_CHECKS = ("fmt", "bracket", "repeat", "tail_hallu")
+DEFAULT_CHECKS = ("fmt", "lang", "bracket", "repeat", "tail_hallu")
 
 
 def _is_good_response(parsed, checks=DEFAULT_CHECKS):
@@ -212,12 +212,15 @@ def _is_good_response(parsed, checks=DEFAULT_CHECKS):
             return False
     return True
 
+
 def clip(x, lo=-1.0, hi=1.0):
     return max(lo, min(hi, x))
+
 
 def signed_pow(x, gamma):
     sign = 1 if x >= 0 else -1
     return (abs(x) ** gamma) * sign
+
 
 def compute_score(solution_str, ground_truth, **kwargs):
     """ASR reward with regular WER and insertion-sensitive penalties."""
