@@ -4,9 +4,9 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - /grpo_asr
-  - /data/train_data/mix_cv15_all_enus_digits_jsonl_100@data.train_files
-  - /data/val_data/mixlang_fy26q2_zh_seg_enus_digits@data.val_files
+  - grpo_asr
+  - data/train_data/mix_cv15_all_enus_digits_openml
+  - data/val_data/mixlang_fy26q2_zh_seg_enus_digits_openml
   - _self_
 
 reward_functions:
@@ -32,10 +32,24 @@ reward_functions:
         digit_word: {beta: 1.0}
         fmt: {beta: 1.0}
         lang: {beta: 1.0}
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 1.0}
+        fmt: {beta: 1.0}
+        bracket: {beta: 1.0}
+        repeat: {beta: 1.0}
+        tail_hallu: {beta: 1.0}
 
 reward_function_by_data_source:
   mix_cv15_all: mix_lang
   enus_digits_chunk_100: digits
+  asr: openml
 
 val_reward:
   reward_manager: long_audio_grouped
@@ -48,10 +62,15 @@ val_reward:
     digits:
       path: recipe/phimm/reward/digits_measure.py
       name: eval_score
+    openml:
+      path: recipe/phimm/reward/asr_edge.py
+      name: openasr_eval
   reward_function_by_data_source:
     mixlang_fy26q2: inhouse
     enus_digits_random: digits
     enus_digits_repeat: digits
+    openasr_bad_fmt_lang: openml
+    openasr_ml_bad_fmt_lang_bracket: openml
 
 actor_rollout_ref:
   rollout:
@@ -74,17 +93,17 @@ actor_rollout_ref:
 
 algorithm:
   adv_estimator: gdpo
-  gdpo_reward_keys: [char, word, digit_char, digit_word, fmt, lang]
-  gdpo_reward_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  gdpo_reward_keys: [char, word, digit_char, digit_word, fmt, lang, bracket, repeat, tail_hallu]
+  gdpo_reward_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
 data:
   trust_remote_code: false
+  use_interleave: false
   model_version: 2607
   max_prompt_length: 1024
   max_response_length: 512
   train_batch_size: 1024
   val_batch_size: -1
-  dataloader_num_workers: 0
 
 trainer:
   nnodes: 1
