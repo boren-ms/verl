@@ -104,7 +104,7 @@ data:
   val_batch_size: -1
 
 trainer:
-  nnodes: 1
+  nnodes: 2
   total_epochs: 4
   total_training_steps: 400
   test_freq: 10
