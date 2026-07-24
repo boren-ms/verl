@@ -1384,6 +1384,11 @@ def stream_shuffle(ds, **kwargs):
     return ds
 
 
+def shuffle_ds(ds, **kwargs):
+    """Shuffle an in-memory dataset deterministically."""
+    return ds.shuffle(seed=kwargs.get("seed", 42))
+
+
 def shard_ds(ds, **kwargs):
     """Shard the dataset."""
     num_shards = kwargs.get("num_shards", dist_state().num_processes)
@@ -1606,6 +1611,8 @@ def process_ds(ds, **kwargs):
         ds = filter_text_with_numbers(ds, **merge_kwargs(map_kwargs, filter_text_with_numbers_kwargs))
     if output_egs_limit := kwargs.get("output_egs_limit", None):
         ds = limit_ds(ds, egs_limit=output_egs_limit)
+    if shuffle_kwargs := kwargs.get("shuffle", {}):
+        ds = shuffle_ds(ds, **shuffle_kwargs)
     if add_field_kwargs := kwargs.get("add_field", {}):
         ds = add_field_ds(ds, **merge_kwargs(map_kwargs, add_field_kwargs))
     if measures_kw := kwargs.get("add_measures", {}):
