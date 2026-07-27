@@ -436,6 +436,7 @@ BENCHMARKS = {
         "groups": INHOUSE_GROUPS,
         "config": "recipe/phimm/config/eval/long_eval_inhouse_2607_all_seg30.yaml",
         "embedded_baseline": {k: {"dter": v} for k, v in INHOUSE_BASELINE.items()},
+        "default_baseline": "az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/inhouse_2605_all_seg30/",
     },
     "digits_enus": {
         "title": "digits_enus",
@@ -443,6 +444,7 @@ BENCHMARKS = {
         "groups": DIGITS_ENUS_GROUPS,
         "config": "recipe/phimm/config/eval/eval_digits_enus_2607.yaml",
         "embedded_baseline": {},
+        "default_baseline": None,
     },
     "openasr_ml": {
         "title": "openasr_ml",
@@ -450,6 +452,7 @@ BENCHMARKS = {
         "groups": OPENASR_ML_GROUPS,
         "config": "recipe/phimm/config/eval/eval_openasr_ml_verb_2607.yaml",
         "embedded_baseline": {},
+        "default_baseline": None,
     },
     "mixlang": {
         "title": "mixlang",
@@ -457,6 +460,7 @@ BENCHMARKS = {
         "groups": MIXLANG_GROUPS,
         "config": "recipe/phimm/config/eval/long_eval_mixlang_fy26q2_zh_seg_2607.yaml",
         "embedded_baseline": {},
+        "default_baseline": "az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/long_audio_mixlang_fy26q2_zh_seg/",
     },
     "digits_tier1": {
         "title": "digits_tier1",
@@ -464,6 +468,7 @@ BENCHMARKS = {
         "groups": DIGITS_TIER1_GROUPS,
         "config": "recipe/phimm/config/eval/eval_digits_tier1_2607.yaml",
         "embedded_baseline": {},
+        "default_baseline": None,
     },
 }
 
@@ -502,10 +507,16 @@ def main() -> int:
         if not candidate:
             print(f"[warn] no candidate metrics parsed for {name} from {cand_src}", file=sys.stderr)
             continue
-        base_src = getattr(args, f"{name}_baseline")
-        baseline = collect(base_src, metrics) if base_src else dict(spec["embedded_baseline"])
+        base_src = getattr(args, f"{name}_baseline") or spec.get("default_baseline")
+        baseline = collect(base_src, metrics) if base_src else {}
+        if not baseline and spec["embedded_baseline"]:
+            baseline = dict(spec["embedded_baseline"])
+            if base_src:
+                print(f"[warn] {name}: baseline source {base_src} yielded nothing; "
+                      f"using embedded baseline", file=sys.stderr)
         if not baseline:
-            print(f"[warn] no baseline for {name}; column A will be empty", file=sys.stderr)
+            print(f"[warn] no baseline for {name}; column A will be empty. "
+                  f"Pass --{name.replace('_', '-')}-baseline <source>.", file=sys.stderr)
 
         overall = build_benchmark_sheet(
             wb, spec["title"], metrics, spec["groups"], baseline, candidate,
