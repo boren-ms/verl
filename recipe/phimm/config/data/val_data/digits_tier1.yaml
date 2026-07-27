@@ -2,6 +2,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/de-DE/RepeateNumber_de-DE_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -19,6 +23,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/de-DE/RepeateNumber_de-DE_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -36,6 +44,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/en-US/RepeateNumber_en-US_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -53,6 +65,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/en-US/RepeateNumber_en-US_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -70,6 +86,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/es-ES/RepeateNumber_es-ES_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -87,6 +107,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/es-ES/RepeateNumber_es-ES_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -104,6 +128,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/fr-FR/RepeateNumber_fr-FR_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -121,6 +149,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/fr-FR/RepeateNumber_fr-FR_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -138,6 +170,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/it-IT/RepeateNumber_it-IT_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -155,6 +191,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/it-IT/RepeateNumber_it-IT_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -172,6 +212,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/ja-JP/RepeateNumber_ja-JP_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -189,6 +233,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/ja-JP/RepeateNumber_ja-JP_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -206,6 +254,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/ko-KR/RepeateNumber_ko-KR_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -223,6 +275,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/ko-KR/RepeateNumber_ko-KR_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -240,6 +296,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/pt-BR/RepeateNumber_pt-BR_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -257,6 +317,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/pt-BR/RepeateNumber_pt-BR_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -274,6 +338,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/zh-CN/RepeateNumber_zh-CN_random_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
@@ -291,6 +359,10 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/zh-CN/RepeateNumber_zh-CN_repeat_TTS_DTEST_FY27Q1/test.jsonl
   pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
     rename_fields:
       mappings:
         audio_path: WavPath
