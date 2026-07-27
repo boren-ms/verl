@@ -56,15 +56,24 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 
 ### Consolidated report script
 
-Each benchmark takes a candidate source and an optional baseline source. A source is auto-detected as one of: an `az://.../` root or local directory holding `<slug>/measures.json` (used for the DTER benchmarks `inhouse_dter` and `mixlang`); a `*.json` metrics file (`{ds: value}` or `{ds: {metric: value}}`); a text log with `val-aux/<ds>/<metric>/mean@1` lines; or `ray:<node>:<job_id>` to pull `ray job logs`. When a baseline source is omitted, `inhouse_dter` falls back to its embedded `2607 vllm` baseline; all other benchmarks need a baseline source for a populated column `A`.
+Each benchmark takes a candidate source and an optional baseline source. A source is auto-detected as one of: an `az://.../` root or local directory holding `<slug>/measures.json` (used for the DTER benchmarks `inhouse_dter` and `mixlang`); a `*.json` metrics file (`{ds: value}` or `{ds: {metric: value}}`); a text log with `val-aux/<ds>/<metric>/mean@1` lines; or `ray:<node>:<job_id>` to pull `ray job logs`.
+
+**Collecting the baseline result.** The baseline (column `A`) is the config reference model's own eval output. When `--<bench>-baseline` is omitted the script auto-collects it from the config `output_path` for the long-audio DTER benchmarks:
+
+| Benchmark | Default baseline source (reference `output_path`) | Auto-collect |
+|---|---|---|
+| `inhouse_dter` | `az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/inhouse_2605_all_seg30/` | Yes (measures tree). Embedded `2607 vllm` constants are the fallback. |
+| `mixlang` | `az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/long_audio_mixlang_fy26q2_zh_seg/` | Yes when the reference eval has been run to that path. |
+| `digits_enus` / `digits_tier1` / `openasr_ml` | none — `eval_*` jobs are `val_only` and do not persist `measures.json` | No. Supply the reference `ray:<node>:<job_id>`, log, or JSON via `--<bench>-baseline`. |
+
+For the eval-only benchmarks, collect the baseline by running the same config with the reference model through `verl-asr-run` and passing its Ray job as the baseline source (or a captured log/JSON). Collect the candidate result the same way with the candidate model path.
 
 ```bash
 /home/boren/.virtualenvs/openai/bin/python \
   .github/skills/eval-2607-benchmark-report/scripts/build_2607_report.py \
   --label "cand@step560" --baseline-label "qwen_2607_45000" \
-  --inhouse-dter  az://orngwus2cresco/.../cand/inhouse_2607_all_seg30/ \
+  --inhouse-dter  az://orngwus2cresco/.../cand/inhouse_2605_all_seg30/ \
   --mixlang           az://orngwus2cresco/.../cand/long_audio_mixlang_fy26q2_zh_seg/ \
-  --mixlang-baseline  az://orngwus2cresco/.../qwen_2607_45000/long_audio_mixlang_fy26q2_zh_seg/ \
   --digits-enus          ray:verl-n1-i0:raysubmit_CAND \
   --digits-enus-baseline ray:verl-n1-i0:raysubmit_BASE \
   --openasr-ml           ray:verl-n1-i0:raysubmit_CAND2 \
@@ -72,7 +81,7 @@ Each benchmark takes a candidate source and an optional baseline source. A sourc
   --out tmp/eval_2607_reports/cand_step560.xlsx
 ```
 
-Add `--digits-tier1 <cand>` (and `--digits-tier1-baseline <base>`) only when the optional Tier 1 benchmark is requested. Only benchmarks whose candidate source is supplied get a sheet.
+The `inhouse_dter` and `mixlang` baselines are auto-collected from the table above, so their `--*-baseline` flags may be omitted. Add `--digits-tier1 <cand>` (and `--digits-tier1-baseline <base>`) only when the optional Tier 1 benchmark is requested. Only benchmarks whose candidate source is supplied get a sheet.
 
 ## Quality Gates
 

@@ -1,0 +1,27 @@
+# Training data: mixed-language cv15 and OpenML edge cases.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
+  add_task_info:
+    task: lang_asr
+  post_process:
+    shuffle:
+      seed: 42
+    add_field:
+      fields:
+        data_source: mix_cv15_all
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: 
+  - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+  - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+  add_task_info:
+    task: lang_asr
+  post_process:
+    shuffle:
+      seed: 44
+    add_field:
+      fields:
+        data_source: oss_bad_cases
+    verl_format:
+      prompt_key: prompt
