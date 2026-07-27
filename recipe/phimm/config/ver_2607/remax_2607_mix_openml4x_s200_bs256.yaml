@@ -5,8 +5,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/mix_cv15_all_openml4x
-  - data/val_data/mixlang_fy26q2_zh_seg_openml
+  - data/train_data/mix_cv15_all_openml4x_verb
+  - data/val_data/mixlang_fy26q2_zh_seg_openml_verb
   - _self_
 
 reward_functions:
@@ -29,13 +29,14 @@ reward_functions:
         char: {beta: 1.0}
         word: {beta: 1.0}
         lang: {beta: 1.0}
+        fmt: {beta: 1.0}
         bracket: {beta: 1.0}
         repeat: {beta: 1.0}
         # tail_hallu: {beta: 1.0}
 
 reward_function_by_data_source:
   mix_cv15_all: mix_lang
-  asr: openml
+  openml: openml
 
 val_reward:
   reward_manager: long_audio_grouped
