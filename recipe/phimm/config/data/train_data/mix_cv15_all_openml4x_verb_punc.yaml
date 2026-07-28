@@ -1,4 +1,17 @@
 # Training data: mixed-language cv15, verbatim OpenML edge cases (4x), and punc/cap refinement.
+# Inspected on verl-n2-i3 (2026-07-28).
+# Samples: python scripts/inspect_training_samples.py \
+#   recipe/phimm/config/data/train_data/mix_cv15_all_openml4x_verb_punc.yaml --samples 3
+# Sample output: /tmp/remax_bin_training_samples.jsonl
+# Row counts:
+#   mix_cv15_all: 46,200 (mixed_22_100.jsonl)
+#   openml: 13,169 unique; 13,169 x4= 52,676 effective
+#     qwen_oss_brackets/all_wav.jsonl: 8,282 x4 = 33,128
+#     qwen_oss_reps/all_wav.jsonl: 4,887 x4 = 19,548
+#   punc_fy24q3p2: 157,804 across shards 00000..00007
+#     19,824 + 19,334 + 19,737 + 19,722 + 19,808 + 19,811 + 19,809 + 19,759
+# Configured total: 256,680 effective rows (217,173 unique physical rows).
+
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
   add_task_info:
@@ -13,8 +26,6 @@
       prompt_key: prompt
 - dataset_name: jsonl
   jsonl_paths:
-    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
-    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
     - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
     - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
     - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
