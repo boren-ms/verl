@@ -8,9 +8,9 @@
 #   openml: 13,169 unique; 13,169 x4= 52,676 effective
 #     qwen_oss_brackets/all_wav.jsonl: 8,282 x4 = 33,128
 #     qwen_oss_reps/all_wav.jsonl: 4,887 x4 = 19,548
-#   punc_fy24q3p2: 157,804 across shards 00000..00007
-#     19,824 + 19,334 + 19,737 + 19,722 + 19,808 + 19,811 + 19,809 + 19,759
-# Configured total: 256,680 effective rows (217,173 unique physical rows).
+#   punc_fy24q3p2: 58,895 across shards 00000..00002
+#     19,824 + 19,334 + 19,737
+# Configured total: 157,771 effective rows (118,264 unique physical rows).
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
@@ -49,11 +49,6 @@
     - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00000-of-00116.jsonl
     - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00001-of-00116.jsonl
     - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00002-of-00116.jsonl
-    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00003-of-00116.jsonl
-    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00004-of-00116.jsonl
-    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00005-of-00116.jsonl
-    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00006-of-00116.jsonl
-    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00007-of-00116.jsonl
   add_task_info:
     task: lang_asr
   post_process:
