@@ -24,7 +24,7 @@
     - az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/bad_fmt_lang.jsonl
   cache_name: auto_openasr_bad_fmt_lang
   add_task_info:
-    task: lang_asr
+    task: lang_asr_verb
   post_process:
     add_field:
       fields:
@@ -47,7 +47,7 @@
     - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/bad_fmt_lang_bracket.jsonl
   cache_name: auto_openasr_ml_bad_fmt_lang_bracket
   add_task_info:
-    task: lang_asr
+    task: lang_asr_verb
   post_process:
     add_field:
       fields:

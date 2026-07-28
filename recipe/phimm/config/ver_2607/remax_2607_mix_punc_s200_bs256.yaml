@@ -5,8 +5,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/mix_cv15_all_openml4x_punc
-  - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
+  - data/train_data/mix_cv15_all_punc
+  - data/val_data/mixlang_fy26q2_zh_seg_punc
   - _self_
 
 reward_functions:
@@ -20,18 +20,6 @@ reward_functions:
         word: {beta: 1.0}
         fmt: {beta: 1.0}
         lang: {beta: 1.0}
-  openml:
-    path: recipe/phimm/reward/asr_measure.py
-    name: compute_score
-    reward_kwargs:
-      reduce: mean
-      measures:
-        char: {beta: 1.0}
-        word: {beta: 1.0}
-        lang: {beta: 1.0}
-        bracket: {beta: 1.0}
-        repeat: {beta: 1.0}
-        # tail_hallu: {beta: 1.0}
   punc:
     path: recipe/phimm/reward/punc_cap_measure.py
     name: compute_score
@@ -43,7 +31,6 @@ reward_functions:
 
 reward_function_by_data_source:
   mix_cv15_all: mix_lang
-  oss_bad_cases: openml
   punc_fy24q3p2: punc
 
 val_reward:
@@ -59,13 +46,8 @@ val_reward:
       name: eval_score
       reward_kwargs:
         locale: en-us
-    openml:
-      path: recipe/phimm/reward/asr_edge.py
-      name: openasr_eval
   reward_function_by_data_source:
     mixlang_fy26q2: inhouse
-    openasr_bad_fmt_lang: openml
-    openasr_ml_bad_fmt_lang_bracket: openml
     enus_conv_fy21q1: inhouse_en
 
 actor_rollout_ref:

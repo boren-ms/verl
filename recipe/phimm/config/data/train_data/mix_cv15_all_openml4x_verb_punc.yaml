@@ -1,0 +1,58 @@
+# Training data: mixed-language cv15, verbatim OpenML edge cases (4x), and punc/cap refinement.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: mix_cv15_all
+    shuffle:
+      seed: 42
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00000-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00001-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00002-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00003-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00004-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00005-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00006-of-00116.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_en_hc_200k_entity_fy24q3p2_scores/punc-00007-of-00116.jsonl
+  add_task_info:
+    task: lang_asr
+  post_process:
+    rename_fields:
+      mappings:
+        text: punc_refined
+    add_field:
+      fields:
+        data_source: punc_fy24q3p2
+    shuffle:
+      seed: 45
+    verl_format:
+      prompt_key: prompt

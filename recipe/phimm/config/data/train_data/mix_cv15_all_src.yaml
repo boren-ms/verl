@@ -7,6 +7,8 @@ jsonl_paths:
 add_task_info:
   task: lang_asr
 post_process:
+  shuffle:
+    seed: 42
   add_field:
     fields:
       data_source: mix_cv15_all

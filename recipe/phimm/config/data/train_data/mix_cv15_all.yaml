@@ -5,6 +5,8 @@ jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixe
 add_task_info:
   task: lang_asr
 post_process:
+  shuffle:
+    seed: 42
   add_field:
     fields:
       data_source: mix_cv15_all
