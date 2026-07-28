@@ -59,7 +59,7 @@ data:
   train_batch_size: 1024
   val_batch_size: -1
 trainer:
-  project_name: sr_digits
+  project_name: ver_2607
   resume_mode: resume_path
   resume_from_path: az://orngwus2cresco/data/boren/outputs/verl_repeat/remax_2607_mix_cv15_all_s200_bs2k/global_step_40
   nnodes: 1

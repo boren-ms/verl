@@ -62,6 +62,7 @@ data:
   val_batch_size: -1
 
 trainer:
+  project_name: ver_2607
   nnodes: 1
   total_epochs: 1
   total_training_steps: 100
