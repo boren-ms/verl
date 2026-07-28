@@ -99,7 +99,7 @@ data:
   model_version: 2607
   max_prompt_length: 1024
   max_response_length: 512
-  train_batch_size: 256
+  train_batch_size: 512
   val_batch_size: -1
 
 trainer:
