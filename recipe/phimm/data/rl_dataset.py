@@ -38,6 +38,51 @@ def remove_empty_tensors(batch: dict) -> dict:
     return batch
 
 
+def _promote_null_feature(feat):
+    """Promote ``null``-typed leaves to ``string`` while preserving structure.
+
+    HuggingFace infers ``Value('null')`` / ``List(Value('null'))`` for columns
+    (e.g. ``extra_info.keywords``) that are entirely empty/``None`` in a given
+    data source. Such a source cannot be concatenated/interleaved with another
+    source where the same column carries real strings. This promotes only the
+    ``null`` leaves (bare ``null`` values and lists whose element is ``null``),
+    recursing into struct/``Features`` dicts to reach nested fields, and leaves
+    list-of-struct fields such as the chat ``prompt`` untouched (never turning a
+    ``list<struct>`` into a struct-of-lists).
+    """
+    from datasets import Features, Sequence, Value
+
+    if isinstance(feat, Features):
+        return Features({k: _promote_null_feature(v) for k, v in feat.items()})
+    if isinstance(feat, dict):
+        return {k: _promote_null_feature(v) for k, v in feat.items()}
+    if isinstance(feat, Value) and feat.dtype == "null":
+        return Value("string")
+    if isinstance(feat, Sequence) and isinstance(feat.feature, Value) and feat.feature.dtype == "null":
+        return Sequence(Value("string"), length=feat.length)
+    if hasattr(datasets, "List") and isinstance(feat, datasets.List) and isinstance(feat.feature, Value) and feat.feature.dtype == "null":
+        return datasets.List(Value("string"))
+    if isinstance(feat, list) and len(feat) == 1 and isinstance(feat[0], Value) and feat[0].dtype == "null":
+        return [Value("string")]
+    return feat
+
+
+def _align_null_features(data_sets):
+    """Cast every dataset so ``null``-typed columns become ``string``-typed.
+
+    Ensures sources with all-empty optional fields (e.g. ``keywords``) share a
+    schema with sources that populate them, so ``concatenate_datasets`` /
+    ``interleave_datasets`` can align features.
+    """
+    aligned = []
+    for ds in data_sets:
+        promoted = _promote_null_feature(ds.features)
+        if promoted != ds.features:
+            ds = ds.cast(promoted)
+        aligned.append(ds)
+    return aligned
+
+
 class RLHFDataset(Dataset):
     """
     Load and preprocess RLHF data from Parquet files.
@@ -94,6 +139,7 @@ class RLHFDataset(Dataset):
             create_audio_dataset(**{**data_conf, "model_version": self.model_version})
             for data_conf in self.data_confs
         ]
+        data_sets = _align_null_features(data_sets)
         if self.is_training and self.use_interleave and len(data_sets) > 1:
             ds = datasets.interleave_datasets(data_sets, **self.interleave_ds)
         else:
