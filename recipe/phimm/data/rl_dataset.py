@@ -38,48 +38,6 @@ def remove_empty_tensors(batch: dict) -> dict:
     return batch
 
 
-def _promote_null_feature(feat):
-    """Recursively replace ``null``-typed features with ``string`` typed ones.
-
-    HuggingFace infers ``Value('null')`` / ``List(Value('null'))`` for columns
-    (e.g. ``extra_info.keywords``) that happen to be entirely empty/``None`` in a
-    given data source. This prevents such a source from being concatenated or
-    interleaved with another source where the same column carries real strings.
-    Promoting the ``null`` leaves to ``string`` yields a schema that aligns.
-    """
-    from datasets import Value
-
-    if isinstance(feat, datasets.Features):
-        return datasets.Features({k: _promote_null_feature(v) for k, v in feat.items()})
-    if isinstance(feat, dict):
-        return {k: _promote_null_feature(v) for k, v in feat.items()}
-    if isinstance(feat, datasets.Sequence):
-        return datasets.Sequence(_promote_null_feature(feat.feature), length=feat.length)
-    if hasattr(datasets, "List") and isinstance(feat, datasets.List):
-        return datasets.List(_promote_null_feature(feat.feature))
-    if isinstance(feat, list):
-        return [_promote_null_feature(feat[0])] if feat else [Value("string")]
-    if isinstance(feat, Value) and feat.dtype == "null":
-        return Value("string")
-    return feat
-
-
-def _align_null_features(data_sets):
-    """Cast every dataset so ``null``-typed columns become ``string``-typed.
-
-    Ensures sources with all-empty optional fields (e.g. ``keywords``) share a
-    schema with sources that populate them, so ``concatenate_datasets`` /
-    ``interleave_datasets`` can align features.
-    """
-    aligned = []
-    for ds in data_sets:
-        promoted = _promote_null_feature(ds.features)
-        if promoted != ds.features:
-            ds = ds.cast(promoted)
-        aligned.append(ds)
-    return aligned
-
-
 class RLHFDataset(Dataset):
     """
     Load and preprocess RLHF data from Parquet files.
@@ -136,7 +94,6 @@ class RLHFDataset(Dataset):
             create_audio_dataset(**{**data_conf, "model_version": self.model_version})
             for data_conf in self.data_confs
         ]
-        data_sets = _align_null_features(data_sets)
         if self.is_training and self.use_interleave and len(data_sets) > 1:
             ds = datasets.interleave_datasets(data_sets, **self.interleave_ds)
         else:
