@@ -68,7 +68,7 @@ class AlgoConfig(BaseConfig):
         adv_estimator (str): Advantage estimator type: "gae", "grpo", "reinforce_plus_plus", etc.
         norm_adv_by_std_in_grpo (bool): Whether to normalize advantages by std (specific to GRPO).
         binary_adv (bool): Whether to binarize ReMax advantages to sign-only scores.
-        binary_adv_scale (float | dict): Scale applied after binarization. Float applies uniformly;
+        adv_scale (float | dict): Scale applied to ReMax advantages. Float applies uniformly;
             a dict maps data source names to float scales. The optional 'default' key applies to unknown sources.
         remax_mask (bool): Whether to restrict the policy/entropy/KL loss to the ReMax "disagree"
             tokens. When enabled (REMAX adv_estimator only), each sampled trajectory's tokens are
@@ -95,7 +95,7 @@ class AlgoConfig(BaseConfig):
     norm_adv_by_mean_in_grpo: bool = True
     norm_adv_in_remax: bool = False
     binary_adv: bool = False
-    binary_adv_scale: Any = 1.0
+    adv_scale: Any = 1.0
     remax_mask: bool = False
     use_kl_in_reward: bool = False
     kl_penalty: str = "kl"

@@ -83,7 +83,7 @@ actor_rollout_ref:
 algorithm:
   adv_estimator: remax
   # binary_adv: true
-  # binary_adv_scale: 1.0
+  # adv_scale: 1.0
 
 data:
   trust_remote_code: false

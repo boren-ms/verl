@@ -39,7 +39,7 @@ class TestAlgoConfig(unittest.TestCase):
             "lam": 0.95,
             "adv_estimator": "gae",
             "norm_adv_by_std_in_grpo": True,
-            "binary_adv_scale": 2.5,
+            "adv_scale": 2.5,
             "use_kl_in_reward": True,
             "kl_penalty": "kl",
             "kl_ctrl": {
@@ -64,7 +64,7 @@ class TestAlgoConfig(unittest.TestCase):
         self.assertEqual(config.adv_estimator, "gae")
         self.assertTrue(config.norm_adv_by_std_in_grpo)
         self.assertFalse(config.binary_adv)
-        self.assertEqual(config.binary_adv_scale, 2.5)
+        self.assertEqual(config.adv_scale, 2.5)
         self.assertTrue(config.use_kl_in_reward)
         self.assertEqual(config.kl_penalty, "kl")
         self.assertTrue(config.use_pf_ppo)
@@ -102,7 +102,7 @@ class TestAlgoConfig(unittest.TestCase):
         self.assertEqual(config.adv_estimator, "gae")  # default value
         self.assertTrue(config.norm_adv_by_std_in_grpo)  # default value
         self.assertFalse(config.binary_adv)  # default value
-        self.assertEqual(config.binary_adv_scale, 1.0)  # default value
+        self.assertEqual(config.adv_scale, 1.0)  # default value
         self.assertFalse(config.use_kl_in_reward)  # default value
         self.assertEqual(config.kl_penalty, "kl")  # default value
         self.assertFalse(config.use_pf_ppo)  # default value

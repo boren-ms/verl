@@ -45,7 +45,7 @@ actor_rollout_ref:
 algorithm:
   adv_estimator: remax
   binary_adv: true
-  binary_adv_scale: 4
+  adv_scale: 4
 
 data:
   max_prompt_length: 1204

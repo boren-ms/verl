@@ -796,7 +796,7 @@ def compute_remax_outcome_advantage(
         index: `(np.ndarray)`
             index array for grouping (optional, used for norm_adv_in_remax)
         data_sources: `(np.ndarray)`
-            data source name for each row (optional, required for per-datasource binary_adv_scale)
+            data source name for each row (optional, required for per-datasource adv_scale)
         non_tensor_batch: `(Optional[dict])`
             Non-tensor batch data containing per-dimension sampled reward scores
             (used when ``gdpo_reward_keys`` is set).
@@ -893,22 +893,24 @@ def compute_remax_outcome_advantage(
                     elif a < 0 and min_neg is not None and min_neg < -1e-8:
                         advantages[i] = advantages[i] / (-min_neg)  # scale to [-1, 0]
 
-        if config is not None and config.get("binary_adv", False):
-            binary_adv_scale = config.get("binary_adv_scale", 1.0)
-            signs = torch.sign(advantages)
-            if isinstance(binary_adv_scale, (dict, DictConfig)):
+        if config is not None:
+            if config.get("binary_adv", False):
+                advantages = torch.sign(advantages) * response_mask
+
+            adv_scale = config.get("adv_scale", 1.0)
+            if isinstance(adv_scale, (dict, DictConfig)):
                 if data_sources is None:
-                    raise ValueError("Per-datasource binary_adv_scale requires data_sources")
-                if len(data_sources) != signs.shape[0]:
+                    raise ValueError("Per-datasource adv_scale requires data_sources")
+                if len(data_sources) != advantages.shape[0]:
                     raise ValueError(
-                        f"Expected {signs.shape[0]} data_sources for binary_adv_scale, got {len(data_sources)}"
+                        f"Expected {advantages.shape[0]} data_sources for adv_scale, got {len(data_sources)}"
                     )
-                default_scale = float(binary_adv_scale.get("default", 1.0))
-                row_scales = [float(binary_adv_scale.get(str(data_source), default_scale)) for data_source in data_sources]
-                scales = torch.tensor(row_scales, device=signs.device, dtype=signs.dtype).unsqueeze(-1)
-                advantages = signs * scales * response_mask
+                default_scale = float(adv_scale.get("default", 1.0))
+                row_scales = [float(adv_scale.get(str(data_source), default_scale)) for data_source in data_sources]
+                scales = torch.tensor(row_scales, device=advantages.device, dtype=advantages.dtype).unsqueeze(-1)
+                advantages = advantages * scales
             else:
-                advantages = signs * float(binary_adv_scale) * response_mask
+                advantages = advantages * float(adv_scale)
 
     return advantages, returns
 
