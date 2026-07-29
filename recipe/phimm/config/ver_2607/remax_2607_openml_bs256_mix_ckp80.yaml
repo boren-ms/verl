@@ -6,7 +6,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/qwen_bad_repeat_bracket_all_verb
-  - data/val_data/openasr_all_bad_verb
+  - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
   - _self_
 
 custom_reward_function:
@@ -22,9 +22,26 @@ custom_reward_function:
         bracket: {beta: 1.0}
         repeat: {beta: 1.0}
 val_reward:
-  custom_reward_function:
-    path: recipe/phimm/reward/asr_edge.py
-    name: openasr_eval
+  reward_manager: long_audio_grouped
+  reward_functions:
+    inhouse:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        locale: zh-cn
+    inhouse_en:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        locale: en-us
+    openml:
+      path: recipe/phimm/reward/asr_edge.py
+      name: openasr_eval
+  reward_function_by_data_source:
+    mixlang_fy26q2: inhouse
+    openasr_bad: openml
+    openml_bad: openml
+    enus_conv_fy21q1: inhouse_en
 
 actor_rollout_ref:
   rollout:
