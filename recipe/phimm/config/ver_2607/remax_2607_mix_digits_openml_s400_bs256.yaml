@@ -69,8 +69,8 @@ val_reward:
     mixlang_fy26q2: inhouse
     enus_digits_random: digits
     enus_digits_repeat: digits
-    openasr_bad_fmt_lang: openml
-    openasr_ml_bad_fmt_lang_bracket: openml
+    openasr_bad: openml
+    openml_bad: openml
 
 actor_rollout_ref:
   nccl_timeout: 3600

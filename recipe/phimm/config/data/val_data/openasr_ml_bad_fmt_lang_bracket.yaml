@@ -18,6 +18,6 @@
   post_process:
     add_field:
       fields:
-        data_source: openasr_ml_bad_fmt_lang_bracket
+        data_source: openml_bad
     verl_format:
       prompt_key: prompt

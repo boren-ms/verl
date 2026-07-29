@@ -5,22 +5,11 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/mix_cv15_all_openml4x_verb
-  - data/val_data/mixlang_fy26q2_zh_seg_openml_verb
+  - data/train_data/qwen_bad_repeat_bracket_all_verb
+  - data/val_data/openasr_all_bad_verb
   - _self_
 
-reward_functions:
-  mix_lang:
-    path: recipe/phimm/reward/mix_lang_measure.py
-    name: compute_score
-    reward_kwargs:
-      reduce: mean
-      measures:
-        char: {beta: 1.0}
-        word: {beta: 1.0}
-        fmt: {beta: 1.0}
-        lang: {beta: 1.0}
-  openml:
+custom_reward_function:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
     reward_kwargs:
@@ -32,27 +21,10 @@ reward_functions:
         fmt: {beta: 1.0}
         bracket: {beta: 1.0}
         repeat: {beta: 1.0}
-        # tail_hallu: {beta: 1.0}
-
-reward_function_by_data_source:
-  mix_cv15_all: mix_lang
-  openml: openml
-
 val_reward:
-  reward_manager: long_audio_grouped
-  reward_functions:
-    inhouse:
-      path: recipe/phimm/reward/asr_inhouse_measure.py
-      name: eval_score
-      reward_kwargs:
-        locale: zh-cn
-    openml:
-      path: recipe/phimm/reward/asr_edge.py
-      name: openasr_eval
-  reward_function_by_data_source:
-    mixlang_fy26q2: inhouse
-    openasr_bad: openml
-    openml_bad: openml
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_edge.py
+    name: openasr_eval
 
 actor_rollout_ref:
   rollout:
@@ -78,8 +50,7 @@ algorithm:
 
 data:
   trust_remote_code: false
-  shuffle: false # shuffle done in dataset
-  use_interleave: true
+  use_interleave: false
   model_version: 2607
   max_prompt_length: 1024
   max_response_length: 512
@@ -88,9 +59,10 @@ data:
 
 trainer:
   project_name: ver_2607
-  nnodes: 2
-  total_epochs: 4
+  nnodes: 1
+  total_epochs: 10
   total_training_steps: 200
-  test_freq: 20
-  save_freq: 20
+  test_freq: 10
+  save_freq: 10
   val_before_train: true
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/verl_repeat/remax_2607_mix_s100_bs256/global_step_80
