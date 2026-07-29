@@ -767,6 +767,7 @@ def compute_remax_outcome_advantage(
     response_mask: torch.Tensor,
     config: Optional[AlgoConfig] = None,
     index: np.ndarray = None,
+    data_sources: Optional[np.ndarray] = None,
     non_tensor_batch: Optional[dict] = None,
     batch: Optional[dict] = None,
     **kwargs,
@@ -794,6 +795,8 @@ def compute_remax_outcome_advantage(
         config: (AlgoConfig) algorithm config
         index: `(np.ndarray)`
             index array for grouping (optional, used for norm_adv_in_remax)
+        data_sources: `(np.ndarray)`
+            data source name for each row (optional, required for per-datasource binary_adv_scale)
         non_tensor_batch: `(Optional[dict])`
             Non-tensor batch data containing per-dimension sampled reward scores
             (used when ``gdpo_reward_keys`` is set).
@@ -894,9 +897,15 @@ def compute_remax_outcome_advantage(
             binary_adv_scale = config.get("binary_adv_scale", 1.0)
             signs = torch.sign(advantages)
             if isinstance(binary_adv_scale, (dict, DictConfig)):
-                pos_scale = float(binary_adv_scale.get("pos", 1.0))
-                neg_scale = float(binary_adv_scale.get("neg", 1.0))
-                scales = torch.where(signs > 0, pos_scale, neg_scale)
+                if data_sources is None:
+                    raise ValueError("Per-datasource binary_adv_scale requires data_sources")
+                if len(data_sources) != signs.shape[0]:
+                    raise ValueError(
+                        f"Expected {signs.shape[0]} data_sources for binary_adv_scale, got {len(data_sources)}"
+                    )
+                default_scale = float(binary_adv_scale.get("default", 1.0))
+                row_scales = [float(binary_adv_scale.get(str(data_source), default_scale)) for data_source in data_sources]
+                scales = torch.tensor(row_scales, device=signs.device, dtype=signs.dtype).unsqueeze(-1)
                 advantages = signs * scales * response_mask
             else:
                 advantages = signs * float(binary_adv_scale) * response_mask

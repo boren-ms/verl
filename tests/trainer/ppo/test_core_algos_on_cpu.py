@@ -332,51 +332,64 @@ def test_compute_remax_outcome_advantage_binary_adv_scale():
     assert torch.equal(returns, expected_returns)
 
 
-def test_compute_remax_outcome_advantage_binary_adv_dict_scale():
+def test_compute_remax_outcome_advantage_binary_adv_datasource_scale():
     token_level_rewards = torch.tensor(
         [
             [0.0, 0.8, 0.0],
             [0.0, 0.2, 0.0],
-            [0.0, 0.5, 0.0],
+            [0.0, 0.8, 0.0],
+            [0.0, 0.2, 0.0],
+            [0.0, 0.8, 0.0],
         ],
         dtype=torch.float,
     )
-    reward_baselines = torch.tensor([0.5, 0.5, 0.5], dtype=torch.float)
-    response_mask = torch.tensor(
-        [
-            [0.0, 1.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 1.0, 0.0],
-        ],
-        dtype=torch.float,
-    )
+    reward_baselines = torch.full((5,), 0.5, dtype=torch.float)
+    response_mask = torch.tensor([[0.0, 1.0, 0.0]] * 5, dtype=torch.float)
+    data_sources = np.array(["mix_cv15_all", "enus_digits_chunk_100", "openml", "openml", "unknown"])
 
-    advantages, returns = compute_remax_outcome_advantage(
+    advantages, _ = compute_remax_outcome_advantage(
         token_level_rewards=token_level_rewards,
         reward_baselines=reward_baselines,
         response_mask=response_mask,
-        config=AlgoConfig(adv_estimator="remax", binary_adv=True, binary_adv_scale={"pos": 3.0, "neg": 0.5}),
+        data_sources=data_sources,
+        config=AlgoConfig(
+            adv_estimator="remax",
+            binary_adv=True,
+            binary_adv_scale={
+                "mix_cv15_all": 0.5,
+                "enus_digits_chunk_100": 2.0,
+                "openml": 3.0,
+                "default": 4.0,
+            },
+        ),
     )
 
     expected_advantages = torch.tensor(
         [
+            [0.0, 0.5, 0.0],
+            [0.0, -2.0, 0.0],
             [0.0, 3.0, 0.0],
-            [0.0, -0.5, 0.0],
-            [0.0, 0.0, 0.0],
+            [0.0, -3.0, 0.0],
+            [0.0, 4.0, 0.0],
         ],
         dtype=torch.float,
     )
-    expected_returns = torch.tensor(
-        [
-            [0.8, 0.8, 0.0],
-            [0.2, 0.2, 0.0],
-            [0.5, 0.5, 0.0],
-        ],
-        dtype=torch.float,
-    )
-
     assert torch.equal(advantages, expected_advantages)
-    assert torch.equal(returns, expected_returns)
+
+
+def test_compute_remax_outcome_advantage_rejects_pos_neg_scale():
+    with pytest.raises(ValueError, match="no longer supports 'pos'/'neg'"):
+        compute_remax_outcome_advantage(
+            token_level_rewards=torch.tensor([[0.0, 0.8, 0.0]]),
+            reward_baselines=torch.tensor([0.5]),
+            response_mask=torch.tensor([[0.0, 1.0, 0.0]]),
+            data_sources=np.array(["openml"]),
+            config=AlgoConfig(
+                adv_estimator="remax",
+                binary_adv=True,
+                binary_adv_scale={"pos": 1.0, "neg": 0.5},
+            ),
+        )
 
 
 if __name__ == "__main__":
