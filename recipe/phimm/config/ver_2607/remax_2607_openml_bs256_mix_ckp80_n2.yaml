@@ -51,6 +51,7 @@ actor_rollout_ref:
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.7
+    max_num_seqs: 24
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 4
