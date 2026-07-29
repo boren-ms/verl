@@ -82,4 +82,5 @@ trainer:
   test_freq: 20
   save_freq: 10
   val_before_train: false
+  resume_mode: resume_path
   resume_from_path: az://orngwus2cresco/data/boren/outputs/verl_repeat/remax_2607_mix_s100_bs256/global_step_80
