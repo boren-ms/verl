@@ -912,30 +912,37 @@ class RayPPOTrainer:
         local_step_folder = find_latest_ckpt_path(local_dir)  # None if no latest
 
         # find global_step_folder
+        load_as_initialization = False
+        resume_path = None
         if self.config.trainer.resume_mode == "auto":
             if local_step_folder is None and remote_step_folder is None:
-                print("Training from scratch")
-                return 0
-        else:
-            if self.config.trainer.resume_mode == "resume_path":
-                resume_path = self.config.trainer.resume_from_path
-                assert isinstance(resume_path, str), "resume ckpt must be str type"
-                assert "global_step_" in resume_path, (
-                    "resume ckpt must specify the global_steps"
-                )
-                if resume_path.startswith("az://"):
-                    remote_step_folder = resume_path
-                else:
-                    local_step_folder = resume_path
-                if local_step_folder is not None and not os.path.isabs(local_step_folder):
-                    working_dir = os.getcwd()
-                    local_step_folder = os.path.join(working_dir, local_step_folder)
+                resume_path = self.config.trainer.get("resume_from_path", None)
+                if resume_path is None:
+                    print("Training from scratch")
+                    return 0
+                load_as_initialization = True
+        elif self.config.trainer.resume_mode == "resume_path":
+            resume_path = self.config.trainer.resume_from_path
+
+        if resume_path is not None:
+            assert isinstance(resume_path, str), "resume ckpt must be str type"
+            assert "global_step_" in resume_path, "resume ckpt must specify the global_steps"
+            if resume_path.startswith("az://"):
+                remote_step_folder = resume_path
+            else:
+                local_step_folder = resume_path
+
+        if local_step_folder is not None and not os.path.isabs(local_step_folder):
+            working_dir = os.getcwd()
+            local_step_folder = os.path.join(working_dir, local_step_folder)
         assert local_step_folder is not None or remote_step_folder is not None, (
             "At least one of local_step_folder or remote_step_folder must be specified"
         )
         print(f"Load from checkpoint folder: {local_step_folder} [{remote_step_folder}]")
         # set global step
-        if remote_step_folder:
+        if load_as_initialization:
+            self.global_steps = 0
+        elif remote_step_folder:
             self.global_steps = int(remote_step_folder.split("global_step_")[-1])
         else:
             self.global_steps = int(local_step_folder.split("global_step_")[-1])
@@ -961,7 +968,10 @@ class RayPPOTrainer:
                 del_local_after_load=self.config.trainer.del_local_ckpt_after_load,
             )
 
-        # load data loader,
+        # load data loader
+        if load_as_initialization:
+            return 0
+
         for folder in [remote_step_folder, local_step_folder]:
             if folder is None:
                 continue
