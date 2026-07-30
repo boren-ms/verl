@@ -79,7 +79,7 @@ trainer:
   nnodes: 1
   total_epochs: 10
   total_training_steps: 200
-  test_freq: 20
+  test_freq: 10
   save_freq: 10
   val_before_train: false
   resume_from_path: az://orngwus2cresco/data/boren/outputs/verl_repeat/remax_2607_mix_s100_bs256/global_step_20

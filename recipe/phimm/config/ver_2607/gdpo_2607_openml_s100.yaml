@@ -65,6 +65,6 @@ trainer:
   nnodes: 1
   total_epochs: 10
   total_training_steps: 100
-  test_freq: 20
+  test_freq: 10
   save_freq: 10
   val_before_train: false
