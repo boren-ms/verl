@@ -10,6 +10,7 @@
     task: lang_asr
     language: Chinese
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: mixlang_fy26q2
@@ -35,6 +36,7 @@
   add_task_info:
     task: lang_asr
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: enus_digits_repeat
@@ -74,6 +76,7 @@
   add_task_info:
     task: lang_asr_verb
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: openml_bad
@@ -90,6 +93,7 @@
     task: lang_asr
     language: English
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: enus_conv_fy21q1

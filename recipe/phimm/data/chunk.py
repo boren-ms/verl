@@ -15,6 +15,7 @@ from datasets import Dataset
 from cachetools import FIFOCache, cached
 import blobfile as bf
 from recipe.phimm.utils.shared import rank_print, get_values, to_list
+from verl.audio_cache import localize_audio_source, resolve_audio_source
 
 
 def resolve_path(path, prefix=None):
@@ -125,6 +126,7 @@ def load_examples(chunk, fields):
         chunk_type = parts[0]
         chunk_file = get_chunk_type_path(chunk, chunk_type).rstrip("/") + f"/{chunk['name']}.{chunk_type}"
         chunk_file = resolve_path(chunk_file)
+        chunk_file = resolve_audio_source(chunk_file)
         if not bf.exists(chunk_file):
             rank_print(f"Skip [{chunk_file}] due to missing.")
             return {}
@@ -166,6 +168,7 @@ def load_examples_from_chunks(chunks, types):
 def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int):
     ENDIAN = "little"
     data_list = []
+    chunk_path = localize_audio_source(chunk_path)
     with bf.BlobFile(chunk_path, "rb") as f:
         target_type = f.read(len(chunk_type.encode())).decode()
         if chunk_type.lower() != target_type.lower():
@@ -199,6 +202,7 @@ def load_chunk_sample(chunk_path):
     """
     chunk_path = resolve_path(chunk_path)
     chunk_file, chunk_count, chunk_index = chunk_path.rsplit(":", 2)
+    chunk_file = localize_audio_source(chunk_file)
     index = int(chunk_index)
     chunk_type = chunk_file.split(".")[-1]
     ENDIAN = "little"
@@ -335,6 +339,7 @@ def load_chunk_example(chunk_path):
     """Load a single example from the chunk file."""
     chunk_path = resolve_path(chunk_path)
     chunk_file, chunk_count, chunk_index = chunk_path.rsplit(":", 2)  # make sure rsplit.
+    chunk_file = localize_audio_source(chunk_file)
     chunk_loader = get_chunk_manager().get(chunk_file, int(chunk_count))
     return chunk_loader.get(int(chunk_index))
 

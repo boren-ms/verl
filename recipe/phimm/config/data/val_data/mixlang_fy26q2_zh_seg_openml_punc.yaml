@@ -5,6 +5,7 @@
       mappings:
         audio_path: WavPath
         text: DisplayTranscription
+    cache_audio: {}
   add_task_info:
     task: lang_asr
     language: Chinese
@@ -49,6 +50,7 @@
   add_task_info:
     task: lang_asr_verb
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: openml_bad
@@ -62,6 +64,7 @@
       mappings:
         audio_path: WavPath
         text: DisplayTranscription
+    cache_audio: {}
   add_task_info:
     task: lang_asr
     language: English

@@ -4,6 +4,7 @@
   add_task_info:
     task: lang_asr
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: mix_cv15_all
@@ -19,6 +20,7 @@
   add_task_info:
     task: lang_asr
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: enus_digits_chunk_100
@@ -35,6 +37,7 @@
   add_task_info:
     task: lang_asr_verb
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: openml

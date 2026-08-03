@@ -6,6 +6,7 @@ import math
 import json
 import gzip
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 import ast
 import random
 import socket
@@ -49,6 +50,7 @@ from recipe.phimm.utils.shared import (
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.languages import get_language_name
 from recipe.phimm.utils.storage import get_path_with_options
+from verl.audio_cache import cache_audio_source
 
 prompt_format = "<audio>\n{}"
 
@@ -1420,6 +1422,30 @@ def path_map(ds, **kwargs):
     return ds
 
 
+def cache_audio(ds, **kwargs):
+    """Cache remote audio fields under ``~/data`` and replace their references."""
+    fields = kwargs.get("fields", ["audio_path", "audio_chunk"])
+    max_workers = int(kwargs.pop("max_workers", 16))
+
+    def map_batch(batch):
+        sources = {
+            source
+            for field in fields
+            if field in batch
+            for source in batch[field]
+            if isinstance(source, str) and source
+        }
+        with ThreadPoolExecutor(max_workers=min(max_workers, len(sources) or 1)) as executor:
+            cached_sources = dict(zip(sources, executor.map(cache_audio_source, sources), strict=True))
+        return {
+            field: [cached_sources.get(source, source) for source in batch[field]]
+            for field in fields
+            if field in batch
+        }
+
+    return ds.map(map_batch, batched=True, **pop_map_kwargs(kwargs), desc="Caching audio")
+
+
 def rename_fields(ds, **kwargs):
     """Map the dataset fields."""
     mappings = kwargs.get("mappings", {})
@@ -1603,6 +1629,9 @@ def process_ds(ds, **kwargs):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
+    if "cache_audio" in kwargs:
+        cache_audio_kwargs = kwargs.get("cache_audio") or {}
+        ds = cache_audio(ds, **merge_kwargs(map_kwargs, cache_audio_kwargs))
     if kwargs.get("load_audio", False):
         ds = load_audio(ds, **map_kwargs)
     if kwargs.get("do_shard", False):

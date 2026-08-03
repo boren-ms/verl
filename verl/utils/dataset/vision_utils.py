@@ -22,12 +22,14 @@ from qwen_vl_utils import fetch_image, fetch_video
 import blobfile as bf
 import soundfile as sf
 from cachetools import FIFOCache, cached
+from verl.audio_cache import localize_audio_source
 
 
 @cached(FIFOCache(maxsize=100))
 def sf_read(file_path):
     """Load audio from a file."""
     # print("Audio file:", file_path)
+    file_path = localize_audio_source(file_path)
     if not bf.exists(file_path):
         raise FileNotFoundError(f"File {file_path} does not exist.")
     with bf.BlobFile(file_path, "rb") as f:

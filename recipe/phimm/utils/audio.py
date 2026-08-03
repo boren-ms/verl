@@ -1,60 +1,23 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
-import hashlib
 import logging
 import numpy as np
-import os
 from pathlib import Path
 import soundfile as sf
-import subprocess
 from recipe.phimm.data.chunk import load_chunk_sample, load_chunk_example
+from verl.audio_cache import localize_audio_source
 
 logger = logging.getLogger(__name__)
 
 
 TARGET_SAMPLE_RATE = 16000
-BLOB_READ_TIMEOUT_SECONDS = 45
-BLOB_READ_RETRY_LIMIT = 3
-REMOTE_AUDIO_CACHE_DIR = Path("/tmp/verl-audio-cache")
 
 # Module-level chunk load mode: "cached" (default) or "sample"
 _chunk_load_mode = "cached"
 
 
 def _localize_remote_audio(file_path):
-    REMOTE_AUDIO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(file_path.encode()).hexdigest()
-    suffix = Path(file_path).suffix or ".audio"
-    local_path = REMOTE_AUDIO_CACHE_DIR / f"{digest}{suffix}"
-    if local_path.exists():
-        return local_path
-
-    temp_path = local_path.with_name(f"{local_path.name}.{os.getpid()}.tmp")
-    for attempt in range(1, BLOB_READ_RETRY_LIMIT + 1):
-        try:
-            subprocess.run(
-                ["bbb", "cp", file_path, str(temp_path)],
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=BLOB_READ_TIMEOUT_SECONDS,
-            )
-            os.replace(temp_path, local_path)
-            return local_path
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-            temp_path.unlink(missing_ok=True)
-            if attempt == BLOB_READ_RETRY_LIMIT:
-                raise RuntimeError(
-                    f"Failed to localize remote audio after {BLOB_READ_RETRY_LIMIT} attempts: {file_path}"
-                ) from exc
-            logger.warning(
-                "Failed to localize remote audio %s (attempt %d/%d); retrying.",
-                file_path,
-                attempt,
-                BLOB_READ_RETRY_LIMIT,
-            )
-
-    raise RuntimeError("Remote audio localization retry loop exited unexpectedly.")
+    return localize_audio_source(file_path)
 
 
 def set_chunk_load_mode(mode: str):

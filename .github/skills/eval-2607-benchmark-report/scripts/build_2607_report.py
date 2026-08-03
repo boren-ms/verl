@@ -401,7 +401,9 @@ def build_summary_sheet(wb: Workbook, rows: List[Dict[str, object]],
                         baseline_label: str, candidate_label: str) -> None:
     ws = wb.create_sheet("summary")
     headers = ["Benchmark", "Metric", f"Baseline ({baseline_label})",
-               f"Candidate ({candidate_label})", "delta", "Config", "Source"]
+               f"Candidate ({candidate_label})", "delta", "Metric definition",
+               "Config", "Reference model", "Candidate model",
+               "Baseline result", "Candidate result"]
     for col, h in enumerate(headers, start=1):
         c = ws.cell(1, col, h)
         c.font = BOLD
@@ -416,9 +418,13 @@ def build_summary_sheet(wb: Workbook, rows: List[Dict[str, object]],
             ws.cell(i, 4, r["candidate"]).number_format = PCT_FMT
         if r.get("delta") is not None:
             ws.cell(i, 5, r["delta"]).number_format = PCT_FMT
-        ws.cell(i, 6, r.get("config", ""))
-        ws.cell(i, 7, r.get("source", ""))
-    widths = [16, 8, 22, 24, 10, 52, 46]
+        ws.cell(i, 6, r.get("metric_definition", ""))
+        ws.cell(i, 7, r.get("config", ""))
+        ws.cell(i, 8, r.get("reference_model", ""))
+        ws.cell(i, 9, r.get("candidate_model", ""))
+        ws.cell(i, 10, r.get("baseline_source", ""))
+        ws.cell(i, 11, r.get("candidate_source", ""))
+    widths = [16, 8, 22, 24, 10, 42, 52, 56, 56, 52, 52]
     for col, w in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(col)].width = w
     for row in ws.iter_rows(min_row=2, max_row=1 + len(rows), min_col=2, max_col=5):
@@ -437,6 +443,7 @@ BENCHMARKS = {
         "config": "recipe/phimm/config/eval/long_eval_inhouse_2607_all_seg30.yaml",
         "embedded_baseline": {k: {"dter": v} for k, v in INHOUSE_BASELINE.items()},
         "default_baseline": "az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/inhouse_2605_all_seg30/",
+        "metric_definition": "micro-DTER = sum edits / sum reference tokens",
     },
     "digits_enus": {
         "title": "digits_enus",
@@ -445,6 +452,7 @@ BENCHMARKS = {
         "config": "recipe/phimm/config/eval/eval_digits_enus_2607.yaml",
         "embedded_baseline": {},
         "default_baseline": None,
+        "metric_definition": "Digit CER and WER from digits_measure.eval_score",
     },
     "openasr_ml": {
         "title": "openasr_ml",
@@ -453,6 +461,7 @@ BENCHMARKS = {
         "config": "recipe/phimm/config/eval/eval_openasr_ml_verb_2607.yaml",
         "embedded_baseline": {},
         "default_baseline": None,
+        "metric_definition": "WER / p_err per dataset; arithmetic language and overall averages",
     },
     "mixlang": {
         "title": "mixlang",
@@ -461,6 +470,7 @@ BENCHMARKS = {
         "config": "recipe/phimm/config/eval/long_eval_mixlang_fy26q2_zh_seg_2607.yaml",
         "embedded_baseline": {},
         "default_baseline": "az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/long_audio_mixlang_fy26q2_zh_seg/",
+        "metric_definition": "zh-CN DTER/TER = sum edits / sum reference tokens",
     },
     "digits_tier1": {
         "title": "digits_tier1",
@@ -469,6 +479,7 @@ BENCHMARKS = {
         "config": "recipe/phimm/config/eval/eval_digits_tier1_2607.yaml",
         "embedded_baseline": {},
         "default_baseline": None,
+        "metric_definition": "Digit CER and WER from digits_measure.eval_score",
     },
 }
 
@@ -481,6 +492,8 @@ def parse_args() -> argparse.Namespace:
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--label", default="candidate", help="Candidate column (B) label.")
     p.add_argument("--baseline-label", default="reference", help="Baseline column (A) label.")
+    p.add_argument("--reference-model-path", default="", help="Reference HF model path for provenance.")
+    p.add_argument("--candidate-model-path", default="", help="Candidate HF model path for provenance.")
     p.add_argument("--out", default=None, help="Output xlsx path.")
     for name in BENCHMARKS:
         p.add_argument(f"--{name.replace('_', '-')}", dest=name, default=None,
@@ -532,7 +545,12 @@ def main() -> int:
             summary_rows.append({
                 "benchmark": name, "metric": metric.upper(),
                 "baseline": b_overall, "candidate": c_overall, "delta": delta,
-                "config": spec["config"], "source": cand_src,
+                "metric_definition": spec["metric_definition"],
+                "config": spec["config"],
+                "reference_model": args.reference_model_path,
+                "candidate_model": args.candidate_model_path,
+                "baseline_source": base_src or "embedded baseline",
+                "candidate_source": cand_src,
             })
 
     if built == 0:
