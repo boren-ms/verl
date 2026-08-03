@@ -1,0 +1,27 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - long_eval_asr
+  - data/val_data/mixlang_fy26q2_zh_seg
+  - _self_
+
+# Gen-style long-audio eval (recipe.phimm.main_long_eval_asr), single corpus,
+# pre-segmented: Dictation_SimuMixedLang_DTEST_FY26Q2_14 (mixlang_fy26q2).
+# Consumes the offline pre-segmented dataset (data/val_data/mixlang_fy26q2_zh_seg)
+# where each row is already one SVAD segment, so no on-the-fly svad_explode runs.
+# Base knobs (max_audio_dur / prompt+response length / batch_size /
+# measure_kwargs) live in base/long_eval_asr.yaml; only set per-eval fields here.
+# Results: {output_path}/{data_source}/details.jsonl + measures.json
+
+model:
+  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+
+data:
+  model_version: 2607
+  output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607v1_50000_lexical_fix/long_audio_mixlang_fy26q2_zh_seg
+  # DTER/EER scored with the zh-cn TER backend for this mixed-language corpus.
+  measure_kwargs:
+    locale: zh-cn
