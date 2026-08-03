@@ -40,22 +40,22 @@
         data_source: enus_digits_repeat
     verl_format:
       prompt_key: prompt
-- dataset_name: jsonl
-  jsonl_paths:
-    - az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/bad_fmt_lang.jsonl
-    - az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/bad_fmt_lang.jsonl
-    - az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/bad_fmt_lang.jsonl
-    - az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/bad_fmt_lang.jsonl
-    - az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/bad_fmt_lang.jsonl
-  cache_name: auto_openasr_bad_fmt_lang
-  add_task_info:
-    task: lang_asr
-  post_process:
-    add_field:
-      fields:
-        data_source: openasr_bad
-    verl_format:
-      prompt_key: prompt
+# - dataset_name: jsonl
+#   jsonl_paths:
+#     - az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/bad_fmt_lang.jsonl
+#     - az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/bad_fmt_lang.jsonl
+#     - az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/bad_fmt_lang.jsonl
+#     - az://orngwus2cresco/data/boren/data/openasr_jsonl/voxpopuli/bad_fmt_lang.jsonl
+#     - az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/bad_fmt_lang.jsonl
+#   cache_name: auto_openasr_bad_fmt_lang
+#   add_task_info:
+#     task: lang_asr
+#   post_process:
+#     add_field:
+#       fields:
+#         data_source: openasr_bad
+#     verl_format:
+#       prompt_key: prompt
 - dataset_name: jsonl
   jsonl_paths:
     - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/bad_fmt_lang_bracket.jsonl

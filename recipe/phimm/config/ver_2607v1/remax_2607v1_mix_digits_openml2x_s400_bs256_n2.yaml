@@ -5,8 +5,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/mix_cv15_all_openml2x_verb
-  - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
+  - data/train_data/mix_cv15_all_enus_digits_openml2x_verb
+  - data/val_data/mixlang_fy26q2_zh_seg_enus_digits_openml_punc
   - _self_
 
 reward_functions:
@@ -18,6 +18,18 @@ reward_functions:
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
+        fmt: {beta: 1.0}
+        lang: {beta: 1.0}
+  digits:
+    path: recipe/phimm/reward/digits_measure.py
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        digit_char: {beta: 1.0}
+        digit_word: {beta: 1.0}
         fmt: {beta: 1.0}
         lang: {beta: 1.0}
   openml:
@@ -36,6 +48,7 @@ reward_functions:
 
 reward_function_by_data_source:
   mix_cv15_all: mix_lang
+  enus_digits_chunk_100: digits
   openml: openml
 
 val_reward:
@@ -51,11 +64,15 @@ val_reward:
       name: eval_score
       reward_kwargs:
         locale: en-us
+    digits:
+      path: recipe/phimm/reward/digits_measure.py
+      name: eval_score
     openml:
       path: recipe/phimm/reward/asr_edge.py
       name: openasr_eval
   reward_function_by_data_source:
     mixlang_fy26q2: inhouse
+    enus_digits_repeat: digits
     openml_bad: openml
     enus_conv_fy21q1: inhouse_en
 
@@ -67,7 +84,6 @@ actor_rollout_ref:
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.7
-    max_num_seqs: 24
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 4
@@ -94,10 +110,10 @@ data:
   val_batch_size: -1
 
 trainer:
-  project_name: ver_2607
+  project_name: ver_2607v1
   nnodes: 2
   total_epochs: 4
-  total_training_steps: 200
+  total_training_steps: 400
   test_freq: 10
   save_freq: 10
   val_before_train: true
