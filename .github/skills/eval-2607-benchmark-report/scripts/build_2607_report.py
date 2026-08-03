@@ -210,8 +210,8 @@ def read_measures_tree(root: str, metrics: List[str]) -> Dict[str, Dict[str, flo
     return out
 
 
-_VALAUX_RE = re.compile(
-    r"val-aux/(?P<ds>[A-Za-z0-9_\-]+)/(?P<metric>cer|wer|p_err|dter_n_err|dter_n_ref)/mean@1[:=]\s*(?P<value>[0-9.eE+\-]+)"
+_VAL_METRIC_RE = re.compile(
+    r"val-(?:aux|core)/(?P<ds>[A-Za-z0-9_\-]+)/(?P<metric>cer|wer|p_err|dter_n_err|dter_n_ref)/mean@1[:=]\s*(?P<value>[0-9.eE+\-]+)"
 )
 _DTER_SUMMARY_RE = re.compile(
     r"\[(?P<ds>[A-Za-z0-9_\-]+)\]\s*DTER:\s*[0-9.]+%\s*\[(?P<ne>\d+)\s*/\s*(?P<nr>\d+)\]"
@@ -221,7 +221,7 @@ _DTER_SUMMARY_RE = re.compile(
 def parse_text(text: str, metrics: List[str]) -> Dict[str, Dict[str, float]]:
     """Parse ``val-aux/...`` and ``[slug] DTER: ...`` lines into per-dataset metrics."""
     raw: Dict[str, Dict[str, float]] = {}
-    for mt in _VALAUX_RE.finditer(text):
+    for mt in _VAL_METRIC_RE.finditer(text):
         raw.setdefault(mt["ds"], {})[mt["metric"]] = float(mt["value"])
     for mt in _DTER_SUMMARY_RE.finditer(text):
         ne, nr = float(mt["ne"]), float(mt["nr"])
