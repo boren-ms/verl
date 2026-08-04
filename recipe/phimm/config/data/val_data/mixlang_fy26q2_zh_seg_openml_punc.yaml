@@ -8,6 +8,7 @@
     cache_audio: {}
   add_task_info:
     task: lang_asr
+    prefix_prob: 0.0
     language: Chinese
   post_process:
     add_field:

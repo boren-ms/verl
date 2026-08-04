@@ -15,6 +15,7 @@
         text: DisplayTranscription
   add_task_info:
     task: lang_asr
+    prefix_prob: 0.0
     language: Unknown
   post_process:
     add_field:

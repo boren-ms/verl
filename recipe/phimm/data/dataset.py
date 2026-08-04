@@ -1697,7 +1697,7 @@ def add_task_info(ds, **kwargs):
     language = kwargs.get("language", "English")
     model_version = kwargs.get("model_version")
     prompt_suffix = kwargs.get("prompt_suffix", "")
-    prefix_prob = float(kwargs.get("prefix_prob", 0.0))
+    prefix_prob = float(kwargs.get("prefix_prob", 1.0))
 
     def add_task_info_fn(egs):
         lang = resolve_task_language(task, lang=egs.get("language") or language)
