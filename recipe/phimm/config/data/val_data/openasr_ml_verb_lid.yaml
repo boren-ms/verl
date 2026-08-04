@@ -1,0 +1,181 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_de
+  add_task_info:
+    task: lang_asr_verb_de
+    language: German
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: de_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_fr
+  add_task_info:
+    task: lang_asr_verb_fr
+    language: French
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_it
+  add_task_info:
+    task: lang_asr_verb_it
+    language: Italian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: it_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_es
+  add_task_info:
+    task: lang_asr_verb_es
+    language: Spanish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: es_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_pt
+  add_task_info:
+    task: lang_asr_verb_pt
+    language: Portuguese
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mcv_de
+  add_task_info:
+    task: lang_asr_verb_de
+    language: German
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: de_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mcv_fr
+  add_task_info:
+    task: lang_asr_verb_fr
+    language: French
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mcv_it
+  add_task_info:
+    task: lang_asr_verb_it
+    language: Italian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mcv_es
+  add_task_info:
+    task: lang_asr_verb_es
+    language: Spanish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mls_fr
+  add_task_info:
+    task: lang_asr_verb_fr
+    language: French
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/it/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mls_it
+  add_task_info:
+    task: lang_asr_verb_it
+    language: Italian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mls_es
+  add_task_info:
+    task: lang_asr_verb_es
+    language: Spanish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mls_pt
+  add_task_info:
+    task: lang_asr_verb_pt
+    language: Portuguese
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_mls
+    verl_format:
+      prompt_key: prompt
