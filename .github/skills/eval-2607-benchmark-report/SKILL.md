@@ -16,7 +16,7 @@ Delegate remote submission, monitoring, failure recovery, and result retrieval t
 |---|---:|---|
 | `model-label` | Yes | Short workbook column label, such as `remax_2607@step560`. |
 | `model-path` | Yes | Candidate HF checkpoint path, normally an `az://.../qwen_hf/` directory. |
-| `--node` | No | Ready remote `verl-*` node. Let `verl-asr-run` select one when omitted. |
+| `--node` | No | Ready remote `verl-n<N>-*` node. Let `verl-asr-run` select one when omitted; evaluations use that running pool's verified `N` as `trainer.nnodes`. |
 | `--include-digits-enus` | No | Add the optional en-US digits benchmark. |
 | `--include-digits-tier1` | No | Add the optional Tier 1 digits benchmark. |
 | `--out` | No | Final workbook path. Default: `tmp/eval_2607_reports/<model-label>.xlsx`. |
@@ -38,9 +38,9 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 ## Procedure
 
 1. Resolve the exact committed config files and record the reference model path from each file before submitting jobs. Confirm the candidate path is an HF-loadable model directory.
-2. Select a free Ready `verl-*` node using `verl-asr-run`'s occupancy checks. Push the current workspace with `rcall-brix sync <node>` before submitting work.
-3. For each required config, run a candidate evaluation remotely through `verl-asr-run`, using a unique experiment name and output path. Override only the candidate model path and output/experiment identifiers.
-4. Run the same config for its reference only when canonical results for that exact reference path, scoring contract, and config revision are not already available. Never label a hard-coded baseline from another reporting skill as the config reference without verifying that it is the same checkpoint.
+2. Select a free Ready `verl-n<N>-*` node using `verl-asr-run`'s occupancy checks. Derive `EVAL_NNODES=N` from the selected running pool name (for example, `verl-n2-i3` means `EVAL_NNODES=2`) and confirm that count against the healthy nodes reported by `ray status` on the pool. Do not copy `trainer.nnodes` from the config or assume it is `1`; if the name and live Ray count disagree, resolve the pool health/count before submission. Push the current workspace with `rcall-brix sync <node>` before submitting work.
+3. For each required config, run a candidate evaluation remotely through `verl-asr-run`, using a unique experiment name and output path. Always pass `trainer.nnodes=${EVAL_NNODES}` together with the candidate model path and output/experiment overrides.
+4. Run the same config for its reference only when canonical results for that exact reference path, scoring contract, and config revision are not already available. Any reference evaluation must run on its selected pool with that pool's independently derived and verified `trainer.nnodes`. Never label a hard-coded baseline from another reporting skill as the config reference without verifying that it is the same checkpoint.
 5. Monitor every Ray job to `SUCCEEDED`. On failure, use `verl-asr-run` to diagnose and repair the root cause, then rerun only the failed benchmark. Do not start workbook creation from incomplete or failed output.
 6. Extract metrics from the final candidate and reference outputs:
    - `inhouse_dter`: calculate micro-DTER as $\sum edits / \sum reference\ tokens$ per corpus; do not use segment-macro DTER.
@@ -87,6 +87,7 @@ The `inhouse_dter` and `mixlang` baselines are auto-collected from the table abo
 Before delivering the workbook, verify all of the following:
 
 - Every required benchmark has a successful candidate job and a matching reference result.
+- Every submitted candidate and reference evaluation explicitly used `trainer.nnodes` equal to the verified node count of its running `verl-n<N>-*` pool.
 - `digits_enus` and `digits_tier1` are absent unless explicitly requested.
 - Baseline paths come from the evaluation configs or verified matching canonical reference outputs.
 - Candidate and baseline use identical data/locale/scoring parameters for each sheet.
