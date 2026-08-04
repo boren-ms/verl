@@ -238,6 +238,77 @@ def test_compute_gdpo_skips_missing_reward_component():
     assert torch.allclose(returns, expected_returns)
 
 
+@pytest.mark.parametrize(("norm_mode", "expected_scale"), [("l2", 1.0), ("rms", 2**0.5)])
+def test_compute_remax_normalizes_each_reward_dimension_before_weighting(norm_mode, expected_scale):
+    response_mask = torch.ones((4, 2), dtype=torch.float)
+    index = np.array([0, 0, 1, 1])
+    batch = {
+        "prompts": torch.zeros((4, 1), dtype=torch.long),
+        "attention_mask": torch.ones((4, 3), dtype=torch.long),
+        "reward_baselines_char": torch.zeros(4),
+        "reward_baselines_lang": torch.zeros(4),
+    }
+    non_tensor_batch = {
+        "char": np.array([3.0, 4.0, 0.0, 5.0]),
+        "lang": np.array([0.0, 10.0, 12.0, 5.0]),
+    }
+
+    advantages, returns = compute_remax_outcome_advantage(
+        token_level_rewards=torch.zeros_like(response_mask),
+        reward_baselines=torch.zeros(4),
+        response_mask=response_mask,
+        index=index,
+        config=AlgoConfig(
+            adv_estimator="remax",
+            norm_adv_in_remax=norm_mode,
+            gdpo_reward_keys=["char", "lang"],
+            gdpo_reward_weights=[1.0, 2.0],
+        ),
+        non_tensor_batch=non_tensor_batch,
+        batch=batch,
+    )
+
+    expected_advantages = torch.tensor(
+        [[0.6, 0.6], [2.8, 2.8], [24 / 13, 24 / 13], [23 / 13, 23 / 13]]
+    ) * expected_scale
+    expected_returns = torch.tensor([[3.0, 3.0], [24.0, 24.0], [24.0, 24.0], [15.0, 15.0]])
+    assert torch.allclose(advantages, expected_advantages)
+    assert torch.allclose(returns, expected_returns)
+
+
+@pytest.mark.parametrize(
+    ("norm_mode", "expected_divisor"),
+    [("l2", 0.18**0.5), ("rms", 0.06**0.5)],
+)
+def test_compute_remax_normalizes_single_reward_by_configured_mode(norm_mode, expected_divisor):
+    token_level_rewards = torch.tensor([[0.0, 0.8], [0.0, 0.2], [0.0, 0.5]])
+    response_mask = torch.ones((3, 2))
+
+    advantages, _ = compute_remax_outcome_advantage(
+        token_level_rewards=token_level_rewards,
+        reward_baselines=torch.full((3,), 0.5),
+        response_mask=response_mask,
+        index=np.array([0, 0, 0]),
+        config=AlgoConfig(
+            adv_estimator="remax",
+            norm_adv_in_remax=norm_mode,
+        ),
+    )
+
+    expected_advantages = torch.tensor([[0.3, 0.3], [-0.3, -0.3], [0.0, 0.0]]) / expected_divisor
+    assert torch.allclose(advantages, expected_advantages)
+
+
+def test_compute_remax_rejects_unknown_normalization_mode():
+    with pytest.raises(ValueError, match="Unsupported ReMax advantage normalization mode: std"):
+        compute_remax_outcome_advantage(
+            token_level_rewards=torch.zeros((1, 1)),
+            reward_baselines=torch.zeros(1),
+            response_mask=torch.ones((1, 1)),
+            config=AlgoConfig(adv_estimator="remax", norm_adv_in_remax="std"),
+        )
+
+
 def test_compute_remax_outcome_advantage_binary_adv():
     token_level_rewards = torch.tensor(
         [

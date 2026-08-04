@@ -760,6 +760,33 @@ def compute_remax_disagreement_mask(
     return remax_mask
 
 
+def _normalize_remax_advantages(
+    advantages: torch.Tensor,
+    response_mask: torch.Tensor,
+    index: np.ndarray,
+    mode: str,
+) -> torch.Tensor:
+    if mode not in ("l2", "rms"):
+        raise ValueError(f"Unsupported ReMax advantage normalization mode: {mode}")
+
+    seq_advantages = (advantages * response_mask).sum(dim=-1) / response_mask.sum(dim=-1).clamp_min(1)
+    grouped_indices = defaultdict(list)
+    for row_index, group_id in enumerate(index):
+        grouped_indices[group_id].append(row_index)
+
+    for group_indices in grouped_indices.values():
+        group_advantages = seq_advantages[group_indices]
+        group_norm = (
+            torch.linalg.vector_norm(group_advantages)
+            if mode == "l2"
+            else torch.sqrt(torch.mean(group_advantages.square()))
+        )
+        if group_norm > 1e-8:
+            advantages[group_indices] = advantages[group_indices] / group_norm
+
+    return advantages
+
+
 @register_adv_est(AdvantageEstimator.REMAX)  # or simply: @register_adv_est("remax")
 def compute_remax_outcome_advantage(
     token_level_rewards: torch.Tensor,
@@ -781,9 +808,10 @@ def compute_remax_outcome_advantage(
         When ``config.gdpo_reward_keys`` is provided, each named reward dimension is
         handled independently: its own greedy baseline (stored as
         ``reward_baselines_<key>``) is subtracted from the sampled per-dimension reward,
-        and the resulting per-dimension advantages are combined with optional
-        ``config.gdpo_reward_weights``. This mirrors how GDPO decouples reward
-        dimensions, but keeps the ReMax greedy-baseline formulation per dimension.
+        the resulting per-dimension advantages are optionally L2- or RMS-normalized within
+        each prompt group, and then combined with ``config.gdpo_reward_weights``.
+        This mirrors how GDPO decouples reward dimensions, but keeps the ReMax
+        greedy-baseline formulation per dimension.
 
     Args:
         token_level_rewards: `(torch.Tensor)`
@@ -813,10 +841,14 @@ def compute_remax_outcome_advantage(
 
     with torch.no_grad():
         remax_reward_keys = None
+        norm_adv_in_remax = None
         if config is not None:
             remax_reward_keys = config.get("gdpo_reward_keys", None)
-
-        if remax_reward_keys and non_tensor_batch is not None and batch is not None:
+            norm_adv_in_remax = config.get("norm_adv_in_remax", None)
+        if norm_adv_in_remax not in (None, "l2", "rms"):
+            raise ValueError(f"Unsupported ReMax advantage normalization mode: {norm_adv_in_remax}")
+        use_multi_reward = bool(remax_reward_keys and non_tensor_batch is not None and batch is not None)
+        if use_multi_reward:
             # Multi-reward path: decouple each reward dimension, subtract its own
             # greedy baseline, then aggregate with optional weights.
             device = token_level_rewards.device
@@ -833,6 +865,8 @@ def compute_remax_outcome_advantage(
                 weights = torch.tensor(list(remax_weights), dtype=torch.float32, device=device)
             else:
                 weights = torch.ones(len(remax_reward_keys), dtype=torch.float32, device=device)
+
+            normalize_per_reward = norm_adv_in_remax is not None and index is not None
 
             returns = None
             advantages = None
@@ -859,6 +893,14 @@ def compute_remax_outcome_advantage(
                 returns_k = (rm_scores * response_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
                 advantages_k = returns_k - baseline_k.unsqueeze(-1) * response_mask
 
+                if normalize_per_reward:
+                    advantages_k = _normalize_remax_advantages(
+                        advantages=advantages_k,
+                        response_mask=response_mask,
+                        index=index,
+                        mode=norm_adv_in_remax,
+                    )
+
                 if returns is None:
                     returns = weights[i] * returns_k
                     advantages = weights[i] * advantages_k
@@ -868,30 +910,13 @@ def compute_remax_outcome_advantage(
         else:
             returns = (token_level_rewards * response_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
             advantages = returns - reward_baselines.unsqueeze(-1) * response_mask
-
-        # Asymmetric min/max normalization: independently scale positive and
-        # negative advantages to [0, 1] and [-1, 0] per prompt group.
-        # This fixes the imbalance where positive advantages are tiny
-        # (e.g., +0.05) when the baseline is strong, while negatives
-        # can be large (e.g., -0.95).
-        if config is not None and config.get("norm_adv_in_remax", False) and index is not None:
-            seq_adv = advantages[:, 0]  # constant per sequence (outcome reward)
-            id2indices = defaultdict(list)
-            for i in range(seq_adv.shape[0]):
-                id2indices[index[i]].append(i)
-            for idx in id2indices:
-                group_indices = id2indices[idx]
-                group_adv = seq_adv[group_indices]
-                pos_mask = group_adv > 0
-                neg_mask = group_adv < 0
-                max_pos = group_adv[pos_mask].max() if pos_mask.any() else None
-                min_neg = group_adv[neg_mask].min() if neg_mask.any() else None
-                for i in group_indices:
-                    a = seq_adv[i]
-                    if a > 0 and max_pos is not None and max_pos > 1e-8:
-                        advantages[i] = advantages[i] / max_pos  # scale to [0, 1]
-                    elif a < 0 and min_neg is not None and min_neg < -1e-8:
-                        advantages[i] = advantages[i] / (-min_neg)  # scale to [-1, 0]
+            if norm_adv_in_remax is not None and index is not None:
+                advantages = _normalize_remax_advantages(
+                    advantages=advantages,
+                    response_mask=response_mask,
+                    index=index,
+                    mode=norm_adv_in_remax,
+                )
 
         if config is not None:
             if config.get("binary_adv", False):

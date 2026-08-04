@@ -67,6 +67,10 @@ class AlgoConfig(BaseConfig):
         lam (float): Trade-off between bias and variance in the GAE estimator.
         adv_estimator (str): Advantage estimator type: "gae", "grpo", "reinforce_plus_plus", etc.
         norm_adv_by_std_in_grpo (bool): Whether to normalize advantages by std (specific to GRPO).
+        norm_adv_in_remax (Optional[str]): ReMax normalization mode. ``None`` disables
+            normalization, "l2" divides by the prompt-group L2 norm, and "rms" divides by
+            the prompt-group root mean square. Multi-reward ReMax normalizes each reward
+            dimension before weighted aggregation.
         binary_adv (bool): Whether to binarize ReMax advantages to sign-only scores.
         adv_scale (float | dict): Scale applied to ReMax advantages. Float applies uniformly;
             a dict maps data source names to float scales. The optional 'default' key applies to unknown sources.
@@ -93,7 +97,7 @@ class AlgoConfig(BaseConfig):
     adv_estimator: str = "gae"
     norm_adv_by_std_in_grpo: bool = True
     norm_adv_by_mean_in_grpo: bool = True
-    norm_adv_in_remax: bool = False
+    norm_adv_in_remax: Optional[str] = None
     binary_adv: bool = False
     adv_scale: Any = 1.0
     remax_mask: bool = False

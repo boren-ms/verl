@@ -37,7 +37,7 @@ actor_rollout_ref:
     path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
 algorithm:
   adv_estimator: remax
-  norm_adv_in_remax: true
+  norm_adv_in_remax: l2
   use_kl_in_reward: true
   kl_penalty: low_var_kl
   kl_ctrl:
