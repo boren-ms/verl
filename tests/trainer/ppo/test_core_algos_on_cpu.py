@@ -26,12 +26,22 @@ from verl.trainer.ppo.core_algos import (
     compute_gdpo_outcome_advantage,
     compute_remax_outcome_advantage,
     get_adv_estimator_fn,
+    kl_penalty,
     register_adv_est,
 )
 
 
 def mock_test_fn():
     pass
+
+
+def test_kl_penalty_uses_fp32_for_bf16_inputs():
+    logprob = torch.tensor([-1.0, -2.0], dtype=torch.bfloat16)
+    ref_logprob = torch.tensor([-1.5, -1.5], dtype=torch.bfloat16)
+
+    result = kl_penalty(logprob, ref_logprob, "low_var_kl")
+
+    assert result.dtype == torch.float32
 
 
 class TestRegisterAdvEst(unittest.TestCase):
