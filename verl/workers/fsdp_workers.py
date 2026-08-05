@@ -97,6 +97,17 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 device_name = get_device_name()
 
 
+def _allow_fsdp2_mixed_precision_lora_gradients(module: torch.nn.Module, param_dtype: torch.dtype) -> int:
+    updated = 0
+    for param in module.parameters():
+        grad_dtype = getattr(param, "grad_dtype", None)
+        if param.requires_grad and grad_dtype is not None and grad_dtype != param_dtype:
+            # PyTorch 2.10 validates DTensor gradients against the original parameter dtype.
+            param.grad_dtype = None
+            updated += 1
+    return updated
+
+
 def get_event_loop(auto_create=True):
     """Get or create an asyncio event loop for the current thread (Python 3.12+ compatible)."""
     try:
@@ -538,6 +549,10 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             # breakpoint()
             apply_fsdp2(actor_module, fsdp_kwargs, fsdp_config)
             fsdp2_load_full_state_dict(actor_module, full_state, fsdp_mesh, cpu_offload)
+            if self._is_lora:
+                updated_params = _allow_fsdp2_mixed_precision_lora_gradients(actor_module, param_dtype)
+                if self.rank == 0 and updated_params:
+                    print(f"Allowed mixed-precision gradients for {updated_params} FSDP2 LoRA parameters")
             actor_module_fsdp = actor_module
         else:
             raise NotImplementedError(f"not implement {fsdp_strategy}")
