@@ -102,7 +102,7 @@ data:
 
 trainer:
   project_name: ver_2607
-  nnodes: 4
+  nnodes: 2
   total_epochs: 4
   total_training_steps: 100
   test_freq: 10
