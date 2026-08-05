@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Diff / recover checkpoints between a LoRA-merged baseline and a fully-merged
-"new" checkpoint that share the same architecture but differ in key naming and
-top-level wrapping.
+"""Diff / recover checkpoints between a baseline and a fully-merged "new"
+checkpoint that share the same architecture but may differ in key naming and
+top-level wrapping. PyTorch checkpoints and single-file safetensors are supported.
 
 Layouts
 -------
@@ -63,9 +63,24 @@ def _normalize_key(k: str) -> str:
 def _load(path):
     print(f"[load] {path}", flush=True)
     t0 = time.time()
-    sd = torch.load(path, map_location="cpu", weights_only=False)
+    if path.endswith(".safetensors"):
+        from safetensors.torch import load_file
+
+        sd = load_file(path, device="cpu")
+    else:
+        sd = torch.load(path, map_location="cpu", weights_only=False)
     print(f"[load] done in {time.time() - t0:.1f}s", flush=True)
     return sd
+
+
+def _save(state_dict, path):
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    if path.endswith(".safetensors"):
+        from safetensors.torch import save_file
+
+        save_file(dict(state_dict), path)
+    else:
+        torch.save(state_dict, path)
 
 
 def _tensor_items(sd):
@@ -117,9 +132,8 @@ def cmd_diff(args):
         total_changed_elem += new_t.numel()
         stats.append((max_abs, base_orig, tuple(new_t.shape)))
 
-    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     print(f"[save] {out_path} ({len(delta)} tensors)", flush=True)
-    torch.save(delta, out_path)
+    _save(delta, out_path)
     sz_gib = os.path.getsize(out_path) / (1024 ** 3)
 
     bar = "=" * 78
@@ -168,9 +182,9 @@ def cmd_apply(args):
         (_normalize_key(k), v) for k, v in base_sd.items()
     )
 
-    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     print(f"[save] {out_path} ({len(flat)} tensors, {n_overwrite} overwritten)", flush=True)
-    torch.save({"module": flat}, out_path)
+    output = flat if out_path.endswith(".safetensors") else {"module": flat}
+    _save(output, out_path)
     sz_gib = os.path.getsize(out_path) / (1024 ** 3)
     print(f"[save] done. size={sz_gib:.2f} GiB")
 
