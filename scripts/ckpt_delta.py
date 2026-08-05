@@ -68,7 +68,7 @@ def _load(path):
 
         sd = load_file(path, device="cpu")
     else:
-        sd = torch.load(path, map_location="cpu", weights_only=False)
+        sd = torch.load(path, map_location="cpu", weights_only=False, mmap=True)
     print(f"[load] done in {time.time() - t0:.1f}s", flush=True)
     return sd
 
@@ -165,17 +165,20 @@ def cmd_apply(args):
     wrapped = isinstance(base_raw, dict) and "module" in base_raw and isinstance(base_raw["module"], dict)
     base_sd = base_raw["module"] if wrapped else base_raw
 
-    missing = [k for k in delta if k not in base_sd]
+    base_norm = {_normalize_key(k): (k, v) for k, v in base_sd.items()}
+    missing = [k for k in delta if _normalize_key(k) not in base_norm]
     shape_mm = [
-        (k, tuple(base_sd[k].shape), tuple(delta[k].shape))
-        for k in delta
-        if k in base_sd and base_sd[k].shape != delta[k].shape
+        (k, tuple(base_norm[_normalize_key(k)][1].shape), tuple(v.shape))
+        for k, v in delta.items()
+        if _normalize_key(k) in base_norm and base_norm[_normalize_key(k)][1].shape != v.shape
     ]
     assert not missing, f"delta keys missing in baseline: {missing[:5]}"
     assert not shape_mm, f"shape mismatch: {shape_mm[:5]}"
 
     n_overwrite = len(delta)
-    base_sd.update(delta)  # in-place, preserves baseline ordering
+    for delta_key, value in delta.items():
+        base_key, _ = base_norm[_normalize_key(delta_key)]
+        base_sd[base_key] = value
 
     # strip `.base_layer.` to match new.pt's flat layout
     flat: "OrderedDict[str, torch.Tensor]" = OrderedDict(
