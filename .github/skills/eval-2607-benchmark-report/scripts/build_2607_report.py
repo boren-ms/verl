@@ -26,8 +26,8 @@ A "source" string is auto-detected as one of:
   * any other existing file                    -> text log with ``val-aux/...`` lines
 
 Only benchmarks whose candidate source is supplied get a sheet. If a benchmark's
-baseline source is omitted and an embedded baseline exists (inhouse_dter), that
-embedded baseline is used for column A.
+baseline source is omitted and an embedded baseline exists, that embedded
+baseline is used for column A.
 
 Requires ``openpyxl`` (use ``/home/boren/.virtualenvs/openai/bin/python``).
 """
@@ -98,14 +98,14 @@ INHOUSE_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
     ]),
 ]
 
-# Embedded baseline (2607 vllm @ 30s), micro-DTER per slug.
-INHOUSE_BASELINE: Dict[str, float] = {
-    "enus_conv_fy21q1": 0.1854, "enus_conv_om_fy25q3": 0.1385, "enus_dict_office_fy24q3": 0.1001,
-    "nlnl_conv_fy23q2": 0.2286, "nlnl_conv_om_fy23q1": 0.2280, "nlnl_dict_fy23q4": 0.1057,
-    "dadk_conv_fy21q3": 0.2132, "dadk_conv_om_fy23q1": 0.2109, "dadk_dict_fy23q4": 0.1660,
-    "huhu_conv_fy22q4": 0.1826, "huhu_conv_om_fy24q2": 0.1672, "huhu_dict_fy25q2": 0.1869,
-    "nbno_conv_fy21q3": 0.2204, "nbno_conv_om_fy23q1": 0.1617, "nbno_dict_fy23q4": 0.1573,
-    "cscz_conv_fy23q2": 0.2438, "cscz_conv_om_fy24q2": 0.1424, "cscz_dict_fy24q2": 0.1330,
+# Embedded 2607v1,LID baseline, micro-DTER per slug.
+INHOUSE_BASELINE: dict[str, float] = {
+    "enus_conv_fy21q1": 0.1875, "enus_conv_om_fy25q3": 0.1404, "enus_dict_office_fy24q3": 0.0995,
+    "nlnl_conv_fy23q2": 0.2275, "nlnl_conv_om_fy23q1": 0.2330, "nlnl_dict_fy23q4": 0.1086,
+    "dadk_conv_fy21q3": 0.2242, "dadk_conv_om_fy23q1": 0.2110, "dadk_dict_fy23q4": 0.1689,
+    "huhu_conv_fy22q4": 0.1834, "huhu_conv_om_fy24q2": 0.1662, "huhu_dict_fy25q2": 0.1852,
+    "nbno_conv_fy21q3": 0.2204, "nbno_conv_om_fy23q1": 0.1612, "nbno_dict_fy23q4": 0.1635,
+    "cscz_conv_fy23q2": 0.2421, "cscz_conv_om_fy24q2": 0.1424, "cscz_dict_fy24q2": 0.1335,
 }
 
 DIGITS_ENUS_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
@@ -123,9 +123,19 @@ OPENASR_ML_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
     ("pt", [("pt_fleurs", "pt_fleurs"), ("pt_mls", "pt_mls")]),
 ]
 
+OPENASR_ML_BASELINE: dict[str, float] = {
+    "de_fleurs": 0.0260, "de_mcv": 0.0202,
+    "es_fleurs": 0.0272, "es_mcv": 0.0234, "es_mls": 0.0290,
+    "fr_fleurs": 0.0336, "fr_mcv": 0.0436, "fr_mls": 0.0272,
+    "it_fleurs": 0.0152, "it_mcv": 0.0182, "it_mls": 0.0473,
+    "pt_fleurs": 0.0297, "pt_mls": 0.0392,
+}
+
 MIXLANG_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
     ("zh-cn", [("mixlang_fy26q2", "Dictation_SimuMixedLang_DTEST_FY26Q2")]),
 ]
+
+MIXLANG_BASELINE: dict[str, float] = {"mixlang_fy26q2": 0.2124}
 
 _TIER1_LOCALES = [
     ("de-DE", "dede"), ("en-US", "enus"), ("es-ES", "eses"), ("fr-FR", "frfr"),
@@ -442,7 +452,8 @@ BENCHMARKS = {
         "groups": INHOUSE_GROUPS,
         "config": "recipe/phimm/config/eval/long_eval_inhouse_2607_all_seg30.yaml",
         "embedded_baseline": {k: {"dter": v} for k, v in INHOUSE_BASELINE.items()},
-        "default_baseline": "az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/inhouse_2605_all_seg30/",
+        "default_baseline": None,
+        "baseline_label": "2607v1,LID",
         "metric_definition": "micro-DTER = sum edits / sum reference tokens",
     },
     "digits_enus": {
@@ -459,8 +470,9 @@ BENCHMARKS = {
         "metrics": ["wer"],
         "groups": OPENASR_ML_GROUPS,
         "config": "recipe/phimm/config/eval/eval_openasr_ml_verb_2607.yaml",
-        "embedded_baseline": {},
+        "embedded_baseline": {k: {"wer": v} for k, v in OPENASR_ML_BASELINE.items()},
         "default_baseline": None,
+        "baseline_label": "2607v1",
         "metric_definition": "WER / p_err per dataset; arithmetic language and overall averages",
     },
     "mixlang": {
@@ -468,8 +480,9 @@ BENCHMARKS = {
         "metrics": ["dter"],
         "groups": MIXLANG_GROUPS,
         "config": "recipe/phimm/config/eval/long_eval_mixlang_fy26q2_zh_seg_2607.yaml",
-        "embedded_baseline": {},
-        "default_baseline": "az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/long_audio_mixlang_fy26q2_zh_seg/",
+        "embedded_baseline": {k: {"dter": v} for k, v in MIXLANG_BASELINE.items()},
+        "default_baseline": None,
+        "baseline_label": "2607v1",
         "metric_definition": "zh-CN DTER/TER = sum edits / sum reference tokens",
     },
     "digits_tier1": {
@@ -491,7 +504,8 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--label", default="candidate", help="Candidate column (B) label.")
-    p.add_argument("--baseline-label", default="reference", help="Baseline column (A) label.")
+    p.add_argument("--baseline-label", default=None,
+                   help="Override the embedded per-benchmark baseline labels.")
     p.add_argument("--reference-model-path", default="", help="Reference HF model path for provenance.")
     p.add_argument("--candidate-model-path", default="", help="Candidate HF model path for provenance.")
     p.add_argument("--out", default=None, help="Output xlsx path.")
@@ -533,7 +547,7 @@ def main() -> int:
 
         overall = build_benchmark_sheet(
             wb, spec["title"], metrics, spec["groups"], baseline, candidate,
-            args.baseline_label, args.label,
+            args.baseline_label or spec.get("baseline_label", "reference"), args.label,
         )
         built += 1
         for metric in metrics:
@@ -557,7 +571,7 @@ def main() -> int:
         print("[error] no benchmark sources supplied; nothing to build.", file=sys.stderr)
         return 2
 
-    build_summary_sheet(wb, summary_rows, args.baseline_label, args.label)
+    build_summary_sheet(wb, summary_rows, args.baseline_label or "2607v1", args.label)
     wb.move_sheet("summary", -len(wb.sheetnames) + 1)  # summary first
 
     out = args.out or f"tmp/eval_2607_reports/{args.label.replace('@', '_').replace('/', '_')}.xlsx"

@@ -40,7 +40,7 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 1. Resolve the exact committed config files and record the reference model path from each file before submitting jobs. Confirm the candidate path is an HF-loadable model directory.
 2. Select a free Ready `verl-n<N>-*` node using `verl-asr-run`'s occupancy checks. Derive `EVAL_NNODES=N` from the selected running pool name (for example, `verl-n2-i3` means `EVAL_NNODES=2`) and confirm that count against the healthy nodes reported by `ray status` on the pool. Do not copy `trainer.nnodes` from the config or assume it is `1`; if the name and live Ray count disagree, resolve the pool health/count before submission. Push the current workspace with `rcall-brix sync <node>` before submitting work.
 3. For each required config, run a candidate evaluation remotely through `verl-asr-run`, using a unique experiment name and output path. Always pass `trainer.nnodes=${EVAL_NNODES}` together with the candidate model path and output/experiment overrides.
-4. Run the same config for its reference only when canonical results for that exact reference path, scoring contract, and config revision are not already available. Any reference evaluation must run on its selected pool with that pool's independently derived and verified `trainer.nnodes`. Never label a hard-coded baseline from another reporting skill as the config reference without verifying that it is the same checkpoint.
+4. Use the embedded 2607v1 baseline for in-house DTER, OpenASR-ML, and MixLang unless an explicit matching baseline source is supplied. Run the same config for its reference only when a benchmark has no embedded baseline (such as optional digits) or the caller explicitly requests a refreshed reference. Any reference evaluation must run on its selected pool with that pool's independently derived and verified `trainer.nnodes`.
 5. Monitor every Ray job to `SUCCEEDED`. On failure, use `verl-asr-run` to diagnose and repair the root cause, then rerun only the failed benchmark. Do not start workbook creation from incomplete or failed output.
 6. Extract metrics from the final candidate and reference outputs:
    - `inhouse_dter`: calculate micro-DTER as $\sum edits / \sum reference\ tokens$ per corpus; do not use segment-macro DTER.
@@ -59,37 +59,37 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 
 Each benchmark takes a candidate source and an optional baseline source. A source is auto-detected as one of: an `az://.../` root or local directory holding `<slug>/measures.json` (used for the DTER benchmarks `inhouse_dter` and `mixlang`); a `*.json` metrics file (`{ds: value}` or `{ds: {metric: value}}`); a text log with `val-aux/<ds>/<metric>/mean@1` lines; or `ray:<node>:<job_id>` to pull `ray job logs`.
 
-**Collecting the baseline result.** The baseline (column `A`) is the config reference model's own eval output. When `--<bench>-baseline` is omitted the script auto-collects it from the config `output_path` for the long-audio DTER benchmarks:
+**Collecting the baseline result.** The baseline (column `A` in the report schema) uses the current embedded 2607v1 values when `--<bench>-baseline` is omitted:
 
-| Benchmark | Default baseline source (reference `output_path`) | Auto-collect |
-|---|---|---|
-| `inhouse_dter` | `az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/inhouse_2605_all_seg30/` | Yes (measures tree). Embedded `2607 vllm` constants are the fallback. |
-| `mixlang` | `az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/long_audio_mixlang_fy26q2_zh_seg/` | Yes when the reference eval has been run to that path. |
-| `digits_enus` / `digits_tier1` / `openasr_ml` | none — `eval_*` jobs are `val_only` and do not persist `measures.json` | No. Supply the reference `ray:<node>:<job_id>`, log, or JSON via `--<bench>-baseline`. |
+| Benchmark | Embedded label | Source column | Embedded overall |
+|---|---|---:|---:|
+| `inhouse_dter` | `2607v1,LID` | C | 17.77% |
+| `openasr_ml` | `2607v1` | B | 2.92% |
+| `mixlang` | `2607v1` | B | 21.24% |
+| `digits_enus` / `digits_tier1` | none | — | Supply `ray:<node>:<job_id>`, log, or JSON via `--<bench>-baseline`. |
 
-For the eval-only benchmarks, collect the baseline by running the same config with the reference model through `verl-asr-run` and passing its Ray job as the baseline source (or a captured log/JSON). Collect the candidate result the same way with the candidate model path.
+An explicit `--<bench>-baseline` source overrides the embedded values. For optional digits, collect the baseline by running the same config with the reference model through `verl-asr-run` and passing its Ray job as the baseline source (or a captured log/JSON). Collect candidate results with the candidate model path.
 
 ```bash
 /home/boren/.virtualenvs/openai/bin/python \
   .github/skills/eval-2607-benchmark-report/scripts/build_2607_report.py \
-  --label "cand@step560" --baseline-label "qwen_2607_45000" \
+   --label "cand@step560" \
   --inhouse-dter  az://orngwus2cresco/.../cand/inhouse_2605_all_seg30/ \
   --mixlang           az://orngwus2cresco/.../cand/long_audio_mixlang_fy26q2_zh_seg/ \
   --openasr-ml           ray:verl-n1-i0:raysubmit_CAND2 \
-  --openasr-ml-baseline  ray:verl-n1-i0:raysubmit_BASE2 \
   --out tmp/eval_2607_reports/cand_step560.xlsx
 ```
 
-The `inhouse_dter` and `mixlang` baselines are auto-collected from the table above, so their `--*-baseline` flags may be omitted. Add `--digits-enus <cand>` with `--digits-enus-baseline <base>` only when `--include-digits-enus` was requested. Add `--digits-tier1 <cand>` with `--digits-tier1-baseline <base>` only when `--include-digits-tier1` was requested. Only benchmarks whose candidate source is supplied get a sheet.
+The `inhouse_dter`, `openasr_ml`, and `mixlang` baselines come from the embedded table above, so their `--*-baseline` flags may be omitted. Add `--digits-enus <cand>` with `--digits-enus-baseline <base>` only when `--include-digits-enus` was requested. Add `--digits-tier1 <cand>` with `--digits-tier1-baseline <base>` only when `--include-digits-tier1` was requested. Only benchmarks whose candidate source is supplied get a sheet.
 
 ## Quality Gates
 
 Before delivering the workbook, verify all of the following:
 
-- Every required benchmark has a successful candidate job and a matching reference result.
+- Every required benchmark has a successful candidate job and either the matching embedded 2607v1 baseline or an explicitly supplied matching reference result.
 - Every submitted candidate and reference evaluation explicitly used `trainer.nnodes` equal to the verified node count of its running `verl-n<N>-*` pool.
 - `digits_enus` and `digits_tier1` are absent unless explicitly requested.
-- Baseline paths come from the evaluation configs or verified matching canonical reference outputs.
+- Baselines are the embedded 2607v1 values or verified matching reference outputs supplied explicitly.
 - Candidate and baseline use identical data/locale/scoring parameters for each sheet.
 - In-house values are micro-DTER; OpenASR-ML includes language and overall averages; any included digits sheet contains CER and WER; MixLang records its zh-CN scoring backend.
 - Every sheet has non-empty baseline and candidate values, percentage formatting, and a correctly signed delta (`1 - B/A`).
