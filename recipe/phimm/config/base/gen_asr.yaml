@@ -24,17 +24,20 @@ model:
   trust_remote_code: True
 
 rollout:
+  engine_kwargs:
+    vllm:
+      quantization: fp8
+
   temperature: 0.0
   top_k: -1 # 0 for hf rollout, -1 for vllm rollout
   top_p: 1
   dtype: auto
-  # dtype: bfloat16 # should align with FSDP
-  gpu_memory_utilization: 0.85   # share H100 with FSDP shard + vLLM weights + KV cache
+  gpu_memory_utilization: 0.95   # share H100 with FSDP shard + vLLM weights + KV cache
   log_prob_micro_batch_size_per_gpu: 8
   prompt_length: 1024
   response_length: 768
   load_format: safetensors # need to force reload from fsdp to vllm
-  max_num_seqs: 24
+  max_num_seqs: 36
   enforce_eager: false
   enable_chunked_prefill: true   # interleaves prefill of long prompts with ongoing decodes
   free_cache_engine: true

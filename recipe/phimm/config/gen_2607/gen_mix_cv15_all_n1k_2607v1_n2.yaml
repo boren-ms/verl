@@ -12,13 +12,6 @@ model:
   path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
   trust_remote_code: false
 
-rollout:
-  dtype: auto
-  load_format: safetensors
-  engine_kwargs:
-    vllm:
-      quantization: fp8
-
 trainer:
   nnodes: 2
   n_gpus_per_node: 8
