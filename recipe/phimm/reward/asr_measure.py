@@ -276,7 +276,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "char": char_error.accuracy(),
         "word": word_error.accuracy(),
         **fmts,
-        "lang": check_lang(solution_str, tgt_lang, trans_dict),
+        "lang": check_lang(solution_str, tgt_lang),
         "fmt": float(check_fmt(solution_str)),
         **openml_acc,
     }
@@ -335,12 +335,12 @@ def _lang_code_set(lang) -> set[str]:
     return {c for c in get_language_code(lang).split("_") if c}
 
 
-def check_lang(solution_str, tgt_lang, trans_dict=None) -> float:
+def check_lang(solution_str, tgt_lang) -> float:
     """Language-identification score in ``[0, 1]`` with partial credit.
 
-    Predicted language(s) come from the per-segment ``<lang=..>`` sequence when
-    the response is a well-formed (possibly code-switch) task output, else from
-    the single language parsed from the raw response (``trans_dict["lang"]``).
+    Predicted language(s) come from the per-segment ``<lang=..>`` sequence in a
+    well-formed (possibly code-switch) task output. Malformed output scores
+    ``0.0``.
 
     The score is the Jaccard overlap between the predicted and target language
     sets, so a code-switch output that identifies only some of the spoken
@@ -348,20 +348,18 @@ def check_lang(solution_str, tgt_lang, trans_dict=None) -> float:
 
     A ``<nonspeech>`` hypothesis always scores ``1.0`` (no language to judge).
     """
-    hyp_text = trans_dict.get("text") if trans_dict else None
-    if (hyp_text or "").strip().lower() == "<nonspeech>":
+    parsed = _parse_task_output(solution_str)
+    if parsed is None:
+        return 0.0
+
+    _, seg_langs, seg_texts = parsed
+    if " ".join(seg_texts).strip().lower() == "<nonspeech>":
         return 1.0
 
     tgt_codes = _lang_code_set(tgt_lang)
-
-    parsed = _parse_task_output(solution_str)
-    if parsed is not None:
-        pred_codes: set[str] = set()
-        for name in parsed[1]:
-            pred_codes |= _lang_code_set(name)
-    else:
-        single = trans_dict.get("lang") if trans_dict else None
-        pred_codes = _lang_code_set(single)
+    pred_codes: set[str] = set()
+    for name in seg_langs:
+        pred_codes |= _lang_code_set(name)
 
     if not tgt_codes and not pred_codes:
         return 1.0

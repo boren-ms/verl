@@ -29,6 +29,7 @@ from recipe.phimm.data.prompts import resolve_task_language, get_task_prompt, ge
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
 from recipe.phimm.data.audio_augment import AudioAugmenter, safe_audio_stem
+from recipe.phimm.reward.asr_measure import check_fmt, check_lang
 from recipe.phimm.utils.shared import (
     hash_id,
     get_value,
@@ -42,13 +43,11 @@ from recipe.phimm.utils.shared import (
     to_float,
     unbatch,
     has_brackets as has_brackets_fn,
-    parse_asr_response,
     has_repeat_error,
     has_missing_keyword,
     has_tail_hallucination,
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
-from recipe.phimm.utils.languages import get_language_name
 from recipe.phimm.utils.storage import get_path_with_options
 from verl.audio_cache import cache_audio_source
 
@@ -958,15 +957,12 @@ def _check_field(example, field, val_range):
 
 
 def _is_bad_fmt(example):
-    parsed = parse_asr_response(example.get("raw_response", "") or {})
-    return not parsed.get("formatted", True)
+    return not check_fmt(example.get("raw_response", ""))
 
 
 def _is_bad_lang(example):
-    parsed = parse_asr_response(example.get("raw_response", "") or {})
     lang = example.get("language") or "English"
-    lang = get_language_name(lang).lower()
-    return (parsed.get("lang") or "").lower() != lang
+    return check_lang(example.get("raw_response", ""), lang) < 1.0
 
 
 def _has_brackets(example):
