@@ -33,7 +33,7 @@ rollout:
   log_prob_micro_batch_size_per_gpu: 8
   prompt_length: 1024
   response_length: 768
-  load_format: dummy # need to force reload from fsdp to vllm
+  load_format: safetensors # need to force reload from fsdp to vllm
   max_num_seqs: 24
   enforce_eager: false
   enable_chunked_prefill: true   # interleaves prefill of long prompts with ongoing decodes
