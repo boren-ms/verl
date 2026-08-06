@@ -97,6 +97,30 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 device_name = get_device_name()
 
 
+def _allow_fsdp2_mixed_precision_lora_gradients(module: torch.nn.Module, param_dtype: torch.dtype) -> int:
+    updated = 0
+    params = list(module.parameters())
+    for submodule in module.modules():
+        get_fsdp_state = getattr(submodule, "_get_fsdp_state", None)
+        if get_fsdp_state is None:
+            continue
+        fsdp_param_group = getattr(get_fsdp_state(), "_fsdp_param_group", None)
+        if fsdp_param_group is not None:
+            params.extend(fsdp_param.sharded_param for fsdp_param in fsdp_param_group.fsdp_params)
+
+    seen_params = set()
+    for param in params:
+        if id(param) in seen_params:
+            continue
+        seen_params.add(id(param))
+        grad_dtype = getattr(param, "grad_dtype", None)
+        if param.requires_grad and grad_dtype is not None and grad_dtype != param_dtype:
+            # PyTorch 2.10 validates DTensor gradients against the original parameter dtype.
+            param.grad_dtype = None
+            updated += 1
+    return updated
+
+
 def get_event_loop(auto_create=True):
     """Get or create an asyncio event loop for the current thread (Python 3.12+ compatible)."""
     try:
@@ -477,6 +501,9 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             param_dtype = torch.bfloat16
             reduce_dtype = torch.float32
             buffer_dtype = torch.float32
+
+        if role == "actor":
+            self.actor_param_dtype = param_dtype
 
         mixed_precision = MixedPrecision(param_dtype=param_dtype, reduce_dtype=reduce_dtype, buffer_dtype=buffer_dtype)
 
@@ -903,6 +930,8 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             load_fsdp_model_to_gpu(self.actor_module_fsdp)
         if self._is_offload_optimizer:
             load_fsdp_optimizer(optimizer=self.actor_optimizer, device_id=get_device_id())
+        if self._is_lora and fsdp_version(self.actor_module_fsdp) == 2:
+            _allow_fsdp2_mixed_precision_lora_gradients(self.actor_module_fsdp, self.actor_param_dtype)
 
         with self.ulysses_sharding_manager:
             data = data.to("cpu")  # data will to device with each micro batch on actor.update_policy

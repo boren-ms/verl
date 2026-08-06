@@ -49,6 +49,16 @@ logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 
 
+def _cast_mismatched_gradients_to_parameter_dtype(parameters) -> int:
+    updated = 0
+    for param in parameters:
+        grad = param.grad
+        if grad is not None and grad.dtype != param.dtype:
+            param.grad = grad.to(dtype=param.dtype)
+            updated += 1
+    return updated
+
+
 class DataParallelPPOActor(BasePPOActor):
     """FSDP DataParallel PPO Actor or Ref worker
 
@@ -290,6 +300,7 @@ class DataParallelPPOActor(BasePPOActor):
             print(f"WARN: rank {torch.distributed.get_rank()} grad_norm is not finite: {grad_norm}")
             self.actor_optimizer.zero_grad()
         else:
+            _cast_mismatched_gradients_to_parameter_dtype(self.actor_module.parameters())
             self.actor_optimizer.step()
         return grad_norm
 

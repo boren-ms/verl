@@ -12,10 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from types import SimpleNamespace
 
+import torch
 from omegaconf import OmegaConf
 
-from verl.workers.fsdp_workers import ActorRolloutRefWorker
+from verl.workers.fsdp_workers import ActorRolloutRefWorker, _allow_fsdp2_mixed_precision_lora_gradients
+
+
+def test_allow_fsdp2_mixed_precision_lora_gradients():
+    mixed_precision_param = SimpleNamespace(requires_grad=True, grad_dtype=torch.float32)
+    matching_param = SimpleNamespace(requires_grad=True, grad_dtype=torch.bfloat16)
+    frozen_param = SimpleNamespace(requires_grad=False, grad_dtype=torch.float32)
+    fsdp_param = SimpleNamespace(sharded_param=mixed_precision_param)
+    fsdp_param_group = SimpleNamespace(fsdp_params=[fsdp_param])
+    fsdp_state = SimpleNamespace(_fsdp_param_group=fsdp_param_group)
+    fsdp_module = SimpleNamespace(_get_fsdp_state=lambda: fsdp_state)
+    module = SimpleNamespace(
+        parameters=lambda: [mixed_precision_param, matching_param, frozen_param],
+        modules=lambda: [fsdp_module],
+    )
+
+    updated = _allow_fsdp2_mixed_precision_lora_gradients(module, torch.bfloat16)
+
+    assert updated == 1
+    assert mixed_precision_param.grad_dtype is None
+    assert matching_param.grad_dtype == torch.bfloat16
+    assert frozen_param.grad_dtype == torch.float32
 
 
 def test_actor_rollout_ref_worker_actor_ref_model():

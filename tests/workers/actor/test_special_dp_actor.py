@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import unittest
+from types import SimpleNamespace
 
 import torch
 import torch.nn as nn
@@ -20,8 +21,17 @@ from tensordict import TensorDict
 from transformers import AutoModelForCausalLM, Qwen3Config
 
 from verl import DataProto
-from verl.workers.actor.dp_actor import DataParallelPPOActor
+from verl.workers.actor.dp_actor import DataParallelPPOActor, _cast_mismatched_gradients_to_parameter_dtype
 from verl.workers.config import FSDPActorConfig, OptimizerConfig
+
+
+def test_cast_mismatched_gradients_to_parameter_dtype():
+    param = SimpleNamespace(dtype=torch.float32, grad=torch.ones(2, dtype=torch.bfloat16))
+
+    updated = _cast_mismatched_gradients_to_parameter_dtype([param])
+
+    assert updated == 1
+    assert param.grad.dtype == torch.float32
 
 
 class MockTransformerModel(nn.Module):
