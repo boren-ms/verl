@@ -1,0 +1,37 @@
+# Training data: code-switch / language-mixed cv15 n1k set with three ASR tasks.
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_1000.jsonl
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: mix_cv15_n1k_lang_asr
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_1000.jsonl
+  add_task_info:
+    task: lang_asr_lex
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: mix_cv15_n1k_lang_asr_lex
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_1000.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: mix_cv15_n1k_lang_asr_verb
+    verl_format:
+      prompt_key: prompt
