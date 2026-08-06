@@ -13,6 +13,7 @@ model:
   trust_remote_code: false
 
 rollout:
+  dtype: auto
   engine_kwargs:
     vllm:
       quantization: fp8
