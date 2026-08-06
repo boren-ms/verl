@@ -6,7 +6,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/openml_3xprompt
-  - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
+  - data/val_data/mixlang_fy26q2_zh_seg_openml_3xprompt_punc
   - _self_
 
 reward_functions:
@@ -45,8 +45,9 @@ val_reward:
       name: openasr_eval
   reward_function_by_data_source:
     mixlang_fy26q2: inhouse
-    openasr_bad: openml
-    openml_bad: openml
+    openml_asr: openml
+    openml: openml
+    openml_lex: openml
     enus_conv_fy21q1: inhouse_en
 
 actor_rollout_ref:
