@@ -27,7 +27,8 @@ rollout:
   temperature: 0.0
   top_k: -1 # 0 for hf rollout, -1 for vllm rollout
   top_p: 1
-  dtype: bfloat16 # should align with FSDP
+  dtype: auto
+  # dtype: bfloat16 # should align with FSDP
   gpu_memory_utilization: 0.85   # share H100 with FSDP shard + vLLM weights + KV cache
   log_prob_micro_batch_size_per_gpu: 8
   prompt_length: 1024
