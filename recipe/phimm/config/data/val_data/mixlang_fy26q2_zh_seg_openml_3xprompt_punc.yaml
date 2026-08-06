@@ -54,7 +54,7 @@
     cache_audio: {}
     add_field:
       fields:
-        data_source: openml
+        data_source: openml_bad
     verl_format:
       prompt_key: prompt
 

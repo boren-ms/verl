@@ -46,7 +46,7 @@ val_reward:
   reward_function_by_data_source:
     mixlang_fy26q2: inhouse
     openml_asr: openml
-    openml: openml
+    openml_bad: openml
     openml_lex: openml
     enus_conv_fy21q1: inhouse_en
 
