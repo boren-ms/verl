@@ -1,0 +1,14 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/enus_digits_jsonl_100/part-*.parquet
+  post_process:
+    keep_samples:
+      has_bad_fmt: true
+      has_bad_lang: true
+      has_brackets: true
+      wer_range: [0.01, 200]
+
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_enus_digits_jsonl_100_2607v1_n2/data.jsonl
+include_verl_format: false
+overwrite: true
