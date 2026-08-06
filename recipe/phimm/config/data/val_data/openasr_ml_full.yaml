@@ -1,0 +1,259 @@
+- &fleurs_de
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/data.jsonl
+  cache_name: auto_openasr_ml_fleurs_de
+  add_task_info: {task: lang_asr, language: German}
+  post_process:
+    add_field:
+      fields:
+        data_source: de_fleurs_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *fleurs_de
+  cache_name: auto_openasr_ml_lexical_fleurs_de
+  add_task_info: {task: lang_asr_lex, language: German}
+  post_process: {add_field: {fields: {data_source: de_fleurs_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *fleurs_de
+  cache_name: auto_openasr_ml_verb_fleurs_de
+  add_task_info: {task: lang_asr_verb, language: German}
+  post_process: {add_field: {fields: {data_source: de_fleurs_verb}}, verl_format: {prompt_key: prompt}}
+
+- &fleurs_fr
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/data.jsonl
+  cache_name: auto_openasr_ml_fleurs_fr
+  add_task_info: {task: lang_asr, language: French}
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_fleurs_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *fleurs_fr
+  cache_name: auto_openasr_ml_lexical_fleurs_fr
+  add_task_info: {task: lang_asr_lex, language: French}
+  post_process: {add_field: {fields: {data_source: fr_fleurs_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *fleurs_fr
+  cache_name: auto_openasr_ml_verb_fleurs_fr
+  add_task_info: {task: lang_asr_verb, language: French}
+  post_process: {add_field: {fields: {data_source: fr_fleurs_verb}}, verl_format: {prompt_key: prompt}}
+
+- &fleurs_it
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/data.jsonl
+  cache_name: auto_openasr_ml_fleurs_it
+  add_task_info: {task: lang_asr, language: Italian}
+  post_process:
+    add_field:
+      fields:
+        data_source: it_fleurs_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *fleurs_it
+  cache_name: auto_openasr_ml_lexical_fleurs_it
+  add_task_info: {task: lang_asr_lex, language: Italian}
+  post_process: {add_field: {fields: {data_source: it_fleurs_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *fleurs_it
+  cache_name: auto_openasr_ml_verb_fleurs_it
+  add_task_info: {task: lang_asr_verb, language: Italian}
+  post_process: {add_field: {fields: {data_source: it_fleurs_verb}}, verl_format: {prompt_key: prompt}}
+
+- &fleurs_es
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/data.jsonl
+  cache_name: auto_openasr_ml_fleurs_es
+  add_task_info: {task: lang_asr, language: Spanish}
+  post_process:
+    add_field:
+      fields:
+        data_source: es_fleurs_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *fleurs_es
+  cache_name: auto_openasr_ml_lexical_fleurs_es
+  add_task_info: {task: lang_asr_lex, language: Spanish}
+  post_process: {add_field: {fields: {data_source: es_fleurs_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *fleurs_es
+  cache_name: auto_openasr_ml_verb_fleurs_es
+  add_task_info: {task: lang_asr_verb, language: Spanish}
+  post_process: {add_field: {fields: {data_source: es_fleurs_verb}}, verl_format: {prompt_key: prompt}}
+
+- &fleurs_pt
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/data.jsonl
+  cache_name: auto_openasr_ml_fleurs_pt
+  add_task_info: {task: lang_asr, language: Portuguese}
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_fleurs_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *fleurs_pt
+  cache_name: auto_openasr_ml_lexical_fleurs_pt
+  add_task_info: {task: lang_asr_lex, language: Portuguese}
+  post_process: {add_field: {fields: {data_source: pt_fleurs_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *fleurs_pt
+  cache_name: auto_openasr_ml_verb_fleurs_pt
+  add_task_info: {task: lang_asr_verb, language: Portuguese}
+  post_process: {add_field: {fields: {data_source: pt_fleurs_verb}}, verl_format: {prompt_key: prompt}}
+
+- &mcv_de
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/data.jsonl
+  cache_name: auto_openasr_ml_mcv_de
+  add_task_info: {task: lang_asr, language: German}
+  post_process:
+    add_field:
+      fields:
+        data_source: de_mcv_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *mcv_de
+  cache_name: auto_openasr_ml_lexical_mcv_de
+  add_task_info: {task: lang_asr_lex, language: German}
+  post_process: {add_field: {fields: {data_source: de_mcv_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *mcv_de
+  cache_name: auto_openasr_ml_verb_mcv_de
+  add_task_info: {task: lang_asr_verb, language: German}
+  post_process: {add_field: {fields: {data_source: de_mcv_verb}}, verl_format: {prompt_key: prompt}}
+
+- &mcv_fr
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/data.jsonl
+  cache_name: auto_openasr_ml_mcv_fr
+  add_task_info: {task: lang_asr, language: French}
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mcv_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *mcv_fr
+  cache_name: auto_openasr_ml_lexical_mcv_fr
+  add_task_info: {task: lang_asr_lex, language: French}
+  post_process: {add_field: {fields: {data_source: fr_mcv_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *mcv_fr
+  cache_name: auto_openasr_ml_verb_mcv_fr
+  add_task_info: {task: lang_asr_verb, language: French}
+  post_process: {add_field: {fields: {data_source: fr_mcv_verb}}, verl_format: {prompt_key: prompt}}
+
+- &mcv_it
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/data.jsonl
+  cache_name: auto_openasr_ml_mcv_it
+  add_task_info: {task: lang_asr, language: Italian}
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mcv_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *mcv_it
+  cache_name: auto_openasr_ml_lexical_mcv_it
+  add_task_info: {task: lang_asr_lex, language: Italian}
+  post_process: {add_field: {fields: {data_source: it_mcv_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *mcv_it
+  cache_name: auto_openasr_ml_verb_mcv_it
+  add_task_info: {task: lang_asr_verb, language: Italian}
+  post_process: {add_field: {fields: {data_source: it_mcv_verb}}, verl_format: {prompt_key: prompt}}
+
+- &mcv_es
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/data.jsonl
+  cache_name: auto_openasr_ml_mcv_es
+  add_task_info: {task: lang_asr, language: Spanish}
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mcv_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *mcv_es
+  cache_name: auto_openasr_ml_lexical_mcv_es
+  add_task_info: {task: lang_asr_lex, language: Spanish}
+  post_process: {add_field: {fields: {data_source: es_mcv_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *mcv_es
+  cache_name: auto_openasr_ml_verb_mcv_es
+  add_task_info: {task: lang_asr_verb, language: Spanish}
+  post_process: {add_field: {fields: {data_source: es_mcv_verb}}, verl_format: {prompt_key: prompt}}
+
+- &mls_fr
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data.jsonl
+  cache_name: auto_openasr_ml_mls_fr
+  add_task_info: {task: lang_asr, language: French}
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mls_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *mls_fr
+  cache_name: auto_openasr_ml_lexical_mls_fr
+  add_task_info: {task: lang_asr_lex, language: French}
+  post_process: {add_field: {fields: {data_source: fr_mls_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *mls_fr
+  cache_name: auto_openasr_ml_verb_mls_fr
+  add_task_info: {task: lang_asr_verb, language: French}
+  post_process: {add_field: {fields: {data_source: fr_mls_verb}}, verl_format: {prompt_key: prompt}}
+
+- &mls_it
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/it/data.jsonl
+  cache_name: auto_openasr_ml_mls_it
+  add_task_info: {task: lang_asr, language: Italian}
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mls_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *mls_it
+  cache_name: auto_openasr_ml_lexical_mls_it
+  add_task_info: {task: lang_asr_lex, language: Italian}
+  post_process: {add_field: {fields: {data_source: it_mls_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *mls_it
+  cache_name: auto_openasr_ml_verb_mls_it
+  add_task_info: {task: lang_asr_verb, language: Italian}
+  post_process: {add_field: {fields: {data_source: it_mls_verb}}, verl_format: {prompt_key: prompt}}
+
+- &mls_es
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/data.jsonl
+  cache_name: auto_openasr_ml_mls_es
+  add_task_info: {task: lang_asr, language: Spanish}
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mls_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *mls_es
+  cache_name: auto_openasr_ml_lexical_mls_es
+  add_task_info: {task: lang_asr_lex, language: Spanish}
+  post_process: {add_field: {fields: {data_source: es_mls_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *mls_es
+  cache_name: auto_openasr_ml_verb_mls_es
+  add_task_info: {task: lang_asr_verb, language: Spanish}
+  post_process: {add_field: {fields: {data_source: es_mls_verb}}, verl_format: {prompt_key: prompt}}
+
+- &mls_pt
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data.jsonl
+  cache_name: auto_openasr_ml_mls_pt
+  add_task_info: {task: lang_asr, language: Portuguese}
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_mls_dsp
+    verl_format:
+      prompt_key: prompt
+- <<: *mls_pt
+  cache_name: auto_openasr_ml_lexical_mls_pt
+  add_task_info: {task: lang_asr_lex, language: Portuguese}
+  post_process: {add_field: {fields: {data_source: pt_mls_lex}}, verl_format: {prompt_key: prompt}}
+- <<: *mls_pt
+  cache_name: auto_openasr_ml_verb_mls_pt
+  add_task_info: {task: lang_asr_verb, language: Portuguese}
+  post_process: {add_field: {fields: {data_source: pt_mls_verb}}, verl_format: {prompt_key: prompt}}
