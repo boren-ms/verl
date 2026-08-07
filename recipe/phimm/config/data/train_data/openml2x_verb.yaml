@@ -9,7 +9,6 @@
   add_task_info:
     task: lang_asr_verb
   post_process:
-    cache_audio: {}
     add_field:
       fields:
         data_source: openml
