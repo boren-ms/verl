@@ -420,7 +420,8 @@ def build_summary_sheet(wb: Workbook, rows: List[Dict[str, object]],
     headers = ["Benchmark", "Metric", f"Baseline ({baseline_label})",
                f"Candidate ({candidate_label})", "delta", "Metric definition",
                "Config", "Reference model", "Candidate model",
-               "Baseline result", "Candidate result"]
+               "Baseline result", "Candidate result",
+               "Artifacts sidecar (local)", "Artifacts sidecar (remote)"]
     for col, h in enumerate(headers, start=1):
         c = ws.cell(1, col, h)
         c.font = BOLD
@@ -441,7 +442,9 @@ def build_summary_sheet(wb: Workbook, rows: List[Dict[str, object]],
         ws.cell(i, 9, r.get("candidate_model", ""))
         ws.cell(i, 10, r.get("baseline_source", ""))
         ws.cell(i, 11, r.get("candidate_source", ""))
-    widths = [16, 8, 22, 24, 10, 42, 52, 56, 56, 52, 52]
+        ws.cell(i, 12, r.get("artifacts_sidecar_local", ""))
+        ws.cell(i, 13, r.get("artifacts_sidecar_remote", ""))
+    widths = [16, 8, 22, 24, 10, 42, 52, 56, 56, 52, 52, 58, 72]
     for col, w in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(col)].width = w
     for row in ws.iter_rows(min_row=2, max_row=1 + len(rows), min_col=2, max_col=5):
@@ -515,6 +518,10 @@ def parse_args() -> argparse.Namespace:
                    help="Override the embedded per-benchmark baseline labels.")
     p.add_argument("--reference-model-path", default="", help="Reference HF model path for provenance.")
     p.add_argument("--candidate-model-path", default="", help="Candidate HF model path for provenance.")
+    p.add_argument("--artifacts-sidecar-local", default="",
+                   help="Local raw-artifact provenance sidecar path.")
+    p.add_argument("--artifacts-sidecar-remote", default="",
+                   help="Durable remote raw-artifact provenance sidecar path.")
     p.add_argument("--out", default=None, help="Output xlsx path.")
     for name in BENCHMARKS:
         p.add_argument(f"--{name.replace('_', '-')}", dest=name, default=None,
@@ -572,6 +579,8 @@ def main() -> int:
                 "candidate_model": args.candidate_model_path,
                 "baseline_source": base_src or "embedded baseline",
                 "candidate_source": cand_src,
+                "artifacts_sidecar_local": args.artifacts_sidecar_local,
+                "artifacts_sidecar_remote": args.artifacts_sidecar_remote,
             })
 
     if built == 0:
