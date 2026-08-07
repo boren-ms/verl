@@ -13,6 +13,7 @@ class Qwen3_5AudioConfig(PretrainedConfig):
 
     model_type = "qwen3_5_audio"
     keys_to_ignore_at_inference = ["past_key_values"]
+    ignore_keys_at_rope_validation = {"mrope_interleaved", "mrope_section"}
 
     def __init__(
         self,
