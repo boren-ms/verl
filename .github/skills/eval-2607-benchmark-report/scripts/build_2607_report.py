@@ -164,6 +164,12 @@ def fetch_ray_logs(node: str, job_id: str) -> str:
 def _measures_metric(m: Dict, metric: str) -> Optional[float]:
     if metric in ("dter", "ter"):
         v = m.get("dter_p_err")
+        if isinstance(v, (int, float)):
+            return float(v)
+        ne, nr = m.get("dter_n_err"), m.get("dter_n_ref")
+        if isinstance(ne, (int, float)) and isinstance(nr, (int, float)) and nr > 0:
+            return float(ne) / float(nr)
+        v = m.get("dter") if metric == "dter" else m.get("ter")
         return float(v) if isinstance(v, (int, float)) else None
     v = m.get("p_err") if metric == "wer" else m.get(metric)
     return float(v) if isinstance(v, (int, float)) else None
@@ -218,7 +224,10 @@ def read_measures_tree(root: str, metrics: List[str]) -> Dict[str, Dict[str, flo
 
 
 _VAL_METRIC_RE = re.compile(
-    r"val-(?:aux|core)/(?P<ds>[A-Za-z0-9_\-]+)/(?P<metric>cer|p_err|dter_p_err)/mean@1[:=]\s*(?P<value>[0-9.eE+\-]+)"
+    r"val-(?:aux|core)/(?P<ds>[A-Za-z0-9_\-]+)/(?P<metric>cer|p_err|dter_p_err|dter_n_err|dter_n_ref)/mean@1[:=]\s*(?P<value>[0-9.eE+\-]+)"
+)
+_DTER_SUMMARY_RE = re.compile(
+    r"\[(?P<ds>[A-Za-z0-9_\-]+)\]\s*DTER:\s*[0-9.]+%\s*\[(?P<ne>\d+)\s*/\s*(?P<nr>\d+)\]"
 )
 
 
@@ -230,6 +239,10 @@ def parse_text(
     raw: Dict[str, Dict[str, float]] = {}
     for mt in _VAL_METRIC_RE.finditer(text):
         raw.setdefault(mt["ds"], {})[mt["metric"]] = float(mt["value"])
+    for mt in _DTER_SUMMARY_RE.finditer(text):
+        ne, nr = float(mt["ne"]), float(mt["nr"])
+        if nr > 0:
+            raw.setdefault(mt["ds"], {})["dter"] = ne / nr
 
     out: Dict[str, Dict[str, float]] = {}
     for ds, mv in raw.items():
@@ -238,6 +251,8 @@ def parse_text(
             if metric in ("dter", "ter"):
                 if "dter_p_err" in mv:
                     vals[metric] = mv["dter_p_err"]
+                elif "dter_n_err" in mv and mv.get("dter_n_ref", 0) > 0:
+                    vals[metric] = mv["dter_n_err"] / mv["dter_n_ref"]
             elif metric == "wer":
                 if "p_err" in mv:
                     vals[metric] = mv["p_err"]
