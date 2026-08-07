@@ -44,22 +44,25 @@ def resolve_audio_source(source: str) -> str:
     return local_source if local_source != source and Path(local_file).is_file() else source
 
 
-def _copy_remote_file(remote_path: str, local_path: Path) -> None:
-    local_path.parent.mkdir(parents=True, exist_ok=True)
-    temp_path = local_path.with_name(f"{local_path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+def _run_bbb_transfer(remote_path: str, local_path: Path, sync_parent: bool) -> None:
+    command = (
+        ["bbb", "sync", f"{remote_path.rsplit('/', 1)[0]}/", f"{local_path.parent}/"]
+        if sync_parent
+        else ["bbb", "cp", remote_path, str(local_path)]
+    )
     for attempt in range(1, BLOB_READ_RETRY_LIMIT + 1):
         try:
             subprocess.run(
-                ["bbb", "cp", remote_path, str(temp_path)],
+                command,
                 check=True,
                 capture_output=True,
                 text=True,
                 timeout=BLOB_READ_TIMEOUT_SECONDS,
             )
-            os.replace(temp_path, local_path)
             return
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-            temp_path.unlink(missing_ok=True)
+            if not sync_parent:
+                local_path.unlink(missing_ok=True)
             if attempt == BLOB_READ_RETRY_LIMIT:
                 raise RuntimeError(
                     f"Failed to cache remote audio after {BLOB_READ_RETRY_LIMIT} attempts: {remote_path}"
@@ -70,6 +73,18 @@ def _copy_remote_file(remote_path: str, local_path: Path) -> None:
                 attempt,
                 BLOB_READ_RETRY_LIMIT,
             )
+
+
+def _copy_remote_file(remote_path: str, local_path: Path) -> None:
+    local_path.parent.mkdir(parents=True, exist_ok=True)
+    is_wav_file = Path(remote_path).suffix.lower() == ".wav"
+    if is_wav_file:
+        _run_bbb_transfer(remote_path, local_path, sync_parent=True)
+        return
+
+    temp_path = local_path.with_name(f"{local_path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+    _run_bbb_transfer(remote_path, temp_path, sync_parent=False)
+    os.replace(temp_path, local_path)
 
 
 def _ensure_cached_remote_file(remote_path: str, local_path: Path) -> None:
