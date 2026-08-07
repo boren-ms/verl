@@ -26,6 +26,34 @@ def test_resolve_audio_source_prefers_existing_local_file(tmp_path, monkeypatch)
     assert result == str(local_file)
 
 
+def test_localize_audio_source_does_not_cache_non_orange_remote(monkeypatch):
+    def unexpected_cache(remote_path: str, local_path: Path):
+        raise AssertionError(f"unexpected cache from {remote_path} to {local_path}")
+
+    monkeypatch.setattr(audio_cache, "_ensure_cached_remote_file", unexpected_cache)
+    source = "az://other-container/audio/sample.wav#1.5:3.0"
+
+    assert audio_cache.localize_audio_source(source) == source
+
+
+def test_localize_audio_source_caches_missing_orange_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path)
+    copied = []
+
+    def fake_copy(remote_path: str, local_path: Path):
+        copied.append((remote_path, local_path))
+        local_path.parent.mkdir(parents=True)
+        local_path.write_bytes(b"audio")
+
+    monkeypatch.setattr(audio_cache, "_copy_remote_file", fake_copy)
+    source = f"{REMOTE_ROOT}speech/chunk.audio:20:4"
+
+    result = audio_cache.localize_audio_source(source)
+
+    assert result == f"{tmp_path}/speech/chunk.audio:20:4"
+    assert copied == [(f"{REMOTE_ROOT}speech/chunk.audio", tmp_path / "speech" / "chunk.audio")]
+
+
 def test_cache_audio_source_copies_file_and_rewrites_time_range(tmp_path, monkeypatch):
     monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path)
     copied = []

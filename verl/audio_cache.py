@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 ORANGE_DATA_PREFIX = "az://orngwus2cresco/data/"
 LOCAL_DATA_ROOT = Path("~/data").expanduser()
-FALLBACK_CACHE_ROOT = Path("/tmp/verl-audio-cache")
 LOCK_ROOT = Path("/tmp/verl-audio-locks")
 BLOB_READ_TIMEOUT_SECONDS = 45
 BLOB_READ_RETRY_LIMIT = 3
@@ -98,18 +97,10 @@ def cache_audio_source(source: str) -> str:
 
 
 def localize_audio_source(source: str) -> str:
-    """Return a readable local file, persistently caching Orange paths."""
+    """Prefer or cache a local copy of an Orange audio reference."""
     resolved_source = resolve_audio_source(source)
     if resolved_source != source:
         return resolved_source
     if source.startswith(ORANGE_DATA_PREFIX):
         return cache_audio_source(source)
-    if "://" not in source:
-        return source
-
-    remote_file, suffix = _split_audio_source(source)
-    digest = hashlib.sha256(remote_file.encode()).hexdigest()
-    extension = Path(remote_file).suffix or ".audio"
-    local_path = FALLBACK_CACHE_ROOT / f"{digest}{extension}"
-    _ensure_cached_remote_file(remote_file, local_path)
-    return f"{local_path}{suffix}"
+    return source
