@@ -1,0 +1,15 @@
+# Training data: bad-language samples from the code-switch / language-mixed cv15 n1k task3 set.
+dataset_name: jsonl
+# around 750k utterances
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/mix_cv15_n1k_task3/bad_lang.jsonl
+add_task_info:
+  task: lang_asr
+  prefix_prob: 0.0
+post_process:
+  shuffle:
+    seed: 42
+  add_field:
+    fields:
+      data_source: mix_cv15_all_bad_lang
+  verl_format:
+    prompt_key: prompt
