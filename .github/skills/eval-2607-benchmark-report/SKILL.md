@@ -1,12 +1,12 @@
 ---
 name: eval-2607-benchmark-report
 description: "Evaluate a 2607 ASR model on the standard in-house DTER, OpenASR-ML, and MixLang benchmarks remotely and create one baseline-aware Excel workbook, with optional digits evaluations. Use when: evaluate 2607 benchmarks, run 2607 model evaluation, build 2607 benchmark Excel report, or compare a 2607 checkpoint against its reference model."
-argument-hint: '<model-label> <model-path> [--node <verl-node>] [--include-digits-enus] [--include-digits-tier1] [--out <xlsx>]'
+argument-hint: '<model-label> <model-path> [--node <verl-node>] [--include-digits-enus] [--include-digits-tier1] [--artifact-root <az-path>] [--out <xlsx>]'
 ---
 
 # 2607 Benchmark Evaluation And Excel Report
 
-Evaluate one candidate ASR model on the standard 2607 benchmark suite on a remote `verl-*` Brix node. Produce one `.xlsx` workbook with one benchmark sheet per evaluation, containing the candidate, the config-defined reference model, and relative improvement versus that reference.
+Evaluate one candidate ASR model on the standard 2607 benchmark suite on a remote `verl-*` Brix node. Produce one `.xlsx` workbook with one benchmark sheet per evaluation, containing the candidate, the config-defined reference model, and relative improvement versus that reference. Preserve each evaluation's W&B metadata, key metric logs, and detailed decoding results under a durable remote blob path.
 
 Delegate remote submission, monitoring, failure recovery, and result retrieval to the `verl-asr-run` skill. This skill owns benchmark selection, baseline discipline, and workbook assembly.
 
@@ -20,6 +20,7 @@ Delegate remote submission, monitoring, failure recovery, and result retrieval t
 | `--include-digits-enus` | No | Add the optional en-US digits benchmark. |
 | `--include-digits-tier1` | No | Add the optional Tier 1 digits benchmark. |
 | `--out` | No | Final workbook path. Default: `tmp/eval_2607_reports/<model-label>.xlsx`. |
+| `--artifact-root` | No | Durable `az://.../` root for raw evaluation artifacts. Default: the common remote evaluation output root for `<model-label>`; it must not be node-local storage. |
 
 ## Benchmark Contract
 
@@ -39,21 +40,28 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 
 1. Resolve the exact committed config files and record the reference model path from each file before submitting jobs. Confirm the candidate path is an HF-loadable model directory.
 2. Select a free Ready `verl-n<N>-*` node using `verl-asr-run`'s occupancy checks. Derive `EVAL_NNODES=N` from the selected running pool name (for example, `verl-n2-i3` means `EVAL_NNODES=2`) and confirm that count against the healthy nodes reported by `ray status` on the pool. Do not copy `trainer.nnodes` from the config or assume it is `1`; if the name and live Ray count disagree, resolve the pool health/count before submission. Push the current workspace with `rcall-brix sync <node>` before submitting work.
-3. For each required config, run a candidate evaluation remotely through `verl-asr-run`, using a unique experiment name and output path. Always pass `trainer.nnodes=${EVAL_NNODES}` together with the candidate model path and output/experiment overrides.
+3. For each required config, run a candidate evaluation remotely through `verl-asr-run`, using a unique experiment name and output path below `--artifact-root`. Always pass `trainer.nnodes=${EVAL_NNODES}` together with the candidate model path and output/experiment overrides. Configure the evaluation so detailed decoding outputs are written or uploaded to that remote blob path, never left only on the Brix node.
 4. Use the embedded 2607v1 baseline for in-house DTER, OpenASR-ML, and MixLang unless an explicit matching baseline source is supplied. Run the same config for its reference only when a benchmark has no embedded baseline (such as optional digits) or the caller explicitly requests a refreshed reference. Any reference evaluation must run on its selected pool with that pool's independently derived and verified `trainer.nnodes`.
 5. Monitor every Ray job to `SUCCEEDED`. On failure, use `verl-asr-run` to diagnose and repair the root cause, then rerun only the failed benchmark. Do not start workbook creation from incomplete or failed output.
-6. Extract metrics from the final candidate and reference outputs:
+6. Before releasing a node or creating the workbook, retain the raw information for every candidate run and every explicitly executed reference run under `<artifact-root>/<benchmark>/<candidate|reference>/`:
+   - `wandb.json`: W&B entity, project, run ID, run name, and run URL. If W&B is disabled or unavailable, record the reason explicitly instead of inventing a run identity.
+   - `key_metrics.log` or `key_metrics.json`: the unmodified evaluation metric records used to build the report, including the final `val-aux/...` values or equivalent scorer output.
+   - Detailed decoding results: upload all per-utterance hypothesis/reference outputs, such as `result_details*.jsonl`, together with scorer outputs such as `measures.json`. Preserve the dataset subdirectory structure when multiple datasets are evaluated.
+   - `artifact_manifest.json`: benchmark, role, config path and revision, model path, Ray node and job ID, verified `trainer.nnodes`, W&B metadata path, key-metrics path, detailed-decoding remote paths, and completion timestamp.
+
+   Confirm every recorded `az://` object or prefix exists and is readable. A W&B URL alone is not a substitute for the raw key-metrics log, and a Ray job log or node-local path is not a durable detailed-decoding result.
+7. Extract metrics from the final candidate and reference outputs:
    - `inhouse_dter`: calculate micro-DTER as $\sum edits / \sum reference\ tokens$ per corpus; do not use segment-macro DTER.
    - Optional `digits_enus` and `digits_tier1`: preserve both Digit CER and WER, with every evaluated dataset as a row.
    - `openasr_ml`: use final `p_err`/WER per dataset, language averages, and an overall average.
    - `mixlang`: use the final reference-compatible DTER/TER from `measures.json`, retaining the configured zh-CN scoring context.
-7. Build the workbook with [scripts/build_2607_report.py](./scripts/build_2607_report.py). It reuses existing eval outputs and produces sheets in this order: `summary`, `inhouse_dter`, optional `digits_enus`, `openasr_ml`, `mixlang` (its own separate sheet), then optional `digits_tier1`. Each benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
+8. Build the workbook with [scripts/build_2607_report.py](./scripts/build_2607_report.py). It reuses existing eval outputs and produces sheets in this order: `summary`, `inhouse_dter`, optional `digits_enus`, `openasr_ml`, `mixlang` (its own separate sheet), then optional `digits_tier1`. Each benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
 
    $$\mathrm{delta}=1-\frac{\mathrm{candidate\ error}}{\mathrm{reference\ error}}$$
 
    The delta column is labelled per metric — `TERR` for DTER/TER, `WERR` for WER, `CERR` for CER. Positive delta means the candidate improved. Data-row delta cells use the Excel formula `=1-C{row}/B{row}`; per-group and overall averages store the computed numeric delta. All error and delta cells use percentage formatting, and the delta column carries a red→white→green color scale centered at 0.
-8. The script also emits the `summary` sheet with one row per included benchmark metric: the aggregate baseline and candidate values, the overall delta, and the source config. Digits rows appear only for the explicitly requested digits evaluations.
-9. Preserve baseline provenance: keep the config path, reference model path, candidate path, metric definition, and result locations with the workbook. Do not silently merge outputs produced by differing config revisions.
+9. The script also emits the `summary` sheet with one row per included benchmark metric: the aggregate baseline and candidate values, the overall delta, and the source config. Digits rows appear only for the explicitly requested digits evaluations.
+10. Preserve baseline and raw-artifact provenance: keep the config path, reference model path, candidate path, metric definition, W&B run URL/ID, key-metrics remote path, detailed-decoding remote paths, and artifact-manifest remote path with the workbook. Do not silently merge outputs produced by differing config revisions. When the workbook format cannot hold all paths cleanly, write a sidecar `<workbook-stem>.artifacts.json` and place its local path and remote blob path in the workbook provenance.
 
 ### Consolidated report script
 
@@ -91,9 +99,11 @@ Before delivering the workbook, verify all of the following:
 - `digits_enus` and `digits_tier1` are absent unless explicitly requested.
 - Baselines are the embedded 2607v1 values or verified matching reference outputs supplied explicitly.
 - Candidate and baseline use identical data/locale/scoring parameters for each sheet.
+- Every executed evaluation has a readable remote `artifact_manifest.json`, raw key-metrics log, and detailed decoding result path; none points only to node-local storage.
+- Every executed evaluation records its W&B run ID and URL, or an explicit reason W&B was unavailable, and the W&B identity agrees with the experiment represented in the workbook.
 - In-house values are micro-DTER; OpenASR-ML includes language and overall averages; any included digits sheet contains CER and WER; MixLang records its zh-CN scoring backend.
 - Every sheet has non-empty baseline and candidate values, percentage formatting, and a correctly signed delta (`1 - B/A`).
-- Workbook opens successfully and contains exactly the expected sheet set, with `mixlang` on its own separate sheet.
+- Workbook opens successfully and contains exactly the expected sheet set, with `mixlang` on its own separate sheet, and its provenance references the remote raw-artifact paths.
 
 ## Existing Helpers
 
