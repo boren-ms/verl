@@ -92,7 +92,7 @@ actor_rollout_ref:
     val_kwargs:
       temperature: 0.0
       top_p: 1.0
-    gpu_memory_utilization: 0.8
+    gpu_memory_utilization: 0.9
     load_format: safetensors
     stop: ["<|im_end|>"]
     stop_token_ids: [248044, 248046]

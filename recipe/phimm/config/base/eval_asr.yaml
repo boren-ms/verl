@@ -16,7 +16,13 @@ data:
   dataloader_num_workers: 8
   prefetch_factor: 4
   persistent_workers: true
-  val_batch_size: 256
+  val_batch_size: 512
+
+
+actor_rollout_ref:
+  rollout:
+    max_num_seqs: 48
+    gpu_memory_utilization: 0.9
 
 
 trainer:
