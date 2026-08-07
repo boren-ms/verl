@@ -11,6 +11,14 @@ val_reward:
     name: openasr_eval
 
 
+data:
+  # Parallelize remote audio fetch and decoding during validation.
+  dataloader_num_workers: 8
+  prefetch_factor: 4
+  persistent_workers: true
+  val_batch_size: 256
+
+
 trainer:
   val_only: True
   val_before_train: True
