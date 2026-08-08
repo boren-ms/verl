@@ -1,7 +1,7 @@
-# Bad-language + OpenML training data with ASR, verbatim, and lexical prompts.
+# Mix CV15 all + OpenML training data with ASR, verbatim, and lexical prompts.
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/mix_cv15_n1k_task3/bad_lang.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
   add_task_info:
     task: lang_asr
     prefix_prob: 0.0
@@ -11,7 +11,7 @@
       seed: 42
     add_field:
       fields:
-        data_source: mix
+        data_source: mix_cv15_all
     verl_format:
       prompt_key: prompt
 - dataset_name: jsonl
