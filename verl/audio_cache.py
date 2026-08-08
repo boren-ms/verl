@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 ORANGE_DATA_PREFIX = "az://orngwus2cresco/data/"
 LOCAL_DATA_ROOT = Path("~/data").expanduser()
 LOCK_ROOT = Path("/tmp/verl-audio-locks")
-BLOB_READ_TIMEOUT_SECONDS = 45
-BLOB_READ_RETRY_LIMIT = 3
+BLOB_READ_TIMEOUT_SECONDS = int(os.getenv("VERL_BLOB_READ_TIMEOUT_SECONDS", "120"))
+BLOB_READ_RETRY_LIMIT = int(os.getenv("VERL_BLOB_READ_RETRY_LIMIT", "10"))
 
 _CACHE_SERVER_PROCESS = None
 _CACHE_SERVER_QUEUE = None
