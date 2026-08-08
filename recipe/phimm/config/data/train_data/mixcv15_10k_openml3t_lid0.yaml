@@ -1,0 +1,68 @@
+# Mix CV15 (10k examples) + OpenML training data with ASR, verbatim, and lexical prompts.
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  pre_process:
+    shuffle:
+      seed: 42
+  post_process:
+    input_egs_limit: 10000
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: mix_cv15_all
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+  add_task_info:
+    task: lang_asr_lex
+    prefix_prob: 0.0
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt

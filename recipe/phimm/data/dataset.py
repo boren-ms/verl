@@ -1617,10 +1617,10 @@ def process_ds(ds, **kwargs):
         ds = shard_ds(ds, **map_kwargs)
     if filter_text_with_numbers_kwargs := kwargs.get("filter_text_with_numbers", {}):
         ds = filter_text_with_numbers(ds, **merge_kwargs(map_kwargs, filter_text_with_numbers_kwargs))
-    if output_egs_limit := kwargs.get("output_egs_limit", None):
-        ds = limit_ds(ds, egs_limit=output_egs_limit)
     if shuffle_kwargs := kwargs.get("shuffle", {}):
         ds = shuffle_ds(ds, **shuffle_kwargs)
+    if output_egs_limit := kwargs.get("output_egs_limit", None):
+        ds = limit_ds(ds, egs_limit=output_egs_limit)
     if add_field_kwargs := kwargs.get("add_field", {}):
         ds = add_field_ds(ds, **merge_kwargs(map_kwargs, add_field_kwargs))
     if measures_kw := kwargs.get("add_measures", {}):
