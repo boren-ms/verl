@@ -56,7 +56,7 @@ actor_rollout_ref:
     temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
-    gpu_memory_utilization: 0.85
+    gpu_memory_utilization: 0.9
     max_num_seqs: 32
   actor:
     tis_imp_ratio_cap: 5
