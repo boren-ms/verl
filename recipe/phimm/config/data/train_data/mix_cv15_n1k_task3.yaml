@@ -6,6 +6,7 @@
     task: lang_asr
     prefix_prob: 0.0
   post_process:
+    # cache_audio: {}
     add_field:
       fields:
         data_source: mix_cv15_n1k_lang_asr
@@ -18,6 +19,7 @@
     task: lang_asr_lex
     prefix_prob: 0.0
   post_process:
+    # cache_audio: {}
     add_field:
       fields:
         data_source: mix_cv15_n1k_lang_asr_lex
@@ -30,6 +32,7 @@
     task: lang_asr_verb
     prefix_prob: 0.0
   post_process:
+    # cache_audio: {}
     add_field:
       fields:
         data_source: mix_cv15_n1k_lang_asr_verb

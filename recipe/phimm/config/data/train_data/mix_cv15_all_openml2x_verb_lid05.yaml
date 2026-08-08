@@ -8,6 +8,7 @@
     task: lang_asr
     prefix_prob: 0.5
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: mix_cv15_all
@@ -25,6 +26,7 @@
     task: lang_asr_verb
     prefix_prob: 0.5
   post_process:
+    cache_audio: {}
     add_field:
       fields:
         data_source: openml
