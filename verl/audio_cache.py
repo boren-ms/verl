@@ -1,9 +1,11 @@
 import fcntl
 import hashlib
 import logging
+import multiprocessing
 import os
 from pathlib import Path
 import subprocess
+import threading
 import uuid
 
 
@@ -14,6 +16,11 @@ LOCAL_DATA_ROOT = Path("~/data").expanduser()
 LOCK_ROOT = Path("/tmp/verl-audio-locks")
 BLOB_READ_TIMEOUT_SECONDS = 45
 BLOB_READ_RETRY_LIMIT = 3
+
+_CACHE_SERVER_PROCESS = None
+_CACHE_SERVER_QUEUE = None
+_CACHE_SERVER_OWNER_PID = None
+_CACHE_SERVER_LOCK = threading.Lock()
 
 
 def _split_audio_source(source: str) -> tuple[str, str]:
@@ -99,6 +106,75 @@ def cache_audio_source(source: str) -> str:
     local_path = Path(local_file)
     _ensure_cached_remote_file(remote_file, local_path)
     return local_source
+
+
+def _audio_cache_server(request_queue) -> None:
+    """Cache submitted source batches in a dedicated process."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    while True:
+        request_type, payload, max_workers = request_queue.get()
+        if request_type == "dataset":
+            ds, fields = payload
+            sources = tuple(
+                dict.fromkeys(
+                    source
+                    for field in fields
+                    for source in ds[field]
+                    if isinstance(source, str) and source
+                )
+            )
+        else:
+            sources = payload
+        if not sources:
+            continue
+        with ThreadPoolExecutor(max_workers=min(max_workers, len(sources))) as executor:
+            for source, error in zip(sources, executor.map(_cache_audio_source_safely, sources), strict=True):
+                if error is not None:
+                    logger.warning("Failed to cache audio %s: %s", source, error)
+
+
+def _cache_audio_source_safely(source: str):
+    try:
+        cache_audio_source(source)
+    except Exception as exc:
+        return exc
+    return None
+
+
+def _submit_audio_cache_request(request) -> None:
+    global _CACHE_SERVER_PROCESS, _CACHE_SERVER_QUEUE, _CACHE_SERVER_OWNER_PID
+    owner_pid = os.getpid()
+    with _CACHE_SERVER_LOCK:
+        if (
+            _CACHE_SERVER_PROCESS is None
+            or _CACHE_SERVER_OWNER_PID != owner_pid
+            or not _CACHE_SERVER_PROCESS.is_alive()
+        ):
+            _CACHE_SERVER_QUEUE = multiprocessing.Queue()
+            _CACHE_SERVER_PROCESS = multiprocessing.Process(
+                target=_audio_cache_server,
+                args=(_CACHE_SERVER_QUEUE,),
+                name="verl-audio-cache",
+                daemon=True,
+            )
+            _CACHE_SERVER_PROCESS.start()
+            _CACHE_SERVER_OWNER_PID = owner_pid
+        _CACHE_SERVER_QUEUE.put_nowait(request)
+
+
+def submit_audio_cache(sources, max_workers: int = 16) -> None:
+    """Submit audio references for background caching without waiting for them."""
+    sources = tuple(dict.fromkeys(source for source in sources if isinstance(source, str) and source))
+    if sources:
+        _submit_audio_cache_request(("sources", sources, max(1, int(max_workers))))
+
+
+def submit_audio_cache_dataset(ds, fields, max_workers: int = 16) -> None:
+    """Submit dataset audio fields without reading them in the caller process."""
+    fields = tuple(field for field in fields if field in ds.column_names)
+    if fields:
+        _submit_audio_cache_request(("dataset", (ds, fields), max(1, int(max_workers))))
 
 
 def localize_audio_source(source: str) -> str:

@@ -6,7 +6,6 @@ import math
 import json
 import gzip
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
 import ast
 import random
 import socket
@@ -49,7 +48,7 @@ from recipe.phimm.utils.shared import (
 )
 from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
-from verl.audio_cache import cache_audio_source
+from verl.audio_cache import submit_audio_cache_dataset
 
 prompt_format = "<audio>\n{}"
 
@@ -1419,27 +1418,11 @@ def path_map(ds, **kwargs):
 
 
 def cache_audio(ds, **kwargs):
-    """Cache remote audio fields under ``~/data`` and replace their references."""
+    """Submit remote audio fields for background caching without changing them."""
     fields = kwargs.get("fields", ["audio_path", "audio_chunk"])
     max_workers = int(kwargs.pop("max_workers", 16))
-
-    def map_batch(batch):
-        sources = {
-            source
-            for field in fields
-            if field in batch
-            for source in batch[field]
-            if isinstance(source, str) and source
-        }
-        with ThreadPoolExecutor(max_workers=min(max_workers, len(sources) or 1)) as executor:
-            cached_sources = dict(zip(sources, executor.map(cache_audio_source, sources), strict=True))
-        return {
-            field: [cached_sources.get(source, source) for source in batch[field]]
-            for field in fields
-            if field in batch
-        }
-
-    return ds.map(map_batch, batched=True, **pop_map_kwargs(kwargs), desc="Caching audio")
+    submit_audio_cache_dataset(ds, fields, max_workers=max_workers)
+    return ds
 
 
 def rename_fields(ds, **kwargs):

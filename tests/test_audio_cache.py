@@ -145,3 +145,57 @@ def test_cache_audio_source_copies_shared_chunk_file_once(tmp_path, monkeypatch)
 
     assert copy_count == 1
     assert results == [f"{tmp_path}/data/speech/chunk.audio:8:{index}" for index in range(8)]
+
+
+def test_submit_audio_cache_starts_daemon_and_reuses_queue(monkeypatch):
+    queued = []
+    processes = []
+
+    class FakeQueue:
+        def put_nowait(self, item):
+            queued.append(item)
+
+    class FakeProcess:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            self.started = False
+            processes.append(self)
+
+        def start(self):
+            self.started = True
+
+        def is_alive(self):
+            return self.started
+
+    monkeypatch.setattr(audio_cache.multiprocessing, "Queue", FakeQueue)
+    monkeypatch.setattr(audio_cache.multiprocessing, "Process", FakeProcess)
+    monkeypatch.setattr(audio_cache, "_CACHE_SERVER_PROCESS", None)
+    monkeypatch.setattr(audio_cache, "_CACHE_SERVER_QUEUE", None)
+    monkeypatch.setattr(audio_cache, "_CACHE_SERVER_OWNER_PID", None)
+
+    audio_cache.submit_audio_cache(["a.wav", "a.wav", "", "b.wav"], max_workers=7)
+    audio_cache.submit_audio_cache(["c.wav"], max_workers=3)
+
+    assert len(processes) == 1
+    assert processes[0].started
+    assert processes[0].kwargs["target"] is audio_cache._audio_cache_server
+    assert processes[0].kwargs["name"] == "verl-audio-cache"
+    assert processes[0].kwargs["daemon"] is True
+    assert queued == [("sources", ("a.wav", "b.wav"), 7), ("sources", ("c.wav",), 3)]
+
+
+def test_submit_audio_cache_dataset_does_not_read_columns(monkeypatch):
+    queued = []
+
+    class NonReadableDataset:
+        column_names = ["audio_path", "text"]
+
+        def __getitem__(self, key):
+            raise AssertionError(f"caller read dataset column {key}")
+
+    monkeypatch.setattr(audio_cache, "_submit_audio_cache_request", queued.append)
+    ds = NonReadableDataset()
+
+    audio_cache.submit_audio_cache_dataset(ds, ["audio_path", "audio_chunk"], max_workers=5)
+
+    assert queued == [("dataset", (ds, ("audio_path",)), 5)]
