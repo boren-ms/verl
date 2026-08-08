@@ -1,0 +1,97 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - grpo_asr
+  - data/train_data/mix_cv15_all_openml2x_verb_lid0
+  - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
+  - _self_
+
+reward_functions:
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 1.0}
+        fmt: {beta: 1.0}
+        bracket: {beta: 1.0}
+        repeat: {beta: 1.0}
+        # tail_hallu: {beta: 1.0}
+
+reward_function_by_data_source:
+  mix_cv15_all: openml
+  openml: openml
+
+val_reward:
+  reward_manager: long_audio_grouped
+  reward_functions:
+    inhouse:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        locale: zh-cn
+    inhouse_en:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        locale: en-us
+    openml:
+      path: recipe/phimm/reward/asr_edge.py
+      name: openasr_eval
+  reward_function_by_data_source:
+    mixlang_fy26q2: inhouse
+    openml_bad: openml
+    enus_conv_fy21q1: inhouse_en
+
+actor_rollout_ref:
+  rollout:
+    name: vllm
+    engine_kwargs:
+      vllm:
+        quantization: fp8
+    n: 16
+    gt_rollout: false
+    temperature: 1.2
+    calculate_log_probs: True
+    use_rollout_log_probs_as_old: true
+    gpu_memory_utilization: 0.7
+    max_num_seqs: 32
+  actor:
+    tis_imp_ratio_cap: 5
+    ppo_micro_batch_size_per_gpu: 4
+    ppo_mini_batch_size: ${data.train_batch_size}
+    ppo_epochs: 1
+    optim:
+      lr: 5e-6
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+    trust_remote_code: false
+
+algorithm:
+  adv_estimator: remax
+  adv_scale: {openml: 2, default: 1.0}
+
+data:
+  trust_remote_code: false
+  shuffle: true # shuffle done in dataset
+  use_interleave: false
+  model_version: 2607
+  max_prompt_length: 1024
+  max_response_length: 768
+  train_batch_size: 256
+  val_batch_size: -1
+
+trainer:
+  project_name: ver_2607
+  nnodes: 2
+  total_epochs: 4
+  total_training_steps: 200
+  test_freq: 10
+  save_freq: 10
+  val_before_train: true
