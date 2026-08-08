@@ -11,8 +11,8 @@ data:
   max_prompt_length: 1024
   max_response_length: 512
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
-  dataloader_num_workers: 4
-  prefetch_factor: 4
+  dataloader_num_workers: 1
+  prefetch_factor: 2
   persistent_workers: true
   pin_memory: false
   train_batch_size: 8

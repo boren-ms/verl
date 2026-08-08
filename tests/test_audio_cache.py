@@ -7,29 +7,27 @@ from verl import audio_cache
 REMOTE_ROOT = "az://orngwus2cresco/data/"
 
 
-def test_copy_remote_wav_syncs_parent_folder(tmp_path, monkeypatch):
+def test_copy_remote_wav_copies_single_file_atomically(tmp_path, monkeypatch):
     local_path = tmp_path / "Evaluation" / "sample.wav"
     commands = []
 
     def fake_run(command, **kwargs):
         commands.append((command, kwargs))
-        local_path.write_bytes(b"audio")
+        Path(command[-1]).write_bytes(b"audio")
 
     monkeypatch.setattr(audio_cache.subprocess, "run", fake_run)
 
     audio_cache._copy_remote_file(f"{REMOTE_ROOT}Evaluation/sample.wav", local_path)
 
-    assert commands == [
-        (
-            ["bbb", "sync", f"{REMOTE_ROOT}Evaluation/", f"{local_path.parent}/"],
-            {
-                "check": True,
-                "capture_output": True,
-                "text": True,
-                "timeout": audio_cache.BLOB_READ_TIMEOUT_SECONDS,
-            },
-        )
-    ]
+    assert commands[0][0][:3] == ["bbb", "cp", f"{REMOTE_ROOT}Evaluation/sample.wav"]
+    assert commands[0][0][-1].endswith(".tmp")
+    assert commands[0][1] == {
+        "check": True,
+        "capture_output": True,
+        "text": True,
+        "timeout": audio_cache.BLOB_READ_TIMEOUT_SECONDS,
+    }
+    assert local_path.read_bytes() == b"audio"
 
 
 def test_copy_remote_non_wav_copies_atomically(tmp_path, monkeypatch):

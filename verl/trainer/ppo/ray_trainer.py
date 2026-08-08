@@ -395,7 +395,7 @@ class RayPPOTrainer:
         prefetch_factor = self.config.data.get("prefetch_factor", 2 if num_workers > 0 else None)
         if num_workers == 0:
             prefetch_factor = None
-        persistent_workers = self.config.data.get("persistent_workers", num_workers > 0)
+        persistent_workers = self.config.data.get("persistent_workers", num_workers > 0) and num_workers > 0
         pin_memory = self.config.data.get("pin_memory", False)
         gen_batch_size = self.config.data.get("gen_batch_size", self.config.data.train_batch_size)
         self.train_dataloader = StatefulDataLoader(
