@@ -70,6 +70,8 @@ INHOUSE_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
         ("enus_conv_fy21q1", "en-US_Conversation_DTEST_FY21Q1"),
         ("enus_conv_om_fy25q3", "en-US_Conversation_OnlineMeetings_DTEST_FY25Q3"),
         ("enus_dict_office_fy24q3", "en-US_Dictation_Commonset_OfficeOffline_FY24Q3"),
+        ("enus_om_cs_product_fy22", "en-US_OnlineMeetings_CS_Product_FY22"),
+        ("enus_om_cs_shiproom_fy22", "en-US_OnlineMeetings_CS_Shiproom_FY22"),
     ]),
     ("nl-NL", [
         ("nlnl_conv_fy23q2", "nl-NL_Conversation_DTEST_FY23Q2"),
@@ -190,6 +192,11 @@ def read_measures_tree(root: str, metrics: List[str]) -> Dict[str, Dict[str, flo
             return
         vals = {mt: _measures_metric(m, mt) for mt in metrics}
         vals = {k: v for k, v in vals.items() if v is not None}
+        if any(mt in ("dter", "ter") for mt in metrics):
+            ne, nr = m.get("dter_n_err"), m.get("dter_n_ref")
+            if isinstance(ne, (int, float)) and isinstance(nr, (int, float)) and nr > 0:
+                vals["dter_n_err"] = float(ne)
+                vals["dter_n_ref"] = float(nr)
         if vals:
             out[slug] = vals
 
@@ -309,6 +316,17 @@ def _mean(values: List[float]) -> Optional[float]:
     return sum(vals) / len(vals) if vals else None
 
 
+def _micro_dter(values: Dict[str, Dict[str, float]]) -> Optional[float]:
+    pairs = [
+        (metrics.get("dter_n_err"), metrics.get("dter_n_ref"))
+        for metrics in values.values()
+    ]
+    valid = [(ne, nr) for ne, nr in pairs if ne is not None and nr not in (None, 0)]
+    if not valid:
+        return None
+    return sum(ne for ne, _ in valid) / sum(nr for _, nr in valid)
+
+
 def build_benchmark_sheet(
     wb: Workbook,
     title: str,
@@ -318,6 +336,8 @@ def build_benchmark_sheet(
     candidate: Dict[str, Dict[str, float]],
     baseline_label: str,
     candidate_label: str,
+    overall_baseline: Optional[Dict[str, float]] = None,
+    overall_candidate_override: Optional[Dict[str, float]] = None,
 ) -> Dict[str, float]:
     """Render one benchmark sheet. Returns {metric: overall candidate value}."""
     ws = wb.create_sheet(title[:31])
@@ -382,7 +402,8 @@ def build_benchmark_sheet(
                 ws.cell(row, col).fill = GROUP_AVG_FILL
             row += 1
         # overall average row
-        ob, oc = _mean(all_base), _mean(all_cand)
+        ob = (overall_baseline or {}).get(metric, _mean(all_base))
+        oc = (overall_candidate_override or {}).get(metric, _mean(all_cand))
         label = "overall avg" if len(metrics) == 1 else f"{metric.upper()} overall avg"
         ws.cell(row, 1, label).font = BOLD
         if ob is not None:
@@ -464,6 +485,7 @@ BENCHMARKS = {
         "embedded_baseline": {k: {"dter": v} for k, v in INHOUSE_BASELINE.items()},
         "default_baseline": None,
         "baseline_label": "2607v1,LID",
+        "embedded_overall": {"dter": 0.1777},
         "metric_definition": "micro-DTER = sum edits / sum reference tokens",
     },
     "digits_enus": {
@@ -483,6 +505,7 @@ BENCHMARKS = {
         "embedded_baseline": {k: {"wer": v} for k, v in OPENASR_ML_BASELINE.items()},
         "default_baseline": None,
         "baseline_label": "2607v1",
+        "embedded_overall": {"wer": 0.0292},
         "metric_definition": "WER / p_err per dataset; arithmetic language and overall averages",
     },
     "mixlang": {
@@ -493,6 +516,7 @@ BENCHMARKS = {
         "embedded_baseline": {k: {"dter": v} for k, v in MIXLANG_BASELINE.items()},
         "default_baseline": None,
         "baseline_label": "2607v1",
+        "embedded_overall": {"dter": 0.2124},
         "metric_definition": "zh-CN DTER/TER = sum edits / sum reference tokens",
     },
     "digits_tier1": {
@@ -559,15 +583,26 @@ def main() -> int:
             print(f"[warn] no baseline for {name}; column A will be empty. "
                   f"Pass --{name.replace('_', '-')}-baseline <source>.", file=sys.stderr)
 
+        overall_baseline = dict(spec.get("embedded_overall") or {}) if not base_src else {}
+        candidate_overall: Dict[str, float] = {}
+        if "dter" in metrics:
+            baseline_micro = _micro_dter(baseline)
+            if baseline_micro is not None:
+                overall_baseline["dter"] = baseline_micro
+            micro = _micro_dter(candidate)
+            if micro is not None:
+                candidate_overall["dter"] = micro
         overall = build_benchmark_sheet(
             wb, spec["title"], metrics, spec["groups"], baseline, candidate,
             args.baseline_label or spec.get("baseline_label", "reference"), args.label,
+            overall_baseline=overall_baseline,
+            overall_candidate_override=candidate_overall,
         )
         built += 1
         for metric in metrics:
             all_base = [baseline[k][metric] for _, ds in spec["groups"] for k, _ in ds
                         if k in baseline and metric in baseline[k]]
-            b_overall = _mean(all_base)
+            b_overall = overall_baseline.get(metric, _mean(all_base))
             c_overall = overall.get(metric)
             delta = (1 - c_overall / b_overall) if (b_overall not in (None, 0) and c_overall is not None) else None
             summary_rows.append({
