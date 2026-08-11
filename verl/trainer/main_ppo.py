@@ -20,7 +20,7 @@ import socket
 
 import hydra
 import ray
-from omegaconf import OmegaConf, open_dict
+from omegaconf import OmegaConf
 
 from verl.experimental.dataset.sampler import AbstractSampler
 from verl.trainer.constants_ppo import get_ppo_ray_runtime_env
@@ -346,7 +346,7 @@ def create_rl_dataset(datas, data_config, tokenizer, processor, is_train=True):
             )
     elif "datagen" in data_config and data_config.datagen.get("path", None) is not None and is_train:
         # If a data generation strategy is specified, use the DynamicGenDataset class
-        from verl.utils.dataset.dynamicgen_dataset import DynamicGenDataset
+        from verl.experimental.dynamic_dataset.dynamicgen_dataset import DynamicGenDataset
 
         dataset_cls = DynamicGenDataset
         print("Using DynamicGenDataset for data generation.")
@@ -355,18 +355,13 @@ def create_rl_dataset(datas, data_config, tokenizer, processor, is_train=True):
         # Use the default RLHFDataset class if no custom class is specified
         dataset_cls = RLHFDataset
     print(f"Using dataset class: {dataset_cls.__name__}")
-    data_config = data_config if data_config is not None else {}
-    if OmegaConf.is_config(data_config):
-        with open_dict(data_config):
-            data_config["is_train"] = is_train
-    else:
-        data_config["is_train"] = is_train
     # Instantiate the dataset using the determined dataset class
     dataset = dataset_cls(
         datas,
         tokenizer=tokenizer,
         processor=processor,
         config=data_config,
+        is_train=is_train,
     )
 
     return dataset
