@@ -141,8 +141,14 @@ class RLHFDataset(Dataset):
         ]
         data_sets = _align_null_features(data_sets)
         if self.is_training and self.use_interleave and len(data_sets) > 1:
+            logger.info(
+                "Interleaving %s datasets with parameters: %s",
+                len(data_sets),
+                self.interleave_ds,
+            )
             ds = datasets.interleave_datasets(data_sets, **self.interleave_ds)
         else:
+            logger.info("Concatenating %s datasets", len(data_sets))
             ds = datasets.concatenate_datasets(data_sets)
         return ds
 
