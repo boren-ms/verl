@@ -44,7 +44,7 @@
       fields:
         data_source: openml
     shuffle:
-      seed: 44
+      seed: 45
     verl_format:
       prompt_key: prompt
 
@@ -61,6 +61,6 @@
       fields:
         data_source: openml
     shuffle:
-      seed: 44
+      seed: 46
     verl_format:
       prompt_key: prompt

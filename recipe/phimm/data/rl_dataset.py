@@ -106,7 +106,6 @@ class RLHFDataset(Dataset):
         tokenizer: PreTrainedTokenizer,
         config: DictConfig,
         processor: Optional[ProcessorMixin] = None,
-        is_training: bool = False,
     ):
         if not isinstance(data_confs, Sequence):
             data_confs = [data_confs]
@@ -114,7 +113,7 @@ class RLHFDataset(Dataset):
         self.tokenizer = tokenizer
         self.processor = processor
         self.config = config
-        self.is_training = is_training
+        self.is_training = config.get("is_train", False)
         self.use_interleave = config.get("use_interleave", True)
         self.interleave_ds = config.get("interleave_ds", {})
         self.max_prompt_length = config.get("max_prompt_length", 1024)
