@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/mix_cv15_all_openml_verb
+  - data/train_data/mixcv15_openml3t_lid0
   - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
   - _self_
 
@@ -79,7 +79,7 @@ data:
   use_interleave: true
   model_version: 2607
   max_prompt_length: 1024
-  max_response_length: 512
+  max_response_length: 768
   train_batch_size: 256
   val_batch_size: -1
 

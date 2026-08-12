@@ -4,6 +4,7 @@ import logging
 import multiprocessing
 import os
 from pathlib import Path
+import signal
 import subprocess
 import threading
 import uuid
@@ -55,13 +56,29 @@ def _run_bbb_transfer(remote_path: str, local_path: Path) -> None:
     command = ["bbb", "cp", remote_path, str(local_path)]
     for attempt in range(1, BLOB_READ_RETRY_LIMIT + 1):
         try:
-            subprocess.run(
+            process = subprocess.Popen(
                 command,
-                check=True,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                timeout=BLOB_READ_TIMEOUT_SECONDS,
+                start_new_session=True,
             )
+            try:
+                stdout, stderr = process.communicate(timeout=BLOB_READ_TIMEOUT_SECONDS)
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                stdout, stderr = process.communicate()
+                raise subprocess.TimeoutExpired(
+                    command,
+                    BLOB_READ_TIMEOUT_SECONDS,
+                    output=stdout,
+                    stderr=stderr,
+                )
+            if process.returncode:
+                raise subprocess.CalledProcessError(process.returncode, command, stdout, stderr)
             return
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             local_path.unlink(missing_ok=True)

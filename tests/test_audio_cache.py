@@ -11,21 +11,29 @@ def test_copy_remote_wav_copies_single_file_atomically(tmp_path, monkeypatch):
     local_path = tmp_path / "Evaluation" / "sample.wav"
     commands = []
 
-    def fake_run(command, **kwargs):
-        commands.append((command, kwargs))
-        Path(command[-1]).write_bytes(b"audio")
+    class FakeProcess:
+        returncode = 0
 
-    monkeypatch.setattr(audio_cache.subprocess, "run", fake_run)
+        def __init__(self, command, **kwargs):
+            commands.append((command, kwargs))
+            self.command = command
+
+        def communicate(self, timeout):
+            assert timeout == audio_cache.BLOB_READ_TIMEOUT_SECONDS
+            Path(self.command[-1]).write_bytes(b"audio")
+            return "", ""
+
+    monkeypatch.setattr(audio_cache.subprocess, "Popen", FakeProcess)
 
     audio_cache._copy_remote_file(f"{REMOTE_ROOT}Evaluation/sample.wav", local_path)
 
     assert commands[0][0][:3] == ["bbb", "cp", f"{REMOTE_ROOT}Evaluation/sample.wav"]
     assert commands[0][0][-1].endswith(".tmp")
     assert commands[0][1] == {
-        "check": True,
-        "capture_output": True,
+        "stdout": audio_cache.subprocess.PIPE,
+        "stderr": audio_cache.subprocess.PIPE,
         "text": True,
-        "timeout": audio_cache.BLOB_READ_TIMEOUT_SECONDS,
+        "start_new_session": True,
     }
     assert local_path.read_bytes() == b"audio"
 
@@ -34,16 +42,55 @@ def test_copy_remote_non_wav_copies_atomically(tmp_path, monkeypatch):
     local_path = tmp_path / "speech" / "chunk.audio"
     commands = []
 
-    def fake_run(command, **kwargs):
-        commands.append(command)
-        Path(command[-1]).write_bytes(b"audio")
+    class FakeProcess:
+        returncode = 0
 
-    monkeypatch.setattr(audio_cache.subprocess, "run", fake_run)
+        def __init__(self, command, **kwargs):
+            commands.append(command)
+            self.command = command
+
+        def communicate(self, timeout):
+            Path(self.command[-1]).write_bytes(b"audio")
+            return "", ""
+
+    monkeypatch.setattr(audio_cache.subprocess, "Popen", FakeProcess)
 
     audio_cache._copy_remote_file(f"{REMOTE_ROOT}speech/chunk.audio", local_path)
 
     assert commands[0][:3] == ["bbb", "cp", f"{REMOTE_ROOT}speech/chunk.audio"]
     assert commands[0][-1].endswith(".tmp")
+    assert local_path.read_bytes() == b"audio"
+
+
+def test_bbb_timeout_kills_process_group_before_retry(tmp_path, monkeypatch):
+    local_path = tmp_path / "sample.wav"
+    attempts = []
+    killed = []
+
+    class FakeProcess:
+        returncode = 0
+
+        def __init__(self, command, **kwargs):
+            self.pid = 100 + len(attempts)
+            self.command = command
+            self.timed_out = not attempts
+            attempts.append(self)
+
+        def communicate(self, timeout=None):
+            if self.timed_out and timeout is not None:
+                self.timed_out = False
+                raise audio_cache.subprocess.TimeoutExpired(self.command, timeout)
+            if len(attempts) == 2:
+                local_path.write_bytes(b"audio")
+            return "", ""
+
+    monkeypatch.setattr(audio_cache.subprocess, "Popen", FakeProcess)
+    monkeypatch.setattr(audio_cache.os, "killpg", lambda pid, sig: killed.append((pid, sig)))
+
+    audio_cache._run_bbb_transfer("az://orngwus2cresco/data/sample.wav", local_path)
+
+    assert len(attempts) == 2
+    assert killed == [(100, audio_cache.signal.SIGKILL)]
     assert local_path.read_bytes() == b"audio"
 
 
