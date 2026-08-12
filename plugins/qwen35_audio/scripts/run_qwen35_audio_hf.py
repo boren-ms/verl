@@ -153,12 +153,11 @@ def main():
     # ---- Load model & processor via HF auto API ----
     t0 = time.time()
     config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+    processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_path, config=config, trust_remote_code=True,
         torch_dtype=dtype, attn_implementation=attn_impl,
     ).to(device).eval()
-
-    processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
     print(f"Loaded in {time.time() - t0:.1f}s  ({sum(p.numel() for p in model.parameters())/1e9:.2f}B params)")
 
     # ---- Load audio ----
@@ -177,6 +176,7 @@ def main():
             **inputs,
             max_new_tokens=MAX_NEW_TOKENS,
             do_sample=False,
+            use_cache=False,
             eos_token_id=processor.tokenizer.eos_token_id,
             pad_token_id=processor.tokenizer.eos_token_id,
         )
