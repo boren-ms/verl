@@ -58,42 +58,6 @@
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/en-US/OnlineMeetings_CS_Product_FY22_en-US_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: English
-  post_process:
-    add_field:
-      fields:
-        data_source: enus_om_cs_product_fy22
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
-- dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/en-US/OnlineMeetings_CS_Shiproom_FY22_en-US_DTEST/test.jsonl
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: WavPath
-        text: DisplayTranscription
-  add_task_info:
-    task: lang_asr
-    language: English
-  post_process:
-    add_field:
-      fields:
-        data_source: enus_om_cs_shiproom_fy22
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
-
 # ── da-DK ──────────────────────────────────────────────────────────────────────
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/da-DK/Conversation_DTEST_FY21Q3_da-DK_DTEST/test.jsonl

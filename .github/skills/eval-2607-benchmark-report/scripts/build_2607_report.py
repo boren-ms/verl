@@ -70,8 +70,6 @@ INHOUSE_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
         ("enus_conv_fy21q1", "en-US_Conversation_DTEST_FY21Q1"),
         ("enus_conv_om_fy25q3", "en-US_Conversation_OnlineMeetings_DTEST_FY25Q3"),
         ("enus_dict_office_fy24q3", "en-US_Dictation_Commonset_OfficeOffline_FY24Q3"),
-        ("enus_om_cs_product_fy22", "en-US_OnlineMeetings_CS_Product_FY22"),
-        ("enus_om_cs_shiproom_fy22", "en-US_OnlineMeetings_CS_Shiproom_FY22"),
     ]),
     ("nl-NL", [
         ("nlnl_conv_fy23q2", "nl-NL_Conversation_DTEST_FY23Q2"),
