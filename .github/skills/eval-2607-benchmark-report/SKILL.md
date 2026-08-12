@@ -1,12 +1,12 @@
 ---
 name: eval-2607-benchmark-report
-description: "Evaluate a 2607 ASR model on the standard in-house DTER, OpenASR-ML, and MixLang benchmarks remotely and create one baseline-aware Excel workbook, with optional digits evaluations. Use when: evaluate 2607 benchmarks, run 2607 model evaluation, build 2607 benchmark Excel report, or compare a 2607 checkpoint against its reference model."
-argument-hint: '<model-label> <model-path> [--node <verl-node>] [--include-digits-enus] [--include-digits-tier1] [--artifact-root <az-path>] [--out <xlsx>]'
+description: "Evaluate one or more checkpoints of the same 2607 ASR model on the standard in-house DTER, OpenASR-ML, and MixLang benchmarks remotely, create baseline-aware Excel reports, and merge reports from different checkpoint steps into one multi-sheet workbook. Use when: evaluate 2607 benchmarks, run 2607 model evaluation, build or merge 2607 benchmark Excel reports, compare checkpoints across steps, or compare a 2607 checkpoint against its reference model."
+argument-hint: '<model-label> <model-path> [--node <verl-node>] [--include-digits-enus] [--include-digits-tier1] [--artifact-root <az-path>] [--out <xlsx>] [--merge-report <step>=<xlsx> ...]'
 ---
 
-# 2607 Benchmark Evaluation And Excel Report
+# 2607 Benchmark Evaluation And Multi-Checkpoint Excel Report
 
-Evaluate one candidate ASR model on the standard 2607 benchmark suite on a remote `verl-*` Brix node. Produce one `.xlsx` workbook with one benchmark sheet per evaluation, containing the candidate, the config-defined reference model, and relative improvement versus that reference. Preserve each evaluation's W&B metadata, key metric logs, and detailed decoding results under a durable remote blob path.
+Evaluate one or more checkpoint steps of the same candidate ASR model on the standard 2607 benchmark suite on remote `verl-*` Brix nodes. Produce a baseline-aware `.xlsx` report for each checkpoint, then merge reports for different steps into one model-level workbook when more than one checkpoint is supplied. The merged workbook has a cross-step `summary` sheet and separately named benchmark sheets for every checkpoint. Preserve each evaluation's W&B metadata, key metric logs, and detailed decoding results under a durable remote blob path.
 
 Delegate remote submission, monitoring, failure recovery, and result retrieval to the `verl-asr-run` skill. This skill owns benchmark selection, baseline discipline, and workbook assembly.
 
@@ -14,13 +14,14 @@ Delegate remote submission, monitoring, failure recovery, and result retrieval t
 
 | Input | Required | Meaning |
 |---|---:|---|
-| `model-label` | Yes | Short workbook column label, such as `remax_2607@step560`. |
+| `model-label` | Yes | For one checkpoint, the workbook column label such as `remax_2607@step560`; for a merge, the shared model/run label such as `remax_2607`. |
 | `model-path` | Yes | Candidate HF checkpoint path, normally an `az://.../qwen_hf/` directory. |
 | `--node` | No | Ready remote `verl-n<N>-*` node. Let `verl-asr-run` select one when omitted; evaluations use that running pool's verified `N` as `trainer.nnodes`. |
 | `--include-digits-enus` | No | Add the optional en-US digits benchmark. |
 | `--include-digits-tier1` | No | Add the optional Tier 1 digits benchmark. |
 | `--out` | No | Final workbook path. Default: `tmp/eval_2607_reports/<model-label>.xlsx`. |
 | `--artifact-root` | No | Durable `az://.../` root for raw evaluation artifacts. Default: the common remote evaluation output root for `<model-label>`; it must not be node-local storage. |
+| `--merge-report <step>=<xlsx>` | No | Existing single-checkpoint report to merge. Repeat once per checkpoint step, in desired sheet order. All reports must belong to the same model family and use the same benchmark/config schema. |
 
 ## Benchmark Contract
 
@@ -55,13 +56,18 @@ The reference checkpoint and candidate must use the same config, data, locale, s
    - Optional `digits_enus` and `digits_tier1`: preserve both Digit CER and WER, with every evaluated dataset as a row.
    - `openasr_ml`: use final `p_err`/WER per dataset, language averages, and an overall average.
    - `mixlang`: use the final reference-compatible DTER/TER from `measures.json`, retaining the configured zh-CN scoring context.
-8. Build the workbook with [scripts/build_2607_report.py](./scripts/build_2607_report.py). It reuses existing eval outputs and produces sheets in this order: `summary`, `inhouse_dter`, optional `digits_enus`, `openasr_ml`, `mixlang` (its own separate sheet), then optional `digits_tier1`. Each benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
+8. Build one single-checkpoint workbook per evaluated step with [scripts/build_2607_report.py](./scripts/build_2607_report.py). It reuses existing eval outputs and produces sheets in this order: `summary`, `inhouse_dter`, optional `digits_enus`, `openasr_ml`, `mixlang` (its own separate sheet), then optional `digits_tier1`. Keep these intermediate workbooks; they are the inputs to the multi-checkpoint merge. Each benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
 
    $$\mathrm{delta}=1-\frac{\mathrm{candidate\ error}}{\mathrm{reference\ error}}$$
 
    The delta column is labelled per metric — `TERR` for DTER/TER, `WERR` for WER, `CERR` for CER. Positive delta means the candidate improved. Data-row delta cells use the Excel formula `=1-C{row}/B{row}`; per-group and overall averages store the computed numeric delta. All error and delta cells use percentage formatting, and the delta column carries a red→white→green color scale centered at 0.
 9. The script also emits the `summary` sheet with one row per included benchmark metric: the aggregate baseline and candidate values, the overall delta, and the source config. Digits rows appear only for the explicitly requested digits evaluations.
-10. Preserve baseline and raw-artifact provenance: keep the config path, reference model path, candidate path, metric definition, W&B run URL/ID, key-metrics remote path, detailed-decoding remote paths, and artifact-manifest remote path with the workbook. Do not silently merge outputs produced by differing config revisions. When the workbook format cannot hold all paths cleanly, write a sidecar `<workbook-stem>.artifacts.json` and place its local path and remote blob path in the workbook provenance.
+10. When two or more checkpoints of the same model are available, merge their completed single-checkpoint workbooks with [scripts/merge_2607_reports.py](./scripts/merge_2607_reports.py). Pass each report as `--report <checkpoint-label>=<path>` in ascending step order unless the caller requests another order. The merged workbook contains:
+   - `summary`: one row per checkpoint, benchmark, and metric, with the checkpoint label, baseline, candidate, delta, config, model paths, result sources, artifact sidecars, and source workbook.
+   - `<checkpoint>_<benchmark>`: a faithful copy of each benchmark sheet, retaining formulas, percentage formatting, conditional formatting, widths, and provenance values. Sheet names are sanitized for Excel, limited to 31 characters, and given a stable hash suffix only when truncation causes a collision.
+
+   Do not copy the per-checkpoint `summary` sheets verbatim; consolidate them into the single cross-step `summary`. Reject the merge if checkpoint labels repeat or if the reports differ in included benchmark/metric/config schema. Do not silently combine reports from different model families, baseline revisions, optional benchmark sets, or config revisions.
+11. Preserve baseline and raw-artifact provenance: keep the config path, reference model path, candidate path, metric definition, W&B run URL/ID, key-metrics remote path, detailed-decoding remote paths, artifact-manifest remote path, and source workbook path with the merged workbook. When the workbook format cannot hold all paths cleanly, write a sidecar `<workbook-stem>.artifacts.json` per checkpoint and retain its local and remote paths in the merged summary.
 
 ### Consolidated report script
 
@@ -90,6 +96,22 @@ An explicit `--<bench>-baseline` source overrides the embedded values. For optio
 
 The `inhouse_dter`, `openasr_ml`, and `mixlang` baselines come from the embedded table above, so their `--*-baseline` flags may be omitted. Add `--digits-enus <cand>` with `--digits-enus-baseline <base>` only when `--include-digits-enus` was requested. Add `--digits-tier1 <cand>` with `--digits-tier1-baseline <base>` only when `--include-digits-tier1` was requested. Only benchmarks whose candidate source is supplied get a sheet.
 
+### Merge reports across checkpoint steps
+
+Use the merge helper only after every source workbook passes the single-checkpoint quality gates. The repeated `--report` arguments define checkpoint and sheet order.
+
+```bash
+/home/boren/.virtualenvs/openai/bin/python \
+   .github/skills/eval-2607-benchmark-report/scripts/merge_2607_reports.py \
+   --model-label "remax_2607" \
+   --report "step280=tmp/eval_2607_reports/remax_2607_step280.xlsx" \
+   --report "step560=tmp/eval_2607_reports/remax_2607_step560.xlsx" \
+   --report "step840=tmp/eval_2607_reports/remax_2607_step840.xlsx" \
+   --out tmp/eval_2607_reports/remax_2607_all_steps.xlsx
+```
+
+Do not merge by placing multiple candidate columns into the same benchmark sheet. Keep each checkpoint's benchmark sheet self-contained so its baseline, formulas, and provenance remain auditable. Use the merged `summary` sheet for cross-step sorting and comparison.
+
 ## Quality Gates
 
 Before delivering the workbook, verify all of the following:
@@ -103,7 +125,11 @@ Before delivering the workbook, verify all of the following:
 - Every executed evaluation records its W&B run ID and URL, or an explicit reason W&B was unavailable, and the W&B identity agrees with the experiment represented in the workbook.
 - In-house values are micro-DTER; OpenASR-ML includes language and overall averages; any included digits sheet contains CER and WER; MixLang records its zh-CN scoring backend.
 - Every sheet has non-empty baseline and candidate values, percentage formatting, and a correctly signed delta (`1 - B/A`).
-- Workbook opens successfully and contains exactly the expected sheet set, with `mixlang` on its own separate sheet, and its provenance references the remote raw-artifact paths.
+- Every single-checkpoint workbook opens successfully and contains exactly the expected sheet set, with `mixlang` on its own separate sheet, and its provenance references the remote raw-artifact paths.
+- A merged workbook contains exactly one `summary` sheet plus one prefixed benchmark sheet per checkpoint and included benchmark; it contains no copied per-checkpoint summary sheets.
+- All merged reports have unique checkpoint labels and identical benchmark, metric, config, baseline revision, and optional-digits coverage. Their candidate model paths identify different steps of the same model family.
+- The merged `summary` has a non-empty row for every checkpoint/benchmark/metric combination and retains both artifact sidecar paths and the source workbook path.
+- Reopen the merged workbook with `openpyxl`, confirm its expected sheet names and row counts, and verify at least one copied delta cell still contains an Excel formula rather than a cached value.
 
 ## Existing Helpers
 
