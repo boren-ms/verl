@@ -78,12 +78,12 @@ val_reward:
 
 actor_rollout_ref:
   rollout:
-    n: 12
+    n: 16
     gt_rollout: false
     temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
-    gpu_memory_utilization: 0.7
+    gpu_memory_utilization: 0.9
   actor:
     tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 4
@@ -101,11 +101,11 @@ algorithm:
 
 data:
   trust_remote_code: false
-  shuffle: true # shuffle done in dataset
-  use_interleave: false
+  shuffle: false # shuffle done by interleave
+  use_interleave: true
   model_version: 2607
   max_prompt_length: 1024
-  max_response_length: 512
+  max_response_length: 768
   train_batch_size: 256
   val_batch_size: -1
 
