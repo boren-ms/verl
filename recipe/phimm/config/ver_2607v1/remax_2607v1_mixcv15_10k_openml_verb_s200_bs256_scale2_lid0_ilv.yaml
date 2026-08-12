@@ -75,7 +75,7 @@ algorithm:
 
 data:
   trust_remote_code: false
-  shuffle: false # shuffle done by interleave
+  shuffle: true # shuffle done by interleave
   use_interleave: true
   model_version: 2607
   max_prompt_length: 1024
