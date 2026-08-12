@@ -16,7 +16,8 @@ import soundfile as sf
 import torch
 
 REMOTE_MODEL_PATH = (
-    "az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/"
+    "az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/"
+    "fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/"
 )
 REMOTE_AUDIO_PATH = (
     "az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-360/115/"
@@ -26,9 +27,12 @@ LOCAL_CACHE_ROOT = "/root/data/qwen35_audio_test"
 DEFAULT_MODEL_PATH = REMOTE_MODEL_PATH
 DEFAULT_AUDIO_PATH = REMOTE_AUDIO_PATH
 DEFAULT_PROMPT = (
-    "<|im_start|>user\n<audio>\n"
-    "Detect the language and transcribe the audio into text.<|im_end|>\n"
-    "<|im_start|>assistant\n"
+    "<|im_start|>user"
+    "Detect the language and transcribe the audio clip into text.<audio><|im_end|>"
+    "<|im_start|>assistant"
+    "<think>"
+    " "
+    "</think>"
 )
 DEFAULT_STOP_TOKEN_IDS = [248044, 248046]
 MODEL_ARCHITECTURE = "Qwen3_5AudioForCausalLM"
@@ -63,6 +67,11 @@ def parse_args() -> argparse.Namespace:
         "--skip-stage",
         action="store_true",
         help="Do not stage az:// inputs; pass paths through directly.",
+    )
+    parser.add_argument(
+        "--trust-remote-code",
+        action=argparse.BooleanOptionalAction,
+        default=False,
     )
     parser.add_argument("--prompt", default=DEFAULT_PROMPT)
     parser.add_argument("--tensor-parallel-size", type=int, default=1)
@@ -219,7 +228,7 @@ def main() -> None:
     start_time = time.time()
     llm = LLM(
         model=model_path,
-        trust_remote_code=True,
+        trust_remote_code=args.trust_remote_code,
         max_model_len=args.max_model_len,
         max_num_seqs=args.max_num_seqs,
         load_format="auto",

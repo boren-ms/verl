@@ -25,8 +25,8 @@ import torchaudio.functional as F
 from transformers import AutoConfig, AutoModelForCausalLM, AutoProcessor
 
 REMOTE_MODEL_PATH = (
-    "az://orngwus2cresco/data/speech/projects/phi-fastllm-2605/amlt-results/"
-    "fast-llm-2605-qwen3-5-9b-s2-st-example/90000/qwen_hf/"
+    "az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/"
+    "fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/"
 )
 REMOTE_AUDIO_PATH = (
     "az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-360/115/"
@@ -68,6 +68,12 @@ def parse_args() -> argparse.Namespace:
         "--skip-stage",
         action="store_true",
         help="Do not stage az:// inputs; pass paths through directly.",
+    )
+    parser.add_argument("--instruction", default=INSTRUCTION)
+    parser.add_argument(
+        "--trust-remote-code",
+        action=argparse.BooleanOptionalAction,
+        default=False,
     )
     return parser.parse_args()
 
@@ -152,10 +158,10 @@ def main():
 
     # ---- Load model & processor via HF auto API ----
     t0 = time.time()
-    config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
-    processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
+    config = AutoConfig.from_pretrained(model_path, trust_remote_code=args.trust_remote_code)
+    processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=args.trust_remote_code)
     model = AutoModelForCausalLM.from_pretrained(
-        model_path, config=config, trust_remote_code=True,
+        model_path, config=config, trust_remote_code=args.trust_remote_code,
         torch_dtype=dtype, attn_implementation=attn_impl,
     ).to(device).eval()
     print(f"Loaded in {time.time() - t0:.1f}s  ({sum(p.numel() for p in model.parameters())/1e9:.2f}B params)")
@@ -165,7 +171,7 @@ def main():
     print(f"Audio: {len(wav)/sr:.2f}s @ {sr}Hz")
 
     # ---- Build prompt & process inputs ----
-    prompt = f"<|im_start|>user\n<audio>\n{INSTRUCTION}<|im_end|>\n<|im_start|>assistant\n"
+    prompt = f"<|im_start|>user\n<audio>\n{args.instruction}<|im_end|>\n<|im_start|>assistant\n"
 
     inputs = processor(text=prompt, audios=[(wav, sr)], return_tensors="pt").to(device)
 
