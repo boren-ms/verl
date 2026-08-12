@@ -26,14 +26,7 @@ REMOTE_AUDIO_PATH = (
 LOCAL_CACHE_ROOT = "/root/data/qwen35_audio_test"
 DEFAULT_MODEL_PATH = REMOTE_MODEL_PATH
 DEFAULT_AUDIO_PATH = REMOTE_AUDIO_PATH
-DEFAULT_PROMPT = (
-    "<|im_start|>user"
-    "Detect the language and transcribe the audio clip into text.<audio><|im_end|>"
-    "<|im_start|>assistant"
-    "<think>"
-    " "
-    "</think>"
-)
+DEFAULT_INSTRUCTION = "Detect the language and transcribe the audio clip into text.<audio>"
 DEFAULT_STOP_TOKEN_IDS = [248044, 248046]
 MODEL_ARCHITECTURE = "Qwen3_5AudioForCausalLM"
 TARGET_SAMPLE_RATE = 16_000
@@ -73,7 +66,8 @@ def parse_args() -> argparse.Namespace:
         action=argparse.BooleanOptionalAction,
         default=False,
     )
-    parser.add_argument("--prompt", default=DEFAULT_PROMPT)
+    parser.add_argument("--instruction", default=DEFAULT_INSTRUCTION)
+    parser.add_argument("--assistant-prefix", default="")
     parser.add_argument("--tensor-parallel-size", type=int, default=1)
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.5)
     parser.add_argument("--max-model-len", type=int, default=4096)
@@ -164,6 +158,19 @@ def load_audio(audio_path: str) -> tuple[np.ndarray, int]:
     return waveform.astype(np.float32), sample_rate
 
 
+def build_prompt(model_path: str, instruction: str, assistant_prefix: str) -> str:
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=False)
+    _chat_obj = tokenizer
+    prompt = _chat_obj.apply_chat_template(
+        [{"role": "user", "content": instruction}],
+        add_generation_prompt=True,
+        tokenize=False,
+    )
+    return f"{prompt}{assistant_prefix}"
+
+
 def package_version(package: str) -> str:
     try:
         return metadata.version(package)
@@ -224,6 +231,8 @@ def main() -> None:
 
     waveform, sample_rate = load_audio(audio_path)
     print(f"audio_seconds={len(waveform) / sample_rate:.2f} sample_rate={sample_rate}")
+    prompt = build_prompt(model_path, args.instruction, args.assistant_prefix)
+    print(f"prompt={prompt!r}")
 
     start_time = time.time()
     llm = LLM(
@@ -254,7 +263,7 @@ def main() -> None:
     outputs = llm.generate(
         [
             {
-                "prompt": args.prompt,
+                "prompt": prompt,
                 "multi_modal_data": {"audio": [(waveform, sample_rate)]},
             }
         ],
