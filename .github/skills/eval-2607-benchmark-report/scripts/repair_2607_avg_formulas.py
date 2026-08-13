@@ -101,6 +101,8 @@ def repair_benchmark_sheet(worksheet) -> Optional[SheetResult]:
         if not isinstance(label, str):
             continue
         normalized = label.strip()
+        if normalized == "Header" and result.overalls:
+            break
         if normalized.upper() in METRIC_TITLES:
             current_metric = normalized.upper()
             group_rows = []
@@ -226,6 +228,57 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
     if worksheet.cell(1, 1).value != "Benchmark":
         return
     headers = [worksheet.cell(1, column).value for column in range(1, worksheet.max_column + 1)]
+    if "Metric definition" not in headers:
+        benchmark_column = headers.index("Benchmark") + 1
+        metric_column = headers.index("Metric") + 1 if "Metric" in headers else None
+        baseline_column = next(
+            column
+            for column, header in enumerate(headers, start=1)
+            if str(header).lower() == "baseline" or str(header).startswith("Baseline (")
+        )
+        candidate_column = next(
+            column
+            for column, header in enumerate(headers, start=1)
+            if str(header).lower() == "candidate" or str(header).startswith("Candidate (")
+        )
+        delta_column = next(
+            column
+            for column, header in enumerate(headers, start=1)
+            if str(header).lower() == "delta"
+        )
+        data_rows = [
+            row
+            for row in range(2, worksheet.max_row + 1)
+            if isinstance(worksheet.cell(row, benchmark_column).value, str)
+        ]
+        for row in data_rows:
+            benchmark = worksheet.cell(row, benchmark_column).value
+            if benchmark not in results:
+                continue
+            metric = (
+                worksheet.cell(row, metric_column).value
+                if metric_column is not None
+                else _metric_from_sheet(str(benchmark))
+            )
+            result, values = _result_for(results, str(benchmark), str(metric))
+            baseline = values.get(result.value_columns[0])
+            candidate = values.get(result.value_columns[1])
+            worksheet.cell(row, baseline_column, baseline).number_format = PCT_FMT
+            worksheet.cell(row, candidate_column, candidate).number_format = PCT_FMT
+            worksheet.cell(
+                row,
+                delta_column,
+                1 - candidate / baseline
+                if baseline not in (None, 0) and candidate is not None
+                else None,
+            ).number_format = PCT_FMT
+        _ensure_summary_delta_colors(
+            worksheet,
+            header_row=1,
+            data_start=2,
+            data_end=max(data_rows, default=1),
+        )
+        return
     metric_definition_column = headers.index("Metric definition") + 1
     summary_value_columns = [3] + [
         column
@@ -250,11 +303,15 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
             continue
         result, values = _result_for(results, benchmark, metric)
         if len(summary_value_columns) != len(result.value_columns):
-            raise ValueError(f"summary/{benchmark}: value-column count mismatch")
-        for summary_column, sheet_column in zip(summary_value_columns, result.value_columns, strict=True):
+            if len(summary_value_columns) > len(result.value_columns):
+                raise ValueError(f"summary/{benchmark}: value-column count mismatch")
+            sheet_value_columns = [result.value_columns[0], result.value_columns[-1]]
+        else:
+            sheet_value_columns = result.value_columns
+        for summary_column, sheet_column in zip(summary_value_columns, sheet_value_columns, strict=True):
             worksheet.cell(row, summary_column, values.get(sheet_column)).number_format = PCT_FMT
-        baseline = values.get(result.value_columns[0])
-        for summary_column, sheet_column in zip(summary_delta_columns, result.value_columns[1:], strict=True):
+        baseline = values.get(sheet_value_columns[0])
+        for summary_column, sheet_column in zip(summary_delta_columns, sheet_value_columns[1:], strict=True):
             candidate = values.get(sheet_column)
             worksheet.cell(
                 row,
@@ -287,7 +344,8 @@ def repair_workbook(path: Path) -> tuple[int, int]:
     if not results:
         raise ValueError(f"{path}: no benchmark sheets found")
     repair_summary(workbook, results)
-    apply_summary_charts(workbook["summary"])
+    if "summary" in workbook.sheetnames:
+        apply_summary_charts(workbook["summary"])
     ensure_valid_style_fills(workbook)
     workbook.calculation.calcMode = "auto"
     workbook.calculation.fullCalcOnLoad = True
