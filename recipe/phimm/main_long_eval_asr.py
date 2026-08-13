@@ -166,7 +166,7 @@ def build_dataloader(config, tokenizer, processor):
     """Load the (svad-exploded) eval dataset and wrap it in a DataLoader."""
     ds_conf = config.data.get("gen_data", config.data.get("val_data", config.data.get("train_data", None)))
     assert ds_conf is not None, "Please specify data.val_data (or data.gen_data) in the config"
-    dataset = RLHFDataset(ds_conf, tokenizer, config.data, processor)
+    dataset = RLHFDataset(ds_conf, tokenizer, config.data, processor, is_train=False)
     print(f"Loaded RLHFDataset with {len(dataset)} segments (post svad_explode).")
 
     dataloader = DataLoader(
