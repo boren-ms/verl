@@ -47,6 +47,9 @@ from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from summary_charts import apply_summary_charts
+
 # ---------------------------------------------------------------------------
 # Styling (mirrors inhouse-dter-report)
 # ---------------------------------------------------------------------------
@@ -470,6 +473,7 @@ def build_summary_sheet(wb: Workbook, rows: List[Dict[str, object]],
                 end_type="num", end_value=0.1, end_color="FF63BE7B",
             ),
         )
+    apply_summary_charts(ws)
 
 
 # ---------------------------------------------------------------------------

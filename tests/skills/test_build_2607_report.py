@@ -77,3 +77,37 @@ def test_inhouse_avg_rows_use_excel_arithmetic_formulas(tmp_path, monkeypatch):
         "FFFFFFFF",
         "FF63BE7B",
     ]
+    assert len(summary._charts) == 1
+    chart = summary._charts[0]
+    assert len(chart._charts) == 1
+    assert len(chart.series) == 1
+    assert chart.title is None
+    assert chart.visible_cells_only is False
+    assert chart.anchor._from.col == 0
+    assert chart.anchor._from.row == 4
+    assert chart.series[0].tx.strRef.f.endswith("!Z2")
+    assert chart.series[0].cat.numRef.f.endswith("!$W$3")
+    assert chart.series[0].invertIfNegative is False
+    assert len(chart.series[0].dPt) == 1
+    assert chart.series[0].dPt[0].invertIfNegative is False
+    assert chart.series[0].dPt[0].graphicalProperties.solidFill.srgbClr == "F8696B"
+    assert chart.series[0].dPt[0].graphicalProperties.line.solidFill.srgbClr == "F8696B"
+    assert chart.y_axis.majorGridlines is None
+    baseline_overall = sum(baseline_values) / len(baseline_values)
+    delta = 1 - 0.20 / baseline_overall
+    assert chart.y_axis.scaling.min == pytest.approx(delta - abs(delta) * 0.05)
+    assert chart.y_axis.scaling.max == 0
+    assert chart.x_axis.delete is False
+    assert chart.x_axis.title is None
+    assert chart.x_axis.tickLblPos == "low"
+    assert chart.x_axis.majorTickMark is None
+    assert chart.x_axis.spPr.ln.solidFill.srgbClr == "595959"
+    assert chart.y_axis.delete is False
+    assert chart.y_axis.axPos == "l"
+    assert chart.y_axis.title is None
+    assert chart.y_axis.crossesAt == 0
+    assert chart.legend is None
+    assert chart.dLbls.showVal is True
+    assert chart.dLbls.numFmt == "0.00%"
+    assert chart.dLbls.position == "outEnd"
+    assert summary["W3"].value == "inhouse_dter"

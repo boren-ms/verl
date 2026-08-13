@@ -15,6 +15,11 @@ from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from summary_charts import apply_summary_charts
+
 HEADER_FILL = PatternFill("solid", fgColor="FFD9E1F2")
 BOLD = Font(bold=True)
 CENTER = Alignment(horizontal="center")
@@ -201,6 +206,7 @@ def build_summary(workbook: Workbook, model_label: str, rows: List[List[object]]
                 end_type="num", end_value=0.1, end_color="FF63BE7B",
             ),
         )
+    apply_summary_charts(worksheet)
 
 
 def main() -> int:

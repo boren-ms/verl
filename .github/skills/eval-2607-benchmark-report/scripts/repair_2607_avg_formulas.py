@@ -12,6 +12,11 @@ from openpyxl import load_workbook
 from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.utils import get_column_letter
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from summary_charts import apply_summary_charts
+
 PCT_FMT = "0.00%"
 METRIC_TITLES = {"CER", "DTER", "TER", "WER"}
 
@@ -169,15 +174,15 @@ def _result_for(results: dict[str, SheetResult], sheet_name: str, metric: str) -
     return result, values
 
 
-def _ensure_summary_delta_colors(worksheet, header_row: int, data_start: int) -> None:
-    if worksheet.max_row < data_start:
+def _ensure_summary_delta_colors(worksheet, header_row: int, data_start: int, data_end: int) -> None:
+    if data_end < data_start:
         return
     worksheet.conditional_formatting._cf_rules.clear()
     for column in range(1, worksheet.max_column + 1):
         if str(worksheet.cell(header_row, column).value).lower() != "delta":
             continue
         letter = get_column_letter(column)
-        cell_range = f"{letter}{data_start}:{letter}{worksheet.max_row}"
+        cell_range = f"{letter}{data_start}:{letter}{data_end}"
         worksheet.conditional_formatting.add(
             cell_range,
             ColorScaleRule(
@@ -194,7 +199,14 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
     worksheet = workbook["summary"]
 
     if worksheet.cell(3, 1).value == "Checkpoint":
-        for row in range(4, worksheet.max_row + 1):
+        data_rows = [
+            row
+            for row in range(4, worksheet.max_row + 1)
+            if isinstance(worksheet.cell(row, 1).value, str)
+            and isinstance(worksheet.cell(row, 2).value, str)
+            and isinstance(worksheet.cell(row, 3).value, str)
+        ]
+        for row in data_rows:
             checkpoint = worksheet.cell(row, 1).value
             benchmark = worksheet.cell(row, 2).value
             metric = worksheet.cell(row, 3).value
@@ -207,7 +219,7 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
             worksheet.cell(row, 4, baseline).number_format = PCT_FMT
             worksheet.cell(row, 5, candidate).number_format = PCT_FMT
             worksheet.cell(row, 6, 1 - candidate / baseline if baseline not in (None, 0) and candidate is not None else None).number_format = PCT_FMT
-        _ensure_summary_delta_colors(worksheet, header_row=3, data_start=4)
+        _ensure_summary_delta_colors(worksheet, header_row=3, data_start=4, data_end=max(data_rows, default=3))
         return
 
     if worksheet.cell(1, 1).value != "Benchmark":
@@ -224,7 +236,13 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
         for column in range(4, metric_definition_column)
         if str(worksheet.cell(1, column).value).lower() == "delta"
     ]
-    for row in range(2, worksheet.max_row + 1):
+    data_rows = [
+        row
+        for row in range(2, worksheet.max_row + 1)
+        if isinstance(worksheet.cell(row, 1).value, str)
+        and isinstance(worksheet.cell(row, 2).value, str)
+    ]
+    for row in data_rows:
         benchmark = worksheet.cell(row, 1).value
         metric = worksheet.cell(row, 2).value
         if not isinstance(benchmark, str) or not isinstance(metric, str) or benchmark not in results:
@@ -242,7 +260,7 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
                 summary_column,
                 1 - candidate / baseline if baseline not in (None, 0) and candidate is not None else None,
             ).number_format = PCT_FMT
-    _ensure_summary_delta_colors(worksheet, header_row=1, data_start=2)
+    _ensure_summary_delta_colors(worksheet, header_row=1, data_start=2, data_end=max(data_rows, default=1))
 
 
 def repair_workbook(path: Path) -> tuple[int, int]:
@@ -255,6 +273,7 @@ def repair_workbook(path: Path) -> tuple[int, int]:
     if not results:
         raise ValueError(f"{path}: no benchmark sheets found")
     repair_summary(workbook, results)
+    apply_summary_charts(workbook["summary"])
     workbook.calculation.calcMode = "auto"
     workbook.calculation.fullCalcOnLoad = True
     workbook.calculation.forceFullCalc = True
