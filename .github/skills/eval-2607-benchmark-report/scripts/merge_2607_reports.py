@@ -227,6 +227,9 @@ def main() -> int:
     output.move_sheet("summary", -len(output.sheetnames) + 1)
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    output.calculation.calcMode = "auto"
+    output.calculation.fullCalcOnLoad = True
+    output.calculation.forceFullCalc = True
     output.save(out_path)
     print(f"Wrote {out_path} with sheets: {', '.join(output.sheetnames)}")
     return 0

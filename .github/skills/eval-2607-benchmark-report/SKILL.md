@@ -112,6 +112,17 @@ Use the merge helper only after every source workbook passes the single-checkpoi
 
 Do not merge by placing multiple candidate columns into the same benchmark sheet. Keep each checkpoint's benchmark sheet self-contained so its baseline, formulas, and provenance remain auditable. Use the merged `summary` sheet for cross-step sorting and comparison.
 
+### Repair existing workbooks
+
+Use [scripts/repair_2607_avg_formulas.py](./scripts/repair_2607_avg_formulas.py) to update existing single-checkpoint, merged, or legacy multi-column 2607 workbooks in place. Pass one or more workbook paths. The utility replaces stored numeric group and overall averages with arithmetic Excel `AVERAGE(...)` formulas, refreshes summary aggregates from dataset rows, and enables full automatic recalculation.
+
+```bash
+/home/boren/.virtualenvs/openai/bin/python \
+   .github/skills/eval-2607-benchmark-report/scripts/repair_2607_avg_formulas.py \
+   tmp/eval_2607_reports/report1.xlsx \
+   tmp/eval_2607_reports/report2.xlsx
+```
+
 ## Quality Gates
 
 Before delivering the workbook, verify all of the following:
