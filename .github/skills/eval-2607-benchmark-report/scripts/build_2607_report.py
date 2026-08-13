@@ -461,6 +461,15 @@ def build_summary_sheet(wb: Workbook, rows: List[Dict[str, object]],
     for row in ws.iter_rows(min_row=2, max_row=1 + len(rows), min_col=2, max_col=5):
         for cell in row:
             cell.alignment = CENTER
+    if rows:
+        ws.conditional_formatting.add(
+            f"E2:E{1 + len(rows)}",
+            ColorScaleRule(
+                start_type="num", start_value=-0.1, start_color="FFF8696B",
+                mid_type="num", mid_value=0, mid_color="FFFFFFFF",
+                end_type="num", end_value=0.1, end_color="FF63BE7B",
+            ),
+        )
 
 
 # ---------------------------------------------------------------------------

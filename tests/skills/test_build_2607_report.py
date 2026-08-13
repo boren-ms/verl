@@ -68,3 +68,12 @@ def test_inhouse_avg_rows_use_excel_arithmetic_formulas(tmp_path, monkeypatch):
         sum(baseline_values) / len(baseline_values)
     )
     assert workbook["summary"].cell(2, 4).value == pytest.approx(0.20)
+    summary = workbook["summary"]
+    assert [str(item.sqref) for item in summary.conditional_formatting] == ["E2"]
+    rule = next(iter(summary.conditional_formatting)).rules[0]
+    assert [value.val for value in rule.colorScale.cfvo] == [-0.1, 0.0, 0.1]
+    assert [color.rgb for color in rule.colorScale.color] == [
+        "FFF8696B",
+        "FFFFFFFF",
+        "FF63BE7B",
+    ]

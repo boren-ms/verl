@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Optional
 
 from openpyxl import load_workbook
+from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.utils import get_column_letter
 
 PCT_FMT = "0.00%"
@@ -120,7 +121,7 @@ def repair_benchmark_sheet(worksheet) -> Optional[SheetResult]:
                 worksheet.cell(row, column, _average_formula(column, section_ranges)).number_format = PCT_FMT
                 result.overalls[metric][column] = average
                 result.formula_cells += 1
-            for candidate_column, delta_column in zip(value_columns[1:], delta_columns):
+            for candidate_column, delta_column in zip(value_columns[1:], delta_columns, strict=True):
                 if candidate_column in result.overalls[metric] and value_columns[0] in result.overalls[metric]:
                     candidate = get_column_letter(candidate_column)
                     baseline = get_column_letter(value_columns[0])
@@ -141,7 +142,7 @@ def repair_benchmark_sheet(worksheet) -> Optional[SheetResult]:
                 continue
             worksheet.cell(row, column, _average_formula(column, [group_range])).number_format = PCT_FMT
             result.formula_cells += 1
-        for candidate_column, delta_column in zip(value_columns[1:], delta_columns):
+        for candidate_column, delta_column in zip(value_columns[1:], delta_columns, strict=True):
             baseline_column = value_columns[0]
             if (
                 _numeric_average(worksheet, baseline_column, group_rows) is not None
@@ -168,6 +169,25 @@ def _result_for(results: dict[str, SheetResult], sheet_name: str, metric: str) -
     return result, values
 
 
+def _ensure_summary_delta_colors(worksheet, header_row: int, data_start: int) -> None:
+    if worksheet.max_row < data_start:
+        return
+    worksheet.conditional_formatting._cf_rules.clear()
+    for column in range(1, worksheet.max_column + 1):
+        if str(worksheet.cell(header_row, column).value).lower() != "delta":
+            continue
+        letter = get_column_letter(column)
+        cell_range = f"{letter}{data_start}:{letter}{worksheet.max_row}"
+        worksheet.conditional_formatting.add(
+            cell_range,
+            ColorScaleRule(
+                start_type="num", start_value=-0.1, start_color="FFF8696B",
+                mid_type="num", mid_value=0, mid_color="FFFFFFFF",
+                end_type="num", end_value=0.1, end_color="FF63BE7B",
+            ),
+        )
+
+
 def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
     if "summary" not in workbook.sheetnames:
         return
@@ -187,6 +207,7 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
             worksheet.cell(row, 4, baseline).number_format = PCT_FMT
             worksheet.cell(row, 5, candidate).number_format = PCT_FMT
             worksheet.cell(row, 6, 1 - candidate / baseline if baseline not in (None, 0) and candidate is not None else None).number_format = PCT_FMT
+        _ensure_summary_delta_colors(worksheet, header_row=3, data_start=4)
         return
 
     if worksheet.cell(1, 1).value != "Benchmark":
@@ -211,16 +232,17 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
         result, values = _result_for(results, benchmark, metric)
         if len(summary_value_columns) != len(result.value_columns):
             raise ValueError(f"summary/{benchmark}: value-column count mismatch")
-        for summary_column, sheet_column in zip(summary_value_columns, result.value_columns):
+        for summary_column, sheet_column in zip(summary_value_columns, result.value_columns, strict=True):
             worksheet.cell(row, summary_column, values.get(sheet_column)).number_format = PCT_FMT
         baseline = values.get(result.value_columns[0])
-        for summary_column, sheet_column in zip(summary_delta_columns, result.value_columns[1:]):
+        for summary_column, sheet_column in zip(summary_delta_columns, result.value_columns[1:], strict=True):
             candidate = values.get(sheet_column)
             worksheet.cell(
                 row,
                 summary_column,
                 1 - candidate / baseline if baseline not in (None, 0) and candidate is not None else None,
             ).number_format = PCT_FMT
+    _ensure_summary_delta_colors(worksheet, header_row=1, data_start=2)
 
 
 def repair_workbook(path: Path) -> tuple[int, int]:

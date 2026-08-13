@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 from openpyxl import Workbook, load_workbook
+from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
@@ -191,6 +192,15 @@ def build_summary(workbook: Workbook, model_label: str, rows: List[List[object]]
         worksheet.column_dimensions[get_column_letter(column)].width = width
     worksheet.freeze_panes = "A4"
     worksheet.auto_filter.ref = f"A3:{get_column_letter(len(SUMMARY_COLUMNS))}{3 + len(rows)}"
+    if rows:
+        worksheet.conditional_formatting.add(
+            f"F4:F{3 + len(rows)}",
+            ColorScaleRule(
+                start_type="num", start_value=-0.1, start_color="FFF8696B",
+                mid_type="num", mid_value=0, mid_color="FFFFFFFF",
+                end_type="num", end_value=0.1, end_color="FF63BE7B",
+            ),
+        )
 
 
 def main() -> int:
