@@ -10,6 +10,7 @@ from typing import Optional
 
 from openpyxl import load_workbook
 from openpyxl.formatting.rule import ColorScaleRule
+from openpyxl.styles import PatternFill
 from openpyxl.utils import get_column_letter
 
 import sys
@@ -263,6 +264,19 @@ def repair_summary(workbook, results: dict[str, SheetResult]) -> None:
     _ensure_summary_delta_colors(worksheet, header_row=1, data_start=2, data_end=max(data_rows, default=1))
 
 
+def ensure_valid_style_fills(workbook) -> None:
+    max_fill_id = max((style.fillId for style in workbook._cell_styles), default=0)
+    repair_fills = {
+        3: PatternFill("solid", fgColor="FFFFF2CC"),
+        4: PatternFill("solid", fgColor="FFE2EFDA"),
+    }
+    while len(workbook._fills) <= max_fill_id:
+        fill_id = len(workbook._fills)
+        if fill_id not in repair_fills:
+            raise ValueError(f"cannot repair missing fillId={fill_id}")
+        workbook._fills.append(repair_fills[fill_id])
+
+
 def repair_workbook(path: Path) -> tuple[int, int]:
     workbook = load_workbook(path, data_only=False)
     results: dict[str, SheetResult] = {}
@@ -274,6 +288,7 @@ def repair_workbook(path: Path) -> tuple[int, int]:
         raise ValueError(f"{path}: no benchmark sheets found")
     repair_summary(workbook, results)
     apply_summary_charts(workbook["summary"])
+    ensure_valid_style_fills(workbook)
     workbook.calculation.calcMode = "auto"
     workbook.calculation.fullCalcOnLoad = True
     workbook.calculation.forceFullCalc = True

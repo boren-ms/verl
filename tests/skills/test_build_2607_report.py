@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 import pytest
-from openpyxl import load_workbook
+from openpyxl import Workbook, load_workbook
 
 
 SCRIPT = (
@@ -85,29 +85,104 @@ def test_inhouse_avg_rows_use_excel_arithmetic_formulas(tmp_path, monkeypatch):
     assert chart.visible_cells_only is False
     assert chart.anchor._from.col == 0
     assert chart.anchor._from.row == 4
-    assert chart.series[0].tx.strRef.f.endswith("!Z2")
+    assert chart.series[0].tx.strRef.f.endswith("!X2")
     assert chart.series[0].cat.numRef.f.endswith("!$W$3")
     assert chart.series[0].invertIfNegative is False
     assert len(chart.series[0].dPt) == 1
     assert chart.series[0].dPt[0].invertIfNegative is False
-    assert chart.series[0].dPt[0].graphicalProperties.solidFill.srgbClr == "F8696B"
-    assert chart.series[0].dPt[0].graphicalProperties.line.solidFill.srgbClr == "F8696B"
+    assert chart.series[0].dPt[0].graphicalProperties.solidFill.srgbClr == "4F81BD"
+    assert chart.series[0].dPt[0].graphicalProperties.line.solidFill.srgbClr == "4F81BD"
     assert chart.y_axis.majorGridlines is None
     baseline_overall = sum(baseline_values) / len(baseline_values)
     delta = 1 - 0.20 / baseline_overall
-    assert chart.y_axis.scaling.min == pytest.approx(delta - abs(delta) * 0.05)
+    assert chart.y_axis.scaling.min == pytest.approx(delta - abs(delta) * 0.15)
     assert chart.y_axis.scaling.max == 0
     assert chart.x_axis.delete is False
+    assert chart.x_axis.axPos == "b"
     assert chart.x_axis.title is None
     assert chart.x_axis.tickLblPos == "low"
     assert chart.x_axis.majorTickMark is None
     assert chart.x_axis.spPr.ln.solidFill.srgbClr == "595959"
+    assert chart.x_axis.majorGridlines is not None
+    assert chart.x_axis.majorGridlines.spPr.ln.solidFill.srgbClr == "D9D9D9"
     assert chart.y_axis.delete is False
     assert chart.y_axis.axPos == "l"
     assert chart.y_axis.title is None
     assert chart.y_axis.crossesAt == 0
-    assert chart.legend is None
+    assert chart.legend is not None
+    assert chart.legend.position == "t"
     assert chart.dLbls.showVal is True
+    assert chart.dLbls.showLegendKey is False
     assert chart.dLbls.numFmt == "0.00%"
     assert chart.dLbls.position == "outEnd"
+    assert chart.overlap == -40
+    assert chart.gapWidth == 260
     assert summary["W3"].value == "inhouse_dter"
+
+
+def test_merged_summary_chart_clusters_steps_by_dataset():
+    report = _load_report_module()
+    workbook = Workbook()
+    summary = workbook.active
+    summary.title = "summary"
+    summary.append(["Model", "candidate"])
+    summary.append([])
+    summary.append(["Checkpoint", "Benchmark", "Metric", "Baseline", "Candidate", "Delta"])
+    for checkpoint, values in (
+        ("step10", (("inhouse_dter", 0.18, 0.17), ("openasr_ml", 0.03, 0.031))),
+        ("step20", (("inhouse_dter", 0.18, 0.19), ("openasr_ml", 0.03, 0.028))),
+    ):
+        for benchmark, baseline, candidate in values:
+            summary.append(
+                [checkpoint, benchmark, "DTER", baseline, candidate, 1 - candidate / baseline]
+            )
+
+    assert report.apply_summary_charts(summary) == 1
+
+    marker = next(cell.column for cell in summary[1] if cell.value == "__chart_data__")
+    assert [summary.cell(row, marker).value for row in range(3, 5)] == [
+        "inhouse_dter",
+        "openasr_ml",
+    ]
+    assert [summary.cell(2, column).value for column in range(marker + 1, marker + 3)] == [
+        "step10",
+        "step20",
+    ]
+    chart = summary._charts[0]
+    assert len(chart.series) == 2
+    assert all(len(series.dPt) == 2 for series in chart.series)
+    assert [series.graphicalProperties.solidFill.srgbClr for series in chart.series] == [
+        "4F81BD",
+        "C0504D",
+    ]
+    assert all(
+        point.graphicalProperties.solidFill.srgbClr == "4F81BD"
+        for point in chart.series[0].dPt
+    )
+    assert all(
+        point.graphicalProperties.solidFill.srgbClr == "C0504D"
+        for point in chart.series[1].dPt
+    )
+    assert chart.legend.position == "t"
+
+
+def test_single_summary_chart_colors_each_dataset():
+    report = _load_report_module()
+    workbook = Workbook()
+    summary = workbook.active
+    summary.title = "summary"
+    summary.append(["Benchmark", "Metric", "Baseline", "Candidate (step100)", "delta"])
+    summary.append(["inhouse_dter", "DTER", 0.18, 0.17, 1 - 0.17 / 0.18])
+    summary.append(["openasr_ml", "WER", 0.03, 0.029, 1 - 0.029 / 0.03])
+    summary.append(["mixlang", "DTER", 0.21, 0.16, 1 - 0.16 / 0.21])
+
+    assert report.apply_summary_charts(summary) == 1
+
+    chart = summary._charts[0]
+    assert len(chart.series) == 1
+    assert [point.graphicalProperties.solidFill.srgbClr for point in chart.series[0].dPt] == [
+        "4F81BD",
+        "C0504D",
+        "9BBB59",
+    ]
+    assert chart.legend.position == "t"

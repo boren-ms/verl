@@ -93,7 +93,12 @@ def copy_sheet(source, target) -> None:
             target_cell = target[source_cell.coordinate]
             target_cell.value = source_cell.value
             if source_cell.has_style:
-                target_cell._style = copy.copy(source_cell._style)
+                target_cell.font = copy.copy(source_cell.font)
+                target_cell.fill = copy.copy(source_cell.fill)
+                target_cell.border = copy.copy(source_cell.border)
+                target_cell.alignment = copy.copy(source_cell.alignment)
+                target_cell.number_format = source_cell.number_format
+                target_cell.protection = copy.copy(source_cell.protection)
             if source_cell.hyperlink:
                 target_cell._hyperlink = copy.copy(source_cell.hyperlink)
             if source_cell.comment:
