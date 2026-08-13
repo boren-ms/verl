@@ -52,7 +52,7 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 
    Confirm every recorded `az://` object or prefix exists and is readable. A W&B URL alone is not a substitute for the raw key-metrics log, and a Ray job log or node-local path is not a durable detailed-decoding result.
 7. Extract metrics from the final candidate and reference outputs:
-   - `inhouse_dter`: calculate micro-DTER as $\sum edits / \sum reference\ tokens$ per corpus; do not use segment-macro DTER.
+   - `inhouse_dter`: calculate micro-DTER as $\sum edits / \sum reference\ tokens$ per corpus; do not use segment-macro DTER. Compute `overall avg` as the arithmetic mean of the displayed corpus micro-DTER values so it matches the embedded baseline convention; do not pool counts across corpora.
    - Optional `digits_enus` and `digits_tier1`: preserve both Digit CER and WER, with every evaluated dataset as a row.
    - `openasr_ml`: use final `p_err`/WER per dataset, language averages, and an overall average.
    - `mixlang`: use the final reference-compatible DTER/TER from `measures.json`, retaining the configured zh-CN scoring context.
@@ -60,7 +60,7 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 
    $$\mathrm{delta}=1-\frac{\mathrm{candidate\ error}}{\mathrm{reference\ error}}$$
 
-   The delta column is labelled per metric — `TERR` for DTER/TER, `WERR` for WER, `CERR` for CER. Positive delta means the candidate improved. Data-row delta cells use the Excel formula `=1-C{row}/B{row}`; per-group and overall averages store the computed numeric delta. All error and delta cells use percentage formatting, and the delta column carries a red→white→green color scale centered at 0.
+   Every group and overall `avg` value cell uses an Excel `AVERAGE(...)` formula over the displayed dataset cells for that metric; no fixed, weighted, pooled-count, or stored-numeric override is allowed. Overall formulas reference only dataset ranges and exclude intermediate group-average rows. The delta column is labelled per metric — `TERR` for DTER/TER, `WERR` for WER, `CERR` for CER. Positive delta means the candidate improved. Data and average-row delta cells use the Excel formula `=1-C{row}/B{row}`. All error and delta cells use percentage formatting, and the delta column carries a red→white→green color scale centered at 0.
 9. The script also emits the `summary` sheet with one row per included benchmark metric: the aggregate baseline and candidate values, the overall delta, and the source config. Digits rows appear only for the explicitly requested digits evaluations.
 10. When two or more checkpoints of the same model are available, merge their completed single-checkpoint workbooks with [scripts/merge_2607_reports.py](./scripts/merge_2607_reports.py). Pass each report as `--report <checkpoint-label>=<path>` in ascending step order unless the caller requests another order. The merged workbook contains:
    - `summary`: one row per checkpoint, benchmark, and metric, with the checkpoint label, baseline, candidate, delta, config, model paths, result sources, artifact sidecars, and source workbook.
@@ -123,7 +123,7 @@ Before delivering the workbook, verify all of the following:
 - Candidate and baseline use identical data/locale/scoring parameters for each sheet.
 - Every executed evaluation has a readable remote `artifact_manifest.json`, raw key-metrics log, and detailed decoding result path; none points only to node-local storage.
 - Every executed evaluation records its W&B run ID and URL, or an explicit reason W&B was unavailable, and the W&B identity agrees with the experiment represented in the workbook.
-- In-house values are micro-DTER; OpenASR-ML includes language and overall averages; any included digits sheet contains CER and WER; MixLang records its zh-CN scoring backend.
+- In-house corpus values are micro-DTER and its `overall avg` is the arithmetic corpus average; OpenASR-ML includes language and overall averages; any included digits sheet contains CER and WER; MixLang records its zh-CN scoring backend.
 - Every sheet has non-empty baseline and candidate values, percentage formatting, and a correctly signed delta (`1 - B/A`).
 - Every single-checkpoint workbook opens successfully and contains exactly the expected sheet set, with `mixlang` on its own separate sheet, and its provenance references the remote raw-artifact paths.
 - A merged workbook contains exactly one `summary` sheet plus one prefixed benchmark sheet per checkpoint and included benchmark; it contains no copied per-checkpoint summary sheets.

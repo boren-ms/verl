@@ -314,17 +314,6 @@ def _mean(values: List[float]) -> Optional[float]:
     return sum(vals) / len(vals) if vals else None
 
 
-def _micro_dter(values: Dict[str, Dict[str, float]]) -> Optional[float]:
-    pairs = [
-        (metrics.get("dter_n_err"), metrics.get("dter_n_ref"))
-        for metrics in values.values()
-    ]
-    valid = [(ne, nr) for ne, nr in pairs if ne is not None and nr not in (None, 0)]
-    if not valid:
-        return None
-    return sum(ne for ne, _ in valid) / sum(nr for _, nr in valid)
-
-
 def build_benchmark_sheet(
     wb: Workbook,
     title: str,
@@ -334,8 +323,6 @@ def build_benchmark_sheet(
     candidate: Dict[str, Dict[str, float]],
     baseline_label: str,
     candidate_label: str,
-    overall_baseline: Optional[Dict[str, float]] = None,
-    overall_candidate_override: Optional[Dict[str, float]] = None,
 ) -> Dict[str, float]:
     """Render one benchmark sheet. Returns {metric: overall candidate value}."""
     ws = wb.create_sheet(title[:31])
@@ -368,9 +355,11 @@ def build_benchmark_sheet(
         delta_start = row
         all_base: List[float] = []
         all_cand: List[float] = []
+        data_ranges: List[Tuple[int, int]] = []
         for group_name, datasets in groups:
             g_base: List[float] = []
             g_cand: List[float] = []
+            group_start = row
             for key, display in datasets:
                 ws.cell(row, 1, display)
                 b = baseline.get(key, {}).get(metric)
@@ -387,30 +376,33 @@ def build_benchmark_sheet(
                     dc = ws.cell(row, 4, f"=1-C{row}/B{row}")
                     dc.number_format = PCT_FMT
                 row += 1
+            group_end = row - 1
+            data_ranges.append((group_start, group_end))
             # per-group average row
-            gb, gc = _mean(g_base), _mean(g_cand)
             ws.cell(row, 1, f"{group_name} avg").font = BOLD
-            if gb is not None:
-                ws.cell(row, 2, gb).number_format = PCT_FMT
-            if gc is not None:
-                ws.cell(row, 3, gc).number_format = PCT_FMT
-            if gb not in (None, 0) and gc is not None:
-                ws.cell(row, 4, 1 - gc / gb).number_format = PCT_FMT
+            if g_base:
+                ws.cell(row, 2, f"=AVERAGE(B{group_start}:B{group_end})").number_format = PCT_FMT
+            if g_cand:
+                ws.cell(row, 3, f"=AVERAGE(C{group_start}:C{group_end})").number_format = PCT_FMT
+            if g_base and g_cand:
+                ws.cell(row, 4, f"=1-C{row}/B{row}").number_format = PCT_FMT
             for col in (1, 2, 3, 4):
                 ws.cell(row, col).fill = GROUP_AVG_FILL
             row += 1
         # overall average row
-        ob = (overall_baseline or {}).get(metric, _mean(all_base))
-        oc = (overall_candidate_override or {}).get(metric, _mean(all_cand))
+        ob = _mean(all_base)
+        oc = _mean(all_cand)
         label = "overall avg" if len(metrics) == 1 else f"{metric.upper()} overall avg"
         ws.cell(row, 1, label).font = BOLD
         if ob is not None:
-            ws.cell(row, 2, ob).number_format = PCT_FMT
+            ranges = ",".join(f"B{start}:B{end}" for start, end in data_ranges)
+            ws.cell(row, 2, f"=AVERAGE({ranges})").number_format = PCT_FMT
         if oc is not None:
-            ws.cell(row, 3, oc).number_format = PCT_FMT
+            ranges = ",".join(f"C{start}:C{end}" for start, end in data_ranges)
+            ws.cell(row, 3, f"=AVERAGE({ranges})").number_format = PCT_FMT
             overall_candidate[metric] = oc
         if ob not in (None, 0) and oc is not None:
-            ws.cell(row, 4, 1 - oc / ob).number_format = PCT_FMT
+            ws.cell(row, 4, f"=1-C{row}/B{row}").number_format = PCT_FMT
         for col in (1, 2, 3, 4):
             ws.cell(row, col).fill = OVERALL_FILL
         row += 1
@@ -483,7 +475,6 @@ BENCHMARKS = {
         "embedded_baseline": {k: {"dter": v} for k, v in INHOUSE_BASELINE.items()},
         "default_baseline": None,
         "baseline_label": "2607v1,LID",
-        "embedded_overall": {"dter": 0.1777},
         "metric_definition": "micro-DTER = sum edits / sum reference tokens",
     },
     "digits_enus": {
@@ -503,7 +494,6 @@ BENCHMARKS = {
         "embedded_baseline": {k: {"wer": v} for k, v in OPENASR_ML_BASELINE.items()},
         "default_baseline": None,
         "baseline_label": "2607v1",
-        "embedded_overall": {"wer": 0.0292},
         "metric_definition": "WER / p_err per dataset; arithmetic language and overall averages",
     },
     "mixlang": {
@@ -514,7 +504,6 @@ BENCHMARKS = {
         "embedded_baseline": {k: {"dter": v} for k, v in MIXLANG_BASELINE.items()},
         "default_baseline": None,
         "baseline_label": "2607v1",
-        "embedded_overall": {"dter": 0.2124},
         "metric_definition": "zh-CN DTER/TER = sum edits / sum reference tokens",
     },
     "digits_tier1": {
@@ -581,26 +570,15 @@ def main() -> int:
             print(f"[warn] no baseline for {name}; column A will be empty. "
                   f"Pass --{name.replace('_', '-')}-baseline <source>.", file=sys.stderr)
 
-        overall_baseline = dict(spec.get("embedded_overall") or {}) if not base_src else {}
-        candidate_overall: Dict[str, float] = {}
-        if "dter" in metrics:
-            baseline_micro = _micro_dter(baseline)
-            if baseline_micro is not None:
-                overall_baseline["dter"] = baseline_micro
-            micro = _micro_dter(candidate)
-            if micro is not None:
-                candidate_overall["dter"] = micro
         overall = build_benchmark_sheet(
             wb, spec["title"], metrics, spec["groups"], baseline, candidate,
             args.baseline_label or spec.get("baseline_label", "reference"), args.label,
-            overall_baseline=overall_baseline,
-            overall_candidate_override=candidate_overall,
         )
         built += 1
         for metric in metrics:
             all_base = [baseline[k][metric] for _, ds in spec["groups"] for k, _ in ds
                         if k in baseline and metric in baseline[k]]
-            b_overall = overall_baseline.get(metric, _mean(all_base))
+            b_overall = _mean(all_base)
             c_overall = overall.get(metric)
             delta = (1 - c_overall / b_overall) if (b_overall not in (None, 0) and c_overall is not None) else None
             summary_rows.append({
@@ -626,6 +604,9 @@ def main() -> int:
     out = args.out or f"tmp/eval_2607_reports/{args.label.replace('@', '_').replace('/', '_')}.xlsx"
     out_path = Path(out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    wb.calculation.calcMode = "auto"
+    wb.calculation.fullCalcOnLoad = True
+    wb.calculation.forceFullCalc = True
     wb.save(out_path)
     print(f"Wrote {out_path} with sheets: {', '.join(wb.sheetnames)}")
     return 0
