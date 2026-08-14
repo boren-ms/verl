@@ -1,31 +1,61 @@
 ---
 name: verl-eval-workload
-description: "Recover and continue the active six-model 2607 ASR benchmark batch after context loss, reconnecting to Ray jobs, preserving completed artifacts, refilling permitted nodes, and immediately building checkpoint and merged Excel reports. Use when: recover evaluation workload, resume 2607 benchmark batch, continue interrupted eval jobs, reconstruct benchmark status, or restore the six-model evaluation schedule."
-argument-hint: "[status|resume|rebuild-reports]"
+description: "Launch, monitor, recover, and report 2607 ASR evaluation workloads for user-supplied model checkpoints on the dedicated verl-n1-i10 through verl-n1-i15 pool. Use when: launch evaluation jobs, evaluate checkpoints, run 2607 benchmarks, resume evaluation workload, refill eval nodes, or build evaluation reports."
+argument-hint: "<model-or-checkpoint-paths> [steps] [status|launch|resume|report]"
 ---
 
-# Recover The Active 2607 Benchmark Workload
+# Run 2607 Evaluation Workloads
 
-Recover the ongoing 2607 benchmark batch without duplicating successful work or
-overwriting unrelated jobs. This skill is a workload-specific recovery layer
-over `eval-2607-benchmark-report` and `verl-asr-run`.
+Launch or recover a 2607 ASR benchmark workload for the model names,
+checkpoint paths, and steps supplied by the user. Preserve successful work,
+avoid unrelated jobs, package durable outputs, and build reports as soon as
+their inputs are complete.
 
-The live cluster and durable blob artifacts are authoritative. The snapshot
-below is only a recovery starting point; always rediscover current jobs,
-checkpoint availability, and report files before acting.
+This skill coordinates `eval-2607-benchmark-report` and `verl-asr-run`. The
+live cluster and durable blob artifacts are authoritative; never rely on job
+IDs or completion state copied from an earlier session.
 
-## Workload Contract
+## Required Inputs
 
-Evaluate these model families at steps `30`, `50`, `100`, and `150`:
+Resolve these values from the user's request before submitting work:
 
-1. `remax_2607v1_bad_mixcv15_openml_verb_s200_bs256_n2_scale8_lid0_ilv`
-2. `remax_2607v1_mixcv15_openml3t_s200_bs256_scale2_lid0_swtich`
-3. `remax_2607v1_mix_openml_verb_s200_bs256_scale2_lid0_ilv3`
-4. `remax_2607v1_mix_openml_verb_s200_bs256_lid0_ilv2`
-5. `gdpo_2607v1_mix_openml_verb_s200_bs256_w10_lid0_ilv`
-6. `remax_2607v1_mix_openml_verb_s200_bs256_scale2_lid0_ilv`
+1. Candidate model name or report label.
+2. One or more candidate HF checkpoint paths, or a path template plus steps.
+3. Benchmarks to run. Default to the complete benchmark suite below.
+4. Durable artifact root. Derive the default from the candidate label and
+   step, but confirm that it cannot collide with an unrelated workload.
 
-Every available checkpoint requires exactly these benchmarks:
+If a required model or checkpoint cannot be determined unambiguously, ask the
+user. Status and recovery operations may discover these values from existing
+Ray commands and artifact manifests.
+
+For a conventional verl training output, use:
+
+```text
+az://orngwus2cresco/data/boren/outputs/ver_2607/<MODEL>/global_step_<STEP>/qwen_hf/
+```
+
+Default evaluation artifacts:
+
+```text
+az://orngwus2cresco/data/boren/outputs/eval_2607_reports/<MODEL>_step<STEP>/<BENCHMARK>/candidate/
+```
+
+Default local reports:
+
+```text
+tmp/eval_2607_reports/<MODEL>_step<STEP>.xlsx
+tmp/eval_2607_reports/<MODEL>_all_steps.xlsx
+```
+
+Sanitize user-provided labels before using them in experiment names or paths.
+Never overwrite an artifact root whose manifest identifies a different model
+path, config, or workload.
+
+## Benchmark Suite
+
+Unless the user requests a subset, run all three benchmarks for every supplied
+checkpoint:
 
 | Benchmark | Config | Model override |
 |---|---|---|
@@ -33,61 +63,66 @@ Every available checkpoint requires exactly these benchmarks:
 | OpenASR-ML | `eval_openasr_ml_verb_2607` | `actor_rollout_ref.model.path` |
 | MixLang | `long_eval_mixlang_fy26q2_zh_seg_2607` | `model.path` |
 
-Always pass `trainer.nnodes=1`. Digits benchmarks are not part of this batch.
+Always pass `trainer.nnodes=1`. Digits benchmarks are excluded unless the user
+explicitly requests them through a separate workflow.
 
-Reference model:
+Default reference model:
 
 ```text
 az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio/45000/qwen_hf/
 ```
 
-Candidate HF checkpoints:
+## Dedicated Evaluation Pool
+
+Only these nodes may run evaluation, checkpoint export, packaging, or report
+work for this skill:
 
 ```text
-az://orngwus2cresco/data/boren/outputs/ver_2607/<MODEL>/global_step_<STEP>/qwen_hf/
+verl-n1-i10
+verl-n1-i11
+verl-n1-i12
+verl-n1-i13
+verl-n1-i14
+verl-n1-i15
 ```
 
-Evaluation artifacts:
-
-```text
-az://orngwus2cresco/data/boren/outputs/eval_2607_reports/<MODEL>_step<STEP>/<BENCHMARK>/candidate/
-```
-
-Local reports:
-
-```text
-tmp/eval_2607_reports/<MODEL>_step<STEP>.xlsx
-tmp/eval_2607_reports/<MODEL>_all_steps.xlsx
-```
-
-## Hard Scheduling Rules
-
-- Never use `verl-n1-i4` for evaluation, export, packaging, or report work.
-  Inspect it only to avoid scheduling conflicts and omit it from user-facing
-  evaluation tables.
-- Do not stop, replace, or display nodes occupied by unrelated training jobs.
-- A node is free only when it has no running Ray job and all GPUs have at most
+- Never schedule this workload on any `verl-n1-i*` node outside that list.
+- Inspect only the dedicated pool when reconstructing occupancy, and show only
+  those nodes in user-facing workload tables.
+- Do not stop, replace, or overwrite unrelated jobs on a dedicated node.
+- A node is free only when it has no running Ray job and every GPU has at most
   5% utilization and at most 5000 MiB allocated.
 - Reuse complete durable outputs. Never rerun a benchmark merely because its
   original Ray job is no longer listed.
-- After every completed long evaluation, package its metrics and detailed
-  outputs before reassigning the node.
-- Build a checkpoint workbook immediately when all three benchmark outputs are
-  complete and packaged. Do not wait for other checkpoints.
-- Merge a model workbook immediately when all four checkpoint workbooks are
-  valid. Do not wait for other models.
+- Package every completed evaluation before reassigning its node.
+- Build a checkpoint workbook immediately when all requested benchmark outputs
+  for that checkpoint are complete and packaged.
+- Merge a model workbook immediately when every requested checkpoint workbook
+  for that model is valid.
 
-## Recovery Procedure
+## Procedure
 
-### 1. Reconstruct cluster occupancy
+### 1. Build the work matrix
 
-List all Ready nodes:
+Expand the user inputs into one row per model, checkpoint, and benchmark.
+Record the candidate path, report label, config, artifact root, and state:
+`unavailable`, `missing`, `running`, `scoring`, `packageable`, `complete`,
+`failed`, or `reported`.
+
+Check that each candidate HF directory contains `model.safetensors`, config,
+tokenizer, processor, and required custom model code before marking it
+available. Do not invent missing steps or wait for unspecified future
+checkpoints.
+
+### 2. Reconstruct dedicated-pool occupancy
+
+List Ready nodes, restricted to the dedicated pool:
 
 ```bash
-brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep '^verl-n1-i'
+brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '^verl-n1-i(10|11|12|13|14|15)([[:space:]]|$)'
 ```
 
-On every Ready node, collect both signals:
+On every Ready dedicated node, collect both signals:
 
 ```bash
 brix ssh <NODE> -- 'bash -l -c "
@@ -97,14 +132,15 @@ brix ssh <NODE> -- 'bash -l -c "
 "'
 ```
 
-Classify each job from its command line. Only commands using
-`main_asr_eval` or `main_long_eval_asr` with `eval2607_...` experiment names
-belong to this workload.
+Classify a Ray job from its full command line and associate it with a work row
+using the candidate model path, config, and experiment name. Commands using
+`main_asr_eval` or `main_long_eval_asr` are evaluation jobs, but they belong to
+this workload only when their inputs match the current work matrix.
 
-### 2. Reconstruct durable completion state
+### 3. Reconstruct durable completion
 
-For each model, step, and benchmark, inspect the candidate artifact root.
-A benchmark is complete only when:
+Inspect each requested candidate artifact root before launching anything. A
+benchmark is complete only when:
 
 - Long evaluation: every expected dataset has readable `details.jsonl` and
   `measures.json`.
@@ -113,7 +149,7 @@ A benchmark is complete only when:
 - The root has readable `wandb.json`, `key_metrics.json`, and
   `artifact_manifest.json`.
 
-Long-evaluation expected counts:
+Expected complete-suite long-evaluation counts:
 
 - In-house DTER: 18 dataset directories.
 - MixLang: one `mixlang_fy26q2` directory.
@@ -123,42 +159,44 @@ existing run instead of rerunning it. The manifest must record the actual node,
 Ray job ID, model path, config, `trainer.nnodes=1`, detailed-output paths, and
 completion timestamp.
 
-### 3. Recover missing HF exports
+### 4. Export missing HF checkpoints when possible
 
-Check for `model.safetensors`, config, tokenizer, processor, and custom model
-code under each requested `qwen_hf/` directory. When absent:
+When the user supplied a verl checkpoint rather than a ready HF checkpoint,
+export it before evaluation:
 
-1. Merge the verl checkpoint with
-   `--match-lora-merged --lora-alpha 640 --lora-rank 320`.
-2. Replace every `.base_layer.` key segment with `.`.
-3. Save `model.safetensors` and remove the intermediate `model.pt`.
-4. Copy base-model metadata and tokenizer/custom-code files.
-5. Upload the complete directory and verify it contains 1,274 tensors and an
-   approximately 18.8 GB BF16 safetensors file.
+1. Merge the verl checkpoint with the LoRA parameters from its training config.
+   Do not assume fixed alpha or rank values; read them from provenance or ask
+   the user when unavailable.
+2. Replace every `.base_layer.` key segment with `.` when the exported state
+   uses wrapped base-layer keys.
+3. Save `model.safetensors` and remove temporary `model.pt` only after the
+   safetensors file validates.
+4. Copy base-model metadata, tokenizer, processor, and custom-code files.
+5. Upload the complete directory and verify tensor readability, dtype, model
+   config compatibility, and expected size from the source architecture.
 6. Clear stale node-local blob caches before evaluation.
 
-The ilv3 step-150 export was still gated at the snapshot time because training
-had reached only `global_step_130`. Recheck the blob root on every recovery.
+Do not schedule an unavailable checkpoint. Continue with other available work
+and report the exact missing prerequisite.
 
-### 4. Reconnect, repair, and refill
+### 5. Reconnect, repair, and launch
 
-- For a listed workload job, query `ray job status <JOB_ID>` and tail its logs.
-- If `SUCCEEDED`, package outputs, generate any newly eligible report, and
-  immediately submit the next missing benchmark to that permitted node.
+- For a listed matching job, query `ray job status <JOB_ID>` and tail its logs.
+- If `SUCCEEDED`, package outputs, build any newly eligible report, and submit
+  the next missing work row to the same node if it remains free.
 - If `FAILED`, retain the traceback, repair the root cause, and rerun only that
   benchmark with the same durable output root.
-- Blob connection timeouts are usually transient; allow built-in retries.
-- If a Ready permitted node has no Ray head, start a single-node head with:
+- Treat blob connection timeouts as transient when built-in retries remain.
+- Submit missing rows only to free Ready nodes in the dedicated pool.
+- Use a unique experiment name containing the sanitized model label, checkpoint
+  label or step, benchmark, and a short collision-resistant suffix.
+- Before submission, print and verify the resolved candidate path, config,
+  override key, `trainer.nnodes=1`, artifact root, and chosen node.
+- Avoid workspace synchronization when no code changed. After a required sync,
+  verify that the base-image Ray head on port 6380 and dashboard on port 9209
+  are healthy before submission; do not restart Ray services casually.
 
-```bash
-ray start --head --port=6380 --dashboard-port=9209
-```
-
-- Workspace synchronization may restart a pod and destroy Ray state. Avoid an
-  unnecessary sync when no code changed; after any required sync, verify and
-  restore the Ray head before submission.
-
-### 5. Build reports immediately
+### 6. Build and validate reports
 
 Use:
 
@@ -166,11 +204,13 @@ Use:
 .github/skills/eval-2607-benchmark-report/scripts/build_2607_report.py
 ```
 
-Supply the durable in-house and MixLang roots. Supply OpenASR-ML from a retained
-metrics JSON/text file or `ray:<node>:<job-id>` while that Ray history remains
-available. Use the embedded 2607v1 baselines.
+Supply durable in-house and MixLang roots. Supply OpenASR-ML from retained
+metrics JSON/text or `ray:<node>:<job-id>` while Ray history is available. Use
+the embedded 2607v1 baselines unless the user supplied another reference.
 
-Validate each workbook by reopening it with `openpyxl` and confirming:
+For a requested subset, clearly label the report as partial and do not claim
+complete-suite validation. For the complete suite, reopen each workbook with
+`openpyxl` and confirm:
 
 - Exact sheets: `summary`, `inhouse_dter`, `openasr_ml`, `mixlang`.
 - No digits sheets.
@@ -179,54 +219,25 @@ Validate each workbook by reopening it with `openpyxl` and confirming:
 - Model paths and config provenance are present.
 - Expected row counts and percentage formats are intact.
 
-Use `merge_2607_reports.py` as soon as steps 30, 50, 100, and 150 for one model
-are individually valid.
+Use `merge_2607_reports.py` once all requested checkpoint reports for one model
+are individually valid. Order merged sheets by numeric checkpoint step when
+steps exist; otherwise preserve the user's checkpoint order.
 
-## Snapshot At 2026-08-12 22:11 UTC
+## Monitoring and Completion
 
-Treat all job IDs as initial discovery hints, not permanent identities.
+For a long-running workload, maintain one five-minute monitor. Each poll must:
 
-| Node | Job ID | Work item | Snapshot phase |
-|---|---|---|---|
-| `i1` | `raysubmit_e3FKjgyPB2uXk35v` | bad-mix@30 OpenASR-ML | running |
-| `i3` | `raysubmit_GRjRFqKMd33R6zU5` | bad-mix@150 OpenASR-ML | running |
-| `i6` | `raysubmit_XYAUAK4fPJ2P9hsx` | ilv3@30 MixLang | generation starting |
-| `i7` | `raysubmit_bubewAv7dpy7GjZU` | mixcv15@30 OpenASR-ML | running |
-| `i8` | `raysubmit_WeV1JcMMS3N7DJS1` | mixcv15@100 OpenASR-ML | running; W&B `vhejv3q2` |
-| `i10` | `raysubmit_3pxtc3JcAdLPN87n` | bad-mix@100 OpenASR-ML | running |
-| `i11` | `raysubmit_WPgdrrFY7DeSbEAH` | mixcv15@50 OpenASR-ML | running |
-| `i12` | `raysubmit_SurXy5sS3pLLyvcs` | mixcv15@150 in-house | scoring |
-| `i13` | `raysubmit_EnMQet42w8zxQZZ1` | mixcv15@150 OpenASR-ML | running |
+- rediscover Ready nodes only in `verl-n1-i10` through `verl-n1-i15`;
+- rediscover matching Ray jobs instead of relying on saved job IDs;
+- reconstruct durable completion before deciding to rerun work;
+- package completed outputs before refilling nodes;
+- refill every permitted free node from the current work matrix;
+- build every newly eligible checkpoint report during the same poll;
+- merge every newly eligible model report during the same poll;
+- display matching evaluation/report work and permitted free nodes only.
 
-Known completed and packaged long runs include all bad-mix MixLang steps,
-bad-mix in-house steps 30/50/100/150, and mixcv15 MixLang steps
-30/50/100/150 plus in-house steps 30/50/100.
-
-Known completed OpenASR-ML:
-
-- bad-mix@50, W&B run `9q6z1vq6`.
-
-Validated checkpoint workbook:
-
-```text
-tmp/eval_2607_reports/remax_2607v1_bad_mixcv15_openml_verb_s200_bs256_n2_scale8_lid0_ilv_step50.xlsx
-```
-
-It contains `summary`, `inhouse_dter`, `openasr_ml`, and `mixlang`.
-
-## Persistent Monitor
-
-Maintain one five-minute schedule. Its prompt must:
-
-- enforce the `i4` exclusion;
-- rediscover every Ready node and replacement Ray job ID;
-- package completed outputs;
-- refill permitted free nodes;
-- build every newly eligible checkpoint workbook during the same poll;
-- merge every newly eligible model during the same poll;
-- show only evaluation/report nodes and permitted free nodes in the table;
-- stop only after 24 checkpoint workbooks and six merged workbooks pass all
-  quality gates.
-
-At snapshot time this behavior was installed as schedule `#7`; schedule IDs may
-change, so inspect active schedules rather than assuming that ID still exists.
+Stop the monitor when every available row in the user-defined work matrix is
+complete and packaged, every eligible checkpoint report passes its quality
+gates, and every eligible model merge is valid. Report unavailable checkpoints
+and failed rows explicitly; never redefine completion using a hard-coded model
+or workbook count.
