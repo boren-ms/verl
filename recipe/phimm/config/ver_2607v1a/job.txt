@@ -1,12 +1,12 @@
-│  i0     │  raysubmit_ftY28juNnhpVypra  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl      │ 29/200 (15%)                              │
-│  i1     │  raysubmit_AYFmpeL3EfqxUSch  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_1k_s100_bs256_lid05_sfl   │ 33/100 (33%)                              │
-│  i2     │  raysubmit_tKu9NLRy6RtSc6w1  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 35/200 (18%)                              │
-│  i3     │  raysubmit_LfcQcRDwxQesaYPs  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05           │ 34/200 (17%)                              │
-│  i4     │  raysubmit_Riq8KRee5QPHiexm  │ RUNNING      │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl                  │ 15/100 (15%)                              │
-│  i5     │  raysubmit_NatfnrPSTZPtbJur  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl       │ 72/200 (36%)                              │
-│  i6     │  raysubmit_1dcRCGyEDiJmv4JC  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl  │ 129/200 (65%)                             │
-│  i7     │  raysubmit_deCKay1sSGQ5bWDu  │ RUNNING      │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_bv1              │ 27/100 (27%)                              │
-│  i8     │  raysubmit_EfPqmwz79GPqpevr  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_bv1   │ 15/200 (8%)                               │
-│  i9     │  raysubmit_vzaBhMUA8wQxsRrE  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 38/200 (19%)                              │
-│  i16    │  raysubmit_63dHaGwDinGnv3bh  │ RUNNING      │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl                  │ 31/100 (31%)                              │
-│  i17    │  raysubmit_wd5GCcRh3zgmMG5s  │ RUNNING      │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl_kl001            │ 23/100 (23%)        
+│  i0     │  raysubmit_JRbcEVUpx36QCh9g  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl      │ 89/200 (45%, active workers/GPU)          │
+│  i1     │  raysubmit_r7bkTvdFzWeqzgCN  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_1k_s100_bs256_lid05_sfl   │ 97/100 (97%, active workers/GPU)          │
+│  i2     │  raysubmit_szucJ9vtcXDrtf8u  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 69/200 (35%, active workers/GPU)          │
+│  i3     │  raysubmit_VbmhFL3ny7CrrjHZ  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05            │ 145/200 (73%, active workers/GPU)         │
+│  i4     │  raysubmit_Riq8KRee5QPHiexm  │ NOT FOUND    │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl                   │ 15/100 (15%, training no longer present)  │
+│  i5     │  raysubmit_HeUGExJEYWjeqY3T  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl       │ 167/200 (84%, active workers/GPU)         │
+│  i6     │  raysubmit_1dcRCGyEDiJmv4JC  │ POOL MISSING │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl  │ 129/200 (65%, last known)                 │
+│  i7     │  raysubmit_deCKay1sSGQ5bWDu  │ POOL MISSING │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_bv1               │ 27/100 (27%, last known)                  │
+│  i8     │  raysubmit_EfPqmwz79GPqpevr  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_bv1   │ 109/200 (55%, active workers/GPU)         │
+│  i9     │  raysubmit_vzaBhMUA8wQxsRrE  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 173/200 (87%, active workers/GPU)         │
+│  i16    │  raysubmit_63dHaGwDinGnv3bh  │ POOL MISSING │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl                   │ 31/100 (31%, last known)                  │
+│  i17→i8 │  raysubmit_w7GrRtLbAqyFFyrT  │ FAILED       │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl_kl001             │ 0/100 (0%, no GPUs available)             │
