@@ -1,79 +1,128 @@
 ---
 name: lora-weight-transfer
-description: "Fast-download an existing LoRA changed-weight artifact from a verl global_step checkpoint root. Prefer its lora_weights_split parts, verify MD5, and reconstruct lora_weights.pt locally without reading qwen_hf merged weights. Use when: transfer LoRA weights, download lora_weights.pt, download checkpoint LoRA weights, or fast-download LoRA changed tensors."
-argument-hint: "<global_step_blob> <local_dest_dir> [delta_name]"
+description: "Transfer actual PEFT LoRA A/B tensors from a complete verl model_world_size_*_rank_*.pt checkpoint set on a remote Brix node. Gather FSDP tensor shards into lora_weights.pt, publish split/checksum files to Azure Blob with bbb, download in parallel locally, reconstruct, and verify every lora_A tensor has a matching lora_B tensor. Reject missing ranks and extra-state files. Use when: transfer LoRA weights, extract lora_weights.pt from model rank shards, or fast-download LoRA A/B tensors."
+argument-hint: "<remote_checkpoint_dir> <publish_blob_root> <local_dest_dir> [remote_node]"
 ---
 
 # LoRA Weight Transfer
 
-Download the existing LoRA changed-weight file from a `global_step_*`
-checkpoint root. Do not read, diff, or download `qwen_hf/model.safetensors`.
-
-Example source:
+Prepare and download the actual trained LoRA adapter matrices:
 
 ```text
-az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100
+*.lora_A.weight
+*.lora_B.weight
 ```
 
-This checkpoint already contains:
+`lora_weights.pt` is a PyTorch dictionary containing only these adapter
+tensors. It is not a merged checkpoint, a changed-base-weight delta, or a PEFT
+directory.
+
+## Source of Truth
+
+Use the complete actor model shard set:
 
 ```text
-lora_weights.pt
-lora_weights_split/lora_weights.z01 ... lora_weights.zip
-lora_weights_split/lora_weights.md5
-lora_weights_split/splits.md5
+<global_step>/actor/model_world_size_<N>_rank_*.pt
 ```
 
-## Transfer
+All ranks from `0` through `N-1` are required. The extractor gathers DTensor
+and legacy ShardedTensor values according to their shard metadata, and
+concatenates ordinary FSDP tensor shards in rank order. Never use
+`extra_state_world_size_*.pt`: those files contain only scheduler and RNG
+state. Also never use optimizer state, merged model weights, or checkpoint
+deltas. The merged update is proportional to `B @ A`; the original A/B
+factorization cannot be uniquely recovered from that product.
+
+## Inputs
+
+| Input | Description | Default |
+|---|---|---|
+| `SOURCE` | Actor directory or quoted `model_world_size_<N>_rank_*.pt` pattern, local or `az://` | required |
+| `ROOT` | Destination `az://` URI where the artifact and splits are published | required |
+| `DST` | Local destination directory | required |
+| `NODE` | Ready, in-region Brix node | any suitable `verl-n1-*` node |
+
+Example inputs:
+
+```text
+SOURCE=az://orngwus2cresco/data/boren/outputs/.../global_step_100/actor
+ROOT=az://orngwus2cresco/data/boren/outputs/.../global_step_100
+DST=~/data/ckp/run/global_step_100
+NODE=verl-n1-i10
+```
+
+Both the remote and local nodes must have an authenticated `bbb` command.
+The remote Python environment must contain `torch`; set `PYTHON=/path/to/python`
+when `python` is not the correct interpreter.
+
+## Phase 1: Locate All Model Shards
+
+Resolve the complete shard set directly from the supplied checkpoint directory:
 
 ```bash
-set -euo pipefail
-
-ROOT=<global_step_blob_without_trailing_slash>
-DST=<local_dest_dir>
-LORA=lora_weights.pt
-STEM=${LORA%.pt}
-SPLIT="$ROOT/${STEM}_split"
-
-mkdir -p "$DST/splits"
-cd "$DST"
-
-if bbb ls "$SPLIT/$STEM.md5" >/dev/null 2>&1; then
-  bbb cp "$SPLIT/$STEM.md5" "$STEM.md5"
-  bbb cp "$SPLIT/splits.md5" splits/splits.md5
-  bbb ls "$SPLIT/" | grep -E "$STEM\.(z[0-9]+|zip)$" > parts.list
-  xargs -a parts.list -P 4 -I {} bbb cp -q "{}" splits/
-
-  (cd splits && md5sum -c splits.md5)
-  (cd splits && cat $(ls "$STEM".z[0-9][0-9] | sort) "$STEM.zip") > joined.zip
-  unzip -p joined.zip > "$LORA" 2>/dev/null || true
-  md5sum -c "$STEM.md5"
-  rm -rf splits joined.zip parts.list
-else
-  rmdir splits
-  bbb cp "$ROOT/$LORA" "$LORA"
-fi
-
-ls -lh "$DST/$LORA"
+CHECKPOINT=<remote_checkpoint_dir_without_trailing_slash>
+brix ssh <NODE> -- 'ls -lh '"$CHECKPOINT"'/actor/model_world_size_*_rank_*.pt'
 ```
 
-Always concatenate `.z01`, `.z02`, and later parts in order, followed by
-`.zip`. Do not use `zip -s 0 --out`, `zip -F`, or direct unzip of the final
-split part.
+The source may instead be an `az://` actor directory or quoted wildcard.
+`prepare_remote.sh` discovers every matching file with `bbb ls` and downloads
+each with `bbb cp`. Do not substitute `extra_state_world_size_*` or
+`optim_world_size_*` files, and do not proceed with a partial rank set.
 
-## Verify
+## Phase 2: Prepare and Upload on the Remote Node
+
+Sync the repository so the scripts are available, then confirm `bbb` can read
+the destination root:
 
 ```bash
-python - <<'PY'
-from pathlib import Path
-import torch
-
-path = Path("<local_dest_dir>/lora_weights.pt")
-weights = torch.load(path, map_location="cpu", weights_only=False, mmap=True)
-assert isinstance(weights, dict) and weights, "empty LoRA weight artifact"
-print(f"{path}: {len(weights)} tensors, {path.stat().st_size / 2**30:.2f} GiB")
-PY
+rcall-brix sync <NODE>
+brix ssh <NODE> -- 'bbb ls <publish_blob_root>'
 ```
 
-The output is the existing changed-tensor artifact, not a PEFT
-`adapter_model.safetensors` and not a reconstructed full checkpoint.
+Run [prepare_remote.sh](./scripts/prepare_remote.sh) on the remote node. It
+calls [extract_lora_weights.py](./scripts/extract_lora_weights.py), creates
+48 MiB zip splits and MD5 manifests, then uploads everything with `bbb cp`:
+
+```bash
+brix ssh <NODE> -- 'cd ~/code/verl && bash \
+  .github/skills/lora-weight-transfer/scripts/prepare_remote.sh \
+  <publish_blob_root> \
+  <local_or_az_actor_directory>'
+```
+
+To perform extraction only, run the Python script directly:
+
+```bash
+python .github/skills/lora-weight-transfer/scripts/extract_lora_weights.py \
+  model_world_size_*_rank_*.pt --output <lora_weights.pt>
+```
+
+The extractor accepts only LoRA A/B tensor keys and rejects empty or incomplete
+pairs, mixed world sizes, missing ranks, and inconsistent shard keys before
+writing the output.
+
+## Phase 3: Download, Recover, and Verify Locally
+
+Run [download_recover.sh](./scripts/download_recover.sh). It downloads all
+files with `bbb cp`, verifies each split, concatenates numbered parts in version
+order followed by the final `.zip`, extracts `lora_weights.pt`, verifies its
+MD5, and checks every LoRA A tensor has a matching B tensor:
+
+```bash
+bash .github/skills/lora-weight-transfer/scripts/download_recover.sh \
+  <publish_blob_root> <local_dest_dir> [parallel_downloads]
+```
+
+Do not reconstruct with `zip -s 0 --out`, `zip -F`, or direct unzip of the
+final split part. The script uses sequential concatenation because the payload
+is distributed across `.z01`, `.z02`, and later parts, with the central
+directory in the trailing `.zip` file.
+
+## Safeguards
+
+- Accept only keys matching `*.lora_A[.<adapter>].weight` and
+  `*.lora_B[.<adapter>].weight`.
+- Require every adapter prefix to have both A and B tensors.
+- Do not include base-layer, embedding, optimizer, or scheduler tensors.
+- Use `bbb` for every blob upload and download.
+- Do not use `ckpt_delta.py` or infer A/B matrices from merged model weights.
