@@ -1,12 +1,12 @@
-│  i0     │  raysubmit_75EcARBzGVkcqkHi  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl      │ 134/200 (67%, resumed training)           │
-│  i1→i9  │  raysubmit_NtFhNd2SwHenE3EM  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_1k_s100_bs256_lid05_sfl   │ 100/100; MixLang evaluation               │
-│  i2     │  raysubmit_VGpaTdiYczEdF1wn  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 174/200 (87%, resumed training)           │
-│  i3     │  raysubmit_mCspYMX3T3Lb1iah  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05            │ 169/200 (85%, resumed training)           │
-│  i4→i12 │  raysubmit_X3XhQGL2NvkMWJ41  │ RUNNING      │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl                   │ 70/100 (70%, recovery training)           │
+│  i0     │  raysubmit_75EcARBzGVkcqkHi  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl      │ 146/200 (73%, resumed training)           │
+│  i1→i10 │  raysubmit_AH6ras2zyExGJFP3  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_openml_verb_1k_s100_bs256_lid05_sfl   │ 100/100; MixLang replacement completed    │
+│  i2     │  raysubmit_VGpaTdiYczEdF1wn  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 185/200 (93%, resumed training)           │
+│  i3     │  raysubmit_mCspYMX3T3Lb1iah  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05            │ 179/200 (90%, resumed training)           │
+│  i4→i12 │  raysubmit_X3XhQGL2NvkMWJ41  │ RUNNING      │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl                   │ 83/100 (83%, recovery training)           │
 │  i5     │  raysubmit_NLNNcS3T6QT7KhpQ  │ SUCCEEDED    │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl       │ 200/200; steps 50,100,150,200 reported    │
-│  i6→i13 │  raysubmit_sQ9DpVrPvJ2U5Yes  │ SUCCEEDED    │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl  │ steps 50, 100, 150 reported               │
+│  i6→i10 │  raysubmit_qYavBB35v3DfENLw  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl  │ 200/200; OpenASR decoded 3,584+           │
 │  i7→i17 │  raysubmit_TfRn1tsm1szG9Wkm  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_bv1               │ 100/100; steps 50 and 100 reported        │
-│  i8→i17 │  raysubmit_CgCWTbiFiq4DXiHv  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_bv1   │ 200/200; HF exported; OpenASR model sync  │
+│  i8→i17 │  raysubmit_URzSBLEz7t5eJd1y  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_bv1   │ 200/200; in-house scoring 553/1067        │
 │  i9     │  raysubmit_np4zMgGnvnqQVJrU  │ SUPERSEDED   │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ duplicate of active i2; not restarted     │
 │  i16    │  raysubmit_sQdjfY9XMV8mDJrh  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl                   │ 100/100; steps 50 and 100 reported         │
 │  i17    │  raysubmit_SwjfPGDYSi2YP7w3  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl_kl001             │ 100/100; steps 50 and 100 reported        │

@@ -1,7 +1,7 @@
 ---
 name: lora-weight-transfer
-description: "Transfer actual PEFT LoRA A/B tensors from a complete verl model_world_size_*_rank_*.pt checkpoint set on a remote Brix node. Gather FSDP tensor shards into lora_weights.pt, publish split/checksum files to Azure Blob with bbb, download in parallel locally, reconstruct, and verify every lora_A tensor has a matching lora_B tensor. Reject missing ranks and extra-state files. Use when: transfer LoRA weights, extract lora_weights.pt from model rank shards, or fast-download LoRA A/B tensors."
-argument-hint: "<remote_checkpoint_dir> <publish_blob_root> <local_dest_dir> [remote_node]"
+description: "Transfer actual PEFT LoRA A/B tensors from a complete verl model_world_size_*_rank_*.pt checkpoint set, merge them into the fixed full Qwen3.5-audio baseline, and upload both outputs to corp Blob. Gather FSDP shards into lora_weights.pt, transfer splits with bbb, produce lora_merged_model_states.pt using scaling 640/320, then delegate local-to-corp uploads to /copy-to-corp-blob. Use when: transfer LoRA weights, build a LoRA-merged checkpoint, or publish both artifacts to tsstd01safn."
+argument-hint: "<remote_checkpoint_dir> <publish_blob_root> <local_dest_dir> [remote_node] [baseline]"
 ---
 
 # LoRA Weight Transfer
@@ -41,6 +41,8 @@ factorization cannot be uniquely recovered from that product.
 | `ROOT` | Destination `az://` URI where the artifact and splits are published | required |
 | `DST` | Local destination directory | required |
 | `NODE` | Ready, in-region Brix node | any suitable `verl-n1-*` node |
+| `BASELINE` | Local full checkpoint used as the merge base | fixed path below |
+| `CORP_ROOT` | Corp destination derived from `DST` by `/copy-to-corp-blob` | `https://tsstd01safn.blob.core.windows.net/data/users/boren/data/<DST-relative-to-~/data>` |
 
 Example inputs:
 
@@ -49,6 +51,7 @@ SOURCE=az://orngwus2cresco/data/boren/outputs/.../global_step_100/actor
 ROOT=az://orngwus2cresco/data/boren/outputs/.../global_step_100
 DST=~/data/ckp/run/global_step_100
 NODE=verl-n1-i10
+BASELINE=~/data/ckp/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/lora_merged_model_states.pt
 ```
 
 Both the remote and local nodes must have an authenticated `bbb` command.
@@ -118,6 +121,82 @@ final split part. The script uses sequential concatenation because the payload
 is distributed across `.z01`, `.z02`, and later parts, with the central
 directory in the trailing `.zip` file.
 
+## Phase 4: Merge LoRA into the Full Baseline
+
+Use the fixed local baseline:
+
+```text
+~/data/ckp/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/lora_merged_model_states.pt
+```
+
+The training config in `recipe/phimm/config/base/dapo_asr.yaml` sets
+`lora_alpha: 640` and `lora_rank: 320`, so the required merge is:
+
+```text
+W <- W + (640 / 320) * (B @ A)
+```
+
+Run [merge_lora_checkpoint.py](./scripts/merge_lora_checkpoint.py) after local
+recovery. Write the new full checkpoint beside `lora_weights.pt` with the
+required filename `lora_merged_model_states.pt`:
+
+```bash
+python .github/skills/lora-weight-transfer/scripts/merge_lora_checkpoint.py \
+  --baseline ~/data/ckp/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/lora_merged_model_states.pt \
+  --lora <local_dest_dir>/lora_weights.pt \
+  --output <local_dest_dir>/lora_merged_model_states.pt \
+  --lora-alpha 640 \
+  --lora-rank 320
+```
+
+The merger follows the key mapping and fp32 merge math in
+`plugins/qwen35_audio/src/hf_qwen35_audio/convert_verl_to_pt.py`. It strips
+the leading `base_model.model.` from LoRA prefixes, matches each pair to
+`<prefix>.base_layer.weight` or `<prefix>.weight`, performs `B @ A` and the
+addition in fp32, casts back to the baseline dtype, and preserves the
+baseline's top-level layout. It writes atomically and creates
+`lora_merged_model_states.md5`.
+
+Verify the output has the same key set as the baseline, no LoRA keys, exactly
+one changed baseline weight per LoRA pair, and a passing adjacent MD5 file.
+
+## Phase 5: Upload Both Outputs to Corp Blob
+
+After both local artifacts and their MD5 files pass verification, invoke the
+`/copy-to-corp-blob` skill separately for each generated `.pt` file:
+
+```text
+/copy-to-corp-blob <local_dest_dir>/lora_weights.pt
+/copy-to-corp-blob <local_dest_dir>/lora_merged_model_states.pt
+```
+
+Also upload their adjacent checksum files:
+
+```text
+/copy-to-corp-blob <local_dest_dir>/lora_weights.md5
+/copy-to-corp-blob <local_dest_dir>/lora_merged_model_states.md5
+```
+
+Do not implement or duplicate SAS handling in this skill. Delegate it to
+`/copy-to-corp-blob`, which must validate that the cached corp SAS is unexpired
+and contains both write (`w`) and create (`c`) permissions before upload.
+
+For a destination under `~/data`, preserve the default path mapping. Example:
+
+```text
+local:
+  ~/data/ckp/<run>/<step>/lora_weights.pt
+  ~/data/ckp/<run>/<step>/lora_merged_model_states.pt
+
+corp:
+  https://tsstd01safn.blob.core.windows.net/data/users/boren/data/ckp/<run>/<step>/lora_weights.pt
+  https://tsstd01safn.blob.core.windows.net/data/users/boren/data/ckp/<run>/<step>/lora_merged_model_states.pt
+```
+
+Wait for each upload to complete, then use the verification step provided by
+`/copy-to-corp-blob` to compare exact remote and local byte sizes. Never expose
+the SAS token or a destination URL containing its query string.
+
 ## Safeguards
 
 - Accept only keys matching `*.lora_A[.<adapter>].weight` and
@@ -125,4 +204,10 @@ directory in the trailing `.zip` file.
 - Require every adapter prefix to have both A and B tensors.
 - Do not include base-layer, embedding, optimizer, or scheduler tensors.
 - Use `bbb` for every blob upload and download.
+- Require all LoRA prefixes and `B @ A` shapes to match baseline weights.
+- Preserve the baseline wrapper, key order, tensor dtypes, and unrelated values.
+- Use `lora_alpha / lora_rank = 640 / 320 = 2`; do not assume scaling 1.
+- Upload both `.pt` outputs and checksum sidecars through `/copy-to-corp-blob`.
+- Require exact remote/local byte-size matches after every corp upload.
+- Never print or persist a SAS token outside the cache managed by the upload skill.
 - Do not use `ckpt_delta.py` or infer A/B matrices from merged model weights.
