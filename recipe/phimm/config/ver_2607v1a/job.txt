@@ -1,12 +1,12 @@
-│  i0     │  raysubmit_JRbcEVUpx36QCh9g  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl      │ 89/200 (45%, active workers/GPU)          │
-│  i1     │  raysubmit_r7bkTvdFzWeqzgCN  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_1k_s100_bs256_lid05_sfl   │ 97/100 (97%, active workers/GPU)          │
-│  i2     │  raysubmit_szucJ9vtcXDrtf8u  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 69/200 (35%, active workers/GPU)          │
-│  i3     │  raysubmit_VbmhFL3ny7CrrjHZ  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05            │ 145/200 (73%, active workers/GPU)         │
-│  i4     │  raysubmit_Riq8KRee5QPHiexm  │ QUEUED       │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl                   │ 15/100 (15%, i4 occupied by evaluation)   │
-│  i5     │  raysubmit_HeUGExJEYWjeqY3T  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl       │ 167/200 (84%, active workers/GPU)         │
-│  i6     │  raysubmit_1dcRCGyEDiJmv4JC  │ SCHEDULED    │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl  │ 129/200 (65%, recovery queued)            │
-│  i7     │  raysubmit_deCKay1sSGQ5bWDu  │ SCHEDULED    │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_bv1               │ 27/100 (27%, recovery queued)             │
-│  i8     │  raysubmit_EfPqmwz79GPqpevr  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_bv1   │ 109/200 (55%, active workers/GPU)         │
-│  i9     │  raysubmit_vzaBhMUA8wQxsRrE  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 173/200 (87%, active workers/GPU)         │
-│  i16    │  raysubmit_63dHaGwDinGnv3bh  │ SCHEDULED    │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl                   │ 31/100 (31%, recovery queued)             │
-│  i17    │  raysubmit_w7GrRtLbAqyFFyrT  │ SCHEDULED    │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl_kl001             │ 0/100 (i8 retry failed; recovery queued)  │
+│  i0     │  raysubmit_yG3rtNwycM5RbCQD  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl      │ 122/200 (61%, training)                   │
+│  i1→i0  │  raysubmit_8MCVMFBfx8npWMze  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_openml_verb_1k_s100_bs256_lid05_sfl   │ 100/100; steps 50, 70, 90 reported        │
+│  i2     │  raysubmit_HfpcCmp3TMkfVcb7  │ RUNNING      │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 167/200 (84%, training)                   │
+│  i3     │  raysubmit_EdYnH7LQ4RN22yrV  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05            │ 165/200 (83%, training)                   │
+│  i4→i12 │  raysubmit_GBDCP2b2CaBvzJDC  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl                   │ 100/100; final export queued              │
+│  i5     │  raysubmit_NLNNcS3T6QT7KhpQ  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl       │ 197/200 (99%, training)                   │
+│  i6→i13 │  raysubmit_sQ9DpVrPvJ2U5Yes  │ SUCCEEDED    │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl  │ steps 50, 100, 150 reported               │
+│  i7→i17 │  raysubmit_TfRn1tsm1szG9Wkm  │ RUNNING      │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_bv1               │ 100/100; MixLang evaluation startup       │
+│  i8     │  raysubmit_uXcH1VnmiTnYbsQi  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_bv1   │ 177/200 (89%, training)                   │
+│  i9     │  raysubmit_np4zMgGnvnqQVJrU  │ SUPERSEDED   │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ duplicate of active i2; not restarted     │
+│  i16    │  raysubmit_sQdjfY9XMV8mDJrh  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl                   │ 100/100; steps 50 and 100 reported         │
+│  i17    │  raysubmit_SwjfPGDYSi2YP7w3  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_s100_bs128_lid05_sfl_kl001             │ 100/100; steps 50 and 100 reported        │
