@@ -1,6 +1,6 @@
 ---
 name: verl-eval-workload
-description: "Launch, monitor, recover, and report 2607 ASR evaluation workloads for user-supplied model checkpoints on the dedicated verl-n1-i10 through verl-n1-i15 pool. Use when: launch evaluation jobs, evaluate checkpoints, run 2607 benchmarks, resume evaluation workload, refill eval nodes, or build evaluation reports."
+description: "Launch, monitor, recover, and report 2607 ASR evaluation workloads for user-supplied model checkpoints on any free Ready GPU node. Use when: launch evaluation jobs, evaluate checkpoints, run 2607 benchmarks, resume evaluation workload, refill eval nodes, or build evaluation reports."
 argument-hint: "<model-or-checkpoint-paths> [steps] [status|launch|resume|report]"
 ---
 
@@ -72,26 +72,20 @@ Default reference model:
 az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio/45000/qwen_hf/
 ```
 
-## Dedicated Evaluation Pool
+## Evaluation Node Pool
 
-Only these nodes may run evaluation, checkpoint export, packaging, or report
-work for this skill:
+Evaluation, checkpoint export, packaging, and report work may use any Ready
+GPU node visible through `brix pools`. Do not restrict scheduling to a
+hard-coded node-name range.
 
-```text
-verl-n1-i10
-verl-n1-i11
-verl-n1-i12
-verl-n1-i13
-verl-n1-i14
-verl-n1-i15
-```
-
-- Never schedule this workload on any `verl-n1-i*` node outside that list.
-- Inspect only the dedicated pool when reconstructing occupancy, and show only
-  those nodes in user-facing workload tables.
-- Do not stop, replace, or overwrite unrelated jobs on a dedicated node.
+- Inspect every Ready GPU node when reconstructing occupancy, and show nodes
+  running matching work plus nodes currently eligible for this workload in
+  user-facing workload tables.
+- Do not stop, replace, or overwrite unrelated jobs on any node.
 - A node is free only when it has no running Ray job and every GPU has at most
   5% utilization and at most 5000 MiB allocated.
+- Do not use a node that is reserved, draining, unhealthy, or lacks enough
+  GPUs for the requested one-node benchmark, even if it has no listed Ray job.
 - Reuse complete durable outputs. Never rerun a benchmark merely because its
   original Ray job is no longer listed.
 - Package every completed evaluation before reassigning its node.
@@ -114,15 +108,15 @@ tokenizer, processor, and required custom model code before marking it
 available. Do not invent missing steps or wait for unspecified future
 checkpoints.
 
-### 2. Reconstruct dedicated-pool occupancy
+### 2. Reconstruct Ready-node occupancy
 
-List Ready nodes, restricted to the dedicated pool:
+List every Ready GPU node:
 
 ```bash
-brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '^verl-n1-i(10|11|12|13|14|15)([[:space:]]|$)'
+brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '(^|[[:space:]])Ready([[:space:]]|$)' | grep -E '[0-9]+ x [0-9]+ GPU'
 ```
 
-On every Ready dedicated node, collect both signals:
+On every Ready GPU node, collect both signals:
 
 ```bash
 brix ssh <NODE> -- 'bash -l -c "
@@ -187,7 +181,7 @@ and report the exact missing prerequisite.
 - If `FAILED`, retain the traceback, repair the root cause, and rerun only that
   benchmark with the same durable output root.
 - Treat blob connection timeouts as transient when built-in retries remain.
-- Submit missing rows only to free Ready nodes in the dedicated pool.
+- Submit missing rows to any free, healthy Ready GPU node.
 - Use a unique experiment name containing the sanitized model label, checkpoint
   label or step, benchmark, and a short collision-resistant suffix.
 - Before submission, print and verify the resolved candidate path, config,
@@ -227,14 +221,14 @@ steps exist; otherwise preserve the user's checkpoint order.
 
 For a long-running workload, maintain one five-minute monitor. Each poll must:
 
-- rediscover Ready nodes only in `verl-n1-i10` through `verl-n1-i15`;
+- rediscover all Ready GPU nodes rather than relying on a hard-coded pool;
 - rediscover matching Ray jobs instead of relying on saved job IDs;
 - reconstruct durable completion before deciding to rerun work;
 - package completed outputs before refilling nodes;
 - refill every permitted free node from the current work matrix;
 - build every newly eligible checkpoint report during the same poll;
 - merge every newly eligible model report during the same poll;
-- display matching evaluation/report work and permitted free nodes only.
+- display matching evaluation/report work and eligible free nodes only.
 
 Stop the monitor when every available row in the user-defined work matrix is
 complete and packaged, every eligible checkpoint report passes its quality
