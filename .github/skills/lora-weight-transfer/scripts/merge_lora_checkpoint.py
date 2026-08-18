@@ -29,6 +29,16 @@ def normalize_prefix(prefix: str) -> str:
     return prefix.removeprefix(STRIP_PREFIX)
 
 
+def normalize_baseline_keys(baseline: Mapping[str, torch.Tensor]) -> OrderedDict[str, torch.Tensor]:
+    normalized = OrderedDict()
+    for key, tensor in baseline.items():
+        normalized_key = key.replace(".base_layer.", ".")
+        if normalized_key in normalized:
+            raise ValueError(f"Baseline key collision after removing .base_layer: {normalized_key}")
+        normalized[normalized_key] = tensor
+    return normalized
+
+
 def collect_pairs(lora_state: Mapping[str, torch.Tensor]):
     pairs: dict[tuple[str, str], dict[str, tuple[str, torch.Tensor]]] = {}
     for key, tensor in lora_state.items():
@@ -49,18 +59,15 @@ def merge_lora(
     lora_state: Mapping[str, torch.Tensor],
     scaling: float,
 ) -> tuple[OrderedDict[str, torch.Tensor], list[str]]:
-    merged = OrderedDict(baseline.items())
+    merged = normalize_baseline_keys(baseline)
     pairs = collect_pairs(lora_state)
     updated_keys = []
 
     for (prefix, adapter), sides in sorted(pairs.items()):
         _, a = sides["A"]
         _, b = sides["B"]
-        base_key = next(
-            (candidate for candidate in (f"{prefix}.base_layer.weight", f"{prefix}.weight") if candidate in merged),
-            None,
-        )
-        if base_key is None:
+        base_key = f"{prefix}.weight"
+        if base_key not in merged:
             raise ValueError(f"No baseline weight for LoRA prefix {prefix} adapter={adapter}")
 
         base = merged[base_key]
@@ -77,12 +84,12 @@ def merge_lora(
     return merged, updated_keys
 
 
-def write_checkpoint(state: OrderedDict[str, torch.Tensor], wrapped: bool, output: Path) -> str:
+def write_checkpoint(state: OrderedDict[str, torch.Tensor], output: Path) -> str:
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_name(f".{output.name}.tmp")
     if temporary.exists():
         temporary.unlink()
-    torch.save({"module": state} if wrapped else state, temporary)
+    torch.save({"module": state}, temporary)
     os.replace(temporary, output)
 
     digest = hashlib.md5()
@@ -118,10 +125,10 @@ def main() -> None:
 
     scaling = args.lora_alpha / args.lora_rank
     merged, updated_keys = merge_lora(baseline, lora_state, scaling)
-    checksum = write_checkpoint(merged, wrapped, args.output)
+    checksum = write_checkpoint(merged, args.output)
     print(
         f"{args.output}: {len(merged)} tensors, {len(updated_keys)} LoRA pairs merged, "
-        f"scaling={scaling:g}, wrapped={wrapped}, md5={checksum}"
+        f"scaling={scaling:g}, wrapped=True, baseline_wrapped={wrapped}, md5={checksum}"
     )
 
 

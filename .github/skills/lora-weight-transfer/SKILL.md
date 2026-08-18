@@ -151,11 +151,11 @@ python .github/skills/lora-weight-transfer/scripts/merge_lora_checkpoint.py \
 
 The merger follows the key mapping and fp32 merge math in
 `plugins/qwen35_audio/src/hf_qwen35_audio/convert_verl_to_pt.py`. It strips
-the leading `base_model.model.` from LoRA prefixes, matches each pair to
-`<prefix>.base_layer.weight` or `<prefix>.weight`, performs `B @ A` and the
-addition in fp32, casts back to the baseline dtype, and preserves the
-baseline's top-level layout. It writes atomically and creates
-`lora_merged_model_states.md5`.
+the leading `base_model.model.` from LoRA prefixes, normalizes baseline
+`<prefix>.base_layer.weight` keys to `<prefix>.weight`, performs `B @ A` and
+the addition in fp32, and casts back to the baseline dtype. The output uses
+the reference checkpoint layout with the state dictionary under `module`.
+It writes atomically and creates `lora_merged_model_states.md5`.
 
 Verify the output has the same key set as the baseline, no LoRA keys, exactly
 one changed baseline weight per LoRA pair, and a passing adjacent MD5 file.
@@ -205,7 +205,8 @@ the SAS token or a destination URL containing its query string.
 - Do not include base-layer, embedding, optimizer, or scheduler tensors.
 - Use `bbb` for every blob upload and download.
 - Require all LoRA prefixes and `B @ A` shapes to match baseline weights.
-- Preserve the baseline wrapper, key order, tensor dtypes, and unrelated values.
+- Preserve baseline key order, tensor dtypes, and unrelated values; write plain
+  parameter names under the top-level `module` key.
 - Use `lora_alpha / lora_rank = 640 / 320 = 2`; do not assume scaling 1.
 - Upload both `.pt` outputs and checksum sidecars through `/copy-to-corp-blob`.
 - Require exact remote/local byte-size matches after every corp upload.
