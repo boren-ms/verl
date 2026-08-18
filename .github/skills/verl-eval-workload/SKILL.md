@@ -44,7 +44,7 @@ az://orngwus2cresco/data/boren/outputs/eval_2607_reports/<MODEL>_step<STEP>/<BEN
 Default local reports:
 
 ```text
-tmp/eval_2607_reports/<MODEL>_step<STEP>.xlsx
+tmp/eval_2607_reports/<MODEL>/<MODEL>_step<STEP>.xlsx
 tmp/eval_2607_reports/<MODEL>_all_steps.xlsx
 ```
 

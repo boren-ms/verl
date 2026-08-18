@@ -534,6 +534,21 @@ BENCHMARKS = {
 SHEET_ORDER = ["inhouse_dter", "digits_enus", "openasr_ml", "mixlang", "digits_tier1"]
 
 
+def default_report_path(label: str, candidate_model_path: str) -> Path:
+    safe_label = re.sub(r"[^A-Za-z0-9._-]+", "_", label).strip("._-") or "candidate"
+    model_match = re.search(
+        r"/([^/]+)/global_step_\d+(?:/|$)",
+        candidate_model_path.rstrip("/") + "/",
+    )
+    if model_match:
+        model_name = model_match.group(1)
+    else:
+        model_name = re.sub(r"(?:[_-]?step\d+)$", "", safe_label, flags=re.IGNORECASE)
+        model_name = model_name.rstrip("._-") or safe_label
+    safe_model_name = re.sub(r"[^A-Za-z0-9._-]+", "_", model_name).strip("._-")
+    return Path("tmp/eval_2607_reports") / safe_model_name / f"{safe_label}.xlsx"
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -614,8 +629,10 @@ def main() -> int:
     build_summary_sheet(wb, summary_rows, args.baseline_label or "2607v1", args.label)
     wb.move_sheet("summary", -len(wb.sheetnames) + 1)  # summary first
 
-    out = args.out or f"tmp/eval_2607_reports/{args.label.replace('@', '_').replace('/', '_')}.xlsx"
-    out_path = Path(out)
+    out_path = Path(args.out) if args.out else default_report_path(
+        args.label,
+        args.candidate_model_path,
+    )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     wb.calculation.calcMode = "auto"
     wb.calculation.fullCalcOnLoad = True

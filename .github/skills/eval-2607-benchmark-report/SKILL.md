@@ -19,7 +19,7 @@ Delegate remote submission, monitoring, failure recovery, and result retrieval t
 | `--node` | No | Ready remote `verl-n<N>-*` node. Let `verl-asr-run` select one when omitted; evaluations use that running pool's verified `N` as `trainer.nnodes`. |
 | `--include-digits-enus` | No | Add the optional en-US digits benchmark. |
 | `--include-digits-tier1` | No | Add the optional Tier 1 digits benchmark. |
-| `--out` | No | Final workbook path. Default: `tmp/eval_2607_reports/<model-label>.xlsx`. |
+| `--out` | No | Single-checkpoint workbook path. Default: `tmp/eval_2607_reports/<model-name>/<model-label>.xlsx`. Merged `_all_steps.xlsx` reports stay directly under `tmp/eval_2607_reports/`. |
 | `--artifact-root` | No | Durable `az://.../` root for raw evaluation artifacts. Default: the common remote evaluation output root for `<model-label>`; it must not be node-local storage. |
 | `--merge-report <step>=<xlsx>` | No | Existing single-checkpoint report to merge. Repeat once per checkpoint step, in desired sheet order. All reports must belong to the same model family and use the same benchmark/config schema. |
 
@@ -56,13 +56,13 @@ The reference checkpoint and candidate must use the same config, data, locale, s
    - Optional `digits_enus` and `digits_tier1`: preserve both Digit CER and WER, with every evaluated dataset as a row.
    - `openasr_ml`: use final `p_err`/WER per dataset, language averages, and an overall average.
    - `mixlang`: use the final reference-compatible DTER/TER from `measures.json`, retaining the configured zh-CN scoring context.
-8. Build one single-checkpoint workbook per evaluated step with [scripts/build_2607_report.py](./scripts/build_2607_report.py). It reuses existing eval outputs and produces sheets in this order: `summary`, `inhouse_dter`, optional `digits_enus`, `openasr_ml`, `mixlang` (its own separate sheet), then optional `digits_tier1`. Keep these intermediate workbooks; they are the inputs to the multi-checkpoint merge. Each benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
+8. Build one single-checkpoint workbook per evaluated step with [scripts/build_2607_report.py](./scripts/build_2607_report.py). Store it under `tmp/eval_2607_reports/<model-name>/`; the default path is `tmp/eval_2607_reports/<model-name>/<model-label>.xlsx`. It reuses existing eval outputs and produces sheets in this order: `summary`, `inhouse_dter`, optional `digits_enus`, `openasr_ml`, `mixlang` (its own separate sheet), then optional `digits_tier1`. Keep these intermediate workbooks; they are the inputs to the multi-checkpoint merge. Each benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
 
    $$\mathrm{delta}=1-\frac{\mathrm{candidate\ error}}{\mathrm{reference\ error}}$$
 
    Every group and overall `avg` value cell uses an Excel `AVERAGE(...)` formula over the displayed dataset cells for that metric; no fixed, weighted, pooled-count, or stored-numeric override is allowed. Overall formulas reference only dataset ranges and exclude intermediate group-average rows. The delta column is labelled per metric — `TERR` for DTER/TER, `WERR` for WER, `CERR` for CER. Positive delta means the candidate improved. Data and average-row delta cells use the Excel formula `=1-C{row}/B{row}`. All error and delta cells use percentage formatting, and the delta column carries a red→white→green color scale centered at 0.
 9. The script also emits the `summary` sheet with one row per included benchmark metric: the aggregate baseline and candidate values, the overall delta, and the source config. Summary delta columns use the same red→white→green color scale centered at 0 as benchmark delta columns, so regressions are red and gains are green. The summary contains one untitled clustered-column, delta-only chart for all included benchmark metrics and checkpoint steps. Dataset names are the x-axis categories, and checkpoint steps are separate column series clustered within each dataset group. Multi-step charts assign stable distinct colors to checkpoint series; single-step charts assign stable distinct colors to dataset bars. Every chart shows a top checkpoint legend. Data labels show percentage values only, without legend keys. Negative inversion is explicitly disabled. The y-axis range adds 15% of the observed delta span below the minimum and above the maximum to protect data labels, while keeping zero in range. Column overlap is -40% to separate checkpoint bars within each dataset cluster, and gap width is 260 to separate dataset groups. Baseline and candidate remain in the summary table but are not chart series or chart labels. The visible x-axis line crosses the y-axis at 0, while dataset labels remain at the bottom; the x-axis has no title or tick marks and shows light major vertical gridlines. The y-axis is visible with no title or horizontal gridlines. The chart is anchored in column `A` directly below the visible summary table. Chart source data is stored in hidden helper columns on the same sheet, and the chart must disable `plotVisOnly` so those hidden values are rendered. Digits rows and chart categories appear only for explicitly requested digits evaluations.
-10. When two or more checkpoints of the same model are available, merge their completed single-checkpoint workbooks with [scripts/merge_2607_reports.py](./scripts/merge_2607_reports.py). Pass each report as `--report <checkpoint-label>=<path>` in ascending step order unless the caller requests another order. The merged workbook contains:
+10. When two or more checkpoints of the same model are available, merge their completed single-checkpoint workbooks with [scripts/merge_2607_reports.py](./scripts/merge_2607_reports.py). Pass each nested report as `--report <checkpoint-label>=tmp/eval_2607_reports/<model-name>/<report>.xlsx` in ascending step order unless the caller requests another order. Keep the merged workbook directly under `tmp/eval_2607_reports/` as `<model-name>_all_steps.xlsx`. The merged workbook contains:
    - `summary`: one row per checkpoint, benchmark, and metric, with the checkpoint label, baseline, candidate, delta, config, model paths, result sources, artifact sidecars, and source workbook.
    - `<checkpoint>_<benchmark>`: a faithful copy of each benchmark sheet, retaining formulas, percentage formatting, conditional formatting, widths, and provenance values. Sheet names are sanitized for Excel, limited to 31 characters, and given a stable hash suffix only when truncation causes a collision.
 
@@ -91,7 +91,7 @@ An explicit `--<bench>-baseline` source overrides the embedded values. For optio
   --inhouse-dter  az://orngwus2cresco/.../cand/inhouse_2605_all_seg30/ \
   --mixlang           az://orngwus2cresco/.../cand/long_audio_mixlang_fy26q2_zh_seg/ \
   --openasr-ml           ray:verl-n1-i0:raysubmit_CAND2 \
-  --out tmp/eval_2607_reports/cand_step560.xlsx
+  --out tmp/eval_2607_reports/cand/cand_step560.xlsx
 ```
 
 The `inhouse_dter`, `openasr_ml`, and `mixlang` baselines come from the embedded table above, so their `--*-baseline` flags may be omitted. Add `--digits-enus <cand>` with `--digits-enus-baseline <base>` only when `--include-digits-enus` was requested. Add `--digits-tier1 <cand>` with `--digits-tier1-baseline <base>` only when `--include-digits-tier1` was requested. Only benchmarks whose candidate source is supplied get a sheet.
@@ -104,9 +104,9 @@ Use the merge helper only after every source workbook passes the single-checkpoi
 /home/boren/.virtualenvs/openai/bin/python \
    .github/skills/eval-2607-benchmark-report/scripts/merge_2607_reports.py \
    --model-label "remax_2607" \
-   --report "step280=tmp/eval_2607_reports/remax_2607_step280.xlsx" \
-   --report "step560=tmp/eval_2607_reports/remax_2607_step560.xlsx" \
-   --report "step840=tmp/eval_2607_reports/remax_2607_step840.xlsx" \
+   --report "step280=tmp/eval_2607_reports/remax_2607/remax_2607_step280.xlsx" \
+   --report "step560=tmp/eval_2607_reports/remax_2607/remax_2607_step560.xlsx" \
+   --report "step840=tmp/eval_2607_reports/remax_2607/remax_2607_step840.xlsx" \
    --out tmp/eval_2607_reports/remax_2607_all_steps.xlsx
 ```
 
@@ -119,8 +119,8 @@ Use [scripts/repair_2607_avg_formulas.py](./scripts/repair_2607_avg_formulas.py)
 ```bash
 /home/boren/.virtualenvs/openai/bin/python \
    .github/skills/eval-2607-benchmark-report/scripts/repair_2607_avg_formulas.py \
-   tmp/eval_2607_reports/report1.xlsx \
-   tmp/eval_2607_reports/report2.xlsx
+   tmp/eval_2607_reports/remax_2607/remax_2607_step280.xlsx \
+   tmp/eval_2607_reports/remax_2607_all_steps.xlsx
 ```
 
 ## Quality Gates

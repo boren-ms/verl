@@ -1,10 +1,10 @@
-│  i0     │  raysubmit_75EcARBzGVkcqkHi  │ LOST         │  remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl      │ 189/200; pool Scheduled; recovery pending │
+│  i0     │  raysubmit_qezkWC9z81iZTjJS  │ RUNNING      │  remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl      │ restoring complete step-180 checkpoint    │
 │  i1→i10 │  raysubmit_AH6ras2zyExGJFP3  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_openml_verb_1k_s100_bs256_lid05_sfl   │ 100/100; all benchmarks reported          │
 │  i2     │  raysubmit_VGpaTdiYczEdF1wn  │ SUCCEEDED    │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ 200/200; HF export complete; eval queued │
 │  i3     │  raysubmit_mCspYMX3T3Lb1iah  │ SUCCEEDED    │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05            │ 200/200; HF export complete; eval queued │
 │  i4→i12 │  raysubmit_X3XhQGL2NvkMWJ41  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl                   │ 100/100; all benchmarks reported          │
 │  i5     │  raysubmit_NLNNcS3T6QT7KhpQ  │ SUCCEEDED    │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl       │ 200/200; steps 50,100,150,200 reported    │
-│  i6→i10 │  raysubmit_qYavBB35v3DfENLw  │ LOST         │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl  │ 200/200; OpenASR interrupted at 3,584     │
+│  i6→i14 │  raysubmit_CC4hcBeNZHhjJT8h  │ RUNNING      │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl  │ 200/200; OpenASR HF model download        │
 │  i7→i17 │  raysubmit_TfRn1tsm1szG9Wkm  │ SUCCEEDED    │  remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_bv1               │ 100/100; steps 50 and 100 reported        │
 │  i8→i17 │  raysubmit_Pe97NauHBMd5ds2y  │ SUCCEEDED    │  remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_bv1   │ 200/200; all benchmarks reported          │
 │  i9     │  raysubmit_np4zMgGnvnqQVJrU  │ SUPERSEDED   │  remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl    │ duplicate of active i2; not restarted     │

@@ -120,6 +120,53 @@ def test_inhouse_avg_rows_use_excel_arithmetic_formulas(tmp_path, monkeypatch):
     assert summary["W3"].value == "inhouse_dter"
 
 
+def test_default_report_path_uses_model_subdirectory():
+    report = _load_report_module()
+
+    assert report.default_report_path(
+        "remax_2607@step560",
+        "az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607/global_step_560/qwen_hf/",
+    ) == Path(
+        "tmp/eval_2607_reports/remax_2607/remax_2607_step560.xlsx"
+    )
+    assert report.default_report_path(
+        "remax_2607_step560",
+        "",
+    ) == Path(
+        "tmp/eval_2607_reports/remax_2607/remax_2607_step560.xlsx"
+    )
+
+
+def test_default_output_writes_checkpoint_report_under_model(tmp_path, monkeypatch):
+    source = tmp_path / "measures"
+    corpus_dir = source / "enus_conv_fy21q1"
+    corpus_dir.mkdir(parents=True)
+    (corpus_dir / "measures.json").write_text(
+        json.dumps({"dter": 0.10, "dter_n_err": 1, "dter_n_ref": 10})
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            str(SCRIPT),
+            "--label",
+            "remax_2607_step10",
+            "--candidate-model-path",
+            "az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607/global_step_10/qwen_hf/",
+            "--inhouse-dter",
+            str(source),
+        ],
+    )
+
+    report = _load_report_module()
+    assert report.main() == 0
+    assert (
+        tmp_path
+        / "tmp/eval_2607_reports/remax_2607/remax_2607_step10.xlsx"
+    ).is_file()
+
+
 def test_merged_summary_chart_clusters_steps_by_dataset():
     report = _load_report_module()
     workbook = Workbook()
