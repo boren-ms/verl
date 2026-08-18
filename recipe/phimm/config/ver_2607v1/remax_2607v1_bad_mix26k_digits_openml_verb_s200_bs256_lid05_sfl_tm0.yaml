@@ -5,11 +5,23 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/bad_mix13k_openml_verb_lid05
-  - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
+  - data/train_data/bad_mix26k_enus_digits_openml_verb_lid05
+  - data/val_data/mixlang_fy26q2_zh_seg_enus_digits_openml_punc
   - _self_
 
 reward_functions:
+  digits:
+    path: recipe/phimm/reward/digits_measure.py
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        digit_char: {beta: 1.0}
+        digit_word: {beta: 1.0}
+        fmt: {beta: 1.0}
+        lang: {beta: 1.0}
   openml:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
@@ -26,6 +38,7 @@ reward_functions:
 
 reward_function_by_data_source:
   mix: openml
+  enus_digits_chunk_100: digits
   openml: openml
 
 val_reward:
@@ -41,11 +54,15 @@ val_reward:
       name: eval_score
       reward_kwargs:
         locale: en-us
+    digits:
+      path: recipe/phimm/reward/digits_measure.py
+      name: eval_score
     openml:
       path: recipe/phimm/reward/asr_edge.py
       name: openasr_eval
   reward_function_by_data_source:
     mixlang_fy26q2: inhouse
+    enus_digits_repeat: digits
     openml_bad: openml
     enus_conv_fy21q1: inhouse_en
 
@@ -66,8 +83,9 @@ actor_rollout_ref:
     optim:
       lr: 5e-6
   model:
-    path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
     trust_remote_code: false
+    target_modules: "model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*"
 
 algorithm:
   adv_estimator: remax

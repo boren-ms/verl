@@ -1,0 +1,50 @@
+# 26k bad-language examples + en-US digits + OpenML verbatim training data with 50% LID prompts.
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/mix_cv15_n1k_task3/bad_lang.jsonl
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.5
+  pre_process:
+    shuffle:
+      seed: 42
+  post_process:
+    input_egs_limit: 26000
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: mix
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/repeat_audio_path.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached/enus_digits_chunk_100/random_audio_path.jsonl
+  cache_name: enus_digits_chunk_100
+  add_task_info:
+    task: lang_asr
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: enus_digits_chunk_100
+    shuffle:
+      seed: 43
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.5
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt
