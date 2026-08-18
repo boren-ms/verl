@@ -19,7 +19,7 @@ Delegate remote submission, monitoring, failure recovery, and result retrieval t
 | `--node` | No | Ready remote `verl-n<N>-*` node. Let `verl-asr-run` select one when omitted; evaluations use that running pool's verified `N` as `trainer.nnodes`. |
 | `--include-digits-enus` | No | Add the optional en-US digits benchmark. |
 | `--include-digits-tier1` | No | Add the optional Tier 1 digits benchmark. |
-| `--out` | No | Single-checkpoint workbook path. Default: `tmp/eval_2607_reports/<model-name>/<model-label>.xlsx`. Merged `_all_steps.xlsx` reports stay directly under `tmp/eval_2607_reports/`. |
+| `--out` | No | Single-checkpoint workbook path. Default: `tmp/eval_2607_reports/<model-name>/<model-label>.xlsx`. Its JSON sidecars must use the same model folder. Merged `_all_steps.xlsx` reports stay directly under `tmp/eval_2607_reports/`. |
 | `--artifact-root` | No | Durable `az://.../` root for raw evaluation artifacts. Default: the common remote evaluation output root for `<model-label>`; it must not be node-local storage. |
 | `--merge-report <step>=<xlsx>` | No | Existing single-checkpoint report to merge. Repeat once per checkpoint step, in desired sheet order. All reports must belong to the same model family and use the same benchmark/config schema. |
 
@@ -56,7 +56,7 @@ The reference checkpoint and candidate must use the same config, data, locale, s
    - Optional `digits_enus` and `digits_tier1`: preserve both Digit CER and WER, with every evaluated dataset as a row.
    - `openasr_ml`: use final `p_err`/WER per dataset, language averages, and an overall average.
    - `mixlang`: use the final reference-compatible DTER/TER from `measures.json`, retaining the configured zh-CN scoring context.
-8. Build one single-checkpoint workbook per evaluated step with [scripts/build_2607_report.py](./scripts/build_2607_report.py). Store it under `tmp/eval_2607_reports/<model-name>/`; the default path is `tmp/eval_2607_reports/<model-name>/<model-label>.xlsx`. It reuses existing eval outputs and produces sheets in this order: `summary`, `inhouse_dter`, optional `digits_enus`, `openasr_ml`, `mixlang` (its own separate sheet), then optional `digits_tier1`. Keep these intermediate workbooks; they are the inputs to the multi-checkpoint merge. Each benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
+8. Build one single-checkpoint workbook per evaluated step with [scripts/build_2607_report.py](./scripts/build_2607_report.py). Store it under `tmp/eval_2607_reports/<model-name>/`; the default path is `tmp/eval_2607_reports/<model-name>/<model-label>.xlsx`. Store every checkpoint JSON sidecar in that same model folder, for example `tmp/eval_2607_reports/<model-name>/<model-label>.artifacts.json`; never place checkpoint JSON files directly under `tmp/eval_2607_reports/`. It reuses existing eval outputs and produces sheets in this order: `summary`, `inhouse_dter`, optional `digits_enus`, `openasr_ml`, `mixlang` (its own separate sheet), then optional `digits_tier1`. Keep these intermediate workbooks and sidecars; they are the inputs to the multi-checkpoint merge. Each benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
 
    $$\mathrm{delta}=1-\frac{\mathrm{candidate\ error}}{\mathrm{reference\ error}}$$
 
@@ -67,7 +67,7 @@ The reference checkpoint and candidate must use the same config, data, locale, s
    - `<checkpoint>_<benchmark>`: a faithful copy of each benchmark sheet, retaining formulas, percentage formatting, conditional formatting, widths, and provenance values. Sheet names are sanitized for Excel, limited to 31 characters, and given a stable hash suffix only when truncation causes a collision.
 
    Do not copy the per-checkpoint `summary` sheets verbatim; consolidate them into the single cross-step `summary`. Reject the merge if checkpoint labels repeat or if the reports differ in included benchmark/metric/config schema. Do not silently combine reports from different model families, baseline revisions, optional benchmark sets, or config revisions.
-11. Preserve baseline and raw-artifact provenance: keep the config path, reference model path, candidate path, metric definition, W&B run URL/ID, key-metrics remote path, detailed-decoding remote paths, artifact-manifest remote path, and source workbook path with the merged workbook. When the workbook format cannot hold all paths cleanly, write a sidecar `<workbook-stem>.artifacts.json` per checkpoint and retain its local and remote paths in the merged summary.
+11. Preserve baseline and raw-artifact provenance: keep the config path, reference model path, candidate path, metric definition, W&B run URL/ID, key-metrics remote path, detailed-decoding remote paths, artifact-manifest remote path, and source workbook path with the merged workbook. When the workbook format cannot hold all paths cleanly, write a sidecar `<workbook-stem>.artifacts.json` per checkpoint under `tmp/eval_2607_reports/<model-name>/`, beside its source workbook, and retain its local and remote paths in the merged summary. Do not write checkpoint JSON sidecars at the `tmp/eval_2607_reports/` root.
 
 ### Consolidated report script
 
@@ -143,6 +143,7 @@ Before delivering the workbook, verify all of the following:
 - A merged workbook contains exactly one `summary` sheet plus one prefixed benchmark sheet per checkpoint and included benchmark; it contains no copied per-checkpoint summary sheets.
 - All merged reports have unique checkpoint labels and identical benchmark, metric, config, baseline revision, and optional-digits coverage. Their candidate model paths identify different steps of the same model family.
 - The merged `summary` has a non-empty row for every checkpoint/benchmark/metric combination and retains both artifact sidecar paths and the source workbook path.
+- Every local checkpoint JSON sidecar is inside `tmp/eval_2607_reports/<model-name>/` beside its workbook; no checkpoint JSON file is written directly under `tmp/eval_2607_reports/`.
 - Reopen the merged workbook with `openpyxl`, confirm its expected sheet names and row counts, and verify at least one copied delta cell still contains an Excel formula rather than a cached value.
 
 ## Existing Helpers
