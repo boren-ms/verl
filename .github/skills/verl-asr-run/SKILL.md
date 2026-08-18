@@ -162,11 +162,11 @@ Keep the current jobs in a Unicode box-drawing table at the top of the file. Use
 
 - `NODE`: short Brix node suffix such as `i0`; use `i12-recovery` when that label distinguishes a replacement.
 - `RAY JOB ID`: the current Ray submission ID; replace stale IDs in place after resubmission.
-- `STATUS`: `PENDING`, `RUNNING`, `SUCCEEDED`, `FAILED`, `STOPPED`, or `LOST`.
+- `STATUS`: `PENDING`, `RUNNING`, `SUCCEEDED`, `FAILED`, `STOPPED`, `LOST`, or `FREE`.
 - `JOB / CONFIG`: the training config, benchmark config, export label, or report action.
 - `PROGRESS / PHASE`: for training, write `X/N (P%, training)`; for evaluation/export/report work, write a concise phase such as `model startup`, `decoding`, `uploading artifacts`, or `complete`.
 
-Render one row for every active training and evaluation job. Also retain recently completed training jobs that still have queued or active checkpoint evaluations. Keep column widths aligned and rewrite the whole table on every poll so it remains directly readable in a terminal. Example:
+Render one row for every active training and evaluation job. Also retain recently completed training jobs that still have queued or active checkpoint evaluations. Add one `FREE` row for every currently free Ready `verl-n1-i*` evaluator, with `none` as its Ray job ID, `evaluation capacity` as its job/config, and `idle` as its phase. A retained completed job and a `FREE` capacity row may share a node suffix; keep those rows adjacent. Sort the entire table by the numeric node suffix in natural order (`i2` before `i10`), with an optional label such as `-recovery` sorted immediately after its base suffix. Keep column widths aligned and rewrite the whole table on every poll so it remains directly readable in a terminal. Example:
 
 ```text
 updated_at_utc: <ISO-8601 timestamp>
@@ -175,13 +175,14 @@ updated_at_utc: <ISO-8601 timestamp>
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
 │ i0           │ raysubmit_yG3rtNwycM5RbCQD   │ RUNNING       │ remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl       │ 99/200 (50%, training)       │
+│ i2           │ none                         │ FREE          │ evaluation capacity                                              │ idle                         │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
 - `training-config`: queued `150, 200`; evaluating `100`; reported `50`
 ```
 
-Under `Reports:`, use one concise queue-status bullet per training model/run in the form `- model: queued steps; evaluating steps; reported steps`, using `none` for an empty set. Do not list Excel files, workbook paths, or other metadata as bullets. For standalone jobs without a checkpoint queue, leave `Reports:` empty.
+Under `Reports:`, use one concise queue-status bullet per training model/run in the form `- model: queued steps; evaluating steps; reported steps`, using `none` for an empty set. Do not list free nodes, Excel files, workbook paths, or other metadata as bullets. For standalone jobs without a checkpoint queue, leave `Reports:` empty.
 
 For standalone `eval_*`, `long_eval_*`, or `gen_*` jobs, put the primary job directly in the node/job table. For training pipelines, include every active training job and every periodic candidate/reference benchmark child in the node/job table. The file is not complete if either an active training job or an active evaluation child is omitted. The node/job table and report bullets are the canonical representations; do not add metadata, notes, artifact blocks, or history lists.
 
@@ -385,17 +386,17 @@ If all quality metrics are at their ideal values (p_fmt = 100%, p_lang = 100%, p
 
 #### 3h. Evaluate and report every 50 steps
 
-For training jobs, maintain the model's queued, evaluating, and reported steps in its queue-status bullet. On every poll:
+For training jobs, maintain all free evaluator nodes as `FREE` rows in the naturally sorted node/job table and the model's queued, evaluating, and reported steps in its queue-status bullet. On every poll:
 
 1. Discover complete checkpoints from both the observed `save_checkpoint` log entries and `global_step_*` directories under the configured output root. A checkpoint is complete only when its save/upload has finished and all required actor shards are present.
 2. Add every positive, previously unseen step divisible by 50 to the queue-status bullet in ascending order. Never enqueue step 0. Deduplicate against queued, evaluating, and reported steps so monitor restarts and repeated polls cannot launch duplicate evaluations.
-3. If no checkpoint evaluation is active, select a separate free Ready `verl-n1-i*` node using Step 1a. If none is free, retain the queue and report `Evaluation queued: step N; waiting for a separate free verl-n1-i* node`.
+3. Refresh all `FREE` rows using Step 1a occupancy checks and re-sort the table. If no checkpoint evaluation is active, select the first free node in natural order. If none is free, retain the queue and report `Evaluation queued: step N; waiting for a separate free verl-n1-i* node`.
 4. Export the selected checkpoint using Step 4a with `{STEP}` in place of `{LATEST_STEP}`, then invoke Step 4b on `{EVAL_NODE}`. Training continues on `{TRAIN_NODE}` while the benchmark runs.
 5. Monitor training and all benchmark child jobs concurrently. After the workbook passes quality gates, move the step to `reported_steps` and immediately report its in-house DTER, OpenASR-ML, and MixLang summary metrics, workbook path, checkpoint path, evaluator node, child Ray job IDs, W&B links, and artifact provenance.
 6. When two or more step workbooks exist, rebuild the consolidated workbook in ascending step order with `merge_2607_reports.py` and report its path after each newly completed step.
 7. If training finishes on a checkpoint not divisible by 50, enqueue that final step after all earlier 50-step checkpoints. Do not declare the pipeline complete until the queue is empty and every discovered required step is in `reported_steps`.
 
-Write each queue transition to the model's queue-status bullet and each evaluator assignment to the node/job table before launching it. Remove terminal child-job rows after the completed step has moved to `reported` or the row has been replaced by the next active child.
+Write each queue transition to the model's queue-status bullet and each evaluator assignment to the node/job table before launching it. Remove the assigned node's `FREE` row before launch; restore it only after both occupancy checks show the node is free again. Re-sort the table after every assignment or release. Remove terminal child-job rows after the completed step has moved to `reported` or the row has been replaced by the next active child.
 
 ### Step 4 — Training summary (when SUCCEEDED)
 
@@ -567,7 +568,7 @@ This schedules VS Code Copilot to re-invoke the agent every 5 minutes with an ex
 - **Step 2**: `ray job submit` output shows a job ID. If it errors, check `ray_tool.py prepare_env` ran.
 - **Step 3 (eval)**: WER values are reasonable (0–100%). If WER > 50%, flag as suspicious.
 - **Step 3 (training)**: Training metrics should show learning (score/mean trending up, pg_loss decreasing). If metrics are flat or diverging, flag.
-- **Step 1b/3**: Reopen `recipe/phimm/config/verl_job.txt` and verify it contains only the timestamp, node/job table, and concise model queue-status bullets. Confirm current Ray IDs, statuses, nodes, and queue state match the latest remote observations. Confirm no Excel file or workbook path appears under `Reports:`. No active job may be missing.
+- **Step 1b/3**: Reopen `recipe/phimm/config/verl_job.txt` and verify it contains only the timestamp, naturally sorted node/job table, and concise model queue-status bullets. Confirm current Ray IDs, statuses, nodes, all `FREE` evaluator rows, and queue state match the latest remote observations. Confirm no free-node bullet, Excel file, or workbook path appears under `Reports:`. No active job may be missing.
 - **Step 3h**: Verify each required 50-step checkpoint is represented exactly once across queued, evaluating, and reported state; every evaluation node matches `verl-n1-i*`, differs from the training node, was free at assignment, and ran with `trainer.nnodes=1`.
 - **Step 4b**: Apply every quality gate from **eval-2607-benchmark-report** to every step workbook. At minimum, verify all required candidate/reference jobs succeeded, the workbook opens, the `summary`, `inhouse_dter`, `openasr_ml`, and `mixlang` sheets are present, and each sheet records matching baseline provenance. Optional digits sheets must appear only when requested. Reopen and validate the consolidated multi-checkpoint workbook after every merge.
 
