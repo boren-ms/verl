@@ -1,27 +1,34 @@
-updated_at_utc: 2026-08-18T20:35:00Z
+updated_at_utc: 2026-08-18T20:46:00Z
 
 ┌──────────────┬────────────────────────────┬───────────┬─────────────────────────────────────────────────────────────────────┬──────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                        │ PROGRESS / PHASE         │
 ├──────────────┼────────────────────────────┼───────────┼─────────────────────────────────────────────────────────────────────┼──────────────────────────┤
 │ i0           │ raysubmit_qezkWC9z81iZTjJS │ SUCCEEDED │ remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl           │ 200/200 (100%, complete) │
+│ i0           │ raysubmit_A7uePMhWRjHcgh3C │ RUNNING   │ tm0@40 / long_eval_inhouse_2607_all_seg30                           │ generating 6/53          │
 │ i1           │ raysubmit_t8v9wTtek7vWyjAu │ RUNNING   │ remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm0                   │ 2/100 (2%, training)     │
 │ i2           │ raysubmit_VGpaTdiYczEdF1wn │ SUCCEEDED │ remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl         │ 200/200 (100%, complete) │
+│ i2           │ raysubmit_GrrWgED9vVEgJdV3 │ RUNNING   │ tm0@40 / eval_openasr_ml_verb_2607                                  │ model sync               │
 │ i3           │ raysubmit_mCspYMX3T3Lb1iah │ SUCCEEDED │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05                │ 200/200 (100%, complete) │
-│ i14          │ raysubmit_NCeeJLsavjxp1w9p │ RUNNING   │ remax_2607v1_bad_mix26k_openml_verb_s200_bs256_lid05_sfl_tm0        │ 2/200 (1%, training)     │
-│ i15-recovery │ raysubmit_utL7TDqCj4muA8MG │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0        │ 40/200 (20%, training)   │
-│ i16          │ raysubmit_6KZXQ3TbYvSXDVN2 │ RUNNING   │ remax_2607v1_bad_mix26k_digits_openml_verb_s200_bs256_lid05_sfl_tm0 │ step 0 validation        │
-│ i17          │ raysubmit_BwyiigRfdE39uURJ │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0  │ step 0 validation        │
+│ i3           │ raysubmit_iK3UXYKae3cU5hkc │ RUNNING   │ tm0@40 / long_eval_mixlang_fy26q2_zh_seg_2607                       │ startup                  │
+│ i4           │ none                       │ FREE      │ evaluation capacity                                                 │ idle                     │
+│ i5           │ none                       │ FREE      │ evaluation capacity                                                 │ idle                     │
+│ i6           │ none                       │ FREE      │ evaluation capacity                                                 │ idle                     │
+│ i7           │ none                       │ FREE      │ evaluation capacity                                                 │ idle                     │
 │ i10          │ raysubmit_nXk9nsUURuRnB8BU │ RUNNING   │ i0@200 / long_eval_inhouse_2607_all_seg30                           │ scoring 39/1,067         │
-│ i11          │ local export               │ RUNNING   │ tm0@40 HF export, LoRA alpha 640 / rank 320                          │ downloading 8 shards     │
+│ i11          │ local export               │ SUCCEEDED │ tm0@40 HF export, LoRA alpha 640 / rank 320                         │ 1,274 tensors validated  │
 │ i12          │ raysubmit_q1aS1gLqKiWfHetp │ RUNNING   │ i0@200 / eval_openasr_ml_verb_2607                                  │ 17,920 decoded           │
 │ i13          │ raysubmit_nSYqEgTqPMJnDFzp │ RUNNING   │ i0@70 / eval_openasr_ml_verb_2607                                   │ 49,152 decoded           │
+│ i14          │ raysubmit_NCeeJLsavjxp1w9p │ RUNNING   │ remax_2607v1_bad_mix26k_openml_verb_s200_bs256_lid05_sfl_tm0        │ 2/200 (1%, training)     │
+│ i15-recovery │ raysubmit_utL7TDqCj4muA8MG │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0        │ 44/200 (22%, training)   │
+│ i16          │ raysubmit_6KZXQ3TbYvSXDVN2 │ RUNNING   │ remax_2607v1_bad_mix26k_digits_openml_verb_s200_bs256_lid05_sfl_tm0 │ step 0 validation        │
+│ i17          │ raysubmit_BwyiigRfdE39uURJ │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0   │ step 0 validation        │
 └──────────────┴────────────────────────────┴───────────┴─────────────────────────────────────────────────────────────────────┴──────────────────────────┘
 
 Reports:
 - remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl: queued none; evaluating 70, 200
 - remax_2607v1_bad_mix5k_openml_verb_s200_bs256_sc2_lid05_sfl: queued 200; evaluating none
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05: queued 200; evaluating none
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0: steps 10/20/30 reported; step 40 HF export running on i11; free evaluation capacity on i0 and i2-i7
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0: queued none; evaluating 40; reported 10, 20, 30
 - remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm0: queued none; evaluating none
 - remax_2607v1_bad_mix26k_openml_verb_s200_bs256_lid05_sfl_tm0: queued none; evaluating none
 - remax_2607v1_bad_mix26k_digits_openml_verb_s200_bs256_lid05_sfl_tm0: queued none; evaluating none
