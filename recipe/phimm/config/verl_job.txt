@@ -22,7 +22,6 @@ updated_at_utc: 2026-08-18T21:43:28Z
 └──────────────┴────────────────────────────┴───────────┴─────────────────────────────────────────────────────────────────────┴──────────────────────────┘
 
 Reports:
-- remax_2607v1a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl: queued none; evaluating none; reported 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 200
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0: queued none; evaluating 40; reported 10, 20, 30
 - remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm0: queued none; evaluating none
 - remax_2607v1_bad_mix26k_openml_verb_s200_bs256_lid05_sfl_tm0: queued none; evaluating none
