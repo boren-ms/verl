@@ -53,7 +53,7 @@ actor_rollout_ref:
   rollout:
     n: 16
     gt_rollout: false
-    temperature: 1.0
+    temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.9
@@ -67,7 +67,7 @@ actor_rollout_ref:
     ppo_mini_batch_size: ${data.train_batch_size}
     ppo_epochs: 1
     optim:
-      lr: 1e-6
+      lr: 5e-6
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
     trust_remote_code: false
