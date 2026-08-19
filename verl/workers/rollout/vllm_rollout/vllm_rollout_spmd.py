@@ -70,6 +70,7 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 
 
 DEEPSEEK_OCR_NGRAM_FQCN = "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor"
+VLLM_SUPPORTED_MAX_LORA_RANKS = (1, 8, 16, 32, 64, 128, 256, 320, 512)
 
 
 def _ensure_ngram_processor(engine_kwargs: dict[str, Any]) -> None:
@@ -77,6 +78,13 @@ def _ensure_ngram_processor(engine_kwargs: dict[str, Any]) -> None:
     if DEEPSEEK_OCR_NGRAM_FQCN not in lp:
         lp.append(DEEPSEEK_OCR_NGRAM_FQCN)
     engine_kwargs["logits_processors"] = lp
+
+
+def _get_vllm_max_lora_rank(lora_rank: int) -> int:
+    for supported_rank in VLLM_SUPPORTED_MAX_LORA_RANKS:
+        if lora_rank <= supported_rank:
+            return supported_rank
+    raise ValueError(f"LoRA rank {lora_rank} exceeds vLLM's maximum supported rank 512")
 
 
 # NOTE(sgm): add for verl. We can optimize it by making the dataloader yield List[int] without padding.
@@ -113,7 +121,11 @@ class vLLMRollout(BaseRollout):
         model_hf_config = model_config.hf_config
         trust_remote_code = model_config.trust_remote_code
         self.lora_kwargs = (
-            {"enable_lora": True, "max_loras": 1, "max_lora_rank": model_config.lora_rank}
+            {
+                "enable_lora": True,
+                "max_loras": 1,
+                "max_lora_rank": _get_vllm_max_lora_rank(model_config.lora_rank),
+            }
             if model_config.lora_rank > 0
             else {}
         )
