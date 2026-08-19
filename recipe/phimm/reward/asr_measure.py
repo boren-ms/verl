@@ -298,15 +298,16 @@ def _parse_task_output(solution_str):
 
     Supports one or more ``<lang=X><TXT>..</TXT>`` segments inside a single
     ``<ASR>..</ASR>`` (or ``<ASR_*>..</ASR_*>``) block, as produced for
-    code-switch / language-mixed audio. Returns ``None`` when the string does
-    not match the expected format.
+    code-switch / language-mixed audio. The ``Audio Language:`` header is
+    optional; ``header_langs`` is empty when it is absent. Returns ``None``
+    when the string does not match the expected format.
     """
     if not isinstance(solution_str, str):
         return None
-    hm = _HEADER_RE.match(solution_str.strip())
-    if not hm:
-        return None
-    tm = _TAG_RE.match(hm.group("body").strip())
+    output = solution_str.strip()
+    hm = _HEADER_RE.match(output)
+    body = hm.group("body").strip() if hm else output
+    tm = _TAG_RE.match(body)
     if not tm:
         return None
     inner = tm.group("inner")
@@ -322,7 +323,7 @@ def _parse_task_output(solution_str):
         pos = m.end()
     if not segments:
         return None
-    header_langs = _split_langs(hm.group("langs"))
+    header_langs = _split_langs(hm.group("langs")) if hm else []
     seg_langs = [lang for lang, _ in segments]
     seg_texts = [text for _, text in segments]
     return header_langs, seg_langs, seg_texts
@@ -376,13 +377,15 @@ def check_fmt(solution_str: str) -> bool:
         Audio Language: {langs}.
         <{tag}><lang={l1}><TXT>{t1}</TXT>[<lang={l2}><TXT>{t2}</TXT>...]</{tag}>
 
-    where tag is ``ASR`` or ``ASR_*`` and the header languages match the
-    per-segment ``<lang=..>`` sequence.
+    where tag is ``ASR`` or ``ASR_*``. The header is optional; when present,
+    its languages must match the per-segment ``<lang=..>`` sequence.
     """
     parsed = _parse_task_output(solution_str)
     if parsed is None:
         return False
     header_langs, seg_langs, _ = parsed
+    if not header_langs:
+        return True
     return [get_language_code(name) for name in header_langs] == [get_language_code(name) for name in seg_langs]
 
 

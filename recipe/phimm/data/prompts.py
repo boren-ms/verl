@@ -92,7 +92,9 @@ def get_task_prefix(task, lang, prob=1.0):
     if random.random() >= prob:
         return ""
     if task.startswith("lang_asr"):
-        return f"Audio Language: {get_language_name(lang)}\n"
+        languages = get_language_name(lang).strip()
+        lang_str = " and ".join(languages.split())
+        return f"Audio Language: {lang_str}\n"
     
     raise ValueError(f"Unknown task: {task}")
 
