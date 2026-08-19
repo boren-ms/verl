@@ -1,4 +1,4 @@
-updated_at_utc: 2026-08-19T18:50:48Z
+updated_at_utc: 2026-08-19T18:58:10Z
 
 ┌──────────────┬────────────────────────────┬───────────┬─────────────────────────────────────────────────────────────────────┬──────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                        │ PROGRESS / PHASE         │
@@ -7,18 +7,20 @@ updated_at_utc: 2026-08-19T18:50:48Z
 │ i1           │ raysubmit_yZgf84xuNTs798Up │ RUNNING   │ tm1 step40 in-house DTER                                             │ model startup            │
 │ i2           │ raysubmit_D7q86mXpS8q2sdAX │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2        │ 60/200; validation       │
 │ i3           │ raysubmit_SqrRRQk93Bz18d6L │ RUNNING   │ remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm1                    │ 1/100; training          │
-│ i4           │ raysubmit_M3sSFgin1huMyJHp │ RUNNING   │ tm1 step100 MixLang                                                  │ model startup            │
+│ i4           │ raysubmit_xvHGw2Wv7BaETb9X │ RUNNING   │ tm1 step140 OpenASR-ML                                               │ model startup            │
 │ i5           │ raysubmit_aqikhbMtSGLr3MbM │ RUNNING   │ tm1 step100 OpenASR-ML                                               │ model startup            │
 │ i6           │ raysubmit_msh99DmM6zQPipud │ RUNNING   │ tm1 step120 OpenASR-ML recovery                                      │ model startup            │
 │ i10          │ raysubmit_p1uDmpUyNVCaApjb │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1    │ 0/200; initial validation│
-│ i11          │ raysubmit_SEWXV2CP5sDsp6vD │ FAILED    │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0   │ wait DTER; resume step20 │
-│ i12          │ raysubmit_eXf55vdKZykCGDm7 │ FAILED    │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001  │ wait DTER; restart step0 │
+│ i11          │ raysubmit_Wm5iT4WifhDCer1u │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0   │ startup; resume step 20  │
+│ i12          │ raysubmit_7UzUvqk468CnSswk │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001  │ model startup            │
 │ i14          │ raysubmit_tJmXezf2CBYJAGTf │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid0_sfl_tm0    │ 0/200; initial validation│
 │ i16          │ raysubmit_PgaPG6Eq8vSxRKQL │ RUNNING   │ tm1 step180 OpenASR-ML                                               │ model startup            │
 │ i17          │ raysubmit_siiys21L9EkDpZgn │ RUNNING   │ tm1 step40 OpenASR-ML                                                │ model startup            │
 └──────────────┴────────────────────────────┴───────────┴─────────────────────────────────────────────────────────────────────┴──────────────────────────┘
 
 Reports:
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_v0: queued none; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid1_sfl_tm0: queued none; evaluating none; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid0_sfl_tm0: queued none; evaluating none; reported none
 - remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm1: queued none; evaluating none; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001: queued none; evaluating none; reported none
