@@ -1,14 +1,9 @@
-# ArtificialAnalysis English evaluation sets with on-the-fly SVAD presegmentation
-# (max_len_sec=30). Segment metadata supports grouping hypotheses by parent audio.
+# ArtificialAnalysis English evaluation sets pre-segmented offline with SVAD
+# (max_len_sec=30). No segmentation runs during evaluation.
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
   pre_process:
-    svad_explode:
-      max_len_sec: 30.0
-      audio_key: url
-      path_replace:
-        "audio/": az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/
     rename_fields:
       mappings:
         audio_path: url
@@ -25,13 +20,8 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1.jsonl
   pre_process:
-    svad_explode:
-      max_len_sec: 30.0
-      audio_key: url
-      path_replace:
-        "audio/": az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/VoxPopuli-Cleaned-AA/audio/
     rename_fields:
       mappings:
         audio_path: url
