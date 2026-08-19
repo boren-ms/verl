@@ -1,4 +1,4 @@
-updated_at_utc: 2026-08-19T21:41:00Z
+updated_at_utc: 2026-08-19T21:55:00Z
 
 ┌──────────────┬────────────────────────────┬───────────┬─────────────────────────────────────────────────────────────────────┬──────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                        │ PROGRESS / PHASE         │
@@ -7,7 +7,7 @@ updated_at_utc: 2026-08-19T21:41:00Z
 │ i1           │ raysubmit_4rznuAwQBd5vXYJ4 │ RUNNING   │ sc10_lid05 step20 MixLang                                           │ model startup            │
 │ i2           │ raysubmit_YWMgumnPGAVzYxds │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2_v0     │ 14/200 (7%, training)    │
 │ i3           │ raysubmit_SqrRRQk93Bz18d6L │ RUNNING   │ remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm1                    │ 35/100 (35%, training)   │
-│ i4           │ none                       │ FREE      │ evaluation capacity                                                  │ idle                     │
+│ i4           │ none                       │ RUNNING   │ mix26k tm0 step20 HF export                                          │ downloading actor shards│
 │ i5           │ raysubmit_wY4PtuBz1kuxERxE │ RUNNING   │ v1a_tm1 step20 OpenASR-ML retry                                     │ model startup            │
 │ i6           │ raysubmit_1WSb4UkYiZ8KMEYw │ RUNNING   │ sc10_lid05 step40 OpenASR-ML                                        │ model startup            │
 │ i10          │ raysubmit_uNMfD8XwPLWgLZnq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1    │ 10/200 (5%, training)    │
@@ -15,7 +15,7 @@ updated_at_utc: 2026-08-19T21:41:00Z
 │ i12          │ raysubmit_FbEwAfqVMdZ1duP1 │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001  │ 10/200 (5%, training)    │
 │ i14          │ raysubmit_xJnPCpzxnttpGXAS │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid1_sfl_tm0          │ 24/200 (12%, training)   │
 │ i15          │ raysubmit_sezqDfhg57SpkMNR │ RUNNING   │ lid1 step20 in-house DTER                                           │ model startup            │
-│ i16          │ none                       │ FREE      │ evaluation capacity                                                  │ idle                     │
+│ i16          │ raysubmit_271EjHPY6wEt4piU │ RUNNING   │ mix26k tm0 step10 OpenASR-ML                                         │ model startup            │
 │ i17          │ raysubmit_hSpLRg6sEp4hryWa │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_v0     │ 17/200 (9%, training)    │
 └──────────────┴────────────────────────────┴───────────┴─────────────────────────────────────────────────────────────────────┴──────────────────────────┘
 
