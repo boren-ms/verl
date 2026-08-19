@@ -1,0 +1,18 @@
+# Training data: synthetic earnings-call ASR errors with matched TTS audio
+# The JSONL text field is copied from ref; hyp retains the intentional ASR error.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/tts/4_AA/earnings_error_161.jsonl
+pre_process:
+  path_map:
+    field: audio_path
+    src_part: "audios/"
+    dst_part: "az://orngwus2cresco/data/boren/data/tts/4_AA/audios/"
+add_task_info:
+  task: lang_asr
+  prefix_prob: 0.0
+post_process:
+  add_field:
+    fields:
+      data_source: earnings_error_161
+  verl_format:
+    prompt_key: prompt

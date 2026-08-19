@@ -1,0 +1,48 @@
+# ArtificialAnalysis English evaluation sets with on-the-fly SVAD presegmentation
+# (max_len_sec=30). Segment metadata supports grouping hypotheses by parent audio.
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 30.0
+      audio_key: url
+      path_replace:
+        "audio/": az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 30.0
+      audio_key: url
+      path_replace:
+        "audio/": az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/VoxPopuli-Cleaned-AA/audio/
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: voxpopuli_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
