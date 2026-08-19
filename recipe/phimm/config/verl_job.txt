@@ -1,15 +1,15 @@
-updated_at_utc: 2026-08-19T17:57:16Z
+updated_at_utc: 2026-08-19T18:07:24Z
 
 ┌──────────────┬────────────────────────────┬───────────┬─────────────────────────────────────────────────────────────────────┬──────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                        │ PROGRESS / PHASE         │
 ├──────────────┼────────────────────────────┼───────────┼─────────────────────────────────────────────────────────────────────┼──────────────────────────┤
-│ i0           │ raysubmit_pT22ndnZvHDFy5RJ │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2a       │ 6/200 (3%, training)     │
+│ i0           │ raysubmit_pT22ndnZvHDFy5RJ │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2a       │ 8/200 (4%, training)     │
 │ i1           │ raysubmit_yZgf84xuNTs798Up │ RUNNING   │ tm1 step40 in-house DTER                                             │ model startup            │
 │ i2           │ raysubmit_heBzFt2h8xSBGcZd │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2        │ 64/200 (32%, training)   │
-│ i3           │ raysubmit_MwNuxcHjyxhgg4cD │ RUNNING   │ tm1 step60 in-house DTER                                             │ recovery model startup   │
-│ i4           │ raysubmit_cG7JReBUnWbN7mbV │ RUNNING   │ tm1 step80 OpenASR-ML                                                │ model startup            │
+│ i3           │ raysubmit_CaYfWU5C9xnfsjSu │ RUNNING   │ remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm1                    │ model sync               │
+│ i4           │ raysubmit_Q2xL8iuMynd6ENRc │ RUNNING   │ tm1 step80 MixLang                                                   │ model startup            │
 │ i5           │ raysubmit_aqikhbMtSGLr3MbM │ RUNNING   │ tm1 step100 OpenASR-ML                                               │ model startup            │
-│ i6           │ raysubmit_V8xhHCf2j2WWiX6H │ RUNNING   │ tm1 step120 OpenASR-ML                                               │ model startup            │
+│ i6           │ raysubmit_hN2N5BXNRBYDsPqB │ RUNNING   │ tm1 step120 OpenASR-ML recovery                                      │ model startup            │
 │ i10          │ raysubmit_vvVSctgnFU9FweNN │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1    │ 3/200 (2%, training)     │
 │ i11          │ raysubmit_kjkTtHPTjGj1wrc6 │ RUNNING   │ tm1 step160 in-house DTER                                            │ recovery model startup   │
 │ i12          │ raysubmit_yHTpP7aefwG73jWx │ RUNNING   │ tm1 step200 in-house DTER                                            │ recovery model startup   │
