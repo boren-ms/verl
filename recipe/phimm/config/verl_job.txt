@@ -1,31 +1,31 @@
-updated_at_utc: 2026-08-20T18:40:30Z
+updated_at_utc: 2026-08-20T19:04:30Z
 
 ┌──────────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                  │ PROGRESS / PHASE             │
 ├──────────────┼────────────────────────────┼───────────┼───────────────────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_Lnn9wdYPmifV1Vmb │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2a_lr1           │ 100/200 (50%, training)      │
-│ i1           │ raysubmit_dHYuLA6u3CaH8BDm │ RUNNING   │ remax_2607v1a_bad_mix13k_s200_bs256_lid05_sfl_tm1a                           │ 12/200 (6%, training)        │
+│ i0           │ raysubmit_Lnn9wdYPmifV1Vmb │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2a_lr1           │ 102/200 (51%, training)      │
+│ i1           │ raysubmit_dHYuLA6u3CaH8BDm │ RUNNING   │ remax_2607v1a_bad_mix13k_s200_bs256_lid05_sfl_tm1a                           │ 16/200 (8%, training)        │
 │ i2           │ raysubmit_Jm2e4u2qVGB7LvZ2 │ RUNNING   │ tm1 step40 OpenASR-ML                                                        │ decoding                     │
-│ i3           │ raysubmit_YkyAg23hKy6n7mjq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0      │ 38/200 (19%, training)       │
-│ i4           │ raysubmit_gqcC2rRKcwMm9CCD │ RUNNING   │ remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1                │ 60/400 (15%, training)       │
-│ i5           │ raysubmit_nDTBpdvXQZKWPEgC │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid1_sfl_tm0_br05_cw08      │ 31/200 (16%, training)       │
-│ i6           │ raysubmit_1SJ3dCsCsEXL6dT7 │ RUNNING   │ tm1a step20 OpenASR-ML                                                       │ decoding                     │
-│ i7           │ raysubmit_rR6K898m5MuRHZC3 │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr01           │ 8/100 (8%, training)         │
-│ i10          │ raysubmit_8FBEjvTAwUQp4wqh │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1           │ 138/200 (69%, training)      │
+│ i3           │ raysubmit_YkyAg23hKy6n7mjq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0      │ 40/200 (20%, training)       │
+│ i4           │ raysubmit_gqcC2rRKcwMm9CCD │ RUNNING   │ remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1                │ 63/400 (16%, training)       │
+│ i5           │ none                       │ FREE      │ evaluation capacity                                                           │ idle after external SIGTERM  │
+│ i6           │ raysubmit_V9qhd1YwQzRzUrBs │ RUNNING   │ tm1a step20 MixLang                                                          │ model startup                │
+│ i7           │ raysubmit_rR6K898m5MuRHZC3 │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr01           │ 13/100 (13%, training)       │
+│ i10          │ raysubmit_8FBEjvTAwUQp4wqh │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1           │ 140/200 (70%, training)      │
 │ i11          │ raysubmit_cEzPyGGUX55MjLm1 │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0          │ 105/200 (53%, training)      │
-│ i12          │ raysubmit_8z8bErPFbBYeGsEE │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001         │ 99/200 (50%, training)       │
-│ i13          │ raysubmit_n4dNtHBmezmuqGan │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0                │ 9/100 (9%, training)         │
-│ i14          │ raysubmit_D2HFTUJWtrAjamdq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1b              │ 5/200 (3%, training)         │
-│ i15          │ none                       │ FREE      │ evaluation capacity                                                           │ idle                         │
+│ i12          │ raysubmit_8z8bErPFbBYeGsEE │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001         │ 102/200 (51%, training)      │
+│ i13          │ raysubmit_n4dNtHBmezmuqGan │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0                │ 17/100 (17%, training)       │
+│ i14          │ raysubmit_D2HFTUJWtrAjamdq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1b              │ 8/200 (4%, training)         │
+│ i15          │ raysubmit_CGVKEvd1stmcF95T │ RUNNING   │ sc10 step60 in-house DTER                                                     │ model startup                │
 │ i16          │ none                       │ FREE      │ evaluation capacity                                                           │ idle                         │
-│ i17          │ raysubmit_7VrAzACCeMGrTKyk │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1b               │ 2/100 (2%, training)         │
+│ i17          │ raysubmit_7VrAzACCeMGrTKyk │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1b               │ 9/100 (9%, training)         │
 └──────────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
 - remax_2607v1a_bad_mix13k_s200_bs256_lid05_sfl_tm1a: queued none; evaluating none; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid1_sfl_tm0_kl001: queued none; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0: queued 60, 80; evaluating none; reported 20, 40
-- remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm1: queued 60, 80, 100; evaluating 20, 40; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0: queued 80; evaluating 60; reported 20, 40
+- remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm1: queued 60, 80, 90, 100; evaluating 20, 40; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001: queued 40, 60, 80; evaluating 20; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0: queued none; evaluating none; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1: queued 20, 40, 60, 80; evaluating none; reported none
@@ -33,7 +33,6 @@ Reports:
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1: queued none; evaluating none; reported 20, 40, 60, 80, 100, 120, 140, 160, 180, 200
 - remax_2607v1_bad_mix26k_digits_openml_verb_s200_bs256_lid05_sfl_tm0: queued none; evaluating none; reported 10, 20, 30, 40, 50, 60, 80
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2: queued none; evaluating none; reported 20, 40, 60
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid1_sfl_tm0_br05_cw08: queued 20; evaluating none; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1a: queued 40, 60, 80, 100, 120, 140, 160; evaluating 20; reported none
 - remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1: queued 20, 40; evaluating none; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0: queued none; evaluating none; reported none
