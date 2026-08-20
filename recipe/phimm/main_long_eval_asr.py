@@ -22,11 +22,10 @@ This is a lightweight, gen-style evaluator (modelled on
    ``seg_start`` so segments can be regrouped after generation.
 2. ``generate_sequences`` transcribes every segment.
 3. Per-segment hypotheses are grouped by ``parent_audio_path``, sorted by
-   ``seg_start`` and concatenated, then scored *once per parent* against the
-   full reference using :func:`recipe.phimm.reward.asr_inhouse_measure.eval_score`
-   (DisfluencyTolerant TER + entity EER).
-4. Per-recording results are written as JSONL and the aggregate TER/EER measures
-   as JSON.
+    ``seg_start`` and concatenated, then scored *once per parent* against the
+    full reference. ``custom_reward_function`` can select a scorer;
+    the default is DisfluencyTolerant TER + entity EER.
+4. Per-recording results and aggregate measures are written as JSONL and JSON.
 
 Unlike ``main_asr_eval`` (full PPO trainer + reward manager), this script only
 spins up a rollout worker group, so it is cheap to run for eval-only sweeps.
@@ -44,7 +43,6 @@ import hydra
 import numpy as np
 import ray
 import uuid
-from datasets import Dataset
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -60,10 +58,10 @@ from verl.utils import hf_processor, hf_tokenizer
 from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
 from verl.utils.fs import copy_to_local
 from verl.workers.fsdp_workers import ActorRolloutRefWorker
+from verl.trainer.ppo.reward import get_custom_reward_fn
 
 from recipe.phimm.data.rl_dataset import RLHFDataset
 from recipe.phimm.reward.asr_inhouse_measure import eval_score
-from recipe.phimm.reward.asr_edge import eval_score as edge_eval_score  # noqa: F401 (keeps resolver parity)
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.utils.shared import parse_asr_response
 
@@ -249,6 +247,13 @@ def generate_segments(wg, dataloader, tokenizer):
 
 
 def _micro(a):
+    if a["metric"] == "wer":
+        return {
+            "wer": a["n_err"] / max(a["n_ref"], 1),
+            "n_err": a["n_err"],
+            "n_ref": a["n_ref"],
+            "n_recordings": a["n"],
+        }
     return {
         "dter": a["dter_n_err"] / max(a["dter_n_ref"], 1),
         "dter_n_err": a["dter_n_err"],
@@ -275,19 +280,30 @@ def _segment_details(members: list[dict]) -> list[dict]:
     ]
 
 
-def score_segments(segments, measure_kwargs):
+def score_segments(segments, measure_kwargs, score_fn=eval_score):
     """Group segments by parent, concat hyps, score once per recording.
 
     Returns a dict keyed by ``data_source`` mapping to
-    ``{"details": [...], "measure": {...}}`` (per-recording detail list plus the
-    micro-averaged TER + EER for that source).
+    ``{"details": [...], "measure": {...}}`` (per-recording detail list plus
+    micro-averaged DTER/EER or WER for that source).
     """
     groups: dict[str, list[dict]] = defaultdict(list)
     for seg in segments:
         groups[seg["parent"]].append(seg)
 
     details_by_source: dict[str, list[dict]] = defaultdict(list)
-    agg = defaultdict(lambda: {"dter_n_err": 0, "dter_n_ref": 0, "eer_n_err": 0, "eer_n_ref": 0, "n": 0})
+    agg = defaultdict(
+        lambda: {
+            "metric": None,
+            "n_err": 0,
+            "n_ref": 0,
+            "dter_n_err": 0,
+            "dter_n_ref": 0,
+            "eer_n_err": 0,
+            "eer_n_ref": 0,
+            "n": 0,
+        }
+    )
 
     for parent, members in tqdm(groups.items(), total=len(groups), desc="score"):
         members.sort(key=lambda m: m["seg_start"])
@@ -298,7 +314,8 @@ def score_segments(segments, measure_kwargs):
         ref = head["ref"]
         data_source = head["data_source"] or "all"
 
-        score = eval_score(concat_hyp, ref, **measure_kwargs)
+        extra_info = {"language": head["language"]} if head["language"] else {}
+        score = score_fn(concat_hyp, ref, extra_info=extra_info, **measure_kwargs)
 
         rec = {
             "parent_audio_path": parent,
@@ -318,13 +335,24 @@ def score_segments(segments, measure_kwargs):
             "eer_n_ref": score.get("eer_n_ref"),
             "dter_detail": score.get("dter_detail"),
         }
+        rec.update(score)
         details_by_source[data_source].append(rec)
 
         a = agg[data_source]
-        a["dter_n_err"] += int(score.get("dter_n_err") or 0)
-        a["dter_n_ref"] += int(score.get("dter_n_ref") or 0)
-        a["eer_n_err"] += int(score.get("eer_n_err") or 0)
-        a["eer_n_ref"] += int(score.get("eer_n_ref") or 0)
+        metric = "dter" if "dter_n_ref" in score else "wer"
+        if a["metric"] not in (None, metric):
+            raise ValueError(f"Score function returned inconsistent metric types for {data_source!r}")
+        a["metric"] = metric
+        if metric == "wer":
+            if "n_err" not in score or "n_ref" not in score:
+                raise ValueError("Custom score function must return n_err and n_ref for WER aggregation")
+            a["n_err"] += int(score["n_err"])
+            a["n_ref"] += int(score["n_ref"])
+        else:
+            a["dter_n_err"] += int(score.get("dter_n_err") or 0)
+            a["dter_n_ref"] += int(score.get("dter_n_ref") or 0)
+            a["eer_n_err"] += int(score.get("eer_n_err") or 0)
+            a["eer_n_ref"] += int(score.get("eer_n_ref") or 0)
         a["n"] += 1
 
     return {
@@ -362,11 +390,14 @@ def write_results(results_by_source, output_dir, log_first_n_samples=0):
         _write_json(res["measure"], measures_path)
 
         m = res["measure"]
-        print(
-            f"[{src}] DTER: {m['dter']:.2%} [{m['dter_n_err']}/{m['dter_n_ref']}]  "
-            f"EER: {m['eer']:.2%} [{m['eer_n_err']}/{m['eer_n_ref']}]  "
-            f"on {m['n_recordings']} recordings"
-        )
+        if "wer" in m:
+            print(f"[{src}] WER: {m['wer']:.2%} [{m['n_err']}/{m['n_ref']}] on {m['n_recordings']} recordings")
+        else:
+            print(
+                f"[{src}] DTER: {m['dter']:.2%} [{m['dter_n_err']}/{m['dter_n_ref']}]  "
+                f"EER: {m['eer']:.2%} [{m['eer_n_err']}/{m['eer_n_ref']}]  "
+                f"on {m['n_recordings']} recordings"
+            )
         print(f"  Saved per-recording details to {details_path}")
         print(f"  Saved aggregate measures to {measures_path}")
         _log_sample_details(src, res["details"], m, log_first_n_samples)
@@ -386,13 +417,14 @@ def main_task(config):
     measure_kwargs = config.data.get("measure_kwargs", {})
     if OmegaConf.is_config(measure_kwargs):
         measure_kwargs = OmegaConf.to_container(measure_kwargs, resolve=True)
+    score_fn = get_custom_reward_fn(config) or eval_score
 
     _, tokenizer, processor = build_model(config)
     dataloader = build_dataloader(config, tokenizer, processor)
     wg = build_worker_group(config)
 
     segments = generate_segments(wg, dataloader, tokenizer)
-    results_by_source = score_segments(segments, measure_kwargs)
+    results_by_source = score_segments(segments, measure_kwargs, score_fn=score_fn)
 
     write_results(
         results_by_source,
