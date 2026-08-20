@@ -1,45 +1,29 @@
 ---
 name: verl-train-workload
-description: 'Recover, monitor, and continue the current verl 2607 training workload across the designated Brix pools. Use when: recover training workload, restore verl jobs, resume current training, rebuild the training monitor, show the training nodes table, recover after Copilot/session restart, or autofix the active 2607 ReMax/GDPO jobs.'
-argument-hint: 'Optional action: status, recover, reinstall-monitor, or autofix'
+description: 'Recover and coordinate the current verl 2607 training workload across all available verl-n1-i* Brix pools, delegating each job lifecycle to verl-asr-run. Use when: recover training workload, restore verl jobs, resume current training, rebuild the workload monitor, refresh the workload cache, or recover after Copilot/session restart.'
+argument-hint: 'Optional action: status, recover, or reinstall-monitor'
 ---
 
 # verl Train Workload
 
 Recover and manage the current multi-node verl training workload after a session,
-machine, schedule, or Ray-job interruption. Live Brix and Ray state is authoritative;
-the job IDs below are initial provenance only and must never be treated as immutable.
+machine, schedule, or Ray-job interruption. Live Brix and Ray state is authoritative.
 
-Use the `verl-asr-run` skill for job execution, monitoring, checkpoint export, and
-post-training benchmarks. Use `remote-development` for Brix node creation, resume,
-code sync, and remote commands.
+This skill owns workload-wide pool discovery, cache restoration, placement decisions,
+and aggregate status persistence in `recipe/phimm/config/verl_job.txt`. It must invoke
+the `verl-asr-run` skill for every
+job's submission, monitoring, failure diagnosis, fix, resubmission, checkpoint export,
+evaluation, report generation, and per-job recurring monitor. Do not reproduce those
+procedures or execute their commands directly in this skill. Use `remote-development`
+only for Brix node creation or resume when required by workload recovery.
 
-## Training pool
+## Training pools
 
-Always include every pool in the status table, even when idle or unavailable:
-
-| Pool | Capacity | Expected workload |
-|---|---:|---|
-| `verl-n1-i0` | 8 GPUs | `remax_2607v1_openml_verb_s100_bs256_rn32_lid` |
-| `verl-n1-i2` | 8 GPUs | `remax_2607v1_openml_verb_s100_bs256_lid_clr` |
-| `verl-n1-i4` | 8 GPUs | `gdpo_2607v1_openml_verb_s100_bs256_lid` |
-| `verl-n1-i5` | 8 GPUs | `remax_2607v1_mixcv15_openml3t_s200_bs256_scale2_lid0_swtich` |
-| `verl-n1-i9` | 8 GPUs | `remax_2607v1_mix_openml_verb_s200_bs256_scale2_lid0_ilv3` |
-| `verl-n1-i14` | 8 GPUs | `remax_2607v1_mixcv15_10k_openml_verb_s200_bs256_scale2_lid0_ilv` |
-| `verl-n1-i15` | 8 GPUs | `remax_2607v1_mix_openml_verb_s200_bs256_scale2_lid0_ilv_sfl` |
-| `verl-n2-i2` | 16 GPUs, 2 pods | Discover and preserve its live workload; never overwrite an unrelated job. |
-
-All configs are under `recipe/phimm/config/ver_2607v1/`.
-
-## Initial tracked submissions
-
-These IDs identify the original pipeline but may be stale after an autofix:
-
-| Pool | Config | Initial Ray job |
-|---|---|---|
-| `verl-n1-i4` | `gdpo_2607v1_openml_verb_s100_bs256_lid` | `raysubmit_afGMBC3Hys899XEp` |
-| `verl-n1-i14` | `remax_2607v1_mixcv15_10k_openml_verb_s200_bs256_scale2_lid0_ilv` | `raysubmit_rpQzUqHfw9s8WGh9` |
-| `verl-n1-i15` | `remax_2607v1_mix_openml_verb_s200_bs256_scale2_lid0_ilv_sfl` | `raysubmit_et15scEsdCVExhNQ` |
+Always discover every existing `verl-n1-i*` pool and include each one in the status
+table, even when idle or unavailable. The skill contains no fixed config-to-pool
+assignments. Any verified-free Ready `verl-n1-i*` pool is eligible for a cached job
+that needs placement. Do not create or resume extra pools merely to expand capacity
+when a Ready free pool exists.
 
 ## Recovery procedure
 
@@ -47,104 +31,126 @@ These IDs identify the original pipeline but may be stale after an autofix:
 
 ```bash
 brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' |
-  grep -E '^verl-(n1-i(0|2|4|5|9|14|15)|n2-i2)[[:space:]]'
+  grep -E '^verl-n1-i[^[:space:]]*[[:space:]]'
 ```
 
-For a missing pool, confirm it does not exist before creating it. Resume Paused or
-Suspended pools with `brix resume POOL`, then poll `brix ls POOL` until Ready.
-Do not recreate or replace a pool that is Assigning or Scheduled.
+Discover all matching pools before deciding placement. If a cached node no longer
+exists, select another verified-free `verl-n1-i*` pool rather than creating a
+replacement. Resume a Paused or Suspended pool only when the cache identifies it as
+hosting a tracked workload that must be recovered; then poll `brix ls POOL` until
+Ready. Do not recreate or replace a pool that is Assigning or Scheduled.
 
-### 2. Rediscover live jobs
+### 2. Restore the node/job cache
 
-For every Ready pool:
+Before querying remote nodes, read `recipe/phimm/config/verl_job.txt` when it exists.
+Use its node, Ray job ID, config, progress/phase, and `Reports:` entries as recovery
+hints so work can resume after a session restart. Expand abbreviated node names such
+as `i14` to `verl-n1-i14`.
+
+The cache defines the complete recovery set. Recover, submit, monitor, or continue
+only jobs and report pipelines represented in this file. If the cache is absent or has
+no valid job entries, report that there is no workload to recover and do not submit
+anything. A live job not represented in the cache is unrelated: show it as occupying
+its pool, but never adopt, stop, restart, resubmit, or add it to the recovery set.
+
+The cache is never authoritative. Verify every cached node/job pair against current
+Brix and Ray state before acting. A missing, malformed, stale, or contradictory row
+must not reserve a node, trigger a submission, or override a live Ray job. Preserve
+still-valid report queue/evaluating/reported state while reconciling it with live
+export and evaluation processes.
+
+### 3. Rediscover job placement
+
+For every Ready pool, perform only the minimum Ray inspection needed to identify jobs
+and determine whether the pool is occupied:
 
 ```bash
-brix ssh POOL -- 'bash -l -c "python /root/code/verl/ray_job.py list"'
 brix ssh POOL -- 'bash -l -c "ray job list"'
 brix ssh POOL -- 'bash -l -c "ray status"'
 ```
 
 Match jobs by config name and experiment name, not only by Ray ID. Record replacement
 IDs created by previous recovery attempts. A pool is free only when it has no running
-Ray submission and GPUs are idle.
+Ray submission and GPUs are idle. This inspection establishes placement and capacity;
+delegate all log parsing, progress tracking, metrics, phase detection, and continued
+polling for each discovered job to `verl-asr-run`.
 
-### 3. Print the workload table
+### 4. Persist the reconciled cache
 
-Every status/recovery response must begin with one row per pool and these columns:
+After discovery and after every delegated `verl-asr-run` transition, reconcile and
+rewrite `recipe/phimm/config/verl_job.txt` with the workload-wide state. Keep its
+existing human-readable format:
 
-| Node/Pool | Pool State | Job Status | Config | Ray Job ID | Step/Total | Progress % | GPU Util | GPU Memory | W&B URL | Ray URL | Current Phase |
-|---|---|---|---|---|---|---|---|---|---|---|---|
+1. An `updated_at_utc:` timestamp in UTC.
+2. One table row per discovered `verl-n1-i*` node with node, Ray job ID, status,
+  job/config, and progress/phase.
+3. A `Reports:` section containing each tracked experiment's queued, evaluating, and
+  reported checkpoint steps.
 
-Summarize all 16 GPUs and both pods for `verl-n2-i2`. Extract steps and W&B links
-from Ray logs. Mark startup phases such as model sync, checkpoint load, vLLM init,
-CUDA graph capture, validation, checkpointing, or training.
+Use `none` for unavailable values. Write a temporary file in the same directory and
+rename it over the cache only after the full content is ready, so interruptions cannot
+leave a partial cache. Never discard a valid cached report entry merely because its
+job has moved nodes; update the node/job row from live state and retain pipeline
+history. Do not commit routine cache refreshes unless explicitly requested.
 
-### 4. Recover missing expected jobs
+### 5. Delegate missing cached jobs
 
 Before submitting, verify all of the following:
 
-1. The expected config has no RUNNING or PENDING Ray submission on any tracked pool.
-2. The assigned pool has no unrelated active job.
-3. GPUs are idle and Ray reports enough available GPUs.
-4. The config file exists locally.
+1. The cached config has no RUNNING or PENDING Ray submission on any discovered pool.
+2. The candidate `verl-n1-i*` pool has no unrelated active job.
+3. GPUs are idle and Ray reports enough available GPUs on the candidate pool.
+4. The cached config file exists locally.
 
-Submit a single-node job:
+After these checks pass, invoke `verl-asr-run` with the selected pool and config and
+instruct it to submit and monitor the single-node job through the full pipeline. That
+skill owns code sync, `trainer.nnodes=1` overrides when needed, command execution, Ray
+job ID capture, and cache updates. Never stop an unrelated evaluation or training job
+to make room. Wait for it to finish or choose another verified-free `verl-n1-i*` pool.
 
-```bash
-bash submit_job.sh POOL recipe/phimm/config/ver_2607v1/CONFIG.yaml false true true
-```
+### 6. Delegate failures and resubmissions
 
-If a config inherits `trainer.nnodes=2` but is intentionally assigned to an `n1`
-pool, submit directly with `trainer.nnodes=1`. Do not silently override topology for
-`verl-n2-i2`.
+For each failed tracked job, invoke `verl-asr-run` with its current pool, config, and
+Ray job ID and instruct it to diagnose, fix, validate, sync, resubmit, record the
+replacement ID, and continue monitoring. Never perform a direct resubmission from
+this skill. If the delegated result reports blocked Ray resources, preserve the state
+in the cache and wait rather than restarting or disrupting unrelated jobs.
 
-Always sync code before submission. Never stop an unrelated evaluation or training
-job to make room. Wait for it to finish or use another explicitly approved free pool.
+### 7. Delegate completed pipelines
 
-### 5. Autofix failures
-
-For a failed tracked job:
-
-```bash
-brix ssh POOL -- 'bash -l -c "ray job logs JOB_ID | tail -n 80"'
-```
-
-Diagnose the root cause, edit locally, run the smallest relevant validation, push with
-`bpush POOL`, resubmit, and record the replacement Ray ID. Do not broad-catch errors,
-hide failures, or repeatedly submit while stale Ray placement groups still reserve
-GPUs. If hardware is idle but Ray has no GPUs, inspect `ray status`, live jobs, and
-placement groups; wait for unrelated jobs rather than restarting or disrupting them.
-
-### 6. Continue completed pipelines
-
-When a tracked training job succeeds:
-
-1. Find the selected `global_step_*` checkpoint.
-2. Export it to HF safetensors using the exact `verl-asr-run` conversion procedure.
-3. Invoke `eval-2607-benchmark-report`.
-4. Preserve candidate/reference result paths and the consolidated workbook.
-
-Do not stop monitoring merely because training ended; the pipeline completes only
-after export, required benchmarks, and workbook validation.
+When training succeeds, keep that pipeline delegated to `verl-asr-run` until it has
+exported all required checkpoints, completed the benchmark/report workflow, validated
+the consolidated workbook, and updated the cache. Do not invoke checkpoint conversion
+or benchmark execution directly from this skill.
 
 ## Reinstall the recurring monitor
 
 Maintain exactly one five-minute schedule. Stop stale schedules before creating the
 replacement. The schedule must:
 
-- Monitor exactly the eight pools listed above.
-- Begin every response with the complete workload table.
+- Restore `recipe/phimm/config/verl_job.txt`, then rediscover and monitor every
+  existing `verl-n1-i*` pool while delegating only cached jobs to `verl-asr-run`.
+- Atomically refresh `recipe/phimm/config/verl_job.txt` after every monitoring pass
+  and workload transition.
 - Rediscover live and replacement Ray IDs.
-- Show only newly observed metric rows after the table.
-- Autofix tracked failures without disrupting unrelated jobs.
-- Advance successful jobs through HF export and `eval-2607-benchmark-report`.
+- Keep the aggregate node/job table, progress, phases, metrics, and report state in
+  `recipe/phimm/config/verl_job.txt`; do not duplicate the table in responses.
+- Invoke `verl-asr-run` to monitor each active pipeline and to handle every submission,
+  failure, fix, resubmission, export, evaluation, and report transition.
+- Reconcile delegated results into the aggregate table and cache without disrupting
+  unrelated jobs.
 - Stop only after all tracked pipelines are complete.
 
 ## Safety rules
 
-- Live Ray state is authoritative; initial IDs are provenance only.
+- Live Ray state is authoritative.
+- The cache is authoritative only for membership in the recovery set.
 - Never stop, clean up, or overwrite an unrelated job.
-- Never submit duplicate copies of an expected config.
+- Never submit duplicate copies of a cached config.
+- Never submit, monitor, fix, or resubmit a job directly; invoke `verl-asr-run`.
+- Use only verified-free `verl-n1-i*` pools for fallback single-node placement.
 - Never assume low `nvidia-smi` utilization means Ray resources are free.
-- Preserve local user changes and always push the current workspace before submission.
-- Treat `verl-n2-i2` as a two-node, 16-GPU pool; inspect both pods.
+- Preserve local user changes and let `verl-asr-run` sync the workspace before a
+  submission or resubmission.
+- Treat `recipe/phimm/config/verl_job.txt` as a cache only; live Brix and Ray state
+  always wins.
