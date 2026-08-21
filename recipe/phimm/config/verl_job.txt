@@ -1,30 +1,24 @@
-updated_at_utc: 2026-08-21T18:55:55Z
+updated_at_utc: 2026-08-21T19:07:58Z
 
-┌──────────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
-│ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                  │ PROGRESS / PHASE             │
-├──────────────┼────────────────────────────┼───────────┼───────────────────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_TKwdgBCHGURFPnzr │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a               │ training 17/200 (8%)         │
-│ i1           │ raysubmit_YhxTgDnmbLUFgpaz │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05           │ training 104/200 (52%)       │
-│ i2           │ actor:15b3ca6a              │ SUCCEEDED │ lr05 step100 in-house DTER retry3                                             │ evaluating inhouse_dter (complete) │
-│ i3           │ raysubmit_YkyAg23hKy6n7mjq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0      │ training 136/200 (68%)       │
-│ i4           │ raysubmit_rguzLBc5pZa9cNXe │ RUNNING   │ remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1                │ training 125/400 (31%)       │
-│ i5           │ raysubmit_cUKpvgSrT21cnjj6 │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1                 │ training 79/100 (79%)        │
-│ i6           │ raysubmit_4W8v1BTrnbTg4ZjH │ LOST      │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1                 │ pool missing; last step 42   │
-│ i7           │ raysubmit_EUNUUFxwhTZRLt6Z │ LOST      │ mix26k-tm1 step20 OpenASR-ML                                                │ pool missing; retry pending  │
-│ i8           │ none                         │ LOST      │ evaluation capacity                                                           │ pool assigning               │
-│ i10          │ raysubmit_pCHK93y7GwF4eX1Y │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1           │ training 178/200 (89%)       │
-│ i11          │ raysubmit_zAsVfU4REJfGVPvY │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0          │ training 146/200 (73%)       │
-│ i12          │ actor:e5f9a83b              │ RUNNING   │ tm0a step100 OpenASR-ML retry12                                               │ evaluating openasr_ml (decoding) │
-│ i13          │ none                         │ SUCCEEDED │ lr05 step100 report                                                           │ building report (complete) │
-│ i14          │ actor:38040a37              │ SUCCEEDED │ tm0a step100 MixLang retry8                                                   │ evaluating mixlang (complete) │
-│ i16          │ actor:2b94a75d              │ SUCCEEDED │ lr05 step100 MixLang retry1                                                   │ evaluating mixlang (complete) │
-│ i17          │ raysubmit_6Rp3hptHP2AZFYfm │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr05      │ training 15/200 (8%)         │
-└──────────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
+┌──────────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────┐
+│ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                  │ PROGRESS / PHASE                     │
+├──────────────┼────────────────────────────┼───────────┼───────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┤
+│ i0           │ raysubmit_TKwdgBCHGURFPnzr │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a               │ training 17/200 (cached; monitoring) │
+│ i1           │ raysubmit_YhxTgDnmbLUFgpaz │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05           │ training 104/200 (cached; monitoring)│
+│ i3           │ raysubmit_YkyAg23hKy6n7mjq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0      │ training 136/200 (cached; monitoring)│
+│ i4           │ raysubmit_rguzLBc5pZa9cNXe │ STOPPED   │ remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1                │ training stopped by user             │
+│ i11          │ raysubmit_zAsVfU4REJfGVPvY │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0          │ training 146/200 (cached; monitoring)│
+│ i12          │ actor:e5f9a83b              │ RUNNING   │ tm0a step100 OpenASR-ML                                                      │ evaluating openasr_ml (decoding)     │
+│ i13          │ none                         │ QUEUED    │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_ilv_tm0a                │ verified free; submission selected   │
+│ i17          │ raysubmit_6Rp3hptHP2AZFYfm │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr05      │ training 15/200 (cached; monitoring) │
+└──────────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────┘
 
 Reports:
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1a: complete step 160
 - remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05: complete step 100
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1: training 79/100 (79%)
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a: evaluating openasr_ml step 100
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1: queued recovery from step 79; waiting for capacity
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a: evaluating openasr_ml step 100 on i12
 - remax_2607v1_mixcv15_13k_openml_verb_s100_bs64_lid05_sfl_tm0: waiting for final checkpoint step 100
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr05: training 15/200 (8%)
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr05: training 15/200 on i17
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1: queued recovery from step 178; waiting for capacity
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_ilv_tm0a: queued submission on i13
