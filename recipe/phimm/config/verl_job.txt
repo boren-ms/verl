@@ -25,24 +25,3 @@ updated_at_utc: 2026-08-21T04:11:28Z
 
 Reports:
 - remax_2607v1a_bad_mix13k_s200_bs256_lid05_sfl_tm1a: queued none; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid1_sfl_tm0_kl001: queued none; evaluating none; reported 80, 160
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0: queued 200; evaluating none; reported 20, 40
-- remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm1: queued none; evaluating 90; reported 80
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001: queued 200; evaluating none; reported 20
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0: queued 200; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1: queued 200; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2a_lr1: queued 200; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1: queued none; evaluating none; reported 20, 40, 60, 80, 100, 120, 140, 160, 180, 200
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1a: queued none; evaluating 160; reported 20, 40
-- remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1: queued 400; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0: queued none; evaluating none; reported 40
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr01: queued 100; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05: queued 100; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1: queued 100; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1b: queued 100; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1b: queued 200; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_sc10_lid05_sfl_tm0: queued 100; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a: queued 100; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr1: queued 100; evaluating none; reported none
-- remax_2607v1_mixcv15_13k_openml_verb_s100_bs64_lid05_sfl_tm0: queued 100; evaluating none; reported none
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a: queued 200; evaluating none; reported none
