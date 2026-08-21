@@ -8,7 +8,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/tts/AA_earning/audios/"
   add_task_info:
     task: lang_asr_verb
-    prefix_prob: 0.0
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:

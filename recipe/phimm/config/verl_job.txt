@@ -1,4 +1,4 @@
-updated_at_utc: 2026-08-21T20:59:56Z
+updated_at_utc: 2026-08-21T21:06:40Z
 
 ┌──────────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                  │ PROGRESS / PHASE                         │
@@ -16,9 +16,9 @@ updated_at_utc: 2026-08-21T20:59:56Z
 │ i10          │ none                         │ FREE      │ none                                                                          │ none                                     │
 │ i11          │ raysubmit_zAsVfU4REJfGVPvY │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0          │ training 146/200 (73%)                   │
 │ i12          │ actor:e5f9a83b              │ RUNNING   │ s100_bs64_lid05_sfl_tm0a step100 OpenASR-ML                                  │ evaluating openasr_ml (decoding)         │
-│ i13          │ raysubmit_8ceEiNKYfLszBquN │ RUNNING   │ long_eval_inhouse_2607_all_seg30 step90                                      │ evaluating inhouse_dter (model startup)  │
+│ i13          │ none                         │ LOST      │ none                                                                          │ none                                     │
 │ i14          │ raysubmit_JakFSN4StsMJqWsa │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc100_lid05_sfl_tm0a         │ training startup                         │
-│ i15          │ none                         │ FREE      │ none                                                                          │ none                                     │
+│ i15          │ raysubmit_wzTdGdkdSEnLKbF6 │ RUNNING   │ long_eval_inhouse_2607_all_seg30 step90                                      │ evaluating inhouse_dter (model startup)  │
 │ i16          │ none                         │ FREE      │ none                                                                          │ none                                     │
 │ i17          │ raysubmit_6Rp3hptHP2AZFYfm │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr05      │ training 53/200 (27%)                    │
 └──────────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘

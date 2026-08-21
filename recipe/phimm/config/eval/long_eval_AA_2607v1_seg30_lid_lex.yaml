@@ -5,10 +5,11 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - long_eval_asr
-  - data/val_data/AA_seg30
+  - data/val_data/AA_seg30_lex_lid1
   - _self_
 
-# ArtificialAnalysis English evaluation scored with OpenASR normalization.
+# ArtificialAnalysis English evaluation with lexical ASR and LID prompts,
+# scored with OpenASR normalization.
 
 custom_reward_function:
   path: recipe/phimm/reward/asr_edge.py
@@ -19,4 +20,4 @@ model:
 
 data:
   model_version: 2607
-  output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607v1_50000_lexical_fix/artificial_analysis_seg30_openasr
+  output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607v1_50000_lexical_fix/artificial_analysis_seg30_openasr_lid_lex
