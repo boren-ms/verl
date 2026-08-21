@@ -1,28 +1,48 @@
-updated_at_utc: 2026-08-21T05:17:11Z
+updated_at_utc: 2026-08-21T05:30:20Z
 
 ┌──────────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                  │ PROGRESS / PHASE             │
 ├──────────────┼────────────────────────────┼───────────┼───────────────────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_TKwdgBCHGURFPnzr │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a               │ training 10/200 (5%)         │
-│ i1           │ raysubmit_YhxTgDnmbLUFgpaz │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05           │ training startup (resume step 80) │
-│ i2           │ raysubmit_yfNFT3cC5krKkFkR │ RUNNING   │ tm0a step100 OpenASR-ML retry1                                                │ evaluating openasr_ml (model sync) │
+│ i0           │ raysubmit_TKwdgBCHGURFPnzr │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a               │ training 13/200 (6%)         │
+│ i1           │ raysubmit_YhxTgDnmbLUFgpaz │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05           │ training 80/200 (checkpoint loading) │
+│ i2           │ raysubmit_yfNFT3cC5krKkFkR │ STOPPED   │ tm0a step100 OpenASR-ML retry1                                                │ explicitly stopped by user  │
 │ i3           │ raysubmit_YkyAg23hKy6n7mjq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0      │ training 136/200 (68%)       │
 │ i4           │ raysubmit_rguzLBc5pZa9cNXe │ RUNNING   │ remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1                │ training 111/400 (28%)       │
-│ i5           │ raysubmit_cUKpvgSrT21cnjj6 │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1                 │ training 43/100 (43%)        │
-│ i8           │ raysubmit_87tqd1UWfHcT7Vzd │ RUNNING   │ tm1a step160 OpenASR-ML retry3                                                │ evaluating openasr_ml (47,616 decoded) │
-│ i10          │ raysubmit_pCHK93y7GwF4eX1Y │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1           │ training 164/200 (82%)       │
-│ i11          │ raysubmit_zAsVfU4REJfGVPvY │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0          │ training 139/200 (70%)       │
-│ i12          │ raysubmit_j4C3EDYNqmRSwA8P │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s400_bs64_lid05_sfl_tm0a               │ training startup             │
-│ i13          │ raysubmit_reF3as7ZiiCvgGrp │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a               │ training 115/200 (58%)       │
+│ i5           │ raysubmit_cUKpvgSrT21cnjj6 │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1                 │ training 49/100 (49%)        │
+│ i6           │ raysubmit_4W8v1BTrnbTg4ZjH │ LOST      │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1                 │ pool missing; last step 42   │
+│ i7           │ raysubmit_EUNUUFxwhTZRLt6Z │ LOST      │ mix26k-tm1 step20 OpenASR-ML                                                │ pool missing; retry pending  │
+│ i8           │ raysubmit_zLaWCHn7eTe7CDGt │ RUNNING   │ tm1a step160 MixLang retry1                                                   │ evaluating mixlang (model startup) │
+│ i9           │ none                         │ LOST      │ evaluation capacity                                                           │ Ray dashboard unavailable    │
+│ i10          │ raysubmit_pCHK93y7GwF4eX1Y │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1           │ training 166/200 (83%)       │
+│ i11          │ raysubmit_zAsVfU4REJfGVPvY │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0          │ training 141/200 (70%)       │
+│ i12          │ raysubmit_j4C3EDYNqmRSwA8P │ LOST      │ remax_2607v1_bad_mix13k_openml_verb_s400_bs64_lid05_sfl_tm0a               │ training 1/400 (pool reset)  │
+│ i13          │ raysubmit_reF3as7ZiiCvgGrp │ STOPPED   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a               │ explicitly stopped at 115    │
 │ i14          │ raysubmit_4pmXt9aDut3eMa9K │ STOPPED   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1b              │ explicitly stopped at 30     │
 │ i15          │ none                         │ FREE      │ evaluation capacity                                                           │ idle                         │
 │ i16          │ raysubmit_N8TPrUsceB4rwzhw │ SUCCEEDED │ remax_2607v1_mixcv15_13k_openml_verb_s100_bs64_lid05_sfl_tm0               │ training 100/100 (complete)  │
-│ i17          │ none                         │ FREE      │ evaluation capacity                                                           │ idle                         │
+│ i17          │ raysubmit_mDd3fBEWyejhQsE8 │ STOPPED   │ tm0a step100 MixLang retry1                                                   │ explicitly stopped by user  │
 └──────────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1a: evaluating openasr_ml step 160
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid1_sfl_tm0_kl001: queued none; evaluating none; reported 80, 160
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0: queued 200; evaluating none; reported 20, 40
+- remax_2607v1a_bad_mix13k_s100_bs256_lid05_sfl_tm1: queued none; evaluating none; reported 80, 90
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001: queued 200; evaluating none; reported 20
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0: queued 200; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1: queued 200; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm2a_lr1: queued 200; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1: queued none; evaluating none; reported 20, 40, 60, 80, 100, 120, 140, 160, 180, 200
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1a: evaluating mixlang step 160
+- remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1: queued 400; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0: queued none; evaluating none; reported 40
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr01: queued 100; evaluating none; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05: training 80/200 (40%)
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1: training 43/100 (43%)
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a: evaluating openasr_ml step 100
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1: training 49/100 (49%)
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1b: queued 100; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1b: queued 200; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_sc10_lid05_sfl_tm0: queued 100; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a: stopped by user at step 100
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr1: queued 100; evaluating none; reported none
+- remax_2607v1_mixcv15_13k_openml_verb_s100_bs64_lid05_sfl_tm0: queued 100; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a: queued 200; evaluating none; reported none
 - remax_2607v1_bad_mix13k_openml_verb_s400_bs64_lid05_sfl_tm0a: training startup
