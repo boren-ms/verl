@@ -1,11 +1,11 @@
 # Synthetic earnings and ArtificialAnalysis English validation datasets using lexical ASR prompts.
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/AA_earning/AA_earning.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/4_AA/earnings_error_161.jsonl
   pre_process:
     path_map:
       field: audio_path
       src_part: "audios/"
-      dst_part: "az://orngwus2cresco/data/boren/data/tts/AA_earning/audios/"
+      dst_part: "az://orngwus2cresco/data/boren/data/tts/4_AA/audios/"
   add_task_info:
     task: lang_asr_lex
     prefix_prob: 1.0
