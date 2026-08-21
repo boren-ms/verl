@@ -1,0 +1,55 @@
+# Synthetic earnings and ArtificialAnalysis English validation datasets using lexical ASR prompts.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/AA_earning/AA_earning.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/boren/data/tts/AA_earning/audios/"
+  add_task_info:
+    task: lang_asr_lex
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: AA_earning_lex
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_lex
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_lex
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: voxpopuli_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
