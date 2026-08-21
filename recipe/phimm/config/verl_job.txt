@@ -1,22 +1,22 @@
-updated_at_utc: 2026-08-21T20:22:01Z
+updated_at_utc: 2026-08-21T20:46:08Z
 
 ┌──────────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                  │ PROGRESS / PHASE                         │
 ├──────────────┼────────────────────────────┼───────────┼───────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
 │ i0           │ raysubmit_TKwdgBCHGURFPnzr │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a               │ training 17/200 (8%)                     │
 │ i1           │ raysubmit_YhxTgDnmbLUFgpaz │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05           │ training 130/200 (65%)                   │
-│ i2           │ raysubmit_LxbM7DE28LvQCZKH │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1                 │ training 90/100 (90%; resumed)           │
-│ i3           │ raysubmit_YkyAg23hKy6n7mjq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0      │ training 136/200 (68%)                   │
-│ i4           │ raysubmit_4jeSQnnYn58WxFuN │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr1a      │ training 18/200 (9%)                     │
-│ i5           │ raysubmit_ujvhNFUAcpsUsq8U │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1           │ training 190/200 (95%; resumed)          │
-│ i6           │ raysubmit_WMCzaeiNp3e2gkzW │ RUNNING   │ eval_openasr_ml_verb_2607 step100                                            │ evaluating openasr_ml (model startup)    │
+│ i2           │ none                         │ FREE      │ none                                                                          │ none                                     │
+│ i3           │ none                         │ FREE      │ none                                                                          │ none                                     │
+│ i4           │ raysubmit_4jeSQnnYn58WxFuN │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr1a      │ training 20/200 (10%)                    │
+│ i5           │ none                         │ FREE      │ none                                                                          │ none                                     │
+│ i6           │ raysubmit_WMCzaeiNp3e2gkzW │ RUNNING   │ eval_openasr_ml_verb_2607 step100                                            │ evaluating openasr_ml (decoding)         │
 │ i7           │ raysubmit_UYwwNhW43UbeMcUQ │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_ilv_tm0a                │ training startup                         │
-│ i8           │ none                         │ FREE      │ none                                                                          │ none                                     │
-│ i9           │ none                         │ FREE      │ none                                                                          │ none                                     │
+│ i8           │ none                         │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1 step100   │ exporting final checkpoint (converting)  │
+│ i9           │ raysubmit_dunDvdxNSwa8R4dT │ RUNNING   │ long_eval_inhouse_2607_all_seg30 step140                                     │ evaluating inhouse_dter (model startup)  │
 │ i10          │ none                         │ FREE      │ none                                                                          │ none                                     │
 │ i11          │ raysubmit_zAsVfU4REJfGVPvY │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0          │ training 146/200 (73%)                   │
-│ i12          │ actor:e5f9a83b              │ RUNNING   │ tm0a step100 OpenASR-ML                                                      │ evaluating openasr_ml (decoding)         │
-│ i13          │ none                         │ FREE      │ none                                                                          │ none                                     │
+│ i12          │ actor:e5f9a83b              │ RUNNING   │ s100_bs64_lid05_sfl_tm0a step100 OpenASR-ML                                  │ evaluating openasr_ml (decoding)         │
+│ i13          │ none                         │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1 step90 export  │ exporting final checkpoint (converting)  │
 │ i14          │ none                         │ FREE      │ none                                                                          │ none                                     │
 │ i15          │ none                         │ FREE      │ none                                                                          │ none                                     │
 │ i16          │ none                         │ FREE      │ none                                                                          │ none                                     │
@@ -24,13 +24,14 @@ updated_at_utc: 2026-08-21T20:22:01Z
 └──────────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1a: complete step 160
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a: training 17/200 (8%)
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1a: evaluating inhouse_dter step 140
+- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1: exporting final checkpoint step 90
 - remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05: complete step 100
-- remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1: training 90/100 (90%)
 - remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a: evaluating openasr_ml step 100
 - remax_2607v1_mixcv15_13k_openml_verb_s100_bs64_lid05_sfl_tm0: waiting for final checkpoint step 100
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr05: training 53/200 (27%)
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1: training 190/200 (95%)
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_ilv_tm0a: training startup
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr1a: training 18/200 (9%)
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr1a: training 20/200 (10%)
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0: evaluating openasr_ml step 100
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1: exporting final checkpoint step 100
