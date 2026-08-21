@@ -175,10 +175,10 @@ updated_at_utc: <ISO-8601 timestamp>
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- `training-config`: <status?>
+- `training-config` [`i0`]: training 99/200 (50%)
 ```
 
-Under `Reports:`, use one concise status bullet per training model/run in the form `- model: <status>`. Rewrite the status in place whenever the pipeline advances; never append status history. Use exactly the most specific applicable form:
+Under `Reports:`, use one concise status bullet per training model/run in the form `- model [node]: <status>`, where `node` is the short Brix node suffix used in the table (for example, `i0` or `i12-recovery`). Keep the node current if the pipeline moves to a replacement node. Rewrite the status in place whenever the pipeline advances; never append status history. Use exactly the most specific applicable form:
 
 - `training <step>/<total> (<percent>%)`, or `training startup` before the first step
 - `waiting for final checkpoint step <step>`
@@ -188,7 +188,7 @@ Under `Reports:`, use one concise status bullet per training model/run in the fo
 - `complete step <step>`
 - `failed <stage> step <step>`
 
-Use the concrete benchmark dataset in evaluation statuses, such as `inhouse_dter`, `openasr_ml`, or `mixlang`. Do not include queue fields, free nodes, Excel files, workbook paths, or other metadata in the bullet. For standalone jobs without a training pipeline, leave `Reports:` empty.
+Use the concrete benchmark dataset in evaluation statuses, such as `inhouse_dter`, `openasr_ml`, or `mixlang`. The bracketed node is required; do not include queue fields, free nodes, Excel files, workbook paths, or other metadata in the bullet. For standalone jobs without a training pipeline, leave `Reports:` empty.
 
 For standalone `eval_*`, `long_eval_*`, or `gen_*` jobs, put the primary job directly in the node/job table. For training pipelines, keep one row for the training node. When candidate/reference benchmark children run sequentially there, each launch replaces the previous row. The file is not complete if the participating node is omitted or appears more than once. The node/job table and report bullets are the canonical representations; do not add metadata, notes, artifact blocks, or history lists.
 
@@ -580,7 +580,7 @@ This schedules VS Code Copilot to re-invoke the agent every 5 minutes with an ex
 - **Step 2**: `ray job submit` output shows a job ID. If it errors, check `ray_tool.py prepare_env` ran.
 - **Step 3 (eval)**: WER values are reasonable (0–100%). If WER > 50%, flag as suspicious.
 - **Step 3 (training)**: Training metrics should show learning (score/mean trending up, pg_loss decreasing). If metrics are flat or diverging, flag.
-- **Step 1b/3**: Reopen `recipe/phimm/config/verl_job.txt` and verify it contains only the timestamp, node/job table, and concise model status bullets. Confirm the training node appears exactly once and its row contains only the latest training, export, benchmark, or report job state; no superseded job ID remains. Confirm every Ray job's `PROGRESS / PHASE` starts with `training`, `evaluating <dataset>`, or `generating <dataset>` as appropriate, and that evaluation rows name the actual dataset rather than only a generic phase. Confirm each report bullet has exactly one current status, matches the latest remote state, contains no queue fields, and includes no free-node, Excel-file, or workbook-path metadata.
+- **Step 1b/3**: Reopen `recipe/phimm/config/verl_job.txt` and verify it contains only the timestamp, node/job table, and concise model status bullets. Confirm the training node appears exactly once and its row contains only the latest training, export, benchmark, or report job state; no superseded job ID remains. Confirm every Ray job's `PROGRESS / PHASE` starts with `training`, `evaluating <dataset>`, or `generating <dataset>` as appropriate, and that evaluation rows name the actual dataset rather than only a generic phase. Confirm each report bullet has exactly one current status, includes the bracketed short node suffix matching the pipeline's current table row, matches the latest remote state, contains no queue fields, and includes no free-node, Excel-file, or workbook-path metadata.
 - **Step 3h**: Verify no external checkpoint evaluation launched before training succeeded, the report status and artifacts prevent duplicate final-checkpoint work, and every evaluation child ran on the training node with `trainer.nnodes=1` after both occupancy checks showed it idle.
 - **Step 4b**: Apply every quality gate from **eval-2607-benchmark-report** to the final-checkpoint workbook. At minimum, verify all required candidate/reference jobs succeeded, the workbook opens, the `summary`, `inhouse_dter`, `openasr_ml`, and `mixlang` sheets are present, and each sheet records matching baseline provenance. Optional digits sheets must appear only when requested.
 
