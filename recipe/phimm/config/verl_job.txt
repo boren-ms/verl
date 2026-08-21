@@ -1,10 +1,10 @@
-updated_at_utc: 2026-08-21T04:11:28Z
+updated_at_utc: 2026-08-21T04:18:23Z
 
 ┌──────────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                  │ PROGRESS / PHASE             │
 ├──────────────┼────────────────────────────┼───────────┼───────────────────────────────────────────────────────────────────────────────┼──────────────────────────────┤
 │ i0           │ raysubmit_TKwdgBCHGURFPnzr │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a               │ model/data startup           │
-│ i1           │ raysubmit_JCGS3ytSV43nPKVh │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05           │ model/data startup           │
+│ i1           │ raysubmit_CwKcyjVRLSgFXrB3 │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05           │ step 0; model startup        │
 │ i2           │ raysubmit_JxY3vdhrpjFkieVG │ RUNNING   │ tm1 step90 OpenASR-ML retry1                                                  │ decoded 57,344; validation   │
 │ i3           │ raysubmit_YkyAg23hKy6n7mjq │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0      │ 120/200 (60%, training)      │
 │ i4           │ raysubmit_rguzLBc5pZa9cNXe │ RUNNING   │ remax_2607v1_bad_mix26k_openml_verb_s400_bs256_lid05_sfl_tm1                │ 89/400 (22%, training)       │
@@ -12,11 +12,11 @@ updated_at_utc: 2026-08-21T04:11:28Z
 │ i6           │ raysubmit_4W8v1BTrnbTg4ZjH │ LOST      │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm1                 │ pool missing; last step 42   │
 │ i7           │ raysubmit_EUNUUFxwhTZRLt6Z │ LOST      │ mix26k-tm1 step20 OpenASR-ML                                                │ pool missing; retry pending  │
 │ i8           │ none                         │ FREE      │ evaluation capacity                                                           │ idle                         │
-│ i9           │ raysubmit_9jDVKR34Yjpy76Yh │ RUNNING   │ tm1a step160 in-house DTER retry1                                             │ generation 25/53             │
+│ i9           │ raysubmit_9jDVKR34Yjpy76Yh │ RUNNING   │ tm1a step160 in-house DTER retry1                                             │ scoring 30/1,067             │
 │ i10          │ raysubmit_pCHK93y7GwF4eX1Y │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_lr1           │ 141/200 (71%, recovered)     │
 │ i11          │ raysubmit_zAsVfU4REJfGVPvY │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0          │ 116/200 (58%, training)      │
-│ i12          │ raysubmit_Pxjw15GaKTj7ZpBG │ STOPPED   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001         │ explicitly stopped at 146    │
-│ i13          │ raysubmit_reF3as7ZiiCvgGrp │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a               │ model/data startup           │
+│ i12          │ raysubmit_dY3Qreq3EsxQgFCS │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s400_bs64_lid05_sfl_tm0a               │ training startup             │
+│ i13          │ raysubmit_reF3as7ZiiCvgGrp │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0a               │ initial validation           │
 │ i14          │ raysubmit_4pmXt9aDut3eMa9K │ STOPPED   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1b              │ explicitly stopped at 30     │
 │ i15          │ none                         │ FREE      │ evaluation capacity                                                           │ idle                         │
 │ i16          │ raysubmit_N8TPrUsceB4rwzhw │ SUCCEEDED │ remax_2607v1_mixcv15_13k_openml_verb_s100_bs64_lid05_sfl_tm0               │ 100/100 (training complete)  │
@@ -24,4 +24,4 @@ updated_at_utc: 2026-08-21T04:11:28Z
 └──────────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- remax_2607v1a_bad_mix13k_s200_bs256_lid05_sfl_tm1a: queued none; evaluating none; reported none
+- remax_2607v1_bad_mix13k_openml_verb_s400_bs64_lid05_sfl_tm0a: training startup
