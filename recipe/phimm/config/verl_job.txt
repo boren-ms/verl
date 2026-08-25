@@ -1,4 +1,4 @@
-updated_at_utc: 2026-08-25T22:37:21Z
+updated_at_utc: 2026-08-25T23:39:22Z
 
 ┌──────────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                  │ PROGRESS / PHASE                         │
@@ -10,7 +10,7 @@ updated_at_utc: 2026-08-25T22:37:21Z
 │ i4           │ raysubmit_xLGWSGib8zmh1Ghu │ RUNNING   │ eval_openasr_ml_verb_2607 sc2-lr1a step200                                   │ evaluating openasr_ml (stalled)          │
 │ i5           │ none                         │ LOST      │ none                                                                          │ scheduled; pipeline moved to i0          │
 │ i6           │ none                         │ FREE      │ none                                                                          │ scheduled                                │
-│ i7           │ raysubmit_kUz6kaYDaxvSi1GT │ SUCCEEDED │ export remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_ilv_tm0a step200 │ exporting final checkpoint (blocked: shards) │
+│ i7           │ raysubmit_Mz4TPgugNWLrQLJY │ RUNNING   │ long_eval_inhouse_2607_all_seg30 ilv-lr05 step120                          │ evaluating inhouse_dter (decoding)       │
 │ i8           │ none                         │ SUCCEEDED │ report remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc10_lid05_sfl_tm0a  │ building report (complete)               │
 │ i9           │ none                         │ FREE      │ none                                                                          │ assigning                                │
 │ i10          │ raysubmit_wEqLJs6NaYx8996T │ SUCCEEDED │ report remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_sfl_mlp0a_rp0  │ building report (complete)               │
@@ -21,11 +21,10 @@ updated_at_utc: 2026-08-25T22:37:21Z
 │ i15          │ raysubmit_TEDQ3Nz4fBw4KTRb │ SUCCEEDED │ report remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_sfl_mlp0a      │ building report (complete)               │
 │ i16          │ raysubmit_bkZid3ZsxSVQdZFe │ SUCCEEDED │ export remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm0a_br0_rp0 step200    │ exporting final checkpoint (blocked: sync/durable shards) │
 │ i17          │ raysubmit_68FKyu7Gegqfrgzs │ RUNNING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr05      │ training 118/200 (59%) stalled           │
-│ i18          │ none                         │ PENDING   │ remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a               │ training 40/200 (blocked: checkout)      │
+│ i18          │ raysubmit_aYjMVGgRVmEFkQBB │ SUCCEEDED │ long_eval_AA_2607v1_seg30_lid_lex                                         │ evaluating artificial_analysis (complete) │
 └──────────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0a [i18]: training 40/200 (20%)
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_sc10_lid05_sfl_tm0 [i11]: evaluating mixlang step 200
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1a: steps20/40/140/160 consolidated workbook complete, validated, and uploaded
 - remax_2607v1_bad_mix13k_openml_verb_s100_bs64_lid05_sfl_tm0_lr05 [i1]: evaluating openasr_ml step 200
@@ -33,7 +32,6 @@ Reports:
 - remax_2607v1_mixcv15_13k_openml_verb_s100_bs64_lid05_sfl_tm0: waiting for final checkpoint step 100
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr05 [i17]: training 118/200 (59%)
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a_lr1a [i4]: evaluating openasr_ml step 200
-- remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_ilv_tm0a [i7]: waiting for final checkpoint step 200
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm0_kl001_lr0 [i6]: complete step 100
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_ilv_tm0_lr05 [i2]: complete step 200
 - remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a [i0]: evaluating openasr_ml step 200
