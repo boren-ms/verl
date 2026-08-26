@@ -2,8 +2,8 @@
 dataset_name: jsonl
 jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100_source.jsonl
 add_task_info:
-  task: lang_asr_lex
-  prefix_prob: 0.5
+  task: lang_asr
+  prefix_prob: 0.0
 post_process:
   random_cut: {max_words: [2, 10]}
   shuffle:

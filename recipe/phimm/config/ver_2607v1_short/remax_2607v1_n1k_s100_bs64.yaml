@@ -6,7 +6,8 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/cv15_n1k_trm
-  - data/val_data/open_ls_rc5
+  # - data/val_data/open_ls_rc5
+  - data/val_data/short_wrong_lang
   - _self_
 
 reward_functions:
@@ -73,7 +74,7 @@ data:
   val_batch_size: -1
 
 trainer:
-  project_name: ver_2607
+  project_name: 2607v1_short
   nnodes: 1
   total_epochs: 4
   total_training_steps: 100
