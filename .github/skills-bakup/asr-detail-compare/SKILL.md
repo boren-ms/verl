@@ -1,6 +1,6 @@
 ---
 name: asr-detail-compare
-description: Compare two ASR `result_details*.jsonl` outputs for the same dataset, especially when Codex needs to load remote `az://` files with `blobfile`, rank the utterances that contribute most to a target model's total WER, and show baseline vs target `hyp` differences side by side. Use for model-to-model detail analysis on the same eval set, top-error investigations, utterance-level WER debugging, generating standalone HTML comparisons as the default review artifact, and comparing verl training checkpoints at different steps.
+description: Compare two ASR `result_details*.jsonl` or verl training-validation JSONL outputs for the same dataset, especially when Codex needs to inspect `val_data_gen`, load remote `az://` files, rank utterances by WER impact, and generate clickable standalone HTML reports. Use for model-to-model detail analysis, top-error investigations, utterance-level WER debugging, and comparing verl training checkpoints at different steps.
 ---
 
 # ASR Detail Compare
@@ -8,7 +8,7 @@ description: Compare two ASR `result_details*.jsonl` outputs for the same datase
 Compare utterance-level ASR detail files without re-implementing the same merge and WER logic each time. Prefer the bundled script for repeatable comparisons, and default to model-based discovery so you only need model names and dataset.
 
 ## Workflow
-1. Confirm both models write results under the layout `<val-data-root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl` (verl validation outputs).
+1. For verl training-validation comparisons, resolve `trainer.default_hdfs_dir` from the effective config, then list `<trainer.default_hdfs_dir>/val_data_gen/` and `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/`. Confirm the requested numeric step files exist before downloading or comparing them. Do not substitute a separate benchmark or evaluation output directory.
 2. Run `scripts/compare_result_details.py` with `--baseline-model`, `--target-model`, and `--dataset`. Only pass explicit paths when you need to override auto-discovery. The model name is `<project>/<experiment>` (e.g. `verl_repeat/eval_openasr`).
 3. Run the script with `--write-html` by default so the main deliverable is a human-friendly utterance review page.
 4. Read the generated `*.summary.json` for dataset-level WER numbers and improved/degraded/unchanged counts. Use the three HTML reports as the primary review artifacts:
@@ -51,13 +51,21 @@ Useful options:
 - When `--audio-blob-root` is set, each card includes an `<audio>` player. Audio files are downloaded from `{blob-root}/{dataset}/audio/{row_index}.wav` (flat-indexed by position in the source dataset JSONL), cached to `--audio-local-dir`, and copied to `{output-dir}/audio/`. The HTML references audio via relative `audio/{index}.wav` paths.
 
 ## Presenting HTML Reports
-After generating HTML reports, present the full absolute path of each HTML file as a clickable markdown link. Use the workspace-relative path in the link target so VS Code makes it clickable. Example:
+After generating HTML reports, read the actual filenames from the `*.summary.json` `reports` section. For each report, show both:
+
+- A clickable markdown link whose target is the workspace-relative path, so VS Code opens it.
+- The complete absolute local filesystem path on the following line, so the location is unambiguous.
+
+Example:
 
 - Overall: [tmp/asr-detail-compare/ami/ami-step10-vs-step70.overall-top30.html](tmp/asr-detail-compare/ami/ami-step10-vs-step70.overall-top30.html)
+  `/home/boren/code/verl/tmp/asr-detail-compare/ami/ami-step10-vs-step70.overall-top30.html`
 - Improved: [tmp/asr-detail-compare/ami/ami-step10-vs-step70.improved-top30.html](tmp/asr-detail-compare/ami/ami-step10-vs-step70.improved-top30.html)
+  `/home/boren/code/verl/tmp/asr-detail-compare/ami/ami-step10-vs-step70.improved-top30.html`
 - Degraded: [tmp/asr-detail-compare/ami/ami-step10-vs-step70.degraded-top30.html](tmp/asr-detail-compare/ami/ami-step10-vs-step70.degraded-top30.html)
+  `/home/boren/code/verl/tmp/asr-detail-compare/ami/ami-step10-vs-step70.degraded-top30.html`
 
-Read the actual filenames from the `*.summary.json` `reports` section and use those paths directly. Do not abbreviate or truncate the filenames.
+Do not abbreviate, truncate, or replace these paths with only a directory.
 
 ## Join Rules
 - Prefer `audio_file` as the join key by default when it is present and unique in both files.
@@ -89,6 +97,13 @@ The script auto-discovers verl validation outputs from `--val-data-root` (defaul
 
 Layout: `<val-data-root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl`
 
+Before using auto-discovery or explicit paths for a training run:
+
+1. Read the effective `trainer.project_name`, `trainer.experiment_name`, and `trainer.default_hdfs_dir`. The usual interpolation is `az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}`.
+2. List the resolved `<trainer.default_hdfs_dir>/val_data_gen/` directory to discover the actual dataset folder name.
+3. List `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/` and verify both requested `<step>.jsonl` objects exist.
+4. Use those exact objects as `--baseline-path` and `--target-path` for two checkpoints from the same training run. This prevents accidentally launching or reading an unrelated in-house/OpenASR benchmark directory.
+
 The script picks the latest step (highest numeric filename). The verl schema columns (`gts`→`ref`, `clean_output`→`hyp`) are auto-remapped, so `--ref-column` / `--hyp-column` overrides are not needed.
 
 Discovery order: local paths → val_data_gen blob → result_details blob.
@@ -106,9 +121,10 @@ Example — compare two verl experiments on ami:
 
 ## Verl Training Checkpoint Comparison
 When comparing verl training outputs at different steps (e.g., step0 vs step200):
+- First inspect `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/` and confirm both requested numeric JSONL files are present. Training validation results belong here, not under `eval_2607_reports` or a long-evaluation output root.
 - Use `--baseline-path` / `--target-path` with explicit local JSONL files and `--baseline-name` / `--target-name` for labels.
 - Set `--ref-column gts --hyp-column clean_output` — verl JSONL uses `gts` for reference and `clean_output` for hypothesis.
-- These files lack `audio_file` or any stable utterance ID, so the script will fall back to `__row_idx` (row-order join). This is safe when both files come from the same dataset evaluation with identical ordering.
+- Check for a unique stable key such as `id` first and pass it through `--join-columns` when available. Only fall back to `__row_idx` when no stable key exists, row counts match, and raw `gts` sequences are identical in order.
 - Verl JSONL schema: `input`, `output` (→ `raw_output`), `gts`, `clean_output`, `score`, `step`, `data_source`, `reward`, `n_err`, `n_ref`, `n_edge`, `n_fmt`, `n_lang`.
 
 Example:
