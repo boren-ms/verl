@@ -1,0 +1,25 @@
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_lang_en/data.jsonl
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: oss_bad_lang
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_lang_en/data.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_lang_non_en/no_en.jsonl
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: oss_bad_lang
+    verl_format:
+      prompt_key: prompt

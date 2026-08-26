@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - grpo_asr
-  - data/train_data/bad_lang_en
+  - data/train_data/oss_bad_lang
   # - data/val_data/open_ls_rc5
   - data/val_data/bad_lid_ls_h100
   - _self_
@@ -24,7 +24,7 @@ reward_functions:
         # tail_hallu: {beta: 1.0}
 
 reward_function_by_data_source:
-  bad_lang_en: language
+  oss_bad_lang: language
 
 val_reward:
 #   reward_manager: long_audio_grouped
