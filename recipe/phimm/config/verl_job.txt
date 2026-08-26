@@ -1,4 +1,4 @@
-updated_at_utc: 2026-08-26T22:56:39Z
+updated_at_utc: 2026-08-26T22:59:42Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
@@ -12,14 +12,12 @@ updated_at_utc: 2026-08-26T22:56:39Z
 │ i6           │ raysubmit_jdMy7Dj1MUFxtBk9   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0     │ training 45/200 (22.5%)                      │
 │ i7           │ raysubmit_Mz4TPgugNWLrQLJY   │ RUNNING       │ ILV-lr05 step120 / long_eval_inhouse_2607_all_seg30                        │ evaluating inhouse_dter (28/53)              │
 │ i8           │ raysubmit_ZV6Mx4krFFcavv5v   │ RUNNING       │ bs64-sc10 step100 / long_eval_inhouse_2607_all_seg30                       │ evaluating inhouse_dter (44/53)              │
-│ i9           │ —                            │ SUCCEEDED     │ step100 / consolidated 2607 report                                         │ building report (complete)                   │
-│ i13          │ raysubmit_6J93SddeJAnTG8WP   │ RUNNING       │ gen_2607v1_no_en_v1                                                        │ generating no_en_v1 (batch 312/1575)         │
+│ i13          │ raysubmit_6J93SddeJAnTG8WP   │ RUNNING       │ gen_2607v1_no_en_v1                                                        │ generating no_en_v1 (batch 404/1575)         │
 │ i14          │ raysubmit_itbEJBbfh6A4h7YF   │ RUNNING       │ RP0 step150 / long_eval_inhouse_2607_all_seg30                             │ evaluating inhouse_dter (46/53)              │
-│ i15          │ raysubmit_7BekQHirzy6c5Mag   │ RUNNING       │ gen_2607v1_no_en_v0                                                        │ generating no_en_v0 (batch 236/5658)         │
+│ i15          │ raysubmit_7BekQHirzy6c5Mag   │ RUNNING       │ gen_2607v1_no_en_v0                                                        │ generating no_en_v0 (batch 321/5658)         │
 │ i16          │ raysubmit_kLrpQVFFZtdNVVBE   │ RUNNING       │ sc2-lr05 step110 / eval_openasr_ml_verb_2607                               │ evaluating openasr_ml (decoding)             │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
 - remax_2607v1_n1k_s100_bs64_v0 [i5]: training 88/100 (88%)
 - remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0 [i6]: training 45/200 (22.5%)
-- remax_2607v1_n1k_s100_bs64 [i9]: complete step 100
