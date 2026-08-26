@@ -32,7 +32,7 @@ rollout:
   top_k: -1 # 0 for hf rollout, -1 for vllm rollout
   top_p: 1
   dtype: auto
-  gpu_memory_utilization: 0.95   # share H100 with FSDP shard + vLLM weights + KV cache
+  gpu_memory_utilization: 0.9   # leave startup headroom for driver and framework allocations
   log_prob_micro_batch_size_per_gpu: 8
   prompt_length: 1024
   response_length: 768
