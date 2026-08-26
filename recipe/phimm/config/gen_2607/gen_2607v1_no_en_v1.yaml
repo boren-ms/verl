@@ -1,0 +1,21 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - gen_asr
+  - data/train_data/oss/no_en_v1
+  - _self_
+
+model:
+  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+  trust_remote_code: false
+
+trainer:
+  nnodes: 1
+  n_gpus_per_node: 8
+
+data:
+  model_version: 2607
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/no_en_v1

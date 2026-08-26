@@ -1,0 +1,19 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_cv15_en_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_earning_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_gigaspeech/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_mls_en/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_ami/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_voxpopuli_en_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_wavllm_wer01/part-*.parquet
+  post_process:
+    keep_samples:
+      has_bad_fmt: true
+      has_bad_lang: true
+
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_lang_en/data.jsonl
+include_verl_format: false
+overwrite: true

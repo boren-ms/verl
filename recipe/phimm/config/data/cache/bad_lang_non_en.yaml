@@ -1,0 +1,13 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v1/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v0/part-*.parquet
+  post_process:
+    keep_samples:
+      has_bad_fmt: true
+      has_bad_lang: true
+
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/bad_lang_non_en/data.jsonl
+include_verl_format: false
+overwrite: true
