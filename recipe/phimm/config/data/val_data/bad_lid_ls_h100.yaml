@@ -1,0 +1,40 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/bad_case/short_wrong_lang/wrong_lang.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/boren/data/bad_case/short_wrong_lang/audios/"
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0
+  post_process:
+    add_field:
+      fields:
+        data_source: bad_lid_short
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_val/open_ls_rc5_fixed/ls-clean_h100.jsonl
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: ls_clean_h100_rc5
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_val/open_ls_rc5_fixed/ls-other_h100.jsonl
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: ls_other_h100_rc5
+    verl_format:
+      prompt_key: prompt
