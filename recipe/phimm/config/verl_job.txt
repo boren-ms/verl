@@ -1,4 +1,4 @@
-updated_at_utc: 2026-08-26T21:36:39Z
+updated_at_utc: 2026-08-26T21:38:22Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
@@ -8,7 +8,7 @@ updated_at_utc: 2026-08-26T21:36:39Z
 │ i2           │ —                            │ FREE          │ eligible evaluation node                                                   │ idle GPUs                                    │
 │ i3           │ raysubmit_TWfgsNZ5uL9GwEuY   │ RUNNING       │ MixCV15 MLP0A step190 / eval_openasr_ml_verb_2607                          │ generating openasr_ml outputs                │
 │ i4           │ raysubmit_xLGWSGib8zmh1Ghu   │ RUNNING       │ sc2-lr1a step200 / eval_openasr_ml_verb_2607 (outside tracked workload)     │ evaluating openasr_ml                        │
-│ i5           │ raysubmit_9Jpu7fNBnSDdGsMz   │ RUNNING       │ remax_2607v1_n1k_s100_bs64_v0                                              │ training 14/100 (14%)                        │
+│ i5           │ raysubmit_9Jpu7fNBnSDdGsMz   │ RUNNING       │ remax_2607v1_n1k_s100_bs64_v0                                              │ training 18/100 (18%)                        │
 │ i6           │ raysubmit_jdMy7Dj1MUFxtBk9   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0     │ training 45/200 (22.5%)                      │
 │ i7           │ raysubmit_Mz4TPgugNWLrQLJY   │ RUNNING       │ ILV-lr05 step120 / long_eval_inhouse_2607_all_seg30                        │ generating 28/53                             │
 │ i8           │ raysubmit_ZV6Mx4krFFcavv5v   │ RUNNING       │ bs64-sc10 step100 / long_eval_inhouse_2607_all_seg30                       │ generating 44/53                             │
@@ -25,6 +25,6 @@ updated_at_utc: 2026-08-26T21:36:39Z
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
-- remax_2607v1_n1k_s100_bs64_v0 [i5]: training 14/100 (14%)
+- remax_2607v1_n1k_s100_bs64_v0 [i5]: training 18/100 (18%)
 - remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0 [i6]: training 45/200 (22.5%)
 - remax_2607v1_n1k_s100_bs64 [i9]: evaluating openasr_ml step 100
