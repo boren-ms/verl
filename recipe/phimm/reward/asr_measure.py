@@ -459,7 +459,6 @@ def compute_score(solution_str, ground_truth, **kwargs):
             punc: {beta: 0.5, gamma: 0.2}
     """
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
-    is_good = parsed["fmt"] > 0.0 and parsed["lang"] > 0.0
     
     measures = kwargs.get("measures") or {}
     reduce = kwargs.get("reduce", "sum").lower()
@@ -471,4 +470,15 @@ def compute_score(solution_str, ground_truth, **kwargs):
     return {
         "score": score,
         **parsed,
+    }
+
+
+def lang_score(solution_str, ground_truth=None, **kwargs):
+    """Return only the language-identification reward and metric."""
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
+    p_lang = check_lang(solution_str, tgt_lang)
+    return {
+        "score": p_lang,
+        "p_lang": p_lang,
     }

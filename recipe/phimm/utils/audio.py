@@ -101,7 +101,7 @@ def _is_chunk_spec(path: str) -> bool:
 
 
 def _is_time_chunk_spec(path: str) -> bool:
-    """Return True if ``path`` looks like a time-range spec ``file#<start_sec>:<end_sec>``."""
+    """Return True for ``file#<start>:<end>`` specs in seconds or percentages."""
     if "#" not in path:
         return False
     _, _, tail = path.rpartition("#")
@@ -109,18 +109,30 @@ def _is_time_chunk_spec(path: str) -> bool:
         return False
     s, _, e = tail.partition(":")
     try:
-        float(s)
-        float(e)
+        _parse_range_endpoint(s)
+        _parse_range_endpoint(e)
         return True
     except ValueError:
         return False
 
 
+def _parse_range_endpoint(value: str):
+    is_percent = value.endswith("%")
+    number = float(value[:-1] if is_percent else value)
+    return number, is_percent
+
+
 def _load_time_chunk(spec):
     file_path, _, tail = spec.rpartition("#")
     s_str, _, e_str = tail.partition(":")
-    start_sec = float(s_str)
-    end_sec = float(e_str)
+    start, start_is_percent = _parse_range_endpoint(s_str)
+    end, end_is_percent = _parse_range_endpoint(e_str)
+    if start_is_percent != end_is_percent:
+        raise ValueError(f"Range endpoints must use the same unit: {tail!r}")
+    upper_bound = 100.0 if start_is_percent else float("inf")
+    if not 0 <= start < end <= upper_bound:
+        unit = "percent" if start_is_percent else "seconds"
+        raise ValueError(f"Invalid audio range in {unit}: {tail!r}")
     if "://" in file_path:
         readable_path = _localize_remote_audio(file_path)
     else:
@@ -130,8 +142,13 @@ def _load_time_chunk(spec):
 
     info = sf.info(readable_path)
     sr = info.samplerate
-    start_frame = max(0, int(start_sec * sr))
-    stop_frame = max(start_frame + 1, int(end_sec * sr))
+    if start_is_percent:
+        start_frame = int(info.frames * start / 100)
+        stop_frame = int(info.frames * end / 100)
+    else:
+        start_frame = int(start * sr)
+        stop_frame = int(end * sr)
+    stop_frame = max(start_frame + 1, min(stop_frame, info.frames))
     audio, sr = sf.read(readable_path, start=start_frame, stop=stop_frame)
     return audio, sr
 

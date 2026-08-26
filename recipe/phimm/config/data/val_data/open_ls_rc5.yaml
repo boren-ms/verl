@@ -1,0 +1,35 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data.jsonl
+  cache_name: auto_ls_clean
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/audio/"
+  add_task_info:
+    task: lang_asr_lex
+  post_process:
+    random_cut: {max_words: [5, 10]}
+    add_field:
+      fields:
+        data_source: ls_clean
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/data.jsonl
+  cache_name: auto_ls_other
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/audio/"
+  add_task_info:
+    task: lang_asr_lex
+  post_process:
+    random_cut: {max_words: [5, 10]}
+    add_field:
+      fields:
+        data_source: ls_other
+    verl_format:
+      prompt_key: prompt

@@ -1,0 +1,15 @@
+# CV15 source training data with random tail removal.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100_source.jsonl
+add_task_info:
+  task: lang_asr_lex
+  prefix_prob: 0.5
+post_process:
+  random_cut: {max_words: [2, 10]}
+  shuffle:
+    seed: 42
+  add_field:
+    fields:
+      data_source: cv15_n1k_trm
+  verl_format:
+    prompt_key: prompt

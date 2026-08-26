@@ -46,7 +46,7 @@ from recipe.phimm.utils.shared import (
     has_missing_keyword,
     has_tail_hallucination,
 )
-from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
+from recipe.phimm.utils.audio import sf_write, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
 from verl.audio_cache import submit_audio_cache_dataset
 
@@ -477,7 +477,7 @@ def load_audio(ds, **kwargs):
 
     def read_audio(sample):
         """Read audio from the file."""
-        audio, sr = sf_read(sample["audio_path"])
+        audio, sr = load_raw_audio(sample)
         return {"audio": audio, "sr": sr}
 
     ds = ds.map(read_audio, **pop_map_kwargs(kwargs))
@@ -1417,6 +1417,47 @@ def path_map(ds, **kwargs):
     return ds
 
 
+def random_cut(ds, **kwargs):
+    """Keep a random word prefix and the same proportional prefix of the audio."""
+    text_field = kwargs.get("text_field", "text")
+    audio_fields = kwargs.get("audio_fields", ["audio_path", "audio_file"])
+    max_words = kwargs.get("max_words")
+    if max_words is None:
+        min_words, max_words = 1, None
+    elif is_list(max_words):
+        if len(max_words) != 2:
+            raise ValueError(f"max_words range must contain [min, max], got {max_words!r}")
+        min_words, max_words = map(int, max_words)
+    else:
+        min_words, max_words = 1, int(max_words)
+    if min_words < 1 or (max_words is not None and max_words < min_words):
+        raise ValueError(f"Invalid max_words range: [{min_words}, {max_words}]")
+
+    def map_fn(example):
+        words = str(example.get(text_field, "")).split()
+        if len(words) < 2:
+            return {}
+
+        source_field = next((field for field in audio_fields if example.get(field)), None)
+        if source_field is None:
+            return {}
+        source = str(example[source_field])
+        if "#" in source:
+            raise ValueError(f"random_cut requires an unsliced audio path, got {source!r}")
+
+        upper_bound = min(len(words) - 1, max_words) if max_words is not None else len(words) - 1
+        lower_bound = min(min_words, upper_bound)
+        word_count = random.randint(lower_bound, upper_bound)
+        end_percent = 100 * word_count / len(words)
+        end_text = f"{end_percent:.6f}".rstrip("0").rstrip(".")
+        return {
+            text_field: " ".join(words[:word_count]),
+            source_field: f"{source}#0%:{end_text}%",
+        }
+
+    return ds.map(map_fn, **pop_map_kwargs(kwargs), desc="Randomly cutting text and audio")
+
+
 def cache_audio(ds, **kwargs):
     """Submit remote audio fields for background caching without changing them."""
     fields = kwargs.get("fields", ["audio_path", "audio_chunk"])
@@ -1608,6 +1649,9 @@ def process_ds(ds, **kwargs):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
+    if "random_cut" in kwargs:
+        random_cut_kwargs = kwargs.get("random_cut") or {}
+        ds = random_cut(ds, **merge_kwargs(map_kwargs, random_cut_kwargs))
     if "cache_audio" in kwargs:
         cache_audio_kwargs = kwargs.get("cache_audio") or {}
         ds = cache_audio(ds, **merge_kwargs(map_kwargs, cache_audio_kwargs))
