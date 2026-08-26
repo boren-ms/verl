@@ -1,0 +1,23 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - long_eval_asr
+  - data/val_data/AA_seg30_lex_lid1
+  - _self_
+
+# ArtificialAnalysis English evaluation with lexical ASR and LID prompts,
+# scored with OpenASR normalization.
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_edge.py
+  name: openasr_eval
+
+model:
+  path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_90/qwen_hf/
+
+data:
+  model_version: 2607
+  output_path: az://orngwus2cresco/data/boren/data/verl/eval/remax_2607v1_openml_verb_s100_bs256_lid_step90/artificial_analysis_seg30_openasr_lid_lex

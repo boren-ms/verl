@@ -1,22 +1,25 @@
-updated_at_utc: 2026-08-26T17:42:44Z
+updated_at_utc: 2026-08-26T17:59:44Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
 │ i0           │ raysubmit_WJKCpH6kFeXqQgzK   │ RUNNING       │ sc2 step200 / eval_openasr_ml_verb_2607                                    │ evaluating openasr_ml (decoding)             │
 │ i1           │ raysubmit_vENnnh2WtfarT3aQ   │ RUNNING       │ s100-lr05 step200 / eval_openasr_ml_verb_2607                              │ evaluating openasr_ml (decoding)             │
+│ i2           │ —                            │ RUNNING       │ MixCV15 MLP0A step160 checkpoint export                                    │ exporting final checkpoint (converting)      │
+│ i3           │ —                            │ RUNNING       │ MixCV15 MLP0A step190 checkpoint export                                    │ exporting final checkpoint (converting)      │
 │ i4           │ raysubmit_xLGWSGib8zmh1Ghu   │ RUNNING       │ sc2-lr1a step200 / eval_openasr_ml_verb_2607                               │ evaluating openasr_ml (decoding)             │
 │ i5           │ raysubmit_7tmbr7uNX4m31fK1   │ RUNNING       │ rp0 step100 / long_eval_inhouse_2607_all_seg30                             │ evaluating inhouse_dter (model startup)      │
+│ i6           │ —                            │ RUNNING       │ MixCV15 MLP0A step100 corrected checkpoint export                          │ exporting final checkpoint (converting)      │
 │ i7           │ raysubmit_Mz4TPgugNWLrQLJY   │ RUNNING       │ ILV-lr05 step120 / long_eval_inhouse_2607_all_seg30                        │ evaluating inhouse_dter (decoding)           │
 │ i8           │ raysubmit_ZV6Mx4krFFcavv5v   │ RUNNING       │ bs64-sc10 step100 / long_eval_inhouse_2607_all_seg30                       │ evaluating inhouse_dter (decoding)           │
-│ i9           │ raysubmit_4fCdaGYDg1CeH6Mh   │ RUNNING       │ remax_short_n1k_s100_bs64                                                  │ training 0/100 (0%)                          │
-│ i13          │ raysubmit_emxgYE5V4fhHLhbe   │ RUNNING       │ MixCV15 MLP0A step100 / long_eval_inhouse_2607_all_seg30                   │ evaluating inhouse_dter (model startup)      │
-│ i14          │ raysubmit_abRhwnFWTgyrGnwP   │ RUNNING       │ MixCV15 MLP0A step180 / long_eval_inhouse_2607_all_seg30                   │ evaluating inhouse_dter (model startup)      │
+│ i9           │ raysubmit_4fCdaGYDg1CeH6Mh   │ RUNNING       │ remax_short_n1k_s100_bs64                                                  │ training 7/100 (7%)                          │
+│ i13          │ raysubmit_zT26Lhu43HRjuMpr   │ RUNNING       │ rp0 step100 / eval_openasr_ml_verb_2607                                    │ evaluating openasr_ml (model startup)        │
+│ i14          │ raysubmit_R12nhJSvUUGXgEum   │ RUNNING       │ rp0 step150 / long_eval_mixlang_fy26q2_zh_seg_2607                         │ evaluating mixlang (model startup)           │
 │ i15          │ raysubmit_mAxHVharC1UPmW6J   │ RUNNING       │ MixCV15 MLP0A step180 / eval_openasr_ml_verb_2607                          │ evaluating openasr_ml (model startup)        │
 │ i16          │ raysubmit_kLrpQVFFZtdNVVBE   │ RUNNING       │ sc2-lr05 step110 / eval_openasr_ml_verb_2607                               │ evaluating openasr_ml (decoding)             │
 │ i17          │ raysubmit_nGZtfXdzLSXWEigj   │ RUNNING       │ rp0 step150 / eval_openasr_ml_verb_2607                                    │ evaluating openasr_ml (model startup)        │
-│ i19          │ raysubmit_cC4pdYy71ACt2SMZ   │ RUNNING       │ rp0 step190 / long_eval_mixlang_fy26q2_zh_seg_2607                         │ evaluating mixlang (model startup)           │
+│ i19          │ raysubmit_SmGNGQbzrtPa4V98     │ RUNNING       │ long_eval_AA_2607v1_seg30_lid_lex openml-verb-s100-bs256-lid step90       │ evaluating artificial_analysis (model startup) │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
-- remax_short_n1k_s100_bs64 [i9]: training 0/100 (0%)
+- remax_short_n1k_s100_bs64 [i9]: training 7/100 (7%)
