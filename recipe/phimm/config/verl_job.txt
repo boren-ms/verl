@@ -1,4 +1,4 @@
-updated_at_utc: 2026-08-26T22:08:44Z
+updated_at_utc: 2026-08-26T22:11:44Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
@@ -28,11 +28,3 @@ Reports:
 - remax_2607v1_n1k_s100_bs64_v0 [i5]: training 46/100 (46%)
 - remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0 [i6]: training 45/200 (22.5%)
 - remax_2607v1_n1k_s100_bs64 [i9]: evaluating openasr_ml step 100
-
-Evaluation workload:
-- complete and packaged: 63 / 69 rows
-- running: 6 rows
-- pending: 0 rows
-- parallelism: all unfinished rows occupy distinct nodes; free nodes stay idle to avoid duplicate runs
-- reported checkpoints: 12 / 23
-- validated staging workbooks: RP0 steps100/190, MixCV15 steps100/160
