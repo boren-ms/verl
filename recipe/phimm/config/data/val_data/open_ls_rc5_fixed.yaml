@@ -1,0 +1,6 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_val/open_ls_rc5_fixed/data.jsonl
+  cache_name: auto_ls_rc5_fixed
+  post_process:
+    verl_format:
+      prompt_key: prompt

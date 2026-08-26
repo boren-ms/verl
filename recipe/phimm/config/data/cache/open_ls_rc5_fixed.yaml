@@ -1,0 +1,11 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+
+source_config: data/val_data/open_ls_rc5.yaml
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_val/open_ls_rc5_fixed/data.jsonl
+audio_output_dir: az://orngwus2cresco/data/boren/data/verl/cached_val/open_ls_rc5_fixed/audio
+include_verl_format: false
+overwrite: true
+audio_overwrite: false

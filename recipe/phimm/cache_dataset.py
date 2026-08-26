@@ -10,7 +10,9 @@ Each Hydra config points to a source data YAML and a destination .jsonl or .parq
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -23,6 +25,7 @@ from hydra.utils import to_absolute_path
 from omegaconf import DictConfig, OmegaConf
 
 from recipe.phimm.data.dataset import create_datasets
+from recipe.phimm.utils.audio import _is_time_chunk_spec, load_raw_audio, sf_write
 from recipe.phimm.utils.shared import save_dataset
 
 
@@ -80,6 +83,47 @@ def _as_dataset(dataset: Dataset | dict[str, Dataset]) -> Dataset:
     raise TypeError(f"Unsupported dataset type: {type(dataset).__name__}")
 
 
+def materialize_audio_segments(
+    dataset: Dataset,
+    output_dir: str,
+    overwrite: bool = False,
+    max_workers: int = 16,
+) -> Dataset:
+    """Write time-range audio specs as concrete WAV files."""
+    output_dir = output_dir.rstrip("/")
+
+    def materialize(example: dict[str, Any]) -> str:
+        source_field = next(
+            (field for field in ("audio_path", "audio_file") if example.get(field)),
+            None,
+        )
+        if source_field is None:
+            return ""
+        source = str(example[source_field])
+        source_path = source.rpartition("#")[0] if _is_time_chunk_spec(source) else source
+        source_stem = Path(urlparse(source_path).path).stem
+        segment_id = hashlib.sha256(source.encode("utf-8")).hexdigest()[:16]
+        output_path = f"{output_dir}/{source_stem}-{segment_id}.wav"
+        if overwrite or not bf.exists(output_path):
+            audio, sample_rate = load_raw_audio(example)
+            sf_write(output_path, audio, sample_rate)
+        return output_path
+
+    def materialize_batch(batch: dict[str, list[Any]]) -> dict[str, list[str]]:
+        source_field = "audio_path" if "audio_path" in batch else "audio_file"
+        examples = [dict(zip(batch, values, strict=True)) for values in zip(*batch.values(), strict=True)]
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            output_paths = list(executor.map(materialize, examples))
+        return {source_field: output_paths}
+
+    return dataset.map(
+        materialize_batch,
+        batched=True,
+        batch_size=max_workers,
+        desc="Materializing audio segments",
+    )
+
+
 def cache_summary(
     source_config: SourceConfig,
     output_path: str,
@@ -110,6 +154,8 @@ def cache_dataset(
     overwrite: bool = False,
     part_size: int | None = None,
     ext: str | None = None,
+    audio_output_dir: str | None = None,
+    audio_overwrite: bool = False,
 ) -> dict[str, Any]:
     output_path = _resolve_path(output_path)
     if bf.exists(output_path) and not overwrite:
@@ -124,6 +170,12 @@ def cache_dataset(
     if not include_verl_format:
         print("Skipping post_process.verl_format before caching.")
     dataset = _as_dataset(create_datasets(dataset_config))
+    if audio_output_dir:
+        dataset = materialize_audio_segments(
+            dataset,
+            _resolve_path(audio_output_dir),
+            overwrite=audio_overwrite,
+        )
 
     print(f"Writing to: {output_path}")
     save_dataset(dataset, output_path, overwrite=overwrite, part_size=part_size, ext=ext)
@@ -141,6 +193,8 @@ def main(config: DictConfig) -> None:
         overwrite=bool(cfg.get("overwrite", False)),
         part_size=int(part_size) if part_size is not None else None,
         ext=cfg.get("ext"),
+        audio_output_dir=cfg.get("audio_output_dir"),
+        audio_overwrite=bool(cfg.get("audio_overwrite", False)),
     )
 
 
