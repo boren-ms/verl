@@ -18,4 +18,5 @@ trainer:
 
 data:
   model_version: 2607
+  batch_size: 128
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/en
