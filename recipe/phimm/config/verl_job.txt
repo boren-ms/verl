@@ -1,18 +1,18 @@
-updated_at_utc: 2026-08-26T20:27:30Z
+updated_at_utc: 2026-08-26T21:04:46Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
 │ i0           │ raysubmit_WJKCpH6kFeXqQgzK   │ RUNNING       │ sc2 step200 / eval_openasr_ml_verb_2607 (outside tracked workload)          │ evaluating openasr_ml                        │
 │ i1           │ raysubmit_vENnnh2WtfarT3aQ   │ RUNNING       │ s100-lr05 step200 / eval_openasr_ml_verb_2607                              │ evaluating openasr_ml                        │
-│ i2           │ —                            │ FREE          │ eligible evaluation node                                                   │ idle GPUs                                    │
+│ i2           │ raysubmit_bssKkA5nTF4ZrVpL   │ RUNNING       │ n1k-s100 step90 / long_eval_inhouse_2607_all_seg30 (outside workload)       │ evaluating inhouse_dter                      │
 │ i3           │ raysubmit_TWfgsNZ5uL9GwEuY   │ RUNNING       │ MixCV15 MLP0A step190 / eval_openasr_ml_verb_2607                          │ evaluating openasr_ml                        │
 │ i4           │ raysubmit_xLGWSGib8zmh1Ghu   │ RUNNING       │ sc2-lr1a step200 / eval_openasr_ml_verb_2607 (outside tracked workload)     │ evaluating openasr_ml                        │
 │ i5           │ —                            │ FREE          │ eligible evaluation node                                                   │ idle GPUs                                    │
 │ i6           │ raysubmit_jdMy7Dj1MUFxtBk9   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0     │ training 45/200 (22.5%)                      │
 │ i7           │ raysubmit_Mz4TPgugNWLrQLJY   │ RUNNING       │ ILV-lr05 step120 / long_eval_inhouse_2607_all_seg30                        │ evaluating inhouse_dter                      │
 │ i8           │ raysubmit_ZV6Mx4krFFcavv5v   │ RUNNING       │ bs64-sc10 step100 / long_eval_inhouse_2607_all_seg30                       │ evaluating inhouse_dter                      │
-│ i9           │ raysubmit_kG2f4SxVvCPfBRqT   │ RUNNING       │ remax_2607v1_n1k_s100_bs64                                                 │ training 82/100 (82%)                        │
+│ i9           │ raysubmit_E9rLfX79YKZFvdaT   │ RUNNING       │ step100 / long_eval_inhouse_2607_all_seg30                                 │ evaluating inhouse_dter (decoding 27/53)     │
 │ i12          │ —                            │ FREE          │ eligible evaluation node                                                   │ idle GPUs                                    │
 │ i13          │ —                            │ FREE          │ eligible evaluation node                                                   │ idle GPUs                                    │
 │ i14          │ raysubmit_itbEJBbfh6A4h7YF   │ RUNNING       │ RP0 step150 / long_eval_inhouse_2607_all_seg30                             │ evaluating inhouse_dter                      │
@@ -26,11 +26,4 @@ updated_at_utc: 2026-08-26T20:27:30Z
 
 Reports:
 - remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0 [i6]: training 45/200 (22.5%)
-- remax_2607v1_n1k_s100_bs64 [i9]: training 82/100 (82%)
-
-Evaluation workload:
-- complete and packaged: 63 / 69 rows
-- running: 6 rows
-- pending: 0 rows
-- reported checkpoints: 12 / 23
-- validated staging workbooks: RP0 steps100/190, MixCV15 steps100/160
+- remax_2607v1_n1k_s100_bs64 [i9]: evaluating inhouse_dter step 100

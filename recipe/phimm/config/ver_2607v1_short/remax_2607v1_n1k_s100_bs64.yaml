@@ -7,7 +7,7 @@ defaults:
   - grpo_asr
   - data/train_data/cv15_n1k_trm
   # - data/val_data/open_ls_rc5
-  - data/val_data/short_wrong_lang
+  - data/val_data/short_wrong_ls_h100
   - _self_
 
 reward_functions:
@@ -33,8 +33,9 @@ val_reward:
       path: recipe/phimm/reward/asr_edge.py
       name: openasr_eval
   reward_function_by_data_source:
-    ls_clean: openml
-    ls_other: openml
+    short_wrong_lang: openml
+    ls_clean_h100_rc5: openml
+    ls_other_h100_rc5: openml
 
 actor_rollout_ref:
   rollout:
