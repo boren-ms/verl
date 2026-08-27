@@ -1,25 +1,28 @@
-updated_at_utc: 2026-08-27T01:14:52Z
+updated_at_utc: 2026-08-27T04:48:30Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
-│ i0           │ raysubmit_597sY93rLcScm2Xu   │ RUNNING       │ remax_2607v1_mixcv15_digits_openml_verb_s200_bs64_lid05_sfl_mlp0a         │ training startup                             │
-│ i1           │ raysubmit_DDH6ykkQCkNiH6Wt   │ RUNNING       │ remax_2607v1_mix_digits_openml2x_s200_bs64_ilv                             │ training startup                             │
-│ i2           │ raysubmit_hP1myb6HTniExvis   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (environment recovery startup) │
-│ i3           │ raysubmit_3zMAbRXqUB3ZDuPm   │ RUNNING       │ remax_2607v1_digits_s200_bs64_sfl_mlp0a                                    │ training 7/200 (3.5%)                        │
-│ i4           │ raysubmit_1SvgfUHg84JX1kbm   │ RUNNING       │ remax_2607v1_oss_bad_lang_s100_bs64_v0                                     │ training 10/100 (10%)                        │
-│ i6           │ raysubmit_8KCPrHrBFavnY52g   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0     │ training 70/200 (35%)                        │
-│ i7           │ —                            │ FREE          │ —                                                                          │ available                                    │
-│ i8           │ —                            │ FREE          │ —                                                                          │ available                                    │
-│ i13          │ raysubmit_aBUV7jUKphuC4xZ1   │ RUNNING       │ gen_2607v1_no_en_v1                                                        │ generating no_en_v1 (recovery startup, r256) │
-│ i14          │ —                            │ FREE          │ —                                                                          │ available                                    │
-│ i15          │ raysubmit_vkYkCKSjuJf3zX9T   │ RUNNING       │ gen_2607v1_no_en_v0                                                        │ generating no_en_v0 (recovery startup, r256) │
-│ i16          │ —                            │ FREE          │ —                                                                          │ available                                    │
+│ i0           │ raysubmit_597sY93rLcScm2Xu   │ RUNNING       │ remax_2607v1_mixcv15_digits_openml_verb_s200_bs64_lid05_sfl_mlp0a         │ training 90/200 (45.0%)                      │
+│ i1           │ raysubmit_DDH6ykkQCkNiH6Wt   │ RUNNING       │ remax_2607v1_mix_digits_openml2x_s200_bs64_ilv                             │ training 89/200 (44.5%)                      │
+│ i2           │ raysubmit_RFyTtPuhPUrczhHN   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (batch 490/6572, r128)         │
+│ i3           │ raysubmit_3zMAbRXqUB3ZDuPm   │ RUNNING       │ remax_2607v1_digits_s200_bs64_sfl_mlp0a                                    │ training 125/200 (62.5%)                     │
+│ i4           │ raysubmit_Fz1xtU4qJqZ5VDp8   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (decoding)             │
+│ i6           │ raysubmit_B7MYZY6weJe6gEEV   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0     │ training 179/200 (89.5%)                     │
+│ i7           │ raysubmit_87tTdHAmeRBuKNP6   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (model startup)        │
+│ i8           │ raysubmit_bjkK4tnZRvSCSSRC   │ RUNNING       │ long_eval_inhouse_2607_all_seg30                                          │ evaluating inhouse_dter (decoding)           │
+│ i13          │ raysubmit_aBUV7jUKphuC4xZ1   │ SUCCEEDED     │ gen_2607v1_no_en_v1                                                        │ generating no_en_v1 (complete)               │
+│ i14          │ raysubmit_E7cteyG7kJSmw29f   │ RUNNING       │ long_eval_inhouse_2607_all_seg30                                          │ evaluating inhouse_dter (scoring)            │
+│ i15          │ raysubmit_bftT6LSzwQFQLeMd   │ RUNNING       │ gen_2607v1_no_en_v0                                                        │ generating no_en_v0 (model startup, r128)    │
+│ i16          │ raysubmit_vTXMguqfqVNYtURZ   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (decoding)             │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
-- remax_2607v1_mixcv15_digits_openml_verb_s200_bs64_lid05_sfl_mlp0a [i0]: training startup
-- remax_2607v1_mix_digits_openml2x_s200_bs64_ilv [i1]: training startup
-- remax_2607v1_digits_s200_bs64_sfl_mlp0a [i3]: training 7/200 (3.5%)
-- remax_2607v1_oss_bad_lang_s100_bs64_v0 [i4]: training 10/100 (10%)
-- remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0 [i6]: training 70/200 (35%)
+- remax_2607v1_mixcv15_digits_openml_verb_s200_bs64_lid05_sfl_mlp0a [i0]: training 90/200 (45.0%)
+- remax_2607v1_mix_digits_openml2x_s200_bs64_ilv [i1]: training 89/200 (44.5%)
+- remax_2607v1_digits_s200_bs64_sfl_mlp0a [i3]: training 125/200 (62.5%)
+- remax_2607v1_oss_bad_lang_s100_bs64_v0 [i4]: evaluating openasr_ml step 70
+- remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0 [i6]: training 179/200 (89.5%)
+- remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm0a_br0_rp0 [i14]: evaluating inhouse_dter step 70
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs64_sc2_lid05_sfl_tm0a [i7]: evaluating openasr_ml step 70
+- remax_2607v1_bad_mix13k_openml_verb_s200_bs64_lid05_sfl_mlp0a [i8]: evaluating inhouse_dter step 110
