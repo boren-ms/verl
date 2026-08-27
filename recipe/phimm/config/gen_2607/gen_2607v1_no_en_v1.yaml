@@ -17,7 +17,7 @@ trainer:
   n_gpus_per_node: 8
 
 rollout:
-  response_length: 384
+  response_length: 256
 
 data:
   model_version: 2607
