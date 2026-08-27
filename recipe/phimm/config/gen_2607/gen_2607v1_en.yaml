@@ -16,6 +16,9 @@ trainer:
   nnodes: 1
   n_gpus_per_node: 8
 
+rollout:
+  response_length: 512
+
 data:
   model_version: 2607
   batch_size: 128

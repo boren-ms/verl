@@ -16,6 +16,10 @@ trainer:
   nnodes: 1
   n_gpus_per_node: 8
 
+rollout:
+  response_length: 512
+
 data:
   model_version: 2607
+  batch_size: 128
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/no_en_v0
