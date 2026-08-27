@@ -1,4 +1,4 @@
-updated_at_utc: 2026-08-27T22:35:34Z
+updated_at_utc: 2026-08-27T22:40:30Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
@@ -7,25 +7,25 @@ updated_at_utc: 2026-08-27T22:35:34Z
 │ i1           │ raysubmit_YdaibFEpBq91cm4B   │ RUNNING       │ remax_2607v1_mix_digits_openml2x_s200_bs64_ilv                             │ training 195/200 (97.5%)                     │
 │ i2           │ raysubmit_eenXsX8Mn7JwyjR2   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (runtime setup, r128)           │
 │ i3           │ raysubmit_NSnkFqHgkpimTty6   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (decoding)             │
-│ i4           │ raysubmit_urrBvniDevpnzhA7   │ RUNNING       │ remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1                           │ training 11/100 (11.0%)                      │
-│ i5           │ raysubmit_uDVGjjzPCv2LF8h4   │ RUNNING       │ remax_2607v1b_digits_s200_bs64_sfl_tm1                                    │ training 71/200 (35.5%)                      │
-│ i6           │ raysubmit_gbXVJMXVHHhGyuqq   │ RUNNING       │ remax_2607v1_oss_bad_lang_rc10_s200_bs64_rw0                               │ training 6/200 (3.0%)                        │
+│ i4           │ raysubmit_urrBvniDevpnzhA7   │ RUNNING       │ remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1                           │ training 15/100 (15.0%)                      │
+│ i5           │ raysubmit_uDVGjjzPCv2LF8h4   │ RUNNING       │ remax_2607v1b_digits_s200_bs64_sfl_tm1                                    │ training 78/200 (39.0%)                      │
+│ i6           │ raysubmit_gbXVJMXVHHhGyuqq   │ RUNNING       │ remax_2607v1_oss_bad_lang_rc10_s200_bs64_rw0                               │ training 12/200 (6.0%)                       │
 │ i7           │ none                         │ FREE          │ none                                                                       │ none                                         │
 │ i8           │ none                         │ PENDING       │ none                                                                       │ pool Assigning                               │
 │ i9           │ none                         │ FREE          │ none                                                                       │ none                                         │
 │ i10          │ none                         │ FREE          │ none                                                                       │ none                                         │
-│ i11          │ none                         │ FREE          │ none                                                                       │ none                                         │
+│ i11          │ raysubmit_RafKbvtM6Da2wBmN   │ RUNNING       │ eval_digits_enus_2607                                                      │ evaluating digits_enus (model startup)       │
 │ i12          │ none                         │ FREE          │ none                                                                       │ none                                         │
 │ i13          │ raysubmit_vq8Kcer4HGKL4dTR   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0        │ training 58/200 (29.0%)                      │
-│ i14          │ raysubmit_wDfsZUK2H2SN3giz   │ RUNNING       │ remax_2607v1_digits_s200_bs64_sfl_tm1                                     │ training 119/200 (59.5%)                     │
+│ i14          │ raysubmit_wDfsZUK2H2SN3giz   │ RUNNING       │ remax_2607v1_digits_s200_bs64_sfl_tm1                                     │ training 121/200 (60.5%)                     │
 │ i15          │ none                         │ PENDING       │ none                                                                       │ pool Assigning                               │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
-- remax_2607v1_digits_s200_bs64_sfl_tm1 [i14]: training 119/200 (59.5%)
+- remax_2607v1_digits_s200_bs64_sfl_tm1 [i14]: training 121/200 (60.5%)
 - remax_2607v1_bad_mix13k_s100_bs64_lid05_sfl_tm1 [i0]: training 70/100 (70.0%)
-- remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1 [i4]: training 11/100 (11.0%)
-- remax_2607v1b_digits_s200_bs64_sfl_tm1 [i5]: training 71/200 (35.5%)
+- remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1 [i4]: training 15/100 (15.0%)
+- remax_2607v1b_digits_s200_bs64_sfl_tm1 [i5]: training 78/200 (39.0%)
 - remax_2607v1_mix_digits_openml2x_s200_bs64_ilv [i1]: training 195/200 (97.5%)
 - remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0 [i13]: training 58/200 (29.0%)
-- remax_2607v1_oss_bad_lang_rc10_s200_bs64_rw0 [i6]: training 6/200 (3.0%)
+- remax_2607v1_oss_bad_lang_rc10_s200_bs64_rw0 [i6]: training 12/200 (6.0%)
