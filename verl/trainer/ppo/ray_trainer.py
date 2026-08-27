@@ -973,6 +973,9 @@ class RayPPOTrainer:
         # load data loader
         if load_as_initialization:
             return 0
+        if not self.config.trainer.get("load_dataloader_state", True):
+            print("Skipping dataloader state restore")
+            return
 
         for folder in [remote_step_folder, local_step_folder]:
             if folder is None:
