@@ -1,26 +1,32 @@
-updated_at_utc: 2026-08-27T18:44:02Z
+updated_at_utc: 2026-08-27T18:59:27Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
 │ i1           │ raysubmit_YdaibFEpBq91cm4B   │ RUNNING       │ remax_2607v1_mix_digits_openml2x_s200_bs64_ilv                             │ training 195/200 (97.5%)                     │
-│ i2           │ raysubmit_d6VaL6fBdciCgAbj   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (batch 1770/6572, r128)        │
+│ i2           │ raysubmit_CqcqwP49CzwLE67m   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (batch 1818/6572, r128)        │
 │ i3           │ raysubmit_NSnkFqHgkpimTty6   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (2048 scored)          │
-│ i4           │ raysubmit_6buMdvky4k4hanpW   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (model startup)        │
-│ i5           │ raysubmit_K62bwdR4QxkMKAkJ   │ RUNNING       │ remax_2607v1b_digits_s200_bs64_sfl_tm1                                    │ training 19/200 (9.5%)                       │
+│ i4           │ raysubmit_6buMdvky4k4hanpW   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (3072 scored)          │
+│ i5           │ raysubmit_K62bwdR4QxkMKAkJ   │ RUNNING       │ remax_2607v1b_digits_s200_bs64_sfl_tm1                                    │ training 23/200 (11.5%)                      │
 │ i7           │ raysubmit_iFCDgiYghwk3T6Yx   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_ilv_mlp0             │ training 179/200 (89.5%)                     │
 │ i8           │ raysubmit_XZVue3iRdXPrrEPR   │ RUNNING       │ remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1                          │ training 7/100 (7.0%)                        │
 │ i9           │ raysubmit_6TT9QM25zvzRgNsD   │ RUNNING       │ remax_2607v1_bad_mix13k_s100_bs64_lid05_sfl_tm1                           │ training 12/100 (12.0%)                      │
 │ i13          │ raysubmit_vq8Kcer4HGKL4dTR   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0        │ training 58/200 (29.0%)                      │
 │ i14-recovery │ raysubmit_wDfsZUK2H2SN3giz   │ RUNNING       │ remax_2607v1_digits_s200_bs64_sfl_tm1                                     │ training startup                             │
+│ i15          │ —                            │ RUNNING       │ remax_2607v1_digits_s200_bs64_sfl_mlp0a@step40                            │ exporting best checkpoint (step 40)          │
+│ i16          │ —                            │ RUNNING       │ remax_2607v1_digits_s200_bs64_sfl_mlp0a@step100                           │ exporting best checkpoint (step 100)         │
+│ i17          │ —                            │ RUNNING       │ remax_2607v1_digits_s200_bs64_sfl_mlp0a@step150                           │ exporting best checkpoint (step 150)         │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
 - remax_2607v1_mix_digits_openml2x_s200_bs64_ilv [i1]: training 195/200 (97.5%)
 - remax_2607v1_digits_s200_bs64_sfl_mlp0a [i3]: evaluating openasr_ml step 190
+- remax_2607v1_digits_s200_bs64_sfl_mlp0a@step40 [i15]: exporting best checkpoint step 40
+- remax_2607v1_digits_s200_bs64_sfl_mlp0a@step100 [i16]: exporting best checkpoint step 100
+- remax_2607v1_digits_s200_bs64_sfl_mlp0a@step150 [i17]: exporting best checkpoint step 150
 - remax_2607v1_oss_bad_lang_s100_bs64_v0 [i4]: complete step 70
 - remax_2607v1_oss_bad_lang_s200_bs64_v0 [i5]: complete step 190
-- remax_2607v1b_digits_s200_bs64_sfl_tm1 [i5]: training 19/200 (9.5%)
+- remax_2607v1b_digits_s200_bs64_sfl_tm1 [i5]: training 23/200 (11.5%)
 - remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0 [i13]: training 58/200 (29.0%)
 - remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm0a_br0_rp0 [i14]: complete step 70
 - remax_2607v1_digits_s200_bs64_sfl_tm1 [i14-recovery]: training startup
