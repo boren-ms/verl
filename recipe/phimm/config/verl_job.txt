@@ -1,25 +1,25 @@
-updated_at_utc: 2026-08-27T00:24:09Z
+updated_at_utc: 2026-08-27T00:34:08Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
-│ i0           │ raysubmit_WJKCpH6kFeXqQgzK   │ RUNNING       │ sc2 step200 / eval_openasr_ml_verb_2607 (outside tracked workload)          │ evaluating openasr_ml                        │
-│ i1           │ raysubmit_nTE2mGLfDwXfBvGi   │ RUNNING       │ s100-lr05 step200 / eval_openasr_ml_verb_2607                              │ evaluating openasr_ml (multi-GPU decoding)    │
-│ i2           │ raysubmit_mCKWgmbC3pfWKFa9   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (batch 380/6572, bs128/r512)   │
-│ i3           │ raysubmit_Dixj476Ag3fz1t37   │ RUNNING       │ MixCV15 MLP0A step190 / eval_openasr_ml_verb_2607                          │ evaluating openasr_ml (multi-GPU decoding)    │
-│ i4           │ raysubmit_xLGWSGib8zmh1Ghu   │ RUNNING       │ sc2-lr1a step200 / eval_openasr_ml_verb_2607 (outside tracked workload)     │ evaluating openasr_ml                        │
+│ i0           │ raysubmit_WJKCpH6kFeXqQgzK   │ STOPPED       │ sc2 step200 / eval_openasr_ml_verb_2607 (user-selected stop)                │ evaluating openasr_ml (stopped)              │
+│ i1           │ raysubmit_nTE2mGLfDwXfBvGi   │ SUCCEEDED     │ s100-lr05 step200 / eval_openasr_ml_verb_2607                              │ evaluating openasr_ml (complete)             │
+│ i2           │ raysubmit_mCKWgmbC3pfWKFa9   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (batch 380/6572, straggler)    │
+│ i3           │ raysubmit_Dixj476Ag3fz1t37   │ SUCCEEDED     │ MixCV15 MLP0A step190 / eval_openasr_ml_verb_2607                          │ evaluating openasr_ml (complete)             │
+│ i4           │ raysubmit_xLGWSGib8zmh1Ghu   │ STOPPED       │ sc2-lr1a step200 / eval_openasr_ml_verb_2607 (user-selected stop)           │ evaluating openasr_ml (stopped)              │
 │ i5           │ raysubmit_9Jpu7fNBnSDdGsMz   │ LOST          │ remax_2607v1_n1k_s100_bs64_v0                                              │ training 90/100 (90%)                        │
-│ i6           │ raysubmit_8KCPrHrBFavnY52g   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0     │ training 40/200 (20%)                        │
-│ i7           │ raysubmit_is3H2chxUPKQSEMz   │ RUNNING       │ ILV-lr05 step120 / long_eval_inhouse_2607_all_seg30                        │ evaluating inhouse_dter (multi-GPU decoding)  │
-│ i8           │ raysubmit_ZgraqrAsQQPrMdFQ   │ RUNNING       │ bs64-sc10 step100 / long_eval_inhouse_2607_all_seg30                       │ evaluating inhouse_dter (multi-GPU decoding)  │
+│ i6           │ raysubmit_8KCPrHrBFavnY52g   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0     │ training 42/200 (21%)                        │
+│ i7           │ raysubmit_is3H2chxUPKQSEMz   │ SUCCEEDED     │ ILV-lr05 step120 / long_eval_inhouse_2607_all_seg30                        │ evaluating inhouse_dter (complete)           │
+│ i8           │ raysubmit_ZgraqrAsQQPrMdFQ   │ SUCCEEDED     │ bs64-sc10 step100 / long_eval_inhouse_2607_all_seg30                       │ evaluating inhouse_dter (complete)           │
 │ i9           │ —                            │ SUCCEEDED     │ step100 / consolidated 2607 report                                         │ building report (complete)                   │
-│ i13          │ raysubmit_6J93SddeJAnTG8WP   │ RUNNING       │ gen_2607v1_no_en_v1                                                        │ generating no_en_v1 (batch 1498/1575)        │
-│ i14          │ raysubmit_1GHuMEKAFPHWQPcd   │ RUNNING       │ RP0 step150 / long_eval_inhouse_2607_all_seg30                             │ evaluating inhouse_dter (multi-GPU decoding)  │
-│ i15          │ raysubmit_fnrjhvSfPQpq7QEk   │ RUNNING       │ gen_2607v1_no_en_v0                                                        │ generating no_en_v0 (batch 3925/22629)       │
-│ i16          │ raysubmit_YqdcyUWpmSQpju6N   │ RUNNING       │ sc2-lr05 step110 / eval_openasr_ml_verb_2607                               │ evaluating openasr_ml (multi-GPU decoding)    │
+│ i13          │ raysubmit_3JFhNBKzEYMpBSCF   │ RUNNING       │ gen_2607v1_no_en_v1                                                        │ generating no_en_v1 (recovery startup)       │
+│ i14          │ raysubmit_1GHuMEKAFPHWQPcd   │ SUCCEEDED     │ RP0 step150 / long_eval_inhouse_2607_all_seg30                             │ evaluating inhouse_dter (complete)           │
+│ i15          │ raysubmit_fnrjhvSfPQpq7QEk   │ RUNNING       │ gen_2607v1_no_en_v0                                                        │ generating no_en_v0 (batch 3975/22629)       │
+│ i16          │ raysubmit_YqdcyUWpmSQpju6N   │ SUCCEEDED     │ sc2-lr05 step110 / eval_openasr_ml_verb_2607                               │ evaluating openasr_ml (complete)             │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
 - remax_2607v1_n1k_s100_bs64_v0 [i5]: failed training step 90
-- remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0 [i6]: training 40/200 (20%)
+- remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_n8_lid05_sfl_mlp0_rp0 [i6]: training 42/200 (21%)
 - remax_2607v1_n1k_s100_bs64 [i9]: complete step 100
