@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -135,6 +136,20 @@ def test_default_report_path_uses_model_subdirectory():
     ) == Path(
         "tmp/eval_2607_reports/remax_2607/remax_2607_step560.xlsx"
     )
+
+
+def test_collect_reads_remote_json_metric_source(monkeypatch):
+    report = _load_report_module()
+    source = "az://orngwus2cresco/data/results/key_metrics.json"
+    payload = {"de_fleurs": {"wer": 0.025}, "de_mcv": {"wer": 0.031}}
+
+    def fake_run(command, **kwargs):
+        assert command == ["bbb", "cat", source]
+        return subprocess.CompletedProcess(command, 0, json.dumps(payload), "")
+
+    monkeypatch.setattr(report.subprocess, "run", fake_run)
+
+    assert report.collect(source, ["wer"]) == payload
 
 
 def test_default_output_writes_checkpoint_report_under_model(tmp_path, monkeypatch):

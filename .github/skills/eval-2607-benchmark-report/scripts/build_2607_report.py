@@ -271,8 +271,8 @@ def parse_text(
     return out
 
 
-def load_json_source(path: Path, metrics: List[str]) -> Dict[str, Dict[str, float]]:
-    raw = json.loads(path.read_text())
+def load_json_text(text: str, metrics: List[str]) -> Dict[str, Dict[str, float]]:
+    raw = json.loads(text)
     out: Dict[str, Dict[str, float]] = {}
     for ds, val in raw.items():
         if isinstance(val, dict):
@@ -282,6 +282,10 @@ def load_json_source(path: Path, metrics: List[str]) -> Dict[str, Dict[str, floa
         if vals:
             out[ds] = vals
     return out
+
+
+def load_json_source(path: Path, metrics: List[str]) -> Dict[str, Dict[str, float]]:
+    return load_json_text(path.read_text(), metrics)
 
 
 def collect(
@@ -296,6 +300,14 @@ def collect(
             print(f"[warn] bad ray source '{source}', expected ray:<node>:<job_id>", file=sys.stderr)
             return {}
         return parse_text(fetch_ray_logs(parts[1], parts[2]), metrics)
+    if source.startswith("az://") and source.endswith((".json", ".log", ".txt")):
+        proc = subprocess.run(["bbb", "cat", source], capture_output=True, text=True, check=False)
+        if proc.returncode:
+            print(f"[warn] bbb cat {source} failed:\n{proc.stderr[-400:]}", file=sys.stderr)
+            return {}
+        if source.endswith(".json"):
+            return load_json_text(proc.stdout, metrics)
+        return parse_text(proc.stdout, metrics)
     if source.startswith("az://"):
         return read_measures_tree(source, metrics)
     p = Path(source)
