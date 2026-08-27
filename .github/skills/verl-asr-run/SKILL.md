@@ -1,12 +1,12 @@
 ---
 name: verl-asr-run
-description: 'Run the full ASR stack on remote verl Brix nodes: training -> final checkpoint HF export -> standard 2607 benchmark evaluation on the same training node -> consolidated report, while continuously monitoring until completion with structured metrics. Use when: running RL training (ReMax, GRPO), automatically running the post-training final-checkpoint 2607 benchmark, evaluating checkpoints on LibriSpeech/in-house/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, and pushing code and resubmitting after fixes. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate final checkpoint", "evaluate on librispeech", "2607 benchmark report", "check WER", "monitor job", "check training status", "push and submit", "run config on node", "training evaluation report".'
+description: 'Run the full ASR stack on remote verl Brix nodes: training -> best validation checkpoint HF export -> standard 2607 benchmark evaluation on the same training node -> consolidated report, while continuously monitoring until completion with structured metrics. Use when: running RL training (ReMax, GRPO), automatically running the post-training best-checkpoint 2607 benchmark, evaluating checkpoints on LibriSpeech/in-house/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, and pushing code and resubmitting after fixes. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate best checkpoint", "evaluate on librispeech", "2607 benchmark report", "check WER", "monitor job", "check training status", "push and submit", "run config on node", "training evaluation report".'
 argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0, or eval_libri_h100'
 ---
 
 # verl ASR Run
 
-Run a full ASR pipeline on remote verl Brix nodes: **training -> export the final checkpoint after training succeeds -> standard 2607 benchmark suite on the same training node -> final report -> persistent auto-monitor**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, and invoke the **eval-2607-benchmark-report** skill once for the final checkpoint only after training has finished successfully and released the training node's GPUs. That skill owns the required in-house DTER, OpenASR-ML, and MixLang evaluations, matching reference baselines, and the final workbook. Persist the latest training and evaluation state in `recipe/phimm/config/verl_job.txt` throughout the pipeline. After submission, always install a `/every 5m update job status and autofix job` schedule (Step 5) so status updates and auto-fixes continue without manual re-prompting.
+Run a full ASR pipeline on remote verl Brix nodes: **training -> select and export the best validation checkpoint after training succeeds -> standard 2607 benchmark suite on the same training node -> final report -> persistent auto-monitor**. Submit jobs via `submit_job.sh`, continuously monitor until completion with structured metrics, and invoke the **eval-2607-benchmark-report** skill once for the best eligible checkpoint only after training has finished successfully and released the training node's GPUs. That skill owns the required in-house DTER, OpenASR-ML, and MixLang evaluations, matching reference baselines, and the final workbook. Persist the latest training and evaluation state in `recipe/phimm/config/verl_job.txt` throughout the pipeline. After submission, always install a `/every 5m update job status and autofix job` schedule (Step 5) so status updates and auto-fixes continue without manual re-prompting.
 
 Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
@@ -27,7 +27,7 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 | **config** | Yes | — | `remax_ls_lr05`, `eval_libri_h100`, `gen_libri` |
 | **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
-| **post_train_eval** | No | Run `eval-2607-benchmark-report` once after training succeeds | Final checkpoint: in-house DTER + OpenASR-ML + MixLang |
+| **post_train_eval** | No | Run `eval-2607-benchmark-report` once after training succeeds | Best validation checkpoint: in-house DTER + OpenASR-ML + MixLang |
 | **report** | No | Consolidated baseline-aware 2607 benchmark workbook | `tmp/eval_2607_reports/<model-label>.xlsx` |
 
 ## Job Types
@@ -133,19 +133,19 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
    - `remax_*` → ReMax training (uses `main_asr_remax`)
    - Everything else → training (uses `main_asr_dapo`)
 - **model_path**: Usually baked into the config. If the user specifies a custom model path, it will be passed as a hydra override.
-- **post_train_eval**: For training jobs, wait until training reaches `SUCCEEDED`, confirm its processes released the GPUs, resolve the final complete saved checkpoint, export it, and invoke **eval-2607-benchmark-report** exactly once with model label `{TRAIN_CONFIG}@step{FINAL_STEP}`, model path `{CHECKPOINT_PATH}`, and `{TRAIN_NODE}`. The benchmark skill runs in-house DTER, OpenASR-ML, and MixLang by default; include digits only when the user explicitly requests them.
-- **evaluation node**: Reuse `{TRAIN_NODE}` for the final-checkpoint benchmark. Keep every candidate and reference child job on that node and run them sequentially.
-- **report**: The **eval-2607-benchmark-report** skill owns baseline selection, benchmark execution, metric extraction, and the final-checkpoint `.xlsx` workbook. Do not separately run the legacy in-house-only report pipeline.
+- **post_train_eval**: For training jobs, wait until training reaches `SUCCEEDED`, confirm its processes released the GPUs, select the best complete saved checkpoint by the rule in Step 3h, export it, and invoke **eval-2607-benchmark-report** exactly once with model label `{TRAIN_CONFIG}@step{BEST_STEP}`, model path `{CHECKPOINT_PATH}`, and `{TRAIN_NODE}`. The benchmark skill runs in-house DTER, OpenASR-ML, and MixLang by default; include digits only when the user explicitly requests them.
+- **evaluation node**: Reuse `{TRAIN_NODE}` for the best-checkpoint benchmark. Keep every candidate and reference child job on that node and run them sequentially.
+- **report**: The **eval-2607-benchmark-report** skill owns baseline selection, benchmark execution, metric extraction, and the best-checkpoint `.xlsx` workbook. Do not separately run the legacy in-house-only report pipeline.
 
 ### Step 1a — Set evaluation topology
 
-Before submitting a standalone `eval_*` or `long_eval_*` job, determine the number of Ready nodes that will participate in that evaluation and set `{EVAL_NNODES}` to that count. Always pass `trainer.nnodes={EVAL_NNODES}` as a Hydra override; do not rely on the inherited training default. For a training pipeline's final-checkpoint evaluation, reuse `{TRAIN_NODE}` and set `trainer.nnodes=1` for every child evaluation job.
+Before submitting a standalone `eval_*` or `long_eval_*` job, determine the number of Ready nodes that will participate in that evaluation and set `{EVAL_NNODES}` to that count. Always pass `trainer.nnodes={EVAL_NNODES}` as a Hydra override; do not rely on the inherited training default. For a training pipeline's best-checkpoint evaluation, reuse `{TRAIN_NODE}` and set `trainer.nnodes=1` for every child evaluation job.
 
-After training succeeds, confirm `{TRAIN_NODE}` has no running Ray job and its GPUs are idle before launching evaluation. If training processes are still releasing resources, keep the final checkpoint queued and retry every 5 minutes on the same node. Do not select or resume another node.
+After training succeeds, confirm `{TRAIN_NODE}` has no running Ray job and its GPUs are idle before launching evaluation. If training processes are still releasing resources, keep the selected best checkpoint queued and retry every 5 minutes on the same node. Do not select or resume another node.
 
 ### Step 1b — Maintain `verl_job.txt` as durable pipeline state
 
-Use `recipe/phimm/config/verl_job.txt` as the canonical local status file for the latest training and evaluation job information. Create it when a pipeline is selected, before submission, and update it immediately after every submission, status poll, phase or progress change, final-checkpoint discovery, queue transition, child benchmark launch/completion/failure, resubmission, artifact creation, and final completion. Also update it while the training node is releasing resources, so the recorded state explains what the pipeline is waiting for.
+Use `recipe/phimm/config/verl_job.txt` as the canonical local status file for the latest training and evaluation job information. Create it when a pipeline is selected, before submission, and update it immediately after every submission, status poll, phase or progress change, best-checkpoint selection, queue transition, child benchmark launch/completion/failure, resubmission, artifact creation, and final completion. Also update it while the training node is releasing resources, so the recorded state explains what the pipeline is waiting for.
 
 The file must always reflect the latest observed remote state rather than the state expected from a previous poll. Re-discover jobs with `ray_job.py list` before writing scheduled updates. Rewrite the file with `apply_patch`; do not append duplicate snapshots. Keep only the latest job state for each node; never retain superseded jobs or historical job IDs. Once an export or benchmark child starts on the training node, replace its completed training row. Never write credentials, SAS URLs, environment secrets, or raw logs.
 
@@ -161,7 +161,7 @@ Keep the current jobs in a Unicode box-drawing table at the top of the file. Use
 - `RAY JOB ID`: the current Ray submission ID; replace stale IDs in place after resubmission.
 - `STATUS`: `PENDING`, `RUNNING`, `SUCCEEDED`, `FAILED`, `STOPPED`, `LOST`, or `FREE`.
 - `JOB / CONFIG`: the training config, benchmark config, export label, or report action.
-- `PROGRESS / PHASE`: always identify the current activity. For a training Ray job, write `training X/N (P%)`. For an evaluation Ray job, write `evaluating <dataset> (<phase>)`, where `<dataset>` is the actual active dataset or benchmark component (for example, `inhouse_dter`, `openasr_ml`, or `mixlang`) and `<phase>` is concise, such as `model startup`, `decoding`, `uploading artifacts`, or `complete`. Never write a generic evaluation phase without the dataset name. For non-Ray work, write `exporting final checkpoint (<phase>)` or `building report (<phase>)`.
+- `PROGRESS / PHASE`: always identify the current activity. For a training Ray job, write `training X/N (P%)`. For an evaluation Ray job, write `evaluating <dataset> (<phase>)`, where `<dataset>` is the actual active dataset or benchmark component (for example, `inhouse_dter`, `openasr_ml`, or `mixlang`) and `<phase>` is concise, such as `model startup`, `decoding`, `uploading artifacts`, or `complete`. Never write a generic evaluation phase without the dataset name. For non-Ray work, write `selecting best checkpoint (<phase>)`, `exporting best checkpoint (<phase>)`, or `building report (<phase>)`.
 
 Render at most one row per node. For each node, keep only its latest Ray submission belonging to the tracked pipeline, replacing that row in place whenever a newer job is submitted, discovered, or created by resubmission. After training succeeds, replace the completed training row with the current export, benchmark child, or report action on the same node. Track the pipeline's current end-to-end state through the `Reports:` status bullet, not additional node rows. Sort the table by the numeric node suffix in natural order (`i2` before `i10`), with an optional label such as `-recovery` sorted immediately after its base suffix. Keep column widths aligned and rewrite the whole table on every poll so it remains directly readable in a terminal. Example:
 
@@ -181,8 +181,9 @@ Reports:
 Under `Reports:`, use one concise status bullet per training model/run in the form `- model [node]: <status>`, where `node` is the short Brix node suffix used in the table (for example, `i0` or `i12-recovery`). Keep the node current if the pipeline moves to a replacement node. Rewrite the status in place whenever the pipeline advances; never append status history. Use exactly the most specific applicable form:
 
 - `training <step>/<total> (<percent>%)`, or `training startup` before the first step
-- `waiting for final checkpoint step <step>`
-- `exporting final checkpoint step <step>`
+- `selecting best checkpoint`
+- `waiting for best checkpoint step <step>`
+- `exporting best checkpoint step <step>`
 - `evaluating <dataset> step <step>`
 - `building report step <step>`
 - `complete step <step>`
@@ -204,7 +205,7 @@ Terminal rows preserve the same activity and use `(complete)` or `(failed)` as t
 
 **IMPORTANT**: Always push the latest code to the remote node before submitting any job. This ensures the remote node runs the same code as your local workspace.
 
-For training jobs, compose the config locally before submission and record the effective `trainer.save_freq` in the first status update. Preserve that value during submission; post-training evaluation uses the final complete saved checkpoint and must not override the save cadence.
+For training jobs, compose the config locally before submission and record the effective `trainer.save_freq` in the first status update. Preserve that value during submission; post-training evaluation chooses only among complete checkpoints created by that save cadence and must not override it.
 
 1. **Push code** to the remote node using `bpush`:
    ```bash
@@ -398,17 +399,18 @@ If all quality metrics are at their ideal values (p_fmt = 100%, p_lang = 100%, p
 
 **Show ALL steps observed — accumulate across monitoring checks to compare progression.**
 
-#### 3h. Evaluate and report the final checkpoint
+#### 3h. Select, evaluate, and report the best checkpoint
 
 For training jobs, do not launch external checkpoint benchmarks while training is running. On every poll, monitor training only. After the training Ray job reaches `SUCCEEDED`:
 
-1. Resolve the highest complete saved `global_step_*` checkpoint from the observed `save_checkpoint` log entries and the configured output root. The final checkpoint is complete only when its save/upload has finished and all required actor shards are present.
-2. Set the model's report bullet to `waiting for final checkpoint step <step>`. Before launching work, reconcile that status with the current Ray job and existing export/report artifacts so monitor restarts cannot launch the final evaluation twice.
-3. Check `{TRAIN_NODE}` with both Step 0 occupancy signals. If its training processes have not released the GPUs or Ray job slot, retain `waiting for final checkpoint step <step>` and report that the training node is not yet idle.
-4. Export the final checkpoint using Step 4a, then invoke Step 4b on `{TRAIN_NODE}`.
-5. Monitor all benchmark child jobs until the workbook passes quality gates. Set the report bullet to `complete step <step>`, then report its in-house DTER, OpenASR-ML, and MixLang summary metrics, workbook path, checkpoint path, training node, child Ray job IDs, W&B links, and artifact provenance.
+1. Set the model's report bullet to `selecting best checkpoint`. Enumerate validation steps from the accumulated `val-aux/{data_source}/p_err/mean@1` metrics and complete saved `global_step_*` checkpoints from the observed `save_checkpoint` entries and configured output root. A checkpoint is eligible only when its save/upload has finished and all required actor shards are present.
+2. For every eligible step with validation metrics, compute its selection score as the arithmetic mean of `p_err` over all configured validation datasets reported at that step. Select the lowest score; if scores tie, select the later step. Do not compare steps using different dataset sets: use the largest common configured dataset set present across eligible steps. If no eligible checkpoint has comparable `p_err`, fall back to the latest complete saved checkpoint and explicitly report that fallback.
+3. Record `{BEST_STEP}`, its selection score, and the compared dataset set in the user-facing training summary. Set the model's report bullet to `waiting for best checkpoint step <step>`. Before launching work, reconcile that status with the current Ray job and existing export/report artifacts so monitor restarts cannot launch the best-checkpoint evaluation twice.
+4. Check `{TRAIN_NODE}` with both Step 0 occupancy signals. If its training processes have not released the GPUs or Ray job slot, retain `waiting for best checkpoint step <step>` and report that the training node is not yet idle.
+5. Export the selected best checkpoint using Step 4a, then invoke Step 4b on `{TRAIN_NODE}`.
+6. Monitor all benchmark child jobs until the workbook passes quality gates. Set the report bullet to `complete step <step>`, then report its in-house DTER, OpenASR-ML, and MixLang summary metrics, workbook path, checkpoint path, training node, child Ray job IDs, W&B links, and artifact provenance.
 
-Write each pipeline transition to the model's report status bullet. Use `exporting final checkpoint step <step>` before export, `evaluating <dataset> step <step>` for each benchmark child, and `building report step <step>` while creating the workbook. Replace the completed training row with `exporting final checkpoint (<phase>)` before starting it, then replace that row with `evaluating <dataset> (<phase>)` for each benchmark child at launch and on every poll, and with `building report (<phase>)` when building the workbook. Never retain more than one row for the training node.
+Write each pipeline transition to the model's report status bullet. Use `selecting best checkpoint` during selection, `exporting best checkpoint step <step>` before export, `evaluating <dataset> step <step>` for each benchmark child, and `building report step <step>` while creating the workbook. Replace the completed training row with `selecting best checkpoint (<phase>)`, then `exporting best checkpoint (<phase>)` before export, then replace that row with `evaluating <dataset> (<phase>)` for each benchmark child at launch and on every poll, and with `building report (<phase>)` when building the workbook. Never retain more than one row for the training node.
 
 ### Step 4 — Training summary (when SUCCEEDED)
 
@@ -418,9 +420,9 @@ When the job completes, provide:
 3. **Checkpoint save location** from the `save_checkpoint` log
 4. **W&B run link** (clickable)
 5. **Total training time** (from first step to last step)
-6. **Trend summary**: did WER improve? By how much? Best val step?
+6. **Trend summary**: did WER improve? By how much? Which saved validation step was selected, with what aggregate `p_err` and dataset set?
 
-For training jobs, Step 4 is an interim training summary. Continue with the single final-checkpoint evaluation in Step 3h. Do not give the final response until that checkpoint has a successful benchmark workbook.
+For training jobs, Step 4 is an interim training summary. Continue with the single best-checkpoint evaluation in Step 3h. Do not give the final response until that checkpoint has a successful benchmark workbook.
 
 ### Step 4a — Export checkpoint to HF safetensors format
 
@@ -434,13 +436,13 @@ Derive `{TRAIN_OUTPUT_DIR}` from the training config's `trainer.default_hdfs_dir
 az://orngwus2cresco/data/boren/outputs/{PROJECT}/{TRAIN_CONFIG}
 ```
 
-Confirm that the exact final `{STEP}` exists and is complete:
+Confirm that the selected best `{STEP}` exists and is complete:
 
 ```bash
 bbb ls {TRAIN_OUTPUT_DIR}/ | grep 'global_step_{STEP}'
 ```
 
-Do not substitute a best or intermediate checkpoint for the final step. If upload is still in progress, keep the report status at `waiting for final checkpoint step <step>` and retry on the next monitor poll.
+Do not substitute the last checkpoint after `{BEST_STEP}` has been selected. If the selected checkpoint's upload is still in progress, keep the report status at `waiting for best checkpoint step <step>` and retry on the next monitor poll.
 
 The checkpoint is also available locally on the node at:
 ```text
@@ -508,7 +510,7 @@ If any prior failed attempt cached a bad model file, clear it so the eval downlo
 brix ssh {TRAIN_NODE} -- 'bash -l -c "rm -rf /root/.blobfile/*/boren/outputs/{PROJECT}/{TRAIN_CONFIG}/global_step_{STEP}/qwen_hf/"'
 ```
 
-### Step 4b — Mandatory final-checkpoint 2607 benchmark report
+### Step 4b — Mandatory best-checkpoint 2607 benchmark report
 
 After Step 4a produces `{CHECKPOINT_PATH}` for `{STEP}`, invoke the **eval-2607-benchmark-report** skill on `{TRAIN_NODE}` and let it own evaluation and reporting:
 
@@ -532,7 +534,7 @@ Record each delegated candidate/reference job in the node/job table at launch, r
 
 Per-checkpoint and final response requirements:
 
-1. Report the final checkpoint when its workbook passes quality gates; include the training final summary from Step 4 in the final response.
+1. Report the selected best checkpoint when its workbook passes quality gates; include the training final summary and checkpoint-selection score from Step 4 in the final response.
 2. State the evaluated checkpoint path and model label.
 3. Include W&B and Ray links for training and benchmark jobs when available.
 4. Show the consolidated workbook path and the benchmark skill's summary metrics for in-house DTER, OpenASR-ML, and MixLang, plus optional digits only when requested.
@@ -558,16 +560,16 @@ Emit this slash command as the final line of your response, on its own line, wit
 
 This schedules VS Code Copilot to re-invoke the agent every 5 minutes with an explicit pipeline identity. Each scheduled invocation must:
 
-1. **Load durable state and re-discover the active job(s)**: read `recipe/phimm/config/verl_job.txt`, then run `ray_job.py list` for the tracked `{NODE}` / `{CONFIG}` pair. Treat `{JOB_ID}` as the initial job, not an immutable ID: after an autofix or user-requested replacement, update the schedule to name the replacement config and job ID. After training succeeds, track the final-checkpoint evaluation state and every candidate and reference job launched on the same node by **eval-2607-benchmark-report** for in-house DTER, OpenASR-ML, MixLang, and any explicitly requested digits benchmark. Reconcile and rewrite `verl_job.txt` with only the latest job state for the node before printing the user-facing update. Every active row must say `training ...`, `evaluating <dataset> (...)`, or `generating <dataset> (...)` in `PROGRESS / PHASE`; never retain a generic phase from the previous job.
+1. **Load durable state and re-discover the active job(s)**: read `recipe/phimm/config/verl_job.txt`, then run `ray_job.py list` for the tracked `{NODE}` / `{CONFIG}` pair. Treat `{JOB_ID}` as the initial job, not an immutable ID: after an autofix or user-requested replacement, update the schedule to name the replacement config and job ID. After training succeeds, select and track the best-checkpoint evaluation state and every candidate and reference job launched on the same node by **eval-2607-benchmark-report** for in-house DTER, OpenASR-ML, MixLang, and any explicitly requested digits benchmark. Reconcile and rewrite `verl_job.txt` with only the latest job state for the node before printing the user-facing update. Every active row must say `training ...`, `selecting best checkpoint (...)`, `exporting best checkpoint (...)`, `evaluating <dataset> (...)`, or `generating <dataset> (...)` as appropriate; never retain a generic phase from the previous job.
 2. **Reprint the status header** from Step 3g (Job ID, status, progress, node, config, W&B URL, Ray URL, GPU utilization) for every active job.
 3. **Append new rows** to the training-metrics, `p_err`, `p_edge`, and quality-metrics tables for any new steps observed since the previous poll. Do not re-print the entire historical table — only the new rows, plus a one-line trend summary ("score/mean +0.012 vs last poll, p_err 4.98% → 4.71%").
 4. **Autofix on failure** without asking: if any tracked job is `FAILED`, pull the traceback (`ray job logs {JOB_ID} | tail -n 40`), diagnose using the failure patterns in Step 3f, edit the code locally, run `bpush {NODE}`, and resubmit via Step 2. Record the new job ID and continue monitoring it under the same `/every` schedule.
 5. **Advance the pipeline** automatically when a stage completes:
    - While training is `RUNNING` → do not enqueue or evaluate any checkpoint.
-   - Training `SUCCEEDED` → resolve the final complete checkpoint, reconcile the current report status and artifacts to avoid duplicate work, set `waiting for final checkpoint step <step>`, wait for the training node's GPUs and Ray job slot to become idle, then run Step 4a and Step 4b on that same node.
-   - A child benchmark job `SUCCEEDED` → let the benchmark workflow launch its next missing candidate/reference evaluation or, when the final checkpoint's required jobs are complete, build and validate its workbook and report the result.
+   - Training `SUCCEEDED` → select the best complete saved checkpoint using Step 3h, reconcile the current report status and artifacts to avoid duplicate work, set `waiting for best checkpoint step <step>`, wait for the training node's GPUs and Ray job slot to become idle, then run Step 4a and Step 4b on that same node.
+   - A child benchmark job `SUCCEEDED` → let the benchmark workflow launch its next missing candidate/reference evaluation or, when the best checkpoint's required jobs are complete, build and validate its workbook and report the result.
 6. **Replace stale schedules immediately** when a user stops the tracked job, requests a different config, or an autofix creates a new job ID. Stop the old schedule, then install a monitor naming the current `{NODE}`, `{CONFIG}`, and `{JOB_ID}`.
-7. **Stop the schedule** with `/every stop` (emitted as the final line) only after the full stack is complete: training `SUCCEEDED`; all required 2607 candidate/reference benchmark jobs `SUCCEEDED`; the final `.xlsx` workbook passed the benchmark skill's quality gates and was presented; and the report bullet is `complete step <step>`. Before stopping, write the terminal job row and final report status. Do not add workbook paths under `Reports:` in `recipe/phimm/config/verl_job.txt`. Until then, every scheduled response must end with the explicit `/every 5m ... node {NODE}, config {CONFIG}, Ray job {JOB_ID}` command to keep the loop alive.
+7. **Stop the schedule** with `/every stop` (emitted as the final line) only after the full stack is complete: training `SUCCEEDED`; the best checkpoint was selected and exported; all required 2607 candidate/reference benchmark jobs `SUCCEEDED`; the final `.xlsx` workbook passed the benchmark skill's quality gates and was presented; and the report bullet is `complete step <step>`. Before stopping, write the terminal job row and final report status. Do not add workbook paths under `Reports:` in `recipe/phimm/config/verl_job.txt`. Until then, every scheduled response must end with the explicit `/every 5m ... node {NODE}, config {CONFIG}, Ray job {JOB_ID}` command to keep the loop alive.
 
 **Rules**:
 - `/every` lines must be the **very last line** of the assistant message — no trailing prose, no markdown blockquotes, no code fences around them.
@@ -581,8 +583,8 @@ This schedules VS Code Copilot to re-invoke the agent every 5 minutes with an ex
 - **Step 3 (eval)**: WER values are reasonable (0–100%). If WER > 50%, flag as suspicious.
 - **Step 3 (training)**: Training metrics should show learning (score/mean trending up, pg_loss decreasing). If metrics are flat or diverging, flag.
 - **Step 1b/3**: Reopen `recipe/phimm/config/verl_job.txt` and verify it contains only the timestamp, node/job table, and concise model status bullets. Confirm the training node appears exactly once and its row contains only the latest training, export, benchmark, or report job state; no superseded job ID remains. Confirm every Ray job's `PROGRESS / PHASE` starts with `training`, `evaluating <dataset>`, or `generating <dataset>` as appropriate, and that evaluation rows name the actual dataset rather than only a generic phase. Confirm each report bullet has exactly one current status, includes the bracketed short node suffix matching the pipeline's current table row, matches the latest remote state, contains no queue fields, and includes no free-node, Excel-file, or workbook-path metadata.
-- **Step 3h**: Verify no external checkpoint evaluation launched before training succeeded, the report status and artifacts prevent duplicate final-checkpoint work, and every evaluation child ran on the training node with `trainer.nnodes=1` after both occupancy checks showed it idle.
-- **Step 4b**: Apply every quality gate from **eval-2607-benchmark-report** to the final-checkpoint workbook. At minimum, verify all required candidate/reference jobs succeeded, the workbook opens, the `summary`, `inhouse_dter`, `openasr_ml`, and `mixlang` sheets are present, and each sheet records matching baseline provenance. Optional digits sheets must appear only when requested.
+- **Step 3h**: Verify no external checkpoint evaluation launched before training succeeded; `{BEST_STEP}` is a complete saved checkpoint selected by the documented aggregate-`p_err` rule (or the fallback is explicitly recorded); the report status and artifacts prevent duplicate best-checkpoint work; and every evaluation child ran on the training node with `trainer.nnodes=1` after both occupancy checks showed it idle.
+- **Step 4b**: Apply every quality gate from **eval-2607-benchmark-report** to the best-checkpoint workbook. At minimum, verify all required candidate/reference jobs succeeded, the workbook opens, the `summary`, `inhouse_dter`, `openasr_ml`, and `mixlang` sheets are present, and each sheet records matching baseline provenance. Optional digits sheets must appear only when requested.
 
 ## Important Notes
 
@@ -633,7 +635,7 @@ bash submit_jobs_repeat.sh
 - Parse `step:N - key:val - key:val` format into structured table rows
 - When monitoring, report the current phase and what to expect next
 - On failure, show the error, diagnose, and proceed to fix without asking
-- **Do not stop monitoring** until the full stack is complete: training succeeded, the final checkpoint was exported and reported on the same training node, all required candidate/reference jobs from **eval-2607-benchmark-report** succeeded there, and the final workbook plus benchmark summary were generated
+- **Do not stop monitoring** until the full stack is complete: training succeeded, the best validation checkpoint was selected, exported, and reported on the same training node, all required candidate/reference jobs from **eval-2607-benchmark-report** succeeded there, and the final workbook plus benchmark summary were generated
 - **End every non-terminal response with the explicit pipeline-specific `/every 5m ... node {NODE}, config {CONFIG}, Ray job {JOB_ID}` command** on its own final line (see Step 5). Replace with `/every stop` only once the full stack is complete.
 
 ## Dependent Skills
