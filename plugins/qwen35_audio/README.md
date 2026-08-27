@@ -49,7 +49,22 @@ PYTHONPATH=src \
 python scripts/run_qwen35_audio_vllm.py
 ```
 
-Use `--model` and `--audio` to point at different `az://` or local paths. Use `--local-cache-root` to change the staging directory.
+Use `--model` and repeatable `--audio` arguments to point at different `az://` or local paths. Use `--audio-folder` to recursively decode supported audio files from a local directory while loading the model only once. Use `--local-cache-root` to change the staging directory.
+
+```bash
+# vLLM: submits all discovered files in one generate call.
+python scripts/run_qwen35_audio_vllm.py \
+    --model <model-path> \
+    --audio-folder <audio-directory>
+
+# Hugging Face: loads once, then generates sequentially for each file.
+python scripts/run_qwen35_audio_hf.py \
+    --model <model-path> \
+    --audio-folder <audio-directory>
+```
+
+Both scripts emit one `AUDIO_RESULT_START`/`AUDIO_RESULT_END` block per file and finish with `BATCH_DONE count=<N>`.
+Shared argument parsing, input staging, folder discovery, cache naming, and audio loading live in `scripts/qwen35_audio_utils.py`.
 
 The verified run produced:
 

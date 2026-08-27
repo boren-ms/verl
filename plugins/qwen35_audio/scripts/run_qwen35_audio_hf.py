@@ -12,17 +12,14 @@ Usage:
 """
 
 import argparse
-import os
-import shutil
-import subprocess
 import time
-from pathlib import Path
 
-import numpy as np
-import soundfile as sf
 import torch
-import torchaudio.functional as F
-from transformers import AutoConfig, AutoModelForCausalLM, AutoProcessor
+
+try:
+    from .qwen35_audio_utils import add_input_arguments, load_audio, stage_inputs
+except ImportError:
+    from qwen35_audio_utils import add_input_arguments, load_audio, stage_inputs
 
 REMOTE_MODEL_PATH = (
     "az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/"
@@ -37,7 +34,6 @@ DEFAULT_MODEL_PATH = REMOTE_MODEL_PATH
 DEFAULT_AUDIO_PATH = REMOTE_AUDIO_PATH
 INSTRUCTION = "Transcribe the audio clip into text."
 MAX_NEW_TOKENS = 256
-TARGET_SAMPLE_RATE = 16_000
 
 
 def parse_args() -> argparse.Namespace:
@@ -49,25 +45,13 @@ def parse_args() -> argparse.Namespace:
             f"model={REMOTE_MODEL_PATH}, audio={REMOTE_AUDIO_PATH}"
         ),
     )
-    parser.add_argument(
-        "--model",
-        default=os.getenv("QWEN35_AUDIO_MODEL", os.getenv("MODEL_DIR", DEFAULT_MODEL_PATH)),
-        help="Path to the converted Qwen3.5-Audio HuggingFace checkpoint.",
-    )
-    parser.add_argument(
-        "--audio",
-        default=os.getenv("QWEN35_AUDIO_SAMPLE", os.getenv("AUDIO", DEFAULT_AUDIO_PATH)),
-        help="Path to an audio file readable by soundfile.",
-    )
-    parser.add_argument(
-        "--local-cache-root",
-        default=os.getenv("QWEN35_AUDIO_CACHE_ROOT", LOCAL_CACHE_ROOT),
-        help="Local directory used to stage az:// model and audio inputs.",
-    )
-    parser.add_argument(
-        "--skip-stage",
-        action="store_true",
-        help="Do not stage az:// inputs; pass paths through directly.",
+    add_input_arguments(
+        parser,
+        default_model_path=DEFAULT_MODEL_PATH,
+        default_audio_path=DEFAULT_AUDIO_PATH,
+        default_cache_root=LOCAL_CACHE_ROOT,
+        model_env_names=("QWEN35_AUDIO_MODEL", "MODEL_DIR"),
+        audio_env_names=("QWEN35_AUDIO_SAMPLE", "AUDIO"),
     )
     parser.add_argument("--instruction", default=INSTRUCTION)
     parser.add_argument(
@@ -78,74 +62,15 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def is_az_path(path: str) -> bool:
-    return path.startswith("az://")
-
-
-def run_bbb(*args: str) -> None:
-    if shutil.which("bbb") is None:
-        raise RuntimeError("bbb is required to stage az:// paths on a fresh node")
-    print("bbb " + " ".join(args))
-    subprocess.run(["bbb", *args], check=True)
-
-
-def stage_input(source: str, destination: Path, *, is_dir: bool) -> str:
-    if not is_az_path(source):
-        return source
-
-    if destination.exists():
-        print(f"using_staged_path={destination}")
-        return str(destination)
-
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    if is_dir:
-        destination.mkdir(parents=True, exist_ok=True)
-        run_bbb("sync", source, str(destination))
-    else:
-        run_bbb("cp", source, str(destination))
-    return str(destination)
-
-
-def stage_inputs(args: argparse.Namespace) -> tuple[str, str]:
-    if args.skip_stage:
-        return args.model, args.audio
-
-    cache_root = Path(args.local_cache_root)
-    model_path = stage_input(
-        args.model,
-        cache_root / "qwen35-audio-hf",
-        is_dir=True,
-    )
-    audio_path = stage_input(
-        args.audio,
-        cache_root / "audio" / Path(args.audio.rstrip("/")).name,
-        is_dir=False,
-    )
-    return model_path, audio_path
-
-
-def load_audio(audio_path: str) -> tuple[np.ndarray, int]:
-    waveform, sample_rate = sf.read(audio_path)
-    if waveform.ndim == 2:
-        waveform = waveform.mean(axis=1)
-    if sample_rate != TARGET_SAMPLE_RATE:
-        waveform = F.resample(
-            torch.from_numpy(waveform),
-            sample_rate,
-            TARGET_SAMPLE_RATE,
-        ).numpy()
-        sample_rate = TARGET_SAMPLE_RATE
-    return waveform.astype(np.float32), sample_rate
-
-
 def main():
     args = parse_args()
-    model_path, audio_path = stage_inputs(args)
+    model_path, audio_paths = stage_inputs(args)
+
+    from transformers import AutoConfig, AutoModelForCausalLM, AutoProcessor
 
     print(f"model_source={args.model}")
-    print(f"audio_source={args.audio}")
     print(f"model_path={model_path}")
-    print(f"audio_path={audio_path}")
+    print(f"audio_count={len(audio_paths)}")
 
     device = torch.device("cuda:0")
     a100 = torch.cuda.get_device_properties(0).major >= 8
@@ -166,34 +91,46 @@ def main():
     ).to(device).eval()
     print(f"Loaded in {time.time() - t0:.1f}s  ({sum(p.numel() for p in model.parameters())/1e9:.2f}B params)")
 
-    # ---- Load audio ----
-    wav, sr = load_audio(audio_path)
-    print(f"Audio: {len(wav)/sr:.2f}s @ {sr}Hz")
+    # ---- Build prompt ----
+    prompt = f"<|im_start|>user\n{args.instruction}<audio>\n<|im_end|>\n<|im_start|>assistant\n"
 
-    # ---- Build prompt & process inputs ----
-    prompt = f"<|im_start|>user\n<audio>\n{args.instruction}<|im_end|>\n<|im_start|>assistant\n"
+    for audio_source, audio_path in audio_paths:
+        wav, sr = load_audio(audio_path)
+        print("AUDIO_RESULT_START")
+        print(f"audio_source={audio_source}")
+        print(f"audio_path={audio_path}")
+        print(f"Audio: {len(wav)/sr:.2f}s @ {sr}Hz")
 
-    inputs = processor(text=prompt, audios=[(wav, sr)], return_tensors="pt").to(device)
+        inputs = processor(text=prompt, audios=[(wav, sr)], return_tensors="pt").to(device)
 
-    # ---- Generate (audio features flow through **inputs directly) ----
-    t0 = time.time()
-    with torch.no_grad():
-        generate_ids = model.generate(
-            **inputs,
-            max_new_tokens=MAX_NEW_TOKENS,
-            do_sample=False,
-            use_cache=False,
-            eos_token_id=processor.tokenizer.eos_token_id,
-            pad_token_id=processor.tokenizer.eos_token_id,
-        )
+        # Audio features flow through **inputs directly.
+        t0 = time.time()
+        with torch.no_grad():
+            generate_ids = model.generate(
+                **inputs,
+                max_new_tokens=MAX_NEW_TOKENS,
+                do_sample=False,
+                use_cache=False,
+                eos_token_id=processor.tokenizer.eos_token_id,
+                pad_token_id=processor.tokenizer.eos_token_id,
+            )
 
-    # Remove input tokens
-    generate_ids = generate_ids[:, inputs["input_ids"].shape[1]:]
-    response = processor.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+        generate_ids = generate_ids[:, inputs["input_ids"].shape[1]:]
+        response = processor.batch_decode(
+            generate_ids,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False,
+        )[0].strip()
 
-    print(f"\nDecoded in {time.time() - t0:.2f}s")
-    print(f"Transcription: {response.strip()}")
-    print("\n[OK] Verification passed!")
+        print(f"Decoded in {time.time() - t0:.2f}s")
+        print(f"Transcription: {response}")
+        print("TRANSCRIPT_START")
+        print(response)
+        print("TRANSCRIPT_END")
+        print("AUDIO_RESULT_END")
+
+    print(f"BATCH_DONE count={len(audio_paths)}")
+    print("[OK] Verification passed!")
 
 
 if __name__ == "__main__":
