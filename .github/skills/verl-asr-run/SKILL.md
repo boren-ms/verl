@@ -99,20 +99,20 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
    A node is considered **occupied** if either check is positive (GPU-busy OR running Ray jobs). A node is **free** only if GPUs are idle AND no Ray jobs are running.
 
-3. **Assign node**: pick the first free (unoccupied) Ready `verl-*` node. If the user specified a node, use that even if it is busy (see below).
+3. **Assign node**: reserve the first free (unoccupied) Ready `verl-*` node for the new job. If the user specified a node and it is occupied, leave its jobs running, report what is currently running, and select another free Ready node. Never pause or stop a node that is occupied by a job.
 
-4. **If the chosen node is busy** (GPU-busy or has running Ray jobs):
-   - **Do NOT kill or stop the existing job.** Report what is currently running (job ID, config name, runtime, GPU utilization).
-   - **Wait for the node to become free.** Poll every **5 minutes** using the occupancy checks from step 2.
-   - After each poll, report status: `"Node {NODE} still busy — GPU util: {UTIL}%, Ray jobs: {COUNT}. Waiting..."`.
-   - Once the node is idle (GPUs idle AND no running Ray jobs), proceed to Step 1.
+4. **Pause unused idle nodes**: after reserving the submission node, pause every other Ready `verl-*` node that is free (GPUs idle AND no running Ray jobs):
+   ```bash
+   brix pause {IDLE_NODE}
+   ```
+   Do not pause the reserved submission node. Confirm each unused idle node reaches `Paused` or `Suspended` with `brix pools '{IDLE_NODE}' 2>&1` before continuing. A node with any Ray job or unexplained GPU activity is occupied and must remain running.
 
-5. **If no unoccupied Ready node exists** and no specific node was requested:
+5. **If no unoccupied Ready node exists**:
    - Check if any `verl-*` nodes are in **Paused** or **Suspended** state:
      ```bash
      brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E 'Paused|Suspended' | awk '{print $1}' | grep '^verl-'
      ```
-   - If a Paused/Suspended node is found, **automatically resume** the first one:
+   - If a Paused/Suspended node is available and is known not to contain a job, **automatically resume** the first one and reserve it for submission:
      ```bash
      brix resume {NODE}
      ```
@@ -122,7 +122,7 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
      ```
      Report each poll: `"Resuming {NODE}... status: {STATUS}"`.
    - Once `Ready`, use this node and proceed to Step 1.
-   - If **no Paused/Suspended nodes** exist either, report the status of all `verl-*` nodes and ask the user which busy node to wait on.
+   - If no eligible Paused/Suspended node exists, report the status of all `verl-*` nodes and the unresolved occupancy conflicts; do not pause occupied nodes or submit until a node is free.
 
 ### Step 1 — Resolve inputs
 
