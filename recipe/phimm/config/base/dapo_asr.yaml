@@ -7,7 +7,7 @@ nccl_timeout: 1800
 data:
   train_files: null
   val_files: null
-  trust_remote_code: true
+  trust_remote_code: false
   max_prompt_length: 1024
   max_response_length: 512
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
@@ -21,6 +21,7 @@ data:
   gen_batch_size: ${data.train_batch_size}
   val_batch_size: 1024
   shuffle: true
+  use_interleave: true
   custom_cls:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
@@ -69,13 +70,13 @@ actor_rollout_ref:
     strategy: fsdp2
   model:
     path: null
-    trust_remote_code: true
+    trust_remote_code: false
     use_remove_padding: true
     use_fused_kernels: false
-    lora_rank: 320
-    lora_alpha: 640
+    lora_rank: 32
+    lora_alpha: 64
     trainable_params: null
-    target_modules: "model.layers.*(qkv_proj|o_proj|gate_up_proj|down_proj).*"
+    target_modules: "model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*"
     exclude_modules: "model.embed_tokens_extend.*" # must have
     enable_gradient_checkpointing: False
   rollout:
