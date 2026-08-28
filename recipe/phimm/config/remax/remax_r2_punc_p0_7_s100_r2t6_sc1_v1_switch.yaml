@@ -1,0 +1,71 @@
+hydra:
+  searchpath:
+    - pkg://verl.trainer.config
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+
+defaults:
+  - remax_asr
+  - data/train_data/qwen_en_hc_200k_entity_fy24q3p2_punc_p0_7
+  - data/val_data/enus_conv_fy21q1_seg
+  - _self_
+
+data:
+  train_batch_size: 64
+rollout:
+  nnodes: 1
+  n_gpus_per_node: 4
+  n: 12
+trainer:
+  use_v1: true
+  nnodes: 1
+  n_gpus_per_node: 4
+  total_epochs: 100
+  total_training_steps: 100
+  test_freq: 100
+  save_freq: 100
+  v1:
+    trainer_mode: separate_async
+    separate_async:
+      parameter_sync_step: 4
+      num_warmup_batches: 1
+      hybrid_rollout:
+        enable_switch: true
+        adaptive_switch_threshold: true
+actor_rollout_ref:
+  hybrid_engine: true
+  model:
+    lora:
+      merge: true
+  rollout:
+    nnodes: ${rollout.nnodes}
+    n_gpus_per_node: ${rollout.n_gpus_per_node}
+    max_num_seqs: 16
+    checkpoint_engine:
+      backend: nccl
+  actor:
+    ppo_mini_batch_size: 16
+    ppo_max_token_len_per_gpu: 2048
+    fsdp_config:
+      fsdp_size: 4
+
+algorithm:
+  binary_adv: true
+  binary_adv_scale: 1.0
+
+reward:
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.punc_cap_measure
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        punc: {beta: 1.0}
+  num_workers: 8
+
+val_reward:
+  group_segment: true
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.asr_inhouse_measure
+    name: eval_score
