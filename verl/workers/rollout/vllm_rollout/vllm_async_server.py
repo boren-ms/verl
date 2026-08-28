@@ -501,6 +501,8 @@ class vLLMHttpServer:
                 "banned_token_ids": get_vision_placeholder_token_ids(self.model_config.processor),
             },
         )
+        if self.config.free_cache_engine:
+            await engine_client.collective_rpc(method="use_torch_kv_block_zeroer")
 
         build_app_sig = inspect.signature(build_app)
         supported_tasks: tuple[Any, ...] = ()
@@ -853,11 +855,15 @@ class vLLMHttpServer:
             # engine.wake_up() broadcasts via the DP coordinator to ALL EngineCore
             # processes across all DP shards (unlike collective_rpc which only reaches
             # TP workers within a single shard).
-            await self.engine.wake_up(tags=tags or self._get_wake_up_tags())
+            wake_tags = tags or self._get_wake_up_tags()
+            await self.engine.wake_up(tags=wake_tags)
+            if "kv_cache" in wake_tags:
+                await self.engine.collective_rpc(method="refresh_kv_zero_meta")
             await self.engine.reset_prefix_cache(reset_connector=True)
         elif self.rollout_mode == RolloutMode.COLOCATED:
             # Directly call engine to wake up without sync weights.
             await self.engine.wake_up(tags=self._get_wake_up_tags())
+            await self.engine.collective_rpc(method="refresh_kv_zero_meta")
             # reset_connector=True drops any attached external KV store
             # (e.g. MooncakeStoreConnector) whose entries were computed
             # against the previous weights. No-op success when no connector
@@ -905,6 +911,7 @@ class vLLMHttpServer:
         if self.rollout_mode == RolloutMode.COLOCATED:
             return
         await self.engine.wake_up(tags=["kv_cache"])
+        await self.engine.collective_rpc(method="refresh_kv_zero_meta")
         await self.engine.reset_prefix_cache(reset_connector=True)
 
     def _should_profile(self) -> bool:
@@ -1298,8 +1305,8 @@ class vLLMReplica(RolloutReplica):
 
     async def sleep(self):
         """Sleep each rollout server."""
-        # Drain DP engines for safe sleep.
-        await self.servers[0].wait_for_requests_to_drain.remote()
+        # Every server owns an independent engine and may still hold KV blocks after abort.
+        await asyncio.gather(*[server.wait_for_requests_to_drain.remote() for server in self.servers])
         await asyncio.gather(*[server.sleep.remote() for server in self.servers])
 
     async def abort_all_requests(self) -> dict[str, Any]:
@@ -1344,9 +1351,8 @@ class vLLMReplica(RolloutReplica):
         return {"aborted": False, "request_id": request_id, "error": "Request not found on any server"}
 
     async def release_kv_cache(self):
-        # Drain all in-flight requests so that vLLM worker threads go idle
-        # before we touch engine.release_kv_cache()
-        await self.servers[0].wait_for_requests_to_drain.remote()
+        # Drain all in-flight requests so every vLLM worker goes idle before cache release.
+        await asyncio.gather(*[server.wait_for_requests_to_drain.remote() for server in self.servers])
         await asyncio.gather(*[server.release_kv_cache.remote() for server in self.servers])
 
     # -----------------------------------------------------------------------

@@ -231,6 +231,66 @@ class vLLMColocateWorkerExtension:
             # patch weight loader to support MoE model
             patch_vllm_moe_model_weight_loader(model)
 
+    def use_torch_kv_block_zeroer(self):
+        """Replace vLLM's absolute-address Triton zeroer with tensor-backed zeroing."""
+        zeroer = getattr(self.model_runner, "_kv_block_zeroer", None)
+        if zeroer is None:
+            return
+
+        from vllm.v1.kv_cache_interface import FullAttentionSpec
+
+        def init_meta(
+            zeroer_self,
+            attn_groups_iter,
+            kernel_block_sizes,
+            cache_dtype,
+            runner_only_attn_layers,
+            static_forward_context,
+        ):
+            seen_ptrs = set()
+            cache_slices = []
+            for group in attn_groups_iter:
+                spec = group.kv_cache_spec
+                if type(spec) is not FullAttentionSpec or group.kv_cache_group_id >= len(kernel_block_sizes):
+                    continue
+                kernel_block_size = kernel_block_sizes[group.kv_cache_group_id]
+                ratio = spec.block_size // kernel_block_size
+                block_dim = group.backend.get_kv_cache_block_dim(
+                    kernel_block_size,
+                    spec.num_kv_heads,
+                    spec.head_size,
+                    cache_dtype_str=cache_dtype,
+                )
+                for layer_name in group.layer_names:
+                    if layer_name in runner_only_attn_layers:
+                        continue
+                    kv_cache = static_forward_context[layer_name].kv_cache[0]
+                    if isinstance(kv_cache, list) or kv_cache.data_ptr() in seen_ptrs:
+                        continue
+                    seen_ptrs.add(kv_cache.data_ptr())
+                    cache_slices.append((kv_cache, block_dim, ratio))
+            zeroer_self._verl_cache_slices = cache_slices
+
+        def zero_block_ids(zeroer_self, block_ids):
+            if not block_ids:
+                return
+            for kv_cache, block_dim, ratio in getattr(zeroer_self, "_verl_cache_slices", ()):
+                indices = torch.tensor(
+                    [idx for block_id in block_ids for idx in range(block_id * ratio, (block_id + 1) * ratio)],
+                    dtype=torch.long,
+                    device=kv_cache.device,
+                )
+                kv_cache.index_fill_(block_dim, indices, 0)
+
+        type(zeroer).init_meta = init_meta
+        type(zeroer).zero_block_ids = zero_block_ids
+        self.model_runner._init_kv_zero_meta()
+
+    def refresh_kv_zero_meta(self):
+        """Rebuild KV-cache zeroing metadata after sleep-mode memory restoration."""
+        if hasattr(self.model_runner, "_init_kv_zero_meta"):
+            self.model_runner._init_kv_zero_meta()
+
     def update_weights_from_ipc(self, peft_config: dict = None, base_sync_done=False, use_shm: bool = False):
         """Update the weights of the rollout model."""
         from verl.workers.rollout.vllm_rollout.bucketed_weight_transfer import BucketedWeightReceiver

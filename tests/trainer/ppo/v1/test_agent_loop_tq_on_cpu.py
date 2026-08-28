@@ -13,8 +13,23 @@
 # limitations under the License.
 
 import asyncio
+from unittest.mock import patch
 
-from verl.trainer.ppo.v1.agent_loop_tq import _settle_session_tasks
+import torch
+
+from verl.trainer.ppo.v1.agent_loop_tq import (
+    _attach_remax_baseline,
+    _settle_session_tasks,
+    apply_greedy_sampling_params,
+)
+
+
+def test_greedy_sampling_disables_top_k_and_temperature():
+    params = {"top_p": 0.9, "top_k": -1, "temperature": 0.7}
+
+    apply_greedy_sampling_params(params)
+
+    assert params == {"top_p": 1.0, "top_k": -1, "temperature": 0.0, "min_tokens": 1}
 
 
 def test_settle_session_tasks_waits_for_siblings_after_failure():
@@ -37,3 +52,35 @@ def test_settle_session_tasks_waits_for_siblings_after_failure():
         assert isinstance(errors[0], RuntimeError)
 
     asyncio.run(run())
+
+
+def test_attach_remax_baseline_writes_sampled_rewards_and_clears_baseline():
+    class _NestedRewards:
+        def to_padded_tensor(self, padding):
+            assert padding == 0
+            return torch.tensor([[0.25, 0.75]])
+
+    with (
+        patch(
+            "verl.trainer.ppo.v1.agent_loop_tq.tq.kv_batch_get",
+            return_value={"rm_scores": _NestedRewards()},
+        ) as get_batch,
+        patch("verl.trainer.ppo.v1.agent_loop_tq.tq.kv_batch_put") as put_batch,
+        patch("verl.trainer.ppo.v1.agent_loop_tq.tq.kv_clear") as clear,
+    ):
+        asyncio.run(
+            _attach_remax_baseline(
+                sampled_keys=["uid_0_0", "uid_1_0"],
+                baseline_keys=["uid_2_0"],
+                partition_id="train",
+            )
+        )
+
+    get_batch.assert_called_once_with(
+        keys=["uid_2_0"],
+        partition_id="train",
+        select_fields=["rm_scores"],
+    )
+    fields = put_batch.call_args.kwargs["fields"]
+    assert torch.equal(fields["reward_baselines"], torch.tensor([1.0, 1.0]))
+    clear.assert_called_once_with(keys=["uid_2_0"], partition_id="train")

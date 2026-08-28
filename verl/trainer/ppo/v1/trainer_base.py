@@ -699,9 +699,12 @@ class PPOTrainer(ABC):
             sampler=create_rl_sampler(self.config.data, self.train_dataset),
         )
         self.train_dataloader_it = None
+        val_batch_size = self.config.data.val_batch_size
+        if val_batch_size is None or val_batch_size <= 0:
+            val_batch_size = len(self.val_dataset)
         self.val_dataloader = StatefulDataLoader(
             dataset=self.val_dataset,
-            batch_size=self.config.data.val_batch_size or len(self.val_dataset),
+            batch_size=val_batch_size,
             num_workers=self.config.data["dataloader_num_workers"],
             shuffle=self.config.data.get("validation_shuffle", True),
             drop_last=False,
@@ -1652,6 +1655,8 @@ class PPOTrainer(ABC):
     def _compute_advantage(self, batch: KVBatchMeta, metrics: dict) -> KVBatchMeta:
         """Compute the advantage of the batch."""
         fields = ["uid", "response_mask", "rm_scores", "rollout_log_probs", "old_log_probs", "ref_log_prob", "values"]
+        if self.config.algorithm.adv_estimator == "remax":
+            fields.append("reward_baselines")
         data = tq.kv_batch_get(keys=batch.keys, partition_id=batch.partition_id, select_fields=fields)
 
         response_mask = data["response_mask"]

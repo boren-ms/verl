@@ -17,11 +17,13 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
+import torch
 
 pytest.importorskip("ray")
 pytest.importorskip("vllm")
 
 from verl.trainer.ppo.ray_trainer import compute_spec_decode_metrics
+from verl.workers.rollout.vllm_rollout import utils as vllm_utils
 from verl.workers.rollout.vllm_rollout import vllm_async_server
 
 
@@ -68,3 +70,56 @@ def test_mtp_hybrid_sleep_keeps_drafter_available_for_nonzero_acceptance(monkeyp
 
     assert metrics["rollout/spec_accept_rate"] > 0.0
     assert metrics["rollout/spec_accept_length"] > 1.0
+
+
+def test_refresh_kv_zero_meta_rebuilds_runner_addresses():
+    calls = []
+    worker = SimpleNamespace(model_runner=SimpleNamespace(_init_kv_zero_meta=lambda: calls.append(True)))
+
+    vllm_utils.vLLMColocateWorkerExtension.refresh_kv_zero_meta(worker)
+
+    assert calls == [True]
+
+
+def test_torch_kv_block_zeroer_zeros_logical_blocks(monkeypatch):
+    class FullAttentionSpec:
+        block_size = 4
+        num_kv_heads = 1
+        head_size = 2
+        cache_dtype = "float32"
+
+    monkeypatch.setattr("vllm.v1.kv_cache_interface.FullAttentionSpec", FullAttentionSpec)
+    kv_cache = np.ones((2, 6, 2, 1, 2), dtype=np.float32)
+    kv_tensor = torch.from_numpy(kv_cache)
+    group = SimpleNamespace(
+        kv_cache_spec=FullAttentionSpec(),
+        kv_cache_group_id=0,
+        backend=SimpleNamespace(get_kv_cache_block_dim=lambda *args, **kwargs: 1),
+        layer_names=["layer"],
+    )
+    class Zeroer:
+        pass
+
+    zeroer = Zeroer()
+
+    def init_runner_meta():
+        zeroer.init_meta(
+            [group],
+            [2],
+            "float32",
+            set(),
+            {"layer": SimpleNamespace(kv_cache=[kv_tensor])},
+        )
+
+    worker = SimpleNamespace(model_runner=SimpleNamespace(_kv_block_zeroer=zeroer, _init_kv_zero_meta=init_runner_meta))
+    vllm_utils.vLLMColocateWorkerExtension.use_torch_kv_block_zeroer(worker)
+    zeroer.zero_block_ids([1])
+
+    assert np.all(kv_cache[:, 2:4] == 0)
+    assert np.all(kv_cache[:, :2] == 1)
+    assert np.all(kv_cache[:, 4:] == 1)
+
+    replacement = Zeroer()
+    replacement._verl_cache_slices = [(kv_tensor, 1, 2)]
+    replacement.zero_block_ids([0])
+    assert np.all(kv_cache[:, :2] == 0)

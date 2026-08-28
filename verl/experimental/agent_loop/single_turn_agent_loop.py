@@ -17,9 +17,9 @@ from typing import Any
 from uuid import uuid4
 
 from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, _convert_audio_messages_to_text, register
-from verl.utils.chat_template import apply_chat_template
 from verl.utils.profiler import simple_timer
 from verl.utils.rollout_trace import rollout_trace_op
+from verl.utils.tokenizer.chat_template import apply_chat_template
 from verl.workers.rollout.replica import TokenOutput
 
 logger = logging.getLogger(__file__)

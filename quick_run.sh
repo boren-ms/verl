@@ -42,8 +42,8 @@ subdir=$(dirname "$config_rel")
 # Determine the module and the base config-path (relative to the module's file
 # location, per the Hydra convention). Only modules that actually exist in this
 # repo are dispatched here.
-if grep -qiE 'fully_async' "$config_file" || [[ "$subdir" == "remax" ]]; then
-    # Fully-async RL training (ReMax/GRPO). Module: verl/experimental/fully_async_policy/.
+if grep -qiE 'fully_async' "$config_file"; then
+    # Legacy fully-async RL training. Module: verl/experimental/fully_async_policy/.
     module="verl.experimental.fully_async_policy.fully_async_main"
     base="../../../recipe/phimm/config"
 elif [[ "$config_name" == long_rollout_* ]]; then

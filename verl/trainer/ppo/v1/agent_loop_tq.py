@@ -41,12 +41,37 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "INFO"))
 def apply_greedy_sampling_params(params: dict[str, Any]) -> None:
     params["top_p"] = 1.0
     params["top_k"] = -1
-    params["temperature"] = 0
+    params["temperature"] = 0.0
+    params["min_tokens"] = 1
 
 
 async def _settle_session_tasks(tasks: list[asyncio.Task[Any]]) -> list[BaseException]:
     results = await asyncio.gather(*tasks, return_exceptions=True)
     return [result for result in results if isinstance(result, BaseException)]
+
+
+async def _attach_remax_baseline(sampled_keys: list[str], baseline_keys: list[str], partition_id: str) -> None:
+    if not sampled_keys or not baseline_keys:
+        raise RuntimeError("ReMax rollout did not produce both sampled and baseline trajectories")
+
+    baseline_data = await asyncio.to_thread(
+        tq.kv_batch_get,
+        keys=[baseline_keys[-1]],
+        partition_id=partition_id,
+        select_fields=["rm_scores"],
+    )
+    baseline_reward = baseline_data["rm_scores"].to_padded_tensor(0).sum().item()
+    fields = TensorDict(
+        {"reward_baselines": torch.full((len(sampled_keys),), baseline_reward, dtype=torch.float32)},
+        batch_size=len(sampled_keys),
+    )
+    await asyncio.to_thread(
+        tq.kv_batch_put,
+        keys=sampled_keys,
+        partition_id=partition_id,
+        fields=fields,
+    )
+    await asyncio.to_thread(tq.kv_clear, keys=baseline_keys, partition_id=partition_id)
 
 
 @ray.remote
@@ -119,7 +144,6 @@ class AgentLoopWorkerTQ(AgentLoopWorker):
             if not trajectory["validate"] and not do_sample:
                 apply_greedy_sampling_params(run_sampling_params)
 
-            tasks = []
             for i in range(n):
                 task = asyncio.create_task(
                     self._run_agent_loop(
@@ -128,9 +152,27 @@ class AgentLoopWorkerTQ(AgentLoopWorker):
                 )
                 tasks.append(task)
 
+            is_remax = not trajectory["validate"] and self.config.algorithm.adv_estimator == "remax"
             # Publish a terminal status only after every session settles, so no sibling can write after
             # ReplayBuffer clears a failed group.
-            session_errors = await _settle_session_tasks(tasks)
+            session_results = await asyncio.gather(*tasks, return_exceptions=True)
+            session_errors = [result for result in session_results if isinstance(result, BaseException)]
+            baseline_keys = None
+            if not session_errors and is_remax and do_sample:
+                baseline_sampling_params = dict(sampling_params)
+                apply_greedy_sampling_params(baseline_sampling_params)
+                baseline_task = asyncio.create_task(
+                    self._run_agent_loop(
+                        baseline_sampling_params,
+                        trajectory=trajectory,
+                        trace=trace,
+                        session_id=n,
+                        **prompt,
+                    )
+                )
+                tasks.append(baseline_task)
+                baseline_keys = await baseline_task
+
             if session_errors:
                 for error in session_errors:
                     logger.error(
@@ -139,6 +181,13 @@ class AgentLoopWorkerTQ(AgentLoopWorker):
                     )
                 status = "failure"
             else:
+                if is_remax and do_sample:
+                    sampled_keys = [key for result in session_results[:n] for key in result]
+                    await _attach_remax_baseline(
+                        sampled_keys=sampled_keys,
+                        baseline_keys=baseline_keys,
+                        partition_id=partition_id,
+                    )
                 status = "finished"
             await tq.async_kv_put(key=uid, partition_id=partition_id, tag={"status": status})
         except Exception as e:
@@ -225,6 +274,7 @@ class AgentLoopWorkerTQ(AgentLoopWorker):
             tags=tags,
             partition_id="train" if not validate else "val",
         )
+        return keys
 
 
 class AgentLoopManagerTQ(AgentLoopManager):
