@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 from unittest.mock import patch
 
 from omegaconf import OmegaConf
@@ -163,3 +164,87 @@ def test_builtin_filter_groups_warns_when_total_generation_limit_is_configured()
         "use max_inflight_gen_batches to bound concurrent Sync DAPO generation.",
         10,
     )
+
+
+def _trainer_with_val_reward(group_segment: bool, reward_fn) -> _StubTrainer:
+    trainer = _StubTrainer.__new__(_StubTrainer)
+    trainer.config = OmegaConf.create({"val_reward": {"group_segment": group_segment}})
+    trainer._val_reward_fn = reward_fn
+    return trainer
+
+
+def test_v1_val_reward_groups_and_orders_segments_by_parent():
+    calls = []
+
+    def reward_fn(**kwargs):
+        calls.append(kwargs)
+        return {"score": len(calls), "wer": 0.25 * len(calls)}
+
+    trainer = _trainer_with_val_reward(group_segment=True, reward_fn=reward_fn)
+    result = trainer._recompute_val_reward(
+        outputs=["second", "other", "first"],
+        reward_models=[
+            {"ground_truth": "parent ref"},
+            {"ground_truth": "other ref"},
+            {"ground_truth": "parent ref"},
+        ],
+        data_sources=["inhouse", "openml", "inhouse"],
+        extra_infos=[
+            {"parent_audio_path": "parent.wav", "seg_start": 2.0},
+            {"audio_path": "other.wav#0:1", "seg_start": 0.0},
+            {"parent_audio_path": "parent.wav", "seg_start": 1.0},
+        ],
+    )
+
+    scores, reward_extra_infos = result
+    assert len(calls) == 2
+    assert calls[0]["solution_str"] == "first second"
+    assert calls[0]["ground_truth"] == "parent ref"
+    assert calls[0]["data_source"] == "inhouse"
+    assert calls[1]["solution_str"] == "other"
+    assert scores == [1, 2, 1]
+    assert reward_extra_infos == [
+        {"score": 1, "wer": 0.25},
+        {"score": 2, "wer": 0.5},
+        {"score": 1, "wer": 0.25},
+    ]
+
+
+def test_v1_val_reward_scores_segments_individually_when_grouping_disabled():
+    hypotheses = []
+
+    def reward_fn(**kwargs):
+        hypotheses.append(kwargs["solution_str"])
+        return 3.0
+
+    trainer = _trainer_with_val_reward(group_segment=False, reward_fn=reward_fn)
+    scores, reward_extra_infos = trainer._recompute_val_reward(
+        outputs=["first", "second"],
+        reward_models=[{"ground_truth": "ref"}, {"ground_truth": "ref"}],
+        data_sources=["inhouse", "inhouse"],
+        extra_infos=[
+            {"parent_audio_path": "parent.wav", "seg_start": 1.0},
+            {"parent_audio_path": "parent.wav", "seg_start": 2.0},
+        ],
+    )
+
+    assert hypotheses == ["first", "second"]
+    assert scores == [3.0, 3.0]
+    assert reward_extra_infos == [{"score": 3.0}, {"score": 3.0}]
+
+
+def test_v1_val_reward_supports_async_reward_function():
+    async def reward_fn(**kwargs):
+        await asyncio.sleep(0)
+        return {"score": len(kwargs["solution_str"])}
+
+    trainer = _trainer_with_val_reward(group_segment=False, reward_fn=reward_fn)
+    scores, reward_extra_infos = trainer._recompute_val_reward(
+        outputs=["hello"],
+        reward_models=[{"ground_truth": "ref"}],
+        data_sources=["openml"],
+        extra_infos=[{}],
+    )
+
+    assert scores == [5]
+    assert reward_extra_infos == [{"score": 5}]

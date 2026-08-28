@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
+import inspect
 import json
 import logging
 import math
@@ -64,6 +66,7 @@ from verl.trainer.ppo.metric_utils import (
 )
 from verl.trainer.ppo.padding_utils import upsample_batch_to_divisible_size
 from verl.trainer.ppo.ray_trainer import apply_kl_penalty, compute_spec_decode_metrics
+from verl.trainer.ppo.reward import get_val_reward_fn
 from verl.trainer.ppo.rollout_corr_helper import compute_rollout_correction_and_add_to_batch
 from verl.trainer.ppo.utils import (
     Role,
@@ -974,6 +977,91 @@ class PPOTrainer(ABC):
             trainer=self, global_step=self.global_steps, checkpoint_dir=local_global_step_folder, async_save=False
         )
 
+    def _get_val_reward_fn(self):
+        """Lazily load and cache the validation reward function if configured."""
+        if not hasattr(self, "_val_reward_fn"):
+            self._val_reward_fn = get_val_reward_fn(self.config)
+        return self._val_reward_fn
+
+    @staticmethod
+    def _val_parent_key(extra_info: dict, fallback: str) -> str:
+        """Return the parent recording key for a segmented validation row."""
+        if extra_info:
+            for key in ("parent_audio_path", "audio_path"):
+                value = extra_info.get(key)
+                if value:
+                    return str(value).split("#", 1)[0]
+        return fallback
+
+    @staticmethod
+    def _val_seg_start(extra_info: dict) -> float:
+        """Return a segment's start time, defaulting safely to zero."""
+        if not extra_info:
+            return 0.0
+        value = extra_info.get("seg_start")
+        try:
+            return float(value) if value is not None else 0.0
+        except (TypeError, ValueError):
+            return 0.0
+
+    def _recompute_val_reward(self, outputs, reward_models, data_sources, extra_infos):
+        """Recompute v1 validation rewards, optionally grouping segments by parent recording."""
+        val_reward_fn = self._get_val_reward_fn()
+        if val_reward_fn is None:
+            return None
+
+        val_reward_cfg = self.config.get("val_reward") or {}
+        group_segments = bool(val_reward_cfg.get("group_segment", False))
+        rows = []
+        for index, (output, reward_model, data_source, extra_info) in enumerate(
+            zip(outputs, reward_models, data_sources, extra_infos, strict=True)
+        ):
+            reward_model = getattr(reward_model, "data", reward_model)
+            extra_info = getattr(extra_info, "data", extra_info)
+            reward_model = reward_model if isinstance(reward_model, dict) else {}
+            extra_info = extra_info if isinstance(extra_info, dict) else {}
+            rows.append(
+                {
+                    "index": index,
+                    "response": output,
+                    "data_source": data_source,
+                    "ground_truth": reward_model.get("ground_truth", ""),
+                    "extra_info": extra_info,
+                    "group": (
+                        self._val_parent_key(extra_info, f"__row_{index}__")
+                        if group_segments
+                        else f"__row_{index}__"
+                    ),
+                    "seg_start": self._val_seg_start(extra_info) if group_segments else 0.0,
+                }
+            )
+
+        groups: dict[str, list[dict]] = defaultdict(list)
+        for row in rows:
+            groups[row["group"]].append(row)
+
+        scores = [0.0] * len(rows)
+        reward_extra_infos = [{"score": 0.0} for _ in rows]
+        for members in groups.values():
+            members.sort(key=lambda member: (member["seg_start"], member["index"]))
+            hypothesis = " ".join(member["response"].strip() for member in members if member["response"].strip())
+            head = members[0]
+            result = val_reward_fn(
+                data_source=head["data_source"],
+                solution_str=hypothesis,
+                ground_truth=head["ground_truth"],
+                extra_info=head["extra_info"],
+            )
+            if inspect.isawaitable(result):
+                result = asyncio.run(result)
+            score = result["score"] if isinstance(result, dict) else result
+            result_dict = result if isinstance(result, dict) else {"score": result}
+            for member in members:
+                scores[member["index"]] = score
+                reward_extra_infos[member["index"]] = result_dict
+
+        return scores, reward_extra_infos
+
     def _validate(self) -> dict[str, float]:
         # Lists to collect samples for the table
         sample_uids = []
@@ -1046,23 +1134,43 @@ class PPOTrainer(ABC):
             all_outputs = [self.tokenizer.decode(ids, skip_special_tokens=True) for ids in text_data["responses"]]
 
             fields = ["uid", "rm_scores", "num_turns", "reward_model", "data_source", "extra_fields"]
+            if self._get_val_reward_fn() is not None:
+                fields.append("extra_info")
             data = tq.kv_batch_get(keys=final_keys, partition_id=batch.partition_id, select_fields=fields)
 
             sample_uids.extend(data.pop("uid").tolist())
-            sample_outputs.extend(all_outputs[i] for i in final_indices)
+            final_outputs = [all_outputs[i] for i in final_indices]
+            sample_outputs.extend(final_outputs)
             sample_inputs.extend(all_inputs[i] for i in final_indices)
             scores = data["rm_scores"].sum(dim=1).tolist()
+            reward_model = data.pop("reward_model", None)
+            reward_models = reward_model.tolist() if reward_model is not None else [{}] * len(final_indices)
+            data_source = data.pop("data_source", None)
+            batch_data_sources = data_source.tolist() if data_source is not None else ["unknown"] * len(final_indices)
+            extra_info = data.pop("extra_info", None)
+            extra_infos = extra_info.tolist() if extra_info is not None else [{}] * len(final_indices)
+
+            recomputed_reward = self._recompute_val_reward(
+                final_outputs, reward_models, batch_data_sources, extra_infos
+            )
+            recomputed_extra_infos = None
+            if recomputed_reward is not None:
+                scores, recomputed_extra_infos = recomputed_reward
+
             sample_scores.extend(scores)
             sample_turns.extend(data.pop("num_turns").tolist())
             reward_extra_infos_dict["reward"].extend(scores)
 
             extra_fields_list = data.pop("extra_fields", None)
-            if extra_fields_list is not None:
-                n_prior = len(reward_extra_infos_dict["reward"]) - len(extra_fields_list.tolist())
-                for extra_field in extra_fields_list.tolist():
-                    reward_extra_info = (
-                        extra_field.get("reward_extra_info", {}) if isinstance(extra_field, dict) else {}
-                    )
+            reward_extra_info_list = recomputed_extra_infos
+            if reward_extra_info_list is None and extra_fields_list is not None:
+                reward_extra_info_list = [
+                    extra_field.get("reward_extra_info", {}) if isinstance(extra_field, dict) else {}
+                    for extra_field in extra_fields_list.tolist()
+                ]
+            if reward_extra_info_list is not None:
+                n_prior = len(reward_extra_infos_dict["reward"]) - len(reward_extra_info_list)
+                for reward_extra_info in reward_extra_info_list:
                     for key in reward_extra_infos_dict:
                         if key != "reward" and key not in reward_extra_info:
                             reward_extra_infos_dict[key].append(None)
@@ -1072,17 +1180,10 @@ class PPOTrainer(ABC):
                         reward_extra_infos_dict[key].append(value)
                     n_prior += 1
 
-            reward_model = data.pop("reward_model", None)
-            if reward_model is not None:
-                sample_gts.extend([item.get("ground_truth", None) for item in reward_model.tolist()])
-            else:
-                sample_gts.extend([None] * len(final_indices))
-
-            data_source = data.pop("data_source", None)
-            if data_source is not None:
-                data_sources.extend(data_source.tolist())
-            else:
-                data_sources.extend(["unknown"] * len(final_indices))
+            sample_gts.extend(
+                [item.get("ground_truth", None) if isinstance(item, dict) else None for item in reward_models]
+            )
+            data_sources.extend(batch_data_sources)
 
             dump_all_inputs.extend(all_inputs)
             dump_all_outputs.extend(all_outputs)
