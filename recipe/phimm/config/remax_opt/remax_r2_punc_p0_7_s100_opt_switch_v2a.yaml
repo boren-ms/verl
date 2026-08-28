@@ -55,7 +55,7 @@ actor_rollout_ref:
     ppo_micro_batch_size_per_gpu: 4
     ppo_mini_batch_size: 64
     ppo_epochs: 1
-    ppo_max_token_len_per_gpu: 3584
+    ppo_max_token_len_per_gpu: 3072
     fsdp_config:
       fsdp_size: 4
 
