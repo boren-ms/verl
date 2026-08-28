@@ -40,6 +40,7 @@ actor_rollout_ref:
   rollout:
     nnodes: ${rollout.nnodes}
     n_gpus_per_node: ${rollout.n_gpus_per_node}
+    max_num_seqs: 16
     checkpoint_engine:
       backend: nccl
   actor:
