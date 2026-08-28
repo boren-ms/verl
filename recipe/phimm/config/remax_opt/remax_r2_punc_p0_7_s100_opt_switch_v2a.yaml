@@ -32,10 +32,10 @@ trainer:
       parameter_sync_step: 1
       num_warmup_batches: 1
       hybrid_rollout:
-        enable_switch: true
+        enable_switch: false
         adaptive_switch_threshold: true
 actor_rollout_ref:
-  hybrid_engine: true
+  hybrid_engine: false
   model:
     lora:
       merge: true

@@ -899,7 +899,7 @@ class vLLMHttpServer:
         # TODO: use the real release_kv_cache() method after vllm supports it (vllm#44890/46438)
         if self.node_rank != 0 or not self.config.free_cache_engine:
             return
-        if self.rollout_mode == RolloutMode.COLOCATED:
+        if self.rollout_mode in (RolloutMode.COLOCATED, RolloutMode.STANDALONE):
             return
         await self.engine.sleep(level=self._resolve_sleep_level())
         await self.engine.wake_up(tags=["weights"])
@@ -908,7 +908,7 @@ class vLLMHttpServer:
         """Restore kv_cache GPU memory after a weight sync. Counterpart to release_kv_cache()."""
         if self.node_rank != 0 or not self.config.free_cache_engine:
             return
-        if self.rollout_mode == RolloutMode.COLOCATED:
+        if self.rollout_mode in (RolloutMode.COLOCATED, RolloutMode.STANDALONE):
             return
         await self.engine.wake_up(tags=["kv_cache"])
         await self.engine.collective_rpc(method="refresh_kv_zero_meta")

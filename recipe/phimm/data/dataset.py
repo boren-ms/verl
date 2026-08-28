@@ -28,6 +28,7 @@ from recipe.phimm.data.prompts import resolve_task_language, get_task_prompt, ge
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
 from recipe.phimm.data.audio_augment import AudioAugmenter, safe_audio_stem
+from recipe.phimm.reward.asr_measure import check_fmt, check_lang
 from recipe.phimm.utils.shared import (
     hash_id,
     get_value,
@@ -41,16 +42,21 @@ from recipe.phimm.utils.shared import (
     to_float,
     unbatch,
     has_brackets as has_brackets_fn,
-    parse_asr_response,
     has_repeat_error,
     has_missing_keyword,
     has_tail_hallucination,
 )
-from recipe.phimm.utils.audio import sf_read, sf_write, load_raw_audio
-from recipe.phimm.utils.languages import get_language_name
+from recipe.phimm.utils.audio import sf_write, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
+from verl.audio_cache import submit_audio_cache_dataset
 
 prompt_format = "<audio>\n{}"
+
+
+def format_asr_prompt(prompt, model_version=None):
+    if model_version == 2607:
+        return f"{prompt}<audio>"
+    return prompt_format.format(prompt)
 
 
 def read_words(file_path, num=None, tn_name=None):
@@ -471,7 +477,7 @@ def load_audio(ds, **kwargs):
 
     def read_audio(sample):
         """Read audio from the file."""
-        audio, sr = sf_read(sample["audio_path"])
+        audio, sr = load_raw_audio(sample)
         return {"audio": audio, "sr": sr}
 
     ds = ds.map(read_audio, **pop_map_kwargs(kwargs))
@@ -807,7 +813,10 @@ def svad_explode(ds, **kwargs):
         spans = chunker.chunk(audio, sr)
         kept = [(s, e) for (s, e) in spans if (e - s) >= min_seg_sec]
         if not kept:
-            return [row]
+            kept = [
+                (index * max_len_sec, min((index + 1) * max_len_sec, dur))
+                for index in range(math.ceil(dur / max_len_sec))
+            ]
         rows_out = []
         for idx, (s, e) in enumerate(kept):
             child = dict(row)
@@ -947,15 +956,12 @@ def _check_field(example, field, val_range):
 
 
 def _is_bad_fmt(example):
-    parsed = parse_asr_response(example.get("raw_response", "") or {})
-    return not parsed.get("formatted", True)
+    return not check_fmt(example.get("raw_response", ""))
 
 
 def _is_bad_lang(example):
-    parsed = parse_asr_response(example.get("raw_response", "") or {})
     lang = example.get("language") or "English"
-    lang = get_language_name(lang).lower()
-    return (parsed.get("lang") or "").lower() != lang
+    return check_lang(example.get("raw_response", ""), lang) < 1.0
 
 
 def _has_brackets(example):
@@ -1375,6 +1381,11 @@ def stream_shuffle(ds, **kwargs):
     return ds
 
 
+def shuffle_ds(ds, **kwargs):
+    """Shuffle an in-memory dataset deterministically."""
+    return ds.shuffle(seed=kwargs.get("seed", 42))
+
+
 def shard_ds(ds, **kwargs):
     """Shard the dataset."""
     num_shards = kwargs.get("num_shards", dist_state().num_processes)
@@ -1403,6 +1414,55 @@ def path_map(ds, **kwargs):
 
     if src_part and dst_part:
         ds = ds.map(map_fn, **pop_map_kwargs(kwargs))
+    return ds
+
+
+def random_cut(ds, **kwargs):
+    """Keep a random word prefix and the same proportional prefix of the audio."""
+    text_field = kwargs.get("text_field", "text")
+    audio_fields = kwargs.get("audio_fields", ["audio_path", "audio_file"])
+    max_words = kwargs.get("max_words")
+    if max_words is None:
+        min_words, max_words = 1, None
+    elif is_list(max_words):
+        if len(max_words) != 2:
+            raise ValueError(f"max_words range must contain [min, max], got {max_words!r}")
+        min_words, max_words = map(int, max_words)
+    else:
+        min_words, max_words = 1, int(max_words)
+    if min_words < 1 or (max_words is not None and max_words < min_words):
+        raise ValueError(f"Invalid max_words range: [{min_words}, {max_words}]")
+
+    def map_fn(example):
+        words = str(example.get(text_field, "")).split()
+        if len(words) < 2:
+            return {}
+
+        source_field = next((field for field in audio_fields if example.get(field)), None)
+        if source_field is None:
+            return {}
+        source = str(example[source_field])
+        if "#" in source:
+            raise ValueError(f"random_cut requires an unsliced audio path, got {source!r}")
+
+        upper_bound = min(len(words) - 1, max_words) if max_words is not None else len(words) - 1
+        lower_bound = min(min_words, upper_bound)
+        word_count = random.randint(lower_bound, upper_bound)
+        end_percent = 100 * word_count / len(words)
+        end_text = f"{end_percent:.6f}".rstrip("0").rstrip(".")
+        return {
+            text_field: " ".join(words[:word_count]),
+            source_field: f"{source}#0%:{end_text}%",
+        }
+
+    return ds.map(map_fn, **pop_map_kwargs(kwargs), desc="Randomly cutting text and audio")
+
+
+def cache_audio(ds, **kwargs):
+    """Submit remote audio fields for background caching without changing them."""
+    fields = kwargs.get("fields", ["audio_path", "audio_chunk"])
+    max_workers = int(kwargs.pop("max_workers", 16))
+    submit_audio_cache_dataset(ds, fields, max_workers=max_workers)
     return ds
 
 
@@ -1456,18 +1516,9 @@ def filter_long_text(ds, **kwargs):
     return ds
 
 
-def to_user_msg(prompt, audio_path=None):
+def to_user_msg(prompt):
     if not isinstance(prompt, str):
         return prompt
-
-    # Convert <audio> placeholder to structured multimodal content
-    if audio_path and "<audio>" in prompt:
-        text = prompt.replace("<audio>\n", "").replace("<audio>", "").strip()
-        content = [
-            {"type": "audio", "audio_url": audio_path},
-            {"type": "text", "text": text},
-        ]
-        return [{"role": "user", "content": content}]
 
     return [{"role": "user", "content": prompt}]
 
@@ -1481,7 +1532,7 @@ def _extra_info_value(egs, key):
     if key == "language" and not value:
         value = "English"
     if key == "keywords" and value is None:
-        value = []
+        value = [""]
     if key == "prefix" and value is None:
         value = ""
     return value
@@ -1494,9 +1545,8 @@ def verl_format_ds(ds, **kwargs):
 
     def map_fn(egs):
         text = egs.get("text", "")
-        audio_path = egs.get("audio_path") or egs.get("audio_chunk") or egs.get("audio_file") or None
         result = {
-            prompt_key: to_user_msg(egs[prompt_key], audio_path=audio_path),
+            prompt_key: to_user_msg(egs[prompt_key]),
             "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
             "extra_info": {key: _extra_info_value(egs, key) for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),
@@ -1599,12 +1649,20 @@ def process_ds(ds, **kwargs):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
+    if "random_cut" in kwargs:
+        random_cut_kwargs = kwargs.get("random_cut") or {}
+        ds = random_cut(ds, **merge_kwargs(map_kwargs, random_cut_kwargs))
+    if "cache_audio" in kwargs:
+        cache_audio_kwargs = kwargs.get("cache_audio") or {}
+        ds = cache_audio(ds, **merge_kwargs(map_kwargs, cache_audio_kwargs))
     if kwargs.get("load_audio", False):
         ds = load_audio(ds, **map_kwargs)
     if kwargs.get("do_shard", False):
         ds = shard_ds(ds, **map_kwargs)
     if filter_text_with_numbers_kwargs := kwargs.get("filter_text_with_numbers", {}):
         ds = filter_text_with_numbers(ds, **merge_kwargs(map_kwargs, filter_text_with_numbers_kwargs))
+    if shuffle_kwargs := kwargs.get("shuffle", {}):
+        ds = shuffle_ds(ds, **shuffle_kwargs)
     if output_egs_limit := kwargs.get("output_egs_limit", None):
         ds = limit_ds(ds, egs_limit=output_egs_limit)
     if add_field_kwargs := kwargs.get("add_field", {}):
@@ -1660,17 +1718,23 @@ def add_task_info(ds, **kwargs):
     task = kwargs.get("task", "asr")
     rand = kwargs.get("rand", False)
     language = kwargs.get("language", "English")
+    model_version = kwargs.get("model_version")
     prompt_suffix = kwargs.get("prompt_suffix", "")
-    prefix_prob = float(kwargs.get("prefix_prob", 0.0))
+    prefix_prob = float(kwargs.get("prefix_prob", 1.0))
 
     def add_task_info_fn(egs):
         lang = resolve_task_language(task, lang=egs.get("language") or language)
         prompt = get_task_prompt(task=task, rand=rand)
         prompt = f"{prompt}{prompt_suffix}"
         prefix = get_task_prefix(task, lang=lang, prob=prefix_prob)
-        gt_output = get_task_output(task=task, lang=lang, text=egs.get("text", ""))
+        gt_output = get_task_output(
+            task=task,
+            lang=lang,
+            text=egs.get("text", ""),
+            components=egs.get("components"),
+        )
         return {
-            "prompt": prompt_format.format(prompt),
+            "prompt": format_asr_prompt(prompt, model_version=model_version),
             "prefix": prefix,
             "gt_output": gt_output,
             "language": lang,
@@ -1755,7 +1819,7 @@ def augment(ds, **kwargs):
     # if tag_entity_kwargs := kwargs.get("tag_entity", {}):
     #     ds = tag_entity(ds, **merge_kwargs(map_kwargs, tag_entity_kwargs))
     if add_task_info_kwargs := kwargs.get("add_task_info", {}):
-        ds = add_task_info(ds, **merge_kwargs(map_kwargs, add_task_info_kwargs))
+        ds = add_task_info(ds, **merge_kwargs(map_kwargs, {"model_version": kwargs.get("model_version")}, add_task_info_kwargs))
     if post_process_kwargs := kwargs.get("post_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, post_process_kwargs))
     return ds

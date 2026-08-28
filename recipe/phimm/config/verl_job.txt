@@ -1,0 +1,26 @@
+updated_at_utc: 2026-08-28T21:19:30Z
+
+┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
+│ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
+├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
+│ i0           │ raysubmit_spraAzGZMdWMq8VL   │ RUNNING       │ remax_2607v1_openml_verb_s200_bs64_lid05_sfl_tm1                           │ restarting from checkpoint after step 82     │
+│ i1           │ raysubmit_jGw36987D3MyrVgx   │ RUNNING       │ remax_2607v1_mix_digits_openml2x_s200_bs64_ilv                             │ restarting from checkpoint after step 195    │
+│ i3           │ raysubmit_NSnkFqHgkpimTty6   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (scoring)              │
+│ i4           │ raysubmit_qxFr9DnqDsAcpU2F   │ RUNNING       │ remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1                           │ restarting from checkpoint after step 82     │
+│ i7           │ raysubmit_G12HdhheKczJdbjg   │ RUNNING       │ remax_2607v1_mixcv15_digits_openml_verb_s200_bs256_ilv                     │ training 179/200 (89.5%)                     │
+│ i11          │ raysubmit_21FPLsznvgvWUsie   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (scoring)              │
+│ i13          │ raysubmit_dQsyiyanasssGvMP   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0          │ restarting from checkpoint after step 58     │
+│ i15          │ raysubmit_sHq6qEfia1XAwPuS   │ RUNNING       │ remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1                            │ restarting from checkpoint after step 25     │
+└──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
+
+Reports:
+- remax_2607v1_openml_verb_s200_bs64_lid05_sfl_tm1 [i0]: restarting from checkpoint after step 82
+- remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1 [i15]: restarting from checkpoint after step 25
+- remax_2607v1_mixcv15_digits_openml_verb_s200_bs256_ilv [i7]: training 179/200 (89.5%)
+- remax_2607v1_digits_s200_bs64_sfl_tm1 [i14]: complete step 160
+- remax_2607v1_bad_mix13k_s100_bs64_lid05_sfl_tm1 [i11]: evaluating openasr_ml step 100
+- remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1 [i4]: restarting from checkpoint after step 82
+- remax_2607v1b_digits_s200_bs64_sfl_tm1 [i5]: complete step 120
+- remax_2607v1_mix_digits_openml2x_s200_bs64_ilv [i1]: restarting from checkpoint after step 195
+- remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0 [i13]: restarting from checkpoint after step 58
+- remax_2607v1_oss_bad_lang_rc10_s200_bs64_rw0 [i6]: complete step 200

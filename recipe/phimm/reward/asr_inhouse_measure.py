@@ -10,10 +10,60 @@ import subprocess
 import tempfile
 import uuid
 
+from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.shared import parse_asr_response
 
 # Strip "[start end]" timing tokens emitted anywhere in DisplayTranscription.
 _TIME_MARKER_RE = re.compile(r"\[\s*-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?\s*\]")
+
+# Default TER locale per ISO-639 language code. The dfmetrics TER backend keys
+# on a lowercase ``lang-region`` locale (e.g. ``en-us``, ``zh-cn``); pick the
+# canonical region used by the in-house 2605 eval set for each language.
+_LANG_CODE_TO_LOCALE = {
+    "ar": "ar-sa",
+    "cs": "cs-cz",
+    "da": "da-dk",
+    "de": "de-de",
+    "en": "en-us",
+    "es": "es-es",
+    "fi": "fi-fi",
+    "fr": "fr-fr",
+    "hi": "hi-in",
+    "hu": "hu-hu",
+    "id": "id-id",
+    "it": "it-it",
+    "ja": "ja-jp",
+    "ko": "ko-kr",
+    "nb": "nb-no",
+    "no": "nb-no",
+    "nl": "nl-nl",
+    "pl": "pl-pl",
+    "pt": "pt-br",
+    "ru": "ru-ru",
+    "sv": "sv-se",
+    "tr": "tr-tr",
+    "zh": "zh-cn",
+}
+
+
+def _resolve_locale(explicit_locale, language) -> str:
+    """Resolve a TER locale (``lang-region``) from an explicit override or language.
+
+    An explicit ``locale`` kwarg wins (``zh_cn`` / ``zh-CN`` are normalized to
+    ``zh-cn``). Otherwise the locale is derived from the ``language`` name/code
+    (e.g. ``Chinese`` -> ``zh-cn``). Falls back to ``en-us`` for unknown or
+    ``Unknown`` languages.
+    """
+    if explicit_locale:
+        return str(explicit_locale).replace("_", "-").lower()
+    if language and str(language).strip().lower() not in ("", "unknown"):
+        code = get_language_code(str(language))
+        # Code-switch identifiers like "en_zh" resolve to their first component.
+        code = code.split("_")[0]
+        locale = _LANG_CODE_TO_LOCALE.get(code)
+        if locale:
+            return locale
+    return "en-us"
 
 
 def _clean_ref(text: str) -> str:
@@ -146,20 +196,23 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
     return pack
 
 
-_TER_BACKEND = None
+_TER_BACKENDS: dict[str, object] = {}
 
 
 def _get_ter_backend(locale: str = "en-us"):
     """Return a cached ``dfmetrics.ter.TER`` configured for DisfluencyTolerant TER.
 
-    The ``ter`` wheel is installed by ``ensure_pack_dir``; importing here lets us
-    bail out cleanly if it's not on the worker.
+    Backends are cached per ``locale`` so a single worker can score multiple
+    languages. The ``ter`` wheel is installed by ``ensure_pack_dir``; importing
+    here lets us bail out cleanly if it's not on the worker.
     """
-    global _TER_BACKEND
-    if _TER_BACKEND is None:
+    loc = (locale or "en-us").lower()
+    backend = _TER_BACKENDS.get(loc)
+    if backend is None:
         from dfmetrics.ter import TER  # type: ignore
-        _TER_BACKEND = TER(locale=locale, ter_type="disfluencytolerant")
-    return _TER_BACKEND
+        backend = TER(locale=loc, ter_type="disfluencytolerant")
+        _TER_BACKENDS[loc] = backend
+    return backend
 
 
 def _category_edits(ter_category_info: dict | None) -> dict[str, int]:
@@ -179,7 +232,7 @@ def _category_edits(ter_category_info: dict | None) -> dict[str, int]:
     }
 
 
-def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float, dict | None]:
+def _compute_dter(ref: str, hyp: str, locale: str = "en-us") -> tuple[int, int, float, dict | None]:
     """Return ``(n_err, n_ref, dter_fraction, detail)`` for DTER.
 
     ``detail`` is a single ``UtteranceTERMetrics``-style entry (the same shape
@@ -194,7 +247,7 @@ def _compute_dter(ref: str, hyp: str) -> tuple[int, int, float, dict | None]:
     ``display_form_*`` fields live under ``sent_details[0]`` (NOT the top level).
     """
     try:
-        backend = _get_ter_backend()
+        backend = _get_ter_backend(locale)
         result = backend.compute_ter_from_strings(transcription=ref, recognition=hyp) or {}
     except Exception as e:
         logger.warning("DTER computation failed: %s", e)
@@ -296,6 +349,8 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     """
     pack_dir = kwargs.get("pack_dir", DEFAULT_PACK_DIR)
     compute_eer = kwargs.get("compute_eer", False)
+    extra_info = kwargs.get("extra_info") or {}
+    locale = _resolve_locale(kwargs.get("locale"), extra_info.get("language", kwargs.get("language")))
     # The dfmetrics TER backend used by `_compute_dter` shells out to `dotnet`
     # (via fstalign), so the SpeechInsight pack must be installed and its dotnet
     # runtime exported onto PATH/DOTNET_ROOT *before* DTER runs. `_compute_eer`
@@ -305,7 +360,7 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     hyp_text = parsed.get("text") or ""
     ref_text = _clean_ref(ground_truth)
 
-    dter_n_err, dter_n_ref, dter, dter_detail = _compute_dter(ref_text, hyp_text)
+    dter_n_err, dter_n_ref, dter, dter_detail = _compute_dter(ref_text, hyp_text, locale=locale)
 
     result = {
         "score": 1.0 - dter,
@@ -321,12 +376,3 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
         result["eer_n_err"] = eer_n_err
         result["eer_n_ref"] = eer_n_ref
     return result
-
-
-def dummy_score(solution_str: str, ground_truth: str, **kwargs):
-    """Dummy scorer matching ``eval_score``'s signature, always returns score 0.0.
-
-    Useful as a no-op placeholder (e.g. to skip the expensive DTER/EER backend
-    during pipeline smoke tests) while keeping the same return shape.
-    """
-    return {"score": 0.0}

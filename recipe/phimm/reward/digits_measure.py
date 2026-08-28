@@ -11,14 +11,34 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
-from jiwer import process_words
+from jiwer import process_characters, process_words
+
+from recipe.phimm.utils.languages import get_language_code
 
 
-_TASK_OUTPUT_RE = re.compile(
-    r"^Audio Language: (?P<header_lang>[^\n.]+)\.?\n"
-    r"<(?P<tag>ASR(?:_[^>]+)?)><lang=(?P<body_lang>[^>]+)><TXT>(?P<text>.*)</TXT></(?P=tag)>$",
-    re.DOTALL,
-)
+# Header line: ``Audio Language: {langs}.`` where {langs} may list several
+# languages (e.g. "English and Chinese") for code-switch / mixed audio.
+_HEADER_RE = re.compile(r"^Audio Language:\s*(?P<langs>[^\n]+?)\.?\n(?P<body>.*)$", re.DOTALL)
+# Body wrapper: ``<ASR>..</ASR>`` or ``<ASR_*>..</ASR_*>``.
+_TAG_RE = re.compile(r"^<(?P<tag>ASR(?:_[^>]+)?)>(?P<inner>.*)</(?P=tag)>$", re.DOTALL)
+# One ``<lang=X><TXT>..</TXT>`` segment (with optional surrounding whitespace);
+# several may appear back-to-back for code-switch / mixed audio.
+_SEGMENT_RE = re.compile(r"\s*<lang=(?P<lang>[^>]+)><TXT>(?P<text>.*?)</TXT>\s*", re.DOTALL)
+_DIGIT_TOKEN_RE = re.compile(r"\d+|[A-Za-z]+")
+_DIGIT_WORDS = {
+    "zero": "0",
+    "oh": "0",
+    "nought": "0",
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "five": "5",
+    "six": "6",
+    "seven": "7",
+    "eight": "8",
+    "nine": "9",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +202,7 @@ def compute_fmt_acc(ref: str, hyp: str) -> dict:
             for ri, hi in zip(
                 range(chunk.ref_start_idx, chunk.ref_end_idx),
                 range(chunk.hyp_start_idx, chunk.hyp_end_idx),
+                strict=False,
             ):
                 rw = ref_words[ri]
                 hw = hyp_words[hi]
@@ -229,37 +250,127 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
     trans_dict = parse_asr_response(solution_str)
     hyp_text = trans_dict["text"]
-    pred_lang = (trans_dict["lang"] or "").lower().strip()
-    is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
+    digit_scores = score_digits(ground_truth, hyp_text)
 
     return {
         "char": char_error.accuracy(),
         "word": word_error.accuracy(),
+        "digit_char": 1.0 - digit_scores["cer"],
+        "digit_word": 1.0 - digit_scores["wer"],
         **fmts,
-        "lang": 1.0 if is_nonspeech else float(pred_lang == tgt_lang),
+        "lang": check_lang(solution_str, tgt_lang, trans_dict),
         "fmt": float(check_fmt(solution_str)),
     }
+
+
+def _split_langs(header: str) -> list[str]:
+    """Split a header language field into individual language tokens.
+
+    Handles single (``"English"``) and code-switch (``"English and Chinese"``,
+    ``"English Chinese"``) forms.
+    """
+    header = header.strip().rstrip(".")
+    header = re.sub(r"\band\b", " ", header, flags=re.IGNORECASE)
+    return [p for p in re.split(r"[,\s、&/]+", header) if p]
+
+
+def _parse_task_output(solution_str):
+    """Parse an ASR task output into ``(header_langs, seg_langs, seg_texts)``.
+
+    Supports one or more ``<lang=X><TXT>..</TXT>`` segments inside a single
+    ``<ASR>..</ASR>`` (or ``<ASR_*>..</ASR_*>``) block, as produced for
+    code-switch / language-mixed audio. Returns ``None`` when the string does
+    not match the expected format.
+    """
+    if not isinstance(solution_str, str):
+        return None
+    hm = _HEADER_RE.match(solution_str.strip())
+    if not hm:
+        return None
+    tm = _TAG_RE.match(hm.group("body").strip())
+    if not tm:
+        return None
+    inner = tm.group("inner")
+    # The body inner must consist solely of consecutive well-formed segments;
+    # any leftover text (junk, malformed tags) makes the output invalid.
+    segments = []
+    pos = 0
+    while pos < len(inner):
+        m = _SEGMENT_RE.match(inner, pos)
+        if not m:
+            return None
+        segments.append((m.group("lang").strip(), m.group("text")))
+        pos = m.end()
+    if not segments:
+        return None
+    header_langs = _split_langs(hm.group("langs"))
+    seg_langs = [lang for lang, _ in segments]
+    seg_texts = [text for _, text in segments]
+    return header_langs, seg_langs, seg_texts
+
+
+def _lang_code_set(lang) -> set[str]:
+    """Return the set of ISO language codes contained in *lang* (or empty set)."""
+    if not lang:
+        return set()
+    return {c for c in get_language_code(lang).split("_") if c}
+
+
+def check_lang(solution_str, tgt_lang, trans_dict=None) -> float:
+    """Language-identification score in ``[0, 1]`` with partial credit.
+
+    Predicted language(s) come from the per-segment ``<lang=..>`` sequence when
+    the response is a well-formed (possibly code-switch) task output, else from
+    the single language parsed from the raw response (``trans_dict["lang"]``).
+
+    The score is the Jaccard overlap between the predicted and target language
+    sets, so a code-switch output that identifies only some of the spoken
+    languages still earns proportional credit (``1.0`` = exact set match).
+
+    A ``<nonspeech>`` hypothesis always scores ``1.0`` (no language to judge).
+    """
+    hyp_text = trans_dict.get("text") if trans_dict else None
+    if (hyp_text or "").strip().lower() == "<nonspeech>":
+        return 1.0
+
+    tgt_codes = _lang_code_set(tgt_lang)
+
+    parsed = _parse_task_output(solution_str)
+    if parsed is not None:
+        pred_codes: set[str] = set()
+        for name in parsed[1]:
+            pred_codes |= _lang_code_set(name)
+    else:
+        single = trans_dict.get("lang") if trans_dict else None
+        pred_codes = _lang_code_set(single)
+
+    if not tgt_codes and not pred_codes:
+        return 1.0
+    if not tgt_codes or not pred_codes:
+        return 0.0
+    return len(pred_codes & tgt_codes) / len(tgt_codes)
 
 
 def check_fmt(solution_str: str) -> bool:
     """Return True if ``solution_str`` matches ``_format_task_output`` format.
 
-    Expected format:
-    ``Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>``
-    where tag is ``ASR`` or ``ASR_*`` and the two language fields match.
+    Expected format (single or code-switch / language-mixed)::
+
+        Audio Language: {langs}.
+        <{tag}><lang={l1}><TXT>{t1}</TXT>[<lang={l2}><TXT>{t2}</TXT>...]</{tag}>
+
+    where tag is ``ASR`` or ``ASR_*`` and the header languages match the
+    per-segment ``<lang=..>`` sequence.
     """
-    if not isinstance(solution_str, str):
+    parsed = _parse_task_output(solution_str)
+    if parsed is None:
         return False
-
-    match = _TASK_OUTPUT_RE.match(solution_str.strip())
-    if not match:
-        return False
-
-    return match.group("header_lang").strip() == match.group("body_lang").strip()
+    header_langs, seg_langs, _ = parsed
+    return [get_language_code(name) for name in header_langs] == [get_language_code(name) for name in seg_langs]
 
 
 def clip(x, lo=-1.0, hi=1.0):
@@ -332,8 +443,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
             punc: {beta: 0.5, gamma: 0.2}
     """
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
-    is_good = parsed["fmt"] > 0.0 and parsed["lang"] > 0.0
-    
+
     measures = kwargs.get("measures") or {}
     reduce = kwargs.get("reduce", "sum").lower()
     gamma = float(kwargs.get("gamma", 1.0))
@@ -344,4 +454,67 @@ def compute_score(solution_str, ground_truth, **kwargs):
     return {
         "score": score,
         **parsed,
+    }
+
+
+def _digit_tokens(text: str | None) -> list[str]:
+    """Extract normalized numeric runs and spoken digit words from text."""
+    tokens = []
+    for token_match in _DIGIT_TOKEN_RE.finditer(text or ""):
+        token = token_match.group()
+        if token.isdigit():
+            tokens.append(token)
+        elif digit := _DIGIT_WORDS.get(token.lower()):
+            tokens.append(digit)
+    return tokens
+
+
+def score_digits(reference: str | None, hypothesis: str | None) -> dict[str, int | float]:
+    """Return named digit-token WER and compact digit-sequence CER metrics.
+
+    Numeric runs are preserved as tokens, while spoken digits map to their
+    numeric equivalents. WER therefore measures complete-run errors and CER
+    measures individual-digit errors in the compact sequence.
+    """
+    ref_tokens = _digit_tokens(reference)
+    hyp_tokens = _digit_tokens(hypothesis)
+    ref_digits = "".join(ref_tokens)
+    hyp_digits = "".join(hyp_tokens)
+
+    if not ref_tokens:
+        n_err, n_ref = len(hyp_tokens), 0
+        nc_err, nc_ref = len(hyp_digits), 0
+    else:
+        word_alignment = process_words(" ".join(ref_tokens), " ".join(hyp_tokens))
+        n_err = word_alignment.substitutions + word_alignment.deletions + word_alignment.insertions
+        n_ref = len(ref_tokens)
+        char_alignment = process_characters(ref_digits, hyp_digits)
+        nc_err = char_alignment.substitutions + char_alignment.deletions + char_alignment.insertions
+        nc_ref = len(ref_digits)
+
+    return {
+        "wer": n_err / n_ref if n_ref else float(bool(n_err)),
+        "n_err": n_err,
+        "n_ref": n_ref,
+        "cer": nc_err / nc_ref if nc_ref else float(bool(nc_err)),
+        "nc_err": nc_err,
+        "nc_ref": nc_ref,
+    }
+
+
+def eval_score(solution_str: str, ground_truth: str, **kwargs):
+    """Score normalized digit-word and character errors in an ASR response.
+
+    Arabic numerals are preserved as numeric runs and standalone English digit
+    words are normalized to their numeric equivalent. All non-digit content is
+    ignored, which keeps validation focused on repeated numbers. ``cer`` is
+    computed from the returned character counts ``nc_err / nc_ref``.
+    """
+    from recipe.phimm.utils.shared import parse_asr_response
+
+    hyp_text = parse_asr_response(solution_str).get("text") or ""
+    metrics = score_digits(ground_truth, hyp_text)
+    return {
+        "score": 1.0 - metrics["cer"],
+        **metrics,
     }

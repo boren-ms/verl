@@ -9,6 +9,7 @@ import sys
 sys.path.append(str(Path(__file__).parents[3]))
 
 from recipe.phimm.utils.tn import text_norm as text_normalize
+from recipe.phimm.utils.shared import parse_asr_response
 from recipe.phimm.reward.error_book import get_eb
 from collections import deque
 
@@ -360,9 +361,10 @@ def compute_score(solution_str, ground_truth, **kwargs):
     extra_info = kwargs.pop("extra_info", {})
     error_book = kwargs.get("error_book", False)
     keywords = get_eb().error_words(ground_truth, solution_str) if error_book else extra_info.get("keywords", None)
+    hyp_text = parse_asr_response(solution_str).get("text") or ""
 
     wer, u_wer, b_wer = measure_errors(
-        solution_str,
+        hyp_text,
         ground_truth,
         keywords=keywords,
         **kwargs,
@@ -396,8 +398,9 @@ def eval_score(solution_str, ground_truth, **kwargs):
     """The scoring function for ASR with keywords."""
     extra_info = kwargs.pop("extra_info", {})
     text_norm = kwargs.pop("text_norm", "english")
+    hyp_text = parse_asr_response(solution_str).get("text") or ""
     wer, u_wer, b_wer = measure_errors(
-        solution_str,
+        hyp_text,
         ground_truth,
         keywords=extra_info.get("keywords", None),
         text_norm=text_norm,

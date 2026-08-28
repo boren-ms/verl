@@ -25,6 +25,8 @@ def resolve_task_language(task, lang=None):
 
 
 def _get_explicit_task_language(task):
+    if task.startswith("lang_asr_verb"):
+        return _get_lang_asr_language(task, "lang_asr_verb")
     if task.startswith("lang_asr_lex"):
         return _get_lang_asr_language(task, "lang_asr_lex")
     if task.startswith("lang_asr"):
@@ -33,6 +35,8 @@ def _get_explicit_task_language(task):
 
 
 def _get_task_output_tag(task):
+    if task.startswith("lang_asr_verb"):
+        return "ASR_VERBATIM"
     if task.startswith("lang_asr_lex"):
         return "ASR_LEXICAL"
     elif task in ("asr", "rare_asr", "biasing") or task.startswith("lang_asr"):
@@ -41,7 +45,19 @@ def _get_task_output_tag(task):
         raise ValueError(f"Unknown task: {task}")
 
 
-def _format_task_output(tag, lang, text):
+def _format_task_output(tag, lang, text, components=None):
+    if components:
+        languages = []
+        segments = []
+        for component in components:
+            component_lang = get_language_name(component.get("language", "Unknown"))
+            component_text = component.get("text", "")
+            languages.append(component_lang)
+            segments.append(f"<lang={component_lang}><TXT>{component_text}</TXT>")
+        header_langs = " and ".join(languages)
+        content = "\n".join(segments)
+        return f"Audio Language: {header_langs}\n<{tag}>{content}</{tag}>"
+
     lang = lang or "Unknown"
     return f"Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
 
@@ -55,6 +71,8 @@ def get_task_prompt(task="asr", rand=False):
         prompt = f"{prompt} Pay extra attention to rare words."
     elif task == "biasing":
         prompt = rand_prompt(BIASING_PROMPTS, rand=rand)
+    elif task.startswith("lang_asr_verb"):
+        prompt = rand_prompt(LANG_ASR_VERB_PROMPTS, rand=rand)
     elif task.startswith("lang_asr_lex"):
         prompt = rand_prompt(LANG_ASR_LEX_PROMPTS, rand=rand)
     elif task.startswith("lang_asr"):
@@ -74,14 +92,16 @@ def get_task_prefix(task, lang, prob=1.0):
     if random.random() >= prob:
         return ""
     if task.startswith("lang_asr"):
-        return f"Audio Language: {get_language_name(lang)}\n"
+        languages = get_language_name(lang).strip()
+        lang_str = " and ".join(languages.split())
+        return f"Audio Language: {lang_str}\n"
     
     raise ValueError(f"Unknown task: {task}")
 
 
-def get_task_output(task="asr", lang="English", text=""):
+def get_task_output(task="asr", lang="English", text="", components=None):
     """Get the expected output format for the specified task."""
-    return _format_task_output(_get_task_output_tag(task), get_language_name(lang), text)
+    return _format_task_output(_get_task_output_tag(task), get_language_name(lang), text, components)
     
 
 
@@ -253,4 +273,9 @@ LANG_ASR_PROMPTS = [
 
 LANG_ASR_LEX_PROMPTS = [
     "Detect the language and transcribe the audio clip into text. Output must be in lexical format.",
+]
+
+
+LANG_ASR_VERB_PROMPTS = [
+    "Detect the language and transcribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.",
 ]
