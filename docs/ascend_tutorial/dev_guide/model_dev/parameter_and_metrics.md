@@ -1,6 +1,8 @@
 # 训练配置参数与指标说明
 
-Last updated: 05/29/2026.
+Last updated: 07/02/2026.
+
+如需查看 NPU 相关特性，请访问：[NPU 高级特性指南](https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/feature_support/npu_advance_features.md) 。
 
 verl 通过层级化的 YAML 配置文件管理所有参数，涉及到的所有配置文件均在 `verl/trainer/config` 目录下。
 
@@ -57,6 +59,7 @@ verl 通过层级化的 YAML 配置文件管理所有参数，涉及到的所有
 | `actor_rollout_ref.actor.grad_clip` | `1.0` | 梯度裁剪值 |
 | `actor_rollout_ref.actor.ulysses_sequence_parallel_size` | `1` | Ulysses 序列并行大小 |
 | `actor_rollout_ref.actor.entropy_from_logits_with_chunking` | `false` | 是否使用分块方式从 logits 计算熵 |
+| `actor_rollout_ref.actor.entropy_from_logits_chunk_size` | `2048` | 熵计算分块大小 |
 | `actor_rollout_ref.actor.entropy_checkpointing` | `false` | 是否对熵计算使用梯度检查点 |
 | `actor_rollout_ref.actor.use_remove_padding` | 引用自 `model.use_remove_padding` | 是否移除 padding |
 | `actor_rollout_ref.actor.calculate_sum_pi_squared` | `false` | 是否计算策略概率平方和 |
@@ -481,8 +484,7 @@ verl 通过层级化的 YAML 配置文件管理所有参数，涉及到的所有
 
 | 参数名 | 默认值 | 说明 |
 |--------|--------|------|
-| `actor_rollout_ref.actor.megatron.param_offload` | `false` | 是否将参数卸载到 CPU |
-| `actor_rollout_ref.actor.megatron.grad_offload` | `false` | 是否将梯度卸载到 CPU |
+| `actor_rollout_ref.actor.megatron.param_offload` | `false` | 是否将参数卸载到 CPU，并在角色非活跃时释放梯度缓冲区 |
 | `actor_rollout_ref.actor.megatron.optimizer_offload` | `false` | 是否将优化器状态卸载到 CPU |
 | `actor_rollout_ref.actor.megatron.tensor_model_parallel_size` | `1` | TP 并行大小 |
 | `actor_rollout_ref.actor.megatron.expert_model_parallel_size` | `1` | 专家并行大小 |
@@ -498,8 +500,8 @@ verl 通过层级化的 YAML 配置文件管理所有参数，涉及到的所有
 | `actor_rollout_ref.actor.megatron.dist_ckpt_optim_fully_reshardable` | `false` | 分布式 checkpoint 优化器是否完全可重分片 |
 | `actor_rollout_ref.actor.megatron.distrib_optim_fully_reshardable_mem_efficient` | `false` | 分布式优化器重分片是否内存高效 |
 | `actor_rollout_ref.actor.megatron.seed` | `42` | 随机种子 |
-| `actor_rollout_ref.actor.megatron.use_mbridge` | `true` | 是否使用 mBridge |
-| `actor_rollout_ref.actor.megatron.vanilla_mbridge` | `true` | 是否使用原始 mBridge |
+| `actor_rollout_ref.actor.megatron.use_mbridge` | `true` | 是否启用 Bridge 权重转换 |
+| `actor_rollout_ref.actor.megatron.vanilla_mbridge` | `false` | 是否使用已弃用的老版 mBridge；默认使用 Megatron-Bridge |
 | `actor_rollout_ref.actor.megatron.use_remove_padding` | `true` | 是否移除 padding |
 | `actor_rollout_ref.actor.megatron.forward_only` | `false` | 是否仅前向计算 |
 | `actor_rollout_ref.actor.megatron.dtype` | `bfloat16` | 模型数据类型 |
@@ -595,7 +597,7 @@ verl 通过层级化的 YAML 配置文件管理所有参数，涉及到的所有
 
 | 参数名 | 默认值 | 说明 |
 |--------|--------|------|
-| `router_replay.mode` | `disabled` | 路由重放模式，可选 disabled、record、replay |
+| `actor.megatron.router_replay.mode` / `actor.veomni.router_replay.mode` | `disabled` | 引擎侧路由重放模式，可选 disabled、R2、R3 |
 | `router_replay.record_file` | `null` | 路由记录文件路径 |
 | `router_replay.replay_file` | `null` | 路由重放文件路径 |
 

@@ -26,7 +26,7 @@ SP_SIZE=${SP_SIZE:-1}
 
 TOTAL_EPOCHS=${TOTAL_EPOCHS:-15}
 TOTAL_TRAINING_STEPS=${TOTAL_TRAINING_STEPS:-15}
-SAVE_FREQ=${SAVE_FREQ:-20}
+SAVE_FREQ=${SAVE_FREQ:--1}
 TEST_FREQ=${TEST_FREQ:-20}
 
 PROJECT_NAME=${PROJECT_NAME:-verl_grpo_geo3k}
@@ -86,7 +86,6 @@ ROLLOUT=(
     actor_rollout_ref.rollout.name=vllm
     actor_rollout_ref.rollout.tensor_model_parallel_size=${ROLLOUT_TP}
     actor_rollout_ref.rollout.gpu_memory_utilization=${rollout_gpu_mem_util}
-    actor_rollout_ref.rollout.enable_chunked_prefill=False
     actor_rollout_ref.rollout.n=${ROLLOUT_N}
     actor_rollout_ref.rollout.log_prob_use_dynamic_bsz=True
     actor_rollout_ref.rollout.calculate_log_probs=True

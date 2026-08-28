@@ -28,6 +28,7 @@ CUDA_KEYWORD_CHECK_WHITELIST = [
     "verl/utils/torch_functional.py",  # import flash_attn only on cuda
     "verl/plugin/platform/platform_base.py",  # docstring mentions torch.cuda
     "verl/plugin/platform/platform_cuda.py",  # CUDA platform implementation
+    "verl/plugin/platform/platform_rocm.py",  # ROCm platform reuses torch.cuda via hipify
     "verl/plugin/platform/platform_manager.py",  # platform auto-detection probes torch.cuda
     "verl/utils/profiler/nvtx_profile.py",  # appear in NsightSystemsProfiler
     "verl/utils/profiler/torch_profile.py",  # appear in TorchProfiler
@@ -44,6 +45,7 @@ CUDA_KEYWORD_CHECK_WHITELIST = [
     "verl/workers/engine/base.py",  # appear in default device_name
     "verl/workers/engine/utils.py",  # appear in enable_full_determinism
     "verl/workers/engine/fsdp/transformer_impl.py",  # appear in default device_name
+    "verl/workers/engine/fsdp/fsdp_turbo_impl.py",  # appear in default device_name
     "verl/workers/engine/veomni/transformer_impl.py",  # appear in default device_name
     "verl/workers/engine/torchtitan/transformer_impl.py",  # appear in default device_name
     "verl/workers/engine/torchtitan/utils.py",  # appear in torch.cuda.empty_cache()

@@ -22,6 +22,14 @@ top_k: -1
 # Top-p sampling parameter. Default 1.0.
 top_p: 1
 
+# Whether to enable full determinism for reproducibility in rollout.
+# See https://pytorch.org/docs/stable/notes/randomness.html for details.
+full_determinism: false
+
+# Random seed for rollout. Used as the seed for vLLM sampling and
+# enable_full_determinism() when full_determinism is True.
+seed: 42
+
 # typically the same as data max prompt length
 # same as data.max_prompt_length if it exists
 prompt_length: ${oc.select:data.max_prompt_length,512}
@@ -73,7 +81,7 @@ max_num_batched_tokens: 8192
 max_model_len: null
 
 # max length of sequences
-max_num_seqs: 1024
+max_num_seqs: 256
 
 # may get higher throughput when set to True. When activated, Please increase max_num_batched_tokens or decrease max_model_len.
 enable_chunked_prefill: True
@@ -331,6 +339,10 @@ skip_tokenizer_init: True
 # When enabled (True), the rollout will record the routing decisions.
 enable_rollout_routing_replay: False
 
+# Interval for logging rollout MoE load-balance metrics from routing replay data.
+# Set to 0 to disable.
+moe_load_balance_metrics_interval: 0
+
 
 # profile the rollout model in `generate_sequence`
 profiler:
@@ -353,6 +365,22 @@ profiler:
 
   # profile results saving path
   save_path: ${oc.select:global_profiler.save_path,null}
+
+  # Pull each replica's traces up into save_path (engines otherwise write per-replica sub-dirs) so
+  # post-processing that does not walk sub-directories sees them. Default same as the actor's.
+  relocate_results: ${oc.select:actor_rollout_ref.actor.profiler.relocate_results,false}
+
+  # Shell command executed on the selected ranks when profiling finishes (after relocate_results).
+  # See actor.profiler.finish_hook_cmd for the available env vars. null disables it.
+  # Default same as the actor's.
+  finish_hook_cmd: ${oc.select:actor_rollout_ref.actor.profiler.finish_hook_cmd,null}
+
+  # Run finish_hook_cmd on all ranks. Default same as the actor's.
+  finish_hook_all_ranks: ${oc.select:actor_rollout_ref.actor.profiler.finish_hook_all_ranks,false}
+
+  # Ranks that run finish_hook_cmd. [] or [0,1,...]. Falls back to the profiled ranks when unset.
+  # save_path is usually node-local, so pick one rank per node. Default same as the actor's.
+  finish_hook_ranks: ${oc.select:actor_rollout_ref.actor.profiler.finish_hook_ranks,[]}
 
   # specific tool config
   tool_config:

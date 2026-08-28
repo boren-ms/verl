@@ -110,8 +110,8 @@ Parameter Reference
     Path to the actor checkpoint in HuggingFace-compatible format.
   - ``actor_rollout_ref.actor.megatron.use_mbridge``:
     Selects the model-weight backend for the Megatron checkpoint manager. With ``True``
-    (default), model weights are saved/loaded in HuggingFace format via `mbridge
-    <https://github.com/ISEEKYAN/mbridge>`_ and ``hf_model`` in ``save_contents`` is
+    (default), model weights are saved/loaded in HuggingFace format via `Megatron Bridge
+    <https://github.com/NVIDIA-NeMo/Megatron-Bridge>`_ and ``hf_model`` in ``save_contents`` is
     deduplicated against ``model``. With ``False``, model weights go through Megatron's
     native ``dist_checkpointing`` and ``hf_model`` in ``save_contents`` is rejected
     (use ``verl.model_merger`` after training instead). Optimizer / LR-scheduler / RNG
@@ -120,8 +120,9 @@ Parameter Reference
     still works and is equivalent to ``use_mbridge=False``.
     See :ref:`checkpoint-page` for the full save/load behaviour matrix.
   - ``actor_rollout_ref.actor.megatron.vanilla_mbridge``:
-    If set to True, use mbridge, else use Megatron-Bridge https://github.com/NVIDIA-NeMo/Megatron-Bridge.
-    Now it is True by default. and it will defaultly be set to False in the future(v0.8).
+    ``False`` (default) uses `Megatron-Bridge <https://github.com/NVIDIA-NeMo/Megatron-Bridge>`_.
+    ``True`` selects the legacy `mbridge <https://github.com/ISEEKYAN/mbridge>`_,
+    which is deprecated and will be removed in a future release.
 
 :math:`\pi`
   - ``actor_rollout_ref.rollout.name``:
@@ -224,8 +225,9 @@ Optimizer settings
     Companion switches for hybrid optimizers. Turn them on alongside CPU offload.
 
 Megatron-related parameters
-  - ``actor_rollout_ref.actor.megatron.param_offload`` / ``optimizer_offload`` / ``grad_offload``:
-    Offload parameters, optimizer states, and gradients to CPU when GPU memory is insufficient.
+  - ``actor_rollout_ref.actor.megatron.param_offload`` / ``optimizer_offload``:
+    Offload parameters and optimizer states to CPU when GPU memory is insufficient. Parameter offload also releases
+    gradient buffers while the actor is inactive.
   - ``+actor_rollout_ref.actor.megatron.override_transformer_config.recompute_method`` / ``recompute_granularity`` / ``recompute_num_layers``:
     Gradient checkpointing controls. Enable (e.g., ``uniform``, ``full``, ``1``) to trade computation for memory.
   - ``+actor_rollout_ref.actor.megatron.override_transformer_config.moe_router_dtype`` / ``moe_shared_expert_overlap`` / ``moe_permute_fusion`` / ``moe_enable_deepep`` / ``moe_token_dispatcher_type``:

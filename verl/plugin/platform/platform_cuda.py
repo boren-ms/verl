@@ -41,6 +41,10 @@ class PlatformCUDA(PlatformBase):
     def is_platform_available(self, use_smi_check=False) -> bool:
         if not hasattr(torch, "cuda"):
             return False
+        # On ROCm, torch.cuda is present too; defer to PlatformROCm so that
+        # auto-detection does not pick CUDA on AMD hardware.
+        if torch.version.hip is not None:
+            return False
         if use_smi_check:
             # In CPU-only Ray actors, torch.cuda.is_available() may return False
             # even though the cluster has GPUs. Fall back to nvidia-smi check,
@@ -145,7 +149,7 @@ class PlatformCUDA(PlatformBase):
         # in disaggregated mode. See:
         # https://docs.vllm.ai/en/latest/usage/troubleshooting.html?h=nccl_cumem_enable#known-issues
         # https://github.com/vllm-project/vllm/blob/c6b0a7d3ba03ca414be1174e9bd86a97191b7090/vllm/worker/worker_base.py#L445
-        return {"NCCL_CUMEM_ENABLE": "0"}
+        return {"NCCL_CUMEM_ENABLE": os.environ.get("NCCL_CUMEM_ENABLE", "0")}
 
     # ------------------------------------------------------------------
     # Collective communication

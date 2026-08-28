@@ -51,6 +51,12 @@ class CheckpointEngineRegistry:
 
     _registry: dict[str, type["CheckpointEngine"]] = {}
 
+    # Engine modules whose import failed, keyed by module name. Each engine pulls
+    # its own transport dependency (cupy for nccl/nixl, nixl, torch_npu for hccl,
+    # ...) and `verl.checkpoint_engine` imports them all optionally, so a missing
+    # dependency would otherwise only show up as an unregistered backend.
+    _import_errors: dict[str, ImportError] = {}
+
     def register(backend: str):
         """Register a checkpoint engine.
 
@@ -65,6 +71,16 @@ class CheckpointEngineRegistry:
         return wrapper
 
     @classmethod
+    def record_import_error(cls, module: str, error: ImportError):
+        """Record an engine module that could not be imported.
+
+        Args:
+            module: The name of the checkpoint engine module.
+            error: The import error raised by the module.
+        """
+        cls._import_errors[module] = error
+
+    @classmethod
     def get(cls, backend: str) -> type["CheckpointEngine"]:
         """Get the checkpoint engine class.
 
@@ -74,6 +90,12 @@ class CheckpointEngineRegistry:
         Returns:
             The checkpoint engine class.
         """
+        if backend not in cls._registry:
+            message = f"Checkpoint engine {backend} not registered, registered backends: {sorted(cls._registry)}"
+            if cls._import_errors:
+                unavailable = ", ".join(f"{module}: {error}" for module, error in sorted(cls._import_errors.items()))
+                message += f". Engine modules that failed to import: {unavailable}"
+            raise ValueError(message)
         return cls._registry[backend]
 
     @classmethod
@@ -88,24 +110,27 @@ class CheckpointEngineRegistry:
         Returns:
             A new checkpoint engine instance.
         """
-        if backend not in cls._registry:
-            raise ValueError(f"Checkpoint engine {backend} not registered")
-        return cls._registry[backend](*args, **kwargs)
+        return cls.get(backend)(*args, **kwargs)
 
 
 class CheckpointEngine(ABC):
-    """CheckpointEngine is an abstraction to transfer weights from trainer to rollout.
+    """CheckpointEngine is an abstraction to transfer weights from actor to rollout.
 
-    In trainer process:
-    >>> trainer = EngineRegistry.new(...) # FSDP, Megatron, VeOmini, TorchTitan, ...
+    In actor process:
+    >>> actor = EngineRegistry.new(...) # FSDP, Megatron, VeOmini, TorchTitan, ...
     >>> engine = CheckpointEngine.new(...) # NCCLCheckpointEngine, NIXLCheckpointEngine, ...
-    >>> await engine.send_weights(trainer.get_per_tensor_param())
+    >>> await engine.send_weights(actor.get_per_tensor_param())
 
     In rollout process:
     >>> engine = CheckpointEngine.new(...)
     >>> server_adapter = ServerAdapter()
     >>> await server_adapter.update_weights(engine.get_weights()) # update weights via cuda ipc
     """
+
+    # How receive_weights yields weights to the server adapter:
+    #   "named_tensors" -- (name, tensor) pairs, bucketed into full-tensor loads.
+    #   "delta_flush"   -- per-flush sparse payloads applied via a custom loader.
+    wire_format = "named_tensors"
 
     @abstractmethod
     def prepare(self) -> dict[str, Any]:
@@ -126,22 +151,22 @@ class CheckpointEngine(ABC):
     @classmethod
     @abstractmethod
     def build_topology(
-        cls, trainer_world_size: int, rollout_world_size: int, metadata: list[dict]
+        cls, actor_wg_world_size: int, rollout_world_size: int, metadata: list[dict]
     ) -> tuple[dict[str, list[Any]], dict[str, list[Any]]]:
         """Build communication topology between all workers.
 
         Args:
-            trainer_world_size: The world size of the trainer worker group.
+            actor_wg_world_size: The world size of the actor worker group.
             rollout_world_size: The world size of the rollout replica.
             metadata: A list of metadata `prepare` from all workers.
 
         Returns:
-            A tuple of two dictionaries that contains the communication topology for trainer and rollout worker group.
+            A tuple of two dictionaries that contains the communication topology for actor and rollout worker group.
             Each dict value should be a list argument equal to the world size of the worker group to dispatch to
             `init_process_group`.
 
             ```
-            world_size = rollout.world_size + trainer.world_size
+            world_size = rollout.world_size + actor_wg.world_size
             kwargs = {
                 "rank": list(range(world_size)),
                 "world_size": [world_size] * world_size,
@@ -219,13 +244,13 @@ class CheckpointEngineWithCache(CheckpointEngine):
 
 @CheckpointEngineRegistry.register("naive")
 class ColocatedCheckpointEngine(CheckpointEngine):
-    """Checkpoint engine for trainer and rollout colocated on same GPU.
+    """Checkpoint engine for actor and rollout colocated on same GPU.
 
-    In trainer process:
+    In actor process:
     >>> engine = ColocatedCheckpointEngine()
-    >>> trainer = Trainer()
+    >>> actor = Actor()
     >>> server_adapter = ServerAdapter()
-    >>> engine.send_weights(trainer.get_per_tensor_param())
+    >>> engine.send_weights(actor.get_per_tensor_param())
     >>> server_adapter.update_weights(engine.receive_weights())
     """
 
@@ -298,6 +323,13 @@ class CheckpointEngineWorker(Worker):
 
         self.server_adapter: BaseRollout = server_adapter
         backend = self.rollout_config.checkpoint_engine.backend
+        if backend == "delta_sharded" and self.rollout_config.name != "sglang":
+            raise NotImplementedError(
+                f"checkpoint_engine.backend={backend!r} currently supports only the sglang rollout "
+                f"(got rollout.name={self.rollout_config.name!r}): the sparse apply is dispatched "
+                "through sglang's custom-weight-loader hook. Other backends need a per-backend "
+                "apply interface, planned as a follow-up."
+            )
         bucket_size = self.rollout_config.checkpoint_engine.update_weights_bucket_megabytes << 20
         engine_kwargs = self.rollout_config.checkpoint_engine.engine_kwargs.get(backend, {})
         # If custom_backend_module is set, import it so plugins can register
@@ -323,7 +355,11 @@ class CheckpointEngineWorker(Worker):
     async def update_weights(self, global_steps: int = None, peft_config: dict = None, base_sync_done: bool = False):
         weights = self.checkpoint_engine.receive_weights(global_steps=global_steps)
         await self.server_adapter.update_weights(
-            weights, global_steps=global_steps, peft_config=peft_config, base_sync_done=base_sync_done
+            weights,
+            global_steps=global_steps,
+            peft_config=peft_config,
+            base_sync_done=base_sync_done,
+            wire_format=getattr(self.checkpoint_engine, "wire_format", "named_tensors"),
         )
 
     @register(dispatch_mode=Dispatch.DP_COMPUTE, blocking=False)
@@ -345,12 +381,12 @@ _worker_cls = ray.remote(CheckpointEngineWorker)
 
 
 class CheckpointEngineManager:
-    """Checkpoint engine manager to coordinate weight synchronization between trainer and rollout replicas.
+    """Checkpoint engine manager to coordinate weight synchronization between actor and rollout replicas.
 
     - ME: model engine, FSDP, MCore, VeOmni, export full tensor generator `get_per_tensor_param`
     - CE: checkpoint engine, NCCL, NIXL, etc
 
-    In trainer, model engine and checkpoint engine are in same process.
+    In actor, model engine and checkpoint engine are in same process.
     In rollout, checkpoint engine and rollout worker are in separate process, update weights via cuda ipc.
 
     ```
@@ -369,14 +405,14 @@ class CheckpointEngineManager:
 
     Args:
         config: The checkpoint engine config.
-        trainer: The trainer worker group.
+        actor_wg: The actor worker group (the training side that produces weights).
         replicas: The list of rollout replicas.
     """
 
     def __init__(
         self,
         config: CheckpointEngineConfig,
-        trainer: RayWorkerGroup,
+        actor_wg: RayWorkerGroup,
         replicas: list[RolloutReplica],
         lora_adapter_sync: bool = False,
     ) -> None:
@@ -384,7 +420,7 @@ class CheckpointEngineManager:
         self.backend = config.backend
         import_external_libs(self.config.custom_backend_module or None)
         self.backend_cls = CheckpointEngineRegistry.get(config.backend)
-        self.trainer = trainer
+        self.actor_wg = actor_wg
         self.replicas = replicas
         # Opt-in (async_training.lora_adapter_sync): when True and the trainer is in
         # adapter-mode LoRA, sync only the LoRA adapter every step (after a one-time
@@ -392,30 +428,30 @@ class CheckpointEngineManager:
         self.lora_adapter_sync = lora_adapter_sync
 
     def build_process_group(self, rollout: RayWorkerGroup):
-        """Build process group for trainer and rollout replicas."""
-        trainer = self.trainer
+        """Build process group for actor worker group and rollout replicas."""
+        actor_wg = self.actor_wg
 
         # 1. prepare all workers
         metadata = ray.get(
-            trainer.execute_checkpoint_engine(["prepare"] * trainer.world_size)
+            actor_wg.execute_checkpoint_engine(["prepare"] * actor_wg.world_size)
             + rollout.execute_checkpoint_engine(["prepare"] * rollout.world_size)
         )
 
         # 2. build communication topology between all workers
-        trainer_kwargs, rollout_kwargs = self.backend_cls.build_topology(
-            trainer.world_size, rollout.world_size, metadata
+        actor_wg_kwargs, rollout_kwargs = self.backend_cls.build_topology(
+            actor_wg.world_size, rollout.world_size, metadata
         )
-        for k, v in trainer_kwargs.items():
-            assert len(v) == trainer.world_size, f"trainer_kwargs[{k}] must have length of {trainer.world_size}"
+        for k, v in actor_wg_kwargs.items():
+            assert len(v) == actor_wg.world_size, f"actor_wg_kwargs[{k}] must have length of {actor_wg.world_size}"
         for k, v in rollout_kwargs.items():
             assert len(v) == rollout.world_size, f"rollout_kwargs[{k}] must have length of {rollout.world_size}"
 
-        trainer_kwargs["method"] = ["init_process_group"] * trainer.world_size
+        actor_wg_kwargs["method"] = ["init_process_group"] * actor_wg.world_size
         rollout_kwargs["method"] = ["init_process_group"] * rollout.world_size
 
         # 3. init process group between all workers
         ray.get(
-            trainer.execute_checkpoint_engine(**trainer_kwargs) + rollout.execute_checkpoint_engine(**rollout_kwargs)
+            actor_wg.execute_checkpoint_engine(**actor_wg_kwargs) + rollout.execute_checkpoint_engine(**rollout_kwargs)
         )
 
     def add_replicas(self, replicas: list[RolloutReplica]):
@@ -475,16 +511,16 @@ class CheckpointEngineManager:
 
     @auto_await
     async def update_weights(self, global_steps: int = None):
-        """Update weights from trainer to rollout replicas.
+        """Update weights from actor worker group to rollout replicas.
 
         Args:
-            global_steps: The global steps of the trainer.
+            global_steps: The global steps of the actor worker group.
         """
 
-        # 0. update weights for sync training with colocated trainer and rollout
+        # 0. update weights for sync training with colocated actor and rollout
         if self.backend == "naive":
-            ray.get(self.trainer.update_weights(global_steps=global_steps, mode=self.backend))
-            return
+            ray.get(self.actor_wg.update_weights(global_steps=global_steps, mode=self.backend))
+            return {}
 
         # 1. abort and save all unfinished requests for partial rollout
         await self.abort_replicas()
@@ -494,7 +530,7 @@ class CheckpointEngineManager:
         for replica in self.replicas:
             workers.extend(replica.workers)
         rollout = RayWorkerGroup(worker_handles=workers, ray_cls_with_init=RayClassWithInitArgs(cls=_worker_cls))
-        trainer = self.trainer
+        actor_wg = self.actor_wg
 
         # 3. release kv_cache before weight sync (weights stay in place)
         await self.release_kv_cache_replicas()
@@ -504,7 +540,7 @@ class CheckpointEngineManager:
 
         # 4.5. query LoRA metadata to decide between a plain full-weight sync and
         # the two-phase adapter sync (one-time base broadcast + per-step adapter).
-        meta = ray.get(self.trainer.get_weight_sync_metadata())[0]
+        meta = ray.get(actor_wg.get_weight_sync_metadata())[0]
         peft_config = meta["peft_config"]
         # Adapter-only fast sync is opt-in (async_training.lora_adapter_sync). When
         # disabled we ignore the adapter metadata and fall back to the legacy
@@ -512,39 +548,46 @@ class CheckpointEngineManager:
         adapter_fast_sync = meta["is_lora_adapter"] and self.lora_adapter_sync
 
         # 5. update weights of all workers
+        sync_metrics: dict = {}
         if adapter_fast_sync:
             # Two-phase LoRA sync: one-time frozen-base broadcast, then per-step adapter.
             if not meta["base_sync_done"]:
                 # Phase 1 (once): broadcast the frozen base model; rollout loads it
                 # as a standard weight update so the LoRA adapter has a matching base.
                 ray.get(
-                    trainer.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=False)
+                    actor_wg.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=False)
                     + rollout.update_weights(global_steps=global_steps, peft_config=None, base_sync_done=False)
                 )
             # Phase 2 (every step): broadcast the LoRA adapter; rollout swaps it in
             # via peft_config without touching the base weights.
-            ray.get(
-                trainer.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=True)
+            results = ray.get(
+                actor_wg.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=True)
                 + rollout.update_weights(global_steps=global_steps, peft_config=peft_config, base_sync_done=True)
             )
         elif meta["is_lora_adapter"]:
             # Adapter-mode LoRA with fast sync disabled: legacy behavior, broadcast
             # the full base model every step as a standard weight update (no adapter
             # swap), exactly restoring the pre-feature full-model nccl sync.
-            ray.get(
-                trainer.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=False)
+            results = ray.get(
+                actor_wg.update_weights(global_steps=global_steps, mode=self.backend, base_sync_done=False)
                 + rollout.update_weights(global_steps=global_steps, peft_config=None, base_sync_done=False)
             )
         else:
             # Non-LoRA or merged weights: standard full/merged weight sync.
-            ray.get(
-                trainer.update_weights(global_steps=global_steps, mode=self.backend)
+            results = ray.get(
+                actor_wg.update_weights(global_steps=global_steps, mode=self.backend)
                 + rollout.update_weights(global_steps=global_steps)
             )
 
+        # The sender workers return the engine's per-sync metrics (empty for
+        # backends that don't track any); merge and hand them to the trainer.
+        for result in results[: actor_wg.world_size]:
+            if isinstance(result, dict):
+                sync_metrics.update(result)
+
         # 6. finalize all workers
         ray.get(
-            trainer.execute_checkpoint_engine(["finalize"] * trainer.world_size)
+            actor_wg.execute_checkpoint_engine(["finalize"] * actor_wg.world_size)
             + rollout.execute_checkpoint_engine(["finalize"] * rollout.world_size)
         )
 
@@ -554,10 +597,12 @@ class CheckpointEngineManager:
         # 8. resume all unfinished requests for partial rollout
         await self.resume_generation_replicas()
 
+        return sync_metrics
+
 
 async def split_weight_chunks(
-    weights: Generator[tuple[str, torch.Tensor], None, None], bucket_size: int
-) -> AsyncGenerator[tuple[TensorMeta, torch.Tensor], None]:
+    weights: Generator[tuple[str, torch.Tensor], None, None], bucket_size: int, meta_only: bool = False
+) -> AsyncGenerator[tuple[TensorMeta, torch.Tensor | None], None]:
     """Split the weight into chunks.
 
     Args:
@@ -580,7 +625,7 @@ async def split_weight_chunks(
                 chunk_size=chunk_size,
                 offset=None,
             )
-            yield (tensor_meta, buffer[chunk_offset : chunk_offset + chunk_size])
+            yield (tensor_meta, None if meta_only else buffer[chunk_offset : chunk_offset + chunk_size])
             chunk_offset += chunk_size
 
 
