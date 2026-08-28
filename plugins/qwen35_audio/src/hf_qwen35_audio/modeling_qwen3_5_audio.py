@@ -31,6 +31,7 @@ from transformers.utils.import_utils import is_causal_conv1d_available, is_flash
 
 from .configuration_qwen3_5_audio import Qwen3_5AudioConfig
 from .cascade_encoder import ConformerEncoder  # noqa: F401 — force HF to copy this file
+from .processing_qwen3_5_audio import Qwen3_5AudioProcessor  # noqa: F401
 from .audio_embedding import AudioEmbedding
 
 try:

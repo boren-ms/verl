@@ -17,6 +17,36 @@ from .processing_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
 logger = logging.getLogger(__name__)
 
 
+def _match_audio_positions(positions, audio_embed_sizes):
+    expected = int(audio_embed_sizes.sum().item())
+    if expected == len(positions):
+        return positions
+
+    matched = []
+    cursor = 0
+    for size in audio_embed_sizes.tolist():
+        size = int(size)
+        if size == 0:
+            continue
+
+        while cursor + size <= len(positions):
+            candidate = positions[cursor:cursor + size]
+            same_row = bool(torch.all(candidate[:, 0] == candidate[0, 0]))
+            contiguous = size == 1 or bool(torch.all(candidate[1:, 1] == candidate[:-1, 1] + 1))
+            if same_row and contiguous:
+                matched.append(candidate)
+                cursor += size
+                break
+            cursor += 1
+        else:
+            raise ValueError(
+                f"Could not match an audio placeholder block of size {size}: "
+                f"expected {expected} positions, found {len(positions)}."
+            )
+
+    return torch.cat(matched, dim=0) if matched else positions[:0]
+
+
 class AudioEmbedding(nn.Module):
     """Audio embedding layer — encodes audio features and splices them into text embeddings."""
 
@@ -210,7 +240,13 @@ class AudioEmbedding(nn.Module):
 
         hidden_states = hidden_states.clone()
         if len(positions.tolist()) > 0:
-            assert audio_embed_sizes.sum().item() == len(positions)
+            matched_positions = _match_audio_positions(positions, audio_embed_sizes)
+            if len(matched_positions) != len(positions):
+                logger.warning(
+                    "Ignoring %s stray AUDIO_PAD token position(s) outside the expected audio placeholder blocks.",
+                    len(positions) - len(matched_positions),
+                )
+            positions = matched_positions
             idx = 0
             audio_idx = 0
             for i in range(len(audio_embed_sizes)):
