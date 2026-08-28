@@ -630,6 +630,8 @@ class AlgoConfig(BaseConfig):
         binary_adv (bool): Whether to binarize ReMax advantages to sign-only scores.
         binary_adv_scale (float | dict): Scale applied after binarization. Float applies uniformly;
             dict with 'pos'/'neg' keys sets separate scales for positive/negative advantages.
+        adv_scale (float | dict): Scale applied to ReMax advantages. Float applies uniformly;
+            a dict maps data source names to scales, with an optional 'default' fallback.
         remax_mask (bool): Whether to restrict the policy/entropy/KL loss to the ReMax "disagree"
             tokens. When enabled (REMAX adv_estimator only), each sampled trajectory's tokens are
             aligned against its greedy baseline; only the tokens that cannot be aligned to the
@@ -664,6 +666,7 @@ class AlgoConfig(BaseConfig):
     norm_adv_by_std_in_grpo: bool = True
     binary_adv: bool = False
     binary_adv_scale: Any = 1.0
+    adv_scale: Any = 1.0
     remax_mask: bool = False
     use_kl_in_reward: bool = False
     kl_penalty: str = "kl"

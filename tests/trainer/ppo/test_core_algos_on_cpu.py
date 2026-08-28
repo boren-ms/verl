@@ -20,10 +20,12 @@ import pytest
 import torch
 
 import verl.trainer.ppo.core_algos
+from verl.trainer.config.algorithm import AlgoConfig
 from verl.trainer.ppo.core_algos import (
     compute_gae_advantage_return,
     compute_grpo_outcome_advantage,
     compute_grpo_vectorized_outcome_advantage,
+    compute_remax_outcome_advantage,
     compute_rloo_outcome_advantage,
     compute_rloo_vectorized_outcome_advantage,
     get_adv_estimator_fn,
@@ -332,6 +334,41 @@ def test_grpo_and_vectorized_equivalence(batch_size: int, seq_len: int, num_grou
     assert ret1.shape == ret2.shape == (batch_size, seq_len)
     assert torch.allclose(adv1, adv2, rtol=1e-5, atol=1e-6)
     assert torch.allclose(ret1, ret2, rtol=1e-5, atol=1e-6)
+
+
+def test_compute_remax_outcome_advantage_datasource_adv_scale():
+    token_level_rewards = torch.tensor(
+        [[0.0, 0.8, 0.0], [0.0, 0.2, 0.0], [0.0, 0.8, 0.0]], dtype=torch.float
+    )
+    reward_baselines = torch.full((3,), 0.5, dtype=torch.float)
+    response_mask = torch.tensor([[0.0, 1.0, 0.0]] * 3, dtype=torch.float)
+
+    advantages, returns = compute_remax_outcome_advantage(
+        token_level_rewards=token_level_rewards,
+        reward_baselines=reward_baselines,
+        response_mask=response_mask,
+        data_sources=np.array(["openml", "openml", "unknown"]),
+        config=AlgoConfig(adv_estimator="remax", adv_scale={"openml": 2.0, "default": 3.0}),
+    )
+
+    expected_advantages = torch.tensor(
+        [[1.6, 0.6, 0.0], [0.4, -0.6, 0.0], [2.4, 0.9, 0.0]], dtype=torch.float
+    )
+    expected_returns = torch.tensor(
+        [[0.8, 0.8, 0.0], [0.2, 0.2, 0.0], [0.8, 0.8, 0.0]], dtype=torch.float
+    )
+    assert torch.allclose(advantages, expected_advantages)
+    assert torch.equal(returns, expected_returns)
+
+
+def test_compute_remax_outcome_advantage_datasource_adv_scale_requires_sources():
+    with pytest.raises(ValueError, match="requires data_sources"):
+        compute_remax_outcome_advantage(
+            token_level_rewards=torch.tensor([[0.0, 0.8]], dtype=torch.float),
+            reward_baselines=torch.tensor([0.5], dtype=torch.float),
+            response_mask=torch.ones((1, 2), dtype=torch.float),
+            config=AlgoConfig(adv_estimator="remax", adv_scale={"openml": 2.0}),
+        )
 
 
 @pytest.mark.parametrize(

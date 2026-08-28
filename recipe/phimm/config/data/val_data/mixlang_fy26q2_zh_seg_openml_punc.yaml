@@ -1,0 +1,64 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+    cache_audio: {}
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: mixlang_fy26q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/pt/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/bad_fmt_lang_bracket.jsonl
+  cache_name: auto_openasr_ml_bad_fmt_lang_bracket
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml_bad
+    verl_format:
+      prompt_key: prompt
+
+# Punc/cap eval: presegmented en-US Conversation_DTEST_FY21Q1.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/en-US/Conversation_DTEST_FY21Q1_en-US/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+    cache_audio: {}
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_conv_fy21q1
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

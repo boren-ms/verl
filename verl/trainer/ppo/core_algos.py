@@ -796,6 +796,7 @@ def compute_remax_outcome_advantage(
     reward_baselines: torch.Tensor,
     response_mask: torch.Tensor,
     config: Optional[AlgoConfig] = None,
+    data_sources: Optional[np.ndarray] = None,
     **kwargs,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
@@ -811,6 +812,8 @@ def compute_remax_outcome_advantage(
         response_mask: `(torch.Tensor)`
             shape: (bs, response_length)
         config: (AlgoConfig) algorithm config
+        data_sources: `(np.ndarray)`
+            data source name for each row (required when adv_scale is a dict)
 
     Returns:
         advantages: `(torch.Tensor)`
@@ -833,6 +836,22 @@ def compute_remax_outcome_advantage(
                 advantages = signs * scales * response_mask
             else:
                 advantages = signs * float(binary_adv_scale) * response_mask
+
+        if config is not None:
+            adv_scale = config.get("adv_scale", 1.0)
+            if isinstance(adv_scale, (dict, DictConfig)):
+                if data_sources is None:
+                    raise ValueError("Per-datasource adv_scale requires data_sources")
+                if len(data_sources) != advantages.shape[0]:
+                    raise ValueError(
+                        f"Expected {advantages.shape[0]} data_sources for adv_scale, got {len(data_sources)}"
+                    )
+                default_scale = float(adv_scale.get("default", 1.0))
+                row_scales = [float(adv_scale.get(str(data_source), default_scale)) for data_source in data_sources]
+                scales = torch.tensor(row_scales, device=advantages.device, dtype=advantages.dtype).unsqueeze(-1)
+                advantages = advantages * scales
+            else:
+                advantages = advantages * float(adv_scale)
 
     return advantages, returns
 
