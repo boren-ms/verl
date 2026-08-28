@@ -1,20 +1,19 @@
-updated_at_utc: 2026-08-28T04:20:32Z
+updated_at_utc: 2026-08-28T05:34:16Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
 │ i1           │ raysubmit_YdaibFEpBq91cm4B   │ RUNNING       │ remax_2607v1_mix_digits_openml2x_s200_bs64_ilv                             │ training 195/200 (97.5%)                     │
-│ i2           │ raysubmit_3xazFaSDZx7jGXcY   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (decoding batch 2868 baseline) │
+│ i2           │ raysubmit_dmi8aV2auxGa1Xa3   │ RUNNING       │ gen_2607v1_en                                                              │ generating en (402304/841179; model sync)    │
 │ i3           │ raysubmit_NSnkFqHgkpimTty6   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (decoding)             │
 │ i4           │ raysubmit_urrBvniDevpnzhA7   │ RUNNING       │ remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1                           │ training 82/100 (82.0%)                      │
-│ i5           │ raysubmit_8uKKX6s5W3ctPyXu   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg_2607                                      │ evaluating mixlang (complete)                 │
-│ i6           │ raysubmit_t8QnVE6azPDMjbku   │ SUCCEEDED     │ remax_2607v1_oss_bad_lang_rc10_s200_bs64_rw0                               │ training 200/200 (100.0%)                    │
+│ i7           │ raysubmit_G12HdhheKczJdbjg   │ RUNNING       │ remax_2607v1_mixcv15_digits_openml_verb_s200_bs256_ilv                     │ training 0/200 (initial validation complete) │
 │ i11          │ raysubmit_21FPLsznvgvWUsie   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (decoding)             │
-│ i13          │ raysubmit_vq8Kcer4HGKL4dTR   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0        │ training 58/200 (29.0%)                      │
-│ i14          │ raysubmit_LwALYrx2YqcRPuTZ   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg_2607                                      │ evaluating mixlang (complete)                │
+│ i13          │ raysubmit_vq8Kcer4HGKL4dTR   │ RUNNING       │ remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0          │ training 58/200 (29.0%)                      │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
+- remax_2607v1_mixcv15_digits_openml_verb_s200_bs256_ilv [i7]: training 0/200 (initial validation complete)
 - remax_2607v1_digits_s200_bs64_sfl_tm1 [i14]: complete step 160
 - remax_2607v1_bad_mix13k_s100_bs64_lid05_sfl_tm1 [i11]: evaluating openasr_ml step 100
 - remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1 [i4]: training 82/100 (82.0%)
