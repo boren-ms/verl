@@ -1,7 +1,7 @@
 ---
 name: eval-2607-benchmark-report
 description: "Evaluate one or more checkpoint steps of the same 2607 ASR model by running dataset evaluations in parallel across free Ready Brix nodes, then create one baseline-aware multi-step Excel report per model. Use when: evaluate 2607 benchmarks, run parallel 2607 model evaluation, build a consolidated 2607 benchmark report, compare checkpoints across steps, or compare a 2607 model against its reference model."
-argument-hint: '<model-label> --checkpoint <step>=<model-path> [--checkpoint <step>=<model-path> ...] [--node <verl-node> ...] [--include-digits-enus] [--include-digits-tier1] [--artifact-root <az-path>] [--out <xlsx>]'
+argument-hint: '<model-label> --checkpoint <step>=<model-path> [--checkpoint <step>=<model-path> ...] [--node <verl-node> ...] [--include-digits-tier1] [--artifact-root <az-path>] [--out <xlsx>]'
 ---
 
 # 2607 Benchmark Evaluation And Consolidated Model Report
@@ -17,7 +17,6 @@ Delegate each remote job's submission, monitoring, failure recovery, and result 
 | `model-label` | Yes | Shared model/run label such as `remax_2607`; used for the consolidated workbook name and summary. |
 | `--checkpoint <step>=<model-path>` | Yes | Checkpoint label and candidate HF path, normally an `az://.../qwen_hf/` directory. Repeat in desired step order. Labels must be unique and paths must belong to the same model family. |
 | `--node` | No | Restrict scheduling to this Ready `verl-n<N>-*` pool. Repeat to provide an allowlist. When omitted, use every eligible free Ready pool. Each evaluation uses its assigned pool's verified `N` as `trainer.nnodes`. |
-| `--include-digits-enus` | No | Add the optional en-US digits benchmark. |
 | `--include-digits-tier1` | No | Add the optional Tier 1 digits benchmark. |
 | `--out` | No | Consolidated workbook path. Default: `tmp/eval_2607_reports/<model-label>.xlsx`. |
 | `--artifact-root` | No | Durable `az://.../` root for raw evaluation artifacts. Default: the common remote evaluation output root for `<model-label>`; it must not be node-local storage. |
@@ -29,7 +28,7 @@ Run every required config with the candidate model path as a Hydra override. Eac
 | Workbook sheet | Config | Metric | Reference source |
 |---|---|---|---|
 | `inhouse_dter` | `recipe/phimm/config/eval/long_eval_inhouse_2607_all_seg30.yaml` | micro-DTER | `model.path` in the config and its reference result directory. |
-| `digits_enus` | `recipe/phimm/config/eval/eval_digits_enus_2607.yaml` | Digit CER and WER | Only include when `--include-digits-enus`; baseline is `actor_rollout_ref.model.path`. |
+| `digits_enus` | `recipe/phimm/config/eval/eval_digits_enus_2607.yaml` | Digit CER and WER | Required by default; baseline is `actor_rollout_ref.model.path`. |
 | `openasr_ml` | `recipe/phimm/config/eval/eval_openasr_ml_verb_2607.yaml` | WER / `p_err` | `actor_rollout_ref.model.path` in the config. |
 | `mixlang` | `recipe/phimm/config/eval/long_eval_mixlang_fy26q2_zh_seg_2607.yaml` | DTER / TER | `model.path` in the config and its reference result directory. |
 | `digits_tier1` | `recipe/phimm/config/eval/eval_digits_tier1_2607.yaml` | Digit CER and WER | Only include when `--include-digits-tier1`; baseline is `actor_rollout_ref.model.path`. |
@@ -39,7 +38,7 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 ## Procedure
 
 1. Resolve the exact committed config files and record the reference model path from each file before submitting jobs. Confirm every requested candidate path is an HF-loadable model directory, checkpoint labels are unique, and all paths belong to the same model family.
-2. Build a work matrix with one row for every requested checkpoint and required candidate benchmark. Add reference rows only for benchmarks without an embedded baseline, such as explicitly requested digits, or when the caller requests a refreshed reference. Give every row a unique experiment name and output path below `<artifact-root>/<checkpoint>/<benchmark>/<candidate|reference>/`. Rows are independent and may run concurrently; never submit the same row twice.
+2. Build a work matrix with one row for every requested checkpoint and required candidate benchmark, including `digits_enus`. Add a matching `digits_enus` reference row because it has no embedded baseline. Add other reference rows only for optional benchmarks without an embedded baseline, such as requested `digits_tier1`, or when the caller requests a refreshed reference. Give every row a unique experiment name and output path below `<artifact-root>/<checkpoint>/<benchmark>/<candidate|reference>/`. Rows are independent and may run concurrently; never submit the same row twice.
 3. Reconstruct occupancy across all Ready `verl-*` GPU pools, or only the repeated `--node` allowlist when supplied, using `verl-asr-run`'s two occupancy signals: active Ray jobs and GPU utilization/memory. A pool is free only when it has no running Ray job and all GPUs are idle. Do not stop, replace, or share a pool with unrelated work. If no eligible pool is free, keep pending rows queued and wait for a permitted pool rather than overcommitting it.
 4. For each free pool, derive `EVAL_NNODES=N` from its `verl-n<N>-*` name and confirm that count against the healthy nodes reported by `ray status`. Do not copy `trainer.nnodes` from the config or assume it is `1`. If the name and live Ray count disagree, mark that pool ineligible until its health/count is resolved. Push the current workspace to every newly selected pool with `rcall-brix sync <node>` before its first submission.
 5. Fill all eligible free pools in parallel, assigning at most one work-matrix row to each pool. Submit each row through `verl-asr-run` with its candidate or reference model path, unique output/experiment overrides, and `trainer.nnodes=${EVAL_NNODES}` for that assigned pool. Configure detailed decoding outputs to write or upload to the row's durable remote path, never only to node-local storage. Prefer spreading different datasets and checkpoints across pools; scheduling order must not change workbook order.
@@ -54,7 +53,7 @@ The reference checkpoint and candidate must use the same config, data, locale, s
    Confirm every recorded `az://` object or prefix exists and is readable. A W&B URL alone is not a substitute for the raw key-metrics log, and a Ray job log or node-local path is not a durable detailed-decoding result.
 9. Extract metrics from the final candidate and reference outputs:
    - `inhouse_dter`: calculate micro-DTER as $\sum edits / \sum reference\ tokens$ per corpus; do not use segment-macro DTER. Compute `overall avg` as the arithmetic mean of the displayed corpus micro-DTER values so it matches the embedded baseline convention; do not pool counts across corpora.
-   - Optional `digits_enus` and `digits_tier1`: preserve both Digit CER and WER, with every evaluated dataset as a row.
+   - Required `digits_enus` and optional `digits_tier1`: preserve both Digit CER and WER, with every evaluated dataset as a row.
    - `openasr_ml`: use final `p_err`/WER per dataset, language averages, and an overall average.
    - `mixlang`: use the final reference-compatible DTER/TER from `measures.json`, retaining the configured zh-CN scoring context.
 10. Write one artifact sidecar per checkpoint under `tmp/eval_2607_reports/<model-label>/`, for example `step560.artifacts.json`. Sidecars are durable provenance inputs to the consolidated report; never place them directly under `tmp/eval_2607_reports/`. Then use [scripts/build_2607_report.py](./scripts/build_2607_report.py) to create a temporary workbook for each checkpoint under `tmp/eval_2607_reports/<model-label>/.staging/`. These workbooks are implementation artifacts only: do not present them as reports, and remove the staging directory after the consolidated workbook passes all quality gates. Each temporary benchmark sheet holds a reference column (`A`), a candidate column (`B`), and a delta column `A->B` computed exactly like `inhouse-dter-report`:
@@ -67,12 +66,12 @@ The reference checkpoint and candidate must use the same config, data, locale, s
    - `<checkpoint>_<benchmark>`: a faithful copy of each benchmark sheet, retaining formulas, percentage formatting, conditional formatting, widths, and provenance values. Sheet names are sanitized for Excel, limited to 31 characters, and given a stable hash suffix only when truncation causes a collision.
 
    Do not copy staged per-checkpoint `summary` sheets verbatim; consolidate them into the single cross-step `summary`. Reject the build if checkpoint labels repeat or if checkpoints differ in included benchmark/metric/config schema. Do not silently combine checkpoints from different model families, baseline revisions, optional benchmark sets, or config revisions.
-12. The consolidated `summary` uses the same red→white→green delta color scale as benchmark sheets and contains one untitled clustered-column, delta-only chart for all included benchmark metrics and checkpoint steps. Dataset names are the x-axis categories, and checkpoint steps are separate column series clustered within each dataset group. Assign stable distinct colors to checkpoint series. Show a top checkpoint legend and percentage-only data labels without legend keys. Disable negative inversion. Add 15% of the observed delta span below and above the y-axis range while keeping zero visible. Use column overlap `-40%` and gap width `260`. Keep baseline and candidate in the table but not in chart series or labels. Anchor the chart in column `A` below the visible summary table, store chart source data in hidden helper columns on the same sheet, and disable `plotVisOnly`. Include digits rows and categories only when explicitly requested.
+12. The consolidated `summary` uses the same red→white→green delta color scale as benchmark sheets and contains one untitled clustered-column, delta-only chart for all included benchmark metrics and checkpoint steps. Dataset names are the x-axis categories, and checkpoint steps are separate column series clustered within each dataset group. Assign stable distinct colors to checkpoint series. Show a top checkpoint legend and percentage-only data labels without legend keys. Disable negative inversion. Add 15% of the observed delta span below and above the y-axis range while keeping zero visible. Use column overlap `-40%` and gap width `260`. Keep baseline and candidate in the table but not in chart series or labels. Anchor the chart in column `A` below the visible summary table, store chart source data in hidden helper columns on the same sheet, and disable `plotVisOnly`. Always include `digits_enus` rows and categories; include `digits_tier1` only when explicitly requested.
 13. Preserve baseline and raw-artifact provenance in the consolidated workbook and checkpoint sidecars: config path, reference model path, candidate path, metric definition, W&B run URL/ID, key-metrics remote path, detailed-decoding remote paths, and artifact-manifest remote path. After validating the final workbook, delete all staged `.xlsx` files. The only retained Excel deliverable for the model is the consolidated workbook.
 
 ### Build checkpoint staging inputs
 
-Each benchmark takes a candidate source and an optional baseline source. A source is auto-detected as one of: an `az://.../` root or local directory holding `<slug>/measures.json` (used for the DTER benchmarks `inhouse_dter` and `mixlang`); a `*.json` metrics file (`{ds: value}` or `{ds: {metric: value}}`); a text log with `val-aux/<ds>/<metric>/mean@1` lines; or `ray:<node>:<job_id>` to pull `ray job logs`.
+Each benchmark takes a candidate source and accepts a baseline source. The baseline source is required for `digits_enus` and any included `digits_tier1` because neither has an embedded baseline; it is optional for benchmarks with embedded baselines. A source is auto-detected as one of: an `az://.../` root or local directory holding `<slug>/measures.json` (used for the DTER benchmarks `inhouse_dter` and `mixlang`); a `*.json` metrics file (`{ds: value}` or `{ds: {metric: value}}`); a text log with `val-aux/<ds>/<metric>/mean@1` lines; or `ray:<node>:<job_id>` to pull `ray job logs`.
 
 **Collecting the baseline result.** The baseline (column `A` in the report schema) uses the current embedded 2607v1 values when `--<bench>-baseline` is omitted:
 
@@ -83,7 +82,7 @@ Each benchmark takes a candidate source and an optional baseline source. A sourc
 | `mixlang` | `2607v1` | B | 21.24% |
 | `digits_enus` / `digits_tier1` | none | — | Supply `ray:<node>:<job_id>`, log, or JSON via `--<bench>-baseline`. |
 
-An explicit `--<bench>-baseline` source overrides the embedded values. For optional digits, collect the baseline by running the same config with the reference model through `verl-asr-run` and passing its Ray job as the baseline source (or a captured log/JSON). Collect candidate results with the candidate model path.
+An explicit `--<bench>-baseline` source overrides the embedded values. For required `digits_enus` and optional `digits_tier1`, collect the baseline by running the same config with the reference model through `verl-asr-run` and passing its Ray job as the baseline source (or a captured log/JSON). Collect candidate results with the candidate model path.
 
 ```bash
 /home/boren/.virtualenvs/openai/bin/python \
@@ -92,12 +91,14 @@ An explicit `--<bench>-baseline` source overrides the embedded values. For optio
    --candidate-model-path az://orngwus2cresco/.../global_step_560/qwen_hf/ \
    --artifacts-sidecar-local tmp/eval_2607_reports/remax_2607/step560.artifacts.json \
   --inhouse-dter  az://orngwus2cresco/.../cand/inhouse_2605_all_seg30/ \
+   --digits-enus       ray:verl-n1-i1:raysubmit_DIGITS_CAND \
+   --digits-enus-baseline ray:verl-n1-i2:raysubmit_DIGITS_BASE \
   --mixlang           az://orngwus2cresco/.../cand/long_audio_mixlang_fy26q2_zh_seg/ \
   --openasr-ml           ray:verl-n1-i0:raysubmit_CAND2 \
    --out tmp/eval_2607_reports/remax_2607/.staging/step560.xlsx
 ```
 
-The `inhouse_dter`, `openasr_ml`, and `mixlang` baselines come from the embedded table above, so their `--*-baseline` flags may be omitted. Add `--digits-enus <cand>` with `--digits-enus-baseline <base>` only when `--include-digits-enus` was requested. Add `--digits-tier1 <cand>` with `--digits-tier1-baseline <base>` only when `--include-digits-tier1` was requested. Only benchmarks whose candidate source is supplied get a sheet.
+The `inhouse_dter`, `openasr_ml`, and `mixlang` baselines come from the embedded table above, so their `--*-baseline` flags may be omitted. Always add `--digits-enus <cand>` with `--digits-enus-baseline <base>`. Add `--digits-tier1 <cand>` with `--digits-tier1-baseline <base>` only when `--include-digits-tier1` was requested. Only benchmarks whose candidate source is supplied get a sheet.
 
 ### Build the single model report
 
@@ -133,7 +134,7 @@ Before delivering the workbook, verify all of the following:
 - Every submitted candidate and reference evaluation explicitly used `trainer.nnodes` equal to the verified node count of its running `verl-n<N>-*` pool.
 - Every eligible free pool was filled while pending work remained, with at most one active evaluation row per pool and no duplicate work-matrix submissions.
 - Every selected pool was verified free using both Ray-job and GPU occupancy signals, and no unrelated job was displaced or colocated.
-- `digits_enus` and `digits_tier1` are absent unless explicitly requested.
+- `digits_enus` is present for every checkpoint, and `digits_tier1` is absent unless explicitly requested.
 - Baselines are the embedded 2607v1 values or verified matching reference outputs supplied explicitly.
 - Candidate and baseline use identical data/locale/scoring parameters for each sheet.
 - Every executed evaluation has a readable remote `artifact_manifest.json`, raw key-metrics log, and detailed decoding result path; none points only to node-local storage.
@@ -145,7 +146,7 @@ Before delivering the workbook, verify all of the following:
 - Every cell style references an existing fill, font, border, alignment, and number-format record; in particular, no `fillId` may be greater than or equal to the declared fills count in `xl/styles.xml`.
 - Exactly one model-level Excel workbook is retained; no per-checkpoint `.xlsx` files remain after validation.
 - The consolidated workbook contains exactly one `summary` sheet plus one prefixed benchmark sheet per checkpoint and included benchmark; it contains no copied per-checkpoint summary sheets.
-- Checkpoint labels are unique, benchmark/metric/config/baseline schemas and optional-digits coverage are identical, and candidate paths identify steps of the same model family.
+- Checkpoint labels are unique, benchmark/metric/config/baseline schemas and optional Tier 1 digits coverage are identical, and candidate paths identify steps of the same model family.
 - The consolidated `summary` has a non-empty row for every checkpoint/benchmark/metric combination and retains both local and remote artifact sidecar paths.
 - Every local checkpoint JSON sidecar is inside `tmp/eval_2607_reports/<model-label>/`; no checkpoint JSON file is written directly under `tmp/eval_2607_reports/`.
 - Reopen the consolidated workbook with `openpyxl`, confirm its expected sheet names and row counts, and verify at least one copied delta cell still contains an Excel formula rather than a cached value.
