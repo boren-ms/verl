@@ -176,6 +176,15 @@ def _merge_by_placement(tensors: list[torch.Tensor], placement) -> torch.Tensor:
     raise NotImplementedError(f"Unsupported placement: {placement}")
 
 
+def _representative_mesh_ranks(mesh_dim_names, mesh: torch.Tensor) -> list[int]:
+    """Select one FSDP group when checkpoint shards include replicated DDP groups."""
+    if mesh_dim_names == ("fsdp",):
+        return mesh.reshape(-1).tolist()
+    if mesh_dim_names == ("ddp", "fsdp"):
+        return mesh[0].reshape(-1).tolist()
+    raise NotImplementedError(f"Unsupported mesh_dim_names {mesh_dim_names}")
+
+
 def _load_and_merge(shard_paths: list[str], workers: int = 8) -> "OrderedDict[str, torch.Tensor]":
     total = len(shard_paths)
     shard_state_dicts: list = [None] * total
@@ -200,10 +209,18 @@ def _load_and_merge(shard_paths: list[str], workers: int = 8) -> "OrderedDict[st
     pivot = shard_state_dicts[0][sorted(keys)[0]]
     if isinstance(pivot, DTensor):
         mesh_dim_names = pivot.device_mesh.mesh_dim_names
+        representative_ranks = _representative_mesh_ranks(
+            mesh_dim_names, pivot.device_mesh.mesh
+        )
+        if len(representative_ranks) != total:
+            print(
+                "       Checkpoint includes replicated DDP groups; "
+                f"merging representative FSDP ranks {representative_ranks}"
+            )
+            shard_state_dicts = [shard_state_dicts[rank] for rank in representative_ranks]
+            total = len(shard_state_dicts)
     else:
         mesh_dim_names = ("fsdp",)
-    if mesh_dim_names not in (("fsdp",), ("ddp", "fsdp")):
-        raise NotImplementedError(f"Unsupported mesh_dim_names {mesh_dim_names}")
 
     merged: "OrderedDict[str, torch.Tensor]" = OrderedDict()
     for key in tqdm(keys, desc="Merging tensors"):
