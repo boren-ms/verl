@@ -20,6 +20,7 @@
   cache_name: enus_digits_chunk_100
   add_task_info:
     task: lang_asr
+    prefix_prob: 0.5
   post_process:
     cache_audio: {}
     add_field:
