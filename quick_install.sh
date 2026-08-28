@@ -12,6 +12,34 @@ while [ -f "${running_file}" ]; do
     sleep 10
 done
 
+if [ -f "${done_file}" ] && ! python - <<'PY'
+from importlib.metadata import PackageNotFoundError, version
+
+required_versions = {
+    "torch": "2.10.0",
+    "vllm": "0.17.0",
+    "protobuf": "5.29.5",
+}
+
+for package, expected in required_versions.items():
+    try:
+        installed = version(package)
+    except PackageNotFoundError:
+        raise SystemExit(1)
+    if installed != expected:
+        raise SystemExit(1)
+
+for package in ("tensordict", "TransferQueue"):
+    try:
+        version(package)
+    except PackageNotFoundError:
+        raise SystemExit(1)
+PY
+then
+    echo "[WARN] Environment marker is stale; reinstalling."
+    rm -f "${done_file}"
+fi
+
 if [ ! -f "${done_file}" ]; then
     touch "${running_file}"
     trap 'rm -f "${running_file}"' ERR
@@ -38,7 +66,7 @@ if [ ! -f "${done_file}" ]; then
     pip install --no-deps vllm==0.17.0
 
     # 2. All project + vllm inference deps (pinned versions from working env)
-    pip install -r requirements_vllm.txt
+    pip install -r requirements_vllm.txt "protobuf==5.29.5"
 
     # Ray: DO NOT install — keep the base image version
     # pip install --no-deps "ray[default]==2.46.0"  # REMOVED
@@ -46,15 +74,29 @@ if [ ! -f "${done_file}" ]; then
     # 3. Install this repo in editable mode (no deps, they're in requirements_vllm.txt)
     pip install --no-deps -e .
 
+    # 3a. TransferQueue is sourced from GitHub, which Brix nodes cannot access directly.
+    transfer_queue_pkg="transferqueue-0.1.11.dev0-py3-none-any.whl"
+    package_dir="/root/packages"
+    transfer_queue_path="${package_dir}/${transfer_queue_pkg}"
+    mkdir -p "${package_dir}"
+    if [ ! -f "${transfer_queue_path}" ]; then
+        command -v bbb >/dev/null || {
+            echo "[ERROR] bbb is required to download ${transfer_queue_pkg}" >&2
+            exit 1
+        }
+        bbb cp \
+            "az://orngwus2cresco/data/boren/data/packages/${transfer_queue_pkg}" \
+            "${transfer_queue_path}"
+    fi
+    pip install --no-deps "${transfer_queue_path}"
+
     # 3b. Install Qwen3.5-Audio vLLM plugin (out-of-tree model support)
     pip install --no-deps -e plugins/qwen35_audio
 
     # 4. Flash attention from pre-built wheel
     flash_attn_pkg="flash_attn-2.8.3+cu128torch2.10-cp312-cp312-linux_x86_64.whl"
     remote_pkg_path="az://orngwus2cresco/data/boren/data/packages/${flash_attn_pkg}"
-    local_pkg_dir="/root/packages"
-    local_pkg_path="${local_pkg_dir}/${flash_attn_pkg}"
-    mkdir -p "${local_pkg_dir}"
+    local_pkg_path="${package_dir}/${flash_attn_pkg}"
     if [ ! -f "${local_pkg_path}" ]; then
         command -v bbb >/dev/null || {
             echo "[ERROR] bbb is required to download ${remote_pkg_path}" >&2
