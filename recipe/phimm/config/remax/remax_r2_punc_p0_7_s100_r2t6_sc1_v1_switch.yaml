@@ -10,17 +10,18 @@ defaults:
   - data/val_data/enus_conv_fy21q1_seg
   - _self_
 
-# ── V1 separate-async layout: 2 standalone rollout / 6 hybrid trainer GPUs ──
+# ── V1 separate-async layout: 4 standalone rollout / 4 hybrid trainer GPUs ──
 data:
   # V1 separate_async requires train_batch_size == parameter_sync_step * ppo_mini_batch_size.
   train_batch_size: 30
 rollout:
-  n_gpus_per_node: 2
+  n_gpus_per_node: 4
   total_updates: 100
   n: 12
 trainer:
   use_v1: true
-  n_gpus_per_node: 6
+  n_gpus_per_node: 4
+  total_epochs: 100
   total_training_steps: 100
   test_freq: 100
   save_freq: 100
@@ -33,14 +34,21 @@ trainer:
         adaptive_switch_threshold: true
 actor_rollout_ref:
   hybrid_engine: true
+  model:
+    lora:
+      merge: true
+  rollout:
+    nnodes: ${rollout.nnodes}
+    n_gpus_per_node: ${rollout.n_gpus_per_node}
   actor:
     ppo_mini_batch_size: 30
     fsdp_config:
-      fsdp_size: 6   # shard across all 6 trainer GPUs (base uses 2)
+      fsdp_size: 4
 
 async_training:
   staleness_threshold: 0.5
   trigger_parameter_sync_step: 1
+  lora_adapter_sync: false
 
 algorithm:
   binary_adv: true

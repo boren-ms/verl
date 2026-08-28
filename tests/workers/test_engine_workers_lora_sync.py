@@ -51,7 +51,10 @@ async def _update_weights(
     """
     # 0. early return for non-naive checkpoint backend
     if checkpoint_backend != "naive":
-        per_tensor_param, _ = actor_engine.get_per_tensor_param()
+        per_tensor_param, _ = actor_engine.get_per_tensor_param(
+            layered_summon=layered_summon and base_sync_done,
+            base_sync_done=base_sync_done,
+        )
         return
 
     # 1. resume weights (conditional on sleep_level)
@@ -189,6 +192,24 @@ class TestAdapterModeFirstIteration:
         )
 
         assert rollout.sleep_level == 1
+
+    def test_disaggregated_base_sync_disables_layered_summon(self):
+        """The one-time full-base transfer cannot use adapter-only layered summon."""
+        rollout, engine = _make_mocks(peft_config=MagicMock())
+
+        asyncio.run(
+            _update_weights(
+                rollout=rollout,
+                actor_engine=engine,
+                peft_merge=False,
+                base_sync_done=False,
+                free_cache_engine=True,
+                layered_summon=True,
+                checkpoint_backend="nccl",
+            )
+        )
+
+        engine.get_per_tensor_param.assert_called_once_with(layered_summon=False, base_sync_done=False)
 
     def test_first_call_resumes_weights(self):
         """First iteration: sleep_level not yet set, so weight resume fires."""

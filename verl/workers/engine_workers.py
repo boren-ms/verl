@@ -784,7 +784,8 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 metrics = await self.checkpoint_engine.send_weights(self.actor.engine, global_steps=global_steps)
                 return metrics or {}
             per_tensor_param, _ = self.actor.engine.get_per_tensor_param(
-                layered_summon=self.layered_summon, base_sync_done=base_sync_done
+                layered_summon=self.layered_summon and base_sync_done,
+                base_sync_done=base_sync_done,
             )
             # Adapter-mode LoRA params come back on CPU from collect_lora_params,
             # but checkpoint-engine transports (NCCL/NIXL/...) broadcast from GPU.
