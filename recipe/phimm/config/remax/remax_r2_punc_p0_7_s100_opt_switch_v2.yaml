@@ -29,7 +29,7 @@ trainer:
   v1:
     trainer_mode: separate_async
     separate_async:
-      parameter_sync_step: 4
+      parameter_sync_step: 1
       num_warmup_batches: 1
       hybrid_rollout:
         enable_switch: true
