@@ -1,10 +1,10 @@
 import logging
-from collections.abc import Sequence
+from collections.abc import Mapping
 from typing import Optional
 
 import datasets
 import torch
-from omegaconf import DictConfig
+from omegaconf import DictConfig, ListConfig, OmegaConf
 
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer, ProcessorMixin
@@ -36,6 +36,39 @@ def remove_empty_tensors(batch: dict) -> dict:
     for key in keys_to_remove:
         batch.pop(key, None)
     return batch
+
+
+def _to_data_confs(data_files, config, is_train=True):
+    """Convert the trainer dataset API into audio dataset configurations."""
+    key = "train_data" if is_train else "val_data"
+    confs = config.get(key, None)
+    if confs is not None:
+        if isinstance(confs, (DictConfig, ListConfig)):
+            confs = OmegaConf.to_container(confs, resolve=True)
+        if isinstance(confs, list) and confs and isinstance(confs[0], Mapping):
+            return confs
+
+    if isinstance(data_files, ListConfig):
+        data_files = OmegaConf.to_container(data_files, resolve=True)
+    if data_files and isinstance(data_files, list) and isinstance(data_files[0], Mapping):
+        return data_files
+
+    if data_files is None:
+        return []
+    if isinstance(data_files, str):
+        data_files = [data_files]
+
+    confs = []
+    for data_file in data_files:
+        if isinstance(data_file, str):
+            extension = data_file.rsplit(".", 1)[-1].lower() if "." in data_file else "jsonl"
+            if extension in ("parquet", "pq"):
+                confs.append({"dataset_name": "parquet", "path": data_file})
+            else:
+                confs.append({"dataset_name": "jsonl", "jsonl_paths": data_file})
+        elif isinstance(data_file, Mapping):
+            confs.append(dict(data_file))
+    return confs
 
 
 def _promote_null_feature(feat):
@@ -102,19 +135,22 @@ class RLHFDataset(Dataset):
 
     def __init__(
         self,
-        data_confs: str | list[str],
-        tokenizer: PreTrainedTokenizer,
-        config: DictConfig,
+        data_files=None,
+        tokenizer: PreTrainedTokenizer = None,
+        config: DictConfig = None,
         processor: Optional[ProcessorMixin] = None,
+        max_samples: int = -1,
         is_train: bool = True,
+        data_confs=None,
     ):
-        if not isinstance(data_confs, Sequence):
-            data_confs = [data_confs]
-        self.data_confs = data_confs
+        if data_confs is not None and data_files is None:
+            data_files = data_confs
+        self.data_confs = _to_data_confs(data_files, config, is_train=is_train)
         self.tokenizer = tokenizer
         self.processor = processor
         self.config = config
         self.is_training = is_train
+        self.max_samples = max_samples
         self.use_interleave = config.get("use_interleave", True)
         self.interleave_ds = config.get("interleave_ds", {})
         self.max_prompt_length = config.get("max_prompt_length", 1024)
@@ -150,6 +186,8 @@ class RLHFDataset(Dataset):
         else:
             logger.info("Concatenating %s datasets", len(data_sets))
             ds = datasets.concatenate_datasets(data_sets)
+        if self.max_samples > 0 and len(ds) > self.max_samples:
+            ds = ds.select(range(self.max_samples))
         return ds
 
     def resume_dataset_state(self):
