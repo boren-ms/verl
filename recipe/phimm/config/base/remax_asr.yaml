@@ -1,8 +1,8 @@
-# Fully Async ReMax ASR — BASE scaffolding
-# For Qwen3.5-9B Audio model with fully async policy (separate rollout + training GPUs)
+# ReMax ASR — BASE scaffolding
+# For Qwen3.5-9B Audio model with the PPO trainer
 #
 # Holds the stable model / actor / rollout / ref / trainer / data / algorithm
-# scaffolding shared across fully-async ReMax ASR experiments.
+# scaffolding shared across ReMax ASR experiments.
 #
 # Experiment configs that include this base are expected to define:
 #   - data/train_data/<...> and data/val_data/<...> (via defaults)
@@ -10,9 +10,9 @@
 #   - any algorithm or trainer overrides (e.g. binary_adv, experiment_name)
 #
 # Run via the experiment config, e.g.:
-#   python3 -m verl.experimental.fully_async_policy.fully_async_main \
+#   python3 -m verl.trainer.main_ppo \
 #       --config-path=../../../recipe/phimm/config \
-#       --config-name=remax_asr_fully_async_punc
+#       --config-name=remax/<experiment>
 
 defaults:
   - ppo_trainer
@@ -33,8 +33,6 @@ data:
   mm_processor_kwargs:
     sampling_rate: 16000
   max_audio_dur: 40
-  # seek-based loading, one connection per sample (fits async single-sample streaming)
-  chunk_load_mode: sample
   shuffle: false
   filter_overlong_prompts: false
   truncation: right
@@ -140,26 +138,11 @@ actor_rollout_ref:
     fsdp_config:
       param_offload: true
 
-# ── Fully Async Training ─────────────────────────────────────────────────
-async_training:
-  staleness_threshold: 0.5
-  trigger_parameter_sync_step: 4
-  require_batches: 1
-  partial_rollout: false
-  use_trainer_do_validate: true
-  # LoRA runs: sync only the adapter each param version (one-time base broadcast)
-  # on the disaggregated checkpoint-engine path instead of the full base model.
-  lora_adapter_sync: true
-  concurrent_samples_per_replica: 8 # 8*6=48<64
-  update_samples: ${eval:${async_training.require_batches}*${actor_rollout_ref.actor.ppo_mini_batch_size}*${async_training.trigger_parameter_sync_step}}
-
 # ── Rollout GPU pool (separate from trainer) ──────────────────────────────
 rollout:
   nnodes: 1
   n_gpus_per_node: 6
   n: 12
-  total_rollout_steps: ${eval:${async_training.update_samples}*${rollout.total_updates}}
-  total_updates: 1000
 
 # ── Trainer ───────────────────────────────────────────────────────────────
 trainer:

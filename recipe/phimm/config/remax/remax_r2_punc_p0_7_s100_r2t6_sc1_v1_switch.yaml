@@ -10,17 +10,16 @@ defaults:
   - data/val_data/enus_conv_fy21q1_seg
   - _self_
 
-# ── V1 separate-async layout: 4 standalone rollout / 4 hybrid trainer GPUs ──
 data:
-  # V1 separate_async requires train_batch_size == parameter_sync_step * ppo_mini_batch_size.
-  train_batch_size: 30
+  train_batch_size: 64
 rollout:
-  n_gpus_per_node: 4
-  total_updates: 100
+  nnodes: 1
+  n_gpus_per_node: 2
   n: 12
 trainer:
   use_v1: true
-  n_gpus_per_node: 4
+  nnodes: 1
+  n_gpus_per_node: 6
   total_epochs: 100
   total_training_steps: 100
   test_freq: 100
@@ -28,7 +27,8 @@ trainer:
   v1:
     trainer_mode: separate_async
     separate_async:
-      parameter_sync_step: 1
+      parameter_sync_step: 4
+      num_warmup_batches: 1
       hybrid_rollout:
         enable_switch: true
         adaptive_switch_threshold: true
@@ -40,15 +40,13 @@ actor_rollout_ref:
   rollout:
     nnodes: ${rollout.nnodes}
     n_gpus_per_node: ${rollout.n_gpus_per_node}
+    checkpoint_engine:
+      backend: nccl
   actor:
-    ppo_mini_batch_size: 30
+    ppo_mini_batch_size: 16
+    ppo_max_token_len_per_gpu: 2048
     fsdp_config:
-      fsdp_size: 4
-
-async_training:
-  staleness_threshold: 0.5
-  trigger_parameter_sync_step: 1
-  lora_adapter_sync: false
+      fsdp_size: 2
 
 algorithm:
   binary_adv: true
