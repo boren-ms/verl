@@ -44,14 +44,14 @@ actor_rollout_ref:
     n_gpus_per_node: ${rollout.n_gpus_per_node}
     n: 16
     temperature: 1.2
-    log_prob_use_dynamic_bsz: false
+    log_prob_use_dynamic_bsz: true
     log_prob_micro_batch_size_per_gpu: 4
     gpu_memory_utilization: 0.9
     max_num_seqs: 32
     checkpoint_engine:
       backend: nccl
   actor:
-    use_dynamic_bsz: false
+    use_dynamic_bsz: true
     ppo_micro_batch_size_per_gpu: 4
     ppo_mini_batch_size: 64
     ppo_epochs: 1
