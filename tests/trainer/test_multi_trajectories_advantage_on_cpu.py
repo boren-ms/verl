@@ -84,3 +84,20 @@ def test_compute_advantage_for_multi_trajectories(batch_data: DataProto):
     )
     assert torch.equal(result.batch["advantages"], adv_expected)
     assert torch.equal(result.batch["returns"], adv_expected)
+
+
+def test_compute_remax_advantage_forwards_data_sources(batch_data: DataProto):
+    batch_data.batch["reward_baselines"] = torch.zeros(len(batch_data))
+    batch_data.non_tensor_batch["data_source"] = np.array(["openml"] * 3 + ["mix"] * 3, dtype=object)
+    config = {"adv_scale": {"openml": 2.0, "default": 3.0}}
+
+    result = compute_advantage_for_multi_trajectories(
+        data=batch_data,
+        batch_keys=[f"prompt_a_{i}_0" for i in range(len(batch_data))],
+        adv_estimator=AdvantageEstimator.REMAX,
+        config=config,
+    )
+    expected = compute_advantage(batch_data, adv_estimator=AdvantageEstimator.REMAX, config=config)
+
+    assert torch.equal(result.batch["advantages"], expected.batch["advantages"])
+    assert torch.equal(result.batch["returns"], expected.batch["returns"])

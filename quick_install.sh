@@ -15,6 +15,8 @@ done
 if [ -f "${done_file}" ] && ! python - <<'PY'
 from importlib.metadata import PackageNotFoundError, version
 
+from packaging.version import Version
+
 required_versions = {
     "torch": "2.10.0",
     "vllm": "0.17.0",
@@ -29,7 +31,14 @@ for package, expected in required_versions.items():
     if installed != expected:
         raise SystemExit(1)
 
-for package in ("tensordict", "TransferQueue"):
+try:
+    tensordict_version = Version(version("tensordict"))
+except PackageNotFoundError:
+    raise SystemExit(1)
+if tensordict_version != Version("0.10.0"):
+    raise SystemExit(1)
+
+for package in ("TransferQueue",):
     try:
         version(package)
     except PackageNotFoundError:
