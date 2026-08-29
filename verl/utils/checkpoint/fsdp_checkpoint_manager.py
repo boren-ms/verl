@@ -269,13 +269,13 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                             f"Ensure the model has the correct LoRA adapters configured."
                         )
                     log_with_rank(
-                        f"Loaded LoRA-only checkpoint ({len(model_state_dict)} keys) from {remote_model_path}",
+                        f"Loaded LoRA-only checkpoint ({len(model_state_dict)} keys) from {local_model_path}",
                         rank=self.rank,
                         logger=logger,
                     )
                 else:
                     self.model.load_state_dict(model_state_dict)
-                    log_with_rank(f"Loaded model from {remote_model_path}", rank=self.rank, logger=logger)
+                    log_with_rank(f"Loaded model from {local_model_path}", rank=self.rank, logger=logger)
 
             if self.should_load_optimizer:
                 local_optim_path = to_local(
