@@ -50,6 +50,10 @@ class NaiveRewardManager(RewardManagerBase):
         tool_extra_fields = data_item.non_tensor_batch.get("tool_extra_fields", None)
         if tool_extra_fields is not None:
             extra_info.update(tool_extra_fields.items())
+        sample_extra_info = dict(extra_info)
+        skip_examine = data_item.meta_info.get("skip_examine", False)
+        sample_extra_info["baseline_score"] = data_item.batch["reward_baselines"].item() if "reward_baselines" in data_item.batch else None
+        sample_extra_info["baseline_response"] = data_item.non_tensor_batch.get("baseline_response", None)
 
         num_turns = data_item.non_tensor_batch.get("__num_turns__", None)
         rollout_reward_scores = data_item.non_tensor_batch.get("reward_scores", {})
@@ -92,6 +96,7 @@ class NaiveRewardManager(RewardManagerBase):
 
         score: float
         if isinstance(result, dict):
+            sample_extra_info.update(result.pop("extra_info", {}))
             score = result["score"]
             for key, value in result.items():
                 reward_extra_info[key] = value
@@ -100,7 +105,6 @@ class NaiveRewardManager(RewardManagerBase):
             reward_extra_info["acc"] = score
 
         reward = score
-
         self._maybe_log_example(
             data_item=data_item,
             data_source=data_source,
@@ -108,18 +112,31 @@ class NaiveRewardManager(RewardManagerBase):
             ground_truth=ground_truth,
             score=score,
             result=result,
+            extra_info=sample_extra_info,
+            skip_examine=skip_examine,
         )
 
         return {"reward_score": reward, "reward_extra_info": reward_extra_info}
 
-    def _maybe_log_example(self, *, data_item, data_source, response_str, ground_truth, score, result):
+    def _maybe_log_example(
+        self,
+        *,
+        data_item,
+        data_source,
+        response_str,
+        ground_truth,
+        score,
+        result,
+        extra_info,
+        skip_examine,
+    ):
         """Print a few decoded train samples per data source for debugging.
 
         Mirrors the example-logging behaviour of the legacy DAPO reward manager,
         gated by ``data.train_num_examine``. Counting is per ``data_source`` and
         capped at ``self.num_examine``.
         """
-        if self.num_examine <= 0:
+        if self.num_examine <= 0 or skip_examine:
             return
 
         printed = self._already_print_data_sources.get(data_source, 0)
@@ -141,6 +158,8 @@ class NaiveRewardManager(RewardManagerBase):
         print(f"====== train sample {pfx} (data_source={data_source}) ======")
         if prompt_str is not None:
             print(f"{pfx}[prompt]", prompt_str)
+        for key, value in extra_info.items():
+            print(f"{pfx}[{key}]", value)
         print(f"{pfx}[ground_truth]", ground_truth)
         print(f"{pfx}[response]", response_str)
         scores = []

@@ -208,8 +208,8 @@ class RLHFDataset(Dataset):
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
         raw_prompt = f"{raw_prompt}{prefix}"
-        # print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
-        # print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
+        print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
+        print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
 
