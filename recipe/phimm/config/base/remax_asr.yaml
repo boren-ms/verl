@@ -64,7 +64,7 @@ actor_rollout_ref:
   hybrid_engine: false
   nccl_timeout: 3600
   model:
-    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf
     trust_remote_code: false
     use_remove_padding: true
     use_fused_kernels: false

@@ -13,6 +13,10 @@ defaults:
 algorithm:
   adv_scale: {openml: 1.0, default: 1.0}
 
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf
+
 reward_functions:
   openml:
     path: pkg://recipe.phimm.reward.asr_measure
