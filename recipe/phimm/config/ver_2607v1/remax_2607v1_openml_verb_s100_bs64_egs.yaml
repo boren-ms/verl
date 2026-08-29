@@ -16,6 +16,7 @@ algorithm:
 trainer:
   save_freq: 1000
   resume_mode: disable
+  total_training_steps: 12
 
 actor_rollout_ref:
   model:
