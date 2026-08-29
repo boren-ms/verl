@@ -22,13 +22,12 @@ model:
 
 actor_rollout_ref:
   rollout:
-    tensor_model_parallel_size: 8
+    tensor_model_parallel_size: 1
 
 rollout:
   n_gpus_per_node: 8
 
 data:
-  model_version: 2607
   max_prompt_length: 1024
   max_response_length: 512
   output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607v1_50000_lexical_fix/openasr_ml_verb_de_fleurs

@@ -161,7 +161,6 @@ class RLHFDataset(Dataset):
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "right2")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
-        self.model_version = config.get("model_version")
         self.num_proc = get_num_proc(config.get("num_proc", "auto"))
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
@@ -169,10 +168,7 @@ class RLHFDataset(Dataset):
         self.ds = self.load_datasets()
 
     def load_datasets(self):
-        data_sets = [
-            create_audio_dataset(**{**data_conf, "model_version": self.model_version})
-            for data_conf in self.data_confs
-        ]
+        data_sets = [create_audio_dataset(**data_conf) for data_conf in self.data_confs]
         data_sets = _align_null_features(data_sets)
         if self.is_training and self.use_interleave and len(data_sets) > 1:
             logger.info(
