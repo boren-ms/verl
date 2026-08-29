@@ -1,10 +1,6 @@
-# Compatibility config for recipe.phimm.main_long_eval_asr on verl-mirror.
-#
-# The reference evaluator used the removed ActorRolloutRefWorker sync-generation
-# stack. This config preserves its public model.path and data shape while using
-# the supported FullyAsyncRollouter stack.
+# Trainer-v1 validation-only config for recipe.phimm.main_long_eval_asr.
 defaults:
-  - long_rollout_asr
+  - remax_asr
   - _self_
 
 model:
@@ -15,19 +11,62 @@ actor_rollout_ref:
   model:
     path: ${model.path}
     trust_remote_code: ${model.trust_remote_code}
+    lora_rank: 0
   rollout:
-    prompt_length: ${data.max_prompt_length}
     response_length: ${data.max_response_length}
+    n: 1
+    temperature: 0.0
     max_num_seqs: 24
     gpu_memory_utilization: 0.85
+    calculate_log_probs: false
+    val_kwargs:
+      temperature: 0.0
+      top_p: 1.0
+      do_sample: false
+      n: 1
 
 data:
+  train_files: ${data.val_data}
+  val_files: ${data.val_data}
+  train_batch_size: 1
+  gen_batch_size: 1
+  val_batch_size: -1
+  validation_shuffle: false
   max_audio_dur: 50
   max_prompt_length: 4096
   max_response_length: 1024
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
-  log_interval: 100
-  log_first_n_samples: 3
+  shuffle: false
+  use_interleave: false
+  interleave_datasets: false
+  chunk_load_mode: sample
+  output_path: null
+  log_first_n_samples: 10
+
+reward:
+  custom_reward_function:
+    path: pkg://recipe.phimm.main_long_eval_asr
+    name: dummy_score
+  num_workers: 1
+
+val_reward:
+  group_segment: true
+  custom_reward_function:
+    path: pkg://recipe.phimm.reward.asr_inhouse_measure
+    name: eval_score
+    reward_kwargs:
+      compute_eer: true
 
 trainer:
+  project_name: phimm_long_eval
   experiment_name: phimm_long_eval
+  logger: ["console"]
+  n_gpus_per_node: 8
+  nnodes: 1
+  val_before_train: true
+  val_only: true
+  resume_mode: disable
+  validation_data_dir: null
+  log_val_generations: 0
+  v1:
+    trainer_mode: sync
