@@ -1,62 +1,63 @@
 # %%
-import os
-import re
-import uuid
-import math
-import json
-import gzip
-from collections import defaultdict
 import ast
+import gzip
+import json
+import math
+import os
 import random
+import re
 import socket
+import string
+import sys
+import uuid
+from collections import defaultdict
+from pathlib import Path
+
 import blobfile as bf
 import pandas as pd
 import pyarrow as pa
-import pyarrow.parquet as pq
-import pyarrow.json as pjson
 import pyarrow.csv as pcsv
-import string
-from pathlib import Path
-import sys
+import pyarrow.json as pjson
+import pyarrow.parquet as pq
 
 sys.path.insert(0, str(Path(__file__).parents[3]))
-from datasets import load_dataset, concatenate_datasets, Dataset
 from bs4 import BeautifulSoup
-from recipe.phimm.data.error_simu import ErrorSimulator
-from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
-from recipe.phimm.data.prompts import resolve_task_language, get_task_prompt, get_task_prefix, get_task_output
-from recipe.phimm.utils.tn import text_norm
-from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
+from datasets import Dataset, concatenate_datasets, load_dataset
+
 from recipe.phimm.data.audio_augment import AudioAugmenter, safe_audio_stem
+from recipe.phimm.data.biasing import PieceSampler, tag_pieces
+from recipe.phimm.data.biasing import text_norm as biasing_text_norm
+from recipe.phimm.data.chunk import create_chunk_datasets, get_chunk_manager
+from recipe.phimm.data.error_simu import ErrorSimulator
+from recipe.phimm.data.prompts import get_task_output, get_task_prefix, get_task_prompt, resolve_task_language
 from recipe.phimm.reward.asr_measure import check_fmt, check_lang
+from recipe.phimm.utils.audio import load_raw_audio, sf_write
 from recipe.phimm.utils.shared import (
-    hash_id,
-    get_value,
-    rank_print,
-    dist_state,
     all_rank_print,
-    to_list,
+    dist_state,
+    get_value,
+    has_missing_keyword,
+    has_repeat_error,
+    has_tail_hallucination,
+    hash_id,
     in_range,
     is_list,
-    to_int,
+    rank_print,
     to_float,
+    to_int,
+    to_list,
     unbatch,
-    has_brackets as has_brackets_fn,
-    has_repeat_error,
-    has_missing_keyword,
-    has_tail_hallucination,
 )
-from recipe.phimm.utils.audio import sf_write, load_raw_audio
+from recipe.phimm.utils.shared import (
+    has_brackets as has_brackets_fn,
+)
 from recipe.phimm.utils.storage import get_path_with_options
+from recipe.phimm.utils.tn import text_norm
 from verl.audio_cache import submit_audio_cache_dataset
-
-prompt_format = "<audio>\n{}"
 
 
 def format_asr_prompt(prompt, model_version=None):
-    if model_version == 2607:
-        return f"{prompt}<audio>"
-    return prompt_format.format(prompt)
+    return f"{prompt}<audio>"
 
 
 def read_words(file_path, num=None, tn_name=None):
@@ -246,7 +247,7 @@ def ls_bias_dataset(jsonl_path, bias_key=None, with_gt=False, min_word_len=None,
         words = example.get("text", "").strip().split()
         words = tag_pieces(words, tag=tag, specified=gt_words, norm=biasing_text_norm)
         return {
-            "prompt": prompt_format.format(f"{prompt} {bias_str}"),
+            "prompt": format_asr_prompt(f"{prompt} {bias_str}"),
             "audio_path": audio_path,
             "text": " ".join(words),
             "keywords": gt_words,
@@ -315,7 +316,7 @@ def entity_dataset(
         prompt = get_task_prompt(task="biasing" if bias_str else "asr")
 
         return {
-            "prompt": prompt_format.format(f"{prompt} {bias_str}"),
+            "prompt": format_asr_prompt(f"{prompt} {bias_str}"),
             "audio_path": audio_path,
             "text": bs.get_text().strip(),
             "keywords": entities,
@@ -367,7 +368,7 @@ def tsv_dataset(tsv_paths, **kwargs):
             audio_path = audio_path.replace("/root/data/LibriSpeech", egs["dir"])
         messages = ast.literal_eval(egs["msgs"])[0]["messages"]
         x = {
-            "prompt": prompt_format.format("Transcribe the audio clip into text."),
+            "prompt": format_asr_prompt("Transcribe the audio clip into text."),
             "audio_path": audio_path,
             "text": messages[-1]["content"],
             "id": egs["id"],
@@ -411,7 +412,7 @@ def bias_sampling(ds, **kwargs):
         else:
             prompt = get_task_prompt(task="asr", rand=rand_prompt)
         return {
-            "prompt": prompt_format.format(prompt),
+            "prompt": format_asr_prompt(prompt),
             "text": text,  # text is updated
             "keywords": keywords,
             "context": context,
@@ -753,9 +754,10 @@ def svad_explode(ds, **kwargs):
     (with ``seg_index=0`` / ``n_segments=1``). Short wavs (<= ``max_len_sec``)
     also pass through as a single row.
     """
+    import soundfile as sf
+
     from recipe.phimm.utils.audio import _is_time_chunk_spec, resample_audio
     from recipe.phimm.utils.svad.svad import SVadChunker
-    import soundfile as sf
 
     max_len_sec = float(kwargs.get("max_len_sec", 30.0))
     min_seg_sec = float(kwargs.get("min_seg_sec", 0.1))
@@ -1706,7 +1708,7 @@ def overlap_prefix(ds, **kwargs):
 
         return {
             "text": text,
-            "prompt": prompt_format.format(prompt),
+            "prompt": format_asr_prompt(prompt),
         }
 
     ds = ds.map(add_overlap_prefix, with_indices=True, **pop_map_kwargs(kwargs))
@@ -1762,7 +1764,7 @@ def context_prefix(ds, **kwargs):
         if idx % log_interval == 0:
             print(f"[{idx}], Prompt: {prompt}")
             print(f"[{idx}], Text  : {egs['text']}")
-        return {"prompt": prompt_format.format(prompt)}
+        return {"prompt": format_asr_prompt(prompt)}
 
     ds = ds.map(add_context_prefix, with_indices=True, **pop_map_kwargs(kwargs))
     return ds

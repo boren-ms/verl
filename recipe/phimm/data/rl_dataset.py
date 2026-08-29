@@ -5,14 +5,13 @@ from typing import Optional
 import datasets
 import torch
 from omegaconf import DictConfig, ListConfig, OmegaConf
-
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer, ProcessorMixin
 
 import verl.utils.torch_functional as verl_F
-from verl.utils.model import compute_position_id_with_mask
 from recipe.phimm.data.dataset import create_audio_dataset, get_num_proc
 from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
+from verl.utils.model import compute_position_id_with_mask
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +162,6 @@ class RLHFDataset(Dataset):
         self.truncation = config.get("truncation", "right2")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
         self.model_version = config.get("model_version")
-        self.remove_think = self.model_version != 2607
         self.num_proc = get_num_proc(config.get("num_proc", "auto"))
         self.chat_template_func = config.get("chat_template_func", None)
         self.need_tools_kwargs = config.get("need_tools_kwargs", False)
@@ -211,8 +209,6 @@ class RLHFDataset(Dataset):
             tokenize=False,
             **self.apply_chat_template_kwargs,
         )
-        if self.remove_think:
-            raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
         raw_prompt = f"{raw_prompt}{prefix}"
@@ -340,6 +336,7 @@ def main(config_path, tokenizer_path, data_files=None):
     # data_conf = config.get("val_data", None)
     dataset = RLHFDataset(data_conf, tokenizer, config, processor, True)
     from torchdata.stateful_dataloader import StatefulDataLoader
+
     from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
 
     loader = StatefulDataLoader(dataset=dataset, batch_size=2, num_workers=0, collate_fn=default_collate_fn)
