@@ -25,6 +25,7 @@ def test_long_eval_base_uses_trainer_v1_validation():
 
     assert config["defaults"][0] == "remax_asr"
     assert config["actor_rollout_ref"]["model"]["path"] == "${model.path}"
+    assert config["data"]["return_full_prompt"] is True
     assert config["trainer"]["val_only"] is True
     assert config["trainer"]["v1"]["trainer_mode"] == "sync"
     assert config["val_reward"]["group_segment"] is True
@@ -54,6 +55,7 @@ def test_de_fleurs_eval_matches_reference_decode_settings():
     assert config["data"]["model_version"] == 2607
     assert config["data"]["max_response_length"] == 512
     assert config["actor_rollout_ref"]["rollout"]["tensor_model_parallel_size"] == 8
+    assert config["rollout"]["n_gpus_per_node"] == 8
     assert config["val_reward"]["reward_function_by_data_source"] == {"de_fleurs": "openasr"}
 
 

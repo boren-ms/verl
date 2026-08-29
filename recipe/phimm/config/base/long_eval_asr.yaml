@@ -40,6 +40,7 @@ data:
   use_interleave: false
   interleave_datasets: false
   chunk_load_mode: sample
+  return_full_prompt: true
   output_path: null
   log_first_n_samples: 10
 
