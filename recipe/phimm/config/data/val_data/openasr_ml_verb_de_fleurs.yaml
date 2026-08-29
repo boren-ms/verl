@@ -1,0 +1,12 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/data.jsonl
+  cache_name: auto_openasr_ml_verb_fleurs_de
+  add_task_info:
+    task: lang_asr_verb
+    language: German
+  post_process:
+    add_field:
+      fields:
+        data_source: de_fleurs
+    verl_format:
+      prompt_key: prompt
