@@ -101,4 +101,4 @@ def test_async_audio_rollout_preserves_rendered_prompt_prefix():
 
     assert config["data"]["return_full_prompt"] is True
     assert "full_prompt_text" in dataset_strings
-    assert {"full_prompt_text", "full_prompts"}.issubset(agent_loop_strings)
+    assert "full_prompt_text" in agent_loop_strings

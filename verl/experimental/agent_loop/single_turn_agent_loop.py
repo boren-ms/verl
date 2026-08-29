@@ -71,7 +71,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
         # with its own tokenizer that has audio placeholder tokens.
         if audios is not None:
             # Prefer pre-rendered prompt from dataset (has correct audio placeholders)
-            prompt_text = kwargs.get("full_prompt_text") or kwargs.get("full_prompts")
+            prompt_text = kwargs.get("full_prompt_text")
             if prompt_text is None:
                 prompt_text = getattr(self, "_last_raw_prompt", None)
             if prompt_text is None:
@@ -82,7 +82,6 @@ class SingleTurnAgentLoop(AgentLoopBase):
                     _chat_obj, text_messages, add_generation_prompt=True, tokenize=False,
                     **self.apply_chat_template_kwargs,
                 )
-                prompt_text = prompt_text.replace("<think>\n\n</think>\n\n", "")
 
         # 3. generate sequences (same pattern as main_asr_gen.py)
         metrics = {}
