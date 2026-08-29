@@ -24,8 +24,15 @@ actor_rollout_ref:
     # vLLM CUDA graphs can become invalid after repeated trainer/rollout
     # weight switches; eager execution keeps validation transitions stable.
     enforce_eager: true
+    max_num_seqs: 16
     checkpoint_engine:
       update_weights_bucket_megabytes: 256
+
+ray_kwargs:
+  ray_init:
+    runtime_env:
+      env_vars:
+        VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS: "900"
 
 reward_functions:
   openml:

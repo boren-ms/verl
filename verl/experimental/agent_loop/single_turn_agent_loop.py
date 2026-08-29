@@ -71,7 +71,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
         # with its own tokenizer that has audio placeholder tokens.
         if audios is not None:
             # Prefer pre-rendered prompt from dataset (has correct audio placeholders)
-            prompt_text = kwargs.get("full_prompt_text")
+            prompt_text = kwargs.get("full_prompt_text") or kwargs.get("full_prompts")
             if prompt_text is None:
                 prompt_text = getattr(self, "_last_raw_prompt", None)
             if prompt_text is None:

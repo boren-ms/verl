@@ -44,6 +44,7 @@ data:
   truncation: right
   prompt_key: prompt
   return_raw_chat: true
+  return_full_prompt: true
   return_multi_modal_inputs: true
   # Eval must cover every segment: concatenate the per-corpus datasets instead of
   # interleaving them (interleave stops at the shortest corpus, dropping segments
@@ -75,6 +76,8 @@ actor_rollout_ref:
     n_gpus_per_node: ${rollout.n_gpus_per_node}
     temperature: 0.0
     top_p: 1.0
+    no_repeat_ngram_size: 15
+    stop_token_ids: [248044, 248046]
     response_length: ${data.max_response_length}
     prompt_length: ${data.max_prompt_length}
     tensor_model_parallel_size: 1
@@ -98,7 +101,7 @@ async_training:
 
 reward:
   custom_reward_function:
-    path: pkg://recipe.phimm.reward.asr_inhouse_measure
+    path: pkg://recipe.phimm.long_asr_rollout
     name: dummy_score
   num_workers: 8
 

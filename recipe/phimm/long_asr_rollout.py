@@ -65,6 +65,11 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 logger = logging.getLogger(__name__)
 
 
+def dummy_score(*args, **kwargs) -> dict[str, float]:
+    """Skip per-segment scoring; long recordings are scored after regrouping."""
+    return {"score": 0.0}
+
+
 # ---------------------------------------------------------------------------
 # Long-audio grouping + scoring helpers.
 #
