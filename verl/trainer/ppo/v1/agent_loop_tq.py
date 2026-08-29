@@ -50,6 +50,13 @@ async def _settle_session_tasks(tasks: list[asyncio.Task[Any]]) -> list[BaseExce
     return [result for result in results if isinstance(result, BaseException)]
 
 
+async def _compute_or_defer_reward(worker, outputs: list[AgentLoopOutput], validate: bool, kwargs: dict) -> None:
+    if validate and worker.config.get("val_reward") is not None:
+        outputs[-1].reward_score = 0.0
+        return
+    await worker._compute_score(outputs, kwargs=kwargs)
+
+
 async def _attach_remax_baseline(sampled_keys: list[str], baseline_keys: list[str], partition_id: str) -> None:
     if not sampled_keys or not baseline_keys:
         raise RuntimeError("ReMax rollout did not produce both sampled and baseline trajectories")
@@ -206,7 +213,7 @@ class AgentLoopWorkerTQ(AgentLoopWorker):
             logger.warning(f"Empty output for prompt {uid}_{session_id}")
             return
 
-        await self._compute_score(outputs, kwargs=kwargs)
+        await _compute_or_defer_reward(self, outputs, validate, kwargs)
 
         final_output = outputs[-1]
         # TODO: Support output:list[AgentLoopOutput]

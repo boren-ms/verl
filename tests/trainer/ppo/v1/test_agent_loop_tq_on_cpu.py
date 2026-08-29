@@ -13,12 +13,14 @@
 # limitations under the License.
 
 import asyncio
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
 import torch
 
 from verl.trainer.ppo.v1.agent_loop_tq import (
     _attach_remax_baseline,
+    _compute_or_defer_reward,
     _settle_session_tasks,
     apply_greedy_sampling_params,
 )
@@ -52,6 +54,28 @@ def test_settle_session_tasks_waits_for_siblings_after_failure():
         assert isinstance(errors[0], RuntimeError)
 
     asyncio.run(run())
+
+
+def test_validation_reward_is_deferred_when_val_reward_is_configured():
+    output = SimpleNamespace(reward_score=None, extra_fields={})
+    worker = SimpleNamespace(config={"val_reward": {"reward_functions": {}}}, _compute_score=AsyncMock())
+
+    asyncio.run(_compute_or_defer_reward(worker, [output], validate=True, kwargs={"data_source": "val"}))
+
+    worker._compute_score.assert_not_awaited()
+    assert output.reward_score == 0.0
+    assert "reward_extra_info" not in output.extra_fields
+
+
+def test_training_reward_is_computed_independently_of_val_reward():
+    output = SimpleNamespace(reward_score=None, extra_fields={})
+    worker = SimpleNamespace(config={"val_reward": {"reward_functions": {}}}, _compute_score=AsyncMock())
+    kwargs = {"data_source": "train"}
+
+    asyncio.run(_compute_or_defer_reward(worker, [output], validate=False, kwargs=kwargs))
+
+    worker._compute_score.assert_awaited_once_with([output], kwargs=kwargs)
+    assert output.reward_score is None
 
 
 def test_attach_remax_baseline_writes_sampled_rewards_and_clears_baseline():

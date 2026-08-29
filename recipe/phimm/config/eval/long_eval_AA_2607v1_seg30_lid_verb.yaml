@@ -1,0 +1,27 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - long_eval_asr
+  - data/val_data/AA_seg30_verb_lid1
+  - _self_
+
+# ArtificialAnalysis English evaluation with verbatim ASR and LID prompts,
+# scored with OpenASR normalization.
+
+reward_functions:
+  openasr:
+    path: pkg://recipe.phimm.reward.asr_edge
+    name: openasr_eval
+reward_function_by_data_source:
+  earnings22_cleaned_aa: openasr
+  voxpopuli_cleaned_aa: openasr
+
+model:
+  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+
+data:
+  model_version: 2607
+  output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607v1_50000_lexical_fix/artificial_analysis_seg30_openasr_lid_verb

@@ -18,7 +18,7 @@ data:
   # Mirror remax_asr.yaml's data settings (single-sample async streaming, seek-based
   # audio loading) so eval and training consume audio identically. Only the
   # long-rollout-specific keys differ: train/val files reuse the val_data segment
-  # dataset, plus output_path / log_interval / measure_kwargs for scoring.
+  # dataset, plus output_path / log_interval for scoring.
   custom_cls:
     path: pkg://recipe.phimm.data.rl_dataset
     name: RLHFDataset
@@ -53,7 +53,6 @@ data:
   # parallel workers keep the rollout replicas fed, otherwise GPUs starve.
   dataloader_num_workers: 8
   log_interval: 100
-  measure_kwargs: {}
 
 rollout:
   nnodes: 1

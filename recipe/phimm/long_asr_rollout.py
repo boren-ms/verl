@@ -57,6 +57,7 @@ from recipe.phimm.asr_rollout import (
 from recipe.phimm.reward.asr_inhouse_measure import eval_score
 from recipe.phimm.utils.shared import parse_asr_response
 from verl.experimental.fully_async_policy.message_queue import MessageQueueClient
+from verl.trainer.ppo.reward import get_reward_fn_dispatcher
 
 os.environ["NCCL_DEBUG"] = "WARN"
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
@@ -111,6 +112,13 @@ def _write_json(obj, path: str) -> None:
 
 
 def _micro(a: dict) -> dict:
+    if a["metric"] == "wer":
+        return {
+            "wer": a["n_err"] / max(a["n_ref"], 1),
+            "n_err": a["n_err"],
+            "n_ref": a["n_ref"],
+            "n_recordings": a["n"],
+        }
     return {
         "dter": a["dter_n_err"] / max(a["dter_n_ref"], 1),
         "dter_n_err": a["dter_n_err"],
@@ -122,19 +130,30 @@ def _micro(a: dict) -> dict:
     }
 
 
-def score_segments(segments: list, measure_kwargs: dict) -> dict:
+def score_segments(segments: list, score_fn=eval_score) -> dict:
     """Group segments by parent, concat hyps, score once per recording.
 
     Returns a dict keyed by ``data_source`` mapping to
     ``{"details": [...], "measure": {...}}`` (per-recording detail list plus the
-    micro-averaged TER + EER for that source).
+    micro-averaged DTER/EER or WER for that source).
     """
     groups: dict = defaultdict(list)
     for seg in segments:
         groups[seg["parent"]].append(seg)
 
     details_by_source: dict = defaultdict(list)
-    agg = defaultdict(lambda: {"dter_n_err": 0, "dter_n_ref": 0, "eer_n_err": 0, "eer_n_ref": 0, "n": 0})
+    agg = defaultdict(
+        lambda: {
+            "metric": None,
+            "n_err": 0,
+            "n_ref": 0,
+            "dter_n_err": 0,
+            "dter_n_ref": 0,
+            "eer_n_err": 0,
+            "eer_n_ref": 0,
+            "n": 0,
+        }
+    )
 
     for parent, members in groups.items():
         members.sort(key=lambda m: m["seg_start"])
@@ -144,7 +163,8 @@ def score_segments(segments: list, measure_kwargs: dict) -> dict:
         ref = head["ref"]
         data_source = head["data_source"] or "all"
 
-        score = eval_score(concat_hyp, ref, **measure_kwargs)
+        extra_info = {"language": head["language"]} if head["language"] else {}
+        score = score_fn(concat_hyp, ref, data_source=data_source, extra_info=extra_info)
 
         rec = {
             "parent_audio_path": parent,
@@ -163,13 +183,24 @@ def score_segments(segments: list, measure_kwargs: dict) -> dict:
             "eer_n_ref": score.get("eer_n_ref"),
             "dter_detail": score.get("dter_detail"),
         }
+        rec.update(score)
         details_by_source[data_source].append(rec)
 
         a = agg[data_source]
-        a["dter_n_err"] += int(score.get("dter_n_err") or 0)
-        a["dter_n_ref"] += int(score.get("dter_n_ref") or 0)
-        a["eer_n_err"] += int(score.get("eer_n_err") or 0)
-        a["eer_n_ref"] += int(score.get("eer_n_ref") or 0)
+        metric = "dter" if "dter_n_ref" in score else "wer"
+        if a["metric"] not in (None, metric):
+            raise ValueError(f"Score function returned inconsistent metric types for {data_source!r}")
+        a["metric"] = metric
+        if metric == "wer":
+            if "n_err" not in score or "n_ref" not in score:
+                raise ValueError("Custom score function must return n_err and n_ref for WER aggregation")
+            a["n_err"] += int(score["n_err"])
+            a["n_ref"] += int(score["n_ref"])
+        else:
+            a["dter_n_err"] += int(score.get("dter_n_err") or 0)
+            a["dter_n_ref"] += int(score.get("dter_n_ref") or 0)
+            a["eer_n_err"] += int(score.get("eer_n_err") or 0)
+            a["eer_n_ref"] += int(score.get("eer_n_ref") or 0)
         a["n"] += 1
 
     return {src: {"details": details_by_source[src], "measure": _micro(a)} for src, a in agg.items()}
@@ -189,11 +220,14 @@ def write_results(results_by_source: dict, output_dir: str) -> None:
         _write_json(res["measure"], measures_path)
 
         m = res["measure"]
-        print(
-            f"[{src}] DTER: {m['dter']:.2%} [{m['dter_n_err']}/{m['dter_n_ref']}]  "
-            f"EER: {m['eer']:.2%} [{m['eer_n_err']}/{m['eer_n_ref']}]  "
-            f"on {m['n_recordings']} recordings"
-        )
+        if "wer" in m:
+            print(f"[{src}] WER: {m['wer']:.2%} [{m['n_err']}/{m['n_ref']}] on {m['n_recordings']} recordings")
+        else:
+            print(
+                f"[{src}] DTER: {m['dter']:.2%} [{m['dter_n_err']}/{m['dter_n_ref']}]  "
+                f"EER: {m['eer']:.2%} [{m['eer_n_err']}/{m['eer_n_ref']}]  "
+                f"on {m['n_recordings']} recordings"
+            )
         print(f"  Saved per-recording details to {details_path}")
         print(f"  Saved aggregate measures to {measures_path}")
 
@@ -259,7 +293,7 @@ async def _consume_segments(
     tokenizer,
     rollouter,
     output_dir: str,
-    measure_kwargs: dict,
+    score_fn=eval_score,
     log_interval: int = 100,
 ) -> tuple:
     """Drain the MessageQueue, then group by parent recording and score.
@@ -287,34 +321,45 @@ async def _consume_segments(
             print(f"[Consumer] {len(segments)} segments | {rate:.1f} seg/s")
 
     logger.info("Drained %d segment hypotheses; grouping by parent recording.", len(segments))
-    results_by_source = score_segments(segments, measure_kwargs)
+    results_by_source = score_segments(segments, score_fn=score_fn)
     write_results(results_by_source, output_dir)
 
-    tot = {"dter_n_err": 0, "dter_n_ref": 0, "eer_n_err": 0, "eer_n_ref": 0, "n": 0}
-    for res in results_by_source.values():
-        m = res["measure"]
-        tot["dter_n_err"] += m["dter_n_err"]
-        tot["dter_n_ref"] += m["dter_n_ref"]
-        tot["eer_n_err"] += m["eer_n_err"]
-        tot["eer_n_ref"] += m["eer_n_ref"]
-        tot["n"] += m["n_recordings"]
-    summary = {
-        "n_segments": len(segments),
-        "n_recordings": tot["n"],
-        "dter": tot["dter_n_err"] / max(tot["dter_n_ref"], 1),
-        "dter_n_err": tot["dter_n_err"],
-        "dter_n_ref": tot["dter_n_ref"],
-        "eer": tot["eer_n_err"] / max(tot["eer_n_ref"], 1),
-        "eer_n_err": tot["eer_n_err"],
-        "eer_n_ref": tot["eer_n_ref"],
-    }
+    measures = [res["measure"] for res in results_by_source.values()]
+    n_recordings = sum(m["n_recordings"] for m in measures)
+    if measures and "wer" in measures[0]:
+        n_err = sum(m["n_err"] for m in measures)
+        n_ref = sum(m["n_ref"] for m in measures)
+        summary = {
+            "n_segments": len(segments),
+            "n_recordings": n_recordings,
+            "wer": n_err / max(n_ref, 1),
+            "n_err": n_err,
+            "n_ref": n_ref,
+        }
+        metric_text = f"overall WER {summary['wer']:.2%}"
+    else:
+        dter_n_err = sum(m["dter_n_err"] for m in measures)
+        dter_n_ref = sum(m["dter_n_ref"] for m in measures)
+        eer_n_err = sum(m["eer_n_err"] for m in measures)
+        eer_n_ref = sum(m["eer_n_ref"] for m in measures)
+        summary = {
+            "n_segments": len(segments),
+            "n_recordings": n_recordings,
+            "dter": dter_n_err / max(dter_n_ref, 1),
+            "dter_n_err": dter_n_err,
+            "dter_n_ref": dter_n_ref,
+            "eer": eer_n_err / max(eer_n_ref, 1),
+            "eer_n_err": eer_n_err,
+            "eer_n_ref": eer_n_ref,
+        }
+        metric_text = f"overall DTER {summary['dter']:.2%} EER {summary['eer']:.2%}"
     summary_path = f"{output_dir}/summary.json"
     _write_json(summary, summary_path)
 
     rate = len(segments) / max(time.time() - t0, 1e-6)
     print(
         f"\nDone: {len(segments)} segments | {rate:.1f} seg/s | "
-        f"overall DTER {summary['dter']:.2%} EER {summary['eer']:.2%} "
+        f"{metric_text} "
         f"on {summary['n_recordings']} recordings | summary: {summary_path}"
     )
     return segments, results_by_source
@@ -327,14 +372,29 @@ async def _run_long_asr_rollout(config) -> None:
     assert output_dir is not None, "Please specify data.output_path"
     output_dir = output_dir.rstrip("/")
 
-    measure_kwargs = config.data.get("measure_kwargs", {})
-    if OmegaConf.is_config(measure_kwargs):
-        measure_kwargs = OmegaConf.to_container(measure_kwargs, resolve=True)
     log_interval = config.data.get("log_interval", 100)
+    if config.get("reward_functions"):
+        reward_dispatcher = get_reward_fn_dispatcher(config)
+    else:
+        reward_dispatcher = None
+
+    if reward_dispatcher is not None:
+
+        def score_fn(solution_str, ground_truth, *, data_source, **kwargs):
+            return reward_dispatcher(data_source, solution_str, ground_truth, **kwargs)
+
+    else:
+        def score_fn(solution_str, ground_truth, *, data_source, **kwargs):
+            return eval_score(solution_str, ground_truth, data_source=data_source, **kwargs)
 
     async def consume(mq_client, rollouter):
         await _consume_segments(
-            mq_client, tokenizer, rollouter, output_dir, measure_kwargs, log_interval
+            mq_client,
+            tokenizer,
+            rollouter,
+            output_dir,
+            score_fn=score_fn,
+            log_interval=log_interval,
         )
 
     await run_rollout_engine(config, tokenizer, local_model_path, consume, tag="LongASRRollout")

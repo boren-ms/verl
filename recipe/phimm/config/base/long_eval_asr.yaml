@@ -1,0 +1,35 @@
+# Compatibility config for recipe.phimm.main_long_eval_asr on verl-mirror.
+#
+# The reference evaluator used the removed ActorRolloutRefWorker sync-generation
+# stack. This mirror config preserves its public `model.path` / `data.*` shape
+# while running generation through the supported FullyAsyncRollouter stack.
+defaults:
+  - long_rollout_asr
+  - _self_
+
+model:
+  path: null
+  trust_remote_code: false
+
+# Map the reference config's model.path into the current worker config.
+actor_rollout_ref:
+  model:
+    path: ${model.path}
+    trust_remote_code: ${model.trust_remote_code}
+  rollout:
+    prompt_length: ${data.max_prompt_length}
+    response_length: ${data.max_response_length}
+    max_num_seqs: 24
+    gpu_memory_utilization: 0.85
+
+data:
+  # SVAD caps segments at 40 seconds; 50 seconds leaves decoding headroom.
+  max_audio_dur: 50
+  max_prompt_length: 4096
+  max_response_length: 1024
+  max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
+  log_interval: 100
+  log_first_n_samples: 3
+
+trainer:
+  experiment_name: phimm_long_eval
