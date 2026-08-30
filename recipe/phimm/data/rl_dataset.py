@@ -206,6 +206,7 @@ class RLHFDataset(Dataset):
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
         raw_prompt = f"{raw_prompt}{prefix}"
+        logger.info("Raw prompt for sample %s: %s", i, raw_prompt)
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
 
