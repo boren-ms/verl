@@ -52,8 +52,6 @@ class NaiveRewardManager(RewardManagerBase):
             extra_info.update(tool_extra_fields.items())
         sample_extra_info = dict(extra_info)
         skip_examine = data_item.meta_info.get("skip_examine", False)
-        sample_extra_info["baseline_score"] = data_item.batch["reward_baselines"].item() if "reward_baselines" in data_item.batch else None
-        sample_extra_info["baseline_response"] = data_item.non_tensor_batch.get("baseline_response", None)
 
         num_turns = data_item.non_tensor_batch.get("__num_turns__", None)
         rollout_reward_scores = data_item.non_tensor_batch.get("reward_scores", {})
@@ -159,6 +157,10 @@ class NaiveRewardManager(RewardManagerBase):
         if prompt_str is not None:
             print(f"{pfx}[prompt]", prompt_str)
         for key, value in extra_info.items():
+            if value is None:
+                continue
+            if isinstance(value, (list, tuple, dict, set)) and not value:
+                continue
             print(f"{pfx}[{key}]", value)
         print(f"{pfx}[ground_truth]", ground_truth)
         print(f"{pfx}[response]", response_str)
