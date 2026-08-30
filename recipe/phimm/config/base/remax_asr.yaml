@@ -32,10 +32,9 @@ data:
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   mm_processor_kwargs:
     sampling_rate: 16000
-  max_audio_dur: 40
+  max_audio_dur: 30
   shuffle: true
   use_interleave: true
-  model_version: 2607
   filter_overlong_prompts: false
   truncation: right
   prompt_key: prompt
@@ -132,7 +131,7 @@ actor_rollout_ref:
         disable_custom_all_reduce: true
     checkpoint_engine:
       backend: nccl
-      update_weights_bucket_megabytes: 2048
+      update_weights_bucket_megabytes: 512
     val_kwargs:
       temperature: 0.0
       top_p: 1.0
@@ -182,4 +181,4 @@ ray_kwargs:
     runtime_env:
       env_vars:
         VERL_USE_EXTERNAL_MODULES: hf_qwen35_audio
-
+        VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS: "1800"
