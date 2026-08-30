@@ -22,18 +22,8 @@ actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf
   rollout:
-    # vLLM CUDA graphs can become invalid after repeated trainer/rollout
-    # weight switches; eager execution keeps validation transitions stable.
-    enforce_eager: true
     max_num_seqs: 16
-    checkpoint_engine:
-      update_weights_bucket_megabytes: 256
 
-ray_kwargs:
-  ray_init:
-    runtime_env:
-      env_vars:
-        VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS: "900"
 
 reward_functions:
   openml:
