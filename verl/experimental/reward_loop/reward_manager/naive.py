@@ -148,7 +148,7 @@ class NaiveRewardManager(RewardManagerBase):
             prompt_length = prompt_ids.shape[-1]
             valid_prompt_length = data_item.batch["attention_mask"][:prompt_length].sum()
             valid_prompt_ids = prompt_ids[-valid_prompt_length:]
-            prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=True)
+            prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=False)
         except Exception:  # noqa: BLE001 - logging must never break reward computation
             prompt_str = None
 
