@@ -1,20 +1,17 @@
-updated_at_utc: 2026-08-29T22:23:45Z
+updated_at_utc: 2026-08-30T02:15:54Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
-│ i0           │ raysubmit_SNpHNnFJs55JrRXF   │ RUNNING       │ remax_2607v1_openml_verb_s200_bs64_lid05_sfl_tm1                           │ training 183/200 (91.5%)                     │
-│ i4           │ raysubmit_s3WMcFg1RThQGctL   │ RUNNING       │ eval_openasr_ml_verb_2607                                                  │ evaluating openasr_ml (decoding es_mcv)       │
-│ i7           │ raysubmit_mXAezBGMztUWFS1v   │ RUNNING       │ remax_2607v1_mixcv15_digits_openml_verb_s200_bs256_ilv                     │ training 179/200 (89.5%)                     │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
-- remax_2607v1_openml_verb_s200_bs64_lid05_sfl_tm1 [i0]: training 183/200 (91.5%)
+- remax_2607v1_openml_verb_s200_bs64_lid05_sfl_tm1 [i0]: complete step 180
 - remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1 [i15]: complete step 120
-- remax_2607v1_mixcv15_digits_openml_verb_s200_bs256_ilv [i7]: training 179/200 (89.5%)
+- remax_2607v1_mixcv15_digits_openml_verb_s200_bs256_ilv [i7]: complete step 190
 - remax_2607v1_digits_s200_bs64_sfl_tm1 [i14]: complete step 160
 - remax_2607v1_bad_mix13k_s100_bs64_lid05_sfl_tm1 [i11]: complete step 100
-- remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1 [i4]: evaluating openasr_ml step 100
+- remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1 [i4]: complete step 100
 - remax_2607v1b_digits_s200_bs64_sfl_tm1 [i5]: complete step 120
 - remax_2607v1_mix_digits_openml2x_s200_bs64_ilv [i1]: complete step 110
 - remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0 [i13]: complete step 190
