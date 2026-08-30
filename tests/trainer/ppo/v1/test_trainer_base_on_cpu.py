@@ -248,3 +248,25 @@ def test_v1_val_reward_supports_async_reward_function():
 
     assert scores == [5]
     assert reward_extra_infos == [{"score": 5}]
+
+
+def test_v1_validation_promotes_p_err_metrics_to_val_core():
+    trainer = _StubTrainer.__new__(_StubTrainer)
+    processed_metrics = {
+        "openml": {
+            "reward": {"mean@1": 0.75},
+            "p_err": {"mean@1": 0.2, "max@1": 0.3},
+            "dter_p_err": {"best@1/mean": 0.1},
+        }
+    }
+
+    with (
+        patch("verl.trainer.ppo.v1.trainer_base.process_validation_metrics", return_value=processed_metrics),
+        patch("verl.trainer.ppo.v1.trainer_base.update_var2metric2val", side_effect=lambda metrics: metrics),
+    ):
+        metrics = trainer._val_metrics_update([], [], {}, [])
+
+    assert metrics["val-core/openml/p_err/mean@1"] == 0.2
+    assert metrics["val-core/openml/dter_p_err/best@1/mean"] == 0.1
+    assert metrics["val-aux/openml/p_err/max@1"] == 0.3
+    assert metrics["val-aux/openml/reward/mean@1"] == 0.75
