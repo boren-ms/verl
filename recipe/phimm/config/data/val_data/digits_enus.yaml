@@ -1,0 +1,43 @@
+# RepeatNumber TTS D-test FY27Q1 for en-US and both modes.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/en-US/RepeateNumber_en-US_random_TTS_DTEST_FY27Q1/test.jsonl
+  pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  cache_name: enus_digits_random
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_digits_random
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/Evaluation/RepeateNumber/en-US/RepeateNumber_en-US_repeat_TTS_DTEST_FY27Q1/test.jsonl
+  pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  cache_name: enus_digits_repeat
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_digits_repeat
+    verl_format:
+      prompt_key: prompt

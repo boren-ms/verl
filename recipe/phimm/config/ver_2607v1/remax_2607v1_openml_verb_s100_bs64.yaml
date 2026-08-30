@@ -20,8 +20,22 @@ trainer:
 actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf
+  rollout:
+    enforce_eager: false
+    max_num_seqs: 16
+    engine_kwargs:
+      vllm:
+        compilation_config:
+          # Full graphs retain stale state across trainer/rollout weight switches.
+          cudagraph_mode: PIECEWISE
+    checkpoint_engine:
+      update_weights_bucket_megabytes: 256
 
-
+ray_kwargs:
+  ray_init:
+    runtime_env:
+      env_vars:
+        VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS: "900"
 
 reward_functions:
   openml:

@@ -1,0 +1,24 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - long_eval_asr
+  - data/val_data/mixlang_fy26q2_zh_seg
+  - _self_
+
+# Validation-only pre-segmented MixLang benchmark scored by the zh-CN backend.
+model:
+  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+
+data:
+  model_version: 2607
+  output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607v1_50000_lexical_fix/long_audio_mixlang_fy26q2_zh_seg
+  measure_kwargs:
+    locale: zh-cn
+
+val_reward:
+  custom_reward_function:
+    reward_kwargs:
+      locale: zh-cn

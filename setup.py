@@ -30,6 +30,7 @@ install_requires = [
     "dill",
     "hydra-core",
     "numpy>=2.0.0",
+    "openpyxl",
     "pandas",
     "peft",
     "pyarrow>=19.0.0",

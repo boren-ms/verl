@@ -6,6 +6,7 @@ dill
 hydra-core
 liger-kernel>=0.8.2
 numpy>=2.0.0
+openpyxl
 pandas
 peft
 pyarrow>=19.0.0
