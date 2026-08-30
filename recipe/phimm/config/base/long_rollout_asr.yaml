@@ -43,8 +43,6 @@ data:
   filter_overlong_prompts: false
   truncation: right
   prompt_key: prompt
-  return_raw_chat: true
-  return_full_prompt: true
   return_multi_modal_inputs: true
   # Eval must cover every segment: concatenate the per-corpus datasets instead of
   # interleaving them (interleave stops at the shortest corpus, dropping segments

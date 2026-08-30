@@ -54,7 +54,6 @@ data:
   filter_overlong_prompts: false
   truncation: right
   prompt_key: prompt
-  return_raw_chat: true
   return_multi_modal_inputs: true
   dataloader_num_workers: 0
   trust_remote_code: true

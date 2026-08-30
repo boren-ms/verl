@@ -58,7 +58,6 @@ data:
   max_response_length: 768
   max_audio_dur: 40
   num_workers: 4
-  return_raw_chat: true
   return_multi_modal_inputs: false   # not needed for vLLM server path
 
 actor_rollout_ref:

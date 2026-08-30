@@ -25,7 +25,6 @@ def test_long_eval_base_uses_trainer_v1_validation():
 
     assert config["defaults"][0] == "remax_asr"
     assert config["actor_rollout_ref"]["model"]["path"] == "${model.path}"
-    assert config["data"]["return_full_prompt"] is True
     assert config["trainer"]["val_only"] is True
     assert config["trainer"]["v1"]["trainer_mode"] == "sync"
     assert config["val_reward"]["group_segment"] is True
@@ -99,6 +98,5 @@ def test_async_audio_rollout_preserves_rendered_prompt_prefix():
         if isinstance(node, ast.Constant) and isinstance(node.value, str)
     }
 
-    assert config["data"]["return_full_prompt"] is True
     assert "full_prompt_text" in dataset_strings
     assert "full_prompt_text" in agent_loop_strings

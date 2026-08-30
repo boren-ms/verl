@@ -157,8 +157,6 @@ class RLHFDataset(Dataset):
         if chunk_load_mode := config.get("chunk_load_mode", None):
             set_chunk_load_mode(chunk_load_mode)
         self.prompt_key = config.get("prompt_key", "prompt")
-        self.return_raw_chat = config.get("return_raw_chat", False)
-        self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "right2")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
         self.num_proc = get_num_proc(config.get("num_proc", "auto"))
@@ -208,8 +206,6 @@ class RLHFDataset(Dataset):
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
         raw_prompt = f"{raw_prompt}{prefix}"
-        print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
-        print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
 
         audios = [load_audio(row_dict, self.max_audio_dur)]
 
@@ -280,13 +276,10 @@ class RLHFDataset(Dataset):
 
         raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
         row_dict["raw_prompt_ids"] = raw_prompt_ids
-        # encode prompts without chat template
-        if self.return_raw_chat:
-            row_dict["raw_prompt"] = messages
-
-        # get prompts with chat template
-        if self.return_full_prompt:
-            row_dict["full_prompt_text"] = raw_prompt
+        # The async agent loop consumes the structured messages and passes the
+        # rendered text to vLLM so model-specific audio placeholders are retained.
+        row_dict["raw_prompt"] = messages
+        row_dict["full_prompt_text"] = raw_prompt
 
         # add index for each prompt
         row_dict["extra_info"] = extra_info
