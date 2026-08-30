@@ -98,3 +98,33 @@ def test_validation_generations_logger_logs_trackio_traces():
     assert trace_kwargs["metadata"]["score"] == 0.5
     mock_trackio.log.assert_called_once()
     assert mock_trackio.log.call_args.kwargs["step"] == 7
+
+
+def test_validation_generations_logger_logs_ground_truth_to_wandb():
+    mock_wandb = MagicMock()
+    mock_wandb.run = object()
+    initial_table, logged_table = MagicMock(), MagicMock()
+    initial_table.data = []
+    mock_wandb.Table.side_effect = [initial_table, logged_table]
+
+    ValidationGenerationsLogger()._log_generations_to_wandb(
+        samples=[
+            ["question 1", "answer 1", "expected answer 1", 0.5],
+            ["question 2", "answer 2", "expected answer 2", 1.0],
+        ],
+        step=7,
+        wandb=mock_wandb,
+    )
+
+    assert mock_wandb.Table.call_args_list == [
+        call(columns=["step", "input", "output", "ground_truth", "score"]),
+        call(
+            columns=["step", "input", "output", "ground_truth", "score"],
+            data=[],
+        ),
+    ]
+    assert logged_table.add_data.call_args_list == [
+        call(7, "question 1", "answer 1", "expected answer 1", 0.5),
+        call(7, "question 2", "answer 2", "expected answer 2", 1.0),
+    ]
+    mock_wandb.log.assert_called_once_with({"val/generations": logged_table}, step=7)
