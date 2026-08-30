@@ -501,8 +501,6 @@ class vLLMHttpServer:
                 "banned_token_ids": get_vision_placeholder_token_ids(self.model_config.processor),
             },
         )
-        if self.config.free_cache_engine:
-            await engine_client.collective_rpc(method="use_torch_kv_block_zeroer")
 
         build_app_sig = inspect.signature(build_app)
         supported_tasks: tuple[Any, ...] = ()
@@ -855,15 +853,11 @@ class vLLMHttpServer:
             # engine.wake_up() broadcasts via the DP coordinator to ALL EngineCore
             # processes across all DP shards (unlike collective_rpc which only reaches
             # TP workers within a single shard).
-            wake_tags = tags or self._get_wake_up_tags()
-            await self.engine.wake_up(tags=wake_tags)
-            if "kv_cache" in wake_tags:
-                await self.engine.collective_rpc(method="refresh_kv_zero_meta")
+            await self.engine.wake_up(tags=tags or self._get_wake_up_tags())
             await self.engine.reset_prefix_cache(reset_connector=True)
         elif self.rollout_mode == RolloutMode.COLOCATED:
             # Directly call engine to wake up without sync weights.
             await self.engine.wake_up(tags=self._get_wake_up_tags())
-            await self.engine.collective_rpc(method="refresh_kv_zero_meta")
             # reset_connector=True drops any attached external KV store
             # (e.g. MooncakeStoreConnector) whose entries were computed
             # against the previous weights. No-op success when no connector
@@ -911,7 +905,6 @@ class vLLMHttpServer:
         if self.rollout_mode in (RolloutMode.COLOCATED, RolloutMode.STANDALONE):
             return
         await self.engine.wake_up(tags=["kv_cache"])
-        await self.engine.collective_rpc(method="refresh_kv_zero_meta")
         await self.engine.reset_prefix_cache(reset_connector=True)
 
     def _should_profile(self) -> bool:
