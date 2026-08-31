@@ -50,13 +50,8 @@ from recipe.phimm.utils.audio import sf_write, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
 from verl.audio_cache import submit_audio_cache_dataset
 
-prompt_format = "<audio>\n{}"
-
-
-def format_asr_prompt(prompt, model_version=None):
-    if model_version == 2607:
-        return f"{prompt}<audio>"
-    return prompt_format.format(prompt)
+def format_asr_prompt(prompt):
+    return f"{prompt}<audio>"
 
 
 def read_words(file_path, num=None, tn_name=None):
@@ -246,7 +241,7 @@ def ls_bias_dataset(jsonl_path, bias_key=None, with_gt=False, min_word_len=None,
         words = example.get("text", "").strip().split()
         words = tag_pieces(words, tag=tag, specified=gt_words, norm=biasing_text_norm)
         return {
-            "prompt": prompt_format.format(f"{prompt} {bias_str}"),
+            "prompt": format_asr_prompt(f"{prompt} {bias_str}"),
             "audio_path": audio_path,
             "text": " ".join(words),
             "keywords": gt_words,
@@ -315,7 +310,7 @@ def entity_dataset(
         prompt = get_task_prompt(task="biasing" if bias_str else "asr")
 
         return {
-            "prompt": prompt_format.format(f"{prompt} {bias_str}"),
+            "prompt": format_asr_prompt(f"{prompt} {bias_str}"),
             "audio_path": audio_path,
             "text": bs.get_text().strip(),
             "keywords": entities,
@@ -367,7 +362,7 @@ def tsv_dataset(tsv_paths, **kwargs):
             audio_path = audio_path.replace("/root/data/LibriSpeech", egs["dir"])
         messages = ast.literal_eval(egs["msgs"])[0]["messages"]
         x = {
-            "prompt": prompt_format.format("Transcribe the audio clip into text."),
+            "prompt": format_asr_prompt("Transcribe the audio clip into text."),
             "audio_path": audio_path,
             "text": messages[-1]["content"],
             "id": egs["id"],
@@ -411,7 +406,7 @@ def bias_sampling(ds, **kwargs):
         else:
             prompt = get_task_prompt(task="asr", rand=rand_prompt)
         return {
-            "prompt": prompt_format.format(prompt),
+            "prompt": format_asr_prompt(prompt),
             "text": text,  # text is updated
             "keywords": keywords,
             "context": context,
@@ -1708,7 +1703,7 @@ def overlap_prefix(ds, **kwargs):
 
         return {
             "text": text,
-            "prompt": prompt_format.format(prompt),
+            "prompt": format_asr_prompt(prompt),
         }
 
     ds = ds.map(add_overlap_prefix, with_indices=True, **pop_map_kwargs(kwargs))
@@ -1720,7 +1715,6 @@ def add_task_info(ds, **kwargs):
     task = kwargs.get("task", "asr")
     rand = kwargs.get("rand", False)
     language = kwargs.get("language", "English")
-    model_version = kwargs.get("model_version")
     prompt_suffix = kwargs.get("prompt_suffix", "")
     prefix_prob = float(kwargs.get("prefix_prob", 1.0))
 
@@ -1736,7 +1730,7 @@ def add_task_info(ds, **kwargs):
             components=egs.get("components"),
         )
         return {
-            "prompt": format_asr_prompt(prompt, model_version=model_version),
+            "prompt": format_asr_prompt(prompt),
             "prefix": prefix,
             "gt_output": gt_output,
             "language": lang,
@@ -1764,7 +1758,7 @@ def context_prefix(ds, **kwargs):
         if idx % log_interval == 0:
             print(f"[{idx}], Prompt: {prompt}")
             print(f"[{idx}], Text  : {egs['text']}")
-        return {"prompt": prompt_format.format(prompt)}
+        return {"prompt": format_asr_prompt(prompt)}
 
     ds = ds.map(add_context_prefix, with_indices=True, **pop_map_kwargs(kwargs))
     return ds
@@ -1821,7 +1815,7 @@ def augment(ds, **kwargs):
     # if tag_entity_kwargs := kwargs.get("tag_entity", {}):
     #     ds = tag_entity(ds, **merge_kwargs(map_kwargs, tag_entity_kwargs))
     if add_task_info_kwargs := kwargs.get("add_task_info", {}):
-        ds = add_task_info(ds, **merge_kwargs(map_kwargs, {"model_version": kwargs.get("model_version")}, add_task_info_kwargs))
+        ds = add_task_info(ds, **merge_kwargs(map_kwargs, add_task_info_kwargs))
     if post_process_kwargs := kwargs.get("post_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, post_process_kwargs))
     return ds

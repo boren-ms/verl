@@ -4,13 +4,17 @@ from datasets import Dataset
 from omegaconf import OmegaConf
 
 from recipe.phimm.data import dataset as dataset_module
-from recipe.phimm.data.dataset import _is_bad_fmt, _is_bad_lang, add_task_info
+from recipe.phimm.data.dataset import _is_bad_fmt, _is_bad_lang, add_task_info, format_asr_prompt
 
 
 class MinimalDataset:
     def map(self, function, **kwargs):
         self.example = function({"text": "bonjour"})
         return self
+
+
+def test_format_asr_prompt_uses_2607_audio_placement():
+    assert format_asr_prompt("Transcribe.") == "Transcribe.<audio>"
 
 
 def test_add_task_info_enables_language_prefix_by_default():
