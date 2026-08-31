@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RL Dataset → ct_build_initial_tokens — Runtime Stack</title>
+<title>RL Dataset → ct_build_initial_tokens — V1 and Fully-Async Runtime Stacks</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; padding: 40px; }
@@ -49,8 +49,8 @@ footer code { color: #8b949e; }
 <body>
 <div class="container">
 <h1>RL Dataset → <code>ct_build_initial_tokens()</code></h1>
-<p class="subtitle">Qwen3.5-Audio fully-async rollout stack · dataset materialization → Ray dispatch → prompt construction → vLLM<br>
-<code>recipe/phimm/data/rl_dataset.py</code> → <code>verl/experimental/agent_loop</code></p>
+<p class="subtitle">Qwen3.5-Audio V1 + experimental fully-async stacks · dataset materialization → Ray dispatch → prompt construction → vLLM<br>
+<code>recipe/phimm/data/rl_dataset.py</code> → <code>verl/trainer/ppo/v1</code> → <code>verl/experimental/agent_loop</code></p>
 <div class="legend">
   <span><span class="sw" style="background:#0a1628;border:1px solid #388bfd"></span>Data / prompt path</span>
   <span><span class="sw" style="background:#0d2818;border:1px solid #238636"></span>Agent-loop compute</span>
@@ -134,7 +134,107 @@ footer code { color: #8b949e; }
 </svg>
 </div>
 
-<h2>2. Ordered Runtime Sequence — Where the Method Is Used</h2>
+<h2>2. V1 Trainer Path — TransferQueue-Decoupled Rollout</h2>
+<div class="diagram">
+<svg viewBox="0 0 1220 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="V1 trainer path from TaskRunnerV1 through TransferQueue and AgentLoopWorkerTQ to ct_build_initial_tokens">
+<defs>
+  <marker id="vB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#58a6ff"/></marker>
+  <marker id="vG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+  <marker id="vR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f85149"/></marker>
+  <marker id="vO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d29922"/></marker>
+  <marker id="vP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#bc8cff"/></marker>
+</defs>
+<rect x="20" y="35" width="390" height="575" rx="14" fill="#1a0d2e" fill-opacity=".28" stroke="#8957e5" stroke-dasharray="6,3"/>
+<text x="40" y="66" fill="#bc8cff" font-size="16" font-weight="700">V1 TASK RUNNER · Ray actor</text>
+<rect x="48" y="92" width="334" height="76" rx="9" fill="#1a0d2e" stroke="#8957e5"/>
+<text x="68" y="120" fill="#e6edf3" font-size="15" font-weight="700">main_ppo → TaskRunnerV1.run()</text>
+<text x="68" y="144" fill="#8b949e" font-size="12">tq.init · select trainer_mode · trainer.init()</text>
+<rect x="48" y="202" width="334" height="100" rx="9" fill="#0a1628" stroke="#388bfd"/>
+<text x="68" y="231" fill="#79c0ff" font-size="15" font-weight="700">PPOTrainer._init_dataloader()</text>
+<text x="68" y="254" fill="#e6edf3" font-size="12">create_rl_dataset → PHIMM RLHFDataset</text>
+<text x="68" y="276" fill="#8b949e" font-size="12">StatefulDataLoader + collate_fn → TensorDict</text>
+<text x="68" y="293" fill="#8b949e" font-size="11">critical prompt/audio object fields survive</text>
+<rect x="48" y="336" width="334" height="100" rx="9" fill="#0a1628" stroke="#388bfd"/>
+<text x="68" y="365" fill="#79c0ff" font-size="15" font-weight="700">prepare_step() / async refill</text>
+<text x="68" y="388" fill="#e6edf3" font-size="12">_next_train_batch → assign uid</text>
+<text x="68" y="410" fill="#8b949e" font-size="12">_submit_batch_to_rollout(batch)</text>
+<text x="68" y="427" fill="#8b949e" font-size="11">register pending prompt then dispatch</text>
+<rect x="48" y="478" width="334" height="104" rx="9" fill="#0d2818" stroke="#238636"/>
+<text x="68" y="507" fill="#7ee787" font-size="15" font-weight="700">ReplayBuffer / ReplayBufferAsync</text>
+<text x="68" y="530" fill="#e6edf3" font-size="12">poll metadata → select completed keys</text>
+<text x="68" y="552" fill="#8b949e" font-size="12">kv_batch_get → training TensorDict</text>
+<text x="68" y="570" fill="#8b949e" font-size="11">async mode also filters stale/failed groups</text>
+<rect x="445" y="155" width="235" height="330" rx="13" fill="#2a1f00" stroke="#9e6a03" stroke-width="2"/>
+<text x="562" y="189" text-anchor="middle" fill="#e3b341" font-size="17" font-weight="700">TransferQueue</text>
+<text x="562" y="216" text-anchor="middle" fill="#8b949e" font-size="12">shared KV transport</text>
+<rect x="470" y="245" width="185" height="74" rx="8" fill="#161b22" stroke="#9e6a03"/>
+<text x="562" y="272" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="700">Prompt records</text>
+<text x="562" y="294" text-anchor="middle" fill="#8b949e" font-size="11">pending → running → finished</text>
+<rect x="470" y="350" width="185" height="96" rx="8" fill="#161b22" stroke="#9e6a03"/>
+<text x="562" y="377" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="700">Session outputs</text>
+<text x="562" y="399" text-anchor="middle" fill="#8b949e" font-size="11">uid_session_index</text>
+<text x="562" y="420" text-anchor="middle" fill="#8b949e" font-size="11">ragged IDs + masks + tags</text>
+<text x="562" y="438" text-anchor="middle" fill="#8b949e" font-size="11">train / val partitions</text>
+<rect x="715" y="35" width="485" height="575" rx="14" fill="#1a0d2e" fill-opacity=".28" stroke="#8957e5" stroke-dasharray="6,3"/>
+<text x="735" y="66" fill="#bc8cff" font-size="16" font-weight="700">V1 ROLLOUT WORKERS · Ray actors + GPU servers</text>
+<rect x="742" y="92" width="430" height="74" rx="9" fill="#1a0d2e" stroke="#8957e5"/>
+<text x="762" y="120" fill="#e6edf3" font-size="15" font-weight="700">AgentLoopManagerTQ</text>
+<text x="762" y="143" fill="#8b949e" font-size="12">chunk TensorDict; nonblocking worker dispatch</text>
+<rect x="742" y="200" width="430" height="112" rx="9" fill="#1a0d2e" stroke="#8957e5"/>
+<text x="762" y="228" fill="#e6edf3" font-size="15" font-weight="700">AgentLoopWorkerTQ <tspan fill="#bc8cff">(Ray actor)</tspan></text>
+<text x="762" y="251" fill="#8b949e" font-size="12">_run_prompt: one background task per uid</text>
+<text x="762" y="273" fill="#8b949e" font-size="12">spawn rollout.n sessions with asyncio.gather</text>
+<text x="762" y="295" fill="#8b949e" font-size="12">inherits _run_agent_loop from AgentLoopWorker</text>
+<rect x="742" y="346" width="430" height="98" rx="9" fill="#0d2818" stroke="#238636" stroke-width="2"/>
+<text x="762" y="375" fill="#7ee787" font-size="15" font-weight="700">SingleTurnAgentLoop.run()</text>
+<text x="762" y="399" fill="#e6edf3" font-size="13">await self.ct_build_initial_tokens(...)</text>
+<text x="762" y="422" fill="#8b949e" font-size="11">same implementation used by fully_async_policy</text>
+<rect x="742" y="478" width="430" height="104" rx="9" fill="#3d1a1a" stroke="#da3633"/>
+<text x="762" y="507" fill="#ff7b72" font-size="15" font-weight="700">vLLM generate → TQ postprocess</text>
+<text x="762" y="530" fill="#e6edf3" font-size="12">TextPrompt(prompt_text + audio) → TokenOutput</text>
+<text x="762" y="552" fill="#8b949e" font-size="12">AgentLoopWorkerTQ._agent_loop_postprocess()</text>
+<text x="762" y="570" fill="#8b949e" font-size="11">writes results directly back to TransferQueue</text>
+<line x1="215" y1="168" x2="215" y2="200" stroke="#58a6ff" stroke-width="2" marker-end="url(#vB)"/>
+<line x1="215" y1="302" x2="215" y2="334" stroke="#58a6ff" stroke-width="2" marker-end="url(#vB)"/>
+<path d="M382 376 Q414 310 468 282" fill="none" stroke="#d29922" stroke-width="2" marker-end="url(#vO)"/>
+<path d="M382 400 Q555 90 740 129" fill="none" stroke="#bc8cff" stroke-width="2" marker-end="url(#vP)"/>
+<line x1="957" y1="166" x2="957" y2="198" stroke="#bc8cff" stroke-width="2" marker-end="url(#vP)"/>
+<line x1="957" y1="312" x2="957" y2="344" stroke="#3fb950" stroke-width="2" marker-end="url(#vG)"/>
+<line x1="957" y1="444" x2="957" y2="476" stroke="#f85149" stroke-width="2" marker-end="url(#vR)"/>
+<path d="M742 545 Q690 524 645 430" fill="none" stroke="#d29922" stroke-width="2" marker-end="url(#vO)"/>
+<path d="M470 410 Q420 500 382 527" fill="none" stroke="#3fb950" stroke-width="2" marker-end="url(#vG)"/>
+<text x="420" y="350" fill="#e3b341" font-size="11">pending tag</text>
+<text x="559" y="109" fill="#bc8cff" font-size="11">generate_sequences(batch)</text>
+<text x="675" y="512" fill="#e3b341" font-size="11">async_kv_batch_put</text>
+</svg>
+</div>
+
+<div class="stage-grid">
+  <div class="stage-card">
+    <h3 style="color:#7ee787">The call to <code>ct_build_initial_tokens()</code> is unchanged</h3>
+    <div class="fields">AgentLoopWorkerTQ._run_prompt()
+  → AgentLoopWorker._run_agent_loop()       # inherited
+  → SingleTurnAgentLoop.run()               # shared
+  → AgentLoopBase.ct_build_initial_tokens() # shared
+  → server_manager.generate()               # shared</div>
+  </div>
+  <div class="stage-card">
+    <h3 style="color:#e3b341">What V1 replaces</h3>
+    <ul><li>No <code>FullyAsyncRollouter.pending_queue</code> in this path.</li><li><code>AgentLoopWorkerTQ</code> writes each completed session to TransferQueue.</li><li>The trainer-side replay buffer polls TQ and materializes a trainable batch.</li><li>Sync, colocate-async and separate-async modes share this transport.</li></ul>
+  </div>
+</div>
+
+<table class="data-table">
+<tr><th>Concern</th><th>V1 trainer</th><th>Experimental fully_async_policy</th></tr>
+<tr><td><b>Selection</b></td><td><code>trainer.use_v1=true</code> and <code>trainer.v1.trainer_mode</code></td><td>Dedicated fully-async entrypoint/configuration</td></tr>
+<tr><td><b>Batch at dispatch</b></td><td><code>TensorDict</code>; manager chunks across workers</td><td><code>DataProto</code>; manager dispatches one rollout sample round-robin</td></tr>
+<tr><td><b>Worker</b></td><td><code>AgentLoopWorkerTQ</code></td><td><code>AgentLoopWorker</code></td></tr>
+<tr><td><b>Result transport</b></td><td>TransferQueue KV records; replay buffer consumes completed keys</td><td>Ray future returns a padded <code>DataProto</code>; MessageQueue feeds trainer</td></tr>
+<tr><td><b>Session fan-out</b></td><td><code>_run_prompt()</code> launches <code>rollout.n</code> tasks per uid</td><td>Prompt is repeated before worker dispatch</td></tr>
+<tr><td><b>Shared tail</b></td><td colspan="2"><code>AgentLoopWorker._run_agent_loop()</code> → <code>SingleTurnAgentLoop.run()</code> → <code>ct_build_initial_tokens()</code> → vLLM</td></tr>
+</table>
+
+<h2>3. Experimental Fully-Async Sequence — Where the Method Is Used</h2>
 <div class="diagram">
 <svg viewBox="0 0 1220 690" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence from data loader to ct_build_initial_tokens and vLLM">
 <defs>
@@ -173,7 +273,7 @@ footer code { color: #8b949e; }
 </svg>
 </div>
 
-<h2>3. Prompt and Audio Dataflow — Two Representations, One Request</h2>
+<h2>4. Prompt and Audio Dataflow — Shared by Both Trainer Stacks</h2>
 <div class="diagram">
 <svg viewBox="0 0 1200 535" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dual prompt representations and audio placeholder transformations">
 <defs>
@@ -240,7 +340,7 @@ footer code { color: #8b949e; }
 </div>
 <p class="note warn"><b>Current-branch detail:</b> <code>ct_build_initial_tokens()</code> does not remove the empty <code>&lt;think&gt;...&lt;/think&gt;</code> block. The audio branch stores its rendered prompt as a fallback, while <code>SingleTurnAgentLoop.run()</code> prefers the dataset-provided <code>full_prompt_text</code>. That string is handed to vLLM as <code>prompt_text</code> whenever audio is present.</p>
 
-<h2>4. Inside <code>ct_build_initial_tokens()</code> — Branch State Machine</h2>
+<h2>5. Inside <code>ct_build_initial_tokens()</code> — Branch State Machine</h2>
 <div class="diagram">
 <svg viewBox="0 0 1160 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ct_build_initial_tokens state machine">
 <defs>
@@ -287,7 +387,7 @@ footer code { color: #8b949e; }
 </svg>
 </div>
 
-<h2>5. Data Contract Across Boundaries</h2>
+<h2>6. Data Contract Across Boundaries</h2>
 <table class="data-table">
 <tr><th>Stage</th><th>Field</th><th>Representation</th><th>Responsibility</th></tr>
 <tr><td><b>Dataset row</b><br><span class="loc loc-cpu">CPU</span></td><td><code>raw_prompt</code></td><td><code>list[dict]</code></td><td>Structured messages consumed by the concrete agent loop; stored as an object-array after collation.</td></tr>
@@ -301,7 +401,7 @@ footer code { color: #8b949e; }
 <tr><td><b>Agent output</b></td><td><code>responses</code>, masks</td><td>fixed-size tensors</td><td><code>ct_merge_assistant_token</code> merges generated IDs; worker left-pads prompt and right-pads response.</td></tr>
 </table>
 
-<h2>6. Concurrency, Dispatch, and Backpressure</h2>
+<h2>7. Experimental Fully-Async Concurrency and Backpressure</h2>
 <div class="stage-grid">
   <div class="stage-card">
     <h3 style="color:#79c0ff">Dataset Prefetch <span class="loc loc-cpu">worker thread</span></h3>
@@ -334,10 +434,12 @@ safe_create_task(_process_single_sample_streaming(...))</div>
   </div>
 </div>
 
-<h2>7. Branches and Key Configuration</h2>
+<h2>8. Branches and Key Configuration</h2>
 <table class="data-table">
 <tr><th>Decision / knob</th><th>Value</th><th>Runtime consequence</th></tr>
 <tr><td><code>data.custom_cls.path</code></td><td>points to PHIMM dataset</td><td>Selects <code>recipe.phimm.data.rl_dataset.RLHFDataset</code> instead of the default dataset.</td></tr>
+<tr><td><code>trainer.use_v1</code></td><td><code>true</code></td><td>Selects <code>TaskRunnerV1</code>, initializes TransferQueue and creates <code>AgentLoopManagerTQ</code>.</td></tr>
+<tr><td><code>trainer.v1.trainer_mode</code></td><td><code>sync</code>, <code>colocate_async</code>, or <code>separate_async</code></td><td>Selects the V1 trainer implementation and replay-buffer/backpressure regime.</td></tr>
 <tr><td><code>rollout.multi_turn.enable</code></td><td><code>false</code></td><td><code>prepare_single_generation_data()</code> explicitly assigns <code>single_turn_agent</code>.</td></tr>
 <tr><td><code>rollout.agent.default_agent_loop</code></td><td><code>single_turn_agent</code></td><td>Fallback agent name if the DataProto does not already contain one.</td></tr>
 <tr><td><code>rollout.agent.num_workers</code></td><td>$N$ CPU actors</td><td>Creates $N$ <code>AgentLoopWorker</code> Ray actors, round-robin across live nodes.</td></tr>
@@ -349,7 +451,7 @@ safe_create_task(_process_single_sample_streaming(...))</div>
 <tr><td><code>max_concurrent_samples</code></td><td>dynamic capacity</td><td>Bounds active sample tasks and provides rollouter-side backpressure.</td></tr>
 </table>
 
-<h2>8. Headline Runtime Facts</h2>
+<h2>9. Headline Runtime Facts</h2>
 <div class="metric-grid">
   <div class="metric"><div class="v">1</div><div class="l">direct call site in <code>SingleTurnAgentLoop.run()</code></div></div>
   <div class="metric"><div class="v">2</div><div class="l">prompt forms: structured messages + rendered text</div></div>
@@ -357,11 +459,12 @@ safe_create_task(_process_single_sample_streaming(...))</div>
   <div class="metric"><div class="v">TextPrompt</div><div class="l">vLLM path used for audio with rendered prompt text</div></div>
   <div class="metric"><div class="v">Fail closed</div><div class="l">multimodal prompt overflow raises; it is never sliced</div></div>
   <div class="metric"><div class="v">asyncio</div><div class="l">sample streaming and per-row generation concurrency</div></div>
+  <div class="metric"><div class="v">TransferQueue</div><div class="l">V1 result transport and replay-buffer boundary</div></div>
 </div>
 
 <footer>
-Source: <code>recipe/phimm/data/rl_dataset.py</code> · <code>verl/experimental/fully_async_policy</code> · <code>verl/experimental/agent_loop</code> · <code>verl/workers/rollout/vllm_rollout/vllm_async_server.py</code><br>
-Generated from branch <code>boren/async_asr_v1</code> · runtime focus: <code>RLHFDataset.__getitem__()</code> → <code>AgentLoopBase.ct_build_initial_tokens()</code>
+Source: <code>recipe/phimm/data/rl_dataset.py</code> · <code>verl/trainer/main_ppo.py</code> · <code>verl/trainer/ppo/v1</code> · <code>verl/experimental/fully_async_policy</code> · <code>verl/experimental/agent_loop</code> · <code>verl/workers/rollout/vllm_rollout/vllm_async_server.py</code><br>
+Generated from branch <code>boren/async_asr_v1</code> · runtime focus: both trainer paths into <code>AgentLoopBase.ct_build_initial_tokens()</code>
 </footer>
 </div>
 </body>
