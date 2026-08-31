@@ -31,6 +31,20 @@ def test_source_and_target_languages_must_match():
     assert not check_fmt(_parse_task_output(output))
 
 
+@pytest.mark.parametrize("mode_tag", ["LEXICAL", "verbatim", "ASR_READABLE"])
+def test_parse_task_output_removes_asr_mode_tags(mode_tag):
+    output = f"<src=English><tgt=English> \n<{mode_tag}>\nOK OK i think if you have"
+
+    task_output = _parse_task_output(output)
+
+    assert task_output == (
+        ["English"],
+        ["English"],
+        ["OK OK i think if you have"],
+    )
+    assert check_fmt(task_output)
+
+
 def test_parse_response_uses_structured_task_output():
     result = _parse_response(
         "<src=English><tgt=English>\nhello world",

@@ -19,9 +19,14 @@ from recipe.phimm.utils.languages import get_language_code
 # One ``<src=X><tgt=Y>\n...`` segment. Several newline-separated
 # segments may appear for code-switch / mixed audio.
 _SEGMENT_RE = re.compile(
-    r"(?:\A|\n)<src=(?P<src>[^>\n]+)><tgt=(?P<tgt>[^>\n]+)>\n"
+    r"(?:\A|\n)<src=(?P<src>[^>\n]+)><tgt=(?P<tgt>[^>\n]+)>[^\S\n]*\n"
     r"(?P<text>.*?)(?=\n<src=|\Z)",
     re.DOTALL,
+)
+
+_ASR_MODE_TAG_RE = re.compile(
+    r"</?(?:asr_)?(?:lexical|verbatim|readable)>",
+    re.IGNORECASE,
 )
 
 
@@ -225,6 +230,11 @@ def _empty_result() -> dict:
 # ---------------------------------------------------------------------------
 
 
+def clean_asr_mode_tags(text: str) -> str:
+    """Remove lexical, verbatim, and readable ASR mode tags."""
+    return _ASR_MODE_TAG_RE.sub("", text)
+
+
 def compute_openml_acc(hyp_text: str, ground_truth: str, tgt_lang: str, **kwargs) -> dict:
     """Return bracket, repeat, and tail-hallucination accuracies."""
     from recipe.phimm.utils.shared import has_brackets, has_repeat_error, has_tail_hallucination
@@ -290,7 +300,7 @@ def _parse_task_output(solution_str):
     """
     if not isinstance(solution_str, str):
         return None
-    output = solution_str.strip()
+    output = clean_asr_mode_tags(solution_str).strip()
     if not output:
         return None
 
@@ -301,7 +311,11 @@ def _parse_task_output(solution_str):
         if not m:
             return None
         segments.append(
-            (m.group("src").strip(), m.group("tgt").strip(), m.group("text"))
+            (
+                m.group("src").strip(),
+                m.group("tgt").strip(),
+                m.group("text").strip(),
+            )
         )
         pos = m.end()
     if not segments:
