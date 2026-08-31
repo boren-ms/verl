@@ -1,0 +1,80 @@
+hydra:
+  searchpath:
+    - pkg://verl.trainer.config
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+
+defaults:
+  - /remax_asr
+  - /data/train_data/openml_verb
+  - /data/val_data/mixlang_fy26q2_zh_seg_openml_punc
+  - _self_
+
+algorithm:
+  adv_scale: {openml: 1.0, default: 1.0}
+
+rollout:
+  n_gpus_per_node: 8
+
+trainer:
+  use_v1: true
+  n_gpus_per_node: 8
+  save_freq: 1000
+  resume_mode: disable
+  total_training_steps: 12
+  v1:
+    trainer_mode: colocate_async
+    colocate_async:
+      num_warmup_batches: 1
+
+actor_rollout_ref:
+  hybrid_engine: true
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf
+  actor:
+    fsdp_config:
+      fsdp_size: 8
+  rollout:
+    max_num_seqs: 16
+
+reward_functions:
+  openml:
+    path: pkg://recipe.phimm.reward.asr_measure
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 0.5}
+        word: {beta: 0.5}
+        lang: {beta: 1.0}
+        fmt: {beta: 1.0}
+        bracket: {beta: 1.0}
+        repeat: {beta: 1.0}
+
+reward_function_by_data_source:
+  mix: openml
+  openml: openml
+
+reward:
+  num_workers: 8
+
+val_reward:
+  group_segment: true
+  reward_functions:
+    inhouse:
+      path: pkg://recipe.phimm.reward.asr_inhouse_measure
+      name: eval_score
+      reward_kwargs:
+        locale: zh-cn
+    inhouse_en:
+      path: pkg://recipe.phimm.reward.asr_inhouse_measure
+      name: eval_score
+      reward_kwargs:
+        locale: en-us
+    openml:
+      path: pkg://recipe.phimm.reward.asr_edge
+      name: openasr_eval
+  reward_function_by_data_source:
+    mixlang_fy26q2: inhouse
+    openml_bad: openml
+    enus_conv_fy21q1: inhouse_en
