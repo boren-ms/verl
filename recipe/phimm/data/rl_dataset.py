@@ -277,10 +277,7 @@ class RLHFDataset(Dataset):
 
         raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
         row_dict["raw_prompt_ids"] = raw_prompt_ids
-        # The async agent loop consumes the structured messages and passes the
-        # rendered text to vLLM so model-specific audio placeholders are retained.
         row_dict["raw_prompt"] = messages
-        row_dict["full_prompt_text"] = raw_prompt
 
         # add index for each prompt
         row_dict["extra_info"] = extra_info

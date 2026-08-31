@@ -382,8 +382,6 @@ class AgentLoopBase(ABC):
                     **self.apply_chat_template_kwargs,
                 ),
             )
-            # Store raw_prompt for vLLM text-based multimodal processing
-            self._last_raw_prompt = raw_prompt
             prompt_ids = normalize_token_ids(self.tokenizer.encode(raw_prompt))
         else:
             prompt_ids = await self.loop.run_in_executor(

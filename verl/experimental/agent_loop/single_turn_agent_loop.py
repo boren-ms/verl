@@ -16,10 +16,9 @@ import os
 from typing import Any
 from uuid import uuid4
 
-from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, _convert_audio_messages_to_text, register
+from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, register
 from verl.utils.profiler import simple_timer
 from verl.utils.rollout_trace import rollout_trace_op
-from verl.utils.tokenizer.chat_template import apply_chat_template
 from verl.workers.rollout.replica import TokenOutput
 
 logger = logging.getLogger(__file__)
@@ -56,9 +55,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
             audios = multi_modal_data.get("audios")
         mm_processor_kwargs = self._get_mm_processor_kwargs(audios)
 
-        # 2. Build the initial prompt with Continuous Token. Audio prompts retain
-        # their rendered text so vLLM can tokenize model-specific placeholders.
-        prompt_text = None
+        # 2. Build the initial prompt with Continuous Token.
         self._assert_mm_supported(bool(images or videos))
         prompt_ids = await self.ct_build_initial_tokens(
             messages,
@@ -66,22 +63,6 @@ class SingleTurnAgentLoop(AgentLoopBase):
             videos=videos,
             audios=audios,
         )
-
-        # For audio multimodal, pass the raw prompt text so vLLM can tokenize
-        # with its own tokenizer that has audio placeholder tokens.
-        if audios is not None:
-            # Prefer pre-rendered prompt from dataset (has correct audio placeholders)
-            prompt_text = kwargs.get("full_prompt_text")
-            if prompt_text is None:
-                prompt_text = getattr(self, "_last_raw_prompt", None)
-            if prompt_text is None:
-                # Reconstruct from messages if nothing else is available
-                _chat_obj = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
-                text_messages = _convert_audio_messages_to_text(messages)
-                prompt_text = apply_chat_template(
-                    _chat_obj, text_messages, add_generation_prompt=True, tokenize=False,
-                    **self.apply_chat_template_kwargs,
-                )
 
         # 3. generate sequences (same pattern as main_asr_gen.py)
         metrics = {}
@@ -95,7 +76,6 @@ class SingleTurnAgentLoop(AgentLoopBase):
                 audio_data=audios,
                 video_data=videos,
                 mm_processor_kwargs=mm_processor_kwargs,
-                prompt_text=prompt_text,
                 priority=priority,
             )
         if metrics.get("num_preempted") is None:
