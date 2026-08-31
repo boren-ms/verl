@@ -177,6 +177,76 @@ def test_process_ds_random_cut_runs_after_rename_fields(monkeypatch):
     assert result[0]["audio_path"] == "sample.wav#0%:33.333333%"
 
 
+def test_add_rare_keywords_supports_rare_file(tmp_path):
+    rare_file = tmp_path / "rare.txt"
+    rare_file.write_text("contoso\nfabrikam\n", encoding="utf-8")
+    dataset = Dataset.from_dict({"text": ["Welcome to Contoso and Tailspin"]})
+
+    result = dataset_module.add_rare_keywords(
+        dataset,
+        rare_file=str(rare_file),
+        tn_name="english",
+    )
+
+    assert result[0]["keywords"] == ["contoso"]
+
+
+def test_add_rare_keywords_applies_rare_num_and_common_exclusion(tmp_path):
+    rare_file = tmp_path / "rare.txt"
+    rare_file.write_text("alpha\nbeta\ngamma\n", encoding="utf-8")
+    common_file = tmp_path / "common.count.txt"
+    common_file.write_text("alpha 10\n", encoding="utf-8")
+    dataset = Dataset.from_dict({"text": ["alpha beta gamma"]})
+
+    result = dataset_module.add_rare_keywords(
+        dataset,
+        rare_file=str(rare_file),
+        rare_num=2,
+        common_file=str(common_file),
+        common_num=1,
+    )
+
+    assert result[0]["keywords"] == ["beta"]
+
+
+def test_filter_text_by_word_list_keeps_matching_samples(tmp_path):
+    word_list = tmp_path / "words.count.txt"
+    word_list.write_text("contoso 10\nfabrikam 5\n", encoding="utf-8")
+    dataset = Dataset.from_dict(
+        {"text": ["Welcome to Contoso!", "Goodbye", "A Fabrikam product"]}
+    )
+
+    result = dataset_module.filter_text_by_word_list(
+        dataset,
+        word_list_file=str(word_list),
+        tn_name="english",
+    )
+
+    assert result["text"] == ["Welcome to Contoso!", "A Fabrikam product"]
+
+
+def test_process_ds_filters_selected_text_field_by_limited_word_list(tmp_path):
+    word_list = tmp_path / "words.txt"
+    word_list.write_text("alpha\nbeta\n", encoding="utf-8")
+    dataset = Dataset.from_dict(
+        {
+            "text": ["unused", "unused", "unused"],
+            "transcript": ["alpha one", "beta two", "gamma three"],
+        }
+    )
+
+    result = dataset_module.process_ds(
+        dataset,
+        filter_text_by_word_list={
+            "word_list_file": str(word_list),
+            "word_list_num": 1,
+            "field": "transcript",
+        },
+    )
+
+    assert result["transcript"] == ["alpha one"]
+
+
 def test_dataset_load_audio_reads_percentage_range(tmp_path):
     audio_path = tmp_path / "sample.wav"
     sf.write(audio_path, np.zeros(1000, dtype=np.float32), 16000)

@@ -837,24 +837,30 @@ def svad_explode(ds, **kwargs):
 
 
 def add_rare_keywords(ds, **kwargs):
-    """Add uncommon normalized words from each sample as keywords."""
+    """Add normalized words selected by a rare list or common-word exclusion."""
     tn_name = kwargs.get("tn_name", "english")
     rare_ratio = kwargs.get("rare_ratio", 1.0)
     common_file = kwargs.get("common_file", None)
     common_num = kwargs.get("common_num", 10000)
-    assert common_file is not None, "common_file must be set"
-    wd_cnt = read_word_count(common_file, num=common_num, tn_name=tn_name)
+    rare_file = kwargs.get("rare_file", None)
+    rare_num = kwargs.get("rare_num", None)
+    assert common_file is not None or rare_file is not None, "common_file or rare_file must be set"
+    common_words = set(read_words(common_file, num=common_num, tn_name=tn_name))
+    rare_words = set(read_words(rare_file, num=rare_num, tn_name=tn_name)) 
 
-    def rare_words(egs):
+    def add_kw_fn(egs): 
         text = text_norm(egs["text"], tn_name)
         words = {word for word in text.split() if len(word) > 1}
         limit = int(len(words) * rare_ratio)
-        keywords = sorted(words - wd_cnt.keys())
+        keywords = words - common_words
+
+        if rare_words:
+            keywords &= rare_words
         if len(keywords) > limit:
             keywords = random.sample(keywords, limit)
-        return {"keywords": keywords}
+        return {"keywords": list(keywords)}
 
-    ds = ds.map(rare_words, **pop_map_kwargs(kwargs))
+    ds = ds.map(add_kw_fn, **pop_map_kwargs(kwargs))
     return ds
 
 
@@ -908,6 +914,27 @@ def filter_by_keywords(ds, **kwargs):
     ds = ds.filter(is_enough_keywords, **pop_filter_kwargs(kwargs), desc="Filtering keywords")
     n_left = len(ds)
     print(f"Filtered dataset: {n_egs} => {n_left} [{n_left / n_egs:.2%}] left")
+    return ds
+
+
+def filter_text_by_word_list(ds, **kwargs):
+    """Keep samples whose normalized text contains a word from a word-list file."""
+    word_list_file = kwargs.get("word_list_file", None)
+    word_list_num = kwargs.get("word_list_num", None)
+    field = kwargs.get("field", "text")
+    tn_name = kwargs.get("tn_name", "identity")
+    assert word_list_file is not None, "word_list_file must be set"
+    words = set(read_words(word_list_file, num=word_list_num, tn_name=tn_name))
+
+    def contains_word(egs):
+        text = text_norm(str(egs.get(field, "")), tn_name)
+        return not words.isdisjoint(text.split())
+
+    n_egs = len(ds)
+    ds = ds.filter(contains_word, **pop_filter_kwargs(kwargs), desc="Filtering text by word list")
+    n_left = len(ds)
+    ratio = n_left / n_egs if n_egs else 0.0
+    print(f"Filtered dataset by word list: {n_egs} => {n_left} [{ratio:.2%}] left")
     return ds
 
 
@@ -1629,6 +1656,8 @@ def process_ds(ds, **kwargs):
         ds = limit_ds(ds, egs_limit=input_egs_limit)
     if filter_by_keywords_kwargs := kwargs.get("filter_by_keywords", {}):
         ds = filter_by_keywords(ds, **merge_kwargs(map_kwargs, filter_by_keywords_kwargs))
+    if filter_text_by_word_list_kwargs := kwargs.get("filter_text_by_word_list", {}):
+        ds = filter_text_by_word_list(ds, **merge_kwargs(map_kwargs, filter_text_by_word_list_kwargs))
     if filter_long_text_kwargs := kwargs.get("filter_long_text", {}):
         ds = filter_long_text(ds, **merge_kwargs(map_kwargs, filter_long_text_kwargs))
     if wer_filter_kwargs := kwargs.get("filter_by_wer", {}):

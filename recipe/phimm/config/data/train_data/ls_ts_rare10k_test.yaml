@@ -1,10 +1,10 @@
-# LibriSpeech with rare-word keywords and a keyword-biased teacher prompt.
+# LibriSpeech with rare-word keywords, filtered to samples containing keywords,
+# and a keyword-biased teacher prompt.
 
 - dataset_name: tsv
   tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
   add_rare_keywords:
-    common_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_words.count.txt
-    common_num: 10000
+    rare_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/ls_keywords.txt
     rare_ratio: 1.0
   add_task_info:
     task: lang_asr
