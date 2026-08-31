@@ -1,34 +1,53 @@
 import pytest
 
-from recipe.phimm.reward.asr_measure import _parse_task_output, check_fmt, check_lang, lang_score
+from recipe.phimm.reward.asr_measure import (
+    _parse_response,
+    _parse_task_output,
+    check_fmt,
+    check_lang,
+    lang_score,
+)
 
 
-def test_accepts_headerless_code_switch_output():
+def test_accepts_code_switch_output():
     output = (
-        "<ASR><lang=Chinese><TXT>祖父叶与良。</TXT>\n"
-        "<lang=Italian><TXT>E, inoltre, attore.</TXT></ASR>"
+        "<src=Chinese><tgt=Chinese>\n祖父叶与良。\n"
+        "<src=Italian><tgt=Italian>\nE, inoltre, attore."
     )
+    task_output = _parse_task_output(output)
 
-    assert _parse_task_output(output) == (
-        [],
+    assert task_output == (
+        ["Chinese", "Italian"],
         ["Chinese", "Italian"],
         ["祖父叶与良。", "E, inoltre, attore."],
     )
-    assert check_fmt(output)
-    assert check_lang(output, "Chinese Italian") == 1.0
+    assert check_fmt(task_output)
+    assert check_lang(task_output, "Chinese Italian") == 1.0
 
 
-def test_header_language_must_still_match_segments():
-    output = "Audio Language: English.\n<ASR><lang=French><TXT>Bonjour</TXT></ASR>"
+def test_source_and_target_languages_must_match():
+    output = "<src=English><tgt=French>\nBonjour"
 
-    assert not check_fmt(output)
+    assert not check_fmt(_parse_task_output(output))
+
+
+def test_parse_response_uses_structured_task_output():
+    result = _parse_response(
+        "<src=English><tgt=English>\nhello world",
+        ground_truth="hello world",
+        language="English",
+    )
+
+    assert result["word"] == 1.0
+    assert result["lang"] == 1.0
+    assert result["fmt"] == 1.0
 
 
 @pytest.mark.parametrize(
     ("output", "expected"),
     [
-        ("<ASR><lang=English><TXT>Hello</TXT></ASR>", 1.0),
-        ("<ASR><lang=French><TXT>Bonjour</TXT></ASR>", 0.0),
+        ("<src=English><tgt=English>\nHello", 1.0),
+        ("<src=French><tgt=French>\nBonjour", 0.0),
         ("malformed", 0.0),
     ],
 )

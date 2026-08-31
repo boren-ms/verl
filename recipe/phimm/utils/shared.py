@@ -488,15 +488,15 @@ def parse_asr_response(response):
     """Extract text and language from an ASR response string.
 
     Supports formats like:
+        <src=English><tgt=English>\nsome text
         <ASR_LEXICAL><lang=English><TXT>some text</TXT></ASR_LEXICAL>
         <ASR><lang=English><TXT>some text</TXT></ASR>
-        "Audio Language: English.\n<ASR><lang=English><TXT>I think Andrei will pr
         simple text
 
     Returns a dict with 'text' and 'lang' keys.
     If no match is found, returns {'text': response, 'lang': None}.
     """
-    m = re.search(r"<lang=([^>]+)>", response)
+    m = re.search(r"<src=([^>]+)>", response) or re.search(r"<lang=([^>]+)>", response)
     lang = m.group(1) if m else None
     text, formatted = _parse_transcription(response)
     # new_text = strip_repetitions(text)
@@ -506,8 +506,16 @@ def parse_asr_response(response):
 def _parse_transcription(raw_text):
     """Extract clean transcription from model output.
 
-    Returns (text, formatted) where formatted is True if <TXT> tags were found.
+    Returns (text, formatted) where formatted is True if a known task format
+    was found.
     """
+    task_segments = re.findall(
+        r"(?:\A|\n)<src=[^>\n]+><tgt=[^>\n]+>\n(.*?)(?=\n<src=|\Z)",
+        raw_text.strip(),
+        re.DOTALL,
+    )
+    if task_segments:
+        return " ".join(text.strip() for text in task_segments), True
     txt_matches = re.findall(r"<TXT>(.*?)</TXT>", raw_text, re.DOTALL)
     if txt_matches:
         return " ".join(m.strip() for m in txt_matches), True

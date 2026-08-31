@@ -16,14 +16,13 @@ from jiwer import process_words
 from recipe.phimm.utils.languages import get_language_code
 
 
-# Header line: ``Audio Language: {langs}.`` where {langs} may list several
-# languages (e.g. "English and Chinese") for code-switch / mixed audio.
-_HEADER_RE = re.compile(r"^Audio Language:\s*(?P<langs>[^\n]+?)\.?\n(?P<body>.*)$", re.DOTALL)
-# Body wrapper: ``<ASR>..</ASR>`` or ``<ASR_*>..</ASR_*>``.
-_TAG_RE = re.compile(r"^<(?P<tag>ASR(?:_[^>]+)?)>(?P<inner>.*)</(?P=tag)>$", re.DOTALL)
-# One ``<lang=X><TXT>..</TXT>`` segment (with optional surrounding whitespace);
-# several may appear back-to-back for code-switch / mixed audio.
-_SEGMENT_RE = re.compile(r"\s*<lang=(?P<lang>[^>]+)><TXT>(?P<text>.*?)</TXT>\s*", re.DOTALL)
+# One ``<src=X><tgt=Y>\n...`` segment. Several newline-separated
+# segments may appear for code-switch / mixed audio.
+_SEGMENT_RE = re.compile(
+    r"(?:\A|\n)<src=(?P<src>[^>\n]+)><tgt=(?P<tgt>[^>\n]+)>\n"
+    r"(?P<text>.*?)(?=\n<src=|\Z)",
+    re.DOTALL,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -187,6 +186,7 @@ def compute_fmt_acc(ref: str, hyp: str) -> dict:
             for ri, hi in zip(
                 range(chunk.ref_start_idx, chunk.ref_end_idx),
                 range(chunk.hyp_start_idx, chunk.hyp_end_idx),
+                strict=False,
             ):
                 rw = ref_words[ri]
                 hw = hyp_words[hi]
@@ -260,12 +260,11 @@ def compute_openml_acc(hyp_text: str, ground_truth: str, tgt_lang: str, **kwargs
 def _parse_response(solution_str, ground_truth=None, **kwargs):
     """Extract text, format/language, lexical, and edge-check accuracies."""
     from recipe.phimm.reward.asr_edge import measure
-    from recipe.phimm.utils.shared import parse_asr_response
 
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    trans_dict = parse_asr_response(solution_str)
-    hyp_text = trans_dict["text"]
+    task_output = _parse_task_output(solution_str)
+    hyp_text = " ".join(task_output[2]) if task_output is not None else str(solution_str or "")
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
@@ -276,57 +275,41 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "char": char_error.accuracy(),
         "word": word_error.accuracy(),
         **fmts,
-        "lang": check_lang(solution_str, tgt_lang),
-        "fmt": float(check_fmt(solution_str)),
+        "lang": check_lang(task_output, tgt_lang),
+        "fmt": float(check_fmt(task_output)),
         **openml_acc,
     }
 
 
-def _split_langs(header: str) -> list[str]:
-    """Split a header language field into individual language tokens.
-
-    Handles single (``"English"``) and code-switch (``"English and Chinese"``,
-    ``"English Chinese"``) forms.
-    """
-    header = header.strip().rstrip(".")
-    header = re.sub(r"\band\b", " ", header, flags=re.IGNORECASE)
-    return [p for p in re.split(r"[,\s、&/]+", header) if p]
-
-
 def _parse_task_output(solution_str):
-    """Parse an ASR task output into ``(header_langs, seg_langs, seg_texts)``.
+    """Parse an ASR task output into ``(src_langs, tgt_langs, seg_texts)``.
 
-    Supports one or more ``<lang=X><TXT>..</TXT>`` segments inside a single
-    ``<ASR>..</ASR>`` (or ``<ASR_*>..</ASR_*>``) block, as produced for
-    code-switch / language-mixed audio. The ``Audio Language:`` header is
-    optional; ``header_langs`` is empty when it is absent. Returns ``None``
-    when the string does not match the expected format.
+    Supports one or more newline-separated ``<src=X><tgt=Y>\n...`` segments,
+    as produced for code-switch / language-mixed audio. Returns ``None`` when
+    the complete string does not match the expected format.
     """
     if not isinstance(solution_str, str):
         return None
     output = solution_str.strip()
-    hm = _HEADER_RE.match(output)
-    body = hm.group("body").strip() if hm else output
-    tm = _TAG_RE.match(body)
-    if not tm:
+    if not output:
         return None
-    inner = tm.group("inner")
-    # The body inner must consist solely of consecutive well-formed segments;
-    # any leftover text (junk, malformed tags) makes the output invalid.
+
     segments = []
     pos = 0
-    while pos < len(inner):
-        m = _SEGMENT_RE.match(inner, pos)
+    while pos < len(output):
+        m = _SEGMENT_RE.match(output, pos)
         if not m:
             return None
-        segments.append((m.group("lang").strip(), m.group("text")))
+        segments.append(
+            (m.group("src").strip(), m.group("tgt").strip(), m.group("text"))
+        )
         pos = m.end()
     if not segments:
         return None
-    header_langs = _split_langs(hm.group("langs")) if hm else []
-    seg_langs = [lang for lang, _ in segments]
-    seg_texts = [text for _, text in segments]
-    return header_langs, seg_langs, seg_texts
+    src_langs = [src for src, _, _ in segments]
+    tgt_langs = [tgt for _, tgt, _ in segments]
+    seg_texts = [text for _, _, text in segments]
+    return src_langs, tgt_langs, seg_texts
 
 
 def _lang_code_set(lang) -> set[str]:
@@ -336,12 +319,12 @@ def _lang_code_set(lang) -> set[str]:
     return {c for c in get_language_code(lang).split("_") if c}
 
 
-def check_lang(solution_str, tgt_lang) -> float:
+def check_lang(task_output, tgt_lang) -> float:
     """Language-identification score in ``[0, 1]`` with partial credit.
 
-    Predicted language(s) come from the per-segment ``<lang=..>`` sequence in a
-    well-formed (possibly code-switch) task output. Malformed output scores
-    ``0.0``.
+    Predicted language(s) come from the per-segment ``<src=..>`` sequence in a
+    parsed (possibly code-switch) task output. A missing or malformed parsed
+    output scores ``0.0``.
 
     The score is the Jaccard overlap between the predicted and target language
     sets, so a code-switch output that identifies only some of the spoken
@@ -349,17 +332,16 @@ def check_lang(solution_str, tgt_lang) -> float:
 
     A ``<nonspeech>`` hypothesis always scores ``1.0`` (no language to judge).
     """
-    parsed = _parse_task_output(solution_str)
-    if parsed is None:
+    if task_output is None:
         return 0.0
 
-    _, seg_langs, seg_texts = parsed
+    src_langs, _, seg_texts = task_output
     if " ".join(seg_texts).strip().lower() == "<nonspeech>":
         return 1.0
 
     tgt_codes = _lang_code_set(tgt_lang)
     pred_codes: set[str] = set()
-    for name in seg_langs:
+    for name in src_langs:
         pred_codes |= _lang_code_set(name)
 
     if not tgt_codes and not pred_codes:
@@ -369,24 +351,24 @@ def check_lang(solution_str, tgt_lang) -> float:
     return len(pred_codes & tgt_codes) / len(tgt_codes)
 
 
-def check_fmt(solution_str: str) -> bool:
-    """Return True if ``solution_str`` matches ``_format_task_output`` format.
+def check_fmt(task_output) -> bool:
+    """Return whether a parsed output matches the ASR task format.
 
     Expected format (single or code-switch / language-mixed)::
 
-        Audio Language: {langs}.
-        <{tag}><lang={l1}><TXT>{t1}</TXT>[<lang={l2}><TXT>{t2}</TXT>...]</{tag}>
+        <src={l1}><tgt={l1}>
+        {text1}
+        <src={l2}><tgt={l2}>
+        {text2}
 
-    where tag is ``ASR`` or ``ASR_*``. The header is optional; when present,
-    its languages must match the per-segment ``<lang=..>`` sequence.
+    ASR source and target languages must match for every segment.
     """
-    parsed = _parse_task_output(solution_str)
-    if parsed is None:
+    if task_output is None:
         return False
-    header_langs, seg_langs, _ = parsed
-    if not header_langs:
-        return True
-    return [get_language_code(name) for name in header_langs] == [get_language_code(name) for name in seg_langs]
+    src_langs, tgt_langs, _ = task_output
+    return [get_language_code(name) for name in src_langs] == [
+        get_language_code(name) for name in tgt_langs
+    ]
 
 
 def clip(x, lo=-1.0, hi=1.0):
@@ -477,7 +459,8 @@ def lang_score(solution_str, ground_truth=None, **kwargs):
     """Return only the language-identification reward and metric."""
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    p_lang = check_lang(solution_str, tgt_lang)
+    task_output = _parse_task_output(solution_str)
+    p_lang = check_lang(task_output, tgt_lang)
     return {
         "score": p_lang,
         "p_lang": p_lang,

@@ -16,7 +16,7 @@ class MinimalDataset:
 def test_add_task_info_enables_language_prefix_by_default():
     dataset = add_task_info(MinimalDataset(), task="lang_asr", language="French")
 
-    assert dataset.example["prefix"] == "Audio Language: French\n"
+    assert dataset.example["prefix"] == "<src=French><tgt=French>\n"
 
 
 def test_add_task_info_allows_language_prefix_opt_out():
@@ -26,7 +26,7 @@ def test_add_task_info_allows_language_prefix_opt_out():
 
 
 def test_bad_format_uses_task_output_format():
-    valid = "Audio Language: English.\n<ASR><lang=English><TXT>Hello</TXT></ASR>"
+    valid = "<src=English><tgt=English>\nHello"
 
     assert not _is_bad_fmt({"raw_response": valid})
     assert _is_bad_fmt({"raw_response": "Hello"})
@@ -34,10 +34,10 @@ def test_bad_format_uses_task_output_format():
 
 def test_bad_language_uses_task_output_languages():
     mixed = (
-        "Audio Language: English and Chinese.\n"
-        "<ASR><lang=English><TXT>Hello</TXT><lang=Chinese><TXT>ni hao</TXT></ASR>"
+        "<src=English><tgt=English>\nHello\n"
+        "<src=Chinese><tgt=Chinese>\nni hao"
     )
-    wrong = "Audio Language: French.\n<ASR><lang=French><TXT>Bonjour</TXT></ASR>"
+    wrong = "<src=French><tgt=French>\nBonjour"
 
     assert not _is_bad_lang({"raw_response": mixed, "language": "English_Chinese"})
     assert _is_bad_lang({"raw_response": wrong, "language": "English"})
@@ -45,7 +45,7 @@ def test_bad_language_uses_task_output_languages():
 
 
 def test_nonspeech_is_not_bad_language():
-    nonspeech = "Audio Language: English.\n<ASR><lang=English><TXT><nonspeech></TXT></ASR>"
+    nonspeech = "<src=English><tgt=English>\n<nonspeech>"
 
     assert not _is_bad_lang({"raw_response": nonspeech, "language": "French"})
 

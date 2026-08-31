@@ -6,7 +6,7 @@ from recipe.phimm.reward.asr_bias import compute_score, eval_score
 @pytest.mark.parametrize("score_fn", [compute_score, eval_score])
 def test_score_extracts_hypothesis_from_asr_response(score_fn):
     result = score_fn(
-        "Audio Language: English.\n<ASR><lang=English><TXT>the quick blue fox</TXT></ASR>",
+        "<src=English><tgt=English>\nthe quick blue fox",
         "the quick brown fox",
         extra_info={"keywords": ["brown"]},
     )
@@ -21,7 +21,7 @@ def test_score_extracts_hypothesis_from_asr_response(score_fn):
 
 def test_eval_score_preserves_raw_hypothesis():
     expected = eval_score(
-        "<ASR><lang=English><TXT>the quick brown fox</TXT></ASR>",
+        "<src=English><tgt=English>\nthe quick brown fox",
         "the quick brown fox",
         extra_info={"keywords": ["brown"]},
     )

@@ -34,32 +34,19 @@ def _get_explicit_task_language(task):
     return None
 
 
-def _get_task_output_tag(task):
-    if task.startswith("lang_asr_verb"):
-        return "ASR_VERBATIM"
-    if task.startswith("lang_asr_lex"):
-        return "ASR_LEXICAL"
-    elif task in ("asr", "rare_asr", "biasing") or task.startswith("lang_asr"):
-        return "ASR"
-    else:
-        raise ValueError(f"Unknown task: {task}")
-
-
-def _format_task_output(tag, lang, text, components=None):
+def _format_task_output(lang, text, components=None):
     if components:
-        languages = []
         segments = []
         for component in components:
             component_lang = get_language_name(component.get("language", "Unknown"))
             component_text = component.get("text", "")
-            languages.append(component_lang)
-            segments.append(f"<lang={component_lang}><TXT>{component_text}</TXT>")
-        header_langs = " and ".join(languages)
-        content = "\n".join(segments)
-        return f"Audio Language: {header_langs}\n<{tag}>{content}</{tag}>"
+            segments.append(
+                f"<src={component_lang}><tgt={component_lang}>\n{component_text}"
+            )
+        return "\n".join(segments)
 
     lang = lang or "Unknown"
-    return f"Audio Language: {lang}.\n<{tag}><lang={lang}><TXT>{text}</TXT></{tag}>"
+    return f"<src={lang}><tgt={lang}>\n{text}"
 
 
 def get_task_prompt(task="asr", rand=False):
@@ -93,15 +80,18 @@ def get_task_prefix(task, lang, prob=1.0):
         return ""
     if task.startswith("lang_asr"):
         languages = get_language_name(lang).strip()
-        lang_str = " and ".join(languages.split())
-        return f"Audio Language: {lang_str}\n"
+        language_names = languages.split()
+        first_language = language_names[0] if language_names else "Unknown"
+        return f"<src={first_language}><tgt={first_language}>\n"
     
     raise ValueError(f"Unknown task: {task}")
 
 
 def get_task_output(task="asr", lang="English", text="", components=None):
     """Get the expected output format for the specified task."""
-    return _format_task_output(_get_task_output_tag(task), get_language_name(lang), text, components)
+    if task not in ("asr", "rare_asr", "biasing") and not task.startswith("lang_asr"):
+        raise ValueError(f"Unknown task: {task}")
+    return _format_task_output(get_language_name(lang), text, components)
     
 
 
