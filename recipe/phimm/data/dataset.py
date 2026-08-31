@@ -837,9 +837,9 @@ def svad_explode(ds, **kwargs):
 
 
 def add_rare_keywords(ds, **kwargs):
+    """Add uncommon normalized words from each sample as keywords."""
     tn_name = kwargs.get("tn_name", "english")
-    rare_ratio = kwargs.get("rare_ratio", None)
-    rare_num = kwargs.get("rare_num", None)
+    rare_ratio = kwargs.get("rare_ratio", 1.0)
     common_file = kwargs.get("common_file", None)
     common_num = kwargs.get("common_num", 10000)
     assert common_file is not None, "common_file must be set"
@@ -847,16 +847,12 @@ def add_rare_keywords(ds, **kwargs):
 
     def rare_words(egs):
         text = text_norm(egs["text"], tn_name)
-        words = set(text.split())
-        words = [w for w in words if len(w) > 1]  # filter single character words
-        n_rare = int(len(words) * rare_ratio) if rare_ratio else rare_num
-        if not n_rare:
-            keywords = [w for w in words if w not in wd_cnt]
-        else:
-            sorted_wds = sorted(words, key=lambda w: wd_cnt.get(w, 0))
-            keywords = sorted_wds[:n_rare]
-
-        return {"keywords": list(keywords)}
+        words = {word for word in text.split() if len(word) > 1}
+        limit = int(len(words) * rare_ratio)
+        keywords = sorted(words - wd_cnt.keys())
+        if len(keywords) > limit:
+            keywords = random.sample(keywords, limit)
+        return {"keywords": keywords}
 
     ds = ds.map(rare_words, **pop_map_kwargs(kwargs))
     return ds

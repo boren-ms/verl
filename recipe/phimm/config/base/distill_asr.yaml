@@ -8,18 +8,19 @@ data:
   train_files: null
   val_files: null
   trust_remote_code: false
+  model_version: 2607
   max_prompt_length: 1024
-  max_response_length: 512
+  max_response_length: 768
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   dataloader_num_workers: 1
   prefetch_factor: 2
   persistent_workers: true
   pin_memory: false
-  train_batch_size: 8
+  train_batch_size: 64
   max_audio_dur: 40
   chunk_load_mode: sample
   gen_batch_size: ${data.train_batch_size}
-  val_batch_size: 1024
+  val_batch_size: -1
   shuffle: true
   use_interleave: true
   custom_cls:
@@ -85,7 +86,7 @@ actor_rollout_ref:
     exclude_modules: "model.embed_tokens_extend.*"
     enable_gradient_checkpointing: false
   rollout:
-    n: 16
+    n: 2
     max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
     max_num_seqs: ${eval:${actor_rollout_ref.rollout.n}*2}
     dtype: bfloat16
@@ -126,9 +127,9 @@ reward_model:
     log: false
 
 trainer:
-  project_name: verl_distill
+  project_name: asr_bias_distill
   logger: ["console", "wandb"]
-  experiment_name: distill-asr-test
+  experiment_name: null
   n_gpus_per_node: 8
   ngpus: ${eval:${trainer.n_gpus_per_node}*${trainer.nnodes}}
   nnodes: 1

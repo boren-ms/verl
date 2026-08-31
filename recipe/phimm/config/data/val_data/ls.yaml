@@ -1,7 +1,14 @@
-- dataset_name: ls_bias
-  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
-  data_dir: az://orngwus2cresco/data/boren/data/
-  cache_name: auto_clean_0_lang_asr
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
+      dst_part: az://orngwus2cresco/data/boren/data/
+    rename_fields:
+      mappings:
+        keywords: ground_truth
+  cache_name: auto_clean_0_lang_asr_jsonl
   add_task_info:
     task: lang_asr
     prefix_prob: 1.0
@@ -12,10 +19,17 @@
     verl_format:
       prompt_key: prompt
 
-- dataset_name: ls_bias
-  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
-  data_dir: az://orngwus2cresco/data/boren/data/
-  cache_name: auto_other_0_lang_asr
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
+      dst_part: az://orngwus2cresco/data/boren/data/
+    rename_fields:
+      mappings:
+        keywords: ground_truth
+  cache_name: auto_other_0_lang_asr_jsonl
   add_task_info:
     task: lang_asr
     prefix_prob: 1.0

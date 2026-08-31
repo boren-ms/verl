@@ -1,0 +1,25 @@
+# LibriSpeech with rare-word keywords and a keyword-biased teacher prompt.
+
+- dataset_name: tsv
+  tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
+  add_rare_keywords:
+    common_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/words/all_words.count.txt
+    common_num: 10000
+    rare_ratio: 1.0
+  add_task_info:
+    task: lang_asr
+    # prefix_prob: 0.5
+  add_teacher:
+    task: lang_asr
+    biasing: true
+  pre_process:
+    shuffle:
+      seed: 42
+  post_process:
+    input_egs_limit: 10000
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: ls_ts_rare
+    verl_format:
+      prompt_key: prompt

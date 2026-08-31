@@ -10,7 +10,6 @@ sys.path.append(str(Path(__file__).parents[3]))
 
 from recipe.phimm.utils.tn import text_norm as text_normalize
 from recipe.phimm.utils.shared import parse_asr_response
-from recipe.phimm.reward.error_book import get_eb
 from collections import deque
 
 
@@ -359,8 +358,7 @@ def is_valid(wer, **kwargs):
 def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for ASR with keywords."""
     extra_info = kwargs.pop("extra_info", {})
-    error_book = kwargs.get("error_book", False)
-    keywords = get_eb().error_words(ground_truth, solution_str) if error_book else extra_info.get("keywords", None)
+    keywords = extra_info.get("keywords", None)
     hyp_text = parse_asr_response(solution_str).get("text") or ""
 
     wer, u_wer, b_wer = measure_errors(
@@ -389,8 +387,6 @@ def compute_score(solution_str, ground_truth, **kwargs):
         "nu_ref": u_wer.n_ref,
         "nb_ref": b_wer.n_ref,
     }
-    if error_book:
-        result["extra_info"] = {"keywords": keywords}
     return result
 
 
@@ -468,8 +464,7 @@ if __name__ == "__main__":
     for pair in pairs:
         # result = eval_score(pair["hyp"], pair["ref"])
 
-        result = compute_score(pair["hyp"], pair["ref"], text_norm="english", choice="wer", beta=1.0, error_book=True)
+        result = compute_score(pair["hyp"], pair["ref"], text_norm="english", choice="wer", beta=1.0)
         print(result)
-        print("EB:", get_eb().cnt)
 
 # %%
