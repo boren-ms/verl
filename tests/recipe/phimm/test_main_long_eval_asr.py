@@ -80,16 +80,24 @@ def test_long_rollout_uses_reference_generation_guards():
     assert rollout["stop_token_ids"] == [248044, 248046]
 
 
-def test_async_audio_rollout_uses_token_ids_only():
-    agent_loop_module = ast.parse(
-        (REPO_ROOT / "verl/experimental/agent_loop/single_turn_agent_loop.py").read_text()
-    )
+def test_async_audio_rollout_prompt_text_is_configurable():
+    config = yaml.safe_load((REPO_ROOT / "verl/trainer/config/rollout/rollout.yaml").read_text())
+    agent_loop_module = ast.parse((REPO_ROOT / "verl/experimental/agent_loop/single_turn_agent_loop.py").read_text())
+    dataset_module = ast.parse((REPO_ROOT / "recipe/phimm/data/rl_dataset.py").read_text())
 
+    agent_loop_names = {node.id for node in ast.walk(agent_loop_module) if isinstance(node, ast.Name)}
     agent_loop_strings = {
         node.value
         for node in ast.walk(agent_loop_module)
         if isinstance(node, ast.Constant) and isinstance(node.value, str)
     }
+    dataset_strings = {
+        node.value
+        for node in ast.walk(dataset_module)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    }
 
-    assert "full_prompt_text" not in agent_loop_strings
-    assert "prompt_text" not in agent_loop_strings
+    assert config["use_prompt_text"] is False
+    assert "prompt_text" in agent_loop_names
+    assert "full_prompt_text" in agent_loop_strings
+    assert "full_prompt_text" in dataset_strings

@@ -62,9 +62,7 @@ from verl.utils.skip import SkipManager
 from verl.utils.tokenizer import (
     build_multimodal_processor_inputs,
     get_processor_token_id,
-    normalize_token_ids,
 )
-from verl.utils.tokenizer.chat_template import apply_chat_template
 from verl.utils.tokenizer.continuous_token_wiring import create_continuous_token_builder
 from verl.workers.config import (
     HFModelConfig,
@@ -76,36 +74,6 @@ logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 
 DEFAULT_ROUTING_CACHE_SIZE = 10000
-
-
-def _convert_audio_messages_to_text(messages: list[dict]) -> list[dict]:
-    """Convert multimodal audio content items to plain text with audio placeholder tokens.
-
-    Chat templates for audio models (e.g. Qwen3.5-Audio) may not handle
-    ``{"type": "audio"}`` content items.  This function rewrites each message
-    so that audio items become ``<|audio_start|><|audio_end|>`` placeholder
-    tokens (which vLLM's multimodal processor will expand with the actual
-    audio features) while text items are concatenated.
-    """
-    converted = []
-    for msg in messages:
-        content = msg.get("content", "")
-        if isinstance(content, list):
-            parts = []
-            for item in content:
-                if isinstance(item, dict):
-                    if item.get("type") == "audio":
-                        parts.append("<audio>")
-                    elif item.get("type") == "text":
-                        parts.append(item.get("text", ""))
-                    else:
-                        parts.append(str(item.get("text", "")))
-                else:
-                    parts.append(str(item))
-            converted.append({**msg, "content": "\n".join(parts)})
-        else:
-            converted.append(msg)
-    return converted
 
 
 class AgentLoopMetrics(BaseModel):
@@ -356,7 +324,7 @@ class AgentLoopBase(ABC):
         videos: list[tuple[torch.Tensor, dict]] = None,
         audios: list[Any] = None,
     ) -> list[int]:
-        """Build the initial prompt token ids with Continuous Token.
+        """Build initial prompt token IDs.
 
         Multimodal inputs are forwarded to the builder so that VL builders can
         render placeholder spans through the processor. Text-only builders accept
@@ -364,36 +332,16 @@ class AgentLoopBase(ABC):
         it is a builder-lifetime constant captured at construction and applied by
         the builder itself during rendering.
         """
-        if audios is not None:
-            # Convert audio messages to text with proper placeholder tokens
-            # The Qwen3.5-Audio chat template doesn't handle {"type": "audio"} items,
-            # so we convert them to text with <audio> placeholders.
-            # vLLM's plugin will find these and expand them with audio features.
-            text_messages = _convert_audio_messages_to_text(messages)
-
-            raw_prompt = await self.loop.run_in_executor(
-                None,
-                lambda: apply_chat_template(
-                    self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer,
-                    text_messages,
-                    tools=tools,
-                    add_generation_prompt=True,
-                    tokenize=False,
-                    **self.apply_chat_template_kwargs,
-                ),
-            )
-            prompt_ids = normalize_token_ids(self.tokenizer.encode(raw_prompt))
-        else:
-            prompt_ids = await self.loop.run_in_executor(
-                None,
-                lambda: self.continuous_token_builder.build_initial_tokens(
-                    messages,
-                    tools=tools,
-                    images=images,
-                    videos=videos,
-                    audios=audios,
-                ),
-            )
+        prompt_ids = await self.loop.run_in_executor(
+            None,
+            lambda: self.continuous_token_builder.build_initial_tokens(
+                messages,
+                tools=tools,
+                images=images,
+                videos=videos,
+                audios=audios,
+            ),
+        )
 
         # Mirror the response-side ``response_ids[:response_length]`` cap on the prompt side:
         # every prompt produced by the agent loop must fit in ``rollout.prompt_length`` so that

@@ -43,22 +43,29 @@ def test_async_server_manager_generate_accepts_audio_and_mm_kwargs() -> None:
     arg_names = [arg.arg for arg in generate_fn.args.kwonlyargs]
     assert "audio_data" in arg_names
     assert "mm_processor_kwargs" in arg_names
+    assert "prompt_text" in arg_names
 
 
 def test_async_server_manager_generate_forwards_audio_and_mm_kwargs() -> None:
     source = LLM_SERVER_SOURCE.read_text(encoding="utf-8")
     assert 'multimodal_kwargs["audio_data"] = audio_data' in source
     assert 'multimodal_kwargs["mm_processor_kwargs"] = mm_processor_kwargs' in source
+    assert 'multimodal_kwargs["prompt_text"] = prompt_text' in source
+    assert 'rollout.name == "vllm"' in source
 
 
 def test_fully_async_server_manager_generate_forwards_audio_and_mm_kwargs() -> None:
     single_turn_source = SINGLE_TURN_AGENT_LOOP_SOURCE.read_text(encoding="utf-8")
     assert "audio_data=audios" in single_turn_source
     assert "mm_processor_kwargs=mm_processor_kwargs" in single_turn_source
+    assert "prompt_text=prompt_text" in single_turn_source
+    assert "self.rollout_config.use_prompt_text" in single_turn_source
 
     tool_source = TOOL_AGENT_LOOP_SOURCE.read_text(encoding="utf-8")
     assert "audio_data=agent_data.audio_data" in tool_source
     assert "mm_processor_kwargs=agent_data.mm_processor_kwargs" in tool_source
+    assert "prompt_text=agent_data.prompt_text" in tool_source
+    assert "self.rollout_config.use_prompt_text" in tool_source
 
 
 def test_vllm_generate_includes_audio_and_mm_processor_kwargs() -> None:

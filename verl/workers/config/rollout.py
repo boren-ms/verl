@@ -191,6 +191,10 @@ class RolloutConfig(BaseConfig):
     prompt_length: int = 512
     response_length: int = 512
 
+    # Use a rendered text prompt for multimodal vLLM requests so vLLM performs
+    # model-specific placeholder tokenization. Other backends ignore this option.
+    use_prompt_text: bool = False
+
     dtype: str = "bfloat16"
     gpu_memory_utilization: float = 0.5
     standalone_gpu_memory_utilization: Optional[float] = None

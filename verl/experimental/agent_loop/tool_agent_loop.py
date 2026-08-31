@@ -66,6 +66,7 @@ class AgentData:
         metrics: dict[str, Any],
         request_id: str,
         tools_kwargs: dict[str, Any],
+        full_prompt_text: Optional[str] = None,
     ):
         self.messages = messages
         self.image_data = image_data
@@ -75,9 +76,11 @@ class AgentData:
         self.metrics = metrics
         self.request_id = request_id
         self.tools_kwargs = tools_kwargs
+        self.full_prompt_text = full_prompt_text
 
         # State variables
         self.prompt_ids: list[int] = []
+        self.prompt_text: Optional[str] = None
         self.response_ids: list[int] = []
         self.response_mask: list[int] = []
         self.response_logprobs: list[float] = []
@@ -148,6 +151,7 @@ class ToolAgentLoop(AgentLoopBase):
             metrics=metrics,
             request_id=request_id,
             tools_kwargs=tools_kwargs,
+            full_prompt_text=kwargs.get("full_prompt_text"),
         )
 
         # Per-sample tool selection: filter global tools by extra_info.tool_selection
@@ -222,6 +226,7 @@ class ToolAgentLoop(AgentLoopBase):
             audios=agent_data.audio_data,
         )
         agent_data.prompt_ids = prompt_ids
+        agent_data.prompt_text = agent_data.full_prompt_text if self.rollout_config.use_prompt_text else None
         return AgentState.GENERATING
 
     async def _handle_generating_state(
@@ -242,6 +247,7 @@ class ToolAgentLoop(AgentLoopBase):
                 video_data=agent_data.video_data,
                 audio_data=agent_data.audio_data,
                 mm_processor_kwargs=agent_data.mm_processor_kwargs,
+                prompt_text=agent_data.prompt_text,
             )
         # first time to set num_preempted
         if agent_data.metrics.get("num_preempted") is None:

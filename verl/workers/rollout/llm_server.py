@@ -247,6 +247,7 @@ class LLMServerClient:
         video_data: Optional[list[Any]] = None,
         audio_data: Optional[list[Any]] = None,
         mm_processor_kwargs: Optional[dict[str, Any]] = None,
+        prompt_text: Optional[str] = None,
         **kwargs: Any,
     ) -> TokenOutput:
         """Generate tokens from prompt ids.
@@ -266,6 +267,8 @@ class LLMServerClient:
                 multimodal_kwargs["audio_data"] = audio_data
             if mm_processor_kwargs:
                 multimodal_kwargs["mm_processor_kwargs"] = mm_processor_kwargs
+            if prompt_text is not None and self.config.actor_rollout_ref.rollout.name == "vllm":
+                multimodal_kwargs["prompt_text"] = prompt_text
             # priority is only supported by vLLM rollout server.
             priority = kwargs.pop("priority", 0)
             priority_kwargs = (

@@ -63,6 +63,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
             videos=videos,
             audios=audios,
         )
+        prompt_text = kwargs.get("full_prompt_text") if self.rollout_config.use_prompt_text else None
 
         # 3. generate sequences (same pattern as main_asr_gen.py)
         metrics = {}
@@ -76,6 +77,7 @@ class SingleTurnAgentLoop(AgentLoopBase):
                 audio_data=audios,
                 video_data=videos,
                 mm_processor_kwargs=mm_processor_kwargs,
+                prompt_text=prompt_text,
                 priority=priority,
             )
         if metrics.get("num_preempted") is None:

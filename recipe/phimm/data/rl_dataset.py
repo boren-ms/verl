@@ -277,6 +277,7 @@ class RLHFDataset(Dataset):
 
         raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
         row_dict["raw_prompt_ids"] = raw_prompt_ids
+        row_dict["full_prompt_text"] = raw_prompt
         row_dict["raw_prompt"] = messages
 
         # add index for each prompt

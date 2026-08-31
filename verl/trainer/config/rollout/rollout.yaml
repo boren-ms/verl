@@ -38,6 +38,10 @@ prompt_length: ${oc.select:data.max_prompt_length,512}
 # same as data.max_response_length if it exists
 response_length: ${oc.select:data.max_response_length,512}
 
+# Whether multimodal vLLM requests use rendered text and vLLM's internal tokenizer.
+# When false, requests use the token IDs built by the agent loop.
+use_prompt_text: false
+
 # for vllm rollout
 # Rollout model parameters type. Align with actor model's FSDP/Megatron type.
 dtype: bfloat16

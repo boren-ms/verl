@@ -23,6 +23,7 @@ model:
 actor_rollout_ref:
   rollout:
     tensor_model_parallel_size: 1
+    max_model_len: ${data.max_model_length}
 
 rollout:
   n_gpus_per_node: 8
