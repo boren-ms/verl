@@ -20,15 +20,5 @@ val_reward:
 model:
   path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf
 
-actor_rollout_ref:
-  rollout:
-    tensor_model_parallel_size: 1
-    max_model_len: ${data.max_model_length}
-
-rollout:
-  n_gpus_per_node: 8
-
 data:
-  max_prompt_length: 1024
-  max_response_length: 512
   output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607v1_50000_lexical_fix/openasr_ml_verb_de_fleurs

@@ -13,17 +13,22 @@ actor_rollout_ref:
     trust_remote_code: ${model.trust_remote_code}
     lora_rank: 0
   rollout:
+    tensor_model_parallel_size: 1
+    max_model_len: ${data.max_model_length}
     response_length: ${data.max_response_length}
     n: 1
     temperature: 0.0
     max_num_seqs: 24
-    gpu_memory_utilization: 0.85
+    gpu_memory_utilization: 0.9
     calculate_log_probs: false
     val_kwargs:
       temperature: 0.0
       top_p: 1.0
       do_sample: false
       n: 1
+
+rollout:
+  n_gpus_per_node: 8
 
 data:
   train_files: ${data.val_data}
@@ -32,9 +37,9 @@ data:
   gen_batch_size: 1
   val_batch_size: -1
   validation_shuffle: false
-  max_audio_dur: 50
-  max_prompt_length: 4096
-  max_response_length: 1024
+  max_audio_dur: 30
+  max_prompt_length: 1024
+  max_response_length: 512
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   shuffle: false
   use_interleave: false
@@ -54,8 +59,7 @@ val_reward:
   custom_reward_function:
     path: pkg://recipe.phimm.reward.asr_inhouse_measure
     name: eval_score
-    reward_kwargs:
-      compute_eer: true
+
 
 trainer:
   project_name: phimm_long_eval
