@@ -122,6 +122,7 @@ class RLHFDataset(Dataset):
         if chunk_load_mode := config.get("chunk_load_mode", None):
             set_chunk_load_mode(chunk_load_mode)
         self.prompt_key = config.get("prompt_key", "prompt")
+        self.teacher_prompt = config.get("teacher_prompt", None)
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "right2")
@@ -217,6 +218,31 @@ class RLHFDataset(Dataset):
         row_dict["input_ids"] = input_ids[0]
         row_dict["attention_mask"] = attention_mask[0]
         row_dict["position_ids"] = position_ids[0]
+
+        teacher_prompt_value = row_dict.get("teacher_prompt", self.teacher_prompt)
+        if teacher_prompt_value is not None:
+            teacher_messages = [{"role": "user", "content": teacher_prompt_value}]
+            teacher_prompt = _chat_obj.apply_chat_template(
+                teacher_messages,
+                add_generation_prompt=True,
+                tokenize=False,
+                **self.apply_chat_template_kwargs,
+            )
+            if self.remove_think:
+                teacher_prompt = teacher_prompt.replace("<think>\n\n</think>\n\n", "")
+            teacher_inputs = self.processor(text=[teacher_prompt], audios=audios, return_tensors="pt")
+            teacher_input_ids = teacher_inputs["input_ids"]
+            teacher_attention_mask = teacher_inputs["attention_mask"]
+            teacher_input_ids, teacher_attention_mask = verl_F.postprocess_data(
+                input_ids=teacher_input_ids,
+                attention_mask=teacher_attention_mask,
+                max_length=self.max_prompt_length,
+                pad_token_id=self.tokenizer.pad_token_id,
+                left_pad=True,
+                truncation=self.truncation,
+            )
+            row_dict["teacher_input_ids"] = teacher_input_ids[0]
+            row_dict["teacher_attention_mask"] = teacher_attention_mask[0]
 
         # Prompt truncation (e.g. "right2") can drop the tail of the audio-placeholder
         # block for overlong prompts, leaving fewer AUDIO_PAD tokens in input_ids than

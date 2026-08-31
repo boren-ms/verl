@@ -379,14 +379,14 @@ class DataParallelPPOActor(BasePPOActor):
             "input_ids",
             "attention_mask",
             "position_ids",
-            "old_log_probs",
-            "advantages",
         ]
+        if not self.config.distill_only:
+            select_keys.extend(["old_log_probs", "advantages"])
         if self.config.use_kl_loss:
             select_keys.append("ref_log_prob")
-        if "remax_mask" in data.batch.keys():
+        if not self.config.distill_only and "remax_mask" in data.batch.keys():
             select_keys.append("remax_mask")
-        if self.config.tis_imp_ratio_cap > 0:
+        if not self.config.distill_only and self.config.tis_imp_ratio_cap > 0:
             assert "rollout_log_probs" in data.batch.keys(), (
                 "Truncated Importance Sampling (TIS) requires to configure "
                 "`actor_rollout_ref.rollout.calculate_log_probs=True` "
@@ -424,13 +424,16 @@ class DataParallelPPOActor(BasePPOActor):
                     micro_batch_metrics = {}
                     model_inputs = {**micro_batch.batch, **micro_batch.non_tensor_batch}
                     response_mask = model_inputs["response_mask"]
-                    if "remax_mask" in model_inputs:
+                    if not self.config.distill_only and "remax_mask" in model_inputs:
                         # ReMax disagreement mask: restrict the loss to tokens that cannot be
                         # aligned to the greedy baseline (the "disagree" tokens).
                         response_mask = response_mask * model_inputs["remax_mask"].to(response_mask.dtype)
-                    old_log_prob = model_inputs["old_log_probs"]
-                    rollout_log_probs = model_inputs["rollout_log_probs"] if self.config.tis_imp_ratio_cap > 0 else None
-                    advantages = model_inputs["advantages"]
+                    if not self.config.distill_only:
+                        old_log_prob = model_inputs["old_log_probs"]
+                        rollout_log_probs = (
+                            model_inputs["rollout_log_probs"] if self.config.tis_imp_ratio_cap > 0 else None
+                        )
+                        advantages = model_inputs["advantages"]
 
                     entropy_coeff = self.config.entropy_coeff
                     loss_agg_mode = self.config.loss_agg_mode
@@ -448,33 +451,38 @@ class DataParallelPPOActor(BasePPOActor):
                         model_inputs, temperature=temperature, calculate_entropy=calculate_entropy
                     )
 
-                    if on_policy:
-                        old_log_prob = log_prob.detach()
+                    if self.config.distill_only:
+                        zero = log_prob.new_zeros(())
+                        pg_loss = pg_clipfrac = ppo_kl = pg_clipfrac_lower = zero
+                        policy_loss = zero
                     else:
-                        old_log_prob = model_inputs["old_log_probs"]
+                        if on_policy:
+                            old_log_prob = log_prob.detach()
+                        else:
+                            old_log_prob = model_inputs["old_log_probs"]
 
-                    loss_mode = self.config.policy_loss.get("loss_mode", "vanilla")
-                    # vanilla -> verl.trainer.ppo.core_algos.compute_policy_loss_vanilla
-                    # gpg -> verl.trainer.ppo.core_algos.compute_policy_loss_gpg
-                    # clip_cov -> verl.trainer.ppo.core_algos.compute_policy_loss_clip_cov
-                    policy_loss_fn = get_policy_loss_fn(loss_mode)
-                    pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = policy_loss_fn(
-                        old_log_prob=old_log_prob,
-                        log_prob=log_prob,
-                        advantages=advantages,
-                        response_mask=response_mask,
-                        loss_agg_mode=loss_agg_mode,
-                        config=self.config,
-                        rollout_log_probs=rollout_log_probs,
-                    )
+                        loss_mode = self.config.policy_loss.get("loss_mode", "vanilla")
+                        # vanilla -> verl.trainer.ppo.core_algos.compute_policy_loss_vanilla
+                        # gpg -> verl.trainer.ppo.core_algos.compute_policy_loss_gpg
+                        # clip_cov -> verl.trainer.ppo.core_algos.compute_policy_loss_clip_cov
+                        policy_loss_fn = get_policy_loss_fn(loss_mode)
+                        pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower = policy_loss_fn(
+                            old_log_prob=old_log_prob,
+                            log_prob=log_prob,
+                            advantages=advantages,
+                            response_mask=response_mask,
+                            loss_agg_mode=loss_agg_mode,
+                            config=self.config,
+                            rollout_log_probs=rollout_log_probs,
+                        )
 
-                    if entropy_coeff != 0:
-                        entropy_loss = agg_loss(loss_mat=entropy, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
-
-                        # compute policy loss
-                        policy_loss = pg_loss - entropy_loss * entropy_coeff
-                    else:
-                        policy_loss = pg_loss
+                        if entropy_coeff != 0:
+                            entropy_loss = agg_loss(
+                                loss_mat=entropy, loss_mask=response_mask, loss_agg_mode=loss_agg_mode
+                            )
+                            policy_loss = pg_loss - entropy_loss * entropy_coeff
+                        else:
+                            policy_loss = pg_loss
 
                     if self.config.use_kl_loss:
                         ref_log_prob = model_inputs["ref_log_prob"]

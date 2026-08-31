@@ -13,12 +13,14 @@
 # limitations under the License.
 
 import warnings
+from copy import deepcopy
 from enum import Enum
 
-from omegaconf import DictConfig
+import torch
+from omegaconf import DictConfig, OmegaConf
 
+from verl import DataProto
 from verl.single_controller.base import Worker
-from verl.trainer.ppo.core_algos import AdvantageEstimator
 
 WorkerType = type[Worker]
 
@@ -44,6 +46,34 @@ def need_reference_policy(
     return Role.RefPolicy in role_worker_mapping
 
 
+def use_actor_as_reference(config: DictConfig) -> bool:
+    """Use the adapter-disabled actor as reference only when no external reference model is configured."""
+    lora_rank = OmegaConf.select(config, "actor_rollout_ref.model.lora_rank", default=0) or 0
+    ref_model_path = OmegaConf.select(config, "actor_rollout_ref.ref.model.path", default=None)
+    return lora_rank > 0 and not ref_model_path
+
+
+def build_teacher_context_batch(data: DataProto) -> DataProto:
+    """Replace the student prompt with a pre-tokenized teacher prompt while preserving sampled responses."""
+    if "teacher_input_ids" not in data.batch:
+        return data
+
+    teacher_data = deepcopy(data)
+    responses = data.batch["responses"]
+    response_length = responses.size(1)
+    response_attention_mask = data.batch["attention_mask"][:, -response_length:]
+    teacher_attention_mask = data.batch["teacher_attention_mask"]
+
+    teacher_data.batch["input_ids"] = torch.cat([data.batch["teacher_input_ids"], responses], dim=-1)
+    teacher_data.batch["attention_mask"] = torch.cat(
+        [teacher_attention_mask, response_attention_mask], dim=-1
+    )
+    teacher_data.batch["position_ids"] = torch.clamp(
+        torch.cumsum(teacher_data.batch["attention_mask"], dim=-1) - 1, min=0
+    )
+    return teacher_data
+
+
 def need_reward_model(
     role_worker_mapping: dict[Role, WorkerType],
 ) -> bool:
@@ -53,6 +83,8 @@ def need_reward_model(
 
 def need_critic(config: DictConfig) -> bool:
     """Given a config, do we need critic."""
+    from verl.trainer.ppo.core_algos import AdvantageEstimator
+
     if config.critic.enable is not None:
         return bool(config.critic.enable)
     elif config.algorithm.adv_estimator == AdvantageEstimator.GAE:

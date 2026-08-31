@@ -1,0 +1,142 @@
+defaults:
+  - ppo_trainer
+  - _self_
+
+nccl_timeout: 1800
+
+data:
+  train_files: null
+  val_files: null
+  trust_remote_code: false
+  max_prompt_length: 1024
+  max_response_length: 512
+  max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
+  dataloader_num_workers: 1
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false
+  train_batch_size: 8
+  max_audio_dur: 40
+  chunk_load_mode: sample
+  gen_batch_size: ${data.train_batch_size}
+  val_batch_size: 1024
+  shuffle: true
+  use_interleave: true
+  custom_cls:
+    path: recipe/phimm/data/rl_dataset.py
+    name: RLHFDataset
+  eval_num_examine: 20
+  train_num_examine: ${actor_rollout_ref.rollout.n}
+
+# Used for validation unless the experiment supplies a val_reward override.
+custom_reward_function:
+  path: recipe/phimm/reward/asr_edge.py
+  name: compute_score
+
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_edge.py
+    name: eval_score
+
+# Pure on-policy distillation does not compute rewards, advantages, returns,
+# critic values, or a PPO/GRPO/ReMax policy-gradient loss.
+algorithm:
+  adv_estimator: distill
+  use_kl_in_reward: false
+  filter_groups:
+    enable: false
+
+critic:
+  enable: false
+
+actor_rollout_ref:
+  nccl_timeout: 3600
+  actor:
+    distill_only: true
+    tis_imp_ratio_cap: -1
+    use_kl_loss: true
+    kl_loss_coef: 1.0
+    kl_loss_type: k3+
+    entropy_coeff: 0
+    loss_agg_mode: token-mean
+    ppo_micro_batch_size_per_gpu: 4
+    ppo_mini_batch_size: 512
+    ppo_epochs: 1
+    optim:
+      lr: 1e-5
+      warmup_style: cosine
+      min_lr_ratio: 0.1
+    fsdp_config:
+      param_offload: true
+      optimizer_offload: true
+      use_orig_params: true
+    strategy: fsdp2
+  model:
+    path: null
+    trust_remote_code: false
+    use_remove_padding: true
+    use_fused_kernels: false
+    lora_rank: 32
+    lora_alpha: 64
+    trainable_params: null
+    target_modules: "model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*"
+    exclude_modules: "model.embed_tokens_extend.*"
+    enable_gradient_checkpointing: false
+  rollout:
+    n: 16
+    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
+    max_num_seqs: ${eval:${actor_rollout_ref.rollout.n}*2}
+    dtype: bfloat16
+    log_prob_micro_batch_size_per_gpu: ${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}
+    tensor_model_parallel_size: 1
+    name: vllm
+    temperature: 1.0
+    no_repeat_ngram_size: 15
+    response_length: ${data.max_response_length}
+    calculate_log_probs: false
+    use_rollout_log_probs_as_old: false
+    val_kwargs:
+      temperature: 0.0
+      top_p: 1.0
+    gpu_memory_utilization: 0.9
+    load_format: safetensors
+    stop: ["<|im_end|>"]
+    stop_token_ids: [248044, 248046]
+    layered_summon: true
+    enforce_eager: false
+    enable_chunked_prefill: true
+    free_cache_engine: true
+  ref:
+    strategy: fsdp2
+    log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
+    fsdp_config:
+      param_offload: true
+    # Null uses the adapter-disabled actor base. Override path for an external teacher.
+    model:
+      path: null
+
+reward_model:
+  reward_manager: dapo
+  overlong_buffer:
+    enable: true
+    len: 128
+    penalty_factor: 1.0
+    log: false
+
+trainer:
+  project_name: verl_distill
+  logger: ["console", "wandb"]
+  experiment_name: distill-asr-test
+  n_gpus_per_node: 8
+  ngpus: ${eval:${trainer.n_gpus_per_node}*${trainer.nnodes}}
+  nnodes: 1
+  save_freq: 100
+  test_freq: 100
+  total_epochs: 1
+  resume_mode: auto
+  total_training_steps: null
+  default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
+  default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
+  val_before_train: false
+  val_only: false
+  validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen

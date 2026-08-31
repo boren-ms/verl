@@ -1551,6 +1551,8 @@ def verl_format_ds(ds, **kwargs):
             "extra_info": {key: _extra_info_value(egs, key) for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),
         }
+        if teacher_prompt := egs.get("teacher_prompt"):
+            result["teacher_prompt"] = teacher_prompt
         return result
 
     col_names = [x for x in ds.column_names if not x.startswith("audio")]
@@ -1744,6 +1746,26 @@ def add_task_info(ds, **kwargs):
     return ds
 
 
+def add_teacher(ds, **kwargs):
+    """Add a task-specific teacher prompt to every sample."""
+    task = kwargs.get("task", "asr")
+    model_version = kwargs.get("model_version")
+    biasing = kwargs.get("biasing", False)
+
+    def add_teacher_fn(egs):
+        prompt = format_asr_prompt(get_task_prompt(task=task, rand=False), model_version=model_version)
+        keywords = egs.get("keywords") or []
+        keywords = [keywords] if isinstance(keywords, str) else keywords
+        keywords = [str(keyword).strip() for keyword in keywords if str(keyword).strip()]
+        if biasing and keywords:
+            terms = ", ".join(f"*{keyword}*" for keyword in keywords)
+            prompt = f"{prompt}\nPay extra attention to the following phrases/words: {terms}."
+        return {"teacher_prompt": prompt}
+
+    ds = ds.map(add_teacher_fn, **pop_map_kwargs(kwargs))
+    return ds
+
+
 def context_prefix(ds, **kwargs):
     """Complete the transcription for the given examples."""
     prefix_key = kwargs.get("prefix_key", "info.preceding_original_transcription")
@@ -1820,6 +1842,11 @@ def augment(ds, **kwargs):
     #     ds = tag_entity(ds, **merge_kwargs(map_kwargs, tag_entity_kwargs))
     if add_task_info_kwargs := kwargs.get("add_task_info", {}):
         ds = add_task_info(ds, **merge_kwargs(map_kwargs, {"model_version": kwargs.get("model_version")}, add_task_info_kwargs))
+    if add_teacher_kwargs := kwargs.get("add_teacher", {}):
+        ds = add_teacher(
+            ds,
+            **merge_kwargs(map_kwargs, {"model_version": kwargs.get("model_version")}, add_teacher_kwargs),
+        )
     if post_process_kwargs := kwargs.get("post_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, post_process_kwargs))
     return ds

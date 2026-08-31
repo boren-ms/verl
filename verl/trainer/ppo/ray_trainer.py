@@ -52,7 +52,15 @@ from verl.trainer.ppo.metric_utils import (
     update_var2metric2val,
 )
 from verl.trainer.ppo.reward import compute_reward, compute_reward_async
-from verl.trainer.ppo.utils import Role, WorkerType, need_critic, need_reference_policy, need_reward_model
+from verl.trainer.ppo.utils import (
+    Role,
+    WorkerType,
+    build_teacher_context_batch,
+    need_critic,
+    need_reference_policy,
+    need_reward_model,
+    use_actor_as_reference,
+)
 from verl.utils.checkpoint.checkpoint_manager import find_latest_ckpt_path, should_save_ckpt_esi
 from verl.utils.config import omega_conf_to_dataclass
 from verl.utils.debug import marked_timer
@@ -215,7 +223,10 @@ def compute_advantage(
     if "response_mask" not in data.batch.keys():
         data.batch["response_mask"] = compute_response_mask(data)
     # prepare response group
-    if adv_estimator == AdvantageEstimator.GAE:
+    if adv_estimator == AdvantageEstimator.DISTILL:
+        # Pure distillation has no reward-derived policy-gradient signal.
+        return data
+    elif adv_estimator == AdvantageEstimator.GAE:
         # Compute advantages and returns using Generalized Advantage Estimation (GAE)
         advantages, returns = core_algos.compute_gae_advantage_return(
             token_level_rewards=data.batch["token_level_rewards"],
@@ -362,8 +373,9 @@ class RayPPOTrainer:
             experiment_name=self.config.trainer.experiment_name,
         )
 
-        # if ref_in_actor is True, the reference policy will be actor without lora applied
-        self.ref_in_actor = config.actor_rollout_ref.model.get("lora_rank", 0) > 0
+        # A LoRA actor can provide its adapter-disabled base as the reference unless an
+        # explicit external model is configured (for example, an online-distillation teacher).
+        self.ref_in_actor = use_actor_as_reference(config)
 
         # define in-reward KL control
         # kl loss control currently not suppoorted
@@ -518,7 +530,10 @@ class RayPPOTrainer:
         with marked_timer("dump_rollout_generations", timing_raw, color="green"):
             inputs = self.tokenizer.batch_decode(batch.batch["prompts"], skip_special_tokens=True)
             outputs = self.tokenizer.batch_decode(batch.batch["responses"], skip_special_tokens=True)
-            scores = batch.batch["token_level_scores"].sum(-1).cpu().tolist()
+            if "token_level_scores" in batch.batch:
+                scores = batch.batch["token_level_scores"].sum(-1).cpu().tolist()
+            else:
+                scores = [None] * len(outputs)
             sample_gts = [item.non_tensor_batch.get("reward_model", {}).get("ground_truth", None) for item in batch]
 
             reward_extra_infos_to_dump = reward_extra_infos_dict.copy()
@@ -1200,37 +1215,42 @@ class RayPPOTrainer:
 
                     # compute global_valid tokens
                     batch.meta_info["global_token_num"] = torch.sum(batch.batch["attention_mask"], dim=-1).tolist()
+                    distill_only = self.config.actor_rollout_ref.actor.get("distill_only", False)
+                    reward_extra_infos_dict: dict[str, list] = {}
 
-                    with marked_timer("reward", timing_raw, color="yellow"):
-                        # Ensure greedy_hyp is in extra_info for the main reward computation.
-                        # It may have been overwritten by batch.union(gen_batch_output) above.
-                        if self.config.algorithm.adv_estimator == AdvantageEstimator.REMAX and greedy_hyps is not None:
-                            if "extra_info" not in batch.non_tensor_batch:
-                                batch.non_tensor_batch["extra_info"] = [{} for _ in range(len(batch))]
-                            n_rollout = self.config.actor_rollout_ref.rollout.n
-                            for i in range(len(batch)):
-                                ei = batch.non_tensor_batch["extra_info"][i]
-                                if not isinstance(ei, dict):
-                                    ei = {}
-                                    batch.non_tensor_batch["extra_info"][i] = ei
-                                ei["greedy_hyp"] = greedy_hyps[i // n_rollout]
+                    if not distill_only:
+                        with marked_timer("reward", timing_raw, color="yellow"):
+                            # Ensure greedy_hyp is in extra_info for the main reward computation.
+                            # It may have been overwritten by batch.union(gen_batch_output) above.
+                            if self.config.algorithm.adv_estimator == AdvantageEstimator.REMAX and greedy_hyps is not None:
+                                if "extra_info" not in batch.non_tensor_batch:
+                                    batch.non_tensor_batch["extra_info"] = [{} for _ in range(len(batch))]
+                                n_rollout = self.config.actor_rollout_ref.rollout.n
+                                for i in range(len(batch)):
+                                    ei = batch.non_tensor_batch["extra_info"][i]
+                                    if not isinstance(ei, dict):
+                                        ei = {}
+                                        batch.non_tensor_batch["extra_info"][i] = ei
+                                    ei["greedy_hyp"] = greedy_hyps[i // n_rollout]
 
-                        # compute reward model score
-                        if self.use_rm and "rm_scores" not in batch.batch.keys():
-                            reward_tensor = self.rm_wg.compute_rm_score(batch)
-                            batch = batch.union(reward_tensor)
+                            # compute reward model score
+                            if self.use_rm and "rm_scores" not in batch.batch.keys():
+                                reward_tensor = self.rm_wg.compute_rm_score(batch)
+                                batch = batch.union(reward_tensor)
 
-                        if self.config.reward_model.launch_reward_fn_async:
-                            future_reward = compute_reward_async.remote(data=batch, reward_fn=self.reward_fn)
-                        else:
-                            reward_tensor, reward_extra_infos_dict = compute_reward(batch, self.reward_fn)
+                            if self.config.reward_model.launch_reward_fn_async:
+                                future_reward = compute_reward_async.remote(data=batch, reward_fn=self.reward_fn)
+                            else:
+                                reward_tensor, reward_extra_infos_dict = compute_reward(batch, self.reward_fn)
 
                     # recompute old_log_probs
                     with marked_timer("old_log_prob", timing_raw, color="blue"):
                         use_rollout_as_old = self.config.actor_rollout_ref.rollout.get(
                             "use_rollout_log_probs_as_old", False
                         )
-                        if use_rollout_as_old and "rollout_log_probs" in batch.batch.keys():
+                        if distill_only:
+                            pass
+                        elif use_rollout_as_old and "rollout_log_probs" in batch.batch.keys():
                             # Reuse vLLM's log probs as old_log_probs to skip expensive recomputation.
                             # Valid because both use the same merged (base+LoRA) weights.
                             batch.batch["old_log_probs"] = batch.batch["rollout_log_probs"].clone()
@@ -1256,55 +1276,52 @@ class RayPPOTrainer:
                     if self.use_reference_policy:
                         # compute reference log_prob
                         with marked_timer("ref", timing_raw, color="olive"):
+                            ref_batch = build_teacher_context_batch(batch)
                             if not self.ref_in_actor:
-                                ref_log_prob = self.ref_policy_wg.compute_ref_log_prob(batch)
+                                ref_log_prob = self.ref_policy_wg.compute_ref_log_prob(ref_batch)
                             else:
-                                ref_log_prob = self.actor_rollout_wg.compute_ref_log_prob(batch)
+                                ref_log_prob = self.actor_rollout_wg.compute_ref_log_prob(ref_batch)
                             batch = batch.union(ref_log_prob)
 
                     # compute values
-                    if self.use_critic:
+                    if self.use_critic and not distill_only:
                         with marked_timer("values", timing_raw, color="cyan"):
                             values = self.critic_wg.compute_values(batch)
                             batch = batch.union(values)
 
-                    with marked_timer("adv", timing_raw, color="brown"):
-                        # we combine with rule-based rm
-                        reward_extra_infos_dict: dict[str, list]
-                        if self.config.reward_model.launch_reward_fn_async:
-                            reward_tensor, reward_extra_infos_dict = ray.get(future_reward)
-                        batch.batch["token_level_scores"] = reward_tensor
+                    if not distill_only:
+                        with marked_timer("adv", timing_raw, color="brown"):
+                            if self.config.reward_model.launch_reward_fn_async:
+                                reward_tensor, reward_extra_infos_dict = ray.get(future_reward)
+                            batch.batch["token_level_scores"] = reward_tensor
 
-                        if reward_extra_infos_dict:
-                            batch.non_tensor_batch.update({k: np.array(v) for k, v in reward_extra_infos_dict.items()})
+                            if reward_extra_infos_dict:
+                                batch.non_tensor_batch.update(
+                                    {k: np.array(v) for k, v in reward_extra_infos_dict.items()}
+                                )
 
-                        # compute rewards. apply_kl_penalty if available
-                        if self.config.algorithm.use_kl_in_reward:
-                            batch, kl_metrics = apply_kl_penalty(
-                                batch, kl_ctrl=self.kl_ctrl_in_reward, kl_penalty=self.config.algorithm.kl_penalty
+                            # compute rewards. apply_kl_penalty if available
+                            if self.config.algorithm.use_kl_in_reward:
+                                batch, kl_metrics = apply_kl_penalty(
+                                    batch, kl_ctrl=self.kl_ctrl_in_reward, kl_penalty=self.config.algorithm.kl_penalty
+                                )
+                                metrics.update(kl_metrics)
+                            else:
+                                batch.batch["token_level_rewards"] = batch.batch["token_level_scores"]
+
+                            norm_adv_by_std_in_grpo = self.config.algorithm.get("norm_adv_by_std_in_grpo", True)
+                            batch = compute_advantage(
+                                batch,
+                                adv_estimator=self.config.algorithm.adv_estimator,
+                                gamma=self.config.algorithm.gamma,
+                                lam=self.config.algorithm.lam,
+                                num_repeat=self.config.actor_rollout_ref.rollout.n,
+                                norm_adv_by_std_in_grpo=norm_adv_by_std_in_grpo,
+                                config=self.config.algorithm,
                             )
-                            metrics.update(kl_metrics)
-                        else:
-                            batch.batch["token_level_rewards"] = batch.batch["token_level_scores"]
-
-                        # compute advantages, executed on the driver process
-
-                        norm_adv_by_std_in_grpo = self.config.algorithm.get(
-                            "norm_adv_by_std_in_grpo", True
-                        )  # GRPO adv normalization factor
-
-                        batch = compute_advantage(
-                            batch,
-                            adv_estimator=self.config.algorithm.adv_estimator,
-                            gamma=self.config.algorithm.gamma,
-                            lam=self.config.algorithm.lam,
-                            num_repeat=self.config.actor_rollout_ref.rollout.n,
-                            norm_adv_by_std_in_grpo=norm_adv_by_std_in_grpo,
-                            config=self.config.algorithm,
-                        )
 
                     # update critic
-                    if self.use_critic:
+                    if self.use_critic and not distill_only:
                         with marked_timer("update_critic", timing_raw, color="pink"):
                             critic_output = self.critic_wg.update_critic(batch)
                         critic_output_metrics = reduce_metrics(critic_output.meta_info["metrics"])

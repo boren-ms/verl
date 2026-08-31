@@ -102,6 +102,7 @@ class AdvantageEstimator(str, Enum):
     GRPO_PASSK = "grpo_passk"
     GPG = "gpg"
     GDPO = "gdpo"
+    DISTILL = "distill"
 
 
 ADV_ESTIMATOR_REGISTRY: dict[str, Any] = {}
@@ -1662,8 +1663,10 @@ def kl_penalty(logprob: torch.FloatTensor, ref_logprob: torch.FloatTensor, kl_pe
     # Keep KL arithmetic in FP32 even when actor/reference log-probabilities use BF16.
     logprob = logprob.float()
     ref_logprob = ref_logprob.float()
-    forward_score = kl_penalty_forward(logprob, ref_logprob, kl_penalty)
-    if not kl_penalty.endswith("+") or kl_penalty in ("mse", "k2"):
+    straight_through = kl_penalty.endswith("+")
+    base_kl_penalty = kl_penalty.removesuffix("+")
+    forward_score = kl_penalty_forward(logprob, ref_logprob, base_kl_penalty)
+    if not straight_through or base_kl_penalty in ("mse", "k2"):
         return forward_score
 
     """

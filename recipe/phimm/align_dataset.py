@@ -39,7 +39,7 @@ def load_ds(source: str) -> Dataset:
             config = yaml.safe_load(f)
         # Strip training-specific augmentation keys; alignment only needs raw audio_path + text.
         _AUG_KEYS = {
-            "add_task_info", "overlap_prefix", "context_prefix", "biasing",
+            "add_task_info", "add_teacher", "overlap_prefix", "context_prefix", "biasing",
             "simu_preference", "format_preference", "add_rare_keywords",
             "add_tag_keywords", "post_process", "cache_name",
         }

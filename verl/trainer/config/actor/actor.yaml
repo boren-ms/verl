@@ -81,6 +81,9 @@ tis_imp_ratio_cap: -1
 # Whether to use KL loss instead of KL reward penalty. True for GRPO
 use_kl_loss: false
 
+# Whether to train exclusively with the teacher/reference KL loss, without a policy-gradient loss
+distill_only: false
+
 # Whether to use torch.compile()
 # oc.select: the default val for ref.use_torch_compile
 use_torch_compile: true

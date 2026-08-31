@@ -44,6 +44,18 @@ def test_kl_penalty_uses_fp32_for_bf16_inputs():
     assert result.dtype == torch.float32
 
 
+def test_k3_straight_through_uses_k3_value_and_k2_gradient():
+    logprob = torch.tensor([-1.0, -2.0], requires_grad=True)
+    ref_logprob = torch.tensor([-1.5, -1.5])
+
+    result = kl_penalty(logprob, ref_logprob, "k3+")
+    expected_value = kl_penalty(logprob.detach(), ref_logprob, "k3")
+    result.sum().backward()
+
+    torch.testing.assert_close(result.detach(), expected_value)
+    torch.testing.assert_close(logprob.grad, logprob.detach() - ref_logprob)
+
+
 class TestRegisterAdvEst(unittest.TestCase):
     def setUp(self):
         """Clear the registry before each test"""

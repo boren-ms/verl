@@ -875,7 +875,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             ref_model_path = self.config.model.path
             ref_model = self.config.ref.get("model", None)
             if ref_model is not None:
-                ref_model_path = ref_model.get("path", self.config.model.path)
+                ref_model_path = ref_model.get("path") or self.config.model.path
 
             if self.rank == 0:
                 print("reference model:", ref_model_path)

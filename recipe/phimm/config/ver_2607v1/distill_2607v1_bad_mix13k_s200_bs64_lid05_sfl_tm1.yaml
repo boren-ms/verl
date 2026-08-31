@@ -4,8 +4,8 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - grpo_asr
-  - data/train_data/bad_mix13k_lid05
+  - distill_asr
+  - data/train_data/bad_mix13k_lid05_teacher_asr
   - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
   - _self_
 
@@ -22,7 +22,6 @@ reward_functions:
         fmt: {beta: 1.0}
         bracket: {beta: 1.0}
         repeat: {beta: 1.0}
-        # tail_hallu: {beta: 1.0}
 
 reward_function_by_data_source:
   mix: openml
@@ -54,15 +53,11 @@ actor_rollout_ref:
     n: 16
     gt_rollout: false
     temperature: 1.2
-    calculate_log_probs: True
-    use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.9
     max_num_seqs: 32
   actor:
-    tis_imp_ratio_cap: 5
     ppo_micro_batch_size_per_gpu: 4
     ppo_mini_batch_size: ${data.train_batch_size}
-    ppo_epochs: 1
     optim:
       lr: 5e-6
   model:
@@ -72,13 +67,9 @@ actor_rollout_ref:
     lora_alpha: 64
     target_modules: "model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*"
 
-algorithm:
-  adv_estimator: remax
-  adv_scale: {openml: 1.0, default: 1.0}
-
 data:
   trust_remote_code: false
-  shuffle: true # shuffle done by interleave
+  shuffle: true
   use_interleave: false
   model_version: 2607
   max_prompt_length: 1024
@@ -88,6 +79,7 @@ data:
 
 trainer:
   project_name: ver_2607
+  experiment_name: distill_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1
   nnodes: 1
   total_epochs: 4
   total_training_steps: 200

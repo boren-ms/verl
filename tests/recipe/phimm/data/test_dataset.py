@@ -4,12 +4,21 @@ from datasets import Dataset
 from omegaconf import OmegaConf
 
 from recipe.phimm.data import dataset as dataset_module
-from recipe.phimm.data.dataset import _is_bad_fmt, _is_bad_lang, add_task_info
+from recipe.phimm.data.dataset import _is_bad_fmt, _is_bad_lang, add_task_info, add_teacher, verl_format_ds
 
 
 class MinimalDataset:
     def map(self, function, **kwargs):
         self.example = function({"text": "bonjour"})
+        return self
+
+
+class ExampleDataset:
+    def __init__(self, example):
+        self.input_example = example
+
+    def map(self, function, **kwargs):
+        self.example = function(self.input_example)
         return self
 
 
@@ -23,6 +32,56 @@ def test_add_task_info_allows_language_prefix_opt_out():
     dataset = add_task_info(MinimalDataset(), task="lang_asr", language="French", prefix_prob=0.0)
 
     assert dataset.example["prefix"] == ""
+
+
+def test_add_teacher_supports_task_specification():
+    dataset = add_teacher(MinimalDataset(), task="lang_asr", model_version=2607)
+
+    assert dataset.example["teacher_prompt"] == "Detect the language and transcribe the audio clip into text.<audio>"
+
+
+def test_add_teacher_appends_starred_keywords_when_biasing():
+    dataset = add_teacher(
+        ExampleDataset({"text": "hello contoso", "keywords": ["Abate", "Alberto Sordi"]}),
+        task="asr",
+        model_version=2607,
+        biasing=True,
+    )
+
+    assert dataset.example["teacher_prompt"] == (
+        "Transcribe the audio clip into text.<audio>\n"
+        "Pay extra attention to the following phrases/words: *Abate*, *Alberto Sordi*."
+    )
+
+
+def test_add_teacher_ignores_keywords_when_biasing_disabled():
+    dataset = add_teacher(
+        ExampleDataset({"text": "hello contoso", "keywords": ["Contoso", "Satya Nadella"]}),
+        task="asr",
+        biasing=False,
+    )
+
+    assert dataset.example["teacher_prompt"] == "<audio>\nTranscribe the audio clip into text."
+
+
+def test_add_teacher_biasing_without_keywords_keeps_base_prompt():
+    dataset = add_teacher(ExampleDataset({"text": "hello"}), task="asr", biasing=True)
+
+    assert dataset.example["teacher_prompt"] == "<audio>\nTranscribe the audio clip into text."
+
+
+def test_verl_format_preserves_teacher_prompt():
+    dataset = Dataset.from_dict(
+        {
+            "prompt": ["<audio>\nStudent prompt"],
+            "teacher_prompt": ["<audio>\nTeacher prompt"],
+            "text": ["hello"],
+        }
+    )
+
+    result = verl_format_ds(dataset)
+
+    assert result[0]["teacher_prompt"] == "<audio>\nTeacher prompt"
 
 
 def test_bad_format_uses_task_output_format():

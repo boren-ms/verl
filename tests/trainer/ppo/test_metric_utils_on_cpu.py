@@ -126,6 +126,19 @@ class TestComputeDataMetrics(unittest.TestCase):
         self.assertIn("critic/rewards/mean", metrics)
         self.assertIn("response_length/mean", metrics)
 
+    def test_compute_data_metrics_for_distill_batch_without_rl_tensors(self):
+        for key in ("token_level_scores", "token_level_rewards", "advantages", "returns", "values"):
+            self.batch.batch.pop(key)
+
+        metrics = compute_data_metrics(self.batch, use_critic=False)
+
+        self.assertIn("response_length/mean", metrics)
+        self.assertIn("prompt_length/mean", metrics)
+        self.assertNotIn("critic/score/mean", metrics)
+        self.assertNotIn("critic/rewards/mean", metrics)
+        self.assertNotIn("critic/advantages/mean", metrics)
+        self.assertNotIn("critic/returns/mean", metrics)
+
 
 class TestComputeTimingMetrics(unittest.TestCase):
     """Tests for the compute_timing_metrics function."""

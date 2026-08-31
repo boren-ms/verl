@@ -73,6 +73,7 @@ class ActorConfig(BaseConfig):
         loss_agg_mode (str): Loss aggregation mode. Options: 'token-mean', 'sample-mean'.
         entropy_coeff (float): Entropy coefficient for regularization.
         use_kl_loss (bool): Whether to use KL divergence loss.
+        distill_only (bool): Whether to optimize only KL against the reference/teacher policy.
         use_torch_compile (bool): Whether to use torch.compile for optimization.
         kl_loss_coef (float): KL divergence loss coefficient.
         kl_loss_type (str): Type of KL loss to use.
@@ -108,6 +109,7 @@ class ActorConfig(BaseConfig):
     entropy_coeff: float = 0
     tis_imp_ratio_cap: float = -1
     use_kl_loss: bool = False
+    distill_only: bool = False
     use_torch_compile: bool = True
     kl_loss_coef: float = 0.001
     kl_loss_type: str = "low_var_kl"
@@ -126,6 +128,10 @@ class ActorConfig(BaseConfig):
         """Validate actor configuration parameters."""
         assert self.strategy != MISSING
         assert self.rollout_n != MISSING
+        if self.distill_only and not self.use_kl_loss:
+            raise ValueError("[actor] distill_only requires use_kl_loss=True.")
+        if self.distill_only and self.entropy_coeff != 0:
+            raise ValueError("[actor] distill_only requires entropy_coeff=0.")
         if not self.use_dynamic_bsz:
             if self.ppo_micro_batch_size is not None and self.ppo_micro_batch_size_per_gpu is not None:
                 raise ValueError(
