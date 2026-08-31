@@ -1,12 +1,13 @@
-updated_at_utc: 2026-08-31T22:28:44Z
+updated_at_utc: 2026-08-31T22:41:03Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_cKCqVY7Njx3U9PdH   │ RUNNING       │ distill_2607v1_ls_rare10k_s200_bs64_n2                          │ training 41/200 (21%)        │
-│ i1           │ raysubmit_mcDDxTitbigb9PNg   │ RUNNING       │ distill_2607v1_ls_rare10k_test_s200_bs64_n2                     │ training 9/200 (5%)          │
+│ i0           │ raysubmit_cKCqVY7Njx3U9PdH   │ RUNNING       │ distill_2607v1_ls_rare10k_s200_bs64_n2                          │ training 51/200 (26%)        │
+│ i1           │ raysubmit_mcDDxTitbigb9PNg   │ RUNNING       │ distill_2607v1_ls_rare10k_test_s200_bs64_n2                     │ training 22/200 (11%)        │
+│ i2           │ raysubmit_czGQz4wYpAy4vuZ5   │ RUNNING       │ eval_ls_bias_2607v1                                             │ evaluating ls_bias (sync)    │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- distill_2607v1_ls_rare10k_s200_bs64_n2 [i0]: training 41/200 (21%)
-- distill_2607v1_ls_rare10k_test_s200_bs64_n2 [i1]: training 9/200 (5%)
+- distill_2607v1_ls_rare10k_s200_bs64_n2 [i0]: training 51/200 (26%)
+- distill_2607v1_ls_rare10k_test_s200_bs64_n2 [i1]: training 22/200 (11%)
