@@ -1,0 +1,25 @@
+# LibriSpeech with rare-word keywords, filtered to samples containing keywords,
+# and a keyword-biased teacher prompt.
+
+- dataset_name: tsv
+  tsv_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe.tsv
+  add_rare_keywords:
+    rare_file: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/ls_keywords.txt
+    rare_ratio: 1.0
+  add_task_info:
+    task: lang_asr
+    # prefix_prob: 0.5
+  add_teacher:
+    task: lang_asr
+    biasing: true
+  pre_process:
+    shuffle:
+      seed: 42
+  post_process:
+    filter_by_keywords:
+      min_num: 1
+    add_field:
+      fields:
+        data_source: ls_ts_rare
+    verl_format:
+      prompt_key: prompt

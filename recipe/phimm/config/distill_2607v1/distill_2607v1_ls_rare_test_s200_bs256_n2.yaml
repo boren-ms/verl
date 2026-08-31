@@ -5,9 +5,12 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - /distill_asr
-  - /data/train_data/ls_ts_rare10k
+  - /data/train_data/ls_ts_rare_test
   - /data/val_data/ls_kw
   - _self_
+
+data:
+  train_batch_size: 256
 
 reward_functions:
   bias:

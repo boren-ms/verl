@@ -22,7 +22,6 @@ reward_function_by_data_source:
   ls_ts_rare: bias
 
 val_reward:
-  reward_manager: long_audio_grouped
   reward_functions:
     bias:
       path: recipe/phimm/reward/asr_bias.py
