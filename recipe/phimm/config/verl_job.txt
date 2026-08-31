@@ -1,13 +1,21 @@
-updated_at_utc: 2026-08-31T23:19:03Z
+updated_at_utc: 2026-08-31T23:29:03Z
 
-┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
-│ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
-├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_DadvJ8Yq8aajsp9q   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk64               │ training startup             │
-│ i1           │ raysubmit_PvS18a8U2iiU1tip   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs64_n2                        │ training startup             │
-│ i2           │ raysubmit_czGQz4wYpAy4vuZ5   │ RUNNING       │ eval_ls_bias_2607v1                                             │ evaluating ls_bias (decoding) │
-└──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
+┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬────────────────────────────────────┐
+│ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                   │
+├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼────────────────────────────────────┤
+│ i0           │ raysubmit_DadvJ8Yq8aajsp9q   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk64                │ training 0/200 (0%)                │
+│ i1           │ raysubmit_PvS18a8U2iiU1tip   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs64_n2                          │ training 8/200 (4%)                │
+│ i2           │ raysubmit_czGQz4wYpAy4vuZ5   │ RUNNING       │ eval_ls_bias_2607v1                                             │ evaluating ls_bias (decoding)      │
+│ i3           │ raysubmit_kD9abiYiZLparaQk   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs64_n2                           │ training startup                   │
+│ i4           │ raysubmit_SpwhpDCQH1v8udm1   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16                       │ training 0/200 (0%)                │
+│ i6           │ raysubmit_uyBcxHs7KMHy3SMt   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk128               │ training startup                   │
+│ i7           │ raysubmit_fCWvsaDyjPTTY39b   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n2                          │ training startup                   │
+└──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴────────────────────────────────────┘
 
 Reports:
-- distill_2607v1_ls_rare_test_s200_bs256_n16_topk64 [i0]: training startup
-- distill_2607v1_ls_rare_test_s200_bs64_n2 [i1]: training startup
+- distill_2607v1_ls_rare_test_s200_bs256_n16_topk64 [i0]: training 0/200 (0%)
+- distill_2607v1_ls_rare_test_s200_bs64_n2 [i1]: training 8/200 (4%)
+- distill_2607v1_ls_rare_test_e1_bs64_n2 [i3]: training startup
+- distill_2607v1_ls_rare_test_s200_bs256_n16 [i4]: training 0/200 (0%)
+- distill_2607v1_ls_rare_test_s200_bs256_n16_topk128 [i6]: training startup
+- distill_2607v1_ls_rare_test_e1_bs256_n2 [i7]: training startup

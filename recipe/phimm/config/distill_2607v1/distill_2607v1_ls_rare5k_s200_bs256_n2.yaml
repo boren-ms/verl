@@ -1,0 +1,54 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - /distill_asr
+  - /data/train_data/ls_ts_rare5k
+  - /data/val_data/ls_kw
+  - _self_
+
+data:
+  train_batch_size: 256
+
+reward_functions:
+  bias:
+    path: recipe/phimm/reward/asr_bias.py
+    name: compute_score
+    reward_kwargs:
+      alpha: 1
+      beta: 0.5
+      choice: err
+
+reward_function_by_data_source:
+  ls_ts_rare: bias
+
+val_reward:
+  reward_functions:
+    bias:
+      path: recipe/phimm/reward/asr_bias.py
+      name: eval_score
+  reward_function_by_data_source:
+    clean_0: bias
+    other_0: bias
+
+actor_rollout_ref:
+  rollout:
+    n: 2
+    temperature: 1.2
+    gpu_memory_utilization: 0.9
+    max_num_seqs: 32
+  actor:
+    optim:
+      lr: 5e-6
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+
+trainer:
+  nnodes: 1
+  total_epochs: 4
+  total_training_steps: 200
+  test_freq: 10
+  save_freq: 10
+  val_before_train: true
