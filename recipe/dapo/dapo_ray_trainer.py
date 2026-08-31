@@ -273,35 +273,37 @@ class RayDAPOTrainer(RayPPOTrainer):
                         # Defer KL penalty to after old_log_probs and ref_log_prob are computed.
                         # For now, set token_level_rewards = token_level_scores (KL applied later).
                         new_batch.batch["token_level_rewards"] = new_batch.batch["token_level_scores"]
-                    # check zero std prompts
-                    metric_name = self.config.algorithm.filter_groups.metric
-                    if metric_name == "seq_final_reward":
-                        # Turn to numpy for easier filtering
-                        new_batch.non_tensor_batch["seq_final_reward"] = (
-                            new_batch.batch["token_level_rewards"].sum(dim=-1).numpy()
-                        )
-                    elif metric_name == "seq_reward":
-                        new_batch.non_tensor_batch["seq_reward"] = (
-                            new_batch.batch["token_level_scores"].sum(dim=-1).numpy()
-                        )
-                    # Collect the sequence reward for each trajectory
-                    prompt_uid2metric_vals = defaultdict(list)
-                    for uid, metric_val in zip(
-                        new_batch.non_tensor_batch["uid"], new_batch.non_tensor_batch[metric_name], strict=True
-                    ):
-                        prompt_uid2metric_vals[uid].append(metric_val)
-                    prompt_uid2metric_std = {}
-                    for prompt_uid, metric_vals in prompt_uid2metric_vals.items():
-                        prompt_uid2metric_std[prompt_uid] = np.std(metric_vals)
-                    kept_prompt_uids = [
-                        uid
-                        for uid, std in prompt_uid2metric_std.items()
-                        if std > 0 or len(prompt_uid2metric_vals[uid]) == 1
-                    ]
-                    num_prompt_in_batch += len(kept_prompt_uids)
                     if not self.config.algorithm.filter_groups.enable:
                         batch = new_batch
-                    else:  # NOTE: When prompts after filtering is less than train batch size,
+                    else:
+                        # check zero std prompts
+                        metric_name = self.config.algorithm.filter_groups.metric
+                        if metric_name == "seq_final_reward":
+                            # Turn to numpy for easier filtering
+                            new_batch.non_tensor_batch["seq_final_reward"] = (
+                                new_batch.batch["token_level_rewards"].sum(dim=-1).numpy()
+                            )
+                        elif metric_name == "seq_reward":
+                            new_batch.non_tensor_batch["seq_reward"] = (
+                                new_batch.batch["token_level_scores"].sum(dim=-1).numpy()
+                            )
+                        # Collect the sequence reward for each trajectory
+                        prompt_uid2metric_vals = defaultdict(list)
+                        for uid, metric_val in zip(
+                            new_batch.non_tensor_batch["uid"], new_batch.non_tensor_batch[metric_name], strict=True
+                        ):
+                            prompt_uid2metric_vals[uid].append(metric_val)
+                        prompt_uid2metric_std = {}
+                        for prompt_uid, metric_vals in prompt_uid2metric_vals.items():
+                            prompt_uid2metric_std[prompt_uid] = np.std(metric_vals)
+                        kept_prompt_uids = [
+                            uid
+                            for uid, std in prompt_uid2metric_std.items()
+                            if std > 0 or len(prompt_uid2metric_vals[uid]) == 1
+                        ]
+                        num_prompt_in_batch += len(kept_prompt_uids)
+
+                        # NOTE: When prompts after filtering is less than train batch size,
                         # we skip to the next generation batch
                         kept_traj_idxs = []
                         for idx, traj_from_prompt_uid in enumerate(new_batch.non_tensor_batch["uid"]):
