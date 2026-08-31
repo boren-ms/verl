@@ -1,7 +1,7 @@
 #!/bin/bash
 set -xeuo pipefail
 
-env_tag="torch2.11.0_vllm0.24.0_flashattn2.8.3_cu130_v2"
+env_tag="torch2.11.0_vllm0.24.0_flashattn2.8.3_cu130_v3"
 done_file=".env_done_${env_tag}"
 running_file=".env_running_${env_tag}"
 
