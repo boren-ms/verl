@@ -24,10 +24,16 @@ actor_rollout_ref:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf
     lora_rank: 64
   rollout:
+    enable_chunked_prefill: true
     max_model_len: ${data.max_model_length}
     max_num_seqs: 16
     use_prompt_text: true
 
+ray_kwargs:
+  ray_init:
+    runtime_env:
+      env_vars:
+        VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS: "3600"
 
 reward_functions:
   openml:

@@ -68,6 +68,7 @@ val_reward:
       path: pkg://recipe.phimm.reward.asr_edge
       name: openasr_eval
   reward_function_by_data_source:
+    de_fleurs: openml
     mixlang_fy26q2: inhouse
     openml_bad: openml
     enus_conv_fy21q1: inhouse_en
