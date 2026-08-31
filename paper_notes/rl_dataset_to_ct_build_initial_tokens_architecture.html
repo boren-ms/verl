@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RL Dataset → ct_build_initial_tokens — Runtime Stack</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; padding: 40px; }
+h1 { text-align: center; margin-bottom: 8px; color: #58a6ff; font-size: 1.8em; }
+h2 { color: #79c0ff; margin: 38px 0 15px; font-size: 1.25em; border-bottom: 1px solid #21262d; padding-bottom: 8px; }
+.subtitle { text-align: center; color: #8b949e; margin-bottom: 22px; line-height: 1.7; }
+.subtitle code { background: #1f2937; padding: 1px 6px; border-radius: 4px; color: #f0883e; font-size: 0.85em; }
+.container { max-width: 1300px; margin: 0 auto; }
+.diagram { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 30px; margin: 20px 0; overflow-x: auto; }
+svg { width: 100%; min-width: 900px; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin: 14px 0 4px; font-size: 0.8em; color: #8b949e; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.stage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+.stage-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 18px; position: relative; }
+.stage-card h3 { margin-bottom: 8px; font-size: 0.95em; }
+.stage-card ul { padding-left: 16px; line-height: 1.7; font-size: 0.82em; }
+.stage-card code { background: #1f2937; padding: 1px 5px; border-radius: 3px; color: #f0883e; font-size: 0.85em; }
+.stage-card .fields { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; padding: 10px; margin-top: 8px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.75em; line-height: 1.55; color: #7ee787; white-space: pre-wrap; }
+.full-width { grid-column: 1 / -1; }
+.loc { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; margin-left: 8px; vertical-align: middle; }
+.loc-cpu { background: #1a2e4a; color: #79c0ff; border: 1px solid #388bfd; }
+.loc-gpu { background: #2a1f00; color: #e3b341; border: 1px solid #9e6a03; }
+.loc-ray { background: #1a0d2e; color: #bc8cff; border: 1px solid #8957e5; }
+.loc-sync { background: #3d1a2e; color: #ff7eb6; border: 1px solid #bf4080; }
+table.data-table { width: 100%; border-collapse: collapse; font-size: 0.8em; margin: 15px 0; }
+table.data-table th, table.data-table td { padding: 8px 10px; border: 1px solid #30363d; vertical-align: top; line-height: 1.45; }
+table.data-table th { background: #1a2332; color: #79c0ff; text-align: left; }
+table.data-table td { background: #0d1117; }
+table.data-table tr:hover td { background: #11161d; }
+table.data-table code { background: #1f2937; padding: 1px 4px; border-radius: 3px; color: #f0883e; }
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 14px; margin: 18px 0; }
+.metric { background: #0d1117; border: 1px solid #30363d; border-radius: 10px; padding: 14px 16px; }
+.metric .v { font-size: 1.45em; font-weight: 700; color: #58a6ff; }
+.metric .l { font-size: 0.75em; color: #8b949e; margin-top: 2px; line-height: 1.4; }
+.note { color: #8b949e; font-size: 0.82em; line-height: 1.6; margin: 8px 0; }
+.warn { border-left: 3px solid #d29922; padding-left: 12px; }
+footer { text-align: center; color: #586069; font-size: 0.78em; margin-top: 40px; line-height: 1.7; }
+footer code { color: #8b949e; }
+@media (max-width: 900px) { body { padding: 20px; } .stage-grid { grid-template-columns: 1fr; } .full-width { grid-column: auto; } }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>RL Dataset → <code>ct_build_initial_tokens()</code></h1>
+<p class="subtitle">Qwen3.5-Audio fully-async rollout stack · dataset materialization → Ray dispatch → prompt construction → vLLM<br>
+<code>recipe/phimm/data/rl_dataset.py</code> → <code>verl/experimental/agent_loop</code></p>
+<div class="legend">
+  <span><span class="sw" style="background:#0a1628;border:1px solid #388bfd"></span>Data / prompt path</span>
+  <span><span class="sw" style="background:#0d2818;border:1px solid #238636"></span>Agent-loop compute</span>
+  <span><span class="sw" style="background:#2a1f00;border:1px solid #9e6a03"></span>Queue / dispatch</span>
+  <span><span class="sw" style="background:#1a0d2e;border:1px solid #8957e5"></span>Ray actor / control</span>
+  <span><span class="sw" style="background:#3d1a1a;border:1px solid #da3633"></span>vLLM GPU server</span>
+  <span><span class="sw" style="background:#3d1a2e;border:1px solid #bf4080"></span>Dual prompt representations</span>
+</div>
+
+<h2>1. System Overview — End-to-End Stack</h2>
+<div class="diagram">
+<svg viewBox="0 0 1220 590" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="End-to-end runtime stack from RLHFDataset to vLLM">
+<defs>
+  <marker id="aB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#58a6ff"/></marker>
+  <marker id="aG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+  <marker id="aR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f85149"/></marker>
+  <marker id="aO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d29922"/></marker>
+  <marker id="aP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#bc8cff"/></marker>
+  <marker id="aPk" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#ff7eb6"/></marker>
+</defs>
+<!-- CPU data preparation pool -->
+<rect x="20" y="40" width="355" height="500" rx="14" fill="#0a1628" fill-opacity=".42" stroke="#388bfd" stroke-dasharray="6,3"/>
+<text x="38" y="70" fill="#79c0ff" font-size="16" font-weight="700">DATA PREPARATION · CPU / worker thread</text>
+<rect x="48" y="98" width="300" height="98" rx="9" fill="#0a1628" stroke="#388bfd"/>
+<text x="68" y="127" fill="#e6edf3" font-size="15" font-weight="700">RLHFDataset.__getitem__(i)</text>
+<text x="68" y="150" fill="#8b949e" font-size="12">render chat + load audio + processor(...)</text>
+<text x="68" y="171" fill="#ff7eb6" font-size="12">raw_prompt(messages) + full_prompt_text(str)</text>
+<rect x="48" y="230" width="300" height="82" rx="9" fill="#0a1628" stroke="#388bfd"/>
+<text x="68" y="258" fill="#e6edf3" font-size="15" font-weight="700">StatefulDataLoader + collate_fn</text>
+<text x="68" y="281" fill="#8b949e" font-size="12">stack tensors; object-array non-tensors</text>
+<text x="68" y="298" fill="#8b949e" font-size="12">synchronous iterator, prefetched via to_thread</text>
+<rect x="48" y="346" width="300" height="92" rx="9" fill="#0a1628" stroke="#388bfd"/>
+<text x="68" y="375" fill="#e6edf3" font-size="15" font-weight="700">prepare_single_generation_data()</text>
+<text x="68" y="398" fill="#8b949e" font-size="12">DataProto.from_single_dict()</text>
+<text x="68" y="419" fill="#8b949e" font-size="12">repeat rollout.n; set single_turn_agent</text>
+<rect x="48" y="466" width="300" height="54" rx="9" fill="#2a1f00" stroke="#9e6a03"/>
+<text x="198" y="489" text-anchor="middle" fill="#e3b341" font-size="14" font-weight="700">pending_queue</text>
+<text x="198" y="508" text-anchor="middle" fill="#8b949e" font-size="11">bounded prefetch / backpressure</text>
+<!-- Agent actor pool -->
+<rect x="408" y="40" width="470" height="500" rx="14" fill="#1a0d2e" fill-opacity=".28" stroke="#8957e5" stroke-dasharray="6,3"/>
+<text x="428" y="70" fill="#bc8cff" font-size="16" font-weight="700">FULLY ASYNC ROLLOUT · Ray actor boundaries</text>
+<rect x="438" y="98" width="410" height="78" rx="9" fill="#1a0d2e" stroke="#8957e5"/>
+<text x="458" y="126" fill="#e6edf3" font-size="15" font-weight="700">FullyAsyncRollouter <tspan fill="#bc8cff">(Ray actor)</tspan></text>
+<text x="458" y="150" fill="#8b949e" font-size="12">_processor_worker → _process_single_sample_streaming</text>
+<rect x="438" y="209" width="410" height="76" rx="9" fill="#1a0d2e" stroke="#8957e5"/>
+<text x="458" y="237" fill="#e6edf3" font-size="15" font-weight="700">FullyAsyncAgentLoopManager</text>
+<text x="458" y="260" fill="#8b949e" font-size="12">round-robin select AgentLoopWorker; Ray RPC</text>
+<rect x="438" y="318" width="410" height="90" rx="9" fill="#1a0d2e" stroke="#8957e5"/>
+<text x="458" y="346" fill="#e6edf3" font-size="15" font-weight="700">AgentLoopWorker <tspan fill="#bc8cff">(Ray actor)</tspan></text>
+<text x="458" y="369" fill="#8b949e" font-size="12">asyncio task per DataProto row</text>
+<text x="458" y="390" fill="#8b949e" font-size="12">instantiate configured SingleTurnAgentLoop</text>
+<rect x="438" y="440" width="410" height="80" rx="9" fill="#0d2818" stroke="#238636" stroke-width="2"/>
+<text x="458" y="468" fill="#7ee787" font-size="15" font-weight="700">SingleTurnAgentLoop.run()</text>
+<text x="458" y="491" fill="#e6edf3" font-size="13">await self.ct_build_initial_tokens(...)</text>
+<text x="458" y="510" fill="#8b949e" font-size="11">the direct call site requested in this diagram</text>
+<!-- GPU pool -->
+<rect x="910" y="40" width="290" height="500" rx="14" fill="#3d1a1a" fill-opacity=".30" stroke="#da3633" stroke-dasharray="6,3"/>
+<text x="930" y="70" fill="#ff7b72" font-size="16" font-weight="700">INFERENCE · GPU REPLICA</text>
+<rect x="936" y="126" width="238" height="84" rx="9" fill="#3d1a1a" stroke="#da3633"/>
+<text x="1055" y="155" text-anchor="middle" fill="#e6edf3" font-size="14" font-weight="700">FullyAsyncLLMServerClient</text>
+<text x="1055" y="178" text-anchor="middle" fill="#8b949e" font-size="12">load-balanced Ray RPC</text>
+<text x="1055" y="196" text-anchor="middle" fill="#8b949e" font-size="11">sticky request / abort-resume</text>
+<rect x="936" y="286" width="238" height="112" rx="9" fill="#3d1a1a" stroke="#da3633"/>
+<text x="1055" y="316" text-anchor="middle" fill="#e6edf3" font-size="15" font-weight="700">VllmAsyncServer</text>
+<text x="1055" y="339" text-anchor="middle" fill="#ff7b72" font-size="12">(Ray actor · GPU)</text>
+<text x="1055" y="362" text-anchor="middle" fill="#8b949e" font-size="12">TextPrompt when prompt_text + MM</text>
+<text x="1055" y="382" text-anchor="middle" fill="#8b949e" font-size="12">engine.generate() → TokenOutput</text>
+<!-- arrows -->
+<line x1="198" y1="196" x2="198" y2="228" stroke="#58a6ff" stroke-width="2" marker-end="url(#aB)"/>
+<line x1="198" y1="312" x2="198" y2="344" stroke="#58a6ff" stroke-width="2" marker-end="url(#aB)"/>
+<line x1="198" y1="438" x2="198" y2="464" stroke="#d29922" stroke-width="2" marker-end="url(#aO)"/>
+<path d="M348 493 Q395 493 438 137" fill="none" stroke="#d29922" stroke-width="2" marker-end="url(#aO)"/>
+<line x1="643" y1="176" x2="643" y2="207" stroke="#bc8cff" stroke-width="2" marker-end="url(#aP)"/>
+<line x1="643" y1="285" x2="643" y2="316" stroke="#bc8cff" stroke-width="2" marker-end="url(#aP)"/>
+<line x1="643" y1="408" x2="643" y2="438" stroke="#3fb950" stroke-width="2" marker-end="url(#aG)"/>
+<path d="M848 480 Q900 460 936 190" fill="none" stroke="#f85149" stroke-width="2" marker-end="url(#aR)"/>
+<line x1="1055" y1="210" x2="1055" y2="284" stroke="#f85149" stroke-width="2" marker-end="url(#aR)"/>
+<path d="M936 370 Q890 408 848 498" fill="none" stroke="#3fb950" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#aG)"/>
+<text x="866" y="446" fill="#f85149" font-size="11">prompt_ids + prompt_text + audio</text>
+<text x="865" y="516" fill="#7ee787" font-size="11">TokenOutput</text>
+</svg>
+</div>
+
+<h2>2. Ordered Runtime Sequence — Where the Method Is Used</h2>
+<div class="diagram">
+<svg viewBox="0 0 1220 690" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence from data loader to ct_build_initial_tokens and vLLM">
+<defs>
+  <marker id="sB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#58a6ff"/></marker>
+  <marker id="sG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+  <marker id="sR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f85149"/></marker>
+  <marker id="sP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#bc8cff"/></marker>
+</defs>
+<!-- participants -->
+<g font-size="12" text-anchor="middle">
+<rect x="25" y="20" width="160" height="56" rx="8" fill="#0a1628" stroke="#388bfd"/><text x="105" y="44" fill="#e6edf3" font-weight="700">RLHFDataset</text><text x="105" y="63" fill="#8b949e">CPU data worker</text>
+<rect x="220" y="20" width="170" height="56" rx="8" fill="#1a0d2e" stroke="#8957e5"/><text x="305" y="44" fill="#e6edf3" font-weight="700">AsyncRollouter</text><text x="305" y="63" fill="#bc8cff">Ray actor</text>
+<rect x="425" y="20" width="170" height="56" rx="8" fill="#1a0d2e" stroke="#8957e5"/><text x="510" y="44" fill="#e6edf3" font-weight="700">AgentLoopManager</text><text x="510" y="63" fill="#8b949e">round-robin</text>
+<rect x="630" y="20" width="170" height="56" rx="8" fill="#1a0d2e" stroke="#8957e5"/><text x="715" y="44" fill="#e6edf3" font-weight="700">AgentLoopWorker</text><text x="715" y="63" fill="#bc8cff">Ray actor</text>
+<rect x="835" y="20" width="170" height="56" rx="8" fill="#0d2818" stroke="#238636"/><text x="920" y="44" fill="#e6edf3" font-weight="700">SingleTurnAgentLoop</text><text x="920" y="63" fill="#7ee787">per-sample object</text>
+<rect x="1040" y="20" width="155" height="56" rx="8" fill="#3d1a1a" stroke="#da3633"/><text x="1117" y="44" fill="#e6edf3" font-weight="700">vLLM Server</text><text x="1117" y="63" fill="#ff7b72">GPU actor</text>
+</g>
+<g stroke="#30363d" stroke-dasharray="5,4"><line x1="105" y1="76" x2="105" y2="660"/><line x1="305" y1="76" x2="305" y2="660"/><line x1="510" y1="76" x2="510" y2="660"/><line x1="715" y1="76" x2="715" y2="660"/><line x1="920" y1="76" x2="920" y2="660"/><line x1="1117" y1="76" x2="1117" y2="660"/></g>
+<!-- numbered arrows -->
+<g font-size="11">
+<line x1="105" y1="112" x2="295" y2="112" stroke="#58a6ff" stroke-width="2" marker-end="url(#sB)"/><text x="200" y="103" text-anchor="middle" fill="#79c0ff">1 · __getitem__: messages, full_prompt_text, audio</text>
+<line x1="105" y1="158" x2="295" y2="158" stroke="#58a6ff" stroke-width="2" marker-end="url(#sB)"/><text x="200" y="149" text-anchor="middle" fill="#79c0ff">2 · collate → DataProto → repeat(n)</text>
+<line x1="305" y1="212" x2="500" y2="212" stroke="#bc8cff" stroke-width="2" marker-end="url(#sP)"/><text x="402" y="203" text-anchor="middle" fill="#bc8cff">3 · generate_sequences_single(full_batch)</text>
+<line x1="510" y1="262" x2="705" y2="262" stroke="#bc8cff" stroke-width="2" marker-end="url(#sP)"/><text x="607" y="253" text-anchor="middle" fill="#bc8cff">4 · generate_sequences.remote(prompts)</text>
+<rect x="705" y="275" width="20" height="268" fill="#8957e5" fill-opacity=".35" stroke="#8957e5"/>
+<path d="M715 310 C790 310 790 335 725 335" fill="none" stroke="#bc8cff" stroke-width="2" marker-end="url(#sP)"/><text x="785" y="301" text-anchor="middle" fill="#bc8cff">5 · asyncio.create_task per row</text>
+<line x1="725" y1="375" x2="910" y2="375" stroke="#3fb950" stroke-width="2" marker-end="url(#sG)"/><text x="818" y="365" text-anchor="middle" fill="#7ee787">6 · instantiate; await run(...)</text>
+<rect x="910" y="386" width="20" height="195" fill="#238636" fill-opacity=".35" stroke="#238636"/>
+<path d="M920 420 C1000 420 1000 452 930 452" fill="none" stroke="#3fb950" stroke-width="3" marker-end="url(#sG)"/><text x="1010" y="411" text-anchor="middle" fill="#7ee787" font-weight="700">7 · ct_build_initial_tokens(messages, audios)</text>
+<text x="1012" y="466" text-anchor="middle" fill="#8b949e">returns prompt_ids</text>
+<line x1="930" y1="516" x2="1107" y2="516" stroke="#f85149" stroke-width="2" marker-end="url(#sR)"/><text x="1018" y="506" text-anchor="middle" fill="#ff7b72">8 · generate(prompt_ids, prompt_text, audio)</text>
+<line x1="1107" y1="566" x2="930" y2="566" stroke="#3fb950" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#sG)"/><text x="1018" y="556" text-anchor="middle" fill="#7ee787">9 · TokenOutput(token_ids, log_probs)</text>
+<line x1="910" y1="610" x2="725" y2="610" stroke="#3fb950" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#sG)"/><text x="818" y="600" text-anchor="middle" fill="#7ee787">10 · AgentLoopOutput → padded DataProto</text>
+<line x1="705" y1="642" x2="315" y2="642" stroke="#bc8cff" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#sP)"/><text x="510" y="633" text-anchor="middle" fill="#bc8cff">11 · generated sample → MessageQueue</text>
+</g>
+</svg>
+</div>
+
+<h2>3. Prompt and Audio Dataflow — Two Representations, One Request</h2>
+<div class="diagram">
+<svg viewBox="0 0 1200 535" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dual prompt representations and audio placeholder transformations">
+<defs>
+  <marker id="dB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#58a6ff"/></marker>
+  <marker id="dG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+  <marker id="dR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f85149"/></marker>
+  <marker id="dPk" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#ff7eb6"/></marker>
+</defs>
+<rect x="30" y="38" width="210" height="96" rx="9" fill="#0a1628" stroke="#388bfd"/>
+<text x="50" y="67" fill="#e6edf3" font-size="15" font-weight="700">Dataset source row</text>
+<text x="50" y="91" fill="#8b949e" font-size="12">messages: list[dict]</text>
+<text x="50" y="112" fill="#8b949e" font-size="12">audio path / bytes + extra_info</text>
+<!-- upper path -->
+<rect x="300" y="28" width="270" height="116" rx="9" fill="#3d1a2e" stroke="#bf4080"/>
+<text x="320" y="57" fill="#ff7eb6" font-size="15" font-weight="700">Dataset-rendered text path</text>
+<text x="320" y="82" fill="#e6edf3" font-size="12">processor.apply_chat_template(messages)</text>
+<text x="320" y="103" fill="#8b949e" font-size="12">append extra_info.prefix</text>
+<text x="320" y="124" fill="#8b949e" font-size="12">→ full_prompt_text: str</text>
+<rect x="648" y="28" width="260" height="116" rx="9" fill="#3d1a2e" stroke="#bf4080"/>
+<text x="668" y="57" fill="#ff7eb6" font-size="15" font-weight="700">vLLM text authority</text>
+<text x="668" y="82" fill="#e6edf3" font-size="12">prompt_text = full_prompt_text</text>
+<text x="668" y="103" fill="#8b949e" font-size="12">preserves model chat-template tokens,</text>
+<text x="668" y="124" fill="#8b949e" font-size="12">prefix and thinking scaffolding</text>
+<!-- lower path -->
+<rect x="300" y="230" width="270" height="144" rx="9" fill="#0d2818" stroke="#238636"/>
+<text x="320" y="259" fill="#7ee787" font-size="15" font-weight="700">ct_build_initial_tokens()</text>
+<text x="320" y="284" fill="#e6edf3" font-size="12">audio branch:</text>
+<text x="320" y="305" fill="#8b949e" font-size="12">audio message → &lt;audio&gt; text</text>
+<text x="320" y="326" fill="#8b949e" font-size="12">apply_chat_template(...)</text>
+<text x="320" y="347" fill="#8b949e" font-size="12">tokenizer.encode → prompt_ids</text>
+<text x="320" y="365" fill="#8b949e" font-size="11">also caches _last_raw_prompt fallback</text>
+<rect x="648" y="230" width="260" height="144" rx="9" fill="#0d2818" stroke="#238636"/>
+<text x="668" y="259" fill="#7ee787" font-size="15" font-weight="700">Agent-loop token path</text>
+<text x="668" y="284" fill="#e6edf3" font-size="12">prompt_ids control:</text>
+<text x="668" y="305" fill="#8b949e" font-size="12">• prompt-length validation</text>
+<text x="668" y="326" fill="#8b949e" font-size="12">• response merge boundaries</text>
+<text x="668" y="347" fill="#8b949e" font-size="12">• output padding / masks</text>
+<text x="668" y="365" fill="#8b949e" font-size="11">not the final vLLM text tokenization path</text>
+<!-- audio lane -->
+<rect x="30" y="410" width="540" height="80" rx="9" fill="#0a1628" stroke="#388bfd"/>
+<text x="50" y="440" fill="#79c0ff" font-size="15" font-weight="700">Raw multimodal payload</text>
+<text x="50" y="464" fill="#e6edf3" font-size="12">multi_modal_data["audio"] = [(numpy waveform, sample_rate)]</text>
+<text x="50" y="482" fill="#8b949e" font-size="11">loaded once by RLHFDataset; forwarded through non_tensor_batch</text>
+<!-- final server -->
+<rect x="970" y="126" width="200" height="260" rx="12" fill="#3d1a1a" stroke="#da3633" stroke-width="2"/>
+<text x="1070" y="157" text-anchor="middle" fill="#ff7b72" font-size="15" font-weight="700">VllmAsyncServer</text>
+<text x="1070" y="184" text-anchor="middle" fill="#e6edf3" font-size="12">use_text_prompt =</text>
+<text x="1070" y="204" text-anchor="middle" fill="#e6edf3" font-size="12">prompt_text and MM data</text>
+<polygon points="1070,226 1135,270 1070,314 1005,270" fill="#2a1f00" stroke="#9e6a03"/>
+<text x="1070" y="264" text-anchor="middle" fill="#e3b341" font-size="11">prompt_text</text>
+<text x="1070" y="281" text-anchor="middle" fill="#e3b341" font-size="11">available?</text>
+<text x="1070" y="339" text-anchor="middle" fill="#7ee787" font-size="12">Yes → TextPrompt</text>
+<text x="1070" y="360" text-anchor="middle" fill="#8b949e" font-size="11">vLLM tokenizes + aligns audio</text>
+<!-- connectors -->
+<line x1="240" y1="78" x2="298" y2="78" stroke="#ff7eb6" stroke-width="2" marker-end="url(#dPk)"/>
+<path d="M240 103 Q265 290 298 290" fill="none" stroke="#3fb950" stroke-width="2" marker-end="url(#dG)"/>
+<line x1="570" y1="86" x2="646" y2="86" stroke="#ff7eb6" stroke-width="2" marker-end="url(#dPk)"/>
+<line x1="570" y1="302" x2="646" y2="302" stroke="#3fb950" stroke-width="2" marker-end="url(#dG)"/>
+<path d="M908 86 Q946 86 968 172" fill="none" stroke="#ff7eb6" stroke-width="2" marker-end="url(#dPk)"/>
+<path d="M908 302 Q946 302 968 294" fill="none" stroke="#3fb950" stroke-width="2" marker-end="url(#dG)"/>
+<path d="M570 450 Q820 470 968 350" fill="none" stroke="#58a6ff" stroke-width="2" marker-end="url(#dB)"/>
+<text x="756" y="454" fill="#79c0ff" font-size="11">audio_data</text>
+</svg>
+</div>
+<p class="note warn"><b>Current-branch detail:</b> <code>ct_build_initial_tokens()</code> does not remove the empty <code>&lt;think&gt;...&lt;/think&gt;</code> block. The audio branch stores its rendered prompt as a fallback, while <code>SingleTurnAgentLoop.run()</code> prefers the dataset-provided <code>full_prompt_text</code>. That string is handed to vLLM as <code>prompt_text</code> whenever audio is present.</p>
+
+<h2>4. Inside <code>ct_build_initial_tokens()</code> — Branch State Machine</h2>
+<div class="diagram">
+<svg viewBox="0 0 1160 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ct_build_initial_tokens state machine">
+<defs>
+  <marker id="cG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+  <marker id="cO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d29922"/></marker>
+  <marker id="cR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f85149"/></marker>
+</defs>
+<rect x="28" y="166" width="205" height="78" rx="10" fill="#0d2818" stroke="#238636"/>
+<text x="130" y="196" text-anchor="middle" fill="#7ee787" font-size="15" font-weight="700">Enter method</text>
+<text x="130" y="221" text-anchor="middle" fill="#8b949e" font-size="12">messages + optional MM lists</text>
+<polygon points="350,120 455,205 350,290 245,205" fill="#2a1f00" stroke="#9e6a03"/>
+<text x="350" y="200" text-anchor="middle" fill="#e3b341" font-size="13" font-weight="700">audios is not None?</text>
+<text x="350" y="221" text-anchor="middle" fill="#8b949e" font-size="11">empty list still enters audio branch</text>
+<rect x="500" y="54" width="275" height="135" rx="10" fill="#0d2818" stroke="#238636"/>
+<text x="520" y="84" fill="#7ee787" font-size="14" font-weight="700">Audio-specialized path</text>
+<text x="520" y="108" fill="#e6edf3" font-size="12">1 · convert audio content → &lt;audio&gt;</text>
+<text x="520" y="130" fill="#e6edf3" font-size="12">2 · apply_chat_template in executor</text>
+<text x="520" y="152" fill="#e6edf3" font-size="12">3 · cache _last_raw_prompt</text>
+<text x="520" y="174" fill="#e6edf3" font-size="12">4 · tokenizer.encode(raw_prompt)</text>
+<rect x="500" y="245" width="275" height="112" rx="10" fill="#0a1628" stroke="#388bfd"/>
+<text x="520" y="275" fill="#79c0ff" font-size="14" font-weight="700">Non-audio Continuous Token path</text>
+<text x="520" y="301" fill="#e6edf3" font-size="12">build_initial_tokens(messages, tools,</text>
+<text x="520" y="322" fill="#e6edf3" font-size="12">images, videos, audios)</text>
+<text x="520" y="344" fill="#8b949e" font-size="11">runs in executor; builder owns MM kwargs</text>
+<polygon points="896,120 994,205 896,290 798,205" fill="#2a1f00" stroke="#9e6a03"/>
+<text x="896" y="190" text-anchor="middle" fill="#e3b341" font-size="12" font-weight="700">MM prompt length</text>
+<text x="896" y="209" text-anchor="middle" fill="#e3b341" font-size="12">exceeds configured</text>
+<text x="896" y="228" text-anchor="middle" fill="#e3b341" font-size="12">prompt_length?</text>
+<rect x="1018" y="64" width="120" height="92" rx="9" fill="#3d1a1a" stroke="#da3633"/>
+<text x="1078" y="92" text-anchor="middle" fill="#ff7b72" font-size="13" font-weight="700">Raise</text>
+<text x="1078" y="114" text-anchor="middle" fill="#8b949e" font-size="11">never truncate</text>
+<text x="1078" y="133" text-anchor="middle" fill="#8b949e" font-size="11">MM placeholders</text>
+<rect x="1018" y="256" width="120" height="92" rx="9" fill="#0d2818" stroke="#238636"/>
+<text x="1078" y="285" text-anchor="middle" fill="#7ee787" font-size="13" font-weight="700">Return IDs</text>
+<text x="1078" y="307" text-anchor="middle" fill="#8b949e" font-size="11">after text-only</text>
+<text x="1078" y="326" text-anchor="middle" fill="#8b949e" font-size="11">length cap</text>
+<line x1="233" y1="205" x2="243" y2="205" stroke="#3fb950" stroke-width="2" marker-end="url(#cG)"/>
+<path d="M407 159 Q450 118 498 118" fill="none" stroke="#3fb950" stroke-width="2" marker-end="url(#cG)"/><text x="452" y="104" fill="#7ee787" font-size="11">yes</text>
+<path d="M407 251 Q450 301 498 301" fill="none" stroke="#58a6ff" stroke-width="2" marker-end="url(#cG)"/><text x="452" y="324" fill="#79c0ff" font-size="11">no</text>
+<path d="M775 121 Q790 122 837 160" fill="none" stroke="#d29922" stroke-width="2" marker-end="url(#cO)"/>
+<path d="M775 301 Q790 289 837 250" fill="none" stroke="#d29922" stroke-width="2" marker-end="url(#cO)"/>
+<path d="M955 158 Q986 111 1016 111" fill="none" stroke="#f85149" stroke-width="2" marker-end="url(#cR)"/><text x="980" y="98" fill="#ff7b72" font-size="11">yes</text>
+<path d="M955 250 Q986 301 1016 301" fill="none" stroke="#3fb950" stroke-width="2" marker-end="url(#cG)"/><text x="980" y="322" fill="#7ee787" font-size="11">no</text>
+</svg>
+</div>
+
+<h2>5. Data Contract Across Boundaries</h2>
+<table class="data-table">
+<tr><th>Stage</th><th>Field</th><th>Representation</th><th>Responsibility</th></tr>
+<tr><td><b>Dataset row</b><br><span class="loc loc-cpu">CPU</span></td><td><code>raw_prompt</code></td><td><code>list[dict]</code></td><td>Structured messages consumed by the concrete agent loop; stored as an object-array after collation.</td></tr>
+<tr><td><b>Dataset row</b></td><td><code>full_prompt_text</code></td><td><code>str</code></td><td>Processor-rendered generation prompt, including configured chat-template behavior and <code>extra_info.prefix</code>.</td></tr>
+<tr><td><b>Dataset row</b></td><td><code>multi_modal_data</code></td><td><code>{"audio": [(ndarray, sr)]}</code></td><td>Raw waveform payload used by vLLM multimodal processing.</td></tr>
+<tr><td><b>Dataset row</b></td><td><code>multi_modal_inputs</code></td><td>tensor dictionary</td><td>Training-side audio embeddings/masks/sizes. It is distinct from raw audio sent to inference.</td></tr>
+<tr><td><b>DataProto</b><br><span class="loc loc-ray">Ray RPC</span></td><td>tensor vs non-tensor split</td><td><code>batch</code> + <code>non_tensor_batch</code></td><td>Tensors are stacked; strings, messages and audio objects remain NumPy object arrays and are indexed per row.</td></tr>
+<tr><td><b>ct method</b></td><td><code>prompt_ids</code></td><td><code>list[int]</code></td><td>Agent-loop accounting, prompt limit, merge boundary, padding and masks.</td></tr>
+<tr><td><b>SingleTurnAgentLoop</b></td><td><code>prompt_text</code></td><td><code>str | None</code></td><td>For audio, prefers <code>full_prompt_text</code>; falls back to <code>_last_raw_prompt</code>, then reconstructs.</td></tr>
+<tr><td><b>vLLM request</b><br><span class="loc loc-gpu">GPU</span></td><td><code>TextPrompt</code></td><td>text + multimodal data</td><td>Selected when both <code>prompt_text</code> and MM data exist; vLLM performs model-aware tokenization and feature alignment.</td></tr>
+<tr><td><b>Agent output</b></td><td><code>responses</code>, masks</td><td>fixed-size tensors</td><td><code>ct_merge_assistant_token</code> merges generated IDs; worker left-pads prompt and right-pads response.</td></tr>
+</table>
+
+<h2>6. Concurrency, Dispatch, and Backpressure</h2>
+<div class="stage-grid">
+  <div class="stage-card">
+    <h3 style="color:#79c0ff">Dataset Prefetch <span class="loc loc-cpu">worker thread</span></h3>
+    <ul><li><code>_feed_samples()</code> owns the continuous DataLoader iterator.</li><li><code>asyncio.to_thread(_next_sample)</code> overlaps audio decode/blob I/O with generation.</li><li>A DataLoader lock prevents checkpoint state capture from racing iterator advancement.</li></ul>
+    <div class="fields">RLHFDataset.__getitem__
+  → collate_fn
+  → prepare_single_generation_data
+  → pending_queue.put(RolloutSample)</div>
+  </div>
+  <div class="stage-card">
+    <h3 style="color:#e3b341">Rollouter Backpressure <span class="loc loc-ray">Ray actor</span></h3>
+    <ul><li><code>pending_queue</code> is the bounded prefetch buffer.</li><li><code>active_tasks</code> cannot exceed <code>max_concurrent_samples</code>.</li><li>Staleness or pause signals drain active work and gate new submissions.</li></ul>
+    <div class="fields">while active_tasks ≥ max_concurrent_samples:
+  await FIRST_COMPLETED
+safe_create_task(_process_single_sample_streaming(...))</div>
+  </div>
+  <div class="stage-card">
+    <h3 style="color:#bc8cff">Worker Dispatch <span class="loc loc-ray">Ray RPC</span></h3>
+    <ul><li><code>FullyAsyncAgentLoopManager</code> picks one worker round-robin.</li><li><code>AgentLoopWorker.generate_sequences()</code> creates one asyncio task per DataProto row.</li><li><code>asyncio.gather()</code> joins per-row agent outputs.</li></ul>
+    <div class="fields">worker.generate_sequences.remote(prompts)
+  → _run_agent_loop(...)
+  → SingleTurnAgentLoop.run(...)</div>
+  </div>
+  <div class="stage-card">
+    <h3 style="color:#ff7b72">Inference Fan-out <span class="loc loc-gpu">GPU replica</span></h3>
+    <ul><li><code>FullyAsyncLLMServerClient</code> acquires a replica through the global load balancer.</li><li>vLLM continuously batches concurrent requests.</li><li>Abort/resume logic can continue partially generated requests around policy synchronization.</li></ul>
+    <div class="fields">server_manager.generate(...)
+  → server.generate.remote(...)
+  → engine.generate(TextPrompt, SamplingParams)</div>
+  </div>
+</div>
+
+<h2>7. Branches and Key Configuration</h2>
+<table class="data-table">
+<tr><th>Decision / knob</th><th>Value</th><th>Runtime consequence</th></tr>
+<tr><td><code>data.custom_cls.path</code></td><td>points to PHIMM dataset</td><td>Selects <code>recipe.phimm.data.rl_dataset.RLHFDataset</code> instead of the default dataset.</td></tr>
+<tr><td><code>rollout.multi_turn.enable</code></td><td><code>false</code></td><td><code>prepare_single_generation_data()</code> explicitly assigns <code>single_turn_agent</code>.</td></tr>
+<tr><td><code>rollout.agent.default_agent_loop</code></td><td><code>single_turn_agent</code></td><td>Fallback agent name if the DataProto does not already contain one.</td></tr>
+<tr><td><code>rollout.agent.num_workers</code></td><td>$N$ CPU actors</td><td>Creates $N$ <code>AgentLoopWorker</code> Ray actors, round-robin across live nodes.</td></tr>
+<tr><td><code>rollout.n</code></td><td>$n$ responses</td><td>Repeats each dataset prompt $n$ times before generation; ReMax appends one greedy baseline.</td></tr>
+<tr><td><code>audios is not None</code></td><td>true</td><td><code>ct_build_initial_tokens()</code> uses its Qwen3.5-Audio text-placeholder path.</td></tr>
+<tr><td><code>apply_chat_template_kwargs</code></td><td>template-specific</td><td>Forwarded both by the dataset and the ct audio path. Thinking behavior therefore depends on the active processor template and kwargs.</td></tr>
+<tr><td><code>prompt_text and multi_modal_data</code></td><td>truthy</td><td><code>VllmAsyncServer.generate()</code> chooses <code>TextPrompt</code>; otherwise it chooses <code>TokensPrompt</code>.</td></tr>
+<tr><td><code>rollout.prompt_length</code></td><td>token limit</td><td>Multimodal overflow raises instead of truncating, protecting placeholder/feature alignment.</td></tr>
+<tr><td><code>max_concurrent_samples</code></td><td>dynamic capacity</td><td>Bounds active sample tasks and provides rollouter-side backpressure.</td></tr>
+</table>
+
+<h2>8. Headline Runtime Facts</h2>
+<div class="metric-grid">
+  <div class="metric"><div class="v">1</div><div class="l">direct call site in <code>SingleTurnAgentLoop.run()</code></div></div>
+  <div class="metric"><div class="v">2</div><div class="l">prompt forms: structured messages + rendered text</div></div>
+  <div class="metric"><div class="v">3</div><div class="l">main async boundaries: thread, worker Ray RPC, server Ray RPC</div></div>
+  <div class="metric"><div class="v">TextPrompt</div><div class="l">vLLM path used for audio with rendered prompt text</div></div>
+  <div class="metric"><div class="v">Fail closed</div><div class="l">multimodal prompt overflow raises; it is never sliced</div></div>
+  <div class="metric"><div class="v">asyncio</div><div class="l">sample streaming and per-row generation concurrency</div></div>
+</div>
+
+<footer>
+Source: <code>recipe/phimm/data/rl_dataset.py</code> · <code>verl/experimental/fully_async_policy</code> · <code>verl/experimental/agent_loop</code> · <code>verl/workers/rollout/vllm_rollout/vllm_async_server.py</code><br>
+Generated from branch <code>boren/async_asr_v1</code> · runtime focus: <code>RLHFDataset.__getitem__()</code> → <code>AgentLoopBase.ct_build_initial_tokens()</code>
+</footer>
+</div>
+</body>
+</html>

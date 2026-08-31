@@ -1193,7 +1193,12 @@ class PPOTrainer(ABC):
             tq.kv_clear(keys=batch.keys, partition_id=batch.partition_id)
 
         # logger to wandb
-        self._maybe_log_val_generations(inputs=sample_inputs, outputs=sample_outputs, scores=sample_scores)
+        self._maybe_log_val_generations(
+            inputs=sample_inputs,
+            outputs=sample_outputs,
+            gts=sample_gts,
+            scores=sample_scores,
+        )
 
         # dump to local dir
         val_data_dir = self.config.trainer.get("validation_data_dir", None)
@@ -1230,14 +1235,14 @@ class PPOTrainer(ABC):
 
         return self._val_metrics_update(data_sources, sample_uids, reward_extra_infos_dict, sample_turns)
 
-    def _maybe_log_val_generations(self, inputs, outputs, scores):
+    def _maybe_log_val_generations(self, inputs, outputs, gts, scores):
         """Log a table of validation samples to the configured logger (wandb or swanlab)"""
         generations_to_log = self.config.trainer.log_val_generations
         if generations_to_log == 0:
             return
 
-        # Create tuples of (input, output, score) and sort by input text
-        samples = list(zip(inputs, outputs, scores, strict=True))
+        # Create tuples of (input, output, ground truth, score) and sort by input text
+        samples = list(zip(inputs, outputs, gts, scores, strict=True))
         samples.sort(key=lambda x: x[0])  # Sort by input text
 
         # Use fixed random seed for deterministic shuffling
