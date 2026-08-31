@@ -95,7 +95,7 @@ The reusable base is `recipe/phimm/config/base/distill_asr.yaml`. It derives dir
 A concrete 2607 experiment is provided at:
 
 ```text
-recipe/phimm/config/ver_2607v1/distill_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1.yaml
+recipe/phimm/config/distill_2607v1/distill_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1.yaml
 ```
 
 Its training dataset uses language-detection prompts for both policies, while the teacher additionally receives per-sample keyword biasing context.
