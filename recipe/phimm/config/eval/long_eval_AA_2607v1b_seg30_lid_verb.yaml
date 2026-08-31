@@ -19,5 +19,4 @@ model:
   path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_90/qwen_hf/
 
 data:
-  model_version: 2607
   output_path: az://orngwus2cresco/data/boren/data/verl/eval/remax_2607v1_openml_verb_s100_bs256_lid_step90/artificial_analysis_seg30_openasr_lid_verb

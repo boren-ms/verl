@@ -17,5 +17,4 @@ trainer:
   n_gpus_per_node: 8
 
 data:
-  model_version: 2607
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/mix_cv15_n1k_task3

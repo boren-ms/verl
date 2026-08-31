@@ -20,7 +20,6 @@ model:
   path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio/45000/qwen_hf/
 
 data:
-  model_version: 2607
   output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2607_45000/long_audio_mixlang_fy26q2_zh_seg
   # DTER/EER scored with the zh-cn TER backend for this mixed-language corpus.
   measure_kwargs:

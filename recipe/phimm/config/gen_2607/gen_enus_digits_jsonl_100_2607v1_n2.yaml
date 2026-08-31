@@ -20,5 +20,4 @@ rollout:
   gpu_memory_utilization: 0.92
 
 data:
-  model_version: 2607
   output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/enus_digits_jsonl_100

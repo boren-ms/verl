@@ -98,7 +98,6 @@ algorithm:
 data:
   trust_remote_code: false
   use_interleave: false
-  model_version: 2607
   max_prompt_length: 1024
   max_response_length: 512
   train_batch_size: 256

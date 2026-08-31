@@ -91,7 +91,6 @@ data:
   use_interleave: true
   interleave_ds:
     probabilities: [0.25, 0.75] # mix_cv15_all: 1, openml: 3
-  model_version: 2607
   max_prompt_length: 1024
   max_response_length: 512
   train_batch_size: 256
