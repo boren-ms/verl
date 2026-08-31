@@ -1,12 +1,14 @@
+# @package _global_
+
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - distill_asr
-  - data/train_data/ls_ts_rare10k
-  - data/val_data/ls
+  - /distill_asr
+  - /data/train_data/ls_ts_rare10k
+  - /data/val_data/ls_kw
   - _self_
 
 reward_functions:
