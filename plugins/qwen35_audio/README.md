@@ -2,20 +2,21 @@
 
 Out-of-tree vLLM plugin for running **Qwen3.5-Audio** through vLLM's official model implementation.
 
-## Verified Stack
+## Target Stack
 
-The working stack verified on `verl-n1-i11` is:
+The plugin dependency pins are aligned with the repository's vLLM backend:
 
 | Package | Version |
 | --- | --- |
-| vLLM | `0.17.0` |
-| PyTorch | `2.10.0+cu128` |
-| CUDA runtime | `12.8` |
+| vLLM | `0.24.0` |
+| PyTorch | `2.11.0` |
+| CUDA runtime | `13.0` |
 | Transformers | `5.7.0` |
-| flashinfer-python | `0.6.4` |
-| flashinfer-cubin | `0.6.4` |
+| flashinfer-python | `0.6.12` |
+| flashinfer-cubin | `0.6.12` |
 
-Hardware used for verification: 8x NVIDIA H100 80GB HBM3 with tensor parallel size 8.
+The previous vLLM 0.17.0 / CUDA 12.8 stack was verified on 8x NVIDIA H100 80GB HBM3. The
+0.24.0 stack requires a CUDA 13.0-compatible environment and should be GPU-smoke-tested before use.
 
 `ray_tool.py prepare_env` installs the full environment including vLLM, flashinfer,
 Transformers and the qwen35_audio plugin with `--no-deps` overrides so Verl HF
@@ -25,7 +26,7 @@ workers can load checkpoints with native `qwen3_5_text` support.
 
 ```bash
 cd plugins/qwen35_audio
-uv pip install -r requirements-vllm-0.17.txt --torch-backend=auto
+uv pip install -r requirements-vllm-0.24.txt --torch-backend=auto
 uv pip install -e .
 ```
 
@@ -139,10 +140,10 @@ Use this plugin with `VLLM_PLUGINS=qwen35_audio`. vLLM `0.17.0` through `0.20.2`
 
 ### `flashinfer-cubin version ... does not match flashinfer version ...`
 
-Install matching FlashInfer packages. The verified pair is:
+Install the FlashInfer versions required by vLLM 0.24.0:
 
 ```bash
-uv pip install flashinfer-python==0.6.4 flashinfer-cubin==0.6.4
+uv pip install flashinfer-python==0.6.12 flashinfer-cubin==0.6.12
 ```
 
 ### `undefined symbol` from `flash_attn_2_cuda`
@@ -151,7 +152,8 @@ Remove ABI-incompatible `flash-attn` builds from the environment. The verified r
 
 ### `libtorch_cuda.so: undefined symbol: ncclDevCommDestroy`
 
-This was seen with newer vLLM/PyTorch stacks on the node. The verified workaround is to use `vllm==0.17.0` with the CUDA 12.8 stack.
+This indicates an incompatible PyTorch/NCCL/CUDA combination. vLLM 0.24.0 must use the
+PyTorch 2.11 / CUDA 13.0 stack; do not mix it with the previous CUDA 12.8 environment.
 
 ## References
 

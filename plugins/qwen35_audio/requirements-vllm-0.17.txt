@@ -1,8 +1,0 @@
-# Verified on verl-n1-i11 with 8x NVIDIA H100 80GB HBM3.
-vllm==0.17.0
-transformers==4.57.6
-flashinfer-python==0.6.4
-flashinfer-cubin==0.6.4
-numpy
-scipy
-soundfile

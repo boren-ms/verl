@@ -1,0 +1,8 @@
+# vLLM 0.24.0 uses the CUDA 13.0 / PyTorch 2.11 stack.
+vllm==0.24.0
+transformers==5.7.0
+flashinfer-python==0.6.12
+flashinfer-cubin==0.6.12
+numpy
+scipy
+soundfile

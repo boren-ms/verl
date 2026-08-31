@@ -382,8 +382,6 @@ class AgentLoopBase(ABC):
                     **self.apply_chat_template_kwargs,
                 ),
             )
-            # Remove empty thinking block injected by Qwen3.5 chat template
-            raw_prompt = raw_prompt.replace("<think>\n\n</think>\n\n", "")
             # Store raw_prompt for vLLM text-based multimodal processing
             self._last_raw_prompt = raw_prompt
             prompt_ids = normalize_token_ids(self.tokenizer.encode(raw_prompt))
