@@ -118,7 +118,7 @@ actor_rollout_ref:
     no_repeat_ngram_size: 15
     stop_token_ids: [248044, 248046]
     enforce_eager: false
-    enable_chunked_prefill: false
+    enable_chunked_prefill: true
     free_cache_engine: true
     load_format: safetensors
     calculate_log_probs: true
