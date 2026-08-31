@@ -38,6 +38,8 @@ actor_rollout_ref:
     fsdp_config:
       fsdp_size: 8
   rollout:
+    enable_chunked_prefill: true
+    max_model_len: ${data.max_model_length}
     max_num_seqs: 16
 
 
