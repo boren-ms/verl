@@ -50,7 +50,6 @@ from verl.trainer.ppo.ray_trainer import (
 from verl.utils.profiler import marked_timer
 from verl.utils.rollout_skip import RolloutSkip
 from verl.utils.ray_utils import ray_host_url
-from recipe.phimm.reward.error_book import get_eb
 
 
 class RayDAPOTrainer(RayPPOTrainer):
