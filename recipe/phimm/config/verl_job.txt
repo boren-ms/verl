@@ -1,10 +1,12 @@
-updated_at_utc: 2026-08-31T21:32:30Z
+updated_at_utc: 2026-08-31T22:28:44Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_hjijXQrhJkEeu5yX   │ RUNNING       │ distill_2607v1_ls_rare10k_s200_bs64_n2                          │ training 0/200 (0%)          │
+│ i0           │ raysubmit_cKCqVY7Njx3U9PdH   │ RUNNING       │ distill_2607v1_ls_rare10k_s200_bs64_n2                          │ training 41/200 (21%)        │
+│ i1           │ raysubmit_mcDDxTitbigb9PNg   │ RUNNING       │ distill_2607v1_ls_rare10k_test_s200_bs64_n2                     │ training 9/200 (5%)          │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- distill_2607v1_ls_rare10k_s200_bs64_n2 [i0]: training 0/200 (0%)
+- distill_2607v1_ls_rare10k_s200_bs64_n2 [i0]: training 41/200 (21%)
+- distill_2607v1_ls_rare10k_test_s200_bs64_n2 [i1]: training 9/200 (5%)
