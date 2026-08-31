@@ -1,0 +1,42 @@
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_clean_0
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_0
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_other_0
+  post_process:
+    add_field:
+      fields:
+        data_source: other_0
+    verl_format:
+      prompt_key: prompt
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_clean_100
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_100
+    verl_format:
+      prompt_key: prompt
+  bias_key: distractors # distractors
+- dataset_name: ls_bias
+  jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  bias_key: distractors # distractors
+  data_dir: az://orngwus2cresco/data/boren/data/
+  cache_name: auto_other_100
+  post_process:
+    add_field:
+      fields:
+        data_source: other_100
+    verl_format:
+      prompt_key: prompt
