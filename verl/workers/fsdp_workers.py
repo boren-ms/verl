@@ -1040,9 +1040,22 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         # perform recompute log_prob
         with self.ulysses_sharding_manager:
             with adapter_ctx:
-                output, entropys = self.actor.compute_log_prob(data=data, calculate_entropy=True)
+                actor_output = self.actor.compute_log_prob(data=data, calculate_entropy=True)
+                if data.meta_info.get("distill_topk", 0) > 0:
+                    output, entropys, topk_log_probs, tail_log_prob, topk_indices = actor_output
+                else:
+                    output, entropys = actor_output
+            tensors = {"old_log_probs": output, "entropys": entropys}
+            if data.meta_info.get("distill_topk", 0) > 0:
+                tensors.update(
+                    {
+                        "ref_topk_log_probs": topk_log_probs,
+                        "ref_tail_log_prob": tail_log_prob,
+                        "ref_topk_indices": topk_indices.to(torch.int32),
+                    }
+                )
             output = DataProto.from_dict(
-                tensors={"old_log_probs": output, "entropys": entropys},
+                tensors=tensors,
                 meta_info={"temperature": self.config.rollout.temperature},
             )
 
@@ -1062,12 +1075,20 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
     @register(dispatch_mode=make_nd_compute_dataproto_dispatch_fn(mesh_name="actor"))
     @DistProfiler.annotate(color="olive", role="ref_compute_log_prob")
     def compute_ref_log_prob(self, data: DataProto):
+        distill_topk = self.config.actor.get("distill_topk", 0)
+        distill_temperature = self.config.actor.get("distill_temperature", 1.0)
         if self._is_lora:
             # if _is_lora, actor without lora applied is the ref
             data.meta_info["is_lora"] = True
+            data.meta_info["distill_topk"] = distill_topk
+            data.meta_info["distill_temperature"] = distill_temperature
             data = self.compute_log_prob(data)
             # this old_log_probs is in fact ref_log_prob
-            data = DataProto.from_dict(tensors={"ref_log_prob": data.batch["old_log_probs"]})
+            tensors = {"ref_log_prob": data.batch["old_log_probs"]}
+            for key in ("ref_topk_log_probs", "ref_tail_log_prob", "ref_topk_indices"):
+                if key in data.batch:
+                    tensors[key] = data.batch[key]
+            data = DataProto.from_dict(tensors=tensors)
             return data
         assert self._is_ref
         # else:
@@ -1078,10 +1099,25 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         data.meta_info["temperature"] = self.config.rollout.temperature
         data.meta_info["max_token_len"] = self.config.ref.log_prob_max_token_len_per_gpu
         data.meta_info["use_dynamic_bsz"] = self.config.ref.log_prob_use_dynamic_bsz
+        data.meta_info["distill_topk"] = distill_topk
+        data.meta_info["distill_temperature"] = distill_temperature
         with self.ulysses_sharding_manager:
             data = data.to("cpu")  # data will to device with each micro batch on ref.compute_log_prob
-            output, _ = self.ref_policy.compute_log_prob(data=data, calculate_entropy=False)
-            output = DataProto.from_dict(tensors={"ref_log_prob": output})
+            ref_output = self.ref_policy.compute_log_prob(data=data, calculate_entropy=False)
+            if distill_topk > 0:
+                output, _, topk_log_probs, tail_log_prob, topk_indices = ref_output
+            else:
+                output, _ = ref_output
+            tensors = {"ref_log_prob": output}
+            if distill_topk > 0:
+                tensors.update(
+                    {
+                        "ref_topk_log_probs": topk_log_probs,
+                        "ref_tail_log_prob": tail_log_prob,
+                        "ref_topk_indices": topk_indices.to(torch.int32),
+                    }
+                )
+            output = DataProto.from_dict(tensors=tensors)
 
         output = output.to("cpu")
 

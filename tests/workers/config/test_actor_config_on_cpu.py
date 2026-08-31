@@ -200,6 +200,32 @@ class TestActorConfig(unittest.TestCase):
         )
         self.assertIsNotNone(config)  # Should not raise an exception
 
+    def test_topk_distill_config_validation(self):
+        optim = OptimizerConfig(lr=0.1)
+
+        with self.assertRaisesRegex(ValueError, "requires use_kl_loss"):
+            ActorConfig(strategy="fsdp", use_dynamic_bsz=True, distill_topk=64, optim=optim)
+
+        with self.assertRaisesRegex(ValueError, "requires use_fused_kernels=False"):
+            ActorConfig(
+                strategy="fsdp",
+                use_dynamic_bsz=True,
+                use_kl_loss=True,
+                distill_topk=64,
+                use_fused_kernels=True,
+                optim=optim,
+            )
+
+        with self.assertRaisesRegex(ValueError, "must be positive"):
+            ActorConfig(
+                strategy="fsdp",
+                use_dynamic_bsz=True,
+                use_kl_loss=True,
+                distill_topk=64,
+                distill_temperature=0,
+                optim=optim,
+            )
+
     def test_fsdp_actor_config_validation_exceptions(self):
         """Test that FSDPActorConfig.validate() raises appropriate validation exceptions."""
         optim = OptimizerConfig(lr=0.1)

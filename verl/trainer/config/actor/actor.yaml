@@ -84,6 +84,12 @@ use_kl_loss: false
 # Whether to train exclusively with the teacher/reference KL loss, without a policy-gradient loss
 distill_only: false
 
+# Number of teacher vocabulary entries retained per response token; zero uses sampled-token KL
+distill_topk: 0
+
+# Temperature applied to both teacher and student distributions for top-k distillation
+distill_temperature: 1.0
+
 # Whether to use torch.compile()
 # oc.select: the default val for ref.use_torch_compile
 use_torch_compile: true

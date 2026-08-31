@@ -1679,6 +1679,66 @@ def kl_penalty(logprob: torch.FloatTensor, ref_logprob: torch.FloatTensor, kl_pe
     return backward_score - backward_score.detach() + forward_score.detach()
 
 
+def topk_distill_kl(
+    student_topk_log_probs: torch.Tensor,
+    student_tail_log_prob: torch.Tensor,
+    teacher_topk_log_probs: torch.Tensor,
+    teacher_tail_log_prob: torch.Tensor,
+    temperature: float = 1.0,
+) -> torch.Tensor:
+    """Compute forward KL on teacher top-k tokens plus an aggregated vocabulary-tail bucket.
+
+    All inputs are log-probabilities normalized over the full vocabulary. The top-k
+    token identities are selected by the teacher and shared by the corresponding
+    student inputs, while every token outside that set is represented by one tail
+    probability. The returned tensor has shape ``(batch_size, response_length)``.
+    """
+    student_topk_log_probs = student_topk_log_probs.float()
+    student_tail_log_prob = student_tail_log_prob.float()
+    teacher_topk_log_probs = teacher_topk_log_probs.float().detach()
+    teacher_tail_log_prob = teacher_tail_log_prob.float().detach()
+
+    teacher_topk_probs = teacher_topk_log_probs.exp()
+    teacher_tail_prob = teacher_tail_log_prob.exp()
+    topk_kl = teacher_topk_probs * (teacher_topk_log_probs - student_topk_log_probs)
+    tail_kl = teacher_tail_prob * (teacher_tail_log_prob - student_tail_log_prob)
+    return (topk_kl.sum(dim=-1) + tail_kl) * (temperature**2)
+
+
+def compute_topk_log_probs(
+    logits: torch.Tensor,
+    topk: int,
+    temperature: float,
+    topk_indices: torch.Tensor | None = None,
+    vocab_chunk_size: int = 32768,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Extract top-k log-probabilities and aggregate tail mass without a full FP32 logits copy."""
+    vocab_size = logits.size(-1)
+    if topk <= 0:
+        raise ValueError(f"topk must be positive, got {topk}.")
+    if topk > vocab_size:
+        raise ValueError(f"topk ({topk}) exceeds vocabulary size ({vocab_size}).")
+    if temperature <= 0:
+        raise ValueError(f"temperature must be positive, got {temperature}.")
+
+    if topk_indices is None:
+        topk_logits, topk_indices = torch.topk(logits, k=topk, dim=-1)
+    else:
+        topk_logits = torch.gather(logits, -1, topk_indices.long())
+
+    log_normalizer = None
+    for logits_chunk in logits.split(vocab_chunk_size, dim=-1):
+        chunk_normalizer = torch.logsumexp(logits_chunk.float() / temperature, dim=-1)
+        log_normalizer = (
+            chunk_normalizer if log_normalizer is None else torch.logaddexp(log_normalizer, chunk_normalizer)
+        )
+
+    topk_log_probs = topk_logits.float() / temperature - log_normalizer.unsqueeze(-1)
+    topk_mass = topk_log_probs.exp().sum(dim=-1).clamp(max=1 - 1e-7)
+    tail_log_prob = torch.log1p(-topk_mass)
+    return topk_log_probs, tail_log_prob, topk_indices
+
+
 def kl_penalty_forward(logprob: torch.FloatTensor, ref_logprob: torch.FloatTensor, kl_penalty) -> torch.FloatTensor:
     """Compute KL divergence given logprob and ref_logprob.
     Copied from https://github.com/huggingface/trl/blob/main/trl/trainer/ppo_trainer.py#L1104

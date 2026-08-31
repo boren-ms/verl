@@ -2,7 +2,7 @@
 
 ## Summary
 
-This change adds a pure online policy-distillation path for PHIMM ASR training. The student samples responses from its current policy, while a frozen teacher scores those same response tokens under an independently configured prompt context. Training minimizes only the masked teacher KL objective—there is no PPO, GRPO, ReMax, reward-derived advantage, or critic loss.
+This change adds a pure online policy-distillation path for PHIMM ASR training. The student samples responses from its current policy, while a frozen teacher supplies a top-k distribution under an independently configured prompt context. Training minimizes only the masked teacher KL objective—there is no PPO, GRPO, ReMax, reward-derived advantage, or critic loss.
 
 ## Training flow
 
@@ -11,7 +11,7 @@ ASR sample
   ├─ student prompt ──> student rollout ──> sampled response tokens
   └─ teacher prompt + same response tokens ──> frozen teacher log-probabilities
 
-student log-probabilities + teacher log-probabilities
+student probabilities + teacher top-k probabilities and tail mass
   └─ masked KL distillation loss ──> student update
 ```
 
@@ -30,15 +30,37 @@ Set `actor_rollout_ref.actor.distill_only: true` to activate the dedicated path.
 
 Shared rollout metrics remain available without requiring RL-only tensors. Validation continues to use the configured validation reward manager.
 
-The distillation objective is:
+With top-k distillation enabled, the objective groups the vocabulary outside the teacher's top-k set into one tail bucket:
 
 $$
 \mathcal{L}_{\mathrm{distill}}
-= \lambda\,\operatorname{Agg}_{m_t}
-\left[\widehat{D}_{\mathrm{KL}}\left(\pi_S(\cdot\mid c_S)\,\Vert\,\pi_T(\cdot\mid c_T)\right)\right],
+= \lambda\,\operatorname{Agg}_{m_t}\left[
+\sum_{i\in\operatorname{TopK}_T}p_T(i)\log\frac{p_T(i)}{p_S(i)}
++p_T(\mathrm{tail})\log\frac{p_T(\mathrm{tail})}{p_S(\mathrm{tail})}
+\right],
 $$
 
-where $c_S$ and $c_T$ may differ, $m_t$ is the response mask, and the teacher is frozen. The default `k3+` estimator uses the low-variance K3 value with the K2 straight-through gradient.
+where $c_S$ and $c_T$ may differ, $m_t$ is the response mask, and the teacher is frozen. The ASR base retains 64 teacher entries per response token. Set `actor_rollout_ref.actor.distill_topk: 0` to use the sampled-token `k3+` objective instead.
+
+The two supported modes are selected per run:
+
+```yaml
+# Top-k-plus-tail forward KL (the ASR default)
+actor_rollout_ref:
+  actor:
+    distill_topk: 64
+    distill_temperature: 1.0
+```
+
+```yaml
+# Previous sampled-token KL
+actor_rollout_ref:
+  actor:
+    distill_topk: 0
+    kl_loss_type: k3+
+```
+
+Top-k mode replaces sampled-token KL rather than adding both losses together. See [Top-k Online Policy Distillation](topk_policy_distillation.md) for the probability formulation, tensor flow, transport cost, and implementation details.
 
 ## Teacher model selection
 
@@ -89,6 +111,7 @@ The reusable base is `recipe/phimm/config/base/distill_asr.yaml`. It derives dir
 - FSDP2 actor and frozen-reference settings;
 - vLLM online rollout settings;
 - pure-distillation actor settings;
+- top-64 teacher distributions with aggregated vocabulary-tail mass;
 - disabled critic, reward KL, filtering, rollout log-probabilities, and TIS;
 - validation and checkpoint defaults.
 
@@ -119,10 +142,13 @@ The change includes tests for:
 - teacher-context batch reconstruction without mutating student inputs;
 - data metrics without RL-only tensors;
 - K3 straight-through value and gradient behavior;
+- exact full-vocabulary normalization for top-k probabilities and aggregate tail mass;
+- top-k forward-KL values, temperature scaling, and student-only gradients;
+- invalid top-k actor configuration combinations;
 - task-specific teacher prompt generation;
 - starred keyword biasing and empty-keyword fallback;
 - preservation of per-sample teacher prompts through PHIMM RL formatting.
 
 ## Current scope
 
-This implementation performs sampled-token online distillation. It does not transfer full-vocabulary teacher logits and therefore is not exact forward-KL distillation. Full-distribution distillation would require a memory-efficient top-k teacher-logit transport path.
+Top-k distillation currently supports the FSDP actor path with fused kernels disabled. Teacher and student must share a vocabulary because teacher token IDs index the student logits. The top-k-plus-tail objective preserves total probability mass while avoiding full-vocabulary transport, but it does not preserve distinctions among individual tail tokens.

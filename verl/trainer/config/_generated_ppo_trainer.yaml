@@ -62,6 +62,8 @@ actor_rollout_ref:
     tis_imp_ratio_cap: -1
     use_kl_loss: false
     distill_only: false
+    distill_topk: 0
+    distill_temperature: 1.0
     use_torch_compile: true
     kl_loss_coef: 0.001
     kl_loss_type: low_var_kl

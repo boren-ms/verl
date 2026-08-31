@@ -22,12 +22,14 @@ import torch
 import verl.trainer.ppo.core_algos
 from verl.trainer.config import AlgoConfig
 from verl.trainer.ppo.core_algos import (
+    compute_topk_log_probs,
     compute_gae_advantage_return,
     compute_gdpo_outcome_advantage,
     compute_remax_outcome_advantage,
     get_adv_estimator_fn,
     kl_penalty,
     register_adv_est,
+    topk_distill_kl,
 )
 
 
@@ -54,6 +56,62 @@ def test_k3_straight_through_uses_k3_value_and_k2_gradient():
 
     torch.testing.assert_close(result.detach(), expected_value)
     torch.testing.assert_close(logprob.grad, logprob.detach() - ref_logprob)
+
+
+def test_topk_distill_kl_matches_grouped_distribution_kl():
+    student_logits = torch.tensor([[[1.0, 0.0, -1.0, 2.0]]], requires_grad=True)
+    teacher_logits = torch.tensor([[[2.0, 1.0, 0.0, -1.0]]], requires_grad=True)
+    topk_indices = torch.tensor([[[0, 1]]])
+    student_log_probs = torch.log_softmax(student_logits, dim=-1)
+    teacher_log_probs = torch.log_softmax(teacher_logits, dim=-1)
+    student_topk = torch.gather(student_log_probs, -1, topk_indices)
+    teacher_topk = torch.gather(teacher_log_probs, -1, topk_indices)
+    student_tail = torch.logsumexp(student_log_probs[..., 2:], dim=-1)
+    teacher_tail = torch.logsumexp(teacher_log_probs[..., 2:], dim=-1)
+
+    result = topk_distill_kl(student_topk, student_tail, teacher_topk, teacher_tail)
+    teacher_grouped = torch.cat([teacher_topk.exp(), teacher_tail.exp().unsqueeze(-1)], dim=-1)
+    student_grouped = torch.cat([student_topk.exp(), student_tail.exp().unsqueeze(-1)], dim=-1)
+    expected = (teacher_grouped * (teacher_grouped.log() - student_grouped.log())).sum(dim=-1)
+
+    torch.testing.assert_close(result, expected)
+    result.sum().backward()
+    assert student_logits.grad is not None
+    assert teacher_logits.grad is None
+
+
+def test_topk_distill_kl_applies_temperature_squared_scaling():
+    student_topk = torch.log(torch.tensor([[[0.2, 0.3]]]))
+    teacher_topk = torch.log(torch.tensor([[[0.4, 0.1]]]))
+    student_tail = torch.log(torch.tensor([[0.5]]))
+    teacher_tail = torch.log(torch.tensor([[0.5]]))
+
+    unscaled = topk_distill_kl(student_topk, student_tail, teacher_topk, teacher_tail)
+    scaled = topk_distill_kl(student_topk, student_tail, teacher_topk, teacher_tail, temperature=2.0)
+
+    torch.testing.assert_close(scaled, unscaled * 4)
+
+
+def test_compute_topk_log_probs_uses_full_vocab_normalization_and_requested_indices():
+    logits = torch.tensor([[[1.0, 4.0, 2.0, 3.0]]], requires_grad=True)
+
+    topk_log_probs, tail_log_prob, topk_indices = compute_topk_log_probs(
+        logits, topk=2, temperature=2.0, vocab_chunk_size=2
+    )
+    expected_full = torch.log_softmax(logits.float() / 2.0, dim=-1)
+
+    torch.testing.assert_close(topk_indices, torch.tensor([[[1, 3]]]))
+    torch.testing.assert_close(topk_log_probs, torch.gather(expected_full, -1, topk_indices))
+    expected_tail = torch.logsumexp(expected_full[..., [0, 2]], dim=-1)
+    torch.testing.assert_close(tail_log_prob, expected_tail)
+
+    requested_indices = torch.tensor([[[0, 2]]])
+    selected_log_probs, selected_tail, returned_indices = compute_topk_log_probs(
+        logits, topk=2, temperature=2.0, topk_indices=requested_indices, vocab_chunk_size=2
+    )
+    torch.testing.assert_close(selected_log_probs, torch.gather(expected_full, -1, requested_indices))
+    torch.testing.assert_close(selected_tail, torch.logsumexp(expected_full[..., [1, 3]], dim=-1))
+    torch.testing.assert_close(returned_indices, requested_indices)
 
 
 class TestRegisterAdvEst(unittest.TestCase):

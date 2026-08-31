@@ -53,6 +53,8 @@ actor_rollout_ref:
   nccl_timeout: 3600
   actor:
     distill_only: true
+    distill_topk: 64
+    distill_temperature: 1.0
     tis_imp_ratio_cap: -1
     use_kl_loss: true
     kl_loss_coef: 1.0
