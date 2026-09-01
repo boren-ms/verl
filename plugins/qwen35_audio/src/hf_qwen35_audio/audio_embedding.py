@@ -66,6 +66,8 @@ class AudioEmbedding(nn.Module):
         if isinstance(config.audio_processor, dict) and config.audio_processor.get("name") == "cascades":
             encoder_config = config.audio_processor.get("config", None)
             assert encoder_config is not None
+            encoder_config = dict(encoder_config)
+            encoder_config.pop("use_flashattention_t5bias", None)
             self.encoder = ConformerEncoder(**encoder_config)
             self.encoder.post_init({})
             audio_dim_out = encoder_config["attention_dim"]

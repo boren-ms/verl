@@ -222,6 +222,9 @@ def main():
         "AutoModelForCausalLM": "modeling_qwen3_5_audio.Qwen3_5AudioForCausalLM",
         "AutoProcessor": "processing_qwen3_5_audio.Qwen3_5AudioProcessor",
     }
+    config.get("audio_processor", {}).get("config", {}).pop(
+        "use_flashattention_t5bias", None
+    )
 
     out_config = output_dir / "config.json"
     with open(out_config, "w") as f:

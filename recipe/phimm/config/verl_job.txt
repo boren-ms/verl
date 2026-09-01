@@ -1,18 +1,11 @@
-updated_at_utc: 2026-08-30T02:15:54Z
+updated_at_utc: 2026-09-01T21:37:22Z
 
-┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
-│ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                             │
-├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
-└──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
+┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
+│ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
+├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
+│ i2           │ raysubmit_TBJAx1TGdiQ2dAjh   │ RUNNING       │ remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1                          │ training startup                         │
+│ i3           │ raysubmit_xVRKacv1TTJJbVQL   │ RUNNING       │ eval_openasr_ml_verb_lid_2609v0                                           │ evaluating openasr_ml (model sync)       │
+└──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- remax_2607v1_openml_verb_s200_bs64_lid05_sfl_tm1 [i0]: complete step 180
-- remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1 [i15]: complete step 120
-- remax_2607v1_mixcv15_digits_openml_verb_s200_bs256_ilv [i7]: complete step 190
-- remax_2607v1_digits_s200_bs64_sfl_tm1 [i14]: complete step 160
-- remax_2607v1_bad_mix13k_s100_bs64_lid05_sfl_tm1 [i11]: complete step 100
-- remax_2607v1_openml_verb_s100_bs64_lid05_sfl_tm1 [i4]: complete step 100
-- remax_2607v1b_digits_s200_bs64_sfl_tm1 [i5]: complete step 120
-- remax_2607v1_mix_digits_openml2x_s200_bs64_ilv [i1]: complete step 110
-- remax_2607v1_mixcv15_13k_openml_verb_s200_bs64_lid05_sfl_mlp0_rp0 [i13]: complete step 190
-- remax_2607v1_oss_bad_lang_rc10_s200_bs64_rw0 [i6]: complete step 200
+- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i2`]: training startup
