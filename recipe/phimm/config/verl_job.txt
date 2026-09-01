@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-01T04:33:53Z
+updated_at_utc: 2026-09-01T04:35:02Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
@@ -9,7 +9,7 @@ updated_at_utc: 2026-09-01T04:33:53Z
 │ i3           │ raysubmit_kD9abiYiZLparaQk   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs64_n2                           │ training 426/3172 (13%)      │
 │ i4           │ raysubmit_SpwhpDCQH1v8udm1   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16                       │ training 41/200 (21%)        │
 │ i5           │ raysubmit_gtX7Z77vgqcMrLPz   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk64                │ training 39/200 (20%)        │
-│ i6           │ raysubmit_uyBcxHs7KMHy3SMt   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk128               │ training 39/200 (20%)        │
+│ i6           │ raysubmit_uyBcxHs7KMHy3SMt   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk128               │ training 40/200 (20%)        │
 │ i7           │ raysubmit_fCWvsaDyjPTTY39b   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n2                          │ training 161/793 (20%)       │
 │ i8           │ raysubmit_iavGP5UF5GiuigbL   │ RUNNING       │ distill_2607v1_ls_rare5k_s200_bs256_n2                           │ training 152/200 (76%)       │
 │ i9           │ raysubmit_BwMxCAzM51G5m9xY   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs64_n2_topk128                 │ training 41/200 (21%)        │
@@ -22,7 +22,7 @@ Reports:
 - distill_2607v1_ls_rare_test_e1_bs64_n2 [i3]: training 426/3172 (13%)
 - distill_2607v1_ls_rare_test_s200_bs256_n16 [i4]: training 41/200 (21%)
 - distill_2607v1_ls_rare_test_s200_bs256_n16_topk64 [i5]: training 39/200 (20%)
-- distill_2607v1_ls_rare_test_s200_bs256_n16_topk128 [i6]: training 39/200 (20%)
+- distill_2607v1_ls_rare_test_s200_bs256_n16_topk128 [i6]: training 40/200 (20%)
 - distill_2607v1_ls_rare_test_e1_bs256_n2 [i7]: training 161/793 (20%)
 - distill_2607v1_ls_rare5k_s200_bs256_n2 [i8]: training 152/200 (76%)
 - distill_2607v1_ls_rare_test_s200_bs64_n2_topk128 [i9]: training 41/200 (21%)
