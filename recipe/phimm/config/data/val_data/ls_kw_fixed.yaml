@@ -3,7 +3,7 @@
   pre_process:
     path_map:
       field: audio_path
-      src_part: /root/data/
+      src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
       dst_part: az://orngwus2cresco/data/boren/data/
   add_task_info:
     task: lang_asr
@@ -19,7 +19,7 @@
   pre_process:
     path_map:
       field: audio_path
-      src_part: /root/data/
+      src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
       dst_part: az://orngwus2cresco/data/boren/data/
   add_task_info:
     task: lang_asr
