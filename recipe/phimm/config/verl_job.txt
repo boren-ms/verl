@@ -1,11 +1,11 @@
-updated_at_utc: 2026-09-01T21:37:22Z
+updated_at_utc: 2026-09-01T22:38:48Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i2           │ raysubmit_TBJAx1TGdiQ2dAjh   │ RUNNING       │ remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1                          │ training startup                         │
-│ i3           │ raysubmit_xVRKacv1TTJJbVQL   │ RUNNING       │ eval_openasr_ml_verb_lid_2609v0                                           │ evaluating openasr_ml (model sync)       │
+│ i2           │ raysubmit_TBJAx1TGdiQ2dAjh   │ RUNNING       │ remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1                          │ training 26/200 (13%)                     │
+│ i3           │ raysubmit_xVRKacv1TTJJbVQL   │ SUCCEEDED     │ eval_openasr_ml_verb_lid_2609v0                                           │ evaluating openasr_ml (complete)         │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i2`]: training startup
+- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i2`]: training 26/200 (13%)

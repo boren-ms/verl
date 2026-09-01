@@ -294,15 +294,18 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
 def _parse_task_output(solution_str):
     """Parse an ASR task output into ``(src_langs, tgt_langs, seg_texts)``.
 
-    Supports one or more newline-separated ``<src=X><tgt=Y>\n...`` segments,
-    as produced for code-switch / language-mixed audio. Returns ``None`` when
-    the complete string does not match the expected format.
+    The ``<src=X><tgt=Y>`` header is optional. Without it, the cleaned output
+    is returned as one text segment with empty language lists. Otherwise, one
+    or more newline-separated segments are supported for code-switch / mixed
+    audio. Returns ``None`` when a structured output is malformed.
     """
     if not isinstance(solution_str, str):
         return None
     output = clean_asr_mode_tags(solution_str).strip()
     if not output:
         return None
+    if not output.startswith("<src="):
+        return [], [], [output]
 
     segments = []
     pos = 0
@@ -337,8 +340,8 @@ def check_lang(task_output, tgt_lang) -> float:
     """Language-identification score in ``[0, 1]`` with partial credit.
 
     Predicted language(s) come from the per-segment ``<src=..>`` sequence in a
-    parsed (possibly code-switch) task output. A missing or malformed parsed
-    output scores ``0.0``.
+    parsed (possibly code-switch) task output. An optional omitted language
+    header scores ``1.0``; a missing or malformed parsed output scores ``0.0``.
 
     The score is the Jaccard overlap between the predicted and target language
     sets, so a code-switch output that identifies only some of the spoken
@@ -358,9 +361,9 @@ def check_lang(task_output, tgt_lang) -> float:
     for name in src_langs:
         pred_codes |= _lang_code_set(name)
 
-    if not tgt_codes and not pred_codes:
+    if not pred_codes:
         return 1.0
-    if not tgt_codes or not pred_codes:
+    if not tgt_codes:
         return 0.0
     return len(pred_codes & tgt_codes) / len(tgt_codes)
 
