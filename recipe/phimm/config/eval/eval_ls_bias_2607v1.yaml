@@ -20,3 +20,4 @@ actor_rollout_ref:
 data:
   model_version: 2607
   max_prompt_length: 4096
+  val_batch_size: 64
