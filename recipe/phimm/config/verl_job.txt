@@ -1,10 +1,10 @@
-updated_at_utc: 2026-09-01T20:03:03Z
+updated_at_utc: 2026-09-01T20:09:33Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
 │ i0           │ raysubmit_fPKNKgCP6C1Ar4gp   │ SUCCEEDED     │ distill_2607v1_ls_rare_test_s200_bs256_n2                        │ training 200/200 (complete)  │
-│ i1           │ raysubmit_V2ZDXazemrKWA6tW   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1_t0                       │ training 44/793 (6%)         │
+│ i1           │ raysubmit_V2ZDXazemrKWA6tW   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1_t0                       │ training 48/793 (6%)         │
 │ i2           │ raysubmit_ipeTX8VpxMLFSMM4   │ SUCCEEDED     │ eval_ls_bias_2607v1                                              │ evaluating ls_bias (complete) │
 │ i3           │ raysubmit_kD9abiYiZLparaQk   │ STOPPED       │ distill_2607v1_ls_rare_test_e1_bs64_n2                           │ training 1728/3172 (stopped) │
 │ i4           │ raysubmit_SpwhpDCQH1v8udm1   │ STOPPED       │ distill_2607v1_ls_rare_test_s200_bs256_n16                       │ training 167/200 (stopped)   │
@@ -22,7 +22,7 @@ updated_at_utc: 2026-09-01T20:03:03Z
 
 Reports:
 - distill_2607v1_ls_rare_test_s200_bs256_n2 [i0]: complete step 200
-- distill_2607v1_ls_rare_test_e1_bs256_n1_t0 [i1]: training 44/793 (6%)
+- distill_2607v1_ls_rare_test_e1_bs256_n1_t0 [i1]: training 48/793 (6%)
 - distill_2607v1_ls_rare_test_e1_bs64_n2 [i3]: stopped training step 1728
 - distill_2607v1_ls_rare_test_s200_bs256_n16 [i4]: stopped training step 167
 - distill_2607v1_ls_rare_test_s200_bs256_n16_topk64 [i5]: stopped training step 142
