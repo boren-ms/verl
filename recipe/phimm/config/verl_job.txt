@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-01T17:56:51Z
+updated_at_utc: 2026-09-01T18:05:58Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
@@ -6,29 +6,29 @@ updated_at_utc: 2026-09-01T17:56:51Z
 │ i0           │ raysubmit_fPKNKgCP6C1Ar4gp   │ SUCCEEDED     │ distill_2607v1_ls_rare_test_s200_bs256_n2                        │ training 200/200 (complete)  │
 │ i1           │ raysubmit_gTDxn3GTRqaJ65T7   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1_t0                       │ training 0/793 (0%)          │
 │ i2           │ raysubmit_ipeTX8VpxMLFSMM4   │ SUCCEEDED     │ eval_ls_bias_2607v1                                              │ evaluating ls_bias (complete) │
-│ i3           │ raysubmit_kD9abiYiZLparaQk   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs64_n2                           │ training 1716/3172 (54%)     │
-│ i4           │ raysubmit_SpwhpDCQH1v8udm1   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16                       │ training 165/200 (83%)       │
-│ i5           │ raysubmit_GcjwamTep6KhXrdx   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk64                │ training 141/200 (71%)       │
-│ i6           │ raysubmit_251xsaWzV9s2dJAU   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk128               │ training 150/200 (75%)       │
-│ i7           │ raysubmit_fCWvsaDyjPTTY39b   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n2                          │ training 658/793 (83%)       │
+│ i3           │ raysubmit_kD9abiYiZLparaQk   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs64_n2                           │ training 1728/3172 (54%)     │
+│ i4           │ raysubmit_SpwhpDCQH1v8udm1   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16                       │ training 167/200 (84%)       │
+│ i5           │ raysubmit_GcjwamTep6KhXrdx   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk64                │ training 142/200 (71%)       │
+│ i6           │ raysubmit_251xsaWzV9s2dJAU   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs256_n16_topk128               │ training 152/200 (76%)       │
+│ i7           │ raysubmit_fCWvsaDyjPTTY39b   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n2                          │ training 662/793 (83%)       │
 │ i8           │ raysubmit_iavGP5UF5GiuigbL   │ SUCCEEDED     │ distill_2607v1_ls_rare5k_s200_bs256_n2                           │ training 200/200 (100%)      │
 │ i9           │ raysubmit_BwMxCAzM51G5m9xY   │ SUCCEEDED     │ distill_2607v1_ls_rare_test_s200_bs64_n2_topk128                 │ training 200/200 (complete)  │
-│ i11          │ raysubmit_STsPNRNrHcTxcapX   │ RUNNING       │ distill_2607v1_ls_rare5k_e1_bs256_n1                             │ training 391/998 (39%)       │
-│ i12          │ raysubmit_jAiXqe63ELLdgBqA   │ RUNNING       │ eval_ls_bias_2607v1                                              │ evaluating ls_bias (startup) │
-│ i13          │ raysubmit_EXDaf4gWgRGEF7zg   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1_tm0                      │ training 442/793 (56%)       │
-│ i14          │ raysubmit_UWVLXihvSrjGMVQ3   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1                          │ training 477/793 (60%)       │
+│ i11          │ raysubmit_STsPNRNrHcTxcapX   │ RUNNING       │ distill_2607v1_ls_rare5k_e1_bs256_n1                             │ training 397/998 (40%)       │
+│ i12          │ raysubmit_rhDJkg5fxwUdKH3C   │ RUNNING       │ eval_ls_bias_2607v1                                              │ evaluating ls_bias (decoding) │
+│ i13          │ raysubmit_EXDaf4gWgRGEF7zg   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1_tm0                      │ training 450/793 (57%)       │
+│ i14          │ raysubmit_UWVLXihvSrjGMVQ3   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1                          │ training 481/793 (61%)       │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
 - distill_2607v1_ls_rare_test_s200_bs256_n2 [i0]: complete step 200
 - distill_2607v1_ls_rare_test_e1_bs256_n1_t0 [i1]: training 0/793 (0%)
-- distill_2607v1_ls_rare_test_e1_bs64_n2 [i3]: training 1716/3172 (54%)
-- distill_2607v1_ls_rare_test_s200_bs256_n16 [i4]: training 165/200 (83%)
-- distill_2607v1_ls_rare_test_s200_bs256_n16_topk64 [i5]: training 141/200 (71%)
-- distill_2607v1_ls_rare_test_s200_bs256_n16_topk128 [i6]: training 150/200 (75%)
-- distill_2607v1_ls_rare_test_e1_bs256_n2 [i7]: training 658/793 (83%)
+- distill_2607v1_ls_rare_test_e1_bs64_n2 [i3]: training 1728/3172 (54%)
+- distill_2607v1_ls_rare_test_s200_bs256_n16 [i4]: training 167/200 (84%)
+- distill_2607v1_ls_rare_test_s200_bs256_n16_topk64 [i5]: training 142/200 (71%)
+- distill_2607v1_ls_rare_test_s200_bs256_n16_topk128 [i6]: training 152/200 (76%)
+- distill_2607v1_ls_rare_test_e1_bs256_n2 [i7]: training 662/793 (83%)
 - distill_2607v1_ls_rare5k_s200_bs256_n2 [i8]: complete step 200
 - distill_2607v1_ls_rare_test_s200_bs64_n2_topk128 [i9]: complete step 200
-- distill_2607v1_ls_rare5k_e1_bs256_n1 [i11]: training 391/998 (39%)
-- distill_2607v1_ls_rare_test_e1_bs256_n1_tm0 [i13]: training 442/793 (56%)
-- distill_2607v1_ls_rare_test_e1_bs256_n1 [i14]: training 477/793 (60%)
+- distill_2607v1_ls_rare5k_e1_bs256_n1 [i11]: training 397/998 (40%)
+- distill_2607v1_ls_rare_test_e1_bs256_n1_tm0 [i13]: training 450/793 (57%)
+- distill_2607v1_ls_rare_test_e1_bs256_n1 [i14]: training 481/793 (61%)
