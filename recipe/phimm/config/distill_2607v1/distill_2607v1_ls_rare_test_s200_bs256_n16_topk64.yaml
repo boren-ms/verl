@@ -39,6 +39,7 @@ actor_rollout_ref:
     temperature: 1.2
     gpu_memory_utilization: 0.9
     max_num_seqs: 32
+    enforce_eager: true
   actor:
     distill_topk: 64
     optim:

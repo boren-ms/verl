@@ -215,6 +215,9 @@ def main():
     with open(config_path) as f:
         config = json.load(f)
 
+    encoder_config = config.get("audio_processor", {}).get("config", {})
+    encoder_config.pop("use_flashattention_t5bias", None)
+
     config["model_type"] = "qwen3_5_audio"
     config["architectures"] = ["Qwen3_5AudioForCausalLM"]
     config["auto_map"] = {

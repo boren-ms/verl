@@ -11,6 +11,7 @@ defaults:
 
 data:
   train_batch_size: 256
+  val_batch_size: 32
 
 reward_functions:
   bias:

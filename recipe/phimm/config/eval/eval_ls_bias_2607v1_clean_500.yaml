@@ -3,9 +3,9 @@ hydra:
     - file://recipe/phimm/config
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
+
 defaults:
   - eval_asr
-  - data/val_data/ls_bias
   - _self_
 
 val_reward:
@@ -20,4 +20,16 @@ actor_rollout_ref:
 data:
   model_version: 2607
   max_prompt_length: 4096
-  val_batch_size: 8
+  val_batch_size: 64
+  val_data:
+    - dataset_name: ls_bias
+      jsonl_path: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_500.jsonl
+      data_dir: az://orngwus2cresco/data/boren/data/
+      cache_name: auto_clean_500
+      bias_key: distractors
+      post_process:
+        add_field:
+          fields:
+            data_source: clean_500
+        verl_format:
+          prompt_key: prompt
