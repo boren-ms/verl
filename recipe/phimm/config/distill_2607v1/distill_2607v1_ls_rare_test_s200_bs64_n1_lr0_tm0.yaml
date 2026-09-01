@@ -37,6 +37,7 @@ actor_rollout_ref:
     gpu_memory_utilization: 0.9
     max_num_seqs: 32
   actor:
+    ppo_micro_batch_size_per_gpu: 2
     optim:
       lr: 3e-4
   model:

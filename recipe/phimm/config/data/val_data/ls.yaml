@@ -3,7 +3,7 @@
   pre_process:
     path_map:
       field: audio_path
-      src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
+      src_part: /root/data/
       dst_part: az://orngwus2cresco/data/boren/data/
     rename_fields:
       mappings:
@@ -24,7 +24,7 @@
   pre_process:
     path_map:
       field: audio_path
-      src_part: /datablob1/users/ruchaofan/Evaluation/WavLLM_Data/DATA/
+      src_part: /root/data/
       dst_part: az://orngwus2cresco/data/boren/data/
     rename_fields:
       mappings:
