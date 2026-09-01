@@ -1,0 +1,4 @@
+source_config: data/train_data/ls_ts_kw_fixed.yaml
+output_path: az://orngwus2cresco/data/boren/data/verl/cached/ls_ts_kw_fixed/data.jsonl
+include_verl_format: false
+overwrite: false
