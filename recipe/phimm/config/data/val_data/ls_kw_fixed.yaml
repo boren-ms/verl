@@ -10,7 +10,7 @@
   post_process:
     add_field:
       fields:
-        data_source: clean_0
+        data_source: clean_fix
     verl_format:
       prompt_key: prompt
 
@@ -26,6 +26,6 @@
   post_process:
     add_field:
       fields:
-        data_source: other_0
+        data_source: other_fix
     verl_format:
       prompt_key: prompt

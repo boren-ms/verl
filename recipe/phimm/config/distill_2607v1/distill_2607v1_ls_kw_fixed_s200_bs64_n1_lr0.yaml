@@ -27,8 +27,8 @@ val_reward:
       path: recipe/phimm/reward/asr_bias.py
       name: eval_score
   reward_function_by_data_source:
-    clean_0: bias
-    other_0: bias
+    clean_fix: bias
+    other_fix: bias
 
 actor_rollout_ref:
   rollout:
@@ -37,6 +37,7 @@ actor_rollout_ref:
     gpu_memory_utilization: 0.9
     max_num_seqs: 32
   actor:
+    ppo_micro_batch_size_per_gpu: 2
     optim:
       lr: 3e-4
   model:
