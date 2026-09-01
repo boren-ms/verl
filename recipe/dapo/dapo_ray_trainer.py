@@ -274,6 +274,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                         new_batch.batch["token_level_rewards"] = new_batch.batch["token_level_scores"]
                     if not self.config.algorithm.filter_groups.enable:
                         batch = new_batch
+                        num_prompt_in_batch += len(np.unique(new_batch.non_tensor_batch["uid"]))
                     else:
                         # check zero std prompts
                         metric_name = self.config.algorithm.filter_groups.metric

@@ -421,9 +421,13 @@ class DataParallelPPOActor(BasePPOActor):
         self.actor_module.eval()
 
         micro_batch_size = data.meta_info["micro_batch_size"]
-        temperature = data.meta_info["temperature"]  # temperature must be in the data.meta_info to avoid silent error
         distill_topk = data.meta_info.get("distill_topk", 0)
         distill_temperature = data.meta_info.get("distill_temperature", 1.0)
+        temperature = (
+            distill_temperature
+            if self.config.distill_only
+            else data.meta_info["temperature"]  # temperature must be in the data.meta_info to avoid silent error
+        )
         use_dynamic_bsz = data.meta_info["use_dynamic_bsz"]
         has_multi_modal_inputs = "multi_modal_inputs" in data.non_tensor_batch.keys()
         select_keys = ["responses", "input_ids", "attention_mask", "position_ids"]
@@ -491,7 +495,11 @@ class DataParallelPPOActor(BasePPOActor):
         # make sure we are in training mode
         self.actor_module.train()
 
-        temperature = data.meta_info["temperature"]  # temperature must be in the data.meta_info to avoid silent error
+        temperature = (
+            self.config.distill_temperature
+            if self.config.distill_only
+            else data.meta_info["temperature"]  # temperature must be in the data.meta_info to avoid silent error
+        )
 
         select_keys = [
             "responses",
