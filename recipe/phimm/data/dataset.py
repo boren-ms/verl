@@ -1558,24 +1558,24 @@ def _extra_info_value(egs, key):
         value = [""]
     if key == "prefix" and value is None:
         value = ""
+    if key == "teacher_prompt" and value is None:
+        value = ""
     return value
 
 
 def verl_format_ds(ds, **kwargs):
     """Format the dataset for verl training."""
     prompt_key = kwargs.get("prompt_key", "prompt")
-    extra_keys = kwargs.get("extra_keys", ["id", "language", "keywords", "prefix"])
+    extra_keys = kwargs.get("extra_keys", ["id", "language", "keywords", "prefix", "teacher_prompt"])
 
     def map_fn(egs):
         text = egs.get("text", "")
         result = {
             prompt_key: to_user_msg(egs[prompt_key]),
             "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
-            "extra_info": {key: _extra_info_value(egs, key) for key in extra_keys},
+            "extra_info": {key: _extra_info_value(egs, key) for key in extra_keys },
             "data_source": egs.get("data_source", "asr"),
         }
-        if teacher_prompt := egs.get("teacher_prompt"):
-            result["teacher_prompt"] = teacher_prompt
         return result
 
     col_names = [x for x in ds.column_names if not x.startswith("audio")]
