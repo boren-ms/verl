@@ -1,4 +1,4 @@
-"""Add baseline-versus-candidate checkpoint charts to 2607 summary sheets."""
+"""Add baseline-versus-candidate checkpoint charts to 2609 summary sheets."""
 
 from __future__ import annotations
 

@@ -1,17 +1,17 @@
 ---
 name: verl-eval-workload
-description: "Launch, monitor, recover, and report 2607 ASR evaluation workloads for user-supplied model checkpoints on any free Ready GPU node. Use when: launch evaluation jobs, evaluate checkpoints, run 2607 benchmarks, resume evaluation workload, refill eval nodes, or build evaluation reports."
+description: "Launch, monitor, recover, and report 2609 ASR evaluation workloads for user-supplied model checkpoints on any free Ready GPU node. Use when: launch evaluation jobs, evaluate checkpoints, run 2609 benchmarks, resume evaluation workload, refill eval nodes, or build evaluation reports."
 argument-hint: "<model-or-checkpoint-paths> [steps] [status|launch|resume|report]"
 ---
 
-# Run 2607 Evaluation Workloads
+# Run 2609 Evaluation Workloads
 
-Launch or recover a 2607 ASR benchmark workload for the model names,
+Launch or recover a 2609 ASR benchmark workload for the model names,
 checkpoint paths, and steps supplied by the user. Preserve successful work,
 avoid unrelated jobs, package durable outputs, and build reports as soon as
 their inputs are complete.
 
-This skill coordinates `eval-2607-benchmark-report` and `verl-asr-run`. The
+This skill coordinates `eval-2609-benchmark-report` and `verl-asr-run`. The
 live cluster and durable blob artifacts are authoritative; never rely on job
 IDs or completion state copied from an earlier session.
 
@@ -32,20 +32,20 @@ Ray commands and artifact manifests.
 For a conventional verl training output, use:
 
 ```text
-az://orngwus2cresco/data/boren/outputs/ver_2607/<MODEL>/global_step_<STEP>/qwen_hf/
+az://orngwus2cresco/data/boren/outputs/ver_2609/<MODEL>/global_step_<STEP>/qwen_hf/
 ```
 
 Default evaluation artifacts:
 
 ```text
-az://orngwus2cresco/data/boren/outputs/eval_2607_reports/<MODEL>_step<STEP>/<BENCHMARK>/candidate/
+az://orngwus2cresco/data/boren/outputs/eval_2609_reports/<MODEL>_step<STEP>/<BENCHMARK>/candidate/
 ```
 
 Default local reports:
 
 ```text
-tmp/eval_2607_reports/<MODEL>/<MODEL>_step<STEP>.xlsx
-tmp/eval_2607_reports/<MODEL>_all_steps.xlsx
+tmp/eval_2609_reports/<MODEL>/<MODEL>_step<STEP>.xlsx
+tmp/eval_2609_reports/<MODEL>_all_steps.xlsx
 ```
 
 Sanitize user-provided labels before using them in experiment names or paths.
@@ -59,9 +59,9 @@ checkpoint:
 
 | Benchmark | Config | Model override |
 |---|---|---|
-| In-house DTER | `long_eval_inhouse_2607_all_seg30` | `model.path` |
-| OpenASR-ML | `eval_openasr_ml_verb_2607` | `actor_rollout_ref.model.path` |
-| MixLang | `long_eval_mixlang_fy26q2_zh_seg_2607` | `model.path` |
+| In-house DTER | `long_eval_inhouse_2609_all_seg30` | `model.path` |
+| OpenASR-ML | `eval_openasr_ml_verb_2609` | `actor_rollout_ref.model.path` |
+| MixLang | `long_eval_mixlang_fy26q2_zh_seg_2609` | `model.path` |
 
 Always pass `trainer.nnodes=1`. Digits benchmarks are excluded unless the user
 explicitly requests them through a separate workflow.
@@ -69,7 +69,7 @@ explicitly requests them through a separate workflow.
 Default reference model:
 
 ```text
-az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio/45000/qwen_hf/
+az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen3-5-9b-s2-data-v3.4-sr-afteraudio/45000/qwen_hf/
 ```
 
 ## Evaluation Node Pool
@@ -195,12 +195,12 @@ and report the exact missing prerequisite.
 Use:
 
 ```text
-.github/skills/eval-2607-benchmark-report/scripts/build_2607_report.py
+.github/skills/eval-2609-benchmark-report/scripts/build_2609_report.py
 ```
 
 Supply durable in-house and MixLang roots. Supply OpenASR-ML from retained
 metrics JSON/text or `ray:<node>:<job-id>` while Ray history is available. Use
-the embedded 2607v1 baselines unless the user supplied another reference.
+the embedded 2609v1 baselines unless the user supplied another reference.
 
 For a requested subset, clearly label the report as partial and do not claim
 complete-suite validation. For the complete suite, reopen each workbook with
@@ -213,7 +213,7 @@ complete-suite validation. For the complete suite, reopen each workbook with
 - Model paths and config provenance are present.
 - Expected row counts and percentage formats are intact.
 
-Use `merge_2607_reports.py` once all requested checkpoint reports for one model
+Use `merge_2609_reports.py` once all requested checkpoint reports for one model
 are individually valid. Order merged sheets by numeric checkpoint step when
 steps exist; otherwise preserve the user's checkpoint order.
 

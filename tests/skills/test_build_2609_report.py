@@ -10,12 +10,12 @@ from openpyxl import Workbook, load_workbook
 
 SCRIPT = (
     Path(__file__).parents[2]
-    / ".github/skills/eval-2607-benchmark-report/scripts/build_2607_report.py"
+    / ".github/skills/eval-2609-benchmark-report/scripts/build_2609_report.py"
 )
 
 
 def _load_report_module():
-    spec = importlib.util.spec_from_file_location("build_2607_report", SCRIPT)
+    spec = importlib.util.spec_from_file_location("build_2609_report", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -125,16 +125,16 @@ def test_default_report_path_uses_model_subdirectory():
     report = _load_report_module()
 
     assert report.default_report_path(
-        "remax_2607@step560",
-        "az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607/global_step_560/qwen_hf/",
+        "remax_2609@step560",
+        "az://orngwus2cresco/data/boren/outputs/ver_2609/remax_2609/global_step_560/qwen_hf/",
     ) == Path(
-        "tmp/eval_2607_reports/remax_2607/remax_2607_step560.xlsx"
+        "tmp/eval_2609_reports/remax_2609/remax_2609_step560.xlsx"
     )
     assert report.default_report_path(
-        "remax_2607_step560",
+        "remax_2609_step560",
         "",
     ) == Path(
-        "tmp/eval_2607_reports/remax_2607/remax_2607_step560.xlsx"
+        "tmp/eval_2609_reports/remax_2609/remax_2609_step560.xlsx"
     )
 
 
@@ -166,9 +166,9 @@ def test_default_output_writes_checkpoint_report_under_model(tmp_path, monkeypat
         [
             str(SCRIPT),
             "--label",
-            "remax_2607_step10",
+            "remax_2609_step10",
             "--candidate-model-path",
-            "az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607/global_step_10/qwen_hf/",
+            "az://orngwus2cresco/data/boren/outputs/ver_2609/remax_2609/global_step_10/qwen_hf/",
             "--inhouse-dter",
             str(source),
         ],
@@ -178,7 +178,7 @@ def test_default_output_writes_checkpoint_report_under_model(tmp_path, monkeypat
     assert report.main() == 0
     assert (
         tmp_path
-        / "tmp/eval_2607_reports/remax_2607/remax_2607_step10.xlsx"
+        / "tmp/eval_2609_reports/remax_2609/remax_2609_step10.xlsx"
     ).is_file()
 
 

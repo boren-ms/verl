@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect existing 2607 benchmark eval results into a single XLSX workbook.
+"""Collect existing 2609 benchmark eval results into a single XLSX workbook.
 
 One sheet per benchmark, MixLang on its own separate sheet. Every sheet compares
 a candidate model column (B) against the config reference baseline column (A) and
@@ -13,11 +13,11 @@ CERR for CER.
 
 Benchmarks and their result sources ("reuse existing result"):
 
-  inhouse_dter  long_eval_inhouse_2607_all_seg30   micro-DTER   measures tree
-  digits_enus   eval_digits_enus_2607              CER + WER    ray/text/json
-  openasr_ml    eval_openasr_ml_verb_2607          WER (p_err)  ray/text/json
-  mixlang       long_eval_mixlang_fy26q2_zh_seg_2607  DTER       measures tree
-  digits_tier1  eval_digits_tier1_2607 (optional)  CER + WER    ray/text/json
+  inhouse_dter  long_eval_inhouse_2609_all_seg30   micro-DTER   measures tree
+  digits_enus   eval_digits_enus_2609              CER + WER    ray/text/json
+  openasr_ml    eval_openasr_ml_verb_2609          WER (p_err)  ray/text/json
+  mixlang       long_eval_mixlang_fy26q2_zh_seg_2609  DTER       measures tree
+  digits_tier1  eval_digits_tier1_2609 (optional)  CER + WER    ray/text/json
 
 A "source" string is auto-detected as one of:
   * ``az://.../<root>/`` or a local directory  -> tree of ``<slug>/measures.json``
@@ -101,7 +101,7 @@ INHOUSE_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
     ]),
 ]
 
-# Embedded 2607v1,LID baseline, micro-DTER per slug.
+# Embedded 2609v1,LID baseline, micro-DTER per slug.
 INHOUSE_BASELINE: dict[str, float] = {
     "enus_conv_fy21q1": 0.1875, "enus_conv_om_fy25q3": 0.1404, "enus_dict_office_fy24q3": 0.0995,
     "nlnl_conv_fy23q2": 0.2275, "nlnl_conv_om_fy23q1": 0.2330, "nlnl_dict_fy23q4": 0.1086,
@@ -496,17 +496,17 @@ BENCHMARKS = {
         "title": "inhouse_dter",
         "metrics": ["dter"],
         "groups": INHOUSE_GROUPS,
-        "config": "recipe/phimm/config/eval/long_eval_inhouse_2607_all_seg30.yaml",
+        "config": "recipe/phimm/config/eval/long_eval_inhouse_2609_all_seg30.yaml",
         "embedded_baseline": {k: {"dter": v} for k, v in INHOUSE_BASELINE.items()},
         "default_baseline": None,
-        "baseline_label": "2607v1,LID",
+        "baseline_label": "2609v1,LID",
         "metric_definition": "micro-DTER = sum edits / sum reference tokens",
     },
     "digits_enus": {
         "title": "digits_enus",
         "metrics": ["cer", "wer"],
         "groups": DIGITS_ENUS_GROUPS,
-        "config": "recipe/phimm/config/eval/eval_digits_enus_2607.yaml",
+        "config": "recipe/phimm/config/eval/eval_digits_enus_2609.yaml",
         "embedded_baseline": {},
         "default_baseline": None,
         "metric_definition": "Digit CER and WER from digits_measure.eval_score",
@@ -515,27 +515,27 @@ BENCHMARKS = {
         "title": "openasr_ml",
         "metrics": ["wer"],
         "groups": OPENASR_ML_GROUPS,
-        "config": "recipe/phimm/config/eval/eval_openasr_ml_verb_2607.yaml",
+        "config": "recipe/phimm/config/eval/eval_openasr_ml_verb_2609.yaml",
         "embedded_baseline": {k: {"wer": v} for k, v in OPENASR_ML_BASELINE.items()},
         "default_baseline": None,
-        "baseline_label": "2607v1",
+        "baseline_label": "2609v1",
         "metric_definition": "WER / p_err per dataset; arithmetic language and overall averages",
     },
     "mixlang": {
         "title": "mixlang",
         "metrics": ["dter"],
         "groups": MIXLANG_GROUPS,
-        "config": "recipe/phimm/config/eval/long_eval_mixlang_fy26q2_zh_seg_2607.yaml",
+        "config": "recipe/phimm/config/eval/long_eval_mixlang_fy26q2_zh_seg_2609.yaml",
         "embedded_baseline": {k: {"dter": v} for k, v in MIXLANG_BASELINE.items()},
         "default_baseline": None,
-        "baseline_label": "2607v1",
+        "baseline_label": "2609v1",
         "metric_definition": "zh-CN DTER/TER = sum edits / sum reference tokens",
     },
     "digits_tier1": {
         "title": "digits_tier1",
         "metrics": ["cer", "wer"],
         "groups": DIGITS_TIER1_GROUPS,
-        "config": "recipe/phimm/config/eval/eval_digits_tier1_2607.yaml",
+        "config": "recipe/phimm/config/eval/eval_digits_tier1_2609.yaml",
         "embedded_baseline": {},
         "default_baseline": None,
         "metric_definition": "Digit CER and WER from digits_measure.eval_score",
@@ -558,7 +558,7 @@ def default_report_path(label: str, candidate_model_path: str) -> Path:
         model_name = re.sub(r"(?:[_-]?step\d+)$", "", safe_label, flags=re.IGNORECASE)
         model_name = model_name.rstrip("._-") or safe_label
     safe_model_name = re.sub(r"[^A-Za-z0-9._-]+", "_", model_name).strip("._-")
-    return Path("tmp/eval_2607_reports") / safe_model_name / f"{safe_label}.xlsx"
+    return Path("tmp/eval_2609_reports") / safe_model_name / f"{safe_label}.xlsx"
 
 
 def parse_args() -> argparse.Namespace:
@@ -638,7 +638,7 @@ def main() -> int:
         print("[error] no benchmark sources supplied; nothing to build.", file=sys.stderr)
         return 2
 
-    build_summary_sheet(wb, summary_rows, args.baseline_label or "2607v1", args.label)
+    build_summary_sheet(wb, summary_rows, args.baseline_label or "2609v1", args.label)
     wb.move_sheet("summary", -len(wb.sheetnames) + 1)  # summary first
 
     out_path = Path(args.out) if args.out else default_report_path(

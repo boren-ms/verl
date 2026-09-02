@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repair average formulas and summary aggregates in existing 2607 reports."""
+"""Repair average formulas and summary aggregates in existing 2609 reports."""
 
 from __future__ import annotations
 

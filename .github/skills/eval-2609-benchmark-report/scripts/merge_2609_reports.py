@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Merge 2607 checkpoint reports for one model into a single XLSX workbook."""
+"""Merge 2609 checkpoint reports for one model into a single XLSX workbook."""
 
 from __future__ import annotations
 
