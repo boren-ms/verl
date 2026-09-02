@@ -23,3 +23,8 @@ reward_functions:
 
 reward_function_by_data_source:
   kw_fixed: openml
+
+actor_rollout_ref:
+  actor:
+    ppo_micro_batch_size_per_gpu: 2
+    ppo_max_token_len_per_gpu: 2048
