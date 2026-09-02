@@ -1,0 +1,3820 @@
+{
+  "metric": "teacher_minus_student_probability_on_student_txt_tokens",
+  "manifest_source": "az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/ls_other_kw_fix.jsonl",
+  "model_source": "az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/",
+  "student_prompt": "Detect the language and transcribe the audio clip into text.<audio>",
+  "selection": "first_valid_records",
+  "count": 10,
+  "examples": [
+    {
+      "line_number": 1,
+      "id": "533-131562-0001",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/533/131562/533-131562-0001.flac",
+      "transcription": "the keys of your cabinet desk drawers and whatever else you possess said he rising and holding out his hand",
+      "keywords": [
+        "drawers"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/533-131562-0001-dcdd3eb774.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *drawers*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>The keys of your cabinet, desk, drawer, and whatever else you possess, said he, rising and holding out his hand.</TXT></ASR>",
+      "student_transcript": "The keys of your cabinet, desk, drawer, and whatever else you possess, said he, rising and holding out his hand.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        15877,
+        6679,
+        314,
+        678,
+        21245,
+        11,
+        17471,
+        11,
+        25635,
+        11,
+        321,
+        8554,
+        745,
+        488,
+        14775,
+        11,
+        1018,
+        551,
+        11,
+        15589,
+        321,
+        9668,
+        680,
+        780,
+        1375,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 14,
+          "text": "The",
+          "student_probability": 0.948644162120154,
+          "teacher_probability": 0.9405960443059848,
+          "teacher_minus_student_probability": -0.008048117814169253
+        },
+        {
+          "index": 15,
+          "text": " keys",
+          "student_probability": 0.9656734192300199,
+          "teacher_probability": 0.9791938714367201,
+          "teacher_minus_student_probability": 0.013520452206700173
+        },
+        {
+          "index": 16,
+          "text": " of",
+          "student_probability": 0.9953901869171392,
+          "teacher_probability": 0.9939630717017195,
+          "teacher_minus_student_probability": -0.0014271152154197164
+        },
+        {
+          "index": 17,
+          "text": " your",
+          "student_probability": 0.9996085507795613,
+          "teacher_probability": 0.9993838294553344,
+          "teacher_minus_student_probability": -0.00022472132422690638
+        },
+        {
+          "index": 18,
+          "text": " cabinet",
+          "student_probability": 0.9916865379066558,
+          "teacher_probability": 0.9670244152325231,
+          "teacher_minus_student_probability": -0.024662122674132703
+        },
+        {
+          "index": 19,
+          "text": ",",
+          "student_probability": 0.8372058087068263,
+          "teacher_probability": 0.8830048645216967,
+          "teacher_minus_student_probability": 0.045799055814870426
+        },
+        {
+          "index": 20,
+          "text": " desk",
+          "student_probability": 0.9968665389777017,
+          "teacher_probability": 0.9802135775559376,
+          "teacher_minus_student_probability": -0.01665296142176409
+        },
+        {
+          "index": 21,
+          "text": ",",
+          "student_probability": 0.9014267575526871,
+          "teacher_probability": 0.895175866492615,
+          "teacher_minus_student_probability": -0.006250891060072039
+        },
+        {
+          "index": 22,
+          "text": " drawer",
+          "student_probability": 0.9978774633429203,
+          "teacher_probability": 0.728358928775532,
+          "teacher_minus_student_probability": -0.2695185345673883
+        },
+        {
+          "index": 23,
+          "text": ",",
+          "student_probability": 0.8351519720940378,
+          "teacher_probability": 0.880216723870707,
+          "teacher_minus_student_probability": 0.04506475177666924
+        },
+        {
+          "index": 24,
+          "text": " and",
+          "student_probability": 0.9992743040171366,
+          "teacher_probability": 0.9987858986821007,
+          "teacher_minus_student_probability": -0.000488405335035913
+        },
+        {
+          "index": 25,
+          "text": " whatever",
+          "student_probability": 0.9977401419683094,
+          "teacher_probability": 0.9966512190872633,
+          "teacher_minus_student_probability": -0.0010889228810461171
+        },
+        {
+          "index": 26,
+          "text": " else",
+          "student_probability": 0.999823839714983,
+          "teacher_probability": 0.999724940630463,
+          "teacher_minus_student_probability": -9.889908451998775e-05
+        },
+        {
+          "index": 27,
+          "text": " you",
+          "student_probability": 0.9992808510800768,
+          "teacher_probability": 0.9988078993570564,
+          "teacher_minus_student_probability": -0.00047295172302042054
+        },
+        {
+          "index": 28,
+          "text": " possess",
+          "student_probability": 0.9960092465237582,
+          "teacher_probability": 0.9948223886309557,
+          "teacher_minus_student_probability": -0.0011868578928024842
+        },
+        {
+          "index": 29,
+          "text": ",",
+          "student_probability": 0.9181181786016953,
+          "teacher_probability": 0.8924686241477598,
+          "teacher_minus_student_probability": -0.025649554453935464
+        },
+        {
+          "index": 30,
+          "text": " said",
+          "student_probability": 0.9545876562122583,
+          "teacher_probability": 0.9532975980989759,
+          "teacher_minus_student_probability": -0.0012900581132824218
+        },
+        {
+          "index": 31,
+          "text": " he",
+          "student_probability": 0.9968165498367663,
+          "teacher_probability": 0.9968242492015471,
+          "teacher_minus_student_probability": 7.69936478084432e-06
+        },
+        {
+          "index": 32,
+          "text": ",",
+          "student_probability": 0.9940919333628211,
+          "teacher_probability": 0.9913358934742247,
+          "teacher_minus_student_probability": -0.0027560398885964066
+        },
+        {
+          "index": 33,
+          "text": " rising",
+          "student_probability": 0.9805796638613667,
+          "teacher_probability": 0.9824433198664191,
+          "teacher_minus_student_probability": 0.0018636560050523387
+        },
+        {
+          "index": 34,
+          "text": " and",
+          "student_probability": 0.9909087056711195,
+          "teacher_probability": 0.9884410965892656,
+          "teacher_minus_student_probability": -0.0024676090818539498
+        },
+        {
+          "index": 35,
+          "text": " holding",
+          "student_probability": 0.9994683709012867,
+          "teacher_probability": 0.9992895409140229,
+          "teacher_minus_student_probability": -0.0001788299872638177
+        },
+        {
+          "index": 36,
+          "text": " out",
+          "student_probability": 0.9992399037186788,
+          "teacher_probability": 0.9989990488410952,
+          "teacher_minus_student_probability": -0.00024085487758351842
+        },
+        {
+          "index": 37,
+          "text": " his",
+          "student_probability": 0.9911469630355,
+          "teacher_probability": 0.9911012929802067,
+          "teacher_minus_student_probability": -4.567005529332313e-05
+        },
+        {
+          "index": 38,
+          "text": " hand",
+          "student_probability": 0.9853746832696311,
+          "teacher_probability": 0.9790250794291261,
+          "teacher_minus_student_probability": -0.00634960384050498
+        },
+        {
+          "index": 39,
+          "text": ".",
+          "student_probability": 0.9974465174743959,
+          "teacher_probability": 0.9958668821806097,
+          "teacher_minus_student_probability": -0.0015796352937862412
+        }
+      ],
+      "score_seconds": 75.62117314338684
+    },
+    {
+      "line_number": 2,
+      "id": "3997-182399-0012",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/3997/182399/3997-182399-0012.flac",
+      "transcription": "it was on a lil ol house a lil ol tumble down house",
+      "keywords": [
+        "tumble"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/3997-182399-0012-ba37fe0026.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *tumble*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>It was on a little old house, a little old tumbledown house.</TXT></ASR>",
+      "student_transcript": "It was on a little old house, a little old tumbledown house.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        29,
+        2064,
+        557,
+        383,
+        264,
+        2545,
+        2235,
+        3626,
+        11,
+        264,
+        2545,
+        2235,
+        259,
+        24995,
+        754,
+        3626,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 15,
+          "text": "It",
+          "student_probability": 0.9937234590106933,
+          "teacher_probability": 0.9941615611878722,
+          "teacher_minus_student_probability": 0.00043810217717898947
+        },
+        {
+          "index": 16,
+          "text": " was",
+          "student_probability": 0.9992284771153399,
+          "teacher_probability": 0.9992897789887448,
+          "teacher_minus_student_probability": 6.130187340491755e-05
+        },
+        {
+          "index": 17,
+          "text": " on",
+          "student_probability": 0.9740744057898696,
+          "teacher_probability": 0.9781168621139016,
+          "teacher_minus_student_probability": 0.0040424563240319955
+        },
+        {
+          "index": 18,
+          "text": " a",
+          "student_probability": 0.8330176817205707,
+          "teacher_probability": 0.8332706335822166,
+          "teacher_minus_student_probability": 0.00025295186164597805
+        },
+        {
+          "index": 19,
+          "text": " little",
+          "student_probability": 0.998587579494668,
+          "teacher_probability": 0.9985401515348288,
+          "teacher_minus_student_probability": -4.742795983925241e-05
+        },
+        {
+          "index": 20,
+          "text": " old",
+          "student_probability": 0.9965108019582277,
+          "teacher_probability": 0.9956964294941715,
+          "teacher_minus_student_probability": -0.0008143724640562455
+        },
+        {
+          "index": 21,
+          "text": " house",
+          "student_probability": 0.9765584750840764,
+          "teacher_probability": 0.9738638436277903,
+          "teacher_minus_student_probability": -0.002694631456286123
+        },
+        {
+          "index": 22,
+          "text": ",",
+          "student_probability": 0.8774569667257907,
+          "teacher_probability": 0.8489756700380786,
+          "teacher_minus_student_probability": -0.028481296687712043
+        },
+        {
+          "index": 23,
+          "text": " a",
+          "student_probability": 0.9937581867570939,
+          "teacher_probability": 0.9931119397445627,
+          "teacher_minus_student_probability": -0.0006462470125312425
+        },
+        {
+          "index": 24,
+          "text": " little",
+          "student_probability": 0.9987589046467191,
+          "teacher_probability": 0.9978926577978934,
+          "teacher_minus_student_probability": -0.0008662468488257469
+        },
+        {
+          "index": 25,
+          "text": " old",
+          "student_probability": 0.9982073315283629,
+          "teacher_probability": 0.9963944490461657,
+          "teacher_minus_student_probability": -0.0018128824821972422
+        },
+        {
+          "index": 26,
+          "text": " t",
+          "student_probability": 0.5496181664874066,
+          "teacher_probability": 0.21890423418598948,
+          "teacher_minus_student_probability": -0.3307139323014171
+        },
+        {
+          "index": 27,
+          "text": "umbled",
+          "student_probability": 0.999554594142374,
+          "teacher_probability": 0.9991625413999281,
+          "teacher_minus_student_probability": -0.00039205274244591415
+        },
+        {
+          "index": 28,
+          "text": "own",
+          "student_probability": 0.7307329317175392,
+          "teacher_probability": 0.5902374402339102,
+          "teacher_minus_student_probability": -0.14049549148362894
+        },
+        {
+          "index": 29,
+          "text": " house",
+          "student_probability": 0.9992870411037844,
+          "teacher_probability": 0.9984611149002162,
+          "teacher_minus_student_probability": -0.0008259262035682502
+        },
+        {
+          "index": 30,
+          "text": ".",
+          "student_probability": 0.9924158093681833,
+          "teacher_probability": 0.9884888516635085,
+          "teacher_minus_student_probability": -0.003926957704674772
+        }
+      ],
+      "score_seconds": 0.3925349712371826
+    },
+    {
+      "line_number": 3,
+      "id": "6432-63722-0019",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/6432/63722/6432-63722-0019.flac",
+      "transcription": "i happened to see those candlesticks in the window of singa phut's shop the other day and i made up my mind to buy them when i had a chance",
+      "keywords": [
+        "phut's"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/6432-63722-0019-41b3ef1f9c.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *phut's*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>I happened to see those candlesticks in the window of Singafoot's shop the other day, and I made up my mind to buy them when I had a chance.</TXT></ASR>",
+      "student_transcript": "I happened to see those candlesticks in the window of Singafoot's shop the other day, and I made up my mind to buy them when I had a chance.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        63607,
+        6716,
+        310,
+        1436,
+        1782,
+        36549,
+        66612,
+        303,
+        279,
+        3136,
+        314,
+        10516,
+        64,
+        5166,
+        579,
+        7808,
+        279,
+        975,
+        1834,
+        11,
+        321,
+        353,
+        1801,
+        685,
+        821,
+        3838,
+        310,
+        3569,
+        1070,
+        948,
+        353,
+        995,
+        264,
+        5823,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 14,
+          "text": "I",
+          "student_probability": 0.9983009407045683,
+          "teacher_probability": 0.9981871388555197,
+          "teacher_minus_student_probability": -0.00011380184904863366
+        },
+        {
+          "index": 15,
+          "text": " happened",
+          "student_probability": 0.9814567496378936,
+          "teacher_probability": 0.985049771339755,
+          "teacher_minus_student_probability": 0.0035930217018613764
+        },
+        {
+          "index": 16,
+          "text": " to",
+          "student_probability": 0.9999816421070834,
+          "teacher_probability": 0.9999723442092404,
+          "teacher_minus_student_probability": -9.297897842985847e-06
+        },
+        {
+          "index": 17,
+          "text": " see",
+          "student_probability": 0.999969840959284,
+          "teacher_probability": 0.9999583976891858,
+          "teacher_minus_student_probability": -1.1443270098165925e-05
+        },
+        {
+          "index": 18,
+          "text": " those",
+          "student_probability": 0.9988786649772743,
+          "teacher_probability": 0.9977531959393187,
+          "teacher_minus_student_probability": -0.0011254690379556287
+        },
+        {
+          "index": 19,
+          "text": " candle",
+          "student_probability": 0.9954323551309133,
+          "teacher_probability": 0.9942078671691732,
+          "teacher_minus_student_probability": -0.0012244879617401283
+        },
+        {
+          "index": 20,
+          "text": "sticks",
+          "student_probability": 0.9542922811284076,
+          "teacher_probability": 0.9466378898267042,
+          "teacher_minus_student_probability": -0.007654391301703423
+        },
+        {
+          "index": 21,
+          "text": " in",
+          "student_probability": 0.999782490366635,
+          "teacher_probability": 0.9997198174797889,
+          "teacher_minus_student_probability": -6.267288684613792e-05
+        },
+        {
+          "index": 22,
+          "text": " the",
+          "student_probability": 0.996365927301113,
+          "teacher_probability": 0.9953288903792175,
+          "teacher_minus_student_probability": -0.0010370369218954956
+        },
+        {
+          "index": 23,
+          "text": " window",
+          "student_probability": 0.9997740302606314,
+          "teacher_probability": 0.9995931850575193,
+          "teacher_minus_student_probability": -0.00018084520311212327
+        },
+        {
+          "index": 24,
+          "text": " of",
+          "student_probability": 0.9995463760933782,
+          "teacher_probability": 0.9991724193332552,
+          "teacher_minus_student_probability": -0.0003739567601229732
+        },
+        {
+          "index": 25,
+          "text": " Sing",
+          "student_probability": 0.4446743764561464,
+          "teacher_probability": 0.5238833558691753,
+          "teacher_minus_student_probability": 0.07920897941302896
+        },
+        {
+          "index": 26,
+          "text": "a",
+          "student_probability": 0.36795123823350334,
+          "teacher_probability": 0.6113378031841076,
+          "teacher_minus_student_probability": 0.24338656495060423
+        },
+        {
+          "index": 27,
+          "text": "foot",
+          "student_probability": 0.22035171011012722,
+          "teacher_probability": 2.1051746525507697e-05,
+          "teacher_minus_student_probability": -0.22033065836360172
+        },
+        {
+          "index": 28,
+          "text": "'s",
+          "student_probability": 0.9995609066478143,
+          "teacher_probability": 0.9995141007369606,
+          "teacher_minus_student_probability": -4.680591085370889e-05
+        },
+        {
+          "index": 29,
+          "text": " shop",
+          "student_probability": 0.994650996162852,
+          "teacher_probability": 0.9906214272907751,
+          "teacher_minus_student_probability": -0.00402956887207695
+        },
+        {
+          "index": 30,
+          "text": " the",
+          "student_probability": 0.9993915685445717,
+          "teacher_probability": 0.9983391972252463,
+          "teacher_minus_student_probability": -0.0010523713193253403
+        },
+        {
+          "index": 31,
+          "text": " other",
+          "student_probability": 0.9999830725678546,
+          "teacher_probability": 0.9999616160839557,
+          "teacher_minus_student_probability": -2.1456483898840695e-05
+        },
+        {
+          "index": 32,
+          "text": " day",
+          "student_probability": 0.9998993974844581,
+          "teacher_probability": 0.9997019464351743,
+          "teacher_minus_student_probability": -0.0001974510492838144
+        },
+        {
+          "index": 33,
+          "text": ",",
+          "student_probability": 0.9448920499448074,
+          "teacher_probability": 0.9359851740959787,
+          "teacher_minus_student_probability": -0.008906875848828655
+        },
+        {
+          "index": 34,
+          "text": " and",
+          "student_probability": 0.9981030515210313,
+          "teacher_probability": 0.9967632496012725,
+          "teacher_minus_student_probability": -0.0013398019197587985
+        },
+        {
+          "index": 35,
+          "text": " I",
+          "student_probability": 0.9977143911167673,
+          "teacher_probability": 0.9964983723539809,
+          "teacher_minus_student_probability": -0.0012160187627864305
+        },
+        {
+          "index": 36,
+          "text": " made",
+          "student_probability": 0.9974217305251564,
+          "teacher_probability": 0.9967343513243897,
+          "teacher_minus_student_probability": -0.000687379200766669
+        },
+        {
+          "index": 37,
+          "text": " up",
+          "student_probability": 0.9982238425349969,
+          "teacher_probability": 0.9977329031546848,
+          "teacher_minus_student_probability": -0.0004909393803120832
+        },
+        {
+          "index": 38,
+          "text": " my",
+          "student_probability": 0.9999355119347216,
+          "teacher_probability": 0.9998842611792573,
+          "teacher_minus_student_probability": -5.125075546430491e-05
+        },
+        {
+          "index": 39,
+          "text": " mind",
+          "student_probability": 0.9999843838268748,
+          "teacher_probability": 0.9999678145263777,
+          "teacher_minus_student_probability": -1.6569300497093487e-05
+        },
+        {
+          "index": 40,
+          "text": " to",
+          "student_probability": 0.9999855758836753,
+          "teacher_probability": 0.9999734170346474,
+          "teacher_minus_student_probability": -1.2158849027943397e-05
+        },
+        {
+          "index": 41,
+          "text": " buy",
+          "student_probability": 0.9999700793634253,
+          "teacher_probability": 0.9999580400908106,
+          "teacher_minus_student_probability": -1.2039272614727814e-05
+        },
+        {
+          "index": 42,
+          "text": " them",
+          "student_probability": 0.9999283603516352,
+          "teacher_probability": 0.9998984440011163,
+          "teacher_minus_student_probability": -2.9916350518965906e-05
+        },
+        {
+          "index": 43,
+          "text": " when",
+          "student_probability": 0.9996158169041386,
+          "teacher_probability": 0.9995185071945729,
+          "teacher_minus_student_probability": -9.730970956567386e-05
+        },
+        {
+          "index": 44,
+          "text": " I",
+          "student_probability": 0.999985933501902,
+          "teacher_probability": 0.9999768739326302,
+          "teacher_minus_student_probability": -9.059569271774315e-06
+        },
+        {
+          "index": 45,
+          "text": " had",
+          "student_probability": 0.9996597732851947,
+          "teacher_probability": 0.9995514974825136,
+          "teacher_minus_student_probability": -0.00010827580268113479
+        },
+        {
+          "index": 46,
+          "text": " a",
+          "student_probability": 0.9985712942721611,
+          "teacher_probability": 0.9984825070020033,
+          "teacher_minus_student_probability": -8.878727015781962e-05
+        },
+        {
+          "index": 47,
+          "text": " chance",
+          "student_probability": 0.9999734170346474,
+          "teacher_probability": 0.9999661457096376,
+          "teacher_minus_student_probability": -7.271325009772234e-06
+        },
+        {
+          "index": 48,
+          "text": ".",
+          "student_probability": 0.9993494216053961,
+          "teacher_probability": 0.9987411867557585,
+          "teacher_minus_student_probability": -0.0006082348496375678
+        }
+      ],
+      "score_seconds": 0.5300264358520508
+    },
+    {
+      "line_number": 4,
+      "id": "7902-96591-0007",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/7902/96591/7902-96591-0007.flac",
+      "transcription": "then as archy stood in the dark literally aghast with astonishment he heard the faint rustling once more and again all was silent",
+      "keywords": [
+        "archy"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/7902-96591-0007-eda5723734.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *archy*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>Then, as Archie stood in the dark, literally aghast with astonishment, he heard the faint rustling once more, and again all was silent.</TXT></ASR>",
+      "student_transcript": "Then, as Archie stood in the dark, literally aghast with astonishment, he heard the faint rustling once more, and again all was silent.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        29,
+        11861,
+        11,
+        430,
+        87489,
+        14217,
+        303,
+        279,
+        6121,
+        11,
+        15433,
+        264,
+        840,
+        544,
+        440,
+        35170,
+        15553,
+        11,
+        551,
+        6408,
+        279,
+        36334,
+        22353,
+        2631,
+        2957,
+        777,
+        11,
+        321,
+        1495,
+        660,
+        557,
+        20413,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 15,
+          "text": "Then",
+          "student_probability": 0.9995657899708634,
+          "teacher_probability": 0.9994270509865765,
+          "teacher_minus_student_probability": -0.00013873898428695686
+        },
+        {
+          "index": 16,
+          "text": ",",
+          "student_probability": 0.9923242398353309,
+          "teacher_probability": 0.9898894157202743,
+          "teacher_minus_student_probability": -0.0024348241150565775
+        },
+        {
+          "index": 17,
+          "text": " as",
+          "student_probability": 0.9999336048345919,
+          "teacher_probability": 0.999860067878919,
+          "teacher_minus_student_probability": -7.353695567291485e-05
+        },
+        {
+          "index": 18,
+          "text": " Archie",
+          "student_probability": 0.997215654353714,
+          "teacher_probability": 0.66730480911024,
+          "teacher_minus_student_probability": -0.3299108452434739
+        },
+        {
+          "index": 19,
+          "text": " stood",
+          "student_probability": 0.9999241886396754,
+          "teacher_probability": 0.9998338498645966,
+          "teacher_minus_student_probability": -9.033877507880206e-05
+        },
+        {
+          "index": 20,
+          "text": " in",
+          "student_probability": 0.9998595911813487,
+          "teacher_probability": 0.9997776049374032,
+          "teacher_minus_student_probability": -8.19862439455088e-05
+        },
+        {
+          "index": 21,
+          "text": " the",
+          "student_probability": 0.9999613776818321,
+          "teacher_probability": 0.9999361079065316,
+          "teacher_minus_student_probability": -2.526977530048491e-05
+        },
+        {
+          "index": 22,
+          "text": " dark",
+          "student_probability": 0.9998342073749112,
+          "teacher_probability": 0.999755204063624,
+          "teacher_minus_student_probability": -7.900331128729565e-05
+        },
+        {
+          "index": 23,
+          "text": ",",
+          "student_probability": 0.9966957439286321,
+          "teacher_probability": 0.9957115573552022,
+          "teacher_minus_student_probability": -0.0009841865734299127
+        },
+        {
+          "index": 24,
+          "text": " literally",
+          "student_probability": 0.9964448691928084,
+          "teacher_probability": 0.9965446593326855,
+          "teacher_minus_student_probability": 9.97901398771539e-05
+        },
+        {
+          "index": 25,
+          "text": " a",
+          "student_probability": 0.9992484737860157,
+          "teacher_probability": 0.9991849157337656,
+          "teacher_minus_student_probability": -6.355805225011224e-05
+        },
+        {
+          "index": 26,
+          "text": "gh",
+          "student_probability": 0.9998013176012303,
+          "teacher_probability": 0.9998019134130395,
+          "teacher_minus_student_probability": 5.958118092230791e-07
+        },
+        {
+          "index": 27,
+          "text": "ast",
+          "student_probability": 0.9999581592914675,
+          "teacher_probability": 0.9999586360869611,
+          "teacher_minus_student_probability": 4.7679549364243456e-07
+        },
+        {
+          "index": 28,
+          "text": " with",
+          "student_probability": 0.9997475784571056,
+          "teacher_probability": 0.9996497665949279,
+          "teacher_minus_student_probability": -9.781186217772131e-05
+        },
+        {
+          "index": 29,
+          "text": " aston",
+          "student_probability": 0.9992233590970523,
+          "teacher_probability": 0.9992271678726418,
+          "teacher_minus_student_probability": 3.808775589475566e-06
+        },
+        {
+          "index": 30,
+          "text": "ishment",
+          "student_probability": 0.9999327704835214,
+          "teacher_probability": 0.9999019003761905,
+          "teacher_minus_student_probability": -3.087010733082707e-05
+        },
+        {
+          "index": 31,
+          "text": ",",
+          "student_probability": 0.9997373317463208,
+          "teacher_probability": 0.999609980179329,
+          "teacher_minus_student_probability": -0.00012735156699184014
+        },
+        {
+          "index": 32,
+          "text": " he",
+          "student_probability": 0.9980118541692898,
+          "teacher_probability": 0.998003423903202,
+          "teacher_minus_student_probability": -8.43026608787767e-06
+        },
+        {
+          "index": 33,
+          "text": " heard",
+          "student_probability": 0.99985375159272,
+          "teacher_probability": 0.9998317048053932,
+          "teacher_minus_student_probability": -2.2046787326868156e-05
+        },
+        {
+          "index": 34,
+          "text": " the",
+          "student_probability": 0.9986992135629682,
+          "teacher_probability": 0.9983028415602216,
+          "teacher_minus_student_probability": -0.0003963720027465589
+        },
+        {
+          "index": 35,
+          "text": " faint",
+          "student_probability": 0.9977193750931871,
+          "teacher_probability": 0.9971084998244502,
+          "teacher_minus_student_probability": -0.0006108752687369323
+        },
+        {
+          "index": 36,
+          "text": " rust",
+          "student_probability": 0.9993244208322567,
+          "teacher_probability": 0.9991717052512997,
+          "teacher_minus_student_probability": -0.00015271558095697468
+        },
+        {
+          "index": 37,
+          "text": "ling",
+          "student_probability": 0.9998513681076482,
+          "teacher_probability": 0.9998377824705392,
+          "teacher_minus_student_probability": -1.3585637108959325e-05
+        },
+        {
+          "index": 38,
+          "text": " once",
+          "student_probability": 0.9991029211024025,
+          "teacher_probability": 0.9988334690124372,
+          "teacher_minus_student_probability": -0.00026945208996531633
+        },
+        {
+          "index": 39,
+          "text": " more",
+          "student_probability": 0.9999450475372202,
+          "teacher_probability": 0.9999406372966204,
+          "teacher_minus_student_probability": -4.410240599828086e-06
+        },
+        {
+          "index": 40,
+          "text": ",",
+          "student_probability": 0.8921734259024743,
+          "teacher_probability": 0.8920138539564322,
+          "teacher_minus_student_probability": -0.000159571946042103
+        },
+        {
+          "index": 41,
+          "text": " and",
+          "student_probability": 0.9968493620212183,
+          "teacher_probability": 0.997149865329665,
+          "teacher_minus_student_probability": 0.0003005033084466646
+        },
+        {
+          "index": 42,
+          "text": " again",
+          "student_probability": 0.9976207731804811,
+          "teacher_probability": 0.9980211156933709,
+          "teacher_minus_student_probability": 0.0004003425128897842
+        },
+        {
+          "index": 43,
+          "text": " all",
+          "student_probability": 0.9852645037414932,
+          "teacher_probability": 0.986566126437675,
+          "teacher_minus_student_probability": 0.0013016226961818367
+        },
+        {
+          "index": 44,
+          "text": " was",
+          "student_probability": 0.9980208782113626,
+          "teacher_probability": 0.9982231298282148,
+          "teacher_minus_student_probability": 0.00020225161685216708
+        },
+        {
+          "index": 45,
+          "text": " silent",
+          "student_probability": 0.9991878910985648,
+          "teacher_probability": 0.9990884038643753,
+          "teacher_minus_student_probability": -9.948723418951033e-05
+        },
+        {
+          "index": 46,
+          "text": ".",
+          "student_probability": 0.9995277966635969,
+          "teacher_probability": 0.9993602556715925,
+          "teacher_minus_student_probability": -0.0001675409920044446
+        }
+      ],
+      "score_seconds": 0.5166897773742676
+    },
+    {
+      "line_number": 5,
+      "id": "3005-163391-0015",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/3005/163391/3005-163391-0015.flac",
+      "transcription": "mary jane's nineteen susan's fifteen and joanna's about fourteenthat's the one that gives herself to good works and has a hare lip poor things",
+      "keywords": [
+        "fourteenthat's"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/3005-163391-0015-9fc01ec493.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *fourteenthat's*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>Mary Jane's 19, Susan's 15, and Joanna's about 14. That's the one that gives herself to good works and has a hair lip. Poor things.</TXT></ASR>",
+      "student_transcript": "Mary Jane's 19, Susan's 15, and Joanna's about 14. That's the one that gives herself to good works and has a hair lip. Poor things.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        36194,
+        640,
+        20817,
+        579,
+        220,
+        16,
+        24,
+        11,
+        28956,
+        579,
+        220,
+        16,
+        20,
+        11,
+        321,
+        86965,
+        579,
+        883,
+        220,
+        16,
+        19,
+        13,
+        2844,
+        579,
+        279,
+        799,
+        421,
+        6486,
+        11339,
+        310,
+        1603,
+        4138,
+        321,
+        682,
+        264,
+        6655,
+        18477,
+        13,
+        43191,
+        2433,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 14,
+          "text": "M",
+          "student_probability": 0.996529387721558,
+          "teacher_probability": 0.9925291212397209,
+          "teacher_minus_student_probability": -0.004000266481837045
+        },
+        {
+          "index": 15,
+          "text": "ary",
+          "student_probability": 0.9987042073420718,
+          "teacher_probability": 0.9981444996526359,
+          "teacher_minus_student_probability": -0.0005597076894359176
+        },
+        {
+          "index": 16,
+          "text": " Jane",
+          "student_probability": 0.9966423380730713,
+          "teacher_probability": 0.9941965551683344,
+          "teacher_minus_student_probability": -0.0024457829047369595
+        },
+        {
+          "index": 17,
+          "text": "'s",
+          "student_probability": 0.9921386872119721,
+          "teacher_probability": 0.9881898200166568,
+          "teacher_minus_student_probability": -0.0039488671953152865
+        },
+        {
+          "index": 18,
+          "text": " ",
+          "student_probability": 0.9433407912359015,
+          "teacher_probability": 0.8400805098624449,
+          "teacher_minus_student_probability": -0.10326028137345666
+        },
+        {
+          "index": 19,
+          "text": "1",
+          "student_probability": 0.9999188250646881,
+          "teacher_probability": 0.9997441231392131,
+          "teacher_minus_student_probability": -0.00017470192547497376
+        },
+        {
+          "index": 20,
+          "text": "9",
+          "student_probability": 0.9999258573209157,
+          "teacher_probability": 0.999594137937033,
+          "teacher_minus_student_probability": -0.000331719383882656
+        },
+        {
+          "index": 21,
+          "text": ",",
+          "student_probability": 0.9640735119686973,
+          "teacher_probability": 0.9161643661325278,
+          "teacher_minus_student_probability": -0.04790914583616945
+        },
+        {
+          "index": 22,
+          "text": " Susan",
+          "student_probability": 0.9985178060530325,
+          "teacher_probability": 0.9970181951443328,
+          "teacher_minus_student_probability": -0.0014996109086997667
+        },
+        {
+          "index": 23,
+          "text": "'s",
+          "student_probability": 0.9996469075963702,
+          "teacher_probability": 0.9992819224365386,
+          "teacher_minus_student_probability": -0.00036498515983163227
+        },
+        {
+          "index": 24,
+          "text": " ",
+          "student_probability": 0.9990979232941967,
+          "teacher_probability": 0.9949848711816451,
+          "teacher_minus_student_probability": -0.00411305211255153
+        },
+        {
+          "index": 25,
+          "text": "1",
+          "student_probability": 0.9998738924837743,
+          "teacher_probability": 0.9997318510292087,
+          "teacher_minus_student_probability": -0.00014204145456564454
+        },
+        {
+          "index": 26,
+          "text": "5",
+          "student_probability": 0.9999265724729498,
+          "teacher_probability": 0.9997979810791193,
+          "teacher_minus_student_probability": -0.00012859139383047946
+        },
+        {
+          "index": 27,
+          "text": ",",
+          "student_probability": 0.9858410209137718,
+          "teacher_probability": 0.9665333859636656,
+          "teacher_minus_student_probability": -0.019307634950106234
+        },
+        {
+          "index": 28,
+          "text": " and",
+          "student_probability": 0.9995821077325517,
+          "teacher_probability": 0.9970825444990938,
+          "teacher_minus_student_probability": -0.002499563233457902
+        },
+        {
+          "index": 29,
+          "text": " Joanna",
+          "student_probability": 0.9680973431033747,
+          "teacher_probability": 0.9515684726142908,
+          "teacher_minus_student_probability": -0.016528870489083913
+        },
+        {
+          "index": 30,
+          "text": "'s",
+          "student_probability": 0.9992926359479982,
+          "teacher_probability": 0.9989618124051578,
+          "teacher_minus_student_probability": -0.00033082354284041937
+        },
+        {
+          "index": 31,
+          "text": " about",
+          "student_probability": 0.9996953938783856,
+          "teacher_probability": 0.998861180783157,
+          "teacher_minus_student_probability": -0.0008342130952285753
+        },
+        {
+          "index": 32,
+          "text": " ",
+          "student_probability": 0.9317142323007718,
+          "teacher_probability": 0.11560477799219489,
+          "teacher_minus_student_probability": -0.8161094543085768
+        },
+        {
+          "index": 33,
+          "text": "1",
+          "student_probability": 0.9999780659713836,
+          "teacher_probability": 0.9624500708242713,
+          "teacher_minus_student_probability": -0.03752799514711236
+        },
+        {
+          "index": 34,
+          "text": "4",
+          "student_probability": 0.999921208870625,
+          "teacher_probability": 0.9969556312437927,
+          "teacher_minus_student_probability": -0.00296557762683225
+        },
+        {
+          "index": 35,
+          "text": ".",
+          "student_probability": 0.9249936180028266,
+          "teacher_probability": 0.32265467122737207,
+          "teacher_minus_student_probability": -0.6023389467754545
+        },
+        {
+          "index": 36,
+          "text": " That",
+          "student_probability": 0.9987772175880698,
+          "teacher_probability": 0.9863722818114036,
+          "teacher_minus_student_probability": -0.012404935776666237
+        },
+        {
+          "index": 37,
+          "text": "'s",
+          "student_probability": 0.9998749650871561,
+          "teacher_probability": 0.9998737733040751,
+          "teacher_minus_student_probability": -1.1917830810004304e-06
+        },
+        {
+          "index": 38,
+          "text": " the",
+          "student_probability": 0.9998048924628621,
+          "teacher_probability": 0.9989019781385565,
+          "teacher_minus_student_probability": -0.0009029143243055593
+        },
+        {
+          "index": 39,
+          "text": " one",
+          "student_probability": 0.9998833077248994,
+          "teacher_probability": 0.9997207706254957,
+          "teacher_minus_student_probability": -0.00016253709940372563
+        },
+        {
+          "index": 40,
+          "text": " that",
+          "student_probability": 0.9998891476534775,
+          "teacher_probability": 0.9994345526502937,
+          "teacher_minus_student_probability": -0.00045459500318378865
+        },
+        {
+          "index": 41,
+          "text": " gives",
+          "student_probability": 0.9999290755054595,
+          "teacher_probability": 0.9997734344799872,
+          "teacher_minus_student_probability": -0.0001556410254722751
+        },
+        {
+          "index": 42,
+          "text": " herself",
+          "student_probability": 0.9998093015118814,
+          "teacher_probability": 0.9993685897246601,
+          "teacher_minus_student_probability": -0.0004407117872212707
+        },
+        {
+          "index": 43,
+          "text": " to",
+          "student_probability": 0.9982789623529937,
+          "teacher_probability": 0.9976076041083695,
+          "teacher_minus_student_probability": -0.0006713582446242761
+        },
+        {
+          "index": 44,
+          "text": " good",
+          "student_probability": 0.9965443043327631,
+          "teacher_probability": 0.9953442434757634,
+          "teacher_minus_student_probability": -0.0012000608569996407
+        },
+        {
+          "index": 45,
+          "text": " works",
+          "student_probability": 0.9996280861642202,
+          "teacher_probability": 0.999164088544567,
+          "teacher_minus_student_probability": -0.0004639976196532114
+        },
+        {
+          "index": 46,
+          "text": " and",
+          "student_probability": 0.9945153867805878,
+          "teacher_probability": 0.986764109709086,
+          "teacher_minus_student_probability": -0.007751277071501805
+        },
+        {
+          "index": 47,
+          "text": " has",
+          "student_probability": 0.9999013044465942,
+          "teacher_probability": 0.9997600892670062,
+          "teacher_minus_student_probability": -0.00014121517958798346
+        },
+        {
+          "index": 48,
+          "text": " a",
+          "student_probability": 0.9998976097084851,
+          "teacher_probability": 0.9997600892670062,
+          "teacher_minus_student_probability": -0.00013752044147885556
+        },
+        {
+          "index": 49,
+          "text": " hair",
+          "student_probability": 0.8211143069080693,
+          "teacher_probability": 0.7807584675592141,
+          "teacher_minus_student_probability": -0.04035583934885523
+        },
+        {
+          "index": 50,
+          "text": " lip",
+          "student_probability": 0.955743769876958,
+          "teacher_probability": 0.9492736693372853,
+          "teacher_minus_student_probability": -0.006470100539672674
+        },
+        {
+          "index": 51,
+          "text": ".",
+          "student_probability": 0.9850907202992097,
+          "teacher_probability": 0.966076895897958,
+          "teacher_minus_student_probability": -0.019013824401251767
+        },
+        {
+          "index": 52,
+          "text": " Poor",
+          "student_probability": 0.8844411853394345,
+          "teacher_probability": 0.8781304372215839,
+          "teacher_minus_student_probability": -0.006310748117850595
+        },
+        {
+          "index": 53,
+          "text": " things",
+          "student_probability": 0.9878652586680173,
+          "teacher_probability": 0.9873038023701173,
+          "teacher_minus_student_probability": -0.0005614562979000537
+        },
+        {
+          "index": 54,
+          "text": ".",
+          "student_probability": 0.7901431008737251,
+          "teacher_probability": 0.7426339951392934,
+          "teacher_minus_student_probability": -0.04750910573443168
+        }
+      ],
+      "score_seconds": 0.574845552444458
+    },
+    {
+      "line_number": 6,
+      "id": "3331-159609-0020",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/3331/159609/3331-159609-0020.flac",
+      "transcription": "if fanny wanted to show him what she could do toward making a pleasant home she certainly succeeded better than she suspected for in spite of many failures and discouragements behind the scenes the little house became a most attractive place to mister sydney at least for he was more the house friend than ever and seemed determined to prove that change of fortune made no difference to him",
+      "keywords": [
+        "sydney"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/3331-159609-0020-d55da51663.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *sydney*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>If Fanny wanted to show him what she could do toward making a pleasant home, she certainly succeeded better than she suspected, for in spite of many failures and discouragements behind the scenes, the little house became a most attractive place to Mr. Sidney at least, for he was more the house friend than ever, and seemed determined to prove that change of fortune made no difference to him.</TXT></ASR>",
+      "student_transcript": "If Fanny wanted to show him what she could do toward making a pleasant home, she certainly succeeded better than she suspected, for in spite of many failures and discouragements behind the scenes, the little house became a most attractive place to Mr. Sidney at least, for he was more the house friend than ever, and seemed determined to prove that change of fortune made no difference to him.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        63823,
+        426,
+        12519,
+        4674,
+        310,
+        1420,
+        1384,
+        1092,
+        1292,
+        1362,
+        635,
+        8574,
+        3154,
+        264,
+        23050,
+        2046,
+        11,
+        1292,
+        7590,
+        24526,
+        2577,
+        1056,
+        1292,
+        23059,
+        11,
+        364,
+        303,
+        32565,
+        314,
+        1599,
+        26946,
+        321,
+        32091,
+        59038,
+        4661,
+        279,
+        15592,
+        11,
+        279,
+        2545,
+        3626,
+        5924,
+        264,
+        1379,
+        18309,
+        1925,
+        310,
+        4248,
+        13,
+        73301,
+        506,
+        3140,
+        11,
+        364,
+        551,
+        557,
+        777,
+        279,
+        3626,
+        4099,
+        1056,
+        3397,
+        11,
+        321,
+        9047,
+        10521,
+        310,
+        11774,
+        421,
+        2222,
+        314,
+        31249,
+        1801,
+        874,
+        6463,
+        310,
+        1384,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 14,
+          "text": "If",
+          "student_probability": 0.9862929557223228,
+          "teacher_probability": 0.9811575946713806,
+          "teacher_minus_student_probability": -0.005135361050942144
+        },
+        {
+          "index": 15,
+          "text": " F",
+          "student_probability": 0.4490253792083169,
+          "teacher_probability": 0.4065657921019482,
+          "teacher_minus_student_probability": -0.04245958710636871
+        },
+        {
+          "index": 16,
+          "text": "anny",
+          "student_probability": 0.9900369704541158,
+          "teacher_probability": 0.9899836915879251,
+          "teacher_minus_student_probability": -5.3278866190664687e-05
+        },
+        {
+          "index": 17,
+          "text": " wanted",
+          "student_probability": 0.9988916297679571,
+          "teacher_probability": 0.9985495416477282,
+          "teacher_minus_student_probability": -0.00034208812022884505
+        },
+        {
+          "index": 18,
+          "text": " to",
+          "student_probability": 0.9999573248944438,
+          "teacher_probability": 0.9999399221272516,
+          "teacher_minus_student_probability": -1.7402767192198354e-05
+        },
+        {
+          "index": 19,
+          "text": " show",
+          "student_probability": 0.9997792731339699,
+          "teacher_probability": 0.9996139110174099,
+          "teacher_minus_student_probability": -0.0001653621165599306
+        },
+        {
+          "index": 20,
+          "text": " him",
+          "student_probability": 0.99927585150933,
+          "teacher_probability": 0.9990292683190969,
+          "teacher_minus_student_probability": -0.00024658319023307396
+        },
+        {
+          "index": 21,
+          "text": " what",
+          "student_probability": 0.99964226174479,
+          "teacher_probability": 0.9995522120977137,
+          "teacher_minus_student_probability": -9.00496470762624e-05
+        },
+        {
+          "index": 22,
+          "text": " she",
+          "student_probability": 0.9939159643953226,
+          "teacher_probability": 0.9938646223392923,
+          "teacher_minus_student_probability": -5.1342056030301286e-05
+        },
+        {
+          "index": 23,
+          "text": " could",
+          "student_probability": 0.9996546507885062,
+          "teacher_probability": 0.9995985451256952,
+          "teacher_minus_student_probability": -5.610566281100127e-05
+        },
+        {
+          "index": 24,
+          "text": " do",
+          "student_probability": 0.9999271684321565,
+          "teacher_probability": 0.9998945109092205,
+          "teacher_minus_student_probability": -3.265752293590829e-05
+        },
+        {
+          "index": 25,
+          "text": " toward",
+          "student_probability": 0.6155457889254737,
+          "teacher_probability": 0.6435606694298921,
+          "teacher_minus_student_probability": 0.02801488050441836
+        },
+        {
+          "index": 26,
+          "text": " making",
+          "student_probability": 0.9999061910914088,
+          "teacher_probability": 0.9998547049825197,
+          "teacher_minus_student_probability": -5.1486108889053916e-05
+        },
+        {
+          "index": 27,
+          "text": " a",
+          "student_probability": 0.9995096942696848,
+          "teacher_probability": 0.9993981171320517,
+          "teacher_minus_student_probability": -0.00011157713763310095
+        },
+        {
+          "index": 28,
+          "text": " pleasant",
+          "student_probability": 0.9466931234958403,
+          "teacher_probability": 0.9395966480531622,
+          "teacher_minus_student_probability": -0.007096475442678107
+        },
+        {
+          "index": 29,
+          "text": " home",
+          "student_probability": 0.9998893860165551,
+          "teacher_probability": 0.999847554566631,
+          "teacher_minus_student_probability": -4.183144992409016e-05
+        },
+        {
+          "index": 30,
+          "text": ",",
+          "student_probability": 0.9955379682189888,
+          "teacher_probability": 0.9904147595949239,
+          "teacher_minus_student_probability": -0.005123208624064901
+        },
+        {
+          "index": 31,
+          "text": " she",
+          "student_probability": 0.9986927930265258,
+          "teacher_probability": 0.9967392069431157,
+          "teacher_minus_student_probability": -0.0019535860834101193
+        },
+        {
+          "index": 32,
+          "text": " certainly",
+          "student_probability": 0.9993070401097957,
+          "teacher_probability": 0.9990641300806925,
+          "teacher_minus_student_probability": -0.0002429100291031494
+        },
+        {
+          "index": 33,
+          "text": " succeeded",
+          "student_probability": 0.9996698992746561,
+          "teacher_probability": 0.9996185566208589,
+          "teacher_minus_student_probability": -5.134265379724834e-05
+        },
+        {
+          "index": 34,
+          "text": " better",
+          "student_probability": 0.9762527557274696,
+          "teacher_probability": 0.975487024481646,
+          "teacher_minus_student_probability": -0.0007657312458235754
+        },
+        {
+          "index": 35,
+          "text": " than",
+          "student_probability": 0.9998312281358948,
+          "teacher_probability": 0.9997584211460943,
+          "teacher_minus_student_probability": -7.280698980050015e-05
+        },
+        {
+          "index": 36,
+          "text": " she",
+          "student_probability": 0.9991314808349865,
+          "teacher_probability": 0.999106609967184,
+          "teacher_minus_student_probability": -2.487086780245118e-05
+        },
+        {
+          "index": 37,
+          "text": " suspected",
+          "student_probability": 0.992657846457226,
+          "teacher_probability": 0.9924822667573472,
+          "teacher_minus_student_probability": -0.00017557969987880284
+        },
+        {
+          "index": 38,
+          "text": ",",
+          "student_probability": 0.8570057562410134,
+          "teacher_probability": 0.8373392680412597,
+          "teacher_minus_student_probability": -0.019666488199753696
+        },
+        {
+          "index": 39,
+          "text": " for",
+          "student_probability": 0.994517391111068,
+          "teacher_probability": 0.991851633271068,
+          "teacher_minus_student_probability": -0.002665757840000005
+        },
+        {
+          "index": 40,
+          "text": " in",
+          "student_probability": 0.9660333967688722,
+          "teacher_probability": 0.9514010844542646,
+          "teacher_minus_student_probability": -0.014632312314607598
+        },
+        {
+          "index": 41,
+          "text": " spite",
+          "student_probability": 0.9999487426325072,
+          "teacher_probability": 0.999911792908844,
+          "teacher_minus_student_probability": -3.694972366319327e-05
+        },
+        {
+          "index": 42,
+          "text": " of",
+          "student_probability": 0.9999960661089133,
+          "teacher_probability": 0.9999934435319415,
+          "teacher_minus_student_probability": -2.622576971811341e-06
+        },
+        {
+          "index": 43,
+          "text": " many",
+          "student_probability": 0.9998777062270985,
+          "teacher_probability": 0.9998701979342554,
+          "teacher_minus_student_probability": -7.508292843128039e-06
+        },
+        {
+          "index": 44,
+          "text": " failures",
+          "student_probability": 0.9995768669404492,
+          "teacher_probability": 0.9995578099393064,
+          "teacher_minus_student_probability": -1.905700114279707e-05
+        },
+        {
+          "index": 45,
+          "text": " and",
+          "student_probability": 0.99955256939096,
+          "teacher_probability": 0.9993589460235496,
+          "teacher_minus_student_probability": -0.00019362336741046704
+        },
+        {
+          "index": 46,
+          "text": " discour",
+          "student_probability": 0.9966334573700637,
+          "teacher_probability": 0.9965441857674576,
+          "teacher_minus_student_probability": -8.927160260607803e-05
+        },
+        {
+          "index": 47,
+          "text": "agements",
+          "student_probability": 0.9988195541717935,
+          "teacher_probability": 0.9985055640205721,
+          "teacher_minus_student_probability": -0.000313990151221355
+        },
+        {
+          "index": 48,
+          "text": " behind",
+          "student_probability": 0.996067197141278,
+          "teacher_probability": 0.9953853445910994,
+          "teacher_minus_student_probability": -0.0006818525501786077
+        },
+        {
+          "index": 49,
+          "text": " the",
+          "student_probability": 0.9989582435671172,
+          "teacher_probability": 0.9988937708334332,
+          "teacher_minus_student_probability": -6.447273368392903e-05
+        },
+        {
+          "index": 50,
+          "text": " scenes",
+          "student_probability": 0.9990483051539475,
+          "teacher_probability": 0.9990863810168503,
+          "teacher_minus_student_probability": 3.807586290283105e-05
+        },
+        {
+          "index": 51,
+          "text": ",",
+          "student_probability": 0.993929860445963,
+          "teacher_probability": 0.9886759550243908,
+          "teacher_minus_student_probability": -0.005253905421572225
+        },
+        {
+          "index": 52,
+          "text": " the",
+          "student_probability": 0.9985361102726109,
+          "teacher_probability": 0.9983460885150497,
+          "teacher_minus_student_probability": -0.00019002175756122064
+        },
+        {
+          "index": 53,
+          "text": " little",
+          "student_probability": 0.9957862587984053,
+          "teacher_probability": 0.995727986045117,
+          "teacher_minus_student_probability": -5.827275328829096e-05
+        },
+        {
+          "index": 54,
+          "text": " house",
+          "student_probability": 0.9997351870978617,
+          "teacher_probability": 0.9996447633455445,
+          "teacher_minus_student_probability": -9.042375231715916e-05
+        },
+        {
+          "index": 55,
+          "text": " became",
+          "student_probability": 0.999921566441278,
+          "teacher_probability": 0.999905118410878,
+          "teacher_minus_student_probability": -1.6448030400018077e-05
+        },
+        {
+          "index": 56,
+          "text": " a",
+          "student_probability": 0.9991012551829412,
+          "teacher_probability": 0.999010708096006,
+          "teacher_minus_student_probability": -9.054708693523317e-05
+        },
+        {
+          "index": 57,
+          "text": " most",
+          "student_probability": 0.9992155035323442,
+          "teacher_probability": 0.9989835828491598,
+          "teacher_minus_student_probability": -0.00023192068318445003
+        },
+        {
+          "index": 58,
+          "text": " attractive",
+          "student_probability": 0.9999189442570325,
+          "teacher_probability": 0.9999097667136142,
+          "teacher_minus_student_probability": -9.177543418337208e-06
+        },
+        {
+          "index": 59,
+          "text": " place",
+          "student_probability": 0.9997472210068633,
+          "teacher_probability": 0.9996745453710596,
+          "teacher_minus_student_probability": -7.26756358037095e-05
+        },
+        {
+          "index": 60,
+          "text": " to",
+          "student_probability": 0.5274110897047543,
+          "teacher_probability": 0.49584580231907344,
+          "teacher_minus_student_probability": -0.03156528738568082
+        },
+        {
+          "index": 61,
+          "text": " Mr",
+          "student_probability": 0.981208780155469,
+          "teacher_probability": 0.9447244495845951,
+          "teacher_minus_student_probability": -0.03648433057087386
+        },
+        {
+          "index": 62,
+          "text": ".",
+          "student_probability": 0.9011121539941789,
+          "teacher_probability": 0.8458757299811783,
+          "teacher_minus_student_probability": -0.05523642401300055
+        },
+        {
+          "index": 63,
+          "text": " Sidney",
+          "student_probability": 0.7259584972611237,
+          "teacher_probability": 0.3199631347312571,
+          "teacher_minus_student_probability": -0.4059953625298666
+        },
+        {
+          "index": 64,
+          "text": " at",
+          "student_probability": 0.9619417264385951,
+          "teacher_probability": 0.9567071216138217,
+          "teacher_minus_student_probability": -0.005234604824773448
+        },
+        {
+          "index": 65,
+          "text": " least",
+          "student_probability": 0.9991534967409736,
+          "teacher_probability": 0.9991356459393174,
+          "teacher_minus_student_probability": -1.7850801656282833e-05
+        },
+        {
+          "index": 66,
+          "text": ",",
+          "student_probability": 0.9981107708154946,
+          "teacher_probability": 0.9973376534474883,
+          "teacher_minus_student_probability": -0.0007731173680063375
+        },
+        {
+          "index": 67,
+          "text": " for",
+          "student_probability": 0.9725597563656844,
+          "teacher_probability": 0.9742755532467481,
+          "teacher_minus_student_probability": 0.0017157968810637136
+        },
+        {
+          "index": 68,
+          "text": " he",
+          "student_probability": 0.9995133861780972,
+          "teacher_probability": 0.9994534858012137,
+          "teacher_minus_student_probability": -5.9900376883414985e-05
+        },
+        {
+          "index": 69,
+          "text": " was",
+          "student_probability": 0.99990261549654,
+          "teacher_probability": 0.9998996358499792,
+          "teacher_minus_student_probability": -2.9796465608189493e-06
+        },
+        {
+          "index": 70,
+          "text": " more",
+          "student_probability": 0.9994583681049647,
+          "teacher_probability": 0.9994642030718639,
+          "teacher_minus_student_probability": 5.834966899209704e-06
+        },
+        {
+          "index": 71,
+          "text": " the",
+          "student_probability": 0.9913210153557742,
+          "teacher_probability": 0.9906119514337404,
+          "teacher_minus_student_probability": -0.0007090639220338479
+        },
+        {
+          "index": 72,
+          "text": " house",
+          "student_probability": 0.990523638701849,
+          "teacher_probability": 0.9895907041369337,
+          "teacher_minus_student_probability": -0.0009329345649152776
+        },
+        {
+          "index": 73,
+          "text": " friend",
+          "student_probability": 0.7175333705419827,
+          "teacher_probability": 0.7105813195204108,
+          "teacher_minus_student_probability": -0.0069520510215719256
+        },
+        {
+          "index": 74,
+          "text": " than",
+          "student_probability": 0.9998824734521726,
+          "teacher_probability": 0.9997922613694614,
+          "teacher_minus_student_probability": -9.021208271120518e-05
+        },
+        {
+          "index": 75,
+          "text": " ever",
+          "student_probability": 0.9998275339040648,
+          "teacher_probability": 0.9997841585713534,
+          "teacher_minus_student_probability": -4.337533271137062e-05
+        },
+        {
+          "index": 76,
+          "text": ",",
+          "student_probability": 0.8930550419561106,
+          "teacher_probability": 0.9043170771614083,
+          "teacher_minus_student_probability": 0.011262035205297671
+        },
+        {
+          "index": 77,
+          "text": " and",
+          "student_probability": 0.9985047320816012,
+          "teacher_probability": 0.9983487023688205,
+          "teacher_minus_student_probability": -0.0001560297127807253
+        },
+        {
+          "index": 78,
+          "text": " seemed",
+          "student_probability": 0.9972607038576145,
+          "teacher_probability": 0.9967962951330387,
+          "teacher_minus_student_probability": -0.00046440872457576
+        },
+        {
+          "index": 79,
+          "text": " determined",
+          "student_probability": 0.996836924016374,
+          "teacher_probability": 0.9968122856666259,
+          "teacher_minus_student_probability": -2.4638349748085098e-05
+        },
+        {
+          "index": 80,
+          "text": " to",
+          "student_probability": 0.9997828478440363,
+          "teacher_probability": 0.9997590169032433,
+          "teacher_minus_student_probability": -2.383094079294601e-05
+        },
+        {
+          "index": 81,
+          "text": " prove",
+          "student_probability": 0.9994940934273288,
+          "teacher_probability": 0.9993971646139157,
+          "teacher_minus_student_probability": -9.692881341305526e-05
+        },
+        {
+          "index": 82,
+          "text": " that",
+          "student_probability": 0.8598810183456912,
+          "teacher_probability": 0.844929508109613,
+          "teacher_minus_student_probability": -0.014951510236078214
+        },
+        {
+          "index": 83,
+          "text": " change",
+          "student_probability": 0.9775254204052464,
+          "teacher_probability": 0.9785731574923034,
+          "teacher_minus_student_probability": 0.0010477370870570768
+        },
+        {
+          "index": 84,
+          "text": " of",
+          "student_probability": 0.9967088891283107,
+          "teacher_probability": 0.9961392309110596,
+          "teacher_minus_student_probability": -0.0005696582172510789
+        },
+        {
+          "index": 85,
+          "text": " fortune",
+          "student_probability": 0.999390020756833,
+          "teacher_probability": 0.999292516939373,
+          "teacher_minus_student_probability": -9.750381745998737e-05
+        },
+        {
+          "index": 86,
+          "text": " made",
+          "student_probability": 0.9993262065436307,
+          "teacher_probability": 0.9992720423155108,
+          "teacher_minus_student_probability": -5.416422811987953e-05
+        },
+        {
+          "index": 87,
+          "text": " no",
+          "student_probability": 0.9998508914142256,
+          "teacher_probability": 0.9998470778750265,
+          "teacher_minus_student_probability": -3.813539199093441e-06
+        },
+        {
+          "index": 88,
+          "text": " difference",
+          "student_probability": 0.9996834803466673,
+          "teacher_probability": 0.9995878250180851,
+          "teacher_minus_student_probability": -9.565532858224479e-05
+        },
+        {
+          "index": 89,
+          "text": " to",
+          "student_probability": 0.9983085442651167,
+          "teacher_probability": 0.9982142208620631,
+          "teacher_minus_student_probability": -9.432340305359777e-05
+        },
+        {
+          "index": 90,
+          "text": " him",
+          "student_probability": 0.9996288008923624,
+          "teacher_probability": 0.9995317268875997,
+          "teacher_minus_student_probability": -9.707400476266503e-05
+        },
+        {
+          "index": 91,
+          "text": ".",
+          "student_probability": 0.9991351699215302,
+          "teacher_probability": 0.9989321917147722,
+          "teacher_minus_student_probability": -0.0002029782067579644
+        }
+      ],
+      "score_seconds": 0.8398618698120117
+    },
+    {
+      "line_number": 7,
+      "id": "367-293981-0010",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/367/293981/367-293981-0010.flac",
+      "transcription": "sancho got up with pain enough in his bones and went after the innkeeper in the dark and meeting the officer who was looking to see what had become of his enemy he said to him senor whoever you are do us the favour and kindness to give us a little rosemary oil salt and wine for it is wanted to cure one of the best knights errant on earth who lies on yonder bed wounded by the hands of the enchanted moor that is in this inn",
+      "keywords": [
+        "errant",
+        "senor"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/367-293981-0010-4343d5962f.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *errant*, *senor*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>Sandro got up with pain enough in his bones and went after the innkeeper in the dark, and meeting the officer, who was looking to see what had become of his enemy, he said to him, Signor, whoever you are, do us the favor and kindness to give us a little rosemary, oil, salt, and wine, for it is wont her to cure one of our best knights errant on earth, who lies on yonder bed, wounded by the hands of the enchanted more that is in this inn.</TXT></ASR>",
+      "student_transcript": "Sandro got up with pain enough in his bones and went after the innkeeper in the dark, and meeting the officer, who was looking to see what had become of his enemy, he said to him, Signor, whoever you are, do us the favor and kindness to give us a little rosemary, oil, salt, and wine, for it is wont her to cure one of our best knights errant on earth, who lies on yonder bed, wounded by the hands of the enchanted more that is in this inn.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        25013,
+        40346,
+        2597,
+        685,
+        440,
+        6437,
+        3213,
+        303,
+        780,
+        24066,
+        321,
+        3804,
+        1238,
+        279,
+        5977,
+        18291,
+        303,
+        279,
+        6121,
+        11,
+        321,
+        6236,
+        279,
+        9173,
+        11,
+        852,
+        557,
+        3221,
+        310,
+        1436,
+        1092,
+        995,
+        3512,
+        314,
+        780,
+        8902,
+        11,
+        551,
+        1018,
+        310,
+        1384,
+        11,
+        6855,
+        269,
+        11,
+        37002,
+        488,
+        513,
+        11,
+        635,
+        586,
+        279,
+        4542,
+        321,
+        43378,
+        310,
+        2873,
+        586,
+        264,
+        2545,
+        15537,
+        1480,
+        11,
+        5415,
+        11,
+        11679,
+        11,
+        321,
+        12701,
+        11,
+        364,
+        424,
+        369,
+        38062,
+        1024,
+        310,
+        25282,
+        799,
+        314,
+        1004,
+        1786,
+        68148,
+        1784,
+        505,
+        383,
+        9114,
+        11,
+        852,
+        14995,
+        383,
+        374,
+        13778,
+        4690,
+        11,
+        26601,
+        539,
+        279,
+        5888,
+        314,
+        279,
+        93954,
+        777,
+        421,
+        369,
+        303,
+        411,
+        5977,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 14,
+          "text": "S",
+          "student_probability": 0.9292610864762081,
+          "teacher_probability": 0.9094329807425346,
+          "teacher_minus_student_probability": -0.01982810573367344
+        },
+        {
+          "index": 15,
+          "text": "andro",
+          "student_probability": 0.35124762709006535,
+          "teacher_probability": 0.3498499649868188,
+          "teacher_minus_student_probability": -0.0013976621032465442
+        },
+        {
+          "index": 16,
+          "text": " got",
+          "student_probability": 0.9978617946956078,
+          "teacher_probability": 0.9975282405305944,
+          "teacher_minus_student_probability": -0.00033355416501335
+        },
+        {
+          "index": 17,
+          "text": " up",
+          "student_probability": 0.9998773486866799,
+          "teacher_probability": 0.9998163322194643,
+          "teacher_minus_student_probability": -6.101646721556886e-05
+        },
+        {
+          "index": 18,
+          "text": " with",
+          "student_probability": 0.9923106231495424,
+          "teacher_probability": 0.9901344288239291,
+          "teacher_minus_student_probability": -0.0021761943256133343
+        },
+        {
+          "index": 19,
+          "text": " pain",
+          "student_probability": 0.9959237518302598,
+          "teacher_probability": 0.995369990397067,
+          "teacher_minus_student_probability": -0.0005537614331928564
+        },
+        {
+          "index": 20,
+          "text": " enough",
+          "student_probability": 0.9726848200128801,
+          "teacher_probability": 0.9770151371874994,
+          "teacher_minus_student_probability": 0.0043303171746192914
+        },
+        {
+          "index": 21,
+          "text": " in",
+          "student_probability": 0.9998065607486072,
+          "teacher_probability": 0.9997210089193383,
+          "teacher_minus_student_probability": -8.555182926883731e-05
+        },
+        {
+          "index": 22,
+          "text": " his",
+          "student_probability": 0.9998759185262837,
+          "teacher_probability": 0.999804654149025,
+          "teacher_minus_student_probability": -7.126437725868406e-05
+        },
+        {
+          "index": 23,
+          "text": " bones",
+          "student_probability": 0.9999599472811979,
+          "teacher_probability": 0.9999347967690184,
+          "teacher_minus_student_probability": -2.515051217943931e-05
+        },
+        {
+          "index": 24,
+          "text": " and",
+          "student_probability": 0.8172922891764809,
+          "teacher_probability": 0.77699254633139,
+          "teacher_minus_student_probability": -0.04029974284509086
+        },
+        {
+          "index": 25,
+          "text": " went",
+          "student_probability": 0.999860067878919,
+          "teacher_probability": 0.9998094206693467,
+          "teacher_minus_student_probability": -5.064720957226321e-05
+        },
+        {
+          "index": 26,
+          "text": " after",
+          "student_probability": 0.9755135691938237,
+          "teacher_probability": 0.9707656163640397,
+          "teacher_minus_student_probability": -0.004747952829784019
+        },
+        {
+          "index": 27,
+          "text": " the",
+          "student_probability": 0.9998624513992797,
+          "teacher_probability": 0.9998177622073363,
+          "teacher_minus_student_probability": -4.468919194333676e-05
+        },
+        {
+          "index": 28,
+          "text": " inn",
+          "student_probability": 0.9984315239340387,
+          "teacher_probability": 0.9983471577652092,
+          "teacher_minus_student_probability": -8.43661688294528e-05
+        },
+        {
+          "index": 29,
+          "text": "keeper",
+          "student_probability": 0.9944371038856461,
+          "teacher_probability": 0.9920813093233697,
+          "teacher_minus_student_probability": -0.0023557945622764143
+        },
+        {
+          "index": 30,
+          "text": " in",
+          "student_probability": 0.9996444059611562,
+          "teacher_probability": 0.9993879966587339,
+          "teacher_minus_student_probability": -0.0002564093024223224
+        },
+        {
+          "index": 31,
+          "text": " the",
+          "student_probability": 0.9999802116501774,
+          "teacher_probability": 0.9999684105356298,
+          "teacher_minus_student_probability": -1.18011145475716e-05
+        },
+        {
+          "index": 32,
+          "text": " dark",
+          "student_probability": 0.9998827118136592,
+          "teacher_probability": 0.9998500572049204,
+          "teacher_minus_student_probability": -3.265460873880244e-05
+        },
+        {
+          "index": 33,
+          "text": ",",
+          "student_probability": 0.7426176174787612,
+          "teacher_probability": 0.75640568429623,
+          "teacher_minus_student_probability": 0.013788066817468803
+        },
+        {
+          "index": 34,
+          "text": " and",
+          "student_probability": 0.9711909021952507,
+          "teacher_probability": 0.9690913669900423,
+          "teacher_minus_student_probability": -0.002099535205208447
+        },
+        {
+          "index": 35,
+          "text": " meeting",
+          "student_probability": 0.9644495925485072,
+          "teacher_probability": 0.9609373161093283,
+          "teacher_minus_student_probability": -0.003512276439178841
+        },
+        {
+          "index": 36,
+          "text": " the",
+          "student_probability": 0.9997892823863724,
+          "teacher_probability": 0.999690390167879,
+          "teacher_minus_student_probability": -9.889221849346264e-05
+        },
+        {
+          "index": 37,
+          "text": " officer",
+          "student_probability": 0.9993281113292141,
+          "teacher_probability": 0.9991667067500603,
+          "teacher_minus_student_probability": -0.00016140457915381212
+        },
+        {
+          "index": 38,
+          "text": ",",
+          "student_probability": 0.8803137107756008,
+          "teacher_probability": 0.8664691908706564,
+          "teacher_minus_student_probability": -0.013844519904944397
+        },
+        {
+          "index": 39,
+          "text": " who",
+          "student_probability": 0.9995549514655627,
+          "teacher_probability": 0.9994202638709448,
+          "teacher_minus_student_probability": -0.00013468759461787716
+        },
+        {
+          "index": 40,
+          "text": " was",
+          "student_probability": 0.9994299087455104,
+          "teacher_probability": 0.9993528741630404,
+          "teacher_minus_student_probability": -7.703458246999251e-05
+        },
+        {
+          "index": 41,
+          "text": " looking",
+          "student_probability": 0.9999868871505255,
+          "teacher_probability": 0.9999809268774651,
+          "teacher_minus_student_probability": -5.960273060434673e-06
+        },
+        {
+          "index": 42,
+          "text": " to",
+          "student_probability": 0.9999710329823779,
+          "teacher_probability": 0.9999564905017542,
+          "teacher_minus_student_probability": -1.4542480623713772e-05
+        },
+        {
+          "index": 43,
+          "text": " see",
+          "student_probability": 0.9999923706636761,
+          "teacher_probability": 0.999985933501902,
+          "teacher_minus_student_probability": -6.437161774064393e-06
+        },
+        {
+          "index": 44,
+          "text": " what",
+          "student_probability": 0.999985933501902,
+          "teacher_probability": 0.9999799732399826,
+          "teacher_minus_student_probability": -5.960261919457643e-06
+        },
+        {
+          "index": 45,
+          "text": " had",
+          "student_probability": 0.999386806052349,
+          "teacher_probability": 0.9991845586882586,
+          "teacher_minus_student_probability": -0.0002022473640903577
+        },
+        {
+          "index": 46,
+          "text": " become",
+          "student_probability": 0.9998759185262837,
+          "teacher_probability": 0.9998542282875063,
+          "teacher_minus_student_probability": -2.169023877740539e-05
+        },
+        {
+          "index": 47,
+          "text": " of",
+          "student_probability": 0.999977350747961,
+          "teacher_probability": 0.9999696025551995,
+          "teacher_minus_student_probability": -7.74819276150307e-06
+        },
+        {
+          "index": 48,
+          "text": " his",
+          "student_probability": 0.9996470267053879,
+          "teacher_probability": 0.9995426839758392,
+          "teacher_minus_student_probability": -0.00010434272954862323
+        },
+        {
+          "index": 49,
+          "text": " enemy",
+          "student_probability": 0.9998166897235152,
+          "teacher_probability": 0.9997597318122907,
+          "teacher_minus_student_probability": -5.6957911224508884e-05
+        },
+        {
+          "index": 50,
+          "text": ",",
+          "student_probability": 0.9968896398014422,
+          "teacher_probability": 0.995509731748944,
+          "teacher_minus_student_probability": -0.0013799080524982132
+        },
+        {
+          "index": 51,
+          "text": " he",
+          "student_probability": 0.9926238999609213,
+          "teacher_probability": 0.9894162073876388,
+          "teacher_minus_student_probability": -0.0032076925732824613
+        },
+        {
+          "index": 52,
+          "text": " said",
+          "student_probability": 0.9998856913588614,
+          "teacher_probability": 0.9997871375246266,
+          "teacher_minus_student_probability": -9.855383423484909e-05
+        },
+        {
+          "index": 53,
+          "text": " to",
+          "student_probability": 0.9996277288148872,
+          "teacher_probability": 0.9994568200392435,
+          "teacher_minus_student_probability": -0.00017090877564363005
+        },
+        {
+          "index": 54,
+          "text": " him",
+          "student_probability": 0.9997310169919629,
+          "teacher_probability": 0.9996162933836616,
+          "teacher_minus_student_probability": -0.00011472360830122597
+        },
+        {
+          "index": 55,
+          "text": ",",
+          "student_probability": 0.9866905238730038,
+          "teacher_probability": 0.9891353918873399,
+          "teacher_minus_student_probability": 0.002444868014336077
+        },
+        {
+          "index": 56,
+          "text": " Sign",
+          "student_probability": 0.3403589450465246,
+          "teacher_probability": 0.038806928641249176,
+          "teacher_minus_student_probability": -0.3015520164052754
+        },
+        {
+          "index": 57,
+          "text": "or",
+          "student_probability": 0.9762547996252141,
+          "teacher_probability": 0.99789906784646,
+          "teacher_minus_student_probability": 0.021644268221245877
+        },
+        {
+          "index": 58,
+          "text": ",",
+          "student_probability": 0.996575322522143,
+          "teacher_probability": 0.9951283999847729,
+          "teacher_minus_student_probability": -0.00144692253737011
+        },
+        {
+          "index": 59,
+          "text": " whoever",
+          "student_probability": 0.9977931908033326,
+          "teacher_probability": 0.9974510242586188,
+          "teacher_minus_student_probability": -0.0003421665447138622
+        },
+        {
+          "index": 60,
+          "text": " you",
+          "student_probability": 0.999814544744775,
+          "teacher_probability": 0.999728514971688,
+          "teacher_minus_student_probability": -8.60297730870263e-05
+        },
+        {
+          "index": 61,
+          "text": " are",
+          "student_probability": 0.9997236300680686,
+          "teacher_probability": 0.9994957606999554,
+          "teacher_minus_student_probability": -0.00022786936811325376
+        },
+        {
+          "index": 62,
+          "text": ",",
+          "student_probability": 0.9996259420119524,
+          "teacher_probability": 0.9993571601955027,
+          "teacher_minus_student_probability": -0.00026878181644973687
+        },
+        {
+          "index": 63,
+          "text": " do",
+          "student_probability": 0.9978596581654301,
+          "teacher_probability": 0.9969436645072373,
+          "teacher_minus_student_probability": -0.0009159936581928374
+        },
+        {
+          "index": 64,
+          "text": " us",
+          "student_probability": 0.9988524983371104,
+          "teacher_probability": 0.9987247775293021,
+          "teacher_minus_student_probability": -0.00012772080780831807
+        },
+        {
+          "index": 65,
+          "text": " the",
+          "student_probability": 0.9731147240173631,
+          "teacher_probability": 0.9695155238597974,
+          "teacher_minus_student_probability": -0.003599200157565652
+        },
+        {
+          "index": 66,
+          "text": " favor",
+          "student_probability": 0.7980107075914493,
+          "teacher_probability": 0.7979669845299737,
+          "teacher_minus_student_probability": -4.37230614755979e-05
+        },
+        {
+          "index": 67,
+          "text": " and",
+          "student_probability": 0.9940479944415092,
+          "teacher_probability": 0.9932565748350675,
+          "teacher_minus_student_probability": -0.0007914196064416901
+        },
+        {
+          "index": 68,
+          "text": " kindness",
+          "student_probability": 0.9998891476534775,
+          "teacher_probability": 0.9998570884900959,
+          "teacher_minus_student_probability": -3.205916338155923e-05
+        },
+        {
+          "index": 69,
+          "text": " to",
+          "student_probability": 0.9996582246165773,
+          "teacher_probability": 0.9994483654669273,
+          "teacher_minus_student_probability": -0.00020985914964999353
+        },
+        {
+          "index": 70,
+          "text": " give",
+          "student_probability": 0.9999549409187368,
+          "teacher_probability": 0.999940398906774,
+          "teacher_minus_student_probability": -1.4542011962825896e-05
+        },
+        {
+          "index": 71,
+          "text": " us",
+          "student_probability": 0.9999493386194785,
+          "teacher_probability": 0.9999332472523584,
+          "teacher_minus_student_probability": -1.6091367120107947e-05
+        },
+        {
+          "index": 72,
+          "text": " a",
+          "student_probability": 0.9991226747247364,
+          "teacher_probability": 0.9989789431913065,
+          "teacher_minus_student_probability": -0.00014373153342983613
+        },
+        {
+          "index": 73,
+          "text": " little",
+          "student_probability": 0.999878063767645,
+          "teacher_probability": 0.9998265805692722,
+          "teacher_minus_student_probability": -5.148319837278148e-05
+        },
+        {
+          "index": 74,
+          "text": " rose",
+          "student_probability": 0.9983970628037208,
+          "teacher_probability": 0.9976220783440377,
+          "teacher_minus_student_probability": -0.000774984459683048
+        },
+        {
+          "index": 75,
+          "text": "mary",
+          "student_probability": 0.9997562764232971,
+          "teacher_probability": 0.9997415018785599,
+          "teacher_minus_student_probability": -1.4774544737194972e-05
+        },
+        {
+          "index": 76,
+          "text": ",",
+          "student_probability": 0.998018859616574,
+          "teacher_probability": 0.9979935690867814,
+          "teacher_minus_student_probability": -2.5290529792609817e-05
+        },
+        {
+          "index": 77,
+          "text": " oil",
+          "student_probability": 0.9992284771153399,
+          "teacher_probability": 0.9988554717817832,
+          "teacher_minus_student_probability": -0.0003730053335566641
+        },
+        {
+          "index": 78,
+          "text": ",",
+          "student_probability": 0.9999623312833917,
+          "teacher_probability": 0.9999448091463223,
+          "teacher_minus_student_probability": -1.752213706940342e-05
+        },
+        {
+          "index": 79,
+          "text": " salt",
+          "student_probability": 0.9997528210462462,
+          "teacher_probability": 0.9996357099574171,
+          "teacher_minus_student_probability": -0.0001171110888290583
+        },
+        {
+          "index": 80,
+          "text": ",",
+          "student_probability": 0.4999067264796311,
+          "teacher_probability": 0.5310722497250934,
+          "teacher_minus_student_probability": 0.03116552324546229
+        },
+        {
+          "index": 81,
+          "text": " and",
+          "student_probability": 0.9998302747830303,
+          "teacher_probability": 0.9997659277557621,
+          "teacher_minus_student_probability": -6.434702726820785e-05
+        },
+        {
+          "index": 82,
+          "text": " wine",
+          "student_probability": 0.9224470484377415,
+          "teacher_probability": 0.912916095514023,
+          "teacher_minus_student_probability": -0.009530952923718528
+        },
+        {
+          "index": 83,
+          "text": ",",
+          "student_probability": 0.9843128004840727,
+          "teacher_probability": 0.97826743060369,
+          "teacher_minus_student_probability": -0.006045369880382623
+        },
+        {
+          "index": 84,
+          "text": " for",
+          "student_probability": 0.9975156667809464,
+          "teacher_probability": 0.9964622688662318,
+          "teacher_minus_student_probability": -0.0010533979147145933
+        },
+        {
+          "index": 85,
+          "text": " it",
+          "student_probability": 0.9995113615683354,
+          "teacher_probability": 0.9993334686090304,
+          "teacher_minus_student_probability": -0.00017789295930503712
+        },
+        {
+          "index": 86,
+          "text": " is",
+          "student_probability": 0.9895101598784114,
+          "teacher_probability": 0.9893020886057091,
+          "teacher_minus_student_probability": -0.00020807127270228154
+        },
+        {
+          "index": 87,
+          "text": " wont",
+          "student_probability": 0.40873872995607713,
+          "teacher_probability": 0.45227126990930555,
+          "teacher_minus_student_probability": 0.04353253995322842
+        },
+        {
+          "index": 88,
+          "text": " her",
+          "student_probability": 0.4842045103046412,
+          "teacher_probability": 0.49778470769821054,
+          "teacher_minus_student_probability": 0.01358019739356936
+        },
+        {
+          "index": 89,
+          "text": " to",
+          "student_probability": 0.9992728755917769,
+          "teacher_probability": 0.9991112508576879,
+          "teacher_minus_student_probability": -0.00016162473408898315
+        },
+        {
+          "index": 90,
+          "text": " cure",
+          "student_probability": 0.9930925404602386,
+          "teacher_probability": 0.9909524850643822,
+          "teacher_minus_student_probability": -0.0021400553958564883
+        },
+        {
+          "index": 91,
+          "text": " one",
+          "student_probability": 0.9994617023592821,
+          "teacher_probability": 0.9993038259049012,
+          "teacher_minus_student_probability": -0.00015787645438092301
+        },
+        {
+          "index": 92,
+          "text": " of",
+          "student_probability": 0.9998971329639152,
+          "teacher_probability": 0.9998760377062386,
+          "teacher_minus_student_probability": -2.1095257676684298e-05
+        },
+        {
+          "index": 93,
+          "text": " our",
+          "student_probability": 0.9989344518331585,
+          "teacher_probability": 0.9988387019533721,
+          "teacher_minus_student_probability": -9.574987978644423e-05
+        },
+        {
+          "index": 94,
+          "text": " best",
+          "student_probability": 0.9997368551509109,
+          "teacher_probability": 0.9997140986828226,
+          "teacher_minus_student_probability": -2.2756468088358517e-05
+        },
+        {
+          "index": 95,
+          "text": " knights",
+          "student_probability": 0.9701692265090739,
+          "teacher_probability": 0.9815278344441697,
+          "teacher_minus_student_probability": 0.0113586079350958
+        },
+        {
+          "index": 96,
+          "text": " err",
+          "student_probability": 0.6859523973196839,
+          "teacher_probability": 0.9472357463917674,
+          "teacher_minus_student_probability": 0.2612833490720835
+        },
+        {
+          "index": 97,
+          "text": "ant",
+          "student_probability": 0.9916053003614784,
+          "teacher_probability": 0.9999821189265068,
+          "teacher_minus_student_probability": 0.008376818565028366
+        },
+        {
+          "index": 98,
+          "text": " on",
+          "student_probability": 0.9996278479507126,
+          "teacher_probability": 0.9985840133885978,
+          "teacher_minus_student_probability": -0.0010438345621147649
+        },
+        {
+          "index": 99,
+          "text": " earth",
+          "student_probability": 0.9768815633339195,
+          "teacher_probability": 0.9818030813618887,
+          "teacher_minus_student_probability": 0.004921518027969141
+        },
+        {
+          "index": 100,
+          "text": ",",
+          "student_probability": 0.9900883849502845,
+          "teacher_probability": 0.9937886785959065,
+          "teacher_minus_student_probability": 0.003700293645621966
+        },
+        {
+          "index": 101,
+          "text": " who",
+          "student_probability": 0.9973271002205588,
+          "teacher_probability": 0.994556655129661,
+          "teacher_minus_student_probability": -0.002770445090897855
+        },
+        {
+          "index": 102,
+          "text": " lies",
+          "student_probability": 0.9986121868571801,
+          "teacher_probability": 0.9981169463870067,
+          "teacher_minus_student_probability": -0.0004952404701734636
+        },
+        {
+          "index": 103,
+          "text": " on",
+          "student_probability": 0.9990234383918732,
+          "teacher_probability": 0.9985915023888063,
+          "teacher_minus_student_probability": -0.0004319360030669017
+        },
+        {
+          "index": 104,
+          "text": " y",
+          "student_probability": 0.9967199027322,
+          "teacher_probability": 0.9956511664445894,
+          "teacher_minus_student_probability": -0.0010687362876106166
+        },
+        {
+          "index": 105,
+          "text": "onder",
+          "student_probability": 0.9992078861427669,
+          "teacher_probability": 0.9991488554797624,
+          "teacher_minus_student_probability": -5.9030663004500106e-05
+        },
+        {
+          "index": 106,
+          "text": " bed",
+          "student_probability": 0.999841715121049,
+          "teacher_probability": 0.999762353164387,
+          "teacher_minus_student_probability": -7.936195666202739e-05
+        },
+        {
+          "index": 107,
+          "text": ",",
+          "student_probability": 0.8786935545048662,
+          "teacher_probability": 0.8910454101083887,
+          "teacher_minus_student_probability": 0.012351855603522477
+        },
+        {
+          "index": 108,
+          "text": " wounded",
+          "student_probability": 0.9939923983181732,
+          "teacher_probability": 0.9914985277609463,
+          "teacher_minus_student_probability": -0.0024938705572269404
+        },
+        {
+          "index": 109,
+          "text": " by",
+          "student_probability": 0.9997450763371897,
+          "teacher_probability": 0.9996015229731628,
+          "teacher_minus_student_probability": -0.00014355336402682717
+        },
+        {
+          "index": 110,
+          "text": " the",
+          "student_probability": 0.9999492194198731,
+          "teacher_probability": 0.9999226391540047,
+          "teacher_minus_student_probability": -2.6580265868436648e-05
+        },
+        {
+          "index": 111,
+          "text": " hands",
+          "student_probability": 0.9973661122119483,
+          "teacher_probability": 0.9965447776660211,
+          "teacher_minus_student_probability": -0.0008213345459271437
+        },
+        {
+          "index": 112,
+          "text": " of",
+          "student_probability": 0.9999133423558813,
+          "teacher_probability": 0.9998442177301725,
+          "teacher_minus_student_probability": -6.912462570873856e-05
+        },
+        {
+          "index": 113,
+          "text": " the",
+          "student_probability": 0.99968324206177,
+          "teacher_probability": 0.9995364907976888,
+          "teacher_minus_student_probability": -0.00014675126408114636
+        },
+        {
+          "index": 114,
+          "text": " enchanted",
+          "student_probability": 0.9770309534798278,
+          "teacher_probability": 0.9808122926543483,
+          "teacher_minus_student_probability": 0.003781339174520504
+        },
+        {
+          "index": 115,
+          "text": " more",
+          "student_probability": 0.3507192237075071,
+          "teacher_probability": 0.34959986393638925,
+          "teacher_minus_student_probability": -0.0011193597711178227
+        },
+        {
+          "index": 116,
+          "text": " that",
+          "student_probability": 0.9268161121498678,
+          "teacher_probability": 0.9179769191851871,
+          "teacher_minus_student_probability": -0.00883919296468072
+        },
+        {
+          "index": 117,
+          "text": " is",
+          "student_probability": 0.9982398788626474,
+          "teacher_probability": 0.9974595638879316,
+          "teacher_minus_student_probability": -0.0007803149747158677
+        },
+        {
+          "index": 118,
+          "text": " in",
+          "student_probability": 0.900951399470988,
+          "teacher_probability": 0.8997889284174917,
+          "teacher_minus_student_probability": -0.0011624710534963167
+        },
+        {
+          "index": 119,
+          "text": " this",
+          "student_probability": 0.9941384684927385,
+          "teacher_probability": 0.9928996485181353,
+          "teacher_minus_student_probability": -0.001238819974603178
+        },
+        {
+          "index": 120,
+          "text": " inn",
+          "student_probability": 0.9918509293861494,
+          "teacher_probability": 0.991401269363399,
+          "teacher_minus_student_probability": -0.00044966002275037553
+        },
+        {
+          "index": 121,
+          "text": ".",
+          "student_probability": 0.992430837937325,
+          "teacher_probability": 0.9909470999784051,
+          "teacher_minus_student_probability": -0.001483737958919873
+        }
+      ],
+      "score_seconds": 1.0474321842193604
+    },
+    {
+      "line_number": 8,
+      "id": "2033-164916-0005",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/2033/164916/2033-164916-0005.flac",
+      "transcription": "after awhile the dust dispersed and there appeared under it the army of baghdad and khorasan a conquering host like the full tide sea and shahrazad perceived the dawn of day and ceased to say her permitted say",
+      "keywords": [
+        "baghdad",
+        "khorasan"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/2033-164916-0005-1df8262cc2.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *baghdad*, *khorasan*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>After a while, the dust dispersed, and there appeared under it the army of Baghdad and Khorasan, a conquering host like the full-tide sea. And Shahrazad perceived the dawn of day, and ceased to say her permitted say.</TXT></ASR>",
+      "student_transcript": "After a while, the dust dispersed, and there appeared under it the army of Baghdad and Khorasan, a conquering host like the full-tide sea. And Shahrazad perceived the dawn of day, and ceased to say her permitted say.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        29,
+        5836,
+        264,
+        1345,
+        11,
+        279,
+        15333,
+        74087,
+        11,
+        321,
+        1017,
+        9434,
+        1172,
+        424,
+        279,
+        13003,
+        314,
+        53364,
+        321,
+        710,
+        18936,
+        43873,
+        11,
+        264,
+        37496,
+        4519,
+        3357,
+        1040,
+        279,
+        2400,
+        2308,
+        562,
+        9117,
+        13,
+        1541,
+        35311,
+        8438,
+        327,
+        24723,
+        279,
+        37119,
+        314,
+        1834,
+        11,
+        321,
+        56411,
+        310,
+        1910,
+        1024,
+        14688,
+        1910,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 15,
+          "text": "After",
+          "student_probability": 0.9985425287555384,
+          "teacher_probability": 0.9954464119081712,
+          "teacher_minus_student_probability": -0.003096116847367214
+        },
+        {
+          "index": 16,
+          "text": " a",
+          "student_probability": 0.9826690034102196,
+          "teacher_probability": 0.9778439053706064,
+          "teacher_minus_student_probability": -0.004825098039613174
+        },
+        {
+          "index": 17,
+          "text": " while",
+          "student_probability": 0.999727323523193,
+          "teacher_probability": 0.99969646608662,
+          "teacher_minus_student_probability": -3.0857436573050734e-05
+        },
+        {
+          "index": 18,
+          "text": ",",
+          "student_probability": 0.7309814556830101,
+          "teacher_probability": 0.7309506959878698,
+          "teacher_minus_student_probability": -3.0759695140325505e-05
+        },
+        {
+          "index": 19,
+          "text": " the",
+          "student_probability": 0.9998446944204133,
+          "teacher_probability": 0.9998140680834577,
+          "teacher_minus_student_probability": -3.0626336955608124e-05
+        },
+        {
+          "index": 20,
+          "text": " dust",
+          "student_probability": 0.9985859153645007,
+          "teacher_probability": 0.998384586077771,
+          "teacher_minus_student_probability": -0.00020132928672966788
+        },
+        {
+          "index": 21,
+          "text": " dispersed",
+          "student_probability": 0.9978285598091464,
+          "teacher_probability": 0.9972896327201867,
+          "teacher_minus_student_probability": -0.0005389270889597508
+        },
+        {
+          "index": 22,
+          "text": ",",
+          "student_probability": 0.6783047626517305,
+          "teacher_probability": 0.6502485464869295,
+          "teacher_minus_student_probability": -0.028056216164800918
+        },
+        {
+          "index": 23,
+          "text": " and",
+          "student_probability": 0.995953431258161,
+          "teacher_probability": 0.9941418853982189,
+          "teacher_minus_student_probability": -0.001811545859942143
+        },
+        {
+          "index": 24,
+          "text": " there",
+          "student_probability": 0.944637852346615,
+          "teacher_probability": 0.9392890176663771,
+          "teacher_minus_student_probability": -0.005348834680237946
+        },
+        {
+          "index": 25,
+          "text": " appeared",
+          "student_probability": 0.9995705542178499,
+          "teacher_probability": 0.9993668038212093,
+          "teacher_minus_student_probability": -0.00020375039664055627
+        },
+        {
+          "index": 26,
+          "text": " under",
+          "student_probability": 0.8852616084373217,
+          "teacher_probability": 0.8705934112426816,
+          "teacher_minus_student_probability": -0.014668197194640076
+        },
+        {
+          "index": 27,
+          "text": " it",
+          "student_probability": 0.9981047141493443,
+          "teacher_probability": 0.997631688386257,
+          "teacher_minus_student_probability": -0.00047302576308727584
+        },
+        {
+          "index": 28,
+          "text": " the",
+          "student_probability": 0.9897013858872643,
+          "teacher_probability": 0.9852069939803962,
+          "teacher_minus_student_probability": -0.004494391906868067
+        },
+        {
+          "index": 29,
+          "text": " army",
+          "student_probability": 0.988277367825629,
+          "teacher_probability": 0.9945959225509954,
+          "teacher_minus_student_probability": 0.006318554725366354
+        },
+        {
+          "index": 30,
+          "text": " of",
+          "student_probability": 0.9997867800602402,
+          "teacher_probability": 0.999749008259353,
+          "teacher_minus_student_probability": -3.777180088726517e-05
+        },
+        {
+          "index": 31,
+          "text": " Baghdad",
+          "student_probability": 0.9701136892711789,
+          "teacher_probability": 0.7154276460002893,
+          "teacher_minus_student_probability": -0.2546860432708896
+        },
+        {
+          "index": 32,
+          "text": " and",
+          "student_probability": 0.9934040759132988,
+          "teacher_probability": 0.9932008324270174,
+          "teacher_minus_student_probability": -0.00020324348628142364
+        },
+        {
+          "index": 33,
+          "text": " K",
+          "student_probability": 0.9678930415992578,
+          "teacher_probability": 0.9588182661303791,
+          "teacher_minus_student_probability": -0.009074775468878693
+        },
+        {
+          "index": 34,
+          "text": "hor",
+          "student_probability": 0.999814306414088,
+          "teacher_probability": 0.9999793772183819,
+          "teacher_minus_student_probability": 0.00016507080429395415
+        },
+        {
+          "index": 35,
+          "text": "asan",
+          "student_probability": 0.9742044982844111,
+          "teacher_probability": 0.9999327704835214,
+          "teacher_minus_student_probability": 0.025728272199110225
+        },
+        {
+          "index": 36,
+          "text": ",",
+          "student_probability": 0.9243318205810368,
+          "teacher_probability": 0.8948490900551677,
+          "teacher_minus_student_probability": -0.02948273052586914
+        },
+        {
+          "index": 37,
+          "text": " a",
+          "student_probability": 0.9931406280169727,
+          "teacher_probability": 0.9919040574742903,
+          "teacher_minus_student_probability": -0.001236570542682336
+        },
+        {
+          "index": 38,
+          "text": " conqu",
+          "student_probability": 0.9996262993606467,
+          "teacher_probability": 0.9996372585620616,
+          "teacher_minus_student_probability": 1.0959201414917352e-05
+        },
+        {
+          "index": 39,
+          "text": "ering",
+          "student_probability": 0.9999417100552707,
+          "teacher_probability": 0.999943378794853,
+          "teacher_minus_student_probability": 1.6687395822945206e-06
+        },
+        {
+          "index": 40,
+          "text": " host",
+          "student_probability": 0.9974735591819087,
+          "teacher_probability": 0.997311093301326,
+          "teacher_minus_student_probability": -0.0001624658805827739
+        },
+        {
+          "index": 41,
+          "text": " like",
+          "student_probability": 0.9039031410438645,
+          "teacher_probability": 0.892381182048522,
+          "teacher_minus_student_probability": -0.011521958995342474
+        },
+        {
+          "index": 42,
+          "text": " the",
+          "student_probability": 0.9969862012278522,
+          "teacher_probability": 0.9969681907382894,
+          "teacher_minus_student_probability": -1.8010489562847454e-05
+        },
+        {
+          "index": 43,
+          "text": " full",
+          "student_probability": 0.8493507076388472,
+          "teacher_probability": 0.8499117699839184,
+          "teacher_minus_student_probability": 0.0005610623450711394
+        },
+        {
+          "index": 44,
+          "text": "-t",
+          "student_probability": 0.7920654179763451,
+          "teacher_probability": 0.7709681834334927,
+          "teacher_minus_student_probability": -0.021097234542852394
+        },
+        {
+          "index": 45,
+          "text": "ide",
+          "student_probability": 0.8687973846704452,
+          "teacher_probability": 0.8569143507292611,
+          "teacher_minus_student_probability": -0.011883033941184062
+        },
+        {
+          "index": 46,
+          "text": " sea",
+          "student_probability": 0.9979972499635361,
+          "teacher_probability": 0.9978690356060467,
+          "teacher_minus_student_probability": -0.00012821435748944232
+        },
+        {
+          "index": 47,
+          "text": ".",
+          "student_probability": 0.6950705661817314,
+          "teacher_probability": 0.6945763852178404,
+          "teacher_minus_student_probability": -0.0004941809638909778
+        },
+        {
+          "index": 48,
+          "text": " And",
+          "student_probability": 0.9544288710538095,
+          "teacher_probability": 0.9421791266666435,
+          "teacher_minus_student_probability": -0.012249744387165973
+        },
+        {
+          "index": 49,
+          "text": " Shah",
+          "student_probability": 0.6346727401953961,
+          "teacher_probability": 0.6681780516533001,
+          "teacher_minus_student_probability": 0.03350531145790403
+        },
+        {
+          "index": 50,
+          "text": "raz",
+          "student_probability": 0.9951667677923333,
+          "teacher_probability": 0.9940871033702648,
+          "teacher_minus_student_probability": -0.001079664422068416
+        },
+        {
+          "index": 51,
+          "text": "ad",
+          "student_probability": 0.9969711531186933,
+          "teacher_probability": 0.9969739966593307,
+          "teacher_minus_student_probability": 2.843540637398334e-06
+        },
+        {
+          "index": 52,
+          "text": " perceived",
+          "student_probability": 0.9967397991895838,
+          "teacher_probability": 0.996413504054359,
+          "teacher_minus_student_probability": -0.0003262951352247523
+        },
+        {
+          "index": 53,
+          "text": " the",
+          "student_probability": 0.9992157415894272,
+          "teacher_probability": 0.9991711101640068,
+          "teacher_minus_student_probability": -4.4631425420327275e-05
+        },
+        {
+          "index": 54,
+          "text": " dawn",
+          "student_probability": 0.9989433736233799,
+          "teacher_probability": 0.9989000749792221,
+          "teacher_minus_student_probability": -4.329864415786311e-05
+        },
+        {
+          "index": 55,
+          "text": " of",
+          "student_probability": 0.9995148152963348,
+          "teacher_probability": 0.9995004051434376,
+          "teacher_minus_student_probability": -1.4410152897159634e-05
+        },
+        {
+          "index": 56,
+          "text": " day",
+          "student_probability": 0.9888373683033507,
+          "teacher_probability": 0.9901156137694325,
+          "teacher_minus_student_probability": 0.0012782454660817955
+        },
+        {
+          "index": 57,
+          "text": ",",
+          "student_probability": 0.7309694958460448,
+          "teacher_probability": 0.7056873525285667,
+          "teacher_minus_student_probability": -0.025282143317478023
+        },
+        {
+          "index": 58,
+          "text": " and",
+          "student_probability": 0.9982533023019292,
+          "teacher_probability": 0.9986704407573396,
+          "teacher_minus_student_probability": 0.00041713845541035965
+        },
+        {
+          "index": 59,
+          "text": " ceased",
+          "student_probability": 0.8982307995150527,
+          "teacher_probability": 0.8978695995156987,
+          "teacher_minus_student_probability": -0.0003611999993540227
+        },
+        {
+          "index": 60,
+          "text": " to",
+          "student_probability": 0.9997410253102584,
+          "teacher_probability": 0.9997152900864609,
+          "teacher_minus_student_probability": -2.5735223797562767e-05
+        },
+        {
+          "index": 61,
+          "text": " say",
+          "student_probability": 0.9946855529850616,
+          "teacher_probability": 0.9931913073844968,
+          "teacher_minus_student_probability": -0.0014942456005647697
+        },
+        {
+          "index": 62,
+          "text": " her",
+          "student_probability": 0.9821779462296016,
+          "teacher_probability": 0.983390255534598,
+          "teacher_minus_student_probability": 0.001212309304996384
+        },
+        {
+          "index": 63,
+          "text": " permitted",
+          "student_probability": 0.9979004925654463,
+          "teacher_probability": 0.99769125190082,
+          "teacher_minus_student_probability": -0.00020924066462635338
+        },
+        {
+          "index": 64,
+          "text": " say",
+          "student_probability": 0.992407708731077,
+          "teacher_probability": 0.9915941648079328,
+          "teacher_minus_student_probability": -0.0008135439231441444
+        },
+        {
+          "index": 65,
+          "text": ".",
+          "student_probability": 0.9915564241721257,
+          "teacher_probability": 0.992424732669197,
+          "teacher_minus_student_probability": 0.0008683084970712018
+        }
+      ],
+      "score_seconds": 0.6565587520599365
+    },
+    {
+      "line_number": 9,
+      "id": "6128-63244-0023",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/6128/63244/6128-63244-0023.flac",
+      "transcription": "when miss birdseye approached it transfigured her familiar her comical shape and made the poor little humanitary hack seem already a martyr",
+      "keywords": [
+        "humanitary"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/6128-63244-0023-43768bd1db.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *humanitary*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>When Miss Birdseye approached, it transfigured her familiar, her comical shape, and made the poor little humanitarian hack seem already a martyr.</TXT></ASR>",
+      "student_transcript": "When Miss Birdseye approached, it transfigured her familiar, her comical shape, and made the poor little humanitarian hack seem already a martyr.",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        29,
+        4350,
+        8637,
+        22606,
+        8246,
+        68,
+        23928,
+        11,
+        424,
+        1308,
+        876,
+        2974,
+        1024,
+        10958,
+        11,
+        1024,
+        459,
+        908,
+        5893,
+        11,
+        321,
+        1801,
+        279,
+        7604,
+        2545,
+        36401,
+        16583,
+        2714,
+        2582,
+        264,
+        86234,
+        3786,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 15,
+          "text": "When",
+          "student_probability": 0.9983047424194945,
+          "teacher_probability": 0.9979751660684433,
+          "teacher_minus_student_probability": -0.0003295763510512417
+        },
+        {
+          "index": 16,
+          "text": " Miss",
+          "student_probability": 0.9816034075736082,
+          "teacher_probability": 0.980745094073393,
+          "teacher_minus_student_probability": -0.0008583135002151465
+        },
+        {
+          "index": 17,
+          "text": " Bird",
+          "student_probability": 0.8137973869401941,
+          "teacher_probability": 0.7960031103436572,
+          "teacher_minus_student_probability": -0.017794276596536873
+        },
+        {
+          "index": 18,
+          "text": "sey",
+          "student_probability": 0.8838363153977482,
+          "teacher_probability": 0.8912552941085878,
+          "teacher_minus_student_probability": 0.00741897871083963
+        },
+        {
+          "index": 19,
+          "text": "e",
+          "student_probability": 0.9518930571540837,
+          "teacher_probability": 0.9457701901626987,
+          "teacher_minus_student_probability": -0.006122866991384979
+        },
+        {
+          "index": 20,
+          "text": " approached",
+          "student_probability": 0.999502786977368,
+          "teacher_probability": 0.9994397919399652,
+          "teacher_minus_student_probability": -6.29950374028132e-05
+        },
+        {
+          "index": 21,
+          "text": ",",
+          "student_probability": 0.8804091603096406,
+          "teacher_probability": 0.8665570961207865,
+          "teacher_minus_student_probability": -0.013852064188854096
+        },
+        {
+          "index": 22,
+          "text": " it",
+          "student_probability": 0.9990553251455828,
+          "teacher_probability": 0.9990308150247652,
+          "teacher_minus_student_probability": -2.451012081761128e-05
+        },
+        {
+          "index": 23,
+          "text": " trans",
+          "student_probability": 0.9859066000403734,
+          "teacher_probability": 0.9839199171672386,
+          "teacher_minus_student_probability": -0.0019866828731348596
+        },
+        {
+          "index": 24,
+          "text": "fig",
+          "student_probability": 0.996068025078053,
+          "teacher_probability": 0.9961986162514758,
+          "teacher_minus_student_probability": 0.00013059117342273385
+        },
+        {
+          "index": 25,
+          "text": "ured",
+          "student_probability": 0.9999822381318528,
+          "teacher_probability": 0.9999833109787883,
+          "teacher_minus_student_probability": 1.0728469355125725e-06
+        },
+        {
+          "index": 26,
+          "text": " her",
+          "student_probability": 0.9940523525572937,
+          "teacher_probability": 0.9937200449315718,
+          "teacher_minus_student_probability": -0.00033230762572189487
+        },
+        {
+          "index": 27,
+          "text": " familiar",
+          "student_probability": 0.9902278159488284,
+          "teacher_probability": 0.9862691837563687,
+          "teacher_minus_student_probability": -0.003958632192459621
+        },
+        {
+          "index": 28,
+          "text": ",",
+          "student_probability": 0.9652216322120716,
+          "teacher_probability": 0.9554160108241383,
+          "teacher_minus_student_probability": -0.009805621387933283
+        },
+        {
+          "index": 29,
+          "text": " her",
+          "student_probability": 0.9966848491737208,
+          "teacher_probability": 0.9963222599559294,
+          "teacher_minus_student_probability": -0.0003625892177914203
+        },
+        {
+          "index": 30,
+          "text": " com",
+          "student_probability": 0.9990433079097066,
+          "teacher_probability": 0.9988197920764049,
+          "teacher_minus_student_probability": -0.00022351583330171287
+        },
+        {
+          "index": 31,
+          "text": "ical",
+          "student_probability": 0.999935273546097,
+          "teacher_probability": 0.9999151301890851,
+          "teacher_minus_student_probability": -2.0143357011948027e-05
+        },
+        {
+          "index": 32,
+          "text": " shape",
+          "student_probability": 0.9916572303736961,
+          "teacher_probability": 0.9904541688095946,
+          "teacher_minus_student_probability": -0.0012030615641015485
+        },
+        {
+          "index": 33,
+          "text": ",",
+          "student_probability": 0.9395453984934939,
+          "teacher_probability": 0.9393657985890047,
+          "teacher_minus_student_probability": -0.00017959990448923602
+        },
+        {
+          "index": 34,
+          "text": " and",
+          "student_probability": 0.9923674399014193,
+          "teacher_probability": 0.9898606812380233,
+          "teacher_minus_student_probability": -0.0025067586633960026
+        },
+        {
+          "index": 35,
+          "text": " made",
+          "student_probability": 0.9990809074157563,
+          "teacher_probability": 0.9988976959770096,
+          "teacher_minus_student_probability": -0.00018321143874666657
+        },
+        {
+          "index": 36,
+          "text": " the",
+          "student_probability": 0.9975906387551071,
+          "teacher_probability": 0.9972002433684741,
+          "teacher_minus_student_probability": -0.0003903953866329912
+        },
+        {
+          "index": 37,
+          "text": " poor",
+          "student_probability": 0.9949926601844417,
+          "teacher_probability": 0.995881660649964,
+          "teacher_minus_student_probability": 0.000889000465522316
+        },
+        {
+          "index": 38,
+          "text": " little",
+          "student_probability": 0.9975657260535923,
+          "teacher_probability": 0.9969127418568438,
+          "teacher_minus_student_probability": -0.0006529841967485295
+        },
+        {
+          "index": 39,
+          "text": " humanitarian",
+          "student_probability": 0.6580806052520117,
+          "teacher_probability": 0.12793469847386274,
+          "teacher_minus_student_probability": -0.530145906778149
+        },
+        {
+          "index": 40,
+          "text": " hack",
+          "student_probability": 0.9849703112704865,
+          "teacher_probability": 0.9863023489298586,
+          "teacher_minus_student_probability": 0.001332037659372065
+        },
+        {
+          "index": 41,
+          "text": " seem",
+          "student_probability": 0.9830631945239425,
+          "teacher_probability": 0.9822968694423176,
+          "teacher_minus_student_probability": -0.0007663250816248857
+        },
+        {
+          "index": 42,
+          "text": " already",
+          "student_probability": 0.9957681733062094,
+          "teacher_probability": 0.9949354244131491,
+          "teacher_minus_student_probability": -0.0008327488930602867
+        },
+        {
+          "index": 43,
+          "text": " a",
+          "student_probability": 0.9943261846885698,
+          "teacher_probability": 0.9954447579957652,
+          "teacher_minus_student_probability": 0.0011185733071953363
+        },
+        {
+          "index": 44,
+          "text": " martyr",
+          "student_probability": 0.9763767247752722,
+          "teacher_probability": 0.9745280674837564,
+          "teacher_minus_student_probability": -0.0018486572915157318
+        },
+        {
+          "index": 45,
+          "text": ".",
+          "student_probability": 0.9983904084994835,
+          "teacher_probability": 0.9976708428381246,
+          "teacher_minus_student_probability": -0.0007195656613588897
+        }
+      ],
+      "score_seconds": 0.4877605438232422
+    },
+    {
+      "line_number": 10,
+      "id": "1688-142285-0044",
+      "audio_source": "az://orngwus2cresco/data/boren/data/LibriSpeech/test-other/1688/142285/1688-142285-0044.flac",
+      "transcription": "bessy do you wish to die",
+      "keywords": [
+        "bessy"
+      ],
+      "audio_path": "/root/data/qwen35_audio_prob_batch/audio/1688-142285-0044-644389073f.flac",
+      "teacher_prompt": "Detect the language and transcribe the audio clip into text.<audio>\nPay extra attention to the following phrases/words: *bessy*.",
+      "student_response": "Audio Language: English\n<ASR><lang=English><TXT>Bessie, do you wish to die?</TXT></ASR>",
+      "student_transcript": "Bessie, do you wish to die?",
+      "token_ids": [
+        14327,
+        11106,
+        25,
+        6163,
+        198,
+        27,
+        1846,
+        49,
+        1721,
+        5040,
+        28,
+        21874,
+        1721,
+        60749,
+        35503,
+        425,
+        627,
+        11,
+        635,
+        488,
+        6224,
+        310,
+        2659,
+        25222,
+        60749,
+        1419,
+        1846,
+        49,
+        29,
+        248046
+      ],
+      "tokens": [
+        {
+          "index": 14,
+          "text": "B",
+          "student_probability": 0.9847268062419995,
+          "teacher_probability": 0.900827942875925,
+          "teacher_minus_student_probability": -0.08389886336607444
+        },
+        {
+          "index": 15,
+          "text": "ess",
+          "student_probability": 0.9953334960515708,
+          "teacher_probability": 0.9989493215277959,
+          "teacher_minus_student_probability": 0.0036158254762250763
+        },
+        {
+          "index": 16,
+          "text": "ie",
+          "student_probability": 0.7547610951254702,
+          "teacher_probability": 0.010984746669683812,
+          "teacher_minus_student_probability": -0.7437763484557863
+        },
+        {
+          "index": 17,
+          "text": ",",
+          "student_probability": 0.9741352629708213,
+          "teacher_probability": 0.9234769640111178,
+          "teacher_minus_student_probability": -0.05065829895970353
+        },
+        {
+          "index": 18,
+          "text": " do",
+          "student_probability": 0.9938899394442418,
+          "teacher_probability": 0.9783558533381344,
+          "teacher_minus_student_probability": -0.015534086106107403
+        },
+        {
+          "index": 19,
+          "text": " you",
+          "student_probability": 0.9992024112362206,
+          "teacher_probability": 0.9980017617921648,
+          "teacher_minus_student_probability": -0.0012006494440557347
+        },
+        {
+          "index": 20,
+          "text": " wish",
+          "student_probability": 0.9994653938868079,
+          "teacher_probability": 0.9979835958634723,
+          "teacher_minus_student_probability": -0.0014817980233355899
+        },
+        {
+          "index": 21,
+          "text": " to",
+          "student_probability": 0.9997593743577031,
+          "teacher_probability": 0.999414072207567,
+          "teacher_minus_student_probability": -0.00034530215013617305
+        },
+        {
+          "index": 22,
+          "text": " die",
+          "student_probability": 0.996735653935838,
+          "teacher_probability": 0.9931242850250654,
+          "teacher_minus_student_probability": -0.0036113689107725166
+        },
+        {
+          "index": 23,
+          "text": "?",
+          "student_probability": 0.9967570907601049,
+          "teacher_probability": 0.9955051238703966,
+          "teacher_minus_student_probability": -0.0012519668897083003
+        }
+      ],
+      "score_seconds": 0.33367228507995605
+    }
+  ]
+}
