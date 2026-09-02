@@ -39,7 +39,9 @@ echo "[INFO] Preparing environment ..."
 python3 ray_tool.py prepare_env # prepare on all ray nodes
 
 echo "[INFO] Running ${config_name} ..."
+cuda_compat_ld_path="/usr/local/cuda-13.0/compat:/root/.pyenv/versions/3.12.9/lib/python3.12/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}"
 ray job submit --working-dir="${cwd}" \
+--runtime-env-json "{\"env_vars\":{\"LD_LIBRARY_PATH\":\"${cuda_compat_ld_path}\"}}" \
 --no-wait -- \
 python3 -m ${module} \
 --config-dir "${config_dir}" \

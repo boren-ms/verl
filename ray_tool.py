@@ -6,7 +6,6 @@ from pathlib import Path
 import fire
 import time
 import blobfile as bf
-import importlib.metadata
 
 
 def sorted_nodes(nodes):
@@ -182,15 +181,6 @@ def run_output_watcher(local_dir=None, remote_dir=None, interval=600, sync_all=F
     )
     watcher.start.remote()
     return watcher
-
-
-def is_package_version(package_name, target_version):
-    """Check if the specified package is installed with the target version."""
-    try:
-        version = importlib.metadata.version(package_name)
-        return version == target_version
-    except importlib.metadata.PackageNotFoundError:
-        return False
 
 
 def is_valid_model_path(model_dir):
@@ -385,44 +375,9 @@ def prepare_env(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
     print(f"Preparing environment on node: {hostname}")
-    required = [
-        "torch==2.10.0",
-        "vllm==0.17.0",
-        "accelerate==1.14.0",
-        "transformers==5.7.0",
-        "huggingface-hub==1.13.0",
-        "tokenizers==0.22.2",
-        "flashinfer-python==0.6.4",
-        "flashinfer-cubin==0.6.4",
-        "ray==2.46.0",
-        "flash-attn==2.8.3",
-        "vllm-qwen35-audio==0.1.0",
-    ]
-    if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
-        print(f"Required packages already installed on {hostname}, skipping installation.")
-        return
-    # Install vllm with --no-deps to avoid protobuf/ray/opentelemetry upgrades.
-    run_cmd("pip install --no-deps vllm==0.17.0")
-    # Install all deps from requirements_vllm.txt (includes vllm inference
-    # deps, torch, flashinfer, and project deps — but NOT protobuf/ray).
-    run_cmd("pip install -r requirements_vllm.txt", check=False)
-    # Some requirements_vllm.txt deps transitively pull protobuf>=6, which
-    # breaks the already-running Ray dashboard/workers that loaded the base
-    # image's protobuf 5.29.5 in memory (mismatched gencode/runtime versions).
-    # Force protobuf back to the base-image version after the deps install.
-    run_cmd("pip install --no-deps --force-reinstall protobuf==5.29.5", check=False)
-    # run_cmd('pip install --no-deps "ray[default]==2.46.0"')
-    run_cmd("pip install --no-deps -e .")
-    run_cmd("pip install --no-deps -e plugins/qwen35_audio")
-    # Install pre-built flash-attn wheel from blob storage.
-    flash_attn_pkg = "flash_attn-2.8.3+cu128torch2.10-cp312-cp312-linux_x86_64.whl"
-    remote_pkg_path = f"az://orngwus2cresco/data/boren/data/packages/{flash_attn_pkg}"
-    local_pkg_dir = "/root/packages"
-    local_pkg_path = f"{local_pkg_dir}/{flash_attn_pkg}"
-    Path(local_pkg_dir).mkdir(parents=True, exist_ok=True)
-    if not Path(local_pkg_path).exists():
-        run_cmd(f"bbb cp {remote_pkg_path} {local_pkg_path}")
-    run_cmd(f"pip install --no-deps {local_pkg_path}")
+    if forced:
+        run_cmd("find . -maxdepth 1 -name '.env_done_*' -delete")
+    run_cmd("bash quick_install.sh")
     print("Environment preparation completed.")
 
 

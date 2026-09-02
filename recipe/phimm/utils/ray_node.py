@@ -1,26 +1,20 @@
 #! /usr/bin/env python3
 import os
+from pathlib import Path
+
 import ray
-import fire
-from recipe.phimm.utils.shared import run_cmd, to_list, is_package_version
+from recipe.phimm.utils.shared import run_cmd, to_list
 
 
 @ray.remote
 def prepare_env(forced=False):
     """Prepare the environment on each node by installing necessary packages."""
     hostname = os.uname().nodename
+    repo_root = Path(__file__).resolve().parents[3]
     print(f"[{hostname}] Preparing environment...")
-    required = [
-        "torch==2.10.0",
-        "ray==2.46.0",
-        "transformers==4.55.4",
-        "vllm==0.11.0",
-        "flash-attn==2.8.3",
-    ]
-    if all(is_package_version(*pkg.split("==")) for pkg in required) and not forced:
-        print(f"Required packages already installed on {hostname}, skipping installation.")
-        return
-    run_cmd("bash quick_install.sh")
+    if forced:
+        run_cmd("find . -maxdepth 1 -name '.env_done_*' -delete", cwd=repo_root)
+    run_cmd("bash quick_install.sh", cwd=repo_root)
     print(f"[{hostname}] Environment preparation completed.")
 
 

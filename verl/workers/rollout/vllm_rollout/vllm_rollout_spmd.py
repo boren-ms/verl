@@ -49,7 +49,7 @@ from omegaconf import ListConfig
 from tensordict import TensorDict
 from torch.distributed.device_mesh import DeviceMesh
 from vllm import LLM, SamplingParams
-from vllm.config import CompilationConfig
+from vllm.config import CompilationConfig, CompilationMode
 from vllm.lora.request import LoRARequest
 from vllm.v1.sample.metadata import SamplingMetadata
 
@@ -198,14 +198,14 @@ class vLLMRollout(BaseRollout):
         if self.lora_kwargs:
             # vLLM's compiled LoRA shrink kernel can spin indefinitely on H100
             # during rollout. Keep normal vLLM execution but bypass torch.compile.
-            compilation_config["compilation_config"] = _build_compilation_config(level=0)
+            compilation_config["compilation_config"] = CompilationConfig(mode=CompilationMode.NONE)
         else:
             cudagraph_capture_sizes = config.get("cudagraph_capture_sizes")
             # enforce_eager must be False to use cudagraph
             if not config.enforce_eager and cudagraph_capture_sizes:
                 if isinstance(cudagraph_capture_sizes, ListConfig):
-                    compilation_config["compilation_config"] = _build_compilation_config(
-                        level=3, cudagraph_capture_sizes=cudagraph_capture_sizes
+                    compilation_config["compilation_config"] = CompilationConfig(
+                        mode=CompilationMode.VLLM_COMPILE, cudagraph_capture_sizes=cudagraph_capture_sizes
                     )
                 else:
                     logger.warning(f"cudagraph_capture_sizes must be a list, but got {cudagraph_capture_sizes}")

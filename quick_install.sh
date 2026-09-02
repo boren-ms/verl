@@ -14,6 +14,7 @@ done
 
 if [ -f "${done_file}" ] && ! python - <<'PY'
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 
 from packaging.version import Version
 
@@ -51,6 +52,15 @@ for package in ("TransferQueue",):
         version(package)
     except PackageNotFoundError:
         raise SystemExit(1)
+
+cuda_compat_dir = Path("/usr/local/cuda-13.0/compat")
+cuda_compat_conf = Path("/etc/ld.so.conf.d/00-oai-cuda-compat.conf")
+if (
+    not (cuda_compat_dir / "libcuda.so.1").exists()
+    or not cuda_compat_conf.exists()
+    or cuda_compat_conf.read_text().strip() != str(cuda_compat_dir)
+):
+    raise SystemExit(1)
 PY
 then
     echo "[WARN] Environment marker is stale; reinstalling."
@@ -75,15 +85,36 @@ if [ ! -f "${done_file}" ]; then
     #
     # Strategy:
     #   1. Install vllm --no-deps  (avoids protobuf/ray/opentelemetry upgrades)
-    #   2. Install the PyTorch/CUDA stack from pre-staged internal wheels
-    #   3. Install all remaining deps from requirements_vllm.txt
-    #   4. Skip ray install entirely — use whatever the base image provides
-    #   5. Install the pre-staged cu130 / torch-2.11 flash_attn wheel
+    #   2. Install CUDA 13 forward compatibility for the host driver
+    #   3. Install the PyTorch/CUDA stack from pre-staged internal wheels
+    #   4. Install all remaining deps from requirements_vllm.txt
+    #   5. Skip ray install entirely — use whatever the base image provides
+    #   6. Install the pre-staged cu130 / torch-2.11 flash_attn wheel
 
     # 1. vllm without deps — avoids protobuf & ray conflicts
     pip install --no-deps vllm==0.24.0
 
     package_dir="/root/packages"
+    mkdir -p "${package_dir}"
+
+    # The Brix image uses a 550-series driver. CUDA 13 PyTorch requires the
+    # forward-compatibility driver library, otherwise CUDA reports driver 12.9.
+    cuda_compat_pkg="cuda-compat-13-0-580.95.05.tgz"
+    cuda_compat_path="${package_dir}/${cuda_compat_pkg}"
+    if [ ! -f "${cuda_compat_path}" ]; then
+        command -v bbb >/dev/null || {
+            echo "[ERROR] bbb is required to download ${cuda_compat_pkg}" >&2
+            exit 1
+        }
+        bbb cp \
+            "az://orngwus2cresco/data/boren/data/packages/${cuda_compat_pkg}" \
+            "${cuda_compat_path}"
+    fi
+    tar -C / -xzf "${cuda_compat_path}"
+    printf '%s\n' "/usr/local/cuda-13.0/compat" \
+        > /etc/ld.so.conf.d/00-oai-cuda-compat.conf
+    ldconfig
+
     torch_wheel_dir="${package_dir}/torch211-cu130"
     torch_wheel_blob="az://orngwus2cresco/data/boren/data/packages/torch211-cu130/"
     mkdir -p "${torch_wheel_dir}"
