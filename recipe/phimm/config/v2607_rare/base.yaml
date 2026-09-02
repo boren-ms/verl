@@ -1,6 +1,6 @@
 defaults:
   - /ppo_trainer
-  - /data/val_data/kw_fixed_ls@data.val_files
+  - /data/val_data/kw_fixed_ls
   - _self_
 
 nccl_timeout: 3600
