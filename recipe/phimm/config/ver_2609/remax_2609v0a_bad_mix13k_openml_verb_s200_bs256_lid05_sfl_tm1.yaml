@@ -1,10 +1,9 @@
 hydra:
   searchpath:
     - file://recipe/phimm/config
-    - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - v2609_asr
+  - base
   - data/train_data/bad_mix13k_openml_verb_lid05
   - _self_
 
