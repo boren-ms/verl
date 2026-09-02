@@ -76,6 +76,8 @@ class ActorConfig(BaseConfig):
         distill_only (bool): Whether to optimize only KL against the reference/teacher policy.
         distill_topk (int): Number of teacher vocabulary logits retained per response token. Zero disables it.
         distill_temperature (float): Temperature used for teacher and student top-k distributions.
+        distill_topk_kl_direction (str): Grouped top-k KL direction: "forward" or "reverse".
+        distill_topk_kl_estimator (str): Reverse top-k estimator: "exact", "k1", or "k2".
         use_torch_compile (bool): Whether to use torch.compile for optimization.
         kl_loss_coef (float): KL divergence loss coefficient.
         kl_loss_type (str): Type of KL loss to use.
@@ -114,6 +116,8 @@ class ActorConfig(BaseConfig):
     distill_only: bool = False
     distill_topk: int = 0
     distill_temperature: float = 1.0
+    distill_topk_kl_direction: str = "forward"
+    distill_topk_kl_estimator: str = "exact"
     use_torch_compile: bool = True
     kl_loss_coef: float = 0.001
     kl_loss_type: str = "low_var_kl"
@@ -144,6 +148,12 @@ class ActorConfig(BaseConfig):
             raise ValueError("[actor] distill_topk requires use_fused_kernels=False.")
         if self.distill_temperature <= 0:
             raise ValueError("[actor] distill_temperature must be positive.")
+        if self.distill_topk_kl_direction not in ("forward", "reverse"):
+            raise ValueError("[actor] distill_topk_kl_direction must be 'forward' or 'reverse'.")
+        if self.distill_topk_kl_estimator not in ("exact", "k1", "k2"):
+            raise ValueError("[actor] distill_topk_kl_estimator must be 'exact', 'k1', or 'k2'.")
+        if self.distill_topk_kl_direction == "forward" and self.distill_topk_kl_estimator != "exact":
+            raise ValueError("[actor] forward top-k KL requires distill_topk_kl_estimator='exact'.")
         if not self.use_dynamic_bsz:
             if self.ppo_micro_batch_size is not None and self.ppo_micro_batch_size_per_gpu is not None:
                 raise ValueError(

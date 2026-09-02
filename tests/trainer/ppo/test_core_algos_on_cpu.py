@@ -80,6 +80,69 @@ def test_topk_distill_kl_matches_grouped_distribution_kl():
     assert teacher_logits.grad is None
 
 
+def test_topk_distill_kl_matches_grouped_reverse_kl():
+    student_logits = torch.tensor([[[1.0, 0.0, -1.0, 2.0]]], requires_grad=True)
+    teacher_logits = torch.tensor([[[2.0, 1.0, 0.0, -1.0]]], requires_grad=True)
+    topk_indices = torch.tensor([[[0, 1]]])
+    student_log_probs = torch.log_softmax(student_logits, dim=-1)
+    teacher_log_probs = torch.log_softmax(teacher_logits, dim=-1)
+    student_topk = torch.gather(student_log_probs, -1, topk_indices)
+    teacher_topk = torch.gather(teacher_log_probs, -1, topk_indices)
+    student_tail = torch.logsumexp(student_log_probs[..., 2:], dim=-1)
+    teacher_tail = torch.logsumexp(teacher_log_probs[..., 2:], dim=-1)
+
+    result = topk_distill_kl(
+        student_topk,
+        student_tail,
+        teacher_topk,
+        teacher_tail,
+        direction="reverse",
+    )
+    student_grouped = torch.cat([student_topk.exp(), student_tail.exp().unsqueeze(-1)], dim=-1)
+    teacher_grouped = torch.cat([teacher_topk.exp(), teacher_tail.exp().unsqueeze(-1)], dim=-1)
+    expected = (student_grouped * (student_grouped.log() - teacher_grouped.log())).sum(dim=-1)
+
+    torch.testing.assert_close(result, expected)
+    result.sum().backward()
+    assert student_logits.grad is not None
+    assert teacher_logits.grad is None
+
+
+def test_topk_distill_k1_and_k2_reverse_estimators():
+    student_logits = torch.tensor([[[1.0, 0.0, -1.0, 2.0]]], requires_grad=True)
+    teacher_logits = torch.tensor([[[2.0, 1.0, 0.0, -1.0]]])
+    topk_indices = torch.tensor([[[0, 1]]])
+    student_log_probs = torch.log_softmax(student_logits, dim=-1)
+    teacher_log_probs = torch.log_softmax(teacher_logits, dim=-1)
+    student_topk = torch.gather(student_log_probs, -1, topk_indices)
+    teacher_topk = torch.gather(teacher_log_probs, -1, topk_indices)
+    student_tail = torch.logsumexp(student_log_probs[..., 2:], dim=-1)
+    teacher_tail = torch.logsumexp(teacher_log_probs[..., 2:], dim=-1)
+
+    exact = topk_distill_kl(
+        student_topk, student_tail, teacher_topk, teacher_tail, direction="reverse", estimator="exact"
+    )
+    k1 = topk_distill_kl(
+        student_topk, student_tail, teacher_topk, teacher_tail, direction="reverse", estimator="k1"
+    )
+    student_probs = student_topk.exp()
+    student_tail_prob = student_tail.exp()
+    log_ratio = student_topk - teacher_topk
+    tail_log_ratio = student_tail - teacher_tail
+    expected_k2 = 0.5 * (
+        (student_probs * log_ratio.square()).sum(dim=-1) + student_tail_prob * tail_log_ratio.square()
+    )
+    k2 = topk_distill_kl(
+        student_topk, student_tail, teacher_topk, teacher_tail, direction="reverse", estimator="k2"
+    )
+
+    torch.testing.assert_close(k1, exact)
+    torch.testing.assert_close(k2, expected_k2)
+    exact_grad = torch.autograd.grad(exact.sum(), student_logits, retain_graph=True)[0]
+    k2_grad = torch.autograd.grad(k2.sum(), student_logits)[0]
+    torch.testing.assert_close(k2_grad, exact_grad)
+
+
 def test_topk_distill_kl_applies_temperature_squared_scaling():
     student_topk = torch.log(torch.tensor([[[0.2, 0.3]]]))
     teacher_topk = torch.log(torch.tensor([[[0.4, 0.1]]]))

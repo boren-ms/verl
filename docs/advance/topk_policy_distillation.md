@@ -93,16 +93,20 @@ actor_rollout_ref:
     use_kl_loss: true
     distill_topk: 64
     distill_temperature: 1.0
+                distill_topk_kl_direction: forward
+        distill_topk_kl_estimator: exact
     kl_loss_coef: 1.0
 ```
 
 - `distill_topk: 64` retains 64 teacher entries per response position.
 - `distill_temperature` must be positive and is applied to both distributions.
+- `distill_topk_kl_direction` selects `forward` $D_{KL}(T\Vert S)$ or `reverse` $D_{KL}(S\Vert T)$.
+- `distill_topk_kl_estimator` selects `exact`, `k1`, or `k2` for reverse top-k KD. `exact` and `k1` report the grouped reverse KL; `k2` reports the student-probability-weighted squared log-ratio surrogate. All three have the same student-logit gradient. Forward KL requires `exact`.
 - `distill_topk: 0` disables top-k transport and restores sampled-token KL through `kl_loss_type`.
 - Top-k mode requires `use_kl_loss: true`.
 - Top-k mode requires fused actor kernels to be disabled because raw logits are needed.
 
-Top-k and sampled-token KL are alternative objectives selected per run. They are not summed: when `distill_topk` is positive, the grouped top-k-plus-tail loss replaces `kl_loss_type`; when it is zero, the original sampled-token estimator is used.
+Top-k and sampled-token KL are alternative objectives selected per run. They are not summed: when `distill_topk` is positive, the grouped top-k-plus-tail loss and `distill_topk_kl_direction` replace `kl_loss_type`; when it is zero, the original sampled-token estimator is used.
 
 The reusable configuration is `recipe/phimm/config/base/distill_asr.yaml`. The concrete 2607 experiment is `recipe/phimm/config/distill_2607v1/distill_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1.yaml`.
 

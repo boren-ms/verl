@@ -1685,23 +1685,49 @@ def topk_distill_kl(
     teacher_topk_log_probs: torch.Tensor,
     teacher_tail_log_prob: torch.Tensor,
     temperature: float = 1.0,
+    direction: str = "forward",
+    estimator: str = "exact",
 ) -> torch.Tensor:
-    """Compute forward KL on teacher top-k tokens plus an aggregated vocabulary-tail bucket.
+    """Compute KL on teacher top-k tokens plus an aggregated vocabulary-tail bucket.
 
     All inputs are log-probabilities normalized over the full vocabulary. The top-k
     token identities are selected by the teacher and shared by the corresponding
     student inputs, while every token outside that set is represented by one tail
-    probability. The returned tensor has shape ``(batch_size, response_length)``.
+    probability. Reverse mode supports the exact/k1 KL value and a k2 surrogate
+    with the same gradient. The returned tensor has shape ``(batch_size,
+    response_length)``.
     """
     student_topk_log_probs = student_topk_log_probs.float()
     student_tail_log_prob = student_tail_log_prob.float()
     teacher_topk_log_probs = teacher_topk_log_probs.float().detach()
     teacher_tail_log_prob = teacher_tail_log_prob.float().detach()
 
-    teacher_topk_probs = teacher_topk_log_probs.exp()
-    teacher_tail_prob = teacher_tail_log_prob.exp()
-    topk_kl = teacher_topk_probs * (teacher_topk_log_probs - student_topk_log_probs)
-    tail_kl = teacher_tail_prob * (teacher_tail_log_prob - student_tail_log_prob)
+    if direction == "forward":
+        if estimator != "exact":
+            raise ValueError("Top-k KL estimators k1 and k2 are only supported for reverse KL.")
+        target_topk_probs = teacher_topk_log_probs.exp()
+        target_tail_prob = teacher_tail_log_prob.exp()
+        topk_log_ratio = teacher_topk_log_probs - student_topk_log_probs
+        tail_log_ratio = teacher_tail_log_prob - student_tail_log_prob
+    elif direction == "reverse":
+        target_topk_probs = student_topk_log_probs.exp()
+        target_tail_prob = student_tail_log_prob.exp()
+        topk_log_ratio = student_topk_log_probs - teacher_topk_log_probs
+        tail_log_ratio = student_tail_log_prob - teacher_tail_log_prob
+        if estimator in ("exact", "k1"):
+            pass
+        elif estimator == "k2":
+            target_topk_probs = target_topk_probs.detach()
+            target_tail_prob = target_tail_prob.detach()
+            topk_log_ratio = 0.5 * topk_log_ratio.square()
+            tail_log_ratio = 0.5 * tail_log_ratio.square()
+        else:
+            raise ValueError(f"Unsupported reverse top-k KL estimator: {estimator!r}. Expected exact, k1, or k2.")
+    else:
+        raise ValueError(f"Unsupported top-k KL direction: {direction!r}. Expected 'forward' or 'reverse'.")
+
+    topk_kl = target_topk_probs * topk_log_ratio
+    tail_kl = target_tail_prob * tail_log_ratio
     return (topk_kl.sum(dim=-1) + tail_kl) * (temperature**2)
 
 

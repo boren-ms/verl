@@ -50,6 +50,8 @@ actor_rollout_ref:
   actor:
     distill_topk: 64
     distill_temperature: 1.0
+    distill_topk_kl_direction: forward
+    distill_topk_kl_estimator: exact
 ```
 
 ```yaml

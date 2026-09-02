@@ -631,6 +631,8 @@ class DataParallelPPOActor(BasePPOActor):
                                 teacher_topk_log_probs=model_inputs["ref_topk_log_probs"],
                                 teacher_tail_log_prob=model_inputs["ref_tail_log_prob"],
                                 temperature=self.config.distill_temperature,
+                                direction=self.config.distill_topk_kl_direction,
+                                estimator=self.config.distill_topk_kl_estimator,
                             )
                         else:
                             ref_log_prob = model_inputs["ref_log_prob"]

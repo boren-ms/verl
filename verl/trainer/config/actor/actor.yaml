@@ -90,6 +90,12 @@ distill_topk: 0
 # Temperature applied to both teacher and student distributions for top-k distillation
 distill_temperature: 1.0
 
+# KL direction for grouped top-k distillation: forward is KL(teacher || student), reverse is KL(student || teacher)
+distill_topk_kl_direction: forward
+
+# Reverse top-k estimator: exact/k1 reports reverse KL; k2 reports the squared log-ratio surrogate
+distill_topk_kl_estimator: exact
+
 # Whether to use torch.compile()
 # oc.select: the default val for ref.use_torch_compile
 use_torch_compile: true

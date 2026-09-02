@@ -1,22 +1,22 @@
-updated_at_utc: 2026-09-01T22:45:38Z
+updated_at_utc: 2026-09-02T00:23:14Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i1           │ raysubmit_V2ZDXazemrKWA6tW   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1_t0                       │ training 150/793 (19%)       │
+│ i1           │ raysubmit_V2ZDXazemrKWA6tW   │ RUNNING       │ distill_2607v1_ls_rare_test_e1_bs256_n1_t0                       │ training 212/793 (27%)       │
 │ i10          │ raysubmit_efDJ6xSnTrj98Wmf   │ SUCCEEDED     │ distill_2607v1_ls_rare_test_s200_bs64_n1                         │ training 200/200 (complete)  │
-│ i11          │ raysubmit_aRsg8SgmwVmAFYhS   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs64_n1_lr0                     │ training 122/200 (61%)       │
+│ i11          │ raysubmit_uAsr7iJwaJXhbq4e   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs64_n1_lr0                     │ training 152/200 (76%)       │
 │ i12          │ raysubmit_tMqGw5FEZYVj4b22   │ STOPPED       │ distill_2607v1_ls_rare_test_s200_bs64_n1_lr0_tm0                 │ training 13/200 (stopped)    │
 │ i13          │ raysubmit_b6n5ikRuJUj1Ri4S   │ SUCCEEDED     │ eval_ls_2607v1                                                   │ evaluating LS c/o (complete) │
-│ i14          │ raysubmit_qxnh5fpHdqFEgJF1   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0                     │ training 8/200 (4%)          │
+│ i14          │ raysubmit_15vmdsxyNrceTSfQ   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0                     │ training 164/200 (82%)       │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
 - distill_2607v1_ls_rare_test_s200_bs256_n2 [i0]: complete step 200
-- distill_2607v1_ls_rare_test_e1_bs256_n1_t0 [i1]: training 150/793 (19%)
+- distill_2607v1_ls_rare_test_e1_bs256_n1_t0 [i1]: training 212/793 (27%)
 - distill_2607v1_ls_rare5k_s200_bs256_n2 [i8]: complete step 200
 - distill_2607v1_ls_rare_test_s200_bs64_n2_topk128 [i9]: complete step 200
 - distill_2607v1_ls_rare_test_s200_bs64_n1 [i10]: complete step 200
-- distill_2607v1_ls_rare_test_s200_bs64_n1_lr0 [i11]: training 122/200 (61%)
+- distill_2607v1_ls_rare_test_s200_bs64_n1_lr0 [i11]: training 152/200 (76%)
 - distill_2607v1_ls_rare_test_s200_bs64_n1_lr0_tm0 [i12]: training 13/200 (stopped)
-- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0 [i14]: training 8/200 (4%)
+- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0 [i14]: training 164/200 (82%)
