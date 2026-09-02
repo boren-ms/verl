@@ -1,11 +1,11 @@
-updated_at_utc: 2026-09-01T22:38:48Z
+updated_at_utc: 2026-09-02T17:05:00Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i2           │ raysubmit_TBJAx1TGdiQ2dAjh   │ RUNNING       │ remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1                          │ training 26/200 (13%)                     │
+│ i2           │ -                            │ SUCCEEDED     │ remax_2609v0_step160_report                                               │ building report (complete)               │
 │ i3           │ raysubmit_xVRKacv1TTJJbVQL   │ SUCCEEDED     │ eval_openasr_ml_verb_lid_2609v0                                           │ evaluating openasr_ml (complete)         │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i2`]: training 26/200 (13%)
+- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i2`]: complete step 160
