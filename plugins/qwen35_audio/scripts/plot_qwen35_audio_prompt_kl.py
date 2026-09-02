@@ -150,28 +150,6 @@ def normalized_words(text: str) -> list[str]:
     return re.findall(r"\w+", text.casefold())
 
 
-def student_response_ticks(fragments: list[str]) -> tuple[list[float], list[str]]:
-    response = "".join(fragments)
-    token_spans = []
-    offset = 0
-    for position, fragment in enumerate(fragments):
-        token_spans.append((position, offset, offset + len(fragment)))
-        offset += len(fragment)
-
-    tick_positions = []
-    tick_labels = []
-    for word_match in re.finditer(r"\S+", response):
-        positions = [
-            position
-            for position, token_start, token_end in token_spans
-            if token_start < word_match.end() and token_end > word_match.start()
-        ]
-        if positions:
-            tick_positions.append(sum(positions) / len(positions))
-            tick_labels.append(word_match.group())
-    return tick_positions, tick_labels
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -328,7 +306,7 @@ def write_outputs(output_path: Path, report: dict[str, Any]) -> Path:
     student_probabilities = [tokens["student_probability"][index] for index in indices]
     teacher_probabilities = [tokens["teacher_probability"][index] for index in indices]
     student_transcript = "".join(fragment_text).strip()
-    tick_positions, tick_labels = student_response_ticks(fragment_text)
+    tick_labels = [visible_token(fragment).removeprefix("\\s") for fragment in fragment_text]
     is_incorrect = normalized_words(student_transcript) != normalized_words(report["transcription"])
 
     figure, (k2_axis, probability_axis) = plt.subplots(
@@ -338,7 +316,7 @@ def write_outputs(output_path: Path, report: dict[str, Any]) -> Path:
         sharex=True,
         gridspec_kw={"height_ratios": [1.0, 1.15], "hspace": 0.16},
     )
-    positions = list(range(len(labels)))
+    positions = list(range(len(fragment_text)))
     k2_axis.bar(positions, estimates, color="#c84c3f", width=0.72, zorder=3)
     k2_axis.set_ylabel("Token-wise k2", fontsize=11)
     k2_axis.set_title("Prompt disagreement: 0.5 x (student log p - teacher log p)^2", fontsize=12)
@@ -375,7 +353,7 @@ def write_outputs(output_path: Path, report: dict[str, Any]) -> Path:
     probability_axis.set_ylim(0, 1.05)
     probability_axis.set_ylabel("Probability of generated token", fontsize=11)
     probability_axis.set_xlabel(f"Student response: {student_transcript}", fontsize=11, fontweight="bold")
-    probability_axis.set_xticks(tick_positions, tick_labels, fontsize=11)
+    probability_axis.set_xticks(positions, tick_labels, fontsize=11)
     probability_axis.grid(axis="y", alpha=0.2, zorder=0)
     probability_axis.legend(loc="upper right", frameon=False)
 

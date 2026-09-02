@@ -15,7 +15,6 @@ from plot_qwen35_audio_prompt_kl import (
     extract_chosen_logprobs,
     extract_suffix_logprobs,
     normalized_words,
-    student_response_ticks,
     transcript_token_fragments,
     validate_keywords,
     visible_token,
@@ -109,12 +108,6 @@ def test_transcript_token_fragments_exclude_structured_wrapper():
 
 def test_normalized_words_ignores_case_and_punctuation():
     assert normalized_words("Stephanos Dedalos.") == normalized_words("STEPHANOS DEDALOS")
-
-
-def test_student_response_ticks_group_subtokens_into_words():
-    positions, labels = student_response_ticks(["St", "ef", "ano", " St", "url", "a", "."])
-    assert positions == [1.0, 4.5]
-    assert labels == ["Stefano", "Sturla."]
 
 
 def test_write_outputs_creates_png_and_json(tmp_path):

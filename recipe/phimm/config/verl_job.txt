@@ -1,25 +1,25 @@
-updated_at_utc: 2026-09-02T00:46:55Z
+updated_at_utc: 2026-09-02T00:57:58Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i1           │ raysubmit_pf2xBN2UNSxY6vka   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k2                   │ training 18/200 (9%)         │
-│ i10          │ raysubmit_HuZMTast5nWnWCjP   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k1            │ training 0/200 (0%)          │
-│ i11          │ raysubmit_uAsr7iJwaJXhbq4e   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs64_n1_lr0                     │ training 182/200 (91%)       │
-│ i12          │ raysubmit_Ec392B5ksR34fHcG   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k2           │ training startup             │
-│ i13          │ raysubmit_iGTLzU7EVZuUTvHH   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k1                  │ training 9/200 (5%)          │
-│ i14          │ raysubmit_15vmdsxyNrceTSfQ   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0                     │ training 194/200 (97%)       │
-│ i15          │ raysubmit_KBkPJrbTeCVybygH   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_fk2          │ training startup             │
+│ i1           │ raysubmit_pf2xBN2UNSxY6vka   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k2                   │ training 34/200 (17%)        │
+│ i10          │ raysubmit_HuZMTast5nWnWCjP   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k1            │ training 1/200 (1%)          │
+│ i11          │ raysubmit_GZXV5XxBv1zv4ENs   │ RUNNING       │ distill_2607v1_ls_rare_test_s200_bs64_n1_lr0                     │ training startup             │
+│ i12          │ raysubmit_Ec392B5ksR34fHcG   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k2           │ training 0/200 (0%)          │
+│ i13          │ raysubmit_iGTLzU7EVZuUTvHH   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k1                  │ training 11/200 (6%)         │
+│ i14          │ raysubmit_15vmdsxyNrceTSfQ   │ SUCCEEDED     │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0                     │ training 200/200 (complete)  │
+│ i15          │ raysubmit_KBkPJrbTeCVybygH   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_fk2          │ training 6/200 (3%)          │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
 - distill_2607v1_ls_rare_test_s200_bs256_n2 [i0]: complete step 200
-- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k2 [i1]: training 18/200 (9%)
+- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k2 [i1]: training 34/200 (17%)
 - distill_2607v1_ls_rare5k_s200_bs256_n2 [i8]: complete step 200
 - distill_2607v1_ls_rare_test_s200_bs64_n2_topk128 [i9]: complete step 200
-- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k1 [i10]: training 0/200 (0%)
-- distill_2607v1_ls_rare_test_s200_bs64_n1_lr0 [i11]: training 182/200 (91%)
-- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k2 [i12]: training startup
-- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k1 [i13]: training 9/200 (5%)
-- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0 [i14]: training 194/200 (97%)
-- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_fk2 [i15]: training startup
+- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k1 [i10]: training 1/200 (1%)
+- distill_2607v1_ls_rare_test_s200_bs64_n1_lr0 [i11]: training startup
+- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k2 [i12]: training 0/200 (0%)
+- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k1 [i13]: training 11/200 (6%)
+- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0 [i14]: complete step 200
+- distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_fk2 [i15]: training 6/200 (3%)
