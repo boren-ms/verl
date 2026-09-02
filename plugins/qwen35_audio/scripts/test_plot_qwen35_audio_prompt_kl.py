@@ -10,10 +10,12 @@ from plot_qwen35_audio_prompt_kl import (
     DEFAULT_TRANSCRIPTION,
     build_teacher_instruction,
     build_chat_prefix,
+    compute_k2_estimates,
     compute_k3_estimates,
     extract_chosen_logprobs,
     extract_suffix_logprobs,
     normalized_words,
+    student_response_ticks,
     transcript_token_fragments,
     validate_keywords,
     visible_token,
@@ -86,6 +88,10 @@ def test_compute_k3_estimates_matches_repository_formula():
     assert compute_k3_estimates([-30.0], [0.0]) == [10.0]
 
 
+def test_compute_k2_estimates_matches_repository_formula():
+    assert compute_k2_estimates([-2.0, -1.0], [-1.0, -1.0]) == [0.5, 0.0]
+
+
 def test_visible_token():
     assert visible_token(" hello\n") == r"\shello\n"
     assert visible_token("") == "<empty>"
@@ -105,6 +111,12 @@ def test_normalized_words_ignores_case_and_punctuation():
     assert normalized_words("Stephanos Dedalos.") == normalized_words("STEPHANOS DEDALOS")
 
 
+def test_student_response_ticks_group_subtokens_into_words():
+    positions, labels = student_response_ticks(["St", "ef", "ano", " St", "url", "a", "."])
+    assert positions == [1.0, 4.5]
+    assert labels == ["Stefano", "Sturla."]
+
+
 def test_write_outputs_creates_png_and_json(tmp_path):
     output_path = tmp_path / "report.png"
     report = {
@@ -112,6 +124,8 @@ def test_write_outputs_creates_png_and_json(tmp_path):
         "keywords": ["hello"],
         "tokens": {
             "text": ["<TXT>", "hello", " world", "</TXT>"],
+            "student_logprob": [-0.1, -1.0, -0.5, -0.1],
+            "teacher_logprob": [-0.1, -2.0, -0.25, -0.1],
             "teacher_minus_student_logprob": [0.0, -0.5, 0.1, 0.0],
             "k3_estimate": [0.0, 0.1, 0.01, 0.0],
         },
@@ -120,4 +134,12 @@ def test_write_outputs_creates_png_and_json(tmp_path):
     json_path = write_outputs(output_path, report)
 
     assert output_path.stat().st_size > 0
-    assert json.loads(json_path.read_text())["tokens"]["k3_estimate"] == [0.0, 0.1, 0.01, 0.0]
+    output_tokens = json.loads(json_path.read_text())["tokens"]
+    assert output_tokens["k3_estimate"] == [0.0, 0.1, 0.01, 0.0]
+    assert output_tokens["k2_estimate"] == [0.0, 0.5, 0.03125, 0.0]
+    assert output_tokens["student_probability"] == pytest.approx(
+        [math.exp(-0.1), math.exp(-1.0), math.exp(-0.5), math.exp(-0.1)]
+    )
+    assert output_tokens["teacher_probability"] == pytest.approx(
+        [math.exp(-0.1), math.exp(-2.0), math.exp(-0.25), math.exp(-0.1)]
+    )

@@ -108,6 +108,19 @@ def compute_k3_estimates(student_logprobs: list[float], teacher_logprobs: list[f
     return estimates
 
 
+def compute_k2_estimates(student_logprobs: list[float], teacher_logprobs: list[float]) -> list[float]:
+    if len(student_logprobs) != len(teacher_logprobs):
+        raise ValueError("student and teacher log-probability lengths differ")
+    return [
+        0.5 * (student_logprob - teacher_logprob) ** 2
+        for student_logprob, teacher_logprob in zip(
+            student_logprobs,
+            teacher_logprobs,
+            strict=True,
+        )
+    ]
+
+
 def visible_token(token: str) -> str:
     return token.replace(" ", "\\s").replace("\n", "\\n").replace("\t", "\\t") or "<empty>"
 
@@ -135,6 +148,28 @@ def transcript_token_fragments(token_text: list[str]) -> list[tuple[int, str]]:
 
 def normalized_words(text: str) -> list[str]:
     return re.findall(r"\w+", text.casefold())
+
+
+def student_response_ticks(fragments: list[str]) -> tuple[list[float], list[str]]:
+    response = "".join(fragments)
+    token_spans = []
+    offset = 0
+    for position, fragment in enumerate(fragments):
+        token_spans.append((position, offset, offset + len(fragment)))
+        offset += len(fragment)
+
+    tick_positions = []
+    tick_labels = []
+    for word_match in re.finditer(r"\S+", response):
+        positions = [
+            position
+            for position, token_start, token_end in token_spans
+            if token_start < word_match.end() and token_end > word_match.start()
+        ]
+        if positions:
+            tick_positions.append(sum(positions) / len(positions))
+            tick_labels.append(word_match.group())
+    return tick_positions, tick_labels
 
 
 def parse_args() -> argparse.Namespace:
@@ -276,67 +311,76 @@ def write_outputs(output_path: Path, report: dict[str, Any]) -> Path:
     import matplotlib.pyplot as plt
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    tokens = report["tokens"]
+    tokens["k2_estimate"] = compute_k2_estimates(
+        tokens["student_logprob"],
+        tokens["teacher_logprob"],
+    )
+    tokens["student_probability"] = [math.exp(logprob) for logprob in tokens["student_logprob"]]
+    tokens["teacher_probability"] = [math.exp(logprob) for logprob in tokens["teacher_logprob"]]
     json_path = output_path.with_suffix(".json")
     json_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-    tokens = report["tokens"]
     fragments = transcript_token_fragments(tokens["text"])
     indices = [index for index, _ in fragments]
-    labels = [visible_token(fragment).removeprefix("\\s") for _, fragment in fragments]
-    effects = [tokens["teacher_minus_student_logprob"][index] for index in indices]
-    student_transcript = "".join(fragment for _, fragment in fragments).strip()
+    fragment_text = [fragment for _, fragment in fragments]
+    estimates = [tokens["k2_estimate"][index] for index in indices]
+    student_probabilities = [tokens["student_probability"][index] for index in indices]
+    teacher_probabilities = [tokens["teacher_probability"][index] for index in indices]
+    student_transcript = "".join(fragment_text).strip()
+    tick_positions, tick_labels = student_response_ticks(fragment_text)
     is_incorrect = normalized_words(student_transcript) != normalized_words(report["transcription"])
-    sequence_ratio = math.exp(max(-700.0, min(700.0, sum(effects))))
 
-    figure, axis = plt.subplots(figsize=(12.5, 7.2))
+    figure, (k2_axis, probability_axis) = plt.subplots(
+        2,
+        1,
+        figsize=(12.5, 9.2),
+        sharex=True,
+        gridspec_kw={"height_ratios": [1.0, 1.15], "hspace": 0.16},
+    )
     positions = list(range(len(labels)))
-    colors = ["#c84c3f" if effect < 0 else "#2f7d5c" for effect in effects]
-    axis.bar(positions, effects, color=colors, width=0.72, zorder=3)
-    axis.axhline(0, color="#252525", linewidth=1.0)
-    axis.set_xlabel("Tokens in the student's transcript", fontsize=11)
-    axis.set_ylabel("Teacher effect: log p(teacher) - log p(student)", fontsize=11)
-    axis.set_xticks(positions, labels, fontsize=10)
-    axis.grid(axis="y", alpha=0.2, zorder=0)
-    axis.text(
-        0.01,
-        0.98,
-        "ENCOURAGED by keyword hint",
-        color="#2f7d5c",
-        fontsize=10,
-        fontweight="bold",
-        ha="left",
-        va="top",
-        transform=axis.transAxes,
-    )
-    axis.text(
-        0.01,
-        0.02,
-        "PENALIZED by keyword hint",
-        color="#c84c3f",
-        fontsize=10,
-        fontweight="bold",
-        ha="left",
-        va="bottom",
-        transform=axis.transAxes,
-    )
-    if effects and min(effects) < 0:
-        penalized_position = effects.index(min(effects))
-        axis.annotate(
-            "Keyword hint strongly penalizes\nthis part of the wrong response",
-            xy=(penalized_position, effects[penalized_position]),
-            xytext=(penalized_position, min(effects) * 0.45),
+    k2_axis.bar(positions, estimates, color="#c84c3f", width=0.72, zorder=3)
+    k2_axis.set_ylabel("Token-wise k2", fontsize=11)
+    k2_axis.set_title("Prompt disagreement: 0.5 x (student log p - teacher log p)^2", fontsize=12)
+    k2_axis.grid(axis="y", alpha=0.2, zorder=0)
+    if estimates:
+        largest_position = estimates.index(max(estimates))
+        k2_axis.annotate(
+            "Largest student-teacher\ndistribution mismatch",
+            xy=(largest_position, estimates[largest_position]),
+            xytext=(largest_position, max(estimates) * 0.62),
             arrowprops={"arrowstyle": "->", "color": "#8f3028"},
             color="#8f3028",
             fontweight="bold",
             ha="center",
         )
 
-    verdict = "INCORRECT" if is_incorrect else "MATCHES REFERENCE"
-    headline = (
-        "Keyword hint penalizes the student's wrong transcription"
-        if is_incorrect
-        else "Keyword hint changes confidence in the student's transcription"
+    bar_width = 0.36
+    probability_axis.bar(
+        [position - bar_width / 2 for position in positions],
+        student_probabilities,
+        width=bar_width,
+        color="#3676a8",
+        label="Student prompt",
+        zorder=3,
     )
+    probability_axis.bar(
+        [position + bar_width / 2 for position in positions],
+        teacher_probabilities,
+        width=bar_width,
+        color="#d79032",
+        label="Teacher keyword prompt",
+        zorder=3,
+    )
+    probability_axis.set_ylim(0, 1.05)
+    probability_axis.set_ylabel("Probability of generated token", fontsize=11)
+    probability_axis.set_xlabel(f"Student response: {student_transcript}", fontsize=11, fontweight="bold")
+    probability_axis.set_xticks(tick_positions, tick_labels, fontsize=11)
+    probability_axis.grid(axis="y", alpha=0.2, zorder=0)
+    probability_axis.legend(loc="upper right", frameon=False)
+
+    verdict = "INCORRECT" if is_incorrect else "MATCHES REFERENCE"
+    headline = "Token-wise k2 on the model's real <TXT> output"
     figure.suptitle(headline, fontsize=18, fontweight="bold")
     figure.text(0.08, 0.89, f"Reference:  {report['transcription']}", fontsize=12)
     figure.text(
@@ -351,11 +395,11 @@ def write_outputs(output_path: Path, report: dict[str, Any]) -> Path:
     figure.text(
         0.08,
         0.785,
-        f"Under the keyword prompt, this same response is {sequence_ratio:.2%} as likely.",
+        "Higher bars mean the regular and keyword prompts disagree more on that output token.",
         fontsize=12,
         fontweight="bold",
     )
-    figure.subplots_adjust(left=0.08, right=0.98, bottom=0.12, top=0.72)
+    figure.subplots_adjust(left=0.08, right=0.98, bottom=0.09, top=0.7)
     figure.savefig(output_path, dpi=180)
     plt.close(figure)
     return json_path
@@ -412,6 +456,7 @@ def main() -> None:
         args.temperature,
     )
     estimates = compute_k3_estimates(student_logprobs, teacher_logprobs)
+    k2_estimates = compute_k2_estimates(student_logprobs, teacher_logprobs)
     log_ratios = [
         teacher - student
         for student, teacher in zip(student_logprobs, teacher_logprobs, strict=True)
@@ -433,6 +478,7 @@ def main() -> None:
             "student_logprob": student_logprobs,
             "teacher_logprob": teacher_logprobs,
             "teacher_minus_student_logprob": log_ratios,
+            "k2_estimate": k2_estimates,
             "k3_estimate": estimates,
         },
         "summary": {
