@@ -1,13 +1,13 @@
-updated_at_utc: 2026-09-02T04:22:34Z
+updated_at_utc: 2026-09-02T16:50:58Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
 │ i1           │ raysubmit_pf2xBN2UNSxY6vka   │ LOST          │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_k2                   │ training 200/200 (complete)  │
 │ i10          │ raysubmit_HuZMTast5nWnWCjP   │ SUCCEEDED     │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k1            │ training 200/200 (complete)  │
-│ i11          │ raysubmit_QBMNZQh9SHprmj8u   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs256_n4_lr0_topk20_k2           │ training 51/200 (26%)        │
+│ i11          │ raysubmit_umZpWUQBiMYjQfXp   │ RUNNING       │ distill_2607v1_ls_kw_fixed_s200_bs256_n4_lr0_topk20_k2           │ training 181/200 (91%)       │
 │ i12          │ raysubmit_JcdpJKeY1z7srkCp   │ SUCCEEDED     │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k2           │ training 200/200 (complete)  │
-│ i13          │ raysubmit_TA2tLX98JLaS92ys   │ STOPPED       │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_k1                      │ training 123/200 (stopped)   │
+│ i13          │ raysubmit_XzwjDDXi38YDXb6y   │ SUCCEEDED     │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_topk20_k2               │ training 200/200 (complete)  │
 │ i14          │ raysubmit_15vmdsxyNrceTSfQ   │ SUCCEEDED     │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0                     │ training 200/200 (complete)  │
 │ i15          │ raysubmit_KBkPJrbTeCVybygH   │ SUCCEEDED     │ distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_fk2          │ training 200/200 (complete)  │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
@@ -18,8 +18,8 @@ Reports:
 - distill_2607v1_ls_rare5k_s200_bs256_n2 [i8]: complete step 200
 - distill_2607v1_ls_rare_test_s200_bs64_n2_topk128 [i9]: complete step 200
 - distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k1 [i10]: complete step 200
-- distill_2607v1_ls_kw_fixed_s200_bs256_n4_lr0_topk20_k2 [i11]: training 51/200 (26%)
+- distill_2607v1_ls_kw_fixed_s200_bs256_n4_lr0_topk20_k2 [i11]: training 181/200 (91%)
 - distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_k2 [i12]: complete step 200
-- distill_2607v1_ls_kw_fixed_s200_bs64_n1_k1 [i13]: stopped step 123
+- distill_2607v1_ls_kw_fixed_s200_bs64_n1_topk20_k2 [i13]: complete step 200
 - distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0 [i14]: complete step 200
 - distill_2607v1_ls_kw_fixed_s200_bs64_n1_lr0_topk20_fk2 [i15]: complete step 200
