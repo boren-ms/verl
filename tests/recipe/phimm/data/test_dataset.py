@@ -64,6 +64,19 @@ def test_random_cut_keeps_matching_text_and_audio_prefix(monkeypatch):
     assert result[0]["audio_path"] == "sample.wav#0%:50%"
 
 
+def test_add_rare_keywords_supports_rare_file_without_common_file(monkeypatch):
+    dataset = Dataset.from_dict({"text": ["common keyword absent"]})
+    monkeypatch.setattr(
+        dataset_module,
+        "read_words",
+        lambda file_path, **kwargs: ["keyword", "missing"] if file_path == "rare.txt" else [],
+    )
+
+    result = dataset_module.add_rare_keywords(dataset, rare_file="rare.txt")
+
+    assert result[0]["keywords"] == ["keyword"]
+
+
 def test_random_cut_supports_max_words_range(monkeypatch):
     dataset = Dataset.from_dict(
         {"text": ["one two three four five six"], "audio_path": ["sample.wav"]}

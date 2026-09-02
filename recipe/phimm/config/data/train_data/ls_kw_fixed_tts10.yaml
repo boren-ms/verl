@@ -1,0 +1,17 @@
+# Synthetic LibriSpeech fixed-keyword ASR data generated with Azure Text to Speech
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/tts/ls_kw_fixed_10_strings/ls_kw_fixed_10_strings.jsonl
+pre_process:
+  path_map:
+    field: audio_path
+    src_part: "audios/"
+    dst_part: "az://orngwus2cresco/data/boren/data/tts/ls_kw_fixed_10_strings/audios/"
+add_task_info:
+  task: lang_asr
+  prefix_prob: 0.5
+post_process:
+  add_field:
+    fields:
+      data_source: ls_kw_fixed
+  verl_format:
+    prompt_key: prompt

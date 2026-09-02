@@ -1,0 +1,31 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/ls_clean_kw_fix.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: /root/data/
+      dst_part: az://orngwus2cresco/data/boren/data/
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_fix
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/ls_other_kw_fix.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: /root/data/
+      dst_part: az://orngwus2cresco/data/boren/data/
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: other_fix
+    verl_format:
+      prompt_key: prompt

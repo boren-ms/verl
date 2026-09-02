@@ -1,0 +1,37 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: /root/data/
+      dst_part: az://orngwus2cresco/data/boren/data/
+    rename_fields:
+      mappings:
+        keywords: ground_truth
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_0
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: /root/data/
+      dst_part: az://orngwus2cresco/data/boren/data/
+    rename_fields:
+      mappings:
+        keywords: ground_truth
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: other_0
+    verl_format:
+      prompt_key: prompt

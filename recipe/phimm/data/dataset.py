@@ -832,28 +832,30 @@ def svad_explode(ds, **kwargs):
 
 
 def add_rare_keywords(ds, **kwargs):
+    """Add normalized words selected by a rare list or common-word exclusion."""
     tn_name = kwargs.get("tn_name", "english")
-    rare_ratio = kwargs.get("rare_ratio", None)
-    rare_num = kwargs.get("rare_num", None)
+    rare_ratio = kwargs.get("rare_ratio", 1.0)
     common_file = kwargs.get("common_file", None)
     common_num = kwargs.get("common_num", 10000)
-    assert common_file is not None, "common_file must be set"
-    wd_cnt = read_word_count(common_file, num=common_num, tn_name=tn_name)
+    rare_file = kwargs.get("rare_file", None)
+    rare_num = kwargs.get("rare_num", None)
+    assert common_file is not None or rare_file is not None, "common_file or rare_file must be set"
+    common_words = set(read_words(common_file, num=common_num, tn_name=tn_name))
+    rare_words = set(read_words(rare_file, num=rare_num, tn_name=tn_name))
 
-    def rare_words(egs):
+    def add_kw_fn(egs):
         text = text_norm(egs["text"], tn_name)
-        words = set(text.split())
-        words = [w for w in words if len(w) > 1]  # filter single character words
-        n_rare = int(len(words) * rare_ratio) if rare_ratio else rare_num
-        if not n_rare:
-            keywords = [w for w in words if w not in wd_cnt]
-        else:
-            sorted_wds = sorted(words, key=lambda w: wd_cnt.get(w, 0))
-            keywords = sorted_wds[:n_rare]
+        words = {word for word in text.split() if len(word) > 1}
+        limit = int(len(words) * rare_ratio)
+        keywords = words - common_words
 
+        if rare_words:
+            keywords &= rare_words
+        if len(keywords) > limit:
+            keywords = random.sample(list(keywords), limit)
         return {"keywords": list(keywords)}
 
-    ds = ds.map(rare_words, **pop_map_kwargs(kwargs))
+    ds = ds.map(add_kw_fn, **pop_map_kwargs(kwargs))
     return ds
 
 
