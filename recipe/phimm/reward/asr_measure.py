@@ -94,11 +94,7 @@ def _punc_signature(word: str) -> str:
     Used to detect whether two tokens differ only in punctuation attachment.
     Only considers regular punctuation at word edges.
     """
-    return "".join(
-        c + str(i)
-        for i, c in enumerate(word)
-        if _is_edge_punc(word, i)
-    )
+    return "".join(c + str(i) for i, c in enumerate(word) if _is_edge_punc(word, i))
 
 
 # ---------------------------------------------------------------------------
@@ -267,6 +263,54 @@ def compute_openml_acc(hyp_text: str, ground_truth: str, tgt_lang: str, **kwargs
     }
 
 
+def _keyword_indices(words: list[str], keywords: list[str]) -> set[int]:
+    indices = set()
+    for keyword in keywords:
+        keyword_words = keyword.split()
+        if not keyword_words:
+            continue
+        width = len(keyword_words)
+        for start in range(len(words) - width + 1):
+            if words[start : start + width] == keyword_words:
+                indices.update(range(start, start + width))
+    return indices
+
+
+def compute_kw_acc(
+    ref: str,
+    hyp: str,
+    keywords: list[str] | None = None,
+    text_norm: str | None = None,
+    tgt_lang: str = "english",
+) -> float:
+    """Return word accuracy over normalized keyword spans."""
+    from recipe.phimm.reward.asr_edge import _norm_text
+
+    if not keywords:
+        return 1.0
+
+    ref_words = _norm_text(ref or "", name=text_norm, lang=tgt_lang).split()
+    hyp_words = _norm_text(hyp or "", name=text_norm, lang=tgt_lang).split()
+    kw_words = [_norm_text(keyword, name=text_norm, lang=tgt_lang) for keyword in keywords]
+    ref_keyword_indices = _keyword_indices(ref_words, kw_words)
+    hyp_keyword_indices = _keyword_indices(hyp_words, kw_words)
+
+    output = process_words(" ".join(ref_words), " ".join(hyp_words))
+    errors = 0
+    references = 0
+    for chunk in output.alignments[0]:
+        if chunk.type == "equal":
+            references += sum(idx in ref_keyword_indices for idx in range(chunk.ref_start_idx, chunk.ref_end_idx))
+        elif chunk.type in {"substitute", "delete"}:
+            keyword_errors = sum(idx in ref_keyword_indices for idx in range(chunk.ref_start_idx, chunk.ref_end_idx))
+            references += keyword_errors
+            errors += keyword_errors
+        elif chunk.type == "insert":
+            errors += sum(idx in hyp_keyword_indices for idx in range(chunk.hyp_start_idx, chunk.hyp_end_idx))
+
+    return 1.0 - errors / references if references else 1.0
+
+
 def _parse_response(solution_str, ground_truth=None, **kwargs):
     """Extract text, format/language, lexical, and edge-check accuracies."""
     from recipe.phimm.reward.asr_edge import measure
@@ -278,12 +322,20 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
+    keyword_acc = compute_kw_acc(
+        ground_truth or "",
+        hyp_text,
+        keywords=extra_info.get("keywords"),
+        text_norm=kwargs.get("text_norm"),
+        tgt_lang=tgt_lang,
+    )
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
 
     return {
         "char": char_error.accuracy(),
         "word": word_error.accuracy(),
+        "keyword": keyword_acc,
         **fmts,
         "lang": check_lang(task_output, tgt_lang),
         "fmt": float(check_fmt(task_output)),
@@ -383,9 +435,7 @@ def check_fmt(task_output) -> bool:
     if task_output is None:
         return False
     src_langs, tgt_langs, _ = task_output
-    return [get_language_code(name) for name in src_langs] == [
-        get_language_code(name) for name in tgt_langs
-    ]
+    return [get_language_code(name) for name in src_langs] == [get_language_code(name) for name in tgt_langs]
 
 
 def clip(x, lo=-1.0, hi=1.0):
@@ -458,7 +508,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
             punc: {beta: 0.5, gamma: 0.2}
     """
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
-    
+
     measures = kwargs.get("measures") or {}
     reduce = kwargs.get("reduce", "sum").lower()
     gamma = float(kwargs.get("gamma", 1.0))

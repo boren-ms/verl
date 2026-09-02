@@ -5,6 +5,7 @@ from recipe.phimm.reward.asr_measure import (
     _parse_task_output,
     check_fmt,
     check_lang,
+    compute_kw_acc,
     lang_score,
 )
 
@@ -75,6 +76,34 @@ def test_parse_response_uses_structured_task_output():
     assert result["word"] == 1.0
     assert result["lang"] == 1.0
     assert result["fmt"] == 1.0
+
+
+@pytest.mark.parametrize(
+    ("reference", "hypothesis", "keywords", "expected"),
+    [
+        ("the quick brown fox", "the quick brown fox", ["brown"], 1.0),
+        ("the quick brown fox", "the quick blue fox", ["brown"], 0.0),
+        ("the quick brown fox", "the quick fox", ["brown"], 0.0),
+        ("the quick brown fox", "the quick brown brown fox", ["brown"], 0.0),
+        ("new york state", "new york state", ["new york"], 1.0),
+        ("new york state", "new state", ["new york"], 0.5),
+        ("the quick brown fox", "the quick blue fox", None, 1.0),
+    ],
+)
+def test_compute_kw_acc(reference, hypothesis, keywords, expected):
+    result = compute_kw_acc(reference, hypothesis, keywords)
+
+    assert result == expected
+
+
+def test_parse_response_reports_keyword_accuracy():
+    result = _parse_response(
+        "the quick blue fox",
+        ground_truth="the quick brown fox",
+        extra_info={"keywords": ["brown"]},
+    )
+
+    assert result["keyword"] == 0.0
 
 
 @pytest.mark.parametrize(
