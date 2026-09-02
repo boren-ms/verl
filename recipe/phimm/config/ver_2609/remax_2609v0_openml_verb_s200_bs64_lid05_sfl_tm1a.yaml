@@ -1,0 +1,32 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - data/train_data/openml_verb
+  - _self_
+
+reward_functions:
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 0.5}
+        word: {beta: 0.5}
+        lang: {beta: 1.0}
+        fmt: {beta: 1.0}
+        bracket: {beta: 1.0}
+        repeat: {beta: 1.0}
+        # tail_hallu: {beta: 1.0}
+
+reward_function_by_data_source:
+  mix: openml
+  openml: openml
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4.3-sr-newformat-cut/20000/qwen_hf/
+    lora_rank: 64

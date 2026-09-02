@@ -119,7 +119,7 @@ data:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
   eval_num_examine: 20
-  train_num_examine: ${actor_rollout_ref.rollout.n}
+  train_num_examine: ${eval:${actor_rollout_ref.rollout.n}*10}
 
 reward_model:
   reward_manager: dapo
