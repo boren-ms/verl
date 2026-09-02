@@ -1,35 +1,37 @@
-# requirements.txt records the full set of dependencies for development
-accelerate==1.14.0
-codetiming
-datasets==4.0.0
-dill
-torch==2.10.0
-torchaudio==2.10.0
-torchvision==0.25.0
+# requirements_vllm.txt — dependency pins for the vLLM 0.24.0 environment
+# Installed by quick_install.sh after `pip install --no-deps vllm==0.24.0`
+#
+# DO NOT add ray or protobuf here — they come from the base image.
+
+# PyTorch stack
+torch==2.11.0
+torchaudio==2.11.0
+torchvision==0.26.0
 torchdata==0.11.0
-hydra-core
-liger-kernel
+
+# Core ML libraries
+transformers==5.7.0
+accelerate==1.14.0
+datasets==4.0.0
+peft==0.19.1
+safetensors==0.5.3
+tokenizers==0.22.2
+huggingface_hub==1.13.0
+liger_kernel==0.8.0
+tensordict==0.10.0
 numpy<2.0.0
-pandas
-peft
-pyarrow>=19.0.0
-pybind11
-pylatexenc
-pre-commit
-# ray is installed separately after vllm to allow version override
-# ray[default]==2.46.0  # DO NOT uncomment — keep the base image's Ray version
-# vllm inference deps (installed --no-deps to avoid protobuf/ray conflicts)
-model-hosting-container-standards==0.1.15
-prometheus-fastapi-instrumentator==7.1.0
+
+# vLLM inference deps (installed --no-deps to avoid protobuf/ray conflicts)
+flashinfer-python==0.6.12
+flashinfer-cubin==0.6.12
+xgrammar==0.1.29
+sentencepiece==0.2.1
 compressed-tensors
 depyf
-openai-harmony
 outlines_core
 partial-json-parser
 lm-format-enforcer
-xgrammar==0.1.29
 gguf
-sentencepiece
 mistral_common
 blake3
 cbor2
@@ -39,16 +41,23 @@ rignore
 fastar
 quack-kernels
 llguidance
-tensordict>=0.8.0,<=0.10.0,!=0.9.0
-transformers==5.7.0
-flashinfer-python==0.6.4
-flashinfer-cubin==0.6.4
+
+# Verl project deps
+hydra-core==1.3.3
+pandas
+pyarrow>=19.0.0
+pybind11
+pylatexenc
+codetiming
+dill
 wandb
+packaging>=20.0
 uvicorn
 fastapi
+
+# Reward / eval deps
 latex2sympy2_extended
 math_verify
-tensorboard
 blobfile
 scipy
 soundfile
@@ -58,12 +67,9 @@ jiwer>=4.0.0
 editdistance
 num2words
 evaluate
-fire
-backoff
-qwen_vl_utils
-huggingface-hub==1.13.0
-tokenizers==0.22.2
-regex==2026.4.4
-packaging==26.0
-tqdm==4.67.3
-typer
+tensorboard
+
+# Serving
+prometheus-fastapi-instrumentator
+model-hosting-container-standards
+openai-harmony
