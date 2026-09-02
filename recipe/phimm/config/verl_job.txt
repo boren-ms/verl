@@ -1,11 +1,11 @@
-updated_at_utc: 2026-09-02T17:05:00Z
+updated_at_utc: 2026-09-02T18:53:31Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i2           │ -                            │ SUCCEEDED     │ remax_2609v0_step160_report                                               │ building report (complete)               │
+│ i2           │ raysubmit_ijhCpRjSD8TBz5Dr   │ RUNNING       │ mtp_step2000_inhouse_dter_candidate                                       │ evaluating inhouse_dter (decoding)       │
 │ i3           │ raysubmit_xVRKacv1TTJJbVQL   │ SUCCEEDED     │ eval_openasr_ml_verb_lid_2609v0                                           │ evaluating openasr_ml (complete)         │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i2`]: complete step 160
+- `fast-llm-2607-qwen3-5-9b-s2-data-mtp` [`i2`]: evaluating inhouse_dter step 2000
