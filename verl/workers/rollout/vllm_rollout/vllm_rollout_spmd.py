@@ -67,10 +67,13 @@ logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 
 
-
-
 DEEPSEEK_OCR_NGRAM_FQCN = "vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor"
 VLLM_SUPPORTED_MAX_LORA_RANKS = (1, 8, 16, 32, 64, 128, 256, 320, 512)
+
+
+def _build_compilation_config(level: int, **kwargs: Any) -> CompilationConfig:
+    level_key = "level" if "level" in inspect.signature(CompilationConfig).parameters else "mode"
+    return CompilationConfig(**{level_key: level}, **kwargs)
 
 
 def _ensure_ngram_processor(engine_kwargs: dict[str, Any]) -> None:
@@ -195,13 +198,13 @@ class vLLMRollout(BaseRollout):
         if self.lora_kwargs:
             # vLLM's compiled LoRA shrink kernel can spin indefinitely on H100
             # during rollout. Keep normal vLLM execution but bypass torch.compile.
-            compilation_config["compilation_config"] = CompilationConfig(level=0)
+            compilation_config["compilation_config"] = _build_compilation_config(level=0)
         else:
             cudagraph_capture_sizes = config.get("cudagraph_capture_sizes")
             # enforce_eager must be False to use cudagraph
             if not config.enforce_eager and cudagraph_capture_sizes:
                 if isinstance(cudagraph_capture_sizes, ListConfig):
-                    compilation_config["compilation_config"] = CompilationConfig(
+                    compilation_config["compilation_config"] = _build_compilation_config(
                         level=3, cudagraph_capture_sizes=cudagraph_capture_sizes
                     )
                 else:
