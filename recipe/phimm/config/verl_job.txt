@@ -1,18 +1,20 @@
-updated_at_utc: 2026-09-02T22:06:00Z
+updated_at_utc: 2026-09-02T22:08:53Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
 │ i0           │ raysubmit_6v4dAi8za5FpwzUh   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1             │ training 16/200 (8%)                     │
 │ i1           │ raysubmit_AzJgmjGHV3LurTem   │ RUNNING       │ remax_2609v0a_openml_verb_s200_bs64_lid05_sfl_tm1a                        │ training 55/200 (27.5%)                  │
-│ i2           │ raysubmit_DMtibe9z8rhvpNsr   │ RUNNING       │ qwen_2609v0a_step2000_digits_enus_reference                               │ evaluating digits_enus (model startup)   │
-│ i3           │ raysubmit_BdH9FVLJtwPUvRqZ   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db          │ training 2/200 (1%)                      │
+│ i2           │ raysubmit_zXVEGCnJwgwZMFNN   │ RUNNING       │ qwen_2609v0a_step2000_openasr_ml_candidate                                │ evaluating openasr_ml (model startup)    │
+│ i3           │ raysubmit_BdH9FVLJtwPUvRqZ   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db          │ training 3/200 (1.5%)                    │
 │ i4           │ raysubmit_E68G2JtZ5MKGN9tD   │ RUNNING       │ remax_ls_kw_fixed_s200_bs64                                                │ training startup                         │
+│ i5           │ raysubmit_6AYKyxxKeD4DGbiu   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1             │ training startup                         │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
 - `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1` [`i0`]: training 16/200 (8%)
 - `remax_2609v0a_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i1`]: training 55/200 (27.5%)
-- `qwen_2609v0a` [`i2`]: evaluating digits_enus step 2000
-- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db` [`i3`]: training 2/200 (1%)
+- `qwen_2609v0a` [`i2`]: evaluating openasr_ml step 2000
+- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db` [`i3`]: training 3/200 (1.5%)
 - `remax_ls_kw_fixed_s200_bs64` [`i4`]: training startup
+- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1` [`i5`]: training startup
