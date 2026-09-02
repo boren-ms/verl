@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-02T21:12:15Z
+updated_at_utc: 2026-09-02T21:15:14Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
@@ -7,7 +7,7 @@ updated_at_utc: 2026-09-02T21:12:15Z
 │ i1           │ raysubmit_AzJgmjGHV3LurTem   │ RUNNING       │ remax_2609v0a_openml_verb_s200_bs64_lid05_sfl_tm1a                        │ training 26/200 (13%)                    │
 │ i2           │ raysubmit_ijhCpRjSD8TBz5Dr   │ RUNNING       │ mtp_step2000_inhouse_dter_candidate                                       │ evaluating inhouse_dter (decoding)       │
 │ i3           │ raysubmit_5Lhf4vMmLfL2NdfX   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db          │ training 0/200 (0%)                      │
-│ i13          │ pending                      │ PENDING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1             │ training startup                         │
+│ i13          │ raysubmit_vgU2GG3jAppdmBhy   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1             │ training startup                         │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
