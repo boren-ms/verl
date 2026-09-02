@@ -27,11 +27,11 @@ Run every required config with the candidate model path as a Hydra override. Eac
 
 | Workbook sheet | Config | Metric | Reference source |
 |---|---|---|---|
-| `inhouse_dter` | `recipe/phimm/config/eval/long_eval_inhouse_2609_all_seg30.yaml` | micro-DTER | `model.path` in the config and its reference result directory. |
-| `digits_enus` | `recipe/phimm/config/eval/eval_digits_enus_2609.yaml` | Digit CER and WER | Required by default; baseline is `actor_rollout_ref.model.path`. |
-| `openasr_ml` | `recipe/phimm/config/eval/eval_openasr_ml_verb_2609.yaml` | WER / `p_err` | `actor_rollout_ref.model.path` in the config. |
-| `mixlang` | `recipe/phimm/config/eval/long_eval_mixlang_fy26q2_zh_seg_2609.yaml` | DTER / TER | `model.path` in the config and its reference result directory. |
-| `digits_tier1` | `recipe/phimm/config/eval/eval_digits_tier1_2609.yaml` | Digit CER and WER | Only include when `--include-digits-tier1`; baseline is `actor_rollout_ref.model.path`. |
+| `inhouse_dter` | `recipe/phimm/config/eval/eval_v2609/long_eval_inhouse_all_seg30.yaml` | micro-DTER | `model.path` in the config and its reference result directory. |
+| `digits_enus` | `recipe/phimm/config/eval/eval_v2609/eval_digits_enus.yaml` | Digit CER and WER | Required by default; baseline is `actor_rollout_ref.model.path`. |
+| `openasr_ml` | `recipe/phimm/config/eval/eval_v2609/eval_openasr_ml_verb.yaml` | WER / `p_err` | `actor_rollout_ref.model.path` in the config. |
+| `mixlang` | `recipe/phimm/config/eval/eval_v2609/long_eval_mixlang_fy26q2_zh_seg.yaml` | DTER / TER | `model.path` in the config and its reference result directory. |
+| `digits_tier1` | `recipe/phimm/config/eval/eval_v2609/eval_digits_tier1.yaml` | Digit CER and WER | Only include when `--include-digits-tier1`; baseline is `actor_rollout_ref.model.path`. |
 
 The reference checkpoint and candidate must use the same config, data, locale, scoring backend, and segment settings. In particular, do not compare MixLang's zh-CN TER to an unrelated DTER result.
 
