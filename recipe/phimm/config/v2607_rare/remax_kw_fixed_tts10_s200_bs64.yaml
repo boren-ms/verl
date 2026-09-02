@@ -16,11 +16,14 @@ reward_functions:
       measures:
         char: {beta: 0.5}
         word: {beta: 0.5}
+        keyword: {beta: 2.0}
         lang: {beta: 1.0}
         fmt: {beta: 1.0}
-        bracket: {beta: 1.0}
-        repeat: {beta: 1.0}
-        # tail_hallu: {beta: 1.0}
 
 reward_function_by_data_source:
   kw_fixed: openml
+
+actor_rollout_ref:
+  actor:
+    ppo_micro_batch_size_per_gpu: 2
+    ppo_max_token_len_per_gpu: 2048
