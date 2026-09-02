@@ -1,13 +1,11 @@
 hydra:
   searchpath:
     - file://recipe/phimm/config
-    - file://recipe/phimm/config/ver_2609
-    - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - /v2609_asr
-  - /data/train_data/ls_kw_fixed_tts10@data.train_files
-  - /data/val_data/ls_kw_fixed@data.val_files
+  - /ver_2609/v2609_asr@_global_
+  - /data/train_data/ls_ts_kw_fixed@data.train_files
+  - /data/val_data/kw_ls@data.val_files
   - _self_
 
 reward_functions:
@@ -26,7 +24,7 @@ reward_functions:
         # tail_hallu: {beta: 1.0}
 
 reward_function_by_data_source:
-  ls_kw_fixed: openml
+  ls_ts_rare: openml
 
 actor_rollout_ref:
   actor:

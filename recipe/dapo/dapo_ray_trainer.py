@@ -274,7 +274,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                         # For now, set token_level_rewards = token_level_scores (KL applied later).
                         new_batch.batch["token_level_rewards"] = new_batch.batch["token_level_scores"]
                     # check zero std prompts
-                    metric_name = self.config.algorithm.filter_groups.metric
+                    metric_name = self.config.algorithm.filter_groups.get("metric", "seq_reward")
                     if metric_name == "seq_final_reward":
                         # Turn to numpy for easier filtering
                         new_batch.non_tensor_batch["seq_final_reward"] = (

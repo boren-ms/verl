@@ -12,6 +12,6 @@ add_task_info:
 post_process:
   add_field:
     fields:
-      data_source: ls_kw_fixed
+      data_source: kw_fixed
   verl_format:
     prompt_key: prompt

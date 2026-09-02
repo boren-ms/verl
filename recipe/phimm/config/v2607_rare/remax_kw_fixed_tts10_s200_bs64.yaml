@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - /v2607_rare/base@_global_
-  - /data/train_data/kw_fixed_ls@data.train_files
+  - /data/train_data/kw_fixed_tts10@data.train_files
   - _self_
 
 reward_functions:

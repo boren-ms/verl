@@ -188,7 +188,7 @@ class RayEntropyTrainer(RayPPOTrainer):
                         batch = new_batch
                     else:  # NOTE: When prompts after filtering is less than train batch size,
                         # we skip to the next generation batch
-                        metric_name = self.config.algorithm.filter_groups.metric
+                        metric_name = self.config.algorithm.filter_groups.get("metric", "seq_reward")
                         if metric_name == "seq_final_reward":
                             # Turn to numpy for easier filtering
                             new_batch.non_tensor_batch["seq_final_reward"] = (
