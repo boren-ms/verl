@@ -1821,7 +1821,10 @@ def augment(ds, **kwargs):
     # if tag_entity_kwargs := kwargs.get("tag_entity", {}):
     #     ds = tag_entity(ds, **merge_kwargs(map_kwargs, tag_entity_kwargs))
     if add_task_info_kwargs := kwargs.get("add_task_info", {}):
-        ds = add_task_info(ds, **merge_kwargs(map_kwargs, add_task_info_kwargs))
+        ds = add_task_info(
+            ds,
+            **merge_kwargs(map_kwargs, {"version": kwargs.get("version")}, add_task_info_kwargs),
+        )
     if post_process_kwargs := kwargs.get("post_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, post_process_kwargs))
     return ds
