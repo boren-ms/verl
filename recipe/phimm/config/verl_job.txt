@@ -1,24 +1,26 @@
-updated_at_utc: 2026-09-02T23:49:55Z
+updated_at_utc: 2026-09-03T00:13:23Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i0           │ raysubmit_6v4dAi8za5FpwzUh   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1             │ training 35/200 (17.5%)                  │
-│ i1           │ raysubmit_AzJgmjGHV3LurTem   │ RUNNING       │ remax_2609v0a_openml_verb_s200_bs64_lid05_sfl_tm1a                        │ training 112/200 (56%)                   │
+│ i0           │ raysubmit_6v4dAi8za5FpwzUh   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1             │ training 40/200 (20%)                    │
+│ i1           │ raysubmit_AzJgmjGHV3LurTem   │ RUNNING       │ remax_2609v0a_openml_verb_s200_bs64_lid05_sfl_tm1a                        │ training 127/200 (63.5%)                 │
 │ i2           │ raysubmit_tHz12TCrdnKte9xu   │ RUNNING       │ qwen_2609v0_step20000_inhouse_dter_candidate                               │ evaluating inhouse_dter (model startup)  │
-│ i3           │ raysubmit_BdH9FVLJtwPUvRqZ   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db          │ training 26/200 (13%)                    │
-│ i4           │ raysubmit_2iB92rUJzWuw3ME8   │ RUNNING       │ remax_ls_kw_fixed_s200_bs64                                                │ training 38/200 (19%)                    │
-│ i6           │ raysubmit_dY1xNW8YLx3MJxmM   │ RUNNING       │ remax_ls_kw_fixed_s200_bs64_r0                                             │ training 20/200 (10%)                    │
-│ i7           │ raysubmit_TmqGrNt8raQMZ1f2   │ RUNNING       │ remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a                         │ training 0/200 (0%)                      │
-│ i8           │ raysubmit_6NjkjtUdRc3gDDtu   │ RUNNING       │ remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1                          │ training 1/200 (0.5%)                    │
+│ i3           │ raysubmit_BdH9FVLJtwPUvRqZ   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db          │ training 31/200 (15.5%)                  │
+│ i4           │ raysubmit_2iB92rUJzWuw3ME8   │ RUNNING       │ remax_ls_kw_fixed_s200_bs64                                                │ training 55/200 (27.5%)                  │
+│ i6           │ raysubmit_dY1xNW8YLx3MJxmM   │ RUNNING       │ remax_ls_kw_fixed_s200_bs64_r0                                             │ training 35/200 (17.5%)                  │
+│ i7           │ raysubmit_TmqGrNt8raQMZ1f2   │ RUNNING       │ remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a                         │ training 12/200 (6%)                     │
+│ i8           │ raysubmit_6NjkjtUdRc3gDDtu   │ RUNNING       │ remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1                          │ training 14/200 (7%)                     │
+│ i9           │ raysubmit_AKmHWYR9t6PBxpgz   │ RUNNING       │ remax_kw_fixed_tts10_s200_bs64                                             │ training 1/200 (0.5%)                    │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1` [`i0`]: training 35/200 (17.5%)
-- `remax_2609v0a_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i1`]: training 112/200 (56%)
+- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1` [`i0`]: training 40/200 (20%)
+- `remax_2609v0a_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i1`]: training 127/200 (63.5%)
 - `qwen_2609v0` [`i2`]: evaluating inhouse_dter step 20000
-- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db` [`i3`]: training 26/200 (13%)
-- `remax_ls_kw_fixed_s200_bs64` [`i4`]: training 38/200 (19%)
-- `remax_ls_kw_fixed_s200_bs64_r0` [`i6`]: training 20/200 (10%)
-- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i7`]: training 0/200 (0%)
-- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i8`]: training 1/200 (0.5%)
+- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db` [`i3`]: training 31/200 (15.5%)
+- `remax_ls_kw_fixed_s200_bs64` [`i4`]: training 55/200 (27.5%)
+- `remax_ls_kw_fixed_s200_bs64_r0` [`i6`]: training 35/200 (17.5%)
+- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i7`]: training 12/200 (6%)
+- `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i8`]: training 14/200 (7%)
+- `remax_kw_fixed_tts10_s200_bs64` [`i9`]: training 1/200 (0.5%)

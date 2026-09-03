@@ -1,0 +1,19 @@
+# yamllint disable
+# --------------------------- LLM_TTS dataset --------------------------
+#
+# Data Set Information
+#       | en-US
+#       | --- Chunk Number:     3036
+#       | --- Utterance Number: 1214156
+#       | --- Duration (Hours): 4095.20
+#       | --- File Type Count:  4
+#       |                   | --- Info
+#       |                   | --- Audio
+#       |                   | --- Transcription
+#       |                   | --- Feature
+
+data_sets:
+    - data_path: /datablob/users/v-zhhon/MMI_tasks_local/task46/en-US_zero/final/wer_lt20_merged_20260810/chunk/enUS_zero_final_train_20260810/chunk_clean/ChunkFiles/
+      data_file: /datablob/users/v-zhhon/MMI_tasks_local/task46/en-US_zero/final/wer_lt20_merged_20260810/chunk/enUS_zero_final_train_20260810/chunk_clean/file_set.json
+    - data_path: /datablob/users/v-zhhon/MMI_tasks_local/task46/en-US_zero/final/wer_lt20_merged_20260810/chunk/enUS_zero_final_train_20260810/chunk_augment/ChunkFiles/
+      data_file: /datablob/users/v-zhhon/MMI_tasks_local/task46/en-US_zero/final/wer_lt20_merged_20260810/chunk/enUS_zero_final_train_20260810/chunk_augment/file_set.json

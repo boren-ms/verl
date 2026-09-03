@@ -1,0 +1,34 @@
+# yamllint disable
+# --------------------------- LLM_TTS dataset --------------------------
+#
+# Data Set Information
+#       | en-US
+#       | --- chunk_augment
+#       |       | --- Chunk Number:     1614
+#       |       | --- Utterance Number: 645371
+#       |       | --- Duration (Hours): 2713
+#       |       | --- File Type Count:  4
+#       |                   | --- Info
+#       |                   | --- Audio
+#       |                   | --- Transcription
+#       |                   | --- Feature
+#       | --- chunk_clean
+#       |       | --- Chunk Number:     1614
+#       |       | --- Utterance Number: 645371
+#       |       | --- Duration (Hours): 2713
+#       |       | --- File Type Count:  4
+#       |                   | --- Info
+#       |                   | --- Audio
+#       |                   | --- Transcription
+#       |                   | --- Feature
+#       | --- Total
+#       |       | --- Chunk Number:     3228
+#       |       | --- Utterance Number: 1290742
+#       |       | --- Duration (Hours): 5427
+
+data_sets:
+    - data_path: /datablob/users/v-zhhon/MMI_tasks_local/task46/en-US/chunk/enUS_number_20260806/chunk_augment/ChunkFiles/
+      data_file: /datablob/users/v-zhhon/MMI_tasks_local/task46/en-US/chunk/enUS_number_20260806/chunk_augment/file_set.json
+    - data_path: /datablob/users/v-zhhon/MMI_tasks_local/task46/en-US/chunk/enUS_number_20260806/chunk_clean/ChunkFiles/
+      data_file: /datablob/users/v-zhhon/MMI_tasks_local/task46/en-US/chunk/enUS_number_20260806/chunk_clean/file_set.json
+
