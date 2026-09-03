@@ -1715,6 +1715,7 @@ def overlap_prefix(ds, **kwargs):
 def add_task_info(ds, **kwargs):
     """Add a prompt to the dataset."""
     task = kwargs.get("task", "asr")
+    version = kwargs.get("version")
     rand = kwargs.get("rand", False)
     language = kwargs.get("language", "English")
     prompt_suffix = kwargs.get("prompt_suffix", "")
@@ -1724,13 +1725,16 @@ def add_task_info(ds, **kwargs):
         lang = resolve_task_language(task, lang=egs.get("language") or language)
         prompt = get_task_prompt(task=task, rand=rand)
         prompt = f"{prompt}{prompt_suffix}"
-        prefix = get_task_prefix(task, lang=lang, prob=prefix_prob)
+        prefix = get_task_prefix(task, lang=lang, prob=prefix_prob, version=version)
         gt_output = get_task_output(
             task=task,
             lang=lang,
             text=egs.get("text", ""),
             components=egs.get("components"),
+            version=version,
         )
+        if prefix:
+            gt_output = gt_output.partition("\n")[2]
         return {
             "prompt": format_asr_prompt(prompt),
             "prefix": prefix,

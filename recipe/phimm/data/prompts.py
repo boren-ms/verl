@@ -34,7 +34,20 @@ def _get_explicit_task_language(task):
     return None
 
 
-def _format_task_output(lang, text, components=None):
+def _format_task_output_2607(lang, text, components=None):
+    segments = components or [{"language": lang, "text": text}]
+    formatted_segments = []
+    languages = []
+    for segment in segments:
+        segment_lang = get_language_name(segment.get("language", "Unknown"))
+        segment_text = segment.get("text", "")
+        languages.append(segment_lang)
+        formatted_segments.append(f"<lang={segment_lang}><TXT>{segment_text}</TXT>")
+    header = " and ".join(languages)
+    return f"Audio Language: {header}.\n<ASR>{''.join(formatted_segments)}</ASR>"
+
+
+def _format_task_output_2609(lang, text, components=None):
     if components:
         segments = []
         for component in components:
@@ -47,6 +60,23 @@ def _format_task_output(lang, text, components=None):
 
     lang = lang or "Unknown"
     return f"<src={lang}><tgt={lang}>\n{text}"
+
+
+def _format_task_output(lang, text, components=None, version=None):
+    if str(version) == "2607":
+        return _format_task_output_2607(lang, text, components)
+    return _format_task_output_2609(lang, text, components)
+
+
+def _format_task_prefix_2607(lang):
+    return f"Audio Language: {get_language_name(lang)}\n"
+
+
+def _format_task_prefix_2609(lang):
+    languages = get_language_name(lang).strip()
+    language_names = languages.split()
+    first_language = language_names[0] if language_names else "Unknown"
+    return f"<src={first_language}><tgt={first_language}>\n"
 
 
 def get_task_prompt(task="asr", rand=False):
@@ -69,7 +99,7 @@ def get_task_prompt(task="asr", rand=False):
     return prompt
 
 
-def get_task_prefix(task, lang, prob=1.0):
+def get_task_prefix(task, lang, prob=1.0, version=None):
     """Get the assistant prefix for the specified task.
 
     Only tasks with an explicit language (``lang_asr*``) or an explicit ``lang``
@@ -79,19 +109,18 @@ def get_task_prefix(task, lang, prob=1.0):
     if random.random() >= prob:
         return ""
     if task.startswith("lang_asr"):
-        languages = get_language_name(lang).strip()
-        language_names = languages.split()
-        first_language = language_names[0] if language_names else "Unknown"
-        return f"<src={first_language}><tgt={first_language}>\n"
+        if str(version) == "2607":
+            return _format_task_prefix_2607(lang)
+        return _format_task_prefix_2609(lang)
     
     raise ValueError(f"Unknown task: {task}")
 
 
-def get_task_output(task="asr", lang="English", text="", components=None):
+def get_task_output(task="asr", lang="English", text="", components=None, version=None):
     """Get the expected output format for the specified task."""
     if task not in ("asr", "rare_asr", "biasing") and not task.startswith("lang_asr"):
         raise ValueError(f"Unknown task: {task}")
-    return _format_task_output(get_language_name(lang), text, components)
+    return _format_task_output(get_language_name(lang), text, components, version=version)
     
 
 

@@ -21,6 +21,18 @@ def test_add_task_info_enables_language_prefix_by_default():
     dataset = add_task_info(MinimalDataset(), task="lang_asr", language="French")
 
     assert dataset.example["prefix"] == "<src=French><tgt=French>\n"
+    assert dataset.example["gt_output"] == "bonjour"
+
+
+def test_add_task_info_supports_2607_prefix_and_completion():
+    dataset = add_task_info(
+        MinimalDataset(), task="lang_asr", language="French", version=2607
+    )
+
+    assert dataset.example["prefix"] == "Audio Language: French\n"
+    assert dataset.example["gt_output"] == (
+        "<ASR><lang=French><TXT>bonjour</TXT></ASR>"
+    )
 
 
 def test_add_task_info_allows_language_prefix_opt_out():
