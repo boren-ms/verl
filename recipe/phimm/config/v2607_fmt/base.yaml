@@ -1,0 +1,134 @@
+defaults:
+  - /ppo_trainer
+  - /data/val_data/kw_fixed_ls
+  - _self_
+
+nccl_timeout: 3600
+
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_bias.py
+    name: eval_score
+
+actor_rollout_ref:
+  nccl_timeout: 3600
+  rollout:
+    n: 16
+    gt_rollout: false
+    temperature: 1.2
+    calculate_log_probs: true
+    use_rollout_log_probs_as_old: true
+    gpu_memory_utilization: 0.9
+    max_num_seqs: 32
+    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
+    dtype: bfloat16
+    log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
+    tensor_model_parallel_size: 1
+    name: vllm
+    no_repeat_ngram_size: 15
+    response_length: ${data.max_response_length}
+    val_kwargs:
+      temperature: 0.0
+      top_p: 1.0
+    load_format: safetensors
+    stop: ["<|im_end|>"]
+    stop_token_ids: [248044, 248046]
+    layered_summon: true
+    enforce_eager: false
+    enable_chunked_prefill: true
+    free_cache_engine: true
+  actor:
+    use_dynamic_bsz: true
+    ppo_max_token_len_per_gpu: 8192
+    use_kl_loss: false
+    kl_loss_coef: 0.0
+    clip_ratio_low: 0.2
+    clip_ratio_high: 0.28
+    loss_agg_mode: token-mean
+    entropy_coeff: 0
+    tis_imp_ratio_cap: 5
+    ppo_micro_batch_size_per_gpu: 4
+    ppo_mini_batch_size: ${data.train_batch_size}
+    ppo_epochs: 1
+    optim:
+      lr: 5e-6
+      warmup_style: cosine
+      min_lr_ratio: 0.1
+    fsdp_config:
+      param_offload: true
+      optimizer_offload: true
+      use_orig_params: true
+    strategy: fsdp2
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+    trust_remote_code: false
+    use_remove_padding: true
+    use_fused_kernels: false
+    lora_rank: 32
+    lora_alpha: ${eval:${actor_rollout_ref.model.lora_rank}*2}
+    trainable_params: null
+    target_modules: "model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*"
+    exclude_modules: "model.embed_tokens_extend.*"
+    enable_gradient_checkpointing: false
+  ref:
+    strategy: fsdp2
+    log_prob_use_dynamic_bsz: true
+    log_prob_max_token_len_per_gpu: 8192
+    log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
+    fsdp_config:
+      param_offload: true
+
+algorithm:
+  adv_estimator: remax
+  adv_scale: {openml: 1.0, default: 1.0}
+  use_kl_in_reward: false
+  filter_groups:
+    enable: false
+
+data:
+  train_files: null
+  trust_remote_code: false
+  shuffle: true
+  use_interleave: false
+  max_prompt_length: 1024
+  max_response_length: 768
+  max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
+  dataloader_num_workers: 1
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false
+  train_batch_size: 64
+  max_audio_dur: 35
+  chunk_load_mode: sample
+  gen_batch_size: ${data.train_batch_size}
+  val_batch_size: -1
+  custom_cls:
+    path: recipe/phimm/data/rl_dataset.py
+    name: RLHFDataset
+  eval_num_examine: 20
+  train_num_examine: ${actor_rollout_ref.rollout.n}
+
+reward_model:
+  reward_manager: dapo
+  overlong_buffer:
+    enable: false
+    len: 0
+    penalty_factor: 0.0
+
+trainer:
+  project_name: v2607_time
+  logger: ["console", "wandb"]
+  experiment_name: null
+  n_gpus_per_node: 8
+  ngpus: ${eval:${trainer.n_gpus_per_node}*${trainer.nnodes}}
+  nnodes: 1
+  total_epochs: 4
+  total_training_steps: 200
+  test_freq: 10
+  save_freq: 10
+  resume_mode: auto
+  default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
+  default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
+  val_before_train: true
+  val_only: false
+  validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen
