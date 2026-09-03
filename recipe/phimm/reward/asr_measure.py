@@ -404,21 +404,26 @@ def _split_2607_langs(header: str) -> list[str]:
 def _parse_task_output_2609(solution_str):
     """Parse the 2609 single- or multi-segment task output.
 
-    The ``<src=X><tgt=Y>`` header is optional. Without it, the cleaned output
-    is returned as one text segment with empty language lists. Otherwise, one
-    or more newline-separated segments are supported for code-switch / mixed
-    audio. Returns ``None`` when a structured output is malformed.
+    The first ``<src=X><tgt=Y>`` header is optional because it may already be
+    supplied as the generation prefix. Later code-switch / mixed-audio
+    segments must have newline-separated headers. Returns ``None`` when a
+    structured output is malformed.
     """
     if not isinstance(solution_str, str):
         return None
     output = clean_asr_mode_tags(solution_str).strip()
     if not output:
         return None
-    if not output.startswith("<src="):
+    first_header = output.find("\n<src=")
+    if not output.startswith("<src=") and first_header < 0:
         return [], [], [output]
 
     segments = []
-    pos = 0
+    if first_header >= 0 and not output.startswith("<src="):
+        segments.append((None, None, output[:first_header].strip()))
+        pos = first_header
+    else:
+        pos = 0
     while pos < len(output):
         m = _SEGMENT_RE.match(output, pos)
         if not m:
@@ -433,8 +438,8 @@ def _parse_task_output_2609(solution_str):
         pos = m.end()
     if not segments:
         return None
-    src_langs = [src for src, _, _ in segments]
-    tgt_langs = [tgt for _, tgt, _ in segments]
+    src_langs = [src for src, _, _ in segments if src is not None]
+    tgt_langs = [tgt for _, tgt, _ in segments if tgt is not None]
     seg_texts = [text for _, _, text in segments]
     return src_langs, tgt_langs, seg_texts
 

@@ -64,6 +64,7 @@ actor_rollout_ref:
     use_kl_loss: true
     kl_loss_coef: 0.001
     kl_loss_type: low_var_kl
+    use_torch_compile: false
     ppo_micro_batch_size_per_gpu: 4
     ppo_mini_batch_size: ${data.train_batch_size}
     ppo_epochs: 1

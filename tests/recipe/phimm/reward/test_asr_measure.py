@@ -28,6 +28,19 @@ def test_accepts_code_switch_output():
     assert check_lang(task_output, "Chinese Italian") == 1.0
 
 
+def test_accepts_code_switch_output_without_first_header():
+    output = "祖父叶与良。\n<src=Italian><tgt=Italian>\nE, inoltre, attore."
+
+    task_output = _parse_task_output(output)
+
+    assert task_output == (
+        ["Italian"],
+        ["Italian"],
+        ["祖父叶与良。", "E, inoltre, attore."],
+    )
+    assert check_fmt(task_output)
+
+
 def test_format_and_language_ignore_source_language():
     output = "<src=English><tgt=French>\nBonjour"
     task_output = _parse_task_output(output)
