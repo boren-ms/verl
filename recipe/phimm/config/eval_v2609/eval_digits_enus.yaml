@@ -14,5 +14,10 @@ actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-mtp/2000/qwen_hf/
 
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/digits_measure.py
+    name: eval_score
+
 data:
   output_path: az://orngwus2cresco/data/boren/data/verl/eval/qwen_2609_mtp_2000/digits_enus
