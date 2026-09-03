@@ -24,3 +24,5 @@ reward_functions:
 reward_function_by_data_source:
   tts_times_120: openml
 
+trainer:
+  total_epochs: 200
