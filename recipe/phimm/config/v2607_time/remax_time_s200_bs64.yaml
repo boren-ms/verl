@@ -1,0 +1,25 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/tts_times_120
+  - _self_
+
+reward_functions:
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      reduce: mean
+      measures:
+        char: {beta: 0.5}
+        word: {beta: 0.5}
+        keyword: {beta: 2.0}
+        lang: {beta: 1.0}
+        fmt: {beta: 1.0}
+
+reward_function_by_data_source:
+  tts_times_120: openml
+
