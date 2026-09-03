@@ -1,9 +1,9 @@
-updated_at_utc: 2026-09-03T20:40:36Z
+updated_at_utc: 2026-09-03T20:43:10Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i0           │ raysubmit_JqmV697WXCbftdEM   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1             │ training 187/200 (93.5%)                 │
+│ i0           │ raysubmit_JqmV697WXCbftdEM   │ RUNNING       │ remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1             │ training 188/200 (94%)                   │
 │ i3           │ raysubmit_5UrWHfJKwnWDki6D   │ RUNNING       │ remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1_kl0001                    │ training startup                         │
 │ i4           │ -                            │ SUCCEEDED     │ step90 consolidated benchmark report                                       │ building report (complete)               │
 │ i5           │ raysubmit_Y5AJ8jseB7PQ1vvp   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step180 candidate                          │ evaluating mixlang (complete)            │
@@ -11,12 +11,12 @@ updated_at_utc: 2026-09-03T20:40:36Z
 │ i7           │ raysubmit_as8Wkz9FPMMP4yHv   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step80 candidate                           │ evaluating mixlang (complete)            │
 │ i8           │ raysubmit_mNn3iZLG4du9VYhU   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step120 candidate                          │ evaluating mixlang (complete)            │
 │ i9           │ -                            │ SUCCEEDED     │ step50 consolidated benchmark report                                       │ building report (complete)               │
-│ i10          │ raysubmit_DyCr3uqeGAwukxei   │ RUNNING       │ long_eval_inhouse_all_seg30 step190 candidate                              │ evaluating inhouse_dter (scoring 35%)    │
-│ i11          │ raysubmit_w8rTNHvyAXL6mqmV   │ RUNNING       │ eval_digits_enus step190 reference                                          │ evaluating digits_enus (model startup)   │
+│ i10          │ raysubmit_DyCr3uqeGAwukxei   │ STOPPED       │ long_eval_inhouse_all_seg30 step190 candidate                              │ evaluating inhouse_dter (stopped)        │
+│ i11          │ raysubmit_w8rTNHvyAXL6mqmV   │ RUNNING       │ eval_digits_enus step190 reference                                          │ evaluating digits_enus (validation)      │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1` [`i0`]: training 187/200 (93.5%)
+- `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1` [`i0`]: training 188/200 (94%)
 - `remax_2609v0a_openml_verb_s200_bs64_lid05_sfl_tm1` [`i2`]: complete step 130
 - `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db` [`i3`]: failed training step 189
 - `remax_2607v1_bad_mix13k_s200_bs64_lid05_sfl_tm1_kl0001` [`i3`]: training startup
@@ -26,5 +26,5 @@ Reports:
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i7`]: complete step 80
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i8`]: complete step 120
 - `remax_time_s200_bs64_r0` [`i9`]: complete step 50
-- `remax_time_s200_bs64_cut05_kl001` [`i10`]: evaluating inhouse_dter step 190
+- `remax_time_s200_bs64_cut05_kl001` [`i10`]: failed inhouse_dter step 190
 - `remax_time_s200_bs64_cut05_gt` [`i11`]: evaluating digits_enus step 190
