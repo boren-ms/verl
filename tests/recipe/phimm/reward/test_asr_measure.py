@@ -5,6 +5,7 @@ from recipe.phimm.reward.asr_measure import (
     _parse_task_output,
     check_fmt,
     check_lang,
+    compute_score,
     compute_kw_acc,
     get_asr_text,
     lang_score,
@@ -143,6 +144,60 @@ def test_parse_response_accepts_2607_response_without_audio_language():
         version=2607,
     )
     assert task_output == ([], ["English"], ["hello world"])
+
+
+def test_compute_score_cut_zeros_reward_at_threshold():
+    result = compute_score(
+        "<ASR><lang=English><TXT>hello world",
+        ground_truth="hello world",
+        language="English",
+        version=2607,
+        reduce="mean",
+        measures={
+            "char": {"beta": 0.5},
+            "word": {"beta": 0.5},
+            "lang": {"beta": 1.0, "cut": 0.0},
+            "fmt": {"beta": 1.0, "cut": 0.0},
+        },
+    )
+
+    assert result["fmt"] == 0.0
+    assert result["lang"] == 0.0
+    assert result["score"] == 0.0
+
+
+def test_compute_score_cut_preserves_reward_above_threshold():
+    result = compute_score(
+        "<ASR><lang=English><TXT>hello world</TXT></ASR>",
+        ground_truth="hello world",
+        language="English",
+        version=2607,
+        reduce="mean",
+        measures={
+            "word": {"beta": 1.0},
+            "lang": {"beta": 1.0, "cut": 0.5},
+            "fmt": {"beta": 1.0, "cut": 0.5},
+        },
+    )
+
+    assert result["score"] == 1.0
+
+
+def test_compute_score_does_not_gate_measure_without_cut():
+    result = compute_score(
+        "<ASR><lang=English><TXT>hello world",
+        ground_truth="hello world",
+        language="English",
+        version=2607,
+        reduce="mean",
+        measures={
+            "word": {"beta": 1.0},
+            "fmt": {"beta": 1.0},
+        },
+    )
+
+    assert result["fmt"] == 0.0
+    assert result["score"] > 0.0
 
 
 @pytest.mark.parametrize(

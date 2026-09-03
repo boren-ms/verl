@@ -542,6 +542,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
         beta * signed_pow(clip(acc_k, lo, hi), gamma)
 
     Both ``beta`` and ``gamma`` default to ``1.0`` when omitted.
+    A component with ``cut`` forces the combined reward to zero when its raw
+    accuracy is less than or equal to that threshold.
 
     Configuration example (YAML)::
 
@@ -549,7 +551,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
           reduce: sum            # "sum" (default), "mean", or "multiply"
           scores:
             char: {beta: 1.0, gamma: 0.5, low: 0.0, high: 1.0}
-            punc: {beta: 0.5, gamma: 0.2}
+            fmt: {beta: 0.5, cut: 0.5}
     """
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
 
@@ -559,6 +561,9 @@ def compute_score(solution_str, ground_truth, **kwargs):
     scores = [scale_score(parsed.get(k, 1.0), cfg) for k, cfg in measures.items()]
     score = reduce_scores(scores, reduce)
     score = signed_pow(score, gamma)
+
+    if any("cut" in cfg and parsed.get(name, 1.0) <= float(cfg["cut"]) for name, cfg in measures.items()):
+        score = 0.0
 
     return {
         "score": score,
