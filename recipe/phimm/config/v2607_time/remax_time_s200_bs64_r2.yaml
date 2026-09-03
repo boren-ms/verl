@@ -15,10 +15,10 @@ reward_functions:
       version: 2607
       reduce: mean
       measures:
-        char: {beta: 0.5}
-        word: {beta: 0.5}
-        keyword: {beta: 1.0}
-        lang: {beta: 1.0}
+        char: {beta: 0.6}
+        word: {beta: 0.7}
+        keyword: {beta: 0.8}
+        lang: {beta: 0.9}
         fmt: {beta: 1.0}
 
 reward_function_by_data_source:
