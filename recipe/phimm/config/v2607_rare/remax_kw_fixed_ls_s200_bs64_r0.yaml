@@ -12,6 +12,7 @@ reward_functions:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
     reward_kwargs:
+      version: 2607
       reduce: mean
       measures:
         char: {beta: 0.5}

@@ -1,6 +1,6 @@
 defaults:
   - /ppo_trainer
-  - /data/val_data/kw_fixed_ls
+  - /data/val_data/tts_times_120
   - _self_
 
 nccl_timeout: 3600
@@ -9,7 +9,9 @@ val_reward:
   custom_reward_function:
     path: recipe/phimm/reward/asr_bias.py
     name: eval_score
-
+    reward_kwargs:
+      version: 2607
+      
 actor_rollout_ref:
   nccl_timeout: 3600
   rollout:

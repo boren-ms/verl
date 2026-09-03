@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/tts_times_120
+  - /data/train_data/tts_times_tr_600
   - _self_
 
 reward_functions:
@@ -21,7 +21,7 @@ reward_functions:
         fmt: {beta: 1.0}
 
 reward_function_by_data_source:
-  tts_times_120: openml
+  tts_times_tr_600: openml
 
 actor_rollout_ref:
   actor:

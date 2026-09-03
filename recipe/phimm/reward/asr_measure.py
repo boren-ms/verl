@@ -24,6 +24,10 @@ _SEGMENT_RE = re.compile(
     re.DOTALL,
 )
 
+_2607_HEADER_RE = re.compile(r"^Audio Language:\s*(?P<langs>[^\n]+?)\.?\n(?P<body>.*)$", re.DOTALL)
+_2607_TAG_RE = re.compile(r"^<(?P<tag>ASR(?:_[^>]+)?)>(?P<inner>.*)</(?P=tag)>$", re.DOTALL)
+_2607_SEGMENT_RE = re.compile(r"\s*<lang=(?P<lang>[^>]+)><TXT>(?P<text>.*?)</TXT>\s*", re.DOTALL)
+
 _ASR_MODE_TAG_RE = re.compile(
     r"</?(?:asr_)?(?:lexical|verbatim|readable)>",
     re.IGNORECASE,
@@ -317,8 +321,9 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
 
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    task_output = _parse_task_output(solution_str)
-    hyp_text = " ".join(task_output[2]) if task_output is not None else str(solution_str or "")
+    version = kwargs.get("version")
+    task_output = _parse_task_output(solution_str, version=version)
+    hyp_text = get_asr_text(task_output) if task_output is not None else str(solution_str or "")
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
@@ -343,8 +348,61 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     }
 
 
-def _parse_task_output(solution_str):
+def _parse_task_output(solution_str, version=None):
     """Parse an ASR task output into ``(src_langs, tgt_langs, seg_texts)``.
+
+    Model version 2607 uses the legacy ``Audio Language`` / ``<ASR>``
+    envelope. Newer versions use the ``<src=X><tgt=Y>`` format.
+
+    """
+    if str(version) == "2607":
+        return _parse_task_output_2607(solution_str)
+    return _parse_task_output_2609(solution_str)
+
+
+def get_asr_text(task_output):
+    """Join the text segments from a parsed ASR task output."""
+    return " ".join(task_output[2])
+
+
+def _parse_task_output_2607(solution_str):
+    """Parse the legacy 2607 ``Audio Language`` / ``<ASR>`` envelope."""
+    if not isinstance(solution_str, str):
+        return None
+    output = solution_str.strip()
+    header_match = _2607_HEADER_RE.match(output)
+    body = header_match.group("body").strip() if header_match else output
+    tag_match = _2607_TAG_RE.match(body)
+    if tag_match is None:
+        return None
+
+    segments = []
+    inner = tag_match.group("inner")
+    pos = 0
+    while pos < len(inner):
+        segment_match = _2607_SEGMENT_RE.match(inner, pos)
+        if segment_match is None:
+            return None
+        segments.append((segment_match.group("lang").strip(), segment_match.group("text")))
+        pos = segment_match.end()
+    if not segments:
+        return None
+
+    header_langs = _split_2607_langs(header_match.group("langs")) if header_match else []
+    segment_langs = [lang for lang, _ in segments]
+    segment_texts = [text for _, text in segments]
+    return header_langs, segment_langs, segment_texts
+
+
+def _split_2607_langs(header: str) -> list[str]:
+    """Split a 2607 header into its individual language names."""
+    header = header.strip().rstrip(".")
+    header = re.sub(r"\band\b", " ", header, flags=re.IGNORECASE)
+    return [part for part in re.split(r"[,\s、&/]+", header) if part]
+
+
+def _parse_task_output_2609(solution_str):
+    """Parse the 2609 single- or multi-segment task output.
 
     The ``<src=X><tgt=Y>`` header is optional. Without it, the cleaned output
     is returned as one text segment with empty language lists. Otherwise, one
@@ -391,9 +449,8 @@ def _lang_code_set(lang) -> set[str]:
 def check_lang(task_output, tgt_lang) -> float:
     """Language-identification score in ``[0, 1]`` with partial credit.
 
-    Predicted language(s) come from the per-segment ``<src=..>`` sequence in a
-    parsed (possibly code-switch) task output. An optional omitted language
-    header scores ``1.0``; a missing or malformed parsed output scores ``0.0``.
+    Predicted language(s) come from the parsed target/segment language values.
+    A missing or malformed parsed output scores ``0.0``.
 
     The score is the Jaccard overlap between the predicted and target language
     sets, so a code-switch output that identifies only some of the spoken
@@ -404,13 +461,13 @@ def check_lang(task_output, tgt_lang) -> float:
     if task_output is None:
         return 0.0
 
-    src_langs, _, seg_texts = task_output
+    _, tgt_langs, seg_texts = task_output
     if " ".join(seg_texts).strip().lower() == "<nonspeech>":
         return 1.0
 
     tgt_codes = _lang_code_set(tgt_lang)
     pred_codes: set[str] = set()
-    for name in src_langs:
+    for name in tgt_langs:
         pred_codes |= _lang_code_set(name)
 
     if not pred_codes:
@@ -421,21 +478,8 @@ def check_lang(task_output, tgt_lang) -> float:
 
 
 def check_fmt(task_output) -> bool:
-    """Return whether a parsed output matches the ASR task format.
-
-    Expected format (single or code-switch / language-mixed)::
-
-        <src={l1}><tgt={l1}>
-        {text1}
-        <src={l2}><tgt={l2}>
-        {text2}
-
-    ASR source and target languages must match for every segment.
-    """
-    if task_output is None:
-        return False
-    src_langs, tgt_langs, _ = task_output
-    return [get_language_code(name) for name in src_langs] == [get_language_code(name) for name in tgt_langs]
+    """Return whether the output was parsed as a supported ASR format."""
+    return task_output is not None
 
 
 def clip(x, lo=-1.0, hi=1.0):
@@ -526,7 +570,8 @@ def lang_score(solution_str, ground_truth=None, **kwargs):
     """Return only the language-identification reward and metric."""
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    task_output = _parse_task_output(solution_str)
+    version = kwargs.get("version")
+    task_output = _parse_task_output(solution_str, version=version)
     p_lang = check_lang(task_output, tgt_lang)
     return {
         "score": p_lang,

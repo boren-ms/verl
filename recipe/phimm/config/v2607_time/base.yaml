@@ -9,6 +9,8 @@ val_reward:
   custom_reward_function:
     path: recipe/phimm/reward/asr_bias.py
     name: eval_score
+    reward_kwargs:
+      version: 2607
 
 actor_rollout_ref:
   nccl_timeout: 3600

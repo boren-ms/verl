@@ -1,0 +1,17 @@
+# Synthetic ASR dataset generated with Azure Text to Speech
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/tts/tts_times_tr_600/tts_times_tr_600.jsonl
+pre_process:
+  path_map:
+    field: audio_path
+    src_part: "audios/"
+    dst_part: "az://orngwus2cresco/data/boren/data/tts/tts_times_tr_600/audios/"
+add_task_info:
+  task: lang_asr
+  prefix_prob: 0.0
+post_process:
+  add_field:
+    fields:
+      data_source: tts_times_tr_600
+  verl_format:
+    prompt_key: prompt
