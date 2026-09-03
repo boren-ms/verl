@@ -28,3 +28,6 @@ actor_rollout_ref:
   actor:
     ppo_micro_batch_size_per_gpu: 2
     ppo_max_token_len_per_gpu: 2048
+
+trainer:
+  total_epochs: 200
