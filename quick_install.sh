@@ -25,6 +25,11 @@ required_versions = {
     "flashinfer-python": "0.6.12",
     "flashinfer-cubin": "0.6.12",
     "protobuf": "5.29.5",
+    "nvidia-cuda-runtime": "13.3.29",
+    "nvidia-cuda-nvcc": "13.3.73",
+    "nvidia-cuda-crt": "13.3.73",
+    "nvidia-cuda-nvdisasm": "13.3.73",
+    "nvidia-cuda-tileiras": "13.3.36",
 }
 
 for package, expected in required_versions.items():
@@ -55,10 +60,13 @@ for package in ("TransferQueue",):
 
 cuda_compat_dir = Path("/usr/local/cuda-13.0/compat")
 cuda_compat_conf = Path("/etc/ld.so.conf.d/00-oai-cuda-compat.conf")
+cuda_toolkit_dir = Path("/root/.pyenv/versions/3.12.9/lib/python3.12/site-packages/nvidia/cu13")
 if (
     not (cuda_compat_dir / "libcuda.so.1").exists()
     or not cuda_compat_conf.exists()
     or cuda_compat_conf.read_text().strip() != str(cuda_compat_dir)
+    or not (cuda_toolkit_dir / "lib64").is_symlink()
+    or not (cuda_toolkit_dir / "lib" / "libcudart.so").is_symlink()
 ):
     raise SystemExit(1)
 PY
@@ -138,6 +146,19 @@ if [ ! -f "${done_file}" ]; then
     # 3. Remaining project + inference dependencies come from the default
     # package index; the PyTorch requirements are already satisfied locally.
     pip install -r requirements_vllm.txt "protobuf==5.29.5"
+
+    # FlashInfer JIT must use one coherent CUDA compiler/runtime generation.
+    # Mixed 13.0/13.2/13.3 packages produce unsupported PTX or linker failures.
+    pip install \
+        "nvidia-cuda-runtime==13.3.29" \
+        "nvidia-cuda-nvcc==13.3.73" \
+        "nvidia-cuda-crt==13.3.73" \
+        "nvidia-cuda-nvdisasm==13.3.73" \
+        "nvidia-cuda-tileiras==13.3.36"
+
+    cuda_toolkit_dir="/root/.pyenv/versions/3.12.9/lib/python3.12/site-packages/nvidia/cu13"
+    ln -sfn lib "${cuda_toolkit_dir}/lib64"
+    ln -sfn libcudart.so.13 "${cuda_toolkit_dir}/lib/libcudart.so"
 
     # Ray: DO NOT install — keep the base image version
     # Do not add a Ray install here: use the exact version from the base image.
