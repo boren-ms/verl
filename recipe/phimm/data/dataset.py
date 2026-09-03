@@ -1733,8 +1733,8 @@ def add_task_info(ds, **kwargs):
             components=egs.get("components"),
             version=version,
         )
-        if prefix:
-            gt_output = gt_output.partition("\n")[2]
+        if gt_output.startswith(prefix):
+            gt_output = gt_output[len(prefix) :].lstrip()
         return {
             "prompt": format_asr_prompt(prompt),
             "prefix": prefix,

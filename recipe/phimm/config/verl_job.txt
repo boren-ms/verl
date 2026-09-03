@@ -12,7 +12,7 @@ updated_at_utc: 2026-09-03T21:15:34Z
 │ i8           │ raysubmit_mNn3iZLG4du9VYhU   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step120 candidate                          │ evaluating mixlang (complete)            │
 │ i9           │ -                            │ SUCCEEDED     │ step50 consolidated benchmark report                                       │ building report (complete)               │
 │ i10          │ raysubmit_DyCr3uqeGAwukxei   │ STOPPED       │ long_eval_inhouse_all_seg30 step190 candidate                              │ evaluating inhouse_dter (stopped)        │
-│ i11          │ raysubmit_x6YwvaLb6f9DnpqC   │ RUNNING       │ eval_openasr_ml_verb step190 candidate                                      │ evaluating openasr_ml (47% validation)   │
+│ i11          │ raysubmit_x6YwvaLb6f9DnpqC   │ RUNNING       │ eval_openasr_ml_verb step190 candidate                                      │ evaluating openasr_ml (70% validation)   │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
