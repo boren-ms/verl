@@ -8,6 +8,7 @@
       dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/earnings22/audio/"
   add_task_info:
     task: lang_asr
+    language: English
   post_process:
     add_field:
       fields:

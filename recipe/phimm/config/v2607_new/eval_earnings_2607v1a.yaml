@@ -1,0 +1,16 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base_eval
+  - /data/val_data/earnings
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    earnings22: inhouse_all
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/
