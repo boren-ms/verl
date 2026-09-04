@@ -2,6 +2,15 @@ defaults:
   - base
   - _self_
 
+data:
+  # RayDAPOTrainer initializes both dataloaders before honoring val_only.
+  train_data: ${data.val_data}
+  shuffle: false
+  use_interleave: false
+  dataloader_num_workers: 8
+  prefetch_factor: 4
+  val_batch_size: -1
+
 trainer:
   project_name: v2607_new_eval
   val_only: true

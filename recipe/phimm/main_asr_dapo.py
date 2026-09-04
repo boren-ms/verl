@@ -28,7 +28,6 @@ from verl.utils.device import is_cuda_available
 from recipe.dapo.dapo_ray_trainer import RayDAPOTrainer
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.utils.shared import parse_asr_response
-import recipe.phimm.reward.long_audio_grouped  # noqa: F401  (registers reward manager)
 from verl.utils.ray_utils import ray_address, ray_host_url
 from verl.utils.fs import copy_to_local
 
@@ -118,6 +117,7 @@ class TaskRunner:
         from pprint import pprint
 
         from omegaconf import OmegaConf
+        import recipe.phimm.reward.long_audio_grouped  # noqa: F401
 
         OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
 
