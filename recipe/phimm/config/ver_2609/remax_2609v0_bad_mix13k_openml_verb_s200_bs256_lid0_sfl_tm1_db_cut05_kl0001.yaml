@@ -29,18 +29,8 @@ reward_function_by_data_source:
 actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4.3-sr-newformat-cut/20000/qwen_hf/
-  rollout:
-    val_kwargs:
-      response_length: 256
   actor:
-    use_dynamic_bsz: true
-    ppo_max_token_len_per_gpu: 2048
-    use_kl_loss: true
-    kl_loss_coef: 0.001
-    kl_loss_type: low_var_kl
-  ref:
-    log_prob_use_dynamic_bsz: true
-    log_prob_max_token_len_per_gpu: 2048
+    use_torch_compile: true
 
 data:
   train_batch_size: 256

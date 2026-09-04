@@ -30,3 +30,15 @@ actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4.3-sr-newformat-cut/20000/qwen_hf/
     lora_rank: 64
+  rollout:
+    val_kwargs:
+      response_length: null
+  actor:
+    use_torch_compile: true
+    use_dynamic_bsz: false
+    ppo_max_token_len_per_gpu: 16384
+    use_kl_loss: false
+    kl_loss_coef: 0.0
+  ref:
+    log_prob_use_dynamic_bsz: false
+    log_prob_max_token_len_per_gpu: 16384

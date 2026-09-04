@@ -1,31 +1,33 @@
-updated_at_utc: 2026-09-04T05:56:50Z
+updated_at_utc: 2026-09-04T17:19:22Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i0           │ raysubmit_eXWeJrKLE1EnJZZR   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05      │ training 37/200 (18.5%)                  │
-│ i2           │ raysubmit_ZagpczkW6yn7F16H   │ RUNNING       │ remax_2607v1_openml_verb_s100_bs64_lid0_sfl_tm1_cut05_kl0001              │ training 39/100 (39%)                    │
-│ i3           │ raysubmit_uxgqLwNQDfDfrh46   │ RUNNING       │ long_eval_inhouse_all_seg30 step120 candidate                               │ evaluating inhouse_dter (scoring 4%)     │
-│ i4           │ raysubmit_X6edtQMFBNqbvenK   │ RUNNING       │ long_eval_AA_2607v1_seg30_lid_verb                                         │ evaluating AA (model sync)               │
-│ i5           │ raysubmit_Y5AJ8jseB7PQ1vvp   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step180 candidate                          │ evaluating mixlang (complete)            │
-│ i6           │ -                            │ SUCCEEDED     │ step190 consolidated benchmark report                                      │ building report (complete)               │
-│ i7           │ raysubmit_as8Wkz9FPMMP4yHv   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step80 candidate                           │ evaluating mixlang (complete)            │
+│ i0           │ raysubmit_6384cv7EkiekUPXY   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05      │ training 89/200 (44.5%)                  │
+│ i2           │ raysubmit_rfxFxCTy1UaQj2y3   │ RUNNING       │ step70 inhouse_dter candidate                                              │ evaluating inhouse_dter (scoring)        │
+│ i3           │ -                            │ SUCCEEDED     │ step120 consolidated benchmark report                                      │ building report (complete)               │
+│ i4           │ raysubmit_XQ5ayq1HhaE8eedM   │ RUNNING       │ long_eval_AA_2607v1_seg30_lid_verb baseline rerun                          │ evaluating AA (model startup)            │
+│ i5           │ raysubmit_5Bg744UbKYhhGmRe   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db_cut05_kl0001 │ training 119/200 (59.5%)                 │
+│ i6           │ raysubmit_RYieDd6S2jLkt7cu   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db            │ training 151/200 (75.5%)                 │
+│ i7           │ raysubmit_mzTn9SPW25kuvpt8   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training 0/200 (0%)                      │
 │ i8           │ raysubmit_mNn3iZLG4du9VYhU   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step120 candidate                          │ evaluating mixlang (complete)            │
 │ i9           │ -                            │ SUCCEEDED     │ step50 consolidated benchmark report                                       │ building report (complete)               │
-│ i10          │ raysubmit_CBmMq8u5a8BjDST3   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001 │ training 69/200 (34.5%)                  │
-│ i11          │ raysubmit_Tv9F4xbRzRXdWLAj   │ RUNNING       │ remax_2609v0_bad_mix13k_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001_i11       │ training 28/200 (14%)                    │
+│ i10          │ raysubmit_GkKqdVqVFhMtYM6z   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001 │ training 161/200 (80.5%)                 │
+│ i11          │ raysubmit_MLfHnaSruENuhA4u   │ RUNNING       │ remax_2609v0_bad_mix13k_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001_i11       │ training 137/200 (68.5%)                 │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
-- `remax_2607v1_openml_verb_s100_bs64_lid0_sfl_tm1_cut05_kl0001` [`i2`]: training 39/100 (39%)
+- `remax_2607v1_openml_verb_s100_bs64_lid0_sfl_tm1_cut05_kl0001` [`i2`]: evaluating inhouse_dter step 70
 - `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db` [`i3`]: failed training step 189
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05` [`i0`]: training 37/200 (18.5%)
-- `remax_2607v1_bad_mix13k_s200_bs64_lid0_sfl_tm1_kl0001` [`i3`]: evaluating inhouse_dter step 120
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05` [`i0`]: training 89/200 (44.5%)
+- `remax_2607v1_bad_mix13k_s200_bs64_lid0_sfl_tm1_kl0001` [`i3`]: complete step 120
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1_db` [`i5`]: complete step 180
-- `remax_time_s200_bs64_r1` [`i6`]: complete step 190
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db_cut05_kl0001` [`i5`]: training 119/200 (59.5%)
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db` [`i6`]: training 151/200 (75.5%)
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i7`]: complete step 80
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training 0/200 (0%)
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i8`]: complete step 120
 - `remax_time_s200_bs64_r0` [`i9`]: complete step 50
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001` [`i10`]: training 69/200 (34.5%)
-- `remax_2609v0_bad_mix13k_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001_i11` [`i11`]: training 28/200 (14%)
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001` [`i10`]: training 161/200 (80.5%)
+- `remax_2609v0_bad_mix13k_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001_i11` [`i11`]: training 137/200 (68.5%)
 - `remax_time_s200_bs64_cut05_gt` [`i11`]: complete step 190

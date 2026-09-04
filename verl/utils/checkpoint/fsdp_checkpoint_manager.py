@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import gc
 import json
 import logging
 import os
@@ -253,12 +254,16 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     torch.save(model_state_dict, model_path)
                     log_with_rank(f"Saved model to {os.path.abspath(model_path)}", rank=self.rank, logger=logger)
                     copy_to_remote(model_path, hdfs_path, blocking=False)
+                    del model_state_dict
+                    gc.collect()
 
                 if self.should_save_optimizer:
                     optimizer_state_dict = self.optimizer.state_dict()
                     torch.save(optimizer_state_dict, optim_path)
                     log_with_rank(f"Saved optim to {os.path.abspath(optim_path)}", rank=self.rank, logger=logger)
                     copy_to_remote(optim_path, hdfs_path, blocking=False)
+                    del optimizer_state_dict
+                    gc.collect()
 
                 if self.should_save_extra:
                     lr_scheduler_state_dict = self.lr_scheduler.state_dict() if self.lr_scheduler is not None else None

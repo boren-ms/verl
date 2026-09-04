@@ -30,3 +30,15 @@ actor_rollout_ref:
   model:
     lora_rank: 64
     lora_alpha: 64
+  rollout:
+    val_kwargs:
+      response_length: null
+  actor:
+    use_torch_compile: true
+    use_dynamic_bsz: false
+    ppo_max_token_len_per_gpu: 16384
+    use_kl_loss: false
+    kl_loss_coef: 0.0
+  ref:
+    log_prob_use_dynamic_bsz: false
+    log_prob_max_token_len_per_gpu: 16384
