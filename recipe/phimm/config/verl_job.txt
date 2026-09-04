@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-04T03:06:23Z
+updated_at_utc: 2026-09-04T03:08:27Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
@@ -11,7 +11,7 @@ updated_at_utc: 2026-09-04T03:06:23Z
 │ i7           │ raysubmit_as8Wkz9FPMMP4yHv   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step80 candidate                           │ evaluating mixlang (complete)            │
 │ i8           │ raysubmit_mNn3iZLG4du9VYhU   │ SUCCEEDED     │ long_eval_mixlang_fy26q2_zh_seg step120 candidate                          │ evaluating mixlang (complete)            │
 │ i9           │ -                            │ SUCCEEDED     │ step50 consolidated benchmark report                                       │ building report (complete)               │
-│ i10          │ raysubmit_uT9pkDcnjxRj8FbH   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001 │ training 64/200 (32%)                    │
+│ i10          │ raysubmit_Ne4HqPRbfrWWNngX   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001 │ training startup                         │
 │ i11          │ -                            │ SUCCEEDED     │ step190 consolidated benchmark report                                      │ building report (complete)               │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
@@ -26,5 +26,5 @@ Reports:
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i7`]: complete step 80
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i8`]: complete step 120
 - `remax_time_s200_bs64_r0` [`i9`]: complete step 50
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001` [`i10`]: training 64/200 (32%)
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001` [`i10`]: training startup
 - `remax_time_s200_bs64_cut05_gt` [`i11`]: complete step 190
