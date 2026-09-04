@@ -7,8 +7,8 @@ def test_eval_score_reports_dter_p_err(monkeypatch):
     monkeypatch.setattr(asr_inhouse_measure, "ensure_pack_dir", lambda _pack_dir: None)
     monkeypatch.setattr(
         asr_inhouse_measure,
-        "parse_asr_response",
-        lambda _solution: {"text": "recognized text"},
+        "get_hyp_text",
+        lambda _solution, version=None: "recognized text",
     )
     monkeypatch.setattr(
         asr_inhouse_measure,
@@ -32,8 +32,8 @@ def test_eval_score_normalizes_hypothesis_whitespace(monkeypatch):
     monkeypatch.setattr(asr_inhouse_measure, "ensure_pack_dir", lambda _pack_dir: None)
     monkeypatch.setattr(
         asr_inhouse_measure,
-        "parse_asr_response",
-        lambda _solution: {"text": "first segment\nsecond\tsegment"},
+        "get_hyp_text",
+        lambda _solution, version=None: "first segment\nsecond\tsegment",
     )
     received = {}
 
