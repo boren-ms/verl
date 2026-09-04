@@ -371,6 +371,7 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     result = {
         "score": 1.0 - dter,
         "dter": dter,
+        "dter_p_err": dter,
         "dter_n_err": dter_n_err,
         "dter_n_ref": dter_n_ref,
         "dter_detail": dter_detail,
