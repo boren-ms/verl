@@ -11,7 +11,7 @@ import tempfile
 import uuid
 
 from recipe.phimm.utils.languages import get_language_code
-from recipe.phimm.utils.shared import parse_asr_response
+from recipe.phimm.reward.asr_response import get_hyp_text
 
 # Strip "[start end]" timing tokens emitted anywhere in DisplayTranscription.
 _TIME_MARKER_RE = re.compile(r"\[\s*-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?\s*\]")
@@ -71,6 +71,13 @@ def _clean_ref(text: str) -> str:
         return ""
     cleaned = _TIME_MARKER_RE.sub(" ", text)
     return re.sub(r"\s+", " ", cleaned).strip()
+
+
+def _clean_hyp(text: str) -> str:
+    if not text:
+        return ""
+    return re.sub(r"\s+", " ", text).strip()
+
 
 logger = logging.getLogger(__name__)
 
@@ -237,8 +244,7 @@ def _compute_dter(ref: str, hyp: str, locale: str = "en-us") -> tuple[int, int, 
 
     ``detail`` is a single ``UtteranceTERMetrics``-style entry (the same shape
     consumed by the ``inhouse-asr-compare`` skill) carrying the word-level
-    alignment, per-word TER classes, and category breakdown. It is ``None`` when
-    the backend fails.
+    alignment, per-word TER classes, and category breakdown.
 
     GetMetrics CLI emits an empty ``UtteranceTERMetrics`` for single-utterance
     runs, so go through the Python ``dfmetrics`` TER backend directly. The
@@ -345,6 +351,7 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
 
     Reports only DisfluencyTolerant TER (DTER, via dfmetrics Python backend)
     and entity recognition error rate (EER, from SpeechInsight EntityInfo).
+    ``dter_p_err`` is the reporting alias used by the 2609 benchmark pipeline.
     ``score = 1 - dter`` is exposed for the trainer's reward aggregation.
     """
     pack_dir = kwargs.get("pack_dir", DEFAULT_PACK_DIR)
@@ -356,8 +363,7 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     # runtime exported onto PATH/DOTNET_ROOT *before* DTER runs. `_compute_eer`
     # also relies on this, but it runs after DTER, so set it up up-front here.
     ensure_pack_dir(pack_dir)
-    parsed = parse_asr_response(solution_str)
-    hyp_text = parsed.get("text") or ""
+    hyp_text = _clean_hyp(get_hyp_text(solution_str, version=kwargs.get("version")))
     ref_text = _clean_ref(ground_truth)
 
     dter_n_err, dter_n_ref, dter, dter_detail = _compute_dter(ref_text, hyp_text, locale=locale)

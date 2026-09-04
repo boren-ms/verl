@@ -228,6 +228,42 @@ def test_merged_summary_chart_clusters_steps_by_dataset():
     assert chart.legend.position == "t"
 
 
+def test_merged_summary_chart_preserves_multiple_metrics_per_benchmark():
+    report = _load_report_module()
+    workbook = Workbook()
+    summary = workbook.active
+    summary.title = "summary"
+    summary.append(["Model", "candidate"])
+    summary.append([])
+    summary.append(["Checkpoint", "Benchmark", "Metric", "Baseline", "Candidate", "Delta"])
+    for checkpoint, cer, wer in (
+        ("step10", (0.01, 0.02), (0.10, 0.11)),
+        ("step20", (0.01, 0.015), (0.10, 0.09)),
+    ):
+        for metric, (baseline, candidate) in (("CER", cer), ("WER", wer)):
+            summary.append(
+                [
+                    checkpoint,
+                    "digits_enus",
+                    metric,
+                    baseline,
+                    candidate,
+                    1 - candidate / baseline,
+                ]
+            )
+
+    assert report.apply_summary_charts(summary) == 1
+
+    marker = next(cell.column for cell in summary[1] if cell.value == "__chart_data__")
+    assert [summary.cell(row, marker).value for row in range(3, 5)] == [
+        "digits_enus (CER)",
+        "digits_enus (WER)",
+    ]
+    chart = summary._charts[0]
+    assert len(chart.series) == 2
+    assert all(len(series.dPt) == 2 for series in chart.series)
+
+
 def test_single_summary_chart_colors_each_dataset():
     report = _load_report_module()
     workbook = Workbook()

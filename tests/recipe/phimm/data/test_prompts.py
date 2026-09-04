@@ -4,7 +4,8 @@ from recipe.phimm.data.prompts import (
     get_task_prompt,
     resolve_task_language,
 )
-from recipe.phimm.reward.asr_measure import _parse_task_output, check_fmt
+from recipe.phimm.reward.asr_measure import check_fmt
+from recipe.phimm.reward.asr_response import parse_task_output
 
 
 def test_get_task_output_formats_mixed_components():
@@ -19,7 +20,7 @@ def test_get_task_output_formats_mixed_components():
     )
 
     assert output == "<src=English><tgt=English>\nhello\n<src=Chinese><tgt=Chinese>\n你好"
-    assert check_fmt(_parse_task_output(output))
+    assert check_fmt(parse_task_output(output))
 
 
 def test_get_task_output_preserves_single_language_format():
@@ -32,7 +33,7 @@ def test_get_task_output_supports_2607_format():
     output = get_task_output(task="lang_asr", lang="en", text="hello", version=2607)
 
     assert output == "Audio Language: English.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
-    assert _parse_task_output(output, version=2607) == (["English"], ["English"], ["hello"])
+    assert parse_task_output(output, version=2607) == (["English"], ["English"], ["hello"])
 
 
 def test_task_prefix_and_output_support_2607_completion_format():
@@ -41,7 +42,7 @@ def test_task_prefix_and_output_support_2607_completion_format():
 
     assert prefix == "Audio Language: English\n"
     assert output == "Audio Language: English.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
-    assert _parse_task_output(output, version=2607) == (
+    assert parse_task_output(output, version=2607) == (
         ["English"],
         ["English"],
         ["hello"],
@@ -64,7 +65,7 @@ def test_get_task_output_supports_2607_mixed_components():
         "Audio Language: English and Chinese.\n"
         "<ASR><lang=English><TXT>hello</TXT><lang=Chinese><TXT>你好</TXT></ASR>"
     )
-    assert _parse_task_output(output, version=2607) == (
+    assert parse_task_output(output, version=2607) == (
         ["English", "Chinese"],
         ["English", "Chinese"],
         ["hello", "你好"],

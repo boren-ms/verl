@@ -7,31 +7,13 @@ reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
 
 from __future__ import annotations
 
-import re
 import unicodedata
 from dataclasses import dataclass
 
 from jiwer import process_words
 
+from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
 from recipe.phimm.utils.languages import get_language_code
-
-
-# One ``<src=X><tgt=Y>\n...`` segment. Several newline-separated
-# segments may appear for code-switch / mixed audio.
-_SEGMENT_RE = re.compile(
-    r"(?:\A|\n)<src=(?P<src>[^>\n]+)><tgt=(?P<tgt>[^>\n]+)>[^\S\n]*\n"
-    r"(?P<text>.*?)(?=\n<src=|\Z)",
-    re.DOTALL,
-)
-
-_2607_HEADER_RE = re.compile(r"^Audio Language:\s*(?P<langs>[^\n]+?)\.?\n(?P<body>.*)$", re.DOTALL)
-_2607_TAG_RE = re.compile(r"^<(?P<tag>ASR(?:_[^>]+)?)>(?P<inner>.*)</(?P=tag)>$", re.DOTALL)
-_2607_SEGMENT_RE = re.compile(r"\s*<lang=(?P<lang>[^>]+)><TXT>(?P<text>.*?)</TXT>\s*", re.DOTALL)
-
-_ASR_MODE_TAG_RE = re.compile(
-    r"</?(?:asr_)?(?:lexical|verbatim|readable)>",
-    re.IGNORECASE,
-)
 
 
 # ---------------------------------------------------------------------------
@@ -230,11 +212,6 @@ def _empty_result() -> dict:
 # ---------------------------------------------------------------------------
 
 
-def clean_asr_mode_tags(text: str) -> str:
-    """Remove lexical, verbatim, and readable ASR mode tags."""
-    return _ASR_MODE_TAG_RE.sub("", text)
-
-
 def compute_openml_acc(hyp_text: str, ground_truth: str, tgt_lang: str, **kwargs) -> dict:
     """Return bracket, repeat, and tail-hallucination accuracies."""
     from recipe.phimm.utils.shared import has_brackets, has_repeat_error, has_tail_hallucination
@@ -322,8 +299,8 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
     version = kwargs.get("version")
-    task_output = _parse_task_output(solution_str, version=version)
-    hyp_text = get_asr_text(task_output) if task_output is not None else str(solution_str or "")
+    task_output = parse_task_output(solution_str, version=version)
+    hyp_text = get_hyp_text(solution_str, version=version)
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
@@ -346,102 +323,6 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "fmt": float(check_fmt(task_output)),
         **openml_acc,
     }
-
-
-def _parse_task_output(solution_str, version=None):
-    """Parse an ASR task output into ``(src_langs, tgt_langs, seg_texts)``.
-
-    Model version 2607 uses the legacy ``Audio Language`` / ``<ASR>``
-    envelope. Newer versions use the ``<src=X><tgt=Y>`` format.
-
-    """
-    if str(version) == "2607":
-        return _parse_task_output_2607(solution_str)
-    return _parse_task_output_2609(solution_str)
-
-
-def get_asr_text(task_output):
-    """Join the text segments from a parsed ASR task output."""
-    return " ".join(task_output[2])
-
-
-def _parse_task_output_2607(solution_str):
-    """Parse the legacy 2607 ``Audio Language`` / ``<ASR>`` envelope."""
-    if not isinstance(solution_str, str):
-        return None
-    output = solution_str.strip()
-    header_match = _2607_HEADER_RE.match(output)
-    body = header_match.group("body").strip() if header_match else output
-    tag_match = _2607_TAG_RE.match(body)
-    if tag_match is None:
-        return None
-
-    segments = []
-    inner = tag_match.group("inner")
-    pos = 0
-    while pos < len(inner):
-        segment_match = _2607_SEGMENT_RE.match(inner, pos)
-        if segment_match is None:
-            return None
-        segments.append((segment_match.group("lang").strip(), segment_match.group("text")))
-        pos = segment_match.end()
-    if not segments:
-        return None
-
-    header_langs = _split_2607_langs(header_match.group("langs")) if header_match else []
-    segment_langs = [lang for lang, _ in segments]
-    segment_texts = [text for _, text in segments]
-    return header_langs, segment_langs, segment_texts
-
-
-def _split_2607_langs(header: str) -> list[str]:
-    """Split a 2607 header into its individual language names."""
-    header = header.strip().rstrip(".")
-    header = re.sub(r"\band\b", " ", header, flags=re.IGNORECASE)
-    return [part for part in re.split(r"[,\s、&/]+", header) if part]
-
-
-def _parse_task_output_2609(solution_str):
-    """Parse the 2609 single- or multi-segment task output.
-
-    The first ``<src=X><tgt=Y>`` header is optional because it may already be
-    supplied as the generation prefix. Later code-switch / mixed-audio
-    segments must have newline-separated headers. Returns ``None`` when a
-    structured output is malformed.
-    """
-    if not isinstance(solution_str, str):
-        return None
-    output = clean_asr_mode_tags(solution_str).strip()
-    if not output:
-        return None
-    first_header = output.find("\n<src=")
-    if not output.startswith("<src=") and first_header < 0:
-        return [], [], [output]
-
-    segments = []
-    if first_header >= 0 and not output.startswith("<src="):
-        segments.append((None, None, output[:first_header].strip()))
-        pos = first_header
-    else:
-        pos = 0
-    while pos < len(output):
-        m = _SEGMENT_RE.match(output, pos)
-        if not m:
-            return None
-        segments.append(
-            (
-                m.group("src").strip(),
-                m.group("tgt").strip(),
-                m.group("text").strip(),
-            )
-        )
-        pos = m.end()
-    if not segments:
-        return None
-    src_langs = [src for src, _, _ in segments if src is not None]
-    tgt_langs = [tgt for _, tgt, _ in segments if tgt is not None]
-    seg_texts = [text for _, _, text in segments]
-    return src_langs, tgt_langs, seg_texts
 
 
 def _lang_code_set(lang) -> set[str]:
@@ -581,7 +462,7 @@ def lang_score(solution_str, ground_truth=None, **kwargs):
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
     version = kwargs.get("version")
-    task_output = _parse_task_output(solution_str, version=version)
+    task_output = parse_task_output(solution_str, version=version)
     p_lang = check_lang(task_output, tgt_lang)
     return {
         "score": p_lang,

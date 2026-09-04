@@ -61,6 +61,7 @@ actor_rollout_ref:
     max_num_seqs: 32
   actor:
     tis_imp_ratio_cap: 5
+    use_torch_compile: false
     use_kl_loss: true
     kl_loss_coef: 0.001
     kl_loss_type: low_var_kl

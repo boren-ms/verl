@@ -9,8 +9,8 @@ import sys
 sys.path.append(str(Path(__file__).parents[3]))
 
 from recipe.phimm.utils.tn import text_norm as text_normalize
-from recipe.phimm.reward.asr_measure import _parse_task_output, get_asr_text
 from recipe.phimm.reward.error_book import get_eb
+from recipe.phimm.reward.asr_response import get_hyp_text
 from collections import deque
 
 
@@ -356,17 +356,12 @@ def is_valid(wer, **kwargs):
     return wer.wer <= max_wer and wer.n_err <= max_err
 
 
-def _get_hyp_text(solution_str, version=None):
-    task_output = _parse_task_output(solution_str, version=version)
-    return get_asr_text(task_output) if task_output is not None else str(solution_str or "")
-
-
 def compute_score(solution_str, ground_truth, **kwargs):
     """The scoring function for ASR with keywords."""
     extra_info = kwargs.pop("extra_info", {})
     error_book = kwargs.get("error_book", False)
     keywords = get_eb().error_words(ground_truth, solution_str) if error_book else extra_info.get("keywords", None)
-    hyp_text = _get_hyp_text(solution_str, version=kwargs.get("version"))
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
 
     wer, u_wer, b_wer = measure_errors(
         hyp_text,
@@ -403,7 +398,7 @@ def eval_score(solution_str, ground_truth, **kwargs):
     """The scoring function for ASR with keywords."""
     extra_info = kwargs.pop("extra_info", {})
     text_norm = kwargs.pop("text_norm", "english")
-    hyp_text = _get_hyp_text(solution_str, version=kwargs.get("version"))
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
     wer, u_wer, b_wer = measure_errors(
         hyp_text,
         ground_truth,

@@ -28,7 +28,8 @@ from recipe.phimm.data.prompts import resolve_task_language, get_task_prompt, ge
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
 from recipe.phimm.data.audio_augment import AudioAugmenter, safe_audio_stem
-from recipe.phimm.reward.asr_measure import _parse_task_output, check_fmt, check_lang
+from recipe.phimm.reward.asr_measure import check_fmt, check_lang
+from recipe.phimm.reward.asr_response import parse_task_output
 from recipe.phimm.utils.shared import (
     hash_id,
     get_value,
@@ -953,13 +954,13 @@ def _check_field(example, field, val_range):
 
 
 def _is_bad_fmt(example):
-    task_output = _parse_task_output(example.get("raw_response", ""))
+    task_output = parse_task_output(example.get("raw_response", ""))
     return not check_fmt(task_output)
 
 
 def _is_bad_lang(example):
     lang = example.get("language") or "English"
-    task_output = _parse_task_output(example.get("raw_response", ""))
+    task_output = parse_task_output(example.get("raw_response", ""))
     return check_lang(task_output, lang) < 1.0
 
 
