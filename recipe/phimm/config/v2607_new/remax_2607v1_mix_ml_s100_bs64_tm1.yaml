@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - data/train_data/bad_mix13k_openml_verb_lid05
+  - data/train_data/bad_mix13k_openml_verb_lid0
   - _self_
 
 reward_functions:
@@ -29,5 +29,4 @@ data:
   train_batch_size: 64
 
 trainer:
-  project_name: ver_2607
   total_training_steps: 100

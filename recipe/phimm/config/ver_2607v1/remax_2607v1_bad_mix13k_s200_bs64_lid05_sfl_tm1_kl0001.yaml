@@ -43,7 +43,7 @@ val_reward:
       reward_kwargs:
         locale: en-us
     openml:
-      path: recipe/phimm/reward/asr_edge.py
+      path: recipe/phimm/reward/asr_eval.py
       name: openasr_eval
   reward_function_by_data_source:
     mixlang_fy26q2: inhouse

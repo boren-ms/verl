@@ -19,7 +19,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from recipe.phimm.reward.asr_edge import openasr_eval  # noqa: E402
+from recipe.phimm.reward.asr_eval import openasr_eval  # noqa: E402
+from recipe.phimm.reward.asr_edge import _parse_response  # noqa: E402
 
 # For each metric, the value indicating a *failure* (problematic utterance).
 # p_fmt / p_lang: 1.0 = pass, 0.0 = fail
@@ -69,6 +70,10 @@ def process_eval_dir(root: Path, out_path: Path) -> dict:
                     metrics = openasr_eval(
                         solution, gt, extra_info={"language": language}
                     )
+                    parsed = _parse_response(
+                        solution, gt, extra_info={"language": language}
+                    )
+                    metrics.update({key: parsed[key] for key in GATING_KEYS})
                 except Exception as exc:  # pragma: no cover
                     metrics = {"error": repr(exc)}
                     flags = {k: True for k in GATING_KEYS}

@@ -1,14 +1,11 @@
 # %%
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-import logging
 import re
-from recipe.phimm.utils.languages import get_language_code
-from recipe.phimm.utils.shared import has_brackets, has_repeat_error, has_missing_keyword, has_tail_hallucination, parse_asr_response
+from recipe.phimm.reward.asr_eval import openasr_eval as openasr_eval
+from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
+from recipe.phimm.utils.shared import has_brackets, has_missing_keyword, has_repeat_error, has_tail_hallucination
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
-
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -144,12 +141,16 @@ def measure(hyp, ref, tgt_lang="english", **kwargs):
 
 
 def _parse_response(solution_str, ground_truth=None, **kwargs):
-    """Shared parsing: extract target language, parse ASR response, check lang/format."""
+    """Extract ASR text and validation signals from a model response."""
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    trans_dict = parse_asr_response(solution_str)
-    hyp_text = trans_dict["text"]
-    pred_lang = (trans_dict["lang"] or "").lower().strip()
+    version = kwargs.get("version")
+    task_output = parse_task_output(solution_str, version=version)
+    hyp_text = get_hyp_text(solution_str, version=version)
+    lang_index = 1 if str(version) == "2607" else 0
+    pred_langs = task_output[lang_index] if task_output is not None else []
+    pred_lang = (pred_langs[0] if pred_langs else "").lower().strip()
+    is_formatted = task_output is not None and (str(version) == "2607" or bool(task_output[0]))
     repeat_opts = kwargs.get("repeat") or {}
     p_repeat = has_repeat_error(
         hyp_text,
@@ -172,14 +173,13 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         lang=tgt_lang,
     )
 
-    # <nonspeech> hyp has no language content; treat p_lang as correct.
     is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
 
     return {
         "hyp_text": hyp_text,
         "tgt_lang": tgt_lang,
         "p_lang": 1.0 if is_nonspeech else float(pred_lang == tgt_lang),
-        "p_fmt": float(bool(trans_dict["formatted"])),
+        "p_fmt": float(is_formatted),
         "p_bracket": float(has_brackets(hyp_text)),
         "p_repeat": float(p_repeat),
         "p_kw_missing": float(p_kw_missing),
@@ -261,31 +261,6 @@ def eval_score(solution_str, ground_truth, **kwargs):
         "n_err": err.n_err,
         "n_ref": err.n_ref,
         "n_edge": err.n_edge,
-        "p_fmt": parsed["p_fmt"],
-        "p_lang": parsed["p_lang"],
-        "p_bracket": parsed["p_bracket"],
-        "p_repeat": parsed["p_repeat"],
-        "p_kw_missing": parsed["p_kw_missing"],
-        "p_tail_hallu": parsed["p_tail_hallu"],
-    }
-
-
-def openasr_eval(solution_str, ground_truth, **kwargs):
-    """Evaluation using OpenASR normalizers + editdistance WER.
-
-    Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
-    """
-    from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
-
-    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
-    logger.info("openasr_eval language check: tgt_lang=%s p_lang=%s", parsed["tgt_lang"], parsed["p_lang"])
-    result = measure_wer(parsed["hyp_text"], ground_truth, lang=get_language_code(parsed["tgt_lang"]))
-
-    return {
-        "score": 1.0 - result["wer"],
-        "wer": result["wer"],
-        "n_err": result["n_err"],
-        "n_ref": result["n_ref"],
         "p_fmt": parsed["p_fmt"],
         "p_lang": parsed["p_lang"],
         "p_bracket": parsed["p_bracket"],

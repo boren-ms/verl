@@ -11,7 +11,7 @@ defaults:
 # ArtificialAnalysis English evaluation scored with OpenASR normalization.
 
 custom_reward_function:
-  path: recipe/phimm/reward/asr_edge.py
+  path: recipe/phimm/reward/asr_eval.py
   name: openasr_eval
 
 model:

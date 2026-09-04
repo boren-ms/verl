@@ -13,5 +13,5 @@ actor_rollout_ref:
     path: az://orngwus2cresco/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2
 val_reward:
   custom_reward_function:
-    path: recipe/phimm/reward/asr_edge.py
+    path: recipe/phimm/reward/asr_eval.py
     name: openasr_eval

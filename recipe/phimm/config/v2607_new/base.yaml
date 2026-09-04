@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - data/val_data/mixlang_fy26q2_zh_seg_openml_punc
+  - data/val_data/mixlang_openml_earning
   - _self_
 
 nccl_timeout: 3600
@@ -8,27 +8,21 @@ nccl_timeout: 3600
 val_reward:
   reward_manager: long_audio_grouped
   reward_functions:
-    inhouse:
+    inhouse_zh:
       path: recipe/phimm/reward/asr_inhouse_measure.py
       name: eval_score
       reward_kwargs:
         version: 2607
         locale: zh-cn
-    inhouse_en:
-      path: recipe/phimm/reward/asr_inhouse_measure.py
-      name: eval_score
-      reward_kwargs:
-        version: 2607
-        locale: en-us
     openml:
-      path: recipe/phimm/reward/asr_edge.py
+      path: recipe/phimm/reward/asr_eval.py
       name: openasr_eval
       reward_kwargs:
         version: 2607
   reward_function_by_data_source:
-    mixlang_fy26q2: inhouse
+    mixlang: inhouse_zh
+    earning: openml
     openml_bad: openml
-    enus_conv_fy21q1: inhouse_en
 
 actor_rollout_ref:
   nccl_timeout: 3600
@@ -141,7 +135,7 @@ reward_model:
     penalty_factor: 0.0
 
 trainer:
-  project_name: ver_2609
+  project_name: v2607_new
   logger: ["console", "wandb"]
   experiment_name: null
   n_gpus_per_node: 8

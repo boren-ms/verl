@@ -63,7 +63,7 @@ val_reward:
       path: recipe/phimm/reward/digits_measure.py
       name: eval_score
     openml:
-      path: recipe/phimm/reward/asr_edge.py
+      path: recipe/phimm/reward/asr_eval.py
       name: openasr_eval
   reward_function_by_data_source:
     mixlang_fy26q2: inhouse

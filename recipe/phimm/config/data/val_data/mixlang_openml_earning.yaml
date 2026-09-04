@@ -1,0 +1,67 @@
+# ArtificialAnalysis English evaluation sets pre-segmented offline with SVAD
+# (max_len_sec=30), using verbatim ASR prompts with language prefixes.
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+    cache_audio: {}
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: mixlang
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earning
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/pt/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/bad_fmt_lang_bracket.jsonl
+    - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/bad_fmt_lang_bracket.jsonl
+  cache_name: auto_openasr_ml_bad_fmt_lang_bracket
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 1.0
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml_bad
+    verl_format:
+      prompt_key: prompt

@@ -30,7 +30,7 @@ val_reward:
 #   reward_manager: long_audio_grouped
   reward_functions:
     openml:
-      path: recipe/phimm/reward/asr_edge.py
+      path: recipe/phimm/reward/asr_eval.py
       name: openasr_eval
   reward_function_by_data_source:
     bad_lid_short: openml
