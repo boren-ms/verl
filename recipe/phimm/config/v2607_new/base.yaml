@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - data/val_data/mixlang_openml_earning
+  - /data/val_data/mixlang_openml_earning
   - _self_
 
 nccl_timeout: 3600
@@ -135,7 +135,7 @@ reward_model:
     penalty_factor: 0.0
 
 trainer:
-  project_name: v2607_new
+  project_name: ver_2609
   logger: ["console", "wandb"]
   experiment_name: null
   n_gpus_per_node: 8
