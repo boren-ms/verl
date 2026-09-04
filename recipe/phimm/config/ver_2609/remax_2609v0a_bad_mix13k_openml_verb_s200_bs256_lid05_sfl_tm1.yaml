@@ -19,8 +19,6 @@ reward_functions:
         lang: {beta: 1.0}
         fmt: {beta: 1.0}
         bracket: {beta: 1.0}
-        repeat: {beta: 1.0}
-        # tail_hallu: {beta: 1.0}
 
 reward_function_by_data_source:
   mix: openml
