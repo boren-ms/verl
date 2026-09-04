@@ -1,0 +1,33 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - data/train_data/bad_mix13k_openml_verb_lid05
+  - _self_
+
+reward_functions:
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 0.5}
+        word: {beta: 0.5}
+        lang: {beta: 1.0}
+        fmt: {beta: 1.0}
+        bracket: {beta: 1.0}
+
+reward_function_by_data_source:
+  mix: openml
+  openml: openml
+
+data:
+  train_batch_size: 64
+
+trainer:
+  project_name: ver_2607
+  total_training_steps: 100

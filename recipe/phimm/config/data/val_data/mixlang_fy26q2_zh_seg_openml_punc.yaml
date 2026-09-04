@@ -50,6 +50,7 @@
   cache_name: auto_openasr_ml_bad_fmt_lang_bracket
   add_task_info:
     task: lang_asr_verb
+    prefix_prob: 1.0
   post_process:
     cache_audio: {}
     add_field:
@@ -68,6 +69,7 @@
     cache_audio: {}
   add_task_info:
     task: lang_asr
+    prefix_prob: 1.0
     language: English
   post_process:
     add_field:
