@@ -252,17 +252,17 @@ def _compute_dter(ref: str, hyp: str, locale: str = "en-us") -> tuple[int, int, 
     per-utterance ``word_align`` / ``word_ter_class`` / ``ter_category_info`` /
     ``display_form_*`` fields live under ``sent_details[0]`` (NOT the top level).
     """
-    try:
-        backend = _get_ter_backend(locale)
-        result = backend.compute_ter_from_strings(transcription=ref, recognition=hyp) or {}
-    except Exception as e:
-        logger.warning("DTER computation failed: %s", e)
-        return 0, 0, 0.0, None
+    backend = _get_ter_backend(locale)
+    result = backend.compute_ter_from_strings(transcription=ref, recognition=hyp)
+    if not isinstance(result, dict):
+        raise RuntimeError(f"DTER backend returned invalid result type: {type(result).__name__}")
 
     summary = result.get("summary") or {}
     info = summary.get("ter_info") or {}
     n_err = int(info.get("number_of_edits") or 0)
     n_ref = int(info.get("number_of_tokens") or 0)
+    if ref and n_ref <= 0:
+        raise RuntimeError("DTER backend returned zero reference tokens for a nonempty reference")
     raw = float(info.get("display_ter") or 0.0)
     # dfmetrics returns display_ter as a percentage (e.g. 42.85), normalize to fraction.
     dter = raw / 100.0 if raw > 1.5 else raw
