@@ -1,0 +1,29 @@
+defaults:
+  - dapo_asr
+  - data/train_data/ls_raw
+  - data/val_data/bias_entity_ls
+  - _self_
+
+val_reward:
+  custom_reward_function:
+    path: recipe/phimm/reward/asr_eval.py
+    name: openasr_eval
+    reward_kwargs:
+      version: 2607
+
+data:
+  version: 2607
+  dataloader_num_workers: 8
+  prefetch_factor: 4
+  persistent_workers: true
+  val_batch_size: 512
+
+actor_rollout_ref:
+  rollout:
+    max_num_seqs: 48
+    gpu_memory_utilization: 0.9
+
+trainer:
+  val_only: True
+  val_before_train: True
+  nnodes: 1

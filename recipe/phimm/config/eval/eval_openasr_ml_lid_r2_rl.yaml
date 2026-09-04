@@ -4,7 +4,7 @@ hydra:
     - file://recipe/phimm/config/base
     - file://verl/trainer/config
 defaults:
-  - eval_asr
+  - eval_asr_2607
   - data/val_data/openasr_ml_lid
   - _self_
 
