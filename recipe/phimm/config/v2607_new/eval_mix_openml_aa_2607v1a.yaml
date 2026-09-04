@@ -1,0 +1,31 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base_eval
+  - /data/val_data/mix_openml_aa
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    mixlang_fy26q2: inhouse_zh
+    de_fleurs: openml
+    fr_fleurs: openml
+    it_fleurs: openml
+    es_fleurs: openml
+    pt_fleurs: openml
+    de_mcv: openml
+    fr_mcv: openml
+    it_mcv: openml
+    es_mcv: openml
+    fr_mls: openml
+    it_mls: openml
+    es_mls: openml
+    pt_mls: openml
+    earnings22_cleaned_aa: openml
+    voxpopuli_cleaned_aa: openml
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/

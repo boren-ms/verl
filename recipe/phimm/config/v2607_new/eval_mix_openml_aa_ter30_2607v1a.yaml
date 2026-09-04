@@ -1,0 +1,49 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base_eval
+  - /data/val_data/mix_openml_aa_ter30
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    mixlang_fy26q2: inhouse_zh
+    enus_conv_fy21q1: inhouse_all
+    enus_conv_om_fy25q3: inhouse_all
+    enus_dict_office_fy24q3: inhouse_all
+    dadk_conv_fy21q3: inhouse_all
+    dadk_conv_om_fy23q1: inhouse_all
+    dadk_dict_fy23q4: inhouse_all
+    huhu_conv_fy22q4: inhouse_all
+    huhu_conv_om_fy24q2: inhouse_all
+    huhu_dict_fy25q2: inhouse_all
+    nbno_conv_fy21q3: inhouse_all
+    nbno_conv_om_fy23q1: inhouse_all
+    nbno_dict_fy23q4: inhouse_all
+    nlnl_conv_fy23q2: inhouse_all
+    nlnl_conv_om_fy23q1: inhouse_all
+    nlnl_dict_fy23q4: inhouse_all
+    cscz_conv_fy23q2: inhouse_all
+    cscz_conv_om_fy24q2: inhouse_all
+    cscz_dict_fy24q2: inhouse_all
+    de_fleurs: openml
+    fr_fleurs: openml
+    it_fleurs: openml
+    es_fleurs: openml
+    pt_fleurs: openml
+    de_mcv: openml
+    fr_mcv: openml
+    it_mcv: openml
+    es_mcv: openml
+    fr_mls: openml
+    it_mls: openml
+    es_mls: openml
+    pt_mls: openml
+    earnings22_cleaned_aa: openml
+    voxpopuli_cleaned_aa: openml
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/

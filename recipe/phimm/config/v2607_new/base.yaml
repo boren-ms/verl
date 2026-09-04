@@ -14,6 +14,11 @@ val_reward:
       reward_kwargs:
         version: 2607
         locale: zh-cn
+    inhouse_all:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2607
     openml:
       path: recipe/phimm/reward/asr_eval.py
       name: openasr_eval

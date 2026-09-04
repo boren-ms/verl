@@ -1,0 +1,8 @@
+defaults:
+  - base
+  - _self_
+
+trainer:
+  project_name: v2607_new_eval
+  val_only: true
+  val_before_train: true

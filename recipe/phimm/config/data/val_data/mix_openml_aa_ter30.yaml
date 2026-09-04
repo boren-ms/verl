@@ -1,0 +1,590 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: mixlang_fy26q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_de
+  add_task_info:
+    task: lang_asr_verb_de
+    language: German
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: de_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_fr
+  add_task_info:
+    task: lang_asr_verb_fr
+    language: French
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_it
+  add_task_info:
+    task: lang_asr_verb_it
+    language: Italian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: it_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_es
+  add_task_info:
+    task: lang_asr_verb_es
+    language: Spanish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: es_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_fleurs_pt
+  add_task_info:
+    task: lang_asr_verb_pt
+    language: Portuguese
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mcv_de
+  add_task_info:
+    task: lang_asr_verb_de
+    language: German
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: de_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mcv_fr
+  add_task_info:
+    task: lang_asr_verb_fr
+    language: French
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mcv_it
+  add_task_info:
+    task: lang_asr_verb_it
+    language: Italian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mcv_es
+  add_task_info:
+    task: lang_asr_verb_es
+    language: Spanish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mls_fr
+  add_task_info:
+    task: lang_asr_verb_fr
+    language: French
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/it/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mls_it
+  add_task_info:
+    task: lang_asr_verb_it
+    language: Italian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mls_es
+  add_task_info:
+    task: lang_asr_verb_es
+    language: Spanish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data.jsonl
+  cache_name: auto_openasr_ml_verb_lid_mls_pt
+  add_task_info:
+    task: lang_asr_verb_pt
+    language: Portuguese
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: voxpopuli_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+# Combined pre-segmented InhouseASR_2605 eval for 6 locales:
+# en-US, da-DK, hu-HU, nb-NO, nl-NL, cs-CZ.
+# All corpora are pre-segmented offline with SVAD (max_len_sec=30). Per-corpus aggregation is keyed
+# on CorpusName -> data_source.
+
+# ── en-US ──────────────────────────────────────────────────────────────────────
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/en-US/Conversation_DTEST_FY21Q1_en-US/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_conv_fy21q1
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/en-US/Conversation_OnlineMeetings_DTEST_FY25Q3_en-US_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_conv_om_fy25q3
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/en-US/Dictation_Commonset_OfficeOffline_FY24Q3_en-US_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: enus_dict_office_fy24q3
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# ── da-DK ──────────────────────────────────────────────────────────────────────
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/da-DK/Conversation_DTEST_FY21Q3_da-DK_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Danish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: dadk_conv_fy21q3
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/da-DK/Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Danish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: dadk_conv_om_fy23q1
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/da-DK/Dictation_DTEST_L_D_FY23Q4_da-DK_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Danish
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: dadk_dict_fy23q4
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# ── hu-HU ──────────────────────────────────────────────────────────────────────
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/hu-HU/Conversation_DTEST_FY22Q4_hu-HU_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Hungarian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: huhu_conv_fy22q4
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/hu-HU/Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Hungarian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: huhu_conv_om_fy24q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/hu-HU/Dictation_DTEST_L_D_FY25Q2_hu-HU_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Hungarian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: huhu_dict_fy25q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# ── nb-NO ──────────────────────────────────────────────────────────────────────
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nb-NO/Conversation_DTEST_FY21Q3_nb-NO_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Norwegian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: nbno_conv_fy21q3
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nb-NO/Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Norwegian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: nbno_conv_om_fy23q1
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nb-NO/Dictation_DTEST_L_D_FY23Q4_nb-NO_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Norwegian
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: nbno_dict_fy23q4
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# ── nl-NL ──────────────────────────────────────────────────────────────────────
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nl-NL/Conversation_DTEST_FY23Q2_nl-NL_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Dutch
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: nlnl_conv_fy23q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nl-NL/Conversation_OnlineMeetings_DTEST_FY23Q1_nl-NL_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Dutch
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: nlnl_conv_om_fy23q1
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nl-NL/Dictation_DTEST_L_D_FY23Q4_nl-NL_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Dutch
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: nlnl_dict_fy23q4
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+# ── cs-CZ ──────────────────────────────────────────────────────────────────────
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/cs-CZ/Conversation_DTEST_FY23Q2_cs-CZ_DTEST/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Czech
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: cscz_conv_fy23q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/cs-CZ/Conversation_OnlineMeetings_DTEST_FY24Q2_cs-CZ/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Czech
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: cscz_conv_om_fy24q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/cs-CZ/Dictation_DTEST_L_D_FY24Q2_cs-CZ_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+    language: Czech
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: cscz_dict_fy24q2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]

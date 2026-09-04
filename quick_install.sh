@@ -24,6 +24,7 @@ required_versions = {
     "transformers": "5.7.0",
     "flashinfer-python": "0.6.12",
     "flashinfer-cubin": "0.6.12",
+    "bitsandbytes": "0.50.2",
     "protobuf": "5.29.5",
     "nvidia-cuda-runtime": "13.3.29",
     "nvidia-cuda-nvcc": "13.3.73",
@@ -145,7 +146,7 @@ if [ ! -f "${done_file}" ]; then
 
     # 3. Remaining project + inference dependencies come from the default
     # package index; the PyTorch requirements are already satisfied locally.
-    pip install -r requirements_vllm.txt "protobuf==5.29.5"
+    pip install -r requirements_vllm.txt "protobuf==5.29.5" "bitsandbytes==0.50.2"
 
     # FlashInfer JIT must use one coherent CUDA compiler/runtime generation.
     # Mixed 13.0/13.2/13.3 packages produce unsupported PTX or linker failures.
