@@ -24,6 +24,7 @@ import uuid
 from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
+from itertools import chain
 from pprint import pprint
 from typing import Optional
 
@@ -384,10 +385,16 @@ class RayPPOTrainer:
             train_dataset = create_rl_dataset(train_data, self.config.data, self.tokenizer, self.processor, True)
         if val_dataset is None:
             val_data = self.config.data.get("val_data", None) or self.config.data.get("val_files", None)
-            val_dataset = create_rl_dataset(val_data, self.config.data, self.tokenizer, self.processor, False)
-        self.train_dataset, self.val_dataset = train_dataset, val_dataset
+            val_data_items = val_data if isinstance(val_data, (list, tuple)) or OmegaConf.is_list(val_data) else [val_data]
+            val_datasets = [
+                create_rl_dataset([val_data_item], self.config.data, self.tokenizer, self.processor, False)
+                for val_data_item in val_data_items
+            ]
+        else:
+            val_datasets = [val_dataset]
+        self.train_dataset = train_dataset
         print("Train dataset:", len(self.train_dataset))
-        print("Val dataset:", len(self.val_dataset))
+        print("Val datasets:", [len(dataset) for dataset in val_datasets])
         if train_sampler is None:
             train_sampler = create_rl_sampler(self.config.data, self.train_dataset)
 
@@ -410,30 +417,32 @@ class RayPPOTrainer:
             pin_memory=pin_memory,
         )
 
-        val_batch_size = self.config.data.val_batch_size or gen_batch_size
-        # val_batch_size: -1 -> single batch covering the entire validation set
-        # (needed by reward managers that must see all rows of a group at once,
-        # e.g. long_audio_grouped which concats per-parent segment hyps).
-        if isinstance(val_batch_size, int) and val_batch_size < 0:
-            val_batch_size = len(self.val_dataset)
-        self.val_dataloader = StatefulDataLoader(
-            dataset=self.val_dataset,
-            batch_size=val_batch_size,
-            num_workers=num_workers,
-            shuffle=self.config.data.get("validation_shuffle", False),
-            drop_last=False,
-            collate_fn=get_collate_fn(self.val_dataset, collate_fn),
-            prefetch_factor=prefetch_factor,
-            persistent_workers=persistent_workers,
-            pin_memory=pin_memory,
-        )
+        self.val_dataloaders = []
+        for dataset in val_datasets:
+            val_batch_size = self.config.data.val_batch_size or gen_batch_size
+            # A negative batch size produces one complete batch per validation dataset.
+            if isinstance(val_batch_size, int) and val_batch_size < 0:
+                val_batch_size = len(dataset)
+            self.val_dataloaders.append(
+                StatefulDataLoader(
+                    dataset=dataset,
+                    batch_size=val_batch_size,
+                    num_workers=num_workers,
+                    shuffle=self.config.data.get("validation_shuffle", False),
+                    drop_last=False,
+                    collate_fn=get_collate_fn(dataset, collate_fn),
+                    prefetch_factor=prefetch_factor,
+                    persistent_workers=persistent_workers and len(val_datasets) == 1,
+                    pin_memory=pin_memory,
+                )
+            )
 
         assert len(self.train_dataloader) >= 1, "Train dataloader is empty!"
-        assert len(self.val_dataloader) >= 1, "Validation dataloader is empty!"
+        assert all(len(dataloader) >= 1 for dataloader in self.val_dataloaders), "Validation dataloader is empty!"
 
         print(
-            f"Size of train dataloader: {len(self.train_dataloader)}, Size of val dataloader: "
-            f"{len(self.val_dataloader)}"
+            f"Size of train dataloader: {len(self.train_dataloader)}, Sizes of val dataloaders: "
+            f"{[len(dataloader) for dataloader in self.val_dataloaders]}"
         )
 
         total_training_steps = len(self.train_dataloader) * self.config.trainer.total_epochs
@@ -595,7 +604,7 @@ class RayPPOTrainer:
         sample_uids = []
         sample_extra_infos = []
 
-        for test_data in self.val_dataloader:
+        for test_data in chain.from_iterable(self.val_dataloaders):
             test_batch = DataProto.from_single_dict(test_data)
 
             if "uid" not in test_batch.non_tensor_batch:
