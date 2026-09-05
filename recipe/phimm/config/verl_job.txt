@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-05T06:50:26Z
+updated_at_utc: 2026-09-05T06:55:12Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
@@ -12,7 +12,7 @@ updated_at_utc: 2026-09-05T06:50:26Z
 │ i7           │ raysubmit_DSWivfqjsq9CyPxk   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training 163/200 (81.5%)                 │
 │ i8           │ raysubmit_qedGMJ36MCnvdKfa   │ SUCCEEDED     │ v2607_new/base_eval                                                        │ evaluating base_eval (complete)          │
 │ i9           │ -                            │ SUCCEEDED     │ step50 consolidated benchmark report                                       │ building report (complete)               │
-│ i10          │ raysubmit_GDYGMqMf9KKk8k2g   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05                               │ training 165/1000 (16.5%)                │
+│ i10          │ raysubmit_GDYGMqMf9KKk8k2g   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05                               │ training 166/1000 (16.6%)                │
 │ i11          │ -                            │ SUCCEEDED     │ step70 consolidated benchmark report                                       │ building report (complete)               │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
@@ -28,7 +28,7 @@ Reports:
 - `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training 163/200 (81.5%)
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i8`]: complete step 120
 - `remax_time_s200_bs64_r0` [`i9`]: complete step 50
-- `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05` [`i10`]: training 165/1000 (16.5%)
+- `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05` [`i10`]: training 166/1000 (16.6%)
 - `remax_2609v0_bad_mix13k_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001_i11` [`i11`]: complete step 70
 - `remax_time_s200_bs64_cut05_gt` [`i11`]: complete step 190
 - `remax_2607v1_mix_ml_s100_bs64_tm1_sep_cut05` [`i4`]: evaluating digits_enus step 80
