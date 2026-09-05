@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-05T17:40:06Z
+updated_at_utc: 2026-09-05T17:41:33Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬─────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                                │ PROGRESS / PHASE             │
@@ -11,7 +11,7 @@ updated_at_utc: 2026-09-05T17:40:06Z
 │ i7           │ raysubmit_XySzme3kGvtx2z1i   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training startup             │
 │ i8           │ raysubmit_HCZUkUADYpSVL1Zf   │ SUCCEEDED     │ eval_earnings_2607v1a_wer                                                   │ evaluating earnings22 (complete) │
 │ i9           │ raysubmit_iEeXgTPRUHiYbKPb   │ RUNNING       │ eval_mix_openml_aa_2607v1a                                                 │ evaluating it_fleurs (loading audio) │
-│ i10          │ -                            │ PENDING       │ remax_2607v1_mix_ml_s400_bs256_tm2_sep_cut05_gt                             │ training startup             │
+│ i10          │ raysubmit_feQRf6yP1QTSgxjL   │ RUNNING       │ remax_2607v1_mix_ml_s400_bs256_tm2_sep_cut05_gt                             │ training startup             │
 └──────────────┴──────────────────────────────┴───────────────┴─────────────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
