@@ -140,7 +140,7 @@ reward_model:
     penalty_factor: 0.0
 
 trainer:
-  project_name: ver_2609
+  project_name: v2607_new
   logger: ["console", "wandb"]
   experiment_name: null
   n_gpus_per_node: 8
