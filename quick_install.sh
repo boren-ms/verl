@@ -135,6 +135,10 @@ if [ ! -f "${done_file}" ]; then
     # are fetched even when an older, incomplete local bundle is present.
     bbb sync "${torch_wheel_blob}" "${torch_wheel_dir}/"
 
+    # Torch's offline wheel install still resolves Python-level dependencies
+    # locally, so seed sympy before disabling the package index.
+    pip install "sympy>=1.13.3"
+
     # Install from local files only. cuda-toolkit's extras pull in the complete
     # CUDA 13 runtime set required by the torch 2.11 wheel.
     pip install --no-index --find-links "${torch_wheel_dir}" \
