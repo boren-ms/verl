@@ -1,5 +1,6 @@
 from itertools import chain
 
+import pytest
 from omegaconf import OmegaConf
 from torch.utils.data import Dataset
 
@@ -72,3 +73,35 @@ def test_validation_configs_create_ordered_full_dataset_loaders(monkeypatch):
     assert [loader.batch_size for loader in trainer.val_dataloaders] == [2, 3]
     assert [loader.persistent_workers for loader in trainer.val_dataloaders] == [False, False]
     assert list(chain.from_iterable(trainer.val_dataloaders)) == ["mixlang", "earnings"]
+
+
+def test_validation_reward_extra_infos_align_heterogeneous_batches():
+    accumulated = {"reward": [0.9, 0.8]}
+
+    ray_trainer._extend_validation_reward_extra_infos(
+        accumulated,
+        {"dter": [0.1, 0.2]},
+        previous_sample_count=2,
+        batch_size=2,
+    )
+    accumulated["reward"].extend([0.7, 0.6])
+    ray_trainer._extend_validation_reward_extra_infos(
+        accumulated,
+        {"wer": [0.3, 0.4]},
+        previous_sample_count=4,
+        batch_size=2,
+    )
+
+    assert accumulated["reward"] == [0.9, 0.8, 0.7, 0.6]
+    assert accumulated["dter"] == [None, None, 0.1, 0.2, None, None]
+    assert accumulated["wer"] == [None, None, None, None, 0.3, 0.4]
+
+
+def test_validation_reward_extra_infos_reject_misaligned_batch():
+    with pytest.raises(ValueError, match="batch_size"):
+        ray_trainer._extend_validation_reward_extra_infos(
+            {},
+            {"dter": [0.1]},
+            previous_sample_count=0,
+            batch_size=2,
+        )

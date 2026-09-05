@@ -65,6 +65,27 @@ from verl.utils.tracking import ValidationGenerationsLogger
 from verl.utils.fs import copy_to_local, copy_to_remote, path_join
 
 
+def _extend_validation_reward_extra_infos(
+    accumulated: dict[str, list],
+    batch_infos: dict[str, list],
+    previous_sample_count: int,
+    batch_size: int,
+) -> None:
+    """Keep optional validation metrics aligned across heterogeneous batches."""
+    for key, values in batch_infos.items():
+        if len(values) != batch_size:
+            raise ValueError(f"{key}: {len(values)=}, {batch_size=}")
+        if key not in accumulated:
+            accumulated[key] = [None] * previous_sample_count
+
+    for key in set(accumulated) - {"reward"}:
+        values = batch_infos.get(key)
+        if values is None:
+            accumulated[key].extend([None] * batch_size)
+        else:
+            accumulated[key].extend(values)
+
+
 @dataclass
 class ResourcePoolManager:
     """
@@ -686,13 +707,20 @@ class RayPPOTrainer:
             result = self.val_reward_fn(test_batch, return_dict=True)
             reward_tensor = result["reward_tensor"]
             scores = reward_tensor.sum(-1).cpu().tolist()
+            previous_sample_count = len(sample_scores)
+            reward_extra_info = result.get("reward_extra_info", {})
+            _extend_validation_reward_extra_infos(
+                reward_extra_infos_dict,
+                reward_extra_info,
+                previous_sample_count=previous_sample_count,
+                batch_size=len(scores),
+            )
             sample_scores.extend(scores)
 
             reward_extra_infos_dict["reward"].extend(scores)
             print(f"len reward_extra_infos_dict['reward']: {len(reward_extra_infos_dict['reward'])}")
-            if "reward_extra_info" in result:
-                for key, lst in result["reward_extra_info"].items():
-                    reward_extra_infos_dict[key].extend(lst)
+            if reward_extra_info:
+                for key in reward_extra_info:
                     print(f"len reward_extra_infos_dict['{key}']: {len(reward_extra_infos_dict[key])}")
 
             # collect num_turns of each prompt

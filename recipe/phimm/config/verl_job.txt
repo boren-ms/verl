@@ -1,19 +1,23 @@
-updated_at_utc: 2026-09-05T07:08:55Z
+updated_at_utc: 2026-09-05T08:22:18Z
 
-┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
-│ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
-├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i1           │ raysubmit_wdfh2Vjzpx7YFGU2   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05                               │ training 68/200 (34%)                    │
-│ i2           │ raysubmit_StdCLFSJ35xp78E6   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs64_tm2_sep_cut05_gt                             │ training startup                         │
-│ i3           │ raysubmit_2WWh5uMDYfc6PFv1   │ RUNNING       │ eval_earnings_2607v1a                                                     │ evaluating earnings22 (decoding)         │
-│ i7           │ raysubmit_DSWivfqjsq9CyPxk   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training 166/200 (83%)                   │
-│ i8           │ raysubmit_HCZUkUADYpSVL1Zf   │ RUNNING       │ eval_earnings_2607v1a_wer                                                 │ evaluating earnings22 (model sync)       │
-│ i9           │ raysubmit_KsYccy9ZNaQ42rS2   │ RUNNING       │ eval_mix_openml_aa_2607v1a                                                │ evaluating mix_openml_aa (dataset load)  │
-│ i10          │ raysubmit_GDYGMqMf9KKk8k2g   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05                               │ training 168/1000 (16.8%)                │
-└──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
+┌──────────────┬──────────────────────────────┬───────────────┬─────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
+│ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                                │ PROGRESS / PHASE             │
+├──────────────┼──────────────────────────────┼───────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────┤
+│ i1           │ raysubmit_wdfh2Vjzpx7YFGU2   │ STOPPED       │ remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05                                │ training 70/200 (35%)        │
+│ i2           │ raysubmit_GdWRjm8AA3VX34rF   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs64_tm2_sep_cut05_gt                              │ training 6/200 (3%)          │
+│ i3           │ raysubmit_2WWh5uMDYfc6PFv1   │ SUCCEEDED     │ eval_earnings_2607v1a                                                       │ evaluating earnings22 (complete) │
+│ i4           │ raysubmit_fRS2KWXVZcs464fk   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05                               │ training 10/1000 (1%)        │
+│ i5           │ raysubmit_WNp3m3eedj9ULG4F   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1_sep_cut05                                │ training 10/1000 (1%)        │
+│ i7           │ raysubmit_DSWivfqjsq9CyPxk   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training 182/200 (91%)       │
+│ i8           │ raysubmit_HCZUkUADYpSVL1Zf   │ SUCCEEDED     │ eval_earnings_2607v1a_wer                                                   │ evaluating earnings22 (complete) │
+│ i9           │ raysubmit_KsYccy9ZNaQ42rS2   │ RUNNING       │ eval_mix_openml_aa_2607v1a                                                 │ evaluating openml (audio fetch) │
+│ i10          │ raysubmit_GDYGMqMf9KKk8k2g   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05                               │ training 178/1000 (17.8%)   │
+└──────────────┴──────────────────────────────┴───────────────┴─────────────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- `remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05` [`i1`]: training 68/200 (34%)
-- `remax_2607v1_mix_ml_s200_bs64_tm2_sep_cut05_gt` [`i2`]: training startup
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training 166/200 (83%)
-- `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05` [`i10`]: training 168/1000 (16.8%)
+- `remax_2607v1_mix_ml_s200_bs64_tm2_sep_cut05_gt` [`i2`]: training 6/200 (3%)
+- `remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05` [`i1`]: failed validation step 70
+- `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05` [`i4`]: training 10/1000 (1%)
+- `remax_2607v1_mix_ml_s1000_bs64_tm1_sep_cut05` [`i5`]: training 10/1000 (1%)
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training 182/200 (91%)
+- `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05` [`i10`]: training 178/1000 (17.8%)
