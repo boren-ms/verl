@@ -1,37 +1,37 @@
-updated_at_utc: 2026-09-04T23:34:32Z
+updated_at_utc: 2026-09-05T00:00:11Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i0           │ raysubmit_2HM38KcsKMjWZP6Z   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05      │ training 172/200 (86%)                   │
-│ i1           │ raysubmit_1vjQiwHXYFmQiE3v   │ RUNNING       │ long_eval_inhouse_all_seg30 step80 candidate retry4 eager                  │ evaluating inhouse_dter (decoding 27/53) │
+│ i0           │ raysubmit_2HM38KcsKMjWZP6Z   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05      │ training 178/200 (89%)                   │
+│ i1           │ raysubmit_YR657BywB8Usvtii   │ RUNNING       │ eval_openasr_ml_verb step80 candidate retry1                               │ evaluating openasr_ml (validation)       │
 │ i2           │ raysubmit_wt6pwuTi3UBCj15S   │ RUNNING       │ eval_mix_openml_aa_2607v1a                                                │ evaluating mix_openml_aa (decoding)      │
-│ i3           │ raysubmit_sWVMQqMc1ZkzMTKK   │ RUNNING       │ step90 inhouse_dter candidate                                              │ evaluating inhouse_dter (model startup)  │
-│ i4           │ raysubmit_waWU8mMSiMYTqexy   │ RUNNING       │ long_eval_inhouse_all_seg30 step80 candidate retry4 eager                  │ evaluating inhouse_dter (decoding 50/53) │
-│ i5           │ raysubmit_qmZ5WtB3QSwN6C19   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db_cut05_kl0001 │ training startup                         │
+│ i3           │ raysubmit_Etw96k84HASR8XCX   │ RUNNING       │ eval_earnings_2607v1a                                                      │ evaluating earnings (scoring)            │
+│ i4           │ raysubmit_PfpHjVJHaEn3PdPc   │ RUNNING       │ eval_digits_enus step80 candidate eager                                    │ evaluating digits_enus (decoded 9216)    │
+│ i5           │ raysubmit_JUxrWkmAsZ25EgxF   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db_cut05_kl0001 │ training startup                         │
 │ i6           │ -                            │ SUCCEEDED     │ step110 consolidated benchmark report                                      │ building report (complete)               │
-│ i7           │ raysubmit_mzTn9SPW25kuvpt8   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training 81/200 (40.5%)                  │
+│ i7           │ raysubmit_mzTn9SPW25kuvpt8   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training 87/200 (43.5%)                  │
 │ i8           │ raysubmit_qedGMJ36MCnvdKfa   │ SUCCEEDED     │ v2607_new/base_eval                                                        │ evaluating base_eval (complete)          │
 │ i9           │ -                            │ SUCCEEDED     │ step50 consolidated benchmark report                                       │ building report (complete)               │
-│ i10          │ raysubmit_nkfAtRCX1CcsPttE   │ RUNNING       │ long_eval_mixlang_fy26q2_zh_seg step110 candidate                          │ evaluating mixlang (scoring 0/352)       │
-│ i11          │ raysubmit_UwP7Vprj9DqmniSZ   │ RUNNING       │ eval_openasr_ml_verb step70 candidate retry1                               │ evaluating openasr_ml (decoded 35328)    │
+│ i10          │ -                            │ SUCCEEDED     │ step110 consolidated benchmark report                                      │ building report (complete)               │
+│ i11          │ raysubmit_yyAu4axyA2VKhrHb   │ RUNNING       │ long_eval_mixlang_fy26q2_zh_seg step70 candidate                           │ evaluating mixlang (model startup)       │
 └──────────────┴──────────────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────┘
 
 Reports:
 - `remax_2607v1_openml_verb_s100_bs64_lid0_sfl_tm1_cut05_kl0001` [`i2`]: complete step 70
 - `remax_2609v0a_bad_mix13k_openml_verb_s200_bs256_lid05_sfl_tm1_db` [`i3`]: failed training step 189
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05` [`i0`]: training 172/200 (86%)
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05` [`i0`]: training 178/200 (89%)
 - `remax_2607v1_bad_mix13k_s200_bs64_lid0_sfl_tm1_kl0001` [`i3`]: complete step 120
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1_db` [`i5`]: complete step 180
 - `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db_cut05_kl0001` [`i5`]: training startup
 - `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db` [`i6`]: complete step 110
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i7`]: complete step 80
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training 81/200 (40.5%)
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training 87/200 (43.5%)
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i8`]: complete step 120
 - `remax_time_s200_bs64_r0` [`i9`]: complete step 50
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001` [`i10`]: evaluating mixlang step 110
-- `remax_2609v0_bad_mix13k_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001_i11` [`i11`]: evaluating openasr_ml step 70
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001` [`i10`]: complete step 110
+- `remax_2609v0_bad_mix13k_s200_bs256_lid0_sfl_tm1_db_cut05_kl0001_i11` [`i11`]: evaluating mixlang step 70
 - `remax_time_s200_bs64_cut05_gt` [`i11`]: complete step 190
-- `remax_2607v1_mix_ml_s100_bs64_tm1_sep_cut05` [`i4`]: evaluating inhouse_dter step 80
+- `remax_2607v1_mix_ml_s100_bs64_tm1_sep_cut05` [`i4`]: evaluating digits_enus step 80
 - `remax_2607v1_mix_ml_s100_bs64_tm1` [`i3`]: evaluating inhouse_dter step 90
-- `remax_2607v1_mix_ml_s100_bs64_tm2_sep_cut05` [`i1`]: evaluating inhouse_dter step 80
+- `remax_2607v1_mix_ml_s100_bs64_tm2_sep_cut05` [`i1`]: evaluating openasr_ml step 80
