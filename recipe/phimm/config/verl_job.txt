@@ -1,15 +1,15 @@
-updated_at_utc: 2026-09-05T06:46:40Z
+updated_at_utc: 2026-09-05T06:50:26Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                               │ PROGRESS / PHASE                         │
 ├──────────────┼──────────────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────┤
-│ i1           │ raysubmit_wdfh2Vjzpx7YFGU2   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05                               │ training 65/200 (32.5%)                  │
+│ i1           │ raysubmit_wdfh2Vjzpx7YFGU2   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05                               │ training 66/200 (33%)                    │
 │ i2           │ raysubmit_qTvwqLxDQadAqKMQ   │ SUCCEEDED     │ eval_mix_openml_aa_2607v1a                                                │ evaluating mix_openml_aa (complete)      │
-│ i3           │ raysubmit_vhjdFTxUBJQqNr1r   │ SUCCEEDED     │ eval_earnings_2607v1a                                                      │ evaluating earnings (complete)           │
+│ i3           │ raysubmit_CS2HFvyvpbpcijym   │ PENDING       │ eval_earnings_2607v1a_wer                                                  │ evaluating earnings_wer (model startup)  │
 │ i4           │ raysubmit_pDS2UewN91VfTcGw   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs64_tm2_sep_cut05                                │ training 102/200 (51%)                   │
 │ i5           │ raysubmit_KHSK58EW1cGWu2uB   │ RUNNING       │ eval_openasr_ml_verb                                                       │ evaluating openasr_ml (decoding)         │
 │ i6           │ -                            │ SUCCEEDED     │ step110 consolidated benchmark report                                      │ building report (complete)               │
-│ i7           │ raysubmit_DSWivfqjsq9CyPxk   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training 161/200 (80.5%)                 │
+│ i7           │ raysubmit_DSWivfqjsq9CyPxk   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training 163/200 (81.5%)                 │
 │ i8           │ raysubmit_qedGMJ36MCnvdKfa   │ SUCCEEDED     │ v2607_new/base_eval                                                        │ evaluating base_eval (complete)          │
 │ i9           │ -                            │ SUCCEEDED     │ step50 consolidated benchmark report                                       │ building report (complete)               │
 │ i10          │ raysubmit_GDYGMqMf9KKk8k2g   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05                               │ training 165/1000 (16.5%)                │
@@ -25,7 +25,7 @@ Reports:
 - `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db_cut05_kl0001` [`i5`]: evaluating openasr_ml step 180
 - `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm1a_db` [`i6`]: complete step 110
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1a` [`i7`]: complete step 80
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training 161/200 (80.5%)
+- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training 163/200 (81.5%)
 - `remax_2609v0_openml_verb_s200_bs64_lid05_sfl_tm1` [`i8`]: complete step 120
 - `remax_time_s200_bs64_r0` [`i9`]: complete step 50
 - `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05` [`i10`]: training 165/1000 (16.5%)
@@ -35,4 +35,4 @@ Reports:
 - `remax_2607v1_mix_ml_s200_bs64_tm2_sep_cut05` [`i4`]: training 102/200 (51%)
 - `remax_2607v1_mix_ml_s100_bs64_tm1` [`i3`]: failed inhouse_dter step 90
 - `remax_2607v1_mix_ml_s100_bs64_tm2_sep_cut05` [`i1`]: failed openasr_ml step 80
-- `remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05` [`i1`]: training 65/200 (32.5%)
+- `remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05` [`i1`]: training 66/200 (33%)
