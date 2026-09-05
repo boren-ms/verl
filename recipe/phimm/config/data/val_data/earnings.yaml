@@ -9,6 +9,7 @@
   add_task_info:
     task: lang_asr
     language: English
+    prefix_prob: 1.0
   post_process:
     add_field:
       fields:
