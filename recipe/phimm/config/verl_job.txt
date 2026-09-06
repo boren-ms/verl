@@ -1,23 +1,23 @@
-updated_at_utc: 2026-09-05T17:49:40Z
+updated_at_utc: 2026-09-06T04:33:00Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬─────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                                │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────┤
 │ i1           │ raysubmit_wdfh2Vjzpx7YFGU2   │ STOPPED       │ remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05                                │ training 70/200 (35%)        │
-│ i2           │ raysubmit_tSiYUia4ytisVFzf   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05_gt                             │ training 2/1000 (0.2%)       │
+│ i2           │ raysubmit_8d13zkwUmfapBM9f   │ STOPPED       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05_gt                             │ training 210/1000 (21%)      │
 │ i3           │ raysubmit_2WWh5uMDYfc6PFv1   │ SUCCEEDED     │ eval_earnings_2607v1a                                                       │ evaluating earnings22 (complete) │
-│ i4           │ raysubmit_Bgz4N4aUxL2tAv7J   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05                               │ training 199/1000 (19.9%)    │
-│ i5           │ raysubmit_P4MHM9VcEKM3bWsn   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1_sep_cut05                                │ training startup             │
-│ i7           │ raysubmit_XySzme3kGvtx2z1i   │ RUNNING       │ remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001 │ training startup             │
+│ i4           │ raysubmit_BYjZ5NzMKisZGNd4   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05                               │ training startup             │
+│ i5           │ raysubmit_P4MHM9VcEKM3bWsn   │ STOPPED       │ remax_2607v1_mix_ml_s1000_bs64_tm1_sep_cut05                                │ training 498/1000 (49.8%)    │
+│ i7           │ raysubmit_ngERpwTYztgd1Ava   │ RUNNING       │ remax_2607v1_mix_ml_s400_bs256_tm0_sep_cut05_gt                             │ training 90/400 (22.5%)      │
 │ i8           │ raysubmit_HCZUkUADYpSVL1Zf   │ SUCCEEDED     │ eval_earnings_2607v1a_wer                                                   │ evaluating earnings22 (complete) │
-│ i9           │ raysubmit_iEeXgTPRUHiYbKPb   │ RUNNING       │ eval_mix_openml_aa_2607v1a                                                 │ evaluating es_fleurs (loading audio) │
-│ i10          │ raysubmit_feQRf6yP1QTSgxjL   │ RUNNING       │ remax_2607v1_mix_ml_s400_bs256_tm2_sep_cut05_gt                             │ training startup             │
+│ i9           │ raysubmit_gDCv3A9qe7wpqdGz   │ RUNNING       │ eval_mix_openml_aa_2607v1a                                                 │ evaluating mixlang (model startup) │
+│ i10          │ raysubmit_DdjjZMrLyjqCEqsF   │ STOPPED       │ remax_2607v1_mix_ml_s400_bs256_tm2_sep_cut05_gt                             │ training 80/400 (20%)        │
 └──────────────┴──────────────────────────────┴───────────────┴─────────────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05_gt` [`i2`]: training 2/1000 (0.2%)
+- `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05_gt` [`i2`]: failed training step 210
 - `remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05` [`i1`]: failed validation step 70
-- `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05` [`i4`]: training 199/1000 (19.9%)
-- `remax_2607v1_mix_ml_s1000_bs64_tm1_sep_cut05` [`i5`]: training startup
-- `remax_2609v0_bad_mix13k_openml_verb_s200_bs256_lid0_sfl_tm2_db_cut05_kl0001` [`i7`]: training startup
-- `remax_2607v1_mix_ml_s400_bs256_tm2_sep_cut05_gt` [`i10`]: training startup
+- `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05` [`i4`]: training startup
+- `remax_2607v1_mix_ml_s1000_bs64_tm1_sep_cut05` [`i5`]: training 498/1000 (49.8%)
+- `remax_2607v1_mix_ml_s400_bs256_tm0_sep_cut05_gt` [`i7`]: training 90/400 (22.5%)
+- `remax_2607v1_mix_ml_s400_bs256_tm2_sep_cut05_gt` [`i10`]: failed validation step 90
