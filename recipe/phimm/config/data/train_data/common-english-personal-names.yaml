@@ -1,0 +1,163 @@
+# All country splits for the common English personal names TTS dataset.
+- nickname: common-english-personal-names-bi
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-bi/common-english-personal-names-bi.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-bi/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-bi}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-bw
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-bw/common-english-personal-names-bw.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-bw/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-bw}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-ca
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-ca/common-english-personal-names-ca.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-ca/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-ca}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-cm
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-cm/common-english-personal-names-cm.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-cm/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-cm}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-fj
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-fj/common-english-personal-names-fj.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-fj/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-fj}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-gb
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-gb/common-english-personal-names-gb.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-gb/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-gb}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-gh
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-gh/common-english-personal-names-gh.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-gh/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-gh}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-ie
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-ie/common-english-personal-names-ie.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-ie/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-ie}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-in
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-in/common-english-personal-names-in.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-in/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-in}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-jm
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-jm/common-english-personal-names-jm.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-jm/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-jm}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-mt
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-mt/common-english-personal-names-mt.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-mt/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-mt}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-na
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-na/common-english-personal-names-na.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-na/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-na}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-ng
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-ng/common-english-personal-names-ng.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-ng/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-ng}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-ph
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-ph/common-english-personal-names-ph.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-ph/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-ph}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-sd
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-sd/common-english-personal-names-sd.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-sd/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-sd}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-sg
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-sg/common-english-personal-names-sg.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-sg/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-sg}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-us
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-us/common-english-personal-names-us.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-us/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-us}}
+    verl_format: {prompt_key: prompt}
+- nickname: common-english-personal-names-za
+  dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-za/common-english-personal-names-za.jsonl
+  pre_process:
+    path_map: {field: audio_path, src_part: "audios/", dst_part: "az://orngwus2cresco/data/boren/data/tts/common-english-personal-names-za/audios/"}
+  add_task_info: {task: lang_asr, prefix_prob: 0.0}
+  post_process:
+    add_field: {fields: {data_source: common-english-personal-names-za}}
+    verl_format: {prompt_key: prompt}
