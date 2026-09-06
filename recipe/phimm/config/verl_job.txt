@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-06T07:18:05Z
+updated_at_utc: 2026-09-06T17:05:28Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬─────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                                │ PROGRESS / PHASE             │
@@ -6,18 +6,18 @@ updated_at_utc: 2026-09-06T07:18:05Z
 │ i1           │ raysubmit_wdfh2Vjzpx7YFGU2   │ STOPPED       │ remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05                                │ training 70/200 (35%)        │
 │ i2           │ raysubmit_8d13zkwUmfapBM9f   │ STOPPED       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05_gt                             │ training 210/1000 (21%)      │
 │ i3           │ raysubmit_2WWh5uMDYfc6PFv1   │ SUCCEEDED     │ eval_earnings_2607v1a                                                       │ evaluating earnings22 (complete) │
-│ i4           │ raysubmit_BYjZ5NzMKisZGNd4   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05                               │ training 560/1000 (56%)      │
-│ i5           │ raysubmit_GcDRiacM2vur1YLT   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05_gt                            │ training 69/1000 (6.9%)      │
-│ i7           │ raysubmit_4uLhkG9AKKJtYpS8   │ RUNNING       │ remax_2607v1_mix_ml_s400_bs256_tm0_sep_cut05_gt                             │ training 114/400 (28.5%)     │
+│ i4           │ raysubmit_xWGHpWn6P49qcgEF   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05                               │ training 753/1000 (75.3%)    │
+│ i5           │ raysubmit_d5L1Xc82bP1xkkNu   │ RUNNING       │ remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05_gt                            │ training 277/1000 (27.7%)    │
+│ i7           │ raysubmit_zE4fQ6arn155JWJY   │ RUNNING       │ remax_2607v1_mix_ml_s400_bs256_tm0_sep_cut05_gt                             │ training 192/400 (48%)       │
 │ i8           │ raysubmit_HCZUkUADYpSVL1Zf   │ SUCCEEDED     │ eval_earnings_2607v1a_wer                                                   │ evaluating earnings22 (complete) │
-│ i9           │ raysubmit_gDCv3A9qe7wpqdGz   │ RUNNING       │ eval_mix_openml_aa_2607v1a                                                 │ evaluating fr_mcv (loading audio) │
-│ i10          │ raysubmit_HzPyt9yfg9rwZq5Q   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs256_tm1a_sep_cut05_gt                            │ training 26/200 (13%)        │
+│ i9           │ raysubmit_gDCv3A9qe7wpqdGz   │ SUCCEEDED     │ eval_mix_openml_aa_2607v1a                                                 │ evaluating voxpopuli_cleaned_aa (complete) │
+│ i10          │ raysubmit_5a5trkXzbZSZWFuT   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs256_tm1a_sep_cut05_gt                            │ training 43/200 (21.5%)      │
 └──────────────┴──────────────────────────────┴───────────────┴─────────────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
 - `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05_gt` [`i2`]: failed training step 210
 - `remax_2607v1_mix_ml_s200_bs256_tm2_sep_cut05` [`i1`]: failed validation step 70
-- `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05` [`i4`]: training 560/1000 (56%)
-- `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05_gt` [`i5`]: training 69/1000 (6.9%)
-- `remax_2607v1_mix_ml_s400_bs256_tm0_sep_cut05_gt` [`i7`]: training 114/400 (28.5%)
-- `remax_2607v1_mix_ml_s200_bs256_tm1a_sep_cut05_gt` [`i10`]: training 26/200 (13%)
+- `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05` [`i4`]: training 753/1000 (75.3%)
+- `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05_gt` [`i5`]: training 277/1000 (27.7%)
+- `remax_2607v1_mix_ml_s400_bs256_tm0_sep_cut05_gt` [`i7`]: training 192/400 (48%)
+- `remax_2607v1_mix_ml_s200_bs256_tm1a_sep_cut05_gt` [`i10`]: training 43/200 (21.5%)
