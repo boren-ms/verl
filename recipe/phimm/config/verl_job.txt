@@ -1,10 +1,10 @@
-updated_at_utc: 2026-09-07T22:56:14Z
+updated_at_utc: 2026-09-07T23:00:22Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬─────────────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                                │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────┤
 │ i0           │ raysubmit_Y1BpGmXHAzmMqM5Q   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt                               │ training 909/1000 (90.9%)    │
-│ i1           │ raysubmit_H5QiP7TWLaTcUbBu   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0                           │ training 488/1000 (48.8%)    │
+│ i1           │ raysubmit_H5QiP7TWLaTcUbBu   │ STOPPED       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0                           │ training 489/1000 (48.9%)    │
 │ i2           │ raysubmit_8d13zkwUmfapBM9f   │ STOPPED       │ remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05_gt                             │ training 210/1000 (21%)      │
 │ i3           │ raysubmit_2WWh5uMDYfc6PFv1   │ SUCCEEDED     │ eval_earnings_2607v1a                                                       │ evaluating earnings22 (complete) │
 │ i4           │ raysubmit_xWGHpWn6P49qcgEF   │ SUCCEEDED     │ remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05                               │ training 1000/1000 (100%)    │
@@ -18,7 +18,7 @@ updated_at_utc: 2026-09-07T22:56:14Z
 Reports:
 - `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt` [`i0`]: training 909/1000 (90.9%)
 - `remax_2607v1_mix_ml_s1000_bs64_tm2_sep_cut05_gt` [`i2`]: failed training step 210
-- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0` [`i1`]: training 488/1000 (48.8%)
+- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0` [`i1`]: failed training step 489
 - `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05` [`i4`]: complete step 1000
 - `remax_2607v1_mix_ml_s1000_bs64_tm1a_sep_cut05_gt` [`i5`]: failed training step 303
 - `remax_2607v1_mix_ml_s400_bs256_tm0_sep_cut05_gt` [`i7`]: training 192/400 (48%)
