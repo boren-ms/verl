@@ -402,4 +402,9 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             # wait for rank0 to dump hf_model to local
             torch.distributed.barrier()
 
+        # The trainer writes latest_checkpointed_iteration.txt after this method returns.
+        # Do not publish that marker until every rank's async shard uploads are durable.
+        wait_for_remote_uploads(timeout=1800)
+        torch.distributed.barrier()
+
         self.previous_saved_paths.append(local_path)

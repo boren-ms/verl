@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - data/train_data/bad_mix13k_openml_verb_lid0
+  - data/train_data/mix_cv15_all_openml_verb
   - _self_
 
 reward_functions:

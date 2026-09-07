@@ -4,7 +4,12 @@ from datasets import Dataset
 from omegaconf import OmegaConf
 
 from recipe.phimm.data import dataset as dataset_module
-from recipe.phimm.data.dataset import _is_bad_fmt, _is_bad_lang, add_task_info, format_asr_prompt
+from recipe.phimm.data.dataset import (
+    _is_bad_fmt,
+    _is_bad_lang,
+    add_task_info,
+    format_asr_prompt,
+)
 
 
 class MinimalDataset:
@@ -39,6 +44,34 @@ def test_add_task_info_allows_language_prefix_opt_out():
     dataset = add_task_info(MinimalDataset(), task="lang_asr", language="French", prefix_prob=0.0)
 
     assert dataset.example["prefix"] == ""
+
+
+def test_add_task_info_uses_2607_multilingual_components():
+    dataset = Dataset.from_list(
+        [
+            {
+                "language": "Hebrew Hindi",
+                "text": "מאין לך זאת? כבר היית שם? सुप्रीम कोर्ट जल्द करेगा सुनवाई",
+                "components": [
+                    {"language": "Hebrew", "text": "מאין לך זאת? כבר היית שם?"},
+                    {"language": "Hindi", "text": "सुप्रीम कोर्ट जल्द करेगा सुनवाई"},
+                ],
+            }
+        ]
+    )
+
+    result = add_task_info(
+        dataset,
+        task="lang_asr",
+        version=2607,
+        prefix_prob=0.0,
+    )
+
+    assert result[0]["gt_output"] == (
+        "Audio Language: Hebrew and Hindi.\n"
+        "<ASR><lang=Hebrew><TXT>מאין לך זאת? כבר היית שם?</TXT>"
+        "<lang=Hindi><TXT>सुप्रीम कोर्ट जल्द करेगा सुनवाई</TXT></ASR>"
+    )
 
 
 def test_bad_format_uses_task_output_format():

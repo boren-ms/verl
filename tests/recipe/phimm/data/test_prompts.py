@@ -1,3 +1,5 @@
+import pytest
+
 from recipe.phimm.data.prompts import (
     get_task_output,
     get_task_prefix,
@@ -34,6 +36,16 @@ def test_get_task_output_supports_2607_format():
 
     assert output == "Audio Language: English.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
     assert parse_task_output(output, version=2607) == (["English"], ["English"], ["hello"])
+
+
+def test_get_task_output_rejects_2607_language_list_without_components():
+    with pytest.raises(ValueError, match="requires per-language components"):
+        get_task_output(
+            task="lang_asr",
+            lang="Hebrew Hindi",
+            text="מאין לך זאת? सुप्रीम कोर्ट",
+            version=2607,
+        )
 
 
 def test_task_prefix_and_output_support_2607_completion_format():

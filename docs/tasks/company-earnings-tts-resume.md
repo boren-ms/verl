@@ -16,33 +16,23 @@ Follow `.github/skills/generate-audio-dataset/SKILL.md`. Preserve all source fie
 
 ## Current Status
 
-### US: In progress
+All three datasets are complete.
 
-- Canonical manifest: `/home/boren/data/tts/earnings-company-us/earnings-company-us.jsonl`
-- Audio directory: `/home/boren/data/tts/earnings-company-us/audios/`
-- Manifest validation passed for all 5,894 rows.
-- Original fields `text`, `id`, `company_name`, `keywords`, and `spoken` were preserved.
-- Every manifest `audio_path` is `audios/<id>.wav` and unique.
-- Latest snapshot: 4,044 WAV files present, including 80 files no larger than 44 bytes that will require deletion and retry.
-- The resumed synthesis process was active as PID `2204728` at the latest check.
-- Cumulative log counts: 3,871 generated, 2,435 skipped, and 82 failed attempts.
-- Log: `/tmp/earnings-company-us_tts.log`
-- Train YAML has not been created.
-- Orange upload has not been performed or verified.
+| Market | Local valid WAVs | Orange WAVs | Train YAML |
+| --- | ---: | ---: | --- |
+| US | 5,894 | 5,894 | `recipe/phimm/config/data/train_data/earnings-company-us.yaml` |
+| UK | 3,660 | 3,660 | `recipe/phimm/config/data/train_data/earnings-company-uk.yaml` |
+| HK | 2,778 | 2,778 | `recipe/phimm/config/data/train_data/earnings-company-hk.yaml` |
 
-These counts are a point-in-time snapshot. Recheck the process and files before acting.
-
-### UK: Not started
-
-- Source exists and contains 3,660 valid rows.
-- Local task directory and manifest do not exist.
-- No synthesis process, YAML, or verified Orange upload exists.
-
-### HK: Not started
-
-- Source exists and contains 2,778 valid rows.
-- Local task directory and manifest do not exist.
-- No synthesis process, YAML, or verified Orange upload exists.
+- Every manifest-referenced local WAV is readable, larger than 44 bytes, and
+  contains at least one frame.
+- Each Orange task root contains one manifest and exactly the expected number
+  of WAV files.
+- All three YAMLs load through `create_audio_dataset` with their exact expected
+  row counts and the formatted columns `audio_path`, `prompt`, `data_source`,
+  `reward_model`, and `extra_info`.
+- No aggregate training composition was specified, so the standalone
+  `train_data` YAMLs were not added to a mixed composition.
 
 ## Authentication Boundary
 
@@ -54,7 +44,8 @@ Azure Speech and Orange require different tenants.
 - Do not upload to Orange while logged into Microsoft.
 - Never print access tokens, SAS values, or credentials.
 
-The tenant at the latest status check was Microsoft.
+Synthesis completed under the Microsoft tenant. Upload completed under the
+Green tenant using the `AIPLATFORM-ORANGE-USERS` subscription.
 
 ## Resume Procedure
 

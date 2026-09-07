@@ -22,26 +22,20 @@ Task parameters:
 - Orange root: `az://orngwus2cresco/data/boren/data/tts/earnings-number-tr50/`
 - YAML to create: `recipe/phimm/config/data/train_data/earnings-number-tr50.yaml`
 
-## Current Status
+## Completion Status
 
-Snapshot taken 2026-09-06:
+Completed 2026-09-07:
 
-- Canonical manifest created and dry-run validated.
-- Source, manifest, and dry-run plan each contain 3,600 rows.
-- IDs and `audio_path` values are unique.
-- Every output path has the form `audios/<id>.wav`.
-- Original `spoken`, `keywords`, and `scenario` fields are preserved.
-- Synthesis is currently running with one matching generator process.
-- 2,534 WAVs are valid and readable.
-- 0 WAVs are currently invalid.
-- 1,066 manifest WAVs are still missing.
-- Current retry log: 183 generated, 2,310 existing files skipped, 0 failed.
-- The retry log has no traceback or authentication error.
-- Azure CLI is currently on Microsoft tenant `72f988bf-86f1-41af-91ab-2d7cd011db47`.
-- Orange upload has not been completed.
-- The PhImm YAML has not been created.
-
-Previous synthesis passes stopped before completing the manifest. Zero-byte or unreadable partial WAVs were removed before each retry. Resume without `--overwrite` so valid files are retained.
+- The canonical manifest contains 3,600 unique rows and preserves the source
+  `spoken`, `keywords`, and `scenario` fields.
+- All 3,600 local WAVs are readable, nonempty, and match unique manifest paths.
+- Synthesis completed under the Microsoft tenant.
+- The complete task directory was uploaded under the Green tenant.
+- Orange contains one manifest and exactly 3,600 WAV files.
+- `recipe/phimm/config/data/train_data/earnings-number-tr50.yaml` loads all
+  3,600 rows through `create_audio_dataset`.
+- `recipe/phimm/config/v2607_time/remax_earnings_number_tr50_s200_bs64_cut05_gt.yaml`
+  includes the dataset in a loadable training composition.
 
 ## Resume Procedure
 
