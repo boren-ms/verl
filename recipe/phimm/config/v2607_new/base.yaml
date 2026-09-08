@@ -19,20 +19,20 @@ val_reward:
       name: eval_score
       reward_kwargs:
         version: 2607
-    openml:
+    openasr_ml:
       path: recipe/phimm/reward/asr_eval.py
       name: openasr_eval
       reward_kwargs:
         version: 2607
-    openasr_en_eval:
+    openasr_en:
       path: recipe/phimm/reward/asr_eval.py
       name: openasr_en_eval
       reward_kwargs:
         version: 2607
   reward_function_by_data_source:
     mixlang: inhouse_zh
-    earning: openml
-    openml_bad: openml
+    earning: openasr_en
+    openml_bad: openasr_ml
 
 actor_rollout_ref:
   nccl_timeout: 3600

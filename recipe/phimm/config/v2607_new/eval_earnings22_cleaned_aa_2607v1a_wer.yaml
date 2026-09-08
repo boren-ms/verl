@@ -9,8 +9,8 @@ defaults:
 
 val_reward:
   reward_function_by_data_source:
-    earning_chunk: openml
-    earning_seg30: openml
+    earning_chunk: openasr_en
+    earning_seg30: openasr_en
 
 actor_rollout_ref:
   model:

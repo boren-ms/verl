@@ -28,21 +28,21 @@ val_reward:
     cscz_conv_fy23q2: inhouse_all
     cscz_conv_om_fy24q2: inhouse_all
     cscz_dict_fy24q2: inhouse_all
-    de_fleurs: openml
-    fr_fleurs: openml
-    it_fleurs: openml
-    es_fleurs: openml
-    pt_fleurs: openml
-    de_mcv: openml
-    fr_mcv: openml
-    it_mcv: openml
-    es_mcv: openml
-    fr_mls: openml
-    it_mls: openml
-    es_mls: openml
-    pt_mls: openml
-    earnings22_cleaned_aa: openml
-    voxpopuli_cleaned_aa: openml
+    de_fleurs: openasr_ml
+    fr_fleurs: openasr_ml
+    it_fleurs: openasr_ml
+    es_fleurs: openasr_ml
+    pt_fleurs: openasr_ml
+    de_mcv: openasr_ml
+    fr_mcv: openasr_ml
+    it_mcv: openasr_ml
+    es_mcv: openasr_ml
+    fr_mls: openasr_ml
+    it_mls: openasr_ml
+    es_mls: openasr_ml
+    pt_mls: openasr_ml
+    earnings22_cleaned_aa: openasr_ml
+    voxpopuli_cleaned_aa: openasr_ml
 
 actor_rollout_ref:
   model:

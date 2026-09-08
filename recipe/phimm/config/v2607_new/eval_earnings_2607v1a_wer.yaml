@@ -9,7 +9,7 @@ defaults:
 
 val_reward:
   reward_function_by_data_source:
-    earnings22: openasr_en_eval
+    earnings22: openasr_en
 
 actor_rollout_ref:
   model:
