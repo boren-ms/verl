@@ -1,11 +1,11 @@
-updated_at_utc: 2026-09-08T22:48:35Z
+updated_at_utc: 2026-09-08T23:53:15Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                           │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼────────────────────────────────────────────┤
 │ i0           │ raysubmit_HkKftxFFNRVSjRGP   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0            │ training 379/1000 (38%)                    │
 │ i1           │ raysubmit_bv3wQRLkysjX1nzd   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0                │ training 441/1000 (44%)                    │
-│ i3           │ raysubmit_RenSXHrD4SadrPMY   │ SUCCEEDED     │ eval_earnings_chunk_2607v1a                                      │ evaluating earning_chunk (complete)        │
+│ i3           │ raysubmit_DFqXKP2y2GHjXk8y   │ RUNNING       │ eval_mixlang_2607v1a                                             │ evaluating mixlang (SVAD expansion)        │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴────────────────────────────────────────────┘
 
 Reports:

@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base_eval
-  - /data/val_data/mixlang_fy26q2
+  - /data/val_data/mixlang_fy26q2_zh_seg
   - _self_
 
 val_reward:
