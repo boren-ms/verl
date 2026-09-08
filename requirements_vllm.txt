@@ -64,6 +64,7 @@ soundfile
 more-itertools
 whisper_normalizer
 jiwer>=4.0.0
+kaldialign
 editdistance
 num2words
 evaluate
