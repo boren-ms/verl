@@ -5,7 +5,7 @@ from difflib import SequenceMatcher
 
 from collections import defaultdict
 
-from .normalizer import EnglishTextNormalizer
+from .hf_english_normalizer import _HFEnglishTextNormalizer
 
 _en_normalizer = None
 _ml_normalizer = None
@@ -15,7 +15,7 @@ _zh_normalizer = None
 def _get_en_normalizer():
     global _en_normalizer
     if _en_normalizer is None:
-        _en_normalizer = EnglishTextNormalizer()
+        _en_normalizer = _HFEnglishTextNormalizer()
     return _en_normalizer
 
 

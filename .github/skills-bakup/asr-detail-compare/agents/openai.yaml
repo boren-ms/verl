@@ -1,4 +1,0 @@
-interface:
-  display_name: "ASR Detail Compare"
-  short_description: "Compare ASR detail JSONL pairs and render HTML diffs"
-  default_prompt: "Use $asr-detail-compare to compare two ASR result_details JSONL files, rank the biggest WER contributors, and optionally generate a readable HTML transcript diff."

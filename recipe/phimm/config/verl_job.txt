@@ -1,16 +1,16 @@
-updated_at_utc: 2026-09-08T17:07:49Z
+updated_at_utc: 2026-09-08T17:38:54Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_CknN8RKPzqCiPSDD   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0             │ training 224/1000 (22.4%)    │
-│ i1           │ raysubmit_hQT78z1XfFrNYA4p   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0                │ training 286/1000 (28.6%)    │
+│ i0           │ raysubmit_X3SNLaaRsUW9bVV9   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0             │ training 229/1000 (22.9%)    │
+│ i1           │ raysubmit_hQT78z1XfFrNYA4p   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0                │ training 299/1000 (29.9%)    │
 │ i2           │ raysubmit_SeRJj38b6LjKaFyW   │ SUCCEEDED     │ remax_2607v1_number_tr50_s100_bs64_tm1a                          │ training 100/100 (100%)      │
-│ i8           │ raysubmit_71vu27EBvtbXzGQL   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0                   │ training 214/1000 (21.4%)    │
+│ i8           │ raysubmit_71vu27EBvtbXzGQL   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0                   │ training 230/1000 (23.0%)    │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0` [`i0`]: training 224/1000 (22.4%)
-- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0` [`i1`]: training 286/1000 (28.6%)
+- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0` [`i0`]: training 229/1000 (22.9%)
+- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0` [`i1`]: training 299/1000 (29.9%)
 - `remax_2607v1_number_tr50_s100_bs64_tm1a` [`i2`]: complete step 100
-- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0` [`i8`]: training 214/1000 (21.4%)
+- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0` [`i8`]: training 230/1000 (23.0%)
