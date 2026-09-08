@@ -5,7 +5,7 @@ hydra:
 defaults:
   - base
   - data/train_data/earnings-company
-  - data/val_data/earnings22_cleaned_aa
+  - data/val_data/earnings22_cleaned_aa_seg30
   - _self_
 
 reward_functions:
@@ -35,7 +35,7 @@ val_reward:
       reward_kwargs:
         version: 2607
   reward_function_by_data_source:
-    earnings22_cleaned_aa: asr_bias
+    earning_seg30: asr_bias
 
 actor_rollout_ref:
   model:
