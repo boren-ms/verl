@@ -44,7 +44,8 @@ def _format_task_output_2607(lang, text, components=None):
         languages.append(segment_lang)
         formatted_segments.append(f"<lang={segment_lang}><TXT>{segment_text}</TXT>")
     header = " and ".join(languages)
-    return f"Audio Language: {header}.\n<ASR>{''.join(formatted_segments)}</ASR>"
+    formatted_text = "\n".join(formatted_segments)
+    return f"Audio Language: {header}.\n<ASR>{formatted_text}</ASR>"
 
 
 def _format_task_output_2609(lang, text, components=None):

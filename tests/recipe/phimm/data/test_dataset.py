@@ -69,7 +69,7 @@ def test_add_task_info_uses_2607_multilingual_components():
 
     assert result[0]["gt_output"] == (
         "Audio Language: Hebrew and Hindi.\n"
-        "<ASR><lang=Hebrew><TXT>מאין לך זאת? כבר היית שם?</TXT>"
+        "<ASR><lang=Hebrew><TXT>מאין לך זאת? כבר היית שם?</TXT>\n"
         "<lang=Hindi><TXT>सुप्रीम कोर्ट जल्द करेगा सुनवाई</TXT></ASR>"
     )
 

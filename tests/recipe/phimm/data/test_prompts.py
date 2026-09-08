@@ -75,7 +75,7 @@ def test_get_task_output_supports_2607_mixed_components():
 
     assert output == (
         "Audio Language: English and Chinese.\n"
-        "<ASR><lang=English><TXT>hello</TXT><lang=Chinese><TXT>你好</TXT></ASR>"
+        "<ASR><lang=English><TXT>hello</TXT>\n<lang=Chinese><TXT>你好</TXT></ASR>"
     )
     assert parse_task_output(output, version=2607) == (
         ["English", "Chinese"],

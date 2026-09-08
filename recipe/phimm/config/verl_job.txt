@@ -1,16 +1,16 @@
-updated_at_utc: 2026-09-08T00:40:08Z
+updated_at_utc: 2026-09-08T01:39:53Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_U63wDAPE7XiGGLgF   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0            │ training 39/1000 (3.9%)      │
-│ i1           │ raysubmit_AeBDpi2Fdx8QVYUP   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0                │ training 34/1000 (3.4%)      │
-│ i2           │ raysubmit_SeRJj38b6LjKaFyW   │ RUNNING       │ remax_2607v1_number_tr50_s100_bs64_tm1a                          │ training 10/100 (10%)        │
-│ i8           │ raysubmit_EmSJdEnRFDD9DiMJ   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0                   │ training 33/1000 (3.3%)      │
+│ i0           │ raysubmit_U63wDAPE7XiGGLgF   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0            │ training 69/1000 (6.9%)      │
+│ i1           │ raysubmit_AeBDpi2Fdx8QVYUP   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0                │ training 67/1000 (6.7%)      │
+│ i2           │ raysubmit_SeRJj38b6LjKaFyW   │ RUNNING       │ remax_2607v1_number_tr50_s100_bs64_tm1a                          │ training 50/100 (50%)        │
+│ i8           │ raysubmit_EmSJdEnRFDD9DiMJ   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0                   │ training 61/1000 (6.1%)      │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0` [`i0`]: training 39/1000 (3.9%)
-- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0` [`i1`]: training 34/1000 (3.4%)
-- `remax_2607v1_number_tr50_s100_bs64_tm1a` [`i2`]: training 10/100 (10%)
-- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0` [`i8`]: training 33/1000 (3.3%)
+- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0` [`i0`]: training 69/1000 (6.9%)
+- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0` [`i1`]: training 67/1000 (6.7%)
+- `remax_2607v1_number_tr50_s100_bs64_tm1a` [`i2`]: training 50/100 (50%)
+- `remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0` [`i8`]: training 61/1000 (6.1%)
