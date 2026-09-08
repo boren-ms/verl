@@ -42,7 +42,7 @@ def test_openasr_eval_gets_versioned_hyp_text_directly(monkeypatch):
     monkeypatch.setattr(
         eval_utils,
         "measure_wer",
-        lambda hyp, ref, lang: {"wer": 0.0, "n_err": 0, "n_ref": 2},
+        lambda hyp, ref, lang, merge_compounds: {"wer": 0.0, "n_err": 0, "n_ref": 2},
     )
 
     result = asr_eval.openasr_eval(
@@ -54,3 +54,30 @@ def test_openasr_eval_gets_versioned_hyp_text_directly(monkeypatch):
 
     assert received == {"solution_str": "formatted response", "version": 2607}
     assert result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 2}
+
+
+def test_openasr_evals_use_versioned_compound_aware_wer():
+    response = "Audio Language: English.\n<ASR><lang=English><TXT>icecream</TXT></ASR>"
+
+    legacy_result = asr_eval.openasr_eval(
+        response,
+        "ice cream",
+        language="English",
+        version=2607,
+        merge_compounds=False,
+    )
+    compound_result = asr_eval.openasr_eval(
+        response,
+        "ice cream",
+        language="English",
+        version=2607,
+    )
+    en_result = asr_eval.openasr_en_eval(
+        response,
+        "ice cream",
+        version=2607,
+    )
+
+    assert legacy_result["wer"] > 0
+    assert compound_result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 1}
+    assert en_result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 2}

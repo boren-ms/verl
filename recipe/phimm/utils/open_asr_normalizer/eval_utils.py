@@ -49,7 +49,7 @@ def _edit_distance(ref_words, hyp_words):
     return ed.eval(ref_words, hyp_words)
 
 
-def normalize_for_wer(hyp, ref, lang="en"):
+def normalize_for_wer(hyp, ref, lang="en", merge_compounds=True):
     """Normalize hypothesis/reference text with the OpenASR WER normalizers.
 
     Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
@@ -79,13 +79,13 @@ def normalize_for_wer(hyp, ref, lang="en"):
         normalizer = _get_ml_normalizer()
         ref_norm = normalizer(ref.strip(), lang=lang)
         hyp_norm = normalizer(hyp.strip(), lang=lang)
-    if lang != "en":
+    if merge_compounds:
         [ref_norm], [hyp_norm] = normalize_compound_pairs([ref_norm], [hyp_norm])
     return hyp_norm, ref_norm
 
 
-def measure_wer(hyp, ref, lang="en"):
-    """Compute WER using OpenASR normalizers + editdistance.
+def measure_wer(hyp, ref, lang="en", merge_compounds=True):
+    """Compute WER using OpenASR normalizers and word alignment.
 
     Matches HFWerScorer from phyagi/eval/utils/score_utils.py.
 
@@ -94,10 +94,11 @@ def measure_wer(hyp, ref, lang="en"):
         ref: Reference (ground truth) text.
         lang: Language code (e.g. "en", "zh", "de", "fr"). Selects normalizer
               and controls number-to-words conversion for non-English.
+        merge_compounds: Use compound-aware kaldialign scoring when true.
 
     Returns dict with wer, n_err, n_ref.
     """
-    hyp_norm, ref_norm = normalize_for_wer(hyp, ref, lang=lang)
+    hyp_norm, ref_norm = normalize_for_wer(hyp, ref, lang=lang, merge_compounds=merge_compounds)
 
     ref_words = ref_norm.split()
     hyp_words = hyp_norm.split()

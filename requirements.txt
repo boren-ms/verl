@@ -5,6 +5,7 @@ datasets
 dill
 flash-attn
 hydra-core
+kaldialign
 liger-kernel
 numpy<2.0.0
 pandas
