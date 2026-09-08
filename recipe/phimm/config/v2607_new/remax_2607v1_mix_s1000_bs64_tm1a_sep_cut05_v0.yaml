@@ -21,7 +21,7 @@ reward_functions:
         fmt: {beta: 1.0, cut: 0.5}
 
 reward_function_by_data_source:
-  mix: mix
+  mix_cv15_all: mix
 
 actor_rollout_ref:
   model:

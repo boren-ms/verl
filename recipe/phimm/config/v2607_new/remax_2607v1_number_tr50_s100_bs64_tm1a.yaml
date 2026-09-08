@@ -4,7 +4,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - data/train_data/mix_cv15_all
+  - data/train_data/earnings-number-tr50
+  - data/val_data/earnings_number_val10_earnings22_aa
   - _self_
 
 reward_functions:
@@ -17,20 +18,30 @@ reward_functions:
       measures:
         char: {beta: 0.5}
         word: {beta: 0.5}
+        keyword: {beta: 1.0, cut: 0.5}
         lang: {beta: 1.0, cut: 0.25}
         fmt: {beta: 1.0, cut: 0.5}
 
 reward_function_by_data_source:
-  mix_cv15_all: mix
+  earnings-number-tr50: mix
+
+val_reward:
+  reward_functions:
+    asr_bias:
+      path: recipe/phimm/reward/asr_bias.py
+      name: eval_score
+      reward_kwargs:
+        version: 2607
+  reward_function_by_data_source:
+    earnings_number_val10: asr_bias
+    earnings22_cleaned_aa: asr_bias
 
 actor_rollout_ref:
   model:
     lora_rank: 64
-  rollout:
-    gt_rollout: true
 
 data:
   train_batch_size: 64
 
 trainer:
-  total_training_steps: 1000
+  total_training_steps: 100
