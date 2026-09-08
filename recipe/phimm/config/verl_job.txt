@@ -1,9 +1,11 @@
-updated_at_utc: 2026-09-08T21:39:47Z
+updated_at_utc: 2026-09-08T22:02:31Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i3           │ raysubmit_LhBGNtW4ZieKpKKZ   │ SUCCEEDED     │ eval_earnings_2607v1a_wer                                       │ evaluating earnings (complete)│
+│ i0           │ raysubmit_HkKftxFFNRVSjRGP   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0            │ training 363/1000 (36%)      │
+│ i1           │ raysubmit_bv3wQRLkysjX1nzd   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0                │ training 429/1000 (43%)      │
+│ i3           │ raysubmit_5NS651gih6tNsyeq   │ RUNNING       │ eval_earnings_chunk_2607v1a                                     │ evaluating chunk (startup)   │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
