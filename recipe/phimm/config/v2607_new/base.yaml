@@ -122,7 +122,7 @@ data:
   persistent_workers: true
   pin_memory: false
   train_batch_size: 64
-  max_audio_dur: 35
+  max_audio_dur: 40
   chunk_load_mode: sample
   gen_batch_size: ${data.train_batch_size}
   val_batch_size: -1
