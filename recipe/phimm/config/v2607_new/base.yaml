@@ -7,6 +7,8 @@ nccl_timeout: 3600
 
 val_reward:
   reward_manager: long_audio_grouped
+  reward_kwargs:
+    version: 2607
   reward_functions:
     inhouse_zh:
       path: recipe/phimm/reward/asr_inhouse_measure.py

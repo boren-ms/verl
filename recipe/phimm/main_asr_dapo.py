@@ -26,6 +26,7 @@ from pathlib import Path
 from verl.trainer.ppo.reward import load_reward_manager
 from verl.utils.device import is_cuda_available
 from recipe.dapo.dapo_ray_trainer import RayDAPOTrainer
+from recipe.phimm.reward.config import reward_manager_kwargs
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.utils.shared import parse_asr_response
 from verl.utils.ray_utils import ray_address, ray_host_url
@@ -203,6 +204,7 @@ class TaskRunner:
         )
 
         val_reward_config = _build_reward_config(config, "val_reward")
+        val_reward_kwargs = reward_manager_kwargs(config, "val_reward")
         if val_rm := config.get("val_reward", {}).get("reward_manager"):
             val_reward_config.reward_model.reward_manager = val_rm
         val_reward_fn = load_reward_manager(
@@ -211,6 +213,7 @@ class TaskRunner:
             config.data.get("eval_num_examine", 1),
             max_resp_len=config.data.max_response_length,
             overlong_buffer_cfg=config.reward_model.overlong_buffer,
+            **val_reward_kwargs,
         )
         resource_pool_manager = ResourcePoolManager(resource_pool_spec=resource_pool_spec, mapping=mapping)
 
