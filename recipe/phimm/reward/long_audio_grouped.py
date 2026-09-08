@@ -9,6 +9,7 @@ from collections import defaultdict
 
 import torch
 
+from recipe.phimm.reward.asr_response import get_hyp_text
 from verl import DataProto
 from verl.utils.reward_score import default_compute_score
 from verl.workers.reward_manager import register
@@ -34,6 +35,7 @@ def _seg_start(extra_info: dict) -> float:
         return 0.0
 
 
+
 @register("long_audio_grouped")
 class LongAudioGroupedRewardManager(AbstractRewardManager):
     """Group segments by parent wav, concatenate hyps, score once per parent."""
@@ -46,6 +48,7 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
         reward_fn_key="data_source",
         max_resp_len=None,
         overlong_buffer_cfg=None,
+        version=None,
     ) -> None:
         self.tokenizer = tokenizer
         self.num_examine = num_examine
@@ -53,6 +56,7 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
         self.reward_fn_key = reward_fn_key
         self.max_resp_len = max_resp_len
         self.overlong_buffer_cfg = overlong_buffer_cfg
+        self.version = version
 
     def __call__(self, data: DataProto, return_dict: bool = False):
         if "rm_scores" in data.batch.keys():
@@ -85,6 +89,7 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
             decoded.append({
                 "i": i,
                 "response": response_str,
+                "hyp_text": get_hyp_text(response_str, version=self.version),
                 "valid_response_length": valid_response_length,
                 "extra_info": extra_info,
                 "ground_truth": ground_truth,
@@ -103,8 +108,8 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
         processed_rows = 0
         for parent, members in groups.items():
             members.sort(key=lambda m: (m["seg_start"], m["i"]))
-            concat_hyp = " ".join(m["response"].strip() for m in members if m["response"].strip())
             head = members[0]
+            concat_hyp = "\n".join(m["hyp_text"] for m in members)
             ground_truth = head["ground_truth"]
             data_source = head["data_source"]
             extra_info = dict(head["extra_info"])
