@@ -1,0 +1,48 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - data/train_data/earnings-company
+  - data/val_data/earnings22_cleaned_aa
+  - _self_
+
+reward_functions:
+  mix:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 0.5}
+        word: {beta: 0.5}
+        keyword: {beta: 1.0, cut: 0.5}
+        lang: {beta: 1.0, cut: 0.25}
+        fmt: {beta: 1.0, cut: 0.5}
+
+reward_function_by_data_source:
+  earnings-company-hk: mix
+  earnings-company-uk: mix
+  earnings-company-us: mix
+
+val_reward:
+  reward_functions:
+    asr_bias:
+      path: recipe/phimm/reward/asr_bias.py
+      name: eval_score
+      reward_kwargs:
+        version: 2607
+  reward_function_by_data_source:
+    earnings22_cleaned_aa: asr_bias
+
+actor_rollout_ref:
+  model:
+    lora_rank: 64
+
+data:
+  train_batch_size: 64
+
+trainer:
+  total_training_steps: 100

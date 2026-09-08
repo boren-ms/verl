@@ -1,0 +1,49 @@
+# All regional splits for the earnings-company TTS dataset.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/earnings-company-hk/earnings-company-hk.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/boren/data/tts/earnings-company-hk/audios/"
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings-company-hk
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/earnings-company-uk/earnings-company-uk.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/boren/data/tts/earnings-company-uk/audios/"
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings-company-uk
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/earnings-company-us/earnings-company-us.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/boren/data/tts/earnings-company-us/audios/"
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings-company-us
+    verl_format:
+      prompt_key: prompt
