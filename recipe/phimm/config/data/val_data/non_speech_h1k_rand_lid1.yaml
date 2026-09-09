@@ -1,0 +1,14 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/non_speech/mixkit_noise_v1/h1000.jsonl
+  cache_name: mixkit_noise_v1_h1k
+  add_task_info:
+    task: lang_asr
+    language: random
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: mixkit_noise_v1_h1k
+        text: <nonspeech>
+    verl_format:
+      prompt_key: prompt

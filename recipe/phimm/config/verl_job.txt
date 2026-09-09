@@ -1,13 +1,13 @@
-updated_at_utc: 2026-09-09T17:41:20Z
+updated_at_utc: 2026-09-09T17:49:01Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                           │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼────────────────────────────────────────────┤
-│ i0           │ raysubmit_g4nPQRZzs7A3qdG1   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0a               │ training 413/1000 (41%)                    │
+│ i0           │ raysubmit_g4nPQRZzs7A3qdG1   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0a               │ training 419/1000 (42%)                    │
 │ i3           │ raysubmit_ypg82LUY4mXGEZbJ   │ RUNNING       │ eval_mix_openml_aa_2607v1a_tm1a_step90                           │ evaluating mix_openml_aa (model startup)   │
-│ i10          │ raysubmit_SGL3MRR396vy7BcP   │ STOPPED       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0a           │ training 369/1000 (37%)                    │
-│ i12          │ raysubmit_WQXiwgQSvnZcHDmF   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0a                  │ training 387/1000 (39%)                    │
-│ i13          │ raysubmit_xfYRtYk2dRj6qn14   │ RUNNING       │ remax_2607v1a_nonspeech_s100_bs64_v0a                            │ training 2/100 (2%)                        │
+│ i10          │ raysubmit_GvUeiiWCCwFahdKx   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0a           │ training startup                           │
+│ i12          │ raysubmit_WQXiwgQSvnZcHDmF   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0a                  │ training 389/1000 (39%)                    │
+│ i13          │ raysubmit_xfYRtYk2dRj6qn14   │ RUNNING       │ remax_2607v1a_nonspeech_s100_bs64_v0a                            │ training 7/100 (7%)                        │
 │ i14          │ raysubmit_kFDxfJGhUksejyfV   │ RUNNING       │ remax_2607v1a_nonspeech_s100_bs64_v0a_rand                       │ training startup                           │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴────────────────────────────────────────────┘
 
