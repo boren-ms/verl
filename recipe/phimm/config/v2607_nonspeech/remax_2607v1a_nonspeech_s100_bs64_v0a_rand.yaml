@@ -10,5 +10,9 @@ defaults:
 data:
   train_batch_size: 64
 
+actor_rollout_ref:
+  rollout:
+    gpu_memory_utilization: 0.7
+
 trainer:
   total_training_steps: 100
