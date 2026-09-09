@@ -35,6 +35,13 @@ def _seg_start(extra_info: dict) -> float:
         return 0.0
 
 
+def _record_group_result(reward_extra_info, result_dict, row_count, head_index):
+    for key, value in result_dict.items():
+        if key not in reward_extra_info:
+            reward_extra_info[key] = [None] * row_count
+        reward_extra_info[key][head_index] = value
+
+
 
 @register("long_audio_grouped")
 class LongAudioGroupedRewardManager(AbstractRewardManager):
@@ -128,7 +135,7 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
             else:
                 score = float(result)
                 result_dict = {"score": score}
-            reward_extra_info[parent] = result_dict
+            _record_group_result(reward_extra_info, result_dict, n, head["i"])
 
             for m in members:
                 reward_tensor[m["i"], max(m["valid_response_length"] - 1, 0)] = score
