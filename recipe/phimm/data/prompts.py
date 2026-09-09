@@ -43,9 +43,9 @@ def _format_task_output_2607(lang, text, components=None):
         segment_text = segment.get("text", "")
         languages.append(segment_lang)
         formatted_segments.append(f"<lang={segment_lang}><TXT>{segment_text}</TXT>")
-    header = " and ".join(languages)
+    prefix = _format_task_prefix_2607(" ".join(languages)).rstrip("\n")
     formatted_text = "\n".join(formatted_segments)
-    return f"Audio Language: {header}.\n<ASR>{formatted_text}</ASR>"
+    return f"{prefix}.\n<ASR>{formatted_text}</ASR>"
 
 
 def _format_task_output_2609(lang, text, components=None):
@@ -70,7 +70,8 @@ def _format_task_output(lang, text, components=None, version=None):
 
 
 def _format_task_prefix_2607(lang):
-    return f"Audio Language: {get_language_name(lang)}\n"
+    languages = get_language_name(lang).split()
+    return f"Audio Language: {' and '.join(languages)}\n"
 
 
 def _format_task_prefix_2609(lang):

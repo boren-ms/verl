@@ -1,0 +1,27 @@
+dataset_name: chunk
+specs:
+  - manifest_file: az://orngwus2cresco/data/speech/users/kskumar/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/users/kskumar/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/users/v-tiasun/s2s/AED_8k/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-tiasun/s2s/AED_8k/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_mixkit_noise_v1/ChunkFiles/train_set.json
+    chunk_path: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_mixkit_noise_v1/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_mixkit_noise_v1/ChunkFiles/valid_set.json
+    chunk_path: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_mixkit_noise_v1/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_esc50_noise_v1/ChunkFiles/train_set.json
+    chunk_path: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_esc50_noise_v1/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_esc50_noise_v1/ChunkFiles/valid_set.json
+    chunk_path: az://orngwus2cresco/data/speech/users/rnnt/en/noise_augmentation_esc50_noise_v1/ChunkFiles/
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+  language: English
+post_process:
+  add_field:
+    fields:
+      data_source: non_speech
+  verl_format:
+    prompt_key: prompt

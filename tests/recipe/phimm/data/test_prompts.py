@@ -61,6 +61,12 @@ def test_task_prefix_and_output_support_2607_completion_format():
     )
 
 
+def test_get_task_prefix_supports_2607_multiple_languages():
+    prefix = get_task_prefix(task="lang_asr", lang="en_zh", version=2607)
+
+    assert prefix == "Audio Language: English and Chinese\n"
+
+
 def test_get_task_output_supports_2607_mixed_components():
     output = get_task_output(
         task="lang_asr",
