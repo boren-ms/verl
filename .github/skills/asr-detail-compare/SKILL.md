@@ -32,6 +32,7 @@ Useful options:
 - `--top-n 20`: keep the top 20 utterances by target-model error count.
 - `--join-columns audio_file`: use `audio_file` as the default explicit join key.
 - `--join-columns audio_file_stem`: force the join to use the stem derived from `audio_file` when the full path is not stable across runs.
+- `--aggregate-segments-by id`: for long-form validation files that repeat the full reference on each segment, group by recording ID, order by `seg_index`, and concatenate segment hypotheses before computing WER. Use `--segment-index-column` to override the ordering column.
 - `--ref-column ref` and `--hyp-column hyp`: override schema defaults if needed. For verl training JSONL files, use `--ref-column gts --hyp-column clean_output`.
 - `--normalizer auto`: default. Infer each row's language, use `_HFEnglishTextNormalizer` for English (`en`), and use the language-specific OpenASR normalizer for every other language.
 - `--normalizer english` or `--normalizer openasr`: explicitly force the English path or the OpenASR dispatch path when auto-detection is not appropriate.

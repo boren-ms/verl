@@ -128,6 +128,17 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional explicit join columns. If omitted, the script auto-detects one and prefers audio_file.",
     )
+    parser.add_argument(
+        "--aggregate-segments-by",
+        nargs="+",
+        default=None,
+        help="Group segmented rows by these columns and concatenate hypotheses before comparison.",
+    )
+    parser.add_argument(
+        "--segment-index-column",
+        default="seg_index",
+        help="Column used to order rows during segment aggregation. Default: seg_index.",
+    )
     parser.add_argument("--ref-column", default="ref", help="Reference text column. Default: ref.")
     parser.add_argument("--hyp-column", default="hyp", help="Hypothesis text column. Default: hyp.")
     parser.add_argument(
@@ -298,6 +309,43 @@ def load_jsonl(path: str) -> pd.DataFrame:
     df = pd.DataFrame(records)
     add_derived_key_columns(df)
     return df
+
+
+def aggregate_segment_rows(
+    df: pd.DataFrame,
+    group_columns: Sequence[str],
+    segment_index_column: str,
+    ref_column: str,
+    hyp_column: str,
+) -> pd.DataFrame:
+    required = [*group_columns, segment_index_column, ref_column, hyp_column]
+    missing = [column for column in required if column not in df.columns]
+    if missing:
+        raise ValueError(f"Segment aggregation columns are missing: {', '.join(missing)}")
+
+    if df.duplicated([*group_columns, segment_index_column]).any():
+        raise ValueError("Segment aggregation keys are not unique.")
+
+    records: list[dict] = []
+    ordered = df.sort_values([*group_columns, segment_index_column])
+    for _, group in ordered.groupby(list(group_columns), sort=False, dropna=False):
+        references = [normalize_text(value) for value in group[ref_column] if normalize_text(value)]
+        unique_references = list(dict.fromkeys(references))
+        if len(unique_references) > 1:
+            key = tuple(group.iloc[0][column] for column in group_columns)
+            raise ValueError(f"Segment group {key} contains inconsistent references.")
+
+        record = group.iloc[0].to_dict()
+        record[ref_column] = unique_references[0] if unique_references else ""
+        record[hyp_column] = " ".join(normalize_text(value) for value in group[hyp_column] if normalize_text(value))
+        if "output" in group.columns:
+            record["output"] = "\n".join(normalize_text(value) for value in group["output"] if normalize_text(value))
+        record["n_segments"] = len(group)
+        records.append(record)
+
+    aggregated = pd.DataFrame(records)
+    add_derived_key_columns(aggregated)
+    return aggregated
 
 
 def audio_file_to_stem(value: object) -> str | None:
@@ -1224,7 +1272,6 @@ def main() -> None:
 
     baseline_df = load_jsonl(baseline_path)
     target_df = load_jsonl(target_path)
-    baseline_df["__audio_idx"] = range(len(baseline_df))
 
     # Auto-remap verl schema columns (gts->ref, clean_output->hyp) when needed
     for label, df in [("baseline", baseline_df), ("target", target_df)]:
@@ -1235,6 +1282,23 @@ def main() -> None:
 
     ensure_required_columns(baseline_df, baseline_path, [args.ref_column, args.hyp_column])
     ensure_required_columns(target_df, target_path, [args.ref_column, args.hyp_column])
+
+    if args.aggregate_segments_by:
+        baseline_df = aggregate_segment_rows(
+            baseline_df,
+            args.aggregate_segments_by,
+            args.segment_index_column,
+            args.ref_column,
+            args.hyp_column,
+        )
+        target_df = aggregate_segment_rows(
+            target_df,
+            args.aggregate_segments_by,
+            args.segment_index_column,
+            args.ref_column,
+            args.hyp_column,
+        )
+    baseline_df["__audio_idx"] = range(len(baseline_df))
 
     join_columns = choose_join_columns(baseline_df, target_df, args.join_columns, args.ref_column)
     merged = baseline_df.merge(
