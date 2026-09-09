@@ -99,3 +99,9 @@ def test_lang_asr_verb_uses_verbatim_prompt_and_standard_output_format():
         "<src=English><tgt=English>\num hello"
     )
     assert resolve_task_language(task="lang_asr_verb_en") == "English"
+
+
+def test_resolve_task_language_samples_supported_language(monkeypatch):
+    monkeypatch.setattr("recipe.phimm.data.prompts.random.choice", lambda languages: "french")
+
+    assert resolve_task_language(task="lang_asr", lang="random") == "French"

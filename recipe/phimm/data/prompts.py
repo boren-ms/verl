@@ -6,7 +6,7 @@
 
 import random
 
-from recipe.phimm.utils.languages import get_language_name
+from recipe.phimm.utils.languages import LANGUAGES, get_language_name
 
 
 def rand_prompt(prompts, rand=True):
@@ -21,7 +21,10 @@ def _get_lang_asr_language(task, prefix, default=None):
 
 def resolve_task_language(task, lang=None):
     task_language = _get_explicit_task_language(task)
-    return get_language_name(task_language or lang or "Unknown")
+    language = task_language or lang or "Unknown"
+    if language.lower() == "random":
+        language = random.choice(tuple(LANGUAGES))
+    return get_language_name(language)
 
 
 def _get_explicit_task_language(task):
