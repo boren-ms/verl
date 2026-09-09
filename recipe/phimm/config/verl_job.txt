@@ -1,10 +1,15 @@
-updated_at_utc: 2026-09-09T00:29:24Z
+updated_at_utc: 2026-09-09T01:27:08Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                           │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼────────────────────────────────────────────┤
-│ i1           │ raysubmit_bv3wQRLkysjX1nzd   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0                │ training 489/1000 (49%)                    │
-│ i3           │ raysubmit_bLCSRFF7ecTmQCCp   │ SUCCEEDED     │ eval_earnings_chunk_2607v1a                                      │ evaluating earning_chunk (complete)        │
+│ i3           │ raysubmit_pnVCEZWpcP4bLKBU   │ RUNNING       │ eval_mix_openml_aa_2607v1a                                       │ evaluating mix_openml_aa (decoding)        │
+│ i10          │ raysubmit_ZDnVcbii5j8VAU9d   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0a           │ training 6/1000 (1%)                       │
+│ i11          │ none                         │ PENDING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0a               │ training startup (pod initialization)      │
+│ i12          │ raysubmit_M7ZVGjeuxxjdHzn3   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0a                  │ training 1/1000 (0%)                       │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴────────────────────────────────────────────┘
 
 Reports:
+- remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_kl0_v0a [`i10`]: training 6/1000 (1%)
+- remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0a [`i11`]: training startup
+- remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_v0a [`i12`]: training 1/1000 (0%)

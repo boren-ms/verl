@@ -1,0 +1,64 @@
+# Ghost-word validation sets copied from the corp TaskForRui collection.
+# Training data spec: az://orngwus2cresco/data/speech/users/ruchaofan/DataSpecs/mlang_asr_data_2605/en/en_asr_ghost_words.json
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/test_sets/ghost/Airbnb__Ents/test.jsonl
+  cache_name: ghost_airbnb_ents
+  pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/users/v-wanhu/TaskForRui/test_sets/ghost/
+      dst_part: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/test_sets/ghost/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: ghost_airbnb_ents
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/test_sets/ghost/AllState_FSD_AllState/test.jsonl
+  cache_name: ghost_allstate
+  pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/users/v-wanhu/TaskForRui/test_sets/ghost/
+      dst_part: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/test_sets/ghost/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: ghost_allstate
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/test_sets/ghost/CommonSet-FY19Q4_en-US_Cortana-Agent_Btest_V2/test.jsonl
+  cache_name: ghost_cortana_agent
+  pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/users/v-wanhu/TaskForRui/test_sets/ghost/
+      dst_part: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRui/test_sets/ghost/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+  add_task_info:
+    task: lang_asr
+  post_process:
+    add_field:
+      fields:
+        data_source: ghost_cortana_agent
+    verl_format:
+      prompt_key: prompt
