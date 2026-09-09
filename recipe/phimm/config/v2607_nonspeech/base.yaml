@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - /data/val_data/nonspeech_h1k_lid1
+  - /data/val_data/mixlang_openml_earning_nonspeech_h1k
   - _self_
 
 nccl_timeout: 3600
