@@ -1561,9 +1561,8 @@ def verl_format_ds(ds, **kwargs):
 
 
 def add_field_ds(ds, **kwargs):
-    """Add a new field to the dataset."""
+    """Add or overwrite constant fields in the dataset."""
     fields = kwargs.get("fields", {})
-    assert len(fields) == 1, "Only one field can be added at a time"
 
     def map_fn(egs):
         return fields

@@ -23,5 +23,6 @@ post_process:
   add_field:
     fields:
       data_source: non_speech
+      text: <nonspeech>
   verl_format:
     prompt_key: prompt

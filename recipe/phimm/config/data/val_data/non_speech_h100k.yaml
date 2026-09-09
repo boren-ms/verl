@@ -6,6 +6,7 @@
   post_process:
     add_field:
       fields:
+        text: <nonspeech>
         data_source: mixkit_noise_v1_h100k
     verl_format:
       prompt_key: PROMPT

@@ -8,5 +8,6 @@
     add_field:
       fields:
         data_source: mixkit_noise_v1_h1k
+        text: <nonspeech>
     verl_format:
-      prompt_key: PROMPT
+      prompt_key: prompt

@@ -9,9 +9,9 @@ _hf_english_normalizer = _HFEnglishTextNormalizer()
 
 
 def non_speech_eval(solution_str, ground_truth, **kwargs):
-    """Evaluate non-speech audio by requiring an empty transcription."""
+    """Evaluate non-speech audio by requiring the ``<nonspeech>`` token."""
     hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
-    n_err = int(bool(hyp_text.strip()))
+    n_err = int(hyp_text.strip() != "<nonspeech>")
     return {
         "score": 1.0 - n_err,
         "wer": float(n_err),

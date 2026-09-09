@@ -7,9 +7,9 @@ from recipe.phimm.utils.open_asr_normalizer import eval_utils
 
 @pytest.mark.parametrize(
     ("solution_str", "expected_n_err"),
-    [("", 0), ("   ", 0), ("speech", 1)],
+    [("<nonspeech>", 0), ("  <nonspeech>  ", 0), ("", 1), ("speech", 1)],
 )
-def test_non_speech_eval_counts_nonempty_hypothesis_as_error(solution_str, expected_n_err):
+def test_non_speech_eval_requires_nonspeech_token(solution_str, expected_n_err):
     result = asr_eval.non_speech_eval(solution_str, ground_truth="")
 
     assert result == {
