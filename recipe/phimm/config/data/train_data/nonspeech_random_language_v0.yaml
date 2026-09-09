@@ -19,10 +19,11 @@ num_proc: auto
 add_task_info:
   task: lang_asr
   language: random
-post_process:
+pre_process:
   add_field:
     fields:
       data_source: non_speech
       text: <nonspeech>
+post_process:
   verl_format:
     prompt_key: prompt
