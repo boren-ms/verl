@@ -5,7 +5,7 @@ hydra:
 defaults:
   - base
   - data/train_data/non_speech_v0
-  - data/val_data/non_speech_h1000
+  - data/val_data/non_speech_h1k
   - _self_
 
 reward_functions:

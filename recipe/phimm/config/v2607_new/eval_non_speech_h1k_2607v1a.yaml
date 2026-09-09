@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base_eval
-  - /data/val_data/non_speech_h1000
+  - /data/val_data/non_speech_h1k
   - _self_
 
 val_reward:
