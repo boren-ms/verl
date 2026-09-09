@@ -1,0 +1,47 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - data/train_data/non_speech_v0
+  - data/val_data/non_speech_h1000
+  - _self_
+
+reward_functions:
+  asr_measure:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        # word: {beta: 0.5}
+        # keyword: {beta: 1.0, cut: 0.5}
+        lang: {beta: 1.0, cut: 0.25}
+        fmt: {beta: 1.0, cut: 0.5}
+
+reward_function_by_data_source:
+  non_speech: asr_measure
+
+val_reward:
+  reward_functions:
+    non_speech:
+      path: recipe/phimm/reward/asr_eval.py
+      name: non_speech_eval
+      reward_kwargs:
+        version: 2607
+  reward_function_by_data_source:
+    mixkit_noise_v1_h1k: non_speech
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/
+    lora_rank: 64
+
+data:
+  train_batch_size: 64
+
+trainer:
+  total_training_steps: 100

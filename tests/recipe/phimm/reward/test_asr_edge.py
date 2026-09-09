@@ -6,6 +6,21 @@ from recipe.phimm.utils.open_asr_normalizer import eval_utils
 
 
 @pytest.mark.parametrize(
+    ("solution_str", "expected_n_err"),
+    [("", 0), ("   ", 0), ("speech", 1)],
+)
+def test_non_speech_eval_counts_nonempty_hypothesis_as_error(solution_str, expected_n_err):
+    result = asr_eval.non_speech_eval(solution_str, ground_truth="")
+
+    assert result == {
+        "score": 1.0 - expected_n_err,
+        "wer": float(expected_n_err),
+        "n_err": expected_n_err,
+        "n_ref": 1,
+    }
+
+
+@pytest.mark.parametrize(
     ("solution_str", "version", "expected_fmt"),
     [
         (

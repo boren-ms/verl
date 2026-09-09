@@ -8,6 +8,18 @@ from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
 _hf_english_normalizer = _HFEnglishTextNormalizer()
 
 
+def non_speech_eval(solution_str, ground_truth, **kwargs):
+    """Evaluate non-speech audio by requiring an empty transcription."""
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    n_err = int(bool(hyp_text.strip()))
+    return {
+        "score": 1.0 - n_err,
+        "wer": float(n_err),
+        "n_err": n_err,
+        "n_ref": 1,
+    }
+
+
 def openasr_eval(solution_str, ground_truth, **kwargs):
     """Evaluate a response using OpenASR normalization and compound-aware WER."""
     from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
