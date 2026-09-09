@@ -5,7 +5,6 @@ hydra:
 defaults:
   - base
   - data/train_data/nonspeech_random_language_v0_lid1
-  - /data/val_data/non_speech_h1k_lid1
   - _self_
 
 data:

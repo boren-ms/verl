@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - /data/val_data/mixlang_openml_earning_nonspeech_h1k
+  - /data/val_data/nonspeech_h1k_lid1
   - _self_
 
 nccl_timeout: 3600
@@ -50,7 +50,7 @@ val_reward:
     mixlang: inhouse_zh
     earning: openasr_en
     openml_bad: openasr_ml
-    mixkit_noise_v1_h1k: non_speech
+    nonspeech_h1k_ml: non_speech
 
 actor_rollout_ref:
   nccl_timeout: 3600
