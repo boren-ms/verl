@@ -1,0 +1,14 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - data/train_data/non_speech_v0
+  - _self_
+
+data:
+  train_batch_size: 64
+
+trainer:
+  total_training_steps: 100
