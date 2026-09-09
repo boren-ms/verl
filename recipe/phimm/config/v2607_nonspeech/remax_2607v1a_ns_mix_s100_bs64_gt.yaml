@@ -1,0 +1,60 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - data/train_data/mix_ml_ns
+  - _self_
+
+reward_functions:
+  non_speech:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        word: {beta: 1.0}
+        fmt: {beta: 1.0, cut: 0.5}
+  mix:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 1.0, cut: 0.5}
+        fmt: {beta: 1.0, cut: 0.5}
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 1.0, cut: 0.5}
+        fmt: {beta: 1.0, cut: 0.5}
+        bracket: {beta: 1.0, cut: 0.5}
+
+reward_function_by_data_source:
+  non_speech: non_speech
+  mix_cv15_all: mix
+  openml: openml
+
+data:
+  train_batch_size: 64
+  shuffle: false # shuffle done by interleave
+  use_interleave: true
+
+actor_rollout_ref:
+  rollout:
+    gt_rollout: true
+    gpu_memory_utilization: 0.7
+
+trainer:
+  total_training_steps: 100

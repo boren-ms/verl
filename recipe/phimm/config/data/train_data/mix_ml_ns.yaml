@@ -1,0 +1,52 @@
+- dataset_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/users/kskumar/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/kskumar/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/ChunkFiles/
+    - manifest_file: az://orngwus2cresco/data/speech/users/v-tiasun/s2s/AED_8k/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/users/v-tiasun/s2s/AED_8k/ChunkFiles/
+  chunk_types:
+    - audio
+    - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    language: random
+    prefix_prob: 1.0
+  pre_process:
+    add_field:
+      fields:
+        data_source: non_speech
+        text: <nonspeech>
+  post_process:
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: mix_cv15_all
+    shuffle:
+      seed: 42
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt
