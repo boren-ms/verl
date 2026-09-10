@@ -1,7 +1,7 @@
-# Ghost-word non-speech validation sets copied from InhouseASR_2605.
+# First 1,000 samples from each ghost-word non-speech validation set.
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/ghostword/FSD_Dev_Remove_Speech_Singing_DTEST_remove-122utts/test.jsonl
-  cache_name: ghost_fsd_remove_speech_singing
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/ghostword/FSD_Dev_Remove_Speech_Singing_DTEST_remove-122utts/h1k.jsonl
+  cache_name: ghost_fsd_remove_speech_singing_h1k
   pre_process:
     path_map:
       field: WavPath
@@ -26,8 +26,8 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/ghostword/VocalSounds_16k_3591/test.jsonl
-  cache_name: ghost_vocalsounds_16k
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/ghostword/VocalSounds_16k_3591/h1k.jsonl
+  cache_name: ghost_vocalsounds_16k_h1k
   pre_process:
     path_map:
       field: WavPath
@@ -52,8 +52,8 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/ghostword/ESC_50_16k_2000/test.jsonl
-  cache_name: ghost_esc50_16k
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/ghostword/ESC_50_16k_2000/h1k.jsonl
+  cache_name: ghost_esc50_16k_h1k
   pre_process:
     path_map:
       field: WavPath

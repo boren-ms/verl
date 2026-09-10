@@ -1,0 +1,14 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base_eval
+  - /data/val_data/ghost_h1k
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    ghost_fsd: non_speech
+    ghost_vocal: non_speech
+    ghost_esc50: non_speech
