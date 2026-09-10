@@ -1,0 +1,31 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - data/train_data/nonspeech_random_language_v0_lid1
+  - _self_
+
+reward_functions:
+  non_speech:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        word: {beta: 1.0}
+        fmt: {beta: 1.0, cut: 0.5}
+
+data:
+  train_batch_size: 256
+
+actor_rollout_ref:
+  rollout:
+    n: 8
+    gt_rollout: true
+    gpu_memory_utilization: 0.85
+
+trainer:
+  total_training_steps: 200
