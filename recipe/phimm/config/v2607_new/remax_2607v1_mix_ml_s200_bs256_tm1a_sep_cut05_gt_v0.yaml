@@ -34,6 +34,7 @@ reward_functions:
 
 reward_function_by_data_source:
   mix: mix
+  mix_cv15_all: mix
   openml: openml
 
 actor_rollout_ref:
