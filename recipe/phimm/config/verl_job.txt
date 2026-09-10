@@ -1,29 +1,28 @@
-updated_at_utc: 2026-09-10T21:48:05Z
+updated_at_utc: 2026-09-10T21:56:46Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                           │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼────────────────────────────────────────────┤
-│ i0           │ raysubmit_UedcAba9DfWkrigD   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0a               │ training 522/1000 (52%)                    │
-│ i1           │ raysubmit_22r8i9UQSmzN7q11   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs256_tm1a_sep_cut05_gt_v0              │ training 78/200 (39%)                      │
+│ i0           │ raysubmit_UedcAba9DfWkrigD   │ RUNNING       │ remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0a               │ training 529/1000 (53%)                    │
+│ i1           │ raysubmit_22r8i9UQSmzN7q11   │ RUNNING       │ remax_2607v1_mix_ml_s200_bs256_tm1a_sep_cut05_gt_v0              │ training 79/200 (40%)                      │
 │ i2           │ raysubmit_sidapDPgjRNRC2Lb   │ SUCCEEDED     │ remax_2607v1a_ns_mix_s100_bs64_gt                                │ training 100/100 (100%)                    │
 │ i3           │ raysubmit_cdpRp5zs444BzaBp   │ SUCCEEDED     │ remax_2607v1a_nonspeech_s100_bs64_v0a_rand_lid1_gt               │ training 100/100 (100%)                    │
-│ i4           │ raysubmit_Wb1cuKhmHHbnd5AR   │ RUNNING       │ remax_2607v1_mix_ml_ns_s200_bs256_gt                              │ training 75/200 (38%)                      │
+│ i4           │ raysubmit_Wb1cuKhmHHbnd5AR   │ RUNNING       │ remax_2607v1_mix_ml_ns_s200_bs256_gt                              │ training 77/200 (39%)                      │
 │ i5           │ raysubmit_dwbmZYTFTNiSZtnk   │ SUCCEEDED     │ remax_2607v1a_ns_s200_bs256_v1_rand_lid1_gt                      │ training 200/200 (100%)                    │
-│ i6           │ raysubmit_HmLQw7AvF6K1Jrwf   │ RUNNING       │ remax_2607v1a_ns_s400_bs64_v1_rand_lid1_gt                       │ training 179/400 (45%)                     │
+│ i6           │ raysubmit_HmLQw7AvF6K1Jrwf   │ RUNNING       │ remax_2607v1a_ns_s400_bs64_v1_rand_lid1_gt                       │ training 189/400 (47%)                     │
 │ i10          │ raysubmit_MvhKnxHLwq6BpYHS   │ SUCCEEDED     │ remax_2607v1a_ns_s100_bs64_n8_v0a_rand_lid1_gt                   │ training 100/100 (100%)                    │
 │ i11          │ raysubmit_4BG7DZGkibrzJyeQ   │ SUCCEEDED     │ remax_2607v1a_nonspeech_s100_bs64_v1a_rand_lid1_gt               │ training 100/100 (100%)                    │
 │ i13          │ raysubmit_bTtf1cMrdtFnghJb   │ SUCCEEDED     │ remax_2607v1a_nonspeech_s100_bs64_v1_rand_lid1_gt                │ training 100/100 (100%)                    │
-│ eval-i1      │ raysubmit_tAvRjRC7i6xsxzjJ   │ RUNNING       │ eval_mix_openml_aa_ter30_2607v1a_nw0                            │ evaluating es_mcv (staging audio)         │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴────────────────────────────────────────────┘
 
 Reports:
-- remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0a [`i0`]: training 522/1000 (52%)
-- remax_2607v1_mix_ml_s200_bs256_tm1a_sep_cut05_gt_v0 [`i1`]: training 78/200 (39%)
+- remax_2607v1_mix_s1000_bs64_tm1a_sep_cut05_gt_v0a [`i0`]: training 529/1000 (53%)
+- remax_2607v1_mix_ml_s200_bs256_tm1a_sep_cut05_gt_v0 [`i1`]: training 79/200 (40%)
 - remax_2607v1a_ns_mix_s100_bs64_gt [`i2`]: complete step 100
 - remax_2607v1a_nonspeech_s100_bs64_v0a_rand_lid1_gt [`i3`]: complete step 100
-- remax_2607v1_mix_ml_ns_s200_bs256_gt [`i4`]: training 75/200 (38%)
+- remax_2607v1_mix_ml_ns_s200_bs256_gt [`i4`]: training 77/200 (39%)
 - remax_2607v1a_ns_s200_bs256_v1_rand_lid1_gt [`i5`]: complete step 200
-- remax_2607v1a_ns_s400_bs64_v1_rand_lid1_gt [`i6`]: training 179/400 (45%)
+- remax_2607v1a_ns_s400_bs64_v1_rand_lid1_gt [`i6`]: training 189/400 (47%)
 - remax_2607v1a_ns_s100_bs64_n8_v0a_rand_lid1_gt [`i10`]: complete step 100
 - remax_2607v1a_nonspeech_s100_bs64_v1a_rand_lid1_gt [`i11`]: complete step 100
 - remax_2607v1a_nonspeech_s100_bs64_v1_rand_lid1_gt [`i13`]: complete step 100

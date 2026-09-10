@@ -1,6 +1,6 @@
 ---
 name: asr-detail-compare
-description: Compare two ASR `result_details*.jsonl` or verl training-validation JSONL outputs for the same dataset, especially when Codex needs to inspect `val_data_gen`, load remote `az://` files, rank utterances by WER impact, and generate clickable standalone HTML reports. Use for model-to-model detail analysis, top-error investigations, utterance-level WER debugging, and comparing verl training checkpoints at different steps.
+description: Compare one or two ASR `result_details*.jsonl` or verl training-validation JSONL outputs for the same dataset, using the reference as the baseline when only one result is provided. Use when Codex needs to inspect `val_data_gen`, load remote `az://` files, rank utterances by WER impact, generate clickable standalone HTML reports, perform model-to-model detail analysis, investigate top errors, debug utterance-level WER, or compare verl training checkpoints at different steps.
 ---
 
 # ASR Detail Compare
@@ -8,14 +8,49 @@ description: Compare two ASR `result_details*.jsonl` or verl training-validation
 Compare utterance-level ASR detail files without re-implementing the same merge and WER logic each time. Prefer the bundled script for repeatable comparisons, and default to model-based discovery so you only need model names and dataset.
 
 ## Workflow
-1. For verl training-validation comparisons, resolve `trainer.default_hdfs_dir` from the effective config, then list `<trainer.default_hdfs_dir>/val_data_gen/` and `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/`. Confirm the requested numeric step files exist before downloading or comparing them. Do not substitute a separate benchmark or evaluation output directory.
-2. Run `scripts/compare_result_details.py` with `--baseline-model`, `--target-model`, and `--dataset`. Only pass explicit paths when you need to override auto-discovery. The model name is `<project>/<experiment>` (e.g. `verl_repeat/eval_openasr`).
-3. Run the script with `--write-html` by default so the main deliverable is a human-friendly utterance review page.
-4. Read the generated `*.summary.json` for dataset-level WER numbers and improved/degraded/unchanged counts. Use the three HTML reports as the primary review artifacts:
+1. Determine whether the user supplied one result or two. With two results, compare baseline vs target normally. With only one result, use its reference transcription as the baseline and its hypothesis as the target; do not ask for a second model result.
+2. For verl training-validation comparisons, resolve `trainer.default_hdfs_dir` from the effective config, then list `<trainer.default_hdfs_dir>/val_data_gen/` and `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/`. Confirm the requested numeric step files exist before downloading or comparing them. Do not substitute a separate benchmark or evaluation output directory.
+3. Run `scripts/compare_result_details.py` with `--baseline-model`, `--target-model`, and `--dataset`. Only pass explicit paths when you need to override auto-discovery. The model name is `<project>/<experiment>` (e.g. `verl_repeat/eval_openasr`). For a single result, first create the reference-baseline JSONL described in **Single-Result Reference Baseline**, then pass it through `--baseline-path` and the supplied result through `--target-path`.
+4. Run the script with `--write-html` by default so the main deliverable is a human-friendly utterance review page.
+5. Read the generated `*.summary.json` for dataset-level WER numbers and improved/degraded/unchanged counts. Use the three HTML reports as the primary review artifacts:
    - `*.overall-topN.html` for the biggest changes
    - `*.improved-topN.html` for wins
    - `*.degraded-topN.html` for regressions
-5. Spot-check a few top-ranked rows before delivering, especially if the script had to fall back to row-order joins.
+6. Spot-check a few top-ranked rows before delivering, especially if the script had to fall back to row-order joins.
+
+## Single-Result Reference Baseline
+When only one result JSONL is provided, synthesize a baseline JSONL from that same file so every baseline hypothesis equals its reference. Preserve every row and all identity, language, audio, and metadata columns so the normal join and HTML rendering remain available.
+
+- Standard eval schema: copy `ref` into `hyp`.
+- Verl validation schema: copy `gts` into `clean_output`.
+- If explicit `--ref-column` and `--hyp-column` overrides are needed, copy the selected reference column into the selected hypothesis column.
+- Write the derived file under the comparison output directory with a descriptive name such as `<target>.reference-baseline.jsonl`; do not modify the supplied result file.
+- Run the comparison with `--baseline-name reference` and use the supplied result/model name as `--target-name`.
+- Prefer a stable unique key such as `audio_file` or `id`, following the normal join rules.
+- Interpret the result as target errors against ground truth: reference-baseline WER is expected to be `0%`, there are no genuine "improved" rows, and target errors appear as degradations from the perfect reference baseline.
+
+Example for a standard eval result:
+```bash
+/home/boren/.virtualenvs/openai/bin/python -c '
+import json, pathlib, sys
+src, dst = map(pathlib.Path, sys.argv[1:3])
+with src.open() as fin, dst.open("w") as fout:
+    for line in fin:
+        row = json.loads(line)
+        row["hyp"] = row["ref"]
+        fout.write(json.dumps(row, ensure_ascii=False) + "\n")
+' target.jsonl target.reference-baseline.jsonl
+
+/home/boren/.virtualenvs/openai/bin/python .github/skills/asr-detail-compare/scripts/compare_result_details.py \
+  --baseline-path target.reference-baseline.jsonl \
+  --target-path target.jsonl \
+  --baseline-name reference \
+  --target-name target \
+  --dataset DATASET \
+  --output-dir tmp/asr-detail-compare/DATASET/reference-vs-target \
+  --write-html \
+  --join-columns audio_file
+```
 
 ## Python Environment
 Always use `/home/boren/.virtualenvs/openai/bin/python` to run the script. The system python (`/home/linuxbrew/.linuxbrew/bin/python3`) lacks `pandas`, `blobfile`, and `whisper`.
