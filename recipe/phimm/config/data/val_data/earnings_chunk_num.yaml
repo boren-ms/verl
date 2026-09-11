@@ -1,0 +1,37 @@
+# Synthetic earnings-number validation data and Earnings22 Cleaned ArtificialAnalysis chunks.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/earnings22_number_errors_val/earnings22_number_errors_val.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/boren/data/tts/earnings22_number_errors_val/audios/"
+  add_task_info:
+    task: lang_asr
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earning_num
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earning_chunk
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]

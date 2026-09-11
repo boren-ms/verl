@@ -1,0 +1,17 @@
+# Synthetic ASR validation dataset generated with Azure Text to Speech
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/tts/earnings22_number_errors_val/earnings22_number_errors_val.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/boren/data/tts/earnings22_number_errors_val/audios/"
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earning_num
+    verl_format:
+      prompt_key: prompt
