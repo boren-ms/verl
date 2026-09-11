@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base_eval
-  - /data/val_data/earnings22_cleaned_aa_chunked_seg30
+  - /data/val_data/earnings_aa_chunked_seg30
   - _self_
 
 val_reward:

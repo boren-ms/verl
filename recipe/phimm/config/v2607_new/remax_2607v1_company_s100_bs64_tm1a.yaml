@@ -5,7 +5,7 @@ hydra:
 defaults:
   - base
   - data/train_data/earnings-company
-  - data/val_data/earnings22_cleaned_aa_seg30
+  - data/val_data/earnings_aa_seg30
   - _self_
 
 reward_functions:
