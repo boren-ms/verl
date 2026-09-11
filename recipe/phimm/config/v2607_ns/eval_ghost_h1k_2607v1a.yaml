@@ -4,11 +4,18 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base_eval
-  - /data/val_data/ghost_h1k
+  - /data/val_data/ghost_h1k@_ghost_h1k
+  - /data/val_data/ns_h1k_lid1@_ns_h1k_lid1
   - _self_
+
+data:
+  val_data:
+    - ${_ghost_h1k}
+    - ${_ns_h1k_lid1}
 
 val_reward:
   reward_function_by_data_source:
     ghost_fsd: non_speech
     ghost_vocal: non_speech
     ghost_esc50: non_speech
+    ns_h1k_ml: non_speech

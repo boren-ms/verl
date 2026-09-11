@@ -38,6 +38,19 @@ def remove_empty_tensors(batch: dict) -> dict:
     return batch
 
 
+def _flatten_data_confs(data_confs):
+    if isinstance(data_confs, (str, bytes)) or not isinstance(data_confs, Sequence):
+        return [data_confs]
+
+    flattened = []
+    for data_conf in data_confs:
+        if isinstance(data_conf, Sequence) and not isinstance(data_conf, (str, bytes)):
+            flattened.extend(_flatten_data_confs(data_conf))
+        else:
+            flattened.append(data_conf)
+    return flattened
+
+
 def _promote_null_feature(feat):
     """Promote ``null``-typed leaves to ``string`` while preserving structure.
 
@@ -108,9 +121,7 @@ class RLHFDataset(Dataset):
         processor: Optional[ProcessorMixin] = None,
         is_train: bool = True,
     ):
-        if not isinstance(data_confs, Sequence):
-            data_confs = [data_confs]
-        self.data_confs = data_confs
+        self.data_confs = _flatten_data_confs(data_confs)
         self.tokenizer = tokenizer
         self.processor = processor
         self.config = config
