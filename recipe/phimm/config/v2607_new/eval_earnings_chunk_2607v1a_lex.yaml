@@ -1,0 +1,17 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base_eval
+  - /data/val_data/earnings22_cleaned_aa_chunked_seg30_lex
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    earning_chunk: openasr_en
+    earning_seg30: openasr_en
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/

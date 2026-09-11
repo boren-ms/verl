@@ -1,0 +1,17 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base_eval
+  - /data/val_data/earnings22_cleaned_aa_chunked_seg30
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    earning_chunk: openasr_en
+    earning_seg30: openasr_en
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
