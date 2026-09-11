@@ -5,7 +5,6 @@ hydra:
 defaults:
   - base
   - data/train_data/earnings_num_train
-  - data/val_data/earnings_chunk_num
   - _self_
 
 reward_functions:
@@ -25,15 +24,9 @@ reward_functions:
 reward_function_by_data_source:
   earnings22_number_errors_train: mix
 
-val_reward:
-  reward_function_by_data_source:
-    earning_num: openasr_en
-    earning_chunk: openasr_en
-
 actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/
-    lora_rank: 64
 
 data:
   train_batch_size: 64
