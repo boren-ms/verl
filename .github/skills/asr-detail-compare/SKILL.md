@@ -69,7 +69,7 @@ Useful options:
 - `--join-columns audio_file_stem`: force the join to use the stem derived from `audio_file` when the full path is not stable across runs.
 - `--aggregate-segments-by id`: for long-form validation files that repeat the full reference on each segment, group by recording ID, order by `seg_index`, and concatenate segment hypotheses before computing WER. Use `--segment-index-column` to override the ordering column.
 - `--ref-column ref` and `--hyp-column hyp`: override schema defaults if needed. For verl training JSONL files, use `--ref-column gts --hyp-column clean_output`.
-- `--normalizer auto`: default. Infer each row's language, use `_HFEnglishTextNormalizer` for English (`en`), and use the language-specific OpenASR normalizer for every other language.
+- `--normalizer auto`: default. Infer each row's language, use the same HF normalization and compound-aware `kaldialign` scoring as `openasr_en_eval` for English (`en`), and use the language-specific OpenASR normalizer for every other language.
 - `--normalizer english` or `--normalizer openasr`: explicitly force the English path or the OpenASR dispatch path when auto-detection is not appropriate.
 - `--lang German` or `--lang-column language`: override or choose the row language used by automatic/OpenASR normalization. Language names are mapped through `recipe.phimm.utils.languages.LANGUAGES`; if absent, the script falls back to the suffix of `data_source` and then English.
 - `--baseline-path ...` and `--target-path ...`: bypass model discovery and use explicit files.
@@ -81,7 +81,7 @@ Useful options:
 ## HTML Review Output
 - Prefer `--write-html` by default. Use the HTML output as the main deliverable unless the user explicitly asks for CSV-only output.
 - The HTML output is derived from the ranked `*.topN.csv`, so it reflects the same ordering and selection logic as the CSV.
-- The page aligns each hypothesis against the normalized reference and highlights reference and hypothesis error spans. In compact mode, it hides correct words except for the five words immediately before and after each error span; overlapping windows are merged. "Show full context" restores the complete normalized texts.
+- The page directly aligns the normalized baseline hypothesis against the normalized target hypothesis and highlights only the text changed between the two models. The reference remains visible as unhighlighted context. In compact mode, it hides unchanged hypothesis words except for the five words immediately before and after each changed span; overlapping windows are merged. "Show full context" restores the complete normalized hypotheses.
 - Each card uses `_HFEnglishTextNormalizer` for English text. The normalized reference remains visible, with its original text under a collapsed "Raw reference" disclosure. Each normalized baseline/target hypothesis has its own collapsed raw output directly beneath it.
 - The "Raw output" section for the target uses the `output` column if present (showing the full model output with tags like `<ASR><lang=English><TXT>...</TXT></ASR>`). When `output` only exists on the target side (not baseline), the script finds it as an unsuffixed column after the pandas merge and uses it correctly.
 - If the CSV lacks `audio_file_stem`, the renderer falls back to `comparison_id` for the card title.

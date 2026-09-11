@@ -8,6 +8,26 @@ from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
 _hf_english_normalizer = _HFEnglishTextNormalizer()
 
 
+def measure_openasr_en_wer(hyp_text, ground_truth):
+    """Measure English WER with the normalization used by ``openasr_en_eval``."""
+    from kaldialign import batch_error_rate
+
+    ref_words = tuple(_hf_english_normalizer(ground_truth.strip()).split())
+    hyp_words = tuple(_hf_english_normalizer(hyp_text.strip()).split())
+    result = batch_error_rate([ref_words], [hyp_words], merge_compounds=True)
+    n_ref = max(result["ref_len"], 1)
+    return {
+        "wer": result["total"] / n_ref,
+        "n_err": result["total"],
+        "n_ref": n_ref,
+        "n_ins": result["ins"],
+        "n_del": result["del"],
+        "n_sub": result["sub"],
+        "normalized_ref": " ".join(ref_words),
+        "normalized_hyp": " ".join(hyp_words),
+    }
+
+
 def non_speech_eval(solution_str, ground_truth, **kwargs):
     """Evaluate non-speech audio by requiring the ``<nonspeech>`` token."""
     hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
@@ -42,19 +62,14 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
     }
 
 
+
 def openasr_en_eval(solution_str, ground_truth, **kwargs):
     """Evaluate English OpenASR responses with HF compound-aware WER."""
-    from kaldialign import batch_error_rate
-
     hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
-    ref_words = tuple(_hf_english_normalizer(ground_truth.strip()).split())
-    hyp_words = tuple(_hf_english_normalizer(hyp_text.strip()).split())
-    result = batch_error_rate([ref_words], [hyp_words], merge_compounds=True)
-    n_ref = max(result["ref_len"], 1)
-    wer = result["total"] / n_ref
+    result = measure_openasr_en_wer(hyp_text, ground_truth)
     return {
-        "score": 1.0 - wer,
-        "wer": wer,
-        "n_err": result["total"],
-        "n_ref": n_ref,
+        "score": 1.0 - result["wer"],
+        "wer": result["wer"],
+        "n_err": result["n_err"],
+        "n_ref": result["n_ref"],
     }

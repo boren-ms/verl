@@ -18,6 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 if (REPO_ROOT / "recipe").is_dir() and str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from recipe.phimm.reward.asr_eval import measure_openasr_en_wer  # noqa: E402
 from recipe.phimm.utils.languages import get_language_code  # noqa: E402
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_for_wer  # noqa: E402
 from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (  # noqa: E402
@@ -542,8 +543,22 @@ def compute_metrics(
     lang_override: str,
     lang_column: str,
 ) -> pd.DataFrame:
-    stats = [
-        edit_stats(*normalize_asr_pair(
+    stats = []
+    for _, row in df.iterrows():
+        lang_code = infer_language(row, lang_override, lang_column, prefix)
+        if normalizer == "english" or (normalizer == "auto" and lang_code == "en"):
+            result = measure_openasr_en_wer(
+                normalize_text(row[hyp_column]), normalize_text(row[ref_column])
+            )
+            stats.append(ErrorStats(
+                ref_words=result["n_ref"],
+                errors=result["n_err"],
+                substitutions=result["n_sub"],
+                deletions=result["n_del"],
+                insertions=result["n_ins"],
+            ))
+            continue
+        stats.append(edit_stats(*normalize_asr_pair(
             row[ref_column],
             row[hyp_column],
             row,
@@ -551,9 +566,7 @@ def compute_metrics(
             lang_override,
             lang_column,
             prefix,
-        ))
-        for _, row in df.iterrows()
-    ]
+        )))
     return pd.DataFrame(
         {
             f"{prefix}_ref_words": [item.ref_words for item in stats],
@@ -688,24 +701,19 @@ def build_comparison_html(
         ref_words = ref_value.split()
         baseline_words = baseline_text.split()
         target_words = target_text.split()
-        baseline_context = alignment_error_context(ref_words, baseline_words)
-        target_context = alignment_error_context(ref_words, target_words)
-        ref_visible = baseline_context[0] | target_context[0]
-        ref_errors = baseline_context[2] | target_context[2]
-        ref_gaps = baseline_context[4] | target_context[4]
-        ref_text = render_error_context(ref_words, ref_visible, ref_errors, ref_gaps, "diff-reference")
+        model_context = alignment_error_context(baseline_words, target_words)
+        ref_text = html.escape(ref_value)
         baseline_diff = render_error_context(
-            baseline_words, baseline_context[1], baseline_context[3], baseline_context[5], "diff-removed"
+            baseline_words, model_context[0], model_context[2], model_context[4], "diff-removed"
         )
         target_diff = render_error_context(
-            target_words, target_context[1], target_context[3], target_context[5], "diff-added"
+            target_words, model_context[1], model_context[3], model_context[5], "diff-added"
         )
         has_hidden_context = any(
             len(visible) < len(words)
             for visible, words in (
-                (ref_visible, ref_words),
-                (baseline_context[1], baseline_words),
-                (target_context[1], target_words),
+                (model_context[0], baseline_words),
+                (model_context[1], target_words),
             )
         )
         transcript_class = " transcript-condensed" if has_hidden_context else ""
@@ -826,7 +834,6 @@ def build_comparison_html(
             --same-ink: #58646a;
             --add: #cfead9;
             --remove: #f6d3cc;
-            --reference-error: #f5e6ad;
             --focus: #126a78;
             --shadow: rgba(23, 33, 38, 0.08);
     }}
@@ -996,7 +1003,6 @@ def build_comparison_html(
     .diff-removed {{
       background: var(--remove);
     }}
-                .diff-reference {{ background: var(--reference-error); }}
         .diff-change.is-active {{
             outline: 3px solid var(--focus);
             outline-offset: 2px;

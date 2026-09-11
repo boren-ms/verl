@@ -96,3 +96,18 @@ def test_openasr_evals_use_versioned_compound_aware_wer():
     assert legacy_result["wer"] > 0
     assert compound_result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 1}
     assert en_result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 2}
+
+
+def test_measure_openasr_en_wer_exposes_normalized_error_breakdown():
+    result = asr_eval.measure_openasr_en_wer("icecream today", "ice cream tomorrow")
+
+    assert result == {
+        "wer": 1 / 3,
+        "n_err": 1,
+        "n_ref": 3,
+        "n_ins": 0,
+        "n_del": 0,
+        "n_sub": 1,
+        "normalized_ref": "ice cream tomorrow",
+        "normalized_hyp": "icecream today",
+    }
