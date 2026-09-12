@@ -8,7 +8,7 @@ description: Compare one or two ASR `result_details*.jsonl` or verl training-val
 Compare utterance-level ASR detail files without re-implementing the same merge and WER logic each time. Prefer the bundled script for repeatable comparisons, and default to model-based discovery so you only need model names and dataset.
 
 ## Workflow
-1. Determine whether the user supplied one result or two. With two results, compare baseline vs target normally. If only `--baseline-path`/`--baseline-model` is supplied, generate a baseline-only reference review and hide the unavailable Target pane so Reference and Baseline expand to fill the report width. If the single supplied result is explicitly the target, use its reference transcription as the baseline as described in **Single-Result Reference Baseline**; do not ask for a second model result.
+1. Determine whether the user supplied one result or two. With two results, compare baseline vs target normally. When the user supplies only one result or dataset, always treat it as the Target, synthesize its reference baseline as described in **Single-Result Reference Baseline**, and pass `--hide-baseline` so the HTML shows only Reference and Target. Do not ask for a second model result. Use baseline-only mode only when the user explicitly requests a baseline-only review.
 2. For verl training-validation comparisons, resolve `trainer.default_hdfs_dir` from the effective config, then list `<trainer.default_hdfs_dir>/val_data_gen/` and `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/`. Confirm the requested numeric step files exist before downloading or comparing them. Do not substitute a separate benchmark or evaluation output directory.
 3. Run `scripts/compare_result_details.py` with `--baseline-model`, `--target-model`, and `--dataset`. Only pass explicit paths when you need to override auto-discovery. The model name is `<project>/<experiment>` (e.g. `verl_repeat/eval_openasr`). For a single result, first create the reference-baseline JSONL described in **Single-Result Reference Baseline**, then pass it through `--baseline-path` and the supplied result through `--target-path`.
 4. Run the script with `--write-html` by default so the main deliverable is a human-friendly utterance review page.
@@ -25,7 +25,7 @@ When only one result JSONL is provided, synthesize a baseline JSONL from that sa
 - Verl validation schema: copy `gts` into `clean_output`.
 - If explicit `--ref-column` and `--hyp-column` overrides are needed, copy the selected reference column into the selected hypothesis column.
 - Write the derived file under the comparison output directory with a descriptive name such as `<target>.reference-baseline.jsonl`; do not modify the supplied result file.
-- Run the comparison with `--baseline-name reference` and use the supplied result/model name as `--target-name`.
+- Run the comparison with `--baseline-name reference`, use the supplied result/model name as `--target-name`, and pass `--hide-baseline` so the scoring-only synthetic baseline is not rendered.
 - Prefer a stable unique key such as `audio_file` or `id`, following the normal join rules.
 - Interpret the result as target errors against ground truth: reference-baseline WER is expected to be `0%`, there are no genuine "improved" rows, and target errors appear as degradations from the perfect reference baseline.
 
@@ -46,6 +46,7 @@ with src.open() as fin, dst.open("w") as fout:
   --target-path target.jsonl \
   --baseline-name reference \
   --target-name target \
+  --hide-baseline \
   --dataset DATASET \
   --output-dir tmp/asr-detail-compare/DATASET/reference-vs-target \
   --write-html \
@@ -73,6 +74,7 @@ Useful options:
 - `--normalizer english` or `--normalizer openasr`: explicitly force the English path or the OpenASR dispatch path when auto-detection is not appropriate.
 - `--lang German` or `--lang-column language`: override or choose the row language used by automatic/OpenASR normalization. Language names are mapped through `recipe.phimm.utils.languages.LANGUAGES`; if absent, the script falls back to the suffix of `data_source` and then English.
 - `--baseline-path ...` and `--target-path ...`: bypass model discovery and use explicit files.
+- `--hide-baseline`: keep the baseline in scoring and CSV output but omit its metric and transcript pane from HTML. Use this for single-result reference-vs-target reviews.
 - Omit `--target-path`/`--target-model` to generate a baseline-only report ranked by baseline errors. The Target pane starts hidden, and Reference and Baseline expand to fill its space.
 - `--write-html`: write the default standalone HTML review page that shows `audio_file_stem`, `baseline_wer`, `target_wer`, and side-by-side `hyp_baseline` vs `hyp_target` with word-level highlights.
 - `--audio-blob-root az://orngwus2cresco/data/boren/data/openasr_jsonl`: enable audio playback in HTML reports. Downloads audio files for the top-N utterances from `{blob-root}/{dataset}/audio/{index}.wav` and embeds `<audio>` controls in each card. Only effective with `--write-html`.
@@ -83,8 +85,8 @@ Useful options:
 - Prefer `--write-html` by default. Use the HTML output as the main deliverable unless the user explicitly asks for CSV-only output.
 - The HTML output is derived from the ranked `*.topN.csv`, so it reflects the same ordering and selection logic as the CSV.
 - The page directly aligns the normalized baseline hypothesis against the normalized target hypothesis and marks text changed between the two models with a blue underline only in the Baseline and Target panes. It also aligns each model to the reference using compound-aware `kaldialign`: Reference and correct model words remain neutral, incorrect tokens containing digits are red, inserted model words are yellow, substitutions are gray, and deletion placeholders are light blue. In compact mode, each model transcript keeps only incorrect words and the five neighboring words on either side; overlapping windows are merged. "Show full context" restores the complete normalized hypotheses.
-- On desktop, each card presents Reference, Baseline, and Target as synchronized left, middle, and right columns that automatically fill the full report width. Drag a border between visible panes to redistribute their widths, use Left/Right while a border is focused for keyboard resizing, or double-click it to reset equal widths. On narrow screens, resize borders are hidden and panes stack in the same order.
-- Toolbar checkboxes independently hide Reference, Baseline, or Target across every utterance, and duplicate toolbar controls stay synchronized. Sync-scroll and full/compact-context controls also apply report-wide; Previous/Next remains local because changed spans differ per utterance. Remaining visible panes automatically expand to use all freed width: two panes split it evenly and one pane fills it. In baseline-only mode, Target starts hidden and cannot be enabled because no target result exists.
+- On desktop, each card presents the available Reference, Baseline, and Target panes as synchronized columns that automatically fill the full report width. Single-result target reviews hide the synthetic Baseline pane, leaving Reference and Target. Drag a border between visible panes to redistribute their widths, use Left/Right while a border is focused for keyboard resizing, or double-click it to reset equal widths. On narrow screens, resize borders are hidden and panes stack in the same order.
+- Toolbar checkboxes independently hide Reference, Baseline, or Target across every utterance, and duplicate toolbar controls stay synchronized. Sync-scroll and full/compact-context controls also apply report-wide; Previous/Next remains local because changed spans differ per utterance. Remaining visible panes automatically expand to use all freed width: two panes split it evenly and one pane fills it. In single-result target mode, Baseline starts hidden and cannot be enabled; in explicit baseline-only mode, Target does likewise.
 - The Substitution, Deleted, Inserted, and Number error legend chips are report-wide color controls. Unchecking a type removes that color from all transcript tokens and count badges without hiding their text; duplicate controls remain synchronized across utterances. Deletion controls affect the aligned `∅` placeholders independently from substitutions.
 - Each utterance toolbar keeps audio status/player and review controls in one compact line. Audio uses only its content width; narrow viewports preserve the line with horizontal scrolling instead of wrapping it into multiple rows.
 - Baseline and Target metric cards show total errors plus detailed `Sub`, `Del`, `Ins`, and `Num` counts. `Num` is the count of highlighted incorrect tokens containing digits and overlaps the standard substitution/insertion edit categories rather than adding to their total.

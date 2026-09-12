@@ -93,6 +93,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--baseline-name", help="Short label for the baseline model. Defaults to the model name or path stem.")
     parser.add_argument("--target-name", help="Short label for the target model. Defaults to the model name or path stem.")
+    parser.add_argument(
+        "--hide-baseline",
+        action="store_true",
+        help="Hide the baseline metric and transcript pane in reference-vs-target HTML reports.",
+    )
     parser.add_argument("--dataset", required=True, help="Dataset label written into outputs.")
     parser.add_argument(
         "--results-root",
@@ -825,7 +830,11 @@ def build_comparison_html(
     title: str,
     audio_map: dict[str, str] | None = None,
     show_target: bool = True,
+    show_baseline: bool = True,
 ) -> str:
+    if not show_baseline and not show_target:
+        raise ValueError("At least one model pane must be visible.")
+
     cards: list[str] = []
     index_items: list[str] = []
     for card_index, row in enumerate(rows, start=1):
@@ -834,6 +843,9 @@ def build_comparison_html(
         if not show_target:
             verdict = "target-same"
             verdict_label = "Baseline review"
+        elif not show_baseline:
+            verdict = "target-same"
+            verdict_label = "Target review"
         elif target_wer < baseline_wer:
             verdict = "target-better"
             verdict_label = "Target better"
@@ -896,7 +908,9 @@ def build_comparison_html(
             model_context[5],
             "diff-added",
         )
-        visibility_pairs = [(baseline_visible, baseline_words)]
+        visibility_pairs = []
+        if show_baseline:
+            visibility_pairs.append((baseline_visible, baseline_words))
         if show_target:
             visibility_pairs.append((target_visible, target_words))
         has_hidden_context = any(len(visible) < len(words) for visible, words in visibility_pairs)
@@ -906,7 +920,12 @@ def build_comparison_html(
         target_errors = int(row.get("target_errors", 0))
         error_delta = int(row.get("error_delta", target_errors - baseline_errors))
         delta_label = f"{error_delta:+d}"
-        index_delta = delta_label if show_target else f"{baseline_errors} errors"
+        if not show_target:
+            index_delta = f"{baseline_errors} errors"
+        elif not show_baseline:
+            index_delta = f"{target_errors} errors"
+        else:
+            index_delta = delta_label
         index_items.append(
             f'<a href="#item-{rank}" class="index-item {verdict}">'
             f'<span class="index-rank">#{rank}</span>'
@@ -917,12 +936,35 @@ def build_comparison_html(
 
         raw_baseline_text = html.escape(str(row.get("raw_hyp_baseline", "")))
         raw_target_text = html.escape(str(row.get("raw_hyp_target", "")))
+        baseline_metrics_html = ""
+        baseline_panel_html = ""
         target_metrics_html = ""
         delta_metrics_html = ""
         target_panel_html = ""
         model_change_legend = ""
         change_controls = ""
+        baseline_toggle_state = "checked" if show_baseline else "disabled"
         target_toggle_state = "checked" if show_target else "disabled"
+        if show_baseline:
+            baseline_metrics_html = f"""
+                <div class="metric">
+                                    <span class="label">Baseline</span>
+                                    <span class="value">{format_percent(row["baseline_wer"])}</span>
+                                    <span class="metric-detail">{baseline_errors} errors</span>
+                                    {baseline_error_breakdown}
+                </div>"""
+            baseline_panel_html = f"""
+                                <section class="panel transcript-panel" data-side="baseline">
+                                    <h3>Baseline <span>normalized</span></h3>
+                                    <p class="transcript-text">{baseline_diff}</p>
+                                                                        <details class="raw-section raw-hypothesis">
+                                                                            <summary>Raw baseline output</summary>
+                                                                            <p class="raw-hypothesis-text">{raw_baseline_text}</p>
+                                                                        </details>
+                </section>"""
+        else:
+            baseline_panel_html = """
+                                <section class="panel transcript-panel panel-hidden panel-unavailable" data-side="baseline" aria-hidden="true"></section>"""
         if show_target:
             model_change_legend = '<span class="legend-swatch model-change">Model change</span>'
             change_controls = """
@@ -936,7 +978,8 @@ def build_comparison_html(
                                     <span class="metric-detail">{target_errors} errors</span>
                                     {target_error_breakdown}
                                 </div>"""
-            delta_metrics_html = f"""
+            if show_baseline:
+                delta_metrics_html = f"""
                                 <div class="metric delta-metric">
                                     <span class="label">Error delta</span>
                                     <span class="value">{delta_label}</span>
@@ -988,7 +1031,7 @@ def build_comparison_html(
                                     </span>
                                     <span class="panel-toggles" aria-label="Visible transcript panels for all utterances">
                                         <label><input type="checkbox" data-panel-toggle="reference" checked> Reference</label>
-                                        <label><input type="checkbox" data-panel-toggle="baseline" checked> Baseline</label>
+                                        <label><input type="checkbox" data-panel-toggle="baseline" {baseline_toggle_state}> Baseline</label>
                                         <label><input type="checkbox" data-panel-toggle="target" {target_toggle_state}> Target</label>
                                     </span>
                                     {change_controls}
@@ -997,12 +1040,7 @@ def build_comparison_html(
                                 </div>
                             </div>
               <div class="metrics">
-                <div class="metric">
-                                    <span class="label">Baseline</span>
-                                    <span class="value">{format_percent(row["baseline_wer"])}</span>
-                                    <span class="metric-detail">{baseline_errors} errors</span>
-                                    {baseline_error_breakdown}
-                </div>
+                                                                {baseline_metrics_html}
                                 {target_metrics_html}
                                 {delta_metrics_html}
               </div>
@@ -1018,14 +1056,7 @@ def build_comparison_html(
                                 </details>
                                 </section>
                                 <div class="panel-resizer" data-after="reference" role="separator" aria-label="Resize transcript panels" aria-orientation="vertical" tabindex="0"></div>
-                                <section class="panel transcript-panel" data-side="baseline">
-                                    <h3>Baseline <span>normalized</span></h3>
-                                    <p class="transcript-text">{baseline_diff}</p>
-                                                                        <details class="raw-section raw-hypothesis">
-                                                                            <summary>Raw baseline output</summary>
-                                                                            <p class="raw-hypothesis-text">{raw_baseline_text}</p>
-                                                                        </details>
-                </section>
+                                {baseline_panel_html}
                                 <div class="panel-resizer" data-after="baseline" role="separator" aria-label="Resize transcript panels" aria-orientation="vertical" tabindex="0"></div>
                                 {target_panel_html}
               </div>
@@ -1686,9 +1717,10 @@ def write_comparison_html(
     title: str,
     audio_map: dict[str, str] | None = None,
     show_target: bool = True,
+    show_baseline: bool = True,
 ) -> None:
     output_path.write_text(
-        build_comparison_html(df.to_dict("records"), title, audio_map, show_target), encoding="utf-8",
+        build_comparison_html(df.to_dict("records"), title, audio_map, show_target, show_baseline), encoding="utf-8",
     )
 
 
@@ -1697,6 +1729,8 @@ def main() -> None:
 
     baseline_path = resolve_input_path(args.baseline_path, args.baseline_model, args.results_root, args.dataset, args.val_data_root)
     baseline_only = not (args.target_path or args.target_model)
+    if baseline_only and args.hide_baseline:
+        raise ValueError("--hide-baseline requires a target result.")
     target_path = None if baseline_only else resolve_input_path(
         args.target_path, args.target_model, args.results_root, args.dataset, args.val_data_root
     )
@@ -1892,7 +1926,14 @@ def main() -> None:
         summary_outputs[report_name] = {"csv": str(csv_path)}
         if args.write_html:
             html_path = output_dir / f"{report_stem}.html"
-            write_comparison_html(report_df, html_path, report_stem, audio_map, show_target=not baseline_only)
+            write_comparison_html(
+                report_df,
+                html_path,
+                report_stem,
+                audio_map,
+                show_target=not baseline_only,
+                show_baseline=not args.hide_baseline,
+            )
             summary_outputs[report_name]["html"] = str(html_path)
 
     if args.write_full_csv:
@@ -1920,6 +1961,7 @@ def main() -> None:
         "baseline_total_errors": total_baseline_errors,
         "baseline_wer": total_baseline_errors / max(total_ref_words, 1),
         "baseline_only": baseline_only,
+        "baseline_hidden": args.hide_baseline,
         "reports": summary_outputs,
     }
     if not baseline_only:

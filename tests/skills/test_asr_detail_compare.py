@@ -192,3 +192,36 @@ def test_baseline_only_html_hides_target_and_visible_panels_fill_grid():
     assert '.transcript-panel.panel-hidden { display: none; }' in report
     assert 'resetCardPanelLayout(card);' in report
     assert 'setReportPanelVisibility(toggle.dataset.panelToggle, toggle.checked);' in report
+
+
+def test_reference_target_html_hides_synthetic_baseline_panel():
+    row = {
+        "comparison_id": "sample",
+        "ref": "reference words",
+        "raw_ref": "Reference words",
+        "hyp_baseline": "reference words",
+        "hyp_target": "target words",
+        "raw_hyp_baseline": "Reference words",
+        "raw_hyp_target": "target words",
+        "baseline_wer": 0.0,
+        "target_wer": 0.5,
+        "baseline_errors": 0,
+        "target_errors": 1,
+        "error_delta": 1,
+    }
+
+    report = compare_result_details.build_comparison_html(
+        [row], "Target", show_baseline=False
+    )
+
+    assert 'data-side="reference"' in report
+    assert 'class="panel transcript-panel panel-hidden panel-unavailable" data-side="baseline"' in report
+    assert 'data-side="target"' in report
+    assert 'data-panel-toggle="reference" checked' in report
+    assert 'data-panel-toggle="baseline" disabled' in report
+    assert 'data-panel-toggle="target" checked' in report
+    assert '<span class="label">Baseline</span>' not in report
+    assert '<span class="label">Target</span>' in report
+    assert '<span class="label">Error delta</span>' not in report
+    assert '<div class="verdict">Target review</div>' in report
+    assert '<span class="index-delta">1 errors</span>' in report
