@@ -1,0 +1,19 @@
+# @package data.train_data
+# English earnings-call data: 343,726 samples from the original R12 source.
+dataset_name: chunk
+specs:
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/short_form_fix_disfluency_v2/r12/en-US_Videoindex_PT_Earningscall_FY22_TRAIN/sanity_checked_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/short_form_fix/r12/en-US_Videoindex_PT_Earningscall_FY22_TRAIN/
+    trans_path: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/short_form_fix_disfluency_v2/r12/en-US_Videoindex_PT_Earningscall_FY22_TRAIN/ChunkFiles/
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
