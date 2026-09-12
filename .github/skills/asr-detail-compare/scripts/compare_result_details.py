@@ -1203,31 +1203,36 @@ def build_comparison_html(
       color: var(--same-ink);
     }}
     .metrics {{
-      display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            flex-wrap: nowrap;
     }}
     .metric {{
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
             background: #f8fafb;
       border: 1px solid var(--line);
             border-radius: 6px;
-      padding: 12px 14px;
+            padding: 6px 9px;
     }}
     .label {{
-      display: block;
-      font-size: 0.8rem;
+            font-size: 0.72rem;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+            letter-spacing: 0;
       color: var(--muted);
-      margin-bottom: 4px;
     }}
     .value {{
-      font-size: 1.4rem;
+            font-size: 1rem;
       font-weight: 700;
     }}
-        .metric-detail {{ display: block; margin-top: 3px; color: var(--muted); font-size: 0.82rem; }}
-        .error-breakdown {{ display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }}
+                .metric-detail {{ color: var(--muted); font-size: 0.76rem; }}
+                .error-breakdown {{ display: inline-flex; flex-wrap: nowrap; gap: 3px; }}
         .error-count {{ padding: 2px 5px; border-radius: 3px; font-size: 0.72rem; font-weight: 650; }}
         .target-better .delta-metric .value {{ color: var(--good-ink); }}
         .target-worse .delta-metric .value {{ color: var(--bad-ink); }}
@@ -1397,8 +1402,7 @@ def build_comparison_html(
     @media (max-width: 800px) {{
             .report-index {{ grid-template-columns: minmax(0, 1fr); }}
       .card-header,
-      .compare-grid,
-      .metrics {{
+            .compare-grid {{
         grid-template-columns: 1fr;
         display: grid;
       }}

@@ -88,6 +88,12 @@ def test_html_highlights_baseline_to_target_changes_not_reference_errors():
     assert 'width: 260px;' in report
     assert 'overflow-x: auto;' in report
     assert 'flex-wrap: nowrap;' in report
+    assert '.metrics {' in report
+    assert 'margin-bottom: 12px;' in report
+    assert '.metric {' in report
+    assert 'white-space: nowrap;' in report
+    assert '.error-breakdown { display: inline-flex; flex-wrap: nowrap;' in report
+    assert '.compare-grid,\n      .metrics {' not in report
     assert '.transcript-panel { height: 32rem;' in report
     assert '.transcript-panel { height: 24rem; }' in report
     assert '.reference-block .transcript-text { max-height:' not in report
