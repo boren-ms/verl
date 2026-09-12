@@ -75,9 +75,8 @@ class ErrorStats:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Compare two ASR result_details JSONL files on the same dataset, rank the "
-            "utterances with the largest contribution to the target model's total WER, "
-            "and attach baseline vs target hypotheses."
+            "Compare one or two ASR result_details JSONL files on the same dataset. "
+            "With only a baseline, rank its errors against the reference and hide the target panel."
         )
     )
     baseline_source = parser.add_mutually_exclusive_group(required=True)
@@ -86,7 +85,7 @@ def parse_args() -> argparse.Namespace:
         "--baseline-model",
         help="Baseline model directory name under the results root. The script resolves the latest result_details file.",
     )
-    target_source = parser.add_mutually_exclusive_group(required=True)
+    target_source = parser.add_mutually_exclusive_group()
     target_source.add_argument("--target-path", help="Target result_details JSONL path.")
     target_source.add_argument(
         "--target-model",
@@ -617,7 +616,7 @@ def alignment_error_context(
     ref_gaps: set[int] = set()
     hyp_gaps: set[int] = set()
 
-    matcher = SequenceMatcher(a=ref_words, b=hyp_words)
+    matcher = SequenceMatcher(a=ref_words, b=hyp_words, autojunk=False)
     opcodes = matcher.get_opcodes()
     if all(tag == "equal" for tag, *_ in opcodes):
         return set(range(len(ref_words))), set(range(len(hyp_words))), ref_errors, hyp_errors, ref_gaps, hyp_gaps
@@ -675,15 +674,167 @@ def render_error_context(
     return " ".join(parts)
 
 
+def align_hypothesis_to_reference(
+    ref_words: list[str], hyp_words: list[str],
+) -> tuple[list[str], list[bool], dict[int, list[str]], dict[int, list[str]]]:
+    from kaldialign import align
+
+    epsilon = "<eps>"
+    align_keys = [""] * len(hyp_words)
+    correct = [False] * len(hyp_words)
+    missing_by_hyp_position: dict[int, list[str]] = {}
+    inserted_by_ref_position: dict[int, list[str]] = {}
+    ref_index = 0
+    hyp_index = 0
+    for ref_symbol, hyp_symbol in align(
+        ref_words, hyp_words, eps_symbol=epsilon, merge_compounds=True
+    ):
+        ref_count = 0 if ref_symbol == epsilon else len(ref_symbol.split())
+        hyp_count = 0 if hyp_symbol == epsilon else len(hyp_symbol.split())
+        ref_keys = [f"ref-{index}" for index in range(ref_index, ref_index + ref_count)]
+        is_correct = bool(ref_count and hyp_count) and ref_symbol.replace(" ", "") == hyp_symbol.replace(" ", "")
+
+        if hyp_count:
+            if ref_keys:
+                key = " ".join(ref_keys)
+            else:
+                key = f"gap-{ref_index}-0"
+                inserted_by_ref_position.setdefault(ref_index, []).append(key)
+            for index in range(hyp_index, hyp_index + hyp_count):
+                align_keys[index] = key
+                correct[index] = is_correct
+        elif ref_keys:
+            missing_by_hyp_position.setdefault(hyp_index, []).extend(ref_keys)
+
+        ref_index += ref_count
+        hyp_index += hyp_count
+
+    return align_keys, correct, missing_by_hyp_position, inserted_by_ref_position
+
+
+def render_reference_tokens(ref_words: list[str], insertion_keys: set[str]) -> str:
+    insertions_by_position: dict[int, list[str]] = {}
+    for key in insertion_keys:
+        _, position, _ = key.split("-", 2)
+        insertions_by_position.setdefault(int(position), []).append(key)
+
+    parts: list[str] = []
+    for index in range(len(ref_words) + 1):
+        for key in sorted(insertions_by_position.get(index, [])):
+            parts.append(
+                f'<span class="aligned-token alignment-gap" data-align="{key}" '
+                'tabindex="0" title="Inserted relative to reference">&empty;</span>'
+            )
+        if index < len(ref_words):
+            parts.append(
+                f'<span class="aligned-token reference-token" data-align="ref-{index}" '
+                f'tabindex="0">{html.escape(ref_words[index])}</span>'
+            )
+    return " ".join(parts)
+
+
+def error_context_visibility(
+    correct: list[bool], missing_by_position: dict[int, list[str]], context_words: int = 5,
+) -> set[int]:
+    error_positions = [index for index, is_correct in enumerate(correct) if not is_correct]
+    error_positions.extend(missing_by_position)
+    if not error_positions:
+        return set(range(len(correct)))
+
+    visible: set[int] = set()
+    for index in error_positions:
+        visible.update(range(max(0, index - context_words), min(len(correct), index + context_words + 1)))
+    return visible
+
+
+def render_model_tokens(
+    words: list[str],
+    align_keys: list[str],
+    correct: list[bool],
+    missing_by_position: dict[int, list[str]],
+    visible: set[int],
+    changed: set[int],
+    change_gaps: set[int],
+    change_class: str,
+) -> str:
+    parts: list[str] = []
+    hidden_run = False
+    for index in range(len(words) + 1):
+        for key in missing_by_position.get(index, []):
+            classes = ["aligned-token", "word-deleted", "alignment-gap"]
+            if index in change_gaps:
+                classes.extend(("diff-change", change_class))
+            parts.append(
+                f'<mark class="{" ".join(classes)}" data-align="{key}" tabindex="0" '
+                'title="Missing aligned word">&empty;</mark>'
+            )
+        if index == len(words):
+            break
+
+        is_visible = index in visible or index in changed
+        if not is_visible:
+            if not hidden_run:
+                parts.append('<span class="context-ellipsis">...</span>')
+            hidden_run = True
+        else:
+            hidden_run = False
+
+        if correct[index]:
+            correctness_class = "word-correct"
+        elif any(character.isdigit() for character in words[index]):
+            correctness_class = "word-number-error"
+        elif align_keys[index].startswith("gap-"):
+            correctness_class = "word-inserted"
+        else:
+            correctness_class = "word-wrong"
+        classes = ["aligned-token", correctness_class]
+        if not is_visible:
+            classes.append("hidden-context")
+        if index in changed:
+            classes.extend(("diff-change", change_class))
+        parts.append(
+            f'<mark class="{" ".join(classes)}" data-align="{align_keys[index]}" '
+            f'tabindex="0">{html.escape(words[index])}</mark>'
+        )
+    return " ".join(parts)
+
+
+def count_number_errors(words: list[str], correct: list[bool]) -> int:
+    return sum(
+        not is_correct and any(character.isdigit() for character in word)
+        for word, is_correct in zip(words, correct, strict=True)
+    )
+
+
+def render_error_breakdown(row: dict[str, object], prefix: str, number_errors: int) -> str:
+    substitutions = int(row.get(f"{prefix}_substitutions", 0))
+    deletions = int(row.get(f"{prefix}_deletions", 0))
+    insertions = int(row.get(f"{prefix}_insertions", 0))
+    return (
+        '<span class="error-breakdown" title="Number errors overlap the edit categories">'
+        f'<span class="error-count word-wrong">Sub {substitutions}</span>'
+        f'<span class="error-count word-deleted">Del {deletions}</span>'
+        f'<span class="error-count word-inserted">Ins {insertions}</span>'
+        f'<span class="error-count word-number-error">Num {number_errors}</span>'
+        "</span>"
+    )
+
+
 def build_comparison_html(
-    rows: list[dict[str, object]], title: str, audio_map: dict[str, str] | None = None,
+    rows: list[dict[str, object]],
+    title: str,
+    audio_map: dict[str, str] | None = None,
+    show_target: bool = True,
 ) -> str:
     cards: list[str] = []
     index_items: list[str] = []
     for card_index, row in enumerate(rows, start=1):
         baseline_wer = float(row["baseline_wer"])
-        target_wer = float(row["target_wer"])
-        if target_wer < baseline_wer:
+        target_wer = float(row.get("target_wer", 0.0))
+        if not show_target:
+            verdict = "target-same"
+            verdict_label = "Baseline review"
+        elif target_wer < baseline_wer:
             verdict = "target-better"
             verdict_label = "Target better"
         elif target_wer > baseline_wer:
@@ -697,41 +848,112 @@ def build_comparison_html(
         ref_value = normalize_text(row.get("ref", ""))
         raw_ref_text = html.escape(normalize_text(row.get("raw_ref", row.get("ref", ""))))
         baseline_text = normalize_text(row["hyp_baseline"])
-        target_text = normalize_text(row["hyp_target"])
+        target_text = normalize_text(row.get("hyp_target", "")) if show_target else ""
         ref_words = ref_value.split()
         baseline_words = baseline_text.split()
         target_words = target_text.split()
-        model_context = alignment_error_context(baseline_words, target_words)
-        ref_text = html.escape(ref_value)
-        baseline_diff = render_error_context(
-            baseline_words, model_context[0], model_context[2], model_context[4], "diff-removed"
+        model_context = (
+            alignment_error_context(baseline_words, target_words)
+            if show_target
+            else (set(), set(), set(), set(), set(), set())
         )
-        target_diff = render_error_context(
-            target_words, model_context[1], model_context[3], model_context[5], "diff-added"
+        baseline_alignment = align_hypothesis_to_reference(ref_words, baseline_words)
+        target_alignment = (
+            align_hypothesis_to_reference(ref_words, target_words)
+            if show_target
+            else ([], [], {}, {})
         )
-        has_hidden_context = any(
-            len(visible) < len(words)
-            for visible, words in (
-                (model_context[0], baseline_words),
-                (model_context[1], target_words),
-            )
+        baseline_visible = error_context_visibility(baseline_alignment[1], baseline_alignment[2])
+        target_visible = error_context_visibility(target_alignment[1], target_alignment[2])
+        baseline_number_errors = count_number_errors(baseline_words, baseline_alignment[1])
+        target_number_errors = count_number_errors(target_words, target_alignment[1])
+        baseline_error_breakdown = render_error_breakdown(row, "baseline", baseline_number_errors)
+        target_error_breakdown = render_error_breakdown(row, "target", target_number_errors)
+        insertion_keys = {
+            key
+            for alignment in (baseline_alignment, target_alignment)
+            for keys in alignment[3].values()
+            for key in keys
+        }
+        ref_text = render_reference_tokens(ref_words, insertion_keys)
+        baseline_diff = render_model_tokens(
+            baseline_words,
+            baseline_alignment[0],
+            baseline_alignment[1],
+            baseline_alignment[2],
+            baseline_visible,
+            model_context[2],
+            model_context[4],
+            "diff-removed",
         )
+        target_diff = render_model_tokens(
+            target_words,
+            target_alignment[0],
+            target_alignment[1],
+            target_alignment[2],
+            target_visible,
+            model_context[3],
+            model_context[5],
+            "diff-added",
+        )
+        visibility_pairs = [(baseline_visible, baseline_words)]
+        if show_target:
+            visibility_pairs.append((target_visible, target_words))
+        has_hidden_context = any(len(visible) < len(words) for visible, words in visibility_pairs)
         transcript_class = " transcript-condensed" if has_hidden_context else ""
         rank = int(row.get("rank", card_index))
         baseline_errors = int(row.get("baseline_errors", 0))
         target_errors = int(row.get("target_errors", 0))
         error_delta = int(row.get("error_delta", target_errors - baseline_errors))
         delta_label = f"{error_delta:+d}"
+        index_delta = delta_label if show_target else f"{baseline_errors} errors"
         index_items.append(
             f'<a href="#item-{rank}" class="index-item {verdict}">'
             f'<span class="index-rank">#{rank}</span>'
             f'<span class="index-name">{html.escape(audio_file_stem)}</span>'
-            f'<span class="index-delta">{delta_label}</span>'
+            f'<span class="index-delta">{index_delta}</span>'
             "</a>"
         )
 
         raw_baseline_text = html.escape(str(row.get("raw_hyp_baseline", "")))
         raw_target_text = html.escape(str(row.get("raw_hyp_target", "")))
+        target_metrics_html = ""
+        delta_metrics_html = ""
+        target_panel_html = ""
+        model_change_legend = ""
+        change_controls = ""
+        target_toggle_state = "checked" if show_target else "disabled"
+        if show_target:
+            model_change_legend = '<span class="legend-swatch model-change">Model change</span>'
+            change_controls = """
+                                    <span class="change-status" aria-live="polite">Changes</span>
+                                    <button type="button" data-action="previous-change" title="Previous changed span">Previous</button>
+                                    <button type="button" data-action="next-change" title="Next changed span">Next</button>"""
+            target_metrics_html = f"""
+                <div class="metric">
+                                    <span class="label">Target</span>
+                                    <span class="value">{format_percent(row["target_wer"])}</span>
+                                    <span class="metric-detail">{target_errors} errors</span>
+                                    {target_error_breakdown}
+                                </div>"""
+            delta_metrics_html = f"""
+                                <div class="metric delta-metric">
+                                    <span class="label">Error delta</span>
+                                    <span class="value">{delta_label}</span>
+                                    <span class="metric-detail">target &minus; baseline</span>
+                </div>"""
+            target_panel_html = f"""
+                                <section class="panel transcript-panel" data-side="target">
+                                    <h3>Target <span>normalized</span></h3>
+                                    <p class="transcript-text">{target_diff}</p>
+                                                                        <details class="raw-section raw-hypothesis">
+                                                                            <summary>Raw target output</summary>
+                                                                            <p class="raw-hypothesis-text">{raw_target_text}</p>
+                                                                        </details>
+                </section>"""
+        else:
+            target_panel_html = """
+                                <section class="panel transcript-panel panel-hidden panel-unavailable" data-side="target" aria-hidden="true"></section>"""
 
         audio_html = '<div class="audio-unavailable">Audio unavailable</div>'
         if audio_map:
@@ -757,9 +979,19 @@ def build_comparison_html(
                             <div class="review-toolbar">
                                 <div class="audio-player">{audio_html}</div>
                                 <div class="review-actions">
-                                    <span class="change-status" aria-live="polite">Changes</span>
-                                    <button type="button" data-action="previous-change" title="Previous changed span">Previous</button>
-                                    <button type="button" data-action="next-change" title="Next changed span">Next</button>
+                                    <span class="legend">
+                                        <label class="legend-swatch word-wrong"><input type="checkbox" data-error-color="word-wrong" checked> Substitution</label>
+                                        <label class="legend-swatch word-deleted"><input type="checkbox" data-error-color="word-deleted" checked> Deleted</label>
+                                        <label class="legend-swatch word-inserted"><input type="checkbox" data-error-color="word-inserted" checked> Inserted</label>
+                                        <label class="legend-swatch word-number-error"><input type="checkbox" data-error-color="word-number-error" checked> Number error</label>
+                                        {model_change_legend}
+                                    </span>
+                                    <span class="panel-toggles" aria-label="Visible transcript panels for all utterances">
+                                        <label><input type="checkbox" data-panel-toggle="reference" checked> Reference</label>
+                                        <label><input type="checkbox" data-panel-toggle="baseline" checked> Baseline</label>
+                                        <label><input type="checkbox" data-panel-toggle="target" {target_toggle_state}> Target</label>
+                                    </span>
+                                    {change_controls}
                                     <label class="sync-toggle"><input type="checkbox" data-action="sync-scroll" checked> Sync scroll</label>
                                     {context_button}
                                 </div>
@@ -769,19 +1001,13 @@ def build_comparison_html(
                                     <span class="label">Baseline</span>
                                     <span class="value">{format_percent(row["baseline_wer"])}</span>
                                     <span class="metric-detail">{baseline_errors} errors</span>
+                                    {baseline_error_breakdown}
                 </div>
-                <div class="metric">
-                                    <span class="label">Target</span>
-                                    <span class="value">{format_percent(row["target_wer"])}</span>
-                                    <span class="metric-detail">{target_errors} errors</span>
-                                </div>
-                                <div class="metric delta-metric">
-                                    <span class="label">Error delta</span>
-                                    <span class="value">{delta_label}</span>
-                                    <span class="metric-detail">target &minus; baseline</span>
-                </div>
+                                {target_metrics_html}
+                                {delta_metrics_html}
               </div>
-              <section class="panel ref-panel">
+                                                        <div class="compare-grid transcript-grid">
+                                <section class="panel transcript-panel reference-panel" data-side="reference">
                                 <div class="reference-block">
                                     <h3>Reference <span>normalized &middot; {len(ref_words)} words</span></h3>
                                     <p class="transcript-text">{ref_text}</p>
@@ -790,8 +1016,8 @@ def build_comparison_html(
                                     <summary>Raw reference</summary>
                                     <p class="transcript-text">{raw_ref_text}</p>
                                 </details>
-              </section>
-                            <div class="compare-grid transcript-grid">
+                                </section>
+                                <div class="panel-resizer" data-after="reference" role="separator" aria-label="Resize transcript panels" aria-orientation="vertical" tabindex="0"></div>
                                 <section class="panel transcript-panel" data-side="baseline">
                                     <h3>Baseline <span>normalized</span></h3>
                                     <p class="transcript-text">{baseline_diff}</p>
@@ -800,14 +1026,8 @@ def build_comparison_html(
                                                                             <p class="raw-hypothesis-text">{raw_baseline_text}</p>
                                                                         </details>
                 </section>
-                                <section class="panel transcript-panel" data-side="target">
-                                    <h3>Target <span>normalized</span></h3>
-                                    <p class="transcript-text">{target_diff}</p>
-                                                                        <details class="raw-section raw-hypothesis">
-                                                                            <summary>Raw target output</summary>
-                                                                            <p class="raw-hypothesis-text">{raw_target_text}</p>
-                                                                        </details>
-                </section>
+                                <div class="panel-resizer" data-after="baseline" role="separator" aria-label="Resize transcript panels" aria-orientation="vertical" tabindex="0"></div>
+                                {target_panel_html}
               </div>
             </article>
             """
@@ -834,6 +1054,16 @@ def build_comparison_html(
             --same-ink: #58646a;
             --add: #cfead9;
             --remove: #f6d3cc;
+            --wrong: #e8ecee;
+            --wrong-ink: #39464c;
+            --deleted: #d9eaf7;
+            --deleted-ink: #245b78;
+            --inserted: #fff0ad;
+            --inserted-ink: #765600;
+            --number-error: #f8d9d4;
+            --number-error-ink: #8d2921;
+            --change: #16697a;
+            --selected: #f1b82d;
             --focus: #126a78;
             --shadow: rgba(23, 33, 38, 0.08);
     }}
@@ -966,16 +1196,34 @@ def build_comparison_html(
       font-weight: 700;
     }}
         .metric-detail {{ display: block; margin-top: 3px; color: var(--muted); font-size: 0.82rem; }}
+        .error-breakdown {{ display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }}
+        .error-count {{ padding: 2px 5px; border-radius: 3px; font-size: 0.72rem; font-weight: 650; }}
         .target-better .delta-metric .value {{ color: var(--good-ink); }}
         .target-worse .delta-metric .value {{ color: var(--bad-ink); }}
-    .ref-panel {{
-      margin-bottom: 16px;
-    }}
     .compare-grid {{
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+            display: flex;
+            align-items: stretch;
+            gap: 3px;
     }}
+                .transcript-panel {{ flex: 1 1 0; min-width: 180px; }}
+                .panel-resizer {{
+                        position: relative;
+                        flex: 0 0 10px;
+                        cursor: col-resize;
+                        touch-action: none;
+                }}
+                .panel-resizer::before {{
+                        content: "";
+                        position: absolute;
+                        inset: 0 3px;
+                        border-radius: 2px;
+                        background: var(--line);
+                }}
+                .panel-resizer:hover::before,
+                .panel-resizer:focus-visible::before,
+                .panel-resizer.is-dragging::before {{ background: var(--focus); }}
+                .panel-resizer:focus-visible {{ outline: none; }}
+                .panel-resizer.panel-hidden {{ display: none; }}
     .panel {{
             background: #fbfcfc;
       border: 1px solid var(--line);
@@ -992,46 +1240,73 @@ def build_comparison_html(
       line-height: 1.75;
       font-size: 1rem;
     }}
-        .diff-added, .diff-removed {{
+                .aligned-token {{
+                        display: inline;
+                        padding: 0.08em 0.14em;
+                        border-radius: 3px;
+                        color: inherit;
+                        cursor: pointer;
+                }}
+                .reference-token {{ background: transparent; color: inherit; }}
+                .reference-panel .alignment-gap {{ background: transparent; color: var(--muted); }}
+                .word-correct {{ background: transparent; color: inherit; }}
+                .word-wrong {{ background: var(--wrong); color: var(--wrong-ink); }}
+                .word-deleted {{ background: var(--deleted); color: var(--deleted-ink); }}
+                .word-inserted {{ background: var(--inserted); color: var(--inserted-ink); }}
+                .word-number-error {{ background: var(--number-error); color: var(--number-error-ink); }}
+                body.color-word-wrong-off .word-wrong,
+                body.color-word-deleted-off .word-deleted,
+                body.color-word-inserted-off .word-inserted,
+                body.color-word-number-error-off .word-number-error {{ background: transparent; color: inherit; }}
+                .diff-added, .diff-removed {{
       padding: 0.08em 0.18em;
             border-radius: 3px;
             color: inherit;
-    }}
-    .diff-added {{
-      background: var(--add);
-    }}
-    .diff-removed {{
-      background: var(--remove);
+                        border-bottom: 3px solid var(--change);
     }}
         .diff-change.is-active {{
             outline: 3px solid var(--focus);
             outline-offset: 2px;
         }}
+                .aligned-token.is-aligned {{
+                        outline: 3px solid var(--selected);
+                        outline-offset: 2px;
+                }}
+                .transcript-panel.panel-hidden {{ display: none; }}
         .diff-gap {{ font-weight: 700; }}
+                .alignment-gap {{ font-weight: 700; }}
                 .context-ellipsis {{ display: none; color: var(--muted); font-weight: 700; }}
                 .transcript-condensed .hidden-context {{ display: none; }}
+                .transcript-condensed .hidden-context.is-aligned {{ display: inline; }}
                 .transcript-condensed .context-ellipsis {{ display: inline; }}
         .review-toolbar {{
             position: sticky;
             top: 8px;
             z-index: 10;
-            display: grid;
-            grid-template-columns: minmax(260px, 1fr) auto;
+            display: flex;
             gap: 12px;
             align-items: center;
             margin: 0 -8px 16px;
             padding: 8px;
+            overflow-x: auto;
             background: rgba(255, 255, 255, 0.96);
             border: 1px solid var(--line);
             border-radius: 8px;
             box-shadow: 0 4px 14px var(--shadow);
     }}
-    .audio-player audio {{
-      width: 100%;
+        .audio-player {{ display: flex; flex: 0 0 auto; align-items: center; white-space: nowrap; }}
+        .audio-player audio {{
+            width: 260px;
       height: 36px;
     }}
         .audio-unavailable {{ color: var(--muted); font-size: 0.85rem; }}
-        .review-actions {{ display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }}
+        .review-actions {{ display: flex; flex: 1 0 auto; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: nowrap; }}
+        .legend {{ display: flex; gap: 5px; align-items: center; }}
+        .legend-swatch {{ display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 3px; font-size: 0.75rem; cursor: pointer; }}
+        .legend-swatch input {{ width: 13px; height: 13px; margin: 0; }}
+        .legend-swatch.model-change {{ background: #edf1f2; border-bottom: 3px solid var(--change); }}
+        .panel-toggles {{ display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 0.78rem; }}
+        .panel-toggles label {{ display: flex; gap: 4px; align-items: center; white-space: nowrap; }}
         .review-actions button {{
             min-height: 34px;
             padding: 6px 10px;
@@ -1048,7 +1323,7 @@ def build_comparison_html(
         .review-actions button:disabled {{ opacity: 0.45; cursor: default; }}
         .change-status {{ min-width: 104px; color: var(--muted); font-size: 0.82rem; text-align: right; }}
         .sync-toggle {{ display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 0.82rem; white-space: nowrap; }}
-        .transcript-panel {{ max-height: 32rem; overflow: auto; scroll-behavior: smooth; }}
+        .transcript-panel {{ height: 32rem; overflow: auto; scroll-behavior: smooth; }}
         .transcript-panel h3 {{
             position: sticky;
             top: -14px;
@@ -1061,7 +1336,6 @@ def build_comparison_html(
         .reference-block + .raw-reference {{ margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--line); }}
         .raw-reference {{ color: #39464c; }}
         .raw-reference .transcript-text {{ font-family: "IBM Plex Mono", "Cascadia Code", monospace; font-size: 0.9rem; }}
-        .transcript-condensed .reference-block .transcript-text {{ max-height: 12rem; overflow: auto; }}
     .raw-section {{
       margin-top: 12px;
     }}
@@ -1097,16 +1371,18 @@ def build_comparison_html(
         grid-template-columns: 1fr;
         display: grid;
       }}
+            .panel-resizer {{ display: none; }}
+            .transcript-panel {{ min-width: 0; }}
       .card-header {{
         align-items: stretch;
       }}
       .verdict {{
         justify-self: start;
       }}
-            .review-toolbar {{ position: static; grid-template-columns: 1fr; }}
+            .review-toolbar {{ position: static; }}
             .review-actions {{ justify-content: flex-start; }}
             .change-status {{ text-align: left; }}
-            .transcript-panel {{ max-height: 24rem; }}
+            .transcript-panel {{ height: 24rem; }}
     }}
   </style>
 </head>
@@ -1120,21 +1396,144 @@ def build_comparison_html(
     {''.join(cards)}
   </main>
     <script>
-        document.querySelectorAll(".card").forEach((card) => {{
+        const reportCards = [...document.querySelectorAll(".card")];
+        const resetCardPanelLayout = (card) => {{
+            const panes = [...card.querySelectorAll(".transcript-panel")];
+            panes.forEach((pane) => {{ pane.style.flex = ""; }});
+            const visible = panes.filter((pane) => !pane.classList.contains("panel-hidden"));
+            card.querySelectorAll(".panel-resizer").forEach((resizer) => {{
+                const leftPane = card.querySelector(`[data-side="${{resizer.dataset.after}}"]`);
+                const leftIndex = visible.indexOf(leftPane);
+                resizer.classList.toggle("panel-hidden", leftIndex < 0 || leftIndex === visible.length - 1);
+            }});
+        }};
+        const setReportPanelVisibility = (side, visible) => {{
+            reportCards.forEach((card) => {{
+                const toggle = card.querySelector(`[data-panel-toggle="${{side}}"]`);
+                const pane = card.querySelector(`[data-side="${{side}}"]`);
+                if (toggle && !toggle.disabled) toggle.checked = visible;
+                if (!pane) return;
+                pane.classList.toggle("panel-hidden", !visible);
+                pane.setAttribute("aria-hidden", String(!visible));
+                resetCardPanelLayout(card);
+            }});
+        }};
+        const setReportSyncScroll = (enabled) => {{
+            document.querySelectorAll('[data-action="sync-scroll"]').forEach((toggle) => {{
+                toggle.checked = enabled;
+            }});
+        }};
+        const setReportFullContext = (showFull) => {{
+            reportCards.forEach((card) => card.classList.toggle("transcript-condensed", !showFull));
+            document.querySelectorAll('[data-action="toggle-context"]').forEach((button) => {{
+                button.textContent = showFull ? "Compact context" : "Show full context";
+            }});
+        }};
+        const setReportErrorColor = (errorClass, enabled) => {{
+            document.body.classList.toggle(`color-${{errorClass}}-off`, !enabled);
+            document.querySelectorAll(`[data-error-color="${{errorClass}}"]`).forEach((toggle) => {{
+                toggle.checked = enabled;
+            }});
+        }};
+
+        reportCards.forEach((card) => {{
             const targetChanges = [...card.querySelectorAll('[data-side="target"] .diff-change')];
             const baselineChanges = [...card.querySelectorAll('[data-side="baseline"] .diff-change')];
             const changes = targetChanges.length ? targetChanges : baselineChanges;
             const status = card.querySelector(".change-status");
             const previous = card.querySelector('[data-action="previous-change"]');
             const next = card.querySelector('[data-action="next-change"]');
+            const panes = [...card.querySelectorAll(".transcript-panel")];
+            const resizers = [...card.querySelectorAll(".panel-resizer")];
             let activeIndex = -1;
+            let syncing = false;
+
+            const visiblePanes = () => panes.filter((pane) => !pane.classList.contains("panel-hidden"));
+            const resetPanelWidths = () => resetCardPanelLayout(card);
+            const updateResizers = () => {{
+                resetCardPanelLayout(card);
+            }};
+
+            resizers.forEach((resizer) => {{
+                const resizeBy = (delta, startWidths) => {{
+                    const visible = visiblePanes();
+                    const leftPane = card.querySelector(`[data-side="${{resizer.dataset.after}}"]`);
+                    const leftIndex = visible.indexOf(leftPane);
+                    const rightPane = visible[leftIndex + 1];
+                    if (leftIndex < 0 || !rightPane) return;
+                    const combinedWidth = startWidths[0] + startWidths[1];
+                    const minimumWidth = Math.min(180, combinedWidth / 2);
+                    const leftWidth = Math.max(minimumWidth, Math.min(combinedWidth - minimumWidth, startWidths[0] + delta));
+                    leftPane.style.flex = `0 0 ${{leftWidth}}px`;
+                    rightPane.style.flex = `0 0 ${{combinedWidth - leftWidth}}px`;
+                }};
+                resizer.addEventListener("pointerdown", (event) => {{
+                    if (window.matchMedia("(max-width: 800px)").matches) return;
+                    event.preventDefault();
+                    const visible = visiblePanes();
+                    const leftPane = card.querySelector(`[data-side="${{resizer.dataset.after}}"]`);
+                    const leftIndex = visible.indexOf(leftPane);
+                    const rightPane = visible[leftIndex + 1];
+                    if (leftIndex < 0 || !rightPane) return;
+                    const startX = event.clientX;
+                    const startWidths = [leftPane.offsetWidth, rightPane.offsetWidth];
+                    resizer.classList.add("is-dragging");
+                    const move = (moveEvent) => resizeBy(moveEvent.clientX - startX, startWidths);
+                    const finish = () => {{
+                        resizer.classList.remove("is-dragging");
+                        document.removeEventListener("pointermove", move);
+                        document.removeEventListener("pointerup", finish);
+                        document.removeEventListener("pointercancel", finish);
+                    }};
+                    document.addEventListener("pointermove", move);
+                    document.addEventListener("pointerup", finish);
+                    document.addEventListener("pointercancel", finish);
+                }});
+                resizer.addEventListener("keydown", (event) => {{
+                    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+                    event.preventDefault();
+                    const visible = visiblePanes();
+                    const leftPane = card.querySelector(`[data-side="${{resizer.dataset.after}}"]`);
+                    const leftIndex = visible.indexOf(leftPane);
+                    const rightPane = visible[leftIndex + 1];
+                    if (leftIndex < 0 || !rightPane) return;
+                    resizeBy(event.key === "ArrowLeft" ? -20 : 20, [leftPane.offsetWidth, rightPane.offsetWidth]);
+                }});
+                resizer.addEventListener("dblclick", resetPanelWidths);
+            }});
+            updateResizers();
 
             const updateStatus = () => {{
-                status.textContent = changes.length
-                    ? (activeIndex >= 0 ? `Change ${{activeIndex + 1}} of ${{changes.length}}` : `${{changes.length}} changed spans`)
-                    : "No changed spans";
-                previous.disabled = !changes.length;
-                next.disabled = !changes.length;
+                if (status) {{
+                    status.textContent = changes.length
+                        ? (activeIndex >= 0 ? `Change ${{activeIndex + 1}} of ${{changes.length}}` : `${{changes.length}} changed spans`)
+                        : "No changed spans";
+                }}
+                if (previous) previous.disabled = !changes.length;
+                if (next) next.disabled = !changes.length;
+            }};
+
+            const selectAligned = (token) => {{
+                card.querySelectorAll(".aligned-token.is-aligned").forEach((item) => item.classList.remove("is-aligned"));
+                const selectedKeys = new Set((token.dataset.align || "").split(" ").filter(Boolean));
+                if (!selectedKeys.size) return;
+                const selectedItems = [];
+                card.querySelectorAll(".aligned-token").forEach((item) => {{
+                    const itemKeys = (item.dataset.align || "").split(" ");
+                    if (itemKeys.some((key) => selectedKeys.has(key))) {{
+                        item.classList.add("is-aligned");
+                        selectedItems.push(item);
+                    }}
+                }});
+                syncing = true;
+                selectedItems.forEach((item) => {{
+                    const pane = item.closest(".transcript-panel");
+                    if (!pane || pane.classList.contains("panel-hidden")) return;
+                    const paneRect = pane.getBoundingClientRect();
+                    const itemRect = item.getBoundingClientRect();
+                    pane.scrollTop += itemRect.top - paneRect.top - (pane.clientHeight - itemRect.height) / 2;
+                }});
+                requestAnimationFrame(() => {{ syncing = false; }});
             }};
 
             const moveToChange = (step) => {{
@@ -1142,24 +1541,44 @@ def build_comparison_html(
                 changes.forEach((change) => change.classList.remove("is-active"));
                 activeIndex = (activeIndex + step + changes.length) % changes.length;
                 changes[activeIndex].classList.add("is-active");
+                selectAligned(changes[activeIndex]);
                 changes[activeIndex].focus({{ preventScroll: true }});
-                changes[activeIndex].scrollIntoView({{ behavior: "smooth", block: "center", inline: "nearest" }});
                 updateStatus();
             }};
 
-            previous.addEventListener("click", () => moveToChange(-1));
-            next.addEventListener("click", () => moveToChange(1));
+            previous?.addEventListener("click", () => moveToChange(-1));
+            next?.addEventListener("click", () => moveToChange(1));
+            card.querySelectorAll(".aligned-token").forEach((token) => {{
+                token.addEventListener("click", () => selectAligned(token));
+                token.addEventListener("keydown", (event) => {{
+                    if (event.key === "Enter" || event.key === " ") {{
+                        event.preventDefault();
+                        selectAligned(token);
+                    }}
+                }});
+            }});
+            card.querySelectorAll("[data-panel-toggle]").forEach((toggle) => {{
+                toggle.addEventListener("change", () => {{
+                    setReportPanelVisibility(toggle.dataset.panelToggle, toggle.checked);
+                }});
+            }});
+
+            card.querySelector('[data-action="sync-scroll"]')?.addEventListener("change", (event) => {{
+                setReportSyncScroll(event.currentTarget.checked);
+            }});
+            card.querySelectorAll("[data-error-color]").forEach((toggle) => {{
+                toggle.addEventListener("change", () => {{
+                    setReportErrorColor(toggle.dataset.errorColor, toggle.checked);
+                }});
+            }});
 
             const contextButton = card.querySelector('[data-action="toggle-context"]');
             if (contextButton) {{
                 contextButton.addEventListener("click", () => {{
-                    const condensed = card.classList.toggle("transcript-condensed");
-                    contextButton.textContent = condensed ? "Show full context" : "Compact context";
+                    setReportFullContext(card.classList.contains("transcript-condensed"));
                 }});
             }}
 
-            const panes = [...card.querySelectorAll(".transcript-panel")];
-            let syncing = false;
             panes.forEach((sourcePane) => {{
                 sourcePane.addEventListener("scroll", () => {{
                     const syncToggle = card.querySelector('[data-action="sync-scroll"]');
@@ -1170,6 +1589,7 @@ def build_comparison_html(
                     const ratio = sourcePane.scrollTop / sourceRange;
                     panes.forEach((targetPane) => {{
                         if (targetPane !== sourcePane) {{
+                            if (targetPane.classList.contains("panel-hidden")) return;
                             targetPane.scrollTop = ratio * (targetPane.scrollHeight - targetPane.clientHeight);
                         }}
                     }});
@@ -1261,10 +1681,14 @@ def download_audio_for_reports(
 
 
 def write_comparison_html(
-    df: pd.DataFrame, output_path: Path, title: str, audio_map: dict[str, str] | None = None,
+    df: pd.DataFrame,
+    output_path: Path,
+    title: str,
+    audio_map: dict[str, str] | None = None,
+    show_target: bool = True,
 ) -> None:
     output_path.write_text(
-        build_comparison_html(df.to_dict("records"), title, audio_map), encoding="utf-8",
+        build_comparison_html(df.to_dict("records"), title, audio_map, show_target), encoding="utf-8",
     )
 
 
@@ -1272,12 +1696,15 @@ def main() -> None:
     args = parse_args()
 
     baseline_path = resolve_input_path(args.baseline_path, args.baseline_model, args.results_root, args.dataset, args.val_data_root)
-    target_path = resolve_input_path(args.target_path, args.target_model, args.results_root, args.dataset, args.val_data_root)
+    baseline_only = not (args.target_path or args.target_model)
+    target_path = None if baseline_only else resolve_input_path(
+        args.target_path, args.target_model, args.results_root, args.dataset, args.val_data_root
+    )
     baseline_name = args.baseline_name or infer_label(baseline_path, args.baseline_model)
-    target_name = args.target_name or infer_label(target_path, args.target_model)
+    target_name = None if baseline_only else args.target_name or infer_label(target_path, args.target_model)
 
     baseline_df = load_jsonl(baseline_path)
-    target_df = load_jsonl(target_path)
+    target_df = baseline_df.copy(deep=True) if baseline_only else load_jsonl(target_path)
 
     # Auto-remap verl schema columns (gts->ref, clean_output->hyp) when needed
     for label, df in [("baseline", baseline_df), ("target", target_df)]:
@@ -1287,7 +1714,11 @@ def main() -> None:
             df[args.hyp_column] = df["clean_output"]
 
     ensure_required_columns(baseline_df, baseline_path, [args.ref_column, args.hyp_column])
-    ensure_required_columns(target_df, target_path, [args.ref_column, args.hyp_column])
+    ensure_required_columns(target_df, target_path or baseline_path, [args.ref_column, args.hyp_column])
+    if baseline_only:
+        target_df[args.hyp_column] = target_df[args.ref_column]
+        if "output" in target_df.columns:
+            target_df["output"] = target_df[args.ref_column]
 
     if args.aggregate_segments_by:
         baseline_df = aggregate_segment_rows(
@@ -1389,13 +1820,18 @@ def main() -> None:
         "wer_delta",
     ]
 
-    # Report 0: Overall comparison sorted by absolute error_delta (largest changes first)
+    # Report 0: Overall comparison sorted by the largest relevant error count/change.
     overall_df = merged.copy()
-    overall_df["abs_error_delta"] = overall_df["error_delta"].abs()
-    overall_df = overall_df.sort_values(
-        by=["abs_error_delta", "target_errors", "comparison_id"],
-        ascending=[False, False, True],
-    ).head(args.top_n)
+    if baseline_only:
+        overall_df = overall_df.sort_values(
+            by=["baseline_errors", "comparison_id"], ascending=[False, True],
+        ).head(args.top_n)
+    else:
+        overall_df["abs_error_delta"] = overall_df["error_delta"].abs()
+        overall_df = overall_df.sort_values(
+            by=["abs_error_delta", "target_errors", "comparison_id"],
+            ascending=[False, False, True],
+        ).head(args.top_n)
     overall_df = overall_df.loc[:, report_columns].copy()
     overall_df.insert(0, "rank", range(1, len(overall_df) + 1))
 
@@ -1417,15 +1853,18 @@ def main() -> None:
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    stem = slugify(f"{args.dataset}-{baseline_name}-vs-{target_name}")
+    stem = slugify(
+        f"{args.dataset}-{baseline_name}" if baseline_only else f"{args.dataset}-{baseline_name}-vs-{target_name}"
+    )
     local_baseline_jsonl = copy_to_output_dir(baseline_path, output_dir, baseline_name)
-    local_target_jsonl = copy_to_output_dir(target_path, output_dir, target_name)
+    local_target_jsonl = None if baseline_only else copy_to_output_dir(target_path, output_dir, target_name)
 
-    reports = [
-        ("overall", overall_df, f"{stem}.overall-top{args.top_n}"),
-        ("improved", improved_df, f"{stem}.improved-top{args.top_n}"),
-        ("degraded", degraded_df, f"{stem}.degraded-top{args.top_n}"),
-    ]
+    reports = [("overall", overall_df, f"{stem}.overall-top{args.top_n}")]
+    if not baseline_only:
+        reports.extend([
+            ("improved", improved_df, f"{stem}.improved-top{args.top_n}"),
+            ("degraded", degraded_df, f"{stem}.degraded-top{args.top_n}"),
+        ])
 
     summary_outputs: dict[str, dict[str, str]] = {}
 
@@ -1453,7 +1892,7 @@ def main() -> None:
         summary_outputs[report_name] = {"csv": str(csv_path)}
         if args.write_html:
             html_path = output_dir / f"{report_stem}.html"
-            write_comparison_html(report_df, html_path, report_stem, audio_map)
+            write_comparison_html(report_df, html_path, report_stem, audio_map, show_target=not baseline_only)
             summary_outputs[report_name]["html"] = str(html_path)
 
     if args.write_full_csv:
@@ -1473,21 +1912,25 @@ def main() -> None:
         "baseline_path": baseline_path,
         "target_path": target_path,
         "local_baseline_jsonl": str(local_baseline_jsonl),
-        "local_target_jsonl": str(local_target_jsonl),
+        "local_target_jsonl": str(local_target_jsonl) if local_target_jsonl else None,
         "join_columns": join_columns,
         "rows_compared": int(len(merged)),
         "top_n": args.top_n,
         "total_ref_words": total_ref_words,
         "baseline_total_errors": total_baseline_errors,
-        "target_total_errors": total_target_errors,
         "baseline_wer": total_baseline_errors / max(total_ref_words, 1),
-        "target_wer": total_target_errors / max(total_ref_words, 1),
-        "error_delta": total_target_errors - total_baseline_errors,
-        "improved_count": int((merged["error_delta"] < 0).sum()),
-        "degraded_count": int((merged["error_delta"] > 0).sum()),
-        "unchanged_count": int((merged["error_delta"] == 0).sum()),
+        "baseline_only": baseline_only,
         "reports": summary_outputs,
     }
+    if not baseline_only:
+        summary.update({
+            "target_total_errors": total_target_errors,
+            "target_wer": total_target_errors / max(total_ref_words, 1),
+            "error_delta": total_target_errors - total_baseline_errors,
+            "improved_count": int((merged["error_delta"] < 0).sum()),
+            "degraded_count": int((merged["error_delta"] > 0).sum()),
+            "unchanged_count": int((merged["error_delta"] == 0).sum()),
+        })
     if args.write_full_csv:
         summary["full_csv"] = str(full_path)
 

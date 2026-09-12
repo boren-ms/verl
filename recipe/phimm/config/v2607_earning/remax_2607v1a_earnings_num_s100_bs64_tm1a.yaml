@@ -32,4 +32,5 @@ data:
   train_batch_size: 64
 
 trainer:
+  total_epochs: 15
   total_training_steps: 100
