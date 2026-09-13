@@ -4,7 +4,7 @@ dataset_name: chunk
 specs:
   - manifest_file: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/short_form_fix_disfluency_v2/r12/en-US_Videoindex_PT_Earningscall_FY22_TRAIN/sanity_checked_file_set/file_set.json
     chunk_path: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/short_form_fix/r12/en-US_Videoindex_PT_Earningscall_FY22_TRAIN/
-    trans_path: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/short_form_fix_disfluency_v2/r12/en-US_Videoindex_PT_Earningscall_FY22_TRAIN/ChunkFiles/
+    trans_path: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/short_form_fix/r12/en-US_Videoindex_PT_Earningscall_FY22_TRAIN/
 chunk_types:
   - audio
   - transcription
