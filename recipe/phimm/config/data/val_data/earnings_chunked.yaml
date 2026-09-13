@@ -1,0 +1,18 @@
+# Earnings22 Cleaned ArtificialAnalysis chunks scored against aligned segment transcripts.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_presegment_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings_chunked
+    verl_format:
+      prompt_key: prompt

@@ -1,6 +1,7 @@
 from omegaconf import OmegaConf
 
-from verl.trainer.ppo.reward import get_reward_fn_dispatcher
+from verl.trainer.ppo.reward import get_reward_fn_dispatcher, load_reward_manager
+from verl.workers.reward_manager.naive import NaiveRewardManager
 
 
 def test_reward_dispatches_by_data_source_and_preserves_kwargs(tmp_path):
@@ -44,3 +45,23 @@ def test_reward_dispatches_by_data_source_and_preserves_kwargs(tmp_path):
         "score": 0.5,
         "data_source": "other_source",
     }
+
+
+def test_load_naive_reward_manager_accepts_shared_manager_kwargs():
+    config = OmegaConf.create(
+        {
+            "reward_model": {"reward_manager": "naive", "sandbox_fusion": {}},
+            "data": {"reward_fn_key": "data_source"},
+        }
+    )
+
+    reward_manager = load_reward_manager(
+        config,
+        tokenizer=object(),
+        num_examine=0,
+        max_resp_len=1024,
+        overlong_buffer_cfg=None,
+    )
+
+    assert isinstance(reward_manager, NaiveRewardManager)
+    assert reward_manager.reward_kwargs == {"max_resp_len": 1024, "overlong_buffer_cfg": None}

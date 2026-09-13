@@ -30,6 +30,7 @@ from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
 from recipe.phimm.data.audio_augment import AudioAugmenter, safe_audio_stem
 from recipe.phimm.reward.asr_measure import check_fmt, check_lang
 from recipe.phimm.reward.asr_response import parse_task_output
+from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import _HFEnglishTextNormalizer
 from recipe.phimm.utils.shared import (
     hash_id,
     get_value,
@@ -50,6 +51,9 @@ from recipe.phimm.utils.shared import (
 from recipe.phimm.utils.audio import sf_write, load_raw_audio
 from recipe.phimm.utils.storage import get_path_with_options
 from verl.audio_cache import submit_audio_cache_dataset
+
+_hf_english_normalizer = _HFEnglishTextNormalizer()
+
 
 def format_asr_prompt(prompt):
     return f"{prompt}<audio>"
@@ -969,6 +973,23 @@ def _has_brackets(example):
     return has_brackets_fn(text)
 
 
+def _has_wrong_numbers(example, opts):
+    """Check whether HF-normalized reference numbers differ from the hypothesis."""
+    ref_field = opts.get("ref_field", "text")
+    hyp_field = opts.get("hyp_field", "response")
+
+    def number_tokens(value):
+        return tuple(
+            token
+            for token in _hf_english_normalizer(str(value or "")).split()
+            if any(char.isdigit() for char in token)
+        )
+
+    ref_numbers = number_tokens(example.get(ref_field))
+    hyp_numbers = number_tokens(example.get(hyp_field))
+    return bool(ref_numbers) and ref_numbers != hyp_numbers
+
+
 def find_wrong_pieces(ref, hyp):
     """Return hyp word segments that fall inside non-equal alignment opcodes.
 
@@ -1153,6 +1174,7 @@ def keep_samples(
     has_bad_fmt=None,
     has_bad_lang=None,
     has_brackets=None,
+    has_wrong_numbers=None,
     has_repeat=None,
     has_spaced_abbrev=None,
     has_tail_hallucination=None,
@@ -1169,6 +1191,8 @@ def keep_samples(
         has_bad_fmt: truthy — bad format in ASR response
         has_bad_lang: truthy — wrong language
         has_brackets: truthy — bracketed/parenthesized text
+        has_wrong_numbers: truthy or dict {ref_field, hyp_field} — reference and
+            hypothesis number tokens differ after OpenASR English normalization
         has_repeat: truthy or dict {field, min_reps, max_ngram} — repeated n-gram
         has_spaced_abbrev: truthy or dict {field} — spaced single-letter abbreviations
             like "U. S." (should be "US") or "U. P. S." (should be "UPS")
@@ -1198,6 +1222,10 @@ def keep_samples(
 
     if has_brackets:
         checks.append(("has_brackets", lambda ex: _has_brackets(ex)))
+
+    if has_wrong_numbers:
+        number_opts = dict(has_wrong_numbers) if isinstance(has_wrong_numbers, dict) else {}
+        checks.append(("has_wrong_numbers", lambda ex, _o=number_opts: _has_wrong_numbers(ex, _o)))
 
     if has_repeat:
         repeat_opts = dict(has_repeat) if isinstance(has_repeat, dict) else {}

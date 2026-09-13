@@ -1,0 +1,11 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/en_earning/part-*.parquet
+  post_process:
+    keep_samples:
+      has_wrong_numbers: true
+
+output_path: az://orngwus2cresco/data/boren/data/verl/gen_cached/en_earning_2607v1_wrong_numbers/data.jsonl
+include_verl_format: false
+overwrite: true

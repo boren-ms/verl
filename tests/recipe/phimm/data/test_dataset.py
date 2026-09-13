@@ -7,6 +7,7 @@ from recipe.phimm.data import dataset as dataset_module
 from recipe.phimm.data.dataset import (
     _is_bad_fmt,
     _is_bad_lang,
+    _has_wrong_numbers,
     add_task_info,
     format_asr_prompt,
 )
@@ -97,6 +98,25 @@ def test_nonspeech_is_not_bad_language():
     nonspeech = "<src=English><tgt=English>\n<nonspeech>"
 
     assert not _is_bad_lang({"raw_response": nonspeech, "language": "French"})
+
+
+def test_wrong_numbers_uses_openasr_english_normalization():
+    assert not _has_wrong_numbers(
+        {"text": "Revenue was twenty-five million dollars.", "response": "Revenue was $25 million."},
+        {},
+    )
+    assert _has_wrong_numbers(
+        {"text": "Revenue was twenty-five million dollars.", "response": "Revenue was $35 million."},
+        {},
+    )
+
+
+def test_wrong_numbers_requires_a_number_in_reference_and_supports_custom_fields():
+    assert not _has_wrong_numbers({"text": "Revenue increased.", "response": "Revenue increased 5%."}, {})
+    assert _has_wrong_numbers(
+        {"reference": "Revenue was twenty million dollars.", "hypothesis": "Revenue was $2 million."},
+        {"ref_field": "reference", "hyp_field": "hypothesis"},
+    )
 
 
 def test_random_cut_keeps_matching_text_and_audio_prefix(monkeypatch):
