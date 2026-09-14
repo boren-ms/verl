@@ -1,6 +1,6 @@
 # Selected Earnings22 chunk scored against its aligned segment transcript.
 - dataset_name: jsonl
-  jsonl_paths: recipe/phimm/config/data/val_data/earnings_chunked_badcase.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings_chunked_badcase.jsonl
   pre_process:
     rename_fields:
       mappings:
