@@ -1,0 +1,62 @@
+source_config:
+  dataset_name: parquet
+  parquet_paths:
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/aal_region_fy21_en_us_16k_long_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/aal_region_fy21_en_us_16k_short/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_en_us_16khz_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/apptek_en_us_8khz_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/edu_kidsdatacollection_16k_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_apptek_fy22h2_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dai_multiple_speaker_spontaneous_fy22q4_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dai_single_speaker_scripted_fy22q4_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dai_single_speaker_spontaneous_fy22q4_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_dt_children_apy161101039_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_king_asr_733_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_public_onlinemeeting_fy22_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_is_livegaming_fy22_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_is_musicbackground_fy22_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_is_podcast_fy22_train_withseg/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_pt_earningscall_fy22_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_pt_musicbackground_fy22_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/en_us_videoindex_pt_podcast_fy22_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/enus_videoindex_pt_fy20_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/fy21_en_us_musicbackground_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/tedlium_release_3_16k_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/txflow_enus_train_data_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/txflow_enus_train_oocl_callcenter_fy20q2_8khz_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/videoindex_is_fy21_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/en_ht/voxforge_16k_v3_en_us_train/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/ls_raw_rp_edge/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_ami/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_cv15_en_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_earning_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_en_rp_edge/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_gigaspeech/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_gigaspeech_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_mls_en/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v0/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_no_en_v1/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_voxpopuli_en_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/oss_wavllm_wer01/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_filtered/prod_fy22_sr_100k_wer001/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/en_earning/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/enus_digits_jsonl_100/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/mix_cv15_n1k_task3/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_hc_200k_entity_fy24q3p2/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/en_hc_200k_entity_fy24q3p2/part-*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/entity_en_ht_v1_cer_only/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/nlnl_hc_fy23q2_punc_h100k/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_en_v0/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_en_v1/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_no_en_v0/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_no_en_v1/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_r2_openasr/*.parquet
+    - az://orngwus2cresco/data/boren/data/verl/gen_qwen/oss_r2_openasr_ml/*.parquet
+  post_process:
+    keep_samples:
+      has_bad_format: true
+
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_all_bad_format/all.jsonl
+include_verl_format: false
+overwrite: true

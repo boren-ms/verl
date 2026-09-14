@@ -176,6 +176,14 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--audio-path-column",
+        default=None,
+        help=(
+            "Input column containing a direct local or blob audio path. "
+            "When set, this takes precedence over --audio-blob-root."
+        ),
+    )
+    parser.add_argument(
         "--normalizer",
         choices=("auto", "english", "openasr"),
         default="auto",
@@ -1647,6 +1655,7 @@ def download_audio_for_reports(
     audio_blob_root: str,
     audio_local_dir: Path,
     output_dir: Path,
+    audio_path_column: str | None = None,
 ) -> dict[str, str]:
     """Download audio files for utterances in the reports.
 
@@ -1659,6 +1668,25 @@ def download_audio_for_reports(
             strict=True,
         )
     )
+    direct_audio_map: dict[str, str] = {}
+    if audio_path_column:
+        candidates = (
+            audio_path_column,
+            f"{audio_path_column}_baseline",
+            f"{audio_path_column}_target",
+        )
+        resolved_column = next((column for column in candidates if column in merged.columns), None)
+        if resolved_column is None:
+            raise ValueError(
+                f"Audio path column {audio_path_column!r} is missing from the merged comparison"
+            )
+        direct_audio_map = {
+            str(comparison_id): normalize_text(audio_path)
+            for comparison_id, audio_path in zip(
+                merged["comparison_id"], merged[resolved_column], strict=True
+            )
+            if pd.notna(audio_path) and normalize_text(audio_path)
+        }
 
     needed_ids: set[str] = set()
     for report_df in report_dfs:
@@ -1668,19 +1696,19 @@ def download_audio_for_reports(
     audio_output_dir = output_dir / "audio"
     audio_output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Build list of (cid, audio_idx) to download
-    download_tasks: list[tuple[str, int]] = []
+    # Build list of (cid, audio_idx, direct_path) to download.
+    download_tasks: list[tuple[str, int, str | None]] = []
     for cid in sorted(needed_ids):
         audio_idx = audio_idx_map.get(cid)
         if audio_idx is not None:
-            download_tasks.append((cid, audio_idx))
+            download_tasks.append((cid, audio_idx, direct_audio_map.get(cid)))
 
-    def _download_one(cid: str, audio_idx: int) -> tuple[str, int, bool]:
+    def _download_one(cid: str, audio_idx: int, direct_path: str | None) -> tuple[str, int, bool]:
         """Download a single audio file. Returns (cid, audio_idx, success)."""
         local_file = audio_local_dir / f"{audio_idx}.wav"
         output_file = audio_output_dir / f"{audio_idx}.wav"
         if not local_file.exists():
-            blob_path = bf.join(audio_blob_root, dataset, "audio", f"{audio_idx}.wav")
+            blob_path = direct_path or bf.join(audio_blob_root, dataset, "audio", f"{audio_idx}.wav")
             try:
                 with bf.BlobFile(blob_path, "rb") as src, local_file.open("wb") as dst:
                     while True:
@@ -1699,7 +1727,10 @@ def download_audio_for_reports(
     n_downloaded = 0
     n_cached = 0
     with ThreadPoolExecutor(max_workers=8) as pool:
-        futures = {pool.submit(_download_one, cid, idx): (cid, idx) for cid, idx in download_tasks}
+        futures = {
+            pool.submit(_download_one, cid, idx, direct_path): (cid, idx)
+            for cid, idx, direct_path in download_tasks
+        }
         for future in as_completed(futures):
             cid, audio_idx, ok = future.result()
             if ok:
@@ -1907,7 +1938,7 @@ def main() -> None:
     summary_outputs: dict[str, dict[str, str]] = {}
 
     audio_map: dict[str, str] | None = None
-    if args.audio_blob_root and args.write_html:
+    if (args.audio_blob_root or args.audio_path_column) and args.write_html:
         audio_local_dir = (
             Path(args.audio_local_dir)
             if args.audio_local_dir
@@ -1921,6 +1952,7 @@ def main() -> None:
             args.audio_blob_root,
             audio_local_dir,
             output_dir,
+            args.audio_path_column,
         )
         print(f"  {len(audio_map)} audio files ready.\n")
 

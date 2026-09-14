@@ -79,6 +79,7 @@ Useful options:
 - `--write-html`: write the default standalone HTML review page that shows `audio_file_stem`, `baseline_wer`, `target_wer`, and side-by-side `hyp_baseline` vs `hyp_target` with word-level highlights.
 - `--audio-blob-root az://orngwus2cresco/data/boren/data/openasr_jsonl`: enable audio playback in HTML reports. Downloads audio files for the top-N utterances from `{blob-root}/{dataset}/audio/{index}.wav` and embeds `<audio>` controls in each card. Only effective with `--write-html`.
 - `--audio-local-dir ~/data/openasr_jsonl/{dataset}/audio`: override the local cache directory for downloaded audio. Defaults to `~/data/openasr_jsonl/{dataset}/audio`. Already-cached files are reused.
+- `--audio-path-column audio_path`: download audio from each row's direct local or blob path instead of assuming the flat `{blob-root}/{dataset}/audio/{index}.wav` layout. The resolved path is cached and copied under the report's `audio/` directory.
 - `--write-full-csv`: also save the full utterance-level joined comparison.
 
 ## HTML Review Output
