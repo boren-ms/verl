@@ -22,9 +22,11 @@ def clean_asr_mode_tags(text: str) -> str:
 
 def parse_task_output(solution_str, version=None):
     """Parse an ASR task output into ``(src_langs, tgt_langs, seg_texts)``."""
+    if str(version) == "2609":
+        return _parse_task_output_2609(solution_str)
     if str(version) == "2607":
         return _parse_task_output_2607(solution_str)
-    return _parse_task_output_2609(solution_str)
+    return _parse_task_output_2607(solution_str)
 
 
 def get_asr_text(task_output):

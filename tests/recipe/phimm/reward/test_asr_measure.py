@@ -16,7 +16,7 @@ def test_accepts_code_switch_output():
         "<src=Chinese><tgt=Chinese>\n祖父叶与良。\n"
         "<src=Italian><tgt=Italian>\nE, inoltre, attore."
     )
-    task_output = parse_task_output(output)
+    task_output = parse_task_output(output, version=2609)
 
     assert task_output == (
         ["Chinese", "Italian"],
@@ -30,7 +30,7 @@ def test_accepts_code_switch_output():
 def test_accepts_code_switch_output_without_first_header():
     output = "祖父叶与良。\n<src=Italian><tgt=Italian>\nE, inoltre, attore."
 
-    task_output = parse_task_output(output)
+    task_output = parse_task_output(output, version=2609)
 
     assert task_output == (
         ["Italian"],
@@ -42,7 +42,7 @@ def test_accepts_code_switch_output_without_first_header():
 
 def test_format_and_language_ignore_source_language():
     output = "<src=English><tgt=French>\nBonjour"
-    task_output = parse_task_output(output)
+    task_output = parse_task_output(output, version=2609)
 
     assert check_fmt(task_output)
     assert check_lang(task_output, "French") == 1.0
@@ -52,7 +52,7 @@ def test_format_and_language_ignore_source_language():
 def test_parse_task_output_removes_asr_mode_tags(mode_tag):
     output = f"<src=English><tgt=English> \n<{mode_tag}>\nOK OK i think if you have"
 
-    task_output = parse_task_output(output)
+    task_output = parse_task_output(output, version=2609)
 
     assert task_output == (
         ["English"],
@@ -63,7 +63,7 @@ def test_parse_task_output_removes_asr_mode_tags(mode_tag):
 
 
 def test_parse_task_output_accepts_text_without_language_header():
-    task_output = parse_task_output("<VERBATIM>\nShe's pregnant.")
+    task_output = parse_task_output("<VERBATIM>\nShe's pregnant.", version=2609)
 
     assert task_output == ([], [], ["She's pregnant."])
     assert check_fmt(task_output)
@@ -75,6 +75,7 @@ def test_parse_response_uses_text_without_language_header():
         "<VERBATIM>\nShe's pregnant.",
         ground_truth="She's pregnant.",
         language="English",
+        version=2609,
     )
 
     assert result["word"] == 1.0
@@ -87,6 +88,7 @@ def test_parse_response_uses_structured_task_output():
         "<src=English><tgt=English>\nhello world",
         ground_truth="hello world",
         language="English",
+        version=2609,
     )
 
     assert result["word"] == 1.0
@@ -96,21 +98,28 @@ def test_parse_response_uses_structured_task_output():
 
 def test_get_asr_text_uses_task_output():
     task_output = parse_task_output(
-        "<src=English><tgt=English>\nhello\n<src=Chinese><tgt=Chinese>\n你好"
+        "<src=English><tgt=English>\nhello\n<src=Chinese><tgt=Chinese>\n你好",
+        version=2609,
     )
 
     assert get_asr_text(task_output) == "hello 你好"
 
 
 @pytest.mark.parametrize("tag", ["ASR", "ASR_LEXICAL", "ASR_VERBATIM", "ASR_READABLE"])
-def test_parse_task_output_accepts_2607_response_format(tag):
+def test_parse_task_output_defaults_to_2607_response_format(tag):
     output = f"Audio Language: English.\n<{tag}><lang=English><TXT>hello world</TXT></{tag}>"
 
-    task_output = parse_task_output(output, version=2607)
+    task_output = parse_task_output(output)
 
     assert task_output == (["English"], ["English"], ["hello world"])
     assert check_fmt(task_output)
     assert check_lang(task_output, "English") == 1.0
+
+
+def test_parse_task_output_falls_back_to_2607_for_unknown_version():
+    output = "Audio Language: English.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
+
+    assert parse_task_output(output, version="unknown") == (["English"], ["English"], ["hello"])
 
 
 def test_parse_task_output_accepts_2607_code_switch_response():
@@ -249,7 +258,7 @@ def test_parse_response_reports_keyword_accuracy():
     ],
 )
 def test_lang_score_reports_only_p_lang(output, expected):
-    assert lang_score(output, language="English") == {
+    assert lang_score(output, language="English", version=2609) == {
         "score": expected,
         "p_lang": expected,
     }
