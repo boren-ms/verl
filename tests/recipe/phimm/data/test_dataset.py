@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import soundfile as sf
 from datasets import Dataset
 from omegaconf import OmegaConf
@@ -198,6 +199,50 @@ def test_process_ds_random_cut_runs_after_rename_fields(monkeypatch):
 
     assert result[0]["text"] == "one"
     assert result[0]["audio_path"] == "sample.wav#0%:33.333333%"
+
+
+def test_clean_tagged_text_removes_tags_and_extracts_keywords():
+    dataset = Dataset.from_list(
+        [
+            {
+                "text": (
+                    "Great. That's uh <ST/> that's helpful, "
+                    "<PName> Collar </pname> . Thank you."
+                ),
+                "keywords": ["existing"],
+            }
+        ]
+    )
+
+    result = dataset_module.clean_tagged_text(dataset)
+
+    assert result[0]["text"] == "Great. That's uh that's helpful, Collar. Thank you."
+    assert result[0]["keywords"] == ["existing", "Collar"]
+
+
+@pytest.mark.parametrize("tag", ["<ST/>", "<UNKNOWN/>", "<FILL/>"])
+def test_clean_tagged_text_removes_self_closing_tags_without_keywords(tag):
+    dataset = Dataset.from_dict({"text": [f"Before {tag} after."]})
+
+    result = dataset_module.clean_tagged_text(dataset)
+
+    assert result[0]["text"] == "Before after."
+    assert result[0]["keywords"] == []
+
+
+def test_process_ds_cleans_tags_after_rename_fields():
+    dataset = Dataset.from_dict(
+        {"Display": ["Welcome <PName> Ming Luo </PName> from <Org> QDN </Org>."]}
+    )
+
+    result = dataset_module.process_ds(
+        dataset,
+        rename_fields={"mappings": {"text": "Display"}},
+        clean_tagged_text={},
+    )
+
+    assert result[0]["text"] == "Welcome Ming Luo from QDN."
+    assert result[0]["keywords"] == ["Ming Luo", "QDN"]
 
 
 def test_dataset_load_audio_reads_percentage_range(tmp_path):

@@ -889,6 +889,35 @@ def add_tag_keywords(ds, **kwargs):
     return ds
 
 
+def clean_tagged_text(ds, **kwargs):
+    """Strip angle-bracket tags and move text from paired tags to keywords."""
+    src_field = kwargs.get("src_field", "text")
+    tgt_field = kwargs.get("tgt_field", "keywords")
+    paired_tag_pattern = re.compile(
+        r"<([A-Za-z][\w:.-]*)\b[^>]*>(.*?)</\1\s*>", re.DOTALL | re.IGNORECASE
+    )
+    tag_pattern = re.compile(r"<[^>]*>")
+
+    def clean_text(egs):
+        text = get_value(egs, src_field, "") or ""
+        existing_keywords = egs.get(tgt_field) or []
+        if isinstance(existing_keywords, str):
+            existing_keywords = [existing_keywords]
+        keywords = list(existing_keywords)
+        for _, tagged_text in paired_tag_pattern.findall(text):
+            keyword = tag_pattern.sub(" ", tagged_text)
+            keyword = re.sub(r"\s+", " ", keyword).strip()
+            if keyword and keyword not in keywords:
+                keywords.append(keyword)
+
+        text = tag_pattern.sub(" ", text)
+        text = re.sub(r"\s+", " ", text).strip()
+        text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+        return {src_field: text, tgt_field: keywords}
+
+    return ds.map(clean_text, **pop_map_kwargs(kwargs))
+
+
 def filter_by_keywords(ds, **kwargs):
     min_num = kwargs.get("min_num", None)
     field = kwargs.get("field", "keywords")
@@ -1676,6 +1705,9 @@ def process_ds(ds, **kwargs):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
+    if "clean_tagged_text" in kwargs:
+        clean_tagged_text_kwargs = kwargs.get("clean_tagged_text") or {}
+        ds = clean_tagged_text(ds, **merge_kwargs(map_kwargs, clean_tagged_text_kwargs))
     if "random_cut" in kwargs:
         random_cut_kwargs = kwargs.get("random_cut") or {}
         ds = random_cut(ds, **merge_kwargs(map_kwargs, random_cut_kwargs))

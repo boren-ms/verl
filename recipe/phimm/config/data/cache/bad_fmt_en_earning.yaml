@@ -4,7 +4,7 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1/en_earning/part-*.parquet
   post_process:
     keep_samples:
-      has_bad_format: true
+      has_bad_fmt: true
 
 output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/bad_fmt_en_earning/all.jsonl
 include_verl_format: false
