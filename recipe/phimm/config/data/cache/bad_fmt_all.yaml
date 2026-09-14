@@ -57,6 +57,6 @@ source_config:
     keep_samples:
       has_bad_format: true
 
-output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_all_bad_format/all.jsonl
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/bad_format_all/all.jsonl
 include_verl_format: false
 overwrite: true
