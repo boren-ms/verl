@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 import soundfile as sf
@@ -18,6 +20,19 @@ class MinimalDataset:
     def map(self, function, **kwargs):
         self.example = function({"text": "bonjour"})
         return self
+
+
+def test_jsonl_dataset_keeps_date_shaped_keywords_as_strings(tmp_path):
+    jsonl_path = tmp_path / "keywords.jsonl"
+    records = [
+        {"text": "first", "keywords": None},
+        {"text": "second", "keywords": ["2026-09-14"]},
+    ]
+    jsonl_path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+    dataset = dataset_module.jsonl_dataset(str(jsonl_path))
+
+    assert dataset[1]["keywords"] == ["2026-09-14"]
 
 
 def test_format_asr_prompt_uses_2607_audio_placement():

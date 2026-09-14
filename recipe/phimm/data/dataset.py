@@ -129,12 +129,17 @@ def jsonl_dataset(jsonl_paths, **kwargs):
     Supports both plain ``.jsonl`` files and gzip-compressed ``.jsonl.gz`` files.
     """
 
+    parse_options = pjson.ParseOptions(
+        explicit_schema=pa.schema([pa.field("keywords", pa.list_(pa.string()))]),
+        unexpected_field_behavior="infer",
+    )
+
     def load_jsonl(file_path):
         with bf.BlobFile(file_path, "rb") as file_obj:
             if file_path.endswith(".gz"):
                 with gzip.GzipFile(fileobj=file_obj, mode="rb") as gz:
-                    return Dataset(pjson.read_json(gz))
-            return Dataset(pjson.read_json(file_obj))
+                    return Dataset(pjson.read_json(gz, parse_options=parse_options))
+            return Dataset(pjson.read_json(file_obj, parse_options=parse_options))
 
     return _load_expanded_datasets(jsonl_paths, ext=("jsonl", "jsonl.gz"), load_fn=load_jsonl)
 

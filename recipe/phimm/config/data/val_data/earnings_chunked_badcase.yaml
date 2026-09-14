@@ -1,0 +1,18 @@
+# Selected Earnings22 chunk scored against its aligned segment transcript.
+- dataset_name: jsonl
+  jsonl_paths: recipe/phimm/config/data/val_data/earnings_chunked_badcase.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 1.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings_chunked_badcase
+    verl_format:
+      prompt_key: prompt
