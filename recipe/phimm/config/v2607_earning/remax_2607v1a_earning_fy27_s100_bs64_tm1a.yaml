@@ -1,0 +1,37 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - data/train_data/earningscall-fy27-en-us-batch1
+  - _self_
+
+reward_functions:
+  asr_measure:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 0.5}
+        word: {beta: 0.5}
+        keyword: {beta: 1.0, cut: 0.5}
+        lang: {beta: 1.0, cut: 0.25}
+        fmt: {beta: 1.0, cut: 0.5}
+
+reward_function_by_data_source:
+  earning_fy27_verb: asr_measure
+  earning_fy27_lex: asr_measure
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/
+
+data:
+  train_batch_size: 64
+
+trainer:
+  total_epochs: 15
+  total_training_steps: 100

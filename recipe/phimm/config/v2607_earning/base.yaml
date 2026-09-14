@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - /data/val_data/earnings_chunk_num
+  - /data/val_data/earnings_aa_chunked
   - _self_
 
 nccl_timeout: 3600
@@ -36,7 +36,8 @@ val_reward:
     earning: openasr_en
     openml_bad: openasr_ml
     earning_num: openasr_en
-    earning_chunk: openasr_en
+    earning_chunk_verb: openasr_en
+    earning_chunk_lex: openasr_en
 
 actor_rollout_ref:
   nccl_timeout: 3600
