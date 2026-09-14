@@ -1,12 +1,12 @@
-updated_at_utc: 2026-09-14T20:31:14Z
+updated_at_utc: 2026-09-14T22:22:03Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i1           │ raysubmit_UKNi3EauJPBXWM6j   │ RUNNING       │ remax_2607v1a_earning_fy27_s100_bs64_tm1a                       │ training 34/100 (34%)        │
-│ i2           │ raysubmit_ufyEtKPKzJ31Ur4d   │ RUNNING       │ remax_2607v1a_fmt_verb_s100_bs64_tm1a                            │ training startup             │
+│ i1           │ raysubmit_FfMDn4586p6WA6tY   │ RUNNING       │ remax_2607v1a_earning_fy27_s100_bs64_tm1a                       │ training 60/100 (60%)        │
+│ i2           │ raysubmit_A2NDkYFsAqphgas2   │ RUNNING       │ remax_2607v1a_fmt_verb_s100_bs64_tm1a                            │ training 39/100 (39%)        │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- remax_2607v1a_earning_fy27_s100_bs64_tm1a [`i1`]: training 34/100 (34%)
-- remax_2607v1a_fmt_verb_s100_bs64_tm1a [`i2`]: training startup
+- remax_2607v1a_earning_fy27_s100_bs64_tm1a [`i1`]: training 60/100 (60%)
+- remax_2607v1a_fmt_verb_s100_bs64_tm1a [`i2`]: training 39/100 (39%)
