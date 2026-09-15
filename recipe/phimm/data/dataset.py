@@ -899,12 +899,21 @@ def clean_tagged_text(ds, **kwargs):
     src_field = kwargs.get("src_field", "text")
     tgt_field = kwargs.get("tgt_field", "keywords")
     paired_tag_pattern = re.compile(
-        r"<([A-Za-z][\w:.-]*)\b[^>]*>(.*?)</\1\s*>"
-        r"|\[([A-Za-z][\w:.-]*)\](.*?)\[/\3\s*\]",
+        r"<([A-Za-z][\w:.-]*)\b[^>]*>"
+        r"((?:(?!<\1\b[^>]*>).)*?)</\1\s*>"
+        r"|\[([A-Za-z][\w:.-]*)\]"
+        r"((?:(?!\[\3\]).)*?)\[/\3\s*\]",
+        re.DOTALL | re.IGNORECASE,
+    )
+    inline_tag_pattern = re.compile(
+        r"\[([A-Za-z][\w:.-]*)(?:\s+|&lt;)"
+        r"((?:(?!\[[A-Za-z][\w:.-]*(?:\s+|&lt;)).)*?)\s*\]",
         re.DOTALL | re.IGNORECASE,
     )
     tag_pattern = re.compile(
-        r"<[^>]*>|\[/?[A-Za-z][\w:.-]*(?:\s+[^\]]*)?/?\]",
+        r"<[^>]*>"
+        r"|\[/?[A-Za-z][\w:.-]*\s*(?:\]|>)"
+        r"|\[/?[A-Za-z][\w:.-]*(?:&lt;)?(?=\s)",
         re.IGNORECASE,
     )
 
@@ -918,15 +927,27 @@ def clean_tagged_text(ds, **kwargs):
     def replace_paired_tag(match):
         return clean_tagged_value(match.group(2) or match.group(4))
 
+    def replace_inline_tag(match):
+        return clean_tagged_value(match.group(2))
+
     def clean_text(egs):
         text = get_value(egs, src_field, "") or ""
         keywords = []
-        for match in paired_tag_pattern.finditer(text):
-            keyword = clean_tagged_value(match.group(2) or match.group(4))
+        tagged_values = [
+            (match.start(), match.group(2) or match.group(4))
+            for match in paired_tag_pattern.finditer(text)
+        ]
+        tagged_values.extend(
+            (match.start(), match.group(2))
+            for match in inline_tag_pattern.finditer(text)
+        )
+        for _, tagged_value in sorted(tagged_values):
+            keyword = clean_tagged_value(tagged_value)
             if keyword and keyword not in keywords:
                 keywords.append(keyword)
 
         text = paired_tag_pattern.sub(replace_paired_tag, text)
+        text = inline_tag_pattern.sub(replace_inline_tag, text)
         text = remove_tags(text)
         text = re.sub(r"\s+([,.;:!?])", r"\1", text)
         return {src_field: text, tgt_field: keywords}

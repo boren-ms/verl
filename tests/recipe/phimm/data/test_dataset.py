@@ -282,6 +282,42 @@ def test_clean_tagged_text_replaces_fragment_keywords_with_acronym():
     assert result[0]["keywords"] == ["DNA"]
 
 
+def test_clean_tagged_text_does_not_cross_repeated_openers():
+    dataset = Dataset.from_dict(
+        {
+            "text": [
+                "Read [ENTITY]an unfinished phrase, then "
+                "meet [ENTITY]Paola Escobar[/ENTITY] in [ENTITY>Bogota."
+            ]
+        }
+    )
+
+    result = dataset_module.clean_tagged_text(dataset)
+
+    assert result[0]["text"] == (
+        "Read an unfinished phrase, then meet Paola Escobar in Bogota."
+    )
+    assert result[0]["keywords"] == ["Paola Escobar"]
+
+
+def test_clean_tagged_text_handles_inline_and_orphan_bracket_tags():
+    dataset = Dataset.from_dict(
+        {
+            "text": [
+                "Other [ENTITY Texas ] and [ENTITY&lt;Democrats Democrats ] "
+                "saw [ENTITY broken [ENTITY words [ENTITY KKK ]."
+            ]
+        }
+    )
+
+    result = dataset_module.clean_tagged_text(dataset)
+
+    assert result[0]["text"] == (
+        "Other Texas and Democrats Democrats saw broken words KKK."
+    )
+    assert result[0]["keywords"] == ["Texas", "Democrats Democrats", "KKK"]
+
+
 @pytest.mark.parametrize("tag", ["<ST/>", "<UNKNOWN/>", "<FILL/>"])
 def test_clean_tagged_text_removes_self_closing_tags_without_keywords(tag):
     dataset = Dataset.from_dict({"text": [f"Before {tag} after."]})
