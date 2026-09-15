@@ -20,7 +20,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).parents[3]))
-from datasets import load_dataset, concatenate_datasets, Dataset
+from datasets import load_dataset, concatenate_datasets, Dataset, Sequence, Value
 from bs4 import BeautifulSoup
 from recipe.phimm.data.error_simu import ErrorSimulator
 from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
@@ -920,7 +920,9 @@ def clean_tagged_text(ds, **kwargs):
         text = re.sub(r"\s+([,.;:!?])", r"\1", text)
         return {src_field: text, tgt_field: keywords}
 
-    return ds.map(clean_text, **pop_map_kwargs(kwargs))
+    features = ds.features.copy()
+    features[tgt_field] = Sequence(Value("string"))
+    return ds.map(clean_text, features=features, **pop_map_kwargs(kwargs))
 
 
 def filter_by_keywords(ds, **kwargs):

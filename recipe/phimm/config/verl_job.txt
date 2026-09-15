@@ -1,15 +1,18 @@
-updated_at_utc: 2026-09-15T02:31:22Z
+updated_at_utc: 2026-09-15T16:56:04Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i1           │ raysubmit_GMU3BHFiRT8gNq1Y   │ RUNNING       │ remax_2607v1_fmt_verb_s100_bs64_tm1a                             │ training 29/100 (29%)        │
-│ i2           │ raysubmit_K5kd4eqPctFaGwuy   │ SUCCEEDED     │ remax_2607v1a_fmt_verb_s100_bs64_tm1a                            │ training 100/100 (100%)      │
+│ i1           │ raysubmit_GMU3BHFiRT8gNq1Y   │ SUCCEEDED     │ remax_2607v1_fmt_verb_s100_bs64_tm1a                             │ training 100/100 (100%)      │
+│ i2           │ raysubmit_pd6wR2RHh8xXj1FQ   │ RUNNING       │ remax_2607v1a_earning_fy27_s500_bs64_tm1a                        │ training 342/500 (68%)       │
 │ i3           │ raysubmit_WmUDvY7ZrNLMNcbU   │ SUCCEEDED     │ remax_2607v1_earning_fy27_s100_bs64_tm1a                         │ training 100/100 (100%)      │
+│ i4           │ raysubmit_fnnVGNMbvTQQHVSn   │ RUNNING       │ remax_2607v1a_fmt_verb_s400_bs128_tm1a                           │ training 159/400 (40%)       │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
 - remax_2607v1a_earning_fy27_s100_bs64_tm1a [`i1`]: complete step 100
-- remax_2607v1_fmt_verb_s100_bs64_tm1a [`i1`]: training 29/100 (29%)
+- remax_2607v1_fmt_verb_s100_bs64_tm1a [`i1`]: complete step 100
 - remax_2607v1a_fmt_verb_s100_bs64_tm1a [`i2`]: complete step 100
+- remax_2607v1a_earning_fy27_s500_bs64_tm1a [`i2`]: training 342/500 (68%)
 - remax_2607v1_earning_fy27_s100_bs64_tm1a [`i3`]: complete step 100
+- remax_2607v1a_fmt_verb_s400_bs128_tm1a [`i4`]: training 159/400 (40%)

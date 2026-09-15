@@ -245,6 +245,16 @@ def test_clean_tagged_text_removes_self_closing_tags_without_keywords(tag):
     assert result[0]["keywords"] == []
 
 
+def test_clean_tagged_text_parallel_map_handles_late_keywords():
+    dataset = Dataset.from_dict(
+        {"text": ["plain text"] * 100 + ["<PName>Ming Luo</PName>"]}
+    )
+
+    result = dataset_module.clean_tagged_text(dataset, num_proc=2)
+
+    assert result[-1]["keywords"] == ["Ming Luo"]
+
+
 def test_process_ds_cleans_tags_after_rename_fields():
     dataset = Dataset.from_dict(
         {"Display": ["Welcome <PName> Ming Luo </PName> from <Org> QDN </Org>."]}
