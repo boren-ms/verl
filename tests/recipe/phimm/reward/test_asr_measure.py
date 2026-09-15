@@ -236,7 +236,17 @@ def test_compute_score_does_not_gate_measure_without_cut():
 def test_compute_kw_acc(reference, hypothesis, keywords, expected):
     result = compute_kw_acc(reference, hypothesis, keywords)
 
-    assert result == expected
+    assert result["accuracy"] == expected
+
+
+def test_compute_kw_acc_reports_error_and_reference_counts():
+    result = compute_kw_acc(
+        "new york state",
+        "new state",
+        ["new york"],
+    )
+
+    assert result == {"accuracy": 0.5, "n_err": 1, "n_ref": 2}
 
 
 def test_parse_response_reports_keyword_accuracy():

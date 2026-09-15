@@ -95,7 +95,37 @@ def test_openasr_evals_use_versioned_compound_aware_wer():
 
     assert legacy_result["wer"] > 0
     assert compound_result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 1}
-    assert en_result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 2}
+    assert en_result == {
+        "score": 1.0,
+        "wer": 0.0,
+        "kw_acc": 1.0,
+        "n_err": 0,
+        "n_ref": 2,
+        "nb_err": 0,
+        "nb_ref": 0,
+    }
+
+
+def test_openasr_en_eval_reports_keyword_error_counts():
+    result = asr_eval.openasr_en_eval(
+        "the quick blue fox",
+        "the quick brown fox",
+        extra_info={"keywords": ["brown"]},
+    )
+
+    assert result["nb_err"] == 1
+    assert result["nb_ref"] == 1
+
+
+def test_openasr_en_eval_uses_hf_english_for_keywords():
+    result = asr_eval.openasr_en_eval(
+        "connect wifi",
+        "connect wi fi",
+        extra_info={"keywords": ["wifi"]},
+    )
+
+    assert result["nb_err"] == 0
+    assert result["nb_ref"] == 1
 
 
 def test_measure_openasr_en_wer_exposes_normalized_error_breakdown():

@@ -65,11 +65,24 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
 
 def openasr_en_eval(solution_str, ground_truth, **kwargs):
     """Evaluate English OpenASR responses with HF compound-aware WER."""
+    from recipe.phimm.reward.asr_measure import compute_kw_acc
+
+    extra_info = kwargs.get("extra_info") or {}
     hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
     result = measure_openasr_en_wer(hyp_text, ground_truth)
+    keyword_result = compute_kw_acc(
+        ground_truth,
+        hyp_text,
+        keywords=extra_info.get("keywords"),
+        text_norm="hf_english",
+        tgt_lang="english",
+    )
     return {
         "score": 1.0 - result["wer"],
         "wer": result["wer"],
+        "kw_acc": keyword_result["accuracy"],
         "n_err": result["n_err"],
         "n_ref": result["n_ref"],
+        "nb_err": keyword_result["n_err"],
+        "nb_ref": keyword_result["n_ref"],
     }

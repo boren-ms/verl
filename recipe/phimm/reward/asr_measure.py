@@ -263,12 +263,12 @@ def compute_kw_acc(
     keywords: list[str] | None = None,
     text_norm: str | None = None,
     tgt_lang: str = "english",
-) -> float:
-    """Return word accuracy over normalized keyword spans."""
+) -> dict[str, float | int]:
+    """Return word accuracy, errors, and references over normalized keyword spans."""
     from recipe.phimm.reward.asr_edge import _norm_text
 
     if not keywords:
-        return 1.0
+        return {"accuracy": 1.0, "n_err": 0, "n_ref": 0}
 
     ref_words = _norm_text(ref or "", name=text_norm, lang=tgt_lang).split()
     hyp_words = _norm_text(hyp or "", name=text_norm, lang=tgt_lang).split()
@@ -289,7 +289,8 @@ def compute_kw_acc(
         elif chunk.type == "insert":
             errors += sum(idx in hyp_keyword_indices for idx in range(chunk.hyp_start_idx, chunk.hyp_end_idx))
 
-    return 1.0 - errors / references if references else 1.0
+    accuracy = 1.0 - errors / references if references else 1.0
+    return {"accuracy": accuracy, "n_err": errors, "n_ref": references}
 
 
 def _parse_response(solution_str, ground_truth=None, **kwargs):
@@ -304,7 +305,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
-    keyword_acc = compute_kw_acc(
+    keyword_result = compute_kw_acc(
         ground_truth or "",
         hyp_text,
         keywords=extra_info.get("keywords"),
@@ -317,7 +318,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     return {
         "char": char_error.accuracy(),
         "word": word_error.accuracy(),
-        "keyword": keyword_acc,
+        "keyword": keyword_result["accuracy"],
         **fmts,
         "lang": check_lang(task_output, tgt_lang),
         "fmt": float(check_fmt(task_output)),
