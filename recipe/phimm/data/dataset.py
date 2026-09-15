@@ -1605,7 +1605,9 @@ def _extra_info_value(egs, key):
 def verl_format_ds(ds, **kwargs):
     """Format the dataset for verl training."""
     prompt_key = kwargs.get("prompt_key", "prompt")
-    extra_keys = kwargs.get("extra_keys", ["id", "language", "keywords", "prefix"])
+    default_extra_keys = ["id", "language", "keywords", "prefix"]
+    configured_extra_keys = kwargs.get("extra_keys", []) or []
+    extra_keys = list(dict.fromkeys(default_extra_keys + list(configured_extra_keys)))
 
     def map_fn(egs):
         text = egs.get("text", "")

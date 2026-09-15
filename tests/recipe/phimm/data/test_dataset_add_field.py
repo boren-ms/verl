@@ -15,3 +15,38 @@ def test_add_field_overwrites_multiple_constant_fields():
 
     formatted = verl_format_ds(result)
     assert formatted[0]["reward_model"]["ground_truth"] == "<nonspeech>"
+
+
+def test_verl_format_adds_configured_extra_keys_to_defaults():
+    dataset = Dataset.from_dict(
+        {
+            "text": ["hello"],
+            "prompt": ["transcribe"],
+            "id": ["sample-1"],
+            "language": ["English"],
+            "keywords": [["hello"]],
+            "prefix": ["Audio Language: English\n"],
+            "parent_audio_path": ["call.wav"],
+        }
+    )
+
+    formatted = verl_format_ds(
+        dataset,
+        extra_keys=["id", "prefix", "parent_audio_path", "parent_audio_path"],
+    )
+
+    assert len(formatted[0]["extra_info"]) == 5
+    assert set(formatted[0]["extra_info"]) == {
+        "id",
+        "language",
+        "keywords",
+        "prefix",
+        "parent_audio_path",
+    }
+    assert formatted[0]["extra_info"] == {
+        "id": "sample-1",
+        "language": "English",
+        "keywords": ["hello"],
+        "prefix": "Audio Language: English\n",
+        "parent_audio_path": "call.wav",
+    }
