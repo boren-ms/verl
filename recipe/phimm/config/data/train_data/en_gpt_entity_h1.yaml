@@ -1,0 +1,26 @@
+# @package data.train_data
+# Single-spec variant of en_gpt_entity.yaml for quick validation.
+dataset_name: chunk
+specs:
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY22_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY22_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY22_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+chunk_types:
+  - audio
+  - info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw
+num_proc: auto
+pre_process:
+  rename_fields:
+    mappings:
+      text: info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw
+  clean_tagged_text: {}
+add_task_info:
+  task: lang_asr
+post_process:
+  filter_by_keywords:
+    min_num: 1
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt

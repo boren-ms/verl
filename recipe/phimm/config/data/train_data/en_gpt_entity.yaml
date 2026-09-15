@@ -1,0 +1,341 @@
+# @package data.train_data
+# Generated from recipe/phimm/config/data/prod/all_gpt_tagged_entity.yaml.
+dataset_name: chunk
+specs:
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY22_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY22_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY22_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY23Q2_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q2_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY23Q2_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY23Q3Part1_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part1_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY23Q3Part1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY23Q3Part2_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part2_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY23Q3Part2_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY23Q3Part3_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part3_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY23Q3Part3_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY23Q3Part4_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part4_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY23Q3Part4_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY23Q3Part5_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY23Q3Part5_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY23Q3Part5_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q1_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q1-3_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q1-3_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q1-3_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q2-1_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-1_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q2-1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q2-2_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-2_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q2-2_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q2-3_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q2-3_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q2-3_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-1_AdjustBoundary_BiasLM_verbatim/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-1_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-1_AdjustBoundary_BiasLM_verbatim/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Autos_Vehicles/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Comedy/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Comedy/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Comedy/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Education/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Education/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Education/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Entertainment/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Entertainment/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Entertainment/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Film_Animation/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Film_Animation/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Film_Animation/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Gaming/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Gaming/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Gaming/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Howto_Style/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Howto_Style/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Howto_Style/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Music/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Music/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Music/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_News_Politics/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/News_Politics/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_News_Politics/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Nonprofits_Activism/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_People_Blogs/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/People_Blogs/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_People_Blogs/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Pets_Animals/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Pets_Animals/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Pets_Animals/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Science_Technology/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Science_Technology/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Science_Technology/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Sports/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Sports/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Sports/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Travel_Events/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_AdjustBoundary_BiasLM/Travel_Events/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-2_AdjustBoundary_BiasLM_verbatim_Travel_Events/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Autos_Vehicles/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Comedy/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Comedy/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Comedy/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Education/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Education/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Education/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Entertainment/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Entertainment/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Entertainment/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Film_Animation/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Film_Animation/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Film_Animation/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Gaming/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Gaming/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Gaming/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Howto_Style/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Howto_Style/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Howto_Style/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Music/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Music/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Music/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_News_Politics/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/News_Politics/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_News_Politics/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Nonprofits_Activism/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_People_Blogs/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/People_Blogs/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_People_Blogs/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Pets_Animals/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Pets_Animals/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Pets_Animals/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Science_Technology/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Science_Technology/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Science_Technology/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Sports/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Sports/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Sports/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Travel_Events/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-3_AdjustBoundary_BiasLM/Travel_Events/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q3-3_AdjustBoundary_BiasLM_verbatim_Travel_Events/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Autos_Vehicles/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Comedy/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Comedy/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Comedy/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Education/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Education/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Education/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Entertainment/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Entertainment/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Entertainment/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Film_Animation/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Film_Animation/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Film_Animation/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Gaming/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Gaming/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Gaming/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Howto_Style/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Howto_Style/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Howto_Style/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Music/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Music/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Music/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_News_Politics/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/News_Politics/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_News_Politics/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Nonprofits_Activism/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_People_Blogs/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/People_Blogs/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_People_Blogs/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Pets_Animals/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Pets_Animals/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Pets_Animals/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Science_Technology/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Science_Technology/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Science_Technology/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Sports/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Sports/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Sports/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Travel_Events/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-1_AdjustBoundary_BiasLM/Travel_Events/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-1_AdjustBoundary_BiasLM_verbatim_Travel_Events/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Autos_Vehicles/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Comedy/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Comedy/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Comedy/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Education/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Education/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Education/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Entertainment/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Entertainment/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Entertainment/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Film_Animation/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Film_Animation/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Film_Animation/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Gaming/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Gaming/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Gaming/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Howto_Style/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Howto_Style/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Howto_Style/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Music/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Music/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Music/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_News_Politics/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/News_Politics/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_News_Politics/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Nonprofits_Activism/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_People_Blogs/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/People_Blogs/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_People_Blogs/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Pets_Animals/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Pets_Animals/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Pets_Animals/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Science_Technology/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Science_Technology/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Science_Technology/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Sports/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Sports/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Sports/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Travel_Events/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-2_AdjustBoundary_BiasLM/Travel_Events/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-2_AdjustBoundary_BiasLM_verbatim_Travel_Events/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Autos_Vehicles/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Autos_Vehicles/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Comedy/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Comedy/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Comedy/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Education/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Education/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Education/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Entertainment/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Entertainment/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Entertainment/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Film_Animation/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Film_Animation/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Film_Animation/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Gaming/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Gaming/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Gaming/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Howto_Style/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Howto_Style/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Howto_Style/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Music/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Music/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Music/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_News_Politics/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/News_Politics/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_News_Politics/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Nonprofits_Activism/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Nonprofits_Activism/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_People_Blogs/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/People_Blogs/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_People_Blogs/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Pets_Animals/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Pets_Animals/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Pets_Animals/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Science_Technology/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Science_Technology/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Science_Technology/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Sports/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Sports/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Sports/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/chunk_sanity_check/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Travel_Events/sanity_checked_file_set_all/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q4-3_AdjustBoundary_BiasLM/Travel_Events/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/batch_gpt_post_process/FY24Q4-3_AdjustBoundary_BiasLM_verbatim_Travel_Events/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Healthcare/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Healthcare/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Healthcare/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Telecommunication/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Telecommunication/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Telecommunication/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Manufactory/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Manufactory/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Manufactory/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/ConsumerGood/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/ConsumerGood/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/ConsumerGood/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/DefenseIntelligence/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/DefenseIntelligence/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/DefenseIntelligence/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Education/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Education/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Education/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Energy/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Energy/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Energy/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Financial/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Financial/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Financial/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Gaming/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Gaming/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Gaming/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Media/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Media/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Media/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/PublicSafetyJustice/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/PublicSafetyJustice/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/PublicSafetyJustice/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Retail/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Retail/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Retail/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/ScienceTechnology/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/ScienceTechnology/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/ScienceTechnology/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim/re-classification/Sustain/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM/re-classification/Sustain/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-2_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Sustain/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-1_AdjustBoundary_BiasLM_verbatim/re-classification/Healthcare/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-1_AdjustBoundary_BiasLM/re-classification/Healthcare/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-1_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Healthcare/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-1_AdjustBoundary_BiasLM_verbatim/re-classification/Telecommunication/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-1_AdjustBoundary_BiasLM/re-classification/Telecommunication/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q3-1_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Telecommunication/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q4-1_AdjustBoundary_BiasLM_verbatim/re-classification/Legal/sanity_checked_with_alignment_file_set/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q4-1_AdjustBoundary_BiasLM/re-classification/Legal/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY25Q4-1_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/re-classification/Legal/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_medical_AdjustBoundary_BiasLM_verbatim/file_set_with_alignment_domain.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_medical_AdjustBoundary_BiasLM/ChunkFiles/
+    info_path: az://orngwus2cresco/data/speech/am_data/en/human_caption_v2/FY24Q3-2_medical_AdjustBoundary_BiasLM_verbatim_fixed_info_v1/ChunkFiles/
+chunk_types:
+  - audio
+  - info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw
+num_proc: auto
+pre_process:
+  rename_fields:
+    mappings:
+      text: info.alternative_transcription.lexical_tned_human_caption_mixed_case_GPT4o_raw
+  clean_tagged_text: {}
+add_task_info:
+  task: lang_asr
+post_process:
+  filter_by_keywords:
+    min_num: 1
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
