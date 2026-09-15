@@ -949,7 +949,6 @@ def build_comparison_html(
         target_metrics_html = ""
         delta_metrics_html = ""
         target_panel_html = ""
-        model_change_legend = ""
         change_controls = ""
         baseline_toggle_state = "checked" if show_baseline else "disabled"
         target_toggle_state = "checked" if show_target else "disabled"
@@ -974,7 +973,6 @@ def build_comparison_html(
             baseline_panel_html = """
                                 <section class="panel transcript-panel panel-hidden panel-unavailable" data-side="baseline" aria-hidden="true"></section>"""
         if show_target:
-            model_change_legend = '<span class="legend-swatch model-change">Model change</span>'
             change_controls = """
                                     <span class="change-status" aria-live="polite">Changes</span>
                                     <button type="button" data-action="previous-change" title="Previous changed span">Previous</button>
@@ -1016,6 +1014,12 @@ def build_comparison_html(
         context_button = ""
         if has_hidden_context:
             context_button = '<button type="button" data-action="toggle-context">Show full context</button>'
+        differences_only_control = ""
+        if show_baseline and show_target:
+            differences_only_control = (
+                '<label class="sync-toggle"><input type="checkbox" '
+                'data-action="differences-only"> Differences only</label>'
+            )
 
         cards.append(
             f"""
@@ -1035,7 +1039,6 @@ def build_comparison_html(
                                         <label class="legend-swatch word-deleted"><input type="checkbox" data-error-color="word-deleted" checked> Deleted</label>
                                         <label class="legend-swatch word-inserted"><input type="checkbox" data-error-color="word-inserted" checked> Inserted</label>
                                         <label class="legend-swatch word-number-error"><input type="checkbox" data-error-color="word-number-error" checked> Number error</label>
-                                        {model_change_legend}
                                     </span>
                                     <span class="panel-toggles" aria-label="Visible transcript panels for all utterances">
                                         <label><input type="checkbox" data-panel-toggle="reference" checked> Reference</label>
@@ -1043,6 +1046,7 @@ def build_comparison_html(
                                         <label><input type="checkbox" data-panel-toggle="target" {target_toggle_state}> Target</label>
                                     </span>
                                     {change_controls}
+                                    {differences_only_control}
                                     <label class="sync-toggle"><input type="checkbox" data-action="sync-scroll" checked> Sync scroll</label>
                                     {context_button}
                                 </div>
@@ -1093,8 +1097,8 @@ def build_comparison_html(
             --same-ink: #58646a;
             --add: #cfead9;
             --remove: #f6d3cc;
-            --wrong: #e8ecee;
-            --wrong-ink: #39464c;
+            --wrong: #dcefe5;
+            --wrong-ink: #17603d;
             --deleted: #d9eaf7;
             --deleted-ink: #245b78;
             --inserted: #fff0ad;
@@ -1302,12 +1306,6 @@ def build_comparison_html(
                 body.color-word-deleted-off .word-deleted,
                 body.color-word-inserted-off .word-inserted,
                 body.color-word-number-error-off .word-number-error {{ background: transparent; color: inherit; }}
-                .diff-added, .diff-removed {{
-      padding: 0.08em 0.18em;
-            border-radius: 3px;
-            color: inherit;
-                        border-bottom: 3px solid var(--change);
-    }}
         .diff-change.is-active {{
             outline: 3px solid var(--focus);
             outline-offset: 2px;
@@ -1323,6 +1321,9 @@ def build_comparison_html(
                 .transcript-condensed .hidden-context {{ display: none; }}
                 .transcript-condensed .hidden-context.is-aligned {{ display: inline; }}
                 .transcript-condensed .context-ellipsis {{ display: inline; }}
+                body.differences-only .difference-hidden,
+                body.differences-only .context-ellipsis,
+                body.differences-only .raw-section {{ display: none; }}
         .review-toolbar {{
             position: sticky;
             top: 8px;
@@ -1348,7 +1349,6 @@ def build_comparison_html(
         .legend {{ display: flex; gap: 5px; align-items: center; }}
         .legend-swatch {{ display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 3px; font-size: 0.75rem; cursor: pointer; }}
         .legend-swatch input {{ width: 13px; height: 13px; margin: 0; }}
-        .legend-swatch.model-change {{ background: #edf1f2; border-bottom: 3px solid var(--change); }}
         .panel-toggles {{ display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 0.78rem; }}
         .panel-toggles label {{ display: flex; gap: 4px; align-items: center; white-space: nowrap; }}
         .review-actions button {{
@@ -1470,6 +1470,30 @@ def build_comparison_html(
             reportCards.forEach((card) => card.classList.toggle("transcript-condensed", !showFull));
             document.querySelectorAll('[data-action="toggle-context"]').forEach((button) => {{
                 button.textContent = showFull ? "Compact context" : "Show full context";
+            }});
+        }};
+        const setReportDifferencesOnly = (enabled) => {{
+            document.body.classList.toggle("differences-only", enabled);
+            reportCards.forEach((card) => {{
+                const visibleModelTokens = new Set();
+                const visibleKeys = new Set();
+                card.querySelectorAll('[data-side="baseline"] .diff-change, [data-side="target"] .diff-change')
+                    .forEach((token) => visibleModelTokens.add(token));
+                visibleModelTokens.forEach((token) => {{
+                    (token.dataset.align || "").split(" ").filter(Boolean).forEach((key) => visibleKeys.add(key));
+                }});
+                card.querySelectorAll(".aligned-token").forEach((token) => {{
+                    const tokenKeys = (token.dataset.align || "").split(" ").filter(Boolean);
+                    const pane = token.closest(".transcript-panel");
+                    const isReferenceContext = pane?.dataset.side === "reference"
+                        && tokenKeys.some((key) => visibleKeys.has(key));
+                    const isModelContext = pane?.dataset.side !== "reference"
+                        && visibleModelTokens.has(token);
+                    token.classList.toggle("difference-hidden", !(isReferenceContext || isModelContext));
+                }});
+            }});
+            document.querySelectorAll('[data-action="differences-only"]').forEach((toggle) => {{
+                toggle.checked = enabled;
             }});
         }};
         const setReportErrorColor = (errorClass, enabled) => {{
@@ -1608,6 +1632,9 @@ def build_comparison_html(
 
             card.querySelector('[data-action="sync-scroll"]')?.addEventListener("change", (event) => {{
                 setReportSyncScroll(event.currentTarget.checked);
+            }});
+            card.querySelector('[data-action="differences-only"]')?.addEventListener("change", (event) => {{
+                setReportDifferencesOnly(event.currentTarget.checked);
             }});
             card.querySelectorAll("[data-error-color]").forEach((toggle) => {{
                 toggle.addEventListener("change", () => {{

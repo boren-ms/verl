@@ -48,12 +48,13 @@ def test_html_highlights_baseline_to_target_changes_not_reference_errors():
     assert '<mark class="aligned-token word-correct" data-align="ref-2" tabindex="0">wording</mark>' in report
     assert 'data-error-color="word-wrong" checked> Substitution</label>' in report
     assert 'data-error-color="word-deleted" checked> Deleted</label>' in report
-    assert '--wrong: #e8ecee;' in report
-    assert '--wrong-ink: #39464c;' in report
+    assert '--wrong: #dcefe5;' in report
+    assert '--wrong-ink: #17603d;' in report
     assert '--deleted: #d9eaf7;' in report
     assert '--deleted-ink: #245b78;' in report
     assert '.word-deleted { background: var(--deleted); color: var(--deleted-ink); }' in report
-    assert 'class="legend-swatch model-change">Model change</span>' in report
+    assert 'class="legend-swatch model-change"' not in report
+    assert '.diff-added, .diff-removed {' not in report
     assert 'class="error-count word-wrong">Sub 2</span>' in report
     assert 'class="error-count word-deleted">Del 0</span>' in report
     assert 'class="error-count word-inserted">Ins 0</span>' in report
@@ -79,6 +80,16 @@ def test_html_highlights_baseline_to_target_changes_not_reference_errors():
     assert 'setReportSyncScroll(event.currentTarget.checked);' in report
     assert 'const setReportFullContext = (showFull) =>' in report
     assert 'setReportFullContext(card.classList.contains("transcript-condensed"));' in report
+    assert 'data-action="differences-only"> Differences only</label>' in report
+    assert 'const setReportDifferencesOnly = (enabled) =>' in report
+    assert 'const start = Math.max(0, index - 5);' not in report
+    assert 'visibleModelTokens.add(contextToken)' not in report
+    assert '.forEach((token) => visibleModelTokens.add(token));' in report
+    assert 'const isReferenceContext = pane?.dataset.side === "reference"' in report
+    assert 'token.classList.toggle("difference-hidden", !(isReferenceContext || isModelContext));' in report
+    assert 'setReportDifferencesOnly(event.currentTarget.checked);' in report
+    assert 'body.differences-only .difference-hidden' in report
+    assert 'body.differences-only .raw-section' in report
     assert 'const setReportErrorColor = (errorClass, enabled) =>' in report
     assert 'setReportErrorColor(toggle.dataset.errorColor, toggle.checked);' in report
     assert 'body.color-word-wrong-off .word-wrong' in report
@@ -195,6 +206,7 @@ def test_baseline_only_html_hides_target_and_visible_panels_fill_grid():
     assert 'data-panel-toggle="target" disabled' in report
     assert '<span class="label">Target</span>' not in report
     assert 'class="legend-swatch model-change"' not in report
+    assert '<input type="checkbox" data-action="differences-only">' not in report
     assert '.transcript-panel.panel-hidden { display: none; }' in report
     assert 'resetCardPanelLayout(card);' in report
     assert 'setReportPanelVisibility(toggle.dataset.panelToggle, toggle.checked);' in report
@@ -231,3 +243,4 @@ def test_reference_target_html_hides_synthetic_baseline_panel():
     assert '<span class="label">Error delta</span>' not in report
     assert '<div class="verdict">Target review</div>' in report
     assert '<span class="index-delta">1 errors</span>' in report
+    assert '<input type="checkbox" data-action="differences-only">' not in report
