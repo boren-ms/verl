@@ -895,28 +895,39 @@ def add_tag_keywords(ds, **kwargs):
 
 
 def clean_tagged_text(ds, **kwargs):
-    """Strip angle-bracket tags and move text from paired tags to keywords."""
+    """Strip angle- or square-bracket tags and move paired contents to keywords."""
     src_field = kwargs.get("src_field", "text")
     tgt_field = kwargs.get("tgt_field", "keywords")
     paired_tag_pattern = re.compile(
-        r"<([A-Za-z][\w:.-]*)\b[^>]*>(.*?)</\1\s*>", re.DOTALL | re.IGNORECASE
+        r"<([A-Za-z][\w:.-]*)\b[^>]*>(.*?)</\1\s*>"
+        r"|\[([A-Za-z][\w:.-]*)\](.*?)\[/\3\s*\]",
+        re.DOTALL | re.IGNORECASE,
     )
-    tag_pattern = re.compile(r"<[^>]*>")
+    tag_pattern = re.compile(
+        r"<[^>]*>|\[/?[A-Za-z][\w:.-]*(?:\s+[^\]]*)?/?\]",
+        re.IGNORECASE,
+    )
+
+    def remove_tags(value):
+        value = tag_pattern.sub(" ", value)
+        return re.sub(r"\s+", " ", value).strip()
+
+    def clean_tagged_value(value):
+        return remove_tags(value or "").strip(string.punctuation + string.whitespace)
+
+    def replace_paired_tag(match):
+        return clean_tagged_value(match.group(2) or match.group(4))
 
     def clean_text(egs):
         text = get_value(egs, src_field, "") or ""
-        existing_keywords = egs.get(tgt_field) or []
-        if isinstance(existing_keywords, str):
-            existing_keywords = [existing_keywords]
-        keywords = list(existing_keywords)
-        for _, tagged_text in paired_tag_pattern.findall(text):
-            keyword = tag_pattern.sub(" ", tagged_text)
-            keyword = re.sub(r"\s+", " ", keyword).strip()
+        keywords = []
+        for match in paired_tag_pattern.finditer(text):
+            keyword = clean_tagged_value(match.group(2) or match.group(4))
             if keyword and keyword not in keywords:
                 keywords.append(keyword)
 
-        text = tag_pattern.sub(" ", text)
-        text = re.sub(r"\s+", " ", text).strip()
+        text = paired_tag_pattern.sub(replace_paired_tag, text)
+        text = remove_tags(text)
         text = re.sub(r"\s+([,.;:!?])", r"\1", text)
         return {src_field: text, tgt_field: keywords}
 

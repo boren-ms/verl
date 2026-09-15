@@ -232,7 +232,54 @@ def test_clean_tagged_text_removes_tags_and_extracts_keywords():
     result = dataset_module.clean_tagged_text(dataset)
 
     assert result[0]["text"] == "Great. That's uh that's helpful, Collar. Thank you."
-    assert result[0]["keywords"] == ["existing", "Collar"]
+    assert result[0]["keywords"] == ["Collar"]
+
+
+def test_clean_tagged_text_handles_bracket_tags_and_tagged_keywords():
+    dataset = Dataset.from_list(
+        [
+            {
+                "text": (
+                    "And the world of [ENTITY]!Vamos![/ENTITY] is a celebration. "
+                    "I was just in [ENTITY]Midland, Texas[/ENTITY] last week."
+                ),
+                "keywords": ["[ENTITY]!Vamos![/ENTITY]"],
+            },
+            {
+                "text": 'He said, "I\'m healed! I\'m healed!" And everybody jumped.',
+                "keywords": [],
+            },
+        ]
+    )
+
+    result = dataset_module.clean_tagged_text(dataset)
+
+    assert result[0]["text"] == (
+        "And the world of Vamos is a celebration. "
+        "I was just in Midland, Texas last week."
+    )
+    assert result[0]["keywords"] == ["Vamos", "Midland, Texas"]
+    assert result[1]["text"] == dataset[1]["text"]
+    assert result[1]["keywords"] == []
+
+
+def test_clean_tagged_text_replaces_fragment_keywords_with_acronym():
+    dataset = Dataset.from_list(
+        [
+            {
+                "text": 'If they ever need my [ACRONYM]DNA[/ACRONYM], it is here.',
+                "keywords": [
+                    "If they ever need my [ACRONYM]DNA[/ACRONYM],",
+                    "it is here.",
+                ],
+            }
+        ]
+    )
+
+    result = dataset_module.clean_tagged_text(dataset)
+
+    assert result[0]["text"] == "If they ever need my DNA, it is here."
+    assert result[0]["keywords"] == ["DNA"]
 
 
 @pytest.mark.parametrize("tag", ["<ST/>", "<UNKNOWN/>", "<FILL/>"])
