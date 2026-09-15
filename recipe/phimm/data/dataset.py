@@ -1554,6 +1554,46 @@ def random_edge_word_cut(ds, **kwargs):
     return ds.map(map_fn, **pop_map_kwargs(kwargs), desc="Randomly cutting text and audio")
 
 
+def random_edge_audio_cut(ds, **kwargs):
+    """Trim audio edges using fixed seconds or uniformly sampled ranges."""
+    audio_fields = kwargs.get("audio_fields", ["audio_path", "audio_file"])
+
+    def sample_cut(name):
+        value = kwargs.get(name, 0)
+        if is_list(value):
+            if len(value) != 2:
+                raise ValueError(f"{name} range must contain [min, max], got {value!r}")
+            lower, upper = map(float, value)
+            if lower < 0 or upper < lower:
+                raise ValueError(f"Invalid {name} range: [{lower}, {upper}]")
+            return random.uniform(lower, upper)
+        value = float(value)
+        if value < 0:
+            raise ValueError(f"{name} must be nonnegative, got {value}")
+        return value
+
+    def format_seconds(value):
+        return f"{value:.6f}".rstrip("0").rstrip(".")
+
+    def map_fn(example):
+        source_field = next((field for field in audio_fields if example.get(field)), None)
+        if source_field is None:
+            return {}
+        source = str(example[source_field])
+        if "#" in source:
+            raise ValueError(f"random_edge_audio_cut requires an unsliced audio path, got {source!r}")
+
+        head = sample_cut("head_cut")
+        tail = sample_cut("tail_cut")
+        if head == 0 and tail == 0:
+            return {}
+        start = format_seconds(head) if head > 0 else ""
+        end = f"-{format_seconds(tail)}" if tail > 0 else ""
+        return {source_field: f"{source}#{start}:{end}"}
+
+    return ds.map(map_fn, **pop_map_kwargs(kwargs), desc="Randomly cutting audio edges")
+
+
 def cache_audio(ds, **kwargs):
     """Submit remote audio fields for background caching without changing them."""
     fields = kwargs.get("fields", ["audio_path", "audio_chunk"])
@@ -1752,6 +1792,9 @@ def process_ds(ds, **kwargs):
     if "random_edge_word_cut" in kwargs:
         random_edge_word_cut_kwargs = kwargs.get("random_edge_word_cut") or {}
         ds = random_edge_word_cut(ds, **merge_kwargs(map_kwargs, random_edge_word_cut_kwargs))
+    if "random_edge_audio_cut" in kwargs:
+        random_edge_audio_cut_kwargs = kwargs.get("random_edge_audio_cut") or {}
+        ds = random_edge_audio_cut(ds, **merge_kwargs(map_kwargs, random_edge_audio_cut_kwargs))
     if "cache_audio" in kwargs:
         cache_audio_kwargs = kwargs.get("cache_audio") or {}
         ds = cache_audio(ds, **merge_kwargs(map_kwargs, cache_audio_kwargs))

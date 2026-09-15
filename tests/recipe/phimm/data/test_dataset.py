@@ -216,6 +216,49 @@ def test_process_ds_random_edge_word_cut_runs_after_rename_fields(monkeypatch):
     assert result[0]["audio_path"] == "sample.wav#0%:33.333333%"
 
 
+def test_random_edge_audio_cut_generates_relative_segment(monkeypatch):
+    dataset = Dataset.from_dict({"audio_path": ["sample.wav"]})
+    monkeypatch.setattr(dataset_module.random, "uniform", lambda start, end: end)
+
+    result = dataset_module.random_edge_audio_cut(
+        dataset, head_cut=[0, 0.1], tail_cut=[0, 0.1]
+    )
+
+    assert result[0]["audio_path"] == "sample.wav#0.1:-0.1"
+
+
+@pytest.mark.parametrize(
+    ("options", "expected"),
+    [({"head_cut": 1}, "sample.wav#1:"), ({"tail_cut": 1}, "sample.wav#:-1")],
+)
+def test_random_edge_audio_cut_supports_fixed_single_edge(options, expected):
+    dataset = Dataset.from_dict({"audio_path": ["sample.wav"]})
+
+    result = dataset_module.random_edge_audio_cut(dataset, **options)
+
+    assert result[0]["audio_path"] == expected
+
+
+def test_random_edge_audio_cut_defaults_to_no_cut():
+    dataset = Dataset.from_dict({"audio_path": ["sample.wav"]})
+
+    result = dataset_module.random_edge_audio_cut(dataset)
+
+    assert result[0]["audio_path"] == "sample.wav"
+
+
+def test_process_ds_random_edge_audio_cut_runs_after_rename_fields(monkeypatch):
+    dataset = Dataset.from_dict({"WavPath": ["sample.wav"]})
+
+    result = dataset_module.process_ds(
+        dataset,
+        rename_fields={"mappings": {"audio_path": "WavPath"}},
+        random_edge_audio_cut={"head_cut": 0.1, "tail_cut": 0.1},
+    )
+
+    assert result[0]["audio_path"] == "sample.wav#0.1:-0.1"
+
+
 def test_clean_tagged_text_removes_tags_and_extracts_keywords():
     dataset = Dataset.from_list(
         [

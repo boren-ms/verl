@@ -116,7 +116,9 @@ def _is_time_chunk_spec(path: str) -> bool:
         return False
 
 
-def _parse_range_endpoint(value: str):
+def _parse_range_endpoint(value: str, default=None):
+    if not value:
+        return default, False
     is_percent = value.endswith("%")
     number = float(value[:-1] if is_percent else value)
     return number, is_percent
@@ -125,14 +127,10 @@ def _parse_range_endpoint(value: str):
 def _load_time_chunk(spec):
     file_path, _, tail = spec.rpartition("#")
     s_str, _, e_str = tail.partition(":")
-    start, start_is_percent = _parse_range_endpoint(s_str)
+    start, start_is_percent = _parse_range_endpoint(s_str, default=0.0)
     end, end_is_percent = _parse_range_endpoint(e_str)
     if start_is_percent != end_is_percent:
         raise ValueError(f"Range endpoints must use the same unit: {tail!r}")
-    upper_bound = 100.0 if start_is_percent else float("inf")
-    if not 0 <= start < end <= upper_bound:
-        unit = "percent" if start_is_percent else "seconds"
-        raise ValueError(f"Invalid audio range in {unit}: {tail!r}")
     if "://" in file_path:
         readable_path = _localize_remote_audio(file_path)
     else:
@@ -143,9 +141,20 @@ def _load_time_chunk(spec):
     info = sf.info(readable_path)
     sr = info.samplerate
     if start_is_percent:
+        end = 100.0 if end is None else end
+        if end < 0:
+            end += 100.0
+        if not 0 <= start < end <= 100.0:
+            raise ValueError(f"Invalid audio range in percent: {tail!r}")
         start_frame = int(info.frames * start / 100)
         stop_frame = int(info.frames * end / 100)
     else:
+        duration = info.frames / sr
+        end = duration if end is None else end
+        if end < 0:
+            end += duration
+        if not 0 <= start < end <= duration:
+            raise ValueError(f"Invalid audio range in seconds: {tail!r}")
         start_frame = int(start * sr)
         stop_frame = int(end * sr)
     stop_frame = max(start_frame + 1, min(stop_frame, info.frames))

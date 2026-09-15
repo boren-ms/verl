@@ -1,21 +1,21 @@
-updated_at_utc: 2026-09-15T21:34:28Z
+updated_at_utc: 2026-09-15T21:47:37Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_2fNFGxZA4iRfqwHM   │ RUNNING       │ remax_2607v1a_earning_fy27_s200_bs128                            │ training 69/200 (34.5%)      │
-│ i1           │ raysubmit_1eHErneWYb5sG5YM   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s200_bs128                       │ training 69/200 (34.5%)      │
-│ i2           │ raysubmit_CTM84sWduAfjBjiS   │ RUNNING       │ remax_2607v1a_earning_fy27_s500_bs64_tm1a                        │ training 459/500 (92%)       │
-│ i3           │ raysubmit_6HaFNNTTNsmh47d9   │ RUNNING       │ remax_2607v1a_fmt_verb_en_s400_bs128_tm1a                        │ training 23/400 (5.75%)      │
-│ i4           │ raysubmit_LecbFQ7xdf7n5c2U   │ RUNNING       │ remax_2607v1a_fmt_verb_s400_bs128_tm1a                           │ training 224/400 (56%)       │
-│ i5           │ raysubmit_DZYbrSHHhRT5Q6tV   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s200_bs128_v0                    │ training 69/200 (34.5%)      │
+│ i0           │ raysubmit_2fNFGxZA4iRfqwHM   │ RUNNING       │ remax_2607v1a_earning_fy27_s200_bs128                            │ training 74/200 (37%)        │
+│ i1           │ raysubmit_1eHErneWYb5sG5YM   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s200_bs128                       │ training 74/200 (37%)        │
+│ i2           │ raysubmit_CTM84sWduAfjBjiS   │ RUNNING       │ remax_2607v1a_earning_fy27_s500_bs64_tm1a                        │ training 466/500 (93%)       │
+│ i3           │ raysubmit_6HaFNNTTNsmh47d9   │ RUNNING       │ remax_2607v1a_fmt_verb_en_s400_bs128_tm1a                        │ training 25/400 (6.25%)      │
+│ i4           │ raysubmit_LecbFQ7xdf7n5c2U   │ RUNNING       │ remax_2607v1a_fmt_verb_s400_bs128_tm1a                           │ training 228/400 (57%)       │
+│ i5           │ raysubmit_DZYbrSHHhRT5Q6tV   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s200_bs128_v0                    │ training 73/200 (36.5%)      │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- remax_2607v1a_earning_fy27_s200_bs128 [`i0`]: training 69/200 (34.5%)
-- remax_2607v1a_earning_fy27_verb_s200_bs128 [`i1`]: training 69/200 (34.5%)
+- remax_2607v1a_earning_fy27_s200_bs128 [`i0`]: training 74/200 (37%)
+- remax_2607v1a_earning_fy27_verb_s200_bs128 [`i1`]: training 74/200 (37%)
 - remax_2607v1a_fmt_verb_s100_bs64_tm1a [`i2`]: complete step 100
-- remax_2607v1a_earning_fy27_s500_bs64_tm1a [`i2`]: training 459/500 (92%)
-- remax_2607v1a_fmt_verb_en_s400_bs128_tm1a [`i3`]: training 23/400 (5.75%)
-- remax_2607v1a_fmt_verb_s400_bs128_tm1a [`i4`]: training 224/400 (56%)
-- remax_2607v1a_earning_fy27_verb_s200_bs128_v0 [`i5`]: training 69/200 (34.5%)
+- remax_2607v1a_earning_fy27_s500_bs64_tm1a [`i2`]: training 466/500 (93%)
+- remax_2607v1a_fmt_verb_en_s400_bs128_tm1a [`i3`]: training 25/400 (6.25%)
+- remax_2607v1a_fmt_verb_s400_bs128_tm1a [`i4`]: training 228/400 (57%)
+- remax_2607v1a_earning_fy27_verb_s200_bs128_v0 [`i5`]: training 73/200 (36.5%)
