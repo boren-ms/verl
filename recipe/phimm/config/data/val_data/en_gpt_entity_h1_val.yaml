@@ -1,0 +1,11 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached/en_gpt_entity_h1/val.jsonl
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: enhc_entity
+    verl_format:
+      prompt_key: prompt
