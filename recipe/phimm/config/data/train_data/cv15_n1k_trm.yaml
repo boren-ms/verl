@@ -5,7 +5,7 @@ add_task_info:
   task: lang_asr
   prefix_prob: 0.0
 post_process:
-  random_cut: {max_words: [2, 10]}
+  random_edge_word_cut: {max_words: [2, 10]}
   shuffle:
     seed: 42
   add_field:

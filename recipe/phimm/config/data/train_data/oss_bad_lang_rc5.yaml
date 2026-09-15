@@ -6,7 +6,7 @@
     task: lang_asr
     language: English
   post_process:
-    random_cut: {max_words: [5, 10]}
+    random_edge_word_cut: {max_words: [5, 10]}
     add_field:
       fields:
         data_source: oss_bad_lang_rc5
@@ -20,7 +20,7 @@
   add_task_info:
     task: lang_asr
   post_process:
-    random_cut: {max_words: [5, 10]}
+    random_edge_word_cut: {max_words: [5, 10]}
     add_field:
       fields:
         data_source: oss_bad_lang_rc5

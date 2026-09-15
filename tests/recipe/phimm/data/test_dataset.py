@@ -135,11 +135,11 @@ def test_wrong_numbers_requires_a_number_in_reference_and_supports_custom_fields
     )
 
 
-def test_random_cut_keeps_matching_text_and_audio_prefix(monkeypatch):
+def test_random_edge_word_cut_keeps_matching_text_and_audio_prefix(monkeypatch):
     dataset = Dataset.from_dict({"text": ["one two three four"], "audio_path": ["sample.wav"]})
     monkeypatch.setattr(dataset_module.random, "randint", lambda start, end: 2)
 
-    result = dataset_module.random_cut(dataset)
+    result = dataset_module.random_edge_word_cut(dataset)
 
     assert result[0]["text"] == "one two"
     assert result[0]["audio_path"] == "sample.wav#0%:50%"
@@ -158,7 +158,7 @@ def test_add_rare_keywords_supports_rare_file_without_common_file(monkeypatch):
     assert result[0]["keywords"] == ["keyword"]
 
 
-def test_random_cut_supports_max_words_range(monkeypatch):
+def test_random_edge_word_cut_supports_max_words_range(monkeypatch):
     dataset = Dataset.from_dict(
         {"text": ["one two three four five six"], "audio_path": ["sample.wav"]}
     )
@@ -170,24 +170,24 @@ def test_random_cut_supports_max_words_range(monkeypatch):
 
     monkeypatch.setattr(dataset_module.random, "randint", fake_randint)
 
-    result = dataset_module.random_cut(dataset, max_words=[2, 4])
+    result = dataset_module.random_edge_word_cut(dataset, max_words=[2, 4])
 
     assert bounds == [(2, 4)]
     assert result[0]["text"] == "one two three four"
     assert result[0]["audio_path"] == "sample.wav#0%:66.666667%"
 
 
-def test_random_cut_accepts_omegaconf_max_words_range(monkeypatch):
+def test_random_edge_word_cut_accepts_omegaconf_max_words_range(monkeypatch):
     dataset = Dataset.from_dict({"text": ["one two three four"], "audio_path": ["sample.wav"]})
     config = OmegaConf.create({"max_words": [2, 3]})
     monkeypatch.setattr(dataset_module.random, "randint", lambda start, end: end)
 
-    result = dataset_module.random_cut(dataset, max_words=config.max_words)
+    result = dataset_module.random_edge_word_cut(dataset, max_words=config.max_words)
 
     assert result[0]["text"] == "one two three"
 
 
-def test_random_cut_caps_max_words_range_to_transcript(monkeypatch):
+def test_random_edge_word_cut_caps_max_words_range_to_transcript(monkeypatch):
     dataset = Dataset.from_dict({"text": ["one two three"], "audio_path": ["sample.wav"]})
     bounds = []
     monkeypatch.setattr(
@@ -196,20 +196,20 @@ def test_random_cut_caps_max_words_range_to_transcript(monkeypatch):
         lambda start, end: bounds.append((start, end)) or end,
     )
 
-    result = dataset_module.random_cut(dataset, max_words=[5, 10])
+    result = dataset_module.random_edge_word_cut(dataset, max_words=[5, 10])
 
     assert bounds == [(2, 2)]
     assert result[0]["text"] == "one two"
 
 
-def test_process_ds_random_cut_runs_after_rename_fields(monkeypatch):
+def test_process_ds_random_edge_word_cut_runs_after_rename_fields(monkeypatch):
     dataset = Dataset.from_dict({"Transcription": ["one two three"], "WavPath": ["sample.wav"]})
     monkeypatch.setattr(dataset_module.random, "randint", lambda start, end: 1)
 
     result = dataset_module.process_ds(
         dataset,
         rename_fields={"mappings": {"text": "Transcription", "audio_path": "WavPath"}},
-        random_cut={},
+        random_edge_word_cut={},
     )
 
     assert result[0]["text"] == "one"

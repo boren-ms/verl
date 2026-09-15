@@ -1513,7 +1513,7 @@ def path_map(ds, **kwargs):
     return ds
 
 
-def random_cut(ds, **kwargs):
+def random_edge_word_cut(ds, **kwargs):
     """Keep a random word prefix and the same proportional prefix of the audio."""
     text_field = kwargs.get("text_field", "text")
     audio_fields = kwargs.get("audio_fields", ["audio_path", "audio_file"])
@@ -1539,7 +1539,7 @@ def random_cut(ds, **kwargs):
             return {}
         source = str(example[source_field])
         if "#" in source:
-            raise ValueError(f"random_cut requires an unsliced audio path, got {source!r}")
+            raise ValueError(f"random_edge_word_cut requires an unsliced audio path, got {source!r}")
 
         upper_bound = min(len(words) - 1, max_words) if max_words is not None else len(words) - 1
         lower_bound = min(min_words, upper_bound)
@@ -1749,9 +1749,9 @@ def process_ds(ds, **kwargs):
     if "clean_tagged_text" in kwargs:
         clean_tagged_text_kwargs = kwargs.get("clean_tagged_text") or {}
         ds = clean_tagged_text(ds, **merge_kwargs(map_kwargs, clean_tagged_text_kwargs))
-    if "random_cut" in kwargs:
-        random_cut_kwargs = kwargs.get("random_cut") or {}
-        ds = random_cut(ds, **merge_kwargs(map_kwargs, random_cut_kwargs))
+    if "random_edge_word_cut" in kwargs:
+        random_edge_word_cut_kwargs = kwargs.get("random_edge_word_cut") or {}
+        ds = random_edge_word_cut(ds, **merge_kwargs(map_kwargs, random_edge_word_cut_kwargs))
     if "cache_audio" in kwargs:
         cache_audio_kwargs = kwargs.get("cache_audio") or {}
         ds = cache_audio(ds, **merge_kwargs(map_kwargs, cache_audio_kwargs))
