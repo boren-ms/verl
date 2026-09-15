@@ -16,7 +16,6 @@ pre_process:
   clean_tagged_text: {}
 add_task_info:
   task: lang_asr
-  num_proc: 1
 post_process:
   filter_by_keywords:
     min_num: 1
