@@ -29,6 +29,17 @@ def test_load_raw_audio_reads_edge_relative_ranges(tmp_path, segment, expected_l
     assert len(audio) == expected_length
 
 
+def test_load_raw_audio_skips_overlapping_edge_relative_cuts(tmp_path, caplog):
+    audio_path = tmp_path / "sample.wav"
+    sf.write(audio_path, np.arange(1000, dtype=np.float32) / 1000, 1000)
+
+    audio, sample_rate = load_raw_audio({"audio_path": f"{audio_path}#0.6:-0.5"})
+
+    assert sample_rate == 1000
+    assert len(audio) == 1000
+    assert "Skipping overlapping edge cuts" in caplog.text
+
+
 def test_time_chunk_spec_accepts_seconds_and_percentages():
     assert _is_time_chunk_spec("sample.wav#0:1.5")
     assert _is_time_chunk_spec("sample.wav#0%:10%")

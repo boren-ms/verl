@@ -153,6 +153,15 @@ def _load_time_chunk(spec):
         end = duration if end is None else end
         if end < 0:
             end += duration
+        if e_str.startswith("-") and 0 <= start <= duration and end <= start:
+            logger.warning(
+                "Skipping overlapping edge cuts %r for %.3fs audio %s",
+                tail,
+                duration,
+                file_path,
+            )
+            start = 0.0
+            end = duration
         if not 0 <= start < end <= duration:
             raise ValueError(f"Invalid audio range in seconds: {tail!r}")
         start_frame = int(start * sr)
