@@ -1,0 +1,15 @@
+# English bad-format ASR verbatim training data with random 0-1s edge cuts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/cached_qwen/bad_format_all/english.jsonl
+  pre_process:
+    random_edge_audio_cut:
+      head_cut: [0, 1]
+      tail_cut: [0, 1]
+  add_task_info:
+    task: lang_asr_verb
+  post_process:
+    add_field:
+      fields:
+        data_source: bad_format_all
+    verl_format:
+      prompt_key: prompt
