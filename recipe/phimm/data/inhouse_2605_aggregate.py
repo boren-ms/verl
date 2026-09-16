@@ -28,7 +28,7 @@ from recipe.phimm.reward.asr_inhouse_measure import (
     _compute_dter,
     ensure_pack_dir,
 )
-from recipe.phimm.utils.shared import parse_asr_response
+from recipe.phimm.reward.asr_response import get_hyp_text
 
 
 def _parent_key(audio_path: str) -> str:
@@ -88,7 +88,7 @@ def aggregate(val_data_dir: str, step: int | None = None) -> dict:
         rows_seen += 1
         pk = _parent_key(ap)
         d = by_parent.setdefault(pk, {"ref": gts, "segs": [], "corpus": corpus})
-        hyp = (parse_asr_response(output) or {}).get("text") or ""
+        hyp = get_hyp_text(output)
         d["segs"].append((_seg_start(ap), hyp))
     print(f"Loaded {rows_seen} segment rows -> {len(by_parent)} parents", flush=True)
 

@@ -62,8 +62,8 @@ from verl.trainer.ppo.reward import get_custom_reward_fn
 
 from recipe.phimm.data.rl_dataset import RLHFDataset
 from recipe.phimm.reward.asr_inhouse_measure import eval_score
+from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.env import EnvMgr
-from recipe.phimm.utils.shared import parse_asr_response
 
 
 def cwd():
@@ -194,7 +194,7 @@ def build_worker_group(config):
     return wg
 
 
-def generate_segments(wg, dataloader, tokenizer):
+def generate_segments(wg, dataloader, tokenizer, version=None):
     """Transcribe every segment and return a flat list of segment records."""
     segments: list[dict] = []
     total_batches = len(dataloader)
@@ -223,7 +223,7 @@ def generate_segments(wg, dataloader, tokenizer):
             eos = tokenizer.eos_token
             if eos and raw_response.endswith(eos):
                 raw_response = raw_response[: -len(eos)]
-            response_str = parse_asr_response(raw_response).get("text") or ""
+            response_str = get_hyp_text(raw_response, version=version)
             response_str = re.sub(r"<nonspeech>", "", response_str, flags=re.IGNORECASE).strip()
 
             extra = extras[i] if extras[i] else {}
@@ -423,7 +423,7 @@ def main_task(config):
     dataloader = build_dataloader(config, tokenizer, processor)
     wg = build_worker_group(config)
 
-    segments = generate_segments(wg, dataloader, tokenizer)
+    segments = generate_segments(wg, dataloader, tokenizer, version=measure_kwargs.get("version"))
     results_by_source = score_segments(segments, measure_kwargs, score_fn=score_fn)
 
     write_results(

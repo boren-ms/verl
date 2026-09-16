@@ -27,6 +27,8 @@ reward_function_by_data_source:
 actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/
+  rollout:
+    gpu_memory_utilization: 0.7
 
 data:
   train_batch_size: 128

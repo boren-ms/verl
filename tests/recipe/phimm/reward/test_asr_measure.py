@@ -8,7 +8,7 @@ from recipe.phimm.reward.asr_measure import (
     compute_kw_acc,
     lang_score,
 )
-from recipe.phimm.reward.asr_response import get_asr_text, parse_task_output
+from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
 
 
 def test_accepts_code_switch_output():
@@ -103,6 +103,24 @@ def test_get_asr_text_uses_task_output():
     )
 
     assert get_asr_text(task_output) == "hello 你好"
+
+
+def test_get_hyp_text_removes_model_markup():
+    output = "<ASR><lang=English><TXT><NONSPEECH>Hello<sep> world</TXT></lang></ASR>"
+
+    assert get_hyp_text(output, version=2609) == "Hello world"
+
+
+@pytest.mark.parametrize("mode_tag", ["verbatim", "READABLE"])
+def test_get_hyp_text_removes_asr_mode_markup(mode_tag):
+    output = f"<{mode_tag}>Hello world</{mode_tag}>"
+
+    assert get_hyp_text(output, version=2607) == "Hello world"
+
+
+@pytest.mark.parametrize("punctuation", [".", "。"])
+def test_get_hyp_text_removes_empty_punctuation(punctuation):
+    assert get_hyp_text(f"<nonspeech>{punctuation}", version=2609) == ""
 
 
 @pytest.mark.parametrize("tag", ["ASR", "ASR_LEXICAL", "ASR_VERBATIM", "ASR_READABLE"])

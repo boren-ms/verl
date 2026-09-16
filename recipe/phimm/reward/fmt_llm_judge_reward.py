@@ -89,13 +89,13 @@ def judge_fmt(hyp_text: str, baseline: str, server: str, model: str) -> dict:
 
 def _parse_response(solution_str, ground_truth=None, **kwargs):
     """Extract hyp text, CER, and LLM judge scores (punc/cap/digital)."""
-    from recipe.phimm.utils.shared import parse_asr_response
+    from recipe.phimm.reward.asr_response import get_hyp_text
 
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    trans_dict = parse_asr_response(solution_str)
-    hyp_text = trans_dict["text"]
-    pred_lang = (trans_dict["lang"] or "").lower().strip()
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    lang_match = re.search(r"<(?:src|lang)=([^>]+)>", solution_str)
+    pred_lang = (lang_match.group(1) if lang_match else "").lower().strip()
     is_nonspeech = (hyp_text or "").strip().lower() == "<nonspeech>"
 
     # CER (always computed locally)
@@ -107,8 +107,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     model = kwargs.get("model", "Qwen3.5-35B-A3B")
     baseline_raw = extra_info.get("greedy_hyp")
     if baseline_raw:
-        baseline_dict = parse_asr_response(str(baseline_raw))
-        baseline = (baseline_dict.get("text") or "").strip()
+        baseline = get_hyp_text(str(baseline_raw), version=kwargs.get("version")).strip()
     else:
         baseline = (ground_truth or "").strip()
 

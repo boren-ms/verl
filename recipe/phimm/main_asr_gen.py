@@ -48,7 +48,7 @@ from verl.workers.fsdp_workers import ActorRolloutRefWorker
 from pathlib import Path
 from recipe.phimm.utils.env import EnvMgr
 from recipe.phimm.reward.asr_edge import eval_score
-from recipe.phimm.utils.shared import parse_asr_response
+from recipe.phimm.reward.asr_response import get_hyp_text
 
 
 def _part_index(path: str) -> int | None:
@@ -295,7 +295,7 @@ def main_task(config):
                     valid_response_ids = data_item.batch["responses"][:valid_response_length]
                     response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
                     score = eval_score(response_str, results[i]["text"], **wer_kwargs)
-                    score["response"] = parse_asr_response(response_str).get("text")
+                    score["response"] = get_hyp_text(response_str, version=wer_kwargs.get("version"))
                     score["raw_response"] = response_str
                     results[i].update(score)
                 tn_err += sum(r["n_err"] for r in results)

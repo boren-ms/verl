@@ -20,6 +20,29 @@ def clean_asr_mode_tags(text: str) -> str:
     return _ASR_MODE_TAG_RE.sub("", text)
 
 
+def clean_text(text: str) -> str:
+    """Remove model markup and empty punctuation from generated text."""
+    cleanup_patterns = (
+        r"<nonspeech>",
+        r"</?lexical>",
+        r"</?verbatim>",
+        r"</?readable>",
+        r"<sep>",
+        r"</?TXT>",
+        r"</?AS[RT][^>]*>",
+        r"</?lang(?:=[^>]*)?>",
+    )
+    cleaned = text
+
+    for pattern in cleanup_patterns:
+        cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE).strip()
+
+    if cleaned in (".", "。"):
+        return ""
+
+    return cleaned
+
+
 def parse_task_output(solution_str, version=None):
     """Parse an ASR task output into ``(src_langs, tgt_langs, seg_texts)``."""
     if str(version) == "2609":
@@ -109,4 +132,5 @@ def _parse_task_output_2609(solution_str):
 
 def get_hyp_text(solution_str, version=None):
     task_output = parse_task_output(solution_str, version=version)
-    return get_asr_text(task_output) if task_output is not None else str(solution_str or "")
+    hyp_text = get_asr_text(task_output) if task_output is not None else str(solution_str or "")
+    return clean_text(hyp_text)

@@ -482,7 +482,7 @@ async def run_evaluation(cfg: DictConfig):
     """Pipelined evaluation: sends audio paths to workers, scores results locally."""
     import httpx
     from recipe.phimm.reward.asr_edge import eval_score
-    from recipe.phimm.utils.shared import parse_asr_response
+    from recipe.phimm.reward.asr_response import get_hyp_text
 
     proxy_url = cfg.eval.proxy_url
     max_concurrent = int(cfg.eval.max_concurrent)
@@ -630,7 +630,7 @@ async def run_evaluation(cfg: DictConfig):
                 "audio_path": audio_path,
                 "text": text,
                 "prompt": prompt,
-                "response": parse_asr_response(response_str).get("text"),
+                "response": get_hyp_text(response_str, version=wer_kwargs.get("version")),
                 "raw_response": response_str,
                 **score,
             }

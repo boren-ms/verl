@@ -233,11 +233,10 @@ def compute_score(solution_str, ground_truth, **kwargs):
         score = acc + betas["punc"] * punc + betas["cap"] * cap + betas["lex"] * lex
     """
     from recipe.phimm.reward.asr_edge import measure
-    from recipe.phimm.utils.shared import parse_asr_response
+    from recipe.phimm.reward.asr_response import get_hyp_text
 
     betas = kwargs.get("betas", {})
-    trans_dict = parse_asr_response(solution_str)
-    hyp_text = trans_dict["text"]
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
 
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()

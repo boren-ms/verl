@@ -244,12 +244,13 @@ def _empty_result() -> dict:
 def _parse_response(solution_str, ground_truth=None, **kwargs):
     """Extract hyp text, target language, fmt/lang accuracy, and char/punc/cap/lex accuracies."""
     from recipe.phimm.reward.asr_edge import measure
-    from recipe.phimm.utils.shared import parse_asr_response
+    from recipe.phimm.reward.asr_response import get_hyp_text
 
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    trans_dict = parse_asr_response(solution_str)
-    hyp_text = trans_dict["text"]
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    lang_match = re.search(r"<(?:src|lang)=([^>]+)>", solution_str)
+    trans_dict = {"text": hyp_text, "lang": lang_match.group(1) if lang_match else None}
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
@@ -510,9 +511,9 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     ignored, which keeps validation focused on repeated numbers. ``cer`` is
     computed from the returned character counts ``nc_err / nc_ref``.
     """
-    from recipe.phimm.utils.shared import parse_asr_response
+    from recipe.phimm.reward.asr_response import get_hyp_text
 
-    hyp_text = parse_asr_response(solution_str).get("text") or ""
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
     metrics = score_digits(ground_truth, hyp_text)
     return {
         "score": 1.0 - metrics["cer"],
