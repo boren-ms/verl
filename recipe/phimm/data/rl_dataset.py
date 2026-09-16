@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from typing import Optional
 
 import datasets
+import soundfile as sf
 import torch
 from omegaconf import DictConfig
 
@@ -36,6 +37,28 @@ def remove_empty_tensors(batch: dict) -> dict:
     for key in keys_to_remove:
         batch.pop(key, None)
     return batch
+
+
+def _load_audio_with_retries(ds, index, max_dur, max_retries, audio_loader, recoverable_errors):
+    attempted_sources = []
+    retry_stride = max(1, len(ds) // (max_retries + 1))
+    for offset in range(max_retries + 1):
+        sample_index = (int(index) + offset * retry_stride) % len(ds)
+        row_dict = ds[sample_index]
+        source = row_dict.get("audio_path") or row_dict.get("audio_file") or row_dict.get("audio_chunk")
+        try:
+            return row_dict, audio_loader(row_dict, max_dur)
+        except recoverable_errors as exc:
+            attempted_sources.append(str(source))
+            logger.warning(
+                "Skipping unreadable training audio at dataset index %s: %s (%s)",
+                sample_index,
+                source,
+                type(exc).__name__,
+            )
+    raise RuntimeError(
+        f"Unable to load audio after {max_retries + 1} attempt(s): {attempted_sources}"
+    ) from None
 
 
 def _flatten_data_confs(data_confs):
@@ -130,6 +153,7 @@ class RLHFDataset(Dataset):
         self.interleave_ds = config.get("interleave_ds", {})
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.max_audio_dur = config.get("max_audio_dur", 40)
+        self.max_audio_load_retries = max(0, int(config.get("max_audio_load_retries", 8)))
         if chunk_load_mode := config.get("chunk_load_mode", None):
             set_chunk_load_mode(chunk_load_mode)
         self.prompt_key = config.get("prompt_key", "prompt")
@@ -172,7 +196,15 @@ class RLHFDataset(Dataset):
         """
         Note that we also return the raw_input_ids so that it can be combined with other chat template
         """
-        row_dict: dict = self.ds[i]
+        max_retries = self.max_audio_load_retries if self.is_training else 0
+        row_dict, audio = _load_audio_with_retries(
+            self.ds,
+            i,
+            self.max_audio_dur,
+            max_retries,
+            load_audio,
+            (sf.LibsndfileError, FileNotFoundError, OSError),
+        )
         messages = row_dict[self.prompt_key]
 
         # Use processor.apply_chat_template if available; fall back to tokenizer
@@ -189,7 +221,7 @@ class RLHFDataset(Dataset):
         # print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
         # print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
 
-        audios = [load_audio(row_dict, self.max_audio_dur)]
+        audios = [audio]
 
         row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
         model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")

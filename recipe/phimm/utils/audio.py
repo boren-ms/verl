@@ -131,29 +131,38 @@ def _load_time_chunk(spec):
     end, end_is_percent = _parse_range_endpoint(e_str)
     if start_is_percent != end_is_percent:
         raise ValueError(f"Range endpoints must use the same unit: {tail!r}")
-    if "://" in file_path:
+
+    chunk_audio = None
+    if _is_chunk_spec(file_path):
+        chunk_audio, sr = _load_chunk(file_path)
+        chunk_audio = np.asarray(chunk_audio)
+        frames = len(chunk_audio)
+    elif "://" in file_path:
         readable_path = _localize_remote_audio(file_path)
+        info = sf.info(readable_path)
+        sr = info.samplerate
+        frames = info.frames
     else:
         if not bf.exists(file_path):
             raise FileNotFoundError(f"File {file_path} does not exist.")
         readable_path = file_path
-
-    info = sf.info(readable_path)
-    sr = info.samplerate
+        info = sf.info(readable_path)
+        sr = info.samplerate
+        frames = info.frames
     if start_is_percent:
         end = 100.0 if end is None else end
         if end < 0:
             end += 100.0
         if not 0 <= start < end <= 100.0:
             raise ValueError(f"Invalid audio range in percent: {tail!r}")
-        start_frame = int(info.frames * start / 100)
-        stop_frame = int(info.frames * end / 100)
+        start_frame = int(frames * start / 100)
+        stop_frame = int(frames * end / 100)
     else:
-        duration = info.frames / sr
+        duration = frames / sr
         end = duration if end is None else end
         if end < 0:
             end += duration
-        if e_str.startswith("-") and 0 <= start <= duration and end <= start:
+        if e_str.startswith("-") and (start >= duration or end <= 0 or end <= start):
             logger.warning(
                 "Skipping overlapping edge cuts %r for %.3fs audio %s",
                 tail,
@@ -166,7 +175,9 @@ def _load_time_chunk(spec):
             raise ValueError(f"Invalid audio range in seconds: {tail!r}")
         start_frame = int(start * sr)
         stop_frame = int(end * sr)
-    stop_frame = max(start_frame + 1, min(stop_frame, info.frames))
+    stop_frame = max(start_frame + 1, min(stop_frame, frames))
+    if chunk_audio is not None:
+        return chunk_audio[start_frame:stop_frame], sr
     audio, sr = sf.read(readable_path, start=start_frame, stop=stop_frame)
     return audio, sr
 

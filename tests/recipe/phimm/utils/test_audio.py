@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
+from recipe.phimm.utils import audio as audio_module
 from recipe.phimm.utils.audio import _is_time_chunk_spec, load_raw_audio
 
 
@@ -37,6 +38,33 @@ def test_load_raw_audio_skips_overlapping_edge_relative_cuts(tmp_path, caplog):
 
     assert sample_rate == 1000
     assert len(audio) == 1000
+    assert "Skipping overlapping edge cuts" in caplog.text
+
+
+def test_load_raw_audio_slices_nested_chunk_spec(monkeypatch):
+    source = np.arange(1000, dtype=np.float32)
+    monkeypatch.setattr(audio_module, "_chunk_load_mode", "sample")
+    monkeypatch.setattr(audio_module, "load_chunk_sample", lambda spec: (source, 1000))
+
+    audio, sample_rate = load_raw_audio(
+        {"audio_path": "az://container/chunk.audio:2000:464#0.1:-0.2"}
+    )
+
+    assert sample_rate == 1000
+    np.testing.assert_array_equal(audio, source[100:800])
+
+
+def test_load_raw_audio_skips_edge_cuts_longer_than_nested_chunk(monkeypatch, caplog):
+    source = np.arange(500, dtype=np.float32)
+    monkeypatch.setattr(audio_module, "_chunk_load_mode", "sample")
+    monkeypatch.setattr(audio_module, "load_chunk_sample", lambda spec: (source, 1000))
+
+    audio, sample_rate = load_raw_audio(
+        {"audio_path": "az://container/chunk.audio:2000:464#0.81393:-0.160458"}
+    )
+
+    assert sample_rate == 1000
+    np.testing.assert_array_equal(audio, source)
     assert "Skipping overlapping edge cuts" in caplog.text
 
 
