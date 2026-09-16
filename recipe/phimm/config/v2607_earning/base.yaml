@@ -154,6 +154,7 @@ reward_model:
 trainer:
   project_name: v2607_earning
   logger: ["console", "wandb"]
+  log_val_generations: 20
   experiment_name: null
   n_gpus_per_node: 8
   ngpus: ${eval:${trainer.n_gpus_per_node}*${trainer.nnodes}}
