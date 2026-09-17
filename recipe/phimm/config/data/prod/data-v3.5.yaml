@@ -1,0 +1,2213 @@
+data_audio_processor:
+  name: "cascades"
+
+seq_len: 16384 # 10240 #7168
+compression_rate: 8    # in   speech encoder
+downsample_rate: 1     # after speech encoder qformer / linear ds
+use_storage_api: True
+multi_threaded_download: True   # set true for h200 cluster
+prefetch_queue_size: 16  # Host-RAM mitigation: fewer prefetched batches per dataset provider.
+conv_template: qwen3_audio_nothink_instruct # qwen3_audio_instruct # mistral3_audio_instruct # phi_o_long
+prompt_formatter: asr # -lid
+prompt_formatter_lexical: asr-lexical
+instruction_first: True
+tts_domain_data_weight: 0.04
+OSS_data_weight: 1.0
+padding_mask: True   # True for qwen3.5
+
+batcher_buffer_size: 500
+medium_batcher_buffer_size: 2000
+large_batcher_buffer_size: 4000
+num_chunks_for_shuffling: 3
+medium_num_chunks_for_shuffling: 5
+large_num_chunks_for_shuffling: 10
+
+tokenizer:
+  pretrained_model_name_or_path: /datablob1/users/ruchaofan/Phi-omni-checkpoints/language_ckpt/Qwen3.5-9B/
+
+pad_to_context_length: False
+
+dataset:
+
+  ################   Fast-LLM 2609 Data V3.5 - 25-locale expansion, mixed lexical v2 20260904 ###############
+
+  # Active expansion: 10 Tier-3 locales + 11 additional Indian locales beyond
+  # existing hi-IN + vi-VN/fil-PH/lt-LT/et-EE = 25 net-new locales.
+  # Stage 1 trains all 11 Indian locales at 2x; ur-IN and the zh-HK/zh-TW
+  # candidates are deferred to stage 2, where Indian data uses ASR-LID.
+
+  # Live manifest accounting (2026-09-04). Hours below apply sample_ratio,
+  # per-entry ratio, and top-level dataset weight. Indian hours are an upper
+  # bound because the Mix/Native label filter is applied per sample at runtime.
+  #   EN+DE:                    1,843,831.49 weighted hours
+  #   Ghost:                        3,363.37 weighted hours
+  #   EN Verbatim:                770,994.79 weighted hours
+  #   FR+IT+ES+PT (1.3x):       1,000,931.58 weighted hours
+  #   CJK+AR:                   1,703,497.25 weighted hours
+  #   Podcast Fast S2S:          638,731.04 weighted hours
+  #   Podcast GPT4o-mini (1.3x): 278,286.88 weighted hours
+  #   TTS (0.04x):                30,659.83 weighted hours
+  #     repeating digits (4x):    11,791.64 weighted hours (effective 0.16x)
+  #   Tier-2 + expansion display: 977,189.19 weighted hours
+  #   Indian expansion (2x):       <=91,082.91 weighted hours before Mix/Native filtering
+  #   Tier-2 + expansion lexical: 414,715.73 weighted hours
+  #   OSS lexical/display/WavLLM:  26,998.28 weighted hours
+  #   Total:                    <=7,780,282.33 weighted hours before Mix/Native filtering
+  # Pre-weight exposure before the Indian sample-level filter is 8,173,690.89 hours.
+  # Keep the audited 126,000-step p2 budget; Yue removal and Mix/Native filtering
+  # lower actual exposure slightly. P1 remains a fixed 5,000-step warmup.
+  #
+  # V3.5 changes from V3.4:
+  # Xiaoqing Yang (PR 39768):
+  # - FR: add 59,468.10h FY26 HC and prefer adjusted-TN-DPP/TN captions
+  #       (+77.3k weighted at 1.3).
+  # - PL: replace 18,114.96h HC with 116,669.70h FY23-FY27 HC and PL TN (+98.6k).
+  # - RU: replace 121,777.43h HC with 86,939.89h display HC, add 230.02h lexical HC,
+  #       and apply RU TN to HC/MDT/TTS/lexical data (-34.6k).
+  # Ma Jin (PR 40004):
+  # - DE: add 8,122.55h HC and 598.55h MDT; merge HT/MDT/TTS at full weight
+  #       and add adjusted-TN HC fallback (+8.7k).
+  # - HE: replace 4,475.90h verbatim with 7,869.85h lexical HT and 4,407.68h
+  #       adjusted-TN display HC (+7.8k).
+  # Kenichi Kumatani (PR 38701, PR 39417, PR 39882):
+  # - CS: replace 2,882.73h HC with 15,692h FY23-FY27Q1 HC and add 503h HT (+13.3k).
+  # - TR: replace 33,673.31h HC with 50,345h FY23-FY26Q4 HC (+16.7k).
+  # - KO: replace 72,388.32h HC with 82,064.33h FY23Q2-FY27Q1 HC (+9.7k).
+  # - JA: add 22,833.71h FY26Q2-FY27Q1 HC with display_original selection.
+  # Yan Zhao (PR 39851, PR 39849):
+  # - NL: add 4,884.2h validated FY26 display HC with adjusted-TN selection (+4.9k).
+  # - FI: add 5,068.4h validated FY26Q4 display HC with adjusted-TN selection (+5.1k).
+  # Ao Zhang (PR 39536):
+  # - ZH-CN: add 467,494.52h Free26 Q1 display data at full weight and use the
+  #          GPT4o-first, DPP-fallback selector inherited from PR 36769 (+467.5k).
+  # - ZH-HK: retain verified 36.3k-hour batch1 as a disabled stage-2 display candidate.
+  # - ZH dialect data: remove the 13.50h yue-CN source because its references are Cantonese.
+  # Xiaojun Liu:
+  # - Tier-3: add 10 prepared locales (ms-MY, ca-ES, ro-RO, fa-IR, sk-SK,
+  #           sl-SI, cy-GB, lv-LV, uk-UA, bg-BG, hr-HR).
+  # - Tier-4 (Unverified yet): add vi-VN, fil-PH, and lt-LT HC/HT display data, plus verified
+  #           lexical vi-VN and et-EE HT. vi-VN lexical durations are recovered
+  #           exactly from feature frames because its source manifest reports zero.
+  # Indian Team:
+  # - 11 Indian locales: train hi-IN, as-IN, bn-IN, gu-IN, kn-IN, ml-IN, mr-IN, or-IN,
+  #           pa-IN, ta-IN, and te-IN for 2x exposure with standard ASR in stage 1;
+  #           use LID-aware chunks and retain only Mix/Native samples.
+  #           Defer ur-IN and ASR-LID targets to stage 2 to avoid Hindi/Urdu confusion.
+  # 2609 recipe adjustments:
+  # - ZH-CN: sample legacy zh_hc_yan_raw at 0.25 (~97.7k effective hours) to
+  #          reduce likely overlap with Free26 (-293.1k).
+  # - Buffers: merge weight-1 Tier-3/Tier-4 display and lexical sources into
+  #            the matching Tier-2 datasets; keep Indian data separate at 2x.
+  # - Tier-1 ablation wins: add curated Illinois display and repeating-digit
+  #                         TTS for 9 locales; filter 6 Earnings22 eval calls.
+
+  ################################# EN + DE ####################################################
+  - sample_profiles:
+      asr_en_core:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+          illegal_char_filter: true
+
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/filter_disfluency_tags_and_nsnoise.txt
+
+      asr_en_domain:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+
+      asr_illinois_display:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_trans_abbr_fix
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          info_field_filter:
+            field: display_trans_abbr_fix_wer
+            excluded_values:
+              - 999
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          illegal_char_filter: true
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/filter_disfluency_tags_and_nsnoise.txt
+
+      asr_de_hc:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted
+              - display_human_caption_adjusted_tn
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+
+      asr_de_general:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/filter_disfluency_tags_de_V3.txt
+
+    dataset_spec:
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/en/en_asr_hc.json                       # 618199.92 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/en/en_asr_hc_fy24_400k.json             # 389955.90 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/en/en_asr_hc_fy24_200k.json             # 237132.46 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/en/en_asr_ht.json                       # 210169.48 hours
+        sample_profile: asr_en_core
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_digit_tts.json                # 379.59 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_entity.json                   # 7505.86 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_global_dictionary.json        # 266.62 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2505_readable/en/en_asr_medical_tts_new.json          # 9353.46 hours
+        sample_profile: asr_en_domain
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/en/en_asr_illinois_accessibility_display.json    # 230.97 hours, 100956 curated examples
+        sample_profile: asr_illinois_display
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/de/de_hc.json                 # 36008.73 hours, number of examples: 5.061M, average duration: 25.61s
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/tier2_260521/data_config_dede_newhc.json # 8122.55 hours
+        sample_profile: asr_de_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/de/de_ht_gpt.json             # 307662.57 hours, number of examples: 195.537M, average duration: 5.66s
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/tier2_260521/data_config_dede_MDT.json # 598.55 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/de/de_tts_domain.json         # 18188.25 hours, number of examples: 7.695M, average duration: 8.51s
+        sample_profile: asr_de_general
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${large_batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${large_num_chunks_for_shuffling}
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  - dataset_spec:
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/en/en_asr_ghost_words.json   # 1681.68 hours
+
+    filter_options:
+      max_utterance_frames: 4000
+      min_utterance_frames: 0
+      max_utterance_labels: 200
+      min_utterance_labels: 0
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${num_chunks_for_shuffling}
+    weight: 2.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ################################# EN Verbatim ####################################################
+  - sample_profiles:
+      asr_en_verbatim:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted_with_filler_tag
+              - display_dpp
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+          illegal_char_filter: true
+          remove_utterance_by_corpus_transcript_pattern:
+            corpus_patterns:
+              - en-AU_DAI_multiple-speaker-spontaneous_FY22Q4_TRAIN-withseg
+              - en-GB_DAI_multiple-speaker-spontaneous_FY22Q4_TRAIN-withseg
+              - en-GB_DAI_single-speaker-spontaneous_FY22Q4_TRAIN-withseg
+              - en-GB_King-ASR-680_TRAIN-withseg
+              - en-PH_DAI_multiple-speaker-spontaneous_FY22Q4_TRAIN-withseg
+              - en-US_DAI_multiple-speaker-spontaneous_FY22Q4_TRAIN-withseg
+              - en-US_DAI_single-speaker-spontaneous_FY22Q4_TRAIN-withseg
+              - en-US_King-ASR-733_TRAIN-withseg
+            original_transcript_patterns:
+              - <FILL/>
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/verbatim_keep_fillers.txt
+
+    dataset_spec:
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/en/en_asr_hc_600k_verbatim.json         # 612771 hours (HC v2 FY22+FY23)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/en/en_asr_ht_verbatim.json              # DPP r8/r9/r10/r12 + conversation (101 corpora)
+        sample_profile: asr_en_verbatim
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: asr-verbatim
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${medium_batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${medium_num_chunks_for_shuffling}
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ################################# FR + IT + ES + PT with data weight 1.3 ####################################################
+  - sample_profiles:
+      asr_fr_it_hc:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/hc_simple_tn_rules.txt
+
+      asr_fr_gpt:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_GPT4o_from_dpp_fr-fr_DisfluencyRemoved
+              - display_GPT4o_from_dpp_fr-ca_DisfluencyRemoved
+              - display_dpp_fr-fr_DisfluencyRemoved
+              - display_dpp_fr-ca_DisfluencyRemoved
+            apply_gpt_dpp_fall_back_logic: true
+            apply_gpt_dpp_fall_back_punctuation: "!\"#$%&'()*+,-./:;<=>?@[]^_`{|}~«»€"
+            apply_gpt_dpp_fall_back_punctuation_to_remove: "LEADING_TRAILING"
+            apply_gpt_dpp_fall_back_enable_gpt_fallback: true
+            apply_gpt_dpp_fall_back_enable_alignment_err_fallback: False
+            apply_gpt_dpp_fall_back_alignment_err_threshold: 20
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+
+      asr_it_gpt:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_GPT4o_from_dpp_it-it_DisfluencyRemoved
+              - display_dpp_it-it_DisfluencyRemoved
+            apply_gpt_dpp_fall_back_logic: true
+            apply_gpt_dpp_fall_back_punctuation: "!\"#$%&'()*+,-./:;<=>?@[]^_`{|}~«»€"
+            apply_gpt_dpp_fall_back_punctuation_to_remove: "LEADING_TRAILING"
+            apply_gpt_dpp_fall_back_enable_gpt_fallback: true
+            apply_gpt_dpp_fall_back_enable_alignment_err_fallback: False
+            apply_gpt_dpp_fall_back_alignment_err_threshold: 20
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+
+      asr_es_core:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_dpp_es-mx_DisfluencyRemoved
+              - display_human_caption_adjusted
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+          remove_utterance_by_punctuation_numbers:
+            punctuation_list_file: /datablob1/users/v-lianlanxu/HC_es_Dispaly/Trans/es_punc_V1.txt
+            threshold: 25
+
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/majin1/tn/filter_disfluency_tags_v6_fix.txt
+
+      asr_es_gpt:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_GPT4o_from_dpp_es-mx_DisfluencyRemoved
+              - display_dpp_es-mx_DisfluencyRemoved
+            apply_gpt_dpp_fall_back_logic: true
+            apply_gpt_dpp_fall_back_punctuation: "!\"#$%&'()*+,-./:;<=>?@[]^_`{|}~\xBF\
+                        \xA1\xBA\xAA\xAB\xBB\u20AC"
+            apply_gpt_dpp_fall_back_punctuation_to_remove: LEADING_TRAILING
+            apply_gpt_dpp_fall_back_enable_gpt_fallback: true
+            apply_gpt_dpp_fall_back_enable_alignment_err_fallback: false
+            apply_gpt_dpp_fall_back_alignment_err_threshold: 20
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/majin1/tn/filter_disfluency_tags_v6_fix.txt
+
+      asr_pt_hc:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 1000
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+      asr_pt_ht_domain:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_GPT4o_from_dpp_pt_DisfluencyRemoved
+            apply_gpt_dpp_fall_back_logic: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 1000
+          min_utterance_labels: 1
+
+    dataset_spec:
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/fr/fr_hc.json      # 29406.17 hours, number of examples: 4.128M, average duration: 25.65s
+        - /datablob1/users/xiaoqingyang/fr/fr_0803/fr_hc_FY26_newPipeline_display.json # 59468.10 hours, number of examples: 9.015M
+        sample_profile: asr_fr_it_hc
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_human_caption_adjusted_tn_dpp
+                - display_human_caption_adjusted_tn
+                - display_human_caption_adjusted
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/it/it_hc.json      # 18856.12 hours, number of examples: 2.680M, average duration: 25.33s
+        # V3.2: removed fr_cortana - caused -7.8% EER regression on fr-FR OnlineMeetings
+        # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/fr/fr_cortana.json # 4833.15 hours, number of examples: 4.799M, average duration: 3.63s
+        sample_profile: asr_fr_it_hc
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/fr/fr_ht_gpt.json                    # 137631.11 hours, number of examples: 109.133M, average duration: 4.54s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/fr/fr_old_domain_wo_tts_digits.json # 5358.26 hours, number of examples: 3.928M, average duration: 4.91s
+        sample_profile: asr_fr_gpt
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/it/it_ht_gpt.json                   # 194323.63 hours, number of examples: 112.692M, average duration: 6.21s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/it/it_old_domain_wo_tts_digit.json              # 2873.48 hours, number of examples: 2.300M, average duration: 4.50s
+        sample_profile: asr_it_gpt
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/es/es_hc.json                 # 84183.54 hours, number of examples: 11.854M, average duration: 25.57s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/es/es_tts_domain.json         # 12209.71 hours, number of examples: 2.212M, average duration: 19.87s
+        sample_profile: asr_es_core
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/es/es_ht_gpt.json     # 105634.51 hours, number of examples: 83.076M, average duration: 4.58s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/es/es_old_domain.json # 2911.12 hours, number of examples: 2.672M, average duration: 3.92s
+        sample_profile: asr_es_gpt
+
+      - file:
+        - /datablob1/users/ersun/DataSpecs/mlang_asr_data_2605/pt/pt_hc_gpt.json         # 57841.58 hours, number of examples: 8.217M, average duration: 25.34s
+        sample_profile: asr_pt_hc
+      - file:
+        - /datablob1/users/ruizhao/LLM/pt-BR_HT_v2.json                                  # 57797.79 hours, number of examples: 8.211M, average duration: 25.34s
+        - /datablob1/users/ersun/DataSpecs/mlang_asr_data_2605/pt/pt_ht_domain_v17.json  # 11187.64 hours, number of examples: 2.241M, average duration: 17.98s
+        sample_profile: asr_pt_ht_domain
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${large_batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${large_num_chunks_for_shuffling}
+    weight: 1.3
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ################################# CJK + AR with data weight 1.0 ####################################################
+  - sample_profiles:
+      asr_ko_core:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.60
+          remove_utterance_by_punctuation_numbers:
+            punctuation_list_file: /datablob1/users/ruchaofan/tn/ko_punc.txt
+            threshold: 30
+
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/chunkTNforko.txt
+
+      asr_ja_core:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 50
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.40
+          remove_utterance_by_punctuation_numbers:
+            punctuation_list_file: /datablob1/users/ruchaofan/tn/ja_punc_v1.txt
+            threshold: 65
+
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/ja_tn_0408_add_question_mark.txt
+
+        sp_transcription: True
+
+      asr_ja_customer:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 50
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/am_data/E2E/kekumata/Display_S2S/tn/ja_tn_20260427.txt
+        sp_transcription: False
+
+      asr_ja_hc26q2to27q1:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_original
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 50
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.40
+          remove_utterance_by_punctuation_numbers:
+            punctuation_list_file: /datablob1/users/ruchaofan/tn/ja_punc_v1.txt
+            threshold: 65
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/am_data/E2E/kekumata/Display_S2S/tn/ja_tn_20260427.txt
+        sp_transcription: False
+
+      asr_zh_core:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_GPT4o_from_dpp_zh-cn_DisfluencyRemoved
+              - display_dpp_zh-cn_DisfluencyRemoved
+            filter_tagging_failure_data: false
+
+          illegal_word_list: [<abnormal>] # list of illegal words
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.20
+        sp_transcription: False
+
+      asr_ar_core:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted
+            filter_tagging_failure_data: false
+
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.30
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/arabic_normalization_all.txt
+
+      asr_ar_mdtkingasr:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/ruchaofan/tn/arabic_normalization_all.txt
+
+    dataset_spec:
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ko/ko_ht_domain.json     # 16522.69 hours, number of examples: 3.475M, average duration: 17.12s
+        - /datablob1/users/kekumata/DataSpecs/mlang_asr_data_2605/kr/ko_hc23q2to27q1.json   # 82064.33 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ko/0415/ko_ht_dpp.json   # 211214.84 hours, number of examples: 115.029M, average duration: 6.61s
+        sample_profile: asr_ko_core
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ja/ja_hc.json           # 56805.04 hours, number of examples: 8.149M, average duration: 25.10s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ja/ja_ht_dpp.json       # 263115.10 hours, number of examples: 131.813M, average duration: 7.19s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ja/ja_old_domain.json   # 8411.01 hours, number of examples: 3.927M, average duration: 7.71s
+        sample_profile: asr_ja_core
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ja/ja_customer.json     # 166.09 hours, number of examples: 0.151M, average duration: 3.97s
+        - /datablob1/users/kekumata/DataSpecs/mlang_asr_data_2605/jp/ja_tts_teams_business.json  # 505.34 hrs., 6 simu: 3012.6 hrs.
+        sample_profile: asr_ja_customer
+
+      - file:
+        - /datablob1/users/kekumata/DataSpecs/mlang_asr_data_2605/jp/ja_hc26q2to27q1.json # 22833.71 hours, 3.507M examples
+        sample_profile: asr_ja_hc26q2to27q1
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/zh/zh_hc_yan_raw.json           # 390845.49 hours -> 97711.37 effective hours
+        sample_profile: asr_zh_core
+        sample_ratio: 0.25
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/zh/zh_ht_dialect_raw_wo85k_wo_yue.json # 37418.73 hours; excludes 13.50h yue-CN source with Cantonese transcripts
+        - /datablob1/users/zhangao/data/85k_split/zh_85k_split_main.json                           # 52043.22 hours, number of examples: 48.268M, average duration: 3.88s
+        - /datablob1/users/zhangao/data/85k_split/zh_85k_split_zhtw_simplify.json                  # 2742.99 hours, number of examples: 2.328M, average duration: 4.24s
+        - /datablob1/users/zhangao/data/85k_split/zh_85k_split_codeswitch.json                     # 4058.39 hours, number of examples: 2.810M, average duration: 5.20s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/zh/zh_domain_raw.json           # 3185.15 hours, number of examples: 1.383M, average duration: 8.29s
+        - /datablob1/users/zhangao/data/zh_free_display_26q1.json                                  # 467494.52 hours
+
+        sample_profile: asr_zh_core
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/zh/zh_ht_dialect_spm.json       # 16083.76 hours, number of examples: 13.302M, average duration: 4.35s
+        sample_profile: asr_zh_core
+        sample_overrides:
+          sp_transcription: True
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ar/ar_ht_update.json                            # 227500.05 hours, number of examples: 83.016M, average duration: 9.87s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ar_0415/V17/ar_hc_with_audio.json               # 23184.19 hours, number of examples: 3.448M, average duration: 24.20s
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ar_0415/V17/ar_old_domain_with_audio.json       # 35780.65 hours, number of examples: 6.628M, average duration: 19.44s
+        sample_profile: asr_ar_core
+
+      - file:
+        # V3.2: downsample ar_tts_domain_clean to 50% (sample_ratio=0.5) instead of full weight
+        # Was overwhelming real AR data at full 130k hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ar/ar_tts_domain_clean.json                     # 129992.28 hours -> ~65k effective
+        sample_profile: asr_ar_core
+        sample_ratio: 0.5
+      - file:
+        ## MDT-RJ005 (5k hours), MDT-AG024(600hours), King-asr-121/141/908 (250hours)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ar_0415/NewData/ar_MDT_kingasr_2604.json
+        sample_profile: asr_ar_mdtkingasr
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${large_batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${large_num_chunks_for_shuffling}
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ##########  PODCAST data - Fast S2S Transcribed, corrected by TTS team ###########
+  - sample_profiles:
+      asr_podcast:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 1000
+          min_utterance_labels: 1
+
+    dataset_spec:
+      - file:
+        - /datablob1/am_data/mai_podcast/v1/it_it_batch1/it_IT_podcast_v1.json         # 59725.63 hours, number of examples: 0.140M, average duration: 1536.68s
+        - /datablob1/am_data/mai_podcast/v1/pt_br_batch1/pt_BR_podcast_v1.json         # 59303.44 hours, number of examples: 0.104M, average duration: 2052.46s
+        - /datablob1/am_data/mai_podcast/v1/ar_sa_batch1/ar_SA_podcast_v1.json         # 10115.71 hours, number of examples: 0.020M, average duration: 1836.16s
+        - /datablob1/am_data/mai_podcast/v1/es_es_batch1/es_ES_podcast_v1.json         # 61761.55 hours, number of examples: 0.093M, average duration: 2380.76s
+        - /datablob1/am_data/mai_podcast/v1/es_mx_batch1/es_MX_podcast_v1.json         # 137277.89 hours, number of examples: 0.245M, average duration: 2015.53s
+        - /datablob1/am_data/mai_podcast/v1/fr_ca_batch1/fr_CA_podcast_v1.json         # 98235.06 hours, number of examples: 0.176M, average duration: 2006.88s
+        - /datablob1/am_data/mai_podcast/v1/fr_fr_batch1/fr_FR_podcast_v1.json         # 68765.93 hours, number of examples: 0.168M, average duration: 1477.32s
+        # - /datablob1/am_data/mai_podcast/v1/ja_jp_batch1/ja_JP_podcast_v1.json         # 86342.71 hours, number of examples: 0.223M, average duration: 1391.78s
+        - /datablob1/am_data/mai_podcast/v1/ko_kr_batch1/ko_KR_podcast_v1.json         # 101569.39 hours, number of examples: 0.182M, average duration: 2012.60s
+        - /datablob1/users/xiaoych/mai_podcast/zh-cn_batch1/zh_batch1.json             # 41976.45 hours, number of examples: 0.105M, average duration: 1432.52s
+        sample_profile: asr_podcast
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${medium_batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${medium_num_chunks_for_shuffling}
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ##########  PODCAST data - GPT4o-mini Transcribed, release20260428 (superset of 0417), weight 1.3  ###########
+  # Total: ~214.1k hours across 9 languages (removed EN)
+  - sample_profiles:
+      asr_podcast_gpt4o:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+
+    dataset_spec:
+      - file:
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/cs/cs_podcast_260428.json         # 20088.67 hours, number of examples: 2.565M, average duration: 28.20s
+        # - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/en/en_podcast_260428.json         # 28746.88 hours, number of examples: 3.723M, average duration: 27.80s
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/fi/fi_podcast_260428.json         # 15401.81 hours, number of examples: 2.003M, average duration: 27.69s
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/hu/hu_podcast_260428.json         # 5965.98 hours, number of examples: 0.759M, average duration: 28.30s
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/ja/ja_podcast_260428.json         # 40451.35 hours, number of examples: 5.250M, average duration: 27.74s
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/ko/ko_podcast_260428.json         # 25133.96 hours, number of examples: 3.218M, average duration: 28.12s
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/pl/pl_podcast_260428.json         # 23324.11 hours, number of examples: 2.960M, average duration: 28.36s
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/pt/pt_podcast_260428.json         # 31016.49 hours, number of examples: 3.968M, average duration: 28.14s
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/ru/ru_podcast_260428.json         # 26086.67 hours, number of examples: 3.316M, average duration: 28.32s
+        - /datablob1/am_data/mai_podcast/gpt4o-mini-transcribe/release20260428/sv/sv_podcast_260428.json         # 26597.77 hours, number of examples: 3.431M, average duration: 27.91s
+        sample_profile: asr_podcast_gpt4o
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${medium_batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${medium_num_chunks_for_shuffling}
+    weight: 1.3
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ##########  TTS Domain Data for ASR: sample a portion for training  ###########
+  - sample_profiles:
+      asr_tts:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+
+        sp_transcription: False
+
+    dataset_spec:
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/it/it_tts_domain_clean.json       # 115121.29 hours clean-only
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/fr/fr_tts_domain_clean.json       # 119794.03 hours clean-only
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/zh/zh_tts_domain_raw_clean.json   # 95032.70 hours clean-only
+        sample_profile: asr_tts
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier1_repeating_digits_tts_all_locales.json # 73697.77h x4; de/en/es/fr/it/ja/ko/pt/zh
+        sample_profile: asr_tts
+        ratio: 4
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/ja/ja_tts_domain_clean.json       # 141756.68 hours clean-only
+        sample_profile: asr_tts
+        sample_overrides:
+          sp_transcription: True
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"    # "samples_to_sequence", "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${num_chunks_for_shuffling}
+    weight: ${tts_domain_data_weight}
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ################################# Tier-2 + expansion non-lexical (weight 1.0; shared buffer) #################
+  - sample_profiles:
+      asr_tier2_hc:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/majin/tn/20260415/cs_da_elgr_fi_heil_id_nb_nl_pl_pt_th_tnrule.txt
+      asr_he_hc:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted_tn
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.40
+      asr_tier2_general:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/majin/tn/20260415/cs_da_elgr_fi_heil_id_nb_nl_pl_pt_th_tnrule.txt
+      asr_zh_hk_spm:
+        filter_options:
+          illegal_word_list: [<abnormal>]
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+        sp_transcription: true
+      asr_tier2_tts:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/majin/tn/20260415/cs_da_elgr_fi_heil_id_nb_nl_pl_pt_th_tnrule.txt
+      asr_tier2_hu_hc:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - qwen_refined
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.30
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/majin/tn/20260415/hu-HU_tn_rule.txt
+      asr_tier2_hu_general:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/majin/tn/20260415/hu-HU_tn_rule.txt
+      asr_tier2_hu_tts:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.30
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/majin/tn/20260415/hu-HU_tn_rule.txt
+      asr_ruru_hc:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted_tn
+              - display_human_caption_adjusted
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.50
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/xiaoqingyang/ru/TN_rule/ru-RU_tn_rule_rm_n_yo_260806.txt
+      asr_ruru_general:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_dpp_ru-ru_DisfluencyRemoved
+              - display_dpp_ru-RU_DisfluencyRemoved
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/xiaoqingyang/ru/TN_rule/ru-RU_tn_rule_rm_n_yo_260806.txt
+      asr_ruru_tts:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_gpt
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.30
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/xiaoqingyang/ru/TN_rule/ru-RU_tn_rule_rm_n_yo_260806.txt
+      asr_tier3_hc_display:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted
+              - display_whisper
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.30
+      asr_tier3_hc_richland:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_human_caption_adjusted
+            filter_tagging_failure_data: false
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          remove_utterance_by_wer: true
+          max_wer: 0.30
+      asr_tier3_ht_display:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+      asr_tier4_direct_display:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+      asr_tier4_vi_gpt_display:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_GPT4o_from_dpp_vi-VN_DisfluencyRemoved
+              - display_dpp_vi-VN_DisfluencyRemoved
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+      asr_tier4_fil_gpt_display:
+        filter_options:
+          transcript_selector:
+            transcription_keys:
+              - display_GPT4o_from_dpp_fil-PH_DisfluencyRemoved
+              - display_dpp_fil-PH_DisfluencyRemoved
+            filter_tagging_failure_data: false
+            require_transcription_key: true
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+
+    dataset_spec:
+      - file:
+        - /datablob1/users/kekumata/DataSpecs/mlang_asr_data_2605/tier2_260728/data_config_cscz_hc_display_FY23_FY27Q1.json # 15692 hours
+        sample_profile: asr_tier2_hc
+        sample_overrides:
+          text_normalization:
+            unicode_normalize: false
+            tn_rule_file: /datablob1/users/majin/tn/20260415/cs-CZ_tn_rule.txt
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_cscz_tts_clean.json    # 7670.00 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_cscz_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_cscz_tts_aug.json    # 38350.02 hours (5 aug variants)
+        sample_ratio: 0.4
+        sample_profile: asr_tier2_tts
+
+      - file:
+        - /datablob1/users/kekumata/DataSpecs/mlang_asr_data_2605/tier2_260728/data_config_cscz_ht_nfb.json # 503 hours
+        sample_profile: asr_tier2_tts
+
+      - file:
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/tier2_260521/data_config_dadk_hc.json    # 1471.04 hours
+        sample_profile: asr_tier2_hc
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_human_caption_adjusted
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_dadk_mdt.json    # 5948.90 hours
+        sample_profile: asr_tier2_general
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_dpp_da-DK_DisfluencyRemoved
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/tier2_260521/data_config_dadk_newHT.json    # 851.46 hours
+        sample_profile: asr_tier2_general
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_dpp_da-dk_DisfluencyRemoved
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_dadk_tts_clean.json    # 6510.27 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_dadk_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_dadk_tts_aug.json    # 31499.18 hours (5 aug variants)
+        sample_ratio: 0.4
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_elgr_hc.json    # 2557.71 hours
+        sample_profile: asr_tier2_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_elgr_tts_clean.json    # 9605.14 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_elgr_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_elgr_tts_aug.json    # 48025.72 hours (5 aug variants)
+        sample_ratio: 0.4
+        sample_profile: asr_tier2_tts
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_fifi_hc.json    # 8269.42 hours
+        sample_profile: asr_tier2_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260706_HC_dsiplay_chunk_with_context/data_config_fifil_hc_display_FY26_new.json # 5068.4 hours
+        sample_profile: asr_tier2_hc
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_human_caption_adjusted_tn
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260409/data_config_fifi_mdt.json    # 6724.84 hours
+        sample_profile: asr_tier2_general
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_dpp_fi-fi_DisfluencyRemoved
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_fifi_tts_clean.json    # 8606.52 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_fifi_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_fifi_tts_aug.json    # 43032.62 hours (5 aug variants)
+        sample_ratio: 0.2
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260706_HC_dsiplay_chunk_with_context/data_config_heil_hc_display_FY24.json    # 3563.94 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260706_HC_dsiplay_chunk_with_context/data_config_heil_hc_display_FY26_new.json # 843.74 hours
+        sample_profile: asr_he_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_gpt_refine_260415/data_config_huhu_hc.json    # Qwen-refined HC, 2308.27 hours
+        sample_profile: asr_tier2_hu_hc
+
+      - file:
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/tier2_260521/data_config_huhu_newHT.json    # 2268.04 hours
+        sample_profile: asr_tier2_hu_general
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_huhu_tts_clean.json    # 7328.33 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_huhu_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_hu_tts
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_huhu_tts_aug.json    # 36641.64 hours (5 aug variants)
+        sample_ratio: 0.4
+        sample_profile: asr_tier2_hu_tts
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_idid_hc.json    # 31712.43 hours
+        sample_profile: asr_tier2_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_idid_mdt.json    # 16363.98 hours
+        sample_profile: asr_tier2_general
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_dpp_id-id_DisfluencyRemoved
+                - display_dpp_id-ID_DisfluencyRemoved
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_idid_tts_clean.json    # 8059.06 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_idid_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_offline_tn
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_idid_tts_aug.json    # 40295.28 hours (5 aug variants)
+        sample_ratio: 0.2
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_offline_tn
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_nbno_hc.json    # 400.98 hours
+        sample_profile: asr_tier2_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_nbno_mdt.json    # 5279.23 hours
+        sample_profile: asr_tier2_general
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_dpp_nb-NO_DisfluencyRemoved
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_nbno_tts_clean.json    # 6387.64 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_nbno_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_nbno_tts_aug.json    # 30905.87 hours (5 aug variants)
+        sample_ratio: 0.4
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_nlnl_hc.json    # 14342.97 hours
+        sample_profile: asr_tier2_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260706_HC_dsiplay_chunk_with_context/data_config_nlnl_hc_display_FY26_new.json # 4884.2 hours
+        sample_profile: asr_tier2_hc
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_human_caption_adjusted_tn
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260415/data_config_nlnl_mdt.json    # 5415.43 hours
+        sample_profile: asr_tier2_general
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_dpp_nl-nl_DisfluencyRemoved
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_nlnl_tts_clean.json    # 8901.65 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_nlnl_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_nlnl_tts_aug.json    # 44508.26 hours (5 aug variants)
+        sample_ratio: 0.2
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+
+      - file:
+        - /datablob1/users/xiaoqingyang/pl/pl_0813/data_config_plpl_hc_display_FY23_FY27.json # 116669.70 hours, number of examples: 17.651M
+        sample_profile: asr_tier2_hc
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_human_caption_adjusted_tn
+                - display_human_caption_adjusted
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+          text_normalization:
+            unicode_normalize: false
+            tn_rule_file: /datablob1/users/majin/tn/20260415/da_elgr_fi_heil_id_nb_nl_pl_pt_th_tnrule.txt
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260424/data_config_plpl_opensource.json  # 347 hours
+        sample_profile: asr_tier2_general
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_GPT4o_from_dpp_pl-pl
+                - display_dpp_pl-pl_DisfluencyRemoved_tn
+                - display_dpp_pl-pl_DisfluencyRemoved
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_plpl_tts_clean.json    # 8461.82 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_plpl_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_plpl_tts_aug.json    # 42309.08 hours (5 aug variants)
+        sample_ratio: 0.2
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_svse_hc.json    # 5032.40 hours
+        sample_profile: asr_tier2_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260415/data_config_svse_mdt.json    # 5408.78 hours
+        sample_profile: asr_tier2_general
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_dpp_sv-se_DisfluencyRemoved
+                - display_dpp_sv-SE_DisfluencyRemoved
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_svse_tts_clean.json    # 8206.34 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_svse_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_svse_tts_aug.json    # 41031.68 hours (5 aug variants)
+        sample_ratio: 0.4
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_thth_hc.json    # 13463.55 hours
+        sample_profile: asr_tier2_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_thth_tts_clean.json    # 6746.20 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_thth_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_thth_tts_aug.json    # 33731.01 hours (5 aug variants)
+        sample_ratio: 0.2
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+
+      - file:
+        - /datablob1/users/kekumata/DataSpecs/mlang_asr_data_2605/tier2_260728/data_config_trtr_hc_FY23_FY26Q4.json # 50345 hours
+        sample_profile: asr_tier2_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_trtr_tts_clean.json    # 8069.27 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_trtr_tts_clean.json    # second clean copy
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_trtr_tts_aug.json    # 40346.35 hours (5 aug variants)
+        sample_ratio: 0.2
+        sample_profile: asr_tier2_tts
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_gpt
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      ####### zh-HK / zh-TW display (disabled in stage 1; use in stage 2) #######
+      # - file:
+      #   - /datablob1/users/zhangao/data/zh_hk_batch1_37k_spm.json           # 36283.33 hours
+      #   sample_profile: asr_zh_hk_spm
+
+      # - file:
+      #   - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_zhtw_ht.json    # 1764.11 hours
+      #   sample_profile: asr_tier2_general
+      #   sample_overrides:
+      #     filter_options:
+      #       transcript_selector:
+      #         transcription_keys:
+      #           - display_dpp_zh-cn_DisfluencyRemoved
+      #         filter_tagging_failure_data: false
+      #         require_transcription_key: true
+
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260706_HC_dsiplay_chunk_with_context/data_config_ruru_hc_display_FY26_old.json # 65809.06 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260706_HC_dsiplay_chunk_with_context/data_config_ruru_hc_display_FY26_new.json # 21130.83 hours
+        sample_profile: asr_ruru_hc
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260320/data_config_ruru_mdt.json    # 114305.53 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260424/data_config_ruru_mdt.json    # 2385.84 hours
+        sample_profile: asr_ruru_general
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_ruru_tts_clean.json    # 9699.54 hours (base_chunk, clean 1x)
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_ruru_tts_clean.json    # second clean copy
+        sample_profile: asr_ruru_tts
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_tts_split/data_config_ruru_tts_aug.json    # 46997.62 hours (5 aug variants)
+        sample_ratio: 0.2
+        sample_profile: asr_ruru_tts
+
+      ####### Tier-3 display expansion #######
+      - file:
+        - /datablob1/users/xiaojul/HC_Display/DataSpecs/uk-UA_hc.json                    # 14529 hours
+        sample_profile: asr_tier3_hc_display
+        data_source_overrides:
+          language: uk-UA
+      - file:
+        - /datablob1/users/xiaojul/HC_Display/DataSpecs/ro-RO_hc.json                    # 6922 hours
+        sample_profile: asr_tier3_hc_display
+        data_source_overrides:
+          language: ro-RO
+      - file:
+        - /datablob1/users/xiaojul/HC_Display/DataSpecs/sk-SK_hc.json                    # 2418 hours
+        sample_profile: asr_tier3_hc_display
+        data_source_overrides:
+          language: sk-SK
+      - file:
+        - /datablob1/users/xiaojul/HC_Display/DataSpecs/bg-BG_hc.json                    # 2356 hours
+        sample_profile: asr_tier3_hc_display
+        data_source_overrides:
+          language: bg-BG
+
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_ca-es.hc.json      # 4204 hours, pre-WER
+        sample_profile: asr_tier3_hc_richland
+        data_source_overrides:
+          language: ca-ES
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_ms-my.hc.json      # 2485 hours, pre-WER
+        sample_profile: asr_tier3_hc_richland
+        data_source_overrides:
+          language: ms-MY
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_hr-hr.400utters.hc.json # 1081 hours, pre-WER
+        sample_profile: asr_tier3_hc_richland
+        data_source_overrides:
+          language: hr-HR
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_sl-si.hc.json      # 1091 hours, pre-WER
+        sample_profile: asr_tier3_hc_richland
+        data_source_overrides:
+          language: sl-SI
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_lv-lv.hc.json      # 699 hours, pre-WER
+        sample_profile: asr_tier3_hc_richland
+        data_source_overrides:
+          language: lv-LV
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_cy-gb.400utters.hc.json # 12 hours, pre-WER
+        sample_profile: asr_tier3_hc_richland
+        data_source_overrides:
+          language: cy-GB
+        ratio: 2
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_fa-ir.400utters.hc.json # 10665 hours, pre-WER
+        sample_profile: asr_tier3_hc_richland
+        data_source_overrides:
+          language: fa-IR
+
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_ro-ro_ht_display_newdata.json # 300 hours
+        sample_profile: asr_tier3_ht_display
+        data_source_overrides:
+          language: ro-RO
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_ms-my_ht_display_new.json # 1294 hours
+        sample_profile: asr_tier3_ht_display
+        data_source_overrides:
+          language: ms-MY
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_fa-ir_ht_display_new.json # 1312 hours
+        sample_profile: asr_tier3_ht_display
+        data_source_overrides:
+          language: fa-IR
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_uk-ua_ht_display_new.json # 1521 hours
+        sample_profile: asr_tier3_ht_display
+        data_source_overrides:
+          language: uk-UA
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_lv-lv_ht_display_new.json # 1488 hours
+        sample_profile: asr_tier3_ht_display
+        data_source_overrides:
+          language: lv-LV
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_sl-si_ht_display_new.json # 302 hours
+        sample_profile: asr_tier3_ht_display
+        data_source_overrides:
+          language: sl-SI
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_ca-es_ht_display_new.json # 584 hours
+        sample_profile: asr_tier3_ht_display
+        data_source_overrides:
+          language: ca-ES
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_sk-sk_ht_display_new.json # 1808 hours
+        sample_profile: asr_tier3_ht_display
+        data_source_overrides:
+          language: sk-SK
+
+      ####### Tier-4 display expansion #######
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/vi_vn_hc_display_wer20.json       # ~956 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/fil_ph_hc_display.json            # ~623 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/lt_lt_hc_display.json             # ~303 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/lt_lt_ht_display.json             # ~1.1k hours
+        sample_profile: asr_tier4_direct_display
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/vi_vn_hc_display_wer20_40.json    # ~655 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/vi_vn_ht_display.json             # ~10k hours
+        sample_profile: asr_tier4_vi_gpt_display
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/fil_ph_ht_display.json            # ~12k hours
+        sample_profile: asr_tier4_fil_gpt_display
+
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${medium_batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${medium_num_chunks_for_shuffling}
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ################################# Indian expansion (2x exposure, Mix/Native only, standard ASR) #################
+  # Uses the e04 LID-aware chunks and removes English-only samples by keeping
+  # info.lid_mix_label in {Mix, Native}. ASR-LID and ur-IN remain deferred to stage 2.
+  - sample_profiles:
+      asr_indian_stage1:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+          info_field_filter:
+            field: lid_mix_label
+            allowed_values:
+              - Mix
+              - Native
+
+    dataset_spec:
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_hi-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_as-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_bn-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_gu-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_kn-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_ml-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_mr-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_or-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_pa-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_ta-IN_non_verbatim_lid.json
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_te-IN_non_verbatim_lid.json
+        # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2607/tier2-IN/tier2_ur-IN_non_verbatim_lid.json # Enable with ASR-LID in stage 2.
+        sample_profile: asr_indian_stage1
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${medium_num_chunks_for_shuffling}
+    weight: 2.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ################################# Tier-2 + expansion lexical HT/MDT (weight 1.0; shared buffer) ###############
+  - sample_profiles:
+      asr_tier2_lexical:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+      asr_ruru_lexical:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+        text_normalization:
+          unicode_normalize: false
+          tn_rule_file: /datablob1/users/xiaoqingyang/ru/TN_rule/ru-RU_tn_rule_rm_n_yo_260806.txt
+      asr_tier3_old_ht:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+      asr_tier4_lexical:
+        filter_options:
+          max_utterance_frames: 4000
+          min_utterance_frames: 0
+          max_utterance_labels: 800
+          min_utterance_labels: 1
+    dataset_spec:
+      - file:
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/heil/tier2_13L_he_lexical.json    # 7869.85 hours
+        sample_profile: asr_tier2_lexical
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_cscz_ht.json    # 20433.17 hours
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_cscz_mdt.json    # 5373.12 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_elgr_ht.json    # 7550.83 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_fifi_ht.json    # 14729.98 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical_tned
+                - lexical
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_idid_ht.json    # 18574.01 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical_tned
+                - lexical
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_nlnl_ht.json    # 53320.03 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_plpl_ht.json    # 20599.15 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical_tn
+                - lexical
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_plpl_mdt.json    # 7687.07 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - ori
+                - display
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_svse_ht.json    # 21908.45 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical_tned
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_thth_ht.json    # 18740.92 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical
+                - transcription
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_thth_mdt.json    # 29818.88 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_trtr_ht.json    # 21890.56 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical
+                - transcription
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_trtr_mdt.json    # 11925.47 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - ori
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      # - file:
+      #   - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260605_HTlexical/data_config_zhtw_ht.json    # 1764.11 hours
+      #   sample_profile: asr_tier2_lexical
+      #   sample_overrides:
+      #     filter_options:
+      #       transcript_selector:
+      #         transcription_keys:
+      #           - lexical
+      #         filter_tagging_failure_data: false
+      #         require_transcription_key: true
+
+      - file:
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/tier2_260521/data_config_dadk_old_ht_lexical_xinyue.json    # 18988 hours
+        sample_profile: asr_tier2_lexical
+        sample_overrides:
+          sp_transcription: true
+
+      - file:
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/tier2_260521/data_config_nbno_old_ht_lexical.json    # 10665 hours
+        - /datablob1/users/majin/DataSpecs/mlang_asr_data_2605/tier2_260521/data_config_huhu_old_ht_lexical.json    # 10000 hours
+        sample_profile: asr_tier2_lexical
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/repairs_260805/data_config_ruru_ht_lexical_complete.json # 62136.18 hours
+        sample_profile: asr_ruru_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - lexical
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier2_260706_HC_lexical/data_config_ruRU_hc_lexical.json # 230.02 hours
+        sample_profile: asr_ruru_lexical
+        sample_overrides:
+          filter_options:
+            transcript_selector:
+              transcription_keys:
+                - display_human_caption_adjusted_tn
+              filter_tagging_failure_data: false
+              require_transcription_key: true
+
+      ####### Tier-3 lexical expansion #######
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_ms-my_ht.json # 10095 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: ms-MY
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_ca-es_ht.json # 8934 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: ca-ES
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_ro-ro_ht.json # 8854 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: ro-RO
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_fa-ir_ht.json # 3903 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: fa-IR
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_sk-sk_ht.json # 2862 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: sk-SK
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_sl-si_ht.json # 2262 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: sl-SI
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_cy-gb_ht.json # 1993 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: cy-GB
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_lv-lv_ht.json # 1848 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: lv-LV
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260827/data_config_uk-ua_ht.json # 1354 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: uk-UA
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_bg-bg_ht.json # 1248 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: bg-BG
+      - file:
+        - /datablob1/am_data/Tier3/Json_for_SLLM/20260807/data_config_hr-hr_ht.json # 258 hours
+        sample_profile: asr_tier3_old_ht
+        data_source_overrides:
+          language: hr-HR
+
+      ####### Tier-4 lexical expansion #######
+      - file:
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/vi_vn_ht_lexical.json              # 6423.44 hours, frame-derived
+        - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/tier4_260831/et_ee_ht_lexical.json              # 1673.12 hours
+        sample_profile: asr_tier4_lexical
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter_lexical}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${medium_batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${medium_num_chunks_for_shuffling}
+    weight: 1.0
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+  ################################# Opensource ASR Data ####################################################
+  # OSS lexical data from 2605 v3.2-sr, converted to stage-1 training style.
+  - dataset_spec:
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_en_asr_2k.json     # 1999.67 hours, number of examples: 0.484M, average duration: 14.87s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_de_asr.json        # 1966.50 hours, number of examples: 0.470M, average duration: 15.06s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_es_asr.json        # 929.73 hours, number of examples: 0.224M, average duration: 14.97s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_fr_asr.json        # 1076.58 hours, number of examples: 0.258M, average duration: 15.01s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_it_asr.json        # 247.38 hours, number of examples: 0.060M, average duration: 14.94s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_it_asr.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pt_asr.json        # 160.96 hours, number of examples: 0.038M, average duration: 15.44s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pt_asr.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pl_asr.json        # 103.65 hours, number of examples: 0.025M, average duration: 14.90s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_pl_asr.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_mls_nl_asr.json        # 1554.24 hours, number of examples: 0.374M, average duration: 14.95s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/open_zh_asr_3k.json         # 3000.23 hours, number of examples: 4.290M, average duration: 2.52s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_gigaspeech_2k5.json    # 2498.74 hours, number of examples: 2.124M, average duration: 4.24s
+
+    filter_options:
+      max_utterance_frames: 4000
+      min_utterance_frames: 0
+      max_utterance_labels: 300
+      min_utterance_labels: 1
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter_lexical}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"
+
+    text_normalization:
+      case_normalize: "lower"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${num_chunks_for_shuffling}
+    weight: ${OSS_data_weight}
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: False
+    dataset_provider: blob_chunk_alm
+
+  # OSS display-format audio chunks from 2605 v3.2-sr.
+  - dataset_spec:
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_en.json             # 1688.26 hours, number of examples: 1.070M, average duration: 5.68s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_de.json             # 1801.81 hours, number of examples: 1.136M, average duration: 5.71s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json             # 901.72 hours, number of examples: 0.623M, average duration: 5.21s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_fr.json             # 1514.72 hours, number of examples: 1.055M, average duration: 5.17s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_it.json             # 489.32 hours, number of examples: 0.333M, average duration: 5.29s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json             # 18.82 hours, number of examples: 0.014M, average duration: 4.97s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json             # 48.12 hours, number of examples: 0.042M, average duration: 4.11s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json             # 84.63 hours, number of examples: 0.059M, average duration: 5.18s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_es.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_ja.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_pt.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_zh.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_cv15_tier2.json          # 603.61 hours, number of examples: 0.486M, average duration: 4.47s
+      # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_en.json      # 1045.21 hours, number of examples: 0.365M, average duration: 10.31s
+      # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_de.json      # 529.29 hours, number of examples: 0.217M, average duration: 8.78s
+      # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_es.json      # 303.85 hours, number of examples: 0.102M, average duration: 10.74s
+      # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_fr.json      # 411.40 hours, number of examples: 0.147M, average duration: 10.07s
+      # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_it.json      # 156.13 hours, number of examples: 0.045M, average duration: 12.45s
+      # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_es.json
+      # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_it.json
+      # - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_voxpopuli_tier2.json   # 549.45 hours, number of examples: 0.201M, average duration: 9.84s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_fleurs.json              # 159.75 hours, number of examples: 0.050M, average duration: 11.39s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_fleurs_tier2.json        # 212.54 hours, number of examples: 0.069M, average duration: 11.13s
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_ami.json
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_ami.json
+      # Exclude every Earnings22 evaluation call from both transcript variants.
+      - file: /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/asr_chunk_openasr_earnings.json
+        data_source_overrides:
+          chunk_type:
+            - info
+            - audios
+            - sft
+        sample_overrides:
+          filter_options:
+            info_field_filter:
+              field: filename
+              excluded_prefixes:
+                - 4468919/
+                - 4471586/
+                - 4474955/
+                - 4475604/
+                - 4482968/
+                - 4483046/
+
+    filter_options:
+      max_utterance_frames: 4000
+      min_utterance_frames: 3
+      max_utterance_labels: 300
+      min_utterance_labels: 1
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${num_chunks_for_shuffling}
+    weight: ${OSS_data_weight}
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: False
+    dataset_provider: blob_chunk_alm
+
+  # OSS WavLLM lexical-format ASR from 2605 v3.2-sr.
+  - dataset_spec:
+      - /datablob1/users/ruchaofan/DataSpecs/mlang_asr_data_2605/oss/wavllm_chunk_asr.json    # 3772.18 hours, number of examples: 1.030M, average duration: 13.18s
+
+    filter_options:
+      max_utterance_frames: 4000
+      min_utterance_frames: 0
+      min_utterance_labels: 1
+
+    transform_cls:
+      name: AudioTextConversationTransform
+      conv_template: ${conv_template}
+      prompt_formatter: ${prompt_formatter_lexical}
+      fixed_prompt: True
+      instruction_first: ${instruction_first}
+      batch_format: "samples_to_batch"
+
+    use_storage_api: ${use_storage_api}
+    multi_threaded_download: ${multi_threaded_download}
+    prefetch_queue_size: ${prefetch_queue_size}
+    compression_rate: ${compression_rate}
+    qformer_compression_rate: ${downsample_rate}
+    seq_len: ${seq_len}
+    batcher_buffer_size: ${batcher_buffer_size}
+    batcher_batch_size: ${seq_len}
+    num_chunks_for_shuffling: ${num_chunks_for_shuffling}
+    weight: ${OSS_data_weight}
+    tokenizer: ${tokenizer}
+    audio_processor: ${data_audio_processor}
+    pad_to_context_length: ${pad_to_context_length}
+    dataset_provider: blob_chunk_alm
+
+dataset_concat: random_iterable # [random, sequential]
+dataset_provider: blob_chunk_alm
+dataset_collator:
+  cls: blob_chunk_alm_dynamic
+  tokenizer: ${tokenizer}
+  audio_key: inputs_embeds
+  padding_mask: ${padding_mask}
