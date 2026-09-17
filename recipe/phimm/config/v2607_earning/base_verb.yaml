@@ -37,7 +37,8 @@ val_reward:
     openml_bad: openasr_ml
     earning_num: openasr_en
     earning_chunk_verb: openasr_en
-    earnings_chunked_badcase_verb: openasr_en
+    earnings_pre_chunk_verb: openasr_en
+    earnings_pre_chunk_lex: openasr_en
 
 actor_rollout_ref:
   nccl_timeout: 3600

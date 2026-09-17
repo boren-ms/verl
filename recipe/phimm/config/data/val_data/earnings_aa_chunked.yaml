@@ -38,7 +38,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings_chunked_badcase.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_presegment_v2607v1a_lex.jsonl
   pre_process:
     rename_fields:
       mappings:
@@ -51,13 +51,12 @@
   post_process:
     add_field:
       fields:
-        data_source: earnings_chunked_badcase_verb
+        data_source: earnings_pre_chunk_verb
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings_chunked_badcase.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_presegment_v2607v1a_lex.jsonl
   pre_process:
     rename_fields:
       mappings:
@@ -70,7 +69,6 @@
   post_process:
     add_field:
       fields:
-        data_source: earnings_chunked_badcase_lex
+        data_source: earnings_pre_chunk_lex
     verl_format:
       prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]

@@ -3,14 +3,19 @@ hydra:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base_eval
-  - /data/val_data/earnings_chunked
+  - eval_base
+  - data/val_data/openasr_2606_verb
   - _self_
 
 val_reward:
-  reward_manager: naive
   reward_function_by_data_source:
-    earnings_pre_chunk_verb: openasr_en
+    ls_clean: openasr_en
+    ls_other: openasr_en
+    spgispeech: openasr_en
+    ami: openasr_en
+    gigaspeech: openasr_en
+    voxpopuli_cleaned_aa: openasr_en
+    earnings22_cleaned_aa_chunked: openasr_en
 
 actor_rollout_ref:
   model:

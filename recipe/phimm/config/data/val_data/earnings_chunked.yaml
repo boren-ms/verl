@@ -13,6 +13,6 @@
   post_process:
     add_field:
       fields:
-        data_source: earnings_chunked
+        data_source: earnings_pre_chunk_verb
     verl_format:
       prompt_key: prompt
