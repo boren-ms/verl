@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ctypes
 import functools
+import gc
 import itertools
 import json
 import math
@@ -33,6 +35,16 @@ from transformers.trainer_pt_utils import get_module_class_from_name
 
 from verl.utils.device import get_device_id, get_device_name, get_torch_device
 from verl.utils.model import check_exclude_modules, check_target_modules
+
+_LIBC = ctypes.CDLL(None)
+
+
+def _trim_cpu_allocator() -> None:
+    gc.collect()
+    malloc_trim = getattr(_LIBC, "malloc_trim", None)
+    if malloc_trim is not None:
+        malloc_trim(0)
+
 
 if version.parse(torch.__version__) >= version.parse("2.6"):
     from torch.distributed.fsdp import CPUOffloadPolicy, FSDPModule, MixedPrecisionPolicy, fully_shard
@@ -170,6 +182,7 @@ def offload_fsdp_model_to_cpu(model: FSDP, empty_cache: bool = True):
 @torch.no_grad()
 def offload_fsdp2_model_to_cpu(model, empty_cache: bool = True):
     model.cpu()
+    _trim_cpu_allocator()
     if empty_cache:
         get_torch_device().empty_cache()
 
@@ -210,6 +223,7 @@ def offload_fsdp_optimizer(optimizer):
             for key, value in state.items():
                 if isinstance(value, torch.Tensor):
                     state[key] = value.to("cpu", non_blocking=True)
+    _trim_cpu_allocator()
 
 
 @torch.no_grad()
