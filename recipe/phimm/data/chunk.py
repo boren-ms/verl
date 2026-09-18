@@ -30,22 +30,7 @@ def resolve_path(path, prefix=None):
 
 def parse_data(data, data_type, **kwargs):
     if data_type.lower() == "audio":
-        audio_encoding = kwargs.get("audio_encoding")
-        expected_sample_rate = kwargs.get("audio_sample_rate")
-        if audio_encoding == "pcm_s16le":
-            if expected_sample_rate is None:
-                raise ValueError("audio_sample_rate is required for pcm_s16le audio")
-            if len(data) % np.dtype("<i2").itemsize:
-                raise ValueError(f"Invalid pcm_s16le payload size: {len(data)} bytes")
-            audio = np.frombuffer(data, dtype="<i2").astype(np.float32) / 32768.0
-            return audio, int(expected_sample_rate)
-
-        audio, sample_rate = sf.read(io.BytesIO(data))
-        if expected_sample_rate is not None and sample_rate != int(expected_sample_rate):
-            raise ValueError(
-                f"Decoded audio sample rate {sample_rate} does not match expected {expected_sample_rate}"
-            )
-        return audio, sample_rate
+        return sf.read(io.BytesIO(data))
     if data_type.lower() in ["info", "sft", "alignment"]:
         return json.loads(str(data, "utf-8"))
     if data_type.lower() == "feature":
@@ -55,11 +40,10 @@ def parse_data(data, data_type, **kwargs):
 
 
 class ChunkLoader:
-    def __init__(self, chunk_path, chunk_type, count, **parse_kwargs):
+    def __init__(self, chunk_path, chunk_type, count):
         self.chunk_path = chunk_path
         self.chunk_type = chunk_type
         self.count = count
-        self.parse_kwargs = parse_kwargs
         self._examples = {}  # Will be loaded on demand
 
     def __repr__(self):
@@ -81,12 +65,7 @@ class ChunkLoader:
     def _load_examples(self):
         """Load examples for the given index."""
         rank_print(f"Loading all examples for chunk {self.chunk_path}.")
-        examples = load_data_from_chunk(
-            self.chunk_path,
-            self.chunk_type,
-            self.count,
-            **self.parse_kwargs,
-        )
+        examples = load_data_from_chunk(self.chunk_path, self.chunk_type, self.count)
         return dict(enumerate(examples))
 
 
@@ -102,24 +81,12 @@ class ChunkManager:
         rank_print(f"Initializing ChunkManager with max {maxsize} ChunkLoaders.")
         self.chunk_loaders = FIFOCache(maxsize=maxsize)
 
-    def get(self, chunk_path, count, chunk_type=None, **parse_kwargs):
+    def get(self, chunk_path, count, chunk_type=None):
         """Get the example at the specified index."""
-        chunk_type = chunk_type or chunk_path.split(".")[-1]
-        cache_key = (
-            chunk_path,
-            chunk_type,
-            count,
-            parse_kwargs.get("audio_encoding"),
-            parse_kwargs.get("audio_sample_rate"),
-        )
-        if cache_key not in self.chunk_loaders:
-            self.chunk_loaders[cache_key] = ChunkLoader(
-                chunk_path,
-                chunk_type,
-                count,
-                **parse_kwargs,
-            )
-        return self.chunk_loaders[cache_key]
+        if chunk_path not in self.chunk_loaders:
+            chunk_type = chunk_type or chunk_path.split(".")[-1]
+            self.chunk_loaders[chunk_path] = ChunkLoader(chunk_path, chunk_type, count)
+        return self.chunk_loaders[chunk_path]
 
 
 def get_chunk_manager(maxsize=None):
@@ -175,9 +142,6 @@ def load_examples(chunk, fields):
             examples[field] = data_list
 
     examples["language"] = [chunk.get("language", None)] * count
-    for key in ("audio_encoding", "audio_sample_rate"):
-        if key in chunk:
-            examples[key] = [chunk[key]] * count
 
     return examples
 
@@ -191,9 +155,6 @@ def load_examples_from_chunks(chunks, types):
         else:
             expected_keys.append(field)
     expected_keys.append("language")
-    for key in ("audio_encoding", "audio_sample_rate"):
-        if key in chunks:
-            expected_keys.append(key)
 
     all_examples = {k: [] for k in expected_keys}
     chunks = to_records(chunks)
@@ -204,7 +165,7 @@ def load_examples_from_chunks(chunks, types):
     return all_examples
 
 
-def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int, **parse_kwargs):
+def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int):
     ENDIAN = "little"
     data_list = []
     chunk_path = localize_audio_source(chunk_path)
@@ -223,22 +184,18 @@ def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int, **pa
                 for i in range(n_audios):
                     data_size = int.from_bytes(f.read(4), byteorder=ENDIAN)
                     data = f.read(data_size)
-                    parsed_data.append(parse_data(data, "audio", **parse_kwargs))
+                    parsed_data.append(parse_data(data, "audio"))
             else:
                 data_size = int.from_bytes(f.read(4), byteorder=ENDIAN)
                 if target_type.lower() == "label":
                     data_size = int.from_bytes(f.read(2), byteorder=ENDIAN)
                 data = f.read(data_size)
-                parsed_data = parse_data(data, chunk_type, **parse_kwargs)
+                parsed_data = parse_data(data, chunk_type)
             data_list.append(parsed_data)
     return data_list
 
 
-def load_chunk_sample(
-    chunk_path,
-    audio_encoding=None,
-    audio_sample_rate=None,
-):
+def load_chunk_sample(chunk_path):
     """Load a single example from a chunk file, seeking past preceding entries.
 
     Accepts the same ``"file:count:index"`` format as :func:`load_chunk_example`.
@@ -261,15 +218,7 @@ def load_chunk_sample(
             if target_type.lower() == "audios":
                 n_audios = int.from_bytes(f.read(4), byteorder=ENDIAN)
                 if i == index:
-                    return [
-                        parse_data(
-                            f.read(int.from_bytes(f.read(4), byteorder=ENDIAN)),
-                            "audio",
-                            audio_encoding=audio_encoding,
-                            audio_sample_rate=audio_sample_rate,
-                        )
-                        for _ in range(n_audios)
-                    ]
+                    return [parse_data(f.read(int.from_bytes(f.read(4), byteorder=ENDIAN)), "audio") for _ in range(n_audios)]
                 for _ in range(n_audios):
                     f.seek(int.from_bytes(f.read(4), byteorder=ENDIAN), 1)
             else:
@@ -277,12 +226,7 @@ def load_chunk_sample(
                 if target_type.lower() == "label":
                     data_size = int.from_bytes(f.read(2), byteorder=ENDIAN)
                 if i == index:
-                    return parse_data(
-                        f.read(data_size),
-                        chunk_type,
-                        audio_encoding=audio_encoding,
-                        audio_sample_rate=audio_sample_rate,
-                    )
+                    return parse_data(f.read(data_size), chunk_type)
                 f.seek(data_size, 1)
 
 
@@ -383,13 +327,6 @@ def create_chunk_datasets(
 ):
     chunks_per_spec = ceil(max_chunks / len(specs)) if max_chunks else None
     chunks = load_chunks(specs, chunks_per_spec)
-    audio_metadata = {
-        key: kwargs[key]
-        for key in ("audio_encoding", "audio_sample_rate")
-        if kwargs.get(key) is not None
-    }
-    if audio_metadata:
-        chunks = [{**chunk, **audio_metadata} for chunk in chunks]
     chunks = limit_chunks(chunks, max_egs, max_chunks)
     if chunk_shuffle:
         random.shuffle(chunks)
@@ -398,21 +335,12 @@ def create_chunk_datasets(
 
 
 @cached(FIFOCache(maxsize=5))
-def load_chunk_example(
-    chunk_path,
-    audio_encoding=None,
-    audio_sample_rate=None,
-):
+def load_chunk_example(chunk_path):
     """Load a single example from the chunk file."""
     chunk_path = resolve_path(chunk_path)
     chunk_file, chunk_count, chunk_index = chunk_path.rsplit(":", 2)  # make sure rsplit.
     chunk_file = localize_audio_source(chunk_file)
-    chunk_loader = get_chunk_manager().get(
-        chunk_file,
-        int(chunk_count),
-        audio_encoding=audio_encoding,
-        audio_sample_rate=audio_sample_rate,
-    )
+    chunk_loader = get_chunk_manager().get(chunk_file, int(chunk_count))
     return chunk_loader.get(int(chunk_index))
 
 

@@ -124,7 +124,7 @@ def _parse_range_endpoint(value: str, default=None):
     return number, is_percent
 
 
-def _load_time_chunk(spec, audio_encoding=None, audio_sample_rate=None):
+def _load_time_chunk(spec):
     file_path, _, tail = spec.rpartition("#")
     s_str, _, e_str = tail.partition(":")
     start, start_is_percent = _parse_range_endpoint(s_str, default=0.0)
@@ -134,11 +134,7 @@ def _load_time_chunk(spec, audio_encoding=None, audio_sample_rate=None):
 
     chunk_audio = None
     if _is_chunk_spec(file_path):
-        chunk_audio, sr = _load_chunk(
-            file_path,
-            audio_encoding=audio_encoding,
-            audio_sample_rate=audio_sample_rate,
-        )
+        chunk_audio, sr = _load_chunk(file_path)
         chunk_audio = np.asarray(chunk_audio)
         frames = len(chunk_audio)
     elif "://" in file_path:
@@ -186,25 +182,13 @@ def _load_time_chunk(spec, audio_encoding=None, audio_sample_rate=None):
     return audio, sr
 
 
-def _load_chunk(spec, audio_encoding=None, audio_sample_rate=None):
+def _load_chunk(spec):
     if _is_time_chunk_spec(spec):
-        return _load_time_chunk(
-            spec,
-            audio_encoding=audio_encoding,
-            audio_sample_rate=audio_sample_rate,
-        )
+        return _load_time_chunk(spec)
     if _chunk_load_mode == "sample":
-        result = load_chunk_sample(
-            spec,
-            audio_encoding=audio_encoding,
-            audio_sample_rate=audio_sample_rate,
-        )
+        result = load_chunk_sample(spec)
     else:
-        result = load_chunk_example(
-            spec,
-            audio_encoding=audio_encoding,
-            audio_sample_rate=audio_sample_rate,
-        )
+        result = load_chunk_example(spec)
     if isinstance(result, list):
         result = result[0]  # "audios" chunk type returns list of (data, sr)
     return result
@@ -217,11 +201,7 @@ def load_raw_audio(x):
     source = x.get("audio_path") or x.get("audio_file") or x.get("audio_chunk")
     if source:
         if _is_chunk_spec(source) or _is_time_chunk_spec(source):
-            data, sr = _load_chunk(
-                source,
-                audio_encoding=x.get("audio_encoding"),
-                audio_sample_rate=x.get("audio_sample_rate"),
-            )
+            data, sr = _load_chunk(source)
         else:
             data, sr = sf_read(source)
         return _to_mono(data, source), sr
@@ -234,24 +214,17 @@ def load_audio(x, max_dur=None, min_dur=0.16):
 
 
 def load_raw_audios(x):  # x is batched
+    from itertools import zip_longest
+
     audio_paths = x.get("audio_path") or x.get("audio_file") or []
     audio_chunks = x.get("audio_chunk", [])
-    count = max(len(audio_paths), len(audio_chunks))
-    encodings = x.get("audio_encoding", [None] * count)
-    sample_rates = x.get("audio_sample_rate", [None] * count)
 
-    for index in range(count):
-        audio_path = audio_paths[index] if index < len(audio_paths) else None
-        audio_chunk = audio_chunks[index] if index < len(audio_chunks) else None
+    for audio_path, audio_chunk in zip_longest(audio_paths, audio_chunks, fillvalue=None):
         source = audio_path or audio_chunk
         if not source:
             raise ValueError("No audio data found in the input dictionary.")
         if _is_chunk_spec(source) or _is_time_chunk_spec(source):
-            data, sr = _load_chunk(
-                source,
-                audio_encoding=encodings[index],
-                audio_sample_rate=sample_rates[index],
-            )
+            data, sr = _load_chunk(source)
         else:
             data, sr = sf_read(source)
         yield _to_mono(data, source), sr

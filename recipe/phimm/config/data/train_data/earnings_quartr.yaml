@@ -7,8 +7,6 @@ specs:
 chunk_types:
   - audio
   - transcription
-audio_encoding: pcm_s16le
-audio_sample_rate: 16000
 num_proc: auto
 add_task_info:
   task: lang_asr_verb
