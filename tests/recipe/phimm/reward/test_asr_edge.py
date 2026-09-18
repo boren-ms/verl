@@ -7,10 +7,17 @@ from recipe.phimm.utils.open_asr_normalizer import eval_utils
 
 @pytest.mark.parametrize(
     ("solution_str", "expected_n_err"),
-    [("<nonspeech>", 0), ("  <nonspeech>  ", 0), ("", 1), ("speech", 1)],
+    [
+        ("<nonspeech>", 0),
+        ("  <nonspeech>  ", 0),
+        ("<TXT><nonspeech></TXT>", 0),
+        ("<src=English><tgt=English>\n<TXT><nonspeech></TXT>", 0),
+        ("", 1),
+        ("speech", 1),
+    ],
 )
 def test_non_speech_eval_requires_nonspeech_token(solution_str, expected_n_err):
-    result = asr_eval.non_speech_eval(solution_str, ground_truth="")
+    result = asr_eval.non_speech_eval(solution_str, ground_truth="", version=2609)
 
     assert result == {
         "score": 1.0 - expected_n_err,
@@ -28,7 +35,7 @@ def test_non_speech_eval_requires_nonspeech_token(solution_str, expected_n_err):
             2607,
             1.0,
         ),
-        ("<src=English><tgt=English>\nhello world", 2609, 1.0),
+        ("<src=English><tgt=English>\n<TXT>hello world</TXT>", 2609, 1.0),
         ("hello world", 2609, 0.0),
     ],
 )

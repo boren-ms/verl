@@ -345,16 +345,18 @@ def check_lang(task_output, tgt_lang) -> float:
 
     A ``<nonspeech>`` hypothesis always scores ``1.0`` (no language to judge).
     """
-    if task_output is None:
+    if not check_fmt(task_output):
         return 0.0
 
-    _, tgt_langs, seg_texts = task_output
+    seg_texts = [segment["text"] for segment in task_output if segment["text"] is not None]
     if " ".join(seg_texts).strip().lower() == "<nonspeech>":
         return 1.0
 
     tgt_codes = _lang_code_set(tgt_lang)
     pred_codes: set[str] = set()
-    for name in tgt_langs:
+    for name in (segment["tgt"] for segment in task_output):
+        if name is None:
+            continue
         pred_codes |= _lang_code_set(name)
 
     if not pred_codes:
@@ -366,7 +368,7 @@ def check_lang(task_output, tgt_lang) -> float:
 
 def check_fmt(task_output) -> bool:
     """Return whether the output was parsed as a supported ASR format."""
-    return task_output is not None
+    return bool(task_output) and all(segment["text"] is not None for segment in task_output)
 
 
 def clip(x, lo=-1.0, hi=1.0):

@@ -6,9 +6,10 @@ from recipe.phimm.reward.asr_bias import compute_score, eval_score
 @pytest.mark.parametrize("score_fn", [compute_score, eval_score])
 def test_score_extracts_hypothesis_from_asr_response(score_fn):
     result = score_fn(
-        "<src=English><tgt=English>\nthe quick blue fox",
+        "<src=English><tgt=English>\n<TXT>the quick blue fox</TXT>",
         "the quick brown fox",
         extra_info={"keywords": ["brown"]},
+        version=2609,
     )
 
     assert result["n_err"] == 1

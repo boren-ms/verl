@@ -46,15 +46,21 @@ def test_format_asr_prompt_preserves_2609_audio_placement():
 
 
 def test_add_task_info_enables_language_prefix_by_default():
-    dataset = add_task_info(MinimalDataset(), task="lang_asr", language="French")
+    dataset = add_task_info(
+        MinimalDataset(), task="lang_asr", language="French", prefix_prob=1.0
+    )
 
     assert dataset.example["prefix"] == "<src=French><tgt=French>\n"
-    assert dataset.example["gt_output"] == "bonjour"
+    assert dataset.example["gt_output"] == "<TXT>bonjour</TXT>"
 
 
 def test_add_task_info_supports_2607_prefix_and_completion():
     dataset = add_task_info(
-        MinimalDataset(), task="lang_asr", language="French", version=2607
+        MinimalDataset(),
+        task="lang_asr",
+        language="French",
+        version=2607,
+        prefix_prob=1.0,
     )
 
     assert dataset.example["prefix"] == "Audio Language: French\n"
@@ -173,7 +179,7 @@ def test_add_task_info_uses_2607_multilingual_components():
 
 
 def test_bad_format_uses_task_output_format():
-    valid = "<src=English><tgt=English>\nHello"
+    valid = "<src=English><tgt=English>\n<TXT>Hello</TXT>"
 
     assert not _is_bad_fmt({"raw_response": valid})
     assert _is_bad_fmt({"raw_response": "Hello"})
@@ -181,10 +187,10 @@ def test_bad_format_uses_task_output_format():
 
 def test_bad_language_uses_task_output_languages():
     mixed = (
-        "<src=English><tgt=English>\nHello\n"
-        "<src=Chinese><tgt=Chinese>\nni hao"
+        "<src=English><tgt=English>\n<TXT>Hello</TXT>\n"
+        "<src=Chinese><tgt=Chinese>\n<TXT>ni hao</TXT>"
     )
-    wrong = "<src=French><tgt=French>\nBonjour"
+    wrong = "<src=French><tgt=French>\n<TXT>Bonjour</TXT>"
 
     assert not _is_bad_lang({"raw_response": mixed, "language": "English_Chinese"})
     assert _is_bad_lang({"raw_response": wrong, "language": "English"})
@@ -192,7 +198,7 @@ def test_bad_language_uses_task_output_languages():
 
 
 def test_nonspeech_is_not_bad_language():
-    nonspeech = "<src=English><tgt=English>\n<nonspeech>"
+    nonspeech = "<nonspeech>"
 
     assert not _is_bad_lang({"raw_response": nonspeech, "language": "French"})
 

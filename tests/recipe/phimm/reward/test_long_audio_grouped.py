@@ -69,20 +69,20 @@ def test_manager_parses_2607_responses_before_merging():
 
     assert len(score_calls) == 1
     assert score_calls[0]["solution_str"] == "hello\nworld"
-    assert result["reward_extra_info"]["wer"] == [0.0, 0.0]
+    assert result["reward_extra_info"]["wer"] == [None, 0.0]
 
 
-def test_manager_uses_current_response_format_by_default():
+def test_manager_uses_2609_response_format():
     responses = {
-        1: "<src=English><tgt=English>\nhello",
-        2: "<src=English><tgt=English>\nworld",
+        1: "<src=English><tgt=English>\n<TXT>hello</TXT>",
+        2: "<src=English><tgt=English>\n<TXT>world</TXT>",
     }
     extra_info = [
         {"parent_audio_path": "parent.wav", "seg_start": 0.0},
         {"parent_audio_path": "parent.wav", "seg_start": 10.0},
     ]
 
-    score_calls, _ = _run_manager(responses, extra_info)
+    score_calls, _ = _run_manager(responses, extra_info, version=2609)
 
     assert len(score_calls) == 1
     assert score_calls[0]["solution_str"] == "hello\nworld"

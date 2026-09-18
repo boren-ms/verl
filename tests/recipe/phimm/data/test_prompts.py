@@ -38,7 +38,9 @@ def test_get_task_output_supports_new_2609_format():
     output = get_task_output(task="lang_asr", lang="en", text="hello", version=2609)
 
     assert output == "<src=English><tgt=English>\n<TXT>hello</TXT>"
-    assert parse_task_output(output, version=2609) == (["English"], ["English"], ["hello"])
+    assert parse_task_output(output, version=2609) == [
+        {"src": "English", "tgt": "English", "text": "hello"}
+    ]
 
 
 @pytest.mark.parametrize(
@@ -52,7 +54,9 @@ def test_get_task_output_supports_2609_mode_tags(task, mode):
     output = get_task_output(task=task, lang="en", text="hello", version="2609")
 
     assert output == f"<src=English><tgt=English>\n<{mode}>\n<TXT>hello</TXT>"
-    assert parse_task_output(output, version=2609) == (["English"], ["English"], ["hello"])
+    assert parse_task_output(output, version=2609) == [
+        {"src": "English", "tgt": "English", "text": "hello"}
+    ]
 
 
 def test_get_task_output_supports_2609_source_target_languages():
@@ -81,7 +85,9 @@ def test_get_task_output_supports_2607_format():
     output = get_task_output(task="lang_asr", lang="en", text="hello", version=2607)
 
     assert output == "Audio Language: English.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
-    assert parse_task_output(output, version=2607) == (["English"], ["English"], ["hello"])
+    assert parse_task_output(output, version=2607) == [
+        {"src": "English", "tgt": "English", "text": "hello"}
+    ]
 
 
 def test_get_task_output_rejects_2607_language_list_without_components():
@@ -100,11 +106,9 @@ def test_task_prefix_and_output_support_2607_completion_format():
 
     assert prefix == "Audio Language: English\n"
     assert output == "Audio Language: English.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
-    assert parse_task_output(output, version=2607) == (
-        ["English"],
-        ["English"],
-        ["hello"],
-    )
+    assert parse_task_output(output, version=2607) == [
+        {"src": "English", "tgt": "English", "text": "hello"}
+    ]
 
 
 def test_get_task_prefix_supports_2607_multiple_languages():
@@ -129,11 +133,10 @@ def test_get_task_output_supports_2607_mixed_components():
         "Audio Language: English and Chinese.\n"
         "<ASR><lang=English><TXT>hello</TXT>\n<lang=Chinese><TXT>你好</TXT></ASR>"
     )
-    assert parse_task_output(output, version=2607) == (
-        ["English", "Chinese"],
-        ["English", "Chinese"],
-        ["hello", "你好"],
-    )
+    assert parse_task_output(output, version=2607) == [
+        {"src": "English", "tgt": "English", "text": "hello"},
+        {"src": "Chinese", "tgt": "Chinese", "text": "你好"},
+    ]
 
 
 def test_lang_asr_verb_uses_verbatim_prompt_and_output_format():

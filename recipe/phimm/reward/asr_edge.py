@@ -147,10 +147,12 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     version = kwargs.get("version")
     task_output = parse_task_output(solution_str, version=version)
     hyp_text = get_hyp_text(solution_str, version=version)
-    lang_index = 1 if str(version) == "2607" else 0
-    pred_langs = task_output[lang_index] if task_output is not None else []
+    lang_key = "tgt" if str(version) == "2607" else "src"
+    pred_langs = [segment[lang_key] for segment in task_output if segment[lang_key] is not None]
     pred_lang = (pred_langs[0] if pred_langs else "").lower().strip()
-    is_formatted = task_output is not None and (str(version) == "2607" or bool(task_output[0]))
+    has_valid_text = bool(task_output) and all(segment["text"] is not None for segment in task_output)
+    has_language = any(segment["src"] is not None for segment in task_output)
+    is_formatted = has_valid_text and (str(version) == "2607" or has_language)
     repeat_opts = kwargs.get("repeat") or {}
     p_repeat = has_repeat_error(
         hyp_text,
