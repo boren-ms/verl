@@ -13,6 +13,7 @@ _ASR_MODE_TAG_RE = re.compile(
     r"</?(?:asr_)?(?:lexical|verbatim|readable)>",
     re.IGNORECASE,
 )
+_TXT_WRAPPER_RE = re.compile(r"^\s*<TXT>(?P<text>.*?)</TXT>\s*$", re.DOTALL | re.IGNORECASE)
 
 
 def clean_asr_mode_tags(text: str) -> str:
@@ -55,6 +56,11 @@ def parse_task_output(solution_str, version=None):
 def get_asr_text(task_output):
     """Join the text segments from a parsed ASR task output."""
     return " ".join(task_output[2])
+
+
+def _unwrap_txt(text: str) -> str:
+    match = _TXT_WRAPPER_RE.match(text)
+    return match.group("text") if match else text
 
 
 def _parse_task_output_2607(solution_str):
@@ -102,7 +108,7 @@ def _parse_task_output_2609(solution_str):
         return None
     first_header = output.find("\n<src=")
     if not output.startswith("<src=") and first_header < 0:
-        return [], [], [output]
+        return [], [], [_unwrap_txt(output)]
 
     segments = []
     if first_header >= 0 and not output.startswith("<src="):
@@ -118,7 +124,7 @@ def _parse_task_output_2609(solution_str):
             (
                 match.group("src").strip(),
                 match.group("tgt").strip(),
-                match.group("text").strip(),
+                _unwrap_txt(match.group("text")).strip(),
             )
         )
         pos = match.end()

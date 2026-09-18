@@ -56,7 +56,7 @@ _hf_english_normalizer = _HFEnglishTextNormalizer()
 
 
 def format_asr_prompt(prompt):
-    return f"{prompt}<audio>"
+    return prompt if "<audio>" in prompt else f"{prompt}<audio>"
 
 
 def read_words(file_path, num=None, tn_name=None):
@@ -1867,9 +1867,14 @@ def add_task_info(ds, **kwargs):
 
     def add_task_info_fn(egs):
         lang = resolve_task_language(task, lang=egs.get("language") or language)
-        prompt = get_task_prompt(task=task, rand=rand)
-        prompt = f"{prompt}{prompt_suffix}"
         prefix = get_task_prefix(task, lang=lang, prob=prefix_prob, version=version)
+        prompt = get_task_prompt(
+            task=task,
+            rand=rand,
+            version=version,
+            lang=lang if prefix and str(version) != "2607" else None,
+        )
+        prompt = f"{prompt}{prompt_suffix}"
         gt_output = get_task_output(
             task=task,
             lang=lang,
@@ -1877,8 +1882,9 @@ def add_task_info(ds, **kwargs):
             components=egs.get("components"),
             version=version,
         )
-        if gt_output.startswith(prefix):
-            gt_output = gt_output[len(prefix) :].lstrip()
+        prefix_stem = prefix.rstrip("\n")
+        if prefix_stem and gt_output.startswith(prefix_stem):
+            gt_output = gt_output[len(prefix_stem) :].lstrip(". \n")
         return {
             "prompt": format_asr_prompt(prompt),
             "prefix": prefix,

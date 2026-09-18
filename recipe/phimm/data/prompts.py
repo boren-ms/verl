@@ -38,6 +38,8 @@ def _get_explicit_task_language(task):
 
 
 def _format_task_output_2607(lang, text, components=None):
+    if not components and len(get_language_name(lang).split()) > 1:
+        raise ValueError("2607 output with multiple languages requires per-language components")
     segments = components or [{"language": lang, "text": text}]
     formatted_segments = []
     languages = []
@@ -51,25 +53,39 @@ def _format_task_output_2607(lang, text, components=None):
     return f"{prefix}.\n<ASR>{formatted_text}</ASR>"
 
 
-def _format_task_output_2609(lang, text, components=None):
-    if components:
-        segments = []
-        for component in components:
-            component_lang = get_language_name(component.get("language", "Unknown"))
-            component_text = component.get("text", "")
-            segments.append(
-                f"<src={component_lang}><tgt={component_lang}>\n{component_text}"
-            )
-        return "\n".join(segments)
-
-    lang = lang or "Unknown"
-    return f"<src={lang}><tgt={lang}>\n{text}"
+def _get_2609_mode_tag(task):
+    if task.startswith("lang_asr_verb"):
+        return "VERBATIM"
+    if task.startswith("lang_asr_lex"):
+        return "LEXICAL"
+    return None
 
 
-def _format_task_output(lang, text, components=None, version=None):
+def _format_task_output_2609(task, lang, text, components=None):
+    if not task.startswith("lang_asr"):
+        return text
+
+    mode_tag = _get_2609_mode_tag(task)
+    segments = components or [{"language": lang, "text": text}]
+    formatted_segments = []
+    for segment in segments:
+        source_lang = get_language_name(segment.get("language", lang) or "Unknown")
+        target_lang = get_language_name(
+            segment.get("target_language", segment.get("language", lang)) or "Unknown"
+        )
+        segment_text = segment.get("text", "")
+        parts = [f"<src={source_lang}><tgt={target_lang}>"]
+        if mode_tag:
+            parts.append(f"<{mode_tag}>")
+        parts.append(f"<TXT>{segment_text}</TXT>")
+        formatted_segments.append("\n".join(parts))
+    return "\n".join(formatted_segments)
+
+
+def _format_task_output(task, lang, text, components=None, version=None):
     if str(version) == "2607":
         return _format_task_output_2607(lang, text, components)
-    return _format_task_output_2609(lang, text, components)
+    return _format_task_output_2609(task, lang, text, components)
 
 
 def _format_task_prefix_2607(lang):
@@ -84,7 +100,16 @@ def _format_task_prefix_2609(lang):
     return f"<src={first_language}><tgt={first_language}>\n"
 
 
-def get_task_prompt(task="asr", rand=False):
+def _format_2609_language_hint(lang):
+    languages = get_language_name(lang).split()
+    if len(languages) == 1:
+        return f"The language is {languages[0]}."
+    if len(languages) > 1:
+        return f"The languages are {' and '.join(languages)}."
+    return ""
+
+
+def get_task_prompt(task="asr", rand=False, version=None, lang=None):
     """Get the prompt for the specified task."""
     if task == "asr":
         prompt = rand_prompt(ASR_PROMPTS, rand=rand)
@@ -101,6 +126,12 @@ def get_task_prompt(task="asr", rand=False):
         prompt = rand_prompt(LANG_ASR_PROMPTS, rand=rand)
     else:
         raise ValueError(f"Unknown task: {task}")
+    if str(version) != "2607" and task.startswith("lang_asr") and lang:
+        prompt = prompt.replace("Detect the language and ", "", 1)
+        prompt = f"{prompt[:1].upper()}{prompt[1:]}"
+        language_hint = _format_2609_language_hint(lang)
+        if language_hint:
+            prompt = f"{prompt}<audio>\n{language_hint}"
     return prompt
 
 
@@ -125,7 +156,13 @@ def get_task_output(task="asr", lang="English", text="", components=None, versio
     """Get the expected output format for the specified task."""
     if task not in ("asr", "rare_asr", "biasing") and not task.startswith("lang_asr"):
         raise ValueError(f"Unknown task: {task}")
-    return _format_task_output(get_language_name(lang), text, components, version=version)
+    return _format_task_output(
+        task,
+        get_language_name(lang),
+        text,
+        components,
+        version=version,
+    )
     
 
 
