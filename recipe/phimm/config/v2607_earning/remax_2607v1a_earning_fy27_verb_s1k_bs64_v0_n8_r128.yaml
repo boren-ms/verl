@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base_verb
+  - base
   - data/train_data/earningscall-fy27-en-us-batch1-verb
   - _self_
 
