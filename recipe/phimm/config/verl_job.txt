@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-18T04:09:14Z
+updated_at_utc: 2026-09-18T23:32:29Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
@@ -17,6 +17,7 @@ updated_at_utc: 2026-09-18T04:09:14Z
 │ i11          │ raysubmit_YKau5pVCFwtt5pm4   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s1k_bs64_v0_cut01_n8             │ training 92/1000 (9.2%)      │
 │ i12          │ raysubmit_sTwRNQEw1B8WsrfU   │ RUNNING       │ remax_2607v1a_earning_fy27_s1k_bs64_v0_n8_r128                  │ training startup             │
 │ i13          │ raysubmit_5TZqCS4hemfnd3cd   │ RUNNING       │ remax_2607v1a_earnings_quartr_verb_s1k_bs64_v0                  │ training 148/1000 (14.8%)    │
+│ n4-i2        │ raysubmit_Q2VSLvq2XubGbNB3   │ RUNNING       │ remax_2607v1a_earning_quartr_verb_s1k_bs64_v0_g32               │ training startup             │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
@@ -38,3 +39,4 @@ Reports:
 - remax_2607v1a_earning_fy27_verb_s1k_bs64_v0_cut01_n8 [`i11`]: training 92/1000 (9.2%)
 - remax_2607v1a_earning_fy27_s1k_bs64_v0_n8_r128 [`i12`]: training startup
 - remax_2607v1a_earnings_quartr_verb_s1k_bs64_v0 [`i13`]: training 148/1000 (14.8%)
+- remax_2607v1a_earning_quartr_verb_s1k_bs64_v0_g32 [`n4-i2`]: training startup
