@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - data/train_data/bad_format_en_verb_cut01
+  - data/train_data/earningscall-fy27-en-us-batch1-verb
   - _self_
 
 reward_functions:
@@ -15,22 +15,26 @@ reward_functions:
       version: 2607
       reduce: mean
       measures:
-        char: {beta: 0.5}
-        word: {beta: 0.5}
-        keyword: {beta: 1.0, cut: 0.5}
-        lang: {beta: 1.0, cut: 0.25}
-        fmt: {beta: 1.0, cut: 0.5}
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        keyword: {beta: 2.0, cut: 0.5}
+        lang: {beta: 0.1, cut: 0.25}
+        fmt: {beta: 0.1, cut: 0.5}
 
 reward_function_by_data_source:
-  bad_format_all: asr_measure
+  earning_fy27_verb: asr_measure
 
 actor_rollout_ref:
+  rollout:
+    n: 8
   model:
     path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/
+    lora_rank: 128
 
 data:
-  train_batch_size: 128
+  train_batch_size: 64
 
 trainer:
+  nnodes: 4
   total_epochs: 15
-  total_training_steps: 400
+  total_training_steps: 1000
