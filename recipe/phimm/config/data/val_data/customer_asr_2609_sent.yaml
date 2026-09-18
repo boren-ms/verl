@@ -1,0 +1,93 @@
+# CustomerASR_2609 audio submitted to Microsoft, grouped by locale.
+# svad_explode only rewrites /datablob1 paths because every clip is shorter than 40 seconds.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/CustomerASR_2609/sent/id-ID/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: Transcription
+  add_task_info:
+    task: lang_asr_lex
+    language: Indonesian
+  post_process:
+    add_field:
+      fields:
+        data_source: customer_asr_2609_sent_id_id
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/CustomerASR_2609/sent/km-KH/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: Transcription
+  add_task_info:
+    task: lang_asr_lex
+    language: Khmer
+  post_process:
+    add_field:
+      fields:
+        data_source: customer_asr_2609_sent_km_kh
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/CustomerASR_2609/sent/th-TH/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: Transcription
+  add_task_info:
+    task: lang_asr_lex
+    language: Thai
+  post_process:
+    add_field:
+      fields:
+        data_source: customer_asr_2609_sent_th_th
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/CustomerASR_2609/sent/vi-VN/test.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 40.0
+      audio_key: WavPath
+      path_replace:
+        /datablob1/: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: Transcription
+  add_task_info:
+    task: lang_asr_lex
+    language: Vietnamese
+  post_process:
+    add_field:
+      fields:
+        data_source: customer_asr_2609_sent_vi_vn
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
