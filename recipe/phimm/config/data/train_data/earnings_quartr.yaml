@@ -2,8 +2,8 @@
 # Quartr English verbatim data: 16,069 samples, 81 chunks, 140.52 hours.
 dataset_name: chunk
 specs:
-  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/quartr_valid/file_set.json
-    chunk_path: az://orngwus2cresco/data/speech/am_data/en/quartr_valid/chunks/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/en/quartr_valid_v2/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/en/quartr_valid_v2/chunks/
 chunk_types:
   - audio
   - transcription
