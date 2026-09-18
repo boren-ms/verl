@@ -44,7 +44,7 @@ def test_load_raw_audio_skips_overlapping_edge_relative_cuts(tmp_path, caplog):
 def test_load_raw_audio_slices_nested_chunk_spec(monkeypatch):
     source = np.arange(1000, dtype=np.float32)
     monkeypatch.setattr(audio_module, "_chunk_load_mode", "sample")
-    monkeypatch.setattr(audio_module, "load_chunk_sample", lambda spec: (source, 1000))
+    monkeypatch.setattr(audio_module, "load_chunk_sample", lambda spec, **kwargs: (source, 1000))
 
     audio, sample_rate = load_raw_audio(
         {"audio_path": "az://container/chunk.audio:2000:464#0.1:-0.2"}
@@ -57,7 +57,7 @@ def test_load_raw_audio_slices_nested_chunk_spec(monkeypatch):
 def test_load_raw_audio_skips_edge_cuts_longer_than_nested_chunk(monkeypatch, caplog):
     source = np.arange(500, dtype=np.float32)
     monkeypatch.setattr(audio_module, "_chunk_load_mode", "sample")
-    monkeypatch.setattr(audio_module, "load_chunk_sample", lambda spec: (source, 1000))
+    monkeypatch.setattr(audio_module, "load_chunk_sample", lambda spec, **kwargs: (source, 1000))
 
     audio, sample_rate = load_raw_audio(
         {"audio_path": "az://container/chunk.audio:2000:464#0.81393:-0.160458"}
