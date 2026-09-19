@@ -178,7 +178,7 @@ def main_task(config):
     num_examine = config.data.get("eval_num_examine", 1)
     ds_conf = config.data.get("gen_data", config.data.get("train_data", config.data.get("val_data", None)))
     assert ds_conf is not None, "Please specify data.gen_data or data.train_data or data.val_data in the config"
-    dataset = RLHFDataset(ds_conf, tokenizer, config.data, processor)
+    dataset = RLHFDataset(ds_conf, tokenizer, config.data, processor, is_train=False)
     print(f"Loaded RLHFDataset with {len(dataset)} samples.")
 
     output_dir = config.data.get("output_path", None)

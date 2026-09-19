@@ -25,15 +25,18 @@ _CACHE_SERVER_LOCK = threading.Lock()
 
 
 def _split_audio_source(source: str) -> tuple[str, str]:
+    """Separate the physical file from optional chunk and trailing time selectors."""
+    suffix = ""
     if "#" in source:
         file_path, separator, time_range = source.rpartition("#")
         if ":" in time_range:
-            return file_path, f"{separator}{time_range}"
+            source = file_path
+            suffix = f"{separator}{time_range}"
 
     parts = source.rsplit(":", 2)
     if len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit():
-        return parts[0], f":{parts[1]}:{parts[2]}"
-    return source, ""
+        return parts[0], f":{parts[1]}:{parts[2]}{suffix}"
+    return source, suffix
 
 
 def local_audio_source(source: str) -> str:
@@ -114,7 +117,7 @@ def _ensure_cached_remote_file(remote_path: str, local_path: Path) -> None:
 
 
 def cache_audio_source(source: str) -> str:
-    """Cache an Orange audio reference under ``~/data`` and return its local reference."""
+    """Cache the physical Orange file under ``~/data``, preserving chunk and time selectors."""
     local_source = local_audio_source(source)
     if local_source == source:
         return source

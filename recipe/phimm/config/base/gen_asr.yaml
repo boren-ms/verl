@@ -8,6 +8,8 @@ trainer:
   experiment_name: phimm_asr_gen # required for logging
   
 data:
+  # Generation concatenates all sources; unreadable audio raises instead of substituting another sample.
+  # Use a fresh output_path when rerunning older multi-source outputs made with training interleaving.
   path: null
   batch_size: 512              # large dispatch -> vLLM stays saturated end-to-end
   output_split_size: 20000      # fewer parquet writes; larger chunks per blob upload
