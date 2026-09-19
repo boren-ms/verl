@@ -12,6 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .cascade_encoder import ConformerEncoder, NemoConvSubsampling
+from .flash_encoder import FlashEncoder
 from .processing_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
 
 logger = logging.getLogger(__name__)
@@ -79,6 +80,13 @@ class AudioEmbedding(nn.Module):
             self.encoder = whisper_model.encoder
             n_mels = self.encoder.num_mel_bins
             audio_dim_out = self.encoder.layers[0].embed_dim
+        elif isinstance(config.audio_processor, dict) and config.audio_processor.get("name") == "flash":
+            encoder_config = config.audio_processor.get("config")
+            assert encoder_config is not None
+            self.encoder = FlashEncoder(**encoder_config)
+            self.encoder.post_init({})
+            n_mels = encoder_config["input_size"]
+            audio_dim_out = encoder_config["hidden_size"]
         else:
             raise NotImplementedError(f"Unsupported audio_processor: {config.audio_processor}")
 

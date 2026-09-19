@@ -17,6 +17,7 @@ import torch
 import torch.nn as nn
 from transformers import BatchFeature
 
+from hf_qwen35_audio.flash_encoder import FlashEncoder
 from vllm.config import VllmConfig
 from vllm.config.multimodal import BaseDummyOptions
 from vllm.distributed import get_pp_group
@@ -75,7 +76,48 @@ class AudioEmbedding(_AudioEmbeddingBase):
     """
 
     def __init__(self, config, **kwargs):
-        super().__init__(config, **kwargs)
+        if not (
+            isinstance(config.audio_processor, dict)
+            and config.audio_processor.get("name") == "flash"
+        ):
+            super().__init__(config, **kwargs)
+        else:
+            nn.Module.__init__(self)
+            self.config = config
+            hidden_size = getattr(config, "n_embd", config.hidden_size)
+            encoder_config = config.audio_processor.get("config")
+            assert encoder_config is not None
+            self.encoder = FlashEncoder(**encoder_config)
+            self.encoder.post_init({})
+            self.layer_idx = -2
+            self.audio_dim_out = encoder_config["hidden_size"]
+            self.audio_dim_in = encoder_config["input_size"]
+            self.freeze_audio_processor = kwargs.get("freeze_audio_processor", False)
+            self.downsample_rate = kwargs.get("downsample_rate", 1)
+            self.qformer = None
+            self.conv_ds = None
+
+            projection_cls = kwargs.get("projection_cls", "linear")
+            if projection_cls == "linear":
+                self.linear_downsample_rate = 1
+                self.audio_projection = nn.Linear(self.audio_dim_out, hidden_size)
+            elif projection_cls == "mlp":
+                self.linear_downsample_rate = self.downsample_rate
+                layers = [
+                    nn.Linear(
+                        self.audio_dim_out * self.linear_downsample_rate,
+                        hidden_size,
+                    )
+                ]
+                layers.extend([nn.GELU(), nn.Linear(hidden_size, hidden_size)])
+                self.audio_projection = nn.Sequential(*layers)
+            else:
+                raise NotImplementedError(f"projection_cls = {projection_cls}")
+
+            self.vocab_size = config.vocab_size
+            self.input_embeds = None
+            self.audio_embed_sizes = None
+
         # Remove vision projection (not used for audio-to-text,
         # and no weights exist in checkpoint)
         if hasattr(self, "audio_projection_for_vision"):

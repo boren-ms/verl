@@ -44,6 +44,7 @@ MODEL_PY_FILES = [
     "modeling_qwen3_5_audio.py",
     "audio_embedding.py",
     "cascade_encoder.py",
+    "flash_encoder.py",
     "processing_qwen3_5_audio.py",
     "verify_hf_model.py",
 ]
