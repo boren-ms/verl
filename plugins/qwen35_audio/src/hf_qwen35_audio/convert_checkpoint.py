@@ -196,6 +196,17 @@ def main():
         print(f"  Skipped {skipped} LoRA/MTP tensors")
     print(f"  {len(remapped)} tensors after remapping")
 
+    embed_weight = remapped.get("model.embed_tokens.weight")
+    lm_head_weight = remapped.get("lm_head.weight")
+    if (
+        embed_weight is not None
+        and lm_head_weight is not None
+        and embed_weight.untyped_storage().data_ptr()
+        == lm_head_weight.untyped_storage().data_ptr()
+    ):
+        remapped["lm_head.weight"] = lm_head_weight.clone()
+        print("  Materialized tied lm_head.weight for safetensors")
+
     # Show a few key samples
     sample_keys = sorted(remapped.keys())[:5]
     for k in sample_keys:
