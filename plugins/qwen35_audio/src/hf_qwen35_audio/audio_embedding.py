@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from datetime import datetime
 
 import torch
@@ -64,7 +65,7 @@ class AudioEmbedding(nn.Module):
         audio_dim_out = None
         self.layer_idx = -2
 
-        if isinstance(config.audio_processor, dict) and config.audio_processor.get("name") == "cascades":
+        if isinstance(config.audio_processor, Mapping) and config.audio_processor.get("name") == "cascades":
             encoder_config = config.audio_processor.get("config", None)
             assert encoder_config is not None
             encoder_config = dict(encoder_config)
@@ -73,14 +74,14 @@ class AudioEmbedding(nn.Module):
             self.encoder.post_init({})
             audio_dim_out = encoder_config["attention_dim"]
             n_mels = encoder_config["input_size"]
-        elif isinstance(config.audio_processor, dict) and config.audio_processor.get("name") == "whisper":
+        elif isinstance(config.audio_processor, Mapping) and config.audio_processor.get("name") == "whisper":
             from transformers import WhisperModel as HFWhisperModel
             model_path = config.audio_processor.get("pretrained_model_path")
             whisper_model = HFWhisperModel.from_pretrained(model_path)
             self.encoder = whisper_model.encoder
             n_mels = self.encoder.num_mel_bins
             audio_dim_out = self.encoder.layers[0].embed_dim
-        elif isinstance(config.audio_processor, dict) and config.audio_processor.get("name") == "flash":
+        elif isinstance(config.audio_processor, Mapping) and config.audio_processor.get("name") == "flash":
             encoder_config = config.audio_processor.get("config")
             assert encoder_config is not None
             self.encoder = FlashEncoder(**encoder_config)

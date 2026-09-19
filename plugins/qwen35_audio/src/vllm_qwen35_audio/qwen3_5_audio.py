@@ -77,7 +77,7 @@ class AudioEmbedding(_AudioEmbeddingBase):
 
     def __init__(self, config, **kwargs):
         if not (
-            isinstance(config.audio_processor, dict)
+            isinstance(config.audio_processor, Mapping)
             and config.audio_processor.get("name") == "flash"
         ):
             super().__init__(config, **kwargs)
@@ -650,3 +650,4 @@ class Qwen3_5AudioForCausalLM(nn.Module, SupportsLoRA, HasInnerState, IsHybrid, 
     @classmethod
     def get_mamba_state_copy_func(cls):
         return Qwen3_5ForConditionalGeneration.get_mamba_state_copy_func()
+from collections.abc import Mapping
