@@ -19,7 +19,7 @@ References:
 
 import math
 import inspect
-from typing import Optional, List
+from typing import Optional
 
 import torch
 from torch import nn, Tensor
@@ -31,12 +31,14 @@ from collections import OrderedDict
 # Try to import flash_attn for optimal performance
 try:
     from flash_attn import flash_attn_func, flash_attn_varlen_func
-    from flash_attn.bert_padding import pad_input, unpad_input
+    from flash_attn.bert_padding import pad_input
     _flash_attn_available = True
     _flash_supports_window_size = "window_size" in list(inspect.signature(flash_attn_func).parameters)
+    _flash_varlen_supports_window_size = "window_size" in list(inspect.signature(flash_attn_varlen_func).parameters)
 except ImportError:
     _flash_attn_available = False
     _flash_supports_window_size = False
+    _flash_varlen_supports_window_size = False
 
 # Fused kernels (optional, toggled by use_fused_kernels config)
 try:
@@ -275,8 +277,9 @@ class TemporalConvFrontend(nn.Module):
         self,
         input_dim: int = 80,
         output_dim: int = 1024,
-        factors: Optional[List[int]] = None,
+        factors: Optional[list[int]] = None,
         kernel_size: int = 3,
+        mask_frontend_padding: bool = False,
     ):
         super().__init__()
         if factors is None:
@@ -287,6 +290,7 @@ class TemporalConvFrontend(nn.Module):
         self.output_dim = output_dim
         self.factors = factors
         self.downsample_rate = math.prod(factors)
+        self.mask_frontend_padding = mask_frontend_padding
 
         layers = []
         norms = []
@@ -306,7 +310,7 @@ class TemporalConvFrontend(nn.Module):
         self.kernel_size = kernel_size
 
     @staticmethod
-    def _factorize_window_size(window_size: int) -> List[int]:
+    def _factorize_window_size(window_size: int) -> list[int]:
         factors = []
         remaining = window_size
         while remaining > 1 and remaining % 2 == 0:
@@ -317,12 +321,18 @@ class TemporalConvFrontend(nn.Module):
         return factors or [1]
 
     def forward(self, mel: Tensor, mask: Optional[Tensor] = None):
-        x = mel.transpose(1, 2)
-
+        valid_lengths = None
         if mask is not None:
             if mask.dim() == 3:
                 mask = mask.squeeze(1)
-            mask = mask.float().unsqueeze(1)
+            if self.mask_frontend_padding:
+                mask = mask.bool()
+                valid_lengths = mask.sum(dim=-1).long()
+                mel = mel.masked_fill(~mask.unsqueeze(-1), 0)
+            else:
+                mask = mask.float().unsqueeze(1)
+
+        x = mel.transpose(1, 2)
 
         for i in range(len(self.conv_layers)):
             conv = self.conv_layers[f"conv_{i}"]
@@ -330,16 +340,31 @@ class TemporalConvFrontend(nn.Module):
             x = self.ln_layers[f"ln_{i}"](x.transpose(1, 2)).transpose(1, 2)
             x = F.gelu(x)
 
-            if mask is not None:
+            if valid_lengths is not None:
+                valid_lengths = torch.div(
+                    valid_lengths
+                    + 2 * conv.padding[0]
+                    - conv.dilation[0] * (conv.kernel_size[0] - 1)
+                    - 1,
+                    conv.stride[0],
+                    rounding_mode="floor",
+                ) + 1
+                valid_lengths = valid_lengths.clamp(min=0, max=x.size(-1))
+                mask = torch.arange(x.size(-1), device=x.device).unsqueeze(0) < valid_lengths.unsqueeze(1)
+                x = x * mask.unsqueeze(1).to(x.dtype)
+            elif mask is not None:
                 mask = F.max_pool1d(
                     mask,
                     kernel_size=conv.kernel_size[0],
                     stride=conv.stride[0],
                     padding=conv.padding[0],
                 )
+                x = x * (mask > 0).to(x.dtype)
 
         x = x.transpose(1, 2)
-        if mask is not None:
+        if valid_lengths is not None:
+            mask = mask.unsqueeze(1)
+        elif mask is not None:
             mask = (mask > 0).unsqueeze(1).squeeze(2)
         return x, mask
 
@@ -382,25 +407,36 @@ class LocalConvModule(nn.Module):
         right = self.kernel_size // 2
         return F.pad(hidden_states, (left, right))
 
-    def _forward_padded(self, hidden_states: Tensor) -> Tensor:
+    def _project_input(self, hidden_states: Tensor) -> Tensor:
         if self.in_proj is not None:
             hidden_states, gate = self.in_proj(hidden_states).chunk(2, dim=-1)
             hidden_states = hidden_states * F.silu(gate)
+        return hidden_states
 
+    def _forward_projected(self, hidden_states: Tensor) -> Tensor:
         hidden_states = hidden_states.transpose(1, 2)
         hidden_states = self.depthwise_conv(self._pad(hidden_states))
         hidden_states = hidden_states.transpose(1, 2)
         hidden_states = self.out_proj(hidden_states)
         return self.dropout(hidden_states)
 
+    def _forward_padded(self, hidden_states: Tensor) -> Tensor:
+        return self._forward_projected(self._project_input(hidden_states))
+
     def forward(
         self,
         hidden_states: Tensor,
         cu_seqlens: Optional[Tensor] = None,
         max_seqlen: Optional[int] = None,
+        padding_mask: Optional[Tensor] = None,
     ) -> Tensor:
         if cu_seqlens is None:
-            return self._forward_padded(hidden_states)
+            hidden_states = self._project_input(hidden_states)
+            if padding_mask is not None:
+                if padding_mask.dim() == 3:
+                    padding_mask = padding_mask.squeeze(1)
+                hidden_states = hidden_states * padding_mask.unsqueeze(-1).to(hidden_states.dtype)
+            return self._forward_projected(hidden_states)
 
         lengths = cu_seqlens[1:] - cu_seqlens[:-1]
         num_seqs = lengths.shape[0]
@@ -409,9 +445,10 @@ class LocalConvModule(nn.Module):
 
         positions = torch.arange(max_seqlen, device=hidden_states.device)
         mask = positions.unsqueeze(0) < lengths.unsqueeze(1)
+        hidden_states = self._project_input(hidden_states)
         padded = hidden_states.new_zeros(num_seqs, max_seqlen, hidden_states.shape[-1])
         padded[mask] = hidden_states
-        padded = self._forward_padded(padded)
+        padded = self._forward_projected(padded)
         return padded[mask]
 
 class TransformerEncoderLayer(nn.Module):
@@ -438,13 +475,16 @@ class TransformerEncoderLayer(nn.Module):
         local_conv_dropout: float = 0.0,
         ffn_activation: str = "swiglu",
         causal: bool = False,
+        head_dim: Optional[int] = None,
     ):
         super().__init__()
         assert ffn_activation in ("swiglu", "gelu"), f"Unsupported ffn_activation: {ffn_activation}"
         self.hidden_size = hidden_size
         self.num_attention_heads = num_attention_heads
         self.num_key_value_heads = num_key_value_heads or num_attention_heads
-        self.head_dim = hidden_size // num_attention_heads
+        self.head_dim = hidden_size // num_attention_heads if head_dim is None else head_dim
+        if not isinstance(self.head_dim, int) or self.head_dim <= 0 or self.head_dim % 2:
+            raise ValueError("head_dim must be a positive even integer for RoPE")
         self.num_key_value_groups = self.num_attention_heads // self.num_key_value_heads
         self.scaling = self.head_dim ** -0.5
         self.sliding_window = sliding_window
@@ -492,7 +532,7 @@ class TransformerEncoderLayer(nn.Module):
         self.post_attention_layernorm = RMSNorm(hidden_size, eps=rms_norm_eps)
 
         # FFN — SwiGLU by default, or Whisper/Voxtral-style GELU for audio encoder ablations.
-        if ffn_activation == "swiglu" and use_fused_kernels and _fused_swiglu_available:
+        if ffn_activation == "swiglu" and use_fused_kernels:
             self.gate_up_proj = _Linear(hidden_size, intermediate_size * 2, bias=False)
             self.gate_proj = None
             self.up_proj = None
@@ -611,6 +651,7 @@ class TransformerEncoderLayer(nn.Module):
                 query_states = query_states.to(torch.bfloat16)
                 key_states = key_states.to(torch.bfloat16)
                 value_states = value_states.to(torch.bfloat16)
+            flash_kwargs = {"window_size": window_size} if _flash_varlen_supports_window_size else {}
             attn_output = flash_attn_varlen_func(
                 query_states,
                 key_states,
@@ -622,7 +663,7 @@ class TransformerEncoderLayer(nn.Module):
                 dropout_p=dropout_p,
                 softmax_scale=self.scaling,
                 causal=self._causal,
-                window_size=window_size,
+                **flash_kwargs,
             )
             attn_output = attn_output.to(input_dtype)
             attn_output = attn_output.reshape(total_tokens, -1)
@@ -667,6 +708,7 @@ class TransformerEncoderLayer(nn.Module):
                 query_states = query_states.to(torch.bfloat16)
                 key_states = key_states.to(torch.bfloat16)
                 value_states = value_states.to(torch.bfloat16)
+            flash_kwargs = {"window_size": window_size} if _flash_supports_window_size else {}
             attn_output = flash_attn_func(
                 query_states,
                 key_states,
@@ -674,7 +716,7 @@ class TransformerEncoderLayer(nn.Module):
                 dropout_p=dropout_p,
                 softmax_scale=self.scaling,
                 causal=self._causal,
-                window_size=window_size,
+                **flash_kwargs,
             )
             # attn_output: (batch, seq, heads, dim)
             attn_output = attn_output.to(input_dtype).reshape(batch_size, seq_len, -1)
@@ -718,10 +760,14 @@ class TransformerEncoderLayer(nn.Module):
             return self.down_proj(self.act_fn(self.up_proj(hidden_states)))
 
         if self.gate_up_proj is not None:
-            # Fused: single matmul then split for fused swiglu activation
+            # Single matmul; use fused SwiGLU activation when available.
             gate_up = self.gate_up_proj(hidden_states)
             gate, up = gate_up.chunk(2, dim=-1)
-            return self.down_proj(_fused_swiglu(gate, up))
+            if _fused_swiglu_available:
+                hidden_states = _fused_swiglu(gate, up)
+            else:
+                hidden_states = self.act_fn(gate) * up
+            return self.down_proj(hidden_states)
         else:
             # Original: separate gate_proj + up_proj
             return self.down_proj(self.act_fn(self.gate_proj(hidden_states)) * self.up_proj(hidden_states))
@@ -735,6 +781,7 @@ class TransformerEncoderLayer(nn.Module):
         cu_seqlens: Optional[Tensor] = None,
         max_seqlen: Optional[int] = None,
         residual: Optional[Tensor] = None,
+        padding_mask: Optional[Tensor] = None,
     ) -> Tensor:
         if self._use_fused_kernels and _fused_rms_norm_available and not self.use_local_conv:
             # ── Fused path: residual-add + RMSNorm in one kernel ──
@@ -770,7 +817,7 @@ class TransformerEncoderLayer(nn.Module):
 
         # ── Original path: separate residual-add and norm ──
         hidden_states, residual = self._forward_attn(hidden_states, cos, sin, attention_mask, cu_seqlens, max_seqlen)
-        hidden_states = self._forward_ffn(hidden_states, residual, cu_seqlens, max_seqlen)
+        hidden_states = self._forward_ffn(hidden_states, residual, cu_seqlens, max_seqlen, padding_mask)
         return hidden_states
 
     def _forward_attn(
@@ -794,13 +841,19 @@ class TransformerEncoderLayer(nn.Module):
         residual: Tensor,
         cu_seqlens: Optional[Tensor] = None,
         max_seqlen: Optional[int] = None,
+        padding_mask: Optional[Tensor] = None,
     ):
         """FFN sub-block (for selective gradient checkpointing)."""
         hidden_states = residual + hidden_states
         if self.local_conv is not None:
             residual = hidden_states
             hidden_states = self._rms_norm(self.local_conv_layernorm, hidden_states)
-            hidden_states = self.local_conv(hidden_states, cu_seqlens, max_seqlen)
+            hidden_states = self.local_conv(
+                hidden_states,
+                cu_seqlens,
+                max_seqlen,
+                padding_mask=padding_mask,
+            )
             hidden_states = residual + hidden_states
 
         residual = hidden_states
@@ -830,6 +883,7 @@ class FlashEncoder(nn.Module):
         hidden_size: Hidden dimension of the transformer layers.
         num_attention_heads: Number of attention heads.
         num_key_value_heads: Number of KV heads (for GQA). Defaults to num_attention_heads (MHA).
+        head_dim: Attention head dimension. Defaults to hidden_size // num_attention_heads.
         intermediate_size: FFN intermediate size. Defaults to 4 * hidden_size.
         num_hidden_layers: Number of transformer layers.
         sliding_window: Sliding window size for attention (None = full attention).
@@ -845,6 +899,8 @@ class FlashEncoder(nn.Module):
         local_conv_kernel_size: Kernel size for the optional local Conv1D block.
         local_conv_use_glu: Whether to use a pointwise GLU before the depthwise Conv1D.
         local_conv_dropout: Dropout rate inside the optional local Conv1D block.
+        mask_frontend_padding: Mask raw mel padding and use exact temporal-frontend lengths.
+            Keep disabled for checkpoints trained with legacy padding semantics.
     """
 
     def __init__(
@@ -863,7 +919,7 @@ class FlashEncoder(nn.Module):
         max_position_embeddings: int = 131072,
         frontend_type: str = "lightpatch",
         frontend_window_size: int = 8,
-        frontend_downsample_factors: Optional[List[int]] = None,
+        frontend_downsample_factors: Optional[list[int]] = None,
         frontend_layers: Optional[list] = None,
         causal: bool = False,
         use_fused_kernels: bool = False,
@@ -871,6 +927,8 @@ class FlashEncoder(nn.Module):
         local_conv_kernel_size: int = 31,
         local_conv_use_glu: bool = False,
         local_conv_dropout: float = 0.0,
+        mask_frontend_padding: bool = False,
+        head_dim: Optional[int] = None,
         # Ignored kwargs for compatibility with ConformerEncoder config pattern
         **kwargs,
     ):
@@ -880,15 +938,31 @@ class FlashEncoder(nn.Module):
             intermediate_size = 4 * hidden_size
         if num_key_value_heads is None:
             num_key_value_heads = num_attention_heads
+        if head_dim is None:
+            assert hidden_size % num_attention_heads == 0, "hidden_size must be divisible by num_attention_heads"
+        self.head_dim = hidden_size // num_attention_heads if head_dim is None else head_dim
+        if not isinstance(self.head_dim, int) or self.head_dim <= 0 or self.head_dim % 2:
+            raise ValueError("head_dim must be a positive even integer for RoPE")
+        assert num_attention_heads % num_key_value_heads == 0, \
+            "num_attention_heads must be divisible by num_key_value_heads"
+        if sliding_window is not None and _flash_attn_available:
+            if not (_flash_supports_window_size and _flash_varlen_supports_window_size):
+                raise RuntimeError(
+                    "sliding_window requires a FlashAttention version whose padded and varlen kernels "
+                    "support window_size"
+                )
 
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_hidden_layers = num_hidden_layers
         self.causal = causal
         self.sliding_window = sliding_window
-        self.use_fused_kernels = use_fused_kernels and _flash_attn_available
+        # This controls parameter layout as well as kernel selection. Preserve the
+        # configured layout so checkpoints load even when FlashAttention is absent.
+        self.use_fused_kernels = use_fused_kernels
         self.use_local_conv = use_local_conv
         self.ffn_activation = ffn_activation
+        self.mask_frontend_padding = mask_frontend_padding
 
         # Frontend: default chunked LightPatch frontend; optionally use full-sequence temporal conv.
         if frontend_layers is None:
@@ -914,6 +988,7 @@ class FlashEncoder(nn.Module):
                 input_dim=input_size,
                 output_dim=hidden_size,
                 factors=frontend_downsample_factors,
+                mask_frontend_padding=mask_frontend_padding,
             )
             frontend_out_dim = self.frontend.output_dim
         else:
@@ -921,12 +996,15 @@ class FlashEncoder(nn.Module):
 
         # Input projection: frontend output -> hidden_size
         _Linear = _FusedDense if (self.use_fused_kernels and _fused_dense_available) else nn.Linear
-        self.input_proj = _Linear(frontend_out_dim, hidden_size, bias=False) if frontend_out_dim != hidden_size else nn.Identity()
+        self.input_proj = (
+            _Linear(frontend_out_dim, hidden_size, bias=False)
+            if frontend_out_dim != hidden_size
+            else nn.Identity()
+        )
 
         # RoPE
-        head_dim = hidden_size // num_attention_heads
         self.rotary_emb = RotaryEmbedding(
-            dim=head_dim,
+            dim=self.head_dim,
             max_position_embeddings=max_position_embeddings,
             base=rope_theta,
         )
@@ -948,6 +1026,7 @@ class FlashEncoder(nn.Module):
                 local_conv_dropout=local_conv_dropout,
                 ffn_activation=ffn_activation,
                 causal=causal,
+                head_dim=self.head_dim,
             )
             for _ in range(num_hidden_layers)
         ])
@@ -966,7 +1045,6 @@ class FlashEncoder(nn.Module):
         h, w = 1, window_size
         feat_dim = input_size
         for layer in frontend_layers:
-            out_dim = layer.get("out_dim", feat_dim) * 2  # conv output channels (before SwiGLU)
             kernel_size = tuple(layer.get("kernel_size", (3, 3)))
             stride = tuple(layer.get("stride", (1, 1)))
             padding = tuple(layer.get("padding", (1, 1)))
@@ -1131,6 +1209,10 @@ class FlashEncoder(nn.Module):
             output: (batch_size, subsampled_seq_len, hidden_size)
             masks: updated mask after subsampling
         """
+        if self.mask_frontend_padding and masks is not None:
+            padding_mask = masks.squeeze(1) if masks.dim() == 3 else masks
+            xs_pad = xs_pad.masked_fill(~padding_mask.bool().unsqueeze(-1), 0)
+
         # Frontend: 8x subsampling
         hidden_states, masks = self.frontend(xs_pad, masks)
 
@@ -1143,7 +1225,7 @@ class FlashEncoder(nn.Module):
         position_ids = torch.arange(seq_len, device=hidden_states.device)
 
         # RoPE embeddings — use fused format when fused kernels enabled
-        if self.use_fused_kernels and _fused_rotary_available:
+        if self.use_fused_kernels and _flash_attn_available and _fused_rotary_available:
             cos, sin = self.rotary_emb.forward_fused(hidden_states, position_ids)
         else:
             cos, sin = self.rotary_emb(hidden_states, position_ids)
@@ -1170,6 +1252,7 @@ class FlashEncoder(nn.Module):
         else:
             # SDPA fallback: build explicit attention mask if needed
             attention_mask = None
+            pad_mask = None
 
             if self.causal or self.sliding_window is not None:
                 attention_mask = self._build_sdpa_mask(seq_len, hidden_states.device, hidden_states.dtype)
@@ -1189,11 +1272,17 @@ class FlashEncoder(nn.Module):
             for layer in self.layers:
                 if self._gradient_checkpointing and self.training:
                     hidden_states = torch.utils.checkpoint.checkpoint(
-                        layer, hidden_states, cos, sin, attention_mask, None, None,
+                        layer, hidden_states, cos, sin, attention_mask, None, None, None, pad_mask,
                         use_reentrant=False,
                     )
                 else:
-                    hidden_states = layer(hidden_states, cos, sin, attention_mask=attention_mask)
+                    hidden_states = layer(
+                        hidden_states,
+                        cos,
+                        sin,
+                        attention_mask=attention_mask,
+                        padding_mask=pad_mask,
+                    )
 
             hidden_states = self.norm(hidden_states)
 
@@ -1222,7 +1311,7 @@ class FlashEncoder(nn.Module):
 
         # RoPE: compute for max_seqlen positions
         position_ids = torch.arange(max_seqlen, device=hidden_states.device)
-        if self.use_fused_kernels and _fused_rotary_available:
+        if self.use_fused_kernels and _flash_attn_available and _fused_rotary_available:
             cos, sin = self.rotary_emb.forward_fused(hidden_states, position_ids)
         else:
             cos, sin = self.rotary_emb(hidden_states, position_ids)
