@@ -5,6 +5,7 @@ hydra:
 defaults:
   - base
   - data/train_data/mix_cv15_all_openml_verb
+  - /data/val_data/mixlang_openml_earning
   - _self_
 
 reward_functions:
