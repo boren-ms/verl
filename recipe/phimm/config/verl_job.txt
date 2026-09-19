@@ -1,9 +1,9 @@
-updated_at_utc: 2026-09-19T03:17:48Z
+updated_at_utc: 2026-09-19T03:19:39Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ i0           │ raysubmit_eDAarkxBupdwGD2s   │ RUNNING       │ eval_2609_openasr_verb                                           │ evaluating ls_clean (scoring)│
+│ i0           │ raysubmit_eDAarkxBupdwGD2s   │ RUNNING       │ eval_2609_openasr_verb                                           │ evaluating ls_other (scoring)│
 │ i1           │ raysubmit_wu4umXFBMKzKXfbT   │ RUNNING       │ eval_2607v1a_openasr_verb@earning_verb_step830                   │ evaluating ami (gen)         │
 │ i2           │ raysubmit_B8PH4YQjR4sq9USs   │ RUNNING       │ remax_2607v1a_earning_fy27_gpt_tagged_verb_s1k_bs128_v0_cut01   │ training 561/1000 (56.1%)    │
 │ i3           │ raysubmit_y2JCAYSQmG4qEmpq   │ RUNNING       │ remax_2607v1a_earning_fy27_gpt_tagged_s1k_bs128_v0_cut01         │ training 274/1000 (27.4%)    │
