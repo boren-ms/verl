@@ -150,10 +150,14 @@ def test_lang_asr_verb_uses_verbatim_prompt_and_output_format():
     assert resolve_task_language(task="lang_asr_verb_en") == "English"
 
 
-def test_get_task_prompt_supports_2609_known_language():
+@pytest.mark.parametrize("version", [2607, 2609])
+def test_get_task_prompt_supports_known_language_for_all_versions(version):
     assert get_task_prompt(
-        task="lang_asr", rand=False, version=2609, lang="English"
-    ) == "Transcribe the audio clip into text.<audio>\nThe language is English."
+        task="lang_asr", rand=False, version=version, lang="English"
+    ) == (
+        "Detect the language and transcribe the audio clip into text.<audio>\n"
+        "The language is English."
+    )
 
 
 def test_get_task_prompt_supports_2609_known_languages_and_mode():
@@ -163,7 +167,7 @@ def test_get_task_prompt_supports_2609_known_languages_and_mode():
         version=2609,
         lang="English Spanish",
     ) == (
-        "Transcribe the audio clip into text. "
+        "Detect the language and transcribe the audio clip into text. "
         "Transcribe verbatim, including all filler words and disfluencies.<audio>\n"
         "The languages are English and Spanish."
     )

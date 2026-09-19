@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - /data/val_data/earnings_aa_chunked
+  - /data/val_data/earnings_aa_chunked_langhint
   - _self_
 
 nccl_timeout: 3600

@@ -1870,6 +1870,7 @@ def add_task_info(ds, **kwargs):
     language = kwargs.get("language", "English")
     prompt_suffix = kwargs.get("prompt_suffix", "")
     prefix_prob = float(kwargs.get("prefix_prob", 0.0))
+    lang_hint = kwargs.get("lang_hint", False)
 
     def add_task_info_fn(egs):
         lang = resolve_task_language(task, lang=egs.get("language") or language)
@@ -1878,7 +1879,7 @@ def add_task_info(ds, **kwargs):
             task=task,
             rand=rand,
             version=version,
-            lang=lang if prefix and str(version) != "2607" else None,
+            lang=lang if lang_hint else None,
         )
         prompt = f"{prompt}{prompt_suffix}"
         gt_output = get_task_output(

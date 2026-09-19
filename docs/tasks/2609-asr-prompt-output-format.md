@@ -19,7 +19,7 @@ The 2609 format places the task instruction before `<audio>`.
 For known-language prompts, the language hint follows the audio token:
 
 ```text
-Transcribe the audio clip into text.<audio>
+Detect the language and transcribe the audio clip into text.<audio>
 The language is Chinese.
 ```
 
@@ -31,13 +31,13 @@ Detect the language and transcribe the audio clip into text.<audio>
 
 ## Known-Language ASR
 
-Known-language mode is selected when the assistant prefix is enabled by
-`prefix_prob`.
+Known-language mode is selected by setting `lang_hint: true`. This setting
+applies to every prompt-format version and is independent of `prefix_prob`.
 
 ### Prompt
 
 ```text
-Transcribe the audio clip into text.<audio>
+Detect the language and transcribe the audio clip into text.<audio>
 The language is Chinese.
 ```
 
@@ -90,7 +90,7 @@ For a sample labeled with multiple languages, the prompt uses a plural
 language hint:
 
 ```text
-Transcribe the audio clip into text.<audio>
+Detect the language and transcribe the audio clip into text.<audio>
 The languages are English and Spanish.
 ```
 
@@ -152,7 +152,7 @@ The parser returns one dictionary for each segment:
 ### Known-language prompt
 
 ```text
-Transcribe the audio clip into text. Output must be in lexical format.<audio>
+Detect the language and transcribe the audio clip into text. Output must be in lexical format.<audio>
 The language is English.
 ```
 
@@ -314,12 +314,20 @@ add_task_info:
   task: lang_asr
   version: 2609
   prefix_prob: 0.5
+  lang_hint: true
 ```
 
-`prefix_prob` controls known-language mode:
+`prefix_prob` controls only the assistant language prefix:
 
-- `1.0`: always include the assistant language prefix and put the language hint
-  after `<audio>`.
-- `0.0`: never include an assistant prefix; ask the model to detect the
-  language.
-- A value between `0.0` and `1.0`: randomly mix both modes.
+- `1.0`: always include the assistant language prefix.
+- `0.0`: never include an assistant prefix.
+- A value between `0.0` and `1.0`: randomly mix prefixed and unprefixed
+  completions.
+
+`lang_hint` controls only the prompt:
+
+- `true`: provide the known language after `<audio>`.
+- `false`: ask the model to detect the language.
+
+For example, set `lang_hint: true` with `prefix_prob: 0.0` to include the
+language hint without adding an assistant prefix.

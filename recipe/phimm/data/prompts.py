@@ -126,9 +126,7 @@ def get_task_prompt(task="asr", rand=False, version=None, lang=None):
         prompt = rand_prompt(LANG_ASR_PROMPTS, rand=rand)
     else:
         raise ValueError(f"Unknown task: {task}")
-    if str(version) != "2607" and task.startswith("lang_asr") and lang:
-        prompt = prompt.replace("Detect the language and ", "", 1)
-        prompt = f"{prompt[:1].upper()}{prompt[1:]}"
+    if task.startswith("lang_asr") and lang:
         language_hint = _format_2609_language_hint(lang)
         if language_hint:
             prompt = f"{prompt}<audio>\n{language_hint}"

@@ -40,7 +40,7 @@ def test_format_asr_prompt_uses_2607_audio_placement():
 
 
 def test_format_asr_prompt_preserves_2609_audio_placement():
-    prompt = "Transcribe the audio clip into text.<audio>\nThe language is Chinese."
+    prompt = "Detect the language and transcribe the audio clip into text.<audio>\nThe language is Chinese."
 
     assert format_asr_prompt(prompt) == prompt
 
@@ -76,10 +76,11 @@ def test_add_task_info_supports_2609_prompt_prefix_and_completion():
         language="French",
         version=2609,
         prefix_prob=1.0,
+        lang_hint=True,
     )
 
     assert dataset.example["prompt"] == (
-        "Transcribe the audio clip into text.<audio>\nThe language is French."
+        "Detect the language and transcribe the audio clip into text.<audio>\nThe language is French."
     )
     assert dataset.example["prefix"] == "<src=French><tgt=French>\n"
     assert dataset.example["gt_output"] == "<TXT>bonjour</TXT>"
@@ -104,12 +105,14 @@ def test_add_task_info_supports_2609_detect_language_prompt():
 
 
 @pytest.mark.parametrize(
-    ("task", "prefix_prob", "expected_prompt", "expected_prefix", "expected_output"),
+    ("task", "prefix_prob", "lang_hint", "expected_prompt", "expected_prefix", "expected_output"),
     [
         (
             "lang_asr_lex",
             1.0,
-            "Transcribe the audio clip into text. Output must be in lexical format.<audio>\n"
+            True,
+            "Detect the language and transcribe the audio clip into text. "
+            "Output must be in lexical format.<audio>\n"
             "The language is French.",
             "<src=French><tgt=French>\n",
             "<LEXICAL>\n<TXT>bonjour</TXT>",
@@ -117,6 +120,7 @@ def test_add_task_info_supports_2609_detect_language_prompt():
         (
             "lang_asr_verb",
             0.0,
+            False,
             "Detect the language and transcribe the audio clip into text. "
             "Transcribe verbatim, including all filler words and disfluencies.<audio>",
             "",
@@ -127,6 +131,7 @@ def test_add_task_info_supports_2609_detect_language_prompt():
 def test_add_task_info_supports_2609_mode_prompt_and_completion(
     task,
     prefix_prob,
+    lang_hint,
     expected_prompt,
     expected_prefix,
     expected_output,
@@ -137,6 +142,7 @@ def test_add_task_info_supports_2609_mode_prompt_and_completion(
         language="French",
         version=2609,
         prefix_prob=prefix_prob,
+        lang_hint=lang_hint,
     )
 
     assert dataset.example["prompt"] == expected_prompt
@@ -148,6 +154,46 @@ def test_add_task_info_allows_language_prefix_opt_out():
     dataset = add_task_info(MinimalDataset(), task="lang_asr", language="French", prefix_prob=0.0)
 
     assert dataset.example["prefix"] == ""
+
+
+@pytest.mark.parametrize("version", [2607, 2609])
+def test_add_task_info_allows_lang_hint_without_prefix(version):
+    dataset = add_task_info(
+        MinimalDataset(),
+        task="lang_asr",
+        language="French",
+        version=version,
+        prefix_prob=0.0,
+        lang_hint=True,
+    )
+
+    assert dataset.example["prompt"] == (
+        "Detect the language and transcribe the audio clip into text.<audio>\nThe language is French."
+    )
+    assert dataset.example["prefix"] == ""
+
+
+@pytest.mark.parametrize(
+    ("version", "expected_prefix"),
+    [
+        (2607, "Audio Language: French\n"),
+        (2609, "<src=French><tgt=French>\n"),
+    ],
+)
+def test_add_task_info_prefix_does_not_enable_lang_hint(version, expected_prefix):
+    dataset = add_task_info(
+        MinimalDataset(),
+        task="lang_asr",
+        language="French",
+        version=version,
+        prefix_prob=1.0,
+        lang_hint=False,
+    )
+
+    assert dataset.example["prompt"] == (
+        "Detect the language and transcribe the audio clip into text.<audio>"
+    )
+    assert dataset.example["prefix"] == expected_prefix
 
 
 def test_add_task_info_uses_2607_multilingual_components():
