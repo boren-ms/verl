@@ -41,6 +41,18 @@ def test_load_raw_audio_skips_overlapping_edge_relative_cuts(tmp_path, caplog):
     assert "Skipping overlapping edge cuts" in caplog.text
 
 
+def test_load_raw_audio_skips_edge_cuts_leaving_too_little_audio(tmp_path, caplog):
+    audio_path = tmp_path / "sample.wav"
+    sf.write(audio_path, np.arange(1000, dtype=np.float32) / 1000, 1000)
+
+    audio, sample_rate = load_raw_audio({"audio_path": f"{audio_path}#0.47:-0.43"})
+
+    assert sample_rate == 1000
+    assert len(audio) == 1000
+    assert "Skipping edge cuts" in caplog.text
+    assert "leave only 0.100s" in caplog.text
+
+
 def test_load_raw_audio_slices_nested_chunk_spec(monkeypatch):
     source = np.arange(1000, dtype=np.float32)
     monkeypatch.setattr(audio_module, "_chunk_load_mode", "sample")
