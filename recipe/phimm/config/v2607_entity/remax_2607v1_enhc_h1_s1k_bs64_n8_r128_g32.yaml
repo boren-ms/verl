@@ -39,4 +39,3 @@ trainer:
   nnodes: 4
   total_epochs: 15
   total_training_steps: 1000
-  save_freq: 20

@@ -161,8 +161,8 @@ trainer:
   nnodes: 1
   total_epochs: 4
   total_training_steps: 200
-  test_freq: 10
-  save_freq: 10
+  test_freq: 50
+  save_freq: 50
   resume_mode: auto
   default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
