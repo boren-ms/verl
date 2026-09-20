@@ -1,14 +1,14 @@
-updated_at_utc: 2026-09-20T00:52:36Z
+updated_at_utc: 2026-09-20T17:35:21Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ n4-i0        │ raysubmit_XdPK2EpAgEVxUL2e   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s1k_bs256_v0_cut01_g32          │ training 335/1000 (33.5%)    │
-│ n4-i1        │ raysubmit_TpyWu5qFtVSP9ccC   │ RUNNING       │ remax_2607v1a_earning_fy27_s1k_bs128_v0_g32                     │ training 261/1000 (26.1%)    │
-│ n4-i3        │ raysubmit_Q1kND9DiPqAifHhE   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s1k_bs128_v0_n8_g32             │ training 363/1000 (36.3%)    │
+│ n4-i0        │ raysubmit_wkg2nV89DbALPSte   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s1k_bs256_v0_cut01_g32          │ training 650/1000 (65.0%)    │
+│ n4-i1        │ raysubmit_TpyWu5qFtVSP9ccC   │ RUNNING       │ remax_2607v1a_earning_fy27_s1k_bs128_v0_g32                     │ training 462/1000 (46.2%)    │
+│ n4-i3        │ raysubmit_Q1kND9DiPqAifHhE   │ RUNNING       │ remax_2607v1a_earning_fy27_verb_s1k_bs128_v0_n8_g32             │ training 714/1000 (71.4%)    │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────┘
 
 Reports:
-- remax_2607v1a_earning_fy27_verb_s1k_bs256_v0_cut01_g32 [`n4-i0`]: training 335/1000 (33.5%)
-- remax_2607v1a_earning_fy27_s1k_bs128_v0_g32 [`n4-i1`]: training 261/1000 (26.1%)
-- remax_2607v1a_earning_fy27_verb_s1k_bs128_v0_n8_g32 [`n4-i3`]: training 363/1000 (36.3%)
+- remax_2607v1a_earning_fy27_verb_s1k_bs256_v0_cut01_g32 [`n4-i0`]: training 650/1000 (65.0%)
+- remax_2607v1a_earning_fy27_s1k_bs128_v0_g32 [`n4-i1`]: training 462/1000 (46.2%)
+- remax_2607v1a_earning_fy27_verb_s1k_bs128_v0_n8_g32 [`n4-i3`]: training 714/1000 (71.4%)
