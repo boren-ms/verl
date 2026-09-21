@@ -12,6 +12,8 @@ data:
   # Use a fresh output_path when rerunning older multi-source outputs made with training interleaving.
   # Pipeline failures propagate to the job; completed output splits remain available for resume.
   # Buffered batches are flushed on success, not during failure cleanup.
+  # Output keywords use a string-list schema, including batches with only empty or null keywords.
+  # Scoring uses each sample's extra_info (language, keywords); use a fresh output_path to rescore older outputs.
   path: null
   batch_size: 512              # large dispatch -> vLLM stays saturated end-to-end
   output_split_size: 20000      # fewer parquet writes; larger chunks per blob upload

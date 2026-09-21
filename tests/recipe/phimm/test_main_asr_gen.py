@@ -127,7 +127,8 @@ def generation_pipeline(tmp_path):
     progress = Progress()
 
     def prepare(batch):
-        return SimpleNamespace(batch=batch["prompt"], non_tensor_batch={}, row_id=batch["extra_info"][0]["id"])
+        extra_info = batch.get("extra_info", [{}])[0] or {}
+        return SimpleNamespace(batch=batch["prompt"], non_tensor_batch={}, row_id=extra_info.get("id"))
 
     def generate(data):
         return [
@@ -138,6 +139,7 @@ def generation_pipeline(tmp_path):
                     "responses": np.array([2]),
                 }
             )
+            for _ in data.batch
         ]
 
     namespace = {
@@ -146,6 +148,8 @@ def generation_pipeline(tmp_path):
         "uuid": uuid,
         "logging": logging,
         "Dataset": datasets.Dataset,
+        "Sequence": datasets.Sequence,
+        "Value": datasets.Value,
         "concatenate_datasets": datasets.concatenate_datasets,
         "DataProto": SimpleNamespace(from_single_dict=prepare),
         "pad_dataproto_to_divisor": lambda data, divisor: (data, 0),
@@ -208,6 +212,71 @@ def _generation_batches(count):
             "audio_path": [f"{index}.wav"],
             "extra_info": [{"id": index}],
         }
+
+
+def test_generation_scores_each_rows_language_and_keywords(generation_pipeline):
+    from recipe.phimm.reward.asr_edge import eval_score
+    from recipe.phimm.reward.asr_response import get_hyp_text
+
+    examples = [
+        ("Spanish", "hola mundo", "hola", ["mundo"]),
+        ("German", "die 100 dollar", "die one hundred dollars", []),
+        ("English", "hello world", "hello world", ["hello"]),
+    ]
+    rows = list(_generation_batches(len(examples)))
+    responses = []
+    expected = []
+    for row, (language, reference, hypothesis, keywords) in zip(rows, examples, strict=True):
+        row["reward_model"][0]["ground_truth"] = reference
+        extra_info = row["extra_info"][0]
+        extra_info.update(language=language, keywords=keywords)
+        response = f"Audio Language: {language}.\n<ASR><lang={language}><TXT>{hypothesis}</TXT></ASR>"
+        responses.append(response)
+        expected.append(eval_score(response, reference, extra_info=extra_info, version=2607))
+    batch = {key: [row[key][0] for row in rows] for key in rows[0]}
+    decoded = iter(responses)
+    namespace = generation_pipeline.namespace
+    namespace["tokenizer"].decode = lambda *args, **kwargs: next(decoded)
+    namespace["eval_score"] = eval_score
+    namespace["get_hyp_text"] = get_hyp_text
+    namespace["wer_kwargs"] = {"version": 2607}
+
+    result = generation_pipeline.run([batch], total=len(examples))
+
+    assert result.error is None
+    saved = datasets.Dataset.from_parquet(str(generation_pipeline.output_dir / "part-000.parquet"))
+    assert "extra_info" not in saved.column_names
+    assert list(saved["language"]) == [example[0] for example in examples]
+    assert list(saved["keywords"]) == [example[3] for example in examples]
+    assert list(saved["raw_response"]) == responses
+    assert list(saved["response"]) == [example[2] for example in examples]
+    for actual, score in zip(saved, expected, strict=True):
+        assert {key: actual[key] for key in score} == score
+    assert list(saved["wer"]) == [0.5, 1.0, 0.0]
+    assert list(saved["p_lang"]) == [1.0, 1.0, 1.0]
+    assert list(saved["p_kw_missing"]) == [1.0, 0.0, 0.0]
+
+
+@pytest.mark.parametrize("metadata", ["missing", None, {}])
+def test_generation_scoring_handles_missing_metadata(generation_pipeline, metadata):
+    rows = list(_generation_batches(1))
+    if metadata == "missing":
+        rows[0].pop("extra_info")
+    else:
+        rows[0]["extra_info"] = [metadata]
+    received = []
+
+    def score(*args, **kwargs):
+        received.append(kwargs)
+        return {"n_err": 0, "n_ref": 1, "n_edge": 0}
+
+    generation_pipeline.namespace["eval_score"] = score
+    generation_pipeline.namespace["wer_kwargs"] = {"version": 2607, "language": "Spanish"}
+
+    result = generation_pipeline.run(rows, total=1)
+
+    assert result.error is None
+    assert received == [{"version": 2607, "language": "Spanish", "extra_info": {}}]
 
 
 def test_generation_propagates_producer_failure(generation_pipeline):
@@ -356,3 +425,38 @@ def test_generation_success_preserves_output_and_flushes_last_split(generation_p
     assert list(saved["id"]) == list(range(already_saved, 5))
     assert list(saved["response"]) == ["hello"] * (5 - already_saved)
     assert generation_pipeline.progress.updates == 5 - already_saved
+
+
+@pytest.mark.parametrize("split_size", [1, 2, 3])
+@pytest.mark.parametrize(
+    "keywords",
+    [
+        [[], ["hello"]],
+        [["hello"], []],
+        [None, ["hello"]],
+        [[], []],
+        [[None], ["hello"]],
+    ],
+    ids=["empty-first", "empty-last", "null-column", "all-empty", "null-element"],
+)
+def test_generation_preserves_keyword_schema_across_batches(generation_pipeline, keywords, split_size):
+    rows = list(_generation_batches(len(keywords)))
+    for index, (row, values) in enumerate(zip(rows, keywords, strict=True)):
+        row["extra_info"][0].update(keywords=values, optional_count=None if index == 0 else 1)
+    generation_pipeline.namespace["split_size"] = split_size
+
+    result = generation_pipeline.run(rows, total=len(rows))
+
+    assert result.error is None
+    assert "All Done" in result.output
+    parts = sorted(generation_pipeline.output_dir.glob("part-*.parquet"))
+    assert len(parts) == math.ceil(len(rows) / split_size)
+    saved_parts = [datasets.Dataset.from_parquet(str(part)) for part in parts]
+    for saved_part in saved_parts:
+        assert saved_part.features["keywords"].feature == datasets.Value("string")
+    saved = datasets.concatenate_datasets(saved_parts)
+    assert list(saved["id"]) == [0, 1]
+    assert list(saved["keywords"]) == keywords
+    assert list(saved["optional_count"]) == [None, 1]
+    assert saved.features["optional_count"] == datasets.Value("int64")
+    assert list(saved["response"]) == ["hello", "hello"]

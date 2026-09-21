@@ -29,9 +29,9 @@ def measure_openasr_en_wer(hyp_text, ground_truth):
 
 
 def non_speech_eval(solution_str, ground_truth, **kwargs):
-    """Evaluate non-speech audio by requiring the ``<nonspeech>`` token."""
+    """Evaluate non-speech audio by requiring an empty cleaned hypothesis."""
     hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
-    n_err = int(hyp_text.strip() != "<nonspeech>")
+    n_err = int(bool(hyp_text.strip()))
     return {
         "score": 1.0 - n_err,
         "wer": float(n_err),

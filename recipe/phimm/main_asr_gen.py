@@ -31,7 +31,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 # os.environ['TORCH_COMPILE_DISABLE'] = '1'
 import uuid
 from pprint import pprint
-from datasets import Dataset, concatenate_datasets
+from datasets import Dataset, Sequence, Value, concatenate_datasets
 from omegaconf import OmegaConf
 from torch.utils.data import Subset
 from torchdata.stateful_dataloader import StatefulDataLoader
@@ -306,7 +306,7 @@ def main_task(config):
                     [str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object
                 )
             data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
-            if not put_item(prep_queue, (global_batch_idx, n_egs, data_padded, pad_size, results)):
+            if not put_item(prep_queue, (global_batch_idx, n_egs, data_padded, pad_size, results, extras)):
                 return
         put_item(prep_queue, _SENTINEL)
 
@@ -317,14 +317,15 @@ def main_task(config):
             item = get_item(post_queue)
             if item is _SENTINEL:
                 break
-            output, results = item
+            output, results, extras = item
             for i in range(len(output)):
                 data_item = output[i]
                 prompt_length = data_item.batch["prompts"].shape[-1]
                 valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
                 valid_response_ids = data_item.batch["responses"][:valid_response_length]
                 response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
-                score = eval_score(response_str, results[i]["text"], **wer_kwargs)
+                score_kwargs = {**wer_kwargs, "extra_info": extras[i] or {}}
+                score = eval_score(response_str, results[i]["text"], **score_kwargs)
                 score["response"] = get_hyp_text(response_str, version=wer_kwargs.get("version"))
                 score["raw_response"] = response_str
                 results[i].update(score)
@@ -332,6 +333,11 @@ def main_task(config):
             tn_ref += sum(r["n_ref"] for r in results)
             tn_edge += sum(r["n_edge"] for r in results)
             b_ds = Dataset.from_list(results)
+            if "keywords" in b_ds.features:
+                features = b_ds.features
+                features["keywords"] = Sequence(Value("string"))
+                if features != b_ds.features:
+                    b_ds = b_ds.cast(features)
             log_examples(b_ds, num_examine=num_examine)
             local_batches.append(b_ds)
             if stopped.is_set():
@@ -351,11 +357,11 @@ def main_task(config):
             item = get_item(prep_queue)
             if item is _SENTINEL:
                 break
-            global_batch_idx, n_egs, data_padded, pad_size, results = item
+            global_batch_idx, n_egs, data_padded, pad_size, results, extras = item
             print(f"\n(Batch {global_batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
             output_padded = wg.generate_sequences(data_padded)
             output = unpad_dataproto(output_padded, pad_size=pad_size)
-            if not put_item(post_queue, (output, results)):
+            if not put_item(post_queue, (output, results, extras)):
                 return
             pbar.update(1)
         put_item(post_queue, _SENTINEL)
