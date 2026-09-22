@@ -36,7 +36,7 @@ def add_input_arguments(
     parser.add_argument(
         "--model",
         default=_env_default(model_env_names, default_model_path),
-        help="Path to the converted Qwen3.5-Audio HuggingFace checkpoint.",
+        help="Hugging Face model ID, local checkpoint path, or az:// checkpoint path.",
     )
     parser.add_argument(
         "--audio",

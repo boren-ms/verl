@@ -73,6 +73,21 @@ Audio Language: English
 <ASR><lang=English><TXT>The advocates of a criminal are seldom artists enough to turn the beautiful terribleness of the deed to the advantage of the doer.</TXT></ASR>
 ```
 
+### Whisper Small
+
+The same default LibriSpeech sample can be decoded with vLLM's built-in
+`openai/whisper-small` support. The default model is an internal Blob mirror,
+so the smoke test also works on Brix nodes without Hugging Face access:
+
+```bash
+cd plugins/qwen35_audio
+python scripts/run_whisper_vllm.py
+```
+
+Use `--language auto` for language detection, or repeat `--audio` and use
+`--audio-folder` for batch decoding. The script uses the same result markers as
+the Qwen3.5-Audio smoke tests.
+
 ## Basic Inference
 
 ```python
