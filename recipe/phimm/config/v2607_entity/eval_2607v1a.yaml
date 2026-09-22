@@ -1,0 +1,11 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2607_entity/remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16/global_step_1000/qwen_hf/
