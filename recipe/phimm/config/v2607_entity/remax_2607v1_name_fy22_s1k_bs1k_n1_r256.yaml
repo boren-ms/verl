@@ -25,12 +25,8 @@ reward_function_by_data_source:
   name_train: asr_measure
 
 actor_rollout_ref:
-  rollout:
-    n: 1
-    gpu_memory_utilization: 0.65
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
-    lora_rank: 256
 
 data:
   train_batch_size: 1024
@@ -38,5 +34,3 @@ data:
 trainer:
   total_epochs: 1
   total_training_steps: 1000
-  test_freq: 50
-  save_freq: 50

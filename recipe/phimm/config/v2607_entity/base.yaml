@@ -45,9 +45,9 @@ val_reward:
 actor_rollout_ref:
   nccl_timeout: 3600
   rollout:
-    n: 16
+    n: 1
     gt_rollout: false
-    temperature: 1.2
+    temperature: 1.0
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.9
@@ -99,7 +99,7 @@ actor_rollout_ref:
     trust_remote_code: false
     use_remove_padding: true
     use_fused_kernels: false
-    lora_rank: 64
+    lora_rank: 256
     lora_alpha: ${eval:${actor_rollout_ref.model.lora_rank}*2}
     trainable_params: null
     target_modules: "model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*"
