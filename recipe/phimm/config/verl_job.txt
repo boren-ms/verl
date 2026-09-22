@@ -1,16 +1,15 @@
-updated_at_utc: 2026-09-22T22:02:00Z
+updated_at_utc: 2026-09-22T22:14:50Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
-│ i0           │ raysubmit_iDGiTRDPJ5J7G3Md   │ SUCCEEDED     │ eval_2607                                                        │ name_val p_err=71.5266; kw_acc=1.0000        │
+│ i0           │ raysubmit_5nunrNdmRFhRnKLL   │ RUNNING       │ eval_2609_openasr_verb                                           │ evaluating ls_clean (model startup)           │
 │ i1           │ raysubmit_WvSX1e3MKks62Saf   │ SUCCEEDED     │ eval_2607v1a                                                     │ name_val p_err=71.5378; kw_acc=1.0000        │
-│ i2           │ raysubmit_EkvqqzPf2NwtuHAg   │ RUNNING       │ eval_2609_openasr_verb_langhint                                   │ evaluating ls_clean (model startup)           │
+│ i2           │ raysubmit_EkvqqzPf2NwtuHAg   │ RUNNING       │ eval_2609_openasr_verb_langhint                                   │ evaluating ls_clean (loading audio)           │
 │ i3           │ raysubmit_XqDtWU31icaBFP6x   │ RUNNING       │ eval_2607v1a_openasr_verb_step650                                │ evaluating spgispeech (loading)               │
-│ n2-i0        │ raysubmit_4cTLEsEKhwWTFPZM   │ RUNNING       │ remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16                     │ training 1/1000 (0.1%)                       │
+│ n2-i0        │ raysubmit_4cTLEsEKhwWTFPZM   │ RUNNING       │ remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16                     │ training 2/1000 (0.2%)                       │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
-- `eval_2607` [`i0`]: name_val p_err/WER=71.5266, kw_acc=1.0000, nb_err=5.7475; 10,000 generations.
 - `eval_2607v1a` [`i1`]: name_val p_err/WER=71.5378, kw_acc=1.0000, nb_err=5.7374; 10,000 generations.
-- `remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16` [`n2-i0`]: training 1/1000 (0.1%)
+- `remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16` [`n2-i0`]: training 2/1000 (0.2%)
