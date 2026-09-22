@@ -15,6 +15,7 @@
 Generate responses given a dataset of prompts
 """
 
+import logging
 import math
 import os
 import re
@@ -30,7 +31,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 # os.environ['TORCH_COMPILE_DISABLE'] = '1'
 import uuid
 from pprint import pprint
-from datasets import Dataset, concatenate_datasets
+from datasets import Dataset, Sequence, Value, concatenate_datasets
 from omegaconf import OmegaConf
 from torch.utils.data import Subset
 from torchdata.stateful_dataloader import StatefulDataLoader
@@ -178,7 +179,7 @@ def main_task(config):
     num_examine = config.data.get("eval_num_examine", 1)
     ds_conf = config.data.get("gen_data", config.data.get("train_data", config.data.get("val_data", None)))
     assert ds_conf is not None, "Please specify data.gen_data or data.train_data or data.val_data in the config"
-    dataset = RLHFDataset(ds_conf, tokenizer, config.data, processor)
+    dataset = RLHFDataset(ds_conf, tokenizer, config.data, processor, is_train=False)
     print(f"Loaded RLHFDataset with {len(dataset)} samples.")
 
     output_dir = config.data.get("output_path", None)
@@ -253,88 +254,137 @@ def main_task(config):
     prep_queue: _queue.Queue = _queue.Queue(maxsize=max(1, prefetch_depth))
     post_queue: _queue.Queue = _queue.Queue(maxsize=max(1, prefetch_depth))
     _SENTINEL = object()
+    stopped = threading.Event()
+    errors = _queue.SimpleQueue()
+
+    def put_item(target_queue, item):
+        while not stopped.is_set():
+            try:
+                target_queue.put(item, timeout=0.1)
+                return True
+            except _queue.Full:
+                continue
+        return False
+
+    def get_item(source_queue):
+        while not stopped.is_set():
+            try:
+                return source_queue.get(timeout=0.1)
+            except _queue.Empty:
+                continue
+        return _SENTINEL
+
+    def run_stage(stage):
+        try:
+            stage()
+        except BaseException as exc:
+            errors.put(exc)
+            stopped.set()
+            logging.getLogger(__name__).exception("Generation pipeline stage %s failed", stage.__name__)
 
     def producer():
-        try:
-            for batch_idx, batch_dict in enumerate(dataloader):
-                global_batch_idx = start_batch_idx + batch_idx
-                prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
-                texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
-                n_egs = len(texts)
-                audio_paths = batch_dict.get("audio_path", [None] * n_egs)
-                audio_chunks = batch_dict.get("audio_chunk", [None] * n_egs)
-                extras = batch_dict.get("extra_info", [{}] * n_egs)
-                results = []
-                for i in range(n_egs):
-                    r = {"prompt": prompts[i], "text": texts[i],
-                         "audio_path": audio_paths[i], "audio_chunk": audio_chunks[i]}
-                    if extras[i]:
-                        r.update(extras[i])
-                    results.append(r)
-                data = DataProto.from_single_dict(batch_dict)
-                if "uid" not in data.non_tensor_batch:
-                    data.non_tensor_batch["uid"] = np.array([str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object)
-                data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
-                prep_queue.put((global_batch_idx, n_egs, data_padded, pad_size, results))
-        finally:
-            prep_queue.put(_SENTINEL)
+        for batch_idx, batch_dict in enumerate(dataloader):
+            if stopped.is_set():
+                return
+            global_batch_idx = start_batch_idx + batch_idx
+            prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
+            texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
+            n_egs = len(texts)
+            audio_paths = batch_dict.get("audio_path", [None] * n_egs)
+            audio_chunks = batch_dict.get("audio_chunk", [None] * n_egs)
+            extras = batch_dict.get("extra_info", [{}] * n_egs)
+            results = []
+            for i in range(n_egs):
+                r = {"prompt": prompts[i], "text": texts[i],
+                     "audio_path": audio_paths[i], "audio_chunk": audio_chunks[i]}
+                if extras[i]:
+                    r.update(extras[i])
+                results.append(r)
+            data = DataProto.from_single_dict(batch_dict)
+            if "uid" not in data.non_tensor_batch:
+                data.non_tensor_batch["uid"] = np.array(
+                    [str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object
+                )
+            data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
+            if not put_item(prep_queue, (global_batch_idx, n_egs, data_padded, pad_size, results, extras)):
+                return
+        put_item(prep_queue, _SENTINEL)
 
     def consumer():
         nonlocal tn_err, tn_ref, tn_edge, left_egs, split_idx
         local_batches = []
-        try:
-            while True:
-                item = post_queue.get()
-                if item is _SENTINEL:
-                    break
-                output, results = item
-                for i in range(len(output)):
-                    data_item = output[i]
-                    prompt_length = data_item.batch["prompts"].shape[-1]
-                    valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
-                    valid_response_ids = data_item.batch["responses"][:valid_response_length]
-                    response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
-                    score = eval_score(response_str, results[i]["text"], **wer_kwargs)
-                    score["response"] = get_hyp_text(response_str, version=wer_kwargs.get("version"))
-                    score["raw_response"] = response_str
-                    results[i].update(score)
-                tn_err += sum(r["n_err"] for r in results)
-                tn_ref += sum(r["n_ref"] for r in results)
-                tn_edge += sum(r["n_edge"] for r in results)
-                b_ds = Dataset.from_list(results)
-                log_examples(b_ds, num_examine=num_examine)
-                local_batches.append(b_ds)
-                if sum(len(ds) for ds in local_batches) >= split_size:
-                    left_egs += write_data(local_batches, split_idx)
-                    split_idx += 1
-                    local_batches = []
-        finally:
+        while not stopped.is_set():
+            item = get_item(post_queue)
+            if item is _SENTINEL:
+                break
+            output, results, extras = item
+            for i in range(len(output)):
+                data_item = output[i]
+                prompt_length = data_item.batch["prompts"].shape[-1]
+                valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
+                valid_response_ids = data_item.batch["responses"][:valid_response_length]
+                response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
+                score_kwargs = {**wer_kwargs, "extra_info": extras[i] or {}}
+                score = eval_score(response_str, results[i]["text"], **score_kwargs)
+                score["response"] = get_hyp_text(response_str, version=wer_kwargs.get("version"))
+                score["raw_response"] = response_str
+                results[i].update(score)
+            tn_err += sum(r["n_err"] for r in results)
+            tn_ref += sum(r["n_ref"] for r in results)
+            tn_edge += sum(r["n_edge"] for r in results)
+            b_ds = Dataset.from_list(results)
+            if "keywords" in b_ds.features:
+                features = b_ds.features
+                features["keywords"] = Sequence(Value("string"))
+                if features != b_ds.features:
+                    b_ds = b_ds.cast(features)
+            log_examples(b_ds, num_examine=num_examine)
+            local_batches.append(b_ds)
+            if stopped.is_set():
+                return
+            if sum(len(ds) for ds in local_batches) >= split_size:
+                left_egs += write_data(local_batches, split_idx)
+                split_idx += 1
+                local_batches = []
+        if not stopped.is_set():
             if local_batches:
                 left_egs += write_data(local_batches, split_idx)
                 split_idx += 1
             batches.extend(local_batches)
 
-    prod_thread = threading.Thread(target=producer, daemon=True)
-    cons_thread = threading.Thread(target=consumer, daemon=True)
-    prod_thread.start()
-    cons_thread.start()
+    def generate():
+        while not stopped.is_set():
+            item = get_item(prep_queue)
+            if item is _SENTINEL:
+                break
+            global_batch_idx, n_egs, data_padded, pad_size, results, extras = item
+            print(f"\n(Batch {global_batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
+            output_padded = wg.generate_sequences(data_padded)
+            output = unpad_dataproto(output_padded, pad_size=pad_size)
+            if not put_item(post_queue, (output, results, extras)):
+                return
+            pbar.update(1)
+        put_item(post_queue, _SENTINEL)
 
+    threads = [
+        threading.Thread(target=run_stage, args=(producer,), name="asr-generation-producer", daemon=True),
+        threading.Thread(target=run_stage, args=(consumer,), name="asr-generation-consumer", daemon=True),
+    ]
     pbar = tqdm(total=total_batches, initial=start_batch_idx)
-    while True:
-        item = prep_queue.get()
-        if item is _SENTINEL:
-            break
-        global_batch_idx, n_egs, data_padded, pad_size, results = item
-        print(f"\n(Batch {global_batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
-        output_padded = wg.generate_sequences(data_padded)
-        output = unpad_dataproto(output_padded, pad_size=pad_size)
-        post_queue.put((output, results))
-        pbar.update(1)
-    post_queue.put(_SENTINEL)
-    prod_thread.join()
-    cons_thread.join()
-    pbar.close()
-
+    try:
+        for thread in threads:
+            thread.start()
+        run_stage(generate)
+    except BaseException:
+        stopped.set()
+        raise
+    finally:
+        for thread in threads:
+            if thread.ident is not None:
+                thread.join()
+        pbar.close()
+    if not errors.empty():
+        raise errors.get()
 
     print(
         f"Overall wer: {tn_err / max(tn_ref, 1):.2%} [{tn_err}/{tn_ref}] "

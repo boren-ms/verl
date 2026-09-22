@@ -1,0 +1,16 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/name_filtering/person_only/val10k.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "am_data/"
+      dst_part: "az://orngwus2cresco/data/speech/am_data/"
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: name_val
+    verl_format:
+      prompt_key: prompt

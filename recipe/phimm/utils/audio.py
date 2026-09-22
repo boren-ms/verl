@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 TARGET_SAMPLE_RATE = 16000
+MIN_AUDIO_DURATION = 0.16
 
 # Module-level chunk load mode: "cached" (default) or "sample"
 _chunk_load_mode = "cached"
@@ -66,7 +67,7 @@ def resample_audio(x, fs, target_fs=TARGET_SAMPLE_RATE):
     return x, fs
 
 
-def limit_audio(x, fs, max_dur=None, min_dur=0.16):
+def limit_audio(x, fs, max_dur=None, min_dur=MIN_AUDIO_DURATION):
     """Resample audio to 16 kHz and limit it to max_dur seconds."""
     assert x.ndim == 1, "Only mono audio is supported."
     x_dur = len(x) / fs
@@ -166,6 +167,16 @@ def _load_time_chunk(spec):
             logger.warning(
                 "Skipping overlapping edge cuts %r for %.3fs audio %s",
                 tail,
+                duration,
+                file_path,
+            )
+            start = 0.0
+            end = duration
+        elif e_str.startswith("-") and end - start < MIN_AUDIO_DURATION:
+            logger.warning(
+                "Skipping edge cuts %r that leave only %.3fs of %.3fs audio %s",
+                tail,
+                end - start,
                 duration,
                 file_path,
             )

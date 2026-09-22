@@ -1,4 +1,4 @@
-from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
+from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
     _HFEnglishTextNormalizer,
@@ -29,10 +29,9 @@ def measure_openasr_en_wer(hyp_text, ground_truth):
 
 
 def non_speech_eval(solution_str, ground_truth, **kwargs):
-    """Evaluate non-speech audio by requiring the ``<nonspeech>`` token."""
-    task_output = parse_task_output(solution_str, version=kwargs.get("version"))
-    is_nonspeech = [segment["text"] for segment in task_output] == ["<nonspeech>"]
-    n_err = int(not is_nonspeech)
+    """Evaluate non-speech audio by requiring an empty cleaned hypothesis."""
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    n_err = int(bool(hyp_text.strip()))
     return {
         "score": 1.0 - n_err,
         "wer": float(n_err),

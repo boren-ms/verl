@@ -1,10 +1,21 @@
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
+
 from verl import audio_cache
 
 
 REMOTE_ROOT = "az://orngwus2cresco/data/"
+
+
+@pytest.mark.parametrize("file_path", ["local/chunk.audio", f"{REMOTE_ROOT}speech/chunk.audio"])
+@pytest.mark.parametrize(
+    "suffix",
+    ["", ":20:4", "#1.5:3.0", ":20:4#1.5:3.0", ":20:4#0%:10%", ":20:4#0.1:-0.2", ":20:4#0.1:"],
+)
+def test_split_audio_source_separates_file_from_selectors(file_path, suffix):
+    assert audio_cache._split_audio_source(f"{file_path}{suffix}") == (file_path, suffix)
 
 
 def test_copy_remote_wav_copies_single_file_atomically(tmp_path, monkeypatch):
@@ -102,29 +113,36 @@ def test_local_audio_source_preserves_relative_path_and_chunk_suffix(tmp_path, m
     assert result == f"{tmp_path}/speech/set/chunk.audio:20:4"
 
 
-def test_resolve_audio_source_prefers_existing_local_file(tmp_path, monkeypatch):
+@pytest.mark.parametrize(
+    "relative_source",
+    ["Evaluation/sample.wav", "speech/chunk.audio:20:4#0.1:-0.2"],
+)
+def test_resolve_audio_source_prefers_existing_local_file(tmp_path, monkeypatch, relative_source):
     monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path)
-    local_file = tmp_path / "Evaluation" / "sample.wav"
+    local_file = tmp_path / relative_source.split(":", 1)[0]
     local_file.parent.mkdir(parents=True)
     local_file.touch()
 
-    result = audio_cache.resolve_audio_source(f"{REMOTE_ROOT}Evaluation/sample.wav")
+    result = audio_cache.resolve_audio_source(f"{REMOTE_ROOT}{relative_source}")
 
-    assert result == str(local_file)
+    assert result == f"{tmp_path}/{relative_source}"
 
 
-def test_localize_audio_source_does_not_cache_non_orange_remote(monkeypatch):
+@pytest.mark.parametrize("suffix", ["#1.5:3.0", ":20:4#1.5:3.0"])
+def test_localize_audio_source_does_not_cache_non_orange_remote(monkeypatch, suffix):
     def unexpected_cache(remote_path: str, local_path: Path):
         raise AssertionError(f"unexpected cache from {remote_path} to {local_path}")
 
     monkeypatch.setattr(audio_cache, "_ensure_cached_remote_file", unexpected_cache)
-    source = "az://other-container/audio/sample.wav#1.5:3.0"
+    source = f"az://other-container/audio/sample.wav{suffix}"
 
     assert audio_cache.localize_audio_source(source) == source
 
 
-def test_localize_audio_source_caches_missing_orange_file(tmp_path, monkeypatch):
+@pytest.mark.parametrize("time_range", ["", "#1.5:3.0", "#0%:10%", "#0.1:-0.2"])
+def test_localize_audio_source_caches_missing_orange_file(tmp_path, monkeypatch, time_range):
     monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path)
+    monkeypatch.setattr(audio_cache, "LOCK_ROOT", tmp_path / "locks")
     copied = []
 
     def fake_copy(remote_path: str, local_path: Path):
@@ -133,11 +151,11 @@ def test_localize_audio_source_caches_missing_orange_file(tmp_path, monkeypatch)
         local_path.write_bytes(b"audio")
 
     monkeypatch.setattr(audio_cache, "_copy_remote_file", fake_copy)
-    source = f"{REMOTE_ROOT}speech/chunk.audio:20:4"
+    source = f"{REMOTE_ROOT}speech/chunk.audio:20:4{time_range}"
 
     result = audio_cache.localize_audio_source(source)
 
-    assert result == f"{tmp_path}/speech/chunk.audio:20:4"
+    assert result == f"{tmp_path}/speech/chunk.audio:20:4{time_range}"
     assert copied == [(f"{REMOTE_ROOT}speech/chunk.audio", tmp_path / "speech" / "chunk.audio")]
 
 
@@ -159,9 +177,13 @@ def test_cache_audio_source_copies_file_and_rewrites_time_range(tmp_path, monkey
     assert copied == [(f"{REMOTE_ROOT}Evaluation/sample.wav", tmp_path / "Evaluation" / "sample.wav")]
 
 
-def test_cache_audio_source_does_not_copy_existing_file(tmp_path, monkeypatch):
+@pytest.mark.parametrize(
+    "relative_source",
+    ["speech/sample.wav", "speech/chunk.audio:20:4#0%:10%"],
+)
+def test_cache_audio_source_does_not_copy_existing_file(tmp_path, monkeypatch, relative_source):
     monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path)
-    local_file = tmp_path / "speech" / "sample.wav"
+    local_file = tmp_path / relative_source.split(":", 1)[0]
     local_file.parent.mkdir(parents=True)
     local_file.touch()
 
@@ -170,7 +192,7 @@ def test_cache_audio_source_does_not_copy_existing_file(tmp_path, monkeypatch):
 
     monkeypatch.setattr(audio_cache, "_copy_remote_file", unexpected_copy)
 
-    assert audio_cache.cache_audio_source(f"{REMOTE_ROOT}speech/sample.wav") == str(local_file)
+    assert audio_cache.cache_audio_source(f"{REMOTE_ROOT}{relative_source}") == f"{tmp_path}/{relative_source}"
 
 
 def test_cache_audio_source_copies_shared_chunk_file_once(tmp_path, monkeypatch):
@@ -181,17 +203,20 @@ def test_cache_audio_source_copies_shared_chunk_file_once(tmp_path, monkeypatch)
     def fake_copy(remote_path, local_path):
         nonlocal copy_count
         copy_count += 1
+        assert remote_path == f"{REMOTE_ROOT}speech/chunk.audio"
+        assert local_path == tmp_path / "data" / "speech" / "chunk.audio"
         local_path.parent.mkdir(parents=True, exist_ok=True)
         local_path.write_bytes(b"audio")
 
     monkeypatch.setattr(audio_cache, "_copy_remote_file", fake_copy)
-    sources = [f"{REMOTE_ROOT}speech/chunk.audio:8:{index}" for index in range(8)]
+    suffixes = [f":8:{index}{time_range}" for index in range(8) for time_range in ("", "#0%:10%", "#0.1:-0.2")]
+    sources = [f"{REMOTE_ROOT}speech/chunk.audio{suffix}" for suffix in suffixes]
 
     with ThreadPoolExecutor(max_workers=8) as executor:
         results = list(executor.map(audio_cache.cache_audio_source, sources))
 
     assert copy_count == 1
-    assert results == [f"{tmp_path}/data/speech/chunk.audio:8:{index}" for index in range(8)]
+    assert results == [f"{tmp_path}/data/speech/chunk.audio{suffix}" for suffix in suffixes]
 
 
 def test_submit_audio_cache_starts_daemon_and_reuses_queue(monkeypatch):

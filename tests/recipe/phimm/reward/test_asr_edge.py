@@ -5,19 +5,56 @@ from recipe.phimm.reward.asr_edge import _parse_response
 from recipe.phimm.utils.open_asr_normalizer import eval_utils
 
 
+@pytest.mark.parametrize("version", [None, 2607, 2609])
 @pytest.mark.parametrize(
     ("solution_str", "expected_n_err"),
     [
         ("<nonspeech>", 0),
         ("  <nonspeech>  ", 0),
-        ("<TXT><nonspeech></TXT>", 0),
-        ("<src=English><tgt=English>\n<TXT><nonspeech></TXT>", 0),
-        ("", 1),
+        ("", 0),
+        ("  ", 0),
+        (".", 0),
+        ("<TXT></TXT>", 0),
         ("speech", 1),
+        ("<nonspeech> speech", 1),
+        ("speech <nonspeech>", 1),
+        ("<nonspeech>.", 0),
     ],
 )
-def test_non_speech_eval_requires_nonspeech_token(solution_str, expected_n_err):
-    result = asr_eval.non_speech_eval(solution_str, ground_truth="", version=2609)
+def test_non_speech_eval_requires_empty_hyp_text(solution_str, expected_n_err, version):
+    result = asr_eval.non_speech_eval(solution_str, ground_truth="", version=version)
+
+    assert result == {
+        "score": 1.0 - expected_n_err,
+        "wer": float(expected_n_err),
+        "n_err": expected_n_err,
+        "n_ref": 1,
+    }
+
+
+@pytest.mark.parametrize("version", [2607, 2609])
+@pytest.mark.parametrize(
+    ("texts", "expected_n_err"),
+    [
+        (("<nonspeech>",), 0),
+        (("  <nonspeech>  ",), 0),
+        (("<nonspeech>.",), 0),
+        ((".",), 0),
+        (("<sep>",), 0),
+        (("speech",), 1),
+        (("<nonspeech>", "<nonspeech>"), 0),
+        (("<nonspeech>", "speech"), 1),
+        (("speech", "<nonspeech>"), 1),
+    ],
+)
+def test_non_speech_eval_checks_cleaned_segments(version, texts, expected_n_err):
+    if version == 2607:
+        segments = "".join(f"<lang=Unknown><TXT>{text}</TXT>" for text in texts)
+        response = f"Audio Language: Unknown.\n<ASR>{segments}</ASR>"
+    else:
+        response = "\n".join(f"<src=Unknown><tgt=Unknown>\n<TXT>{text}</TXT>" for text in texts)
+
+    result = asr_eval.non_speech_eval(response, ground_truth="", version=version)
 
     assert result == {
         "score": 1.0 - expected_n_err,

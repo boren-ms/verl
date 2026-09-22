@@ -1,0 +1,7 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - _self_

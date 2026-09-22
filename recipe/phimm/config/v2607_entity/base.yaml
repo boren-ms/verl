@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - /data/val_data/en_gpt_entity_h1_val
+  - /data/val_data/name_fy22_10k
   - _self_
 
 nccl_timeout: 3600
@@ -40,14 +40,14 @@ val_reward:
     earning_chunk_lex: openasr_en
     earnings_chunked_badcase_verb: openasr_en
     earnings_chunked_badcase_lex: openasr_en
-    enhc_entity: openasr_en
+    name_val: openasr_en
 
 actor_rollout_ref:
   nccl_timeout: 3600
   rollout:
-    n: 16
+    n: 1
     gt_rollout: false
-    temperature: 1.2
+    temperature: 1.0
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.9
@@ -99,7 +99,7 @@ actor_rollout_ref:
     trust_remote_code: false
     use_remove_padding: true
     use_fused_kernels: false
-    lora_rank: 64
+    lora_rank: 256
     lora_alpha: ${eval:${actor_rollout_ref.model.lora_rank}*2}
     trainable_params: null
     target_modules: "model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*"
@@ -161,8 +161,8 @@ trainer:
   nnodes: 1
   total_epochs: 4
   total_training_steps: 200
-  test_freq: 10
-  save_freq: 10
+  test_freq: 50
+  save_freq: 50
   resume_mode: auto
   default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
