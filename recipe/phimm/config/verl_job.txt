@@ -1,10 +1,15 @@
-updated_at_utc: 2026-09-22T19:54:23Z
+updated_at_utc: 2026-09-22T21:21:24Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
-│ i0           │ raysubmit_iDGiTRDPJ5J7G3Md   │ RUNNING       │ eval_2607                                                        │ evaluating name_val (model startup)          │
-│ i1           │ raysubmit_WvSX1e3MKks62Saf   │ RUNNING       │ eval_2607v1a                                                     │ evaluating name_val (model startup)          │
+│ i0           │ raysubmit_iDGiTRDPJ5J7G3Md   │ SUCCEEDED     │ eval_2607                                                        │ name_val p_err=71.5266; kw_acc=1.0000        │
+│ i1           │ raysubmit_WvSX1e3MKks62Saf   │ SUCCEEDED     │ eval_2607v1a                                                     │ name_val p_err=71.5378; kw_acc=1.0000        │
+│ i3           │ raysubmit_XqDtWU31icaBFP6x   │ RUNNING       │ eval_2607v1a_openasr_verb_step650                                │ evaluating spgispeech (loading)               │
+│ n2-i0        │ raysubmit_4cTLEsEKhwWTFPZM   │ RUNNING       │ remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16                     │ training 0/1000 (0%)                         │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
+- `eval_2607` [`i0`]: name_val p_err/WER=71.5266, kw_acc=1.0000, nb_err=5.7475; 10,000 generations.
+- `eval_2607v1a` [`i1`]: name_val p_err/WER=71.5378, kw_acc=1.0000, nb_err=5.7374; 10,000 generations.
+- `remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16` [`n2-i0`]: training 0/1000 (0%)
