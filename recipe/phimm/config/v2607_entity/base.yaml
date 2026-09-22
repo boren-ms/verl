@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - /data/val_data/en_gpt_entity_h1_val
+  - /data/val_data/name_fy22_10k
   - _self_
 
 nccl_timeout: 3600
@@ -40,7 +40,7 @@ val_reward:
     earning_chunk_lex: openasr_en
     earnings_chunked_badcase_verb: openasr_en
     earnings_chunked_badcase_lex: openasr_en
-    enhc_entity: openasr_en
+    name_val: openasr_en
 
 actor_rollout_ref:
   nccl_timeout: 3600
