@@ -32,5 +32,6 @@ data:
   train_batch_size: 1024
 
 trainer:
+  nnodes: 2
   total_epochs: 1
   total_training_steps: 1000
