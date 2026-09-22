@@ -1,0 +1,11 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/data/verl/models/openai-whisper-small/
