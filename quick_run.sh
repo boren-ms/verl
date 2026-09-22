@@ -47,6 +47,7 @@ python3 -m ${module} \
 --config-dir "${config_dir}" \
 --config-name "${config_name}" \
 trainer.experiment_name="${config_name}" \
+"${@:2}" \
 2>&1 | tee "${config_name}.log"
 
 echo "[INFO] Finished ${config_name}."

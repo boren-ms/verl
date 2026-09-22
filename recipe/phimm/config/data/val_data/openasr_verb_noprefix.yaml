@@ -1,0 +1,128 @@
+# OpenASR English evaluation suite without language hints or assistant prefixes.
+# AMI and GigaSpeech use >=1s manifests matching the openasr_clean task.
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data.jsonl
+  cache_name: auto_openasr_2606_ls_clean_verb_noprefix
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/audio/"
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: ls_clean
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/data.jsonl
+  cache_name: auto_openasr_2606_ls_other_verb_noprefix
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/audio/"
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: ls_other
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/data.jsonl
+  cache_name: auto_openasr_2606_spgispeech_verb_noprefix
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: spgispeech
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/data_min1s.jsonl
+  cache_name: auto_openasr_2606_ami_clean_verb_noprefix
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: ami
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/data_min1s.jsonl
+  cache_name: auto_openasr_2606_gigaspeech_clean_verb_noprefix
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/audio/"
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: gigaspeech
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: voxpopuli_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_cleaned_aa_chunked
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]

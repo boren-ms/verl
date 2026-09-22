@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_base
-  - data/val_data/openasr_2606_verb
+  - /data/val_data/openasr_verb_noprefix
   - _self_
 
 val_reward:

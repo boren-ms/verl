@@ -1,10 +1,11 @@
-updated_at_utc: 2026-09-22T21:52:40Z
+updated_at_utc: 2026-09-22T22:02:00Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                             │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
 │ i0           │ raysubmit_iDGiTRDPJ5J7G3Md   │ SUCCEEDED     │ eval_2607                                                        │ name_val p_err=71.5266; kw_acc=1.0000        │
 │ i1           │ raysubmit_WvSX1e3MKks62Saf   │ SUCCEEDED     │ eval_2607v1a                                                     │ name_val p_err=71.5378; kw_acc=1.0000        │
+│ i2           │ raysubmit_EkvqqzPf2NwtuHAg   │ RUNNING       │ eval_2609_openasr_verb_langhint                                   │ evaluating ls_clean (model startup)           │
 │ i3           │ raysubmit_XqDtWU31icaBFP6x   │ RUNNING       │ eval_2607v1a_openasr_verb_step650                                │ evaluating spgispeech (loading)               │
 │ n2-i0        │ raysubmit_4cTLEsEKhwWTFPZM   │ RUNNING       │ remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16                     │ training 1/1000 (0.1%)                       │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
