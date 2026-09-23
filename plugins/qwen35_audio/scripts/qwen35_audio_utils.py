@@ -13,6 +13,20 @@ import torch
 
 TARGET_SAMPLE_RATE = 16_000
 SUPPORTED_AUDIO_SUFFIXES = {".flac", ".mp3", ".ogg", ".wav"}
+DEFAULT_INSTRUCTION = "Detect the language and transcribe the audio clip into text.<audio>"
+DEFAULT_STOP_TOKEN_IDS = (248044, 248046)
+
+
+def build_chat_prompt(model_path: str, instruction: str, assistant_prefix: str = "") -> str:
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=False)
+    prompt = tokenizer.apply_chat_template(
+        [{"role": "user", "content": instruction}],
+        add_generation_prompt=True,
+        tokenize=False,
+    )
+    return f"{prompt}{assistant_prefix}"
 
 
 def _env_default(names: tuple[str, ...], fallback: str) -> str:

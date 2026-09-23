@@ -12,14 +12,30 @@ Usage:
 """
 
 import argparse
+import sys
 import time
+from pathlib import Path
 
 import torch
 
 try:
-    from .qwen35_audio_utils import add_input_arguments, load_audio, stage_inputs
+    from .qwen35_audio_utils import (
+        DEFAULT_INSTRUCTION,
+        DEFAULT_STOP_TOKEN_IDS,
+        add_input_arguments,
+        build_chat_prompt as build_prompt,
+        load_audio,
+        stage_inputs,
+    )
 except ImportError:
-    from qwen35_audio_utils import add_input_arguments, load_audio, stage_inputs
+    from qwen35_audio_utils import (
+        DEFAULT_INSTRUCTION,
+        DEFAULT_STOP_TOKEN_IDS,
+        add_input_arguments,
+        build_chat_prompt as build_prompt,
+        load_audio,
+        stage_inputs,
+    )
 
 REMOTE_MODEL_PATH = (
     "az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/"
@@ -32,8 +48,6 @@ REMOTE_AUDIO_PATH = (
 LOCAL_CACHE_ROOT = "/root/data/qwen35_audio_test"
 DEFAULT_MODEL_PATH = REMOTE_MODEL_PATH
 DEFAULT_AUDIO_PATH = REMOTE_AUDIO_PATH
-INSTRUCTION = "Transcribe the audio clip into text."
-MAX_NEW_TOKENS = 256
 
 
 def parse_args() -> argparse.Namespace:
@@ -53,7 +67,17 @@ def parse_args() -> argparse.Namespace:
         model_env_names=("QWEN35_AUDIO_MODEL", "MODEL_DIR"),
         audio_env_names=("QWEN35_AUDIO_SAMPLE", "AUDIO"),
     )
-    parser.add_argument("--instruction", default=INSTRUCTION)
+    parser.add_argument("--instruction", default=DEFAULT_INSTRUCTION)
+    parser.add_argument("--assistant-prefix", default="")
+    parser.add_argument("--max-tokens", type=int, default=512)
+    parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--stop-token-id",
+        action="append",
+        type=int,
+        default=None,
+        help="Stop token id. Can be passed multiple times.",
+    )
     parser.add_argument(
         "--trust-remote-code",
         action=argparse.BooleanOptionalAction,
@@ -62,9 +86,36 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def register_local_hf_model() -> None:
+    plugin_src = Path(__file__).resolve().parents[1] / "src"
+    if plugin_src.exists():
+        sys.path.insert(0, str(plugin_src))
+
+    from hf_qwen35_audio import register_hf_audio_model
+
+    register_hf_audio_model()
+
+
+def build_generation_kwargs(args: argparse.Namespace, tokenizer) -> dict:
+    if args.temperature < 0:
+        raise ValueError("--temperature must be non-negative")
+
+    kwargs = {
+        "max_new_tokens": args.max_tokens,
+        "do_sample": args.temperature > 0,
+        "eos_token_id": args.stop_token_id or list(DEFAULT_STOP_TOKEN_IDS),
+        "pad_token_id": tokenizer.eos_token_id,
+        "repetition_penalty": 1.0,
+    }
+    if args.temperature > 0:
+        kwargs["temperature"] = args.temperature
+    return kwargs
+
+
 def main():
     args = parse_args()
     model_path, audio_paths = stage_inputs(args)
+    register_local_hf_model()
 
     from transformers import AutoConfig, AutoModelForCausalLM, AutoProcessor
 
@@ -91,8 +142,9 @@ def main():
     ).to(device).eval()
     print(f"Loaded in {time.time() - t0:.1f}s  ({sum(p.numel() for p in model.parameters())/1e9:.2f}B params)")
 
-    # ---- Build prompt ----
-    prompt = f"<|im_start|>user\n{args.instruction}<audio>\n<|im_end|>\n<|im_start|>assistant\n"
+    prompt = build_prompt(model_path, args.instruction, args.assistant_prefix)
+    print(f"prompt={prompt!r}")
+    generation_kwargs = build_generation_kwargs(args, processor.tokenizer)
 
     for audio_source, audio_path in audio_paths:
         wav, sr = load_audio(audio_path)
@@ -108,11 +160,7 @@ def main():
         with torch.no_grad():
             generate_ids = model.generate(
                 **inputs,
-                max_new_tokens=MAX_NEW_TOKENS,
-                do_sample=False,
-                use_cache=False,
-                eos_token_id=processor.tokenizer.eos_token_id,
-                pad_token_id=processor.tokenizer.eos_token_id,
+                **generation_kwargs,
             )
 
         generate_ids = generate_ids[:, inputs["input_ids"].shape[1]:]

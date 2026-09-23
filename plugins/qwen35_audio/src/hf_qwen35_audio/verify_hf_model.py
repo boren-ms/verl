@@ -41,8 +41,9 @@ AUDIO = os.environ.get(
     "az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-360/115/122944/"
     "115-122944-0000.flac",
 )
-INSTRUCTION = "Transcribe the audio clip into text."
-MAX_NEW_TOKENS = 256
+INSTRUCTION = "Detect the language and transcribe the audio clip into text.<audio>"
+MAX_NEW_TOKENS = 512
+STOP_TOKEN_IDS = [248044, 248046]
 
 LOCAL_CACHE_ROOT = os.environ.get(
     "QWEN35_AUDIO_CACHE", os.path.expanduser("~/data/qwen35_audio_test")
@@ -124,7 +125,11 @@ def main():
     print(f"Audio: {len(wav)/sr:.2f}s @ {sr}Hz")
 
     # ---- Build prompt & process inputs ----
-    prompt = f"<|im_start|>user\n<audio>\n{INSTRUCTION}<|im_end|>\n<|im_start|>assistant\n"
+    prompt = processor.tokenizer.apply_chat_template(
+        [{"role": "user", "content": INSTRUCTION}],
+        add_generation_prompt=True,
+        tokenize=False,
+    )
 
     inputs = processor(text=prompt, audios=[(wav, sr)], return_tensors="pt").to(device)
 
@@ -135,8 +140,9 @@ def main():
             **inputs,
             max_new_tokens=MAX_NEW_TOKENS,
             do_sample=False,
-            eos_token_id=processor.tokenizer.eos_token_id,
+            eos_token_id=STOP_TOKEN_IDS,
             pad_token_id=processor.tokenizer.eos_token_id,
+            repetition_penalty=1.0,
         )
 
     # Remove input tokens

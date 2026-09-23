@@ -19,6 +19,50 @@ from .processing_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
 logger = logging.getLogger(__name__)
 
 
+def build_flash_audio_encoder(audio_processor):
+    encoder_config = audio_processor.get("config")
+    assert encoder_config is not None
+    encoder = FlashEncoder(**encoder_config)
+    encoder.post_init({})
+    return encoder, encoder_config["input_size"], encoder_config["hidden_size"]
+
+
+def build_audio_post_encoder(audio_dim_out, hidden_size, **kwargs):
+    qformer = None
+    conv_ds = None
+    downsample_rate = kwargs.get("downsample_rate", 1)
+
+    if kwargs.get("use_conv_downsample", False):
+        nemo_conv_settings = kwargs.get("nemo_conv_settings", {})
+        conv_settings = {
+            "subsampling": "dw_striding",
+            "subsampling_factor": downsample_rate,
+            "feat_in": audio_dim_out,
+            "feat_out": audio_dim_out,
+            "conv_channels": 256,
+            "subsampling_conv_chunking_factor": 1,
+            "activation": nn.ReLU(),
+            "is_causal": False,
+        }
+        if nemo_conv_settings:
+            conv_settings.update(nemo_conv_settings)
+        conv_ds = NemoConvSubsampling(**conv_settings)
+
+    projection_cls = kwargs.get("projection_cls", "linear")
+    if projection_cls == "linear":
+        projection = nn.Linear(audio_dim_out, hidden_size)
+        linear_downsample_rate = 1
+    elif projection_cls == "mlp":
+        linear_downsample_rate = 1 if conv_ds else downsample_rate
+        layers = [nn.Linear(audio_dim_out * linear_downsample_rate, hidden_size)]
+        layers.extend([nn.GELU(), nn.Linear(hidden_size, hidden_size)])
+        projection = nn.Sequential(*layers)
+    else:
+        raise NotImplementedError(f"projection_cls = {projection_cls}")
+
+    return qformer, conv_ds, projection, linear_downsample_rate
+
+
 def _match_audio_positions(positions, audio_embed_sizes):
     expected = int(audio_embed_sizes.sum().item())
     if expected == len(positions):
@@ -82,12 +126,7 @@ class AudioEmbedding(nn.Module):
             n_mels = self.encoder.num_mel_bins
             audio_dim_out = self.encoder.layers[0].embed_dim
         elif isinstance(config.audio_processor, Mapping) and config.audio_processor.get("name") == "flash":
-            encoder_config = config.audio_processor.get("config")
-            assert encoder_config is not None
-            self.encoder = FlashEncoder(**encoder_config)
-            self.encoder.post_init({})
-            n_mels = encoder_config["input_size"]
-            audio_dim_out = encoder_config["hidden_size"]
+            self.encoder, n_mels, audio_dim_out = build_flash_audio_encoder(config.audio_processor)
         else:
             raise NotImplementedError(f"Unsupported audio_processor: {config.audio_processor}")
 
@@ -108,39 +147,12 @@ class AudioEmbedding(nn.Module):
             self.ctc_linear = None
             self.blank_id = None
 
-        self.qformer = None
-        self.conv_ds = None
-
-        if kwargs.get("use_conv_downsample", False):
-            nemo_conv_settings = kwargs.get("nemo_conv_settings", {})
-            default_settings = {
-                "subsampling": "dw_striding",
-                "subsampling_factor": self.downsample_rate,
-                "feat_in": audio_dim_out,
-                "feat_out": audio_dim_out,
-                "conv_channels": 256,
-                "subsampling_conv_chunking_factor": 1,
-                "activation": nn.ReLU(),
-                "is_causal": False,
-            }
-            if nemo_conv_settings:
-                default_settings.update(nemo_conv_settings)
-            self.conv_ds = NemoConvSubsampling(**default_settings)
-
-        projection_cls = kwargs.get("projection_cls", "linear")
-        if projection_cls == "linear":
-            self.audio_projection = nn.Linear(audio_dim_out, hidden_size)
-            self.linear_downsample_rate = 1
-        elif projection_cls == "mlp":
-            dim_projection = hidden_size
-            depth = 2
-            self.linear_downsample_rate = 1 if (self.qformer or self.conv_ds) else self.downsample_rate
-            layers = [nn.Linear(audio_dim_out * self.linear_downsample_rate, dim_projection)]
-            for _ in range(1, depth):
-                layers.extend([nn.GELU(), nn.Linear(dim_projection, dim_projection)])
-            self.audio_projection = nn.Sequential(*layers)
-        else:
-            raise NotImplementedError(f"projection_cls = {projection_cls}")
+        (
+            self.qformer,
+            self.conv_ds,
+            self.audio_projection,
+            self.linear_downsample_rate,
+        ) = build_audio_post_encoder(audio_dim_out, hidden_size, **kwargs)
 
         self.vocab_size = config.vocab_size
         self.input_embeds = None

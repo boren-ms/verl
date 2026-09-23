@@ -35,6 +35,19 @@ from .processing_qwen3_5_audio import Qwen3_5AudioProcessor  # noqa: F401
 from .audio_embedding import AudioEmbedding
 
 try:
+    from transformers.models.qwen3_5.modeling_qwen3_5 import (
+        Qwen3_5ForCausalLM as TransformersQwen3_5ForCausalLM,
+    )
+except ImportError:
+    TransformersQwen3_5ForCausalLM = None
+
+if TransformersQwen3_5ForCausalLM is None:
+    class Qwen3_5CausalLMBase(PreTrainedModel, GenerationMixin):
+        pass
+else:
+    Qwen3_5CausalLMBase = TransformersQwen3_5ForCausalLM
+
+try:
     from liger_kernel.transformers import LigerFusedLinearCrossEntropyLoss
 except ImportError:
     LigerFusedLinearCrossEntropyLoss = None
@@ -694,7 +707,7 @@ class Qwen3_5TextModel(PreTrainedModel):
 # ---------------------------------------------------------------------------
 
 
-class Qwen3_5AudioForCausalLM(PreTrainedModel, GenerationMixin):
+class Qwen3_5AudioForCausalLM(Qwen3_5CausalLMBase):
     config_class = Qwen3_5AudioConfig
     base_model_prefix = "model"
     _tied_weights_keys = {"lm_head.weight": "model.embed_tokens.weight"}
@@ -706,11 +719,21 @@ class Qwen3_5AudioForCausalLM(PreTrainedModel, GenerationMixin):
     _is_stateful = True
 
     def __init__(self, config: Qwen3_5AudioConfig):
+        if TransformersQwen3_5ForCausalLM is None:
+            super().__init__(config)
+            self.model = Qwen3_5TextModel(config)
+            self.vocab_size = config.vocab_size
+            self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
+            self.post_init()
+            return
+
         super().__init__(config)
-        self.model = Qwen3_5TextModel(config)
-        self.vocab_size = config.vocab_size
-        self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
-        self.post_init()
+        if isinstance(config.embd_layer, dict):
+            embedding_config = {"embedding_cls": config.embd_layer["embedding_cls"], **config.embd_layer}
+        else:
+            embedding_config = {"embedding_cls": config.embd_layer}
+        embedding_config.pop("embedding_cls", None)
+        self.model.embed_tokens_extend = AudioEmbedding(config, **embedding_config)
 
     def forward(self, input_ids=None, attention_mask=None, position_ids=None,
                 past_key_values=None, inputs_embeds=None, labels=None,
@@ -718,6 +741,39 @@ class Qwen3_5AudioForCausalLM(PreTrainedModel, GenerationMixin):
                 input_audio_embeds=None, audio_embed_sizes=None,
                 audio_attention_mask=None, audio_frames=None,
                 **kwargs):
+        if TransformersQwen3_5ForCausalLM is not None:
+            ctc_loss = None
+            if inputs_embeds is None:
+                embed_kwargs = {
+                    "wte": self.model.embed_tokens,
+                    "audio_attention_mask": audio_attention_mask,
+                    "audio_embed_sizes": audio_embed_sizes,
+                    "audio_frames": audio_frames,
+                    "ctc_labels": kwargs.pop("ctc_labels", None),
+                    "ctc_label_lens": kwargs.pop("ctc_label_lens", None),
+                }
+                inputs_embeds, ctc_loss = self.model.embed_tokens_extend(
+                    input_ids,
+                    input_embeds=input_audio_embeds,
+                    **embed_kwargs,
+                )
+                input_ids = None
+
+            result = super().forward(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                position_ids=position_ids,
+                past_key_values=past_key_values,
+                inputs_embeds=inputs_embeds,
+                labels=labels,
+                use_cache=use_cache,
+                logits_to_keep=logits_to_keep,
+                **kwargs,
+            )
+            if ctc_loss is not None:
+                result.ctc_loss = ctc_loss
+            return result
+
         outputs, ctc_loss = self.model(
             input_ids=input_ids, attention_mask=attention_mask, position_ids=position_ids,
             past_key_values=past_key_values, inputs_embeds=inputs_embeds, use_cache=use_cache,

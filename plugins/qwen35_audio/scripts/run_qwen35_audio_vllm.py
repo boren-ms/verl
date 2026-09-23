@@ -9,9 +9,23 @@ import time
 from pathlib import Path
 
 try:
-    from .qwen35_audio_utils import add_input_arguments, load_audio, stage_inputs
+    from .qwen35_audio_utils import (
+        DEFAULT_INSTRUCTION,
+        DEFAULT_STOP_TOKEN_IDS,
+        add_input_arguments,
+        build_chat_prompt as build_prompt,
+        load_audio,
+        stage_inputs,
+    )
 except ImportError:
-    from qwen35_audio_utils import add_input_arguments, load_audio, stage_inputs
+    from qwen35_audio_utils import (
+        DEFAULT_INSTRUCTION,
+        DEFAULT_STOP_TOKEN_IDS,
+        add_input_arguments,
+        build_chat_prompt as build_prompt,
+        load_audio,
+        stage_inputs,
+    )
 
 REMOTE_MODEL_PATH = (
     "az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/"
@@ -24,8 +38,6 @@ REMOTE_AUDIO_PATH = (
 LOCAL_CACHE_ROOT = "/root/data/qwen35_audio_test"
 DEFAULT_MODEL_PATH = REMOTE_MODEL_PATH
 DEFAULT_AUDIO_PATH = REMOTE_AUDIO_PATH
-DEFAULT_INSTRUCTION = "Detect the language and transcribe the audio clip into text.<audio>"
-DEFAULT_STOP_TOKEN_IDS = [248044, 248046]
 MODEL_ARCHITECTURE = "Qwen3_5AudioForCausalLM"
 
 
@@ -70,19 +82,6 @@ def parse_args() -> argparse.Namespace:
         help="Do not set QWEN35_AUDIO_DISABLE_CUDNN=1 before loading vLLM.",
     )
     return parser.parse_args()
-
-
-def build_prompt(model_path: str, instruction: str, assistant_prefix: str) -> str:
-    from transformers import AutoTokenizer
-
-    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=False)
-    _chat_obj = tokenizer
-    prompt = _chat_obj.apply_chat_template(
-        [{"role": "user", "content": instruction}],
-        add_generation_prompt=True,
-        tokenize=False,
-    )
-    return f"{prompt}{assistant_prefix}"
 
 
 def package_version(package: str) -> str:

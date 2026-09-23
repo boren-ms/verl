@@ -31,6 +31,12 @@ uv pip install -e .
 
 The plugin is registered through the `vllm.general_plugins` entry point as `qwen35_audio`.
 
+For checkpoints configured with `audio_processor.name = "flash"`, the vLLM
+adapter reuses the Hugging Face encoder and post-encoder construction helpers.
+This keeps encoder, projection, convolutional downsampling, and related
+inference configuration support aligned between Hugging Face and vLLM while
+retaining vLLM's native multimodal inference path.
+
 ## Smoke Test
 
 The vLLM smoke test defaults to the verified raw HuggingFace `az://` bundle for fresh-node reproduction:
@@ -65,6 +71,11 @@ python scripts/run_qwen35_audio_hf.py \
 
 Both scripts emit one `AUDIO_RESULT_START`/`AUDIO_RESULT_END` block per file and finish with `BATCH_DONE count=<N>`.
 Shared argument parsing, input staging, folder discovery, cache naming, and audio loading live in `scripts/qwen35_audio_utils.py`.
+They also share the tokenizer chat-template prompt, default transcription instruction, stop tokens, and generation length.
+The Hugging Face script registers the repository's local `hf_qwen35_audio` implementation before loading the model,
+so its default `--no-trust-remote-code` path does not depend on checkpoint-bundled Python files.
+That implementation uses Transformers' native Qwen3.5 causal-language-model backbone when available and adds the
+audio encoder at the embedding boundary, matching the backbone semantics used by vLLM.
 
 The verified run produced:
 
