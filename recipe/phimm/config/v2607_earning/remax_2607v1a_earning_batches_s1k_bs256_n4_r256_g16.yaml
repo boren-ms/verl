@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - data/train_data/earnings_tts
+  - data/train_data/earningscall-fy27-en-us-batch1-batch2
   - _self_
 
 reward_functions:
@@ -22,11 +22,12 @@ reward_functions:
         fmt: {beta: 0.1, cut: 0.5}
 
 reward_function_by_data_source:
-  earnings_tts: asr_measure
+  earning_fy27_verb: asr_measure
+  earning_fy27_lex: asr_measure
 
 actor_rollout_ref:
   rollout:
-    n: 1
+    n: 4
     engine_kwargs:
       vllm:
         gdn_prefill_backend: triton
@@ -39,5 +40,5 @@ data:
 
 trainer:
   nnodes: 2
-  total_epochs: 250
+  total_epochs: 30
   total_training_steps: 1000
