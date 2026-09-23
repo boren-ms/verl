@@ -17,6 +17,7 @@ Compare utterance-level ASR detail files without re-implementing the same merge 
    - `*.improved-topN.html` for wins
    - `*.degraded-topN.html` for regressions
 6. Spot-check a few top-ranked rows before delivering, especially if the script had to fall back to row-order joins.
+7. For every HTML report delivered to the user, show both a clickable Markdown link using the absolute Linux path and a copyable Windows WSL UNC path produced by `wslpath -w`.
 
 ## Single-Result Reference Baseline
 When only one result JSONL is provided, synthesize a baseline JSONL from that same file so every baseline hypothesis equals its reference. Preserve every row and all identity, language, audio, and metadata columns so the normal join and HTML rendering remain available.
@@ -141,6 +142,25 @@ Additional outputs:
 - `*.summary.json`: dataset-level totals, WER for baseline and target, counts of improved/degraded/unchanged utterances, and paths to all report files.
 - `*.full.csv`: optional full joined table when `--write-full-csv` is enabled.
 - Each compared model's `result_details_*.jsonl` file is copied into the output directory for local inspection, with the filename prefixed by the model name.
+
+## Report Path Delivery
+For each generated HTML report, include both path forms in the final response:
+
+1. A clickable workspace link whose target is the absolute Linux path.
+2. A copyable Windows Explorer WSL path. Generate it with `wslpath -w`; do not manually guess the distribution name or convert separators.
+
+Example:
+```bash
+wslpath -w /home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-target.overall-top30.html
+```
+
+Present the result like this:
+```markdown
+- Overall: [baseline-vs-target.overall-top30.html](/home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-target.overall-top30.html)
+  - WSL: `\\wsl.localhost\Ubuntu\home\boren\code\verl-mirror\tmp\asr-detail-compare\ami\baseline-vs-target.overall-top30.html`
+```
+
+Apply this to the overall, improved, and degraded HTML reports. If an optional report was not generated, do not invent a path for it.
 
 ## Verl Validation Data Discovery (val_data_gen)
 The script auto-discovers verl validation outputs from `--val-data-root` (default: `az://orngwus2cresco/data/boren/outputs`). When using `--baseline-model` or `--target-model`, set the model name to `<project_name>/<experiment_name>` matching the verl config's `trainer.project_name`/`trainer.experiment_name`.
