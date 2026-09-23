@@ -1,0 +1,14 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/earnings_aa_chunked
+  - _self_
+
+val_reward:
+  reward_manager: long_audio_grouped
+  reward_kwargs:
+    version: 2607
