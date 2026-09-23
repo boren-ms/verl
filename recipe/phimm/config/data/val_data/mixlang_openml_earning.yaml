@@ -1,5 +1,5 @@
 # ArtificialAnalysis English evaluation sets pre-segmented offline with SVAD
-# (max_len_sec=30), using verbatim ASR prompts with language prefixes.
+# (max_len_sec=30), using verbatim ASR prompts without prefilled language prefixes.
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
@@ -31,7 +31,7 @@
   add_task_info:
     task: lang_asr_verb
     language: English
-    prefix_prob: 1.0
+    prefix_prob: 0.0
   post_process:
     add_field:
       fields:
@@ -57,7 +57,7 @@
   cache_name: auto_openasr_ml_bad_fmt_lang_bracket
   add_task_info:
     task: lang_asr_verb
-    prefix_prob: 1.0
+    prefix_prob: 0.0
   post_process:
     cache_audio: {}
     add_field:

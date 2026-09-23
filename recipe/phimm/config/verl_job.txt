@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-23T01:07:05Z
+updated_at_utc: 2026-09-23T03:45:29Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                             │
@@ -6,14 +6,14 @@ updated_at_utc: 2026-09-23T01:07:05Z
 │ i0           │ raysubmit_sGFuqBjGq2U4LEcp   │ SUCCEEDED     │ eval_2609_openasr_verb                                           │ evaluating openasr_en (complete)              │
 │ i1           │ raysubmit_WvSX1e3MKks62Saf   │ SUCCEEDED     │ eval_2607v1a                                                     │ name_val p_err=71.5378; kw_acc=1.0000        │
 │ i2           │ raysubmit_tqWWsNbWhEcwM5kp   │ SUCCEEDED     │ eval_2609_openasr_verb_langhint                                   │ evaluating openasr_en (complete)              │
-│ i3           │ raysubmit_XqDtWU31icaBFP6x   │ RUNNING       │ eval_2607v1a_openasr_verb_step650                                │ evaluating spgispeech (decoding)              │
-│ n2-i0        │ raysubmit_rf5vbYEsgTgZ6NFm   │ RUNNING       │ remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16                     │ training startup                             │
-│ n2-i1        │ raysubmit_8zYK7ViDB98Ze1Fg   │ RUNNING       │ remax_2609_earning_fy27_s1k_bs256_v0_n1_full_g16                 │ training 6/1000 (0.6%)                      │
-│ n2-i2        │ raysubmit_eaXmSC8vU5FAqMU4   │ RUNNING       │ remax_2609_earning_fy27_s1k_bs256_v0_n1_r256_g16                │ training 5/1000 (0.5%)                      │
+│ i3           │ raysubmit_XqDtWU31icaBFP6x   │ RUNNING       │ eval_2607v1a_openasr_verb_step650                                │ evaluating gigaspeech (staging audio)          │
+│ n2-i0        │ raysubmit_PrrfFNWapGdCqBb7   │ RUNNING       │ remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16                     │ training 0/1000 (0%)                         │
+│ n2-i1        │ raysubmit_8zYK7ViDB98Ze1Fg   │ RUNNING       │ remax_2609_earning_fy27_s1k_bs256_v0_n1_full_g16                 │ training 403/1000 (40.3%)                   │
+│ n2-i2        │ raysubmit_eaXmSC8vU5FAqMU4   │ RUNNING       │ remax_2609_earning_fy27_s1k_bs256_v0_n1_r256_g16                │ training 337/1000 (33.7%)                   │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
 - `eval_2607v1a` [`i1`]: name_val p_err/WER=71.5378, kw_acc=1.0000, nb_err=5.7374; 10,000 generations.
-- `remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16` [`n2-i0`]: training startup
-- `remax_2609_earning_fy27_s1k_bs256_v0_n1_full_g16` [`n2-i1`]: training 6/1000 (0.6%)
-- `remax_2609_earning_fy27_s1k_bs256_v0_n1_r256_g16` [`n2-i2`]: training 5/1000 (0.5%)
+- `remax_2607v1_name_fy22_s1k_bs1k_n1_r256_g16` [`n2-i0`]: training 0/1000 (0%)
+- `remax_2609_earning_fy27_s1k_bs256_v0_n1_full_g16` [`n2-i1`]: training 403/1000 (40.3%)
+- `remax_2609_earning_fy27_s1k_bs256_v0_n1_r256_g16` [`n2-i2`]: training 337/1000 (33.7%)
