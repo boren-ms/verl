@@ -29,9 +29,6 @@ reward_function_by_data_source:
 actor_rollout_ref:
   rollout:
     n: 1
-    engine_kwargs:
-      vllm:
-        gdn_prefill_backend: triton
   model:
     lora_rank: 256
 

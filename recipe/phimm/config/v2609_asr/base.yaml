@@ -46,6 +46,9 @@ actor_rollout_ref:
   rollout:
     n: 16
     gt_rollout: false
+    engine_kwargs:
+      vllm:
+        gdn_prefill_backend: triton
     temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true

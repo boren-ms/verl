@@ -30,7 +30,6 @@ actor_rollout_ref:
     n: 1
     engine_kwargs:
       vllm:
-        gdn_prefill_backend: triton
         # Full-model rollout hits an Inductor subprocess without an active GPU backend.
         compilation_config: 0
   model:
