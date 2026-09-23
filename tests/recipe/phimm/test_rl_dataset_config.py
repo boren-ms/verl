@@ -39,6 +39,17 @@ def _load_whisper_prompt_helper():
     return namespace["_build_whisper_prompt"]
 
 
+def _load_append_task_prefix_helper():
+    module_path = Path(__file__).parents[3] / "recipe/phimm/data/rl_dataset.py"
+    module = ast.parse(module_path.read_text())
+    function = next(
+        node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "_append_task_prefix"
+    )
+    namespace = {}
+    exec(compile(ast.Module(body=[function], type_ignores=[]), str(module_path), "exec"), namespace)
+    return namespace["_append_task_prefix"]
+
+
 def test_build_whisper_prompt_uses_language_task_and_timestamp_tokens():
     build_whisper_prompt = _load_whisper_prompt_helper()
 
@@ -57,6 +68,19 @@ def test_build_whisper_prompt_rejects_unknown_task():
         assert str(exc) == "Unsupported Whisper task: summarize"
     else:
         raise AssertionError("expected unsupported Whisper task to fail")
+
+
+def test_append_task_prefix_ignores_text_prefix_for_whisper():
+    append_task_prefix = _load_append_task_prefix_helper()
+    whisper_prompt = "<|startoftranscript|><|en|><|transcribe|><|notimestamps|>"
+
+    assert append_task_prefix(whisper_prompt, "Audio Language: English\n", "whisper") == whisper_prompt
+
+
+def test_append_task_prefix_preserves_chat_model_behavior():
+    append_task_prefix = _load_append_task_prefix_helper()
+
+    assert append_task_prefix("prompt", "prefix", "chat") == "promptprefix"
 
 
 def test_flatten_data_confs_expands_nested_omegaconf_groups():

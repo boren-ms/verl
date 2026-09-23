@@ -51,6 +51,12 @@ def _build_whisper_prompt(language: str, task: str, timestamps: bool) -> str:
     return prompt
 
 
+def _append_task_prefix(raw_prompt: str, prefix: str, prompt_format: str) -> str:
+    if prompt_format == "whisper":
+        return raw_prompt
+    return f"{raw_prompt}{prefix}"
+
+
 def _load_audio_with_retries(ds, index, max_dur, max_retries, audio_loader, recoverable_errors):
     attempted_sources = []
     retry_stride = max(1, len(ds) // (max_retries + 1))
@@ -245,7 +251,7 @@ class RLHFDataset(Dataset):
             )
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
-        raw_prompt = f"{raw_prompt}{prefix}"
+        raw_prompt = _append_task_prefix(raw_prompt, prefix, self.prompt_format)
         # print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
         # print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
 
