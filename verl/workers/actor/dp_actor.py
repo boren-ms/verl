@@ -488,6 +488,24 @@ class DataParallelPPOActor(BasePPOActor):
                         micro_batch_metrics["actor/kl_loss"] = kl_loss.detach().item() * loss_scale_factor
                         micro_batch_metrics["actor/kl_coef"] = self.config.kl_loss_coef
 
+                    if not torch.isfinite(policy_loss):
+                        inputs = {
+                            "log_prob": log_prob,
+                            "old_log_prob": old_log_prob,
+                            "advantages": advantages,
+                            "response_mask": response_mask,
+                        }
+                        if rollout_log_probs is not None:
+                            inputs["rollout_log_probs"] = rollout_log_probs
+                        if self.config.use_kl_loss:
+                            inputs["ref_log_prob"] = ref_log_prob
+                        counts = {name: (~torch.isfinite(tensor)).sum().item() for name, tensor in inputs.items()}
+                        raise FloatingPointError(
+                            f"Non-finite actor loss: pg_loss={pg_loss.item()}, "
+                            f"kl_loss={kl_loss.item() if self.config.use_kl_loss else 'disabled'}, "
+                            f"non-finite tensor elements={counts}"
+                        )
+
                     if self.config.use_dynamic_bsz:
                         # relative to the dynamic bsz
                         loss = policy_loss * loss_scale_factor
