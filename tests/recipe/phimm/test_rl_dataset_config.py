@@ -28,6 +28,37 @@ def _load_audio_retry_helper():
     return namespace["_load_audio_with_retries"]
 
 
+def _load_whisper_prompt_helper():
+    module_path = Path(__file__).parents[3] / "recipe/phimm/data/rl_dataset.py"
+    module = ast.parse(module_path.read_text())
+    function = next(
+        node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "_build_whisper_prompt"
+    )
+    namespace = {}
+    exec(compile(ast.Module(body=[function], type_ignores=[]), str(module_path), "exec"), namespace)
+    return namespace["_build_whisper_prompt"]
+
+
+def test_build_whisper_prompt_uses_language_task_and_timestamp_tokens():
+    build_whisper_prompt = _load_whisper_prompt_helper()
+
+    assert build_whisper_prompt("en", "transcribe", False) == (
+        "<|startoftranscript|><|en|><|transcribe|><|notimestamps|>"
+    )
+    assert build_whisper_prompt("auto", "translate", True) == "<|startoftranscript|><|translate|>"
+
+
+def test_build_whisper_prompt_rejects_unknown_task():
+    build_whisper_prompt = _load_whisper_prompt_helper()
+
+    try:
+        build_whisper_prompt("en", "summarize", False)
+    except ValueError as exc:
+        assert str(exc) == "Unsupported Whisper task: summarize"
+    else:
+        raise AssertionError("expected unsupported Whisper task to fail")
+
+
 def test_flatten_data_confs_expands_nested_omegaconf_groups():
     flatten_data_confs = _load_flatten_data_confs()
     grouped = OmegaConf.create([

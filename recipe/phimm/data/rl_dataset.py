@@ -39,6 +39,18 @@ def remove_empty_tensors(batch: dict) -> dict:
     return batch
 
 
+def _build_whisper_prompt(language: str, task: str, timestamps: bool) -> str:
+    if task not in {"transcribe", "translate"}:
+        raise ValueError(f"Unsupported Whisper task: {task}")
+    prompt = "<|startoftranscript|>"
+    if language != "auto":
+        prompt += f"<|{language}|>"
+    prompt += f"<|{task}|>"
+    if not timestamps:
+        prompt += "<|notimestamps|>"
+    return prompt
+
+
 def _load_audio_with_retries(ds, index, max_dur, max_retries, audio_loader, recoverable_errors):
     attempted_sources = []
     retry_stride = max(1, len(ds) // (max_retries + 1))
@@ -96,7 +108,12 @@ def _promote_null_feature(feat):
         return Value("string")
     if isinstance(feat, Sequence) and isinstance(feat.feature, Value) and feat.feature.dtype == "null":
         return Sequence(Value("string"), length=feat.length)
-    if hasattr(datasets, "List") and isinstance(feat, datasets.List) and isinstance(feat.feature, Value) and feat.feature.dtype == "null":
+    if (
+        hasattr(datasets, "List")
+        and isinstance(feat, datasets.List)
+        and isinstance(feat.feature, Value)
+        and feat.feature.dtype == "null"
+    ):
         return datasets.List(Value("string"))
     if isinstance(feat, list) and len(feat) == 1 and isinstance(feat[0], Value) and feat[0].dtype == "null":
         return [Value("string")]
@@ -161,6 +178,10 @@ class RLHFDataset(Dataset):
         self.return_full_prompt = config.get("return_full_prompt", False)
         self.truncation = config.get("truncation", "right2")
         self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
+        self.prompt_format = config.get("prompt_format", "chat")
+        self.whisper_language = config.get("whisper_language", "en")
+        self.whisper_task = config.get("whisper_task", "transcribe")
+        self.whisper_timestamps = config.get("whisper_timestamps", False)
         self.version = config.get("version")
         self.num_proc = get_num_proc(config.get("num_proc", "auto"))
         self.chat_template_func = config.get("chat_template_func", None)
@@ -207,14 +228,21 @@ class RLHFDataset(Dataset):
         )
         messages = row_dict[self.prompt_key]
 
-        # Use processor.apply_chat_template if available; fall back to tokenizer
-        _chat_obj = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
-        raw_prompt = _chat_obj.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=False,
-            **self.apply_chat_template_kwargs,
-        )
+        if self.prompt_format == "whisper":
+            raw_prompt = _build_whisper_prompt(
+                self.whisper_language,
+                self.whisper_task,
+                self.whisper_timestamps,
+            )
+        else:
+            # Use processor.apply_chat_template if available; fall back to tokenizer
+            _chat_obj = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
+            raw_prompt = _chat_obj.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=False,
+                **self.apply_chat_template_kwargs,
+            )
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
         raw_prompt = f"{raw_prompt}{prefix}"
@@ -224,9 +252,12 @@ class RLHFDataset(Dataset):
         audios = [audio]
 
         row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
-        model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
+        if self.prompt_format == "whisper":
+            model_inputs = self.tokenizer(raw_prompt, add_special_tokens=False, return_tensors="pt")
+        else:
+            model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
         input_ids = model_inputs.pop("input_ids")
-        attention_mask = model_inputs.pop("attention_mask")
+        attention_mask = model_inputs.pop("attention_mask", torch.ones_like(input_ids))
 
 
         if self.return_multi_modal_inputs:

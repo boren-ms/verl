@@ -152,8 +152,10 @@ class vLLMRollout(BaseRollout):
                 model_hf_config.text_config, "max_position_embeddings"
             ):
                 max_position_embeddings = model_hf_config.text_config.max_position_embeddings
+            elif hasattr(model_hf_config, "max_target_positions"):
+                max_position_embeddings = model_hf_config.max_target_positions
             if max_position_embeddings is None:
-                raise ValueError("max_position_embeddings not found in model_hf_config")
+                raise ValueError("model context length not found in model_hf_config")
             assert max_position_embeddings >= config.prompt_length + config.response_length, (
                 "model context length should be greater than total sequence length"
             )

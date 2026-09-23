@@ -1,11 +1,177 @@
-hydra:
-  searchpath:
-    - file://recipe/phimm/config
-    - file://verl/trainer/config
 defaults:
-  - eval_base
+  - ppo_trainer
   - _self_
 
+nccl_timeout: 3600
+
+val_reward:
+  reward_manager: long_audio_grouped
+  reward_kwargs:
+    version: 2607
+  reward_functions:
+    inhouse_zh:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2607
+        locale: zh-cn
+    inhouse_all:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2607
+    openasr_ml:
+      path: recipe/phimm/reward/asr_eval.py
+      name: openasr_eval
+      reward_kwargs:
+        version: 2607
+    openasr_en:
+      path: recipe/phimm/reward/asr_eval.py
+      name: openasr_en_eval
+      reward_kwargs:
+        version: 2607
+  reward_function_by_data_source:
+    mixlang: inhouse_zh
+    earning: openasr_en
+    openml_bad: openasr_ml
+    earning_num: openasr_en
+    earning_chunk_verb: openasr_en
+    earning_chunk_lex: openasr_en
+    earnings_pre_chunk_verb: openasr_en
+    earnings_pre_chunk_lex: openasr_en
+
+data:
+  train_files: null
+  val_files: null
+  trust_remote_code: false
+  version: 2607
+  max_prompt_length: 128
+  max_response_length: 256
+  max_model_length: 384
+  prompt_format: whisper
+  whisper_language: en
+  whisper_task: transcribe
+  whisper_timestamps: false
+  dataloader_num_workers: 1
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false
+  train_batch_size: 64
+  max_audio_dur: 40
+  chunk_load_mode: sample
+  gen_batch_size: ${data.train_batch_size}
+  custom_cls:
+    path: recipe/phimm/data/rl_dataset.py
+    name: RLHFDataset
+  eval_num_examine: 20
+  train_num_examine: ${eval:${actor_rollout_ref.rollout.n}*10}
+  val_batch_size: -1
+  return_multi_modal_inputs: true
+
 actor_rollout_ref:
+  nccl_timeout: 3600
+  actor:
+    use_torch_compile: false
+    use_dynamic_bsz: true
+    ppo_max_token_len_per_gpu: 2048
+    ppo_micro_batch_size_per_gpu: 4
+    ppo_mini_batch_size: ${data.train_batch_size}
+    use_kl_loss: true
+    kl_loss_coef: 0.001
+    kl_loss_type: low_var_kl
+    clip_ratio_low: 0.2
+    clip_ratio_high: 0.28
+    loss_agg_mode: token-mean
+    entropy_coeff: 0
+    tis_imp_ratio_cap: 5
+    ppo_epochs: 1
+    optim:
+      lr: 5e-6
+      warmup_style: cosine
+      min_lr_ratio: 0.1
+    fsdp_config:
+      param_offload: true
+      optimizer_offload: true
+      use_orig_params: true
+      wrap_policy:
+        transformer_layer_cls_to_wrap:
+          - WhisperDecoderLayer
+    strategy: fsdp2
+  rollout:
+    n: 16
+    gt_rollout: false
+    temperature: 1.2
+    calculate_log_probs: true
+    use_rollout_log_probs_as_old: true
+    gpu_memory_utilization: 0.9
+    max_num_seqs: 32
+    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
+    dtype: bfloat16
+    log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
+    tensor_model_parallel_size: 1
+    name: vllm
+    no_repeat_ngram_size: 15
+    response_length: ${data.max_response_length}
+    val_kwargs:
+      temperature: 0.0
+      top_p: 1.0
+      response_length: 256
+    load_format: safetensors
+    layered_summon: true
+    enable_prefix_caching: false
+    enforce_eager: true
+    enable_chunked_prefill: true
+    free_cache_engine: true
+    stop: null
+    stop_token_ids: null
   model:
-    path: az://orngwus2cresco/data/boren/data/verl/models/openai-whisper-small/
+    path: az://orngwus2cresco/data/boren/data/verl/models/openai-whisper-large-v3/
+    trust_remote_code: false
+    use_remove_padding: false
+    use_fused_kernels: false
+    trainable_params: null
+    exclude_modules: null
+    enable_gradient_checkpointing: false
+    lora_rank: 64
+    lora_alpha: ${eval:${actor_rollout_ref.model.lora_rank}*2}
+    target_modules: "model.decoder.layers.*(fc1|fc2|q_proj|k_proj|v_proj|out_proj).*"
+  ref:
+    strategy: fsdp2
+    log_prob_use_dynamic_bsz: true
+    log_prob_max_token_len_per_gpu: 2048
+    log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
+    fsdp_config:
+      param_offload: true
+
+algorithm:
+  adv_estimator: remax
+  adv_scale: {openml: 1.0, default: 1.0}
+  use_kl_in_reward: false
+  filter_groups:
+    enable: false
+
+reward_model:
+  reward_manager: dapo
+  overlong_buffer:
+    enable: false
+    len: 0
+    penalty_factor: 0.0
+
+trainer:
+  project_name: whisper
+  logger: ["console", "wandb"]
+  log_val_generations: 20
+  experiment_name: null
+  n_gpus_per_node: 8
+  ngpus: ${eval:${trainer.n_gpus_per_node}*${trainer.nnodes}}
+  resume_mode: auto
+  default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
+  default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
+  val_before_train: true
+  validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen
+  nnodes: 1
+  total_epochs: 4
+  total_training_steps: 500
+  test_freq: 50
+  save_freq: 50
+  val_only: false
