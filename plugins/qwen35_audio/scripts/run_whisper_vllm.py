@@ -49,7 +49,14 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--tensor-parallel-size", type=int, default=1)
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.5)
+    parser.add_argument(
+        "--dtype",
+        choices=("auto", "float16", "bfloat16", "float32"),
+        default="auto",
+    )
+    parser.add_argument("--enforce-eager", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--max-model-len", type=int, default=448)
+    parser.add_argument("--max-num-batched-tokens", type=int, default=2048)
     parser.add_argument("--max-num-seqs", type=int, default=256)
     parser.add_argument("--max-tokens", type=int, default=128)
     parser.add_argument("--temperature", type=float, default=0.0)
@@ -94,10 +101,13 @@ def main() -> None:
     llm = LLM(
         model=model_path,
         max_model_len=args.max_model_len,
+        max_num_batched_tokens=args.max_num_batched_tokens,
         max_num_seqs=args.max_num_seqs,
         tensor_parallel_size=args.tensor_parallel_size,
         limit_mm_per_prompt={"audio": 1},
         gpu_memory_utilization=args.gpu_memory_utilization,
+        dtype=args.dtype,
+        enforce_eager=args.enforce_eager,
     )
     print(f"load_seconds={time.time() - start_time:.1f}")
 
