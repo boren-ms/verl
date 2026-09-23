@@ -19,7 +19,7 @@ reward_functions:
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        keyword: {beta: 5.0, cut: 0.5}
+        keyword: {beta: 5.0, cut: 0.85}
 
 reward_function_by_data_source:
   earning_fy27_verb: asr_measure
@@ -29,7 +29,11 @@ actor_rollout_ref:
   rollout:
     n: 4
   model:
-    lora_rank: 256
+    lora_rank: 0
+    lora_alpha: 0
+    target_modules: null
+    exclude_modules: null
+    trainable_params: null
 
 data:
   train_batch_size: 256

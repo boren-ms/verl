@@ -5,5 +5,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_base
-  - /data/val_data/openasr
+  - /data/val_data/openasr_2606_verb
   - _self_
+
+trainer:
+  nnodes: 2
