@@ -1,0 +1,40 @@
+# English Polyus investor-report TTS data: 1,178 samples, 8.12 hours.
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2017-2020.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        text: display
+    clean_tagged_text: {}
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings_tts_verb
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2017-2020.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        text: lexical
+    clean_tagged_text: {}
+  add_task_info:
+    task: lang_asr_lex
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings_tts_lex
+    verl_format:
+      prompt_key: prompt
