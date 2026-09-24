@@ -1,8 +1,11 @@
 import ast
 import io
+import json
 import logging
 import math
+import os
 import queue
+import re
 import threading
 import traceback
 import uuid
@@ -19,6 +22,26 @@ from omegaconf import OmegaConf
 
 
 PROJECT_ROOT = Path(__file__).parents[3]
+
+
+def _read_jsonl(path):
+    with path.open(encoding="utf-8") as stream:
+        return [json.loads(line) for line in stream]
+
+
+@pytest.fixture
+def generation_io():
+    path = PROJECT_ROOT / "recipe/phimm/main_asr_gen.py"
+    module = ast.parse(path.read_text())
+    definitions = [
+        node
+        for node in module.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name in {"_part_index", "_jsonl_num_rows", "_resume_state_from_output"}
+    ]
+    namespace = {"bf": bf, "json": json, "os": os, "re": re}
+    exec(compile(ast.Module(body=definitions, type_ignores=[]), str(path), "exec"), namespace)
+    return SimpleNamespace(**namespace)
 
 
 @pytest.fixture
@@ -101,17 +124,38 @@ def test_training_still_uses_interleaving_by_default(dataset_namespace):
 def generation_pipeline(tmp_path):
     path = PROJECT_ROOT / "recipe/phimm/main_asr_gen.py"
     module = ast.parse(path.read_text())
+    scoring_definitions = [
+        node
+        for node in module.body
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module in {
+                "recipe.phimm.reward.asr_eval",
+                "recipe.phimm.reward.asr_response",
+                "verl.trainer.ppo.reward",
+            }
+        )
+        or (isinstance(node, ast.FunctionDef) and node.name in {"_load_generation_scoring", "log_examples"})
+    ]
     main_task = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "main_task")
     start = next(
         index
         for index, node in enumerate(main_task.body)
         if isinstance(node, ast.Assign)
-        and any(isinstance(target, ast.Name) and target.id == "batches" for target in node.targets)
+        and any(isinstance(target, ast.Name) and target.id == "tn_err" for target in node.targets)
     )
-    main_task.body = main_task.body[start:]
+    scoring_setup = next(
+        node
+        for node in main_task.body
+        if isinstance(node, ast.Assign)
+        and isinstance(node.value, ast.Call)
+        and isinstance(node.value.func, ast.Name)
+        and node.value.func.id == "_load_generation_scoring"
+    )
+    main_task.body = [scoring_setup, *main_task.body[start:]]
     main_task.decorator_list = []
     main_task.args.args.extend([ast.arg(arg="left_egs"), ast.arg(arg="split_idx")])
-    module = ast.fix_missing_locations(ast.Module(body=[main_task], type_ignores=[]))
+    module = ast.fix_missing_locations(ast.Module(body=[*scoring_definitions, main_task], type_ignores=[]))
 
     class Progress:
         def __init__(self, **kwargs):
@@ -144,30 +188,28 @@ def generation_pipeline(tmp_path):
 
     namespace = {
         "bf": bf,
+        "json": json,
         "np": np,
         "uuid": uuid,
         "logging": logging,
+        "OmegaConf": OmegaConf,
         "Dataset": datasets.Dataset,
         "Sequence": datasets.Sequence,
         "Value": datasets.Value,
-        "concatenate_datasets": datasets.concatenate_datasets,
         "DataProto": SimpleNamespace(from_single_dict=prepare),
         "pad_dataproto_to_divisor": lambda data, divisor: (data, 0),
         "unpad_dataproto": lambda data, pad_size: data,
         "wg": SimpleNamespace(world_size=1, generate_sequences=generate),
         "tokenizer": SimpleNamespace(decode=lambda *args, **kwargs: "hello"),
-        "eval_score": lambda *args, **kwargs: {"n_err": 0, "n_ref": 1, "n_edge": 0},
-        "get_hyp_text": lambda text, **kwargs: text,
-        "log_examples": lambda *args, **kwargs: None,
         "num_examine": 0,
-        "wer_kwargs": {},
+        "reward_kwargs": {},
         "output_dir": str(tmp_path),
         "tqdm": lambda **kwargs: progress,
         "split_size": 2,
     }
     exec(compile(module, str(path), "exec"), namespace)
 
-    def run(loader, total=4, already_saved=0, split_index=0):
+    def run(loader, total=4, already_saved=0, split_index=0, scorer_config=None):
         namespace.update(
             dataloader=loader,
             total_batches=math.ceil(total),
@@ -184,7 +226,14 @@ def generation_pipeline(tmp_path):
 
         def target():
             try:
-                namespace["main_task"](SimpleNamespace(data={"prefetch_depth": 1}), already_saved, split_index)
+                config = OmegaConf.create({
+                    "data": {"prefetch_depth": 1},
+                    "custom_reward_function": {
+                        "reward_kwargs": namespace["reward_kwargs"],
+                        **(scorer_config or {}),
+                    },
+                })
+                namespace["main_task"](config, already_saved, split_index)
             except BaseException as exc:
                 outcome.append(exc)
 
@@ -214,14 +263,23 @@ def _generation_batches(count):
         }
 
 
-def test_generation_scores_each_rows_language_and_keywords(generation_pipeline):
-    from recipe.phimm.reward.asr_edge import eval_score
-    from recipe.phimm.reward.asr_response import get_hyp_text
+@pytest.mark.parametrize(
+    "scorer_config",
+    [
+        None,
+        {"path": None, "name": "unused"},
+        {"path": "recipe/phimm/reward/asr_eval.py", "name": "openasr_eval"},
+    ],
+    ids=["unconfigured", "null-path", "explicit-default"],
+)
+def test_generation_defaults_to_openasr_and_preserves_metadata(generation_pipeline, scorer_config):
+    from recipe.phimm.reward.asr_eval import openasr_eval
 
     examples = [
         ("Spanish", "hola mundo", "hola", ["mundo"]),
         ("German", "die 100 dollar", "die one hundred dollars", []),
         ("English", "hello world", "hello world", ["hello"]),
+        ("English", "I have twenty dollars", "I have $20", ["dollars"]),
     ]
     rows = list(_generation_batches(len(examples)))
     responses = []
@@ -232,29 +290,170 @@ def test_generation_scores_each_rows_language_and_keywords(generation_pipeline):
         extra_info.update(language=language, keywords=keywords)
         response = f"Audio Language: {language}.\n<ASR><lang={language}><TXT>{hypothesis}</TXT></ASR>"
         responses.append(response)
-        expected.append(eval_score(response, reference, extra_info=extra_info, version=2607))
+        expected.append(openasr_eval(response, reference, extra_info=extra_info, version=2607))
     batch = {key: [row[key][0] for row in rows] for key in rows[0]}
     decoded = iter(responses)
     namespace = generation_pipeline.namespace
     namespace["tokenizer"].decode = lambda *args, **kwargs: next(decoded)
-    namespace["eval_score"] = eval_score
-    namespace["get_hyp_text"] = get_hyp_text
-    namespace["wer_kwargs"] = {"version": 2607}
+    assert namespace["openasr_eval"] is openasr_eval
+    namespace["reward_kwargs"] = {"version": 2607}
+    namespace["num_examine"] = 1
 
-    result = generation_pipeline.run([batch], total=len(examples))
+    result = generation_pipeline.run([batch], total=len(examples), scorer_config=scorer_config)
 
     assert result.error is None
-    saved = datasets.Dataset.from_parquet(str(generation_pipeline.output_dir / "part-000.parquet"))
+    saved = datasets.Dataset.from_list(_read_jsonl(generation_pipeline.output_dir / "part-000.jsonl"))
     assert "extra_info" not in saved.column_names
     assert list(saved["language"]) == [example[0] for example in examples]
     assert list(saved["keywords"]) == [example[3] for example in examples]
     assert list(saved["raw_response"]) == responses
     assert list(saved["response"]) == [example[2] for example in examples]
     for actual, score in zip(saved, expected, strict=True):
+        assert set(score) == {"score", "wer", "n_err", "n_ref"}
         assert {key: actual[key] for key in score} == score
-    assert list(saved["wer"]) == [0.5, 1.0, 0.0]
-    assert list(saved["p_lang"]) == [1.0, 1.0, 1.0]
-    assert list(saved["p_kw_missing"]) == [1.0, 0.0, 0.0]
+    assert list(saved["wer"]) == [0.5, 1.0, 0.0, 0.0]
+    assert list(saved["n_err"]) == [1, 3, 0, 0]
+    assert list(saved["n_ref"]) == [2, 3, 2, 3]
+    assert not any(key.startswith("p_") for key in saved.column_names)
+    assert not any("edge" in key for key in saved.column_names)
+    assert "WER: 100.00%" in result.output
+    assert "Overall wer: 40.00% [4/10] on 4 generated samples" in result.output
+    assert "edge_wer" not in result.output
+
+
+@pytest.mark.parametrize(
+    "scorer_config,extra_metrics",
+    [
+        (
+            {"path": "recipe/phimm/reward/asr_eval.py", "name": "openasr_en_eval"},
+            {"kw_acc", "nb_err", "nb_ref"},
+        ),
+        (
+            {"path": "recipe/phimm/reward/asr_edge.py", "name": "eval_score"},
+            {"p_fmt", "p_lang", "p_kw_missing"},
+        ),
+    ],
+    ids=["keyword-metrics", "response-checks"],
+)
+def test_generation_saves_configured_measurements_without_edge_fields(
+    generation_pipeline, scorer_config, extra_metrics
+):
+    rows = list(_generation_batches(1))
+    rows[0]["reward_model"][0]["ground_truth"] = "hello world"
+    rows[0]["extra_info"][0].update(language="English", keywords=["world"])
+    response = "Audio Language: English.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
+    namespace = generation_pipeline.namespace
+    namespace["tokenizer"].decode = lambda *args, **kwargs: response
+    namespace["reward_kwargs"] = {"version": 2607}
+
+    result = generation_pipeline.run(rows, total=1, scorer_config=scorer_config)
+
+    assert result.error is None
+    record, = _read_jsonl(generation_pipeline.output_dir / "part-000.jsonl")
+    assert extra_metrics <= record.keys()
+    assert record["keywords"] == ["world"]
+    assert record["response"] == "hello"
+    assert record["n_err"] == 1 and record["n_ref"] == 2 and record["wer"] == 0.5
+    assert not any("edge" in key for key in record)
+    assert "Overall wer: 50.00% [1/2]" in result.output
+
+
+@pytest.mark.parametrize("path", [None, "recipe/phimm/reward/asr_eval.py"])
+def test_generation_reward_kwargs_configure_scoring_and_response_version(generation_pipeline, path):
+    rows = list(_generation_batches(1))
+    rows[0]["reward_model"][0]["ground_truth"] = "ice cream"
+    response = "Audio Language: English.\n<ASR><lang=English><TXT>icecream</TXT></ASR>"
+    namespace = generation_pipeline.namespace
+    namespace["tokenizer"].decode = lambda *args, **kwargs: response
+    versions = []
+    parse = namespace["get_hyp_text"]
+
+    def parse_response(text, version):
+        versions.append(version)
+        return parse(text, version=version)
+
+    namespace["get_hyp_text"] = parse_response
+    scorer_config = {
+        "path": path,
+        "name": "openasr_eval",
+        "reward_kwargs": {"version": 2607, "merge_compounds": False},
+    }
+
+    result = generation_pipeline.run(rows, total=1, scorer_config=scorer_config)
+
+    assert result.error is None
+    record, = _read_jsonl(generation_pipeline.output_dir / "part-000.jsonl")
+    assert record["response"] == "icecream"
+    assert record["n_err"] == record["n_ref"] == 2
+    assert record["wer"] == 1.0
+    assert versions == [2607]
+
+
+@pytest.mark.parametrize("config", [{}, {"custom_reward_function": None}, {"custom_reward_function": {}}])
+def test_generation_scoring_without_configuration_uses_default(generation_pipeline, config):
+    namespace = generation_pipeline.namespace
+
+    score_fn, reward_kwargs = namespace["_load_generation_scoring"](OmegaConf.create(config))
+
+    assert score_fn is namespace["openasr_eval"]
+    assert reward_kwargs == {}
+
+
+@pytest.mark.parametrize(
+    "scorer_config,error,message",
+    [
+        ({"path": "missing_measure_function.py", "name": "score"}, FileNotFoundError, "not found"),
+        (
+            {"path": "recipe/phimm/reward/asr_eval.py", "name": "missing_measure_function"},
+            AttributeError,
+            "not found",
+        ),
+    ],
+)
+def test_generation_invalid_scorer_configuration_fails_explicitly(
+    generation_pipeline, scorer_config, error, message
+):
+    config = OmegaConf.create({"data": {}, "custom_reward_function": scorer_config})
+    with pytest.raises(error, match=message):
+        generation_pipeline.namespace["_load_generation_scoring"](config)
+    assert not list(generation_pipeline.output_dir.glob("part-*.jsonl"))
+
+
+@pytest.mark.parametrize("score", [None, 0.5, {"wer": 0.5}, {"n_err": 1}, {"n_ref": 2}])
+def test_generation_rejects_measurements_without_error_counts(generation_pipeline, score):
+    generation_pipeline.namespace["openasr_eval"] = lambda *args, **kwargs: score
+
+    result = generation_pipeline.run(_generation_batches(1), total=1)
+
+    assert isinstance(result.error, ValueError)
+    assert "must return a dict containing n_err and n_ref" in str(result.error)
+    assert "All Done" not in result.output
+    assert not list(generation_pipeline.output_dir.glob("part-*.jsonl"))
+
+
+@pytest.mark.parametrize("merge_compounds", [None, True, False])
+def test_generation_openasr_respects_compound_normalization(generation_pipeline, merge_compounds):
+    rows = list(_generation_batches(1))
+    rows[0]["reward_model"][0]["ground_truth"] = "ice cream"
+    response = "Audio Language: English.\n<ASR><lang=English><TXT>icecream</TXT></ASR>"
+    namespace = generation_pipeline.namespace
+    namespace["tokenizer"].decode = lambda *args, **kwargs: response
+    namespace["reward_kwargs"] = {"version": 2607}
+    if merge_compounds is not None:
+        namespace["reward_kwargs"]["merge_compounds"] = merge_compounds
+
+    result = generation_pipeline.run(rows, total=1)
+
+    assert result.error is None
+    record, = _read_jsonl(generation_pipeline.output_dir / "part-000.jsonl")
+    assert record["response"] == "icecream"
+    assert record["raw_response"] == response
+    expected = (
+        {"score": 0.0, "wer": 1.0, "n_err": 2, "n_ref": 2}
+        if merge_compounds is False
+        else {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 1}
+    )
+    assert {key: record[key] for key in expected} == expected
 
 
 @pytest.mark.parametrize("metadata", ["missing", None, {}])
@@ -268,10 +467,10 @@ def test_generation_scoring_handles_missing_metadata(generation_pipeline, metada
 
     def score(*args, **kwargs):
         received.append(kwargs)
-        return {"n_err": 0, "n_ref": 1, "n_edge": 0}
+        return {"n_err": 0, "n_ref": 1}
 
-    generation_pipeline.namespace["eval_score"] = score
-    generation_pipeline.namespace["wer_kwargs"] = {"version": 2607, "language": "Spanish"}
+    generation_pipeline.namespace["openasr_eval"] = score
+    generation_pipeline.namespace["reward_kwargs"] = {"version": 2607, "language": "Spanish"}
 
     result = generation_pipeline.run(rows, total=1)
 
@@ -322,7 +521,7 @@ def test_generation_propagates_consumer_failure(generation_pipeline, failure_sta
     if failure_stage == "decode":
         namespace["tokenizer"].decode = fail
     elif failure_stage == "score":
-        namespace["eval_score"] = fail
+        namespace["openasr_eval"] = fail
     else:
         namespace["bf"] = SimpleNamespace(makedirs=bf.makedirs, BlobFile=fail)
         if failure_stage == "final_write":
@@ -379,7 +578,7 @@ def test_consumer_failure_unblocks_full_output_queue(generation_pipeline, monkey
         raise error
 
     monkeypatch.setattr(queue, "Queue", ObservedQueue)
-    generation_pipeline.namespace["eval_score"] = fail
+    generation_pipeline.namespace["openasr_eval"] = fail
     result = generation_pipeline.run(_generation_batches(20), total=20)
 
     assert result.error is error
@@ -405,9 +604,9 @@ def test_late_producer_failure_preserves_saved_prefix_without_flushing_buffer(ge
 
     assert result.error is error
     assert "All Done" not in result.output
-    parts = list(generation_pipeline.output_dir.glob("part-*.parquet"))
-    assert [part.name for part in parts] == ["part-000.parquet"]
-    saved = datasets.Dataset.from_parquet(str(parts[0]))
+    parts = list(generation_pipeline.output_dir.glob("part-*.jsonl"))
+    assert [part.name for part in parts] == ["part-000.jsonl"]
+    saved = datasets.Dataset.from_list(_read_jsonl(parts[0]))
     assert list(saved["id"]) == [0, 1]
 
 
@@ -419,9 +618,11 @@ def test_generation_success_preserves_output_and_flushes_last_split(generation_p
     assert result.error is None
     assert "Saved 5/5 [100.00%] samples." in result.output
     assert "All Done" in result.output
-    parts = sorted(generation_pipeline.output_dir.glob("part-*.parquet"))
-    assert [part.name for part in parts] == [f"part-{index:03d}.parquet" for index in range(split_index, 3)]
-    saved = datasets.concatenate_datasets([datasets.Dataset.from_parquet(str(part)) for part in parts])
+    assert f"on {5 - already_saved} generated samples" in result.output
+    assert not list(generation_pipeline.output_dir.glob("*.parquet"))
+    parts = sorted(generation_pipeline.output_dir.glob("part-*.jsonl"))
+    assert [part.name for part in parts] == [f"part-{index:03d}.jsonl" for index in range(split_index, 3)]
+    saved = datasets.Dataset.from_list([row for part in parts for row in _read_jsonl(part)])
     assert list(saved["id"]) == list(range(already_saved, 5))
     assert list(saved["response"]) == ["hello"] * (5 - already_saved)
     assert generation_pipeline.progress.updates == 5 - already_saved
@@ -439,7 +640,7 @@ def test_generation_success_preserves_output_and_flushes_last_split(generation_p
     ],
     ids=["empty-first", "empty-last", "null-column", "all-empty", "null-element"],
 )
-def test_generation_preserves_keyword_schema_across_batches(generation_pipeline, keywords, split_size):
+def test_generation_preserves_keyword_lists_across_batches(generation_pipeline, keywords, split_size):
     rows = list(_generation_batches(len(keywords)))
     for index, (row, values) in enumerate(zip(rows, keywords, strict=True)):
         row["extra_info"][0].update(keywords=values, optional_count=None if index == 0 else 1)
@@ -449,14 +650,149 @@ def test_generation_preserves_keyword_schema_across_batches(generation_pipeline,
 
     assert result.error is None
     assert "All Done" in result.output
-    parts = sorted(generation_pipeline.output_dir.glob("part-*.parquet"))
+    parts = sorted(generation_pipeline.output_dir.glob("part-*.jsonl"))
     assert len(parts) == math.ceil(len(rows) / split_size)
-    saved_parts = [datasets.Dataset.from_parquet(str(part)) for part in parts]
-    for saved_part in saved_parts:
-        assert saved_part.features["keywords"].feature == datasets.Value("string")
-    saved = datasets.concatenate_datasets(saved_parts)
-    assert list(saved["id"]) == [0, 1]
-    assert list(saved["keywords"]) == keywords
-    assert list(saved["optional_count"]) == [None, 1]
-    assert saved.features["optional_count"] == datasets.Value("int64")
-    assert list(saved["response"]) == ["hello", "hello"]
+    saved = [row for part in parts for row in _read_jsonl(part)]
+    assert [row["id"] for row in saved] == [0, 1]
+    assert [row["keywords"] for row in saved] == keywords
+    assert [row["optional_count"] for row in saved] == [None, 1]
+    assert isinstance(saved[1]["optional_count"], int)
+    assert [row["response"] for row in saved] == ["hello", "hello"]
+
+
+def test_generation_jsonl_preserves_unicode_newlines_and_measurements(generation_pipeline):
+    text = "M\u00fcnchen\n\u6771\u4eac"
+    rows = list(_generation_batches(1))
+    rows[0]["reward_model"][0]["ground_truth"] = text
+    rows[0]["extra_info"][0].update(
+        keywords=["M\u00fcnchen"],
+        metadata={"speaker": "Jos\u00e9", "active": True},
+    )
+    generation_pipeline.namespace["tokenizer"].decode = lambda *args, **kwargs: text
+    generation_pipeline.namespace["openasr_eval"] = lambda *args, **kwargs: {
+        "n_err": 1,
+        "n_ref": 3,
+        "wer": 1 / 3,
+    }
+
+    result = generation_pipeline.run(rows, total=1)
+
+    assert result.error is None
+    path = generation_pipeline.output_dir / "part-000.jsonl"
+    contents = path.read_text(encoding="utf-8")
+    assert contents.endswith("\n") and len(contents.splitlines()) == 1
+    assert "M\u00fcnchen" in contents and "\u6771\u4eac" in contents
+    record, = _read_jsonl(path)
+    assert record["text"] == record["response"] == record["raw_response"] == text
+    assert record["keywords"] == ["M\u00fcnchen"]
+    assert record["metadata"] == {"speaker": "Jos\u00e9", "active": True}
+    assert record["n_err"] == 1
+    assert record["n_ref"] == 3
+    assert record["wer"] == 1 / 3
+    assert "Overall wer: 33.33% [1/3]" in result.output
+    assert not any("edge" in key for key in record)
+    assert "edge_wer" not in result.output
+
+
+@pytest.mark.parametrize(
+    "path,expected",
+    [
+        ("part-000.jsonl", 0),
+        ("/output/part-1000.jsonl", 1000),
+        ("az://account/container/part-002.jsonl", 2),
+        ("part-002.parquet", None),
+        ("part-000.jsonl.tmp", None),
+        ("part-abc.jsonl", None),
+        ("details.jsonl", None),
+    ],
+)
+def test_generation_part_index(generation_io, path, expected):
+    assert generation_io._part_index(path) == expected
+
+
+def test_generation_resumes_from_written_jsonl(generation_pipeline, generation_io):
+    first = generation_pipeline.run(_generation_batches(2), total=2)
+    assert first.error is None
+    first_part = generation_pipeline.output_dir / "part-000.jsonl"
+    original = first_part.read_bytes()
+    state = generation_io._resume_state_from_output(str(generation_pipeline.output_dir), 5, 1, True)
+    assert state == (2, 1)
+
+    second = generation_pipeline.run(
+        list(_generation_batches(5))[2:], total=5, already_saved=state[0], split_index=state[1]
+    )
+
+    assert second.error is None
+    assert first_part.read_bytes() == original
+    parts = sorted(generation_pipeline.output_dir.glob("part-*.jsonl"))
+    saved = [row for part in parts for row in _read_jsonl(part)]
+    assert [row["id"] for row in saved] == list(range(5))
+    assert generation_io._resume_state_from_output(str(generation_pipeline.output_dir), 5, 1, True) == (5, 3)
+
+
+def test_generation_resume_supports_jsonl(generation_io, tmp_path):
+    (tmp_path / "part-000.jsonl").write_text('{"id":0}\n{"id":1}\n')
+    (tmp_path / "part-001.jsonl").write_text('{"id":2}\n{"id":3}\n')
+    assert generation_io._resume_state_from_output(str(tmp_path), 5, 2, True) == (4, 2)
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+@pytest.mark.parametrize("with_jsonl", [False, True])
+def test_generation_rejects_legacy_output_directory(generation_io, tmp_path, enabled, with_jsonl):
+    legacy = tmp_path / "part-000.parquet"
+    legacy.write_bytes(b"not read as Parquet")
+    if with_jsonl:
+        (tmp_path / "part-001.jsonl").write_text('{"id":1}\n')
+    with pytest.raises(ValueError, match="Only JSONL output is supported.*Use a new output_path"):
+        generation_io._resume_state_from_output(str(tmp_path), 5, 1, enabled)
+    assert legacy.read_bytes() == b"not read as Parquet"
+
+
+def test_generation_resume_empty_output(generation_io, tmp_path):
+    assert generation_io._resume_state_from_output(str(tmp_path), 5, 2, True) == (0, 0)
+
+
+def test_generation_resume_disabled_ignores_existing_output(generation_io, tmp_path):
+    (tmp_path / "part-000.jsonl").write_text("incomplete")
+    assert generation_io._resume_state_from_output(str(tmp_path), 5, 2, False) == (0, 0)
+
+
+def test_generation_resume_complete_partial_batch(generation_io, tmp_path):
+    (tmp_path / "part-000.jsonl").write_text('{"id":0}\n{"id":1}\n{"id":2}\n')
+    assert generation_io._resume_state_from_output(str(tmp_path), 3, 2, True) == (3, 1)
+
+
+@pytest.mark.parametrize("total,batch_size,match", [(5, 2, "not aligned"), (2, 2, "exceeding")])
+def test_generation_resume_rejects_incompatible_counts(generation_io, tmp_path, total, batch_size, match):
+    (tmp_path / "part-000.jsonl").write_text('{"id":0}\n{"id":1}\n{"id":2}\n')
+    with pytest.raises(ValueError, match=match):
+        generation_io._resume_state_from_output(str(tmp_path), total, batch_size, True)
+
+
+@pytest.mark.parametrize(
+    "contents,match",
+    [
+        ('{"id":0}\n{"id":', "Invalid JSONL record.*:2"),
+        ('{"id":0}\n\n', "Invalid JSONL record.*:2"),
+        ("[]\n", "Expected a JSON object"),
+        ("", "empty output split"),
+    ],
+)
+def test_generation_resume_rejects_invalid_jsonl(generation_io, tmp_path, contents, match):
+    (tmp_path / "part-000.jsonl").write_text(contents)
+    with pytest.raises(ValueError, match=match):
+        generation_io._resume_state_from_output(str(tmp_path), 5, 1, True)
+
+
+def test_generation_resume_rejects_duplicate_indices(generation_io, tmp_path):
+    (tmp_path / "part-000.jsonl").write_text('{"id":0}\n')
+    (tmp_path / "part-0.jsonl").write_text('{"id":0}\n')
+    with pytest.raises(ValueError, match="Duplicate output split index"):
+        generation_io._resume_state_from_output(str(tmp_path), 5, 1, True)
+
+
+def test_generation_resume_rejects_missing_split(generation_io, tmp_path):
+    (tmp_path / "part-000.jsonl").write_text('{"id":0}\n')
+    (tmp_path / "part-002.jsonl").write_text('{"id":2}\n')
+    with pytest.raises(ValueError, match="Missing output split 1"):
+        generation_io._resume_state_from_output(str(tmp_path), 5, 1, True)

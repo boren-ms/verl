@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Generate responses given a dataset of prompts
+Generate ASR responses and configurable measurements as resumable JSONL splits.
 """
 
+import json
 import logging
 import math
 import os
@@ -22,7 +23,6 @@ import re
 
 import hydra
 import numpy as np
-import pyarrow.parquet as pq
 import ray
 from tqdm import tqdm
 
@@ -31,7 +31,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 # os.environ['TORCH_COMPILE_DISABLE'] = '1'
 import uuid
 from pprint import pprint
-from datasets import Dataset, Sequence, Value, concatenate_datasets
+from datasets import Dataset, Sequence, Value
 from omegaconf import OmegaConf
 from torch.utils.data import Subset
 from torchdata.stateful_dataloader import StatefulDataLoader
@@ -40,6 +40,7 @@ from verl import DataProto
 from verl.protocol import pad_dataproto_to_divisor, unpad_dataproto
 from verl.single_controller.ray import RayClassWithInitArgs, RayResourcePool, RayWorkerGroup
 from verl.single_controller.ray.base import create_colocated_worker_cls
+from verl.trainer.ppo.reward import get_custom_reward_fn
 from verl.utils import hf_processor, hf_tokenizer
 from recipe.phimm.data.rl_dataset import RLHFDataset
 from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
@@ -48,50 +49,73 @@ import blobfile as bf
 from verl.workers.fsdp_workers import ActorRolloutRefWorker
 from pathlib import Path
 from recipe.phimm.utils.env import EnvMgr
-from recipe.phimm.reward.asr_edge import eval_score
+from recipe.phimm.reward.asr_eval import openasr_eval
 from recipe.phimm.reward.asr_response import get_hyp_text
 
 
+def _load_generation_scoring(config):
+    reward_config = config.get("custom_reward_function") or {}
+    reward_kwargs = reward_config.get("reward_kwargs", {})
+    if OmegaConf.is_config(reward_kwargs):
+        reward_kwargs = OmegaConf.to_container(reward_kwargs, resolve=True)
+    score_fn = get_custom_reward_fn(config) or openasr_eval
+    return score_fn, reward_kwargs
+
+
 def _part_index(path: str) -> int | None:
-    match = re.match(r"part-(\d+)\.parquet$", os.path.basename(path))
+    match = re.fullmatch(r"part-(\d+)\.jsonl", os.path.basename(path))
     return int(match.group(1)) if match else None
 
 
-def _parquet_num_rows(path: str) -> int:
-    with bf.BlobFile(path, "rb") as file_obj:
-        return pq.ParquetFile(file_obj).metadata.num_rows
+def _jsonl_num_rows(path: str) -> int:
+    count = 0
+    with bf.BlobFile(path, "r") as file_obj:
+        for line_number, line in enumerate(file_obj, 1):
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"Invalid JSONL record in {path}:{line_number}: {exc.msg}") from exc
+            if not isinstance(record, dict):
+                raise ValueError(f"Expected a JSON object in {path}:{line_number}")
+            count += 1
+    if count == 0:
+        raise ValueError(f"Cannot resume from an empty output split: {path}")
+    return count
 
 
 def _resume_state_from_output(output_dir: str, total_egs: int, batch_size: int, enabled: bool) -> tuple[int, int]:
+    if any(bf.glob(f"{output_dir}/part-*.parquet")):
+        raise ValueError(
+            f"Only JSONL output is supported; {output_dir} contains Parquet splits. Use a new output_path."
+        )
     if not enabled:
         return 0, 0
 
-    parts = []
-    for path in bf.glob(f"{output_dir}/part-*.parquet"):
+    parts = {}
+    for path in bf.glob(f"{output_dir}/part-*.jsonl"):
         idx = _part_index(path)
         if idx is not None:
-            parts.append((idx, path))
+            if idx in parts:
+                raise ValueError(f"Duplicate output split index {idx}: {parts[idx]} and {path}")
+            parts[idx] = path
     if not parts:
         return 0, 0
 
-    contiguous_parts = []
-    expected_idx = 0
-    for idx, path in sorted(parts):
-        if idx < expected_idx:
-            continue
+    existing_egs = 0
+    for expected_idx, (idx, path) in enumerate(sorted(parts.items())):
         if idx != expected_idx:
-            break
-        contiguous_parts.append((idx, path))
-        expected_idx += 1
-
-    existing_egs = sum(_parquet_num_rows(path) for _, path in contiguous_parts)
-    existing_egs = min(existing_egs, total_egs)
+            raise ValueError(
+                f"Missing output split {expected_idx} before {path}; use a complete prefix or a new output_path"
+            )
+        existing_egs += _jsonl_num_rows(path)
+    if existing_egs > total_egs:
+        raise ValueError(f"Saved output has {existing_egs} examples, exceeding the current dataset size {total_egs}")
     if existing_egs < total_egs and existing_egs % batch_size != 0:
         raise ValueError(
             f"Cannot resume from {existing_egs} saved examples because it is not aligned to batch_size={batch_size}"
         )
-    print(f"Resuming generation from {existing_egs}/{total_egs} saved examples across {len(contiguous_parts)} parts.")
-    return existing_egs, expected_idx
+    print(f"Resuming generation from {existing_egs}/{total_egs} saved examples across {len(parts)} parts.")
+    return existing_egs, len(parts)
 
 
 def get_env_vars():
@@ -151,9 +175,7 @@ def log_examples(ds, num_examine=1):
 
     for i in range(min(num_examine, len(sort_ds))):
         print(f"--- Example {i + 1} ---")
-        edge_wer = sort_ds[i]["edge_wer"] if "edge_wer" in sort_ds.column_names else None
-        edge_str = f"  edge_wer: {edge_wer:.2%}" if edge_wer is not None else ""
-        print(f"WER: {sort_ds[i]['wer']:.2%}{edge_str}")
+        print(f"WER: {sort_ds[i]['wer']:.2%}")
         print("Ref:", sort_ds[i]["text"])
         print("Hyp:", sort_ds[i]["raw_response"])
         if audio_key in sort_ds.column_names:
@@ -168,7 +190,7 @@ def main_task(config):
         OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
     pprint(OmegaConf.to_container(config, resolve=True))  # resolve=True will eval symbol values
     OmegaConf.resolve(config)
-    # breakpoint()
+    score_fn, reward_kwargs = _load_generation_scoring(config)
     local_path = copy_to_local(config.model.path)
     trust_remote_code = config.model.get("trust_remote_code", False)
     tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code)
@@ -226,26 +248,22 @@ def main_task(config):
     wg = wg_dict.spawn(prefix_set=["rollout"])["rollout"]
     wg.init_model()
 
-    wer_kwargs = config.data.get("wer_kwargs", {})
-    if OmegaConf.is_config(wer_kwargs):
-        wer_kwargs = OmegaConf.to_container(wer_kwargs, resolve=True)
-
-    batches = []
     tn_err = 0
     tn_ref = 0
-    tn_edge = 0
-    
-    def write_data(batches, idx):
-        batches = [b for b in batches if len(b) > 0]
-        if not batches:
-            return 0
-        split_ds = concatenate_datasets(batches)
-        bf.makedirs(output_dir)
-        split_path = f"{output_dir}/part-{idx:03d}.parquet"
-        with bf.BlobFile(split_path, "wb") as f:
-            split_ds.to_parquet(f)
-        return len(split_ds)
+    processed_egs = 0
 
+    def write_data(batches, idx):
+        num_rows = sum(len(batch) for batch in batches)
+        if not num_rows:
+            return 0
+        bf.makedirs(output_dir)
+        split_path = f"{output_dir}/part-{idx:03d}.jsonl"
+        with bf.BlobFile(split_path, "w") as f:
+            # Preserve nullable integers and float precision without pandas coercion.
+            for batch in batches:
+                for record in batch:
+                    f.write(json.dumps(record, ensure_ascii=False, allow_nan=False) + "\n")
+        return num_rows
 
     import threading
     import queue as _queue
@@ -311,8 +329,9 @@ def main_task(config):
         put_item(prep_queue, _SENTINEL)
 
     def consumer():
-        nonlocal tn_err, tn_ref, tn_edge, left_egs, split_idx
+        nonlocal tn_err, tn_ref, processed_egs, left_egs, split_idx
         local_batches = []
+        buffered_rows = 0
         while not stopped.is_set():
             item = get_item(post_queue)
             if item is _SENTINEL:
@@ -324,14 +343,17 @@ def main_task(config):
                 valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
                 valid_response_ids = data_item.batch["responses"][:valid_response_length]
                 response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
-                score_kwargs = {**wer_kwargs, "extra_info": extras[i] or {}}
-                score = eval_score(response_str, results[i]["text"], **score_kwargs)
-                score["response"] = get_hyp_text(response_str, version=wer_kwargs.get("version"))
+                sample_reward_kwargs = {**reward_kwargs, "extra_info": extras[i] or {}}
+                score = score_fn(response_str, results[i]["text"], **sample_reward_kwargs)
+                if not isinstance(score, dict) or not {"n_err", "n_ref"} <= score.keys():
+                    raise ValueError("Generation reward function must return a dict containing n_err and n_ref.")
+                score = {key: value for key, value in score.items() if key not in {"n_edge", "edge_wer"}}
+                score["response"] = get_hyp_text(response_str, version=reward_kwargs.get("version"))
                 score["raw_response"] = response_str
                 results[i].update(score)
             tn_err += sum(r["n_err"] for r in results)
             tn_ref += sum(r["n_ref"] for r in results)
-            tn_edge += sum(r["n_edge"] for r in results)
+            processed_egs += len(results)
             b_ds = Dataset.from_list(results)
             if "keywords" in b_ds.features:
                 features = b_ds.features
@@ -340,17 +362,17 @@ def main_task(config):
                     b_ds = b_ds.cast(features)
             log_examples(b_ds, num_examine=num_examine)
             local_batches.append(b_ds)
+            buffered_rows += len(b_ds)
             if stopped.is_set():
                 return
-            if sum(len(ds) for ds in local_batches) >= split_size:
+            if buffered_rows >= split_size:
                 left_egs += write_data(local_batches, split_idx)
                 split_idx += 1
                 local_batches = []
-        if not stopped.is_set():
-            if local_batches:
-                left_egs += write_data(local_batches, split_idx)
-                split_idx += 1
-            batches.extend(local_batches)
+                buffered_rows = 0
+        if not stopped.is_set() and local_batches:
+            left_egs += write_data(local_batches, split_idx)
+            split_idx += 1
 
     def generate():
         while not stopped.is_set():
@@ -386,10 +408,7 @@ def main_task(config):
     if not errors.empty():
         raise errors.get()
 
-    print(
-        f"Overall wer: {tn_err / max(tn_ref, 1):.2%} [{tn_err}/{tn_ref}] "
-        f"edge_wer={tn_edge / max(tn_ref, 1):.2%} on {total_egs} samples"
-    )
+    print(f"Overall wer: {tn_err / max(tn_ref, 1):.2%} [{tn_err}/{tn_ref}] on {processed_egs} generated samples")
     print(f"Saved {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
     print(f"Saved {split_idx} splits to {output_dir}")
     print("All Done")

@@ -4,8 +4,19 @@ defaults:
 
 nccl_timeout: 1800
 
+# Callable signature: (solution_str, ground_truth, **kwargs).
+# Return a dict with n_err and n_ref; other measurements are also saved, except n_edge/edge_wer.
+# reward_kwargs configure scoring and response parsing. A null path falls back to openasr_eval.
+custom_reward_function:
+  path: recipe/phimm/reward/asr_eval.py
+  name: openasr_eval
+  reward_kwargs:
+    version: 2607
+
 trainer:
-  experiment_name: phimm_asr_gen # required for logging
+  experiment_name: null # required for logging
+  nnodes: 1
+  n_gpus_per_node: 8
   
 data:
   # Generation concatenates all sources; unreadable audio raises instead of substituting another sample.
@@ -13,10 +24,18 @@ data:
   # Pipeline failures propagate to the job; completed output splits remain available for resume.
   # Buffered batches are flushed on success, not during failure cleanup.
   # Output keywords use a string-list schema, including batches with only empty or null keywords.
-  # Scoring uses each sample's extra_info (language, keywords); use a fresh output_path to rescore older outputs.
+  # Scoring passes each sample's extra_info and custom_reward_function.reward_kwargs.
+  # The default OpenASR metrics are score, wer, n_err and n_ref; keywords remain metadata.
+  # Use a fresh output_path to rescore older outputs; resume does not recompute existing measurements.
+  # output_path is a directory of part-NNN.jsonl files, including transcripts, metadata and measurements.
+  # Writing and resume support JSONL only; directories containing old Parquet splits are rejected.
+  # Downstream consumers of new splits must load JSONL rather than globbing for Parquet.
+  version: 2607
+  validation_shuffle: false
+  resume_from_output: true
   path: null
   batch_size: 512              # large dispatch -> vLLM stays saturated end-to-end
-  output_split_size: 20000      # fewer parquet writes; larger chunks per blob upload
+  output_split_size: 20000      # flush whole batches after this many rows
   num_workers: 4               # bounded to keep host RAM safe with audio batches
   prefetch_factor: 4
   pin_memory: false             # audio batches are big; pinned memory would balloon host RSS
@@ -27,11 +46,13 @@ data:
 
 model:
   path: null
-  trust_remote_code: True
+  trust_remote_code: false
 
 rollout:
+  n: 1
   engine_kwargs:
     vllm:
+      gdn_prefill_backend: triton
       quantization: fp8
 
   temperature: 0.0
