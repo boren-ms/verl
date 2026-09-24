@@ -142,6 +142,9 @@ actor_rollout_ref:
     log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
     fsdp_config:
       param_offload: true
+      wrap_policy:
+        transformer_layer_cls_to_wrap:
+          - WhisperDecoderLayer
 
 algorithm:
   adv_estimator: remax
