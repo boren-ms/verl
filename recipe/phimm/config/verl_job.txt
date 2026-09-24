@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-24T22:05:04Z
+updated_at_utc: 2026-09-24T22:07:48Z
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                         │ PROGRESS / PHASE                             │
@@ -10,10 +10,10 @@ updated_at_utc: 2026-09-24T22:05:04Z
 │ n2-i0        │ raysubmit_Zm4jMqzg8PVTRnsw   │ RUNNING       │ remax_2607v1a_ls_rare_s1k_bs256_n4_r256_g16                          │ training 254/1000 (25.4%)                    │
 │ n2-i1        │ raysubmit_dseqUBvSZWsgQ985   │ RUNNING       │ remax_2607v1a_earning_batches_s1k_bs256_n2_r256_g16_lr2              │ training 317/1000 (31.7%)                    │
 │ n2-i2        │ raysubmit_BpGKsCDFSyPHzMm2   │ RUNNING       │ remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr2          │ training 163/1000 (16.3%)                    │
-│ n2-i3        │ raysubmit_5G5skzRw1naWWHVR   │ RUNNING       │ remax_2607v2_ls_rare_s1k_bs256_n1_r256_g16                           │ training 144/1000 (14.4%)                    │
+│ n2-i3        │ raysubmit_5G5skzRw1naWWHVR   │ RUNNING       │ remax_2607v2_ls_rare_s1k_bs256_n1_r256_g16                           │ training 147/1000 (14.7%)                    │
 │ n2-i4        │ raysubmit_W8XUW1BUw2DNaBcy   │ RUNNING       │ remax_2607v1a_earning_tts_clean_s1k_bs256_v0_n4_r256_g16             │ training 536/1000 (53.6%)                    │
 │ n2-i5        │ raysubmit_jmc9nMywtqNK9z64   │ SUCCEEDED     │ remax_2607v1a_earning_fy27_batch2_s1k_bs256_v0_n1_r256_g16           │ training 1000/1000 (100.0%)                  │
-│ n2-i6        │ raysubmit_9ZSrLjG9tpUUyjtC   │ RUNNING       │ remax_2607v1a_earning_batches_tts_balanced_s1k_bs256_n1_r256_g16_lr2 │ training 53/1000 (5.3%)                      │
+│ n2-i6        │ raysubmit_9ZSrLjG9tpUUyjtC   │ RUNNING       │ remax_2607v1a_earning_batches_tts_balanced_s1k_bs256_n1_r256_g16_lr2 │ training 60/1000 (6.0%)                      │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
 
 Reports:
@@ -21,7 +21,7 @@ Reports:
 - `remax_2607v1a_ls_rare_s1k_bs256_n4_r256_g16` [`n2-i0`]: training 254/1000 (25.4%)
 - `remax_2607v1a_earning_batches_s1k_bs256_n2_r256_g16_lr2` [`n2-i1`]: training 317/1000 (31.7%)
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr2` [`n2-i2`]: training 163/1000 (16.3%)
-- `remax_2607v2_ls_rare_s1k_bs256_n1_r256_g16` [`n2-i3`]: training 144/1000 (14.4%)
+- `remax_2607v2_ls_rare_s1k_bs256_n1_r256_g16` [`n2-i3`]: training 147/1000 (14.7%)
 - `remax_2607v1a_earning_tts_clean_s1k_bs256_v0_n4_r256_g16` [`n2-i4`]: training 536/1000 (53.6%)
 - `remax_2607v1a_earning_fy27_batch2_s1k_bs256_v0_n1_r256_g16` [`n2-i5`]: complete step 1000
-- `remax_2607v1a_earning_batches_tts_balanced_s1k_bs256_n1_r256_g16_lr2` [`n2-i6`]: training 53/1000 (5.3%)
+- `remax_2607v1a_earning_batches_tts_balanced_s1k_bs256_n1_r256_g16_lr2` [`n2-i6`]: training 60/1000 (6.0%)
