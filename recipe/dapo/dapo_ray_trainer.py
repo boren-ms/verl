@@ -33,6 +33,7 @@ from verl.trainer.ppo.core_algos import (
     compute_remax_disagreement_mask,
     deduplicate_rollout_responses,
 )
+from verl.trainer.ppo.filter_groups import compute_remax_advantage_metric, select_prompt_uids_by_metric
 
 from verl.utils.metric import reduce_metrics
 from verl.trainer.ppo.metric_utils import (
@@ -273,31 +274,35 @@ class RayDAPOTrainer(RayPPOTrainer):
                         # Defer KL penalty to after old_log_probs and ref_log_prob are computed.
                         # For now, set token_level_rewards = token_level_scores (KL applied later).
                         new_batch.batch["token_level_rewards"] = new_batch.batch["token_level_scores"]
-                    # check zero std prompts
+                    # Select prompt groups with useful rollout-level training signal.
                     metric_name = self.config.algorithm.filter_groups.get("metric", "seq_reward")
                     if metric_name == "seq_final_reward":
-                        # Turn to numpy for easier filtering
                         new_batch.non_tensor_batch["seq_final_reward"] = (
-                            new_batch.batch["token_level_rewards"].sum(dim=-1).numpy()
+                            new_batch.batch["token_level_rewards"].sum(dim=-1).detach().cpu().numpy()
                         )
                     elif metric_name == "seq_reward":
                         new_batch.non_tensor_batch["seq_reward"] = (
-                            new_batch.batch["token_level_scores"].sum(dim=-1).numpy()
+                            new_batch.batch["token_level_scores"].sum(dim=-1).detach().cpu().numpy()
                         )
-                    # Collect the sequence reward for each trajectory
-                    prompt_uid2metric_vals = defaultdict(list)
-                    for uid, metric_val in zip(
-                        new_batch.non_tensor_batch["uid"], new_batch.non_tensor_batch[metric_name], strict=True
-                    ):
-                        prompt_uid2metric_vals[uid].append(metric_val)
-                    prompt_uid2metric_std = {}
-                    for prompt_uid, metric_vals in prompt_uid2metric_vals.items():
-                        prompt_uid2metric_std[prompt_uid] = np.std(metric_vals)
-                    kept_prompt_uids = [
-                        uid
-                        for uid, std in prompt_uid2metric_std.items()
-                        if std > 0 or len(prompt_uid2metric_vals[uid]) == 1
-                    ]
+                    elif metric_name == "remax_advantage":
+                        if self.config.algorithm.adv_estimator != AdvantageEstimator.REMAX:
+                            raise ValueError("filter_groups.metric=remax_advantage requires adv_estimator=remax")
+                        if "reward_baselines" not in new_batch.batch:
+                            raise ValueError("ReMax reward baselines are required for remax_advantage filtering")
+                        sampled_rewards = (
+                            new_batch.batch["token_level_scores"].sum(dim=-1).detach().cpu().numpy()
+                        )
+                        reward_baselines = new_batch.batch["reward_baselines"].detach().cpu().numpy()
+                        new_batch.non_tensor_batch["remax_advantage"] = compute_remax_advantage_metric(
+                            sampled_rewards, reward_baselines
+                        )
+
+                    kept_prompt_uids = select_prompt_uids_by_metric(
+                        prompt_uids=new_batch.non_tensor_batch["uid"],
+                        metric_values=new_batch.non_tensor_batch[metric_name],
+                        mode=self.config.algorithm.filter_groups.get("mode", "variance"),
+                        atol=self.config.algorithm.filter_groups.get("atol", 0.0),
+                    )
                     num_prompt_in_batch += len(kept_prompt_uids)
                     if not self.config.algorithm.filter_groups.enable:
                         batch = new_batch

@@ -26,6 +26,7 @@ import torch
 from tqdm import tqdm
 
 from verl import DataProto
+from verl.trainer.ppo.filter_groups import select_prompt_uids_by_metric
 from verl.trainer.ppo.metric_utils import (
     compute_data_metrics,
     compute_throughout_metrics,
@@ -200,21 +201,12 @@ class RayEntropyTrainer(RayPPOTrainer):
                             )
 
                         # Collect the sequence reward for each trajectory
-                        prompt_uid2metric_vals = defaultdict(list)
-                        for uid, metric_val in zip(
-                            new_batch.non_tensor_batch["uid"], new_batch.non_tensor_batch[metric_name], strict=True
-                        ):
-                            prompt_uid2metric_vals[uid].append(metric_val)
-
-                        prompt_uid2metric_std = {}
-                        for prompt_uid, metric_vals in prompt_uid2metric_vals.items():
-                            prompt_uid2metric_std[prompt_uid] = np.std(metric_vals)
-
-                        kept_prompt_uids = [
-                            uid
-                            for uid, std in prompt_uid2metric_std.items()
-                            if std > 0 or len(prompt_uid2metric_vals[uid]) == 1
-                        ]
+                        kept_prompt_uids = select_prompt_uids_by_metric(
+                            prompt_uids=new_batch.non_tensor_batch["uid"],
+                            metric_values=new_batch.non_tensor_batch[metric_name],
+                            mode=self.config.algorithm.filter_groups.get("mode", "variance"),
+                            atol=self.config.algorithm.filter_groups.get("atol", 0.0),
+                        )
                         num_prompt_in_batch += len(kept_prompt_uids)
 
                         kept_traj_idxs = []

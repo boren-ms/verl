@@ -47,12 +47,18 @@ class FilterGroupsConfig(BaseConfig):
 
     Args:
         enable (bool): Whether to enable filter groups.
-        metric (Optional[str]): Metric to use for filtering: "acc", "score", "seq_reward", "seq_final_reward", etc.
+        metric (Optional[str]): Metric to use for filtering: "acc", "score", "seq_reward",
+            "seq_final_reward", "remax_advantage", etc.
+        mode (str): Group retention rule. "variance" keeps groups with varying metric values;
+            "nonzero" keeps groups containing at least one nonzero metric value.
+        atol (float): Absolute tolerance used by the retention rule.
         max_num_gen_batches (int): Non-positive values mean no upper limit.
     """
 
     enable: bool = False
     metric: Optional[str] = None
+    mode: str = "variance"
+    atol: float = 0.0
     max_num_gen_batches: int = 0
 
 

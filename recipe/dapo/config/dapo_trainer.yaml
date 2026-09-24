@@ -21,7 +21,9 @@ algorithm:
   filter_groups:
     _target_: verl.trainer.config.FilterGroupsConfig
     enable: False # We try to avoid forgetting to set enable
-    metric: null # acc / score / seq_reward / seq_final_reward / ...
+    metric: null # acc / score / seq_reward / seq_final_reward / remax_advantage / ...
+    mode: variance # variance / nonzero
+    atol: 0.0
     max_num_gen_batches: 0 # Non-positive values mean no upper limit
 
 trainer:
