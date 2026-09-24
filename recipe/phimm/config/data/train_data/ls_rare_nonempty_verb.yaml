@@ -1,0 +1,16 @@
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe_rare_keywords_nonempty.jsonl
+pre_process:
+  rename_fields:
+    mappings:
+      text: transcription
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+post_process:
+  add_field:
+    fields:
+      data_source: ls_rare_verb
+  verl_format:
+    prompt_key: prompt
