@@ -1,0 +1,154 @@
+# Balanced earnings-call ASR data with every original sample retained.
+# Each JSONL is repeated to 4,873 samples per text task, matching FY27 batch 2.
+# Three sources x 4,873 samples x two tasks (verbatim and lexical) = 29,238 training samples.
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl
+    - az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+    rename_fields:
+      mappings:
+        text: display
+    clean_tagged_text: {}
+    output_egs_limit: 4873
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earning_fy27_verb
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl
+    - az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+    rename_fields:
+      mappings:
+        text: lexical
+    clean_tagged_text: {}
+    output_egs_limit: 4873
+  add_task_info:
+    task: lang_asr_lex
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earning_fy27_lex
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+    rename_fields:
+      mappings:
+        text: display
+    clean_tagged_text: {}
+    output_egs_limit: 4873
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earning_fy27_verb
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+    rename_fields:
+      mappings:
+        text: lexical
+    clean_tagged_text: {}
+    output_egs_limit: 4873
+  add_task_info:
+    task: lang_asr_lex
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earning_fy27_lex
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        text: clean_display
+    clean_tagged_text: {}
+    output_egs_limit: 4873
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings_tts_clean_verb
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+    - az://orngwus2cresco/data/speech/am_data/gpt_tts/polyus_investors_results_and_reports/earningscall-polyus-2022-2026.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        text: clean_lexical
+    clean_tagged_text: {}
+    output_egs_limit: 4873
+  add_task_info:
+    task: lang_asr_lex
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings_tts_clean_lex
+    verl_format:
+      prompt_key: prompt
