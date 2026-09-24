@@ -7,9 +7,15 @@ argument-hint: "<N> <source ChunkFiles URL> [train-config-name]"
 # Chunk Sample Dataset
 
 Create a bounded ASR training sample from a `ChunkFiles/` source. The result
-contains exactly `N` complete chunks, each with `.audio`, `.json`, and
+selects exactly `N` complete chunks, each with `.audio`, `.json`, and
 `.transcription`, a canonical parent-level `h<N>.json` manifest, and an
 optional `recipe/phimm/config/data/train_data/<name>.yaml` configuration.
+
+This skill samples existing chunk data; it does not synthesize digits or build
+metric reports. Use [generate-audio-dataset](../generate-audio-dataset/SKILL.md)
+for TTS and [digits-report](../digits-report/SKILL.md) for existing CER/WER results.
+Use `transfer-to-orange` for general transfers outside this complete-chunk and
+merged-manifest contract.
 
 ## Inputs and Output Contract
 
@@ -58,7 +64,7 @@ prefix to obtain `PARENT_REL`. Set `SOURCE_CONTAINER_URL` to the actual source
 container URL, for example `https://tsstd01wus2.blob.core.windows.net/data`.
 
 ```bash
-set -e
+set -euo pipefail
 N=100
 PARENT_REL='am_data/gpt_tts/multi_locale_tts/tier1/en-us/repeat/feature_extraction_sim'
 CHUNK_REL="${PARENT_REL}/ChunkFiles"
@@ -68,9 +74,13 @@ MANIFEST=$(mktemp /tmp/chunk_sample.XXXXXX)
 
 azcopy list "${SOURCE_CONTAINER_URL}/${CHUNK_REL}/?${SAS}" \
   | awk -F';' '/^chunk_.*\.(audio|json|transcription);/{print $1}' \
-  | sed -E 's/\.(audio|json|transcription)$//' \
   | sort -u \
-  | head -"$N" \
+  | awk '{
+      stem=$0; sub(/\.(audio|json|transcription)$/, "", stem)
+      count[stem]++
+    } END {for (stem in count) if (count[stem] == 3) print stem}' \
+  | sort \
+  | awk -v n="$N" 'NR <= n' \
   | while IFS= read -r stem; do
       printf '%s\n%s\n%s\n' "${stem}.audio" "${stem}.json" "${stem}.transcription"
     done > "$MANIFEST"
@@ -103,7 +113,7 @@ contains all `$((N * 3))` requested artifacts; use that exact prefix as
 GRN_BASE="https://grngenaiexternal.blob.core.windows.net/inbound/speech/${CHUNK_REL}"
 AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy list "${GRN_BASE}/" | head
 # Use either ${GRN_BASE}/ or ${GRN_BASE}/ChunkFiles/ based on that listing.
-GRN_CHUNK_URL="${GRN_BASE}/ChunkFiles/"
+GRN_CHUNK_URL='<verified-prefix-containing-the-selected-files>/'
 ```
 
 Copy to Orange using the discovered source prefix. Keep the manifest so only
@@ -116,8 +126,9 @@ AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy copy \
   --list-of-files="$MANIFEST" --s2s-preserve-access-tier=false --recursive
 ```
 
-Validate the destination against the manifest. The expected result is `N` of
-each extension, no manifest differences, and three artifacts for every stem.
+Validate the selected destination files against the manifest. Require `N` of
+each extension and three artifacts for every selected stem. Existing unrelated
+chunks may share the prefix; do not count them as selected or delete them.
 
 ```bash
 DEST_LIST=$(mktemp /tmp/chunk_sample_orange.XXXXXX)
@@ -127,13 +138,12 @@ AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy list \
   | awk '/^chunk_.*\.(audio|json|transcription)$/' \
   | sort -u > "$DEST_LIST"
 
-test "$(comm -3 <(sort "$MANIFEST") "$DEST_LIST" | wc -l)" -eq 0
-test "$(sed -E 's/\.(audio|json|transcription)$//' "$DEST_LIST" | sort | uniq -c | awk '$1 != 3 {bad++} END {print bad+0}')" -eq 0
+test "$(comm -23 <(sort "$MANIFEST") "$DEST_LIST" | wc -l)" -eq 0
 ```
 
 ### 3. Merge the N chunk JSON files
 
-Download only JSON files from the final Orange directory, then build the
+Download only the selected JSON files from the final Orange directory, then build the
 canonical file-set object. This fails if JSON files disagree on `fileType`.
 
 ```bash
@@ -142,7 +152,9 @@ MERGED_FILE=$(mktemp /tmp/h${N}.XXXXXX.json)
 ORANGE_CHUNK_URL="https://orngwus2cresco.blob.core.windows.net/data/speech/${CHUNK_REL}"
 
 AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy copy "${ORANGE_CHUNK_URL}/*" "$WORK_DIR/" \
-  --include-pattern='*.json'
+  --list-of-files="$MANIFEST" --include-pattern='*.json'
+
+test "$(find "$WORK_DIR" -maxdepth 1 -name '*.json' -type f | wc -l)" -eq "$N"
 
 jq -s '{
   fileType: (map(.fileType) | unique | if length == 1 then .[0] else error("inconsistent fileType") end),
@@ -154,12 +166,15 @@ jq -e --argjson n "$N" '(.fileInfo | length == $n) and ([.fileInfo[].name] | uni
 
 Upload it at the parent directory and round-trip validate it:
 
+Before uploading, verify an existing `h<N>.json` belongs to the same selected
+chunk set; require explicit replacement authorization for a different sample.
+
 ```bash
 ORANGE_PARENT_URL="https://orngwus2cresco.blob.core.windows.net/data/speech/${PARENT_REL}"
 AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy copy "$MERGED_FILE" "${ORANGE_PARENT_URL}/h${N}.json" --overwrite=true
 ```
 
-### 4. Create the training-data configuration
+### 4. Create the requested training-data configuration
 
 Create `recipe/phimm/config/data/train_data/<TRAIN_CONFIG_NAME>.yaml`. For one
 sample parent, use this template; for multiple parent directories, add one
@@ -188,9 +203,9 @@ Parse the YAML after writing it, and verify each spec URL exists in Orange.
 ## Completion Checklist
 
 - Both Corp-to-GRN and GRN-to-Orange AzCopy jobs completed with zero failures.
-- Orange has exactly `N` audio, `N` JSON, and `N` transcription blobs.
+- All selected `N` audio, `N` JSON, and `N` transcription blobs exist on Orange.
 - `h<N>.json` has exactly `N` unique `fileInfo[].name` values.
-- The training config parses and contains every generated parent-level
+- If requested, the training config parses and contains every generated parent-level
   `h<N>.json` URI.
 
 ## Failure Handling

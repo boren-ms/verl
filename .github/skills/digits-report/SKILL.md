@@ -14,6 +14,13 @@ Generate an Excel report (`.xlsx`) for the two digits validation datasets. It co
 - Comparing a checkpoint against the established Qwen3.5-audio digits baseline.
 - Appending a later checkpoint to an existing digits report.
 
+This is report-only analysis of existing results, not evaluation submission.
+For the standard 2609 suite use
+[eval-2609-benchmark-report](../eval-2609-benchmark-report/SKILL.md), whose digits
+baseline comes from its config and must not be replaced by the historical values
+below. For utterance-level errors use
+[asr-detail-compare](../asr-detail-compare/SKILL.md).
+
 ## Layout
 
 Two sheets, `CER` and `WER`, share the same layout:
@@ -66,4 +73,6 @@ Append a new checkpoint to an existing report:
 
 ## Python Environment
 
-Use `/home/boren/.virtualenvs/openai/bin/python`; the system Python lacks `openpyxl`.
+The examples use `/home/boren/.virtualenvs/openai/bin/python` when available.
+Otherwise use the configured project interpreter with `openpyxl`; verify imports
+rather than assume a particular system Python has or lacks dependencies.

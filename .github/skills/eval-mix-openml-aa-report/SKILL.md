@@ -9,7 +9,11 @@ argument-hint: '<model-label> --checkpoint <candidate-hf-path> [--node <verl-nod
 Evaluate one candidate checkpoint and the matching embedded reference with exactly
 `recipe/phimm/config/v2607_new/eval_mix_openml_aa_ter30_2607v1a.yaml`. Each job runs all 34 configured datasets. Preserve raw outputs under durable blob storage and produce one baseline-aware workbook with the Artificial Analysis datasets in their own group.
 
-This workflow is self-contained. Use the commands and report builder below directly; do not invoke or depend on another evaluation/report skill.
+This skill owns the fixed suite, experiment naming, artifacts, and report builder.
+Delegate individual job submission/monitoring/repair to
+[verl-asr-run](../verl-asr-run/SKILL.md) with the exact overrides below. Follow
+the [shared remote execution contract](../references/remote-execution.md).
+Do not substitute the separate 2609 benchmark suite or its baselines.
 
 ## Inputs
 
@@ -58,7 +62,7 @@ Positive values mean the candidate improved.
    - Confirm the config and its inherited `recipe/phimm/config/data/val_data/mix_openml_aa_ter30.yaml` exist.
    - Read the reference path from `actor_rollout_ref.model.path`; fail if it differs from the fixed contract above unless the user explicitly requests a config update.
    - Confirm the candidate path is an HF-loadable directory and differs from the reference path.
-    - Record the current Git revision. Every distinct checkpoint path must receive a distinct experiment name; never reuse the config name or bare model label as `trainer.experiment_name`.
+   - Record the current Git revision. Every distinct checkpoint path must receive a distinct experiment name; never reuse the config name or bare model label as `trainer.experiment_name`.
    - Generate each name with the bundled helper. It produces a readable hyphenated name containing the short suite label, sanitized model label, extracted checkpoint step/name, role, and a six-character hash of the complete checkpoint path:
 
        ```bash
@@ -70,43 +74,34 @@ Positive values mean the candidate improved.
 
       Example: `mix-openml-aa-remax-2607-step100-candidate-ffb575`. Two paths ending in `global_step_100/qwen_hf/` and `global_step_200/qwen_hf/` produce names containing `step100` and `step200`, with different hashes. On retry, pass `--attempt 2` (incrementing as needed) to append `-try2` and avoid reusing the failed run name.
 
-2. Find up to two free Ready pools, respecting a supplied `--node` allowlist. Check both signals on each pool:
+2. Find up to two eligible free Ready pools through the shared occupancy/resource
+   checks, respecting the `--node` allowlist. Keep pending rows queued if fewer
+   than two pools are free.
 
-   ```bash
-   brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep '^verl-'
-   brix ssh <node> -- 'bash -l -c "nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits"'
-   brix ssh <node> -- 'bash -l -c "python /root/code/verl/ray_job.py list 2>/dev/null || true"'
-   ```
-
-   A pool is free only when no Ray job is running and every GPU has utilization at most 5% and memory use at most 5000 MiB. Never stop, pause, replace, or colocate with unrelated work. Keep pending rows queued if fewer than two pools are free.
-
-3. For each selected `verl-n<N>-*` pool, set `EVAL_NNODES=N` and verify that count against healthy nodes in `ray status`. A mismatch makes the pool ineligible until resolved. Sync once before submission:
-
-   ```bash
-   rcall-brix sync <node>
-   ```
+3. Apply the shared topology/sync procedure and record the verified
+   `EVAL_NNODES` for each selected pool.
 
 4. Build a two-row work matrix: one candidate and one reference. They may run concurrently on separate free pools or sequentially on one pool. Use these durable roots:
    - `<artifact-root>/candidate/`
    - `<artifact-root>/reference/`
 
-5. Submit each row directly so all required Hydra overrides are explicit. Run from `/root/code/verl` on the assigned pool:
+5. Pass each row to `verl-asr-run` with this exact config and override set.
+   The job runner owns environment preparation, runtime-environment setup, and
+   Ray submission; the entrypoint arguments are:
 
    ```bash
-   python3 ray_tool.py prepare_env
-   ray job submit --working-dir=/root/code/verl --no-wait -- \
-     python3 -m recipe.phimm.main_asr_eval \
+   python3 -m recipe.phimm.main_asr_eval \
      --config-dir recipe/phimm/config/v2607_new \
      --config-name eval_mix_openml_aa_ter30_2607v1a \
      'actor_rollout_ref.model.path=<candidate-or-reference-hf-path>' \
      'trainer.default_hdfs_dir=<candidate-or-reference-run-root>' \
-   "trainer.experiment_name=${EXPERIMENT_NAME}" \
+     "trainer.experiment_name=${EXPERIMENT_NAME}" \
      'trainer.nnodes=<EVAL_NNODES>'
    ```
 
    Generate `EXPERIMENT_NAME` separately for each row using that row's exact checkpoint and role. Use the candidate checkpoint for the candidate row and the fixed reference model for the reference row. Record each resolved experiment name, Ray job ID, and assigned pool immediately.
 
-6. Monitor both jobs until `SUCCEEDED`. Refill a newly free eligible pool with a pending row. On failure, inspect that job's logs, repair the root cause, sync changed code, and rerun only the failed row with a new unique experiment name. Never mark a row complete from partial metrics.
+6. Collect delegated status until both jobs reach `SUCCEEDED`. Refill a newly free eligible pool with a pending row. Delegate repair/retry of only the failed row with a new unique experiment name. This skill remains the queue/monitor owner; child jobs do not install schedules. Never mark a row complete from partial metrics.
 
 7. Capture final metrics and provenance. Save the unmodified Ray log locally at
    `tmp/eval_mix_openml_aa_reports/<model-label>/<role>/ray_job.log` and upload it to `<run-root>/ray_job.log`. Create `<run-root>/artifact_manifest.json` containing role, config path, Git revision, model path, pool, Ray job ID, verified `trainer.nnodes`, W&B entity/project/run ID/name/URL (or explicit unavailability reason), Ray log path, and all 34 detail prefixes.

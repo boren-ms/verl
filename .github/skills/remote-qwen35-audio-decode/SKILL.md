@@ -8,6 +8,12 @@ argument-hint: 'Local audio path, model az:// path(s), hf or vllm backend, and o
 
 Decode audio stored on the local development machine by staging it through Orange Blob, downloading it to a remote Brix GPU node, and invoking the selected Qwen3.5-Audio backend with remote paths. Each model loads once for the complete audio list or folder. Return the verified batch log to the local source directory.
 
+This is small-list bad-case decoding, not Ray benchmark scheduling. For a full
+suite use [eval-2609-benchmark-report](../eval-2609-benchmark-report/SKILL.md).
+Read the [shared remote execution contract](../references/remote-execution.md)
+before node allocation; these direct decoder processes do not require a Ray
+submission, but Ray reservations still count as occupied resources.
+
 ## Required Inputs
 
 - Local audio file or directory, such as `~/data/bad_cases/time_format`
@@ -40,11 +46,10 @@ Stop and report clearly if no audio files are found.
 
 ### 2. Select and verify a remote node
 
-If the user supplied a node, use it. Otherwise:
-
-1. Run `brix pools --all` and select a Ready `verl-*` development node.
-2. Check GPU state with `nvidia-smi`; use a node/GPU with enough free memory and no active workload.
-3. Never terminate or interfere with an existing job to obtain a GPU.
+Respect a supplied node constraint and apply the shared occupancy/resource
+checks. Otherwise select an eligible free Ready `verl-*` development pool.
+Verify/sync the decoder code before the first run; do not treat a free-looking
+GPU on a Ray-reserved pool as available.
 
 Verify on the selected node:
 
@@ -56,7 +61,10 @@ Use `brix ssh`; do not use raw `ssh`, `scp`, or `brix tmux`.
 
 ### 3. Stage local audio before decoding
 
-Derive a stable dataset name from the local directory basename. Use these corresponding paths:
+Derive a filesystem-safe dataset name from the basename plus a stable source
+identity suffix when needed to avoid collisions. Stage only the inventoried
+audio (use a dedicated local staging directory if the source contains logs or
+other files). Use these corresponding paths:
 
 ```text
 Blob:   az://orngwus2cresco/data/boren/data/verl/bad_cases/<dataset>/
@@ -66,7 +74,7 @@ Remote: /root/data/bad_cases/<dataset>/
 Upload local files to Blob first:
 
 ```bash
-bbb sync -x 'Zone\.Identifier$' <local-source>/ \
+bbb sync <audio-only-staging-directory>/ \
   az://orngwus2cresco/data/boren/data/verl/bad_cases/<dataset>/
 ```
 
@@ -145,7 +153,8 @@ For every model/backend run, verify:
 
 1. A nonempty local batch log exists.
 2. Remote and local SHA-256 hashes match.
-3. `audio_count`, `AUDIO_RESULT_START`, `AUDIO_RESULT_END`, `TRANSCRIPT_START`, and `TRANSCRIPT_END` counts all equal the local audio inventory count.
+3. The single `audio_count=<N>` header reports the inventory count, and each
+   result/transcript start/end marker occurs exactly `N` times.
 4. The `model_source=` line exactly matches the requested model path.
 5. `BATCH_DONE count=<expected-count>` is present and the process exited zero.
 
@@ -162,4 +171,6 @@ Extract and report each audio filename and the text between its transcript marke
 
 ## Completion Criteria
 
-The task is complete only when every requested model/backend pair has a verified local batch log covering all discovered audio files, or each remaining failure is explicitly identified with its remote log and error.
+Success requires every requested model/backend pair to have a verified local
+batch log covering all inventoried audio files. Report remaining failures with
+their remote log/error as partial or blocked work, not successful completion.

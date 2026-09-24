@@ -10,9 +10,15 @@ dataset manifest is emitted as one standalone JSON line. Run the job on the
 specified Brix node so the Azure manifest is streamed within the remote
 environment rather than downloaded through the local workstation.
 
+This is manifest extraction, not reference alignment or generation. For those
+outputs use [align-long-audio-transcription](../align-long-audio-transcription/SKILL.md)
+or [generate-audio-dataset](../generate-audio-dataset/SKILL.md). Follow the
+[shared remote execution contract](../references/remote-execution.md) for node
+selection; do not take over a busy node for this CPU/blob task.
+
 ## Inputs
 
-- `NODE`: Brix node name. Default: `verl-n1-i13`.
+- `NODE`: User-specified or verified available Ready Brix node; no fixed default.
 - `SOURCE_URI`: Azure URI for the mixed dataset JSONL, for example:
   `az://orngwus2cresco/data/boren/data/verl/mix_lang/mix_cv15_all/mixed_22_100.jsonl`.
 - `DESTINATION_URI`: Azure URI for the flattened JSONL. By convention, append
@@ -39,7 +45,13 @@ environment rather than downloaded through the local workstation.
    output_file=$(mktemp /tmp/mix_source.XXXXXX.jsonl)
    trap '"'"'rm -f "$output_file"'"'"' EXIT
 
-   bbb cat "$source_uri" | jq -c '"'"'.components[]'"'"' > "$output_file"
+   bbb cat "$source_uri" | jq -c '"'"'
+     if (.components | type) != "array" then error("components must be an array")
+     else .components[] |
+       if type == "object" then . else error("component must be an object") end
+     end
+   '"'"' > "$output_file"
+   test -s "$output_file"
    bbb cp "$output_file" "$destination_uri"
    '"'"''
    ```
@@ -70,8 +82,8 @@ user explicitly asks to retain source-to-mixture provenance.
 
 ## Failure Handling
 
-- If `brix ls` does not show the node as Ready, resume or ask the user to
-  provide a ready node before transforming data.
+- If the node is not Ready/available, follow the shared node-selection rules
+  rather than automatically resuming a fixed node.
 - If `jq` reports invalid JSON, stop without treating the destination as
   validated; identify the malformed source row first.
 - If validation counts differ, keep the destination for inspection but report

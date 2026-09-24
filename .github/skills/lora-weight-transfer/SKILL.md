@@ -17,6 +17,12 @@ Prepare and download the actual trained LoRA adapter matrices:
 tensors. It is not a merged checkpoint, a changed-base-weight delta, or a PEFT
 directory.
 
+This fixed-baseline workflow is distinct from
+[ckpt-delta-transfer](../ckpt-delta-transfer/SKILL.md) and generic
+[HF export](../verl-asr-run/SKILL.md). Read the
+[shared remote execution contract](../references/remote-execution.md) for
+availability, sync, and monitoring; example nodes are not reserved capacity.
+
 ## Source of Truth
 
 Use the complete actor model shard set:
@@ -129,8 +135,12 @@ Use the fixed local baseline:
 ~/data/ckp/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/lora_merged_model_states.pt
 ```
 
-The training config in `recipe/phimm/config/base/dapo_asr.yaml` sets
-`lora_alpha: 640` and `lora_rank: 320`, so the required merge is:
+This workflow requires verified training provenance compatible with the fixed
+baseline and `lora_alpha: 640`, `lora_rank: 320`. Read the effective training
+config, including overrides; the base config alone does not establish the
+actual rank/scaling. If it differs, do not apply this fixed merge or publish it
+as compatible. Resolve the requested baseline/scaling explicitly or use the
+generic HF export workflow. For compatible checkpoints the merge is:
 
 ```text
 W <- W + (640 / 320) * (B @ A)
@@ -157,8 +167,10 @@ the addition in fp32, and casts back to the baseline dtype. The output uses
 the reference checkpoint layout with the state dictionary under `module`.
 It writes atomically and creates `lora_merged_model_states.md5`.
 
-Verify the output has the same key set as the baseline, no LoRA keys, exactly
-one changed baseline weight per LoRA pair, and a passing adjacent MD5 file.
+Verify the output has the same normalized key set as the baseline, no LoRA
+keys, correct merge math for every adapter target, unchanged non-target values,
+and a passing adjacent MD5 file. A zero update or dtype rounding can leave a
+target numerically unchanged; do not require every pair to change tensor bytes.
 
 ## Phase 5: Upload Both Outputs to Corp Blob
 
@@ -203,7 +215,8 @@ the SAS token or a destination URL containing its query string.
   `*.lora_B[.<adapter>].weight`.
 - Require every adapter prefix to have both A and B tensors.
 - Do not include base-layer, embedding, optimizer, or scheduler tensors.
-- Use `bbb` for every blob upload and download.
+- Use authenticated `bbb` for the Orange extraction/split transfers; corp uploads
+  are owned by `copy-to-corp-blob` and follow that skill's transport.
 - Require all LoRA prefixes and `B @ A` shapes to match baseline weights.
 - Preserve baseline key order, tensor dtypes, and unrelated values; write plain
   parameter names under the top-level `module` key.

@@ -10,6 +10,12 @@ Create a UTF-8 JSONL dataset from the user's content instructions. Generate
 natural, varied examples while keeping the written form, spoken realization,
 and keyword annotations aligned.
 
+This is text-only generation. When speech is also requested, hand the validated
+JSONL to [generate-audio-dataset](../generate-audio-dataset/SKILL.md). Preserve
+display-form `text` as the training reference and synthesize from `spoken` via
+the TTS script's `--text-key spoken`; do not overwrite `text` with spoken words.
+Do not upload or create audio for a text-only request.
+
 ## Output Contract
 
 Write exactly one JSON object per nonempty line with these fields in this
@@ -147,11 +153,8 @@ semantic alignment between `text` and `spoken`.
   domain convention; otherwise choose one consistently and report the adopted
   convention.
 
-## Completion Checklist
+## Delivery
 
-- The requested JSONL exists at the requested path and has the exact row count.
-- Schema, types, IDs, JSON syntax, keyword containment, and text uniqueness
-  pass automated validation.
-- Written and spoken forms are semantically equivalent in the requested locale.
-- Coverage and exclusions match the user's generation instructions.
-- A representative sample and all unusual formatting cases were reviewed.
+Deliver the requested JSONL path, exact row count, and results of Step 5's
+validation. If the user requested inline JSONL only, return records without
+additional prose; otherwise link the actual local artifact.

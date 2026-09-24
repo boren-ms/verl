@@ -11,6 +11,11 @@ references by aligning it against ordered segment hypotheses. Produce a compact
 dataset manifest and, when requested, matching verl validation and evaluation
 YAML files.
 
+This skill prepares reference data. Use
+[asr-detail-compare](../asr-detail-compare/SKILL.md) for result comparisons or
+recording-level WER without changing the dataset, and
+[verl-asr-run](../verl-asr-run/SKILL.md) only when an evaluation run is requested.
+
 ## Expected Input
 
 The input is JSONL with one row per audio segment. By default, each row has:
@@ -35,7 +40,8 @@ hypotheses for one parent recording.
    - Confirm hypotheses are segment-local rather than repeated full transcripts.
 
 2. Run the bundled [alignment script](./scripts/align_long_audio_transcript.py)
-  with the OpenAI virtual environment:
+   with the configured project interpreter (`/home/boren/.virtualenvs/openai/bin/python`
+   when available):
 
    ```bash
    /home/boren/.virtualenvs/openai/bin/python \
@@ -82,7 +88,7 @@ hypotheses for one parent recording.
    the exact object with `bbb ls`. Keep a validated local copy and report both
    paths. Never print credentials or SAS query strings.
 
-6. Create a validation dataset YAML by copying the nearest established config,
+6. When a dataset YAML is requested, copy the nearest established config,
    usually `recipe/phimm/config/data/val_data/earnings_chunked.yaml`.
    - Map `audio_path: url` and `text: transcript`.
    - Preserve `task`, language, and prefix behavior requested by the user.
@@ -123,7 +129,10 @@ For the final manifest:
 
 - Parse every line with `json.loads`.
 - Require the expected row count and exact field set.
-- Require non-empty `url` and `transcript` values.
+- Require non-empty `url` values and string `transcript` values. A segment may
+  legitimately receive an empty reference (for example silence or hallucinated
+  speech); flag it for review, but never invent words or drop it silently to
+  satisfy a non-empty check.
 - Confirm parent count and segment-index uniqueness.
 
 For YAML files:
@@ -135,7 +144,7 @@ For YAML files:
 
 ## Deliverables
 
-Report clickable workspace-relative paths for:
+Report clickable absolute local paths for:
 
 - The aligned JSONL containing per-segment references.
 - The compact validation source JSONL, if created.

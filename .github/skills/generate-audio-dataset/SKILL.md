@@ -11,6 +11,12 @@ dataset. Preserve existing JSON object fields while guaranteeing `id`, `text`,
 and `audio_path`, generate one WAV per row, publish the task directory to
 Orange, and create a loadable PhImm dataset YAML.
 
+For generation of the source text itself, use
+[generate-text-spoken-jsonl](../generate-text-spoken-jsonl/SKILL.md) first.
+This skill owns synthesis and dataset publication, not training submission.
+Hand off to [verl-asr-run](../verl-asr-run/SKILL.md) only for an explicitly
+requested training/evaluation job.
+
 ## Inputs and Output Contract
 
 - `INPUT`: Local JSONL or UTF-8 text file. A JSONL row must be an object. A
@@ -19,6 +25,9 @@ Orange, and create a loadable PhImm dataset YAML.
 - `CONFIG_SPLIT`: `train_data` by default; use `val_data` when requested.
 - `TEXT_KEY`: Input text field, default `text`. Pass another key such as `ref`
   to the manifest helper when needed.
+- `SYNTHESIS_TEXT_KEY`: Canonical `text` by default; use `spoken` when the source
+  contains written/spoken pairs so audio follows spoken words while references
+  retain display-form `text`.
 - `VOICE_LOCALE`: Azure voice locale, default `en-US`.
 
 Create this layout locally:
@@ -37,9 +46,10 @@ Publish the same layout to:
 az://orngwus2cresco/data/boren/data/tts/<TASK>/
 ```
 
-The output JSONL contains `id`, `audio_path`, and `text` on every row. Existing
-JSONL fields such as `ref`, `hyp`, `entity_type`, and `error_pattern` remain
-unchanged. `audio_path` is a relative `audios/<id>.wav` path so the YAML can
+The output JSONL contains normalized `id`, `audio_path`, and `text` on every row.
+Other JSONL fields such as `spoken`, `keyword`, `ref`, `hyp`, `entity_type`, and
+`error_pattern` remain unchanged. IDs become strings, canonical text is trimmed,
+and `audio_path` is replaced with a relative `audios/<id>.wav` path so the YAML can
 map it to Orange without rewriting the manifest.
 
 ## Authentication Boundaries
@@ -55,7 +65,8 @@ logged into Green, and do not upload to Orange while logged into Microsoft.
    ```
 
    Confirm the account shown is the intended Microsoft account. The TTS script
-   uses `DefaultAzureCredential`, which consumes this Azure CLI identity.
+   uses `DefaultAzureCredential`; verify its selected identity, since configured
+   environment/managed credentials may take precedence over the Azure CLI.
 
 2. After local synthesis and validation, switch to the Green tenant for Orange:
 
@@ -82,6 +93,7 @@ LOCAL_ROOT="$HOME/data/tts/$TASK"
 MANIFEST="$LOCAL_ROOT/$TASK.jsonl"
 REMOTE_ROOT="az://orngwus2cresco/data/boren/data/tts/$TASK"
 CONFIG_SPLIT='train_data'
+SYNTHESIS_TEXT_KEY='text'
 CONFIG="recipe/phimm/config/data/${CONFIG_SPLIT}/${TASK}.yaml"
 
 mkdir -p "$LOCAL_ROOT/audios"
@@ -100,10 +112,18 @@ The helper copies the selected source field to canonical `text`, preserves all
 other fields, preserves valid unique IDs, creates IDs for missing ones, and
 rewrites every `audio_path` for this new task.
 
+For written/spoken inputs keep `--text-key text` on the manifest helper and set
+`SYNTHESIS_TEXT_KEY='spoken'` for the synthesis commands below. The helper's
+`--text-key` changes the reference text; the synthesis script's flag changes
+only what is spoken. Pre-parse `.jsonl` inputs strictly with `json.loads` before
+the helper, which also accepts plain text, so malformed JSON is not mistaken for
+a sentence.
+
 Validate the manifest before any paid synthesis calls:
 
 ```bash
 python scripts/generate_azure_tts_jsonl.py "$MANIFEST" \
+  --text-key "$SYNTHESIS_TEXT_KEY" \
   --output-dir "$LOCAL_ROOT/audios" --random-voice \
   --voice-locale en-US --dry-run > /tmp/${TASK}_tts_plan.txt
 test "$(wc -l < /tmp/${TASK}_tts_plan.txt)" -eq "$(wc -l < "$MANIFEST")"
@@ -118,6 +138,7 @@ selects a live voice for each row.
 ```bash
 python scripts/generate_azure_tts_jsonl.py "$MANIFEST" \
   --endpoint https://boren-8685-resource.cognitiveservices.azure.com/ \
+  --text-key "$SYNTHESIS_TEXT_KEY" \
   --output-dir "$LOCAL_ROOT/audios" \
   --random-voice --voice-locale en-US
 ```
@@ -225,7 +246,8 @@ evaluation load before launching a full workload.
 
 - The canonical manifest has the expected nonzero row count and valid JSON.
 - Every row has a unique `id`, nonempty `text`, and unique relative
-  `audios/*.wav` path; all original fields are preserved.
+  `audios/*.wav` path; fields other than the documented canonical normalization
+  are preserved, including written/spoken pairs.
 - Every manifest row has one readable, nonempty local WAV.
 - Synthesis ran under the `microsoft.com` Azure account.
 - Upload ran after switching to the Green tenant.

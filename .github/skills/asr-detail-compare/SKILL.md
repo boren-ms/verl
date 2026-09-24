@@ -1,11 +1,24 @@
 ---
 name: asr-detail-compare
-description: Compare one or two ASR `result_details*.jsonl` or verl training-validation JSONL outputs for the same dataset, using the reference as the baseline when only one result is provided. Use when Codex needs to inspect `val_data_gen`, load remote `az://` files, rank utterances by WER impact, generate clickable standalone HTML reports, perform model-to-model detail analysis, investigate top errors, debug utterance-level WER, or compare verl training checkpoints at different steps.
+description: Compare two ASR result_details or verl val_data_gen JSONL outputs for the same dataset, including checkpoint-to-checkpoint comparisons, and build ranked HTML review reports. Also supports an explicitly requested single-result Reference/Target HTML view. Owns result alignment and comparison, not remote evaluation, entity-span scoring, or dataset reference preparation.
 ---
 
 # ASR Detail Compare
 
 Compare utterance-level ASR detail files without re-implementing the same merge and WER logic each time. Prefer the bundled script for repeatable comparisons, and default to model-based discovery so you only need model names and dataset.
+
+## Scope and Handoffs
+
+- Use the available `asr-word-error-analysis` skill for a general single-result
+  error diagnosis; this skill owns two-result/checkpoint comparisons and its
+  specific Reference/Target HTML renderer. Do not run both pipelines for the
+  same deliverable.
+- Use `asr-entity-error-analysis` for EER/EWER on annotated entity spans, not
+  ordinary WER from this renderer.
+- Use [align-long-audio-transcription](../align-long-audio-transcription/SKILL.md)
+  to create segment references. Recording-level aggregation here is an analysis
+  mode, not dataset preparation.
+- This skill consumes existing outputs; it does not launch training/evaluation.
 
 ## Workflow
 1. Determine whether the user supplied one result or two. With two results, compare baseline vs target normally. When the user supplies only one result or dataset, always treat it as the Target, synthesize its reference baseline as described in **Single-Result Reference Baseline**, and pass `--hide-baseline` so the HTML shows only Reference and Target. Do not ask for a second model result. Use baseline-only mode only when the user explicitly requests a baseline-only review.
@@ -17,7 +30,7 @@ Compare utterance-level ASR detail files without re-implementing the same merge 
    - `*.improved-topN.html` for wins
    - `*.degraded-topN.html` for regressions
 6. Spot-check a few top-ranked rows before delivering, especially if the script had to fall back to row-order joins.
-7. For every HTML report delivered to the user, show both a clickable Markdown link using the absolute Linux path and a copyable Windows WSL UNC path produced by `wslpath -w`.
+7. Deliver actual generated files using [Report Path Delivery](#report-path-delivery).
 
 ## Single-Result Reference Baseline
 When only one result JSONL is provided, synthesize a baseline JSONL from that same file so every baseline hypothesis equals its reference. Preserve every row and all identity, language, audio, and metadata columns so the normal join and HTML rendering remain available.
@@ -55,7 +68,9 @@ with src.open() as fin, dst.open("w") as fout:
 ```
 
 ## Python Environment
-Always use `/home/boren/.virtualenvs/openai/bin/python` to run the script. The system python (`/home/linuxbrew/.linuxbrew/bin/python3`) lacks `pandas`, `blobfile`, and `whisper`.
+The examples use `/home/boren/.virtualenvs/openai/bin/python` when available.
+Otherwise use the configured project interpreter and verify `pandas`, `blobfile`,
+`whisper`, and scoring dependencies before execution.
 
 ## Script
 Run:
@@ -66,10 +81,10 @@ Run:
 
 Useful options:
 - `--val-data-root az://orngwus2cresco/data/boren/outputs`: override the verl validation outputs root. Layout: `<root>/<project>/<experiment>/val_data_gen/<dataset>/<step>.jsonl`. The script picks the latest step. Default: `az://orngwus2cresco/data/boren/outputs`.
-- `--top-n 20`: keep the top 20 utterances by target-model error count.
+- `--top-n 20`: keep up to 20 rows per report, using the ranking described in [Output](#output).
 - `--join-columns audio_file`: use `audio_file` as the default explicit join key.
 - `--join-columns audio_file_stem`: force the join to use the stem derived from `audio_file` when the full path is not stable across runs.
-- `--aggregate-segments-by id`: for long-form validation files that repeat the full reference on each segment, group by recording ID, order by `seg_index`, and concatenate segment hypotheses before computing WER. Use `--segment-index-column` to override the ordering column.
+- `--aggregate-segments-by parent_audio_path`: for long-form files repeating the full reference, group by the actual parent-recording key, order by `seg_index`, and concatenate hypotheses before computing WER. Use `id` only if it identifies the parent, not individual segments. Use `--segment-index-column` to override ordering. For a single-result review, aggregate before synthesizing a perfect reference baseline so the full transcript is not repeated once per segment.
 - `--ref-column ref` and `--hyp-column hyp`: override schema defaults if needed. For verl training JSONL files, use `--ref-column gts --hyp-column clean_output`.
 - `--normalizer auto`: default. Infer each row's language, use the same HF normalization and compound-aware `kaldialign` scoring as `openasr_en_eval` for English (`en`), and use the language-specific OpenASR normalizer for every other language.
 - `--normalizer english` or `--normalizer openasr`: explicitly force the English path or the OpenASR dispatch path when auto-detection is not appropriate.
@@ -101,34 +116,17 @@ Useful options:
 - If the CSV lacks `audio_file_stem`, the renderer falls back to `comparison_id` for the card title.
 - When audio playback is enabled, each available file is copied to `{output-dir}/audio/` and referenced by the HTML with a relative path. Reuse direct local files and files already present in `--audio-local-dir`; with `--audio-blob-root`, download `{blob-root}/{dataset}/audio/{row_index}.wav` only for missing local files. Missing audio does not block report generation.
 
-## Presenting HTML Reports
-After generating HTML reports, read the actual filenames from the `*.summary.json` `reports` section. For each report, show both:
-
-- A clickable markdown link whose target is the workspace-relative path, so VS Code opens it.
-- The complete absolute local filesystem path on the following line, so the location is unambiguous.
-
-Example:
-
-- Overall: [tmp/asr-detail-compare/ami/ami-step10-vs-step70.overall-top30.html](tmp/asr-detail-compare/ami/ami-step10-vs-step70.overall-top30.html)
-  `/home/boren/code/verl/tmp/asr-detail-compare/ami/ami-step10-vs-step70.overall-top30.html`
-- Improved: [tmp/asr-detail-compare/ami/ami-step10-vs-step70.improved-top30.html](tmp/asr-detail-compare/ami/ami-step10-vs-step70.improved-top30.html)
-  `/home/boren/code/verl/tmp/asr-detail-compare/ami/ami-step10-vs-step70.improved-top30.html`
-- Degraded: [tmp/asr-detail-compare/ami/ami-step10-vs-step70.degraded-top30.html](tmp/asr-detail-compare/ami/ami-step10-vs-step70.degraded-top30.html)
-  `/home/boren/code/verl/tmp/asr-detail-compare/ami/ami-step10-vs-step70.degraded-top30.html`
-
-Do not abbreviate, truncate, or replace these paths with only a directory.
-
 ## Join Rules
 - Prefer `audio_file` as the join key by default when it is present and unique in both files.
 - If `audio_file` is unavailable or unstable, the script can fall back to other stable keys such as `audio_file_stem`, `utt_id`, `utterance_id`, `id`, `key`, or `audio_path`.
 - `audio_file_stem` is derived automatically from the basename of `audio_file` without the extension.
 - If no preferred key is unique in both files, it tries the combined preferred columns.
 - If that still fails and `ref` is unique in both files, it joins on `ref`.
-- Only if row counts match and no better key exists does it fall back to row order via `__row_idx`.
+- Only if row counts match and no better key exists does it fall back to row order via `__row_idx`. Before accepting that fallback, verify the reference sequence is identical in order on both sides.
 
 ## Ranking Logic
 - The script recomputes word-level edit counts from `ref` and `hyp` for both models.
-- Target utterances are ranked by absolute target error count, which is the numerator contribution to total WER on a fixed dataset.
+- Error counts measure contributions to total WER on a fixed dataset; each report uses its own ordering below.
 - The output includes substitutions, deletions, insertions, utterance WER, total-WER contribution, and `error_delta` vs baseline.
 
 ## Output
@@ -144,10 +142,13 @@ Additional outputs:
 - Each compared model's `result_details_*.jsonl` file is copied into the output directory for local inspection, with the filename prefixed by the model name.
 
 ## Report Path Delivery
-For each generated HTML report, include both path forms in the final response:
+Read actual filenames from the `*.summary.json` `reports` section. For each
+generated HTML report, provide:
 
 1. A clickable workspace link whose target is the absolute Linux path.
-2. A copyable Windows Explorer WSL path. Generate it with `wslpath -w`; do not manually guess the distribution name or convert separators.
+2. On WSL, a copyable Windows Explorer path generated with `wslpath -w`. If
+   WSL path conversion is unavailable, provide only the absolute local link;
+   do not guess a distribution name or fabricate a UNC path.
 
 Example:
 ```bash
@@ -193,7 +194,7 @@ Example — compare two verl experiments on ami:
 When comparing verl training outputs at different steps (e.g., step0 vs step200):
 - First inspect `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/` and confirm both requested numeric JSONL files are present. Training validation results belong here, not under `eval_2607_reports` or a long-evaluation output root.
 - Use `--baseline-path` / `--target-path` with explicit local JSONL files and `--baseline-name` / `--target-name` for labels.
-- Set `--ref-column gts --hyp-column clean_output` — verl JSONL uses `gts` for reference and `clean_output` for hypothesis.
+- Verl `gts`/`clean_output` columns are auto-remapped. Explicit `--ref-column gts --hyp-column clean_output` is optional when both files use that schema; do not force it on mixed-schema inputs.
 - Check for a unique stable key such as `id` first and pass it through `--join-columns` when available. Only fall back to `__row_idx` when no stable key exists, row counts match, and raw `gts` sequences are identical in order.
 - Verl JSONL schema: `input`, `output` (→ `raw_output`), `gts`, `clean_output`, `score`, `step`, `data_source`, `reward`, `n_err`, `n_ref`, `n_edge`, `n_fmt`, `n_lang`.
 
@@ -216,25 +217,12 @@ Example:
 ## Comparing Mixed-Schema Files (eval_openasr baseline vs verl target)
 When the baseline uses the standard eval schema (`ref`, `hyp`, `id`) and the target uses the verl schema (`gts`, `clean_output`, `output`, `id`), the script auto-remaps `gts`→`ref` and `clean_output`→`hyp` on whichever side is missing `ref`/`hyp`. No preprocessing or `--ref-column` override is needed.
 
-If auto-remapping is not desired, you can still **preprocess the target file** manually:
-
-```python
-import json, pathlib
-src = pathlib.Path("tmp/target_model/val_data_gen/ami/300.jsonl")
-dst = pathlib.Path("tmp/asr-detail-compare/ami/target_normalized.jsonl")
-with open(src) as f, open(dst, 'w') as out:
-    for line in f:
-        row = json.loads(line)
-        row['ref'] = row.get('gts', '')
-        row['hyp'] = row.get('clean_output', '')
-        out.write(json.dumps(row) + '\n')
-```
-
-Then compare with `--join-columns id` (both schemas have `id`):
+Compare the original files directly, using `id` only after verifying it is
+present and unique on both sides:
 ```bash
 /home/boren/.virtualenvs/openai/bin/python .github/skills/asr-detail-compare/scripts/compare_result_details.py \
   --baseline-path tmp/eval_openasr_step50/ami.jsonl \
-  --target-path tmp/asr-detail-compare/ami/target_normalized.jsonl \
+  --target-path tmp/target_model/val_data_gen/ami/300.jsonl \
   --baseline-name eval_openasr \
   --target-name remax_nodigits_step300 \
   --dataset ami \
@@ -245,16 +233,8 @@ Then compare with `--join-columns id` (both schemas have `id`):
   --audio-blob-root az://orngwus2cresco/data/boren/data/openasr_jsonl
 ```
 
-Key points:
-- Preserving the original `output` column in the preprocessed file ensures the HTML "Raw output" section shows the full model output (with `<ASR>` tags). The script picks up `output` from the target side automatically.
-- Use `--join-columns id` — both eval_openasr and verl JSONL schemas include a unique `id` field.
-- The baseline eval_openasr files live locally at `tmp/eval_openasr_step50/{dataset}.jsonl` (not on blob). The verl target files are at `tmp/{model_name}/val_data_gen/{dataset}/{step}.jsonl`.
-- Loop over datasets for batch comparisons:
-  ```bash
-  for ds in ami earnings22 gigaspeech; do
-    # preprocess target, then run compare
-  done
-  ```
+The paths above are examples, not fixed discovery locations. The script retains
+the target `output` column for raw-output rendering without preprocessing.
 
 ## Review Expectations
 - Call out the join key the script chose.
