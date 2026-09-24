@@ -173,7 +173,7 @@ Example — compare two verl experiments on ami:
 When comparing verl training outputs at different steps (e.g., step0 vs step200):
 - First inspect `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/` and confirm both requested numeric JSONL files are present. Training validation results belong here, not under `eval_2607_reports` or a long-evaluation output root.
 - Use `--baseline-path` / `--target-path` with explicit local JSONL files and `--baseline-name` / `--target-name` for labels.
-- Set `--ref-column gts --hyp-column clean_output` — verl JSONL uses `gts` for reference and `clean_output` for hypothesis.
+- Set `--ref-column gts --hyp-column clean_output` — verl JSONL uses `gts` for reference and `clean_output` for hypothesis. Do not rely on automatic `hyp` remapping for these comparisons: the derived `hyp_baseline`/`hyp_target` columns can overwrite the merged raw hypothesis columns before scoring, causing a second normalization pass. English numeric normalization is not always idempotent (for example, `0.1` becomes `0 one`, then `one`), so this can create errors even when the displayed normalized transcripts match. Verify recomputed counts against scoring the original raw `gts`/`clean_output`, and against logged parent-level counts when available.
 - Check for a unique stable key such as `id` first and pass it through `--join-columns` when available. Only fall back to `__row_idx` when no stable key exists, row counts match, and raw `gts` sequences are identical in order.
 - Verl JSONL schema: `input`, `output` (→ `raw_output`), `gts`, `clean_output`, `score`, `step`, `data_source`, `reward`, `n_err`, `n_ref`, `n_edge`, `n_fmt`, `n_lang`.
 

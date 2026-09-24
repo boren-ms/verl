@@ -1,0 +1,17 @@
+# TXFlow dataset: itIT_ITN_Date_Time_202609_it-IT_DTEST_OfflineDataCollection
+# Dataset ID: 9942472f-4d8e-45c0-b7d0-0f767866d8c7
+# Validation set: 987 examples, 4.801 hours.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/speech/users/boren/ITN_time_date/it-IT/itIT_itn_date_time_test.jsonl
+pre_process:
+  clean_tagged_text: {}
+add_task_info:
+  task: lang_asr
+  language: Italian
+  prefix_prob: 0.0
+post_process:
+  add_field:
+    fields:
+      data_source: itit_itn_date_time
+  verl_format:
+    prompt_key: prompt

@@ -1,0 +1,23 @@
+# ITN date/time en-US training set: 78,184 examples, 253.8 hours.
+dataset_name: chunk
+specs:
+  - manifest_file: az://orngwus2cresco/data/speech/users/boren/ITN_time_date/en-US/chunk_augment/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/users/boren/ITN_time_date/en-US/chunk_augment/ChunkFiles/
+  - manifest_file: az://orngwus2cresco/data/speech/users/boren/ITN_time_date/en-US/chunk_clean/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/users/boren/ITN_time_date/en-US/chunk_clean/ChunkFiles/
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+pre_process:
+  clean_tagged_text: {}
+add_task_info:
+  task: lang_asr
+  language: English
+  prefix_prob: 0.0
+post_process:
+  add_field:
+    fields:
+      data_source: enus_itn_date_time
+  verl_format:
+    prompt_key: prompt

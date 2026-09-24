@@ -1,0 +1,17 @@
+# TXFlow dataset: enUS_ITN_Date_Time_202609_en-US_DTEST_OfflineDataCollection
+# Dataset ID: b3ce9f32-5d95-4e22-a9b5-2fe3169d1e22
+# Validation set: 1,485 examples, 4.799 hours.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/speech/users/boren/ITN_time_date/en-US/enUS_itn_date_time_test.jsonl
+pre_process:
+  clean_tagged_text: {}
+add_task_info:
+  task: lang_asr
+  language: English
+  prefix_prob: 0.0
+post_process:
+  add_field:
+    fields:
+      data_source: enus_itn_date_time
+  verl_format:
+    prompt_key: prompt
