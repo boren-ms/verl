@@ -355,7 +355,16 @@ class ValidationGenerationsLogger:
 
         # Create column names for all samples
         columns = ["step"] + sum(
-            [[f"input_{i + 1}", f"output_{i + 1}", f"score_{i + 1}"] for i in range(len(samples))], []
+            [
+                [
+                    f"input_{i + 1}",
+                    f"output_{i + 1}",
+                    f"gt_{i + 1}",
+                    f"score_{i + 1}",
+                ]
+                for i in range(len(samples))
+            ],
+            [],
         )
 
         if not hasattr(self, "validation_table"):
@@ -385,7 +394,7 @@ class ValidationGenerationsLogger:
         swanlab_table = swanlab.echarts.Table()
 
         # Create column names
-        headers = ["step", "input", "output", "score"]
+        headers = ["step", "input", "output", "ground_truth", "score"]
 
         swanlab_row_list = [[step, *sample] for sample in samples]
         swanlab_table.add(headers=headers, rows=swanlab_row_list)
@@ -407,7 +416,12 @@ class ValidationGenerationsLogger:
                 validation_gen_step_file = Path(tmp_dir, f"val_step{step}.json")
                 row_data = []
                 for sample in samples:
-                    data = {"input": sample[0], "output": sample[1], "score": sample[2]}
+                    data = {
+                        "input": sample[0],
+                        "output": sample[1],
+                        "ground_truth": sample[2],
+                        "score": sample[3],
+                    }
                     row_data.append(data)
                 with open(validation_gen_step_file, "w") as file:
                     json.dump(row_data, file)
@@ -430,7 +444,8 @@ class ValidationGenerationsLogger:
                 "step": step,
                 "input": sample[0],
                 "output": sample[1],
-                "score": sample[2],
+                "ground_truth": sample[2],
+                "score": sample[3],
             }
             for sample in samples
         ]
@@ -465,12 +480,13 @@ class ValidationGenerationsLogger:
         for i, sample in enumerate(samples):
             text_content += f"### Sample {i + 1}\n"
 
-            # Assuming sample contains [input, output, score]
-            if len(sample) >= 3:
-                input_text, output_text, score = sample[0], sample[1], sample[2]
+            # Assuming sample contains [input, output, ground_truth, score]
+            if len(sample) >= 4:
+                input_text, output_text, ground_truth, score = sample[0], sample[1], sample[2], sample[3]
 
                 text_content += f"**Input:** {input_text}\n\n"
                 text_content += f"**Output:** {output_text}\n\n"
+                text_content += f"**Ground truth:** {ground_truth}\n\n"
                 text_content += f"**Score:** {score}\n\n"
             else:
                 # Handle cases where sample format might be different
