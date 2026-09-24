@@ -14,6 +14,11 @@ model:
 trainer:
   nnodes: 2
 
+rollout:
+  engine_kwargs:
+    vllm:
+      compilation_config: 0
+
 data:
   train_data:
     jsonl_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe_rare_keywords_nonempty_sample10k_seed42.jsonl
