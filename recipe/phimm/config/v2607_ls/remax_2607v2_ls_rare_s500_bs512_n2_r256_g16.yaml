@@ -1,0 +1,37 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/ls_rare_nonempty_verb
+  - _self_
+
+actor_rollout_ref:
+  rollout:
+    n: 2
+
+reward_functions:
+  asr_measure:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        keyword: {beta: 10.0, cut: 0.5}
+        lang: {beta: 0.1, cut: 0.25}
+        fmt: {beta: 0.1, cut: 0.5}
+
+reward_function_by_data_source:
+  ls_rare_verb: asr_measure
+
+data:
+  train_batch_size: 512
+
+trainer:
+  nnodes: 2
+  total_epochs: 30
+  total_training_steps: 500
