@@ -18,5 +18,9 @@ val_reward:
     earnings22_cleaned_aa_chunked: openasr_en
 
 actor_rollout_ref:
+  rollout:
+    engine_kwargs:
+      vllm:
+        gdn_prefill_backend: triton
   model:
     path: az://orngwus2cresco/data/boren/outputs/ver_2607/remax_2607v1_openml_verb_s100_bs256_lid/global_step_100/qwen_hf/
