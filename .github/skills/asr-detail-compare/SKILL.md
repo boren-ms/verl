@@ -146,23 +146,34 @@ Read actual filenames from the `*.summary.json` `reports` section. For each
 generated HTML report, provide:
 
 1. A clickable workspace link whose target is the absolute Linux path.
-2. On WSL, run `wslpath -w` and use its exact Windows Explorer path as the
-   label of a second clickable Markdown link. Keep the link target as the same
-   absolute Linux path so VS Code can open it from the remote workspace. Wrap
-   the WSL label in inline code so its backslashes remain copyable. Do not emit
-   the WSL path as plain, non-clickable code.
-3. If WSL path conversion is unavailable, provide only the absolute local
-   link; do not guess a distribution name or fabricate a UNC path.
+2. On WSL, run `wslpath -w` and present its exact Windows Explorer path as
+   copyable inline code. Do not wrap it in a Markdown link: VS Code chat can
+   sanitize `file://`, UNC, and custom-protocol targets into non-clickable text.
+3. Launch the overall HTML report directly in the Windows default browser with
+   PowerShell `Start-Process`, passing it the exact `wslpath -w` result. This
+   uses the Windows file association and requires no HTTP server. Only open the
+   improved or degraded reports too when the user explicitly asks to open all
+   reports.
+4. Verify that `powershell.exe` exits successfully. Do not use `explorer.exe`
+   for this check because it can return exit code 1 for a successfully handled
+   UNC path. If WSL path conversion or Windows interop is unavailable, provide
+   only the absolute local workspace link and copyable local path; do not claim
+   direct browser launch, guess a distribution name, or fabricate a UNC path.
 
 Example:
 ```bash
-wslpath -w /home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-target.overall-top30.html
+REPORT_PATH=/home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-target.overall-top30.html
+WINDOWS_REPORT_PATH="$(wslpath -w "$REPORT_PATH")"
+printf '%s\n' "$WINDOWS_REPORT_PATH"
+powershell.exe -NoProfile -NonInteractive \
+  -Command "Start-Process -FilePath '$WINDOWS_REPORT_PATH'"
 ```
 
 Present the result like this:
 ```markdown
 - Overall: [baseline-vs-target.overall-top30.html](/home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-target.overall-top30.html)
-  - WSL: [`\\wsl.localhost\Ubuntu\home\boren\code\verl-mirror\tmp\asr-detail-compare\ami\baseline-vs-target.overall-top30.html`](/home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-target.overall-top30.html)
+  - Windows: `\\wsl.localhost\Ubuntu\home\boren\code\verl-mirror\tmp\asr-detail-compare\ami\baseline-vs-target.overall-top30.html`
+  - Opened directly in the Windows default browser.
 ```
 
 Apply this to the overall, improved, and degraded HTML reports. If an optional report was not generated, do not invent a path for it.

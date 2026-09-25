@@ -1,0 +1,44 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/earningscall-fy27-en-us-batch1-lex
+  - /data/val_data/earnings_aa_chunked_lex
+  - _self_
+
+reward_functions:
+  asr_measure:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        keyword: {beta: 5.0, cut: 0.85}
+
+reward_function_by_data_source:
+  earning_fy27_lex: asr_measure
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1e-6
+  rollout:
+    n: 4
+  model:
+    lora_rank: 256
+
+data:
+  train_batch_size: 256
+
+trainer:
+  project_name: whisper
+  experiment_name: remax_largev3_earning_fy27_lex_s1k_bs256_n4_r256_g16_lr1e-6
+  nnodes: 2
+  total_epochs: 30
+  total_training_steps: 1000
