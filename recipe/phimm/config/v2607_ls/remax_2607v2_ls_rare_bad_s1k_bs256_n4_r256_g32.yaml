@@ -1,0 +1,42 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/ls_rare_nonempty_verb
+  - _self_
+
+actor_rollout_ref:
+  rollout:
+    n: 1
+    enforce_eager: true
+
+reward_functions:
+  asr_measure:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2607
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        keyword: {beta: 10.0, cut: 0.5}
+        lang: {beta: 0.1, cut: 0.25}
+        fmt: {beta: 0.1, cut: 0.5}
+
+reward_function_by_data_source:
+  ls_rare_verb: asr_measure
+
+data:
+  train_batch_size: 256
+  train_data:
+    jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1a_earning_step650/ls_rare_nonempty_verb_g32_nonzero_n_err.jsonl
+    # Generated records already have text; the source-data rename would replace it with null.
+    pre_process: null
+
+trainer:
+  nnodes: 4
+  total_epochs: 30
+  total_training_steps: 1000
