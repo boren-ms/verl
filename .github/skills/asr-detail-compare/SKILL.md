@@ -146,9 +146,13 @@ Read actual filenames from the `*.summary.json` `reports` section. For each
 generated HTML report, provide:
 
 1. A clickable workspace link whose target is the absolute Linux path.
-2. On WSL, a copyable Windows Explorer path generated with `wslpath -w`. If
-   WSL path conversion is unavailable, provide only the absolute local link;
-   do not guess a distribution name or fabricate a UNC path.
+2. On WSL, run `wslpath -w` and use its exact Windows Explorer path as the
+   label of a second clickable Markdown link. Keep the link target as the same
+   absolute Linux path so VS Code can open it from the remote workspace. Wrap
+   the WSL label in inline code so its backslashes remain copyable. Do not emit
+   the WSL path as plain, non-clickable code.
+3. If WSL path conversion is unavailable, provide only the absolute local
+   link; do not guess a distribution name or fabricate a UNC path.
 
 Example:
 ```bash
@@ -158,7 +162,7 @@ wslpath -w /home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-t
 Present the result like this:
 ```markdown
 - Overall: [baseline-vs-target.overall-top30.html](/home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-target.overall-top30.html)
-  - WSL: `\\wsl.localhost\Ubuntu\home\boren\code\verl-mirror\tmp\asr-detail-compare\ami\baseline-vs-target.overall-top30.html`
+  - WSL: [`\\wsl.localhost\Ubuntu\home\boren\code\verl-mirror\tmp\asr-detail-compare\ami\baseline-vs-target.overall-top30.html`](/home/boren/code/verl-mirror/tmp/asr-detail-compare/ami/baseline-vs-target.overall-top30.html)
 ```
 
 Apply this to the overall, improved, and degraded HTML reports. If an optional report was not generated, do not invent a path for it.
