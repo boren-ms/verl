@@ -73,7 +73,8 @@ Repeat this explanation for **every** candidate:
 6. **Risks and limits:** <Instability, data/reward confounds, seed uncertainty,
    cost, running-run maturity; specify what outcome would refute the hypothesis.>
 7. **Validation:** <Hydra composition/resolution result, intended resolved diff,
-   filename/experiment consistency, unique output roots; GPU execution not tested.>
+   confirmation that the leaf does not set project/experiment identity, simulated
+   launcher filename identity, unique output roots; GPU execution not tested.>
 
 ## Deferred or Rejected Ideas
 
