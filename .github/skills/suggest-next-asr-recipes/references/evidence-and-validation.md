@@ -116,7 +116,10 @@ OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {"__builtins__":
 for filename in sys.argv[1:]:
     path = Path(filename).resolve(strict=True)
     with initialize_config_dir(config_dir=str(path.parent), version_base=None):
-        config = compose(config_name=path.stem)
+        config = compose(
+            config_name=path.stem,
+            overrides=[f"trainer.experiment_name={path.stem}"],
+        )
     resolved = OmegaConf.to_container(config, resolve=True, throw_on_missing=True)
     trainer = resolved["trainer"]
     assert trainer["experiment_name"] == path.stem, path
@@ -126,14 +129,16 @@ for filename in sys.argv[1:]:
     assert resolved["data"]["val_data"], path
     for key in ("default_local_dir", "default_hdfs_dir", "validation_data_dir"):
         assert path.stem in trainer[key], (path, key, trainer[key])
-    print(f"PASS {path.name}: composed, resolved, training with validation, distinct named roots")
+    print(f"PASS {path.name}: composed with launch override, resolved, training with validation, distinct named roots")
 PY
 ```
 
 Also check the following explicitly; the snippet alone does not prove them:
 
-- The project equals the requested project, validation identities match the
-  control, and every name token equals its resolved value.
+- The project inherited from the project base equals the requested project;
+  candidate YAMLs do not need to add `trainer.project_name` or
+  `trainer.experiment_name`. Validation identities must match the control, and
+  every filename token must equal its resolved value.
 - Candidate paths and output roots differ from every parent/existing candidate.
   Existing blobs/directories must not be reused when `resume_mode: auto`.
 - The resolved diff, including logged parent overrides, contains only changes

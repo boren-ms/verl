@@ -72,8 +72,9 @@ Repeat this explanation for **every** candidate:
    Do not promise an unmeasured numerical gain.>
 6. **Risks and limits:** <Instability, data/reward confounds, seed uncertainty,
    cost, running-run maturity; specify what outcome would refute the hypothesis.>
-7. **Validation:** <Hydra composition/resolution result, intended resolved diff,
-   filename/experiment consistency, unique output roots; GPU execution not tested.>
+7. **Validation:** <Hydra composition/resolution result with the launch-time
+   experiment-name override, intended resolved diff, filename/launcher
+   consistency, unique output roots; GPU execution not tested.>
 
 ## Deferred or Rejected Ideas
 

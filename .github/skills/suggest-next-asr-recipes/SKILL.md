@@ -206,11 +206,13 @@ validation history, or produce no candidates.
 3. Check both filesystem and W&B names for collisions. If the config is already
    represented, reuse/link it rather than overwrite it; choose a meaningful new
    suffix only for a genuinely distinct experiment or documented replication.
-4. Set `trainer.project_name` to the target project and
-   `trainer.experiment_name` to the filename stem. Verify output/checkpoint and
-   validation-generation roots resolve to this new experiment, not the parent.
-   Preserve the repository's resume policy with fresh output roots; never resume
-   the parent's state accidentally.
+4. Do not add `trainer.project_name` or `trainer.experiment_name` to candidate
+   recipes. Keep the project inherited from the project base; `quick_run.sh` sets
+   the experiment name from the filename at launch. Verify output/checkpoint and
+   validation-generation roots after applying that launch override so they
+   resolve to the new experiment, not the parent. Preserve the repository's
+   resume policy with fresh output roots; never resume the parent's state
+   accidentally.
 5. Preserve the comparison contract: validation data, scorer, decoding, and
    cadence/budget unless an explicitly justified hypothesis requires a budget
    change. Resource changes must remain valid for global/mini/micro-batches,
@@ -218,9 +220,9 @@ validation history, or produce no candidates.
 6. Compose and resolve every YAML with the lightweight Hydra procedure in
    [evidence and config validation](references/evidence-and-validation.md).
    Diff the **resolved** candidate against the reconstructed parent, not just the
-   YAML text. Allow only the documented scientific delta and necessary
-   experiment/output identity changes. Correct accidental inherited changes.
-   Do not claim GPU execution was tested by a config-only check.
+   YAML text. Allow only the documented scientific delta and necessary runtime
+   experiment/output identity changes. Correct accidental inherited changes. Do
+   not claim GPU execution was tested by a config-only check.
 
 ## 5. Report and Verify
 
