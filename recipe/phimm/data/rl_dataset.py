@@ -1,4 +1,5 @@
 import logging
+import re
 from collections.abc import Sequence
 from typing import Optional
 
@@ -16,6 +17,11 @@ from recipe.phimm.data.dataset import create_audio_dataset, get_num_proc
 from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
 
 logger = logging.getLogger(__name__)
+_THINK_PREFILL_RE = re.compile(
+    r"(?:<think>\s*</think>|<think>)\s*$",
+    re.IGNORECASE,
+)
+_THINK_TAG_RE = re.compile(r"</?think>", re.IGNORECASE)
 
 try:
     from hf_qwen35_audio.processing_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
@@ -37,6 +43,24 @@ def remove_empty_tensors(batch: dict) -> dict:
     for key in keys_to_remove:
         batch.pop(key, None)
     return batch
+
+
+def _apply_chat_template(chat_obj, messages, kwargs) -> str:
+    raw_prompt = chat_obj.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=False,
+        **kwargs,
+    )
+    return _THINK_PREFILL_RE.sub("", raw_prompt, count=1)
+
+
+def _validate_assistant_prefix(prefix: str) -> None:
+    if _THINK_TAG_RE.search(prefix):
+        raise ValueError(
+            "Assistant prefixes must not contain <think> tags; they would duplicate or hide "
+            "the generated think block."
+        )
 
 
 def _load_audio_with_retries(ds, index, max_dur, max_retries, audio_loader, recoverable_errors):
@@ -209,14 +233,14 @@ class RLHFDataset(Dataset):
 
         # Use processor.apply_chat_template if available; fall back to tokenizer
         _chat_obj = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
-        raw_prompt = _chat_obj.apply_chat_template(
+        raw_prompt = _apply_chat_template(
+            _chat_obj,
             messages,
-            add_generation_prompt=True,
-            tokenize=False,
-            **self.apply_chat_template_kwargs,
+            self.apply_chat_template_kwargs,
         )
         extra_info = row_dict.get("extra_info") or {}
         prefix = extra_info.get("prefix", "") or ""
+        _validate_assistant_prefix(prefix)
         raw_prompt = f"{raw_prompt}{prefix}"
         # print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
         # print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)

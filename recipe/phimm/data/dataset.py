@@ -24,7 +24,13 @@ from datasets import load_dataset, concatenate_datasets, Dataset, Sequence, Valu
 from bs4 import BeautifulSoup
 from recipe.phimm.data.error_simu import ErrorSimulator
 from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
-from recipe.phimm.data.prompts import resolve_task_language, get_task_prompt, get_task_prefix, get_task_output
+from recipe.phimm.data.prompts import (
+    get_task_output,
+    get_task_prefix,
+    get_task_prompt,
+    is_keyword_think,
+    resolve_task_language,
+)
 from recipe.phimm.utils.tn import text_norm
 from recipe.phimm.data.chunk import get_chunk_manager, create_chunk_datasets
 from recipe.phimm.data.audio_augment import AudioAugmenter, safe_audio_stem
@@ -1871,6 +1877,9 @@ def add_task_info(ds, **kwargs):
     prompt_suffix = kwargs.get("prompt_suffix", "")
     prefix_prob = float(kwargs.get("prefix_prob", 0.0))
     lang_hint = kwargs.get("lang_hint", False)
+    think = kwargs.get("think")
+    if is_keyword_think(think) and prefix_prob:
+        raise ValueError("think: keyword requires prefix_prob=0 so <think> is generated first")
 
     def add_task_info_fn(egs):
         lang = resolve_task_language(task, lang=egs.get("language") or language)
@@ -1880,6 +1889,7 @@ def add_task_info(ds, **kwargs):
             rand=rand,
             version=version,
             lang=lang if lang_hint else None,
+            think=think,
         )
         prompt = f"{prompt}{prompt_suffix}"
         gt_output = get_task_output(
@@ -1888,6 +1898,8 @@ def add_task_info(ds, **kwargs):
             text=egs.get("text", ""),
             components=egs.get("components"),
             version=version,
+            think=think,
+            keywords=egs.get("keywords"),
         )
         prefix_stem = prefix.rstrip("\n")
         if prefix_stem and gt_output.startswith(prefix_stem):

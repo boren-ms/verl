@@ -1,4 +1,5 @@
 import ast
+import re
 from collections.abc import Sequence
 from pathlib import Path
 from types import SimpleNamespace
@@ -26,6 +27,30 @@ def _load_audio_retry_helper():
     namespace = {"logger": SimpleNamespace(warning=lambda *args, **kwargs: None)}
     exec(compile(ast.Module(body=[function], type_ignores=[]), str(module_path), "exec"), namespace)
     return namespace["_load_audio_with_retries"]
+
+
+def _load_think_helpers():
+    module_path = Path(__file__).parents[3] / "recipe/phimm/data/rl_dataset.py"
+    module = ast.parse(module_path.read_text())
+    names = {
+        "_apply_chat_template",
+        "_validate_assistant_prefix",
+    }
+    functions = [
+        node for node in module.body if isinstance(node, ast.FunctionDef) and node.name in names
+    ]
+    namespace = {
+        "_THINK_PREFILL_RE": re.compile(
+            r"(?:<think>\s*</think>|<think>)\s*$",
+            re.IGNORECASE,
+        ),
+        "_THINK_TAG_RE": re.compile(r"</?think>", re.IGNORECASE),
+    }
+    exec(compile(ast.Module(body=functions, type_ignores=[]), str(module_path), "exec"), namespace)
+    return (
+        namespace["_apply_chat_template"],
+        namespace["_validate_assistant_prefix"],
+    )
 
 
 def test_flatten_data_confs_expands_nested_omegaconf_groups():
@@ -104,3 +129,75 @@ def test_load_audio_with_retries_avoids_stringifying_broken_audio_error():
         assert str(exc) == "Unable to load audio after 1 attempt(s): ['bad.wav']"
     else:
         raise AssertionError("expected contextual RuntimeError")
+
+
+def test_assistant_prefix_rejects_think_tags():
+    _, validate_assistant_prefix = _load_think_helpers()
+
+    validate_assistant_prefix("Audio Language: English\n")
+    for prefix in ("<think>", "<think>duplicate</think>"):
+        try:
+            validate_assistant_prefix(prefix)
+        except ValueError as exc:
+            assert "must not contain <think> tags" in str(exc)
+        else:
+            raise AssertionError("expected duplicate think prefix to be rejected")
+
+
+def test_apply_chat_template_enables_thinking_and_strips_template_open_tag():
+    apply_chat_template, _ = _load_think_helpers()
+
+    class ChatTemplate:
+        def apply_chat_template(self, messages, **kwargs):
+            self.messages = messages
+            self.kwargs = kwargs
+            return "<|im_start|>assistant\n<think>\n"
+
+    chat_template = ChatTemplate()
+    messages = [{"role": "user", "content": "Think about rare words."}]
+
+    raw_prompt = apply_chat_template(
+        chat_template,
+        messages,
+        {"enable_thinking": True},
+    )
+
+    assert chat_template.messages == messages
+    assert chat_template.kwargs == {
+        "add_generation_prompt": True,
+        "tokenize": False,
+        "enable_thinking": True,
+    }
+    assert raw_prompt == "<|im_start|>assistant\n"
+
+
+def test_apply_chat_template_strips_empty_think_block():
+    apply_chat_template, _ = _load_think_helpers()
+
+    class ChatTemplate:
+        def apply_chat_template(self, messages, **kwargs):
+            return "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+
+    assert apply_chat_template(
+        ChatTemplate(),
+        [{"role": "user", "content": "Think about rare words."}],
+        {"enable_thinking": True},
+    ) == "<|im_start|>assistant\n"
+
+
+def test_apply_chat_template_does_not_strip_think_instruction():
+    apply_chat_template, _ = _load_think_helpers()
+    prompt = (
+        "List words inside <think> and </think>.<|im_end|>\n"
+        "<|im_start|>assistant\n"
+    )
+
+    class ChatTemplate:
+        def apply_chat_template(self, messages, **kwargs):
+            return prompt
+
+    assert apply_chat_template(
+        ChatTemplate(),
+        [{"role": "user", "content": "Think about rare words."}],
+        {"enable_thinking": True},
+    ) == prompt

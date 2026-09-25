@@ -6,9 +6,15 @@ from recipe.phimm.reward.asr_measure import (
     check_lang,
     compute_score,
     compute_kw_acc,
+    compute_think_keyword_f2,
     lang_score,
 )
-from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
+from recipe.phimm.reward.asr_response import (
+    get_asr_text,
+    get_hyp_text,
+    parse_task_output,
+    parse_think_output,
+)
 
 
 def test_accepts_code_switch_output():
@@ -257,6 +263,92 @@ def test_parse_response_accepts_2607_response_without_audio_language():
         version=2607,
     )
     assert task_output == [{"src": None, "tgt": "English", "text": "hello world"}]
+
+
+def test_think_prefix_is_separated_from_2607_asr_output():
+    output = (
+        "<think>rare phrase,surname</think>\n"
+        "Audio Language: English.\n"
+        "<ASR><lang=English><TXT>hello world</TXT></ASR>"
+    )
+
+    assert parse_think_output(output) == {
+        "valid": True,
+        "keywords": ["rare phrase", "surname"],
+        "response": (
+            "Audio Language: English.\n"
+            "<ASR><lang=English><TXT>hello world</TXT></ASR>"
+        ),
+    }
+    assert get_hyp_text(output, version=2607) == "hello world"
+    assert parse_task_output(output, version=2607) == [
+        {"src": "English", "tgt": "English", "text": "hello world"}
+    ]
+
+
+@pytest.mark.parametrize(
+    ("output", "keywords", "expected_f2", "expected_format"),
+    [
+        ("<think>Alpha,Beta</think>\ntranscription", ["alpha", "beta"], 1.0, True),
+        ("<think>alpha</think>\ntranscription", ["alpha", "beta"], 5 / 9, True),
+        (
+            "<think>alpha,beta,false alarm</think>\ntranscription",
+            ["alpha", "beta"],
+            10 / 11,
+            True,
+        ),
+        ("<think></think>\ntranscription", [], 1.0, True),
+        ("transcription only", ["alpha"], 0.0, False),
+        ("<think>alpha</think><think>beta</think>\ntranscription", ["alpha"], 0.0, False),
+    ],
+)
+def test_compute_think_keyword_f2(output, keywords, expected_f2, expected_format):
+    result = compute_think_keyword_f2(output, keywords=keywords, text_norm="hf_english")
+
+    assert result["f2"] == pytest.approx(expected_f2)
+    assert result["format"] is expected_format
+
+
+def test_parse_response_reports_think_keyword_metrics():
+    result = _parse_response(
+        (
+            "<think>alpha,beta,false alarm</think>\n"
+            "Audio Language: English.\n"
+            "<ASR><lang=English><TXT>alpha beta</TXT></ASR>"
+        ),
+        ground_truth="alpha beta",
+        extra_info={"keywords": ["alpha", "beta"], "language": "English"},
+        version=2607,
+        text_norm="hf_english",
+        think="keyword",
+    )
+
+    assert result["think_keyword"] == pytest.approx(10 / 11)
+    assert result["think_precision"] == pytest.approx(2 / 3)
+    assert result["think_recall"] == 1.0
+    assert result["think_fmt"] == 1.0
+    assert result["word"] == 1.0
+
+
+def test_compute_score_gates_missing_think_format():
+    result = compute_score(
+        "Audio Language: English.\n<ASR><lang=English><TXT>alpha</TXT></ASR>",
+        ground_truth="alpha",
+        extra_info={"keywords": ["alpha"], "language": "English"},
+        version=2607,
+        think="keyword",
+        reduce="mean",
+        measures={
+            "word": {"beta": 1.0},
+            "think_keyword": {"beta": 1.0},
+            "think_fmt": {"beta": 0.1, "cut": 0.5},
+        },
+    )
+
+    assert result["word"] == 1.0
+    assert result["think_keyword"] == 0.0
+    assert result["think_fmt"] == 0.0
+    assert result["score"] == 0.0
 
 
 def test_compute_score_cut_zeros_reward_at_threshold():

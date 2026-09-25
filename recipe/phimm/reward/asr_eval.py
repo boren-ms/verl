@@ -1,3 +1,4 @@
+from recipe.phimm.data.prompts import is_keyword_think
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
@@ -65,7 +66,7 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
 
 def openasr_en_eval(solution_str, ground_truth, **kwargs):
     """Evaluate English OpenASR responses with HF compound-aware WER."""
-    from recipe.phimm.reward.asr_measure import compute_kw_acc
+    from recipe.phimm.reward.asr_measure import compute_kw_acc, compute_think_keyword_f2
 
     extra_info = kwargs.get("extra_info") or {}
     hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
@@ -77,7 +78,7 @@ def openasr_en_eval(solution_str, ground_truth, **kwargs):
         text_norm="hf_english",
         tgt_lang="english",
     )
-    return {
+    metrics = {
         "score": 1.0 - result["wer"],
         "wer": result["wer"],
         "kw_acc": keyword_result["accuracy"],
@@ -86,3 +87,17 @@ def openasr_en_eval(solution_str, ground_truth, **kwargs):
         "nb_err": keyword_result["n_err"],
         "nb_ref": keyword_result["n_ref"],
     }
+    if is_keyword_think(kwargs.get("think")):
+        think_keyword_result = compute_think_keyword_f2(
+            solution_str,
+            keywords=extra_info.get("keywords"),
+            text_norm="hf_english",
+            tgt_lang="english",
+        )
+        metrics.update(
+            think_kw_f2=think_keyword_result["f2"],
+            think_kw_precision=think_keyword_result["precision"],
+            think_kw_recall=think_keyword_result["recall"],
+            think_fmt=float(think_keyword_result["format"]),
+        )
+    return metrics

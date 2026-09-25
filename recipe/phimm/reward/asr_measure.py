@@ -12,7 +12,8 @@ from dataclasses import dataclass
 
 from jiwer import process_words
 
-from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
+from recipe.phimm.data.prompts import is_keyword_think
+from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output, parse_think_output
 from recipe.phimm.utils.languages import get_language_code
 
 
@@ -293,6 +294,47 @@ def compute_kw_acc(
     return {"accuracy": accuracy, "n_err": errors, "n_ref": references}
 
 
+def compute_think_keyword_f2(
+    solution_str: str,
+    keywords: list[str] | None = None,
+    text_norm: str | None = None,
+    tgt_lang: str = "english",
+) -> dict[str, float | int | bool]:
+    """Score a predicted think-keyword set with recall-heavy F2."""
+    from recipe.phimm.reward.asr_edge import _norm_text
+
+    think_output = parse_think_output(solution_str)
+
+    def normalize(values):
+        return {
+            normalized
+            for value in values or []
+            if (normalized := _norm_text(str(value), name=text_norm, lang=tgt_lang).strip())
+        }
+
+    reference = normalize(keywords)
+    prediction = normalize(think_output["keywords"]) if think_output["valid"] else set()
+    true_positives = len(reference & prediction)
+
+    if not reference and not prediction:
+        precision = recall = f2 = 1.0
+    else:
+        precision = true_positives / len(prediction) if prediction else 0.0
+        recall = true_positives / len(reference) if reference else 0.0
+        denominator = 4.0 * precision + recall
+        f2 = 5.0 * precision * recall / denominator if denominator else 0.0
+
+    return {
+        "f2": f2,
+        "precision": precision,
+        "recall": recall,
+        "n_match": true_positives,
+        "n_pred": len(prediction),
+        "n_ref": len(reference),
+        "format": think_output["valid"],
+    }
+
+
 def _parse_response(solution_str, ground_truth=None, **kwargs):
     """Extract text, format/language, lexical, and edge-check accuracies."""
     from recipe.phimm.reward.asr_edge import measure
@@ -315,7 +357,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
 
-    return {
+    result = {
         "char": char_error.accuracy(),
         "word": word_error.accuracy(),
         "keyword": keyword_result["accuracy"],
@@ -324,6 +366,20 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "fmt": float(check_fmt(task_output)),
         **openml_acc,
     }
+    if is_keyword_think(kwargs.get("think")):
+        think_keyword_result = compute_think_keyword_f2(
+            solution_str,
+            keywords=extra_info.get("keywords"),
+            text_norm=kwargs.get("text_norm"),
+            tgt_lang=tgt_lang,
+        )
+        result.update(
+            think_keyword=think_keyword_result["f2"],
+            think_precision=think_keyword_result["precision"],
+            think_recall=think_keyword_result["recall"],
+            think_fmt=float(think_keyword_result["format"]),
+        )
+    return result
 
 
 def _lang_code_set(lang) -> set[str]:

@@ -15,6 +15,10 @@ _2609_MODE_PREFIX_RE = re.compile(
     re.IGNORECASE,
 )
 _TXT_WRAPPER_RE = re.compile(r"^\s*<TXT>(?P<text>.*?)</TXT>\s*$", re.DOTALL | re.IGNORECASE)
+_THINK_PREFIX_RE = re.compile(
+    r"^\s*<think>(?P<keywords>.*?)</think>\s*(?P<response>.*)$",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 class TaskOutputSegment(TypedDict):
@@ -23,8 +27,31 @@ class TaskOutputSegment(TypedDict):
     text: str | None
 
 
+class ThinkOutput(TypedDict):
+    valid: bool
+    keywords: list[str]
+    response: str
+
+
 def _segment(src=None, tgt=None, text=None) -> TaskOutputSegment:
     return {"src": src, "tgt": tgt, "text": text}
+
+
+def parse_think_output(solution_str) -> ThinkOutput:
+    """Parse one leading comma-separated ``<think>`` keyword block."""
+    if not isinstance(solution_str, str):
+        return {"valid": False, "keywords": [], "response": str(solution_str or "")}
+    if solution_str.lower().count("<think>") != 1 or solution_str.lower().count("</think>") != 1:
+        return {"valid": False, "keywords": [], "response": solution_str}
+    match = _THINK_PREFIX_RE.match(solution_str)
+    if match is None:
+        return {"valid": False, "keywords": [], "response": solution_str}
+    keywords = [keyword.strip() for keyword in match.group("keywords").split(",") if keyword.strip()]
+    return {
+        "valid": True,
+        "keywords": keywords,
+        "response": match.group("response").strip(),
+    }
 
 
 def clean_text(text: str) -> str:
@@ -52,6 +79,9 @@ def clean_text(text: str) -> str:
 
 def parse_task_output(solution_str, version=None):
     """Parse an ASR response into a list of ``src``/``tgt``/``text`` segments."""
+    think_output = parse_think_output(solution_str)
+    if think_output["valid"]:
+        solution_str = think_output["response"]
     if str(version) == "2609":
         return _parse_task_output_2609(solution_str)
     if str(version) == "2607":

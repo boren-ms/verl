@@ -1,6 +1,7 @@
 import pytest
 
 from recipe.phimm.data.prompts import (
+    get_think,
     get_task_output,
     get_task_prefix,
     get_task_prompt,
@@ -148,6 +149,71 @@ def test_lang_asr_verb_uses_verbatim_prompt_and_output_format():
         "<src=English><tgt=English>\n<VERBATIM>\n<TXT>um hello</TXT>"
     )
     assert resolve_task_language(task="lang_asr_verb_en") == "English"
+
+
+def test_keyword_think_adds_prompt_instruction_and_precedes_2607_output():
+    prompt = get_task_prompt(
+        task="lang_asr_verb",
+        rand=False,
+        version=2607,
+        think="keyword",
+    )
+    output = get_task_output(
+        task="lang_asr_verb",
+        lang="en",
+        text="um hello",
+        version=2607,
+        think="keyword",
+        keywords=["rare phrase", "surname"],
+    )
+
+    assert prompt == (
+        "Detect the language and transcribe the audio clip into text. "
+        "Transcribe verbatim, including all filler words and disfluencies. "
+        "Think about the rare words in the audio first before transcribing."
+    )
+    assert output == (
+        "<think>rare phrase,surname</think>\n"
+        "Audio Language: English.\n"
+        "<ASR><lang=English><TXT>um hello</TXT></ASR>"
+    )
+
+
+@pytest.mark.parametrize(
+    ("think", "keywords", "expected"),
+    [
+        (None, ["rare phrase"], ""),
+        ("keyword", [" rare phrase ", "", "surname"], "<think>rare phrase,surname</think>\n"),
+        ("keyword", None, "<think></think>\n"),
+    ],
+)
+def test_get_think_formats_mode_output(think, keywords, expected):
+    assert get_think(think, keywords) == expected
+
+
+def test_null_think_keeps_standard_prompt_and_output():
+    assert get_task_prompt(
+        task="lang_asr_verb",
+        rand=False,
+        version=2607,
+        think=None,
+    ) == (
+        "Detect the language and transcribe the audio clip into text. "
+        "Transcribe verbatim, including all filler words and disfluencies."
+    )
+    assert get_task_output(
+        task="lang_asr_verb",
+        lang="en",
+        text="um hello",
+        version=2607,
+        think=None,
+        keywords=["rare phrase"],
+    ) == "Audio Language: English.\n<ASR><lang=English><TXT>um hello</TXT></ASR>"
+
+
+def test_unknown_think_mode_is_rejected():
+    with pytest.raises(ValueError, match="Unsupported think mode"):
+        get_task_prompt(task="lang_asr_verb", think="reasoning")
 
 
 @pytest.mark.parametrize("version", [2607, 2609])

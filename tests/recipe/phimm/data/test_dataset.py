@@ -69,6 +69,41 @@ def test_add_task_info_supports_2607_prefix_and_completion():
     )
 
 
+def test_add_task_info_builds_think_keyword_target():
+    source = Dataset.from_list(
+        [{"text": "bonjour rare name", "keywords": ["rare name"], "language": "French"}]
+    )
+
+    dataset = add_task_info(
+        source,
+        task="lang_asr_verb",
+        version=2607,
+        think="keyword",
+        prefix_prob=0.0,
+    )
+
+    assert dataset[0]["prefix"] == ""
+    assert dataset[0]["prompt"].endswith(
+        "Think about the rare words in the audio first before transcribing.<audio>"
+    )
+    assert dataset[0]["gt_output"] == (
+        "<think>rare name</think>\n"
+        "Audio Language: French.\n"
+        "<ASR><lang=French><TXT>bonjour rare name</TXT></ASR>"
+    )
+
+
+def test_add_task_info_rejects_prefix_before_think_output():
+    with pytest.raises(ValueError, match="requires prefix_prob=0"):
+        add_task_info(
+            MinimalDataset(),
+            task="lang_asr_verb",
+            version=2607,
+            think="keyword",
+            prefix_prob=1.0,
+        )
+
+
 def test_add_task_info_supports_2609_prompt_prefix_and_completion():
     dataset = add_task_info(
         MinimalDataset(),

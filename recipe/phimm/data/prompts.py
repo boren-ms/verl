@@ -14,6 +14,25 @@ def rand_prompt(prompts, rand=True):
     return random.choice(prompts) if rand else prompts[0]
 
 
+def is_keyword_think(think=None):
+    """Return whether keyword thinking is enabled, rejecting unknown modes."""
+    if think is None:
+        return False
+    if think == "keyword":
+        return True
+    raise ValueError(f"Unsupported think mode: {think!r}")
+
+
+def get_think(think=None, keywords=None):
+    """Format the optional think block for the requested mode."""
+    if not is_keyword_think(think):
+        return ""
+    keyword_text = ",".join(
+        str(keyword).strip() for keyword in (keywords or []) if str(keyword).strip()
+    )
+    return f"<think>{keyword_text}</think>\n"
+
+
 def _get_lang_asr_language(task, prefix, default=None):
     lid = task[len(prefix):].strip("_")
     return get_language_name(lid) if lid else default
@@ -109,7 +128,7 @@ def _format_2609_language_hint(lang):
     return ""
 
 
-def get_task_prompt(task="asr", rand=False, version=None, lang=None):
+def get_task_prompt(task="asr", rand=False, version=None, lang=None, think=None):
     """Get the prompt for the specified task."""
     if task == "asr":
         prompt = rand_prompt(ASR_PROMPTS, rand=rand)
@@ -130,6 +149,8 @@ def get_task_prompt(task="asr", rand=False, version=None, lang=None):
         language_hint = _format_2609_language_hint(lang)
         if language_hint:
             prompt = f"{prompt}<audio>\n{language_hint}"
+    if is_keyword_think(think):
+        prompt += " Think about the rare words in the audio first before transcribing."
     return prompt
 
 
@@ -150,17 +171,26 @@ def get_task_prefix(task, lang, prob=1.0, version=None):
     raise ValueError(f"Unknown task: {task}")
 
 
-def get_task_output(task="asr", lang="English", text="", components=None, version=None):
+def get_task_output(
+    task="asr",
+    lang="English",
+    text="",
+    components=None,
+    version=None,
+    think=None,
+    keywords=None,
+):
     """Get the expected output format for the specified task."""
     if task not in ("asr", "rare_asr", "biasing") and not task.startswith("lang_asr"):
         raise ValueError(f"Unknown task: {task}")
-    return _format_task_output(
+    output = _format_task_output(
         task,
         get_language_name(lang),
         text,
         components,
         version=version,
     )
+    return f"{get_think(think, keywords)}{output}"
     
 
 

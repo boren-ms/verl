@@ -161,6 +161,26 @@ def test_openasr_en_eval_reports_keyword_error_counts():
     assert result["nb_ref"] == 1
 
 
+def test_openasr_en_eval_reports_think_keyword_metrics_without_changing_wer():
+    result = asr_eval.openasr_en_eval(
+        (
+            "<think>brown,extra</think>\n"
+            "Audio Language: English.\n"
+            "<ASR><lang=English><TXT>the quick brown fox</TXT></ASR>"
+        ),
+        "the quick brown fox",
+        extra_info={"keywords": ["brown"]},
+        version=2607,
+        think="keyword",
+    )
+
+    assert result["wer"] == 0.0
+    assert result["think_kw_f2"] == pytest.approx(5 / 6)
+    assert result["think_kw_precision"] == 0.5
+    assert result["think_kw_recall"] == 1.0
+    assert result["think_fmt"] == 1.0
+
+
 def test_openasr_en_eval_uses_hf_english_for_keywords():
     result = asr_eval.openasr_en_eval(
         "connect wifi",
