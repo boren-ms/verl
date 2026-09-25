@@ -32,7 +32,7 @@ reward_function_by_data_source:
 data:
   train_batch_size: 256
   train_data:
-    jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1a_earning_step650/ls_rare_nonempty_verb_g16_nonzero_n_err.jsonl
+    jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1a_earning_step650/ls_rare_nonempty_verb_g32_nonzero_n_err.jsonl
     # Generated records already have text; the source-data rename would replace it with null.
     pre_process: null
 
