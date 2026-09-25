@@ -46,7 +46,7 @@ algorithm:
     metric: remax_advantage
     mode: nonzero
     atol: 1e-6
-    max_num_gen_batches: 100
+    max_num_gen_batches: 10
 
 data:
   train_batch_size: 256
