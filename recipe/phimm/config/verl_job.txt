@@ -1,9 +1,9 @@
-updated_at_utc: 2026-09-25T21:51:18.523402+00:00
+updated_at_utc: 2026-09-26T01:08:19.935264+00:00
 
 ┌──────────────┬──────────────────────────────┬───────────────┬──────────────────────────────────────────────────────────────────┬────────────────────────────────────────────┐
 │ NODE         │ RAY JOB ID                   │ STATUS        │ JOB / CONFIG                                                     │ PROGRESS / PHASE                           │
 ├──────────────┼──────────────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────┼────────────────────────────────────────────┤
-│ n2-i3        │ raysubmit_edA2b7WBPZZmp5c6   │ RUNNING       │ remax_largev3_earning_fy27_verb_s1k_bs256_n4_r256_g16_lr1e-6     │ training startup; model downloaded, data loading │
+│ n2-i3        │ raysubmit_edA2b7WBPZZmp5c6   │ STOPPED       │ remax_largev3_earning_fy27_verb_s1k_bs256_n4_r256_g16_lr1e-6     │ Stopped by explicit user request after last logged optimizer step 259/1000; pool Paused (0/0/0 pods) │
 │ n2h-i0       │ raysubmit_7WupxS92UeqVvn52   │ RUNNING       │ remax_largev3_earning_fy27_s1k_bs256_r256_g16_lex                │ training 2/1000 (0%)                       │
 └──────────────┴──────────────────────────────┴───────────────┴──────────────────────────────────────────────────────────────────┴────────────────────────────────────────────┘
 
