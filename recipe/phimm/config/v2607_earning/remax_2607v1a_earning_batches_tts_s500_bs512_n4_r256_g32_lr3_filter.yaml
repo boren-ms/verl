@@ -54,4 +54,4 @@ data:
 trainer:
   nnodes: 4
   total_epochs: 40
-  total_training_steps: 500
+  total_training_steps: 1000
