@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-26T23:35:25Z
+updated_at_utc: 2026-09-26T23:41:34Z
 
 ┌────────┬────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                       │ PROGRESS / PHASE                            │
@@ -15,7 +15,7 @@ updated_at_utc: 2026-09-26T23:35:25Z
 │ n2-i5  │ raysubmit_pzfU3J7G2zA5FSWn │ SUCCEEDED │ remax_2607v2_ls_rare_s500_bs512_n2_r256_g16                        │ training 500/500 (100.0%; complete)         │
 │ n2-i6  │ raysubmit_XdzduNKsZW1DYCu6 │ SUCCEEDED │ remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr5e-6     │ training 1000/1000 (100.0%; complete)        │
 │ n2h-i0 │ raysubmit_9U2CqhCwbA8t4mTZ │ RUNNING   │ remax_2607v2_ls_rare_bad_s1k_bs256_n2_r256_g16                     │ training 349/1000 (34.9%)                   │
-│ n4h-i0 │ raysubmit_ND1wsxpa3f61nxqB │ RUNNING   │ remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3       │ training 72/500 (14.4%)                     │
+│ n4h-i0 │ raysubmit_ND1wsxpa3f61nxqB │ RUNNING   │ remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3       │ training 77/500 (15.4%)                     │
 │ n4h-i1 │ raysubmit_j4x2w9MxvF5NcdN3 │ RUNNING   │ remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3_filter │ training 491/500 (98.2%)                   │
 └────────┴────────────────────────────┴───────────┴────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────┘
 
@@ -26,7 +26,7 @@ Reports:
 - `remax_2607v2_ls_rare_s500_bs512_n2_r256_g16` [`n2-i5`]: complete step 500
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr5e-6` [`n2-i6`]: SUCCEEDED 1000/1000; complete checkpoint1000 verified, best same-step mean p_err=4.6086% (verb4.6444%, lex4.5729%); checkpoint350 retained, observer exited, all16 GPUs released.
 - `remax_2607v2_ls_rare_bad_s1k_bs256_n2_r256_g16` [`n2h-i0`]: training 349/1000 (34.9%)
-- `remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3` [`n4h-i0`]: training 72/500 (14.4%)
+- `remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3` [`n4h-i0`]: training 77/500 (15.4%)
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n8_r256_g16_lr1e-5_kw2` [`n2-i2`]: attempt2 RUNNING 773/1000, complete checkpoint750 verified; resumed full state from300. W&B4li7k89v; attempt1 failed at347. Observer snapshot error recovered without restart.
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr3_filter` [`n2-i1`]: training 573/1000 (57.3%)
 - `remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3_filter` [`n4h-i1`]: training 491/500 (98.2%)
