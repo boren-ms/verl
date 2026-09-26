@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-26T20:38:34Z
+updated_at_utc: 2026-09-26T21:20:05Z
 
 ┌────────┬────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                       │ PROGRESS / PHASE                            │
@@ -16,7 +16,7 @@ updated_at_utc: 2026-09-26T20:38:34Z
 │ n2-i6  │ raysubmit_XdzduNKsZW1DYCu6 │ SUCCEEDED │ remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr5e-6     │ training 1000/1000 (100.0%; complete)        │
 │ n2h-i0 │ raysubmit_9U2CqhCwbA8t4mTZ │ RUNNING   │ remax_2607v2_ls_rare_bad_s1k_bs256_n2_r256_g16                     │ training 349/1000 (34.9%)                   │
 │ n4h-i0 │ raysubmit_bub7vz7m5PXAfn3a │ SUCCEEDED │ remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g16_lr2       │ training 500/500 (100.0%)                   │
-│ n4h-i1 │ raysubmit_2RjQ2HDEEYhHMNJh │ RUNNING   │ remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3_filter │ training 440/500 (88.0%)                   │
+│ n4h-i1 │ raysubmit_j4x2w9MxvF5NcdN3 │ RUNNING   │ remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3_filter │ training startup                            │
 └────────┴────────────────────────────┴───────────┴────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────┘
 
 Reports:
@@ -29,4 +29,4 @@ Reports:
 - `remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g16_lr2` [`n4h-i0`]: complete step 500
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n8_r256_g16_lr1e-5_kw2` [`n2-i2`]: attempt2 RUNNING 773/1000, complete checkpoint750 verified; resumed full state from300. W&B4li7k89v; attempt1 failed at347. Observer snapshot error recovered without restart.
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr3_filter` [`n2-i1`]: training 573/1000 (57.3%)
-- `remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3_filter` [`n4h-i1`]: training 440/500 (88.0%)
+- `remax_2607v1a_earning_batches_tts_s500_bs512_n4_r256_g32_lr3_filter` [`n4h-i1`]: training startup
