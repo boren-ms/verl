@@ -126,7 +126,7 @@ Keep one current snapshot with:
 ```
 
 Allowed run states are `queued`, `assigned`, `launching`, `running`,
-`repairing`, `succeeded`, `failed`, `blocked`, and `stale`. The coordinator is
+`repairing`, `succeeded`, `failed`, `stopped`, `blocked`, and `stale`. The coordinator is
 the only writer of `state.json`. Write a complete temporary snapshot in the
 same directory and atomically rename it over `state.json`; never leave a
 partially written snapshot.
@@ -238,7 +238,7 @@ monitor. The coordinator must not duplicate those actions.
 Whenever a run becomes terminal:
 
 1. Reconcile its final agent response with live Ray state and durable outputs.
-2. Mark it `succeeded`, `failed`, or `blocked` and record a terminal event.
+2. Mark it `succeeded`, `failed`, `stopped`, or `blocked` and record the outcome.
 3. Recheck the released node using both occupancy signals.
 4. If the node is still eligible, assign the next queued run and create its
    dedicated subagent.
@@ -261,7 +261,8 @@ On `resume`:
 4. Match live jobs by persisted Ray ID plus config/experiment identity. Never
    adopt a live job that is not in the manifest.
 5. Reconnect to the recorded run agent/chat when it is reachable. Send it the
-   latest reconciled state and ask it to continue the same run.
+   latest reconciled state and ask it to continue the same run, except for
+   intentionally stopped runs, which must remain stopped.
 6. If the prior agent is unavailable, append an `agent_orphaned` event and log
    marker, increment `attempt`, then create exactly one replacement agent for
    that run. Include the prior log, Ray job ID, node, and last known progress
@@ -294,7 +295,7 @@ Sort rows in manifest order. Clearly label:
 - missing Ray jobs whose durable outcome is not yet known;
 - terminal output/report paths.
 
-End with aggregate counts for total, queued, active, succeeded, failed,
+End with aggregate counts for total, queued, active, succeeded, failed, stopped,
 blocked, and stale runs, plus the absolute workload directory containing the
 logs.
 
@@ -307,12 +308,20 @@ logs.
 - `failed` requires an irrecoverable failure or exhausted user-specified retry
   limit. Without such a limit, let `verl-asr-run` diagnose and repair
   recoverable failures.
+- `stopped` is a terminal user-requested cancellation, not successful training
+  or a recoverable runtime failure. Have the existing owner stop only the
+  authorized job and its owned monitor, preserve all artifacts, and verify the
+  terminal Ray state and resource release. Persist the reason and
+  `eligible_for_auto_resubmit: false`; never restart it without new user
+  authorization. Record a stop request before acting, but do not mark the run
+  stopped until the owner confirms termination. A replacement suggestion alone
+  does not authorize submitting it.
 - `blocked` means a concrete external prerequisite prevents progress; record
   the exact prerequisite and next action.
 - A missing agent heartbeat alone is not job failure.
 - A missing Ray job alone is not proof that the experiment never ran.
 - Never report aggregate success while any run is queued, assigned,
-  launching, running, repairing, blocked, stale, or has an unknown durable
+  launching, running, repairing, failed, stopped, blocked, stale, or has an unknown durable
   outcome.
 
 ## Quality Checks
