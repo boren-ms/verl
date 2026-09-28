@@ -48,5 +48,4 @@ data:
   train_batch_size: 128
 
 trainer:
-  nnodes: 2
   total_training_steps: 1000

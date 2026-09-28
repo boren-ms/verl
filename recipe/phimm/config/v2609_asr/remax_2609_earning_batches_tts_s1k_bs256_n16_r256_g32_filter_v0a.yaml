@@ -30,7 +30,6 @@ reward_function_by_data_source:
 
 actor_rollout_ref:
   rollout:
-    n: 16
     temperature: 0.8
   model:
     lora_rank: 256
