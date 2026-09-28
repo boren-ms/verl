@@ -1,0 +1,25 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.think.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: ls_clean
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.think.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: ls_other
+    verl_format:
+      prompt_key: prompt

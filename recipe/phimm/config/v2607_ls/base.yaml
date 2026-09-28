@@ -1,6 +1,6 @@
 defaults:
   - ppo_trainer
-  - /data/val_data/openasr_ls_verb
+  - /data/val_data/ls_kw_verb
   - _self_
 
 nccl_timeout: 3600
