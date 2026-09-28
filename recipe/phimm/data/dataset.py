@@ -5,6 +5,7 @@ import uuid
 import math
 import json
 import gzip
+from dataclasses import replace
 from collections import defaultdict
 import ast
 import random
@@ -20,7 +21,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).parents[3]))
-from datasets import load_dataset, concatenate_datasets, Dataset, Sequence, Value
+from datasets import Audio, load_dataset, concatenate_datasets, Dataset, Sequence, Value
 from bs4 import BeautifulSoup
 from recipe.phimm.data.error_simu import ErrorSimulator
 from recipe.phimm.data.biasing import PieceSampler, tag_pieces, text_norm as biasing_text_norm
@@ -184,12 +185,15 @@ def _load_expanded_datasets(file_paths, ext, load_fn):
         return Dataset(merged)
 
 
-def parquet_dataset(parquet_paths, **kwargs):
+def parquet_dataset(parquet_paths, decode_audio=True, **kwargs):
     """Load a Parquet dataset from the specified paths."""
 
     def load_parquet(file_path):
         with bf.BlobFile(file_path, "rb") as file_obj:
-            return Dataset(pq.read_table(file_obj))
+            ds = Dataset(pq.read_table(file_obj))
+        if not decode_audio and isinstance(ds.features.get("audio"), Audio):
+            ds = ds.cast_column("audio", replace(ds.features["audio"], decode=False))
+        return ds
 
     return _load_expanded_datasets(parquet_paths, ext="parquet", load_fn=load_parquet)
 

@@ -1,9 +1,10 @@
 import json
+import io
 
 import numpy as np
 import pytest
 import soundfile as sf
-from datasets import Dataset
+from datasets import Audio, Dataset, Features, Value
 from omegaconf import OmegaConf
 
 from recipe.phimm.data import dataset as dataset_module
@@ -33,6 +34,21 @@ def test_jsonl_dataset_keeps_date_shaped_keywords_as_strings(tmp_path):
     dataset = dataset_module.jsonl_dataset(str(jsonl_path))
 
     assert dataset[1]["keywords"] == ["2026-09-14"]
+
+
+def test_parquet_dataset_can_keep_embedded_audio_bytes_without_torchcodec(tmp_path):
+    audio_bytes = io.BytesIO()
+    sf.write(audio_bytes, np.zeros(1600), 16000, format="WAV")
+    parquet_path = tmp_path / "audio.parquet"
+    Dataset.from_dict(
+        {"audio": [{"bytes": audio_bytes.getvalue(), "path": None}], "text": ["hello"]},
+        features=Features({"audio": Audio(), "text": Value("string")}),
+    ).to_parquet(str(parquet_path))
+
+    dataset = dataset_module.parquet_dataset(str(parquet_path), decode_audio=False)
+
+    assert dataset.features["audio"].decode is False
+    assert dataset[0]["audio"]["bytes"] == audio_bytes.getvalue()
 
 
 def test_format_asr_prompt_uses_2607_audio_placement():

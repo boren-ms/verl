@@ -19,8 +19,8 @@ reward_functions:
         char: {beta: 1.0}
         word: {beta: 1.0}
         lang: {beta: 1.0, cut: 0.5}
-        fmt: {beta: 1.0, cut: 1.0}
-        bracket: {beta: 1.0, cut: 1.0}
+        fmt: {beta: 1.0, cut: 0.9}
+        bracket: {beta: 1.0, cut: 0.9}
   mix:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
@@ -31,7 +31,7 @@ reward_functions:
         char: {beta: 1.0}
         word: {beta: 1.0}
         lang: {beta: 1.0, cut: 0.25}
-        fmt: {beta: 1.0, cut: 1.0}
+        fmt: {beta: 1.0, cut: 0.9}
 
 reward_function_by_data_source:
   mix: mix

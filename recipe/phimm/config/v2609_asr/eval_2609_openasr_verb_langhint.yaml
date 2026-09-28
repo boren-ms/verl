@@ -7,6 +7,10 @@ defaults:
   - /data/val_data/openasr_verb_langhint
   - _self_
 
+data:
+  dataloader_num_workers: 4
+  prefetch_factor: 2
+
 val_reward:
   reward_function_by_data_source:
     ls_clean: openasr_en

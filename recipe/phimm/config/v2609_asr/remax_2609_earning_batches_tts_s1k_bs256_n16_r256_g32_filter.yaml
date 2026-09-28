@@ -29,6 +29,8 @@ reward_function_by_data_source:
   earnings_tts_clean_lex: asr_measure
 
 actor_rollout_ref:
+  rollout:
+    temperature: 0.8
   model:
     lora_rank: 256
 
