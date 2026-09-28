@@ -1,5 +1,6 @@
 from cachetools import FIFOCache, cached
 import blobfile as bf
+import io
 import logging
 import numpy as np
 from pathlib import Path
@@ -207,8 +208,16 @@ def _load_chunk(spec):
 
 def load_raw_audio(x):
     """Load audio data from the input dictionary."""
-    if (audio := x.get("audio", None)) and (sr := x.get("sr", None)):
+    audio = x.get("audio")
+    sr = x.get("sr")
+    if audio is not None and sr is not None:
         return _to_mono(audio, "inline audio"), sr
+    if isinstance(audio, dict):
+        if audio.get("array") is not None and audio.get("sampling_rate") is not None:
+            return _to_mono(np.asarray(audio["array"]), "inline audio"), audio["sampling_rate"]
+        if audio.get("bytes") is not None:
+            data, sr = sf.read(io.BytesIO(audio["bytes"]))
+            return _to_mono(data, audio.get("path") or "embedded audio"), sr
     source = x.get("audio_path") or x.get("audio_file") or x.get("audio_chunk")
     if source:
         if _is_chunk_spec(source) or _is_time_chunk_spec(source):

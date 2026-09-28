@@ -1,9 +1,24 @@
+import io
+
 import numpy as np
 import pytest
 import soundfile as sf
 
 from recipe.phimm.utils import audio as audio_module
 from recipe.phimm.utils.audio import _is_time_chunk_spec, load_raw_audio
+
+
+def test_load_raw_audio_reads_huggingface_embedded_bytes():
+    buffer = io.BytesIO()
+    expected = np.arange(1000, dtype=np.float32) / 1000
+    sf.write(buffer, expected, 16000, format="WAV", subtype="FLOAT")
+
+    audio, sample_rate = load_raw_audio(
+        {"audio": {"bytes": buffer.getvalue(), "path": "sample.wav"}}
+    )
+
+    assert sample_rate == 16000
+    np.testing.assert_array_equal(audio, expected)
 
 
 def test_load_raw_audio_reads_percentage_range(tmp_path):

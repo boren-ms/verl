@@ -1,0 +1,12 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/voice_arena_verb_langhint
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    voice_arena_en_in: openasr_en

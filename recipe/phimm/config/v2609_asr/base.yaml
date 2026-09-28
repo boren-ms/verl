@@ -97,7 +97,6 @@ actor_rollout_ref:
       use_orig_params: true
     strategy: fsdp2
   model:
-    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/45000/qwen_hf/
     trust_remote_code: false
     use_remove_padding: true
     use_fused_kernels: false
@@ -161,7 +160,7 @@ trainer:
   experiment_name: null
   n_gpus_per_node: 8
   ngpus: ${eval:${trainer.n_gpus_per_node}*${trainer.nnodes}}
-  nnodes: 1
+  nnodes: 2
   total_epochs: 4
   total_training_steps: 500
   test_freq: 50
