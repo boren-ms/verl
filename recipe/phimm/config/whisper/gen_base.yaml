@@ -1,0 +1,34 @@
+defaults:
+  - gen_asr
+  - _self_
+
+model:
+  path: az://orngwus2cresco/data/boren/data/verl/models/openai-whisper-large-v3/
+  trust_remote_code: false
+
+data:
+  version: 2607
+  output_path: null
+  prompt_format: whisper
+  whisper_language: en
+  whisper_task: transcribe
+  whisper_timestamps: false
+  max_prompt_length: 128
+  return_multi_modal_inputs: false
+
+rollout:
+  engine_kwargs:
+    vllm:
+      quantization: null
+  dtype: bfloat16
+  prompt_length: ${data.max_prompt_length}
+  response_length: 256
+  max_num_seqs: 32
+  load_format: safetensors
+  enforce_eager: true
+  enable_prefix_caching: false
+  stop: null
+  stop_token_ids: null
+
+trainer:
+  nnodes: 2

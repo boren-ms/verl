@@ -1,0 +1,12 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://recipe/phimm/config/base
+    - file://verl/trainer/config
+defaults:
+  - gen_base
+  - /data/val_data/openasr_2606_verb
+  - _self_
+
+data:
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_whisper/gen_largev3_openasr
