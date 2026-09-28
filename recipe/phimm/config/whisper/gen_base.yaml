@@ -32,3 +32,9 @@ rollout:
 
 trainer:
   nnodes: 2
+
+actor:
+  fsdp_config:
+    wrap_policy:
+      transformer_layer_cls_to_wrap:
+        - WhisperDecoderLayer

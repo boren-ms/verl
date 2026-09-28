@@ -5,6 +5,9 @@
       field: audio_path
       src_part: "am_data/"
       dst_part: "az://orngwus2cresco/data/speech/am_data/"
+    rename_fields:
+      mappings:
+        text: display
   add_task_info:
     task: lang_asr
     language: English

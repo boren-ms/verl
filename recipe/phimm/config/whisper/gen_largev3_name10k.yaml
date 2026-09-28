@@ -9,4 +9,4 @@ defaults:
   - _self_
 
 data:
-  output_path: az://orngwus2cresco/data/boren/data/verl/gen_whisper/gen_largev3_name10k
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_whisper/gen_largev3_name10k_v2

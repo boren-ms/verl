@@ -828,7 +828,11 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 fsdp_config = omega_conf_to_dataclass(self.config.actor.fsdp_config)
             else:
                 optim_config = None
-                fsdp_config = FSDPEngineConfig(use_orig_params=True)  # required for model with lora
+                wrap_policy = self.config.actor.fsdp_config.get("wrap_policy")
+                fsdp_config = FSDPEngineConfig(
+                    use_orig_params=True,  # required for model with lora
+                    wrap_policy=OmegaConf.to_container(wrap_policy, resolve=True) if wrap_policy else {},
+                )
 
             local_path = copy_to_local(self.config.model.path, use_shm=use_shm)
             (
