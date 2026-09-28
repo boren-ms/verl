@@ -42,12 +42,20 @@ actor_rollout_ref:
   model:
     lora_rank: 256
   rollout:
-    n: 4
+    n: 16
     gt_rollout: true
+
+algorithm:
+  filter_groups:
+    enable: true
+    metric: remax_advantage
+    mode: nonzero
+    atol: 1e-6
+    max_num_gen_batches: 10
 
 data:
   train_batch_size: 256
 
 trainer:
   total_epochs: 30
-  total_training_steps: 1000
+  total_training_steps: 200
