@@ -133,3 +133,16 @@
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: parquet
+  parquet_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/VoiceArena/MonsoonASR-Open-ASR-leaderboard-en-IN/data/*.parquet
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: voice_arena_en_in
+    verl_format:
+      prompt_key: prompt
