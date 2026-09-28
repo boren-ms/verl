@@ -1,0 +1,12 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/name_fy22_10k
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    name_val: openasr_en
