@@ -172,7 +172,7 @@ trainer:
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
   val_before_train: true
   validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen
-  nnodes: 1
+  nnodes: 2
   total_epochs: 4
   total_training_steps: 500
   test_freq: 50
