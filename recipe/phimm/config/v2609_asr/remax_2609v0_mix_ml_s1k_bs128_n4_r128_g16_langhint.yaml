@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - data/train_data/mix_cv15_all_openml_verb_noreps_langhint
+  - /data/train_data/mix_cv15_all_openml_verb_noreps_langhint
   - /data/val_data/mixlang_openml_langhint
   - _self_
 
