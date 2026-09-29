@@ -1,0 +1,27 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/openasr_verb_langhint
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf/
+
+data:
+  dataloader_num_workers: 4
+  prefetch_factor: 2
+
+val_reward:
+  reward_function_by_data_source:
+    ls_clean: openasr_en
+    ls_other: openasr_en
+    spgispeech: openasr_en
+    ami: openasr_en
+    gigaspeech: openasr_en
+    voxpopuli_cleaned_aa: openasr_en
+    earnings22_cleaned_aa_chunked: openasr_en
+    voice_arena_en_in: openasr_en
