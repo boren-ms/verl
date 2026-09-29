@@ -8,14 +8,14 @@ defaults:
   - _self_
 
 actor_rollout_ref:
+  model:
+    lora_rank: 128
   actor:
     optim:
-      lr: 1e-6
-    checkpoint:
-      load_contents: [model]
+      lr: 7e-6
   rollout:
-    n: 4
-    temperature: 0.8
+    n: 8
+    temperature: 1.0
 
 reward_functions:
   asr_measure:
@@ -48,4 +48,4 @@ data:
 trainer:
   nnodes: 4
   total_epochs: 30
-  total_training_steps: 1000
+  total_training_steps: 400

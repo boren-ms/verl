@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-29T17:25:08Z
+updated_at_utc: 2026-09-29T17:38:41Z
 
 ┌────────┬────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                           │ PROGRESS / PHASE                            │
@@ -7,7 +7,7 @@ updated_at_utc: 2026-09-29T17:25:08Z
 │ i1     │ raysubmit_WvSX1e3MKks62Saf │ SUCCEEDED │ eval_2607v1a                                                           │ name_val p_err=71.5378; kw_acc=1.0000       │
 │ i2     │ raysubmit_tqWWsNbWhEcwM5kp │ SUCCEEDED │ eval_2609_openasr_verb_langhint                                        │ evaluating openasr_en (complete)            │
 │ i3     │ raysubmit_XqDtWU31icaBFP6x │ SUCCEEDED │ eval_2607v1a_openasr_verb_step650                                      │ evaluating earnings22_cleaned_aa (complete) │
-│ n2-i0  │ raysubmit_nZy9n4kFJcLs5JBW │ RUNNING   │ eval_2609_openasr_verb_langhint                                        │ evaluating openasr_en (model startup)        │
+│ n2-i0  │ -                          │ PENDING   │ eval_2609_openasr_verb_langhint                                        │ evaluating openasr_en (submission)           │
 │ n2-i1  │ raysubmit_qXa5sD7stUWnskwP │ SUCCEEDED │ eval_2609_name10k                                                      │ evaluating name_val (complete)              │
 │ n2-i2  │ raysubmit_ZQ2715mX74x63dEN │ RUNNING   │ remax_2607v1a_earning_batches_tts_s1k_bs256_n8_r256_g16_lr1e-5_kw2     │ training 773/1000 (77.3%; resumed300)       │
 │ n2-i3  │ raysubmit_D5RV4zaysR8eUhuy │ RUNNING   │ remax_2609_mix_ml_s200_bs256_n16_r256_g16_filter                        │ training 51/200 (25.5%)                     │
