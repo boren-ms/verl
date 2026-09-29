@@ -33,7 +33,6 @@ train_reward:
       choice: "err" # "err", "acc", "wer"
       text_norm: english # english (default), identity, lower, basic, simple, simple_with_tag
       unit: word # word (default), char
-      # error_book: true # whether to return error book for each sample
 data:
   train_batch_size: 8
 
