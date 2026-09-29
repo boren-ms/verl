@@ -44,6 +44,7 @@ from verl.trainer.ppo.metric_utils import (
 from verl.trainer.ppo.ray_trainer import (
     AdvantageEstimator,
     RayPPOTrainer,
+    _compute_reward_metrics,
     apply_kl_penalty,
     compute_advantage,
     compute_response_mask,
@@ -52,6 +53,12 @@ from verl.utils.profiler import marked_timer
 from verl.utils.rollout_skip import RolloutSkip
 from verl.utils.ray_utils import ray_host_url
 from recipe.phimm.reward.error_book import get_eb
+
+
+def _compute_retained_reward_metrics(batch: DataProto, reward_extra_info_keys: set[str]) -> dict[str, float]:
+    return _compute_reward_metrics(
+        {key: batch.non_tensor_batch[key] for key in reward_extra_info_keys if key in batch.non_tensor_batch}
+    )
 
 
 class RayDAPOTrainer(RayPPOTrainer):
@@ -116,6 +123,7 @@ class RayDAPOTrainer(RayPPOTrainer):
 
         timing_raw = defaultdict(float)
         batch = None
+        reward_extra_info_keys = set()
         num_prompt_in_batch = 0
         num_gen_batches = 0
         # breakpoint()
@@ -267,6 +275,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                             assert all(
                                 len(values) == len(new_batch) for values in reward_extra_infos_dict.values()
                             ), "Reward extras must be row-aligned before GDPO advantage computation."
+                            reward_extra_info_keys.update(reward_extra_infos_dict)
                             new_batch.non_tensor_batch.update(
                                 {k: np.array(v) for k, v in reward_extra_infos_dict.items()}
                             )
@@ -468,6 +477,7 @@ class RayDAPOTrainer(RayPPOTrainer):
 
                 # collect metrics
                 metrics.update(compute_data_metrics(batch=batch, use_critic=self.use_critic))
+                metrics.update(_compute_retained_reward_metrics(batch, reward_extra_info_keys))
                 # GDPO per-component reward metrics
                 gdpo_reward_keys = self.config.algorithm.get("gdpo_reward_keys", None)
                 if gdpo_reward_keys and self.config.algorithm.adv_estimator in ("gdpo", AdvantageEstimator.GDPO):
@@ -509,6 +519,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                     }
                 )
                 batch = None
+                reward_extra_info_keys.clear()
                 num_prompt_in_batch = 0
                 num_gen_batches = 0
 
