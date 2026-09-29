@@ -10,6 +10,7 @@ defaults:
 actor_rollout_ref:
   rollout:
     n: 16
+    temperature: 0.8
 
 reward_functions:
   asr_measure:
@@ -22,7 +23,7 @@ reward_functions:
         char: {beta: 1.0}
         word: {beta: 1.0}
         keyword: {beta: 1.0}
-        lang: {beta: 0.1, cut: 0.9}
+        lang: {beta: 1}
         fmt: {beta: 0.1, cut: 0.9}
 
 reward_function_by_data_source:

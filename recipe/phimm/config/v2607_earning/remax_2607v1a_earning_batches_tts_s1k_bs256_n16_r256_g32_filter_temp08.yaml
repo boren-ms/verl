@@ -28,6 +28,12 @@ reward_function_by_data_source:
   earnings_tts_clean_lex: asr_measure
 
 actor_rollout_ref:
+  actor:
+    # Resume the saved model, but reset the optimizer after the high-KL collapse.
+    checkpoint:
+      load_contents: [model]
+    optim:
+      lr: 1e-6
   rollout:
     n: 16
     temperature: 0.8
