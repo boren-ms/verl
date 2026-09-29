@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-29T17:41:03Z
+updated_at_utc: 2026-09-29T18:08:19Z
 
 ┌────────┬────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                           │ PROGRESS / PHASE                            │
@@ -7,18 +7,19 @@ updated_at_utc: 2026-09-29T17:41:03Z
 │ i1     │ raysubmit_WvSX1e3MKks62Saf │ SUCCEEDED │ eval_2607v1a                                                           │ name_val p_err=71.5378; kw_acc=1.0000       │
 │ i2     │ raysubmit_tqWWsNbWhEcwM5kp │ SUCCEEDED │ eval_2609_openasr_verb_langhint                                        │ evaluating openasr_en (complete)            │
 │ i3     │ raysubmit_XqDtWU31icaBFP6x │ SUCCEEDED │ eval_2607v1a_openasr_verb_step650                                      │ evaluating earnings22_cleaned_aa (complete) │
-│ n2-i0  │ raysubmit_pHYTc8UQi3bqa5NG │ RUNNING   │ eval_2609_openasr_verb_langhint                                        │ evaluating openasr_en (model sync)           │
+│ n2-i0  │ raysubmit_pHYTc8UQi3bqa5NG │ RUNNING   │ eval_2609_openasr_verb_langhint                                        │ evaluating ls_clean (scoring 2620 samples)   │
 │ n2-i1  │ raysubmit_qXa5sD7stUWnskwP │ SUCCEEDED │ eval_2609_name10k                                                      │ evaluating name_val (complete)              │
 │ n2-i2  │ raysubmit_ZQ2715mX74x63dEN │ RUNNING   │ remax_2607v1a_earning_batches_tts_s1k_bs256_n8_r256_g16_lr1e-5_kw2     │ training 773/1000 (77.3%; resumed300)       │
-│ n2-i3  │ raysubmit_5KVYWSZ8umHkQz4T │ RUNNING   │ remax_2609_mix_ml_s200_bs256_n16_r256_g16_filter                        │ training startup                            │
+│ n2-i3  │ raysubmit_WGK8Y21ttUh4uq6e │ RUNNING   │ remax_2609_mix_ml_s200_bs256_n16_r256_g16_filter                        │ training startup                            │
 │ n2-i4  │ raysubmit_w8sXGSNcV6xwTsah │ RUNNING   │ remax_2607v2_ls_rare_think_s1k_bs256_n1_r256_g16                       │ training 765/1000 (76.5%)                   │
 │ n2-i5  │ raysubmit_pzfU3J7G2zA5FSWn │ SUCCEEDED │ remax_2607v2_ls_rare_s500_bs512_n2_r256_g16                            │ training 500/500 (100.0%; complete)         │
 │ n2-i6  │ raysubmit_XdzduNKsZW1DYCu6 │ SUCCEEDED │ remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr5e-6         │ training 1000/1000 (100.0%; complete)       │
 │ n2h-i0 │ raysubmit_9U2CqhCwbA8t4mTZ │ RUNNING   │ remax_2607v2_ls_rare_bad_s1k_bs256_n2_r256_g16                         │ training 349/1000 (34.9%)                   │
 │ n4-i0  │ raysubmit_m8Pm6NyRmq6ExDPM │ RUNNING   │ remax_2607v1a_earning_batches_tts_s1k_bs256_n16_r256_g32_filter_temp08 │ training 205/1000 (20.5%; resumed150)      │
-│ n4-i1  │ raysubmit_ACqu4DkHNaFJnnc2 │ PENDING   │ remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter                  │ training startup (save_freq=50)             │
-│ n4-i2  │ raysubmit_w5h3htvMev3umNqe │ RUNNING   │ remax_2609_earning_batches_tts_s1k_bs256_n16_r256_g32_filter_v0a       │ training 17/1000 (1.7%)                    │
-│ n4h-i1 │ raysubmit_nPjUKCFkFnFdxUnY │ RUNNING   │ remax_2609_earning_batches_tts_s1k_bs256_n16_r256_g32_filter            │ training 59/1000 (5.9%)                    │
+│ n4-i1  │ raysubmit_ACqu4DkHNaFJnnc2 │ RUNNING   │ remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter                  │ training 8/400 (2%)                         │
+│ n4-i2  │ raysubmit_pSxQhfP7uzRq7HVr │ RUNNING   │ remax_2609_earning_batches_tts_s1k_bs256_n4_r128_g32_filter           │ training 15/1000 (1.5%)                    │
+│ n4h-i0 │ raysubmit_19uUxSjicxUMyceN │ RUNNING   │ remax_2609_earning_batches_tts_s1k_bs256_n4_r128_g32_filter_v0b       │ training startup (initial validation)       │
+│ n4h-i1 │ raysubmit_CZVYt6XJfza8dAyL │ RUNNING   │ remax_2609_earning_batches_tts_s1k_bs256_n4_r128_g32_filter_v0a         │ training 11/1000 (1.1%)                    │
 └────────┴────────────────────────────┴───────────┴────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────┘
 
 Reports:
@@ -28,7 +29,8 @@ Reports:
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n2_r256_g16_lr5e-6` [`n2-i6`]: SUCCEEDED 1000/1000; complete checkpoint1000 verified, best same-step mean p_err=4.6086% (verb4.6444%, lex4.5729%); checkpoint350 retained, observer exited, all16 GPUs released.
 - `remax_2607v2_ls_rare_bad_s1k_bs256_n2_r256_g16` [`n2h-i0`]: training 349/1000 (34.9%)
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n16_r256_g32_filter_temp08` [`n4-i0`]: training 205/1000 (20.5%)
-- `remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter` [`n4-i1`]: training startup
+- `remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter` [`n4-i1`]: training 8/400 (2%)
 - `remax_2607v1a_earning_batches_tts_s1k_bs256_n8_r256_g16_lr1e-5_kw2` [`n2-i2`]: attempt2 RUNNING 773/1000, complete checkpoint750 verified; resumed full state from300. W&B4li7k89v; attempt1 failed at347. Observer snapshot error recovered without restart.
-- `remax_2609_earning_batches_tts_s1k_bs256_n16_r256_g32_filter` [`n4h-i1`]: training 59/1000 (5.9%)
-- `remax_2609_earning_batches_tts_s1k_bs256_n16_r256_g32_filter_v0a` [`n4-i2`]: training 17/1000 (1.7%)
+- `remax_2609_earning_batches_tts_s1k_bs256_n4_r128_g32_filter_v0a` [`n4h-i1`]: training 11/1000 (1.1%)
+- `remax_2609_earning_batches_tts_s1k_bs256_n4_r128_g32_filter` [`n4-i2`]: training 15/1000 (1.5%)
+- `remax_2609_earning_batches_tts_s1k_bs256_n4_r128_g32_filter_v0b` [`n4h-i0`]: training startup
