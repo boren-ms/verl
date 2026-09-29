@@ -19,7 +19,7 @@ reward_functions:
         char: {beta: 1.0}
         word: {beta: 1.0}
         keyword: {beta: 3.0}
-        lang: {beta: 1.0, cut: 0.5}
+        lang: {beta: 1.0}
         fmt: {beta: 1.0, cut: 0.5}
 
 reward_function_by_data_source:

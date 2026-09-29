@@ -86,6 +86,24 @@ def _extend_validation_reward_extra_infos(
             accumulated[key].extend(values)
 
 
+def _compute_reward_metrics(reward_extra_infos: dict[str, list]) -> dict[str, float]:
+    """Aggregate numeric reward details for experiment tracking."""
+    metrics = {}
+    for key, values in reward_extra_infos.items():
+        numeric_values = np.asarray(
+            [value for value in values if isinstance(value, (bool, int, float, np.bool_, np.number))],
+            dtype=np.float64,
+        )
+        numeric_values = numeric_values[np.isfinite(numeric_values)]
+        if numeric_values.size == 0:
+            continue
+        metrics[f"reward-core/{key}/mean"] = float(np.mean(numeric_values))
+        metrics[f"reward-core/{key}/std"] = float(np.std(numeric_values))
+        metrics[f"reward-aux/{key}/max"] = float(np.max(numeric_values))
+        metrics[f"reward-aux/{key}/min"] = float(np.min(numeric_values))
+    return metrics
+
+
 @dataclass
 class ResourcePoolManager:
     """
@@ -1419,6 +1437,7 @@ class RayPPOTrainer:
                 )
                 # collect metrics
                 metrics.update(compute_data_metrics(batch=batch, use_critic=self.use_critic))
+                metrics.update(_compute_reward_metrics(reward_extra_infos_dict))
                 # GDPO per-component reward metrics
                 gdpo_reward_keys = self.config.algorithm.get("gdpo_reward_keys", None)
                 if gdpo_reward_keys and self.config.algorithm.adv_estimator in ("gdpo", AdvantageEstimator.GDPO):
