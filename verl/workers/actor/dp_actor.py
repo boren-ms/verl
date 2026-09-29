@@ -500,10 +500,15 @@ class DataParallelPPOActor(BasePPOActor):
                         if self.config.use_kl_loss:
                             inputs["ref_log_prob"] = ref_log_prob
                         counts = {name: (~torch.isfinite(tensor)).sum().item() for name, tensor in inputs.items()}
+                        active_counts = {
+                            name: ((~torch.isfinite(tensor)) & response_mask.bool()).sum().item()
+                            for name, tensor in inputs.items()
+                            if tensor.shape == response_mask.shape
+                        }
                         raise FloatingPointError(
                             f"Non-finite actor loss: pg_loss={pg_loss.item()}, "
                             f"kl_loss={kl_loss.item() if self.config.use_kl_loss else 'disabled'}, "
-                            f"non-finite tensor elements={counts}"
+                            f"non-finite tensor elements={counts}, active non-finite elements={active_counts}"
                         )
 
                     if self.config.use_dynamic_bsz:
