@@ -20,4 +20,4 @@ val_reward:
     gigaspeech: openasr_en
     voxpopuli_cleaned_aa: openasr_en
     earnings22_cleaned_aa_chunked: openasr_en
-    voice_arena_en_in: openasr_en
+    monsoon_en_in: openasr_en

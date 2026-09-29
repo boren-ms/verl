@@ -9,4 +9,4 @@ defaults:
 
 val_reward:
   reward_function_by_data_source:
-    voice_arena_en_in: openasr_en
+    monsoon_en_in: openasr_en
