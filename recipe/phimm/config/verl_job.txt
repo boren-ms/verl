@@ -1,26 +1,26 @@
-updated_at_utc: 2026-09-30T16:52:19Z
+updated_at_utc: 2026-09-30T17:30:51Z
 
 ┌────────┬────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                           │ PROGRESS / PHASE                            │
 ├────────┼────────────────────────────┼───────────┼────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────┤
-│ n2-i0  │ raysubmit_Fi5DBud5UbN4Pytt │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n8_r128_g16_filter                       │ training 805/1000 (80.5%)                 │
-│ n2-i1  │ raysubmit_cdPQuqGdyLcSsGca │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_langhint                     │ training 292/1000 (29.2%)                  │
-│ n2-i2  │ raysubmit_JYkGpzcFv5FNQX14 │ STOPPED   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_kl5                          │ training 240/1000 (24.0%) (stopped)        │
-│ n4-i0  │ raysubmit_NysnmnJFjFZyxvJC │ RUNNING   │ remax_2607v1a_earning_batches_tts_s1k_bs128_n4_r128_g32_filter_v0b      │ training 975/1000 (97.5%)                   │
+│ n2-i0  │ raysubmit_Fi5DBud5UbN4Pytt │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n8_r128_g16_filter                       │ training 831/1000 (83.1%)                 │
+│ n2-i1  │ raysubmit_cdPQuqGdyLcSsGca │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_langhint                     │ training 308/1000 (30.8%)                  │
+│ n2-i2  │ raysubmit_CvuBQRvfr7L1CmXg │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_kl5                          │ training 211/1000 (21.1%)                  │
+│ n4-i0  │ raysubmit_NysnmnJFjFZyxvJC │ SUCCEEDED │ remax_2607v1a_earning_batches_tts_s1k_bs128_n4_r128_g32_filter_v0b      │ training 1000/1000 (100.0%) (complete)      │
 │ n4-i1  │ raysubmit_ACqu4DkHNaFJnnc2 │ SUCCEEDED │ remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter                  │ training 400/400 (100.0%)                   │
-│ n4-i2  │ raysubmit_hhMNK2Z1Wd4emYQM │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32                  │ training 857/1000 (85.7%)                  │
+│ n4-i2  │ raysubmit_hhMNK2Z1Wd4emYQM │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32                  │ training 913/1000 (91.3%)                  │
 │ n4-i3  │ raysubmit_jjapFDU5rVr44hBZ │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs256_n16_r256_g32_filter        │ training 86/1000 (8.6%)                    │
-│ n4h-i0 │ raysubmit_8SykAi44auFcsR6J │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32_filter         │ training 422/1000 (42.2%)                 │
-│ n4h-i1 │ raysubmit_sFu6Ub3NjpU1qAbR │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs256_n4_r128_g32_lr0            │ training 408/1000 (40.8%)                  │
+│ n4h-i0 │ raysubmit_8SykAi44auFcsR6J │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32_filter         │ training 448/1000 (44.8%)                 │
+│ n4h-i1 │ raysubmit_sFu6Ub3NjpU1qAbR │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs256_n4_r128_g32_lr0            │ training 424/1000 (42.4%)                  │
 └────────┴────────────────────────────┴───────────┴────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0_mix_ml_s1k_bs128_n8_r128_g16_filter` [`n2-i0`]: training 805/1000 (80.5%)
-- `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_langhint` [`n2-i1`]: training 292/1000 (29.2%)
-- `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_kl5` [`n2-i2`]: stopped training step 240
-- `remax_2607v1a_earning_batches_tts_s1k_bs128_n4_r128_g32_filter_v0b` [`n4-i0`]: training 975/1000 (97.5%)
+- `remax_2609v0_mix_ml_s1k_bs128_n8_r128_g16_filter` [`n2-i0`]: training 831/1000 (83.1%)
+- `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_langhint` [`n2-i1`]: training 308/1000 (30.8%)
+- `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_kl5` [`n2-i2`]: training 211/1000 (21.1%)
+- `remax_2607v1a_earning_batches_tts_s1k_bs128_n4_r128_g32_filter_v0b` [`n4-i0`]: complete step 1000
 - `remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter` [`n4-i1`]: complete step 400
-- `remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32` [`n4-i2`]: training 857/1000 (85.7%)
+- `remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32` [`n4-i2`]: training 913/1000 (91.3%)
 - `remax_2609v0_earning_batches_tts_s1k_bs256_n16_r256_g32_filter` [`n4-i3`]: training 86/1000 (8.6%)
-- `remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32_filter` [`n4h-i0`]: training 422/1000 (42.2%)
-- `remax_2609v0_earning_batches_tts_s1k_bs256_n4_r128_g32_lr0` [`n4h-i1`]: training 408/1000 (40.8%)
+- `remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32_filter` [`n4h-i0`]: training 448/1000 (44.8%)
+- `remax_2609v0_earning_batches_tts_s1k_bs256_n4_r128_g32_lr0` [`n4h-i1`]: training 424/1000 (42.4%)
