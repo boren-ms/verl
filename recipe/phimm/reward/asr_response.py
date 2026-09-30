@@ -64,10 +64,10 @@ def get_asr_text(task_output):
     return " ".join(segment["text"] for segment in task_output if segment["text"] is not None)
 
 
-def _unwrap_txt(text: str) -> str | None:
+def _unwrap_txt(text: str) -> str:
     text = _2609_MODE_PREFIX_RE.sub("", text, count=1)
     match = _TXT_WRAPPER_RE.match(text)
-    return match.group("text") if match else None
+    return match.group("text") if match else text
 
 
 def _parse_task_output_2607(solution_str):
@@ -127,7 +127,7 @@ def _parse_task_output_2609(solution_str):
     segments = []
     if first_header >= 0 and not output.startswith("<src="):
         text = _unwrap_txt(output[:first_header])
-        segments.append(_segment(text=text.strip() if text is not None else None))
+        segments.append(_segment(text=text.strip()))
         pos = first_header
     else:
         pos = 0
@@ -141,7 +141,7 @@ def _parse_task_output_2609(solution_str):
             _segment(
                 src=match.group("src").strip(),
                 tgt=match.group("tgt").strip(),
-                text=text.strip() if text is not None else None,
+                text=text.strip(),
             )
         )
         pos = match.end()
@@ -150,6 +150,5 @@ def _parse_task_output_2609(solution_str):
 
 def get_hyp_text(solution_str, version=None):
     task_output = parse_task_output(solution_str, version=version)
-    has_parsed_text = any(segment["text"] is not None for segment in task_output)
-    hyp_text = get_asr_text(task_output) if has_parsed_text else str(solution_str or "")
+    hyp_text = get_asr_text(task_output) or str(solution_str or "")
     return clean_text(hyp_text)

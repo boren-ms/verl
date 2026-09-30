@@ -35,24 +35,24 @@ def test_code_switch_language_reward_requires_exact_match():
     assert check_lang(task_output, "Chinese Italian") == 0.0
 
 
-def test_language_reward_uses_header_when_text_format_is_invalid():
+def test_language_reward_uses_header_with_raw_text():
     task_output = parse_task_output(
         "<src=English><tgt=English>\nplain text",
         version=2609,
     )
 
-    assert not check_fmt(task_output)
+    assert check_fmt(task_output)
     assert check_lang(task_output, "English") == 1.0
 
 
-def test_code_switch_language_reward_uses_headers_when_later_text_is_invalid():
+def test_code_switch_language_reward_uses_headers_with_later_raw_text():
     task_output = parse_task_output(
         "<src=English><tgt=English>\n<TXT>hello</TXT>\n"
         "<src=Chinese><tgt=Chinese>\nmissing wrapper",
         version=2609,
     )
 
-    assert not check_fmt(task_output)
+    assert check_fmt(task_output)
     assert check_lang(task_output, "English Chinese") == 1.0
 
 
@@ -116,22 +116,29 @@ def test_parse_response_uses_text_without_language_header():
 
 
 @pytest.mark.parametrize(
-    "output",
+    ("output", "expected"),
     [
-        "plain text",
-        "<VERBATIM>\nplain text",
-        "<TXT>missing closing tag",
-        "<src=English><tgt=English>\nplain text",
-        "<src=English><tgt=English>\n<VERBATIM>\nplain text",
+        ("plain text", [{"src": None, "tgt": None, "text": "plain text"}]),
+        ("<VERBATIM>\nplain text", [{"src": None, "tgt": None, "text": "plain text"}]),
+        (
+            "<TXT>missing closing tag",
+            [{"src": None, "tgt": None, "text": "<TXT>missing closing tag"}],
+        ),
+        (
+            "<src=English><tgt=English>\nplain text",
+            [{"src": "English", "tgt": "English", "text": "plain text"}],
+        ),
+        (
+            "<src=English><tgt=English>\n<VERBATIM>\nplain text",
+            [{"src": "English", "tgt": "English", "text": "plain text"}],
+        ),
     ],
 )
-def test_parse_task_output_marks_2609_text_without_complete_txt_wrapper_invalid(output):
+def test_parse_task_output_preserves_raw_2609_text(output, expected):
     result = parse_task_output(output, version=2609)
 
-    assert isinstance(result, list)
-    assert all(set(segment) == {"src", "tgt", "text"} for segment in result)
-    assert any(segment["text"] is None for segment in result)
-    assert not check_fmt(result)
+    assert result == expected
+    assert check_fmt(result)
 
 
 @pytest.mark.parametrize(
@@ -145,7 +152,7 @@ def test_parse_task_output_marks_2609_text_without_complete_txt_wrapper_invalid(
         (
             "<src=English><tgt=English>\nplain text",
             2609,
-            [{"src": "English", "tgt": "English", "text": None}],
+            [{"src": "English", "tgt": "English", "text": "plain text"}],
         ),
         (
             "<ASR><lang=English><TXT>missing close",
