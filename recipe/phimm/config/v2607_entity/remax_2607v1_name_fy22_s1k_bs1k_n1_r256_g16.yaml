@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/name_fy22_1m
+  - /data/train_data/name_enhc_13m
   - _self_
 
 reward_functions:
