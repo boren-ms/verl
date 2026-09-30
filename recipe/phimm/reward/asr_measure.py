@@ -424,7 +424,7 @@ def scale_score(acc, cfg):
     cfg = cfg or {}
     beta = float(cfg.get("beta", 1.0))
     gamma = float(cfg.get("gamma", 1.0))
-    lo = float(cfg.get("low", -10))
+    lo = float(cfg.get("low", -1))
     hi = float(cfg.get("high", 1.0))
     acc = clip(acc, lo, hi)
     return beta * signed_pow(acc, gamma)
