@@ -184,13 +184,14 @@ class RayDAPOTrainer(RayPPOTrainer):
                                     new_batch.non_tensor_batch["extra_info"][i] = {"greedy_hyp": hyp}
 
                             new_batch.meta_info["skip_examine"] = True
+                            baseline_result = self.reward_fn(new_batch, return_dict=True)
+                            reward_baseline_tensor = baseline_result["reward_tensor"]
+                            baseline_extra = baseline_result.get("reward_extra_info", {})
+
                             remax_reward_keys = self.config.algorithm.get("gdpo_reward_keys", None)
                             if remax_reward_keys:
                                 # Multi-reward ReMax: capture per-dimension greedy baselines
                                 # so each reward dimension can be decoupled in advantage calc.
-                                baseline_result = self.reward_fn(new_batch, return_dict=True)
-                                reward_baseline_tensor = baseline_result["reward_tensor"]
-                                baseline_extra = baseline_result.get("reward_extra_info", {})
                                 for key in remax_reward_keys:
                                     assert key in baseline_extra, (
                                         f"ReMax reward key '{key}' not found in greedy baseline "
@@ -199,10 +200,15 @@ class RayDAPOTrainer(RayPPOTrainer):
                                     new_batch.batch[f"reward_baselines_{key}"] = torch.tensor(
                                         np.asarray(baseline_extra[key], dtype=np.float32)
                                     )
-                            else:
-                                reward_baseline_tensor = self.reward_fn(new_batch)
                             new_batch.meta_info.pop("skip_examine", None)
                             reward_baseline_tensor = reward_baseline_tensor.sum(dim=-1)
+                            greedy_rewards = []
+                            for i in range(len(reward_baseline_tensor)):
+                                values = {}
+                                for key, component_values in baseline_extra.items():
+                                    value = component_values[i]
+                                    values[key] = value.item() if hasattr(value, "item") else value
+                                greedy_rewards.append(values)
 
                             new_batch.pop(batch_keys=list(gen_baseline_output.batch.keys()))
 
@@ -249,6 +255,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                                     ei = {}
                                     new_batch.non_tensor_batch["extra_info"][i] = ei
                                 ei["greedy_hyp"] = greedy_hyps[i // n_rollout]
+                                ei["greedy_reward"] = greedy_rewards[i // n_rollout]
 
                         # compute scores. Support both model and function-based.
                         # We first compute the scores using reward model. Then, we call reward_fn to combine

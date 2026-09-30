@@ -149,9 +149,10 @@ class DAPORewardManager(AbstractRewardManager):
                 print(f"{pfx}[prompt]", prompt_str)
                 for _k, _v in extra_info.items():
                     print(f"{pfx}[{_k}]", _v)
+                print("")
                 print(f"{pfx}[ground_truth]", ground_truth)
                 print(f"{pfx}[response]", response_str)
-                scores = [f"score_baseline={score_baseline}"]
+                scores = [f"base_score={score_baseline}"]
                 if isinstance(result, dict):
                     for key, value in result.items():
                         scores.append(f"{key}={value}")
