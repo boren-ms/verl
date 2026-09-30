@@ -1,4 +1,5 @@
-# MixLang and OpenASR-ML evaluation data using prompts with known-language hints.
+# MixLang evaluation data without language hints and OpenASR-ML evaluation
+# data with known-language prompts.
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
@@ -12,7 +13,6 @@
     task: lang_asr
     prefix_prob: 0.0
     language: Chinese
-    lang_hint: true
   post_process:
     add_field:
       fields:
