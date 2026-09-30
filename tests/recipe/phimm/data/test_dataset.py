@@ -268,10 +268,10 @@ def test_bad_language_uses_task_output_languages():
     assert _is_bad_lang({"raw_response": "Hello", "language": "English"})
 
 
-def test_nonspeech_is_not_bad_language():
+def test_nonspeech_without_language_tags_is_bad_language():
     nonspeech = "<nonspeech>"
 
-    assert not _is_bad_lang({"raw_response": nonspeech, "language": "French"})
+    assert _is_bad_lang({"raw_response": nonspeech, "language": "French"})
 
 
 def test_wrong_numbers_uses_openasr_english_normalization():

@@ -35,6 +35,27 @@ def test_code_switch_language_reward_requires_exact_match():
     assert check_lang(task_output, "Chinese Italian") == 0.0
 
 
+def test_language_reward_uses_header_when_text_format_is_invalid():
+    task_output = parse_task_output(
+        "<src=English><tgt=English>\nplain text",
+        version=2609,
+    )
+
+    assert not check_fmt(task_output)
+    assert check_lang(task_output, "English") == 1.0
+
+
+def test_code_switch_language_reward_uses_headers_when_later_text_is_invalid():
+    task_output = parse_task_output(
+        "<src=English><tgt=English>\n<TXT>hello</TXT>\n"
+        "<src=Chinese><tgt=Chinese>\nmissing wrapper",
+        version=2609,
+    )
+
+    assert not check_fmt(task_output)
+    assert check_lang(task_output, "English Chinese") == 1.0
+
+
 def test_accepts_code_switch_output_without_first_header():
     output = (
         "<TXT>祖父叶与良。</TXT>\n"
@@ -187,6 +208,34 @@ def test_parse_task_output_accepts_exact_2609_nonspeech():
 )
 def test_parse_task_output_accepts_wrapped_2609_nonspeech(output, expected):
     assert parse_task_output(output, version=2609) == expected
+
+
+@pytest.mark.parametrize(
+    ("output", "version", "expected"),
+    [
+        ("<nonspeech>", 2609, 0.0),
+        ("<TXT><nonspeech></TXT>", 2609, 0.0),
+        ("<src=English><tgt=English>\n<TXT><nonspeech></TXT>", 2609, 1.0),
+        ("<src=English><tgt=French>\n<TXT><nonspeech></TXT>", 2609, 0.0),
+        ("<ASR><lang=English><TXT><nonspeech></TXT></ASR>", 2607, 1.0),
+        ("<ASR><lang=French><TXT><nonspeech></TXT></ASR>", 2607, 0.0),
+    ],
+)
+def test_nonspeech_language_score_depends_only_on_language_tags(output, version, expected):
+    task_output = parse_task_output(output, version=version)
+
+    assert check_fmt(task_output)
+    assert check_lang(task_output, "English") == expected
+    assert lang_score(output, language="English", version=version) == {
+        "score": expected,
+        "p_lang": expected,
+    }
+
+    result = _parse_response(output, ground_truth="", language="English", version=version)
+
+    assert result["lang"] == expected
+    assert result["fmt"] == 1.0
+    assert result["word"] == 1.0
 
 
 @pytest.mark.parametrize("mode_tag", ["verbatim", "READABLE"])

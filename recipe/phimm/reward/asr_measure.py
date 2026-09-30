@@ -336,21 +336,16 @@ def _lang_code_set(lang) -> set[str]:
 def check_lang(task_output, tgt_lang) -> float:
     """Return a binary language-identification score.
 
-    Predicted language(s) come from the parsed target/segment language values.
-    A missing or malformed parsed output scores ``0.0``.
+    Predicted language(s) come from any parsed target/segment language values,
+    even when the surrounding response format is malformed. A response only
+    scores ``0.0`` when its best-effort predicted language set does not exactly
+    match the target language set.
 
     The predicted and target language sets must match exactly. Partial
     code-switch matches receive ``0.0``.
 
-    A ``<nonspeech>`` hypothesis always scores ``1.0`` (no language to judge).
+    Hypothesis text, including ``<nonspeech>``, does not affect this score.
     """
-    if not check_fmt(task_output):
-        return 0.0
-
-    seg_texts = [segment["text"] for segment in task_output if segment["text"] is not None]
-    if " ".join(seg_texts).strip().lower() == "<nonspeech>":
-        return 1.0
-
     tgt_codes = _lang_code_set(tgt_lang)
     pred_codes: set[str] = set()
     for name in (segment["tgt"] for segment in task_output):
