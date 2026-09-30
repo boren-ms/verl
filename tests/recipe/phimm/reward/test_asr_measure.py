@@ -26,6 +26,15 @@ def test_accepts_code_switch_output():
     assert check_lang(task_output, "Chinese Italian") == 1.0
 
 
+def test_code_switch_language_reward_requires_exact_match():
+    task_output = parse_task_output(
+        "<src=Chinese><tgt=Chinese>\n<TXT>祖父叶与良。</TXT>",
+        version=2609,
+    )
+
+    assert check_lang(task_output, "Chinese Italian") == 0.0
+
+
 def test_accepts_code_switch_output_without_first_header():
     output = (
         "<TXT>祖父叶与良。</TXT>\n"
@@ -69,7 +78,7 @@ def test_parse_task_output_accepts_text_without_language_header():
 
     assert task_output == [{"src": None, "tgt": None, "text": "She's pregnant."}]
     assert check_fmt(task_output)
-    assert check_lang(task_output, "English") == 1.0
+    assert check_lang(task_output, "English") == 0.0
 
 
 def test_parse_response_uses_text_without_language_header():
@@ -82,7 +91,7 @@ def test_parse_response_uses_text_without_language_header():
 
     assert result["word"] == 1.0
     assert result["fmt"] == 1.0
-    assert result["lang"] == 1.0
+    assert result["lang"] == 0.0
 
 
 @pytest.mark.parametrize(

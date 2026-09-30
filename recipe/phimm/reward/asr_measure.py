@@ -334,14 +334,13 @@ def _lang_code_set(lang) -> set[str]:
 
 
 def check_lang(task_output, tgt_lang) -> float:
-    """Language-identification score in ``[0, 1]`` with partial credit.
+    """Return a binary language-identification score.
 
     Predicted language(s) come from the parsed target/segment language values.
     A missing or malformed parsed output scores ``0.0``.
 
-    The score is the Jaccard overlap between the predicted and target language
-    sets, so a code-switch output that identifies only some of the spoken
-    languages still earns proportional credit (``1.0`` = exact set match).
+    The predicted and target language sets must match exactly. Partial
+    code-switch matches receive ``0.0``.
 
     A ``<nonspeech>`` hypothesis always scores ``1.0`` (no language to judge).
     """
@@ -359,11 +358,7 @@ def check_lang(task_output, tgt_lang) -> float:
             continue
         pred_codes |= _lang_code_set(name)
 
-    if not pred_codes:
-        return 1.0
-    if not tgt_codes:
-        return 0.0
-    return len(pred_codes & tgt_codes) / len(tgt_codes)
+    return float(pred_codes == tgt_codes)
 
 
 def check_fmt(task_output) -> bool:
