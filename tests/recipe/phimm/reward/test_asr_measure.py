@@ -22,7 +22,7 @@ def test_accepts_code_switch_output():
         {"src": "Chinese", "tgt": "Chinese", "text": "<TXT>祖父叶与良。</TXT>"},
         {"src": "Italian", "tgt": "Italian", "text": "<TXT>E, inoltre, attore.</TXT>"},
     ]
-    assert check_fmt(task_output)
+    assert check_fmt(task_output, version=2609)
     assert check_lang(task_output, "Chinese Italian") == 1.0
 
 
@@ -41,7 +41,7 @@ def test_language_reward_uses_header_with_raw_text():
         version=2609,
     )
 
-    assert check_fmt(task_output)
+    assert not check_fmt(task_output, version=2609)
     assert check_lang(task_output, "English") == 1.0
 
 
@@ -52,7 +52,7 @@ def test_code_switch_language_reward_uses_headers_with_later_raw_text():
         version=2609,
     )
 
-    assert check_fmt(task_output)
+    assert not check_fmt(task_output, version=2609)
     assert check_lang(task_output, "English Chinese") == 1.0
 
 
@@ -68,14 +68,14 @@ def test_accepts_code_switch_output_without_first_header():
         {"src": None, "tgt": None, "text": "<TXT>祖父叶与良。</TXT>"},
         {"src": "Italian", "tgt": "Italian", "text": "<TXT>E, inoltre, attore.</TXT>"},
     ]
-    assert check_fmt(task_output)
+    assert check_fmt(task_output, version=2609)
 
 
 def test_format_and_language_ignore_source_language():
     output = "<src=English><tgt=French>\n<TXT>Bonjour</TXT>"
     task_output = parse_task_output(output, version=2609)
 
-    assert check_fmt(task_output)
+    assert check_fmt(task_output, version=2609)
     assert check_lang(task_output, "French") == 1.0
 
 
@@ -95,7 +95,7 @@ def test_parse_task_output_preserves_segment_mode_tags(mode_tag):
             "text": f"<{mode_tag}>\n<TXT>OK OK i think if you have</TXT>",
         }
     ]
-    assert check_fmt(task_output)
+    assert check_fmt(task_output, version=2609)
 
 
 def test_parse_task_output_accepts_text_without_language_header():
@@ -108,7 +108,7 @@ def test_parse_task_output_accepts_text_without_language_header():
             "text": "<VERBATIM>\n<TXT>She's pregnant.</TXT>",
         }
     ]
-    assert check_fmt(task_output)
+    assert check_fmt(task_output, version=2609)
     assert check_lang(task_output, "English") == 0.0
 
 
@@ -151,7 +151,31 @@ def test_parse_task_output_preserves_raw_2609_text(output, expected):
     result = parse_task_output(output, version=2609)
 
     assert result == expected
-    assert check_fmt(result)
+    assert not check_fmt(result, version=2609)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("<TXT>speech</TXT>", True),
+        ("<nonspeech>", True),
+        ("<VERBATIM>\n<TXT>speech</TXT>", True),
+        ("speech", False),
+        ("<TXT>missing closing tag", False),
+        ("<nonspeech>speech", False),
+        (None, False),
+    ],
+)
+def test_check_fmt_requires_2609_text_wrapper(text, expected):
+    task_output = [{"src": None, "tgt": None, "text": text}]
+
+    assert check_fmt(task_output, version=2609) is expected
+
+
+def test_check_fmt_keeps_legacy_text_behavior():
+    task_output = [{"src": "English", "tgt": "English", "text": "speech"}]
+
+    assert check_fmt(task_output, version=2607)
 
 
 @pytest.mark.parametrize(
@@ -244,7 +268,7 @@ def test_parse_task_output_accepts_wrapped_2609_nonspeech(output, expected):
 def test_nonspeech_language_score_depends_only_on_language_tags(output, version, expected):
     task_output = parse_task_output(output, version=version)
 
-    assert check_fmt(task_output)
+    assert check_fmt(task_output, version=version)
     assert check_lang(task_output, "English") == expected
     assert lang_score(output, language="English", version=version) == {
         "score": expected,
@@ -277,7 +301,7 @@ def test_parse_task_output_defaults_to_2607_response_format(tag):
     task_output = parse_task_output(output)
 
     assert task_output == [{"src": "English", "tgt": "English", "text": "hello world"}]
-    assert check_fmt(task_output)
+    assert check_fmt(task_output, version=2607)
     assert check_lang(task_output, "English") == 1.0
 
 
@@ -301,7 +325,7 @@ def test_parse_task_output_accepts_2607_code_switch_response():
         {"src": "English", "tgt": "English", "text": "hello"},
         {"src": "Chinese", "tgt": "Chinese", "text": "你好"},
     ]
-    assert check_fmt(task_output)
+    assert check_fmt(task_output, version=2607)
     assert check_lang(task_output, "English Chinese") == 1.0
 
 

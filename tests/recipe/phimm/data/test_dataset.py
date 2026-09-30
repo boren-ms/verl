@@ -253,7 +253,13 @@ def test_bad_format_uses_task_output_format():
     valid = "<src=English><tgt=English>\n<TXT>Hello</TXT>"
 
     assert not _is_bad_fmt({"raw_response": valid})
-    assert not _is_bad_fmt({"raw_response": "Hello"})
+    assert _is_bad_fmt({"raw_response": "Hello"})
+    assert not _is_bad_fmt(
+        {
+            "raw_response": "<ASR><lang=English><TXT>Hello</TXT></ASR>",
+            "version": 2607,
+        }
+    )
     assert _is_bad_fmt({"raw_response": None})
 
 

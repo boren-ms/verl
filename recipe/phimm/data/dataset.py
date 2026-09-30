@@ -1030,11 +1030,12 @@ def _check_field(example, field, val_range):
 
 
 def _is_bad_fmt(example):
+    version = example.get("version", 2609)
     task_output = parse_task_output(
         example.get("raw_response", ""),
-        version=example.get("version", 2609),
+        version=version,
     )
-    return not check_fmt(task_output)
+    return not check_fmt(task_output, version=version)
 
 
 def _is_bad_lang(example):

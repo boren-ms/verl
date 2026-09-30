@@ -7,6 +7,7 @@ reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from dataclasses import dataclass
 
@@ -321,7 +322,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "keyword": keyword_result["accuracy"],
         **fmts,
         "lang": check_lang(task_output, tgt_lang),
-        "fmt": float(check_fmt(task_output)),
+        "fmt": float(check_fmt(task_output, version=version)),
         **openml_acc,
     }
 
@@ -356,9 +357,29 @@ def check_lang(task_output, tgt_lang) -> float:
     return float(pred_codes == tgt_codes)
 
 
-def check_fmt(task_output) -> bool:
-    """Return whether the output was parsed as a supported ASR format."""
-    return bool(task_output) and all(segment["text"] is not None for segment in task_output)
+def check_fmt(task_output, version=2609) -> bool:
+    """Return whether the parsed output uses the format required by its version."""
+    if not task_output or any(segment["text"] is None for segment in task_output):
+        return False
+    if str(version) != "2609":
+        return True
+
+    def is_wrapped(text) -> bool:
+        if not isinstance(text, str):
+            return False
+        text = re.sub(
+            r"^\s*<(?:asr_)?(?:lexical|verbatim|readable)>\s*",
+            "",
+            text,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+        return bool(
+            re.fullmatch(r"\s*<TXT>.*?</TXT>\s*", text, flags=re.DOTALL | re.IGNORECASE)
+            or re.fullmatch(r"\s*<nonspeech>\s*", text, flags=re.IGNORECASE)
+        )
+
+    return all(is_wrapped(segment["text"]) for segment in task_output)
 
 
 def clip(x, lo=-1.0, hi=1.0):

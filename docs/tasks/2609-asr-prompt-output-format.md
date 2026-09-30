@@ -290,7 +290,9 @@ Result:
 [{"src": "English", "tgt": "English", "text": None}]
 ```
 
-`check_fmt` returns `False` when any parsed segment has `text=None`.
+For version 2609, `check_fmt` returns `False` unless every parsed segment's text
+is wrapped in `<TXT>...</TXT>` (optionally after a mode tag) or is exactly
+`<nonspeech>`.
 
 ### Completely invalid or empty response
 
