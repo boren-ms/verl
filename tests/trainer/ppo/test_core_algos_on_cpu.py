@@ -20,15 +20,52 @@ import pytest
 import torch
 
 import verl.trainer.ppo.core_algos
+from verl import DataProto
 from verl.trainer.config import AlgoConfig
 from verl.trainer.ppo.core_algos import (
     compute_gae_advantage_return,
     compute_gdpo_outcome_advantage,
     compute_remax_outcome_advantage,
+    filter_nonfinite_log_probs,
     get_adv_estimator_fn,
     kl_penalty,
     register_adv_est,
 )
+
+
+def test_filter_nonfinite_log_probs_keeps_finite_trajectories_and_dp_alignment():
+    batch = DataProto.from_dict(
+        tensors={
+            "response_mask": torch.tensor([[1, 0]] * 5),
+            "old_log_probs": torch.tensor(
+                [[0.0, float("nan")], [float("nan"), 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+            ),
+            "ref_log_prob": torch.tensor([[0.0, 0.0]] * 5),
+            "rollout_log_probs": torch.tensor([[0.0, 0.0]] * 5),
+            "sample_id": torch.arange(5),
+        },
+        non_tensors={"uid": np.array(["a", "b", "c", "d", "e"], dtype=object)},
+    )
+    batch.batch["ref_log_prob"][3, 0] = float("inf")
+
+    filtered, n_invalid, n_removed = filter_nonfinite_log_probs(batch, dp_size=2)
+
+    assert (n_invalid, n_removed) == (2, 3)
+    assert filtered.batch["sample_id"].tolist() == [0, 2]
+    assert filtered.non_tensor_batch["uid"].tolist() == ["a", "c"]
+    assert len(batch) == 5
+
+
+def test_filter_nonfinite_log_probs_rejects_empty_dp_batch():
+    batch = DataProto.from_dict(
+        tensors={
+            "response_mask": torch.ones(2, 1),
+            "old_log_probs": torch.tensor([[float("nan")], [0.0]]),
+        }
+    )
+
+    with pytest.raises(ValueError, match="No complete DP batch remains"):
+        filter_nonfinite_log_probs(batch, dp_size=2)
 
 
 def mock_test_fn():

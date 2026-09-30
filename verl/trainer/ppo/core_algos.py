@@ -1003,6 +1003,28 @@ def compute_gpg_outcome_advantage(
     return scores, scores
 
 
+def filter_nonfinite_log_probs(batch, dp_size: int = 1) -> tuple:
+    """Discard trajectories with non-finite log probabilities on response tokens."""
+    if dp_size < 1:
+        raise ValueError(f"dp_size must be positive, got {dp_size}")
+
+    mask = batch.batch["response_mask"].bool()
+    valid = torch.ones(len(batch), dtype=torch.bool, device=mask.device)
+    for key in ("old_log_probs", "ref_log_prob", "rollout_log_probs"):
+        if key in batch.batch:
+            valid &= ~(~torch.isfinite(batch.batch[key]) & mask).any(dim=-1)
+
+    keep_indices = valid.nonzero(as_tuple=True)[0].tolist()
+    n_invalid = len(batch) - len(keep_indices)
+    n_kept = len(keep_indices) // dp_size * dp_size
+    if n_kept == 0:
+        raise ValueError(f"No complete DP batch remains after removing {n_invalid} non-finite trajectories")
+    if n_kept == len(batch):
+        return batch, n_invalid, 0
+
+    return batch.select_idxs(keep_indices[:n_kept]), n_invalid, len(batch) - n_kept
+
+
 def deduplicate_rollout_responses(batch, dp_size: int = 1, pad_token_id: int = 0) -> tuple:
     """Remove duplicate responses within each prompt group (same uid) to save training compute.
 

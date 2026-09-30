@@ -31,18 +31,19 @@ reward_function_by_data_source:
 actor_rollout_ref:
   actor:
     kl_loss_coef: 0.005
+    optim:
+      lr: 1e-5
   rollout:
-    n: 16
+    n: 4
     temperature: 1.0
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf/
     lora_rank: 128
 
 data:
-  train_batch_size: 64
+  train_batch_size: 256
 
 trainer:
   nnodes: 4
   total_epochs: 30
   total_training_steps: 1000
-  filter_nonfinite_log_probs: true

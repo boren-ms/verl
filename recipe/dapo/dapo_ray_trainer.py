@@ -32,6 +32,7 @@ from verl.trainer.ppo.core_algos import (
     agg_loss,
     compute_remax_disagreement_mask,
     deduplicate_rollout_responses,
+    filter_nonfinite_log_probs,
 )
 from verl.trainer.ppo.filter_groups import compute_remax_advantage_metric, select_prompt_uids_by_metric
 
@@ -393,6 +394,18 @@ class RayDAPOTrainer(RayPPOTrainer):
                             else:
                                 ref_log_prob = self.actor_rollout_wg.compute_ref_log_prob(batch)
                             batch = batch.union(ref_log_prob)
+
+                    if self.config.trainer.get("filter_nonfinite_log_probs", False):
+                        batch, n_invalid, n_removed = filter_nonfinite_log_probs(
+                            batch, dp_size=self.actor_rollout_wg.world_size
+                        )
+                        metrics["rollout/nonfinite_logprob_trajectories"] = n_invalid
+                        metrics["rollout/nonfinite_logprob_removed"] = n_removed
+                        if n_removed:
+                            print(f"Filtered {n_invalid} non-finite log-prob trajectories ({n_removed} including DP alignment)")
+                            if self.config.trainer.balance_batch:
+                                self._balance_batch(batch, metrics=metrics)
+                            batch.meta_info["global_token_num"] = batch.batch["attention_mask"].sum(dim=-1).tolist()
 
                     # compute values
                     if self.use_critic:
