@@ -29,6 +29,9 @@ reward_function_by_data_source:
   earnings_tts_clean_lex: asr_measure
 
 actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1e-6
   rollout:
     n: 4
     engine_kwargs:
