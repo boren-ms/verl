@@ -32,6 +32,9 @@ actor_rollout_ref:
   rollout:
     n: 4
     temperature: 1.0
+    engine_kwargs:
+      vllm:
+        gdn_prefill_backend: triton
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf/
     lora_rank: 128

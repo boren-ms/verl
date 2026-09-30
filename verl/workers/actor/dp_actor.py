@@ -206,6 +206,20 @@ class DataParallelPPOActor(BasePPOActor):
                         labels=input_ids_rmpad_rolled,
                         inplace_backward=inplace_backward,
                     )
+                    if not torch.isfinite(log_probs).all():
+                        logits_finite = torch.isfinite(logits_rmpad).all().item()
+                        audio_features = multi_modal_inputs.get("input_audio_embeds")
+                        audio_finite = (
+                            torch.isfinite(audio_features).all().item()
+                            if isinstance(audio_features, torch.Tensor)
+                            else None
+                        )
+                        raise FloatingPointError(
+                            "Non-finite actor/ref log probabilities: "
+                            f"logits_finite={logits_finite}, "
+                            f"audio_features_finite={audio_finite}, "
+                            f"input_shape={tuple(input_ids.shape)}, response_length={response_length}"
+                        )
 
                     # compute entropy
                     if calculate_entropy:
