@@ -98,7 +98,7 @@ def _compute_reward_metrics(reward_extra_infos: dict[str, list]) -> dict[str, fl
         if numeric_values.size == 0:
             continue
         metrics[f"reward-core/{key}/mean"] = float(np.mean(numeric_values))
-        metrics[f"reward-core/{key}/std"] = float(np.std(numeric_values))
+        metrics[f"reward-aux/{key}/std"] = float(np.std(numeric_values))
         metrics[f"reward-aux/{key}/max"] = float(np.max(numeric_values))
         metrics[f"reward-aux/{key}/min"] = float(np.min(numeric_values))
     return metrics
