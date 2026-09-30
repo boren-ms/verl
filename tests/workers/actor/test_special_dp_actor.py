@@ -14,6 +14,7 @@
 
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import torch
 import torch.nn as nn
@@ -202,6 +203,36 @@ class TestDataParallelPPOActor(unittest.TestCase):
         self.assertTrue(torch.all(torch.isfinite(log_probs)))
 
         self.assertIsNone(entropies)
+
+    def test_compute_log_prob_ignores_nonfinite_prompt_logits(self):
+        self.actor.use_remove_padding = True
+        data = self._create_test_data_for_compute_log_prob()
+        original_forward = self.mock_model.forward
+
+        def nonfinite_prompt_forward(*args, **kwargs):
+            output = original_forward(*args, **kwargs)
+            output.logits[:, 0, :] = float("nan")
+            return output
+
+        with patch.object(self.mock_model, "forward", side_effect=nonfinite_prompt_forward):
+            log_probs, entropies = self.actor.compute_log_prob(data, calculate_entropy=True)
+
+        self.assertTrue(torch.isfinite(log_probs).all())
+        self.assertTrue(torch.isfinite(entropies).all())
+
+    def test_compute_log_prob_rejects_nonfinite_response_logits(self):
+        self.actor.use_remove_padding = True
+        data = self._create_test_data_for_compute_log_prob()
+        original_forward = self.mock_model.forward
+
+        def nonfinite_response_forward(*args, **kwargs):
+            output = original_forward(*args, **kwargs)
+            output.logits[:, -2, :] = float("nan")
+            return output
+
+        with patch.object(self.mock_model, "forward", side_effect=nonfinite_response_forward):
+            with self.assertRaisesRegex(FloatingPointError, "Non-finite actor/ref response log probabilities"):
+                self.actor.compute_log_prob(data, calculate_entropy=True)
 
     def test_update_policy(self):
         """Test update_policy method"""

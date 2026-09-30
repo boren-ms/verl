@@ -206,20 +206,6 @@ class DataParallelPPOActor(BasePPOActor):
                         labels=input_ids_rmpad_rolled,
                         inplace_backward=inplace_backward,
                     )
-                    if not torch.isfinite(log_probs).all():
-                        logits_finite = torch.isfinite(logits_rmpad).all().item()
-                        audio_features = multi_modal_inputs.get("input_audio_embeds")
-                        audio_finite = (
-                            torch.isfinite(audio_features).all().item()
-                            if isinstance(audio_features, torch.Tensor)
-                            else None
-                        )
-                        raise FloatingPointError(
-                            "Non-finite actor/ref log probabilities: "
-                            f"logits_finite={logits_finite}, "
-                            f"audio_features_finite={audio_finite}, "
-                            f"input_shape={tuple(input_ids.shape)}, response_length={response_length}"
-                        )
 
                     # compute entropy
                     if calculate_entropy:
@@ -265,6 +251,20 @@ class DataParallelPPOActor(BasePPOActor):
                 if calculate_entropy:
                     entropy = full_entropy.squeeze(-1)[:, -response_length - 1 : -1]  # (bsz, response_length)
                 log_probs = full_log_probs.squeeze(-1)[:, -response_length - 1 : -1]  # (bsz, response_length)
+                if not self.use_fused_kernels and not torch.isfinite(log_probs).all():
+                    logits_finite = torch.isfinite(logits_rmpad).all().item()
+                    audio_features = multi_modal_inputs.get("input_audio_embeds")
+                    audio_finite = (
+                        torch.isfinite(audio_features).all().item()
+                        if isinstance(audio_features, torch.Tensor)
+                        else None
+                    )
+                    raise FloatingPointError(
+                        "Non-finite actor/ref response log probabilities: "
+                        f"logits_finite={logits_finite}, "
+                        f"audio_features_finite={audio_finite}, "
+                        f"input_shape={tuple(input_ids.shape)}, response_length={response_length}"
+                    )
 
             else:  # not using rmpad and no ulysses sp
                 extra_args = {}
