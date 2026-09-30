@@ -19,8 +19,8 @@ def test_accepts_code_switch_output():
     task_output = parse_task_output(output, version=2609)
 
     assert task_output == [
-        {"src": "Chinese", "tgt": "Chinese", "text": "祖父叶与良。"},
-        {"src": "Italian", "tgt": "Italian", "text": "E, inoltre, attore."},
+        {"src": "Chinese", "tgt": "Chinese", "text": "<TXT>祖父叶与良。</TXT>"},
+        {"src": "Italian", "tgt": "Italian", "text": "<TXT>E, inoltre, attore.</TXT>"},
     ]
     assert check_fmt(task_output)
     assert check_lang(task_output, "Chinese Italian") == 1.0
@@ -65,8 +65,8 @@ def test_accepts_code_switch_output_without_first_header():
     task_output = parse_task_output(output, version=2609)
 
     assert task_output == [
-        {"src": None, "tgt": None, "text": "祖父叶与良。"},
-        {"src": "Italian", "tgt": "Italian", "text": "E, inoltre, attore."},
+        {"src": None, "tgt": None, "text": "<TXT>祖父叶与良。</TXT>"},
+        {"src": "Italian", "tgt": "Italian", "text": "<TXT>E, inoltre, attore.</TXT>"},
     ]
     assert check_fmt(task_output)
 
@@ -80,7 +80,7 @@ def test_format_and_language_ignore_source_language():
 
 
 @pytest.mark.parametrize("mode_tag", ["LEXICAL", "verbatim", "ASR_READABLE"])
-def test_parse_task_output_removes_asr_mode_tags(mode_tag):
+def test_parse_task_output_preserves_segment_mode_tags(mode_tag):
     output = (
         f"<src=English><tgt=English> \n<{mode_tag}>\n"
         "<TXT>OK OK i think if you have</TXT>"
@@ -89,7 +89,11 @@ def test_parse_task_output_removes_asr_mode_tags(mode_tag):
     task_output = parse_task_output(output, version=2609)
 
     assert task_output == [
-        {"src": "English", "tgt": "English", "text": "OK OK i think if you have"}
+        {
+            "src": "English",
+            "tgt": "English",
+            "text": f"<{mode_tag}>\n<TXT>OK OK i think if you have</TXT>",
+        }
     ]
     assert check_fmt(task_output)
 
@@ -97,7 +101,13 @@ def test_parse_task_output_removes_asr_mode_tags(mode_tag):
 def test_parse_task_output_accepts_text_without_language_header():
     task_output = parse_task_output("<VERBATIM>\n<TXT>She's pregnant.</TXT>", version=2609)
 
-    assert task_output == [{"src": None, "tgt": None, "text": "She's pregnant."}]
+    assert task_output == [
+        {
+            "src": None,
+            "tgt": None,
+            "text": "<VERBATIM>\n<TXT>She's pregnant.</TXT>",
+        }
+    ]
     assert check_fmt(task_output)
     assert check_lang(task_output, "English") == 0.0
 
@@ -119,7 +129,10 @@ def test_parse_response_uses_text_without_language_header():
     ("output", "expected"),
     [
         ("plain text", [{"src": None, "tgt": None, "text": "plain text"}]),
-        ("<VERBATIM>\nplain text", [{"src": None, "tgt": None, "text": "plain text"}]),
+        (
+            "<VERBATIM>\nplain text",
+            [{"src": None, "tgt": None, "text": "<VERBATIM>\nplain text"}],
+        ),
         (
             "<TXT>missing closing tag",
             [{"src": None, "tgt": None, "text": "<TXT>missing closing tag"}],
@@ -130,7 +143,7 @@ def test_parse_response_uses_text_without_language_header():
         ),
         (
             "<src=English><tgt=English>\n<VERBATIM>\nplain text",
-            [{"src": "English", "tgt": "English", "text": "plain text"}],
+            [{"src": "English", "tgt": "English", "text": "<VERBATIM>\nplain text"}],
         ),
     ],
 )
@@ -180,7 +193,7 @@ def test_parse_response_uses_structured_task_output():
 
 def test_get_asr_text_uses_task_output():
     task_output = parse_task_output(
-        "<src=English><tgt=English>\n<TXT>hello</TXT>\n"
+        "<src=English><tgt=English>\n<VERBATIM>\n<TXT>hello</TXT>\n"
         "<src=Chinese><tgt=Chinese>\n<TXT>你好</TXT>",
         version=2609,
     )
@@ -205,11 +218,11 @@ def test_parse_task_output_accepts_exact_2609_nonspeech():
     [
         (
             "<TXT><nonspeech></TXT>",
-            [{"src": None, "tgt": None, "text": "<nonspeech>"}],
+            [{"src": None, "tgt": None, "text": "<TXT><nonspeech></TXT>"}],
         ),
         (
             "<src=English><tgt=English>\n<TXT><nonspeech></TXT>",
-            [{"src": "English", "tgt": "English", "text": "<nonspeech>"}],
+            [{"src": "English", "tgt": "English", "text": "<TXT><nonspeech></TXT>"}],
         ),
     ],
 )

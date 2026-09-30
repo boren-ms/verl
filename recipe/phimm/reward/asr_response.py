@@ -61,7 +61,7 @@ def parse_task_output(solution_str, version=None):
 
 def get_asr_text(task_output):
     """Join the text segments from a parsed ASR task output."""
-    return " ".join(segment["text"] for segment in task_output if segment["text"] is not None)
+    return " ".join(_unwrap_txt(segment["text"]) for segment in task_output if segment["text"] is not None)
 
 
 def _unwrap_txt(text: str) -> str:
@@ -122,12 +122,11 @@ def _parse_task_output_2609(solution_str):
         return [_segment()]
     first_header = output.find("\n<src=")
     if not output.startswith("<src=") and first_header < 0:
-        return [_segment(text=_unwrap_txt(output))]
+        return [_segment(text=output)]
 
     segments = []
     if first_header >= 0 and not output.startswith("<src="):
-        text = _unwrap_txt(output[:first_header])
-        segments.append(_segment(text=text.strip()))
+        segments.append(_segment(text=output[:first_header].strip()))
         pos = first_header
     else:
         pos = 0
@@ -136,12 +135,11 @@ def _parse_task_output_2609(solution_str):
         if not match:
             segments.append(_segment())
             break
-        text = _unwrap_txt(match.group("text"))
         segments.append(
             _segment(
                 src=match.group("src").strip(),
                 tgt=match.group("tgt").strip(),
-                text=text.strip(),
+                text=match.group("text").strip(),
             )
         )
         pos = match.end()
