@@ -1,10 +1,10 @@
-updated_at_utc: 2026-09-30T00:24:16Z
+updated_at_utc: 2026-09-30T00:25:27Z
 
 ┌────────┬────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                           │ PROGRESS / PHASE                            │
 ├────────┼────────────────────────────┼───────────┼────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────┤
 │ n2-i0  │ raysubmit_DXsywTCT8MahK94T │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n8_r128_g16_filter                       │ training 149/1000 (14.9%)                   │
-│ n2-i1  │ raysubmit_wjiwt9uNQUMyJmQg │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_langhint                     │ training 72/1000 (7.2%)                    │
+│ n2-i1  │ raysubmit_wjiwt9uNQUMyJmQg │ STOPPED   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_langhint                     │ training 72/1000 (stopped)                 │
 │ n2-i2  │ raysubmit_qiMfmCCc68wTPxb7 │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16                              │ training 61/1000 (6.1%)                    │
 │ n4-i0  │ raysubmit_xeZzNMBVHW86GFjA │ RUNNING   │ remax_2607v1a_earning_batches_tts_s1k_bs128_n4_r128_g32_filter_v0b      │ training 305/1000 (30.5%)                  │
 │ n4-i1  │ raysubmit_ACqu4DkHNaFJnnc2 │ RUNNING   │ remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter                  │ training 184/400 (46.0%)                    │
@@ -15,7 +15,7 @@ updated_at_utc: 2026-09-30T00:24:16Z
 
 Reports:
 - `remax_2609v0_mix_ml_s1k_bs128_n8_r128_g16_filter` [`n2-i0`]: training 149/1000 (14.9%)
-- `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_langhint` [`n2-i1`]: training 72/1000 (7.2%)
+- `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_langhint` [`n2-i1`]: training startup
 - `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16` [`n2-i2`]: training 61/1000 (6.1%)
 - `remax_2607v1a_earning_batches_tts_s1k_bs128_n4_r128_g32_filter_v0b` [`n4-i0`]: training 305/1000 (30.5%)
 - `remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter` [`n4-i1`]: training 184/400 (46.0%)
