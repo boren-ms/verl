@@ -1,0 +1,18 @@
+# OpenML training data with known-language prompts and no repetition examples.
+
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt

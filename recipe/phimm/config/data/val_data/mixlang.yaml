@@ -1,0 +1,21 @@
+# MixLang evaluation data using prompts without language hints.
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+    cache_audio: {}
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: mixlang
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
