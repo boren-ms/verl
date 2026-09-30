@@ -1,4 +1,4 @@
-updated_at_utc: 2026-09-30T17:49:05Z
+updated_at_utc: 2026-09-30T17:49:11Z
 
 ┌────────┬────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                           │ PROGRESS / PHASE                            │
@@ -8,7 +8,7 @@ updated_at_utc: 2026-09-30T17:49:05Z
 │ n2-i2  │ raysubmit_nKKHiCFPLWLi5xPa │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_kl5                          │ training startup                            │
 │ n4-i0  │ raysubmit_NysnmnJFjFZyxvJC │ SUCCEEDED │ remax_2607v1a_earning_batches_tts_s1k_bs128_n4_r128_g32_filter_v0b      │ training 1000/1000 (100.0%) (complete)      │
 │ n4-i1  │ raysubmit_ACqu4DkHNaFJnnc2 │ SUCCEEDED │ remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter                  │ training 400/400 (100.0%)                   │
-│ n4-i2  │ raysubmit_hhMNK2Z1Wd4emYQM │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32                  │ training 931/1000 (93.1%)                  │
+│ n4-i2  │ raysubmit_hhMNK2Z1Wd4emYQM │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32                  │ training 940/1000 (94.0%)                  │
 │ n4-i3  │ raysubmit_jjapFDU5rVr44hBZ │ STOPPED   │ remax_2609v0_earning_batches_tts_s1k_bs256_n16_r256_g32_filter        │ training 86/1000 (8.6%) (stopped)          │
 │ n4h-i0 │ raysubmit_8SykAi44auFcsR6J │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32_filter         │ training 456/1000 (45.6%)                 │
 │ n4h-i1 │ raysubmit_ReEdZd7HqK89yF33 │ RUNNING   │ remax_2609v0_earning_batches_tts_s1k_bs256_n4_r128_g32_lr0            │ training startup                            │
@@ -20,7 +20,7 @@ Reports:
 - `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_kl5` [`n2-i2`]: training startup
 - `remax_2607v1a_earning_batches_tts_s1k_bs128_n4_r128_g32_filter_v0b` [`n4-i0`]: complete step 1000
 - `remax_2607v2_ls_rare_s400_bs256_n8_r128_g32_filter` [`n4-i1`]: complete step 400
-- `remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32` [`n4-i2`]: training 931/1000 (93.1%)
+- `remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32` [`n4-i2`]: training 940/1000 (94.0%)
 - `remax_2609v0_earning_batches_tts_s1k_bs256_n16_r256_g32_filter` [`n4-i3`]: stopped training step 86
 - `remax_2609v0_earning_batches_tts_s1k_bs128_n4_r256_g32_filter` [`n4h-i0`]: training 456/1000 (45.6%)
 - `remax_2609v0_earning_batches_tts_s1k_bs256_n4_r128_g32_lr0` [`n4h-i1`]: training startup
