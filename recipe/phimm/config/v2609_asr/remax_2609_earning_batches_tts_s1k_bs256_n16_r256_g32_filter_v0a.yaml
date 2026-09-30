@@ -19,8 +19,8 @@ reward_functions:
         char: {beta: 1.0}
         word: {beta: 1.0}
         keyword: {beta: 1.5}
-        lang: {beta: 0.5, cut: 0.3}
-        fmt: {beta: 0.1, cut: 0.5}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.1}
 
 reward_function_by_data_source:
   earning_fy27_verb: asr_measure

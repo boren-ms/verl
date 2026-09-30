@@ -4,8 +4,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - data/train_data/earningscall-fy27-en-us-batch1-langhint
-  - /data/val_data/earnings_aa_chunked_langhint
+  - data/train_data/earningscall-fy27-en-us-batches-tts-clean
+  - /data/val_data/earnings_aa_chunked
   - _self_
 
 reward_functions:
@@ -18,30 +18,28 @@ reward_functions:
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        keyword: {beta: 2.0}
-        lang: {beta: 0.1}
-        fmt: {beta: 0.1}
+        keyword: {beta: 3.0}
+        lang: {beta: 1.0}
+        fmt: {beta: 1.0}
 
 reward_function_by_data_source:
   earning_fy27_verb: asr_measure
   earning_fy27_lex: asr_measure
+  earnings_tts_clean_verb: asr_measure
+  earnings_tts_clean_lex: asr_measure
 
 actor_rollout_ref:
   rollout:
-    n: 4
-    engine_kwargs:
-      vllm:
-        # Full-model rollout hits an Inductor subprocess without an active GPU backend.
-        compilation_config: 0
+    n: 16
+    temperature: 1.0
   model:
-    lora_rank: 0
-  actor:
-    optim:
-      lr: 1e-6
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf/
+    lora_rank: 128
 
 data:
-  train_batch_size: 256
+  train_batch_size: 64
 
 trainer:
+  nnodes: 4
   total_epochs: 30
   total_training_steps: 1000
