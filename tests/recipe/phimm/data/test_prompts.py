@@ -150,13 +150,40 @@ def test_lang_asr_verb_uses_verbatim_prompt_and_output_format():
     assert resolve_task_language(task="lang_asr_verb_en") == "English"
 
 
-@pytest.mark.parametrize("version", [2607, 2609])
-def test_get_task_prompt_supports_known_language_for_all_versions(version):
+@pytest.mark.parametrize("version", [None, 2607])
+def test_get_task_prompt_uses_detect_language_style_without_lang(version):
     assert get_task_prompt(
-        task="lang_asr", rand=False, version=version, lang="English"
+        task="lang_asr", rand=False, version=version
+    ) == "Detect the language and transcribe the audio clip into text."
+
+
+def test_get_task_prompt_uses_moe_style_for_2609_known_language():
+    assert get_task_prompt(
+        task="lang_asr", rand=False, version=2609, lang="English"
+    ) == "Transcribe the audio clip into text.<audio>\nThe language is English."
+
+
+def test_get_task_prompt_uses_moe_style_when_language_hint_enabled_without_version():
+    assert get_task_prompt(
+        task="lang_asr", rand=False, lang="English"
+    ) == "Transcribe the audio clip into text.<audio>\nThe language is English."
+
+
+def test_get_task_prompt_does_not_rewrite_2609_prompt_without_language_hint():
+    assert get_task_prompt(
+        task="lang_asr", rand=False, version=2609, lang=None
+    ) == "Detect the language and transcribe the audio clip into text."
+
+
+def test_get_task_prompt_uses_moe_style_for_known_mixed_languages():
+    assert get_task_prompt(
+        task="lang_asr",
+        rand=False,
+        version=2609,
+        lang="Hungarian Turkish",
     ) == (
-        "Detect the language and transcribe the audio clip into text.<audio>\n"
-        "The language is English."
+        "Transcribe the audio clip into text.<audio>\n"
+        "The languages are Hungarian and Turkish."
     )
 
 
@@ -167,8 +194,8 @@ def test_get_task_prompt_supports_2609_known_languages_and_mode():
         version=2609,
         lang="English Spanish",
     ) == (
-        "Detect the language and transcribe the audio clip into text. "
-        "Transcribe verbatim, including all filler words and disfluencies.<audio>\n"
+        "Transcribe the audio clip into text. Transcribe verbatim, including all filler words "
+        "and disfluencies.<audio>\n"
         "The languages are English and Spanish."
     )
 

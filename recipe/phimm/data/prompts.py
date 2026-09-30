@@ -109,6 +109,14 @@ def _format_2609_language_hint(lang):
     return ""
 
 
+def _format_known_language_prompt(prompt):
+    detect_prefix = "Detect the language and "
+    if prompt.startswith(detect_prefix):
+        prompt = prompt[len(detect_prefix):]
+        return prompt[:1].upper() + prompt[1:]
+    return prompt
+
+
 def get_task_prompt(task="asr", rand=False, version=None, lang=None):
     """Get the prompt for the specified task."""
     if task == "asr":
@@ -127,6 +135,7 @@ def get_task_prompt(task="asr", rand=False, version=None, lang=None):
     else:
         raise ValueError(f"Unknown task: {task}")
     if task.startswith("lang_asr") and lang:
+        prompt = _format_known_language_prompt(prompt)
         language_hint = _format_2609_language_hint(lang)
         if language_hint:
             prompt = f"{prompt}<audio>\n{language_hint}"

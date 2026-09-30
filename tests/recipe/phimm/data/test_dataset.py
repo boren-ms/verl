@@ -96,7 +96,7 @@ def test_add_task_info_supports_2609_prompt_prefix_and_completion():
     )
 
     assert dataset.example["prompt"] == (
-        "Detect the language and transcribe the audio clip into text.<audio>\nThe language is French."
+        "Transcribe the audio clip into text.<audio>\nThe language is French."
     )
     assert dataset.example["prefix"] == "<src=French><tgt=French>\n"
     assert dataset.example["gt_output"] == "<TXT>bonjour</TXT>"
@@ -127,8 +127,7 @@ def test_add_task_info_supports_2609_detect_language_prompt():
             "lang_asr_lex",
             1.0,
             True,
-            "Detect the language and transcribe the audio clip into text. "
-            "Output must be in lexical format.<audio>\n"
+            "Transcribe the audio clip into text. Output must be in lexical format.<audio>\n"
             "The language is French.",
             "<src=French><tgt=French>\n",
             "<LEXICAL>\n<TXT>bonjour</TXT>",
@@ -172,8 +171,20 @@ def test_add_task_info_allows_language_prefix_opt_out():
     assert dataset.example["prefix"] == ""
 
 
-@pytest.mark.parametrize("version", [2607, 2609])
-def test_add_task_info_allows_lang_hint_without_prefix(version):
+@pytest.mark.parametrize(
+    ("version", "expected_prompt"),
+    [
+        (
+            2607,
+            "Transcribe the audio clip into text.<audio>\nThe language is French.",
+        ),
+        (
+            2609,
+            "Transcribe the audio clip into text.<audio>\nThe language is French.",
+        ),
+    ],
+)
+def test_add_task_info_allows_lang_hint_without_prefix(version, expected_prompt):
     dataset = add_task_info(
         MinimalDataset(),
         task="lang_asr",
@@ -183,9 +194,7 @@ def test_add_task_info_allows_lang_hint_without_prefix(version):
         lang_hint=True,
     )
 
-    assert dataset.example["prompt"] == (
-        "Detect the language and transcribe the audio clip into text.<audio>\nThe language is French."
-    )
+    assert dataset.example["prompt"] == expected_prompt
     assert dataset.example["prefix"] == ""
 
 
