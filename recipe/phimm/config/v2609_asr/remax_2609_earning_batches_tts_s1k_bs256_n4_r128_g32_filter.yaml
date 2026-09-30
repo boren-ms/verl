@@ -20,7 +20,7 @@ reward_functions:
         word: {beta: 1.0}
         keyword: {beta: 1.0}
         lang: {beta: 1.0}
-        fmt: {beta: 1.0, cut: 0.5}
+        fmt: {beta: 1.0}
 
 reward_function_by_data_source:
   earning_fy27_verb: asr_measure
@@ -29,9 +29,6 @@ reward_function_by_data_source:
   earnings_tts_clean_lex: asr_measure
 
 actor_rollout_ref:
-  actor:
-    optim:
-      lr: 7e-6
   rollout:
     n: 4
     temperature: 1.0
