@@ -10,7 +10,3 @@ defaults:
 data:
   dataloader_num_workers: 4
   prefetch_factor: 2
-
-val_reward:
-  reward_function_by_data_source:
-    name_val: openasr_en
