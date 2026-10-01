@@ -1,20 +1,23 @@
 ---
-name: verl-train-openasr-report
-description: "Run a verl ASR training config on a specified Brix pool, optionally stop its previous job with explicit authorization, evaluate the last complete checkpoint with the requested eval config, and build an OpenASR Excel report. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609_openall_mix after training, or resume a train-to-OpenASR pipeline."
+name: run-openasr-exp
+description: "Use verl-asr-run to run a training config YAML on a specified Brix pool and evaluate its last complete checkpoint with recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml, then use openasr-report to build the results workbook. Optionally replace an explicitly authorized previous job or honor an explicit eval config override. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609_openall_mix after training, or resume a train-to-OpenASR pipeline."
 argument-hint: "<train.yaml> --node <pool> [--stop-previous | --stop-job <ray-id>] [--eval-config <eval.yaml>] [--out <report.xlsx>] [launch|resume|status]"
 ---
 
-# Train, Evaluate Last Checkpoint, and Report OpenASR
+# Run OpenASR Experiment
 
 Own one end-to-end pipeline:
 
-**replace an explicitly authorized previous job -> train -> export the last
-complete checkpoint -> run the requested evaluation -> OpenASR workbook**.
+**`/verl-asr-run` training config YAML -> export the last complete checkpoint
+-> `/verl-asr-run` with `recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml`
+-> `/openasr-report` results workbook**.
 
-This skill is stored in the repository. Invoke `remote-development` for Brix
-connectivity, `verl-asr-run` for submission and monitoring mechanics, and
-`openasr-report` for the canonical report builder. Do the work directly;
-subagents and a multi-agent workflow are not required.
+This skill is stored in the repository and orchestrates the dependent skills.
+Invoke `verl-asr-run` to execute and monitor both training and evaluation,
+not merely as a mechanics reference. Invoke `remote-development` when needed
+for Brix connectivity and `openasr-report` after evaluation for the canonical
+report builder. Skill invocation does not require subagents; do the work
+directly with the loaded skills and the policy below.
 
 ## Contract and inputs
 
@@ -22,6 +25,7 @@ subagents and a multi-agent workflow are not required.
 | --- | --- |
 | Training config | Required existing YAML under `recipe/phimm/config/`; retain its experiment name. |
 | Node | Required Brix pool; normalize `n4i0` or `n4-i0` to `verl-n4-i0`. |
+| Eval node count | Must equal the successful training run's effective `trainer.nnodes`, including training overrides; use the same pool. |
 | Stop previous | Disabled unless explicitly requested. `--stop-job` identifies one submission; `--stop-previous` requires one unambiguous previous active job. |
 | Eval config | Default `recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml`; honor any explicit replacement. |
 | Checkpoint | Last complete checkpoint of this training run, by numeric step, not best validation score. |
@@ -31,23 +35,53 @@ subagents and a multi-agent workflow are not required.
 Example:
 
 ```text
-/verl-train-openasr-report recipe/phimm/config/v2609_asr/remax_2609v0a_earning_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml
+/run-openasr-exp recipe/phimm/config/v2609_asr/remax_2609v0a_earning_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml
 ```
 
 When the user only requests creating or editing this skill, modify the skill
 without stopping, submitting, or scheduling remote jobs.
 
-### Differences from the general runner
+## Required skill handoffs
 
-Use `verl-asr-run` as a mechanics reference, not its default post-training
-policy. In this pipeline:
+1. Invoke `/verl-asr-run` with the supplied training config YAML and requested
+   pool. Request **training only** from that invocation; leave its automatic
+   best-checkpoint/standard-benchmark post-training pipeline disabled.
+   Pass the replacement authorization, if any, and the safety constraints
+   below. Wait for verified training completion.
+2. Resolve and export this run's **last complete checkpoint** as described
+   in section 4. This skill owns checkpoint selection; do not let the general
+   runner replace it with a best-validation checkpoint.
+3. Invoke `/verl-asr-run` again for a **standalone evaluation** using
+   `recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml` unless the user
+   explicitly supplied another eval YAML. Supply the verified last-checkpoint
+   HF export, same pool and node count as training, unique evaluation
+   experiment name, and section 5's overrides. Wait for all configured
+   evaluation datasets to finish.
+4. Invoke `/openasr-report` with the candidate label, canonical metrics,
+   model metadata, exact dataset result files, and workbook output path from
+   section 6. Verify the workbook before completing the pipeline.
+
+Example handoff requests (natural-language skill inputs, not shell commands):
+
+```text
+/verl-asr-run Run <train.yaml> on <pool>; training only, no automatic post-training benchmark. Follow run-openasr-exp safety constraints and shared pipeline monitor.
+/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml on <pool> with model <verified-last-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<training-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the successful training run's effective node count, not the eval YAML default or currently available node count. Follow the same pipeline constraints and monitor.
+/openasr-report <train-stem>@step<N> --metrics <artifact-dir>/metrics.json --model-info <artifact-dir>/model_info.json --dataset-results <artifact-dir>/dataset_results.json --out <report.xlsx>
+```
+
+### Overrides to the general runner
+
+The following pipeline constraints take precedence over `verl-asr-run`'s
+generic defaults during both handoffs:
 
 - Select the **last complete** checkpoint, never the best validation checkpoint.
 - Run the **specified eval YAML**, not the full in-house/reference benchmark
   suite. Do not invoke `eval-2609-benchmark-report` automatically.
 - Keep training and evaluation on the requested pool. A Brix pool can contain
   multiple Ray GPU nodes: `verl-n4-i0` normally has four pods and 32 GPUs.
-  Do not force `trainer.nnodes=1` merely because there is one pool name.
+  Set evaluation `trainer.nnodes` to the successful training run's effective
+  value. Do not force `trainer.nnodes=1` merely because there is one pool name,
+  or change the count to match currently available nodes.
 - Stop only the authorized previous Ray submission. Never call
   `ray_job.py cleanup`, including through `submit_job.sh`'s default cleanup.
 - Do not pause, resume, stop jobs on, or otherwise manage unrelated pools.
@@ -66,12 +100,17 @@ LoRA rank/alpha, `trainer.nnodes`, GPUs per node, total steps/epochs,
 and training hyperparameters. Ensure epoch bounds permit the requested step
 target. Surface conflicts rather than silently changing training semantics.
 
-Use ignored `tmp/verl_train_openasr_report/<train-stem>/` for a `state.json`,
+Use ignored `tmp/run_openasr_exp/<train-stem>/` for a `state.json`,
 resolved config snapshots, submission output, full logs, metrics JSON, model
-metadata, result-path mapping, and export provenance. Store:
+metadata, result-path mapping, and export provenance. On resume, reuse any
+existing state path recorded by this pipeline's monitor rather than starting
+a duplicate run because the skill was renamed. Store:
 
 - Normalized train/eval paths, pool, experiment names, overrides, code snapshot,
   output roots, checkpoint policy `last_complete`, and replacement authorization.
+- `training_nnodes` from the successful training run's resolved config and
+  runtime logs, and `eval_nnodes`, which must equal `training_nnodes`. Update
+  training topology provenance if an authorized recovery changes it.
 - Current phase, stopped job ID, training/export/eval job IDs and statuses,
   observed step/target, selected checkpoint path and step, W&B and Ray URLs.
 - Report path, verified artifact paths, and current monitor identity.
@@ -119,6 +158,11 @@ again. If the pool must be resumed, wait for both Ready and successful
 `ray status` before submission.
 
 ## 3. Submit and finish training
+
+Invoke `verl-asr-run` for the training-only handoff in the required sequence.
+Use its submission, monitoring and recovery workflow subject to this skill's
+constraints; the commands below describe execution through that loaded skill,
+not an independent replacement runner.
 
 Sync the latest local code with `bpush <pool>` before submission. Verify the
 effective config and checkpoint namespace on the remote pool. Preserve
@@ -194,12 +238,26 @@ assets before publishing to `<training-output>/global_step_<N>/qwen_hf/`.
 Verify the uploaded files. Never reuse a cached failed export; invalidate
 only specifically identified stale files, not broad cache directories.
 
-## 5. Evaluate on the same pool
+## 5. Evaluate on the same pool and node count as training
 
-Compose the exact requested eval YAML and inventory its datasets. Set
-`trainer.nnodes` explicitly to the number of participating healthy GPU Ray
-nodes, not the number of Brix pool names or total Ray nodes (which may include
-CPU-only nodes). Require the pool to be idle before launching.
+Invoke `verl-asr-run` for the standalone-evaluation handoff only after the
+last-checkpoint export is verified. Supply the exact eval YAML and exported
+model path; do not enable the runner's best-checkpoint benchmark pipeline.
+
+Compose the exact requested eval YAML and inventory its datasets. Retrieve
+`training_nnodes` from the successful training run's effective resolved
+config, including overrides, and confirm it against runtime logs. Set eval
+`trainer.nnodes` explicitly to that value, overriding any eval YAML default.
+For example, training with `trainer.nnodes=4` requires evaluation with
+`trainer.nnodes=4`, even if the eval YAML defaults to 1.
+
+Require the pool to be idle and at least `training_nnodes` healthy GPU Ray
+nodes to be available before launching. Count GPU-capable nodes, not Brix
+pool names or CPU-only Ray nodes. If too few are available, recover node
+readiness or record a blocker and wait; never silently reduce the evaluation
+node count, increase it to use spare nodes, or move evaluation to another
+pool. If training topology provenance is missing, recover it from this run's
+resolved config/logs rather than guessing from the pool size.
 
 Sync current code again. Use a candidate-specific experiment name, for example
 `<eval-stem>__<train-stem>_step<N>`, so evaluation outputs cannot overwrite
@@ -209,13 +267,17 @@ new LoRA adapters for the already-merged model, and prevent training resume:
 ```bash
 brix ssh <pool> -- 'bash -l /root/code/verl/quick_run.sh <eval.yaml> \
   trainer.experiment_name=<candidate-eval-name> \
-  trainer.nnodes=<gpu-node-count> \
+  trainer.nnodes=<training-nnodes> \
   trainer.resume_mode=disable \
   actor_rollout_ref.model.path=<verified-hf-export> \
   actor_rollout_ref.model.lora_rank=0'
 ```
 
 Check the composed config is validation-only and uses the intended candidate.
+Before submission, verify `eval trainer.nnodes == training_nnodes`; after
+startup, verify the effective config and runtime worker topology use that
+same node count. Do not advance a mismatched evaluation to reporting; correct
+and resubmit only this pipeline's evaluation under its recovery policy.
 Record the exact evaluation output root, code snapshot, job ID and W&B URL.
 If remote model caching would duplicate the export per worker, use a
 verified identical shared pod-local model path on every participating pod;
@@ -296,8 +358,11 @@ Reopen the workbook and verify:
 
 ## Monitoring, recovery and completion
 
-After verifying a live submission, install one recurring five-minute monitor
-using the scheduling tool. Its prompt must identify this skill, the durable
+Use one shared recurring five-minute monitor across the pipeline and both
+`verl-asr-run` handoffs; do not install a competing generic runner monitor.
+After verifying a live submission, install or update that monitor using the
+scheduling tool. Its prompt must identify this skill, `verl-asr-run` for
+training/evaluation and `openasr-report` for reporting, the durable
 state path, node, train/eval configs and current Ray job ID, and explicitly
 retain the **last complete checkpoint -> specified eval -> OpenASR report**
 policy. Inspect existing schedules and replace only this pipeline's stale
