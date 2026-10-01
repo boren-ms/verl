@@ -1,0 +1,51 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/mix_cv15_all_openml_verb_noreps_langhint
+  - /data/val_data/mixlang_openml_langhint
+  - _self_
+
+reward_functions:
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      text_norm: simple
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.2}
+        fmt: {beta: 0.1}
+        bracket: {beta: 0.5}
+
+reward_function_by_data_source:
+  mix: openml
+  mix_cv15_all: openml
+  openml: openml
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf/
+    lora_rank: 128
+    # Keep sequence boundaries explicit after non-finite packed reference logits.
+    use_remove_padding: false
+    enable_gradient_checkpointing: true
+  actor:
+    use_dynamic_bsz: false
+    ppo_micro_batch_size_per_gpu: 1
+  rollout:
+    n: 4
+    gt_rollout: true
+    log_prob_use_dynamic_bsz: false
+
+data:
+  train_batch_size: 128
+
+trainer:
+  total_epochs: 30
+  total_training_steps: 1000

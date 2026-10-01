@@ -16,6 +16,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
 import torch
 import torch.nn as nn
 from tensordict import TensorDict
@@ -33,6 +34,35 @@ def test_cast_mismatched_gradients_to_parameter_dtype():
 
     assert updated == 1
     assert param.grad.dtype == torch.float32
+
+
+@pytest.mark.parametrize("use_remove_padding", [False, True])
+@pytest.mark.parametrize("logit_value", [0.0, float("nan"), float("inf")])
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="Log-probability kernels require CUDA")
+def test_forward_micro_batch_rejects_nonfinite_log_probs(use_remove_padding, logit_value):
+    actor = DataParallelPPOActor.__new__(DataParallelPPOActor)
+    actor.device_name = "cuda"
+    actor.use_remove_padding = use_remove_padding
+    actor.use_fused_kernels = False
+    actor.use_ulysses_sp = False
+    actor.actor_module = lambda input_ids, **kwargs: SimpleNamespace(
+        logits=torch.full((*input_ids.shape, 8), logit_value, device=input_ids.device)
+    )
+    micro_batch = {
+        "input_ids": torch.tensor([[0, 1, 2, 3]], device="cuda"),
+        "responses": torch.tensor([[2, 3]], device="cuda"),
+        "attention_mask": torch.ones(1, 4, dtype=torch.long, device="cuda"),
+        "position_ids": torch.arange(4, device="cuda").unsqueeze(0),
+    }
+
+    if logit_value == 0.0:
+        entropy, log_probs = actor._forward_micro_batch(micro_batch, temperature=1.0)
+        assert entropy is None
+        assert log_probs.shape == (1, 2)
+        assert torch.isfinite(log_probs).all()
+    else:
+        with pytest.raises(FloatingPointError, match="logits_finite=False"):
+            actor._forward_micro_batch(micro_batch, temperature=1.0)
 
 
 class MockTransformerModel(nn.Module):
