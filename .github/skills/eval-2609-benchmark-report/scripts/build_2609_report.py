@@ -122,16 +122,20 @@ OPENASR_ML_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
     ("de", [("de_fleurs", "de_fleurs"), ("de_mcv", "de_mcv")]),
     ("es", [("es_fleurs", "es_fleurs"), ("es_mcv", "es_mcv"), ("es_mls", "es_mls")]),
     ("fr", [("fr_fleurs", "fr_fleurs"), ("fr_mcv", "fr_mcv"), ("fr_mls", "fr_mls")]),
+    ("hi", [("monsoon_hi_in", "monsoon_hi_in")]),
     ("it", [("it_fleurs", "it_fleurs"), ("it_mcv", "it_mcv"), ("it_mls", "it_mls")]),
+    ("nl", [("nl_fleurs", "nl_fleurs"), ("nl_mcv", "nl_mcv"), ("nl_mls", "nl_mls")]),
     ("pt", [("pt_fleurs", "pt_fleurs"), ("pt_mls", "pt_mls")]),
 ]
 
 OPENASR_ML_BASELINE: dict[str, float] = {
-    "de_fleurs": 0.0260, "de_mcv": 0.0202,
-    "es_fleurs": 0.0272, "es_mcv": 0.0234, "es_mls": 0.0290,
-    "fr_fleurs": 0.0336, "fr_mcv": 0.0436, "fr_mls": 0.0272,
-    "it_fleurs": 0.0152, "it_mcv": 0.0182, "it_mls": 0.0473,
-    "pt_fleurs": 0.0297, "pt_mls": 0.0392,
+    "de_fleurs": 0.0183, "de_mcv": 0.0201,
+    "es_fleurs": 0.0175, "es_mcv": 0.0236, "es_mls": 0.0279,
+    "fr_fleurs": 0.0248, "fr_mcv": 0.0432, "fr_mls": 0.0262,
+    "monsoon_hi_in": 0.1332,
+    "it_fleurs": 0.0087, "it_mcv": 0.0182, "it_mls": 0.0458,
+    "nl_fleurs": 0.0282, "nl_mcv": 0.0188, "nl_mls": 0.0434,
+    "pt_fleurs": 0.0208, "pt_mls": 0.0365,
 }
 
 MIXLANG_GROUPS: List[Tuple[str, List[Tuple[str, str]]]] = [
@@ -518,7 +522,7 @@ BENCHMARKS = {
         "config": "recipe/phimm/config/eval_v2609/eval_openasr_ml_verb.yaml",
         "embedded_baseline": {k: {"wer": v} for k, v in OPENASR_ML_BASELINE.items()},
         "default_baseline": None,
-        "baseline_label": "2609v1",
+        "baseline_label": "2609v0",
         "metric_definition": "WER / p_err per dataset; arithmetic language and overall averages",
     },
     "mixlang": {
@@ -628,7 +632,7 @@ def main() -> int:
                 "config": spec["config"],
                 "reference_model": args.reference_model_path,
                 "candidate_model": args.candidate_model_path,
-                "baseline_source": base_src or "embedded baseline",
+                "baseline_source": base_src or f"embedded baseline: {spec.get('baseline_label', 'reference')}",
                 "candidate_source": cand_src,
                 "artifacts_sidecar_local": args.artifacts_sidecar_local,
                 "artifacts_sidecar_remote": args.artifacts_sidecar_remote,
@@ -638,7 +642,7 @@ def main() -> int:
         print("[error] no benchmark sources supplied; nothing to build.", file=sys.stderr)
         return 2
 
-    build_summary_sheet(wb, summary_rows, args.baseline_label or "2609v1", args.label)
+    build_summary_sheet(wb, summary_rows, args.baseline_label or "per-benchmark reference", args.label)
     wb.move_sheet("summary", -len(wb.sheetnames) + 1)  # summary first
 
     out_path = Path(args.out) if args.out else default_report_path(

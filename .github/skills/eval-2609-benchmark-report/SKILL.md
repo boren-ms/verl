@@ -35,6 +35,23 @@ Run every required config with the candidate model path as a Hydra override. Eac
 
 The reference checkpoint and candidate must use the same config, data, locale, scoring backend, and segment settings. In particular, do not compare MixLang's zh-CN TER to an unrelated DTER result.
 
+The required `openasr_ml` sheet covers all **17 OpenML datasets** across seven
+languages, matching `data/val_data/openasr_ml_verb.yaml`:
+
+| Language | Dataset keys |
+|---|---|
+| de | `de_fleurs`, `de_mcv` |
+| es | `es_fleurs`, `es_mcv`, `es_mls` |
+| fr | `fr_fleurs`, `fr_mcv`, `fr_mls` |
+| hi | `monsoon_hi_in` |
+| it | `it_fleurs`, `it_mcv`, `it_mls` |
+| nl | `nl_fleurs`, `nl_mcv`, `nl_mls` |
+| pt | `pt_fleurs`, `pt_mls` |
+
+Include every dataset, each language average, and the overall dataset average
+for every checkpoint. Monsoon Hindi uses the shared OpenML scorer's lattice
+OIWER path; retain its `lattice` metadata and use matching baseline scoring.
+
 ## Procedure
 
 1. Resolve the exact committed config files and record the reference model path from each file before submitting jobs. Confirm every requested candidate path is an HF-loadable model directory, checkpoint labels are unique, and all paths belong to the same model family.
@@ -43,7 +60,7 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 4. For each free pool, derive `EVAL_NNODES=N` from its `verl-n<N>-*` name and confirm that count against the healthy nodes reported by `ray status`. Do not copy `trainer.nnodes` from the config or assume it is `1`. If the name and live Ray count disagree, mark that pool ineligible until its health/count is resolved. Push the current workspace to every newly selected pool with `rcall-brix sync <node>` before its first submission.
 5. Fill all eligible free pools in parallel, assigning at most one work-matrix row to each pool. Submit each row through `verl-asr-run` with its candidate or reference model path, unique output/experiment overrides, and `trainer.nnodes=${EVAL_NNODES}` for that assigned pool. Configure detailed decoding outputs to write or upload to the row's durable remote path, never only to node-local storage. Prefer spreading different datasets and checkpoints across pools; scheduling order must not change workbook order.
 6. Monitor all active Ray jobs as one workload. When a row reaches `SUCCEEDED`, package and verify its artifacts before marking the row complete, then immediately refill that free pool with the next pending row. On failure, use `verl-asr-run` to diagnose and repair the root cause, then rerun only that failed row on any eligible free pool with the newly assigned pool's independently verified `trainer.nnodes`. Do not start workbook creation until every required row is complete.
-7. Use the embedded 2609v1 baseline for in-house DTER, OpenASR-ML, and MixLang unless an explicit matching baseline source is supplied. Candidate and reference rows for the same benchmark may run on different pools, but both must use the same committed config, data, locale, scoring backend, and segment settings.
+7. Use the embedded 2609v1 baseline for in-house DTER and MixLang, and the 2609v0 column A baseline supplied on 2026-10-01 for OpenASR-ML, unless an explicit matching baseline source is supplied. The user identified the supplied OpenASR numbers as 2609v0, but did not supply a model path or scoring configuration: verify compatibility before using them for a new evaluation; do not label them 2609v1 or infer a checkpoint path. Candidate and reference rows for the same benchmark may run on different pools, but both must use the same committed config, data, locale, scoring backend, and segment settings.
 8. Before releasing a node or creating the workbook, retain the raw information for every candidate run and every explicitly executed reference run under `<artifact-root>/<checkpoint>/<benchmark>/<candidate|reference>/`:
    - `wandb.json`: W&B entity, project, run ID, run name, and run URL. If W&B is disabled or unavailable, record the reason explicitly instead of inventing a run identity.
    - `key_metrics.log` or `key_metrics.json`: the unmodified evaluation metric records used to build the report, including the final `val-aux/...` values or equivalent scorer output.
@@ -73,16 +90,70 @@ The reference checkpoint and candidate must use the same config, data, locale, s
 
 Each benchmark takes a candidate source and accepts a baseline source. The baseline source is required for `digits_enus` and any included `digits_tier1` because neither has an embedded baseline; it is optional for benchmarks with embedded baselines. A source is auto-detected as one of: an `az://.../` root or local directory holding `<slug>/measures.json` (used for the DTER benchmarks `inhouse_dter` and `mixlang`); a `*.json` metrics file (`{ds: value}` or `{ds: {metric: value}}`); a text log with `val-aux/<ds>/<metric>/mean@1` lines; or `ray:<node>:<job_id>` to pull `ray job logs`.
 
-**Collecting the baseline result.** The baseline (column `A` in the report schema) uses the current embedded 2609v1 values when `--<bench>-baseline` is omitted:
+**Collecting the baseline result.** The baseline (column `A` in the report schema) uses the following embedded values when `--<bench>-baseline` is omitted:
 
 | Benchmark | Embedded label | Source column | Embedded overall |
 |---|---|---:|---:|
 | `inhouse_dter` | `2609v1,LID` | C | 17.77% |
-| `openasr_ml` | `2609v1` | B | 2.92% |
+| `openasr_ml` | `2609v0` | A | 3.27% (17 configured datasets) |
 | `mixlang` | `2609v1` | B | 21.24% |
 | `digits_enus` / `digits_tier1` | none | — | Supply `ray:<node>:<job_id>`, log, or JSON via `--<bench>-baseline`. |
 
 An explicit `--<bench>-baseline` source overrides the embedded values. For required `digits_enus` and optional `digits_tier1`, collect the baseline by running the same config with the reference model through `verl-asr-run` and passing its Ray job as the baseline source (or a captured log/JSON). Collect candidate results with the candidate model path.
+
+#### OpenASR baseline update (2026-10-01)
+
+The supplied table below is in **percent**, not fractions. Interpret A as the
+baseline and B as comparison data, not as a replacement for future candidate
+results. The user identified the supplied numbers as **2609v0**; no checkpoint
+path was supplied. Scripts store dataset values divided
+by 100 and recompute averages rather than hardcoding the supplied average rows.
+
+The 2609 report and config cover all 17 multilingual datasets in
+de/es/fr/hi/it/nl/pt, mapping `fleurs_de` to `de_fleurs`, etc. Hindi and Dutch
+are required, not optional. English OpenASR values are retained here for the
+standalone `openasr-report` skill; they are not part of the `openasr_ml` sheet.
+The supplied multilingual averages, 4.14% / 3.75%, are language-macro averages.
+They are not the dataset averages required by this report: all 17 datasets average
+3.2659% / 3.1776%. The supplied English A average is 3.81%, whereas its rounded
+dataset values average 3.81125%; retain calculated averages in generated reports.
+
+| Group | Name | A (%) | B (%) |
+|---|---|---:|---:|
+| openasr | average | 3.81 | 3.88 |
+| openasr | ami_clean | 7.05 | 6.78 |
+| openasr | earnings22-cleaned-aa-chunked | 5.2 | 5.37 |
+| openasr | gigaspeech_clean | 7.48 | 7.52 |
+| openasr | librispeech-clean | 1.23 | 1.27 |
+| openasr | librispeech-other | 2.71 | 2.88 |
+| openasr | monsoon_en_in | 3 | 3.41 |
+| openasr | spgispeech | 2.17 | 2.13 |
+| openasr | voxpopuli-cleaned-aa | 1.65 | 1.69 |
+| openasr_ml | average | 4.14 | 3.75 |
+| openasr_ml | fleurs_de | 1.83 | 2.24 |
+| openasr_ml | mcv_de | 2.01 | 1.9 |
+| openasr_ml | de_average | 1.92 | 2.07 |
+| openasr_ml | fleurs_es | 1.75 | 2.81 |
+| openasr_ml | mcv_es | 2.36 | 2.16 |
+| openasr_ml | mls_es | 2.79 | 2.67 |
+| openasr_ml | es_average | 2.3 | 2.55 |
+| openasr_ml | fleurs_fr | 2.48 | 2.65 |
+| openasr_ml | mcv_fr | 4.32 | 4.18 |
+| openasr_ml | mls_fr | 2.62 | 2.43 |
+| openasr_ml | fr_average | 3.14 | 3.09 |
+| openasr_ml | monsoon_hi_in | 13.32 | 9.63 |
+| openasr_ml | hi_average | 13.32 | 9.63 |
+| openasr_ml | fleurs_it | 0.87 | 1.27 |
+| openasr_ml | mcv_it | 1.82 | 1.85 |
+| openasr_ml | mls_it | 4.58 | 4.1 |
+| openasr_ml | it_average | 2.42 | 2.41 |
+| openasr_ml | fleurs_nl | 2.82 | 3.65 |
+| openasr_ml | mcv_nl | 1.88 | 1.81 |
+| openasr_ml | mls_nl | 4.34 | 3.99 |
+| openasr_ml | nl_average | 3.01 | 3.15 |
+| openasr_ml | fleurs_pt | 2.08 | 3.41 |
+| openasr_ml | mls_pt | 3.65 | 3.27 |
+| openasr_ml | pt_average | 2.87 | 3.34 |
 
 ```bash
 /home/boren/.virtualenvs/openai/bin/python \
@@ -130,16 +201,16 @@ Use [scripts/repair_2609_avg_formulas.py](./scripts/repair_2609_avg_formulas.py)
 
 Before delivering the workbook, verify all of the following:
 
-- Every required benchmark has a successful candidate job and either the matching embedded 2609v1 baseline or an explicitly supplied matching reference result.
+- Every required benchmark has a successful candidate job and either a matching embedded baseline from the table above or an explicitly supplied matching reference result.
 - Every submitted candidate and reference evaluation explicitly used `trainer.nnodes` equal to the verified node count of its running `verl-n<N>-*` pool.
 - Every eligible free pool was filled while pending work remained, with at most one active evaluation row per pool and no duplicate work-matrix submissions.
 - Every selected pool was verified free using both Ray-job and GPU occupancy signals, and no unrelated job was displaced or colocated.
 - `digits_enus` is present for every checkpoint, and `digits_tier1` is absent unless explicitly requested.
-- Baselines are the embedded 2609v1 values or verified matching reference outputs supplied explicitly.
+- Baselines are the documented embedded values or verified matching reference outputs supplied explicitly; the supplied OpenASR A baseline is 2609v0, not 2609v1.
 - Candidate and baseline use identical data/locale/scoring parameters for each sheet.
 - Every executed evaluation has a readable remote `artifact_manifest.json`, raw key-metrics log, and detailed decoding result path; none points only to node-local storage.
 - Every executed evaluation records its W&B run ID and URL, or an explicit reason W&B was unavailable, and the W&B identity agrees with the experiment represented in the workbook.
-- In-house corpus values are micro-DTER and its `overall avg` is the arithmetic corpus average; OpenASR-ML includes language and overall averages; any included digits sheet contains CER and WER; MixLang records its zh-CN scoring backend.
+- In-house corpus values are micro-DTER and its `overall avg` is the arithmetic corpus average; OpenASR-ML includes all 17 datasets (including Monsoon Hindi and all three Dutch datasets), seven language averages, and the overall dataset average, with non-empty candidate and 2609v0 baseline values; any included digits sheet contains CER and WER; MixLang records its zh-CN scoring backend.
 - Every sheet has non-empty baseline and candidate values, percentage formatting, and a correctly signed delta (`1 - B/A`).
 - Every summary delta column has a red→white→green conditional color scale centered at 0, matching the benchmark sheets.
 - Every summary contains one delta-only column chart with one non-empty, percentage-labelled bar per checkpoint/benchmark category and no baseline/candidate chart series.

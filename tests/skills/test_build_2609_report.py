@@ -21,6 +21,96 @@ def _load_report_module():
     return module
 
 
+def test_updated_openasr_baseline_and_report(tmp_path, monkeypatch):
+    report = _load_report_module()
+    supplied = {
+        "de_fleurs": (1.83, 2.24), "de_mcv": (2.01, 1.90),
+        "es_fleurs": (1.75, 2.81), "es_mcv": (2.36, 2.16), "es_mls": (2.79, 2.67),
+        "fr_fleurs": (2.48, 2.65), "fr_mcv": (4.32, 4.18), "fr_mls": (2.62, 2.43),
+        "monsoon_hi_in": (13.32, 9.63),
+        "it_fleurs": (0.87, 1.27), "it_mcv": (1.82, 1.85), "it_mls": (4.58, 4.10),
+        "nl_fleurs": (2.82, 3.65), "nl_mcv": (1.88, 1.81), "nl_mls": (4.34, 3.99),
+        "pt_fleurs": (2.08, 3.41), "pt_mls": (3.65, 3.27),
+    }
+    assert report.OPENASR_ML_BASELINE == pytest.approx(
+        {key: values[0] / 100 for key, values in supplied.items()}
+    )
+    assert {key for _, datasets in report.OPENASR_ML_GROUPS for key, _ in datasets} == set(supplied)
+
+    source = tmp_path / "candidate.json"
+    source.write_text(json.dumps({key: values[1] / 100 for key, values in supplied.items()}))
+    output = tmp_path / "report.xlsx"
+    monkeypatch.setattr(
+        sys, "argv",
+        [str(SCRIPT), "--label", "B", "--openasr-ml", str(source), "--out", str(output)],
+    )
+    assert report.main() == 0
+
+    workbook = load_workbook(output)
+    sheet = workbook["openasr_ml"]
+    assert sheet["B2"].value == "2609v0"
+    seen = set()
+    averages = set()
+    for row in sheet.iter_rows():
+        name = row[0].value
+        if name in supplied:
+            seen.add(name)
+            assert row[1].value == pytest.approx(supplied[name][0] / 100)
+            assert row[2].value == pytest.approx(supplied[name][1] / 100)
+            assert row[3].value == f"=1-C{row[0].row}/B{row[0].row}"
+            assert all(cell.number_format == "0.00%" for cell in row[1:4])
+        elif isinstance(name, str) and name.endswith(" avg"):
+            averages.add(name)
+            assert row[1].value.startswith("=AVERAGE(")
+            assert row[2].value.startswith("=AVERAGE(")
+    assert seen == set(supplied)
+    assert averages == {"de avg", "es avg", "fr avg", "hi avg", "it avg", "nl avg", "pt avg", "overall avg"}
+    assert sheet["B28"].value == "=AVERAGE(B4:B5,B7:B9,B11:B13,B15:B15,B17:B19,B21:B23,B25:B26)"
+    summary = workbook["summary"]
+    assert summary["C2"].value == pytest.approx(55.52 / 1700)
+    assert summary["D2"].value == pytest.approx(54.02 / 1700)
+    assert summary["E2"].value == pytest.approx(1 - 54.02 / 55.52)
+    assert summary["J2"].value == "embedded baseline: 2609v0"
+    workbook.close()
+
+    merged_path = tmp_path / "merged.xlsx"
+    subprocess.run(
+        [sys.executable, str(SCRIPT.with_name("merge_2609_reports.py")),
+         "--model-label", "candidate", "--report", f"step10={output}",
+         "--out", str(merged_path)],
+        check=True, capture_output=True, text=True,
+    )
+    merged = load_workbook(merged_path)
+    assert merged.sheetnames == ["summary", "step10_openasr_ml"]
+    copied = merged["step10_openasr_ml"]
+    assert copied["B2"].value == "2609v0"
+    assert {row[0].value for row in copied.iter_rows() if row[0].value in supplied} == set(supplied)
+    assert copied["D15"].value == "=1-C15/B15"
+    assert merged["summary"]["D4"].value == pytest.approx(55.52 / 1700)
+    assert merged["summary"]["K4"].value == "embedded baseline: 2609v0"
+    merged.close()
+
+
+def test_openml_report_matches_composed_2609_eval_config():
+    from hydra import compose, initialize_config_dir
+    from omegaconf import OmegaConf
+
+    report = _load_report_module()
+    config_path = SCRIPT.parents[4] / report.BENCHMARKS["openasr_ml"]["config"]
+    with initialize_config_dir(config_dir=str(config_path.parent), version_base=None):
+        config = compose(config_name=config_path.stem)
+    rows = OmegaConf.to_container(config.data.val_data, resolve=True)
+    sources = [row["post_process"]["add_field"]["fields"]["data_source"] for row in rows]
+    assert len(sources) == len(set(sources)) == 17
+    assert set(sources) == set(report.OPENASR_ML_BASELINE)
+    assert set(sources) == {
+        key for _, datasets in report.OPENASR_ML_GROUPS for key, _ in datasets
+    }
+    assert config.val_reward.custom_reward_function.name == "openasr_eval"
+    hindi = rows[sources.index("monsoon_hi_in")]
+    assert "lattice" in hindi["post_process"]["verl_format"]["extra_keys"]
+
+
 def test_inhouse_avg_rows_use_excel_arithmetic_formulas(tmp_path, monkeypatch):
     source = tmp_path / "measures"
     measures = {
