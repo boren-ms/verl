@@ -14,18 +14,28 @@ reward_functions:
     name: compute_score
     reward_kwargs:
       version: 2609
-      text_norm: simple
       reduce: mean
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        lang: {beta: 0.2}
-        fmt: {beta: 0.1}
-        bracket: {beta: 0.5}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
+        bracket: {beta: 1.0}
+  mix:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
 
 reward_function_by_data_source:
-  mix: openml
-  mix_cv15_all: openml
+  mix: mix
+  mix_cv15_all: mix
   openml: openml
 
 actor_rollout_ref:
