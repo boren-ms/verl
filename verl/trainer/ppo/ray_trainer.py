@@ -944,7 +944,7 @@ class RayPPOTrainer:
         dataloader_local_path = path_join(local_step_folder, "data.pt")
         dataloader_state_dict = self.train_dataloader.state_dict()
         torch.save(dataloader_state_dict, dataloader_local_path)
-        copy_to_remote(dataloader_local_path, remote_step_folder)
+        copy_to_remote(dataloader_local_path, remote_step_folder, overwrite=True)
 
         # latest checkpointed iteration tracker (for atomic usage)
         local_latest_iteration = path_join(local_dir, "latest_checkpointed_iteration.txt")

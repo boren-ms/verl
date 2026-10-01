@@ -253,7 +253,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     model_state_dict = self.model.state_dict()
                     torch.save(model_state_dict, model_path)
                     log_with_rank(f"Saved model to {os.path.abspath(model_path)}", rank=self.rank, logger=logger)
-                    copy_to_remote(model_path, hdfs_path, blocking=False)
+                    copy_to_remote(model_path, hdfs_path, overwrite=True, blocking=False)
                     del model_state_dict
                     gc.collect()
 
@@ -261,7 +261,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     optimizer_state_dict = self.optimizer.state_dict()
                     torch.save(optimizer_state_dict, optim_path)
                     log_with_rank(f"Saved optim to {os.path.abspath(optim_path)}", rank=self.rank, logger=logger)
-                    copy_to_remote(optim_path, hdfs_path, blocking=False)
+                    copy_to_remote(optim_path, hdfs_path, overwrite=True, blocking=False)
                     del optimizer_state_dict
                     gc.collect()
 
@@ -273,7 +273,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                     }
                     torch.save(extra_state_dict, extra_path)
                     log_with_rank(f"Saved extra_state to {os.path.abspath(extra_path)}", rank=self.rank, logger=logger)
-                    copy_to_remote(extra_path, hdfs_path, blocking=False)
+                    copy_to_remote(extra_path, hdfs_path, overwrite=True, blocking=False)
 
         if self.rank == 0:
             # Save HF tokenizer/processor and model config on rank 0 to huggingface/ directory, no matter whether
