@@ -45,7 +45,7 @@ def _record_group_result(reward_extra_info, result_dict, row_count, head_index):
 
 @register("long_audio_grouped")
 class LongAudioGroupedRewardManager(AbstractRewardManager):
-    """Group segments by parent wav, concatenate hyps, score once per parent."""
+    """Group segments by data source and parent wav, then score each group."""
 
     def __init__(
         self,
@@ -105,14 +105,14 @@ class LongAudioGroupedRewardManager(AbstractRewardManager):
                 "seg_start": _seg_start(extra_info),
             })
 
-        # Group by parent and score once per group.
-        groups: dict[str, list[dict]] = defaultdict(list)
+        # Different tasks can share the same parent audio.
+        groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
         for d in decoded:
-            groups[d["parent"]].append(d)
+            groups[(d["data_source"], d["parent"])].append(d)
 
         already_print_data_sources: dict[str, int] = {}
 
-        for parent, members in groups.items():
+        for (_, parent), members in groups.items():
             members.sort(key=lambda m: (m["seg_start"], m["i"]))
             head = members[0]
             concat_hyp = "\n".join(m["hyp_text"] for m in members)

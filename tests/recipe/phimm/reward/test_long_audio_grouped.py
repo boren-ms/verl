@@ -15,7 +15,7 @@ class _Tokenizer:
         return self.responses[int(token_ids[0])]
 
 
-def _run_manager(responses, extra_info, version=None):
+def _run_manager(responses, extra_info, version=None, data_sources=None):
     score_calls = []
 
     def compute_score(**kwargs):
@@ -34,7 +34,7 @@ def _run_manager(responses, extra_info, version=None):
                 [{"ground_truth": "hello world"}, {"ground_truth": "hello world"}],
                 dtype=object,
             ),
-            "data_source": np.array(["openml", "openml"], dtype=object),
+            "data_source": np.array(data_sources if data_sources is not None else ["openml", "openml"], dtype=object),
         },
     )
     manager = LongAudioGroupedRewardManager(
@@ -86,3 +86,28 @@ def test_manager_uses_2609_response_format():
 
     assert len(score_calls) == 1
     assert score_calls[0]["solution_str"] == "hello\nworld"
+
+
+def test_manager_keeps_tasks_with_shared_parent_separate():
+    responses = {
+        1: "<src=English><tgt=English>\n<TXT>Hello, world.</TXT>",
+        2: "<src=English><tgt=English>\n<LEXICAL><TXT>hello world</TXT>",
+    }
+    extra_info = [
+        {"parent_audio_path": "parent.wav", "seg_start": 0.0},
+        {"parent_audio_path": "parent.wav", "seg_start": 0.0},
+    ]
+
+    score_calls, result = _run_manager(
+        responses,
+        extra_info,
+        version=2609,
+        data_sources=["earning_chunk_verb", "earning_chunk_lex"],
+    )
+
+    assert len(score_calls) == 2
+    assert [call["data_source"] for call in score_calls] == ["earning_chunk_verb", "earning_chunk_lex"]
+    assert [call["solution_str"] for call in score_calls] == ["Hello, world.", "hello world"]
+    assert all(call["extra_info"]["n_segments"] == 1 for call in score_calls)
+    assert all(call["extra_info"]["parent_audio_path"] == "parent.wav" for call in score_calls)
+    assert result["reward_extra_info"]["wer"] == [0.0, 0.0]
