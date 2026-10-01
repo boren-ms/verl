@@ -23,3 +23,7 @@ val_reward:
     it_mls: openasr_ml
     es_mls: openasr_ml
     pt_mls: openasr_ml
+
+actor_rollout_ref:
+  model:
+    lora_rank: 128
