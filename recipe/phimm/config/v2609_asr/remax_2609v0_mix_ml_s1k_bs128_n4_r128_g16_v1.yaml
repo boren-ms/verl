@@ -4,43 +4,40 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/earningscall-fy27-en-us-batches-tts-clean
-  - /data/val_data/earnings_aa_chunked
+  - /data/train_data/mix_cv15_all_openml_verb_noreps_langhint
+  - /data/val_data/mixlang_openml_langhint
   - _self_
 
 reward_functions:
-  asr_measure:
+  openml:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
     reward_kwargs:
       version: 2609
+      text_norm: simple
       reduce: mean
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        lang: {beta: 0.5}
-        fmt: {beta: 0.2}
+        lang: {beta: 0.2}
+        fmt: {beta: 0.1}
+        bracket: {beta: 0.5}
 
 reward_function_by_data_source:
-  earning_fy27_verb: asr_measure
-  earning_fy27_lex: asr_measure
-  earnings_tts_clean_verb: asr_measure
-  earnings_tts_clean_lex: asr_measure
+  mix: openml
+  mix_cv15_all: openml
+  openml: openml
 
 actor_rollout_ref:
-  rollout:
-    n: 4
-    engine_kwargs:
-      vllm:
-        gdn_prefill_backend: triton
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf/
-    lora_rank: 256
+    lora_rank: 128
+  rollout:
+    n: 4
 
 data:
   train_batch_size: 128
 
 trainer:
-  nnodes: 4
   total_epochs: 30
   total_training_steps: 1000

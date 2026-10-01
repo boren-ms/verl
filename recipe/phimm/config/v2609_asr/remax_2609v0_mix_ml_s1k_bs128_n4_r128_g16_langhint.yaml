@@ -18,9 +18,9 @@ reward_functions:
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        lang: {beta: 1.0}
-        fmt: {beta: 1.0}
-        bracket: {beta: 2.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
+        bracket: {beta: 1.0}
   mix:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
@@ -30,8 +30,8 @@ reward_functions:
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        lang: {beta: 1.0}
-        fmt: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
 
 reward_function_by_data_source:
   mix: mix
@@ -44,14 +44,6 @@ actor_rollout_ref:
     lora_rank: 128
   rollout:
     n: 4
-
-algorithm:
-  filter_groups:
-    enable: true
-    metric: remax_advantage
-    mode: nonzero
-    atol: 1e-6
-    max_num_gen_batches: 10
 
 data:
   train_batch_size: 128
