@@ -25,6 +25,7 @@ required_versions = {
     "flashinfer-python": "0.6.12",
     "flashinfer-cubin": "0.6.12",
     "bitsandbytes": "0.50.2",
+    "voi-oiwer": "0.1.4",
     "protobuf": "5.29.5",
     "nvidia-cuda-runtime": "13.3.29",
     "nvidia-cuda-nvcc": "13.3.73",

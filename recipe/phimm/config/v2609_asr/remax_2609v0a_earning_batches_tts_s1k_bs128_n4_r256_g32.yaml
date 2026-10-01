@@ -1,0 +1,40 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/earningscall-fy27-en-us-batches-tts-clean
+  - /data/val_data/earnings_aa_chunked
+  - _self_
+
+reward_functions:
+  asr_measure:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
+
+reward_function_by_data_source:
+  earning_fy27_verb: asr_measure
+  earning_fy27_lex: asr_measure
+  earnings_tts_clean_verb: asr_measure
+  earnings_tts_clean_lex: asr_measure
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2609_asr/remax_2609v0_ml_s200_bs128_n4_r128_g16_langhint/global_step_200/qwen_hf/
+
+data:
+  train_batch_size: 128
+
+trainer:
+  nnodes: 4
+  total_epochs: 30
+  total_training_steps: 1000
