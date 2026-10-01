@@ -200,6 +200,64 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/nl/data.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_fleurs_nl
+  add_task_info:
+    task: lang_asr_verb
+    language: Dutch
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: nl_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/nl/data.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mcv_nl
+  add_task_info:
+    task: lang_asr_verb
+    language: Dutch
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: nl_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/nl/data.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mls_nl
+  add_task_info:
+    task: lang_asr_verb
+    language: Dutch
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: nl_mls
+    verl_format:
+      prompt_key: prompt
+
+# Voice Arena Monsoon Hindi uses lattice OIWER inside the shared OpenML scorer.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/monsoon/hi_in/data.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_monsoon_hi_in_jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: Hindi
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: monsoon_hi_in
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["lattice"]
+
+- dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
   pre_process:
     rename_fields:

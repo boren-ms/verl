@@ -9,6 +9,7 @@ defaults:
 
 val_reward:
   reward_function_by_data_source:
+    monsoon_hi_in: openasr_ml
     mixlang_fy26q2: inhouse_zh
     enus_conv_fy21q1: inhouse_all
     enus_conv_om_fy25q3: inhouse_all
@@ -41,5 +42,8 @@ val_reward:
     it_mls: openasr_ml
     es_mls: openasr_ml
     pt_mls: openasr_ml
+    nl_fleurs: openasr_ml
+    nl_mcv: openasr_ml
+    nl_mls: openasr_ml
     earnings22_cleaned_aa: openasr_ml
     voxpopuli_cleaned_aa: openasr_ml

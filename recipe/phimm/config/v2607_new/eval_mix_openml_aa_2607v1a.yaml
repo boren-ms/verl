@@ -9,6 +9,10 @@ defaults:
 
 val_reward:
   reward_function_by_data_source:
+    monsoon_hi_in: openasr_ml
+    nl_fleurs: openasr_ml
+    nl_mcv: openasr_ml
+    nl_mls: openasr_ml
     mixlang_fy26q2: inhouse_zh
     de_fleurs: openasr_ml
     fr_fleurs: openasr_ml
