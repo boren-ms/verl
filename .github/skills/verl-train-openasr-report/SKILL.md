@@ -31,7 +31,7 @@ subagents and a multi-agent workflow are not required.
 Example:
 
 ```text
-/verl-train-openasr-report recipe/phimm/config/v2609_asr/remax_2609v0a_earning_batches_tts_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml
+/verl-train-openasr-report recipe/phimm/config/v2609_asr/remax_2609v0a_earning_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml
 ```
 
 When the user only requests creating or editing this skill, modify the skill

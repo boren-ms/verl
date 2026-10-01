@@ -34,4 +34,4 @@ data:
 
 trainer:
   total_epochs: 30
-  total_training_steps: 100
+  total_training_steps: 200
