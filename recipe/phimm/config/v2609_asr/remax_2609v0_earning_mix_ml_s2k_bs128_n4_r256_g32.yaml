@@ -1,0 +1,49 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/earningscall-fy27-en-us-batches-tts-clean@_earning_train
+  - /data/train_data/mix_cv15_all_openml_verb_noreps_langhint@_mix_ml_train
+  - /data/val_data/earnings_aa_chunked@_earning_val
+  - /data/val_data/mixlang_openml_langhint@_mix_ml_val
+  - _self_
+
+reward_functions:
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.2}
+        fmt: {beta: 0.1}
+        bracket: {beta: 0.5}
+
+reward_function_by_data_source:
+  earning_fy27_verb: openml
+  earning_fy27_lex: openml
+  earnings_tts_clean_verb: openml
+  earnings_tts_clean_lex: openml
+  mix: openml
+  mix_cv15_all: openml
+  openml: openml
+
+data:
+  # Combine earnings/TTS and Mix-ML without changing either dataset's processing.
+  train_data:
+    - ${_earning_train}
+    - ${_mix_ml_train}
+  val_data:
+    - ${_earning_val}
+    - ${_mix_ml_val}
+  train_batch_size: 128
+
+trainer:
+  nnodes: 4
+  total_epochs: 30
+  total_training_steps: 2000
