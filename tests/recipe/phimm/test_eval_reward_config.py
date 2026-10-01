@@ -10,6 +10,7 @@ TRAINER_CONFIG_DIR = Path(__file__).parents[3] / "verl/trainer/config"
 EVAL_CONFIG_NAMES = sorted(path.stem for path in EVAL_CONFIG_DIR.glob("eval_*.yaml"))
 
 REWARD_SOURCES = {
+    "openasr_hi_in": ["monsoon_hi_in"],
     "inhouse_zh": ["mixlang_fy26q2"],
     "openasr_en": [
         "name_val",
@@ -22,7 +23,6 @@ REWARD_SOURCES = {
         "monsoon_en_in",
     ],
     "openasr_ml": [
-        "monsoon_hi_in",
         "de_fleurs",
         "fr_fleurs",
         "it_fleurs",
@@ -86,3 +86,38 @@ def test_eval_configs_inherit_reward_assignments(config_name):
     if config_name != "eval_base":
         local_config = OmegaConf.load(EVAL_CONFIG_DIR / f"{config_name}.yaml")
         assert "reward_function_by_data_source" not in local_config.get("val_reward", {})
+
+
+@pytest.mark.parametrize(
+    "config_path",
+    [
+        "v2609_asr/eval_2609_openml_verb",
+        "v2609_asr/eval_2609_openml_verb_langhint",
+        "v2609_asr/eval_2609_mix_openml_aa",
+        "v2609_asr/eval_2609_mix_openml_aa_ter30",
+    ],
+)
+def test_hindi_eval_configs_select_dedicated_oiwer_function(config_path):
+    from verl.trainer.ppo.reward import get_custom_reward_fn
+
+    path = CONFIG_ROOT / config_path
+    with initialize_config_dir(config_dir=str(path.parent), version_base=None):
+        config = compose(config_name=path.name)
+
+    hindi_rows = [
+        row for row in config.data.val_data
+        if row.post_process.add_field.fields.data_source == "monsoon_hi_in"
+    ]
+    assert len(hindi_rows) == 1
+    assert "lattice" in hindi_rows[0].post_process.verl_format.extra_keys
+    registration = config.val_reward.reward_function_by_data_source.monsoon_hi_in
+    function_config = config.val_reward.reward_functions[registration]
+    assert function_config.name == "openasr_hi_in_eval"
+    scorer = get_custom_reward_fn(config.val_reward, function_config)
+    result = scorer(
+        "<TXT>world today</TXT>",
+        "hello today",
+        data_source="monsoon_hi_in",
+        extra_info={"language": "Hindi", "lattice": [["hello", "world"], ["today"]]},
+    )
+    assert result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 2}

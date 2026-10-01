@@ -333,3 +333,40 @@ add_task_info:
 
 For example, set `lang_hint: true` with `prefix_prob: 0.0` to include the
 language hint without adding an assistant prefix.
+
+## OpenASR ML Hindi Evaluation
+
+The OpenASR ML verbatim suites include Voice Arena Monsoon Hindi (`hi_in`),
+reported as `monsoon_hi_in`. Under `recipe/phimm/config/v2609_asr`, the
+[`eval_2609_openml_verb.yaml`](../../recipe/phimm/config/v2609_asr/eval_2609_openml_verb.yaml)
+and language-hinted/mixed OpenML suites explicitly route `monsoon_hi_in`
+to the dedicated `openasr_hi_in_eval` scorer via
+`val_reward.reward_function_by_data_source`. The generic `openasr_eval`
+function handles ordinary WER only; it does not auto-detect lattices.
+Only the `v2609_asr` evaluation YAMLs enable this dedicated scorer; evaluation
+YAMLs outside that directory retain their existing routing.
+
+Hindi uses **orthographically informed WER (OIWER)**, matching MoE's
+`OIWerScorer`, rather than ordinary WER against a single transcript.
+Install `voi-oiwer==0.1.4` (included in the project and vLLM requirements).
+The dataset must retain its JSONL `lattice`, a list of non-empty lists of
+accepted string variants, through `verl_format.extra_keys: ["lattice"]`.
+The standard Hindi dataset configurations already do this.
+
+The scorer extracts the hypothesis with the selected output-format version,
+then passes it and the unchanged lattice to `voi_oiwer.oiwer` with
+`input_language="hindi"`. It does not apply the ordinary OpenASR text
+normalizer or compound merging first. The canonical `text` remains available
+as ground truth for display, but is not the OIWER scoring reference.
+
+Results retain the existing `score`, `wer`, `n_err`, and `n_ref` fields:
+`n_err` is the sum of insertions, deletions, and substitutions, and `n_ref`
+is the word count of the selected lattice path, not the number of slots.
+`wer` is a fraction, and `score` is `1 - wer`. Validation therefore reports
+the count-weighted OIWER under the existing `monsoon_hi_in/p_err` metric.
+Zero-reference paths retain their zero word count and MoE's zero per-sample
+WER convention.
+
+A missing or malformed lattice passed to `openasr_hi_in_eval`, an unsupported lattice
+language, or a missing OIWER dependency raises an explicit error. Other
+OpenASR text-reference datasets continue to use their existing WER scoring.

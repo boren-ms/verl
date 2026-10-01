@@ -6,6 +6,7 @@ dill
 flash-attn
 hydra-core
 kaldialign
+voi-oiwer==0.1.4
 liger-kernel
 numpy<2.0.0
 pandas

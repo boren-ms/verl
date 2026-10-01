@@ -28,6 +28,33 @@ def measure_openasr_en_wer(hyp_text, ground_truth):
     }
 
 
+def measure_openasr_oiwer(hyp_text, lattice, lang):
+    """Measure Hindi lattice OIWER using the same counts as MoE's OIWerScorer."""
+    if (
+        not isinstance(lattice, list)
+        or not lattice
+        or any(
+            not isinstance(variants, list)
+            or not variants
+            or any(not isinstance(variant, str) for variant in variants)
+            for variants in lattice
+        )
+    ):
+        raise ValueError("OIWER requires extra_info['lattice'] to be a non-empty list of non-empty lists of strings.")
+    if lang not in ("hi", "hi_in", "hi-in"):
+        raise ValueError(f"OpenASR lattice OIWER is only configured for Hindi, got language: {lang!r}")
+
+    try:
+        from voi_oiwer import oiwer
+    except ImportError as exc:
+        raise ImportError("Install voi-oiwer==0.1.4 to evaluate OpenASR Hindi lattice references.") from exc
+
+    result = oiwer(hypothesis=hyp_text, reference_lists=lattice, input_language="hindi")
+    n_err = sum(result[4])
+    n_ref = result[5]
+    return {"wer": n_err / n_ref if n_ref else 0.0, "n_err": n_err, "n_ref": n_ref}
+
+
 def non_speech_eval(solution_str, ground_truth, **kwargs):
     """Evaluate non-speech audio by requiring an empty cleaned hypothesis."""
     hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
@@ -61,6 +88,18 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
         "n_ref": result["n_ref"],
     }
 
+def openasr_hi_in_eval(solution_str, ground_truth, **kwargs):
+    """Evaluate Monsoon Hindi against its lattice with OIWER."""
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "Hindi")).lower().strip()
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    result = measure_openasr_oiwer(hyp_text, extra_info.get("lattice"), get_language_code(tgt_lang))
+    return {
+        "score": 1.0 - result["wer"],
+        "wer": result["wer"],
+        "n_err": result["n_err"],
+        "n_ref": result["n_ref"],
+    }
 
 
 def openasr_en_eval(solution_str, ground_truth, **kwargs):

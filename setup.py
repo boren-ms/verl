@@ -30,6 +30,7 @@ install_requires = [
     "dill",
     "hydra-core",
     "kaldialign",
+    "voi-oiwer==0.1.4",
     "numpy<2.0.0",
     "pandas",
     "peft",

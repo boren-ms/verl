@@ -65,6 +65,7 @@ more-itertools
 whisper_normalizer
 jiwer>=4.0.0
 kaldialign
+voi-oiwer==0.1.4
 editdistance
 num2words
 evaluate

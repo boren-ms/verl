@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from recipe.phimm.reward import asr_eval
@@ -112,6 +114,128 @@ def test_openasr_eval_gets_versioned_hyp_text_directly(monkeypatch):
     )
 
     assert received == {"solution_str": "formatted response", "version": 2607}
+    assert result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 2}
+
+
+@pytest.mark.parametrize(
+    ("response", "version"),
+    [
+        ("Hello, WORLD!", None),
+        ("Audio Language: Hindi.\n<ASR><lang=Hindi><TXT>Hello, WORLD!</TXT></ASR>", 2607),
+        ("<src=Hindi><tgt=Hindi>\n<VERBATIM>\n<TXT>Hello, WORLD!</TXT>", 2609),
+    ],
+)
+@pytest.mark.parametrize("language", ["Hindi", "hi", "hi_in", "hi-IN"])
+def test_openasr_hindi_uses_oiwer_without_wer_normalization(monkeypatch, response, version, language):
+    lattice = [["Hello", "Hi"], ["WORLD"]]
+    received = {}
+
+    def oiwer(**kwargs):
+        received.update(kwargs)
+        return (60.0, None, None, None, (1, 2, 3), 10, None, None)
+
+    def unexpected_wer(*args, **kwargs):
+        pytest.fail("Lattice OIWER must not use ordinary WER normalization")
+
+    monkeypatch.setattr("voi_oiwer.oiwer", oiwer)
+    monkeypatch.setattr(eval_utils, "measure_wer", unexpected_wer)
+    result = asr_eval.openasr_hi_in_eval(
+        response,
+        "unused canonical transcript",
+        version=version,
+        extra_info={"language": language, "lattice": lattice},
+    )
+
+    assert received == {
+        "hypothesis": "Hello, WORLD!",
+        "reference_lists": lattice,
+        "input_language": "hindi",
+    }
+    assert result == {"score": 0.4, "wer": 0.6, "n_err": 6, "n_ref": 10}
+
+
+@pytest.mark.parametrize(
+    ("hypothesis", "lattice", "n_err", "n_ref"),
+    [
+        ("world today", [["hello", "world"], ["today"]], 0, 2),
+        ("new york city", [["nyc", "new york"], ["city"]], 0, 3),
+        ("nyc city", [["nyc", "new york"], ["city"]], 0, 2),
+        ("hello extra", [["hello"]], 1, 1),
+        ("", [["hello"], ["world"]], 2, 2),
+        ("hello there", [["hello"], ["world"]], 1, 2),
+        ("", [[""]], 0, 0),
+        ("hello", [[""]], 1, 0),
+        (
+            "\u092e\u0948\u0902 \u0939\u0942\u0901",
+            [["\u092e\u0948\u0902"], ["\u0939\u0942\u0902", "\u0939\u0942\u0901"]],
+            0,
+            2,
+        ),
+    ],
+)
+def test_openasr_hindi_oiwer_counts(hypothesis, lattice, n_err, n_ref):
+    result = asr_eval.openasr_hi_in_eval(
+        hypothesis,
+        "not the scoring reference",
+        data_source="monsoon_hi_in",
+        extra_info={"language": "Hindi", "lattice": lattice},
+    )
+
+    wer = n_err / n_ref if n_ref else 0.0
+    assert result == {"score": 1.0 - wer, "wer": wer, "n_err": n_err, "n_ref": n_ref}
+
+
+@pytest.mark.parametrize("lattice", [None, [], [[]], ["hello"], [[None]], [["hello", 1]], "hello"])
+def test_openasr_hindi_requires_valid_lattice(lattice):
+    with pytest.raises(ValueError, match="extra_info.*lattice"):
+        asr_eval.openasr_hi_in_eval(
+            "hello",
+            "hello",
+            data_source="monsoon_hi_in",
+            extra_info={"language": "Hindi", "lattice": lattice},
+        )
+
+
+def test_openasr_hindi_rejects_missing_lattice():
+    with pytest.raises(ValueError, match="extra_info.*lattice"):
+        asr_eval.openasr_hi_in_eval(
+            "hello",
+            "hello",
+            data_source="monsoon_hi_in",
+            extra_info={"language": "Hindi"},
+        )
+
+
+def test_openasr_lattice_rejects_unsupported_language():
+    with pytest.raises(ValueError, match="only configured for Hindi"):
+        asr_eval.openasr_hi_in_eval("hello", "hello", extra_info={"language": "French", "lattice": [["hello"]]})
+
+
+def test_openasr_hindi_missing_dependency_has_install_instructions(monkeypatch):
+    monkeypatch.setitem(sys.modules, "voi_oiwer", None)
+    with pytest.raises(ImportError, match="Install voi-oiwer==0.1.4"):
+        asr_eval.openasr_hi_in_eval("hello", "hello", extra_info={"language": "Hindi", "lattice": [["hello"]]})
+
+
+def test_openasr_generic_scorer_does_not_dispatch_hindi_implicitly(monkeypatch):
+    monkeypatch.setitem(sys.modules, "voi_oiwer", None)
+    result = asr_eval.openasr_eval(
+        "world today",
+        "hello today",
+        data_source="monsoon_hi_in",
+        extra_info={"language": "Hindi", "lattice": [["hello", "world"], ["today"]]},
+    )
+    assert result == {"score": 0.5, "wer": 0.5, "n_err": 1, "n_ref": 2}
+
+
+@pytest.mark.parametrize("language", ["English", "German", "French", "Portuguese", "Dutch", "Hindi"])
+def test_openasr_text_references_do_not_require_oiwer(monkeypatch, language):
+    monkeypatch.setitem(sys.modules, "voi_oiwer", None)
+    result = asr_eval.openasr_eval(
+        "hello world",
+        "hello world",
+        extra_info={"language": language, "lattice": None},
+    )
     assert result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 2}
 
 

@@ -3,10 +3,16 @@ defaults:
   - _self_
 
 val_reward:
+  reward_functions:
+    openasr_hi_in:
+      path: recipe/phimm/reward/asr_eval.py
+      name: openasr_hi_in_eval
+      reward_kwargs:
+        version: 2609
   # The mixed TER30 suite uses the multilingual scorer for the AA datasets.
   aa_reward_function: openasr_en
   reward_function_by_data_source:
-    monsoon_hi_in: openasr_ml
+    monsoon_hi_in: openasr_hi_in
     mixlang_fy26q2: inhouse_zh
     name_val: openasr_en
     ls_clean: openasr_en
