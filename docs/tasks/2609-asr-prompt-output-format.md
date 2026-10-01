@@ -346,6 +346,12 @@ function handles ordinary WER only; it does not auto-detect lattices.
 Only the `v2609_asr` evaluation YAMLs enable this dedicated scorer; evaluation
 YAMLs outside that directory retain their existing routing.
 
+For the Hindi/Dutch-only subset, use
+[`eval_2609_openml_hi_nl.yaml`](../../recipe/phimm/config/v2609_asr/eval_2609_openml_hi_nl.yaml).
+It evaluates `monsoon_hi_in`, `nl_fleurs`, `nl_mcv`, and `nl_mls` with the
+same verbatim prompts as the full OpenML suite, without language hints.
+Hindi uses OIWER; the three Dutch datasets use ordinary OpenASR WER.
+
 Hindi uses **orthographically informed WER (OIWER)**, matching MoE's
 `OIWerScorer`, rather than ordinary WER against a single transcript.
 Install `voi-oiwer==0.1.4` (included in the project and vLLM requirements).

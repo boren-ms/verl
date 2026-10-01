@@ -91,6 +91,7 @@ def test_eval_configs_inherit_reward_assignments(config_name):
 @pytest.mark.parametrize(
     "config_path",
     [
+        "v2609_asr/eval_2609_openml_hi_nl",
         "v2609_asr/eval_2609_openml_verb",
         "v2609_asr/eval_2609_openml_verb_langhint",
         "v2609_asr/eval_2609_mix_openml_aa",
@@ -121,3 +122,27 @@ def test_hindi_eval_configs_select_dedicated_oiwer_function(config_path):
         extra_info={"language": "Hindi", "lattice": [["hello", "world"], ["today"]]},
     )
     assert result == {"score": 1.0, "wer": 0.0, "n_err": 0, "n_ref": 2}
+
+
+def test_openml_hi_nl_contains_only_existing_hindi_and_dutch_datasets():
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        config = compose(config_name="eval_2609_openml_hi_nl")
+        full_config = compose(config_name="eval_2609_openml_verb")
+
+    rows = OmegaConf.to_container(config.data.val_data, resolve=True)
+    sources = [row["post_process"]["add_field"]["fields"]["data_source"] for row in rows]
+    assert sources == ["monsoon_hi_in", "nl_fleurs", "nl_mcv", "nl_mls"]
+    full_rows = {
+        row["post_process"]["add_field"]["fields"]["data_source"]: row
+        for row in OmegaConf.to_container(full_config.data.val_data, resolve=True)
+    }
+    assert rows == [full_rows[source] for source in sources]
+    assert OmegaConf.to_container(config.data.train_data, resolve=True) == rows
+    assert config.data.version == 2609
+    assert config.trainer.val_only is True
+    assert config.trainer.val_before_train is True
+    assert config.actor_rollout_ref.model.lora_rank == full_config.actor_rollout_ref.model.lora_rank
+    for source in sources:
+        registration = config.val_reward.reward_function_by_data_source[source]
+        expected = "openasr_hi_in_eval" if source == "monsoon_hi_in" else "openasr_eval"
+        assert config.val_reward.reward_functions[registration].name == expected
