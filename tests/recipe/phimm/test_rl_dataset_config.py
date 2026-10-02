@@ -500,8 +500,9 @@ def test_earnings_recipes_share_source_and_reward_mapping(config_name):
     assert "earnings_tts_clean_verb" not in config.reward_function_by_data_source
 
 
+@pytest.mark.parametrize("suffix,earnings_samples", [("_smp", 10746), ("_smp2", 21492)])
 def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
-    dataset_class, dataset_namespace, monkeypatch
+    dataset_class, dataset_namespace, monkeypatch, suffix, earnings_samples
 ):
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
@@ -509,9 +510,9 @@ def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
     searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
         base = compose(config_name=recipe_name, overrides=[searchpath])
-        sampled = compose(config_name=f"{recipe_name}_smp", overrides=[searchpath])
+        sampled = compose(config_name=f"{recipe_name}{suffix}", overrides=[searchpath])
         overridden = compose(
-            config_name=f"{recipe_name}_smp",
+            config_name=f"{recipe_name}{suffix}",
             overrides=[
                 searchpath,
                 "data.data_source.earnings_fy27.num_sample=15000",
@@ -520,7 +521,7 @@ def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
         )
 
     assert OmegaConf.to_container(sampled.data.data_source, resolve=True) == {
-        "earnings_fy27": {"num_sample": 10746},
+        "earnings_fy27": {"num_sample": earnings_samples},
         "openml": {"num_sample": 10746},
     }
     flatten = _load_flatten_data_confs()
@@ -550,15 +551,31 @@ def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
     monkeypatch.setitem(dataset_namespace, "create_audio_dataset", load_source)
     training = dataset_class(sampled.data.train_data, None, sampled.data)
     assert Counter(training.ds["data_source"]) == {
-        "earnings_fy27": 10746,
+        "earnings_fy27": earnings_samples,
         "openml": 10746,
     }
-    assert len(training) == 21492
-    assert list(training.ds["data_source"]) == ["earnings_fy27"] * 10746 + ["openml"] * 10746
+    assert len(training) == earnings_samples + 10746
+    assert list(training.ds["data_source"]) == ["earnings_fy27"] * earnings_samples + ["openml"] * 10746
     del sampled.data.data_source
     assert OmegaConf.to_container(sampled, resolve=False) == OmegaConf.to_container(base, resolve=False)
     assert overridden.data.data_source.earnings_fy27.num_sample == 15000
     assert overridden.data.data_source.openml.num_sample == 12800
+
+
+def test_v1_source_sampling_recipe_changes_only_model():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    recipe_suffix = "earning_ml_verb_hint_s1k_bs128_n8_r256_g32"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        v0 = compose(config_name=f"remax_2609v0_{recipe_suffix}_flr_smp", overrides=[searchpath])
+        v1 = compose(config_name=f"remax_2609v1_{recipe_suffix}_flr_smp", overrides=[searchpath])
+        existing_v1 = compose(config_name=f"remax_2609v1_{recipe_suffix}_nshf_flr", overrides=[searchpath])
+
+    assert v1.actor_rollout_ref.model.path == existing_v1.actor_rollout_ref.model.path
+    assert v1.actor_rollout_ref.model.path != v0.actor_rollout_ref.model.path
+    v1.actor_rollout_ref.model.path = v0.actor_rollout_ref.model.path
+    assert OmegaConf.to_container(v1, resolve=False) == OmegaConf.to_container(v0, resolve=False)
 
 
 def test_load_audio_with_retries_skips_unreadable_training_sample():

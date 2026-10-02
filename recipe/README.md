@@ -14,6 +14,13 @@ data:
     openml: {num_sample: 10746}
 ```
 
+The [double-earnings sampling recipe](phimm/config/v2609_asr/remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp2.yaml)
+uses 21,492 samples for the combined `earnings_fy27` datasource (including TTS)
+and keeps OpenML at 10,746 samples; all other settings match the `_smp` recipe.
+The [2609v1 sampling recipe](phimm/config/v2609_asr/remax_2609v1_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp.yaml)
+instead keeps both budgets at 10,746 and changes only the model to the v1 shadow
+checkpoint at step 54,000, which requires an HF export before training.
+
 When `data.data_source` is non-null, before combining training data, `RLHFDataset` calls
 `group_weighted_datasource(datasets, datasource_settings)` after
 loading/preprocessing (or reading a cache).
