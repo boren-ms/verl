@@ -477,7 +477,7 @@ def test_source_is_inferred_only_from_first_sample(source_sampler):
     "config_name",
     sorted(
         path.stem
-        for path in (Path(__file__).parents[3] / "recipe/phimm/config/v2609_asr").glob("*earning_ml_verb_hint*.yaml")
+        for path in (Path(__file__).parents[3] / "recipe/phimm/config/v2609_asr").glob("*earning_ml*verb_hint*.yaml")
     ),
 )
 def test_earnings_recipes_share_source_and_reward_mapping(config_name):
@@ -489,12 +489,15 @@ def test_earnings_recipes_share_source_and_reward_mapping(config_name):
             overrides=[f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"],
         )
     sources = _load_flatten_data_confs()(config.data.train_data)
-    assert [source.post_process.add_field.fields.data_source for source in sources] == [
+    expected_sources = [
         "earnings_fy27",
         "earnings_fy27",
         "earnings_fy27",
         "openml",
     ]
+    if "_earning_ml_ls_" in config_name:
+        expected_sources.append("ls_rare_verb")
+    assert [source.post_process.add_field.fields.data_source for source in sources] == expected_sources
     assert config.reward_function_by_data_source.earnings_fy27 == "openml"
     assert "earning_fy27_verb" not in config.reward_function_by_data_source
     assert "earnings_tts_clean_verb" not in config.reward_function_by_data_source
@@ -576,6 +579,66 @@ def test_v1_source_sampling_recipe_changes_only_model():
     assert v1.actor_rollout_ref.model.path != v0.actor_rollout_ref.model.path
     v1.actor_rollout_ref.model.path = v0.actor_rollout_ref.model.path
     assert OmegaConf.to_container(v1, resolve=False) == OmegaConf.to_container(v0, resolve=False)
+
+
+def test_ls_rare_sampling_recipe_adds_verbatim_hint_data(dataset_class, dataset_namespace, monkeypatch):
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    recipe_name = "remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        base = compose(config_name=recipe_name, overrides=[searchpath])
+        config = compose(config_name=recipe_name.replace("_ml_", "_ml_ls_"), overrides=[searchpath])
+
+    flatten = _load_flatten_data_confs()
+    train = flatten(config.data.train_data)
+    val = flatten(config.data.val_data)
+    base_train = flatten(base.data.train_data)
+    base_val = flatten(base.data.val_data)
+    assert train[:-1] == base_train
+    assert val[:-2] == base_val
+    assert [item.post_process.add_field.fields.data_source for item in val[-2:]] == ["ls_clean", "ls_other"]
+    original_train = OmegaConf.load(config_root / "data/train_data/ls_rare_nonempty_verb.yaml")
+    original_val = OmegaConf.load(config_root / "data/val_data/ls_kw_verb.yaml")
+    for added, original in zip([train[-1], *val[-2:]], [original_train, *original_val], strict=True):
+        assert added.add_task_info == {
+            "task": "lang_asr_verb", "language": "English", "prefix_prob": 0.0, "lang_hint": True,
+        }
+        expected = OmegaConf.to_container(original, resolve=True)
+        expected["add_task_info"]["lang_hint"] = True
+        assert OmegaConf.to_container(added, resolve=True) == expected
+
+    assert config.reward_function_by_data_source.ls_rare_verb == "openml"
+    assert config.reward_functions.openml.reward_kwargs.measures.keyword.beta == 1.0
+    assert config.reward_functions.openml.reward_kwargs.version == 2609
+    for source in ("ls_clean", "ls_other"):
+        assert base.val_reward.reward_function_by_data_source[source] == "openasr_en"
+        assert config.val_reward.reward_function_by_data_source[source] == "openasr_en"
+    assert config.val_reward.reward_functions.openasr_en.reward_kwargs.version == 2609
+    assert config.data.data_source.ls_rare_verb == {"num_sample": 10746}
+
+    def load_source(**conf):
+        source = conf["post_process"]["add_field"]["fields"]["data_source"]
+        size = 256213 if source == "ls_rare_verb" else 3
+        return datasets.Dataset.from_dict({"id": list(range(size)), "data_source": [source] * size})
+
+    monkeypatch.setitem(dataset_namespace, "create_audio_dataset", load_source)
+    training = dataset_class(config.data.train_data, None, config.data)
+    assert Counter(training.ds["data_source"]) == {"earnings_fy27": 10746, "openml": 10746, "ls_rare_verb": 10746}
+    validation = dataset_class(config.data.val_data, None, config.data, is_train=False)
+    assert Counter(validation.ds["data_source"]) == {
+        item.post_process.add_field.fields.data_source: 3 for item in val
+    }
+
+    config.data.train_data = base.data.train_data
+    config.data.val_data = base.data.val_data
+    remaining = OmegaConf.to_container(config, resolve=False)
+    del remaining["_ls_train"]
+    del remaining["_ls_val"]
+    del remaining["reward_functions"]["openml"]["reward_kwargs"]["measures"]["keyword"]
+    del remaining["reward_function_by_data_source"]["ls_rare_verb"]
+    del remaining["data"]["data_source"]["ls_rare_verb"]
+    assert remaining == OmegaConf.to_container(base, resolve=False)
 
 
 def test_load_audio_with_retries_skips_unreadable_training_sample():

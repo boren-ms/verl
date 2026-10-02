@@ -20,6 +20,14 @@ and keeps OpenML at 10,746 samples; all other settings match the `_smp` recipe.
 The [2609v1 sampling recipe](phimm/config/v2609_asr/remax_2609v1_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp.yaml)
 instead keeps both budgets at 10,746 and changes only the model to the v1 shadow
 checkpoint at step 54,000, which requires an HF export before training.
+The [LibriSpeech rare-keyword variant](phimm/config/v2609_asr/remax_2609v0_earning_ml_ls_verb_hint_s1k_bs128_n8_r256_g32_flr_smp.yaml)
+adds rare-keyword training and test-clean/test-other validation using verbatim
+English language-hint prompts. It sets all three datasource budgets to 10,746,
+sampling `ls_rare_verb` from its verified 256,213-sample manifest,
+with a shared 2609 reward including keyword accuracy.
+Other training settings remain those of `_smp`, not the 2607 donor.
+The shared [2609 base](phimm/config/v2609_asr/base.yaml) routes `ls_clean` and
+`ls_other` validation to `openasr_en`.
 
 When `data.data_source` is non-null, before combining training data, `RLHFDataset` calls
 `group_weighted_datasource(datasets, datasource_settings)` after

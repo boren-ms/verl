@@ -32,6 +32,8 @@ val_reward:
       reward_kwargs:
         version: 2609
   reward_function_by_data_source:
+    ls_clean: openasr_en
+    ls_other: openasr_en
     mixlang: inhouse_zh
     earning: openasr_en
     openml_bad: openasr_ml
