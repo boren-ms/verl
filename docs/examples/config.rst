@@ -540,6 +540,12 @@ Trainer
 - ``trainer.project_name``: For wandb, swanlab, mlflow
 - ``trainer.experiment_name``: For wandb, swanlab, mlflow
 - ``trainer.logger``: Support console and wandb, swanlab, mlflow, tensorboard, trackio
+  PPO and DAPO training log ``data_source/<source>/num_samples`` at each training
+  step when the batch contains ``data_source`` metadata. These metrics count
+  rollout rows in the final training batch after repetition and filtering, not
+  unique prompts or cumulative samples. Only sources present in that batch are
+  emitted. Enable ``wandb`` in ``trainer.logger`` to track these counts in W&B;
+  the counts are also sent to other configured logging backends.
 - ``trainer.log_val_generations``: The number of logged generation during validation (default ``0``)
 - ``trainer.nnodes``: Number of nodes used in the training.
 - ``trainer.n_gpus_per_node``: Number of GPUs per node.

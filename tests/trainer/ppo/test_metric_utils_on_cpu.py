@@ -21,6 +21,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import torch
 
+from verl import DataProto
 from verl.trainer.ppo.metric_utils import (
     bootstrap_metric,
     calc_maj_val,
@@ -32,6 +33,7 @@ from verl.trainer.ppo.metric_utils import (
 from verl.utils.metric import (
     reduce_metrics,
 )
+from verl.utils.tracking import Tracking
 
 
 class TestReduceMetrics(unittest.TestCase):
@@ -74,6 +76,7 @@ class TestComputeDataMetrics(unittest.TestCase):
         """Set up common test data."""
         # Create a mock DataProto object
         self.batch = MagicMock()
+        self.batch.non_tensor_batch = {}
         self.batch.batch = {
             "token_level_scores": torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
             "token_level_rewards": torch.tensor([[0.5, 1.0], [1.5, 2.0]]),
@@ -125,6 +128,68 @@ class TestComputeDataMetrics(unittest.TestCase):
         self.assertIn("critic/score/mean", metrics)
         self.assertIn("critic/rewards/mean", metrics)
         self.assertIn("response_length/mean", metrics)
+
+    def test_compute_data_metrics_per_data_source(self):
+        self.batch.non_tensor_batch["data_source"] = np.array(["speech/en", "speech/zh"], dtype=object)
+
+        for use_critic in (True, False):
+            with self.subTest(use_critic=use_critic):
+                metrics = compute_data_metrics(self.batch, use_critic=use_critic)
+                counts = {key: value for key, value in metrics.items() if key.startswith("data_source/")}
+
+                self.assertEqual(
+                    counts,
+                    {"data_source/speech/en/num_samples": 1, "data_source/speech/zh/num_samples": 1},
+                )
+                self.assertEqual(sum(counts.values()), 2)
+                self.assertTrue(all(isinstance(count, int) for count in counts.values()))
+
+    def test_compute_data_metrics_logged_to_wandb(self):
+        self.batch.non_tensor_batch["data_source"] = np.array(["speech/en", "speech/en"], dtype=object)
+        metrics = compute_data_metrics(self.batch)
+        wandb = MagicMock()
+
+        with patch.dict("sys.modules", {"wandb": wandb}):
+            logger = Tracking("test-project", "test-run", default_backend="wandb", config={"trainer": {}})
+            logger.log(data=metrics, step=7)
+
+        wandb.log.assert_called_once_with(data=metrics, step=7)
+        self.assertEqual(wandb.log.call_args.kwargs["data"]["data_source/speech/en/num_samples"], 2)
+
+    def test_compute_data_metrics_without_data_source(self):
+        metrics = compute_data_metrics(self.batch)
+
+        self.assertFalse(any(key.startswith("data_source/") for key in metrics))
+
+    def test_compute_data_metrics_counts_repeated_and_retained_samples(self):
+        batch = DataProto.from_dict(
+            tensors=self.batch.batch,
+            non_tensors={"data_source": np.array(["speech/en", "speech/zh"], dtype=object)},
+        )
+        for interleave in (True, False):
+            with self.subTest(interleave=interleave):
+                repeated = batch.repeat(repeat_times=3, interleave=interleave)
+                metrics = compute_data_metrics(repeated)
+                self.assertEqual(metrics["data_source/speech/en/num_samples"], 3)
+                self.assertEqual(metrics["data_source/speech/zh/num_samples"], 3)
+
+        retained = batch.repeat(repeat_times=3).select_idxs([0, 1, 3])
+        retained.reorder(torch.tensor([2, 0, 1]))
+        metrics = compute_data_metrics(retained)
+
+        self.assertEqual(metrics["data_source/speech/en/num_samples"], 2)
+        self.assertEqual(metrics["data_source/speech/zh/num_samples"], 1)
+        self.assertAlmostEqual(metrics["critic/score/mean"], 13 / 3, places=6)
+
+    def test_compute_data_metrics_counts_aborted_samples(self):
+        self.batch.non_tensor_batch["data_source"] = np.array(["speech/en", "speech/en"], dtype=object)
+        self.batch.batch["attention_mask"][0, -2:] = 0
+        self.batch.batch["response_mask"][0] = 0
+
+        metrics = compute_data_metrics(self.batch)
+
+        self.assertEqual(metrics["data_source/speech/en/num_samples"], 2)
+        self.assertEqual(metrics["critic/score/mean"], 7.0)
 
 
 class TestComputeTimingMetrics(unittest.TestCase):

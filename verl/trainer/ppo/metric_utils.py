@@ -15,7 +15,7 @@
 Metrics related to the PPO trainer.
 """
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from functools import partial
 from typing import Any, Callable
 
@@ -100,6 +100,8 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = True) -> dict[str,
             - response_length/mean, max, min, clip_ratio: Statistics about response lengths
             - prompt_length/mean, max, min, clip_ratio: Statistics about prompt lengths
             - num_turns/mean, max, min: Statistics about the number of multi-turn conversations
+            - data_source/{source}/num_samples: Number of rollout rows per data source in the
+              final training batch, after repetition and filtering (if data_source is present)
     """
     sequence_score = batch.batch["token_level_scores"].sum(-1)
     sequence_reward = batch.batch["token_level_rewards"].sum(-1)
@@ -207,6 +209,10 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = True) -> dict[str,
         "prompt_length/min": torch.min(prompt_length).detach().item(),
         "prompt_length/clip_ratio": torch.mean(torch.eq(prompt_length, max_prompt_length).float()).detach().item(),
     }
+
+    if "data_source" in batch.non_tensor_batch:
+        source_counts = Counter(str(source) for source in batch.non_tensor_batch["data_source"])
+        metrics.update({f"data_source/{source}/num_samples": count for source, count in source_counts.items()})
 
     if "reward_baselines" in batch.batch:
         reward_baselines = batch.batch["reward_baselines"]
