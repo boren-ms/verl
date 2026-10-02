@@ -5,11 +5,12 @@ import logging
 import math
 import os
 import queue
+import random
 import re
 import threading
 import traceback
 import uuid
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -57,12 +58,18 @@ def dataset_namespace():
         type_ignores=[],
     )
     sources = {
-        "short": datasets.Dataset.from_dict({"audio_path": ["bad.wav"]}),
-        "long": datasets.Dataset.from_dict({"audio_path": ["good0.wav", "good1.wav", "good2.wav"]}),
+        "short": datasets.Dataset.from_dict({"audio_path": ["bad.wav"], "data_source": ["short"]}),
+        "long": datasets.Dataset.from_dict({
+            "audio_path": ["good0.wav", "good1.wav", "good2.wav"],
+            "data_source": ["long"] * 3,
+        }),
     }
     namespace = {
         "Dataset": object,
         "Sequence": Sequence,
+        "Mapping": Mapping,
+        "math": math,
+        "random": random,
         "datasets": datasets,
         "sf": sf,
         "logger": logging.getLogger(__name__),

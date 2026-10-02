@@ -1,4 +1,4 @@
-# Verb-only FY27 earnings and clean Polyus TTS with known-language prompts.
+# Verb-only FY27 earnings and clean Polyus TTS sharing earnings_fy27 with known-language prompts.
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl
   pre_process:
@@ -18,7 +18,7 @@
   post_process:
     add_field:
       fields:
-        data_source: earning_fy27_verb
+        data_source: earnings_fy27
     verl_format:
       prompt_key: prompt
 
@@ -41,7 +41,7 @@
   post_process:
     add_field:
       fields:
-        data_source: earning_fy27_verb
+        data_source: earnings_fy27
     verl_format:
       prompt_key: prompt
 
@@ -62,6 +62,6 @@
   post_process:
     add_field:
       fields:
-        data_source: earnings_tts_clean_verb
+        data_source: earnings_fy27
     verl_format:
       prompt_key: prompt

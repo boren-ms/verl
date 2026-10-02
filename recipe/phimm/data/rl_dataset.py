@@ -1,5 +1,7 @@
 import logging
-from collections.abc import Sequence
+import math
+import random
+from collections.abc import Mapping, Sequence
 from typing import Optional
 
 import datasets
@@ -119,6 +121,55 @@ def _align_null_features(data_sets):
     return aligned
 
 
+def group_weighted_datasource(
+    data_sets: Sequence[datasets.Dataset], source_config: Mapping | None = None
+) -> list[datasets.Dataset]:
+    """Return one weighted dataset per source, in first-appearance order."""
+    if source_config is None:
+        source_config = {}
+    if not isinstance(source_config, Mapping):
+        raise ValueError("data.data_source must map datasource names to num_epoch/num_sample settings.")
+    grouped = {}
+    for index, ds in enumerate(data_sets):
+        if not len(ds):
+            logger.warning("Skipping empty training dataset %s; its data_source cannot be inferred.", index)
+            continue
+        source = ds[0].get("data_source", "default")
+        grouped.setdefault(source, []).append(ds)
+    missing = set(source_config) - set(grouped)
+    if missing:
+        logger.warning("Configured data_source names have no non-empty training datasets: %s", sorted(missing))
+
+    sampled = []
+    for source, parts in grouped.items():
+        ds = datasets.concatenate_datasets(parts) if len(parts) > 1 else parts[0]
+        options = source_config.get(source, {})
+        num_epoch, num_sample = options.get("num_epoch"), options.get("num_sample")
+        size = len(ds)
+        if num_epoch is not None:
+            num_sample = math.floor(size * num_epoch)
+        if num_sample is None:
+            num_sample = size
+        if num_sample < 0:
+            raise ValueError(f"Datasource {source} has a negative sampled size: {num_sample}")
+        logger.info("Datasource %s: %s datasets, %s => %s rows", source, len(parts), size, num_sample)
+        if num_sample == 0:
+            continue
+        if num_sample != size:
+            full_passes, remainder = divmod(num_sample, size)
+            repeated = [ds] * full_passes
+            if remainder:
+                indices = random.sample(range(size), remainder)
+                repeated.append(ds.select(indices))
+            ds = datasets.concatenate_datasets(repeated) if len(repeated) > 1 else repeated[0]
+        if options.get("shuffle", False):
+            ds = ds.shuffle()
+        sampled.append(ds)
+    if not sampled:
+        raise ValueError("No samples remain after applying data.data_source budgets.")
+    return sampled
+
+
 class RLHFDataset(Dataset):
     """
     Load and preprocess RLHF data from Parquet files.
@@ -174,6 +225,8 @@ class RLHFDataset(Dataset):
             for data_conf in self.data_confs
         ]
         data_sets = _align_null_features(data_sets)
+        if self.is_training:
+            data_sets = group_weighted_datasource(data_sets, self.config.get("data_source"))
         if self.is_training and self.use_interleave and len(data_sets) > 1:
             logger.info(
                 "Interleaving %s datasets with parameters: %s",
