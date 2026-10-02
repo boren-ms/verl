@@ -1,33 +1,32 @@
-updated_at_utc: 2026-10-02T04:42:03Z
+updated_at_utc: 2026-10-02T17:17:15Z
 
 ┌────────┬────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────┬────────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                       │ PROGRESS / PHASE                                   │
 ├────────┼────────────────────────────┼───────────┼────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────┤
 │ n2-i1  │ raysubmit_JB1ZqHjCJp2YQaiq │ RUNNING   │ remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_simple                   │ training 99/1000 (9.9%)                            │
-│ n2-i2  │ raysubmit_9deEjfi8xry9FYVV │ RUNNING   │ eval_2609_openall_mix (ml_hint_s200 step150)                       │ evaluating openasr English (decoding)              │
-│ n2-i3  │ raysubmit_u8TcUPZDGa6KtBxk │ RUNNING   │ eval_2609_openml_verb                                              │ evaluating it_mcv (2131 audio files cached)       │
+│ n2-i2  │ raysubmit_RB7HU9uVhegPP9VK │ SUCCEEDED │ OpenASR report (ml_hint_s200 steps150/200)                        │ building report (complete)                        │
+│ n2-i3  │ raysubmit_dpsws6qaPXaXS3NW │ SUCCEEDED │ eval_2609_openml_verb                                              │ evaluating openasr_ml (complete; node paused)      │
 │ n2-i4  │ raysubmit_2xu7W9QeQksgi5yH │ RUNNING   │ remax_2609v0_mix_s200_bs128_n4_r128_g16_gt                         │ training startup                                   │
 │ n2-i5  │ raysubmit_hcQm5MvrjxsxvT2d │ SUCCEEDED │ eval_2609_openall_mix                                              │ evaluating mixlang/openasr/openml (complete)       │
-│ n4-i0  │ raysubmit_icsYe23GNDD3RtMb │ RUNNING   │ remax_2609v0a_earning_s1k_bs128_n4_r256_g32                        │ training 527/1000 (52.7%)                          │
-│ n4-i1  │ raysubmit_QfEbK7Fh27FauUtV │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_nsfl       │ training 216/1000 (21.6%); checkpoint 200 complete │
-│ n4-i2  │ raysubmit_Cc5y3w3JrHTM2Zdb │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32            │ training 416/1000 (41.6%)                          │
-│ n4-i3  │ raysubmit_Wh8euyv79D8pEB71 │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp2   │ training 19/1000 (1.9%)                            │
-│ n4-i4  │ raysubmit_hfDS3RK4yzVstJyr │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr        │ training 100/1000 (10.0%)                          │
-│ n4h-i0 │ raysubmit_fEFLw7puNCiQBNBX │ RUNNING   │ remax_2609v0_earning_ml_ls_verb_hint_s1k_bs128_n8_r256_g32_flr_smp │ training 0/1000 (0%); initial validation scoring    │
-│ n4h-i1 │ raysubmit_uMhYLzvqFJNTYjL8 │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp    │ training 135/1000 (13.5%); checkpoint 100 verified │
+│ n4-i0  │ raysubmit_yjQuh1WW7FzeAkHs │ RUNNING   │ remax_2609v0a_earning_s1k_bs128_n4_r256_g32                        │ evaluating OpenASR/MixLang (restart startup)      │
+│ n4-i2  │ raysubmit_n7VSDMZ5TWYg5HCS │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32            │ training 994/1000 (99.4%)                          │
+│ n4-i3  │ raysubmit_Wh8euyv79D8pEB71 │ LOST      │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp2   │ training recovery: restoring replacement pods   │
+│ n4-i4  │ raysubmit_hfDS3RK4yzVstJyr │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr        │ training 878/1000 (87.8%); checkpoint 850 verified  │
+│ n4h-i0 │ raysubmit_FmeiQh9XyGpx8YVa │ RUNNING   │ remax_2609v0_earning_ml_ls_verb_hint_s1k_bs128_n8_r256_g32_flr_smp │ training startup; restoring checkpoint 800        │
+│ n4h-i1 │ raysubmit_2k7Y7BQEXysMF2y6 │ STOPPED   │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp    │ training stopped by user; checkpoint850 retained │
 └────────┴────────────────────────────┴───────────┴────────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0_earning_ml_ls_verb_hint_s1k_bs128_n8_r256_g32_flr_smp` [`n4h-i0`]: training 0/1000 (0%)
-- `remax_2609v0_ml_hint_s200_bs128_n8_r256_g16` [`n2-i2`]: evaluating openasr English step 150
-- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_nsfl` [`n4-i1`]: training 216/1000 (21.6%)
+- `remax_2609v0_earning_ml_ls_verb_hint_s1k_bs128_n8_r256_g32_flr_smp` [`n4h-i0`]: training startup
+- `remax_2609v0_ml_hint_s200_bs128_n8_r256_g16` [`n2-i2`]: complete steps 150/200
+- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_nsfl` [`n4-i1`]: training stopped by user; checkpoint 900 retained
 - `remax_2609v0_ml_hint_s100_bs128_n8_r256_g16` [`n2-i5`]: complete step 100
 - `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_simple` [`n2-i1`]: training 99/1000 (9.9%)
 - `remax_2609v0_mix_s200_bs128_n4_r128_g16_gt` [`n2-i4`]: training startup
 - `remax_2609v0_mix_ml_s1k_bs128_n4_r128_g16_v1_gt` [`n2-i5`]: stopped by user for step100 evaluation
-- `remax_2609v0a_earning_s1k_bs128_n4_r256_g32` [`n4-i0`]: training 527/1000 (52.7%)
-- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32` [`n4-i2`]: training 416/1000 (41.6%)
-- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp2` [`n4-i3`]: training 19/1000 (1.9%)
+- `remax_2609v0a_earning_s1k_bs128_n4_r256_g32` [`n4-i0`]: evaluating OpenASR/MixLang step 1000
+- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32` [`n4-i2`]: training 994/1000 (99.4%)
+- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp2` [`n4-i3`]: failed training step 883
 - `remax_2609v0_earning_ml_s1k_bs128_n8_r256_g32` [`n4-i4`]: stopped by user
-- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr` [`n4-i4`]: training 100/1000 (10.0%)
-- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp` [`n4h-i1`]: training 135/1000 (13.5%)
+- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr` [`n4-i4`]: training 878/1000 (87.8%)
+- `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp` [`n4h-i1`]: stopped by user

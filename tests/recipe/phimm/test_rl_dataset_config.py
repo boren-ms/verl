@@ -136,7 +136,7 @@ def dataset_class(dataset_namespace):
 
 @pytest.fixture
 def source_sampler(dataset_namespace):
-    return dataset_namespace["group_weighted_datasource"]
+    return dataset_namespace["group_datasets"]
 
 
 @pytest.fixture
@@ -181,11 +181,11 @@ def test_dataset_budgets_combined_datasources_and_preserves_caches(dataset_class
 @pytest.mark.parametrize(
     ("dataset_order", "source_order"),
     [
-        ([0, 1, 2], ["earning", "openml"]),
+        ([0, 1, 2], ["openml", "earning"]),
         ([1, 0, 2], ["openml", "earning"]),
     ],
 )
-def test_datasources_stay_serial_in_first_appearance_order(dataset_class, cached_sources, dataset_order, source_order):
+def test_datasources_stay_serial_in_configured_key_order(dataset_class, cached_sources, dataset_order, source_order):
     config = OmegaConf.create(
         {
             "use_interleave": False,
@@ -211,16 +211,15 @@ def test_datasources_stay_serial_in_first_appearance_order(dataset_class, cached
         {"stopping_strategy": "all_exhausted", "probabilities": [0.3, 0.7], "seed": 7},
     ],
 )
-def test_interleaving_uses_weighted_datasource_groups(dataset_class, cached_sources, interleave_options):
+@pytest.mark.parametrize("source_order", [("earning", "openml"), ("openml", "earning")])
+def test_interleaving_uses_weighted_datasource_groups(dataset_class, cached_sources, interleave_options, source_order):
+    budgets = {"earning": {"num_epoch": 2}, "openml": {"num_sample": 3}}
     config = OmegaConf.create(
         {
             "use_interleave": True,
             "num_proc": None,
             "interleave_ds": interleave_options,
-            "data_source": {
-                "earning": {"num_epoch": 2},
-                "openml": {"num_sample": 3},
-            },
+            "data_source": {source: budgets[source] for source in source_order},
         }
     )
     dataset = dataset_class(cached_sources, None, config)
@@ -228,8 +227,9 @@ def test_interleaving_uses_weighted_datasource_groups(dataset_class, cached_sour
         [datasets.Dataset.load_from_disk(cached_sources[i]["cache_path"]) for i in [0, 2, 0, 2]]
     )
     openml = datasets.Dataset.load_from_disk(cached_sources[1]["cache_path"]).select([0, 1, 0])
+    groups = {"earning": earning, "openml": openml}
     expected = datasets.interleave_datasets(
-        [earning, openml],
+        [groups[source] for source in source_order],
         **interleave_options,
     )
     assert dataset.ds.to_dict() == expected.to_dict()
@@ -284,7 +284,7 @@ def test_zero_budget_omits_source_and_rejects_empty_mixture(dataset_class, cache
         dataset_class(cached_sources, None, config)
 
 
-@pytest.mark.parametrize("extra_config", [{}, {"data_source": {}}, {"data_source": None}])
+@pytest.mark.parametrize("extra_config", [{}, {"data_source": {"earning": {}, "openml": {}}}, {"data_source": None}])
 def test_training_interleaving_groups_only_with_source_config(dataset_class, cached_sources, extra_config):
     dataset = dataset_class(cached_sources, None, OmegaConf.create({"num_proc": None, **extra_config}))
     if extra_config.get("data_source") is None:
@@ -293,7 +293,7 @@ def test_training_interleaving_groups_only_with_source_config(dataset_class, cac
         assert list(dataset.ds["id"]) == ["first-0", "other-0", "first-1", "other-1"]
 
 
-@pytest.mark.parametrize("extra_config", [{}, {"data_source": {}}, {"data_source": None}])
+@pytest.mark.parametrize("extra_config", [{}, {"data_source": {"earning": {}, "openml": {}}}, {"data_source": None}])
 def test_concatenation_groups_only_with_source_config(dataset_class, cached_sources, extra_config):
     dataset = dataset_class(
         cached_sources,
@@ -315,7 +315,7 @@ def test_missing_or_null_source_config_skips_grouping(
     def unexpected_grouping(*args, **kwargs):
         raise AssertionError("Grouping must not run without a non-null data_source setting")
 
-    monkeypatch.setitem(dataset_namespace, "group_weighted_datasource", unexpected_grouping)
+    monkeypatch.setitem(dataset_namespace, "group_datasets", unexpected_grouping)
     dataset = dataset_class(
         cached_sources,
         None,
@@ -352,7 +352,7 @@ def test_source_budget_is_applied_once_across_datasets(source_sampler, options, 
         datasets.Dataset.from_dict({"id": ["other"], "data_source": ["unbudgeted"]}),
         datasets.Dataset.from_dict({"id": ["c", "d"], "data_source": ["earning"] * 2}),
     ]
-    grouped = source_sampler(inputs, OmegaConf.create({"earning": options}))
+    grouped = source_sampler(inputs, OmegaConf.create({"earning": options, "unbudgeted": {}}))
     assert isinstance(grouped, list)
     assert all(isinstance(ds, datasets.Dataset) for ds in grouped)
     assert [len(ds) for ds in grouped] == ([len(expected), 1] if expected else [1])
@@ -363,10 +363,11 @@ def test_source_budget_is_applied_once_across_datasets(source_sampler, options, 
     assert [len(ds) for ds in inputs] == [2, 1, 2]
 
 
-def test_source_config_must_be_a_mapping(source_sampler):
+@pytest.mark.parametrize("config", [None, []])
+def test_source_config_must_be_a_mapping(source_sampler, config):
     ds = datasets.Dataset.from_dict({"id": ["a"], "data_source": ["earning"]})
     with pytest.raises(ValueError, match="must map"):
-        source_sampler([ds], OmegaConf.create([]))
+        source_sampler([ds], config)
 
 
 @pytest.mark.parametrize("options", [{"num_epoch": -1}, {"num_sample": -1}])
@@ -377,12 +378,49 @@ def test_negative_result_size_raises_when_sampling(source_sampler, options):
 
 
 @pytest.mark.parametrize("missing_options", [{"num_sample": 100}, {"num_sample": -1}, "unused"])
-def test_missing_configured_sources_only_warn(source_sampler, caplog, missing_options):
+def test_missing_configured_sources_raise(source_sampler, missing_options):
     ds = datasets.Dataset.from_dict({"id": ["a"], "data_source": ["earning"]})
-    result = source_sampler([ds], {"missing": missing_options, "earning": {"num_epoch": 2}})
-    assert len(result) == 1
-    assert list(result[0]["id"]) == ["a", "a"]
-    assert "no non-empty training datasets: ['missing']" in caplog.text
+    with pytest.raises(ValueError, match=r"no non-empty training datasets: \['missing'\]"):
+        source_sampler([ds], {"missing": missing_options, "earning": {"num_epoch": 2}})
+
+
+@pytest.mark.parametrize("config", [{}, {"beta": {}, "alpha": {}}])
+def test_unlisted_sources_raise(source_sampler, config):
+    inputs = [
+        datasets.Dataset.from_dict({"id": [index], "data_source": [source]})
+        for index, source in enumerate(["unlisted-z", "alpha", "beta", "unlisted-a", "alpha"])
+    ]
+    with pytest.raises(ValueError, match="missing from data.data_source.*unlisted-z.*unlisted-a"):
+        source_sampler(inputs, config)
+
+
+def test_empty_source_mapping_rejects_loaded_training_sources(dataset_class, cached_sources):
+    with pytest.raises(ValueError, match="missing from data.data_source"):
+        dataset_class(cached_sources, None, OmegaConf.create({"num_proc": None, "data_source": {}}))
+
+
+@pytest.mark.parametrize("configured", [
+    {"earning": {}, "typo": {}},
+    {"typo": {}, "another": {}},
+    {None: {}, 1: {}},
+])
+def test_source_match_error_reports_both_directions(source_sampler, configured, monkeypatch):
+    inputs = [
+        datasets.Dataset.from_dict({"id": [index], "data_source": [source]})
+        for index, source in enumerate(["earning", "openml"])
+    ]
+
+    def unexpected_sampling(*args, **kwargs):
+        raise AssertionError("Datasource matching must be checked before sampling")
+
+    monkeypatch.setattr(datasets.Dataset, "shuffle", unexpected_sampling)
+    monkeypatch.setattr(random, "sample", unexpected_sampling)
+    with pytest.raises(ValueError, match="Datasource names do not match") as exc_info:
+        source_sampler(inputs, configured)
+    missing = [source for source in configured if source not in {"earning", "openml"}]
+    unlisted = [source for source in ["earning", "openml"] if source not in configured]
+    assert f"no non-empty training datasets: {missing}" in str(exc_info.value)
+    assert f"missing from data.data_source: {unlisted}" in str(exc_info.value)
 
 
 @pytest.mark.parametrize("shuffle", [False, True])
@@ -400,7 +438,7 @@ def test_each_sampled_source_can_be_shuffled(source_sampler, shuffle, budget, mo
     monkeypatch.setattr(datasets.Dataset, "shuffle", track_shuffle)
     expected_rng = random.Random()
     expected_rng.setstate(random.getstate())
-    config = OmegaConf.create({"earning": {**budget, "shuffle": shuffle}})
+    config = OmegaConf.create({"earning": {**budget, "shuffle": shuffle}, "other": {}})
     grouped = source_sampler([source.select(range(5)), other, source.select(range(5, 10))], config)
     expected = source
     if budget.get("num_epoch") == 2:
@@ -445,7 +483,7 @@ def test_shuffle_defaults_to_false(source_sampler, monkeypatch):
         raise AssertionError("Dataset.shuffle must not run when shuffle is omitted")
 
     monkeypatch.setattr(datasets.Dataset, "shuffle", unexpected_shuffle)
-    assert list(source_sampler([source])[0]["id"]) == list(range(10))
+    assert list(source_sampler([source], {"earning": {}})[0]["id"]) == list(range(10))
     sampled = source_sampler([source], {"earning": {"num_sample": 4}})[0]
     assert list(sampled["id"]) == random.Random(42).sample(range(10), 4)
 
@@ -463,7 +501,7 @@ def test_loader_applies_per_source_shuffle(dataset_class, cached_sources, monkey
         {
             "use_interleave": False,
             "num_proc": None,
-            "data_source": {"earning": {"num_epoch": 2, "shuffle": True}},
+            "data_source": {"earning": {"num_epoch": 2, "shuffle": True}, "openml": {}},
         }
     )
     dataset = dataset_class(cached_sources, None, config)
@@ -482,19 +520,21 @@ def test_empty_datasets_are_skipped_with_warning(source_sampler, caplog):
     assert len(result) == 1
     assert list(result[0]["id"]) == ["a", "a"]
     assert "Skipping empty training dataset 0" in caplog.text
-    with pytest.raises(ValueError, match="No samples remain"):
+    with pytest.raises(ValueError, match="no non-empty training datasets"):
         source_sampler([ds.select([])], {"earning": {"num_sample": 2}})
+    with pytest.raises(ValueError, match="No samples remain"):
+        source_sampler([ds.select([])], {})
 
 
 @pytest.mark.parametrize("source", [None, "", 1])
 def test_source_labels_are_not_prechecked(source_sampler, source):
     ds = datasets.Dataset.from_dict({"id": ["a"], "data_source": [source]})
-    grouped = source_sampler([ds])
+    grouped = source_sampler([ds], {source: {}})
     assert len(grouped) == 1
     assert grouped[0].to_dict() == ds.to_dict()
 
 
-@pytest.mark.parametrize("config", [None, {"default": {"num_epoch": 2}}])
+@pytest.mark.parametrize("config", [{"default": {}, "other": {}}, {"default": {"num_epoch": 2}, "other": {}}])
 def test_absent_source_labels_group_under_default(source_sampler, config):
     inputs = [
         datasets.Dataset.from_dict({"id": ["a"]}),
@@ -504,7 +544,7 @@ def test_absent_source_labels_group_under_default(source_sampler, config):
     ]
     grouped = source_sampler(inputs, config)
     assert len(grouped) == 2
-    assert list(grouped[0]["id"]) == ["a", "b", "c"] * (2 if config else 1)
+    assert list(grouped[0]["id"]) == ["a", "b", "c"] * config["default"].get("num_epoch", 1)
     assert grouped[1].to_dict() == inputs[1].to_dict()
     assert inputs[0].column_names == ["id"]
 
@@ -544,9 +584,12 @@ def test_earnings_recipes_share_source_and_reward_mapping(config_name):
     assert "earnings_tts_clean_verb" not in config.reward_function_by_data_source
 
 
-@pytest.mark.parametrize("suffix,earnings_samples", [("_smp", 10746), ("_smp2", 21492)])
+@pytest.mark.parametrize(
+    "suffix,earnings_samples,openml_samples",
+    [("_smp", 10746, 10746), ("_smp2", 21492, 10746), ("_smp3", 102400, 25600)],
+)
 def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
-    dataset_class, dataset_namespace, monkeypatch, suffix, earnings_samples
+    dataset_class, dataset_namespace, monkeypatch, suffix, earnings_samples, openml_samples
 ):
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
@@ -565,8 +608,8 @@ def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
         )
 
     assert OmegaConf.to_container(sampled.data.data_source, resolve=True) == {
-        "earnings_fy27": {"num_sample": earnings_samples},
-        "openml": {"num_sample": 10746},
+        "earnings_fy27": {"num_sample": earnings_samples, **({"shuffle": True} if suffix == "_smp3" else {})},
+        "openml": {"num_sample": openml_samples, **({"shuffle": True} if suffix == "_smp3" else {})},
     }
     flatten = _load_flatten_data_confs()
     base_sources = [OmegaConf.to_container(conf, resolve=True) for conf in flatten(base.data.train_data)]
@@ -583,27 +626,73 @@ def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
         "openml": "openml",
     }
     assert sampled.data.use_interleave is False
-    assert sampled.data.shuffle is True
+    assert sampled.data.shuffle is (suffix != "_smp3")
     assert OmegaConf.to_container(sampled.data.val_data, resolve=True) == OmegaConf.to_container(
         base.data.val_data, resolve=True
     )
 
     def load_source(**conf):
         source = conf["post_process"]["add_field"]["fields"]["data_source"]
-        return datasets.Dataset.from_dict({"id": [0, 1], "data_source": [source] * 2})
+        return datasets.Dataset.from_dict({"id": list(range(1000)), "data_source": [source] * 1000})
 
     monkeypatch.setitem(dataset_namespace, "create_audio_dataset", load_source)
     training = dataset_class(sampled.data.train_data, None, sampled.data)
     assert Counter(training.ds["data_source"]) == {
         "earnings_fy27": earnings_samples,
-        "openml": 10746,
+        "openml": openml_samples,
     }
-    assert len(training) == earnings_samples + 10746
-    assert list(training.ds["data_source"]) == ["earnings_fy27"] * earnings_samples + ["openml"] * 10746
+    assert len(training) == earnings_samples + openml_samples
+    assert list(training.ds["data_source"]) == [
+        source for source, options in sampled.data.data_source.items() for _ in range(options.num_sample)
+    ]
     del sampled.data.data_source
+    if suffix == "_smp3":
+        sampled.data.shuffle = base.data.shuffle
     assert OmegaConf.to_container(sampled, resolve=False) == OmegaConf.to_container(base, resolve=False)
     assert overridden.data.data_source.earnings_fy27.num_sample == 15000
     assert overridden.data.data_source.openml.num_sample == 12800
+
+
+@pytest.mark.parametrize("name,original_name,steps", [
+    (
+        "remax_2609v0_ml_hint_s200_bs128_n8_flr",
+        "remax_2609v0_ml_hint_s200_bs128_n8_r256_g16",
+        200,
+    ),
+])
+def test_fixed_lr_recipes_inherit_base_defaults(name, original_name, steps):
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    raw = OmegaConf.load(config_root / f"v2609_asr/{name}.yaml")
+    assert "model" not in raw.actor_rollout_ref
+    assert set(raw.actor_rollout_ref.rollout) == {"n"}
+    assert set(raw.actor_rollout_ref.actor.optim) == {"warmup_style", "lr_warmup_steps"}
+    assert "nnodes" not in raw.trainer
+    assert not {"r256", "g16", "gt"} & set(name.split("_"))
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        config = compose(config_name=name, overrides=[searchpath])
+        original = compose(config_name=original_name, overrides=[searchpath])
+        base = compose(config_name="base", overrides=[searchpath])
+
+    assert config.actor_rollout_ref.model.lora_rank == base.actor_rollout_ref.model.lora_rank == 256
+    assert config.actor_rollout_ref.model.path == base.actor_rollout_ref.model.path
+    assert config.actor_rollout_ref.rollout.gt_rollout is True
+    assert config.actor_rollout_ref.rollout.n == 8
+    assert config.actor_rollout_ref.actor.optim.lr == base.actor_rollout_ref.actor.optim.lr == 5e-6
+    assert config.actor_rollout_ref.actor.optim.warmup_style == "constant"
+    assert config.actor_rollout_ref.actor.optim.lr_warmup_steps == 0
+    assert config.trainer.nnodes * config.trainer.n_gpus_per_node == 16
+    assert config.data.train_batch_size == 128
+    assert config.trainer.total_epochs == 30
+    assert config.trainer.total_training_steps == steps
+
+    original.actor_rollout_ref.model.lora_rank = 256
+    original.actor_rollout_ref.model.path = original.actor_rollout_ref.model.path.rstrip("/")
+    original.actor_rollout_ref.rollout.n = 8
+    original.actor_rollout_ref.actor.optim.warmup_style = "constant"
+    original.actor_rollout_ref.actor.optim.lr_warmup_steps = 0
+    assert OmegaConf.to_container(config, resolve=False) == OmegaConf.to_container(original, resolve=False)
 
 
 def test_v1_source_sampling_recipe_changes_only_model():

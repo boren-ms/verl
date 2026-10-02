@@ -121,12 +121,10 @@ def _align_null_features(data_sets):
     return aligned
 
 
-def group_weighted_datasource(
+def group_datasets(
     data_sets: Sequence[datasets.Dataset], source_config: Mapping | None = None
 ) -> list[datasets.Dataset]:
-    """Return one weighted dataset per source, in first-appearance order."""
-    if source_config is None:
-        source_config = {}
+    """Return weighted groups in configured source order; all sources must match."""
     if not isinstance(source_config, Mapping):
         raise ValueError("data.data_source must map datasource names to num_epoch/num_sample settings.")
     grouped = {}
@@ -136,14 +134,19 @@ def group_weighted_datasource(
             continue
         source = ds[0].get("data_source", "default")
         grouped.setdefault(source, []).append(ds)
-    missing = set(source_config) - set(grouped)
-    if missing:
-        logger.warning("Configured data_source names have no non-empty training datasets: %s", sorted(missing))
+    if set(source_config) != set(grouped):
+        missing = [source for source in source_config if source not in grouped]
+        unlisted = [source for source in grouped if source not in source_config]
+        raise ValueError(
+            "Datasource names do not match: "
+            f"configured names have no non-empty training datasets: {missing}; "
+            f"training datasource names are missing from data.data_source: {unlisted}"
+        )
 
     sampled = []
-    for source, parts in grouped.items():
+    for source, options in source_config.items():
+        parts = grouped[source]
         ds = datasets.concatenate_datasets(parts) if len(parts) > 1 else parts[0]
-        options = source_config.get(source, {})
         num_epoch, num_sample = options.get("num_epoch"), options.get("num_sample")
         size = len(ds)
         if num_epoch is not None:
@@ -227,7 +230,7 @@ class RLHFDataset(Dataset):
         data_sets = _align_null_features(data_sets)
         source_config = self.config.get("data_source")
         if self.is_training and source_config is not None:
-            data_sets = group_weighted_datasource(data_sets, source_config)
+            data_sets = group_datasets(data_sets, source_config)
         if self.is_training and self.use_interleave and len(data_sets) > 1:
             logger.info(
                 "Interleaving %s datasets with parameters: %s",

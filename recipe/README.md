@@ -17,6 +17,11 @@ data:
 The [double-earnings sampling recipe](phimm/config/v2609_asr/remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp2.yaml)
 uses 21,492 samples for the combined `earnings_fy27` datasource (including TTS)
 and keeps OpenML at 10,746 samples; all other settings match the `_smp` recipe.
+The [102.4k/25.6k sampling recipe](phimm/config/v2609_asr/remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp3.yaml)
+uses 102,400 earnings samples and 25,600 OpenML samples (128,000 total per pass),
+with `shuffle: true` inside each datasource and `data.shuffle: false`.
+Rows are shuffled within each source while the datasource blocks remain in order;
+all other settings are unchanged from `_smp2`.
 The [2609v1 sampling recipe](phimm/config/v2609_asr/remax_2609v1_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp.yaml)
 instead keeps both budgets at 10,746 and changes only the model to the v1 shadow
 checkpoint at step 54,000, which requires an HF export before training.
@@ -30,7 +35,7 @@ The shared [2609 base](phimm/config/v2609_asr/base.yaml) routes `ls_clean` and
 `ls_other` validation to `openasr_en`.
 
 When `data.data_source` is non-null, before combining training data, `RLHFDataset` calls
-`group_weighted_datasource(datasets, datasource_settings)` after
+`group_datasets(datasets, datasource_settings)` after
 loading/preprocessing (or reading a cache).
 The helper reads the first sample's `data_source` from each dataset, assuming all
 its rows share that label. If the field is absent, its grouping name is `"default"`,
@@ -54,18 +59,21 @@ list according to `data.use_interleave`.
 For example, `earnings_fy27: {num_epoch: 2, shuffle: true}` repeats the
 combined earnings source twice, then shuffles those rows.
 
-Set only one non-null control per source. Unlisted sources and sources with
-neither control use the default of one full pass. If `data.data_source` is absent
+Set only one non-null control per source. Every loaded datasource must have an
+entry when grouping is enabled; use `source_name: {}` for one full pass.
+If `data.data_source` is absent
 or null, grouping and sampling are skipped and the original datasets are
-concatenated/interleaved unchanged. An explicit empty mapping (`{}`) enables
-grouping with one full pass per datasource.
-Zero removes a source. Configured names absent from the loaded datasets are logged
-as warnings and ignored; their settings are not prechecked. Settings are consumed
+concatenated/interleaved unchanged. An explicit empty mapping (`{}`) rejects
+non-empty training datasets because their datasource entries are missing.
+Zero removes a source. Configured and non-empty loaded datasource names must match
+exactly; a mismatch raises an error listing both configured names without datasets
+and loaded sources without configuration. Settings are consumed
 when sampling each present source, without an up-front per-source schema check.
 Source labels are not prevalidated; an entirely empty result still raises an error.
 Empty datasets are skipped with a warning because their source cannot be inferred.
-Groups follow their first appearance in `data.train_data`, not alphabetical order
-or the order of keys in `data.data_source`. Datasets within a group retain their
+Groups follow only the key order in `data.data_source`, not alphabetical order.
+Unlisted loaded sources raise an error rather than being appended or silently dropped.
+Datasets within a group retain their
 order, including repeated passes. For example, inputs `A1, B1, A2` with two epochs
 of A return two datasets: `[A1 + A2 + A1 + A2, B1]`. Concatenating them keeps each
 datasource in a contiguous block. Partial passes append a random subset of the
@@ -78,7 +86,7 @@ The dataset loader and its full processed caches are unchanged.
 
 Use `data.use_interleave: false` to concatenate the weighted datasource datasets.
 With `true`, interleaving operates on those same weighted groups. Its probabilities
-must correspond to the returned datasource groups in first-appearance order, not
+must correspond to the returned datasource groups in configured-key order, not
 the original dataset entries. Interleaving's stopping strategy can truncate or
 repeat groups, so the final counts need not equal their pre-interleave budgets.
 A single retained datasource is used without interleaving.
@@ -96,6 +104,13 @@ With `use_interleave: false`, the weighted dataset is built in this order:
 `earnings_fy27`, then `openml`. The recipe uses `shuffle: true` to shuffle
 training rows, matching the base `flr` recipe. Set `data.shuffle: false` if serial
 datasource consumption is desired instead.
+
+## OpenML fixed learning rate
+
+The [OpenML-only fixed-LR recipe](phimm/config/v2609_asr/remax_2609v0_ml_hint_s200_bs128_n8_flr.yaml)
+applies a constant `5e-6` learning rate with no warmup to the ML-hint
+200-step recipe. Datasets, rewards, batch size 128, eight rollouts, rank 256,
+16 GPUs, and 30 epochs are unchanged; redundant `r256` and `g16` tags are omitted.
 
 ## Validation batch sizes
 
