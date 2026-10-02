@@ -26,6 +26,7 @@ actor_rollout_ref:
 
 
 trainer:
+  validation_resume: true
   val_only: True
   val_before_train: True
   nnodes: 1

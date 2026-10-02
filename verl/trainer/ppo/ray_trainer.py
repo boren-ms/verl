@@ -54,6 +54,7 @@ from verl.trainer.ppo.metric_utils import (
     update_var2metric2val,
 )
 from verl.trainer.ppo.reward import compute_reward, compute_reward_async
+from verl.trainer.ppo.validation_checkpoint import ValidationCheckpoint
 from verl.trainer.ppo.utils import Role, WorkerType, need_critic, need_reference_policy, need_reward_model
 from verl.utils.checkpoint.checkpoint_manager import find_latest_ckpt_path, should_save_ckpt_esi
 from verl.utils.config import omega_conf_to_dataclass
@@ -656,19 +657,30 @@ class RayPPOTrainer:
         return gen_batch
 
     def _validate(self):
-        data_source_lst = []
-        reward_extra_infos_dict: dict[str, list] = defaultdict(list)
+        state = {key: [] for key in (
+            "data_sources", "inputs", "outputs", "gts", "scores", "turns", "uids", "extra_infos",
+        )}
+        state["reward_extra_infos"] = {}
+        checkpoint = None
+        if self.config.trainer.get("val_only", False):
+            checkpoint = ValidationCheckpoint(
+                self.config, self.val_dataloaders, self.global_steps,
+                getattr(self, "_validation_model_checkpoint", None),
+            )
+            state = checkpoint.load(state)
+        data_source_lst = state["data_sources"]
+        reward_extra_infos_dict = defaultdict(list, state["reward_extra_infos"])
+        state["reward_extra_infos"] = reward_extra_infos_dict
+        sample_inputs, sample_outputs = state["inputs"], state["outputs"]
+        sample_gts, sample_scores = state["gts"], state["scores"]
+        sample_turns, sample_uids = state["turns"], state["uids"]
+        sample_extra_infos = state["extra_infos"]
+        batches = (
+            checkpoint.batches(self.val_dataloaders, state)
+            if checkpoint else chain.from_iterable(self.val_dataloaders)
+        )
 
-        # Lists to collect samples for the table
-        sample_inputs = []
-        sample_outputs = []
-        sample_gts = []
-        sample_scores = []
-        sample_turns = []
-        sample_uids = []
-        sample_extra_infos = []
-
-        for test_data in chain.from_iterable(self.val_dataloaders):
+        for test_data in batches:
             test_batch = DataProto.from_single_dict(test_data)
 
             if "uid" not in test_batch.non_tensor_batch:
@@ -1021,6 +1033,7 @@ class RayPPOTrainer:
             "At least one of local_step_folder or remote_step_folder must be specified"
         )
         print(f"Load from checkpoint folder: {local_step_folder} [{remote_step_folder}]")
+        self._validation_model_checkpoint = remote_step_folder or local_step_folder
         # set global step
         if load_as_initialization:
             self.global_steps = 0

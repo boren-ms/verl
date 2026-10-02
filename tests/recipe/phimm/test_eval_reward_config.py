@@ -72,6 +72,7 @@ def test_eval_configs_inherit_reward_assignments(config_name):
         )
 
     assignments = OmegaConf.to_container(config.val_reward.reward_function_by_data_source, resolve=True)
+    assert config.trainer.validation_resume is True
     for reward_function, sources in REWARD_SOURCES.items():
         for source in sources:
             assert assignments[source] == reward_function

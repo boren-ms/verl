@@ -153,6 +153,10 @@ trainer:
   # Directory for logging validation data; no dump if null
   validation_data_dir: null
 
+  # Resume eval-only jobs after the last completed dataset; requires validation_data_dir.
+  # False forces a fresh evaluation and invalidates its previous progress checkpoint.
+  validation_resume: False
+
   # Number of nodes used in the training
   nnodes: 1
 

@@ -69,6 +69,7 @@ data:
   val_batch_size: 256
 
 trainer:
+  validation_resume: true
   project_name: v2609_asr_eval
   val_only: true
   val_before_train: true
