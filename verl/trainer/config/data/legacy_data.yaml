@@ -31,7 +31,8 @@ max_response_length: 512
 # Batch size sampled for one training iteration of different RL algorithms.
 train_batch_size: 1024
 
-# Batch size used during validation. Can be null.
+# Default validation batch size; null uses the generation batch size.
+# Each val_data dataset mapping can override val_batch_size (-1 for its full dataset).
 val_batch_size: null
 
 # Whether to return the original input_ids without adding chat template.

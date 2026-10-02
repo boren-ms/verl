@@ -1,5 +1,6 @@
 # Verbatim-only Earnings22 AA chunks with known-language prompts and no assistant prefix.
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1.jsonl
   pre_process:
     rename_fields:

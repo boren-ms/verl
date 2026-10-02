@@ -1,5 +1,6 @@
 # Earnings22 Cleaned ArtificialAnalysis chunks with known-language prompts and no assistant prefix.
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1.jsonl
   pre_process:
     rename_fields:
@@ -20,6 +21,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1.jsonl
   pre_process:
     rename_fields:

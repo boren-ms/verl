@@ -57,6 +57,47 @@ def test_flatten_data_confs_preserves_flat_and_scalar_inputs():
     assert flatten_data_confs("data.jsonl") == ["data.jsonl"]
 
 
+@pytest.mark.parametrize("is_train", [False, True])
+def test_dataset_loader_preserves_options_and_overrides_version(
+    dataset_class, dataset_namespace, monkeypatch, is_train
+):
+    configs = OmegaConf.create([{"dataset_name": "jsonl", "val_batch_size": -1, "version": 2607}])
+    calls = []
+
+    def create_dataset(**kwargs):
+        calls.append(kwargs)
+        return datasets.Dataset.from_dict({"id": [0], "data_source": ["test"]})
+
+    monkeypatch.setitem(dataset_namespace, "create_audio_dataset", create_dataset)
+    dataset_class(configs, None, OmegaConf.create({"num_proc": None, "version": 2609}), is_train=is_train)
+    assert calls == [{"dataset_name": "jsonl", "val_batch_size": -1, "version": 2609}]
+    assert configs[0].val_batch_size == -1
+
+
+def test_2609_validation_configs_use_full_batches_only_for_parent_audio():
+    root = Path(__file__).parents[3] / "recipe/phimm/config"
+    references = set()
+    for path in (root / "v2609_asr").glob("*.yaml"):
+        config = OmegaConf.load(path)
+        for item in config.get("defaults", []):
+            if isinstance(item, str) and item.startswith("/data/val_data/"):
+                references.add(item.split("@")[0].lstrip("/"))
+
+    parent_count = short_count = 0
+    for reference in references:
+        for item in _load_flatten_data_confs()(OmegaConf.load(root / f"{reference}.yaml")):
+            extra_keys = item.get("post_process", {}).get("verl_format", {}).get("extra_keys", [])
+            if "parent_audio_path" in extra_keys:
+                parent_count += 1
+                assert item.val_batch_size == -1, reference
+            else:
+                short_count += 1
+                assert "val_batch_size" not in item, reference
+    assert parent_count > 0 and short_count > 0
+    for name in ("base", "eval_base"):
+        assert OmegaConf.load(root / f"v2609_asr/{name}.yaml").data.val_batch_size == 256
+
+
 @pytest.fixture
 def dataset_namespace():
     module_path = Path(__file__).parents[3] / "recipe/phimm/data/rl_dataset.py"

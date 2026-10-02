@@ -97,6 +97,35 @@ With `use_interleave: false`, the weighted dataset is built in this order:
 training rows, matching the base `flr` recipe. Set `data.shuffle: false` if serial
 datasource consumption is desired instead.
 
+## Validation batch sizes
+
+The 2609 training and evaluation bases use `data.val_batch_size: 256`.
+Each validation dataset can override that default in its own YAML:
+
+```yaml
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: ...
+  # Existing preprocessing and parent_audio_path metadata...
+```
+
+An absent or null dataset override inherits the global setting. A positive
+integer selects that dataset's batch size; `-1` loads the entire dataset in one
+batch. Other override values are rejected. The global null/zero fallback to
+`data.gen_batch_size` is unchanged.
+
+Nested `data.val_data` lists are flattened in order, with one validation loader
+per dataset entry. Final partial batches are retained. The trainer removes the
+dataset-level batch option before constructing each validation dataset.
+Training batch sizes and the ASR dataset loader's option forwarding are unchanged.
+
+Only the 2609-referenced validation datasets preserving `parent_audio_path` have
+explicit `val_batch_size: -1`; short-utterance datasets inherit 256.
+`long_audio_grouped` scores within each batch, so all segments of a parent must
+stay together. Finite batches for these datasets require parent-aware batching,
+which is not implemented here. Full batches can still be large for long-audio
+datasets; this change bounds short-utterance batches, not every validation batch.
+
 # Awesome work using verl
 
 - [Logic-RL](https://github.com/Unakar/Logic-RL): a reproduction of DeepSeek R1 Zero on 2K Tiny Logic Puzzle Dataset. ![GitHub Repo stars](https://img.shields.io/github/stars/Unakar/Logic-RL)

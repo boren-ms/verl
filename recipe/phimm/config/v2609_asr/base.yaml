@@ -142,7 +142,7 @@ data:
   max_audio_dur: 40
   chunk_load_mode: sample
   gen_batch_size: ${data.train_batch_size}
-  val_batch_size: -1
+  val_batch_size: 256
   custom_cls:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset

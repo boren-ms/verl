@@ -2,6 +2,7 @@
 # Verbatim prompts with known-language hints and no assistant prefix.
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/en-US/Conversation_DTEST_FY21Q1_en-US/test.jsonl
   pre_process:
     rename_fields:
@@ -22,6 +23,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/en-US/Conversation_OnlineMeetings_DTEST_FY25Q3_en-US_DTEST_OfflineDataCollection/test.jsonl
   pre_process:
     rename_fields:
@@ -42,6 +44,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/en-US/Dictation_Commonset_OfficeOffline_FY24Q3_en-US_DTEST_OfflineDataCollection/test.jsonl
   pre_process:
     rename_fields:
@@ -62,6 +65,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/da-DK/Conversation_DTEST_FY21Q3_da-DK_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -82,6 +86,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/da-DK/Conversation_OnlineMeetings_DTEST_FY23Q1_da-DK_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -102,6 +107,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/da-DK/Dictation_DTEST_L_D_FY23Q4_da-DK_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -122,6 +128,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/hu-HU/Conversation_DTEST_FY22Q4_hu-HU_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -142,6 +149,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/hu-HU/Conversation_OnlineMeetings_DTEST_FY24Q2_hu-HU/test.jsonl
   pre_process:
     rename_fields:
@@ -162,6 +170,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/hu-HU/Dictation_DTEST_L_D_FY25Q2_hu-HU_DTEST_OfflineDataCollection/test.jsonl
   pre_process:
     rename_fields:
@@ -182,6 +191,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nb-NO/Conversation_DTEST_FY21Q3_nb-NO_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -202,6 +212,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nb-NO/Conversation_OnlineMeetings_DTEST_FY23Q1_nb-NO_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -222,6 +233,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nb-NO/Dictation_DTEST_L_D_FY23Q4_nb-NO_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -242,6 +254,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nl-NL/Conversation_DTEST_FY23Q2_nl-NL_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -262,6 +275,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nl-NL/Conversation_OnlineMeetings_DTEST_FY23Q1_nl-NL_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -282,6 +296,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/nl-NL/Dictation_DTEST_L_D_FY23Q4_nl-NL_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -302,6 +317,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/cs-CZ/Conversation_DTEST_FY23Q2_cs-CZ_DTEST/test.jsonl
   pre_process:
     rename_fields:
@@ -322,6 +338,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/cs-CZ/Conversation_OnlineMeetings_DTEST_FY24Q2_cs-CZ/test.jsonl
   pre_process:
     rename_fields:
@@ -342,6 +359,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment_30s/cs-CZ/Dictation_DTEST_L_D_FY24Q2_cs-CZ_DTEST_OfflineDataCollection/test.jsonl
   pre_process:
     rename_fields:

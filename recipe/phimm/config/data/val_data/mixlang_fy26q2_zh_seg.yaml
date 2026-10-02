@@ -7,6 +7,7 @@
 # Presegmented offline via recipe.phimm.data.long_audio_vad_explode from the raw
 # .../Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl.
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
   pre_process:
     rename_fields:

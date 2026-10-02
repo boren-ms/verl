@@ -22,6 +22,7 @@ import json
 import os
 import uuid
 from collections import defaultdict
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
 from itertools import chain
@@ -63,6 +64,27 @@ from verl.utils.seqlen_balancing import get_seqlen_balanced_partitions, log_seql
 from verl.utils.torch_functional import masked_mean
 from verl.utils.tracking import ValidationGenerationsLogger
 from verl.utils.fs import copy_to_local, copy_to_remote, path_join
+
+
+def _validation_dataset_batches(data, default_batch_size):
+    """Flatten validation groups and separate loader options from dataset configs."""
+    if isinstance(data, (list, tuple)) or OmegaConf.is_list(data):
+        for item in data:
+            yield from _validation_dataset_batches(item, default_batch_size)
+        return
+
+    batch_size = default_batch_size
+    if isinstance(data, Mapping):
+        if OmegaConf.is_config(data):
+            data = OmegaConf.create(OmegaConf.to_container(data, resolve=True))
+        else:
+            data = dict(data)
+        override = data.pop("val_batch_size", None)
+        if override is not None:
+            if isinstance(override, bool) or not isinstance(override, int) or (override != -1 and override <= 0):
+                raise ValueError(f"Dataset val_batch_size must be -1 or a positive integer, got {override!r}")
+            batch_size = override
+    yield data, batch_size
 
 
 def _extend_validation_reward_extra_infos(
@@ -419,18 +441,23 @@ class RayPPOTrainer:
         # TODO: we have to make sure the batch size is divisible by the dp size
         from verl.trainer.main_ppo import create_rl_dataset, create_rl_sampler
 
+        gen_batch_size = self.config.data.get("gen_batch_size", self.config.data.train_batch_size)
+        default_val_batch_size = self.config.data.val_batch_size or gen_batch_size
         if train_dataset is None:
             train_data = self.config.data.get("train_data", None) or self.config.data.get("train_files", None)
             train_dataset = create_rl_dataset(train_data, self.config.data, self.tokenizer, self.processor, True)
         if val_dataset is None:
             val_data = self.config.data.get("val_data", None) or self.config.data.get("val_files", None)
-            val_data_items = val_data if isinstance(val_data, (list, tuple)) or OmegaConf.is_list(val_data) else [val_data]
-            val_datasets = [
-                create_rl_dataset([val_data_item], self.config.data, self.tokenizer, self.processor, False)
-                for val_data_item in val_data_items
-            ]
+            val_datasets = []
+            val_batch_sizes = []
+            for val_data_item, batch_size in _validation_dataset_batches(val_data, default_val_batch_size):
+                val_datasets.append(
+                    create_rl_dataset([val_data_item], self.config.data, self.tokenizer, self.processor, False)
+                )
+                val_batch_sizes.append(batch_size)
         else:
             val_datasets = [val_dataset]
+            val_batch_sizes = [default_val_batch_size]
         self.train_dataset = train_dataset
         print("Train dataset:", len(self.train_dataset))
         print("Val datasets:", [len(dataset) for dataset in val_datasets])
@@ -443,7 +470,6 @@ class RayPPOTrainer:
             prefetch_factor = None
         persistent_workers = self.config.data.get("persistent_workers", num_workers > 0) and num_workers > 0
         pin_memory = self.config.data.get("pin_memory", False)
-        gen_batch_size = self.config.data.get("gen_batch_size", self.config.data.train_batch_size)
         self.train_dataloader = StatefulDataLoader(
             dataset=self.train_dataset,
             batch_size=gen_batch_size,
@@ -457,8 +483,7 @@ class RayPPOTrainer:
         )
 
         self.val_dataloaders = []
-        for dataset in val_datasets:
-            val_batch_size = self.config.data.val_batch_size or gen_batch_size
+        for dataset, val_batch_size in zip(val_datasets, val_batch_sizes, strict=True):
             # A negative batch size produces one complete batch per validation dataset.
             if isinstance(val_batch_size, int) and val_batch_size < 0:
                 val_batch_size = len(dataset)

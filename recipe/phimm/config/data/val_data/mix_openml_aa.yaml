@@ -1,4 +1,5 @@
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_2605_seg_presegment/Dictation_SimuMixedLang_DTEST_FY26Q2_14/test.jsonl
   pre_process:
     rename_fields:
@@ -258,6 +259,7 @@
       extra_keys: ["lattice"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
   pre_process:
     rename_fields:
@@ -277,6 +279,7 @@
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
 
 - dataset_name: jsonl
+  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1.jsonl
   pre_process:
     rename_fields:
