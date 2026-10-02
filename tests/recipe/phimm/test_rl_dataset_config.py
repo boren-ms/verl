@@ -244,20 +244,43 @@ def test_zero_budget_omits_source_and_rejects_empty_mixture(dataset_class, cache
 
 
 @pytest.mark.parametrize("extra_config", [{}, {"data_source": {}}, {"data_source": None}])
-def test_unbudgeted_training_interleaves_grouped_sources(dataset_class, cached_sources, extra_config):
+def test_training_interleaving_groups_only_with_source_config(dataset_class, cached_sources, extra_config):
     dataset = dataset_class(cached_sources, None, OmegaConf.create({"num_proc": None, **extra_config}))
-    assert list(dataset.ds["id"]) == ["first-0", "other-0", "first-1", "other-1"]
+    if extra_config.get("data_source") is None:
+        assert list(dataset.ds["id"]) == ["first-0", "other-0", "second-0", "first-1", "other-1", "second-1"]
+    else:
+        assert list(dataset.ds["id"]) == ["first-0", "other-0", "first-1", "other-1"]
 
 
 @pytest.mark.parametrize("extra_config", [{}, {"data_source": {}}, {"data_source": None}])
-def test_concatenation_groups_sources_with_default_one_pass(dataset_class, cached_sources, extra_config):
+def test_concatenation_groups_only_with_source_config(dataset_class, cached_sources, extra_config):
     dataset = dataset_class(
         cached_sources,
         None,
         OmegaConf.create({"num_proc": None, "use_interleave": False, **extra_config}),
     )
-    assert list(dataset.ds["id"]) == ["first-0", "first-1", "first-2", "second-0", "second-1", "other-0", "other-1"]
+    if extra_config.get("data_source") is None:
+        assert list(dataset.ds["id"]) == ["first-0", "first-1", "first-2", "other-0", "other-1", "second-0", "second-1"]
+    else:
+        assert list(dataset.ds["id"]) == ["first-0", "first-1", "first-2", "second-0", "second-1", "other-0", "other-1"]
     assert Counter(dataset.ds["data_source"]) == {"earning": 5, "openml": 2}
+
+
+@pytest.mark.parametrize("extra_config", [{}, {"data_source": None}])
+@pytest.mark.parametrize("use_interleave", [False, True])
+def test_missing_or_null_source_config_skips_grouping(
+    dataset_class, dataset_namespace, cached_sources, extra_config, use_interleave, monkeypatch
+):
+    def unexpected_grouping(*args, **kwargs):
+        raise AssertionError("Grouping must not run without a non-null data_source setting")
+
+    monkeypatch.setitem(dataset_namespace, "group_weighted_datasource", unexpected_grouping)
+    dataset = dataset_class(
+        cached_sources,
+        None,
+        OmegaConf.create({"num_proc": None, "use_interleave": use_interleave, **extra_config}),
+    )
+    assert len(dataset) == (6 if use_interleave else 7)
 
 
 @pytest.mark.parametrize("key", ["num_epochs", "num_samples", "num_epoch", "num_sample"])

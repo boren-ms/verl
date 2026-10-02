@@ -225,8 +225,9 @@ class RLHFDataset(Dataset):
             for data_conf in self.data_confs
         ]
         data_sets = _align_null_features(data_sets)
-        if self.is_training:
-            data_sets = group_weighted_datasource(data_sets, self.config.get("data_source"))
+        source_config = self.config.get("data_source")
+        if self.is_training and source_config is not None:
+            data_sets = group_weighted_datasource(data_sets, source_config)
         if self.is_training and self.use_interleave and len(data_sets) > 1:
             logger.info(
                 "Interleaving %s datasets with parameters: %s",

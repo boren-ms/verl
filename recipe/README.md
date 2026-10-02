@@ -14,7 +14,7 @@ data:
     openml: {num_sample: 10746}
 ```
 
-Before combining training data, `RLHFDataset` calls
+When `data.data_source` is non-null, before combining training data, `RLHFDataset` calls
 `group_weighted_datasource(datasets, datasource_settings)` after
 loading/preprocessing (or reading a cache).
 The helper reads the first sample's `data_source` from each dataset, assuming all
@@ -40,8 +40,10 @@ For example, `earnings_fy27: {num_epoch: 2, shuffle: true}` repeats the
 combined earnings source twice, then shuffles those rows.
 
 Set only one non-null control per source. Unlisted sources and sources with
-neither control use the default of one full pass. If `data.data_source` is absent,
-null, or empty, all sources are still grouped and retain all rows.
+neither control use the default of one full pass. If `data.data_source` is absent
+or null, grouping and sampling are skipped and the original datasets are
+concatenated/interleaved unchanged. An explicit empty mapping (`{}`) enables
+grouping with one full pass per datasource.
 Zero removes a source. Configured names absent from the loaded datasets are logged
 as warnings and ignored; their settings are not prechecked. Settings are consumed
 when sampling each present source, without an up-front per-source schema check.
