@@ -62,6 +62,7 @@ from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length
 from verl.utils.vllm import STABLE_LORA_ID, TensorLoRARequest, VLLMHijack, is_version_ge, replace_lora_adapter
 from verl.workers.config import HFModelConfig, RolloutConfig
 from verl.workers.rollout.base import BaseRollout
+from verl.workers.rollout.gt_rollout import generate_with_gt_responses
 
 logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
@@ -401,34 +402,22 @@ class vLLMRollout(BaseRollout):
 
         # users can customize different sampling_params at different run
         with self.update_sampling_params(**kwargs):
-            outputs = self.inference_engine.generate(
-                prompts=vllm_inputs,  # because we have already convert it to prompt token id
-                sampling_params=self.sampling_params,
-                lora_request=lora_requests,
-                use_tqdm=False,
-            )
-
-            # TODO(sgm): disable logprob when recompute_log_prob is enable
-            # if n = 1: (bs, response_length) ; if n > 1: (bs * n, response_length)
-
-            response = []
-            rollout_log_probs = []
-            for i, output in enumerate(outputs):
-                for sample_id in range(len(output.outputs)):
-                    response_ids = output.outputs[sample_id].token_ids
-                    response.append(response_ids)
-                    if self.config.calculate_log_probs:
-                        curr_log_prob = []
-                        for j, logprob in enumerate(output.outputs[sample_id].logprobs):
-                            curr_log_prob.append(logprob[response_ids[j]].logprob)
-                        rollout_log_probs.append(curr_log_prob)
-
-                # replace the response with ground truth for every n samples
-                if i % self.config.n == 0 and self.config.gt_rollout and not is_validate:
+            gt_responses = {}
+            if self.config.gt_rollout and not is_validate:
+                for i in range(0, batch_size, self.config.n):
                     reward_i = non_tensor_batch["reward_model"][i]
                     gt_text = reward_i.get("gt_output", reward_i.get("ground_truth", ""))
                     gt_token_ids = self.tokenizer.encode(gt_text)
-                    response[i] = gt_token_ids[: self.config.response_length - 1] + [self.tokenizer.eos_token_id]
+                    gt_responses[i] = gt_token_ids[: self.config.response_length - 1] + [self.tokenizer.eos_token_id]
+
+            response, rollout_log_probs = generate_with_gt_responses(
+                self.inference_engine,
+                vllm_inputs,
+                self.sampling_params,
+                gt_responses=gt_responses,
+                calculate_log_probs=self.config.calculate_log_probs,
+                lora_requests=lora_requests,
+            )
 
             response = pad_2d_list_to_length(response, self.pad_token_id, max_length=self.config.response_length).to(
                 idx.device
