@@ -22,6 +22,10 @@ uses 102,400 earnings samples and 25,600 OpenML samples (128,000 total per pass)
 with `shuffle: true` inside each datasource and `data.shuffle: false`.
 Rows are shuffled within each source while the datasource blocks remain in order;
 all other settings are unchanged from `_smp2`.
+The [non-FLR smp3 variant](phimm/config/v2609_asr/remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_smp3.yaml)
+inherits the base cosine LR schedule (`lr: 5e-6`, `min_lr_ratio: 0.1`) instead
+of constant LR. It otherwise matches `_flr_smp3`, including OpenML-first source
+order, sample counts, and shuffle settings.
 The [2609v1 sampling recipe](phimm/config/v2609_asr/remax_2609v1_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp.yaml)
 instead keeps both budgets at 10,746 and changes only the model to the v1 shadow
 checkpoint at step 54,000, which requires an HF export before training.
@@ -111,6 +115,15 @@ The [OpenML-only fixed-LR recipe](phimm/config/v2609_asr/remax_2609v0_ml_hint_s2
 applies a constant `5e-6` learning rate with no warmup to the ML-hint
 200-step recipe. Datasets, rewards, batch size 128, eight rollouts, rank 256,
 16 GPUs, and 30 epochs are unchanged; redundant `r256` and `g16` tags are omitted.
+
+The [2609v0 earnings-only fixed-LR recipe](phimm/config/v2609_asr/remax_2609v0_earning_verb_hint_s1k_bs128_n8_r256_g32_flr.yaml)
+uses the base 2609v0 checkpoint instead of the v0a recipe's step-200 RL checkpoint,
+with eight rollouts and constant `5e-6` LR without warmup. It uses the
+[2609v1 sampling recipe's](phimm/config/v2609_asr/remax_2609v1_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp.yaml)
+verbatim/language-hint FY27 earnings and Polyus TTS training data and Earnings22
+validation data, without OpenML or sampling budgets. The earnings datasource
+uses the original v0a reward measures.
+Batch size 128, rank 256, 32 GPUs, 30 epochs, and the 1,000-step limit are unchanged.
 
 ## Validation batch sizes
 

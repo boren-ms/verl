@@ -653,6 +653,97 @@ def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
     assert overridden.data.data_source.openml.num_sample == 12800
 
 
+def test_earnings_v0_fixed_lr_recipe_uses_verb_hint_data():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    name = "remax_2609v0_earning_verb_hint_s1k_bs128_n8_r256_g32_flr"
+    raw = OmegaConf.load(config_root / f"v2609_asr/{name}.yaml")
+    assert set(raw.data) == {"train_batch_size"}
+    assert "model" not in raw.actor_rollout_ref
+    assert set(raw.actor_rollout_ref.actor.optim) == {"warmup_style", "lr_warmup_steps"}
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        config = compose(config_name=name, overrides=[searchpath])
+        original = compose(
+            config_name="remax_2609v0a_earning_s1k_bs128_n4_r256_g32", overrides=[searchpath]
+        )
+        base = compose(config_name="base", overrides=[searchpath])
+
+        donor = compose(
+            config_name="remax_2609v1_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp",
+            overrides=[searchpath],
+        )
+
+    flatten = _load_flatten_data_confs()
+    for key, donor_key in (("train_data", "_earning_train"), ("val_data", "_earning_val")):
+        assert [
+            OmegaConf.to_container(ds, resolve=True) for ds in flatten(config.data[key])
+        ] == [
+            OmegaConf.to_container(ds, resolve=True) for ds in flatten(donor[donor_key])
+        ]
+        assert all(ds.add_task_info.task == "lang_asr_verb" for ds in flatten(config.data[key]))
+        assert all(ds.add_task_info.lang_hint is True for ds in flatten(config.data[key]))
+    sources = [ds.post_process.add_field.fields.data_source for ds in flatten(config.data.train_data)]
+    assert sources == ["earnings_fy27", "earnings_fy27", "earnings_fy27"]
+    assert [ds.post_process.add_field.fields.data_source for ds in flatten(config.data.val_data)] == [
+        "earning_chunk_verb"
+    ]
+    assert "_ml_train" not in config
+    assert "_ml_val" not in config
+    assert OmegaConf.to_container(config.reward_function_by_data_source) == {
+        "earnings_fy27": "asr_measure",
+    }
+    assert config.data.get("data_source") is None
+    assert config.actor_rollout_ref.model.path == base.actor_rollout_ref.model.path
+    assert config.actor_rollout_ref.model.path != original.actor_rollout_ref.model.path
+    assert config.actor_rollout_ref.model.lora_rank == 256
+    assert config.actor_rollout_ref.rollout.n == 8
+    assert config.actor_rollout_ref.actor.optim.lr == 5e-6
+    assert config.actor_rollout_ref.actor.optim.warmup_style == "constant"
+    assert config.actor_rollout_ref.actor.optim.lr_warmup_steps == 0
+    assert config.trainer.nnodes * config.trainer.n_gpus_per_node == 32
+    assert config.data.train_batch_size == 128
+    assert config.trainer.total_epochs == 30
+    assert config.trainer.total_training_steps == 1000
+
+    original.actor_rollout_ref.model.path = base.actor_rollout_ref.model.path
+    original.actor_rollout_ref.rollout.n = 8
+    original.actor_rollout_ref.actor.optim.warmup_style = "constant"
+    original.actor_rollout_ref.actor.optim.lr_warmup_steps = 0
+    actual = OmegaConf.to_container(config, resolve=False)
+    expected = OmegaConf.to_container(original, resolve=False)
+    assert "_earning_train" not in actual
+    assert "_earning_val" not in actual
+    for key in ("train_data", "val_data"):
+        actual["data"][key] = expected["data"][key]
+    actual["reward_function_by_data_source"] = expected["reward_function_by_data_source"]
+    assert actual == expected
+
+
+def test_smp3_without_fixed_lr_inherits_base_optimizer():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    stem = "remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32"
+    raw = OmegaConf.load(config_root / f"v2609_asr/{stem}_smp3.yaml")
+    assert "actor" not in raw.actor_rollout_ref
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        config = compose(config_name=f"{stem}_smp3", overrides=[searchpath])
+        fixed = compose(config_name=f"{stem}_flr_smp3", overrides=[searchpath])
+        base = compose(config_name="base", overrides=[searchpath])
+
+    assert config.actor_rollout_ref.actor.optim == base.actor_rollout_ref.actor.optim
+    assert config.actor_rollout_ref.actor.optim.lr == 5e-6
+    assert config.actor_rollout_ref.actor.optim.warmup_style == "cosine"
+    assert config.actor_rollout_ref.actor.optim.min_lr_ratio == 0.1
+    assert list(config.data.data_source) == ["openml", "earnings_fy27"]
+    assert config.data.data_source.openml == {"num_sample": 25600, "shuffle": True}
+    assert config.data.data_source.earnings_fy27 == {"num_sample": 102400, "shuffle": True}
+    assert config.data.shuffle is False
+    fixed.actor_rollout_ref.actor.optim = base.actor_rollout_ref.actor.optim
+    assert OmegaConf.to_container(config, resolve=False) == OmegaConf.to_container(fixed, resolve=False)
+
+
 @pytest.mark.parametrize("name,original_name,steps", [
     (
         "remax_2609v0_ml_hint_s200_bs128_n8_flr",
