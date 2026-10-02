@@ -39,8 +39,8 @@ actor_rollout_ref:
 
 data:
   data_source:
-    earnings_fy27: {num_epoch: 2}
-    openml: {num_sample: 20000}
+    earnings_fy27: {num_sample: 10746} # 10746
+    openml: {num_sample: 10746} # 8282
   train_data:
     - ${_earning_train}
     - ${_ml_train}

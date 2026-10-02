@@ -491,14 +491,14 @@ def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
             config_name=f"{recipe_name}_smp",
             overrides=[
                 searchpath,
-                "data.data_source.earnings_fy27.num_epoch=2.5",
+                "data.data_source.earnings_fy27.num_sample=15000",
                 "data.data_source.openml.num_sample=12800",
             ],
         )
 
     assert OmegaConf.to_container(sampled.data.data_source, resolve=True) == {
-        "earnings_fy27": {"num_epoch": 2},
-        "openml": {"num_sample": 20000},
+        "earnings_fy27": {"num_sample": 10746},
+        "openml": {"num_sample": 10746},
     }
     flatten = _load_flatten_data_confs()
     base_sources = [OmegaConf.to_container(conf, resolve=True) for conf in flatten(base.data.train_data)]
@@ -527,14 +527,14 @@ def test_source_sampling_recipe_shares_earnings_source_and_preserves_base(
     monkeypatch.setitem(dataset_namespace, "create_audio_dataset", load_source)
     training = dataset_class(sampled.data.train_data, None, sampled.data)
     assert Counter(training.ds["data_source"]) == {
-        "earnings_fy27": 12,
-        "openml": 20000,
+        "earnings_fy27": 10746,
+        "openml": 10746,
     }
-    assert len(training) == 20012
-    assert list(training.ds["data_source"]) == ["earnings_fy27"] * 12 + ["openml"] * 20000
+    assert len(training) == 21492
+    assert list(training.ds["data_source"]) == ["earnings_fy27"] * 10746 + ["openml"] * 10746
     del sampled.data.data_source
     assert OmegaConf.to_container(sampled, resolve=False) == OmegaConf.to_container(base, resolve=False)
-    assert overridden.data.data_source.earnings_fy27.num_epoch == 2.5
+    assert overridden.data.data_source.earnings_fy27.num_sample == 15000
     assert overridden.data.data_source.openml.num_sample == 12800
 
 

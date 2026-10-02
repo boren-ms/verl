@@ -10,8 +10,8 @@ Configure training budgets by **datasource name**, not by dataset entry:
 data:
   use_interleave: false
   data_source:
-    earnings_fy27: {num_epoch: 2}
-    openml: {num_sample: 20000}
+    earnings_fy27: {num_sample: 10746}
+    openml: {num_sample: 10746}
 ```
 
 Before combining training data, `RLHFDataset` calls
@@ -72,7 +72,7 @@ incomplete dropped batches can stop consumption early.
 
 The [budgeted earnings/OpenML recipe](phimm/config/v2609_asr/remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp.yaml)
 uses the settings above: both FY27 batches and Polyus TTS share `earnings_fy27`
-and its two-epoch budget. This label is defined in the shared
+and its 10,746-sample budget, matching the OpenML budget. This label is defined in the shared
 [earnings datasource YAML](phimm/config/data/train_data/earnings_tts_verb_langhint.yaml)
 and used by all recipes that import it.
 With `use_interleave: false`, the weighted dataset is built in this order:
