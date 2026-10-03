@@ -71,7 +71,7 @@ def test_remax_disagreement_mask_deletion_boundaries(greedy, sampled, expected):
     "mode, expected",
     [
         ("edit_boundary", [False, False, True, False]),
-        ("1stdiff", [False, False, True, True]),
+        ("first_diff", [False, False, True, True]),
     ],
 )
 def test_remax_disagreement_mask_noncontiguous_valid_positions(mode, expected):
@@ -110,7 +110,7 @@ def test_remax_disagreement_mask_from_first_difference(greedy, sampled, expected
     baseline_mask = torch.tensor([[1] * len(greedy) + [0]])
 
     actual = compute_remax_disagreement_mask(
-        response_ids, response_mask, baseline_ids, baseline_mask, mode="1stdiff"
+        response_ids, response_mask, baseline_ids, baseline_mask, mode="first_diff"
     )
     assert actual.tolist() == [expected + [0, 0]]
     assert actual.dtype == response_mask.dtype
@@ -126,7 +126,7 @@ def test_remax_disagreement_mask_explicit_edit_mode_preserves_default():
     assert torch.equal(default, explicit)
 
 
-@pytest.mark.parametrize("mode", ["unknown", "", None, "first_difference"])
+@pytest.mark.parametrize("mode", ["unknown", "", None, "first_difference", "1stdiff"])
 def test_remax_disagreement_mask_rejects_invalid_mode(mode):
     ids = torch.ones((1, 2), dtype=torch.long)
     with pytest.raises(ValueError, match="advantage mask mode"):

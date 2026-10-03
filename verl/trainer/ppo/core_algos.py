@@ -720,7 +720,7 @@ def compute_remax_disagreement_mask(
     match the baseline are marked with ``0``, except deletion boundaries: when greedy
     tokens are omitted, select the next sampled token, or the last valid sampled token
     if there is no next token. This also covers excess greedy tokens in replacements.
-    This is the default ``edit_boundary`` mode. In ``1stdiff`` mode, compare
+    This is the default ``edit_boundary`` mode. In ``first_diff`` mode, compare
     valid tokens positionally and select the sampled suffix starting at the first
     mismatch or the first sampled token beyond the baseline length. Identical responses
     and sampled responses that are shorter matching prefixes select no tokens.
@@ -733,7 +733,7 @@ def compute_remax_disagreement_mask(
         baseline_mask (torch.Tensor): validity mask of baseline responses, shape (m, baseline_length).
         baseline_index (Optional[np.ndarray]): length-n array mapping each sampled row to its
             baseline row. If ``None``, all sampled rows are aligned against baseline row 0.
-        mode (str): "edit_boundary" or "1stdiff".
+        mode (str): "edit_boundary" or "first_diff".
 
     Returns:
         torch.Tensor: disagreement mask, shape (n, response_length), with the same dtype and
@@ -769,7 +769,7 @@ def compute_remax_disagreement_mask(
         b_idx = int(baseline_index[i])
         b = base_np[b_idx][base_valid[b_idx]].tolist()
 
-        if mode == "1stdiff":
+        if mode == "first_diff":
             first_difference = next(
                 (j for j, (sampled, greedy) in enumerate(zip(a, b, strict=False)) if sampled != greedy),
                 min(len(a), len(b)),

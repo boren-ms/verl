@@ -57,21 +57,21 @@ Select the masking mode directly with:
 ```yaml
 algorithm:
   adv_estimator: remax
-  remax_advantage_mask: 1stdiff
+  remax_advantage_mask: first_diff
 ```
 
 - `null` (default): disable advantage masking.
 - `edit_boundary`: preserve the existing edit alignment. Select unmatched
   sampled tokens and deletion boundaries, including the last sampled token when a
   deletion occurs at the end.
-- `1stdiff`: compare sampled and greedy valid tokens positionally. Select
+- `first_diff`: compare sampled and greedy valid tokens positionally. Select
   every sampled token from the first mismatch onward, even if later tokens match.
   If the sampled response extends a matching greedy prefix, select its extra suffix.
   Identical responses, empty sampled responses, and shorter sampled responses that
   match the greedy prefix select no tokens.
 
 For greedy `[1, 2, 9]` and sampled `[1, 3, 9]`, the masks are `[0, 1, 0]`
-(`edit_boundary`) and `[0, 1, 1]` (`1stdiff`). Padding is never selected.
+(`edit_boundary`) and `[0, 1, 1]` (`first_diff`). Padding is never selected.
 Existing AM recipes use `remax_advantage_mask: edit_boundary` to preserve their
 behavior. Replace previous boolean `true` with `edit_boundary`, and `false` with
 `null`; there is no separate `remax_advantage_mask_mode` setting.

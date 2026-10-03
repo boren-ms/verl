@@ -38,7 +38,7 @@ actor_rollout_ref:
     n: 8
 
 algorithm:
-  remax_advantage_mask: 1stdiff
+  remax_advantage_mask: first_diff
 
 data:
   train_batch_size: 128

@@ -63,7 +63,7 @@ def test_existing_edit_mask_recipe_uses_advantage_mask():
     assert config.actor_rollout_ref.actor.policy_loss.loss_mode == "vanilla"
 
 
-@pytest.mark.parametrize("mode", [None, "edit_boundary", "1stdiff"])
+@pytest.mark.parametrize("mode", [None, "edit_boundary", "first_diff"])
 def test_400_step_recipe_accepts_string_advantage_mask_modes(mode):
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"

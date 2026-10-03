@@ -121,7 +121,7 @@ class TestAlgoConfig(unittest.TestCase):
         self.assertEqual(config.get("non_existing", "default"), "default")
 
     def test_remax_advantage_mask_round_trip(self):
-        for mode in (None, "edit_boundary", "1stdiff"):
+        for mode in (None, "edit_boundary", "first_diff"):
             with self.subTest(mode=mode):
                 config = OmegaConf.create(
                     {

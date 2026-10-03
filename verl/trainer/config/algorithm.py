@@ -19,7 +19,7 @@ from verl.base_config import BaseConfig
 
 __all__ = ["AlgoConfig", "FilterGroupsConfig", "KLControlConfig"]
 
-REMAX_ADVANTAGE_MASK_MODES = ("edit_boundary", "1stdiff")
+REMAX_ADVANTAGE_MASK_MODES = ("edit_boundary", "first_diff")
 
 
 @dataclass
@@ -84,7 +84,7 @@ class AlgoConfig(BaseConfig):
             a dict maps data source names to float scales. The optional 'default' key applies to unknown sources.
         remax_advantage_mask (Optional[str]): None disables masking.
             "edit_boundary" selects sampled-vs-greedy edits
-            and deletion boundaries; "1stdiff" selects all sampled tokens from
+            and deletion boundaries; "first_diff" selects all sampled tokens from
             the first positional difference onward. Keeps actor KL, entropy, and loss
             denominators unchanged. Requires the DAPO training path; incompatible
             with use_kl_in_reward.

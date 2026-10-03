@@ -28,13 +28,13 @@ def _rollouts(responses):
     )
 
 
-@pytest.mark.parametrize("mode", ["edit_boundary", "1stdiff"])
+@pytest.mark.parametrize("mode", ["edit_boundary", "first_diff"])
 def test_greedy_masks_follow_interleaved_rows_and_batch_operations(mode):
     baseline = _rollouts([[1, 2, 9, 0], [3, 4, 9, 0]])
     sampled = _rollouts([[1, 5, 9, 0], [1, 9, 0, 0]] * 4 + [[3, 4, 9, 0], [3, 6, 9, 0]] * 4)
     sampled.batch["row_id"] = torch.arange(16)
     _attach_remax_disagreement_mask(sampled, baseline, 8, mode=mode)
-    substitution = [0, 1, 1, 0] if mode == "1stdiff" else [0, 1, 0, 0]
+    substitution = [0, 1, 1, 0] if mode == "first_diff" else [0, 1, 0, 0]
     expected = torch.tensor([substitution, [0, 1, 0, 0]] * 4 + [[0, 0, 0, 0], substitution] * 4)
     assert torch.equal(sampled.batch["remax_advantage_mask"], expected)
 
@@ -90,7 +90,7 @@ def _advantage_batch():
 @pytest.mark.parametrize("norm", [None, "l2", "rms"])
 @pytest.mark.parametrize("binary", [False, True])
 @pytest.mark.parametrize("multi_reward", [False, True])
-@pytest.mark.parametrize("mode", ["edit_boundary", "1stdiff"])
+@pytest.mark.parametrize("mode", ["edit_boundary", "first_diff"])
 def test_masks_final_advantages_only(norm, binary, multi_reward, mode):
     config = AlgoConfig(
         adv_estimator="remax",

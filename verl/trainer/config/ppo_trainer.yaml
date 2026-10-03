@@ -80,7 +80,7 @@ algorithm:
   # DAPO/ReMax: mask only final policy advantages. Preserve actor KL, entropy, and loss denominators.
   # Incompatible with use_kl_in_reward.
   # null disables masking; edit_boundary selects edits/deletion boundaries;
-  # 1stdiff selects the remaining sampled suffix.
+  # first_diff selects the remaining sampled suffix.
   remax_advantage_mask: null
 
   # Whether to enable in-reward KL penalty

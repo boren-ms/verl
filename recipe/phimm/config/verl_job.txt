@@ -1,10 +1,10 @@
-updated_at_utc: 2026-10-03T23:13:00Z
+updated_at_utc: 2026-10-03T23:20:29Z
 
 ┌────────┬────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS  │ JOB / CONFIG                                                                     │ PROGRESS / PHASE                                 │
 ├────────┼────────────────────────────┼─────────┼──────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────┤
-│ n2-i0  │ raysubmit_MtyepzqEeKLnXLS1 │ RUNNING │ remax_2609v0_earning_verb_hint_s400_bs128_n8_r256_g16_flr_am                    │ training startup (numerical fallback retry)      │
-│ n2-i1  │ raysubmit_AcGCHqm6BFZSUPzD │ RUNNING │ remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am                                       │ training startup (model-only step 100)             │
+│ n2-i0  │ raysubmit_8RhaJmXJWReuyNqN │ RUNNING │ remax_2609v0_earning_verb_hint_s400_bs128_n8_r256_g16_flr_am                    │ training startup (microbatch fallback retry)     │
+│ n2-i1  │ raysubmit_6jkdF8nEwCLNJ2kp │ STOPPED │ remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am                                       │ training stopped at step 100                       │
 │ n2-i3  │ raysubmit_yVUz5PgsaYyijNb3 │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g16_flr_smp3_v0a             │ training 320/1000 (32%)                          │
 │ n4-i0  │ raysubmit_2PBYaWAaaQVkebPe │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp3_v0b             │ training 329/1000 (32.9%)                        │
 │ n4-i1  │ raysubmit_rGpQcnuGw6mYCaRd │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s600_bs128_n8_r256_g32_flr_smp4_v0b_kl5       │ training 1/600 (0.2%)                              │
@@ -18,7 +18,7 @@ updated_at_utc: 2026-10-03T23:13:00Z
 
 Reports:
 - `remax_2609v0_earning_verb_hint_s400_bs128_n8_r256_g16_flr_am` [`n2-i0`]: training startup
-- `remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am` [`n2-i1`]: training startup
+- `remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am` [`n2-i1`]: stopped step 100
 - `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr` [`n4-i4`]: training 276/1000 (27.6%)
 - `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g16_flr_smp3_v0a` [`n2-i3`]: training 320/1000 (32%)
 - `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_flr_smp3_v0b` [`n4-i0`]: training 329/1000 (32.9%)
