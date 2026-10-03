@@ -52,6 +52,11 @@ bash recipe/dapo/run_dapo_qwen2.5_32b.sh # or other scripts
 
 ### Non-finite logprob filtering metrics
 
+The [2609 ASR base configuration](../phimm/config/v2609_asr/base.yaml) enables
+`filter_nonfinite_log_probs` for the actor, reference policy, and trainer by
+default. Recipes inheriting this base allow non-finite worker logprobs to reach
+the trainer for filtering.
+
 With `trainer.filter_nonfinite_log_probs: true`, the trainer reports these
 per-step metrics through the configured logging backends, including W&B:
 

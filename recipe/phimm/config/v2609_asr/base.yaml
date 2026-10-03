@@ -86,6 +86,7 @@ actor_rollout_ref:
     enable_chunked_prefill: true
     free_cache_engine: true
   actor:
+    filter_nonfinite_log_probs: true
     use_torch_compile: false
     use_dynamic_bsz: true
     ppo_max_token_len_per_gpu: 2048
@@ -121,6 +122,7 @@ actor_rollout_ref:
     exclude_modules: "model.embed_tokens_extend.*"
     enable_gradient_checkpointing: false
   ref:
+    filter_nonfinite_log_probs: true
     strategy: fsdp2
     log_prob_use_dynamic_bsz: true
     log_prob_max_token_len_per_gpu: 2048
@@ -168,6 +170,7 @@ reward_model:
     penalty_factor: 0.0
 
 trainer:
+  filter_nonfinite_log_probs: true
   project_name: v2609_asr
   logger: ["console", "wandb"]
   log_val_generations: 20
