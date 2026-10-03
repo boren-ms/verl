@@ -283,7 +283,11 @@ class DataParallelPPOActor(BasePPOActor):
                         else:
                             entropy = torch.utils.checkpoint.checkpoint(verl_F.entropy_from_logits, logits)
 
-            if not self.use_fused_kernels and not torch.isfinite(log_probs).all():
+            if (
+                not self.use_fused_kernels
+                and not self.config.filter_nonfinite_log_probs
+                and not torch.isfinite(log_probs).all()
+            ):
                 response_logits = logits_rmpad if self.use_remove_padding else logits
                 logits_finite = torch.isfinite(response_logits).all().item()
                 audio_features = multi_modal_inputs.get("input_audio_embeds")
