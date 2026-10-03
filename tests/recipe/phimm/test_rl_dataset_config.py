@@ -13,21 +13,35 @@ from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
 
-def test_greedy_advantage_mask_recipe_preserves_reference():
+@pytest.mark.parametrize(
+    "recipe_name, masked_recipe_name",
+    [
+        (
+            "remax_2609v0_ml_hint_s200_bs128_n8_flr_g16",
+            "remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am",
+        ),
+        (
+            "remax_2609v0_earning_verb_hint_s1k_bs128_n8_r256_g32_flr",
+            "remax_2609v0_earning_verb_hint_s1k_bs128_n8_r256_g16_flr_am",
+        ),
+    ],
+)
+def test_greedy_advantage_mask_recipe_preserves_reference(recipe_name, masked_recipe_name):
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
-    recipe_name = "remax_2609v0_ml_hint_s200_bs128_n8_flr_g16"
     searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
         base = compose(config_name=recipe_name, overrides=[searchpath])
-        masked = compose(config_name=f"{recipe_name}_am", overrides=[searchpath])
+        masked = compose(config_name=masked_recipe_name, overrides=[searchpath])
 
     assert not base.algorithm.remax_advantage_mask
     assert masked.algorithm.remax_advantage_mask
     assert masked.actor_rollout_ref.rollout.gt_rollout
     assert masked.actor_rollout_ref.rollout.n == 8
     assert masked.trainer.save_freq == 50
+    assert masked.trainer.nnodes * masked.trainer.n_gpus_per_node == 16
     base.algorithm.remax_advantage_mask = True
+    base.trainer.nnodes = 2
     assert OmegaConf.to_container(masked) == OmegaConf.to_container(base)
 
 

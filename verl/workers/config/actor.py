@@ -81,6 +81,7 @@ class ActorConfig(BaseConfig):
         checkpoint (CheckpointConfig): Configuration for checkpointing.
         optim (OptimizerConfig): Configuration for optimizer.
         use_fused_kernels (bool): Whether to use custom fused kernels (e.g., FlashAttention, fused MLP).
+        filter_nonfinite_log_probs (bool): Whether to return non-finite log probabilities for trainer-side filtering.
     """
 
     _mutable_fields = BaseConfig._mutable_fields | {
@@ -116,6 +117,7 @@ class ActorConfig(BaseConfig):
     checkpoint: CheckpointConfig = field(default_factory=CheckpointConfig)
     optim: OptimizerConfig = field(default_factory=OptimizerConfig)
     use_fused_kernels: bool = False
+    filter_nonfinite_log_probs: bool = False
     profiler: ProfilerConfig = field(default_factory=ProfilerConfig)
     engine: BaseConfig = field(default_factory=BaseConfig)
     data_loader_seed = 1

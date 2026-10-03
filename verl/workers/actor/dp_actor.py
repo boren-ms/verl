@@ -292,12 +292,16 @@ class DataParallelPPOActor(BasePPOActor):
                     if isinstance(audio_features, torch.Tensor)
                     else None
                 )
-                raise FloatingPointError(
+                error_message = (
                     "Non-finite actor/ref response log probabilities: "
                     f"logits_finite={logits_finite}, "
                     f"audio_features_finite={audio_finite}, "
                     f"input_shape={tuple(input_ids.shape)}, response_length={response_length}"
                 )
+                if self.config.get("filter_nonfinite_log_probs", False):
+                    logger.warning("%s; returning values for trainer-side trajectory filtering", error_message)
+                else:
+                    raise FloatingPointError(error_message)
 
             return entropy, log_probs
 

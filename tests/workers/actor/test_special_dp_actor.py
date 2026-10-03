@@ -38,9 +38,13 @@ def test_cast_mismatched_gradients_to_parameter_dtype():
 
 @pytest.mark.parametrize("use_remove_padding", [False, True])
 @pytest.mark.parametrize("logit_value", [0.0, float("nan"), float("inf")])
+@pytest.mark.parametrize("filter_nonfinite_log_probs", [False, True])
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="Log-probability kernels require CUDA")
-def test_forward_micro_batch_rejects_nonfinite_log_probs(use_remove_padding, logit_value):
+def test_forward_micro_batch_handles_nonfinite_log_probs(
+    use_remove_padding, logit_value, filter_nonfinite_log_probs
+):
     actor = DataParallelPPOActor.__new__(DataParallelPPOActor)
+    actor.config = {"filter_nonfinite_log_probs": filter_nonfinite_log_probs}
     actor.device_name = "cuda"
     actor.use_remove_padding = use_remove_padding
     actor.use_fused_kernels = False
@@ -60,6 +64,10 @@ def test_forward_micro_batch_rejects_nonfinite_log_probs(use_remove_padding, log
         assert entropy is None
         assert log_probs.shape == (1, 2)
         assert torch.isfinite(log_probs).all()
+    elif filter_nonfinite_log_probs:
+        entropy, log_probs = actor._forward_micro_batch(micro_batch, temperature=1.0)
+        assert entropy is None
+        assert not torch.isfinite(log_probs).all()
     else:
         with pytest.raises(FloatingPointError, match="logits_finite=False"):
             actor._forward_micro_batch(micro_batch, temperature=1.0)
