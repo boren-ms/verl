@@ -32,9 +32,11 @@ reward_function_by_data_source:
 actor_rollout_ref:
   actor:
     optim:
-      lr: 5e-6
+      lr: 2e-6
       warmup_style: constant
       lr_warmup_steps: 0
+    checkpoint:
+      override_optimizer_lr: true
   rollout:
     n: 8
 

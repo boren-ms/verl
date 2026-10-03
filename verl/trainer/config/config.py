@@ -30,11 +30,13 @@ class CheckpointConfig(BaseConfig):
         save_contents (list[str]): What to include in saved checkpoints.
             Options: 'model', 'optimizer', 'extra', 'hf_model'.
         load_contents (list[str]): Contents to load from checkpoint. Defaults to same as save_contents.
+        override_optimizer_lr (bool): Keep the configured optimizer learning rate instead of the checkpoint value.
         async_save (bool): Whether to save checkpoints asynchronously. Only implemented for Megatron as of now.
     """
 
     save_contents: list[str] = field(default_factory=lambda: ["model", "optimizer", "extra"])
     load_contents: list[str] = field(default_factory=lambda: ["model", "optimizer", "extra"])
+    override_optimizer_lr: bool = False
     async_save: bool = False
 
 

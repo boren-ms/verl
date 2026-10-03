@@ -119,6 +119,14 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             assert self.optimizer is not None, (
                 "optimizer must be provided when checkpoint_contents.load includes ['optimizer']"
             )
+        override_optimizer_lr = bool(
+            self.checkpoint_config and self.checkpoint_config.get("override_optimizer_lr", False)
+        )
+        configured_optimizer_lrs = (
+            [group["lr"] for group in self.optimizer.param_groups]
+            if self.should_load_optimizer and override_optimizer_lr
+            else None
+        )
 
         # every rank download its own checkpoint
         state_dict_cfg = (
@@ -151,6 +159,13 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                 )
                 optimizer_state_dict = torch.load(local_optim_path, weights_only=False, map_location="cpu")
                 self.optimizer.load_state_dict(optimizer_state_dict)
+                if configured_optimizer_lrs is not None:
+                    for param_group, configured_lr in zip(
+                        self.optimizer.param_groups, configured_optimizer_lrs, strict=True
+                    ):
+                        param_group["lr"] = configured_lr
+                        if "initial_lr" in param_group:
+                            param_group["initial_lr"] = configured_lr
                 log_with_rank(f"Loaded optimizer from {local_optim_path}", rank=self.rank, logger=logger)
 
         if self.should_load_extra:
@@ -167,7 +182,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
                 log_with_rank(f"Loaded rng from {local_extra_state_path}", rank=self.rank, logger=logger)
 
             lr_scheduler_state_dict = extra_state_dict["lr_scheduler"]
-            if lr_scheduler_state_dict is not None and self.lr_scheduler is not None:
+            if lr_scheduler_state_dict is not None and self.lr_scheduler is not None and not override_optimizer_lr:
                 self.lr_scheduler.load_state_dict(lr_scheduler_state_dict)
                 log_with_rank(f"Loaded lr_scheduler from {local_extra_state_path}", rank=self.rank, logger=logger)
 
