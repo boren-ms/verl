@@ -51,6 +51,17 @@ actor_rollout_ref:
     engine_kwargs:
       vllm:
         gdn_prefill_backend: triton
+        # Match actor targets without adding an unused lm_head LoRA wrapper.
+        lora_target_modules:
+          - gate_proj
+          - up_proj
+          - down_proj
+          - q_proj
+          - k_proj
+          - v_proj
+          - o_proj
+          - in_proj_qkv
+          - out_proj
     temperature: 1.2
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true

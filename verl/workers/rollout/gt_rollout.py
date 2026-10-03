@@ -17,6 +17,7 @@ def generate_with_gt_responses(
 
     prompt_logprobs=0 includes each observed token's probability. Use the
     returned prompt IDs to locate GT after multimodal placeholder expansion.
+    GT scoring bypasses prefix-cache reads so every prompt token is scored.
     """
     if any(i < 0 or i >= len(vllm_inputs) for i in gt_responses):
         raise ValueError("GT response indices must refer to rollout inputs")
@@ -25,7 +26,9 @@ def generate_with_gt_responses(
     if gt_responses:
         gt_params = deepcopy(sampling_params)
         gt_params.max_tokens = 1
-        gt_params.prompt_logprobs = 0 if calculate_log_probs else None
+        if calculate_log_probs:
+            gt_params.prompt_logprobs = 0
+            gt_params.skip_reading_prefix_cache = True
         request_params = [sampling_params] * len(vllm_inputs)
         for i, response in gt_responses.items():
             if not response:

@@ -115,13 +115,17 @@ def test_gt_decodes_only_one_token_without_mutating_caller_params(max_tokens):
 
 
 @pytest.mark.parametrize("calculate_log_probs", [False, True])
-def test_gt_sampling_params_only_override_token_limit_and_prompt_logprobs(calculate_log_probs):
+@pytest.mark.parametrize("skip_reading_prefix_cache", [None, False, True])
+def test_gt_sampling_params_preserve_options_except_scoring_requirements(
+    calculate_log_probs, skip_reading_prefix_cache
+):
     engine = MockRolloutEngine()
     original_params = {
         "n": 1,
         "temperature": 1.2,
         "max_tokens": 5,
         "prompt_logprobs": None,
+        "skip_reading_prefix_cache": skip_reading_prefix_cache,
         "logprobs": 0,
         "top_p": 0.9,
         "stop_token_ids": [99],
@@ -143,6 +147,7 @@ def test_gt_sampling_params_only_override_token_limit_and_prompt_logprobs(calcul
         **original_params,
         "max_tokens": 1,
         "prompt_logprobs": 0 if calculate_log_probs else None,
+        "skip_reading_prefix_cache": True if calculate_log_probs else skip_reading_prefix_cache,
     }
     assert vars(sampled_params) == original_params
     assert gt_params.stop_token_ids is not sampled_params.stop_token_ids
