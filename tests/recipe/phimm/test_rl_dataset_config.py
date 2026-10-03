@@ -20,7 +20,7 @@ def test_greedy_advantage_mask_recipe_preserves_reference():
     searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
         base = compose(config_name=recipe_name, overrides=[searchpath])
-        masked = compose(config_name=f"{recipe_name}_greedy_adv_mask", overrides=[searchpath])
+        masked = compose(config_name=f"{recipe_name}_am", overrides=[searchpath])
 
     assert not base.algorithm.remax_advantage_mask
     assert masked.algorithm.remax_advantage_mask

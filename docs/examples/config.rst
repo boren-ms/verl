@@ -532,7 +532,7 @@ Algorithm
   recipes now use this mode, including deletion anchors and full-response regularization.
 
   The derived ASR recipe
-  ``recipe/phimm/config/v2609_asr/remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_greedy_adv_mask.yaml``
+  ``recipe/phimm/config/v2609_asr/remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am.yaml``
   enables only this flag relative to its reference recipe. It retains the eight
   rollouts, GT injection, reward weights, KL coefficient, and greedy generation
   settings (including its shorter response cap). Diagnostics under ``remax_advantage_mask/``
