@@ -1,0 +1,43 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/openml_verb_noreps_langhint
+  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint
+  - _self_
+
+reward_functions:
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
+        bracket: {beta: 1.0}
+
+reward_function_by_data_source:
+  openml: openml
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 2e-6
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+
+data:
+  train_batch_size: 128
+
+trainer:
+  nnodes: 4
+  total_epochs: 30
+  total_training_steps: 200
