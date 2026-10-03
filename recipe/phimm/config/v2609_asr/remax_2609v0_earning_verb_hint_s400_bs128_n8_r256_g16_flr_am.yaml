@@ -35,11 +35,14 @@ actor_rollout_ref:
   rollout:
     n: 8
 
+algorithm:
+  remax_advantage_mask: true
+
 data:
   train_batch_size: 128
 
 trainer:
-  nnodes: 4
+  nnodes: 2
   total_epochs: 30
-  total_training_steps: 1000
+  total_training_steps: 400
   filter_nonfinite_log_probs: true

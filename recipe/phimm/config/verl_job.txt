@@ -1,9 +1,9 @@
-updated_at_utc: 2026-10-03T07:18:01Z
+updated_at_utc: 2026-10-03T22:21:46Z
 
 ┌────────┬────────────────────────────┬─────────┬────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS  │ JOB / CONFIG                                                       │ PROGRESS / PHASE                        │
 ├────────┼────────────────────────────┼─────────┼────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────┤
-│ n2-i1  │ raysubmit_SfbyaSJWkvFfDH8s │ RUNNING │ remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am                      │ training 96/200 (48.0%)                 │
+│ n2-i1  │ raysubmit_ZddV5mxmf3BQ9MJ1 │ RUNNING │ remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am                      │ training 107/200 (53.5%)                │
 │ n2-i3  │ raysubmit_dpsws6qaPXaXS3NW │ RUNNING │ eval_2609_openml_verb                                              │ evaluating openasr_ml (scoring)         │
 │ n4-i0  │ raysubmit_icsYe23GNDD3RtMb │ RUNNING │ remax_2609v0a_earning_s1k_bs128_n4_r256_g32                        │ training 732/1000 (73.2%)               │
 │ n4-i1  │ raysubmit_QfEbK7Fh27FauUtV │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_nshf_flr   │ training 362/1000 (36.2%)               │
@@ -15,7 +15,7 @@ updated_at_utc: 2026-10-03T07:18:01Z
 └────────┴────────────────────────────┴─────────┴────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am` [`n2-i1`]: training 96/200 (48.0%)
+- `remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_am` [`n2-i1`]: training 107/200 (53.5%)
 - `remax_2609v0a_earning_s1k_bs128_n4_r256_g32` [`n4-i0`]: training 732/1000 (73.2%)
 - `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32_nshf_flr` [`n4-i1`]: training 362/1000 (36.2%)
 - `remax_2609v0_earning_ml_verb_hint_s1k_bs128_n8_r256_g32` [`n4-i2`]: training 584/1000 (58.4%)
