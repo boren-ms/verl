@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>ReMax: Learn from differences, keep KL everywhere</title>
+  <style>
+    :root { --ink: #142c3c; --muted: #4c6473; --paper: #f4f7fa; --line: #cfdae2;
+      --blue: #215ac4; --green: #086348; --green-bg: #e2f5ed; --amber: #81530a; --amber-bg: #fff3d6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.65 system-ui, sans-serif; }
+    main { max-width: 1120px; margin: auto; padding: 48px 24px 64px; }
+    h1, h2, h3 { line-height: 1.2; letter-spacing: -.025em; }
+    h1 { font-size: clamp(2.3rem, 5vw, 3.8rem); max-width: 860px; margin: 14px 0 22px; }
+    h2 { font-size: 1.65rem; margin: 0 0 20px; }
+    h3 { font-size: 1.12rem; margin: 0 0 12px; }
+    p { margin: 10px 0 16px; }
+    a { color: #184fab; text-underline-offset: 3px; overflow-wrap: anywhere; }
+    code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    code { font-size: .9em; overflow-wrap: anywhere; }
+    pre { background: #edf2f7; border-radius: 10px; padding: 18px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .eyebrow { text-transform: uppercase; color: var(--blue); font-size: .78rem; letter-spacing: .13em; font-weight: 800; }
+    .lead { font-size: 1.2rem; max-width: 850px; color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 30px; }
+    .chip { border: 1px solid var(--line); border-radius: 99px; padding: 4px 12px; font-size: .85rem; background: white; }
+    nav { display: flex; flex-wrap: wrap; gap: 12px 22px; border-top: 1px solid var(--line); padding-top: 20px; }
+    section { margin-top: 28px; padding: 28px; border-radius: 16px; background: white; border: 1px solid var(--line); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    .card { background: var(--paper); border-radius: 12px; padding: 20px; }
+    .accent { border-left: 4px solid var(--blue); }
+    .note { border-left: 4px solid #ae781a; padding: 14px 18px; background: var(--amber-bg); border-radius: 0 10px 10px 0; }
+    .formula { padding: 22px; background: #112d43; color: white; border-radius: 12px; font-size: clamp(1rem, 2vw, 1.3rem); }
+    .formula p { margin: 4px 0; }
+    .formula small { color: #cfdfed; font-size: .82em; }
+    .step { color: var(--blue); font-weight: 800; display: block; margin-bottom: 8px; }
+    .flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 18px 32px; margin: 18px 0 22px; align-items: end; }
+    label { display: block; font-weight: 650; margin-bottom: 6px; }
+    select { font: inherit; max-width: 100%; border: 1px solid #9eafbe; border-radius: 8px; padding: 9px 12px; background: white; color: var(--ink); }
+    input[type=range] { width: 260px; max-width: 100%; accent-color: var(--blue); }
+    :focus-visible { outline: 3px solid #215ac4; outline-offset: 4px; }
+    .baseline { background: #edf2f7; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; }
+    .baseline .mono { overflow-wrap: anywhere; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    thead th { background: #edf2f7; }
+    caption { text-align: left; font-weight: 650; padding: 0 0 10px; }
+    .token-table { min-width: 550px; table-layout: fixed; }
+    .token-table th:first-child { width: 168px; }
+    .token-table td { text-align: center; }
+    .token { display: inline-block; border-radius: 7px; padding: 4px 10px; background: #edf2f7; border: 1px solid var(--line); }
+    .selected { background: var(--green-bg); color: var(--green); border-color: #68ae95; font-weight: 700; }
+    .boundary { background: var(--amber-bg); color: var(--amber); border: 1px dashed #ac7719; font-weight: 700; }
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: .84rem; margin-top: 14px; }
+    .summary { background: #edf4ff; padding: 14px 18px; border-radius: 10px; margin-top: 16px; }
+    .muted { color: var(--muted); }
+    .small { font-size: .88rem; }
+    ul, ol { padding-left: 23px; }
+    li { margin-bottom: 8px; }
+    details { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 15px; }
+    summary { cursor: pointer; font-weight: 700; }
+    footer { margin: 26px 0 0; font-size: .85rem; color: var(--muted); }
+    @media (max-width: 720px) {
+      main { padding: 28px 16px; } section { padding: 20px 16px; }
+      .grid, .flow { grid-template-columns: 1fr; } .controls > div { width: 100%; }
+    }
+    @media print {
+      body { background: white; font-size: 10pt; } main { padding: 0; }
+      section { break-inside: avoid; padding: 18px; } nav, .controls { display: none; }
+      .formula { background: #edf2f7; color: #142c3c; } .formula small { color: #4c6473; }
+      .scroll { overflow: visible; } .token-table { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">ASR training / ReMax credit assignment</div>
+    <h1>Learn from the differences.<br>Keep KL everywhere.</h1>
+    <p class="lead">Compare a sampled rollout with its <strong>own greedy result</strong>.
+      Keep the existing sequence-level advantage, but apply policy credit only to
+      the tokens that changed, plus explicit deletion boundaries.</p>
+    <div class="chips">
+      <span class="chip">Rollout vs. greedy, not ground truth</span>
+      <span class="chip">Combined reward unchanged</span>
+      <span class="chip">Policy advantages only</span>
+      <span class="chip">Opt-in behavior</span>
+    </div>
+    <nav aria-label="Sections">
+      <a href="#idea">The idea</a><a href="#demo">Token explorer</a>
+      <a href="#loss">What stays unchanged</a><a href="#limits">Trade-offs</a>
+      <a href="#implementation">Implementation</a><a href="#verify">Validation</a>
+    </nav>
+  </header>
+
+  <section id="idea">
+    <h2>01 / Separate two questions</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>How good is this response?</h3>
+        <p>Score both the sample and the greedy result with the existing ASR reward function.
+          Ground truth still supplies the reference for char/word accuracy; the other components check language and output quality.</p>
+        <p class="small muted">The combined reward includes char, word, language, format, and bracket scores.</p>
+      </div>
+      <div class="card accent">
+        <h3>Where should that comparison act?</h3>
+        <p>Align the sampled and greedy <strong>token IDs</strong>. Zero policy advantages
+          on their matching spans. Keep the advantage on sampled insertions, replacements,
+          and selected boundaries for omitted greedy tokens.</p>
+        <p class="small muted">Ground truth determines quality, but it does not determine this mask.</p>
+      </div>
+    </div>
+    <div class="formula mono" style="margin-top:22px">
+      <p>A = R(sample) - R(greedy)</p>
+      <p>A<sub>policy,t</sub> = A<sub>existing,t</sub> &times; M<sub>t</sub></p>
+      <small>M<sub>t</sub> = 1 for a selected valid sampled token; otherwise 0.</small>
+    </div>
+    <p>The first formula describes the reference recipe's scalar ReMax advantage. If advantage normalization,
+      sign-only conversion, or scaling is enabled, compute those first, then apply the mask.</p>
+    <div class="flow">
+      <div class="card"><span class="step">1. Score</span>Generate a sample and a greedy result for the same prompt. Compute their rewards.</div>
+      <div class="card"><span class="step">2. Align</span>Find matching token blocks and the sampled tokens where the responses differ.</div>
+      <div class="card"><span class="step">3. Mask</span>Multiply final advantages by the mask. Send them to the existing token-level policy loss.</div>
+    </div>
+  </section>
+
+  <section id="demo">
+    <h2>02 / Follow the credit, token by token</h2>
+    <p>Words below stand in for individual model token IDs. In real training, a word may have several
+      subword tokens. Format tags and EOS also participate in the alignment.</p>
+    <div class="controls">
+      <div>
+        <label for="example">Difference from greedy</label>
+        <select id="example">
+          <option value="substitution">Substitution: cats to dogs</option>
+          <option value="insertion">Insertion: add really</option>
+          <option value="deletion">Deletion: omit really</option>
+          <option value="tail">Tail deletion: stop early</option>
+          <option value="unequal">Unequal replacement: two tokens to one</option>
+          <option value="identical">Identical result</option>
+        </select>
+      </div>
+      <div>
+        <label for="advantage">Existing combined advantage: <output id="adv-value" for="advantage">+0.20</output></label>
+        <input type="range" id="advantage" min="-0.4" max="0.4" step="0.05" value="0.2"
+          aria-describedby="adv-help">
+        <div id="adv-help" class="small muted">Positive = sample scored better; negative = worse.</div>
+      </div>
+    </div>
+    <noscript><p class="note">The explanation and default substitution example work without JavaScript.
+      Enable JavaScript to change examples and advantage values.</p></noscript>
+    <div class="baseline"><strong>Greedy:</strong> <span class="mono" id="greedy">I &middot; like &middot; cats &middot; EOS</span></div>
+    <div class="scroll" tabindex="0" aria-label="Scrollable token credit example">
+      <table class="token-table">
+        <caption>Policy credit on the sampled response</caption>
+        <tbody id="token-rows">
+          <tr><th scope="row">Sampled tokens</th><td><span class="token">I</span></td><td><span class="token">like</span></td><td><span class="token selected">dogs</span></td><td><span class="token">EOS</span></td></tr>
+          <tr><th scope="row">Old advantage</th><td>+0.20</td><td>+0.20</td><td>+0.20</td><td>+0.20</td></tr>
+          <tr><th scope="row">Mask M</th><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+          <tr><th scope="row">New advantage</th><td>0.00</td><td>0.00</td><td>+0.20</td><td>0.00</td></tr>
+          <tr><th scope="row">Actor KL</th><td>Active</td><td>Active</td><td>Active</td><td>Active</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><span class="token selected">Changed</span> selected by disagreement</span>
+      <span><span class="token boundary">Boundary</span> selected for an omission</span>
+      <span><span class="token">Matching</span> no direct policy credit</span>
+    </div>
+    <div class="summary" aria-live="polite">
+      <strong id="effect">1 / 4 tokens selected. Positive credit on the selected token.</strong>
+      <p id="explanation">Only dogs differs from greedy. I, like, and EOS keep zero policy advantage.</p>
+      <p class="small" id="scale">At a policy ratio of 1, mean advantage changes from +0.20 to +0.05. The denominator stays 4.</p>
+    </div>
+    <p class="small muted">The slider is illustrative, not an ASR scorer. Identical deterministic responses
+      normally have equal rewards and zero ReMax advantage; the identical example fixes A to zero.</p>
+    <details open>
+      <summary>Why does a deletion need a boundary token?</summary>
+      <p>An omitted greedy token has no sampled log probability to update. We therefore select the next valid
+        sampled token, even if it matches greedy. For an omitted tail, select EOS when present.
+        If a truncated response has no following token, select its last valid token.
+        An empty sampled response has nothing to select. Padding is never selected.</p>
+      <p>This is a credit-assignment heuristic, not a direct gradient on the missing token.
+        When a replacement has more greedy tokens than sampled tokens, also anchor the excess greedy suffix at the next sampled token.</p>
+    </details>
+  </section>
+
+  <section id="loss">
+    <h2>03 / Mask the advantage, not the response</h2>
+    <p>The reward manager still places the scalar score at the final valid response token.
+      ReMax still broadcasts the resulting outcome advantage. The new mask is applied
+      <strong>after</strong> advantage calculation, not to the reward tensor.</p>
+    <div class="scroll" tabindex="0" aria-label="Training mode comparison">
+      <table>
+        <thead><tr><th scope="col">Behavior</th><th scope="col">Ordinary ReMax</th><th scope="col">remax_advantage_mask</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Policy credit</th><td>All valid response tokens</td><td>Disagreements + deletion boundaries</td></tr>
+          <tr><th scope="row">Actor KL / entropy</th><td>Full valid response</td><td><strong>Full valid response</strong></td></tr>
+          <tr><th scope="row">Token-mean denominator</th><td>All valid tokens</td><td><strong>All valid tokens</strong></td></tr>
+          <tr><th scope="row">Reward scores / returns</th><td>Original</td><td>Original</td></tr>
+          <tr><th scope="row">GT-injected rollout</th><td>Retained</td><td>Retained; compare it to greedy too</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre>L_policy = sum_t [valid_t * PPO_loss(ratio_t, A_existing,t * M_t)]
+           / sum_t valid_t
+
+L_total  = L_policy + beta_KL * KL_full_response
+                     - beta_entropy * entropy_full_response</pre>
+    <p>There is no division by the mismatch count and no redistribution of credit.
+      For example, with four valid tokens, A = +0.20 and one selected token,
+      the mean advantage is +0.05, not +0.20. The policy update generally becomes smaller
+      when fewer tokens are selected; actual gradients also depend on token probabilities and PPO clipping.</p>
+    <p class="small muted">The reference uses actor KL coefficient 0.001 and entropy coefficient 0.
+      Matching tokens have no direct policy-loss term, but shared model parameters, context, and KL can still change their probabilities.</p>
+  </section>
+
+  <section id="limits">
+    <h2>04 / Useful intuition, important limits</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Why it might help</h3>
+        <ul>
+          <li>Focus reward-driven credit on choices that distinguish sampling from the greedy baseline.</li>
+          <li>Avoid broadcasting the same positive or negative policy credit onto every shared span.</li>
+          <li>Keep reference-policy regularization active throughout the response.</li>
+          <li>Allow an injected GT response to receive positive credit where it improves on greedy.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What it does not establish</h3>
+        <ul>
+          <li>This is not ground-truth error localization. A wrong token shared by sample and greedy is masked out.</li>
+          <li>All selected tokens receive the same sequence-level sign. A better sample can still reinforce a locally bad edit.</li>
+          <li>A correct shared span is not guaranteed to remain unchanged after optimization.</li>
+          <li>Reduced update magnitude is a confound: improvement may come from weaker updates, not better localization alone.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note"><strong>This changes the training objective.</strong> A response-dependent mask is a heuristic
+      modification of ReMax's policy-gradient estimator, not a claim of unbiased per-edit credit.
+      Lower validation <code>p_err</code> is an empirical goal, not a mathematical guarantee.</p>
+    <p>Alignment uses <code>SequenceMatcher(autojunk=False)</code> on token IDs, not minimum-Levenshtein
+      char/word alignment. Repeated tokens and alternate tokenizations can affect which spans match.
+      The exact greedy response used for reward scoring is also used for masking.</p>
+  </section>
+
+  <section id="implementation">
+    <h2>05 / The implementation in this recipe</h2>
+    <pre>algorithm:
+  adv_estimator: remax
+  remax_advantage_mask: true
+  use_kl_in_reward: false</pre>
+    <p><a href="../recipe/phimm/config/v2609_asr/remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_greedy_adv_mask.yaml">New opt-in recipe</a>
+      differs from the
+      <a href="../recipe/phimm/config/v2609_asr/remax_2609v0_ml_hint_s200_bs128_n8_flr_g16.yaml">reference recipe</a>
+      only by the enabled flag after composition. It retains 8 rollouts (including one GT rollout),
+      batch size 128, 200 steps, and the 2-node / 16-GPU topology.</p>
+    <p>The reward uses <code>mean</code> over five weighted components:
+      <code>char: 1.0, word: 1.0, lang: 0.5, fmt: 0.2, bracket: 1.0</code>.
+      This means a division by five, not by the sum of weights.
+      Component clipping remains as defined by the scorer. The mask acts on this <strong>combined</strong> reward advantage.</p>
+    <ol>
+      <li><a href="../verl/trainer/ppo/core_algos.py">Alignment helper</a> builds a binary mask including deletion anchors.</li>
+      <li><a href="../recipe/dapo/dapo_ray_trainer.py">DAPO trainer</a> pairs each rollout with its prompt's greedy result.
+        The mask travels with the tensor batch through filtering and reordering.</li>
+      <li><a href="../verl/trainer/ppo/ray_trainer.py">Shared advantage calculation</a> validates the mask and multiplies final advantages once.
+        Scores, rewards, baselines, and returns stay intact.</li>
+      <li><a href="../verl/trainer/ppo/metric_utils.py">Metrics</a> report selected-token fraction/counts,
+        zero-mask fraction, and empty-response count on the final retained batch.</li>
+    </ol>
+    <p class="small">The new mode requires ReMax and vanilla token-level policy loss.
+      Combining it with in-reward KL is rejected. Advantage masking is the only supported ReMax masking mode.
+      Training paths that do not supply a mask fail explicitly. No extra greedy generation is needed:
+      ReMax already produces that baseline.</p>
+    <p class="small muted">Generation settings remain unchanged, including the inherited greedy validation cap
+      of 256 tokens versus 768 for sampled responses. Differences caused by that cap also affect the mask.</p>
+  </section>
+
+  <section id="verify">
+    <h2>06 / Judge it by validation p_err</h2>
+    <div class="grid">
+      <div>
+        <h3>Correctness checks</h3>
+        <p>After removing the legacy loss-mask mode, the focused test run passed <strong>94 tests and 4 subtests</strong>.
+          Coverage includes token alignment, deletion boundaries, baseline pairing, batch propagation,
+          exact <code>A_new = A_old * M</code>, regularization, and recipe parity.</p>
+        <p class="small muted">These checks validate mechanics, not ASR quality.</p>
+      </div>
+      <div>
+        <h3>Quality experiment</h3>
+        <ol>
+          <li>Compare to step-0 validation on the same datasets.</li>
+          <li>Compare masked and unmasked runs at matched steps and settings.</li>
+          <li>Report per-dataset <code>p_err</code>, the same aggregate across runs, and regressions.</li>
+          <li>Inspect mask sparsity and update magnitude alongside quality.</li>
+        </ol>
+      </div>
+    </div>
+    <p class="note"><strong>No measured p_err improvement is claimed here.</strong>
+      At the last recorded infrastructure check, 2026-10-03 02:02 UTC, <code>verl-n2-i0</code>
+      had no allocated pods and no masked-run Ray job had been submitted.
+      This is historical context, not a live job-status display.</p>
+  </section>
+  <footer>Standalone explainer &middot; No external assets, network calls, or tracking.
+    Local source links work when this file remains in the repository's reports directory.
+    Examples illustrate the implemented rules; they do not run a model or score transcripts.</footer>
+</main>
+<script>
+  "use strict";
+  const examples = {
+    substitution: {
+      greedy: ["I", "like", "cats", "EOS"], sample: ["I", "like", "dogs", "EOS"],
+      mask: [0, 0, 1, 0], anchors: [],
+      text: "Only dogs differs from greedy. I, like, and EOS keep zero policy advantage."
+    },
+    insertion: {
+      greedy: ["I", "like", "cats", "EOS"], sample: ["I", "really", "like", "cats", "EOS"],
+      mask: [0, 1, 0, 0, 0], anchors: [],
+      text: "really is a sampled-only token. Matching blocks after the insertion remain unselected."
+    },
+    deletion: {
+      greedy: ["I", "really", "like", "cats", "EOS"], sample: ["I", "like", "cats", "EOS"],
+      mask: [0, 1, 0, 0], anchors: [1],
+      text: "really is missing from the sample. Select the next sampled token, like, as the deletion boundary even though it matches greedy."
+    },
+    tail: {
+      greedy: ["I", "like", "cats", "EOS"], sample: ["I", "like", "EOS"],
+      mask: [0, 0, 1], anchors: [2],
+      text: "The sample stops before cats. Select EOS as the boundary for the missing tail."
+    },
+    unequal: {
+      greedy: ["I", "really", "like", "cats", "EOS"], sample: ["I", "love", "cats", "EOS"],
+      mask: [0, 1, 1, 0], anchors: [2],
+      text: "love replaces really like. Select love and anchor the excess greedy token at cats, the next sampled token."
+    },
+    identical: {
+      greedy: ["I", "like", "cats", "EOS"], sample: ["I", "like", "cats", "EOS"],
+      mask: [0, 0, 0, 0], anchors: [],
+      text: "Identical responses: no disagreement, no deletion anchor, and normally equal rewards. Policy credit is zero; actor KL remains active."
+    }
+  };
+  const choice = document.getElementById("example");
+  const slider = document.getElementById("advantage");
+  const format = value => (Math.abs(value) < 1e-9 ? "0.00" : (value > 0 ? "+" : "") + value.toFixed(2));
+  function render() {
+    const example = examples[choice.value];
+    const identical = choice.value === "identical";
+    const advantage = identical ? 0 : Number(slider.value);
+    slider.disabled = identical;
+    document.getElementById("adv-value").textContent = format(advantage);
+    document.getElementById("greedy").textContent = example.greedy.join(" \u00b7 ");
+    const rows = document.getElementById("token-rows");
+    rows.replaceChildren();
+    const rowData = [
+      ["Sampled tokens", example.sample],
+      ["Old advantage", example.sample.map(() => format(advantage))],
+      ["Mask M", example.mask],
+      ["New advantage", example.mask.map(value => format(value * advantage))],
+      ["Actor KL", example.sample.map(() => "Active")]
+    ];
+    rowData.forEach(([label, values], rowIndex) => {
+      const row = document.createElement("tr");
+      const header = document.createElement("th");
+      header.scope = "row"; header.textContent = label; row.append(header);
+      values.forEach((value, index) => {
+        const cell = document.createElement("td");
+        if (rowIndex === 0) {
+          const token = document.createElement("span");
+          token.className = "token" + (example.anchors.includes(index) ? " boundary" : example.mask[index] ? " selected" : "");
+          token.textContent = value; cell.append(token);
+        } else {
+          cell.textContent = String(value);
+        }
+        row.append(cell);
+      });
+      rows.append(row);
+    });
+    const selected = example.mask.reduce((sum, value) => sum + value, 0);
+    const direction = advantage > 0 ? "Positive" : advantage < 0 ? "Negative" : "Zero";
+    document.getElementById("effect").textContent =
+      `${selected} / ${example.sample.length} tokens selected. ${direction} policy credit on selected tokens.`;
+    document.getElementById("explanation").textContent = example.text;
+    document.getElementById("scale").textContent =
+      `At a policy ratio of 1, mean advantage changes from ${format(advantage)} to ${format(advantage * selected / example.sample.length)}. The denominator stays ${example.sample.length}.`;
+  }
+  choice.addEventListener("change", render);
+  slider.addEventListener("input", render);
+  render();
+</script>
+</body>
+</html>

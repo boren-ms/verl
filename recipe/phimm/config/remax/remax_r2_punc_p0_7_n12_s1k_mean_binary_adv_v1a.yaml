@@ -46,7 +46,6 @@ algorithm:
   adv_estimator: remax
   binary_adv: true
   adv_scale: 1.0
-  # remax_mask: true
 
 data:
   trust_remote_code: false

@@ -715,7 +715,10 @@ def compute_remax_disagreement_mask(
     its (greedy) ReMax baseline using a longest-matching-block alignment
     (``difflib.SequenceMatcher``). Tokens that cannot be aligned to the baseline (i.e.
     the "disagree" tokens introduced by sampling) are marked with ``1``; tokens that
-    match the baseline are marked with ``0``. Padding/invalid tokens are always ``0``.
+    match the baseline are marked with ``0``, except deletion boundaries: when greedy
+    tokens are omitted, select the next sampled token, or the last valid sampled token
+    if there is no next token. This also covers excess greedy tokens in replacements.
+    Empty sampled responses remain all-zero. Padding/invalid tokens are always ``0``.
 
     Args:
         response_ids (torch.Tensor): sampled response token ids, shape (n, response_length).
@@ -727,16 +730,26 @@ def compute_remax_disagreement_mask(
 
     Returns:
         torch.Tensor: disagreement mask, shape (n, response_length), with the same dtype and
-        device as ``response_mask``. ``1`` marks tokens that disagree with the baseline.
+        device as ``response_mask``. ``1`` marks disagreements and deletion boundaries.
     """
+    if response_ids.ndim != 2 or response_mask.shape != response_ids.shape:
+        raise ValueError("ReMax response_ids and response_mask must have the same two-dimensional shape")
+    if baseline_ids.ndim != 2 or baseline_mask.shape != baseline_ids.shape:
+        raise ValueError("ReMax baseline_ids and baseline_mask must have the same two-dimensional shape")
     n, response_length = response_ids.shape
+    if baseline_index is None:
+        baseline_index = np.zeros(n, dtype=np.int64)
+    else:
+        baseline_index = np.asarray(baseline_index)
+    if baseline_index.shape != (n,) or not np.issubdtype(baseline_index.dtype, np.integer):
+        raise ValueError("ReMax baseline_index must be a one-dimensional integer array with one entry per response")
+    if np.any(baseline_index < 0) or np.any(baseline_index >= baseline_ids.shape[0]):
+        raise ValueError("ReMax baseline_index contains an out-of-range greedy baseline row")
+
     resp_np = response_ids.detach().cpu().numpy()
     resp_valid = response_mask.detach().cpu().numpy().astype(bool)
     base_np = baseline_ids.detach().cpu().numpy()
     base_valid = baseline_mask.detach().cpu().numpy().astype(bool)
-
-    if baseline_index is None:
-        baseline_index = np.zeros(n, dtype=np.int64)
 
     out = np.zeros((n, response_length), dtype=np.int64)
     for i in range(n):
@@ -755,9 +768,17 @@ def compute_remax_disagreement_mask(
 
         disagree_pos = valid_pos[~matched]
         out[i, disagree_pos] = 1
+        for tag, a_start, a_end, b_start, b_end in matcher.get_opcodes():
+            # SequenceMatcher's "insert" is greedy-only because a is the sampled response.
+            if tag == "insert":
+                boundary = a_start
+            elif tag == "replace" and b_end - b_start > a_end - a_start:
+                boundary = a_end
+            else:
+                continue
+            out[i, valid_pos[min(boundary, len(a) - 1)]] = 1
 
-    remax_mask = torch.from_numpy(out).to(device=response_mask.device, dtype=response_mask.dtype)
-    return remax_mask
+    return torch.from_numpy(out).to(device=response_mask.device, dtype=response_mask.dtype)
 
 
 def _normalize_remax_advantages(

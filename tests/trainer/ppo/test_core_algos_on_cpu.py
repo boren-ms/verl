@@ -25,12 +25,76 @@ from verl.trainer.config import AlgoConfig
 from verl.trainer.ppo.core_algos import (
     compute_gae_advantage_return,
     compute_gdpo_outcome_advantage,
+    compute_remax_disagreement_mask,
     compute_remax_outcome_advantage,
     filter_nonfinite_log_probs,
     get_adv_estimator_fn,
     kl_penalty,
     register_adv_est,
 )
+
+
+@pytest.mark.parametrize(
+    "greedy,sampled,expected",
+    [
+        ([1, 2, 9], [1, 2, 9], [0, 0, 0]),
+        ([1, 2, 9], [1, 3, 9], [0, 1, 0]),
+        ([1, 2, 9], [1, 3, 2, 9], [0, 1, 0, 0]),
+        ([1, 2, 9], [2, 9], [1, 0]),
+        ([1, 2, 3, 9], [1, 3, 9], [0, 1, 0]),
+        ([1, 2, 9], [1, 9], [0, 1]),
+        ([1, 2, 9], [1], [1]),
+        ([1, 2, 3, 9], [1, 4, 9], [0, 1, 1]),
+        ([1, 2, 9], [1, 3, 4, 9], [0, 1, 1, 0]),
+        ([1, 2, 9], [9], [1]),
+        ([1, 1, 2, 9], [1, 2, 9], [1, 0, 0]),
+        ([101, 1, 102, 9], [103, 1, 102, 9], [1, 0, 0, 0]),
+        ([], [1, 9], [1, 1]),
+        ([1, 9], [], []),
+        ([], [], []),
+    ],
+)
+def test_remax_disagreement_mask_deletion_boundaries(greedy, sampled, expected):
+    # Deliberately use different widths and padding IDs that also occur in valid positions.
+    response_ids = torch.tensor([sampled + [9, 9]], dtype=torch.long)
+    response_mask = torch.tensor([[1] * len(sampled) + [0, 0]])
+    baseline_ids = torch.tensor([greedy + [1]], dtype=torch.long)
+    baseline_mask = torch.tensor([[1] * len(greedy) + [0]])
+
+    actual = compute_remax_disagreement_mask(response_ids, response_mask, baseline_ids, baseline_mask)
+    assert actual.tolist() == [expected + [0, 0]]
+    assert actual.dtype == response_mask.dtype
+    assert actual.device == response_mask.device
+
+
+def test_remax_disagreement_mask_noncontiguous_valid_positions():
+    actual = compute_remax_disagreement_mask(
+        torch.tensor([[1, 99, 3, 9]]),
+        torch.tensor([[True, False, True, True]]),
+        torch.tensor([[1, 2, 3, 9, 0]]),
+        torch.tensor([[1, 1, 1, 1, 0]]),
+    )
+    assert actual.tolist() == [[False, False, True, False]]
+
+
+@pytest.mark.parametrize("index", [np.array([-1]), np.array([1]), np.array([0.0]), np.array([0, 0])])
+def test_remax_disagreement_mask_rejects_invalid_baseline_index(index):
+    with pytest.raises(ValueError, match="baseline_index"):
+        compute_remax_disagreement_mask(
+            torch.ones((1, 2)), torch.ones((1, 2)), torch.ones((1, 3)), torch.ones((1, 3)), index
+        )
+
+
+@pytest.mark.parametrize("invalid_side", ["response", "baseline"])
+def test_remax_disagreement_mask_rejects_invalid_shapes(invalid_side):
+    mask = torch.ones((1, 2))
+    with pytest.raises(ValueError, match="two-dimensional shape"):
+        compute_remax_disagreement_mask(
+            torch.ones((1, 3)) if invalid_side == "response" else mask,
+            mask,
+            torch.ones(2) if invalid_side == "baseline" else mask,
+            mask,
+        )
 
 
 def test_filter_nonfinite_log_probs_keeps_finite_trajectories_and_dp_alignment():

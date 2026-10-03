@@ -45,7 +45,8 @@ algorithm:
   adv_estimator: remax
   binary_adv: true
   adv_scale: 1.0
-  remax_mask: true
+  # Mask policy advantages only; keep full-response KL and entropy.
+  remax_advantage_mask: true
 
 data:
   max_prompt_length: 1204

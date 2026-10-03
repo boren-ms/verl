@@ -246,6 +246,17 @@ def compute_response_mask(data: DataProto):
     return attention_mask[:, -response_length:]
 
 
+def _validate_remax_advantage_mask(config, adv_estimator):
+    if config is None or not config.get("remax_advantage_mask", False):
+        return
+    if adv_estimator not in (AdvantageEstimator.REMAX, "remax"):
+        raise ValueError("algorithm.remax_advantage_mask requires adv_estimator=remax")
+    if config.get("use_kl_in_reward", False):
+        raise ValueError(
+            "algorithm.remax_advantage_mask cannot be combined with use_kl_in_reward; use actor-side KL instead"
+        )
+
+
 def compute_advantage(
     data: DataProto,
     adv_estimator: AdvantageEstimator,
@@ -273,10 +284,24 @@ def compute_advantage(
     Returns:
         DataProto: The updated data with computed advantages and returns.
     """
-    # breakpoint()
+    _validate_remax_advantage_mask(config, adv_estimator)
     # Back-compatible with trainers that do not compute response mask in fit
     if "response_mask" not in data.batch.keys():
         data.batch["response_mask"] = compute_response_mask(data)
+    advantage_mask = None
+    if config is not None and config.get("remax_advantage_mask", False):
+        if "remax_advantage_mask" not in data.batch:
+            raise ValueError(
+                "algorithm.remax_advantage_mask requires a sampled-vs-greedy mask from the DAPO training path"
+            )
+        advantage_mask = data.batch["remax_advantage_mask"]
+        response_mask = data.batch["response_mask"]
+        if advantage_mask.shape != response_mask.shape or advantage_mask.device != response_mask.device:
+            raise ValueError("remax_advantage_mask must match response_mask shape and device")
+        if not torch.all((advantage_mask == 0) | (advantage_mask == 1)):
+            raise ValueError("remax_advantage_mask must contain only finite binary values")
+        if torch.any((advantage_mask != 0) & (response_mask == 0)):
+            raise ValueError("remax_advantage_mask must not select padding or invalid response tokens")
     # prepare response group
     if adv_estimator == AdvantageEstimator.GAE:
         # Compute advantages and returns using Generalized Advantage Estimation (GAE)
@@ -339,6 +364,8 @@ def compute_advantage(
         advantages, returns = adv_estimator_fn(**adv_kwargs)
         data.batch["advantages"] = advantages
         data.batch["returns"] = returns
+    if advantage_mask is not None:
+        data.batch["advantages"] = data.batch["advantages"] * advantage_mask.to(data.batch["advantages"].dtype)
     return data
 
 
@@ -403,6 +430,11 @@ class RayPPOTrainer:
         self.tokenizer = tokenizer
         self.processor = processor
         self.config = config
+        _validate_remax_advantage_mask(config.algorithm, config.algorithm.adv_estimator)
+        if config.algorithm.get("remax_advantage_mask", False):
+            loss_mode = config.actor_rollout_ref.actor.policy_loss.get("loss_mode", "vanilla")
+            if loss_mode != "vanilla":
+                raise ValueError("algorithm.remax_advantage_mask currently requires token-level vanilla policy loss")
         self.reward_fn = reward_fn
         self.val_reward_fn = val_reward_fn
         self.dump_fn = dump_fn

@@ -502,6 +502,42 @@ Algorithm
 - ``gamma``: discount factor
 - ``lam``: Trade-off between bias and variance in the GAE estimator
 - ``adv_estimator``: Support ``gae``, ``grpo``, ``reinforce_plus_plus``, ``reinforce_plus_plus_baseline``, ``rloo``
+- ``remax_advantage_mask``: Optional DAPO/ReMax policy-credit mask, disabled by default.
+  Align each sampled rollout's actual token IDs against its own greedy result using
+  ``SequenceMatcher(autojunk=False)``. This is token disagreement, not a minimum-edit
+  char/word alignment, and the comparison target is **not ground truth**.
+  Apply ``advantages = existing_advantages * disagreement_mask`` after normalization,
+  binary transformation, and scaling. The entire combined reward contributes to the
+  advantage; reward scoring, returns, validation, and actor KL/entropy are unchanged.
+
+  Inserted/replaced sampled tokens receive credit. For omitted greedy tokens, also
+  select the next sampled token, including a boundary after an unequal replacement's
+  excess greedy tokens. An omitted tail selects EOS when present, or the last valid
+  token for a truncated response without EOS. Empty responses select nothing, and
+  padding is never selected. A rollout identical to greedy has zero policy advantage,
+  while regularization still applies.
+
+  This does **not** change the actor's response mask or
+  loss denominator. Selected tokens retain their original advantage magnitude:
+  fewer selected tokens therefore reduce the overall policy update. This remains
+  sequence-level ReMax credit, not independently signed per-edit rewards.
+  A GT rollout can receive positive credit where it differs from an imperfect greedy
+  result; GT rollout injection does not need to be disabled.
+
+  Requires ``adv_estimator: remax`` and token-level ``policy_loss.loss_mode: vanilla``.
+  Cannot be combined with ``use_kl_in_reward``; use actor-side KL.
+  The DAPO training path supplies the mask. Enabling it on another path without a
+  mask raises an error before actor updates rather than silently training unmasked.
+  Advantage masking is the only supported ReMax masking mode. Older edit-mask
+  recipes now use this mode, including deletion anchors and full-response regularization.
+
+  The derived ASR recipe
+  ``recipe/phimm/config/v2609_asr/remax_2609v0_ml_hint_s200_bs128_n8_flr_g16_greedy_adv_mask.yaml``
+  enables only this flag relative to its reference recipe. It retains the eight
+  rollouts, GT injection, reward weights, KL coefficient, and greedy generation
+  settings (including its shorter response cap). Diagnostics under ``remax_advantage_mask/``
+  report selected-token fraction/counts, zero-mask fraction among nonempty responses,
+  and empty-response count from the final retained training batch.
 - ``use_kl_in_reward``: Whether to enable in-reward kl penalty. Default is False.
 - ``kl_penalty``: Support ``kl``, ``abs``, ``mse``, ``low_var_kl`` and ``full``. How to
   calculate the kl divergence between actor and reference policy. For

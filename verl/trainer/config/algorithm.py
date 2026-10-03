@@ -80,10 +80,10 @@ class AlgoConfig(BaseConfig):
         binary_adv (bool): Whether to binarize ReMax advantages to sign-only scores.
         adv_scale (float | dict): Scale applied to ReMax advantages. Float applies uniformly;
             a dict maps data source names to float scales. The optional 'default' key applies to unknown sources.
-        remax_mask (bool): Whether to restrict the policy/entropy/KL loss to the ReMax "disagree"
-            tokens. When enabled (REMAX adv_estimator only), each sampled trajectory's tokens are
-            aligned against its greedy baseline; only the tokens that cannot be aligned to the
-            baseline contribute to the loss.
+        remax_advantage_mask (bool): Mask final ReMax advantages to sampled-vs-greedy
+            disagreements, including deletion boundaries. Keeps actor KL, entropy, and
+            loss denominators unchanged. Requires the DAPO training path; incompatible
+            with use_kl_in_reward.
         use_kl_in_reward (bool): Whether to enable in-reward KL penalty.
         kl_penalty (str): How to estimate KL divergence: "kl", "abs", "mse", "low_var_kl", or "full".
         kl_ctrl (KLControlConfig): KL control configuration.
@@ -106,7 +106,7 @@ class AlgoConfig(BaseConfig):
     norm_adv_in_remax: Optional[str] = None
     binary_adv: bool = False
     adv_scale: Any = 1.0
-    remax_mask: bool = False
+    remax_advantage_mask: bool = False
     use_kl_in_reward: bool = False
     kl_penalty: str = "kl"
     kl_ctrl: KLControlConfig = field(default_factory=KLControlConfig)

@@ -220,6 +220,22 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = True) -> dict[str,
         metrics["critic/baseline_score/max"] = torch.max(reward_baselines).detach().item()
         metrics["critic/baseline_score/min"] = torch.min(reward_baselines).detach().item()
 
+    if "remax_advantage_mask" in batch.batch:
+        selected = batch.batch["remax_advantage_mask"].bool() & response_mask
+        selected_counts = selected.sum(dim=-1).float()
+        metrics.update(
+            {
+                "remax_advantage_mask/selected_token_fraction": (selected.sum() / response_mask.sum()).item(),
+                "remax_advantage_mask/selected_tokens/mean": selected_counts.mean().item(),
+                "remax_advantage_mask/selected_tokens/min": selected_counts.min().item(),
+                "remax_advantage_mask/selected_tokens/max": selected_counts.max().item(),
+                "remax_advantage_mask/zero_mask_fraction": (
+                    (selected_counts[non_aborted_mask] == 0).float().mean().item()
+                ),
+                "remax_advantage_mask/empty_response_count": aborted_mask.sum().item(),
+            }
+        )
+
     # multi-turn conversation
     if "__num_turns__" in batch.non_tensor_batch:
         num_turns = batch.non_tensor_batch["__num_turns__"]

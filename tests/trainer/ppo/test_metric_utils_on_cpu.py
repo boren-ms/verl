@@ -98,6 +98,30 @@ class TestComputeDataMetrics(unittest.TestCase):
             "values": torch.tensor([[0.9, 1.0], [1.1, 1.2]]),
         }
 
+    def test_remax_advantage_mask_metrics_use_retained_rows(self):
+        self.batch.batch["remax_advantage_mask"] = torch.tensor([[0, 1], [0, 0]])
+        batch = DataProto.from_dict(tensors=self.batch.batch)
+        metrics = compute_data_metrics(batch, use_critic=False)
+        self.assertEqual(metrics["remax_advantage_mask/selected_token_fraction"], 0.25)
+        self.assertEqual(metrics["remax_advantage_mask/selected_tokens/mean"], 0.5)
+        self.assertEqual(metrics["remax_advantage_mask/selected_tokens/min"], 0)
+        self.assertEqual(metrics["remax_advantage_mask/selected_tokens/max"], 1)
+        self.assertEqual(metrics["remax_advantage_mask/zero_mask_fraction"], 0.5)
+        self.assertEqual(metrics["remax_advantage_mask/empty_response_count"], 0)
+
+        retained = compute_data_metrics(batch[torch.tensor([1])], use_critic=False)
+        self.assertEqual(retained["remax_advantage_mask/selected_token_fraction"], 0)
+        self.assertEqual(retained["remax_advantage_mask/zero_mask_fraction"], 1)
+
+    def test_remax_advantage_mask_metrics_exclude_empty_responses_from_zero_fraction(self):
+        self.batch.batch["remax_advantage_mask"] = torch.tensor([[0, 1], [0, 0]])
+        self.batch.batch["response_mask"][1] = 0
+        self.batch.batch["attention_mask"][1, -2:] = 0
+        metrics = compute_data_metrics(self.batch, use_critic=False)
+        self.assertEqual(metrics["remax_advantage_mask/selected_token_fraction"], 0.5)
+        self.assertEqual(metrics["remax_advantage_mask/zero_mask_fraction"], 0)
+        self.assertEqual(metrics["remax_advantage_mask/empty_response_count"], 1)
+
     def test_compute_data_metrics_with_critic(self):
         """Test compute_data_metrics with critic enabled."""
         metrics = compute_data_metrics(self.batch, use_critic=True)
