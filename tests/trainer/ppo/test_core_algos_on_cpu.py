@@ -112,12 +112,64 @@ def test_filter_nonfinite_log_probs_keeps_finite_trajectories_and_dp_alignment()
     )
     batch.batch["ref_log_prob"][3, 0] = float("inf")
 
-    filtered, n_invalid, n_removed = filter_nonfinite_log_probs(batch, dp_size=2)
+    invalid_counts = {}
+    filtered, n_invalid, n_removed = filter_nonfinite_log_probs(batch, dp_size=2, invalid_counts=invalid_counts)
 
     assert (n_invalid, n_removed) == (2, 3)
+    assert invalid_counts == {"old": 1, "ref": 1, "rollout": 0}
     assert filtered.batch["sample_id"].tolist() == [0, 2]
     assert filtered.non_tensor_batch["uid"].tolist() == ["a", "c"]
     assert len(batch) == 5
+
+
+def test_filter_nonfinite_log_probs_counts_overlapping_sources_once_per_trajectory():
+    batch = DataProto.from_dict(
+        tensors={
+            "response_mask": torch.tensor([[1, 1], [1, 1], [1, 0], [1, 1], [1, 1]]),
+            "old_log_probs": torch.tensor(
+                [[float("nan"), float("-inf")], [0.0, 0.0], [0.0, float("nan")], [0.0, 0.0], [0.0, 0.0]]
+            ),
+            "ref_log_prob": torch.tensor(
+                [[float("inf"), 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+            ),
+            "rollout_log_probs": torch.tensor(
+                [[0.0, float("nan")], [float("-inf"), 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+            ),
+            "sample_id": torch.arange(5),
+        }
+    )
+    invalid_counts = {}
+
+    filtered, n_invalid, n_removed = filter_nonfinite_log_probs(batch, dp_size=2, invalid_counts=invalid_counts)
+
+    assert invalid_counts == {"old": 1, "ref": 1, "rollout": 2}
+    assert (n_invalid, n_removed) == (2, 3)
+    assert filtered.batch["sample_id"].tolist() == [2, 3]
+
+
+@pytest.mark.parametrize(
+    "key,source", [("old_log_probs", "old"), ("ref_log_prob", "ref"), ("rollout_log_probs", "rollout")]
+)
+@pytest.mark.parametrize("nonfinite", [None, float("nan"), float("inf"), float("-inf")])
+def test_filter_nonfinite_log_probs_counts_missing_and_finite_sources(key, source, nonfinite):
+    batch = DataProto.from_dict(
+        tensors={
+            "response_mask": torch.ones(2, 1),
+            key: torch.tensor([[0.0 if nonfinite is None else nonfinite], [0.0]]),
+        }
+    )
+    invalid_counts = {"old": 99, "ref": 99, "rollout": 99}
+
+    filtered, n_invalid, n_removed = filter_nonfinite_log_probs(batch, invalid_counts=invalid_counts)
+
+    expected = {"old": 0, "ref": 0, "rollout": 0}
+    expected[source] = int(nonfinite is not None)
+    assert invalid_counts == expected
+    assert n_invalid == n_removed == int(nonfinite is not None)
+    if nonfinite is None:
+        assert filtered is batch
+    else:
+        assert len(filtered) == 1
 
 
 def test_filter_nonfinite_log_probs_rejects_empty_dp_batch():

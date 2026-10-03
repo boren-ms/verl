@@ -1024,16 +1024,28 @@ def compute_gpg_outcome_advantage(
     return scores, scores
 
 
-def filter_nonfinite_log_probs(batch, dp_size: int = 1) -> tuple:
-    """Discard trajectories with non-finite log probabilities on response tokens."""
+def filter_nonfinite_log_probs(
+    batch, dp_size: int = 1, *, invalid_counts: Optional[dict[str, int]] = None
+) -> tuple:
+    """Discard trajectories with non-finite log probabilities on response tokens.
+
+    If supplied, invalid_counts receives independent trajectory counts for old, ref,
+    and rollout logprobs before DP alignment. Missing sources have count zero.
+    A trajectory invalid in multiple sources is counted once in each source.
+    """
     if dp_size < 1:
         raise ValueError(f"dp_size must be positive, got {dp_size}")
 
     mask = batch.batch["response_mask"].bool()
     valid = torch.ones(len(batch), dtype=torch.bool, device=mask.device)
-    for key in ("old_log_probs", "ref_log_prob", "rollout_log_probs"):
+    for source, key in (("old", "old_log_probs"), ("ref", "ref_log_prob"), ("rollout", "rollout_log_probs")):
         if key in batch.batch:
-            valid &= ~(~torch.isfinite(batch.batch[key]) & mask).any(dim=-1)
+            invalid = (~torch.isfinite(batch.batch[key]) & mask).any(dim=-1)
+            valid &= ~invalid
+            if invalid_counts is not None:
+                invalid_counts[source] = int(invalid.sum().item())
+        elif invalid_counts is not None:
+            invalid_counts[source] = 0
 
     keep_indices = valid.nonzero(as_tuple=True)[0].tolist()
     n_invalid = len(batch) - len(keep_indices)

@@ -407,11 +407,18 @@ class RayDAPOTrainer(RayPPOTrainer):
                             batch = batch.union(ref_log_prob)
 
                     if self.config.trainer.get("filter_nonfinite_log_probs", False):
+                        invalid_counts = {}
                         batch, n_invalid, n_removed = filter_nonfinite_log_probs(
-                            batch, dp_size=self.actor_rollout_wg.world_size
+                            batch, dp_size=self.actor_rollout_wg.world_size, invalid_counts=invalid_counts
                         )
-                        metrics["rollout/nonfinite_logprob_trajectories"] = n_invalid
-                        metrics["rollout/nonfinite_logprob_removed"] = n_removed
+                        metrics["nonfinite_prob/invalid"] = n_invalid
+                        metrics["nonfinite_prob/removed"] = n_removed
+                        metrics.update(
+                            {
+                                f"nonfinite_prob/{source}": count
+                                for source, count in invalid_counts.items()
+                            }
+                        )
                         if n_removed:
                             print(f"Filtered {n_invalid} non-finite log-prob trajectories ({n_removed} including DP alignment)")
                             if self.config.trainer.balance_batch:
