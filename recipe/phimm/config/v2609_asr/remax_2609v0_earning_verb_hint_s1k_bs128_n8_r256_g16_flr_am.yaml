@@ -36,7 +36,7 @@ actor_rollout_ref:
     n: 8
 
 algorithm:
-  remax_advantage_mask: true
+  remax_advantage_mask: edit_boundary
 
 data:
   train_batch_size: 128

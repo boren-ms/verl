@@ -77,10 +77,11 @@ algorithm:
   # Whether to normalize advantages by std (specific to GRPO)
   norm_adv_by_std_in_grpo: True
 
-  # DAPO/ReMax: mask only final policy advantages to sampled-vs-greedy disagreements
-  # and deletion boundaries. Preserve actor KL, entropy, and loss denominators.
+  # DAPO/ReMax: mask only final policy advantages. Preserve actor KL, entropy, and loss denominators.
   # Incompatible with use_kl_in_reward.
-  remax_advantage_mask: False
+  # null disables masking; edit_boundary selects edits/deletion boundaries;
+  # 1stdiff selects the remaining sampled suffix.
+  remax_advantage_mask: null
 
   # Whether to enable in-reward KL penalty
   use_kl_in_reward: False

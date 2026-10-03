@@ -28,12 +28,14 @@ def _rollouts(responses):
     )
 
 
-def test_greedy_masks_follow_interleaved_rows_and_batch_operations():
+@pytest.mark.parametrize("mode", ["edit_boundary", "1stdiff"])
+def test_greedy_masks_follow_interleaved_rows_and_batch_operations(mode):
     baseline = _rollouts([[1, 2, 9, 0], [3, 4, 9, 0]])
     sampled = _rollouts([[1, 5, 9, 0], [1, 9, 0, 0]] * 4 + [[3, 4, 9, 0], [3, 6, 9, 0]] * 4)
     sampled.batch["row_id"] = torch.arange(16)
-    _attach_remax_disagreement_mask(sampled, baseline, 8)
-    expected = torch.tensor([[0, 1, 0, 0], [0, 1, 0, 0]] * 4 + [[0, 0, 0, 0], [0, 1, 0, 0]] * 4)
+    _attach_remax_disagreement_mask(sampled, baseline, 8, mode=mode)
+    substitution = [0, 1, 1, 0] if mode == "1stdiff" else [0, 1, 0, 0]
+    expected = torch.tensor([substitution, [0, 1, 0, 0]] * 4 + [[0, 0, 0, 0], substitution] * 4)
     assert torch.equal(sampled.batch["remax_advantage_mask"], expected)
 
     prompts = DataProto.from_dict(
@@ -88,7 +90,8 @@ def _advantage_batch():
 @pytest.mark.parametrize("norm", [None, "l2", "rms"])
 @pytest.mark.parametrize("binary", [False, True])
 @pytest.mark.parametrize("multi_reward", [False, True])
-def test_masks_final_advantages_only(norm, binary, multi_reward):
+@pytest.mark.parametrize("mode", ["edit_boundary", "1stdiff"])
+def test_masks_final_advantages_only(norm, binary, multi_reward, mode):
     config = AlgoConfig(
         adv_estimator="remax",
         norm_adv_in_remax=norm,
@@ -98,7 +101,7 @@ def test_masks_final_advantages_only(norm, binary, multi_reward):
         gdpo_reward_weights=[0.2, 0.1] if multi_reward else None,
     )
     original = compute_advantage(_advantage_batch(), "remax", config=config)
-    masked_config = replace(config, remax_advantage_mask=True)
+    masked_config = replace(config, remax_advantage_mask=mode)
     masked = compute_advantage(_advantage_batch(), "remax", config=masked_config)
     assert torch.equal(
         masked.batch["advantages"], original.batch["advantages"] * masked.batch["remax_advantage_mask"]
@@ -114,7 +117,9 @@ def test_masked_policy_gradient_preserves_regularization_and_denominator(all_zer
     batch = _advantage_batch()
     if all_zero:
         batch.batch["remax_advantage_mask"].zero_()
-    batch = compute_advantage(batch, "remax", config=AlgoConfig(adv_estimator="remax", remax_advantage_mask=True))
+    batch = compute_advantage(
+        batch, "remax", config=AlgoConfig(adv_estimator="remax", remax_advantage_mask="edit_boundary")
+    )
     valid = batch.batch["response_mask"]
     selected = batch.batch["remax_advantage_mask"].bool()
     log_probs = torch.full((2, 4), -0.9, requires_grad=True)
@@ -149,19 +154,31 @@ def test_masked_policy_gradient_preserves_regularization_and_denominator(all_zer
     [
         ({"adv_estimator": "grpo"}, "adv_estimator=remax"),
         ({"use_kl_in_reward": True}, "actor-side KL"),
+        ({"remax_advantage_mask": "unknown"}, "remax_advantage_mask"),
+        ({"remax_advantage_mask": ""}, "remax_advantage_mask"),
+        ({"remax_advantage_mask": True}, "remax_advantage_mask"),
+        ({"remax_advantage_mask": False}, "remax_advantage_mask"),
     ],
 )
 def test_rejects_incompatible_configuration(overrides, error):
-    config = AlgoConfig(**{"adv_estimator": "remax", "remax_advantage_mask": True, **overrides})
+    config = AlgoConfig(**{"adv_estimator": "remax", "remax_advantage_mask": "edit_boundary", **overrides})
     with pytest.raises(ValueError, match=error):
         _validate_remax_advantage_mask(config, config.adv_estimator)
     with pytest.raises(ValueError, match=error):
         compute_advantage(_advantage_batch(), config.adv_estimator, config=config)
 
 
+def test_null_advantage_mask_disables_masking():
+    batch = _advantage_batch()
+    del batch.batch["remax_advantage_mask"]
+    unmasked = compute_advantage(batch, "remax", config=AlgoConfig(adv_estimator="remax", remax_advantage_mask=None))
+    expected = compute_advantage(_advantage_batch(), "remax", config=AlgoConfig(adv_estimator="remax"))
+    assert torch.equal(unmasked.batch["advantages"], expected.batch["advantages"])
+
+
 def test_rejects_sequence_level_policy_loss_before_trainer_startup():
     config = SimpleNamespace(
-        algorithm=AlgoConfig(adv_estimator="remax", remax_advantage_mask=True),
+        algorithm=AlgoConfig(adv_estimator="remax", remax_advantage_mask="edit_boundary"),
         actor_rollout_ref=SimpleNamespace(actor=SimpleNamespace(policy_loss={"loss_mode": "gspo"})),
     )
     with pytest.raises(ValueError, match="token-level vanilla"):
@@ -181,4 +198,6 @@ def test_rejects_invalid_advantage_masks(invalid):
     elif invalid == "padding":
         batch.batch["remax_advantage_mask"][0, -1] = 1
     with pytest.raises(ValueError, match="remax_advantage_mask"):
-        compute_advantage(batch, "remax", config=AlgoConfig(adv_estimator="remax", remax_advantage_mask=True))
+        compute_advantage(
+            batch, "remax", config=AlgoConfig(adv_estimator="remax", remax_advantage_mask="edit_boundary")
+        )

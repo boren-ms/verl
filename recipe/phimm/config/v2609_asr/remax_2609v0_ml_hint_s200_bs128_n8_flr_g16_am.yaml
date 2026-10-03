@@ -29,6 +29,7 @@ actor_rollout_ref:
   actor:
     filter_nonfinite_log_probs: true
     optim:
+      lr: 1.0e-6
       warmup_style: constant
       lr_warmup_steps: 0
   ref:
@@ -37,7 +38,7 @@ actor_rollout_ref:
     n: 8
 
 algorithm:
-  remax_advantage_mask: true
+  remax_advantage_mask: edit_boundary
 
 data:
   train_batch_size: 128

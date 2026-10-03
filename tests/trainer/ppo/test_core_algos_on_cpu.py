@@ -67,14 +67,70 @@ def test_remax_disagreement_mask_deletion_boundaries(greedy, sampled, expected):
     assert actual.device == response_mask.device
 
 
-def test_remax_disagreement_mask_noncontiguous_valid_positions():
+@pytest.mark.parametrize(
+    "mode, expected",
+    [
+        ("edit_boundary", [False, False, True, False]),
+        ("1stdiff", [False, False, True, True]),
+    ],
+)
+def test_remax_disagreement_mask_noncontiguous_valid_positions(mode, expected):
     actual = compute_remax_disagreement_mask(
         torch.tensor([[1, 99, 3, 9]]),
         torch.tensor([[True, False, True, True]]),
         torch.tensor([[1, 2, 3, 9, 0]]),
         torch.tensor([[1, 1, 1, 1, 0]]),
+        mode=mode,
     )
-    assert actual.tolist() == [[False, False, True, False]]
+    assert actual.tolist() == [expected]
+
+
+@pytest.mark.parametrize(
+    "greedy,sampled,expected",
+    [
+        ([1, 2, 9], [1, 2, 9], [0, 0, 0]),
+        ([1, 2, 9], [1, 3, 9], [0, 1, 1]),
+        ([1, 2, 9], [1, 3, 2, 9], [0, 1, 1, 1]),
+        ([1, 2, 9], [2, 9], [1, 1]),
+        ([1, 2, 3, 9], [1, 3, 9], [0, 1, 1]),
+        ([1, 2, 9], [1, 9], [0, 1]),
+        ([1, 2, 9], [1], [0]),
+        ([1, 2], [1, 2, 9], [0, 0, 1]),
+        ([1, 1, 2, 9], [1, 2, 9], [0, 1, 1]),
+        ([101, 1, 102, 9], [103, 1, 102, 9], [1, 1, 1, 1]),
+        ([], [1, 9], [1, 1]),
+        ([1, 9], [], []),
+        ([], [], []),
+    ],
+)
+def test_remax_disagreement_mask_from_first_difference(greedy, sampled, expected):
+    response_ids = torch.tensor([sampled + [9, 9]], dtype=torch.long)
+    response_mask = torch.tensor([[1] * len(sampled) + [0, 0]])
+    baseline_ids = torch.tensor([greedy + [1]], dtype=torch.long)
+    baseline_mask = torch.tensor([[1] * len(greedy) + [0]])
+
+    actual = compute_remax_disagreement_mask(
+        response_ids, response_mask, baseline_ids, baseline_mask, mode="1stdiff"
+    )
+    assert actual.tolist() == [expected + [0, 0]]
+    assert actual.dtype == response_mask.dtype
+    assert actual.device == response_mask.device
+
+
+def test_remax_disagreement_mask_explicit_edit_mode_preserves_default():
+    ids = torch.tensor([[1, 3, 9]])
+    mask = torch.ones_like(ids)
+    baseline = torch.tensor([[1, 2, 9]])
+    default = compute_remax_disagreement_mask(ids, mask, baseline, mask)
+    explicit = compute_remax_disagreement_mask(ids, mask, baseline, mask, mode="edit_boundary")
+    assert torch.equal(default, explicit)
+
+
+@pytest.mark.parametrize("mode", ["unknown", "", None, "first_difference"])
+def test_remax_disagreement_mask_rejects_invalid_mode(mode):
+    ids = torch.ones((1, 2), dtype=torch.long)
+    with pytest.raises(ValueError, match="advantage mask mode"):
+        compute_remax_disagreement_mask(ids, ids, ids, ids, mode=mode)
 
 
 @pytest.mark.parametrize("index", [np.array([-1]), np.array([1]), np.array([0.0]), np.array([0, 0])])

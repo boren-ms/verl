@@ -19,6 +19,8 @@ from verl.base_config import BaseConfig
 
 __all__ = ["AlgoConfig", "FilterGroupsConfig", "KLControlConfig"]
 
+REMAX_ADVANTAGE_MASK_MODES = ("edit_boundary", "1stdiff")
+
 
 @dataclass
 class KLControlConfig(BaseConfig):
@@ -80,9 +82,11 @@ class AlgoConfig(BaseConfig):
         binary_adv (bool): Whether to binarize ReMax advantages to sign-only scores.
         adv_scale (float | dict): Scale applied to ReMax advantages. Float applies uniformly;
             a dict maps data source names to float scales. The optional 'default' key applies to unknown sources.
-        remax_advantage_mask (bool): Mask final ReMax advantages to sampled-vs-greedy
-            disagreements, including deletion boundaries. Keeps actor KL, entropy, and
-            loss denominators unchanged. Requires the DAPO training path; incompatible
+        remax_advantage_mask (Optional[str]): None disables masking.
+            "edit_boundary" selects sampled-vs-greedy edits
+            and deletion boundaries; "1stdiff" selects all sampled tokens from
+            the first positional difference onward. Keeps actor KL, entropy, and loss
+            denominators unchanged. Requires the DAPO training path; incompatible
             with use_kl_in_reward.
         use_kl_in_reward (bool): Whether to enable in-reward KL penalty.
         kl_penalty (str): How to estimate KL divergence: "kl", "abs", "mse", "low_var_kl", or "full".
@@ -106,7 +110,7 @@ class AlgoConfig(BaseConfig):
     norm_adv_in_remax: Optional[str] = None
     binary_adv: bool = False
     adv_scale: Any = 1.0
-    remax_advantage_mask: bool = False
+    remax_advantage_mask: Optional[str] = None
     use_kl_in_reward: bool = False
     kl_penalty: str = "kl"
     kl_ctrl: KLControlConfig = field(default_factory=KLControlConfig)

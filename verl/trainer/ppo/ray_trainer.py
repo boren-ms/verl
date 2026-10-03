@@ -44,6 +44,7 @@ from verl.protocol import pad_dataproto_to_divisor, unpad_dataproto
 from verl.single_controller.ray import RayClassWithInitArgs, RayResourcePool, RayWorkerGroup
 from verl.single_controller.ray.base import create_colocated_worker_cls
 from verl.trainer.config import AlgoConfig
+from verl.trainer.config.algorithm import REMAX_ADVANTAGE_MASK_MODES
 from verl.trainer.ppo import core_algos
 from verl.trainer.ppo.core_algos import AdvantageEstimator, agg_loss, deduplicate_rollout_responses
 from verl.trainer.ppo.metric_utils import (
@@ -247,8 +248,13 @@ def compute_response_mask(data: DataProto):
 
 
 def _validate_remax_advantage_mask(config, adv_estimator):
-    if config is None or not config.get("remax_advantage_mask", False):
+    mode = config.get("remax_advantage_mask") if config is not None else None
+    if mode is None:
         return
+    if mode not in REMAX_ADVANTAGE_MASK_MODES:
+        raise ValueError(
+            f"Unsupported algorithm.remax_advantage_mask: {mode!r}; expected null or {REMAX_ADVANTAGE_MASK_MODES}"
+        )
     if adv_estimator not in (AdvantageEstimator.REMAX, "remax"):
         raise ValueError("algorithm.remax_advantage_mask requires adv_estimator=remax")
     if config.get("use_kl_in_reward", False):
@@ -289,7 +295,7 @@ def compute_advantage(
     if "response_mask" not in data.batch.keys():
         data.batch["response_mask"] = compute_response_mask(data)
     advantage_mask = None
-    if config is not None and config.get("remax_advantage_mask", False):
+    if config is not None and config.get("remax_advantage_mask") is not None:
         if "remax_advantage_mask" not in data.batch:
             raise ValueError(
                 "algorithm.remax_advantage_mask requires a sampled-vs-greedy mask from the DAPO training path"
@@ -431,7 +437,7 @@ class RayPPOTrainer:
         self.processor = processor
         self.config = config
         _validate_remax_advantage_mask(config.algorithm, config.algorithm.adv_estimator)
-        if config.algorithm.get("remax_advantage_mask", False):
+        if config.algorithm.get("remax_advantage_mask") is not None:
             loss_mode = config.actor_rollout_ref.actor.policy_loss.get("loss_mode", "vanilla")
             if loss_mode != "vanilla":
                 raise ValueError("algorithm.remax_advantage_mask currently requires token-level vanilla policy loss")

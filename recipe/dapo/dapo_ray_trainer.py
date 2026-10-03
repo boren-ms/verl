@@ -61,7 +61,9 @@ def _compute_retained_reward_metrics(batch: DataProto, reward_extra_info_keys: s
     )
 
 
-def _attach_remax_disagreement_mask(sampled: DataProto, baseline: DataProto, rollout_n: int) -> None:
+def _attach_remax_disagreement_mask(
+    sampled: DataProto, baseline: DataProto, rollout_n: int, mode: str = "edit_boundary"
+) -> None:
     if rollout_n <= 0 or len(sampled) != len(baseline) * rollout_n:
         raise ValueError("ReMax masking requires rollout_n interleaved sampled rows per greedy baseline")
     sampled_resp = sampled.batch["responses"]
@@ -72,6 +74,7 @@ def _attach_remax_disagreement_mask(sampled: DataProto, baseline: DataProto, rol
         baseline_resp,
         compute_response_mask(baseline),
         baseline_index=np.arange(len(sampled)) // rollout_n,
+        mode=mode,
     )
 
 
@@ -228,11 +231,13 @@ class RayDAPOTrainer(RayPPOTrainer):
 
                             new_batch.batch["reward_baselines"] = reward_baseline_tensor
 
-                            if self.config.algorithm.get("remax_advantage_mask", False):
+                            mask_mode = self.config.algorithm.get("remax_advantage_mask")
+                            if mask_mode is not None:
                                 _attach_remax_disagreement_mask(
                                     gen_batch_output,
                                     gen_baseline_output,
                                     self.config.actor_rollout_ref.rollout.n,
+                                    mode=mask_mode,
                                 )
 
                             del gen_baseline_batch, gen_baseline_output

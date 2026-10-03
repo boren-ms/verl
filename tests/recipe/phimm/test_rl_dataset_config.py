@@ -34,13 +34,13 @@ def test_greedy_advantage_mask_recipe_preserves_reference(recipe_name, masked_re
         base = compose(config_name=recipe_name, overrides=[searchpath])
         masked = compose(config_name=masked_recipe_name, overrides=[searchpath])
 
-    assert not base.algorithm.remax_advantage_mask
-    assert masked.algorithm.remax_advantage_mask
+    assert base.algorithm.remax_advantage_mask is None
+    assert masked.algorithm.remax_advantage_mask == "edit_boundary"
     assert masked.actor_rollout_ref.rollout.gt_rollout
     assert masked.actor_rollout_ref.rollout.n == 8
     assert masked.trainer.save_freq == 50
     assert masked.trainer.nnodes * masked.trainer.n_gpus_per_node == 16
-    base.algorithm.remax_advantage_mask = True
+    base.algorithm.remax_advantage_mask = "edit_boundary"
     base.trainer.nnodes = 2
     assert OmegaConf.to_container(masked) == OmegaConf.to_container(base)
 
@@ -58,9 +58,25 @@ def test_existing_edit_mask_recipe_uses_advantage_mask():
             overrides=[searchpath],
         )
     assert config.algorithm.adv_estimator == "remax"
-    assert config.algorithm.remax_advantage_mask
+    assert config.algorithm.remax_advantage_mask == "edit_boundary"
     assert not config.algorithm.use_kl_in_reward
     assert config.actor_rollout_ref.actor.policy_loss.loss_mode == "vanilla"
+
+
+@pytest.mark.parametrize("mode", [None, "edit_boundary", "1stdiff"])
+def test_400_step_recipe_accepts_string_advantage_mask_modes(mode):
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        config = compose(
+            config_name="remax_2609v0_earning_verb_hint_s400_bs128_n8_r256_g16_flr_am",
+            overrides=[searchpath, f"algorithm.remax_advantage_mask={mode or 'null'}"],
+        )
+    assert config.algorithm.remax_advantage_mask == mode
+    assert "remax_advantage_mask_mode" not in config.algorithm
+    assert config.trainer.total_training_steps == 400
+    assert config.trainer.nnodes * config.trainer.n_gpus_per_node == 16
 
 
 def _load_flatten_data_confs():

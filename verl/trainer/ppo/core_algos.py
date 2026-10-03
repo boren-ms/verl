@@ -31,6 +31,7 @@ from omegaconf import DictConfig
 
 import verl.utils.torch_functional as verl_F
 from verl.trainer.config import AlgoConfig
+from verl.trainer.config.algorithm import REMAX_ADVANTAGE_MASK_MODES
 from verl.utils.import_utils import deprecated
 from verl.workers.config import ActorConfig
 
@@ -708,6 +709,7 @@ def compute_remax_disagreement_mask(
     baseline_ids: torch.Tensor,
     baseline_mask: torch.Tensor,
     baseline_index: Optional[np.ndarray] = None,
+    mode: str = "edit_boundary",
 ) -> torch.Tensor:
     """Compute the ReMax disagreement mask for sampled trajectories.
 
@@ -718,6 +720,10 @@ def compute_remax_disagreement_mask(
     match the baseline are marked with ``0``, except deletion boundaries: when greedy
     tokens are omitted, select the next sampled token, or the last valid sampled token
     if there is no next token. This also covers excess greedy tokens in replacements.
+    This is the default ``edit_boundary`` mode. In ``1stdiff`` mode, compare
+    valid tokens positionally and select the sampled suffix starting at the first
+    mismatch or the first sampled token beyond the baseline length. Identical responses
+    and sampled responses that are shorter matching prefixes select no tokens.
     Empty sampled responses remain all-zero. Padding/invalid tokens are always ``0``.
 
     Args:
@@ -727,11 +733,14 @@ def compute_remax_disagreement_mask(
         baseline_mask (torch.Tensor): validity mask of baseline responses, shape (m, baseline_length).
         baseline_index (Optional[np.ndarray]): length-n array mapping each sampled row to its
             baseline row. If ``None``, all sampled rows are aligned against baseline row 0.
+        mode (str): "edit_boundary" or "1stdiff".
 
     Returns:
         torch.Tensor: disagreement mask, shape (n, response_length), with the same dtype and
-        device as ``response_mask``. ``1`` marks disagreements and deletion boundaries.
+        device as ``response_mask``. ``1`` marks tokens selected by the requested mode.
     """
+    if mode not in REMAX_ADVANTAGE_MASK_MODES:
+        raise ValueError(f"Unsupported ReMax advantage mask mode: {mode!r}; expected {REMAX_ADVANTAGE_MASK_MODES}")
     if response_ids.ndim != 2 or response_mask.shape != response_ids.shape:
         raise ValueError("ReMax response_ids and response_mask must have the same two-dimensional shape")
     if baseline_ids.ndim != 2 or baseline_mask.shape != baseline_ids.shape:
@@ -759,6 +768,14 @@ def compute_remax_disagreement_mask(
         a = resp_np[i][valid_pos].tolist()
         b_idx = int(baseline_index[i])
         b = base_np[b_idx][base_valid[b_idx]].tolist()
+
+        if mode == "1stdiff":
+            first_difference = next(
+                (j for j, (sampled, greedy) in enumerate(zip(a, b, strict=False)) if sampled != greedy),
+                min(len(a), len(b)),
+            )
+            out[i, valid_pos[first_difference:]] = 1
+            continue
 
         matched = np.zeros(len(a), dtype=bool)
         matcher = difflib.SequenceMatcher(a=a, b=b, autojunk=False)

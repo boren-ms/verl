@@ -64,7 +64,7 @@ class TestAlgoConfig(unittest.TestCase):
         self.assertEqual(config.adv_estimator, "gae")
         self.assertTrue(config.norm_adv_by_std_in_grpo)
         self.assertFalse(config.binary_adv)
-        self.assertFalse(config.remax_advantage_mask)
+        self.assertIsNone(config.remax_advantage_mask)
         self.assertEqual(config.adv_scale, 2.5)
         self.assertTrue(config.use_kl_in_reward)
         self.assertEqual(config.kl_penalty, "kl")
@@ -121,12 +121,18 @@ class TestAlgoConfig(unittest.TestCase):
         self.assertEqual(config.get("non_existing", "default"), "default")
 
     def test_remax_advantage_mask_round_trip(self):
-        config = OmegaConf.create(
-            {"_target_": "verl.trainer.config.AlgoConfig", "adv_estimator": "remax", "remax_advantage_mask": True}
-        )
-        converted = omega_conf_to_dataclass(config)
-        self.assertTrue(converted.remax_advantage_mask)
-        self.assertTrue(OmegaConf.structured(converted).remax_advantage_mask)
+        for mode in (None, "edit_boundary", "1stdiff"):
+            with self.subTest(mode=mode):
+                config = OmegaConf.create(
+                    {
+                        "_target_": "verl.trainer.config.AlgoConfig",
+                        "adv_estimator": "remax",
+                        "remax_advantage_mask": mode,
+                    }
+                )
+                converted = omega_conf_to_dataclass(config)
+                self.assertEqual(converted.remax_advantage_mask, mode)
+                self.assertEqual(OmegaConf.structured(converted).remax_advantage_mask, mode)
 
     def test_post_init_nested_configs(self):
         """Test that __post_init__ properly initializes nested configs when None."""

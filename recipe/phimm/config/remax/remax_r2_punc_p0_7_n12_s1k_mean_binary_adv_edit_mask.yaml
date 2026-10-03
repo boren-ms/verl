@@ -46,7 +46,7 @@ algorithm:
   binary_adv: true
   adv_scale: 1.0
   # Mask policy advantages only; keep full-response KL and entropy.
-  remax_advantage_mask: true
+  remax_advantage_mask: edit_boundary
 
 data:
   max_prompt_length: 1204
