@@ -24,3 +24,4 @@ entropy_from_logits_with_chunking: False
 
 # recompute entropy
 entropy_checkpointing: False
+filter_nonfinite_log_probs: false
