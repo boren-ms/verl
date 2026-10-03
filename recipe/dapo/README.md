@@ -50,6 +50,26 @@ bash recipe/dapo/run_dapo_qwen2.5_32b.sh # or other scripts
 
 ## Configuration
 
+### Non-finite logprob filtering metrics
+
+With `trainer.filter_nonfinite_log_probs: true`, the trainer reports these
+per-step metrics through the configured logging backends, including W&B:
+
+| Metric | Meaning |
+| --- | --- |
+| `nonfinite_prob/old` | Responses with non-finite old-policy logprobs. |
+| `nonfinite_prob/ref` | Responses with non-finite reference-policy logprobs. |
+| `nonfinite_prob/rollout` | Responses with non-finite rollout logprobs. |
+| `nonfinite_prob/invalid` | Unique responses invalid in any source. |
+| `nonfinite_prob/removed` | Total removed responses, including DP-alignment trimming. |
+
+Each source counts whole response trajectories, not tokens or unique prompts,
+and only checks tokens selected by `response_mask`. Source counts overlap when
+a response is invalid in multiple sources, so their sum can exceed the unique
+invalid count. An absent source reports zero. Alignment-only removals do not
+increase source counts. If rollout logprobs are reused as old-policy logprobs,
+the old and rollout counts match.
+
 ### Separated Clip Epsilons (-> Clip-Higher)
 
 An example configuration:
