@@ -24,6 +24,10 @@ from omegaconf import OmegaConf
             "remax_2609v0_earning_verb_hint_s1k_bs128_n8_r256_g32_flr",
             "remax_2609v0_earning_verb_hint_s1k_bs128_n8_r256_g16_flr_am",
         ),
+        (
+            "remax_2609v0_earning_verb_hint_s400_bs128_n8_r256_g16_flr",
+            "remax_2609v0_earning_verb_hint_s400_bs128_n8_r256_g16_flr_am",
+        ),
     ],
 )
 def test_greedy_advantage_mask_recipe_preserves_reference(recipe_name, masked_recipe_name):
