@@ -1,4 +1,4 @@
-# Retain smp3 data sampling and training settings with v0a reward weights.
+# Each grouped pass contains 350 earnings batches followed by 150 OpenML batches.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -12,6 +12,17 @@ defaults:
   - _self_
 
 reward_functions:
+  earnings:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
   openml:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
@@ -26,24 +37,23 @@ reward_functions:
         bracket: {beta: 1.0}
 
 reward_function_by_data_source:
-  earnings_fy27: openml
+  earnings_fy27: earnings
   openml: openml
 
 actor_rollout_ref:
   actor:
+    kl_loss_coef: 0.005
     optim:
       lr: 2e-6
       warmup_style: constant
       lr_warmup_steps: 0
-    checkpoint:
-      override_optimizer_lr: true
   rollout:
-    n: 8
+    n: 12
 
 data:
   data_source:
-    openml: {num_sample: 25600, shuffle: true}
-    earnings_fy27: {num_sample: 102400, shuffle: true}
+    earnings_fy27: {num_sample: 44800, shuffle: true}
+    openml: {num_sample: 19200, shuffle: true}
   train_data:
     - ${_earning_train}
     - ${_ml_train}
@@ -56,4 +66,4 @@ data:
 trainer:
   nnodes: 4
   total_epochs: 30
-  total_training_steps: 1000
+  total_training_steps: 500

@@ -111,6 +111,9 @@ checkpoint:
   # .xxx refers to the local variable xxx from the same level of hierarchy similar to python pkg
   load_contents: ${.save_contents}
 
+  # Preserve the configured optimizer LR and skip stale scheduler state when resuming.
+  override_optimizer_lr: False
+
   # Whether to save checkpoints asynchronously. Only effective for Megatron as of now.
   async_save: False
 
