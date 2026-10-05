@@ -19,6 +19,8 @@ actor_rollout_ref:
       min_lr_ratio: 0.0
       num_cycles: 0.5
       warmup_style: constant
+      cycle_steps: null
+      cycle_lrs: null
     fsdp_config:
       _target_: verl.workers.config.FSDPEngineConfig
       wrap_policy:
@@ -311,6 +313,8 @@ critic:
     min_lr_ratio: 0.0
     num_cycles: 0.5
     warmup_style: constant
+    cycle_steps: null
+    cycle_lrs: null
   model:
     fsdp_config:
       _target_: verl.workers.config.FSDPEngineConfig

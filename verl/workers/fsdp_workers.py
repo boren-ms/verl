@@ -576,6 +576,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
 
         # TODO: add more optimizer args into config
         if role == "actor" and optim_config is not None:
+            from verl.utils.lr_scheduler import validate_lr_cycle_config
             from verl.utils.torch_functional import get_constant_schedule_with_warmup, get_cosine_schedule_with_warmup
 
             actor_optimizer = optim.AdamW(
@@ -590,16 +591,23 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             warmup_style = optim_config.get("warmup_style", "constant")
             min_lr_ratio = optim_config.get("min_lr_ratio", 0.0)
             num_cycles = optim_config.get("num_cycles", 0.5)
+            cycle_steps = optim_config.get("cycle_steps")
+            cycle_lrs = optim_config.get("cycle_lrs")
+            validate_lr_cycle_config(cycle_steps, cycle_lrs)
             if num_warmup_steps < 0:
                 num_warmup_steps_ratio = optim_config.get("lr_warmup_steps_ratio", 0.0)
-                num_warmup_steps = int(num_warmup_steps_ratio * total_steps)
+                warmup_reference_steps = total_steps if cycle_steps is None else cycle_steps[0]
+                num_warmup_steps = int(num_warmup_steps_ratio * warmup_reference_steps)
 
             if self.rank == 0:
                 print(f"Total steps: {total_steps}, num_warmup_steps: {num_warmup_steps}")
 
             if warmup_style == "constant":
                 actor_lr_scheduler = get_constant_schedule_with_warmup(
-                    optimizer=actor_optimizer, num_warmup_steps=num_warmup_steps
+                    optimizer=actor_optimizer,
+                    num_warmup_steps=num_warmup_steps,
+                    cycle_steps=cycle_steps,
+                    cycle_lrs=cycle_lrs,
                 )
             elif warmup_style == "cosine":
                 actor_lr_scheduler = get_cosine_schedule_with_warmup(
@@ -608,6 +616,8 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                     num_training_steps=total_steps,
                     min_lr_ratio=min_lr_ratio,
                     num_cycles=num_cycles,
+                    cycle_steps=cycle_steps,
+                    cycle_lrs=cycle_lrs,
                 )
             else:
                 raise NotImplementedError(f"Warmup style {warmup_style} is not supported")
@@ -1463,9 +1473,14 @@ class CriticWorker(Worker, DistProfilerExtension):
         total_steps = config.optim.get("total_training_steps", 0)
         num_warmup_steps = int(config.optim.get("lr_warmup_steps", -1))
         warmup_style = config.optim.get("warmup_style", "constant")
+        cycle_steps = config.optim.get("cycle_steps")
+        cycle_lrs = config.optim.get("cycle_lrs")
+        from verl.utils.lr_scheduler import validate_lr_cycle_config
+
+        validate_lr_cycle_config(cycle_steps, cycle_lrs)
         if num_warmup_steps < 0:
             num_warmup_steps_ratio = config.optim.get("lr_warmup_steps_ratio", 0.0)
-            num_warmup_steps = int(num_warmup_steps_ratio * total_steps)
+            num_warmup_steps = int(num_warmup_steps_ratio * (total_steps if cycle_steps is None else cycle_steps[0]))
 
         if self.rank == 0:
             print(f"Total steps: {total_steps}, num_warmup_steps: {num_warmup_steps}")
@@ -1474,7 +1489,10 @@ class CriticWorker(Worker, DistProfilerExtension):
 
         if warmup_style == "constant":
             critic_lr_scheduler = get_constant_schedule_with_warmup(
-                optimizer=critic_optimizer, num_warmup_steps=num_warmup_steps
+                optimizer=critic_optimizer,
+                num_warmup_steps=num_warmup_steps,
+                cycle_steps=cycle_steps,
+                cycle_lrs=cycle_lrs,
             )
         elif warmup_style == "cosine":
             min_lr_ratio = config.optim.get("min_lr_ratio", 0.0)
@@ -1485,6 +1503,8 @@ class CriticWorker(Worker, DistProfilerExtension):
                 num_training_steps=total_steps,
                 min_lr_ratio=min_lr_ratio,
                 num_cycles=num_cycles,
+                cycle_steps=cycle_steps,
+                cycle_lrs=cycle_lrs,
             )
         else:
             raise NotImplementedError(f"Warmup style {warmup_style} is not supported")

@@ -133,6 +133,8 @@ Actor/Rollout/Reference Policy
         min_lr_ratio: 0.0   # only used with cosine lr scheduler, default to 0.0
         num_cycles: 0.5     # only used with cosine lr scheduler, default to 0.5
         warmup_style: constant  # select from constant/cosine
+        cycle_steps: null  # optional list of cycle lengths, including warmup
+        cycle_lrs: null  # optional per-cycle peak LRs; reuse the last for later cycles
         total_training_steps: -1  # must be override by program
       fsdp_config:
         wrap_policy:
@@ -423,6 +425,44 @@ For learning rate decay, original Megatron pretrain default option of ``lr_decay
 meaning that the learning rate will be linearly decayed from the initial learning rate to ``min_lr`` within the
 ``lr_decay_steps``. However, in verl, to align with FSDP's default behavior, we set the default
 ``lr_decay_style`` to ``constant``, meaning that the learning rate will be kept constant after the warmup stage.
+
+FSDP cyclic learning rates
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+FSDP actor and critic optimizers, including the FSDP engine, optionally restart their
+``constant`` or ``cosine`` schedule using a list of ``cycle_steps`` lengths. Each cycle
+includes its own linear warmup. When warmup is specified as a ratio, the ratio applies
+to the first cycle length rather than the total training duration. The resulting
+warmup length repeats each cycle and must be shorter than every cycle.
+Leave ``cycle_steps`` and ``cycle_lrs`` null to retain the original schedule.
+
+For example, to restart cosine decay with different durations and peak learning rates:
+
+.. code-block:: yaml
+
+    actor_rollout_ref:
+      actor:
+        optim:
+          lr: 5.0e-6
+          warmup_style: cosine
+          lr_warmup_steps: 0
+          min_lr_ratio: 0.2
+          cycle_steps: [200, 100]
+          cycle_lrs: [5.0e-6, 3.0e-6, 1.0e-6]
+
+The first cycle lasts 200 steps; the second and every later cycle last 100 steps.
+The first three cycles start at ``5e-6``, ``3e-6``, and ``1e-6`` respectively.
+All later cycles restart at ``1e-6``. The two lists need not have the same length;
+the last duration and last LR are independently reused. Within each cycle, cosine decay uses the existing
+``min_lr_ratio`` and ``num_cycles`` settings; the floor is relative to that cycle's
+peak. For constant schedules, each cycle holds its assigned LR after warmup.
+If ``cycle_lrs`` is omitted, it defaults to ``[lr]`` and every cycle uses that LR.
+Parameter-group LR ratios are preserved, with listed LRs referring to the first
+parameter group. Scheduler steps count completed optimizer updates: with zero
+warmup, a cycle of length 200 uses its first peak for updates 1 through 200 and
+the next peak starting at update 201. Checkpoint resume preserves the cycle position;
+resuming with the existing ``override_optimizer_lr`` option instead restarts the
+configured schedule.
 
 
 Critic Model

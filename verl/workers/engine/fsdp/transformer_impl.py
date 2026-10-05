@@ -380,15 +380,22 @@ class FSDPEngine(BaseEngine):
         warmup_style = optim_config.warmup_style
         min_lr_ratio = optim_config.min_lr_ratio
         num_cycles = optim_config.num_cycles
-        if num_warmup_steps <= 0:
+        cycle_steps = optim_config.cycle_steps
+        cycle_lrs = optim_config.cycle_lrs
+        if num_warmup_steps < 0 or (cycle_steps is None and num_warmup_steps == 0):
             num_warmup_steps_ratio = optim_config.lr_warmup_steps_ratio
-            num_warmup_steps = int(num_warmup_steps_ratio * total_steps)
+            num_warmup_steps = int(num_warmup_steps_ratio * (total_steps if cycle_steps is None else cycle_steps[0]))
 
         if self.rank == 0:
             print(f"Total steps: {total_steps}, num_warmup_steps: {num_warmup_steps}")
 
         if warmup_style == "constant":
-            lr_scheduler = get_constant_schedule_with_warmup(optimizer=optimizer, num_warmup_steps=num_warmup_steps)
+            lr_scheduler = get_constant_schedule_with_warmup(
+                optimizer=optimizer,
+                num_warmup_steps=num_warmup_steps,
+                cycle_steps=cycle_steps,
+                cycle_lrs=cycle_lrs,
+            )
         elif warmup_style == "cosine":
             lr_scheduler = get_cosine_schedule_with_warmup(
                 optimizer=optimizer,
@@ -396,6 +403,8 @@ class FSDPEngine(BaseEngine):
                 num_training_steps=total_steps,
                 min_lr_ratio=min_lr_ratio,
                 num_cycles=num_cycles,
+                cycle_steps=cycle_steps,
+                cycle_lrs=cycle_lrs,
             )
         else:
             raise NotImplementedError(f"Warmup style {warmup_style} is not supported")

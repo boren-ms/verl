@@ -31,3 +31,8 @@ num_cycles: 0.5
 # LR warmup style: "constant" or "cosine"
 warmup_style: constant
 
+# Cycle lengths in optimizer steps, including warmup; reuse the last length. Null disables restarts.
+cycle_steps: null
+
+# Absolute peak LR per cycle; reuse the last LR. Null uses [lr] when cycling is enabled.
+cycle_lrs: null

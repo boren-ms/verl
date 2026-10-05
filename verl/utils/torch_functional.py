@@ -30,6 +30,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from transformers import PreTrainedTokenizer
 
 from verl.utils.device import get_device_name, get_torch_device
+from verl.utils.lr_scheduler import get_cycle_lr_lambdas
 
 try:
     from flash_attn.ops.triton.cross_entropy import cross_entropy_loss
@@ -559,6 +560,8 @@ def get_cosine_schedule_with_warmup(
     num_cycles: float = 0.5,
     last_epoch: int = -1,
     init_lr_ratio: float = None,
+    cycle_steps: Optional[list[int]] = None,
+    cycle_lrs: Optional[list[float]] = None,
 ):
     """
     Create a schedule with a learning rate that decreases following the values of the cosine function between the
@@ -580,6 +583,8 @@ def get_cosine_schedule_with_warmup(
             The index of the last epoch when resuming training.
         init_lr_ratio (:obj:`float`, `optional`, defaults to None):
             The initial lr ratio w.r.t the maximum.
+        cycle_steps (list[int], optional): Cycle lengths including warmup; reuse the last for later cycles.
+        cycle_lrs (list[float], optional): Per-cycle peak LRs; later cycles reuse the last value.
     Return:
         :obj:`torch.optim.lr_scheduler.LambdaLR` with the appropriate schedule.
     """
@@ -591,20 +596,24 @@ def get_cosine_schedule_with_warmup(
     init_lr_ratio = 0.0 if init_lr_ratio is None else init_lr_ratio
     assert init_lr_ratio >= 0 and init_lr_ratio <= 1.0
 
-    def lr_lambda(current_step):
+    def lr_lambda(current_step, cycle_length=None):
         if current_step < num_warmup_steps:
             return init_lr_ratio + (1.0 - init_lr_ratio) * (float(current_step) / float(max(1, num_warmup_steps)))
-        progress = float(current_step - num_warmup_steps) / float(max(1, num_training_steps - num_warmup_steps))
+        schedule_steps = num_training_steps if cycle_length is None else cycle_length
+        progress = float(current_step - num_warmup_steps) / float(max(1, schedule_steps - num_warmup_steps))
         x = math.cos(math.pi * float(num_cycles) * 2.0 * progress)
         return max(min_lr_ratio, x * coef + intercept)
 
-    return LambdaLR(optimizer, lr_lambda, last_epoch)
+    lr_lambdas = get_cycle_lr_lambdas(optimizer, lr_lambda, num_warmup_steps, cycle_steps, cycle_lrs)
+    return LambdaLR(optimizer, lr_lambdas, last_epoch)
 
 
 def get_constant_schedule_with_warmup(
     optimizer: Optimizer,
     num_warmup_steps: int,
     last_epoch: int = -1,
+    cycle_steps: Optional[list[int]] = None,
+    cycle_lrs: Optional[list[float]] = None,
 ):
     """
     Create a constant LR schedule with a linear warmup phase.
@@ -613,17 +622,20 @@ def get_constant_schedule_with_warmup(
         optimizer (Optimizer): Wrapped optimizer.
         num_warmup_steps (int): Number of steps to ramp up the LR from 0 to initial value.
         last_epoch (int, optional): The index of the last epoch when resuming training. Defaults to -1.
+        cycle_steps (list[int], optional): Cycle lengths including warmup; reuse the last for later cycles.
+        cycle_lrs (list[float], optional): Per-cycle peak LRs; later cycles reuse the last value.
 
     Returns:
         LambdaLR: Scheduler that increases LR linearly during warmup, then holds it constant.
     """
 
-    def lr_lambda(current_step):
+    def lr_lambda(current_step, cycle_length=None):
         if current_step < num_warmup_steps:
             return float(current_step) / float(max(1.0, num_warmup_steps))
         return 1.0
 
-    return LambdaLR(optimizer, lr_lambda, last_epoch)
+    lr_lambdas = get_cycle_lr_lambdas(optimizer, lr_lambda, num_warmup_steps, cycle_steps, cycle_lrs)
+    return LambdaLR(optimizer, lr_lambdas, last_epoch)
 
 
 def prepare_decoder_attention_mask(attention_mask, input_shape, inputs_embeds):

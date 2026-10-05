@@ -18,6 +18,7 @@ from typing import Optional
 from omegaconf import MISSING
 
 from verl.base_config import BaseConfig
+from verl.utils.lr_scheduler import validate_lr_cycle_config
 
 __all__ = ["OptimizerConfig", "FSDPOptimizerConfig", "McoreOptimizerConfig"]
 
@@ -62,14 +63,21 @@ class FSDPOptimizerConfig(OptimizerConfig):
         min_lr_ratio (Optional[float]): Minimum LR ratio for cosine schedule.
         warmup_style (str): LR warmup style: "constant" or "cosine".
         num_cycles (float): Number of cosine cycles in LR schedule.
+        cycle_steps (Optional[list[int]]): Cycle lengths including warmup; later cycles reuse the final value.
+        cycle_lrs (Optional[list[float]]): Peak LR for each restart; later cycles reuse the final value.
     """
 
     min_lr_ratio: Optional[float] = None
     warmup_style: str = "constant"
     num_cycles: float = 0.5
+    cycle_steps: Optional[list[int]] = None
+    cycle_lrs: Optional[list[float]] = None
 
     def __post_init__(self):
         assert self.warmup_style in ["constant", "cosine"]
+        validate_lr_cycle_config(self.cycle_steps, self.cycle_lrs)
+        if self.cycle_steps is not None and self.cycle_lrs is None:
+            object.__setattr__(self, "cycle_lrs", [self.lr])
         return super().__post_init__()
 
 
