@@ -66,7 +66,9 @@ class ValidationCheckpoint:
             checkpoint = json.load(stream)
         if checkpoint.get("version") != 1 or checkpoint.get("signature") != self.signature:
             raise ValueError(
-                f"Incompatible evaluation checkpoint: {self.path}. Use a new validation_data_dir "
+                f"Incompatible evaluation checkpoint: {self.path} "
+                f"(stored signature {checkpoint.get('signature')!r}, expected {self.signature!r}). "
+                "Use a new validation_data_dir "
                 "or trainer.validation_resume=false to evaluate from scratch."
             )
         completed = checkpoint.get("completed_datasets")
