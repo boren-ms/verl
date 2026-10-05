@@ -7,6 +7,7 @@ from recipe.phimm.reward.asr_measure import (
     compute_score,
     compute_kw_acc,
     lang_score,
+    reduce_scores,
 )
 from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
 
@@ -359,6 +360,106 @@ def test_parse_response_accepts_2607_response_without_audio_language():
         version=2607,
     )
     assert task_output == [{"src": None, "tgt": "English", "text": "hello world"}]
+
+
+@pytest.mark.parametrize(
+    ("scores", "kwargs", "expected"),
+    [
+        ([1.0, 0.5], {"total": 4}, 0.375),
+        ([1.0, 0.5], {}, 0.75),
+        ([1.0, 0.5], {"total": 1.5}, 1.0),
+        ([-1.0, 0.5], {"total": 4}, -0.125),
+        ([], {"total": 4}, 0.0),
+        ([], {}, 0.0),
+    ],
+)
+def test_average_reduction(scores, kwargs, expected):
+    assert reduce_scores(scores, mode="average", **kwargs) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("total", [0, -1, float("nan"), float("inf"), float("-inf"), True, "4", None])
+@pytest.mark.parametrize("scores", [[], [1.0]])
+def test_average_reduction_rejects_invalid_total(scores, total):
+    with pytest.raises(ValueError, match="positive, finite"):
+        reduce_scores(scores, mode="average", total=total)
+
+
+@pytest.mark.parametrize(
+    ("mode", "expected"),
+    [("sum", 1.5), ("mean", 0.75), ("multiply", 0.5), ("geometric", 0.5**0.5), ("harmonic", 2 / 3)],
+)
+def test_existing_reductions_ignore_additional_kwargs(mode, expected):
+    assert reduce_scores([1.0, 0.5], mode=mode, total=4) == pytest.approx(expected)
+    assert reduce_scores([], mode=mode, total=4) == 0.0
+
+
+@pytest.mark.parametrize("reduction", ["average", {"mode": "average", "total": 4}])
+def test_compute_score_forwards_average_total(reduction):
+    result = compute_score(
+        "<ASR><lang=English><TXT>hello world</TXT></ASR>",
+        ground_truth="hello world",
+        language="English",
+        version=2607,
+        reduce=reduction,
+        total=4,
+        gamma=2,
+        measures={"word": {"beta": 1.0}, "lang": {"beta": 0.5}, "fmt": {"beta": 0.2}},
+    )
+
+    assert result["score"] == pytest.approx(((1.0 + 0.5 + 0.2) / 4) ** 2)
+
+
+@pytest.mark.parametrize("reduction", ["average", {"mode": "average", "total": 4}])
+def test_compute_score_average_preserves_cut(reduction):
+    result = compute_score(
+        "<ASR><lang=English><TXT>hello world",
+        ground_truth="hello world",
+        language="English",
+        version=2607,
+        reduce=reduction,
+        total=4,
+        measures={"word": {"beta": 1.0}, "fmt": {"beta": 0.5, "cut": 0.0}},
+    )
+
+    assert result["fmt"] == 0.0
+    assert result["score"] == 0.0
+
+
+@pytest.mark.parametrize(
+    ("reduction", "expected"),
+    [
+        ({"mode": "average", "total": 4}, 0.375),
+        ({"mode": "average"}, 0.75),
+        ({"mode": "mean"}, 0.75),
+        ({"mode": "sum"}, 1.5),
+        ({}, 1.5),
+    ],
+)
+def test_compute_score_mapping_reduction(reduction, expected):
+    result = compute_score(
+        "<ASR><lang=English><TXT>hello world</TXT></ASR>",
+        ground_truth="hello world",
+        language="English",
+        version=2607,
+        reduce=reduction,
+        measures={"word": {"beta": 1.0}, "lang": {"beta": 0.5}},
+    )
+
+    assert result["score"] == pytest.approx(expected)
+
+
+def test_compute_score_mapping_total_overrides_reward_kwargs():
+    result = compute_score(
+        "<ASR><lang=English><TXT>hello world</TXT></ASR>",
+        ground_truth="hello world",
+        language="English",
+        version=2607,
+        reduce={"mode": "average", "total": 4},
+        total=2,
+        measures={"word": {"beta": 1.0}},
+    )
+
+    assert result["score"] == pytest.approx(0.25)
 
 
 def test_compute_score_cut_zeros_reward_at_threshold():

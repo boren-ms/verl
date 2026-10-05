@@ -7,9 +7,11 @@ reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
 
 from __future__ import annotations
 
+import math
 import re
 import unicodedata
 from dataclasses import dataclass
+from numbers import Real
 
 from jiwer import process_words
 
@@ -391,11 +393,18 @@ def signed_pow(x, gamma):
     return (abs(x) ** gamma) * sign
 
 
-def reduce_scores(scores, mode="sum"):
+def reduce_scores(scores, mode="sum", **kwargs):
     """Reduce a list of scores into a single value.
 
-    Modes: "sum", "mean", "multiply", "geometric", "harmonic".
+    Modes: "sum", "mean", "average", "multiply", "geometric", "harmonic".
+    "average" divides the sum by ``total`` (a positive, finite number),
+    defaulting to the number of scores. Empty scores return zero.
     """
+    if mode == "average":
+        total = kwargs.get("total", len(scores) or 1)
+        if isinstance(total, bool) or not isinstance(total, Real) or not math.isfinite(total) or total <= 0:
+            raise ValueError("average reduction requires total to be a positive, finite number.")
+        return sum(scores) / total
     if not scores:
         return 0.0
     if mode == "multiply":
@@ -436,7 +445,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Uses :func:`recipe.phimm.reward.asr_edge.measure` for the lexical accuracy
     and :func:`compute_fmt_acc` for punctuation/capitalisation accuracy.
 
-    Only the components listed in ``scores`` contribute to the reward. The
+    Only the components listed in ``measures`` contribute to the reward. The
     contribution of each component ``k`` is::
 
         beta * signed_pow(clip(acc_k, lo, hi), gamma)
@@ -444,22 +453,31 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Both ``beta`` and ``gamma`` default to ``1.0`` when omitted.
     A component with ``cut`` forces the combined reward to zero when its raw
     accuracy is less than or equal to that threshold.
+    Additional reward kwargs are forwarded to :func:`reduce_scores`.
+    ``reduce`` accepts a mode string or a mapping with ``mode`` and reducer
+    options. Mapping options override the corresponding reward kwargs.
+    ``mean`` divides by the component count; ``average`` uses ``total`` as
+    the divisor when provided.
 
     Configuration example (YAML)::
 
         reward_kwargs:
-          reduce: sum            # "sum" (default), "mean", or "multiply"
-          scores:
+          reduce: {mode: average, total: 4}
+          measures:
             char: {beta: 1.0, gamma: 0.5, low: 0.0, high: 1.0}
             fmt: {beta: 0.5, cut: 0.5}
     """
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
 
     measures = kwargs.get("measures") or {}
-    reduce = kwargs.get("reduce", "sum").lower()
+    reduction = kwargs.get("reduce", "sum")
+    if isinstance(reduction, str):
+        reduction = {"mode": reduction.lower()}
+    else:
+        reduction = {**reduction, "mode": reduction.get("mode", "sum").lower()}
     gamma = float(kwargs.get("gamma", 1.0))
     scores = [scale_score(parsed.get(k, 1.0), cfg) for k, cfg in measures.items()]
-    score = reduce_scores(scores, reduce)
+    score = reduce_scores(scores, **(kwargs | reduction))
     score = signed_pow(score, gamma)
 
     if any("cut" in cfg and parsed.get(name, 1.0) <= float(cfg["cut"]) for name, cfg in measures.items()):
