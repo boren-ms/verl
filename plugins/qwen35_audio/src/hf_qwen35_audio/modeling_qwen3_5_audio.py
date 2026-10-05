@@ -33,6 +33,7 @@ from .configuration_qwen3_5_audio import Qwen3_5AudioConfig
 from .cascade_encoder import ConformerEncoder  # noqa: F401 — force HF to copy this file
 from .processing_qwen3_5_audio import Qwen3_5AudioProcessor  # noqa: F401
 from .audio_embedding import AudioEmbedding
+from .flash_encoder import RotaryEmbedding
 
 try:
     from transformers.models.qwen3_5.modeling_qwen3_5 import (
@@ -717,6 +718,18 @@ class Qwen3_5AudioForCausalLM(Qwen3_5CausalLMBase):
     _supports_flash_attn = True
     _supports_sdpa = True
     _is_stateful = True
+
+    @torch.no_grad()
+    def initialize_weights(self):
+        super().initialize_weights()
+        # The nested native text model's initializer does not recognize audio RoPE buffers.
+        for module in self.modules():
+            if isinstance(module, RotaryEmbedding):
+                inv_freq = 1.0 / (
+                    module.base
+                    ** (torch.arange(0, module.dim, 2, device=module.inv_freq.device, dtype=torch.float32) / module.dim)
+                )
+                module.inv_freq.copy_(inv_freq)
 
     def __init__(self, config: Qwen3_5AudioConfig):
         if TransformersQwen3_5ForCausalLM is None:

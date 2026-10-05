@@ -76,6 +76,9 @@ The Hugging Face script registers the repository's local `hf_qwen35_audio` imple
 so its default `--no-trust-remote-code` path does not depend on checkpoint-bundled Python files.
 That implementation uses Transformers' native Qwen3.5 causal-language-model backbone when available and adds the
 audio encoder at the embedding boundary, matching the backbone semantics used by vLLM.
+The HF weight-initialization hook also restores the flash encoder's nonpersistent
+RoPE frequencies after meta-device materialization. They are not checkpoint
+tensors and must be reconstructed before HF training or reference scoring.
 
 The verified run produced:
 
@@ -143,6 +146,13 @@ vLLM `0.17.0` includes `vllm.model_executor.models.qwen3_5` and `vllm.model_exec
 `QWEN35_AUDIO_DISABLE_CUDNN=1` disables cuDNN before registration. This avoided a cuDNN initialization failure in the audio encoder path on the verified H100 node.
 
 ## Troubleshooting
+
+### `No CUDA GPUs are available` while a CPU-only Ray actor imports the model
+
+FlashAttention's Triton RMSNorm module queries the current GPU during import.
+The HF flash encoder skips this optional import when CUDA is unavailable, so
+CPU-only coordinators can register the model. GPU workers still enable the
+fused kernel when it is installed.
 
 ### `ModuleNotFoundError: No module named 'vllm.multimodal.profiling'`
 

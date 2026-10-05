@@ -51,11 +51,14 @@ try:
 except ImportError:
     _fused_swiglu_available = False
 
-try:
-    from flash_attn.ops.triton.layer_norm import rms_norm_fn as _fused_rms_norm_fn
-    _fused_rms_norm_available = True
-except ImportError:
-    _fused_rms_norm_available = False
+_fused_rms_norm_available = False
+# FlashAttention's Triton autotuning queries the current GPU during import.
+if torch.cuda.is_available():
+    try:
+        from flash_attn.ops.triton.layer_norm import rms_norm_fn as _fused_rms_norm_fn
+        _fused_rms_norm_available = True
+    except ImportError:
+        _fused_rms_norm_available = False
 
 try:
     from flash_attn.ops.fused_dense import FusedDense as _FusedDense
