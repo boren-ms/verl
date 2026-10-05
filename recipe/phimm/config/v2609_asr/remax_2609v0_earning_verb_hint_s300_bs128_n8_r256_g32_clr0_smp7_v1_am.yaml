@@ -1,0 +1,72 @@
+# Each grouped pass contains two earnings epochs; OpenML training is disabled.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/earnings_tts_verb_langhint@_earning_train
+  - /data/train_data/openml_verb_noreps_langhint@_ml_train
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - _self_
+
+reward_functions:
+  earnings:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: mean
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.2}
+        bracket: {beta: 1.0}
+
+reward_function_by_data_source:
+  earnings_fy27: earnings
+  openml: openml
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 5e-6
+      warmup_style: cosine
+      lr_warmup_steps: 0
+      min_lr_ratio: 0.2
+  rollout:
+    n: 8
+
+algorithm:
+  remax_advantage_mask: edit_boundary
+
+data:
+  data_source:
+    earnings_fy27: {num_epoch: 2, shuffle: true}
+    openml: {num_epoch: 0, shuffle: true}
+  train_data:
+    - ${_earning_train}
+    - ${_ml_train}
+  val_data:
+    - ${_earning_val}
+    - ${_ml_val}
+  train_batch_size: 128
+  shuffle: false
+
+trainer:
+  nnodes: 4
+  total_epochs: 30
+  total_training_steps: 300
