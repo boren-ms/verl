@@ -4,6 +4,12 @@ Standard `eval_*` jobs use `recipe.phimm.main_asr_eval`. ASR evaluation
 configs enable `trainer.validation_resume=true` by default, including
 [eval_2609_openall_mix](../v2609_asr/eval/eval_2609_openall_mix.yaml).
 
+The 2609 ASR [evaluation base](../v2609_asr/eval/eval_base.yaml) sets
+`data.val_batch_size` to `256 * trainer.nnodes`: 256 for one node, 512 for two,
+and 1024 for four. Dataset-specific batch settings, including full-dataset
+long-audio scoring, still take precedence. Training's default validation batch
+size remains 256.
+
 ## Dataset-level resume
 
 Rerun the same config with the same model and `trainer.validation_data_dir`

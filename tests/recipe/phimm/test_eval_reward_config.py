@@ -64,6 +64,27 @@ REWARD_SOURCES = {
 
 
 @pytest.mark.parametrize("config_name", EVAL_CONFIG_NAMES)
+@pytest.mark.parametrize("nnodes", [1, 2, 4])
+def test_eval_batch_size_scales_with_nodes(config_name, nnodes):
+    registered_eval = not OmegaConf.has_resolver("eval")
+    if registered_eval:
+        OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
+    try:
+        with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+            config = compose(
+                config_name=config_name,
+                overrides=[
+                    f"hydra.searchpath=[file://{CONFIG_ROOT},file://{TRAINER_CONFIG_DIR}]",
+                    f"trainer.nnodes={nnodes}",
+                ],
+            )
+        assert config.data.val_batch_size == 256 * nnodes
+    finally:
+        if registered_eval:
+            OmegaConf.clear_resolver("eval")
+
+
+@pytest.mark.parametrize("config_name", EVAL_CONFIG_NAMES)
 def test_eval_configs_inherit_reward_assignments(config_name):
     with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
         config = compose(

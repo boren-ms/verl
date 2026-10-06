@@ -164,8 +164,7 @@ def test_2609_validation_configs_use_full_batches_only_for_parent_audio():
                 short_count += 1
                 assert "val_batch_size" not in item, reference
     assert parent_count > 0 and short_count > 0
-    for name in ("base", "eval_base"):
-        assert OmegaConf.load(root / f"v2609_asr/{name}.yaml").data.val_batch_size == 256
+    assert OmegaConf.load(root / "v2609_asr/base.yaml").data.val_batch_size == 256
 
 
 @pytest.fixture
