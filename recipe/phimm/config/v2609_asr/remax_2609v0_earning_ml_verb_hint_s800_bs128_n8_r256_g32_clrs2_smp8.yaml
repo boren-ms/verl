@@ -1,4 +1,4 @@
-# Globally shuffle the mixture of four earnings epochs and one OpenML epoch.
+# Each grouped pass contains four earnings epochs followed by one OpenML epoch.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -47,13 +47,12 @@ actor_rollout_ref:
       warmup_style: cosine
       lr_warmup_steps: 0
       min_lr_ratio: 0.2
-      # One cosine cycle spans each full 400-step pass of the shuffled mixture.
+      # Each 400-step pass has 336 earnings-dominant batches followed by 64 OpenML batches.
       # Later cycles reuse the final length and peak LR.
-      cycle_steps: [400, 400]
-      cycle_lrs: [5.0e-6, 1.0e-6]
+      cycle_steps: [336, 64, 336, 64]
+      cycle_lrs: [5.0e-6, 5.0e-6, 1.0e-6, 1.0e-6]
   rollout:
     n: 8
-    gt_rollout: false
 
 data:
   data_source:
@@ -66,7 +65,7 @@ data:
     - ${_earning_val}
     - ${_ml_val}
   train_batch_size: 128
-  shuffle: true
+  shuffle: false
 
 trainer:
   nnodes: 4

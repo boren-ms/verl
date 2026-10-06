@@ -53,7 +53,6 @@ actor_rollout_ref:
       cycle_lrs: [5.0e-6, 5.0e-6, 1.0e-6, 1.0e-6]
   rollout:
     n: 8
-    gt_rollout: false
 
 data:
   data_source:

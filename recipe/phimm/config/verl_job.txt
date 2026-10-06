@@ -1,16 +1,18 @@
-updated_at_utc: 2026-10-06T16:47:52Z
+updated_at_utc: 2026-10-06T17:05:09Z
 
 ┌────────┬─────────────────────────────────┬───────────┬────────────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                      │ STATUS    │ JOB / CONFIG                                                                       │ PROGRESS / PHASE                                    │
 ├────────┼─────────────────────────────────┼───────────┼────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────┤
-│ n4-i5  │ raysubmit_gJCFV4X7sqxhjUkY      │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt        │ training 2/464 (0.43%)                               │
-│ n4-i6  │ raysubmit_y816CWXrKaVwcxvP      │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt       │ training startup (datasets loaded; save_freq=10)    │
-│ n4-i9  │ openasr_93bc6255_publish_step360 │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g16_clrs2_smp8_v1_ngt@360    │ exporting requested checkpoint (parallel publish)  │
-│ n4h-i2 │ raysubmit_pbdWGQgyAU8a6nBM       │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_v1_ngt_sfl     │ training startup (downloading model)                │
+│ n4-i1  │ —                               │ PENDING   │ remax_2609v0_earning_verb_hint_s300_bs128_n8_r256_g32_smp7_v1_ngt                │ training startup (pool resuming)                    │
+│ n4-i5  │ raysubmit_gJCFV4X7sqxhjUkY      │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt        │ training 23/464 (4.96%)                              │
+│ n4-i6  │ raysubmit_Yf3uZk9LxVKZU8J5      │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt       │ training startup (downloading model)               │
+│ n4-i9  │ raysubmit_fzBj3Mk24DtVFcfd      │ RUNNING   │ eval_2609_openall_mix.yaml / clrs2_smp8_v1_ngt@360                                  │ evaluating mixlang_fy26q2 (model startup)           │
+│ n4h-i2 │ raysubmit_pbdWGQgyAU8a6nBM       │ RUNNING   │ remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_v1_ngt_sfl     │ training 3/800 (0.38%)                               │
 └────────┴─────────────────────────────────┴───────────┴────────────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g16_clrs2_smp8_v1_ngt@360,320` [`n4-i9`]: exporting requested checkpoint step 360
-- `remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt` [`n4-i5`]: training 2/464 (0.43%)
+- `remax_2609v0_earning_verb_hint_s300_bs128_n8_r256_g32_smp7_v1_ngt` [`n4-i1`]: training startup
+- `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g16_clrs2_smp8_v1_ngt@360,320` [`n4-i9`]: evaluating mixlang_fy26q2 step 360
+- `remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt` [`n4-i5`]: training 23/464 (4.96%)
 - `remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt` [`n4-i6`]: training startup
-- `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_v1_ngt_sfl` [`n4h-i2`]: training startup
+- `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_v1_ngt_sfl` [`n4h-i2`]: training 3/800 (0.38%)

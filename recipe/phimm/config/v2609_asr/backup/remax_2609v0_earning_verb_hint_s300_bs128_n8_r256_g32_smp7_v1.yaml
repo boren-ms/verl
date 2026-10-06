@@ -1,4 +1,4 @@
-# Each grouped pass contains two earnings epochs followed by one OpenML epoch.
+# Each grouped pass contains two earnings epochs; OpenML training is disabled.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -41,24 +41,13 @@ reward_function_by_data_source:
   openml: openml
 
 actor_rollout_ref:
-  actor:
-    optim:
-      lr: 5e-6
-      warmup_style: cosine
-      lr_warmup_steps: 0
-      min_lr_ratio: 0.2
-      # Each 232-step pass has 168 earnings-dominant batches (last mixed), then 64 OpenML batches.
-      # Keep two source-cycle pairs; later cycles reuse the final length and peak LR.
-      cycle_steps: [168, 64, 168, 64]
-      cycle_lrs: [5.0e-6, 5.0e-6, 1.0e-6, 1.0e-6]
   rollout:
     n: 8
-    gt_rollout: false
 
 data:
   data_source:
     earnings_fy27: {num_epoch: 2, shuffle: true}
-    openml: {num_epoch: 1, shuffle: true}
+    openml: {num_epoch: 0, shuffle: true}
   train_data:
     - ${_earning_train}
     - ${_ml_train}
@@ -71,4 +60,4 @@ data:
 trainer:
   nnodes: 4
   total_epochs: 30
-  total_training_steps: 464
+  total_training_steps: 300
