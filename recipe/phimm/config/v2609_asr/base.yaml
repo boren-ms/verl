@@ -47,7 +47,7 @@ actor_rollout_ref:
   nccl_timeout: 3600
   rollout:
     n: 4
-    gt_rollout: true
+    gt_rollout: false
     engine_kwargs:
       vllm:
         gdn_prefill_backend: triton
