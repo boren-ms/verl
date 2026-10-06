@@ -52,7 +52,6 @@ class ValidationCheckpoint:
                 {
                     "size": len(loader.dataset),
                     "batch_size": loader.batch_size,
-                    "fingerprint": getattr(getattr(loader.dataset, "ds", loader.dataset), "_fingerprint", None),
                 }
                 for loader in loaders
             ],

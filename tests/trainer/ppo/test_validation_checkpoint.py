@@ -186,6 +186,17 @@ def test_changed_dataset_order_and_batch_size_are_rejected(trainer):
         trainer._validate()
 
 
+def test_dataset_runtime_fingerprint_does_not_invalidate_resume(trainer):
+    for index, loader in enumerate(trainer.val_dataloaders):
+        loader.dataset._fingerprint = f"initial-{index}"
+    trainer._validate()
+    trainer.calls = 0
+    for index, loader in enumerate(trainer.val_dataloaders):
+        loader.dataset._fingerprint = f"reconstructed-{index}"
+    trainer._validate()
+    assert trainer.calls == 0
+
+
 def test_corrupt_checkpoint_is_not_silently_ignored(trainer, tmp_path):
     trainer._validate()
     (tmp_path / "_resume/0.json").write_text('{"version":')
