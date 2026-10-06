@@ -3,19 +3,13 @@ hydra:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base
+  - ../base@_here_
   - /data/train_data/ls_rare_nonempty_verb_langhint
   - _self_
 
 actor_rollout_ref:
-  actor:
-    optim:
-      lr: 1e-6
-    checkpoint:
-      load_contents: [model]
   rollout:
-    n: 4
-    temperature: 0.8
+    n: 16
 
 reward_functions:
   asr_measure:
@@ -28,7 +22,7 @@ reward_functions:
         char: {beta: 1.0}
         word: {beta: 1.0}
         keyword: {beta: 1.0}
-        lang: {beta: 1}
+        lang: {beta: 0.1, cut: 0.9}
         fmt: {beta: 0.1, cut: 0.9}
 
 reward_function_by_data_source:

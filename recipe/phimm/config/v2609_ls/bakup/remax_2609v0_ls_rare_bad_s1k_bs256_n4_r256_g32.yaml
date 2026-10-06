@@ -3,7 +3,7 @@ hydra:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base
+  - ../base@_here_
   - /data/train_data/ls_rare_nonempty_verb_langhint
   - _self_
 

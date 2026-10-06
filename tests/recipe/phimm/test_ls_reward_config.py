@@ -8,6 +8,7 @@ ROOT = Path(__file__).parents[3]
 CONFIG_ROOT = ROOT / "recipe/phimm/config"
 LS_CONFIG_DIR = CONFIG_ROOT / "v2609_ls"
 TRAINER_CONFIG_DIR = ROOT / "verl/trainer/config"
+ACTIVE_TRAINING_RECIPE = "remax_2609v0_ls_s400_bs128_n4_r256_g32"
 MODEL_PATH = (
     "az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/"
     "fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf"
@@ -95,7 +96,7 @@ def test_ls_configs_compose_without_sibling_recipes(config_name):
 def test_ls_training_preserves_experiment_settings(
     suffix, batch_size, n, rank, nnodes, steps, temperature, lr, filtered
 ):
-    config = compose_ls(f"remax_2609v0_ls_{suffix}")
+    config = compose_ls(f"bakup/remax_2609v0_ls_{suffix}")
     assert config.data.train_batch_size == batch_size
     assert config.actor_rollout_ref.actor.ppo_mini_batch_size == batch_size
     assert config.actor_rollout_ref.rollout.n == n
@@ -170,7 +171,7 @@ def test_ls_local_defaults_match_2609_reference():
 
 
 def test_ls_datasets_use_original_shared_data_folders():
-    config = compose_ls("remax_2609v0_ls_rare_s1k_bs256_n1_r256_g16")
+    config = compose_ls(ACTIVE_TRAINING_RECIPE)
     assert not (LS_CONFIG_DIR / "train_data.yaml").exists()
     assert not (LS_CONFIG_DIR / "val_data.yaml").exists()
     assert config.data.train_data == OmegaConf.load(
@@ -179,6 +180,42 @@ def test_ls_datasets_use_original_shared_data_folders():
     assert config.data.val_data == OmegaConf.load(
         CONFIG_ROOT / "data/val_data/ls_kw_verb_langhint.yaml"
     )
+
+
+def test_ls_training_recipes_are_archived():
+    assert {path.stem for path in LS_CONFIG_DIR.glob("remax_*.yaml")} == {ACTIVE_TRAINING_RECIPE}
+    assert {path.stem for path in (LS_CONFIG_DIR / "bakup").glob("remax_*.yaml")} == {
+        f"remax_2609v0_ls_{settings[0]}" for settings in TRAINING_SETTINGS
+    }
+
+
+def test_ls_active_training_settings_and_rewards():
+    config = compose_ls(ACTIVE_TRAINING_RECIPE)
+    assert config.data.train_batch_size == 128
+    assert config.actor_rollout_ref.actor.ppo_mini_batch_size == 128
+    assert config.actor_rollout_ref.rollout.n == 4
+    assert not config.actor_rollout_ref.rollout.gt_rollout
+    assert config.actor_rollout_ref.rollout.temperature == 1.2
+    assert config.actor_rollout_ref.model.lora_rank == 256
+    assert config.actor_rollout_ref.actor.optim.lr == 5e-6
+    assert config.trainer.nnodes == 4
+    assert config.trainer.n_gpus_per_node * config.trainer.nnodes == 32
+    assert config.trainer.total_training_steps == 400
+    assert config.trainer.total_epochs == 30
+    assert config.trainer.test_freq == 50
+    assert config.trainer.save_freq == 50
+    assert not config.algorithm.filter_groups.enable
+    assert config.reward_function_by_data_source.ls_rare_verb == "asr_measure"
+    rewards = config.reward_functions.asr_measure.reward_kwargs
+    assert rewards.version == 2609
+    assert OmegaConf.to_container(rewards.reduce) == {"mode": "average", "total": 4}
+    assert OmegaConf.to_container(rewards.measures) == {
+        "char": {"beta": 1.0},
+        "word": {"beta": 1.0},
+        "keyword": {"beta": 1.0},
+        "lang": {"beta": 0.5},
+        "fmt": {"beta": 0.5},
+    }
 
 
 def test_ls_generation_and_evaluation_configs_use_dedicated_folders():
