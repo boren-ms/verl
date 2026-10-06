@@ -2,6 +2,20 @@
 The examples under `recipes/` are representative extensions to verl for specific end-to-end RL training recipes.
 The help the community reproduce experiments, verl team provides a snapshot of the codebase when each recipe is initially PR'ed to verl main. You can find them via [github branches](https://github.com/volcengine/verl/branches/all?query=recipe)
 
+## 2609 entity recipes
+
+The entity configs now live in [v2609_entity](phimm/config/v2609_entity/).
+Their [training base](phimm/config/v2609_entity/base.yaml) and
+[evaluation base](phimm/config/v2609_entity/eval_base.yaml) are local to the
+entity directory and do not inherit from `v2609_asr`. They still use the
+repository's common PPO trainer and dataset configs.
+They use the 2609 checkpoint, prompt version, and validation scorers,
+while retaining the name training/validation datasets. The entity training
+reward uses `reduce: {mode: average, total: 4}`, keyword beta `1.0`, and no
+per-measure `cut` thresholds.
+Override
+`actor_rollout_ref.model.path` explicitly to evaluate another checkpoint.
+
 ## ASR datasource sampling
 
 Configure training budgets by **datasource name**, not by dataset entry:

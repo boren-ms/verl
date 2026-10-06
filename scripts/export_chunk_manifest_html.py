@@ -89,7 +89,7 @@ def write_html(records, path):
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>name_fy22_10k audio review</title>
+  <title>name_10k audio review</title>
   <style>
     :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
     body { margin: 0; background: #f5f6f8; color: #202124; }
@@ -129,7 +129,7 @@ def write_html(records, path):
 </head>
 <body>
   <header>
-    <h1>name_fy22_10k audio review</h1>
+    <h1>name_10k audio review</h1>
     <div class="toolbar">
       <input id="search" type="search" placeholder="Search transcription, name, keyword, or ID">
       <label>Per page

@@ -12,26 +12,26 @@ reward_functions:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
     reward_kwargs:
-      version: 2607
-      reduce: mean
+      version: 2609
+      reduce: {mode: average, total: 4}
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        keyword: {beta: 2.0, cut: 0.5}
-        lang: {beta: 0.1, cut: 0.9}
-        fmt: {beta: 0.1, cut: 0.9}
+        keyword: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.5}
 
 reward_function_by_data_source:
   name_train: asr_measure
 
 actor_rollout_ref:
-  model:
-    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2607/amlt-results/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/qwen_hf/
+  rollout:
+    n: 4
 
 data:
-  train_batch_size: 1024
+  train_batch_size: 128
 
 trainer:
-  nnodes: 2
+  nnodes: 4
   total_epochs: 1
   total_training_steps: 1000
