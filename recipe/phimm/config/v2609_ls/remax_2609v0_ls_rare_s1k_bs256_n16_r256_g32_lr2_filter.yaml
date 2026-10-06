@@ -4,26 +4,25 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/ls_rare_nonempty_verb
+  - /data/train_data/ls_rare_nonempty_verb_langhint
   - _self_
 
 actor_rollout_ref:
   rollout:
     n: 16
-    temperature: 0.8
 
 reward_functions:
   asr_measure:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
     reward_kwargs:
-      version: 2607
+      version: 2609
       reduce: mean
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
         keyword: {beta: 1.0}
-        lang: {beta: 1}
+        lang: {beta: 0.1, cut: 0.9}
         fmt: {beta: 0.1, cut: 0.9}
 
 reward_function_by_data_source:

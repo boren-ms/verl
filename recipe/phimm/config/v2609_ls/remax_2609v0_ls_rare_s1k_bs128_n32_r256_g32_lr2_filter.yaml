@@ -4,19 +4,25 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/ls_rare_nonempty_verb
+  - /data/train_data/ls_rare_nonempty_verb_langhint
   - _self_
 
 actor_rollout_ref:
   rollout:
-    n: 1
+    n: 32
+    engine_kwargs:
+      vllm:
+        gdn_prefill_backend: triton
+  actor:
+    optim:
+      lr: 5.e-8
 
 reward_functions:
   asr_measure:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
     reward_kwargs:
-      version: 2607
+      version: 2609
       reduce: mean
       measures:
         char: {beta: 1.0}
@@ -28,10 +34,18 @@ reward_functions:
 reward_function_by_data_source:
   ls_rare_verb: asr_measure
 
+algorithm:
+  filter_groups:
+    enable: true
+    metric: remax_advantage
+    mode: nonzero
+    atol: 1e-6
+    max_num_gen_batches: 10
+
 data:
-  train_batch_size: 256
+  train_batch_size: 128
 
 trainer:
-  nnodes: 2
+  nnodes: 4
   total_epochs: 30
   total_training_steps: 1000

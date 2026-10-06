@@ -3,5 +3,5 @@ hydra:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base_eval
+  - eval_base
   - _self_

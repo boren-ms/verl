@@ -1,6 +1,8 @@
+# Local LibriSpeech defaults mirror the 2609 ASR runtime without inheriting its recipes.
+# Dataset definitions remain in the shared data/train_data and data/val_data folders.
 defaults:
-  - ppo_trainer
-  - /data/val_data/ls_kw_verb
+  - /ppo_trainer
+  - /data/val_data/ls_kw_verb_langhint
   - _self_
 
 nccl_timeout: 3600
@@ -8,29 +10,29 @@ nccl_timeout: 3600
 val_reward:
   reward_manager: long_audio_grouped
   reward_kwargs:
-    version: 2607
+    version: 2609
   reward_functions:
     inhouse_zh:
       path: recipe/phimm/reward/asr_inhouse_measure.py
       name: eval_score
       reward_kwargs:
-        version: 2607
+        version: 2609
         locale: zh-cn
     inhouse_all:
       path: recipe/phimm/reward/asr_inhouse_measure.py
       name: eval_score
       reward_kwargs:
-        version: 2607
+        version: 2609
     openasr_ml:
       path: recipe/phimm/reward/asr_eval.py
       name: openasr_eval
       reward_kwargs:
-        version: 2607
+        version: 2609
     openasr_en:
       path: recipe/phimm/reward/asr_eval.py
       name: openasr_en_eval
       reward_kwargs:
-        version: 2607
+        version: 2609
   reward_function_by_data_source:
     ls_clean: openasr_en
     ls_other: openasr_en
@@ -42,6 +44,16 @@ actor_rollout_ref:
     engine_kwargs:
       vllm:
         gdn_prefill_backend: triton
+        lora_target_modules:
+          - gate_proj
+          - up_proj
+          - down_proj
+          - q_proj
+          - k_proj
+          - v_proj
+          - o_proj
+          - in_proj_qkv
+          - out_proj
     gt_rollout: false
     temperature: 1.2
     calculate_log_probs: True
@@ -67,6 +79,7 @@ actor_rollout_ref:
     enable_chunked_prefill: true
     free_cache_engine: true
   actor:
+    filter_nonfinite_log_probs: true
     use_torch_compile: false
     use_dynamic_bsz: true
     ppo_max_token_len_per_gpu: 2048
@@ -91,7 +104,7 @@ actor_rollout_ref:
       use_orig_params: true
     strategy: fsdp2
   model:
-    path: az://orngwus2cresco/data/boren/outputs/v2607_earning/remax_2607v1a_earning_fy27_s1k_bs256_v0_n1_r256_g16/global_step_650/qwen_hf/
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf
     trust_remote_code: false
     use_remove_padding: true
     use_fused_kernels: false
@@ -102,6 +115,7 @@ actor_rollout_ref:
     exclude_modules: "model.embed_tokens_extend.*"
     enable_gradient_checkpointing: false
   ref:
+    filter_nonfinite_log_probs: true
     strategy: fsdp2
     log_prob_use_dynamic_bsz: true
     log_prob_max_token_len_per_gpu: 2048
@@ -122,7 +136,7 @@ data:
   trust_remote_code: false
   shuffle: true
   use_interleave: false
-  version: 2607
+  version: 2609
   max_prompt_length: 1024
   max_response_length: 768
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
@@ -134,7 +148,7 @@ data:
   max_audio_dur: 40
   chunk_load_mode: sample
   gen_batch_size: ${data.train_batch_size}
-  val_batch_size: -1
+  val_batch_size: 256
   custom_cls:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset
@@ -149,7 +163,8 @@ reward_model:
     penalty_factor: 0.0
 
 trainer:
-  project_name: v2607_ls
+  filter_nonfinite_log_probs: true
+  project_name: v2609_ls
   logger: ["console", "wandb"]
   log_val_generations: 20
   experiment_name: null

@@ -1,5 +1,5 @@
 defaults:
-  - base
+  - ../base@_here_
   - _self_
 
 data:
@@ -8,9 +8,11 @@ data:
   use_interleave: false
   dataloader_num_workers: 8
   prefetch_factor: 4
-  val_batch_size: -1
+  val_batch_size: 256
 
 trainer:
-  project_name: v2607_ls_eval
+  validation_resume: true
+  validation_resume_save_freq: 2
+  project_name: v2609_ls_eval
   val_only: true
   val_before_train: true

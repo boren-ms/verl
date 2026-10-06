@@ -1,0 +1,11 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - gen_base
+  - /data/train_data/ls_rare_nonempty_verb_langhint
+  - _self_
+
+data:
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2609v0/ls_rare_nonempty_verb

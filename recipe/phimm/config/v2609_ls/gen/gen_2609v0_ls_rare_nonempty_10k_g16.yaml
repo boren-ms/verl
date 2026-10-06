@@ -1,0 +1,21 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - gen_base
+  - /data/train_data/ls_rare_nonempty_verb_langhint
+  - _self_
+
+trainer:
+  nnodes: 2
+
+rollout:
+  engine_kwargs:
+    vllm:
+      compilation_config: 0
+
+data:
+  train_data:
+    jsonl_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe_rare_keywords_nonempty_sample10k_seed42.jsonl
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2609v0/ls_rare_nonempty_verb_10k_seed42

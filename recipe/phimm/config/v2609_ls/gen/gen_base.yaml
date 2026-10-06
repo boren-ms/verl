@@ -1,0 +1,59 @@
+defaults:
+  - /generation
+  - _self_
+
+nccl_timeout: 1800
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_eval.py
+  name: openasr_eval
+  reward_kwargs:
+    version: 2609
+
+trainer:
+  experiment_name: null
+  nnodes: 1
+  n_gpus_per_node: 8
+
+data:
+  # Outputs are resumable JSONL part files; use a fresh path when changing model or scoring.
+  version: 2609
+  validation_shuffle: false
+  resume_from_output: true
+  path: null
+  batch_size: 512
+  output_split_size: 20000
+  num_workers: 4
+  prefetch_factor: 4
+  pin_memory: false
+  persistent_workers: false
+  prefetch_depth: 3
+  max_audio_dur: 40
+  chunk_load_mode: cached
+
+model:
+  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf
+  trust_remote_code: false
+
+rollout:
+  n: 1
+  engine_kwargs:
+    vllm:
+      gdn_prefill_backend: triton
+      quantization: fp8
+  temperature: 0.0
+  top_k: -1
+  top_p: 1
+  dtype: auto
+  gpu_memory_utilization: 0.9
+  log_prob_micro_batch_size_per_gpu: 8
+  prompt_length: 1024
+  response_length: 768
+  load_format: safetensors
+  max_num_seqs: 36
+  enforce_eager: false
+  enable_chunked_prefill: true
+  free_cache_engine: true
+  no_repeat_ngram_size: 15
+  stop: ["<|im_end|>"]
+  stop_token_ids: [248044, 248046]
