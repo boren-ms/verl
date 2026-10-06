@@ -22,6 +22,31 @@ def test_recipe_resolves_training_manifest_only():
     assert sources[0]["pre_process"]["path_map"]["src_part"] == "am_data/"
 
 
+def test_selecting_validation_manifest(tmp_path):
+    config = tmp_path / "recipe.yaml"
+    config.write_text(
+        "data:\n"
+        "  train_data:\n"
+        "    - dataset_name: jsonl\n"
+        "      jsonl_paths: train.jsonl\n"
+        "  val_data:\n"
+        "    - dataset_name: jsonl\n"
+        "      jsonl_paths: val.jsonl\n",
+        encoding="utf-8",
+    )
+    assert load_training_sources(config)[0]["jsonl_paths"] == "train.jsonl"
+    assert load_training_sources(config, "val")[0]["jsonl_paths"] == "val.jsonl"
+    with pytest.raises(ValueError, match="Unsupported data split"):
+        load_training_sources(config, "test")
+
+
+def test_validation_requires_nonempty_config(tmp_path):
+    config = tmp_path / "recipe.yaml"
+    config.write_text("data:\n  val_data: null\n", encoding="utf-8")
+    with pytest.raises(ValueError, match=r"data.val_data"):
+        load_training_sources(config, "val")
+
+
 def test_mapping_and_sample_suffix_removal():
     path_map = {"src_part": "am_data/", "dst_part": "az://orngwus2cresco/data/speech/am_data/"}
     assert chunk_file_path({"audio_path": "am_data/en/ChunkFiles/chunk.audio:98:13"}, path_map) == (

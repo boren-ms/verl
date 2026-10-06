@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""List unique .audio ChunkFiles and missing blobs from a recipe's JSONL training data.
+"""List unique .audio ChunkFiles and missing blobs from a recipe's JSONL data.
 
 Example:
     python scripts/list_training_chunk_paths.py \
         --config recipe/phimm/config/v2609_entity/remax_2609v0_name_enhc_s1k_bs128_n4_r256_g32.yaml \
         --output-dir /root/data/name_enhc_chunk_paths
 
+Use --split val to check validation data (default: train).
 Writes sorted chunk_paths.txt, missing_chunk_paths.txt, and summary.json. Only
-training manifests are read; audio blobs are checked with HEAD, not downloaded.
+selected manifests are read; audio blobs are checked with HEAD, not downloaded.
 Storage errors fail the command rather than being reported as missing files.
 """
 
@@ -22,18 +23,23 @@ from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
 
-def load_training_sources(config_path):
+def load_training_sources(config_path, split="train"):
+    if split not in ("train", "val"):
+        raise ValueError(f"Unsupported data split: {split}")
     config_path = Path(config_path).resolve()
     with initialize_config_dir(config_dir=str(config_path.parent), version_base=None):
         config = compose(config_name=config_path.stem)
-    sources = OmegaConf.to_container(config.data.train_data, resolve=True)
+    data_key = f"{split}_data"
+    if config.data.get(data_key) is None:
+        raise ValueError(f"Recipe must configure nonempty data.{data_key}")
+    sources = OmegaConf.to_container(config.data[data_key], resolve=True)
     if isinstance(sources, dict):
         sources = [sources]
     if not isinstance(sources, list) or not sources:
-        raise ValueError("Recipe must configure nonempty data.train_data")
+        raise ValueError(f"Recipe must configure nonempty data.{data_key}")
     for source in sources:
         if source.get("dataset_name") != "jsonl":
-            raise ValueError("Only JSONL training datasets are supported")
+            raise ValueError("Only JSONL datasets are supported")
     return sources
 
 
@@ -85,7 +91,7 @@ def collect_chunk_paths(sources):
                         stream.close()
             manifests.append({"path": input_path, "rows": manifest_rows})
     if not paths:
-        raise ValueError("No ChunkFile references found in training data")
+        raise ValueError("No ChunkFile references found in selected data")
     return sorted(paths), rows, manifests
 
 
@@ -123,16 +129,18 @@ def main():
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--workers", type=int, default=32)
+    parser.add_argument("--split", choices=("train", "val"), default="train")
     args = parser.parse_args()
     if args.workers < 1:
         parser.error("--workers must be positive")
-    sources = load_training_sources(args.config)
+    sources = load_training_sources(args.config, args.split)
     paths, rows, manifests = collect_chunk_paths(sources)
     missing = find_missing_paths(paths, args.workers)
     summary = {
         "config": str(args.config),
+        "split": args.split,
         "manifests": manifests,
-        "training_rows": rows,
+        "training_rows" if args.split == "train" else "validation_rows": rows,
         "unique_chunk_paths": len(paths),
         "duplicate_references_removed": rows - len(paths),
         "existing_chunk_paths": len(paths) - len(missing),

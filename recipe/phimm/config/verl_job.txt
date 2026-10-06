@@ -1,4 +1,4 @@
-updated_at_utc: 2026-10-06T19:46:53Z
+updated_at_utc: 2026-10-06T22:45:38Z
 
 ┌────────┬────────────────────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS  │ JOB / CONFIG                                                                │ PROGRESS / PHASE                                  │
@@ -10,8 +10,9 @@ updated_at_utc: 2026-10-06T19:46:53Z
 │ n4-i4  │ raysubmit_FQdCJABipuvDuqap │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4          │ training 32/400 (8.00%)                           │
 │ n4-i5  │ raysubmit_XZ4hWbmmD22BZRpq │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt │ training 61/464 (13.15%)                          │
 │ n4-i6  │ raysubmit_Yf3uZk9LxVKZU8J5 │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt │ training 82/444 (18.47%)                          │
+│ n4-i7  │ raysubmit_4jiXjA62z3utuZAs │ RUNNING │ remax_2609v0_ls_s400_bs128_n4_r256_g32                                      │ training 47/400 (11.75%)                          │
 │ n4-i9  │ raysubmit_fzBj3Mk24DtVFcfd │ RUNNING │ eval_2609_openall_mix.yaml / clrs2_smp8_v1_ngt@360                          │ evaluating spgispeech (32 batches; 3/26 complete) │
-│ n4h-i1 │ raysubmit_Jx634bjC1uCwm59v │ RUNNING │ remax_2609v0_name_enhc_s1k_bs128_n4_r256_g32                                │ training startup (third mapping pass 48%)         │
+│ n4h-i1 │ raysubmit_KW1dHbnCEUGj1dm8 │ RUNNING │ remax_2609v0_name_enhc_s1k_bs128_n4_r256_g32                                │ training startup (third mapping pass 63%)         │
 │ n4h-i2 │ raysubmit_NSVxDDQTF3n3dd8x │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_sfl     │ training 39/800 (4.88%)                           │
 └────────┴────────────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
 
@@ -25,4 +26,5 @@ Reports:
 - `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g16_clrs2_smp8_v1_ngt@360,320` [`n4-i9`]: evaluating spgispeech step 360
 - `remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt` [`n4-i5`]: training 61/464 (13.15%)
 - `remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt` [`n4-i6`]: training 82/444 (18.47%)
+- `remax_2609v0_ls_s400_bs128_n4_r256_g32` [`n4-i7`]: training 47/400 (11.75%)
 - `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_v1_ngt_sfl` [`n4h-i2`]: training 39/800 (4.88%)
