@@ -11,8 +11,9 @@ Rerun the same config with the same model and `trainer.validation_data_dir`
 dataset, the evaluator saves predictions, scores, sample IDs, and metric details
 to `validation_data_dir/_resume/<step>.json`, supporting local and Azure paths.
 Completed datasets are skipped without loading their audio or regenerating
-predictions. An interrupted dataset starts again from its beginning. Full-dataset
-long-audio scoring batches are preserved.
+predictions. Set `trainer.validation_resume_save_freq` to a positive number to
+also checkpoint deterministic intra-dataset progress every N batches; zero keeps
+dataset-level-only resume. Full-dataset long-audio scoring batches are preserved.
 
 Final per-source `<step>.jsonl` files and metrics include both restored and newly
 evaluated datasets. If all datasets finished, rerunning regenerates these final

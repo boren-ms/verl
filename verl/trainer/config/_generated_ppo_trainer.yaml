@@ -75,6 +75,7 @@ actor_rollout_ref:
       - optimizer
       - extra
       load_contents: ${.save_contents}
+      override_optimizer_lr: false
       async_save: false
     use_fused_kernels: ${oc.select:actor_rollout_ref.model.use_fused_kernels,false}
     profiler:
@@ -106,6 +107,7 @@ actor_rollout_ref:
     ulysses_sequence_parallel_size: 1
     entropy_from_logits_with_chunking: false
     entropy_checkpointing: false
+    filter_nonfinite_log_probs: false
     use_remove_padding: ${oc.select:actor_rollout_ref.model.use_remove_padding,false}
   ref:
     strategy: ${actor_rollout_ref.actor.strategy}
@@ -161,6 +163,7 @@ actor_rollout_ref:
     ulysses_sequence_parallel_size: ${oc.select:actor_rollout_ref.actor.ulysses_sequence_parallel_size,1}
     entropy_from_logits_with_chunking: false
     entropy_checkpointing: false
+    filter_nonfinite_log_probs: false
   rollout:
     _target_: verl.workers.config.RolloutConfig
     name: ???
@@ -215,6 +218,7 @@ actor_rollout_ref:
       use_inference_chat_template: false
       tokenization_sanity_check_mode: strict
       format: hermes
+    gt_rollout: false
     calculate_log_probs: false
     agent:
       _target_: verl.workers.config.AgentLoopConfig
@@ -475,6 +479,8 @@ trainer:
   log_val_generations: 0
   rollout_data_dir: null
   validation_data_dir: null
+  validation_resume: false
+  validation_resume_save_freq: 0
   nnodes: 1
   n_gpus_per_node: 8
   save_freq: -1

@@ -88,6 +88,7 @@ actor_rollout_ref:
       - optimizer
       - extra
       load_contents: ${.save_contents}
+      override_optimizer_lr: false
       async_save: false
     use_fused_kernels: ${oc.select:actor_rollout_ref.model.use_fused_kernels,false}
     profiler:
@@ -225,6 +226,7 @@ actor_rollout_ref:
       use_inference_chat_template: false
       tokenization_sanity_check_mode: strict
       format: hermes
+    gt_rollout: false
     calculate_log_probs: false
     agent:
       _target_: verl.workers.config.AgentLoopConfig

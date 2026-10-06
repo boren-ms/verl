@@ -157,6 +157,8 @@ trainer:
   # Resume eval-only jobs after the last completed dataset; requires validation_data_dir.
   # False forces a fresh evaluation and invalidates its previous progress checkpoint.
   validation_resume: False
+  # Save deterministic intra-dataset progress every N batches; 0 disables periodic saves.
+  validation_resume_save_freq: 0
 
   # Number of nodes used in the training
   nnodes: 1

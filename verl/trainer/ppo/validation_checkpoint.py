@@ -24,7 +24,13 @@ class ValidationCheckpoint:
             raise ValueError("trainer.validation_resume requires trainer.validation_data_dir")
         self.path = bf.join(output_dir, "_resume", f"{step}.json") if output_dir else None
         self.completed = 0
+        self.in_progress_dataset = None
+        self.completed_batches = 0
+        self.loaders = loaders
         self.total = len(loaders)
+        self.save_freq = config.trainer.get("validation_resume_save_freq", 0)
+        if type(self.save_freq) is not int or self.save_freq < 0:
+            raise ValueError("trainer.validation_resume_save_freq must be a non-negative integer")
         if not self.enabled:
             # A forced fresh run must not leave an older checkpoint reusable.
             if self.path and bf.exists(self.path):
@@ -73,26 +79,59 @@ class ValidationCheckpoint:
         completed = checkpoint.get("completed_datasets")
         if type(completed) is not int or not 0 <= completed <= self.total:
             raise ValueError(f"Invalid completed dataset count in {self.path}")
+        in_progress = checkpoint.get("in_progress")
+        if in_progress is not None:
+            if not isinstance(in_progress, dict) or set(in_progress) != {"dataset", "completed_batches"}:
+                raise ValueError(f"Invalid in-progress validation state in {self.path}")
+            dataset = in_progress["dataset"]
+            completed_batches = in_progress["completed_batches"]
+            if (
+                type(dataset) is not int
+                or type(completed_batches) is not int
+                or dataset != completed
+                or not 0 <= dataset < self.total
+                or not 0 < completed_batches <= len(self.loaders[dataset])
+            ):
+                raise ValueError(f"Invalid in-progress validation state in {self.path}")
+            self.in_progress_dataset = dataset
+            self.completed_batches = completed_batches
         state = checkpoint.get("state")
         if not isinstance(state, dict) or state.keys() != empty_state.keys():
             raise ValueError(f"Invalid validation state in {self.path}")
         self.completed = completed
-        print(f"Resuming evaluation: skipping {completed}/{self.total} completed datasets from {self.path}")
+        progress = (
+            f" and {self.completed_batches} batches of dataset {self.in_progress_dataset + 1}"
+            if self.in_progress_dataset is not None else ""
+        )
+        print(f"Resuming evaluation: skipping {completed}/{self.total} completed datasets{progress} from {self.path}")
         return state
 
     def batches(self, loaders, state):
         for index, loader in enumerate(loaders):
             if index < self.completed:
                 continue
-            yield from loader
+            completed_batches = self.completed_batches if index == self.in_progress_dataset else 0
+            for batch_index, batch in enumerate(loader):
+                if batch_index < completed_batches:
+                    continue
+                yield batch
+                processed_batches = batch_index + 1
+                if self.enabled and self.save_freq and processed_batches % self.save_freq == 0:
+                    self.save(index, state, in_progress_dataset=index, completed_batches=processed_batches)
             if self.enabled:
                 self.save(index + 1, state)
 
-    def save(self, completed, state):
+    def save(self, completed, state, in_progress_dataset=None, completed_batches=0):
+        in_progress = None
+        if in_progress_dataset is not None:
+            in_progress = {
+                "dataset": in_progress_dataset,
+                "completed_batches": completed_batches,
+            }
         payload = json.dumps(
             {
                 "version": 1, "signature": self.signature,
-                "completed_datasets": completed, "state": state,
+                "completed_datasets": completed, "in_progress": in_progress, "state": state,
             },
             default=_json_default,
             ensure_ascii=False,
@@ -113,4 +152,8 @@ class ValidationCheckpoint:
             finally:
                 if os.path.exists(temporary):
                     os.remove(temporary)
-        print(f"Saved evaluation progress: {completed}/{self.total} datasets to {self.path}")
+        progress = (
+            f", {completed_batches} batches of dataset {in_progress_dataset + 1}"
+            if in_progress_dataset is not None else ""
+        )
+        print(f"Saved evaluation progress: {completed}/{self.total} datasets{progress} to {self.path}")

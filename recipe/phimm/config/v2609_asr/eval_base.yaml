@@ -70,6 +70,7 @@ data:
 
 trainer:
   validation_resume: true
+  validation_resume_save_freq: 2
   project_name: v2609_asr_eval
   val_only: true
   val_before_train: true

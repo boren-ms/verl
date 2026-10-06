@@ -138,6 +138,22 @@ def test_dataset_resume_preserves_metrics_outputs_and_skips_completed_audio(trai
     assert resumed_outputs == [(tmp_path / source / "0.jsonl").read_text() for source in ["first", "second"]]
 
 
+def test_intra_dataset_resume_skips_checkpointed_batches(trainer, tmp_path):
+    trainer.config.trainer.validation_resume_save_freq = 1
+    trainer.fail_at = 2
+    with pytest.raises(RuntimeError, match="interrupted"):
+        trainer._validate()
+    checkpoint = json.loads((tmp_path / "_resume/0.json").read_text())
+    assert checkpoint["completed_datasets"] == 0
+    assert checkpoint["in_progress"] == {"dataset": 0, "completed_batches": 1}
+    assert len(checkpoint["state"]["scores"]) == 4
+
+    trainer.calls, trainer.fail_at = 0, None
+    trainer._validate()
+    assert trainer.calls == 3
+    assert all(len((tmp_path / source / "0.jsonl").read_text().splitlines()) == 6 for source in ["first", "second"])
+
+
 @pytest.mark.parametrize("setting,value", [
     ("actor_rollout_ref.model.path", "different"),
     ("actor_rollout_ref.rollout.val_kwargs.n", 1),
