@@ -1,6 +1,6 @@
 ---
 name: run-openasr-exp
-description: "Use verl-asr-run to run a training config YAML on a specified Brix pool and evaluate its last complete checkpoint with recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml, then use openasr-report to build the results workbook. Optionally replace an explicitly authorized previous job or honor an explicit eval config override. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609_openall_mix after training, or resume a train-to-OpenASR pipeline."
+description: "Use verl-asr-run to run a training config YAML on a specified Brix pool and evaluate its last complete checkpoint with recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml, then use openasr-report to build the results workbook. Optionally replace an explicitly authorized previous job or honor an explicit eval config override. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609_openall_mix after training, or resume a train-to-OpenASR pipeline."
 argument-hint: "<train.yaml> --node <pool> [--stop-previous | --stop-job <ray-id>] [--eval-config <eval.yaml>] [--out <report.xlsx>] [launch|resume|status]"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "<train.yaml> --node <pool> [--stop-previous | --stop-job <ray-id
 Own one end-to-end pipeline:
 
 **`/verl-asr-run` training config YAML -> export the last complete checkpoint
--> `/verl-asr-run` with `recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml`
+-> `/verl-asr-run` with `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml`
 -> `/openasr-report` results workbook**.
 
 This skill is stored in the repository and orchestrates the dependent skills.
@@ -27,7 +27,7 @@ directly with the loaded skills and the policy below.
 | Node | Required Brix pool; normalize `n4i0` or `n4-i0` to `verl-n4-i0`. |
 | Eval node count | Must equal the successful training run's effective `trainer.nnodes`, including training overrides; use the same pool. |
 | Stop previous | Disabled unless explicitly requested. `--stop-job` identifies one submission; `--stop-previous` requires one unambiguous previous active job. |
-| Eval config | Default `recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml`; honor any explicit replacement. |
+| Eval config | Default `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml`; honor any explicit replacement. |
 | Checkpoint | Last complete checkpoint of this training run, by numeric step, not best validation score. |
 | Report | Default `tmp/openasr_report/<train-stem>_step<step>.xlsx`. |
 | Operation | `launch` starts the pipeline; `resume` reconciles existing work; `status` is read-only. |
@@ -35,7 +35,7 @@ directly with the loaded skills and the policy below.
 Example:
 
 ```text
-/run-openasr-exp recipe/phimm/config/v2609_asr/remax_2609v0a_earning_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml
+/run-openasr-exp recipe/phimm/config/v2609_asr/remax_2609v0a_earning_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml
 ```
 
 When the user only requests creating or editing this skill, modify the skill
@@ -52,7 +52,7 @@ without stopping, submitting, or scheduling remote jobs.
    in section 4. This skill owns checkpoint selection; do not let the general
    runner replace it with a best-validation checkpoint.
 3. Invoke `/verl-asr-run` again for a **standalone evaluation** using
-   `recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml` unless the user
+   `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml` unless the user
    explicitly supplied another eval YAML. Supply the verified last-checkpoint
    HF export, same pool and node count as training, unique evaluation
    experiment name, and section 5's overrides. Wait for all configured
@@ -65,7 +65,7 @@ Example handoff requests (natural-language skill inputs, not shell commands):
 
 ```text
 /verl-asr-run Run <train.yaml> on <pool>; training only, no automatic post-training benchmark. Follow run-openasr-exp safety constraints and shared pipeline monitor.
-/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval_2609_openall_mix.yaml on <pool> with model <verified-last-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<training-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the successful training run's effective node count, not the eval YAML default or currently available node count. Follow the same pipeline constraints and monitor.
+/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml on <pool> with model <verified-last-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<training-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the successful training run's effective node count, not the eval YAML default or currently available node count. Follow the same pipeline constraints and monitor.
 /openasr-report <train-stem>@step<N> --metrics <artifact-dir>/metrics.json --model-info <artifact-dir>/model_info.json --dataset-results <artifact-dir>/dataset_results.json --out <report.xlsx>
 ```
 

@@ -1,20 +1,20 @@
-updated_at_utc: 2026-10-06T17:23:22Z
+updated_at_utc: 2026-10-06T17:27:46Z
 
-┌────────┬────────────────────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────────┐
-│ NODE   │ RAY JOB ID                 │ STATUS  │ JOB / CONFIG                                                                │ PROGRESS / PHASE                                │
-├────────┼────────────────────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────┤
-│ n4-i1  │ raysubmit_Q1vkmuAPMqStgfW3 │ RUNNING │ remax_2609v0_earning_verb_hint_s300_bs128_n8_r256_g32_smp7_v1_ngt           │ training 0/300 (0%); initial validation startup │
-│ n4-i2  │ raysubmit_menSEzgAPgZDAEAM │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_avg4   │ training 0/464 (0%); initial validation startup │
-│ n4-i5  │ raysubmit_gJCFV4X7sqxhjUkY │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt │ training 41/464 (8.84%)                         │
-│ n4-i6  │ raysubmit_Yf3uZk9LxVKZU8J5 │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt │ training 8/444 (1.80%)                          │
-│ n4-i9  │ raysubmit_fzBj3Mk24DtVFcfd      │ RUNNING   │ eval_2609_openall_mix.yaml / clrs2_smp8_v1_ngt@360                                  │ evaluating ls_clean (8 batches; 1/26 complete)     │
-│ n4h-i2 │ raysubmit_WbRDmS3rXmv1Zmnq │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_sfl     │ training 0/800 (0%)                             │
-└────────┴────────────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────────┘
+┌────────┬────────────────────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────┬────────────────────────────────────────────────┐
+│ NODE   │ RAY JOB ID                 │ STATUS  │ JOB / CONFIG                                                                │ PROGRESS / PHASE                               │
+├────────┼────────────────────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┤
+│ n4-i1  │ raysubmit_Q1vkmuAPMqStgfW3 │ RUNNING │ remax_2609v0_earning_verb_hint_s300_bs128_n8_r256_g32_smp7_v1_ngt           │ training 5/300 (1.67%)                         │
+│ n4-i2  │ raysubmit_menSEzgAPgZDAEAM │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_avg4   │ training 4/464 (0.86%)                         │
+│ n4-i5  │ raysubmit_gJCFV4X7sqxhjUkY │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt │ training 41/464 (8.84%)                        │
+│ n4-i6  │ raysubmit_Yf3uZk9LxVKZU8J5 │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt │ training 15/444 (3.38%)                        │
+│ n4-i9  │ raysubmit_fzBj3Mk24DtVFcfd │ RUNNING │ eval_2609_openall_mix.yaml / clrs2_smp8_v1_ngt@360                          │ evaluating ls_clean (8 batches; 1/26 complete) │
+│ n4h-i2 │ raysubmit_WbRDmS3rXmv1Zmnq │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_sfl     │ training 3/800 (0.38%)                         │
+└────────┴────────────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────┘
 
 Reports:
-- `remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_avg4` [`n4-i2`]: training 0/464 (0%)
-- `remax_2609v0_earning_verb_hint_s300_bs128_n8_r256_g32_smp7_v1_ngt` [`n4-i1`]: training 0/300 (0%)
+- `remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_avg4` [`n4-i2`]: training 4/464 (0.86%)
+- `remax_2609v0_earning_verb_hint_s300_bs128_n8_r256_g32_smp7_v1_ngt` [`n4-i1`]: training 5/300 (1.67%)
 - `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g16_clrs2_smp8_v1_ngt@360,320` [`n4-i9`]: evaluating ls_clean step 360
 - `remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt` [`n4-i5`]: training 41/464 (8.84%)
-- `remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt` [`n4-i6`]: training 8/444 (1.80%)
-- `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_v1_ngt_sfl` [`n4h-i2`]: training 0/800 (0%)
+- `remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt` [`n4-i6`]: training 15/444 (3.38%)
+- `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_v1_ngt_sfl` [`n4h-i2`]: training 3/800 (0.38%)
