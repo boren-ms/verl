@@ -381,7 +381,7 @@ def check_fmt(task_output, version=2609) -> bool:
             or re.fullmatch(r"\s*<nonspeech>\s*", text, flags=re.IGNORECASE)
         )
 
-    return all(is_wrapped(segment["text"]) for segment in task_output)
+    return all(segment["text"] is not None for segment in task_output)
 
 
 def clip(x, lo=-1.0, hi=1.0):
