@@ -63,6 +63,20 @@ REWARD_SOURCES = {
 }
 
 
+def test_r2_openall_mix_changes_only_model_checkpoint():
+    reference = OmegaConf.load(
+        CONFIG_ROOT / "v2609_asr/remax_2609r2_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4.yaml"
+    )
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        original = compose(config_name="eval_2609_openall_mix")
+        r2 = compose(config_name="eval_2609r2_openall_mix")
+
+    assert r2.actor_rollout_ref.model.path == reference.actor_rollout_ref.model.path
+    assert r2.actor_rollout_ref.model.path != original.actor_rollout_ref.model.path
+    r2.actor_rollout_ref.model.path = original.actor_rollout_ref.model.path
+    assert OmegaConf.to_container(r2, resolve=False) == OmegaConf.to_container(original, resolve=False)
+
+
 @pytest.mark.parametrize("config_name", EVAL_CONFIG_NAMES)
 @pytest.mark.parametrize("nnodes", [1, 2, 4])
 def test_eval_batch_size_scales_with_nodes(config_name, nnodes):

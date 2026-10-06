@@ -10,6 +10,10 @@ and 1024 for four. Dataset-specific batch settings, including full-dataset
 long-audio scoring, still take precedence. Training's default validation batch
 size remains 256.
 
+[eval_2609r2_openall_mix](../v2609_asr/eval/eval_2609r2_openall_mix.yaml) uses the
+`v3.5.4-r2/54000/qwen_hf` baseline checkpoint. Its datasets, scoring, and
+evaluation settings match `eval_2609_openall_mix`; only the model path differs.
+
 ## Dataset-level resume
 
 Rerun the same config with the same model and `trainer.validation_data_dir`
