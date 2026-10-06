@@ -337,8 +337,8 @@ language hint without adding an assistant prefix.
 ## OpenASR ML Hindi Evaluation
 
 The OpenASR ML verbatim suites include Voice Arena Monsoon Hindi (`hi_in`),
-reported as `monsoon_hi_in`. Under `recipe/phimm/config/v2609_asr`, the
-[`eval_2609_openml_verb.yaml`](../../recipe/phimm/config/v2609_asr/eval_2609_openml_verb.yaml)
+reported as `monsoon_hi_in`. Under `recipe/phimm/config/v2609_asr/eval`, the
+[`eval_2609_openml_verb.yaml`](../../recipe/phimm/config/v2609_asr/eval/eval_2609_openml_verb.yaml)
 and language-hinted/mixed OpenML suites explicitly route `monsoon_hi_in`
 to the dedicated `openasr_hi_in_eval` scorer via
 `val_reward.reward_function_by_data_source`. The generic `openasr_eval`
@@ -347,7 +347,7 @@ Only the `v2609_asr` evaluation YAMLs enable this dedicated scorer; evaluation
 YAMLs outside that directory retain their existing routing.
 
 For the Hindi/Dutch-only subset, use
-[`eval_2609_openml_hi_nl.yaml`](../../recipe/phimm/config/v2609_asr/eval_2609_openml_hi_nl.yaml).
+[`eval_2609_openml_hi_nl.yaml`](../../recipe/phimm/config/v2609_asr/eval/eval_2609_openml_hi_nl.yaml).
 It evaluates `monsoon_hi_in`, `nl_fleurs`, `nl_mcv`, and `nl_mls` with the
 same verbatim prompts as the full OpenML suite, without language hints.
 Hindi uses OIWER; the three Dutch datasets use ordinary OpenASR WER.

@@ -5,7 +5,7 @@ from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
 CONFIG_ROOT = Path(__file__).parents[3] / "recipe/phimm/config"
-EVAL_CONFIG_DIR = CONFIG_ROOT / "v2609_asr"
+EVAL_CONFIG_DIR = CONFIG_ROOT / "v2609_asr/eval"
 TRAINER_CONFIG_DIR = Path(__file__).parents[3] / "verl/trainer/config"
 EVAL_CONFIG_NAMES = sorted(path.stem for path in EVAL_CONFIG_DIR.glob("eval_*.yaml"))
 
@@ -92,11 +92,11 @@ def test_eval_configs_inherit_reward_assignments(config_name):
 @pytest.mark.parametrize(
     "config_path",
     [
-        "v2609_asr/eval_2609_openml_hi_nl",
-        "v2609_asr/eval_2609_openml_verb",
-        "v2609_asr/eval_2609_openml_verb_langhint",
-        "v2609_asr/eval_2609_mix_openml_aa",
-        "v2609_asr/eval_2609_mix_openml_aa_ter30",
+        "v2609_asr/eval/eval_2609_openml_hi_nl",
+        "v2609_asr/eval/eval_2609_openml_verb",
+        "v2609_asr/eval/eval_2609_openml_verb_langhint",
+        "v2609_asr/eval/eval_2609_mix_openml_aa",
+        "v2609_asr/eval/eval_2609_mix_openml_aa_ter30",
     ],
 )
 def test_hindi_eval_configs_select_dedicated_oiwer_function(config_path):

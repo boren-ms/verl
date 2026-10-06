@@ -2,7 +2,7 @@
 
 Standard `eval_*` jobs use `recipe.phimm.main_asr_eval`. ASR evaluation
 configs enable `trainer.validation_resume=true` by default, including
-[eval_2609_openall_mix](../v2609_asr/eval_2609_openall_mix.yaml).
+[eval_2609_openall_mix](../v2609_asr/eval/eval_2609_openall_mix.yaml).
 
 ## Dataset-level resume
 
