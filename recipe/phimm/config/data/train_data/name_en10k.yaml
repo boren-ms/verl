@@ -1,0 +1,20 @@
+# Deterministic random 10,000-example subset of the full ENHC name training data.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/am_data/en/data_prep_e2e_R15/human_caption_v2/name_filtering/all_gpt_tagged_person.train.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "am_data/"
+      dst_part: "az://orngwus2cresco/data/speech/am_data/"
+    shuffle:
+      seed: 42
+    output_egs_limit: 10000
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: name_train
+    verl_format:
+      prompt_key: prompt

@@ -14,7 +14,7 @@ from scripts.list_training_chunk_paths import (
 
 def test_recipe_resolves_training_manifest_only():
     config = Path(__file__).parents[2] / (
-        "recipe/phimm/config/v2609_entity/remax_2609v0_name_enhc_s1k_bs128_n4_r256_g32.yaml"
+        "recipe/phimm/config/v2609_entity/remax_2609v0_name_en13m_s1k_bs128_n4_r256_g32.yaml"
     )
     sources = load_training_sources(config)
     assert len(sources) == 1

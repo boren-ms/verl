@@ -52,7 +52,14 @@ def test_entity_configs_use_local_2609_defaults(config_name):
             "fmt": {"beta": 0.5},
         }
         assert config.reward_function_by_data_source.name_train == "asr_measure"
-        assert "name_enhc" in config_name
+        assert any(name in config_name for name in ("name_en13m", "name_en10k"))
+        pre_process = config.data.train_data[0].pre_process
+        if "name_en10k" in config_name:
+            assert pre_process.output_egs_limit == 10000
+            assert pre_process.shuffle.seed == 42
+        else:
+            assert "input_egs_limit" not in pre_process
+            assert "output_egs_limit" not in pre_process
         assert config.data.train_batch_size == 128
         assert config.actor_rollout_ref.actor.ppo_mini_batch_size == 128
         assert config.trainer.total_training_steps == 1000

@@ -1,4 +1,4 @@
-updated_at_utc: 2026-10-06T23:59:55Z
+updated_at_utc: 2026-10-07T00:04:33Z
 
 ┌────────┬────────────────────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS  │ JOB / CONFIG                                                                │ PROGRESS / PHASE                                  │
@@ -7,13 +7,13 @@ updated_at_utc: 2026-10-06T23:59:55Z
 │ n4-i1  │ raysubmit_YQ2WRP4b2m3LSPPU │ RUNNING │ remax_2609r2_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8                │ training 1/400 (0.25%)                            │
 │ n4-i2  │ raysubmit_menSEzgAPgZDAEAM │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_avg4   │ training 63/464 (13.58%)                          │
 │ n4-i3  │ raysubmit_88MGXmrW1hxVzrsc │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_t08     │ training 3/800 (0.38%)                            │
-│ n4-i4  │ raysubmit_FQdCJABipuvDuqap │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4          │ training 301/400 (75.25%)                         │
+│ n4-i4  │ raysubmit_FQdCJABipuvDuqap │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4          │ training 309/400 (77.25%)                         │
 │ n4-i5  │ raysubmit_XZ4hWbmmD22BZRpq │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt │ training 61/464 (13.15%)                          │
 │ n4-i6  │ raysubmit_Yf3uZk9LxVKZU8J5 │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt │ training 82/444 (18.47%)                          │
-│ n4-i7  │ raysubmit_4jiXjA62z3utuZAs │ RUNNING │ remax_2609v0_ls_s400_bs128_n4_r256_g32                                      │ training 141/400 (35.25%)                         │
+│ n4-i7  │ raysubmit_4jiXjA62z3utuZAs │ RUNNING │ remax_2609v0_ls_s400_bs128_n4_r256_g32                                      │ training 149/400 (37.25%)                         │
 │ n4-i8  │ raysubmit_2gDcfMLf7i6RvC4a │ STOPPED │ remax_2609r2_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4          │ training 110/400 (stopped)                        │
 │ n4-i9  │ raysubmit_fzBj3Mk24DtVFcfd │ RUNNING │ eval_2609_openall_mix.yaml / clrs2_smp8_v1_ngt@360                          │ evaluating spgispeech (32 batches; 3/26 complete) │
-│ n4h-i1 │ raysubmit_KW1dHbnCEUGj1dm8 │ RUNNING │ remax_2609v0_name_enhc_s1k_bs128_n4_r256_g32                                │ training startup (validation generation; 17 done)  │
+│ n4h-i1 │ raysubmit_KW1dHbnCEUGj1dm8 │ RUNNING │ remax_2609v0_name_enhc_s1k_bs128_n4_r256_g32                                │ training startup (validation generation; 18 done)  │
 │ n4h-i2 │ raysubmit_NSVxDDQTF3n3dd8x │ RUNNING │ remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_sfl     │ training 39/800 (4.88%)                           │
 └────────┴────────────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
 
@@ -23,10 +23,10 @@ Reports:
 - `remax_2609v0_name_enhc_s1k_bs128_n4_r256_g32` [`n4h-i1`]: training startup
 - `remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_avg4` [`n4-i2`]: training 63/464 (13.58%)
 - `remax_2609r2_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8` [`n4-i1`]: training 1/400 (0.25%)
-- `remax_2609v0_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4` [`n4-i4`]: training 301/400 (75.25%)
+- `remax_2609v0_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4` [`n4-i4`]: training 309/400 (77.25%)
 - `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g16_clrs2_smp8_v1_ngt@360,320` [`n4-i9`]: evaluating spgispeech step 360
 - `remax_2609v0_earning_ml_verb_hint_s464_bs128_n8_r256_g32_clrs2_smp7b_v1_ngt` [`n4-i5`]: training 61/464 (13.15%)
 - `remax_2609v0_earning_ml_verb_hint_s444_bs128_n8_r256_g32_clrs1_smp7a_v1_ngt` [`n4-i6`]: training 82/444 (18.47%)
-- `remax_2609v0_ls_s400_bs128_n4_r256_g32` [`n4-i7`]: training 141/400 (35.25%)
+- `remax_2609v0_ls_s400_bs128_n4_r256_g32` [`n4-i7`]: training 149/400 (37.25%)
 - `remax_2609r2_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4` [`n4-i8`]: training stopped step 110
 - `remax_2609v0_earning_ml_verb_hint_s800_bs128_n8_r256_g32_clrs2_smp8_v1_ngt_sfl` [`n4h-i2`]: training 39/800 (4.88%)
