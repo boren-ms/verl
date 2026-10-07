@@ -804,6 +804,24 @@ def test_earnings_v0_fixed_lr_recipe_uses_verb_hint_data():
     assert actual == expected
 
 
+def test_v2609_asr_base_lr_floor_inheritance_and_override():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    name = "remax_2609r2a_ml_verb_hint_s100_bs128_n32_r256_g32_avg4_t2"
+    override_name = "remax_2609r2_earning_ml_verb_hint_s948_bs128_n16_r256_g32_ds3_sfl_edit_smts_t15"
+    raw = OmegaConf.load(config_root / f"v2609_asr/{name}.yaml")
+    assert "actor" not in raw.actor_rollout_ref
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        base = compose(config_name="base", overrides=[searchpath])
+        inherited = compose(config_name=name, overrides=[searchpath])
+        overridden = compose(config_name=override_name, overrides=[searchpath])
+
+    assert base.actor_rollout_ref.actor.optim.min_lr_ratio == 0.01
+    assert inherited.actor_rollout_ref.actor.optim == base.actor_rollout_ref.actor.optim
+    assert overridden.actor_rollout_ref.actor.optim.min_lr_ratio == 0.2
+
+
 def test_smp3_without_fixed_lr_inherits_base_optimizer():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
@@ -819,7 +837,7 @@ def test_smp3_without_fixed_lr_inherits_base_optimizer():
     assert config.actor_rollout_ref.actor.optim == base.actor_rollout_ref.actor.optim
     assert config.actor_rollout_ref.actor.optim.lr == 5e-6
     assert config.actor_rollout_ref.actor.optim.warmup_style == "cosine"
-    assert config.actor_rollout_ref.actor.optim.min_lr_ratio == 0.1
+    assert config.actor_rollout_ref.actor.optim.min_lr_ratio == 0.01
     assert list(config.data.data_source) == ["openml", "earnings_fy27"]
     assert config.data.data_source.openml == {"num_sample": 25600, "shuffle": True}
     assert config.data.data_source.earnings_fy27 == {"num_sample": 102400, "shuffle": True}

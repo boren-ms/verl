@@ -104,7 +104,7 @@ actor_rollout_ref:
     optim:
       lr: 5e-6
       warmup_style: cosine
-      min_lr_ratio: 0.1
+      min_lr_ratio: 0.01
     fsdp_config:
       param_offload: true
       optimizer_offload: true
