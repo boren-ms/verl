@@ -1,14 +1,9 @@
 # OpenASR English evaluation suite with known-language prompts and no assistant prefix.
-# AMI and GigaSpeech use >=1s manifests matching the openasr_clean task.
+# ZIP-backed audio; AMI and GigaSpeech retain the >=1s openasr_clean subsets.
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data.jsonl
-  cache_name: auto_openasr_2606_ls_clean_verb_langhint
-  pre_process:
-    path_map:
-      field: audio_path
-      src_part: "audio/"
-      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/audio/"
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data_zip.jsonl
+  cache_name: auto_openasr_2606_ls_clean_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -21,13 +16,8 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/data.jsonl
-  cache_name: auto_openasr_2606_ls_other_verb_langhint
-  pre_process:
-    path_map:
-      field: audio_path
-      src_part: "audio/"
-      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/audio/"
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/data_zip.jsonl
+  cache_name: auto_openasr_2606_ls_other_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -40,13 +30,8 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/data.jsonl
-  cache_name: auto_openasr_2606_spgispeech_verb_langhint
-  pre_process:
-    path_map:
-      field: audio_path
-      src_part: "audio/"
-      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/audio/"
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/data_zip.jsonl
+  cache_name: auto_openasr_2606_spgispeech_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -59,13 +44,8 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/data_min1s.jsonl
-  cache_name: auto_openasr_2606_ami_clean_verb_langhint
-  pre_process:
-    path_map:
-      field: audio_path
-      src_part: "audio/"
-      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/audio/"
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/data_min1s_zip.jsonl
+  cache_name: auto_openasr_2606_ami_clean_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -78,13 +58,8 @@
       prompt_key: prompt
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/data_min1s.jsonl
-  cache_name: auto_openasr_2606_gigaspeech_clean_verb_langhint
-  pre_process:
-    path_map:
-      field: audio_path
-      src_part: "audio/"
-      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/audio/"
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/data_min1s_zip.jsonl
+  cache_name: auto_openasr_2606_gigaspeech_clean_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -98,7 +73,8 @@
 
 - dataset_name: jsonl
   val_batch_size: -1
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1_zip.jsonl
+  cache_name: auto_voxpopuli_cleaned_aa_verb_langhint_zip
   pre_process:
     rename_fields:
       mappings:
@@ -118,7 +94,8 @@
 
 - dataset_name: jsonl
   val_batch_size: -1
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1_zip.jsonl
+  cache_name: auto_earnings22_cleaned_aa_chunked_verb_langhint_zip
   pre_process:
     rename_fields:
       mappings:
@@ -136,9 +113,9 @@
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
 
-- dataset_name: parquet
-  decode_audio: false
-  parquet_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/VoiceArena/MonsoonASR-Open-ASR-leaderboard-en-IN/data/*.parquet
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/monsoon-en-in/data_zip.jsonl
+  cache_name: auto_monsoon_en_in_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: English

@@ -1,0 +1,241 @@
+# ZIP-backed OpenASR-ML evaluation with verbatim prompts and known-language hints.
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_fleurs_de_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: German
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: de_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_fleurs_fr_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_fleurs_it_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Italian
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: it_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_fleurs_es_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Spanish
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: es_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_fleurs_pt_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Portuguese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mcv_de_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: German
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: de_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mcv_fr_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mcv_it_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Italian
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mcv_es_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Spanish
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mls_fr_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/it/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mls_it_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Italian
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mls_es_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Spanish
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mls_pt_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Portuguese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_mls
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/nl/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_fleurs_nl_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Dutch
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: nl_fleurs
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/nl/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mcv_nl_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Dutch
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: nl_mcv
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/nl/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mls_nl_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Dutch
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: nl_mls
+    verl_format:
+      prompt_key: prompt
+
+# Voice Arena Monsoon Hindi uses lattice OIWER inside the shared OpenML scorer.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/monsoon/hi_in/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_monsoon_hi_in_jsonl_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Hindi
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: monsoon_hi_in
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["lattice"]

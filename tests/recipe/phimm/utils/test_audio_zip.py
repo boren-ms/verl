@@ -8,7 +8,7 @@ import soundfile as sf
 
 from recipe.phimm.cache_eval_audio import collect_audio_files
 from recipe.phimm.utils.audio import load_raw_audio
-from scripts.pack_audio_zip import main, pack_audio_zip
+from scripts.pack_audio_zip import main, pack_audio_zip, pack_parquet_audio_zip
 from verl import audio_cache
 from verl.audio_zip import read_zip_audio, split_zip_audio_source
 
@@ -188,3 +188,57 @@ def test_cli(tmp_path, monkeypatch, capsys):
     )
     main()
     assert json.loads(capsys.readouterr().out)["unique_files"] == 2
+
+
+def test_pack_parquet_preserves_embedded_audio_and_metadata(tmp_path):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    manifest, _, expected = make_dataset(tmp_path)
+    audio_bytes = (tmp_path / "audio/a.wav").read_bytes()
+    for index in range(2):
+        pq.write_table(
+            pa.Table.from_pylist([{
+                "id": f"row-{index}", "text": "hello", "speaker_id": index,
+                "lattice": [["hello", "world"]],
+                "audio": {"bytes": audio_bytes, "path": "sample.wav"},
+            }]),
+            tmp_path / f"part-{index}.parquet",
+        )
+    output = tmp_path / "parquet_zip.jsonl"
+    summary = pack_parquet_audio_zip(
+        str(tmp_path / "*.parquet"), str(tmp_path / "parquet.zip"), str(output)
+    )
+    assert summary["rows"] == 2
+    rows = [json.loads(line) for line in output.read_text().splitlines()]
+    for index, row in enumerate(rows):
+        assert row["id"] == f"row-{index}"
+        assert row["text"] == "hello"
+        assert row["speaker_id"] == index
+        assert row["lattice"] == [["hello", "world"]]
+        assert row["original_audio_path"] == "sample.wav"
+        assert "audio" not in row
+        assert read_zip_audio(row["audio_path"]) == audio_bytes
+        audio, rate = load_raw_audio(row)
+        assert rate == 1000
+        np.testing.assert_array_equal(audio, expected)
+    assert manifest.exists()
+
+
+def test_pack_custom_audio_field_preserves_parent_grouping(tmp_path):
+    manifest, _, expected = make_dataset(tmp_path)
+    manifest.write_text(json.dumps({
+        "WavPath": "audio/a.wav#0.1:0.5",
+        "DisplayTranscription": "hello", "parent_audio_path": "original-parent.wav",
+        "seg_index": 2, "seg_start": 0.1,
+    }) + "\n")
+    output = tmp_path / "custom_zip.jsonl"
+    pack_audio_zip(str(manifest), str(tmp_path / "custom.zip"), str(output), audio_field="WavPath")
+    row = json.loads(output.read_text())
+    assert row["parent_audio_path"] == "original-parent.wav"
+    assert row["seg_index"] == 2
+    assert row["seg_start"] == 0.1
+    assert row["DisplayTranscription"] == "hello"
+    audio, rate = load_raw_audio({"audio_path": row["WavPath"]})
+    assert rate == 1000
+    np.testing.assert_array_equal(audio, expected[100:500])

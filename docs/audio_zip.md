@@ -31,7 +31,15 @@ traceability. Time selectors such as `#0.1:0.5` or `#0%:50%` are retained.
 Chunk containers (`file:count:index`) and already packed input are rejected:
 this script packages standalone audio files, not chunk-container records.
 Existing outputs are never overwritten. The complete archive is published
-before the new manifest; original audio and JSONL are untouched.
+before the new manifest; original audio and JSONL are untouched. All member CRCs
+are checked before publishing.
+
+For Parquet with embedded `audio.bytes`, use `--input-format parquet` and pass
+a quoted Parquet glob as the input. Original audio bytes are staged locally and
+packed without re-encoding. All non-audio columns are preserved; `audio` becomes
+`audio_path`, and `original_audio_path` retains the original embedded filename.
+This requires scratch space for the extracted bytes and the ZIP simultaneously.
+Parquet containing audio paths without embedded bytes is rejected explicitly.
 
 ## Load and cache
 
@@ -49,6 +57,15 @@ to the same ZIP and cache the archive once, preserving byte/time selectors.
 Offsets apply to the exact published ZIP. Do not recompress or edit it without
 regenerating the JSONL. Standard ZIP tools can inspect/extract named members.
 
-The shared `openasr_verb_langhint.yaml` now selects `ls-clean/data_zip.jsonl`
-with a fresh cache name. This includes `eval_2609r2_openall_mix.yaml` and other
-evaluations using that shared suite; other datasets in the suite are unchanged.
+Opt in with `eval_2609_openall_mix_zip.yaml` for the original base model, or
+`eval_2609r2_openall_mix_zip.yaml` for the R2 model. Their 26 datasets
+use ZIP-backed manifests with fresh cache names through three new configurations:
+`mixlang_fy26q2_zh_seg_zip.yaml`, `openasr_verb_langhint_zip.yaml`, and
+`openasr_ml_verb_langhint_zip.yaml`. The original evaluation and dataset YAMLs
+remain unchanged and continue using the original sources. The ZIP evaluation
+uses the same checkpoint, reward settings, and batch sizes as the original,
+changing only its dataset groups. The selected AMI/GigaSpeech >=1s subsets, prompts,
+language hints, Hindi lattices, and parent/segment grouping fields are unchanged.
+Monsoon English is externalized from Parquet to
+`openasr_jsonl/monsoon-en-in/data_zip.jsonl`. Each dataset directory contains one
+`audio.zip`; manifests retain their original basename with `_zip` appended.

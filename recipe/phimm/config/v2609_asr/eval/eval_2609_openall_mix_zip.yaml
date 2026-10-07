@@ -1,0 +1,20 @@
+# Opt-in ZIP-backed version; the original mixed evaluation remains unchanged.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/mixlang_fy26q2_zh_seg_zip@_mixlang
+  - /data/val_data/openasr_verb_langhint_zip@_openasr
+  - /data/val_data/openasr_ml_verb_langhint_zip@_openml
+  - _self_
+
+trainer:
+  nnodes: 4
+
+data:
+  val_data:
+    - ${_mixlang}
+    - ${_openasr}
+    - ${_openml}

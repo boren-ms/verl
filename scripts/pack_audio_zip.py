@@ -123,6 +123,10 @@ def pack_audio_zip(
                         references[source] = (f"{zip_path}!{offset}:{info.file_size}", member)
                         total_bytes += info.file_size
                     logger.info("Packed %d/%d files", min(start + workers, len(source_paths)), len(source_paths))
+        with zipfile.ZipFile(local_zip) as archive:
+            bad_member = archive.testzip()
+            if bad_member is not None:
+                raise RuntimeError(f"ZIP CRC validation failed for {bad_member}")
         with local_manifest.open("w", encoding="utf-8") as stream:
             for row, source, selector in rows:
                 reference, member = references[source]
@@ -145,6 +149,48 @@ def pack_audio_zip(
     }
 
 
+def pack_parquet_audio_zip(
+    manifest: str,
+    zip_path: str,
+    output_jsonl: str,
+    workers: int = 16,
+    work_dir: str | None = None,
+) -> dict[str, int | str]:
+    """Externalize Parquet ``audio.bytes`` without re-encoding or losing metadata."""
+    import pyarrow.parquet as pq
+
+    paths = sorted(bf.glob(manifest)) if any(char in manifest for char in "*?[") else [manifest]
+    if not paths:
+        raise FileNotFoundError(f"No Parquet files matched: {manifest}")
+    for output in (zip_path, output_jsonl):
+        if bf.exists(output):
+            raise FileExistsError(f"Refusing to overwrite {output}")
+    with tempfile.TemporaryDirectory(prefix="parquet-audio-", dir=work_dir) as temporary:
+        staged_manifest = Path(temporary) / "data.jsonl"
+        count = 0
+        with staged_manifest.open("w", encoding="utf-8") as stream:
+            for path in paths:
+                with bf.BlobFile(path, "rb") as parquet_stream:
+                    parquet = pq.ParquetFile(parquet_stream)
+                    for batch in parquet.iter_batches(batch_size=32):
+                        for row in batch.to_pylist():
+                            audio = row.pop("audio", None)
+                            if not isinstance(audio, dict) or not isinstance(audio.get("bytes"), bytes):
+                                raise ValueError(f"Missing audio.bytes in {path}, row {count}")
+                            if "audio_path" in row:
+                                raise ValueError(f"Conflicting audio_path in {path}, row {count}")
+                            suffix = Path(audio.get("path") or "audio.wav").suffix
+                            audio_path = Path(temporary) / f"{count:08d}{suffix}"
+                            audio_path.write_bytes(audio["bytes"])
+                            row["audio_path"] = str(audio_path)
+                            row["original_audio_path"] = audio.get("path")
+                            stream.write(json.dumps(row, ensure_ascii=False) + "\n")
+                            count += 1
+        return pack_audio_zip(
+            str(staged_manifest), zip_path, output_jsonl, workers=workers, work_dir=work_dir
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("manifest")
@@ -154,9 +200,18 @@ def main() -> None:
     parser.add_argument("--audio-field", default="audio_path")
     parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--work-dir", help="Local scratch directory with space for the complete ZIP")
+    parser.add_argument("--input-format", choices=("jsonl", "parquet"), default="jsonl")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    print(json.dumps(pack_audio_zip(**vars(args)), indent=2))
+    options = vars(args)
+    input_format = options.pop("input_format")
+    if input_format == "parquet":
+        if options.pop("audio_root") is not None or options.pop("audio_field") != "audio_path":
+            parser.error("--audio-root and --audio-field apply only to JSONL input")
+        summary = pack_parquet_audio_zip(**options)
+    else:
+        summary = pack_audio_zip(**options)
+    print(json.dumps(summary, indent=2))
 
 
 if __name__ == "__main__":

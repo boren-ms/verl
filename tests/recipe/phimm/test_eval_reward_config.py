@@ -79,7 +79,7 @@ def test_r2_openall_mix_changes_only_model_checkpoint():
 
 def test_r2_ls_clean_uses_zip_manifest_without_path_rewriting():
     with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
-        config = compose(config_name="eval_2609r2_openall_mix")
+        config = compose(config_name="eval_2609r2_openall_mix_zip")
     entries = [
         row for group in config.data.val_data for row in group
         if row.post_process.add_field.fields.data_source == "ls_clean"
@@ -92,6 +92,56 @@ def test_r2_ls_clean_uses_zip_manifest_without_path_rewriting():
     assert entry.add_task_info.task == "lang_asr_verb"
     assert entry.add_task_info.language == "English"
     assert entry.add_task_info.lang_hint is True
+
+
+def test_r2_all_datasets_use_zip_manifests_and_fresh_caches():
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        config = compose(config_name="eval_2609r2_openall_mix_zip")
+    entries = [row for group in config.data.val_data for row in group]
+    assert len(entries) == 26
+    assert len({row.cache_name for row in entries}) == 26
+    for row in entries:
+        assert row.dataset_name == "jsonl"
+        assert row.jsonl_paths.endswith("_zip.jsonl")
+        assert "zip" in row.cache_name
+        assert "path_map" not in row.get("pre_process", {})
+    by_source = {row.post_process.add_field.fields.data_source: row for row in entries}
+    assert by_source["mixlang_fy26q2"].pre_process.rename_fields.mappings.audio_path == "WavPath"
+    assert "parent_audio_path" in by_source["mixlang_fy26q2"].post_process.verl_format.extra_keys
+    for source in ("voxpopuli_cleaned_aa", "earnings22_cleaned_aa_chunked"):
+        assert by_source[source].pre_process.rename_fields.mappings.audio_path == "url"
+        assert "parent_audio_path" in by_source[source].post_process.verl_format.extra_keys
+    assert "lattice" in by_source["monsoon_hi_in"].post_process.verl_format.extra_keys
+
+
+@pytest.mark.parametrize("config_name", ["eval_2609_openall_mix", "eval_2609r2_openall_mix"])
+def test_zip_eval_preserves_original_settings_and_dataset_behavior(config_name):
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        original = compose(config_name=config_name)
+        packed = compose(config_name=f"{config_name}_zip")
+    original_entries = [row for group in original.data.val_data for row in group]
+    packed_entries = [row for group in packed.data.val_data for row in group]
+    assert len(original_entries) == len(packed_entries) == 26
+    for old, new in zip(original_entries, packed_entries, strict=True):
+        old = OmegaConf.to_container(old, resolve=True)
+        new = OmegaConf.to_container(new, resolve=True)
+        assert "_zip.jsonl" not in old.get("jsonl_paths", "")
+        old.pop("cache_name", None)
+        new.pop("cache_name")
+        old.pop("jsonl_paths", None)
+        new.pop("jsonl_paths")
+        if old["dataset_name"] == "parquet":
+            old["dataset_name"] = "jsonl"
+            old.pop("parquet_paths")
+            old.pop("decode_audio")
+        pre_process = old.get("pre_process", {})
+        pre_process.pop("path_map", None)
+        if not pre_process:
+            old.pop("pre_process", None)
+        assert old == new
+    for group in ("_mixlang", "_openasr", "_openml"):
+        packed[group] = original[group]
+    assert OmegaConf.to_container(packed, resolve=False) == OmegaConf.to_container(original, resolve=False)
 
 
 @pytest.mark.parametrize("config_name", EVAL_CONFIG_NAMES)
