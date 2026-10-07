@@ -8,10 +8,15 @@ ROOT = Path(__file__).parents[3]
 CONFIG_ROOT = ROOT / "recipe/phimm/config"
 LS_CONFIG_DIR = CONFIG_ROOT / "v2609_ls"
 TRAINER_CONFIG_DIR = ROOT / "verl/trainer/config"
-ACTIVE_TRAINING_RECIPE = "remax_2609v0_ls_s400_bs128_n4_r256_g32"
+ACTIVE_TRAINING_RECIPE = "remax_2609r2_ls_s400_bs128_n4_r256_g32"
+EDIT_SMTS_TRAINING_RECIPE = f"{ACTIVE_TRAINING_RECIPE}_edit_smts"
 MODEL_PATH = (
     "az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/"
     "fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf"
+)
+R2_MODEL_PATH = (
+    "az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/"
+    "fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf"
 )
 TRAINING_SETTINGS = [
     ("rare_s500_bs512_n2_r256_g16", 512, 2, 256, 2, 500, 1.2, 5e-6, False),
@@ -65,7 +70,7 @@ def test_ls_configs_compose_without_sibling_recipes(config_name):
     assert config.data.version == 2609
     generation = recipe_name.startswith("gen")
     model = config.model if generation else config.actor_rollout_ref.model
-    assert model.path == MODEL_PATH
+    assert model.path == (MODEL_PATH if generation else R2_MODEL_PATH)
     if generation:
         assert config.custom_reward_function.reward_kwargs.version == 2609
     else:
@@ -166,6 +171,7 @@ def test_ls_eval_reuses_validation_data_and_resumes():
 def test_ls_local_defaults_match_2609_reference():
     reference = OmegaConf.load(CONFIG_ROOT / "v2609_asr/base.yaml")
     local = OmegaConf.load(LS_CONFIG_DIR / "base.yaml")
+    reference.actor_rollout_ref.model.path = R2_MODEL_PATH
     assert local.actor_rollout_ref.model == reference.actor_rollout_ref.model
     assert local.actor_rollout_ref.rollout.engine_kwargs == reference.actor_rollout_ref.rollout.engine_kwargs
 
@@ -183,14 +189,19 @@ def test_ls_datasets_use_original_shared_data_folders():
 
 
 def test_ls_training_recipes_are_archived():
-    assert {path.stem for path in LS_CONFIG_DIR.glob("remax_*.yaml")} == {ACTIVE_TRAINING_RECIPE}
+    assert {path.stem for path in LS_CONFIG_DIR.glob("remax_*.yaml")} == {
+        ACTIVE_TRAINING_RECIPE,
+        EDIT_SMTS_TRAINING_RECIPE,
+    }
     assert {path.stem for path in (LS_CONFIG_DIR / "bakup").glob("remax_*.yaml")} == {
         f"remax_2609v0_ls_{settings[0]}" for settings in TRAINING_SETTINGS
     }
 
 
-def test_ls_active_training_settings_and_rewards():
-    config = compose_ls(ACTIVE_TRAINING_RECIPE)
+@pytest.mark.parametrize("recipe_name", [ACTIVE_TRAINING_RECIPE, EDIT_SMTS_TRAINING_RECIPE])
+def test_ls_active_training_settings_and_rewards(recipe_name):
+    config = compose_ls(recipe_name)
+    assert config.actor_rollout_ref.model.path == R2_MODEL_PATH
     assert config.data.train_batch_size == 128
     assert config.actor_rollout_ref.actor.ppo_mini_batch_size == 128
     assert config.actor_rollout_ref.rollout.n == 4
@@ -216,6 +227,16 @@ def test_ls_active_training_settings_and_rewards():
         "lang": {"beta": 0.5},
         "fmt": {"beta": 0.5},
     }
+
+
+def test_ls_edit_smts_changes_only_mask_and_aggregation():
+    source = compose_ls(ACTIVE_TRAINING_RECIPE)
+    variant = compose_ls(EDIT_SMTS_TRAINING_RECIPE)
+    assert source.algorithm.remax_advantage_mask is None
+    assert source.actor_rollout_ref.actor.loss_agg_mode == "token-mean"
+    source.algorithm.remax_advantage_mask = "edit_boundary"
+    source.actor_rollout_ref.actor.loss_agg_mode = "seq-mean-token-sum"
+    assert OmegaConf.to_container(variant) == OmegaConf.to_container(source)
 
 
 def test_ls_generation_and_evaluation_configs_use_dedicated_folders():
