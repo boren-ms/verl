@@ -2,13 +2,8 @@
 # AMI and GigaSpeech use >=1s manifests matching the openasr_clean task.
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data.jsonl
-  cache_name: auto_openasr_2606_ls_clean_verb_langhint
-  pre_process:
-    path_map:
-      field: audio_path
-      src_part: "audio/"
-      dst_part: "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/audio/"
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data_zip.jsonl
+  cache_name: auto_openasr_2606_ls_clean_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English

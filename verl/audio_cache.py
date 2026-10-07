@@ -9,6 +9,7 @@ import subprocess
 import threading
 import uuid
 
+from verl.audio_zip import split_zip_audio_source
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,11 @@ def _split_audio_source(source: str) -> tuple[str, str]:
         if ":" in time_range:
             source = file_path
             suffix = f"{separator}{time_range}"
+
+    zip_reference = split_zip_audio_source(source)
+    if zip_reference is not None:
+        archive, offset, size = zip_reference
+        return archive, f"!{offset}:{size}{suffix}"
 
     parts = source.rsplit(":", 2)
     if len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit():

@@ -1,0 +1,853 @@
+Summary
+A library for packing large datasets into a single file for efficient, random-access retrieval with streaming and async support.
+Files
+Description
+BitBank
+
+This package allows packing data/files in to a single file/blob and perform quick retrievals.
+
+
+Key goals
+
+
+
+Support arbitrary data types (bytes)
+
+Random access of records - The ability to locate a specific record by without scanning the file
+
+Streamed read of records - The ability to seek within a single record's byte stream, which is crucial for large media files.
+
+Packed format that is self-describing/self-sufficient and easy for humans to inspect individual records.
+
+
+Benefits
+
+
+
+Reduced Storage IOPS: Consolidates billions of small files into a much smaller number of large packed-blobs.
+
+Decoupled Metadata/Annotation and Media Storage: The Parquet index can be re-partitioned, filtered, or regenerated without needing to re-process the underlying packed-blobs.
+
+Compression [Future]
+
+
+Architecture & Components
+
+We use Zip as the storage format. It stores a central directory of records as a footer to provide a fast, self-contained index for random record access. It also yields a packed format (zip file) that's easily inspected by users manually or using a broad ecosystem of tools.
+
+
+ZipPacker (packing.py) - Writer Operations
+
+
+Native ZIP Format: Uses Python's native zipfile for writing valid ZIP files
+
+Packed Refs: Adding data to the packed blob yields a reference which tracks offsets in the final blob for zero-overhead reads
+
+Multiple Input Types: Supports file paths, raw bytes, StringIO, BytesIO, and any file-like object
+
+Streaming Writes: Data is writen to the backing media in a streaming fashion as records are added. Enables very large packed blobs.
+
+Extensible I/O: Works with memory, disk, blob storage, adlfs, boosted blob
+
+
+ZipReader (reading.py) - Reader Operations
+
+
+Direct Byte Access: Primarily uses direct byte-range reads into blob to retrieve data without ZIP parsing overhead
+
+Extensible I/O: Works with memory, disk, blob storage, adlfs, boosted blob
+
+Sync & Async Reads: Supports simple & fast sync reads as well as High-concurrency async reads for network backed storage such as Azure blob.
+
+Coalesced Reads: When reading multiple records coalesces read ops, helpful to reduce I/O overhead especially for network backed storage
+
+Streaming Support: Seek and Read partial chunks within a single large record (e.g., 10s chunk from a 2hr audio/video)
+
+Sequence Interface: Pythonic list-like access with slicing, indexing, and iteration
+
+
+Dataset (dataset.py) - Multi-ZIP Dataset Access
+
+
+Unified Interface: Access entries across multiple ZIP files using a single global index. Similar interface to ZipReader (batched reads, async, sync, slicing etc)
+
+Fast reads via index: Uses DatasetIndex to resolve global index to specific zip and offset information for direct data reads.
+
+
+PackedDataRef (packed_ref.py) - Data References
+
+
+Tracking: Is a pointer to the concrete data location and is sufficient to do direct IO read. Can be stored in an index, e.g. parquet and assocaited with other metadata.
+
+PyArrow Integration: Native struct type for Parquet serialization
+
+
+PackedRefStore (packed_ref_store.py) - Compact Reference Storage
+
+
+Memory Efficient: Stores byte offsets and sizes in contiguous arrays with direct array indexing for instant byte range lookups
+
+Binary Serialization: Compact binary format for disk storage and network transfer
+
+Lazy File Access: Supports reading byte ranges directly from disk(or network) without loading entire store
+
+
+DatasetIndex (dataset_index.py) - Multi-ZIP Index
+
+
+Binary Format: Efficient .bbidx format with O(log N) ZIP lookup via bisect
+
+Two Index Modes:
+
+LIGHTWEIGHT: Stores only cumulative counts (~0 memory per entry), parses ZIP on demand
+
+FULL: Stores byte offsets via PackedRefStore (~16 bytes per entry), zero-overhead reads
+
+
+
+Compact Serialization: Optional compact mode reduces index size by up to 50% using variable-width encoding
+
+Memory-Mapped Loading: Allows copying packed index locally and loading via mmap across workers and enabling zero-overhead blob reads for datasets with billions of entries.
+
+Lazy Loading: Load large indexes without memory overhead via range reads from disk
+
+Async Building: Build indexes with controlled concurrency for large datasets
+
+
+Usage Examples
+
+Individual Zip Packing & Read
+
+Basic Usage with Different Input Types
+
+
+          
+
+              
+                
+                
+
+              
+              
+import io
+from bitbank import ZipPacker, ZipReader
+
+# Pack the data
+with ZipPacker("data.zip") as packer:
+    # Raw bytes with custom file name
+    ref1 = packer.add_file(b"Binary data", "data.bin")
+
+    # Raw bytes with auto-generated name
+    ref2 = packer.add_file(b"More data")
+
+    # From file-like/streams
+    ref3 = packer.add_file(io.BytesIO(b"Item 3"), "text.txt")
+
+    # From file path (filename pass thru)
+    ref4 = packer.add_file("/path/to/file.jpg")
+
+# Read data back
+reader = ZipReader("data.zip")
+data = reader.read(ref1)  # Read using PackedDataRef. Zero overhead read.
+data = reader.read(3)     # Read using index. ** Results in reading manifest at packed blob footer.**
+
+# Read data back providing pre-provisioning list of all refs
+reader = ZipReader("data.zip", packed_refs=[ref1, ref2, ref3, ref4])
+data = reader.read(ref1)  # Still/Always zero overhead
+data = reader.read(3)     # Now zero overhead as refs already provided upfront.
+
+# Read data within context to minize the # of file handles open (reuse)
+with ZipReader("data.zip") as reader:
+    reader.read(1)
+    reader.read(2)
+
+
+          
+
+          
+Sequence operations
+
+
+          
+
+              
+                
+                
+
+              
+              
+from bitbank import ZipReader
+
+# Sequence-style access
+count = len(reader)                    # File count
+data = reader[0]                       # Read file by index
+data = reader["filename.txt"]          # Read file by name
+files = reader[0:3]                    # Slice returns ZipReader view - lazy
+files = reader[0:3].read()             # Read all sliced items in bulk
+all_data = reader.read()               # Read all files in bulk
+mixed = reader.read([0, "file.txt"])   # Mixed index/name access, coalesced reads
+
+# Can iterate records.
+for entry in reader[:3]:
+  do_something(entry)
+
+
+          
+
+          
+Async operations
+
+
+          
+
+              
+                
+                
+
+              
+              
+# Async versions of all sync operations
+single_item = await reader.read_async(0)  # by index
+mixed = await reader.read_async([0, "file2.txt", ref3])  # mixed types
+
+
+          
+
+          
+Streaming reads
+
+See extended stream reading examples below in Blobfile section.
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+
+# Stream interface for large files
+with reader.read_stream("large_audio.flac") as stream: # Returns BufferedIOBase
+	stream.seek(100000)
+	chunk = stream.read(1024) # Read in chunks
+
+# Async interface
+async with await reader.read_stream_async(ref1) as stream:
+	data = await stream.read(5)
+
+
+          
+
+          
+Specifying specific I/O backends
+
+
+          
+
+              
+                
+                
+
+              
+              
+
+# Option 1: Local path
+reader = ZipReader("foo/data.zip")
+
+# Option 2: Custom fsspech filesystems (e.g. adlfs)
+reader = ZipReader("foo/data.zip", filesystem=fs)
+
+# Option 3: Direct file-like object (e.g. io.BytesIO)
+with open("foo/data.zip", "rb") as f:
+    reader = ZipReader(f)
+
+# Option 4: async file-like object or custom implementation
+from bitbank.protocols import AsyncRangeReadable
+
+class CustomAsyncFile(AsyncRangeReadable):
+    async def _async_fetch_range(self, start: int, end: int) -> bytes:
+        # Use boostedblob or similar for range requests
+        pass
+
+reader = ZipReader(CustomAsyncFile(...))
+
+
+
+          
+
+          
+Multi-ZIP Dataset Access
+
+Basic example of creating index and loading data
+
+
+          
+
+              
+                
+                
+
+              
+              
+from bitbank import DatasetIndex, Dataset, IndexMode
+
+# Build an index from multiple ZIP files
+# Each tuple is (blob_path, file_source) where file_source can be path, BinaryIO, etc.
+index = DatasetIndex.build(
+    [
+        ("data/part_00.zip", "data/part_00.zip"),
+        ("data/part_01.zip", "data/part_01.zip"),
+        ("data/part_02.zip", "data/part_02.zip"),
+    ],
+    mode=IndexMode.FULL,  # Store byte offsets for zero-overhead reads
+    max_workers=8,        # Parallel ZIP parsing
+)
+
+# Save index for later use
+index.save("dataset.bbidx")
+
+# Load index and create dataset
+index = DatasetIndex.load("dataset.bbidx")
+dataset = Dataset(index)
+
+# Access by global index (across all ZIPs)
+data = dataset[12345]              # Single item
+batch = dataset[100:200]           # Slice
+batch = dataset.read([0, 1000, 5000])  # Batch read (grouped by ZIP for efficiency)
+
+# Async access for blob storage
+batch = await dataset.read_async([0, 1000, 5000])
+
+# Use path resolver for portable paths
+def my_resolver(path: str) -> str:
+    return path.replace("data/", "az://mycontainer/data/")
+
+dataset = Dataset(index, path_resolver=my_resolver, filesystem=my_fs)
+
+
+          
+
+          
+Async Index Building
+
+
+          
+
+              
+                
+                
+
+              
+              
+import asyncio
+from bitbank import DatasetIndex, IndexMode
+
+# For large datasets, build index asynchronously with concurrency control
+async def build_large_index():
+    async def zip_source_generator():
+        # Yield (blob_path, file_source) tuples
+        # file_source can be path, BinaryIO, or AsyncReadable
+        for i in range(1000):
+            yield (f"data/part_{i:04d}.zip", f"data/part_{i:04d}.zip")
+
+    index = await DatasetIndex.build_async(
+        zip_source_generator(),
+        mode=IndexMode.FULL,
+        max_concurrency=16,
+    )
+    index.save("large_dataset.bbidx")
+
+asyncio.run(build_large_index())
+
+
+          
+
+          
+Index Modes
+
+
+          
+
+              
+                
+                
+
+              
+              
+from bitbank import DatasetIndex, IndexMode
+
+# FULL mode: Store byte offsets (~16 bytes per entry)
+# This is the recommended route. If the file is really large you can load it lazily.
+index_full = DatasetIndex.build(sources, mode=IndexMode.FULL)
+byte_range = index_full.get_byte_range(12345)  # Returns (start_byte, size)
+
+# LIGHTWEIGHT mode: Store only cumulative counts (~0 memory per entry)
+# Best for: When you really want to defer parsing the zips
+index_light = DatasetIndex.build(sources, mode=IndexMode.LIGHTWEIGHT)
+byte_range = index_light.get_byte_range(12345)  # Returns None (needs ZIP parse)
+
+# Lazy loading for large FULL indexes (keeps file open, reads offsets on demand)
+index = DatasetIndex.load("large.bbidx", lazy=True)
+
+# Memory-mapped loading for huge indicies that are local, enabling single IO blob reads per record.
+index = DatasetIndex.load("large.bbidx", mmap=True)
+
+
+          
+
+          
+Compact Index for Reduced Size
+
+Use compact mode to reduce index file size by up to ~50% through variable-width encoding:
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+# Save with compact mode - reduces file size significantly
+index.save("dataset.bbidx", compact=True)
+
+# Loading is the same - format is auto-detected
+index = DatasetIndex.load("dataset.bbidx")  # or mmap=True
+
+
+          
+
+          
+Local Index for Remote Blob Reads
+
+Copy a index file locally to enable direct byte-range reads from remote blob storage. Use mmap for huge indicies.
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+from bitbank import DatasetIndex, Dataset
+
+# Copy index locally
+# e.g., bbb cp "az://account/container/dataset.bbidx" "./dataset.bbidx"
+
+# Load huge local index with mmap for instant access, tell it where
+# Alternatively use `path_resolver` in Dataset init.
+index = DatasetIndex.load("./dataset.bbidx", base_path="container/datasets/d1/", mmap=True)
+dataset = Dataset(index, filesystem=azure_fs)
+
+# Each read is a single HTTP range request - offsets mapped in from local index.
+data = await dataset.read_async([0, 1000, 5000])
+
+
+          
+
+          
+Building Index While Packing (No Re-parsing)
+
+When you create ZIP files with ZipPacker, you already have the byte offsets. Use from_refs() to build the index directly without re-parsing ZIPs:
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+from bitbank import ZipPacker, DatasetIndex
+zip_refs = []
+for i, batch in enumerate(data_batches):
+    zip_path = f"data/part_{i:04d}.zip"
+    with ZipPacker(zip_path) as packer:
+        packer.add_files(batch)
+        zip_refs.append((packer.blob_path, list(packer.packed_refs.values())))
+
+# Build index directly from refs
+index = DatasetIndex.from_refs(zip_refs)
+index.save("dataset.bbidx")
+
+
+          
+
+          
+Merging Indexes
+
+For distributed processing or incremental updates, build indexes separately and merge:
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+from bitbank import ZipPacker, DatasetIndex
+
+# Worker 1: Pack and create index
+with ZipPacker("shard_00.zip") as packer:
+    packer.add_files(data_00)
+    index_00 = DatasetIndex.from_refs([(packer.blob_path, packer.packed_refs.values())])
+index_00.save("shard_00.bbidx")
+
+# Worker 2: Pack and create index
+with ZipPacker("shard_01.zip") as packer:
+    packer.add_files(data_01)
+    index_01 = DatasetIndex.from_refs([(packer.blob_path, packer.packed_refs.values())])
+index_01.save("shard_01.bbidx")
+
+# Load and merge all indexes
+indexes = [DatasetIndex.load(f"shard_{i:02d}.bbidx") for i in range(num_shards)]
+merged = DatasetIndex.merge(indexes)
+merged.save("dataset.bbidx")
+
+
+          
+
+          
+Usage with Azure Blob Storage
+
+ADLFS
+
+
+          
+
+              
+                
+                
+
+              
+              
+import asyncio
+from adlfs import AzureBlobFileSystem
+from azure.identity.aio import DefaultAzureCredential
+from bitbank import ZipReader
+
+async def read_from_azure():
+    fs = AzureBlobFileSystem(account_name="your_account", credential=DefaultAzureCredential())
+    reader = ZipReader("container/archive.zip", filesystem=fs)
+    slice_data = await reader[0:3].read_async()
+
+asyncio.run(read_from_azure())
+
+
+          
+
+          
+Blobfile
+
+
+          
+
+              
+                
+                
+
+              
+              
+
+import blobfile as bf
+from bitbank import ZipReader
+import soundfile as sf
+
+with bf.BlobFile(
+    "az://datahubweb002/speech-licensed-raw-test/contrib/packing/tests/large_audio.zip",
+    "rb",
+) as blob:
+    with ZipReader(blob) as reader:
+        with reader.read_stream(audio_ref) as stream:
+            sr = 24000
+            audio, sr_actual = sf.read(stream, start=sr * 5 * 60, stop=sr * 6 * 60)  # read 1min from 5:00 to 6:00
+            assert sr_actual == sr
+
+
+          
+
+          
+BoostdBlob
+
+
+          
+
+              
+                
+                
+
+              
+              
+import boostedblob as bbb
+
+from bitbank.protocols import AsyncRangeReadable
+
+
+class BoostedBlobReader(AsyncRangeReadable):
+    def __init__(self, path: str):
+        self._path = path
+
+    async def _async_fetch_range(self, start: int, end: int | None = None) -> bytes:
+        if end is not None:
+            end += 1  # convert from inclusive to exclusive
+        return await bbb.read.read_byte_range(self._path, (start, end))
+
+
+bbb_file = BoostedBlobReader(
+    "az://datahubweb002/speech-licensed-raw-test/contrib/packing/tests/large_audio.zip"
+)
+async with ZipReader(bbb_file) as reader:
+    stream = await reader.read_stream_async(audio_ref)
+    await stream.seek(9090148) # illustrative only, not parsing the flac headers etc
+    data = await stream.read(3678204)
+    print(f"Got {len(data)} bytes of audio data")
+
+
+
+          
+
+          
+Path Resolver for Portable References
+
+During data packing you can control what blob_path value is stored in the PackedDataRef, e.g. to normalize the path to keep it portable across environments/storage accounts. During reading, you can either specify directly where to read from, or provide a path resolver to resolve from the blob_path value in the PackedDataRef.
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+from bitbank import ZipPacker, ZipReader
+
+# Create packed data explicitly setting the blob_path to some logical value
+with ZipPacker("data.zip", blob_path="logical://dataset1/data.zip") as packer:
+    ref1 = packer.add_file(b"Sample data", "file1.txt")
+    ref2 = packer.add_file(b"More data", "file2.txt")
+
+# The refs now contain logical blob_path="logical://dataset1/data.zip"
+print(ref1.blob_path)
+
+# Define a path resolver to map logical paths to actual file locations
+# This could also return opened files, AsyncRangeReadable, etc
+def my_path_resolver(blob_path: str) -> str:
+    return blob_path.replace("logical://", f"az://other_location/")
+
+# Read using path resolver - no need to specify input_zip
+reader = ZipReader(packed_refs=[ref1, ref2], path_resolver=my_path_resolver)
+data = reader.read(ref1)
+
+
+          
+
+          
+Saving & loading packed refs in parquet
+
+Note, this is an alternative to Dataset
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+
+from bitbank import PackedDataRef, ZipPacker, ZipReader
+
+
+def externalize_bytes_columns(
+    input_parquet_path: str, output_zip_path: str, output_parquet_path: str
+):
+    """
+    Load a Parquet file, extract bytes columns into a packed blob,
+    and replace with PackedDataRef references.
+    """
+    df = pd.read_parquet(input_parquet_path)
+
+    # Identify bytes columns (assumes they contain binary data)
+    bytes_columns = []
+    for col in df.columns:
+        if df[col].dtype == "object" and len(df) > 0 and isinstance(df[col].iloc[0], bytes):
+            bytes_columns.append(col)
+
+    print(f"Found bytes columns: {bytes_columns}")
+
+    # Pack all bytes data into a blob. You could do different blobs per column too.
+    packed_refs = {col: [] for col in bytes_columns}
+    with ZipPacker(output_zip_path) as packer:
+        for col in bytes_columns:
+            # You could add the entries with specific names per row as well
+            refs = packer.add_files(df[col])
+            refs = [r.to_dict() for r in refs]  # Convert to dicts to serialize in parquet
+            packed_refs[col] = refs
+
+    # Replace bytes columns with PackedDataRef columns
+    for col in bytes_columns:
+        df[f"{col}_ref"] = packed_refs[col]
+        df = df.drop(columns=[col])  # Remove original bytes column
+
+    df.to_parquet(output_parquet_path)
+    return df
+
+
+# Reading back the externalized data
+def read_externalized_data(parquet_path: str, zip_path: str):
+    """Read back externalized data using PackedDataRef references."""
+
+    df = pd.read_parquet(parquet_path)
+    reader = ZipReader(
+        zip_path
+    )  # Note, in real use you probably want to specify path_resolver
+
+    # Reconstruct original bytes columns
+    ref_columns = [col for col in df.columns if col.endswith("_ref")]
+    for ref_col in ref_columns:
+        original_col = ref_col.replace("_ref", "")
+
+        # Read all data for this column using references
+        column_data = reader.read(PackedDataRef(**d) for d in df[ref_col])
+
+        df[original_col] = column_data
+        df = df.drop(columns=[ref_col])  # Remove reference column
+
+    return df
+
+
+# Example usage with multimodal dataset
+def create_sample_multimodal_data():
+    """Create sample data with images and audio for demonstration."""
+    data = {
+        "id": [1, 2, 3],
+        "label": ["cat", "dog", "bird"],
+        "image_data": [b"fake_image_bytes_1", b"fake_image_bytes_2", b"fake_image_bytes_3"],
+        "audio_data": [b"fake_audio_bytes_1", b"fake_audio_bytes_2", b"fake_audio_bytes_3"],
+        "metadata": ["red cat", "brown dog", "blue bird"],
+    }
+    df = pd.DataFrame(data)
+    df.to_parquet("sample_multimodal.parquet")
+    return df
+
+
+# Demonstrate round-trip
+sample_df = create_sample_multimodal_data()
+externalized_df = externalize_bytes_columns(
+    "sample_multimodal.parquet", "packed_media.zip", "externalized_metadata.parquet"
+)
+reconstructed_df = read_externalized_data("externalized_metadata.parquet", "packed_media.zip")
+
+
+
+          
+
+          
+Method Naming Convention
+
+The ZipReader follows the following naming pattern:
+
+
+
+get_* methods: Lazy access, return views/streams/references without reading data
+
+read_* methods: Eager access, immediately read and return concrete data (bytes/lists)
+
+**__getitem__: Has mixed behavior. Slices are lazy/return views but indexing for specific key reads the data
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+# Lazy operations (return views/streams/references):
+reader[0:2]                    # Returns ZipReader view (lazy slice)
+reader.read_stream(0)          # Returns BufferedIOBase stream (lazy)
+reader.get_ref_by_index(0)     # Returns PackedDataRef (lazy)
+
+# Eager operations (return concrete data):
+reader.read()                  # Returns List[bytes] (all files)
+reader.read(slice(0,2))        # Returns List[bytes] (slice contents)
+reader.read([0, 2])            # Returns List[bytes] (selected files)
+reader.read(0)                 # Returns bytes (single file)
+
+
+          
+
+          
+Testing
+
+Run tests with:
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+uv run pytest -v
+
+
+          
+
+          
+To run e2e tests and verify I/O to blob storage
+
+
+
+          
+
+              
+                
+                
+
+              
+              
+az login
+E2E_AZURE_ACCOUNT_NAME=datahubweb002 \
+E2E_AZURE_TEST_PATH_PREFIX=speech-licensed-raw-test/contrib/packing/tests \
+uv run pytest lib/bitbank/tests/ -v -s --tb=short
+
+
+          
+
+          
+Future Enhancements
+
+
+Compression options support
+
+Extentions for simpler integration with boostedblob
+
+Integration for ray data parquet sink
+
+Integration for spark

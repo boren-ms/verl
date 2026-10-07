@@ -23,12 +23,15 @@ import blobfile as bf
 import soundfile as sf
 from cachetools import FIFOCache, cached
 from verl.audio_cache import localize_audio_source
+from verl.audio_zip import read_zip_audio, split_zip_audio_source
 
 
 @cached(FIFOCache(maxsize=100))
 def sf_read(file_path):
     """Load audio from a file."""
     # print("Audio file:", file_path)
+    if split_zip_audio_source(file_path) is not None:
+        return sf.read(BytesIO(read_zip_audio(file_path)))
     file_path = localize_audio_source(file_path)
     if not bf.exists(file_path):
         raise FileNotFoundError(f"File {file_path} does not exist.")

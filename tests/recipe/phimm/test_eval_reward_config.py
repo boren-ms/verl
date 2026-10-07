@@ -77,6 +77,23 @@ def test_r2_openall_mix_changes_only_model_checkpoint():
     assert OmegaConf.to_container(r2, resolve=False) == OmegaConf.to_container(original, resolve=False)
 
 
+def test_r2_ls_clean_uses_zip_manifest_without_path_rewriting():
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        config = compose(config_name="eval_2609r2_openall_mix")
+    entries = [
+        row for group in config.data.val_data for row in group
+        if row.post_process.add_field.fields.data_source == "ls_clean"
+    ]
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry.jsonl_paths == "az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data_zip.jsonl"
+    assert entry.cache_name == "auto_openasr_2606_ls_clean_zip_verb_langhint"
+    assert "pre_process" not in entry
+    assert entry.add_task_info.task == "lang_asr_verb"
+    assert entry.add_task_info.language == "English"
+    assert entry.add_task_info.lang_hint is True
+
+
 @pytest.mark.parametrize("config_name", EVAL_CONFIG_NAMES)
 @pytest.mark.parametrize("nnodes", [1, 2, 4])
 def test_eval_batch_size_scales_with_nodes(config_name, nnodes):

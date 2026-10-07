@@ -7,6 +7,7 @@ from pathlib import Path
 import soundfile as sf
 from recipe.phimm.data.chunk import load_chunk_sample, load_chunk_example
 from verl.audio_cache import localize_audio_source
+from verl.audio_zip import read_zip_audio, split_zip_audio_source
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,8 @@ def set_chunk_load_mode(mode: str):
 def sf_read(file_path):
     """Load audio from a file."""
     # print("Audio file:", file_path)
+    if split_zip_audio_source(file_path) is not None:
+        return sf.read(io.BytesIO(read_zip_audio(file_path)))
     if "://" in file_path:
         return sf.read(_localize_remote_audio(file_path))
 
@@ -135,7 +138,11 @@ def _load_time_chunk(spec):
         raise ValueError(f"Range endpoints must use the same unit: {tail!r}")
 
     chunk_audio = None
-    if _is_chunk_spec(file_path):
+    if split_zip_audio_source(file_path) is not None:
+        chunk_audio, sr = sf_read(file_path)
+        chunk_audio = np.asarray(chunk_audio)
+        frames = len(chunk_audio)
+    elif _is_chunk_spec(file_path):
         chunk_audio, sr = _load_chunk(file_path)
         chunk_audio = np.asarray(chunk_audio)
         frames = len(chunk_audio)

@@ -2,6 +2,7 @@
 # Installed by quick_install.sh after `pip install --no-deps vllm==0.24.0`
 #
 # DO NOT add ray or protobuf here — they come from the base image.
+# bitbank==0.2.0 is installed separately by quick_install.sh from internal Blob wheels.
 
 # PyTorch stack
 torch==2.11.0

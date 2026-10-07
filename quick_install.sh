@@ -25,6 +25,7 @@ required_versions = {
     "flashinfer-python": "0.6.12",
     "flashinfer-cubin": "0.6.12",
     "bitsandbytes": "0.50.2",
+    "bitbank": "0.2.0",
     "voi-oiwer": "0.1.4",
     "protobuf": "5.29.5",
     "nvidia-cuda-runtime": "13.3.29",
@@ -186,6 +187,27 @@ if [ ! -f "${done_file}" ]; then
             "${transfer_queue_path}"
     fi
     pip install --no-deps "${transfer_queue_path}"
+
+    # Bitbank comes from an authenticated feed; use the staged offline bundle.
+    bitbank_wheel_dir="${package_dir}/bitbank"
+    mkdir -p "${bitbank_wheel_dir}"
+    for bitbank_pkg in \
+        "bitbank-0.2.0-py3-none-any.whl" \
+        "aiofiles-25.1.0-py3-none-any.whl" \
+        "fsspec-2026.9.0-py3-none-any.whl"
+    do
+        bitbank_path="${bitbank_wheel_dir}/${bitbank_pkg}"
+        if [ ! -f "${bitbank_path}" ]; then
+            command -v bbb >/dev/null || {
+                echo "[ERROR] bbb is required to download ${bitbank_pkg}" >&2
+                exit 1
+            }
+            bbb cp \
+                "az://orngwus2cresco/data/boren/data/packages/${bitbank_pkg}" \
+                "${bitbank_path}"
+        fi
+    done
+    pip install --no-index --find-links "${bitbank_wheel_dir}" "bitbank==0.2.0"
 
     # 4b. Install Qwen3.5-Audio vLLM plugin (out-of-tree model support)
     pip install --no-deps -e plugins/qwen35_audio
