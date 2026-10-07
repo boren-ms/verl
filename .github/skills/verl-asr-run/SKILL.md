@@ -10,6 +10,12 @@ Run ASR training or evaluation jobs on remote verl Brix nodes. The default train
 
 Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
+For evaluation, start audio precaching early in the background **only on the
+main pod**, using Step 1c. It overlaps model startup/export and decoding;
+prefetch preparation, completion, or failure must never block evaluation.
+When this skill is invoked only to edit its instructions, do not launch,
+stop, or schedule remote jobs.
+
 ## When to Use
 
 - User wants to **train** an ASR model with RL (ReMax, GRPO) — "run training", "submit job", "train on node"
@@ -143,6 +149,55 @@ Before submitting a standalone `eval_*` or `long_eval_*` job, determine the numb
 
 When `post_train_eval` is enabled, after training succeeds confirm `{TRAIN_NODE}` has no running Ray job and its GPUs are idle before launching evaluation. If training processes are still releasing resources, keep the selected best checkpoint queued and retry every 5 minutes on the same node. Do not select or resume another node.
 
+### Step 1c — Early, non-blocking main-pod evaluation audio precache
+
+Use [cache_eval_audio.py](../../../recipe/phimm/cache_eval_audio.py), which
+reuses [verl/audio_cache.py](../../../verl/audio_cache.py) for persistent
+Orange caching, retries, locks, and atomic writes. Do not add another downloader.
+
+- For standalone evaluation, start inventory preparation and prefetching
+  asynchronously as soon as the target main pod and resolved datasets are
+  known and current code is synced, ideally before model startup. Immediately
+  continue job submission; never wait for inventory preparation or downloads.
+- For explicitly requested post-training evaluation, start once training is
+  verified running and the future evaluation dataset inventory is known.
+  Audio does not depend on checkpoint weights; do not wait for checkpoint
+  selection or export. Training-only requests do not enable an external
+  evaluation suite or its precache. Delegated pipelines retain their own
+  inventory and prefetch task; reconcile and reuse it instead of duplicating it.
+- Follow the inventory-normalization procedure in
+  [run-openasr-exp](../run-openasr-exp/SKILL.md#early-non-blocking-evaluation-audio-precache).
+  The CLI accepts JSONL dataset YAMLs, not Hydra job YAMLs. Resolve the actual
+  evaluation datasets and path-producing transforms, including `path_map` and
+  `rename_fields`, before creating a cache-only inventory. For compatible
+  dataset YAMLs, pass them directly. Unsupported inputs are explicit prefetch
+  failures; do not guess paths or drop evaluation datasets.
+- Verify the pool's main/head pod identity, evaluation interpreter, user/HOME,
+  disk space, and `bbb` authentication. Use `brix ssh` to start exactly one
+  background command there, from `/root/code/verl`:
+
+  ```bash
+  python -m recipe.phimm.cache_eval_audio \
+    <verified-cache-dataset.yaml> --workers 16 --audio-fields audio_path
+  ```
+
+  Supply the inventory's effective audio fields if different. Use a verified
+  remote background execution mechanism, capture its process identity, and
+  verify startup/log activity without waiting for completion. Do not launch
+  prefetchers on worker pods, change `HOME`, or claim their caches are populated.
+- Store input hashes, main-pod identity, user/HOME/cache root, command, PID,
+  logs, status, exit code, and summary under ignored
+  `tmp/verl_asr_run/<config>/audio_precache/`, or reuse the parent pipeline's
+  durable state. Keep this separate from the canonical `verl_job.txt` layout.
+  Mark complete only after exit zero and verified inventory/summary counts.
+- Monitor/retry independently alongside decoding; failures must not gate
+  evaluation or trigger a Ray-job restart. The evaluator's existing on-demand
+  cache handles missing audio. Lower concurrency if prefetch I/O harms decoding.
+  On recovery, reconcile the main pod and input hashes before launching; never
+  duplicate a running task. At pipeline completion, stop only its remaining
+  prefetch process by verified exact identity and record cancellation. Optional
+  prefetch must not keep evaluation/report completion or the monitor open.
+
 ### Step 1b — Maintain `verl_job.txt` as durable pipeline state
 
 Use `recipe/phimm/config/verl_job.txt` as the canonical local status file for the latest training and evaluation job information. Create it when a pipeline is selected, before submission, and update it immediately after every submission, status poll, phase or progress change, best-checkpoint selection, queue transition, child benchmark launch/completion/failure, resubmission, artifact creation, and final completion. Also update it while the training node is releasing resources, so the recorded state explains what the pipeline is waiting for.
@@ -205,6 +260,10 @@ Terminal rows preserve the same activity and use `(complete)` or `(failed)` as t
 
 **IMPORTANT**: Always push the latest code to the remote node before submitting any job. This ensures the remote node runs the same code as your local workspace.
 
+For evaluation, start or reconcile Step 1c's main-pod prefetch after syncing
+code, then proceed with submission without waiting for it. For requested
+post-training evaluation, start it once training is verified running.
+
 For training jobs, compose the config locally before submission and record the effective `trainer.save_freq` in the first status update. Preserve that value during submission; post-training evaluation chooses only among complete checkpoints created by that save cadence and must not override it.
 
 1. **Push code** to the remote node using `bpush`:
@@ -251,6 +310,10 @@ For training jobs, compose the config locally before submission and record the e
 Poll periodically until the job finishes. **Do NOT stop after a single check — keep monitoring until the job reaches SUCCEEDED or FAILED.**
 
 After collecting Ray status, log progress, and GPU utilization on every poll, update `recipe/phimm/config/verl_job.txt` before reporting status to the user. This applies to both training and evaluation jobs, including benchmark child jobs.
+
+Also reconcile Step 1c's background main-pod prefetch when present. Report its
+state separately from Ray progress; its failure is not a training/evaluation
+failure and must not block decoding or pipeline advancement.
 
 - **Eval jobs**: Poll every **5 minutes**. Typically takes 10–30 minutes.
 - **Training jobs**: Poll every **5 minutes** during startup, then adapt cadence based on step time. Training can take hours to days.
@@ -553,6 +616,11 @@ This queries W&B for the run's validation metrics and saves an Excel summary to 
 After the synchronous monitoring loop in Step 3 returns control to the user (job submitted and still RUNNING, or training job that will run for hours/days), **always** install a recurring background monitor as the last action of the turn so the user does not have to manually re-prompt for status updates.
 
 Maintain exactly one monitor for the active pipeline on a node. Before installing a monitor, inspect active schedules. If the tracked config or Ray job has been stopped, replaced, or resubmitted, stop the stale schedule first and create a new schedule containing the current node, config, and Ray job ID. Never leave a replacement job attached only to a prompt naming an earlier job.
+
+Include the main-pod prefetch state path in this same monitor when applicable.
+Do not install a separate prefetch schedule. Reconcile its process/logs and
+retry independently; never wait for prefetch before advancing evaluation.
+Clean up only this pipeline's remaining prefetch process at completion.
 
 Emit this slash command as the final line of your response, on its own line, with the placeholders resolved and no surrounding code fence or extra text after it:
 
