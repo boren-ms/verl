@@ -1,6 +1,6 @@
 ---
 name: run-openasr-exp
-description: "Use verl-asr-run to run a training config YAML on a specified Brix pool, start early background evaluation-audio precaching only on the main pod without blocking decoding, and evaluate its last complete checkpoint with recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml, then use openasr-report to build the results workbook. Optionally replace an explicitly authorized previous job or honor an explicit eval config override. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609_openall_mix after training, or resume a train-to-OpenASR pipeline."
+description: "Use verl-asr-run to run a training config YAML on a specified Brix pool, start early background ZIP evaluation-audio precaching only on the main pod without blocking decoding, and evaluate its last complete checkpoint with recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml, then use openasr-report to build the results workbook. Optionally replace an explicitly authorized previous job or honor an explicit eval config override. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609r2_openall_mix_zip after training, or resume a train-to-OpenASR pipeline."
 argument-hint: "<train.yaml> --node <pool> [--stop-previous | --stop-job <ray-id>] [--eval-config <eval.yaml>] [--out <report.xlsx>] [launch|resume|status]"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "<train.yaml> --node <pool> [--stop-previous | --stop-job <ray-id
 Own one end-to-end pipeline:
 
 **`/verl-asr-run` training config YAML -> export the last complete checkpoint
--> `/verl-asr-run` with `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml`
+-> `/verl-asr-run` with `recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml`
 -> `/openasr-report` results workbook**.
 
 Start audio precaching only on the main pod as an early independent background task; it runs
@@ -30,8 +30,8 @@ directly with the loaded skills and the policy below.
 | Node | Required Brix pool; normalize `n4i0` or `n4-i0` to `verl-n4-i0`. |
 | Eval node count | Must equal the successful training run's effective `trainer.nnodes`, including training overrides; use the same pool. |
 | Stop previous | Disabled unless explicitly requested. `--stop-job` identifies one submission; `--stop-previous` requires one unambiguous previous active job. |
-| Eval config | Default `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml`; honor any explicit replacement. |
-| Eval audio cache | Start `recipe.phimm.cache_eval_audio` early in the background only on the main pod; never wait for it before submitting or decoding evaluation. |
+| Eval config | Default `recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml`; honor any explicit replacement. |
+| Eval audio cache | Start `recipe.phimm.cache_eval_audio` early in the background only on the main pod to cache physical ZIP archives for the resolved suite; never wait for it before submitting or decoding evaluation. |
 | Checkpoint | Last complete checkpoint of this training run, by numeric step, not best validation score. |
 | Report | Default `tmp/openasr_report/<train-stem>_step<step>.xlsx`. |
 | Operation | `launch` starts the pipeline; `resume` reconciles existing work; `status` is read-only. |
@@ -39,7 +39,7 @@ directly with the loaded skills and the policy below.
 Example:
 
 ```text
-/run-openasr-exp recipe/phimm/config/v2609_asr/remax_2609v0a_earning_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml
+/run-openasr-exp recipe/phimm/config/v2609_asr/remax_2609v0a_earning_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml
 ```
 
 When the user only requests creating or editing this skill, modify the skill
@@ -58,7 +58,7 @@ without stopping, submitting, or scheduling remote jobs.
    in section 4. This skill owns checkpoint selection; do not let the general
    runner replace it with a best-validation checkpoint.
 3. Invoke `/verl-asr-run` again for a **standalone evaluation** using
-   `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml` unless the user
+   `recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml` unless the user
    explicitly supplied another eval YAML. Keep section 5's early background
    audio precaching running alongside decoding; do not wait for it. Supply the verified last-checkpoint
    HF export, same pool and node count as training, unique evaluation
@@ -72,7 +72,7 @@ Example handoff requests (natural-language skill inputs, not shell commands):
 
 ```text
 /verl-asr-run Run <train.yaml> on <pool>; training only, no automatic post-training benchmark. Follow run-openasr-exp safety constraints and shared pipeline monitor.
-/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml on <pool> with model <verified-last-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<training-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the successful training run's effective node count, not the eval YAML default or currently available node count. Keep the early recipe.phimm.cache_eval_audio task running only on the main pod alongside decoding; its completion or failure must not block evaluation submission. Do not launch prefetchers on worker pods. Follow the same pipeline constraints and monitor.
+/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml on <pool> with model <verified-last-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<training-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the successful training run's effective node count, not the eval YAML default or currently available node count. Keep the early recipe.phimm.cache_eval_audio task caching physical ZIP archives only on the main pod alongside decoding; its completion or failure must not block evaluation submission. Do not launch prefetchers on worker pods. Follow the same pipeline constraints and monitor.
 /openasr-report <train-stem>@step<N> --metrics <artifact-dir>/metrics.json --model-info <artifact-dir>/model_info.json --dataset-results <artifact-dir>/dataset_results.json --out <report.xlsx>
 ```
 
@@ -295,7 +295,7 @@ before asking `verl-asr-run` to submit evaluation.
 
 1. Use the **resolved `data.val_data` inventory from the actual eval config**,
    including overrides and nested dataset lists. The cache CLI accepts a
-   dataset YAML, not a Hydra job YAML: do not pass `eval_2609_openall_mix.yaml`
+   dataset YAML, not a Hydra job YAML: do not pass `eval_2609r2_openall_mix_zip.yaml`
    directly. Keep evaluation pointed at its original manifests and config.
 2. Build a cache-only JSONL inventory and dataset YAML beneath
    `tmp/run_openasr_exp/<train-stem>/audio_precache/` from all configured sources.
@@ -303,10 +303,19 @@ before asking `verl-asr-run` to submit evaluation.
    `recipe/phimm/data/dataset.py` to read and normalize source references in the
    loader's order (`path_map` before `rename_fields`). Export only the effective
    audio reference fields; do not decode audio or run prompt/reward generation.
-   In the default suite, MixLang maps `WavPath` to `audio_path`, the English
-   OpenASR entries map relative `audio/` paths to Orange URLs, and AA entries
-   map `url` to `audio_path`. Raw input scanning without these mappings is not
-   sufficient. Preserve chunk/time selectors and deduplicate physical files.
+   The default ZIP suite loads `mixlang_fy26q2_zh_seg_zip.yaml`,
+   `openasr_verb_langhint_zip.yaml`, and `openasr_ml_verb_langhint_zip.yaml`.
+   MixLang renames `WavPath` to `audio_path`, AA entries rename `url` to
+   `audio_path`, and the other OpenASR/ML ZIP manifests supply their audio
+   references directly. Apply the actual configured mappings, not the legacy
+   non-ZIP English `audio/` path mapping. Raw input scanning without these
+   mappings is not sufficient.
+   Preserve complete `archive.zip!offset:length` references and chunk/time
+   selectors in the inventory. Use `verl.audio_cache._split_audio_source`
+   to identify and deduplicate physical archives for expected cache counts;
+   do not deduplicate distinct member references by discarding their offsets.
+   The existing cache CLI downloads each physical ZIP archive once; do not
+   extract members, rewrite manifests, or implement another archive downloader.
    Verify every configured source is covered and every normalized reference
    resolves to the same physical file the evaluator will read. If an override
    requires additional path-producing transforms, use its existing loader
@@ -315,8 +324,11 @@ before asking `verl-asr-run` to submit evaluation.
    pointing to the generated inventory at its verified remote location. Sync
    it and the inventory only to the main pod along with the cache script.
    For a directly compatible dataset YAML such as
-   `recipe/phimm/config/data/val_data/earnings_aa_chunked_langhint.yaml`, the
-   original dataset YAML can be passed directly instead. Never rewrite source
+   `recipe/phimm/config/data/val_data/openasr_verb_langhint_zip.yaml`, the
+   original dataset YAML can be passed directly only after verifying its raw
+   fields match the supplied `--audio-fields` (including `url` for AA entries).
+   A single dataset YAML does not replace inventory coverage of the full suite.
+   Never rewrite source
    manifests. Unsupported dataset types/storage prefixes, unresolved paths,
    empty inventories, insufficient disk, or missing `bbb` authentication must
    be recorded as explicit prefetch failures. Diagnose them independently;
@@ -334,7 +346,7 @@ before asking `verl-asr-run` to submit evaluation.
      <verified-cache-dataset.yaml> --workers 16 --audio-fields audio_path
    ```
 
-   This uses the evaluator's persistent Orange cache under that user's
+   This downloads physical ZIP archives into the evaluator's persistent Orange cache under that user's
    `~/data`, including existing retries, timeouts, locks, and atomic writes.
    If the verified inventory uses other effective audio fields, supply those
    explicitly. Do not change `HOME` or use a different cache root. This warms
@@ -347,7 +359,8 @@ before asking `verl-asr-run` to submit evaluation.
 5. Capture full logs, exit status, and JSON summary for the **main pod**. Require
    exit code zero and `unique_files == already_local + downloaded` only when
    marking the main pod's precache complete, and verify the expected unique
-   physical-file count against the inventory. Record running, failed, and
+   physical-file count against the inventory (unique archives for ZIP references,
+   not ZIP members or segments). Record running, failed, and
    completed states accurately; never wait for prefetch completion before evaluation.
    Diagnose and retry missing/failed prefetch work in the background. Existing
    files are reused, so the main pod need not redownload immutable audio.
@@ -387,7 +400,7 @@ verified identical shared pod-local model path on every participating pod;
 keep the original exported model URI in provenance.
 
 Monitor until Ray `SUCCEEDED` and all configured datasets have final metrics
-and detailed artifacts. For `eval_2609_openall_mix.yaml`, this includes
+and detailed artifacts. For `eval_2609r2_openall_mix_zip.yaml`, this includes
 MixLang, eight English datasets and seventeen ML datasets. Do not declare
 success from one intermediate validation metric line.
 
