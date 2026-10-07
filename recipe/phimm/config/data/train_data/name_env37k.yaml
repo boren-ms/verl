@@ -1,0 +1,36 @@
+# EN13m training records selected for the names in the full name_10k validation set.
+# Training samples: 37,212 (exact JSONL row count; approximately 37k).
+# Selection: up to three unique records per name, deduplicated across names.
+# env37k denotes the approximate training sample count, not the validation set size.
+# Validation: 10,000 records with 13,910 distinct names.
+# Full training source scanned: 13,043,178 records.
+# Samples selected per name:
+#   3 samples: 12,818 names (92.15%)
+#   2 samples:    185 names ( 1.33%)
+#   1 sample:     237 names ( 1.70%)
+#   0 samples:    670 names ( 4.82%)
+# At least one sample: 13,240 names (95.18%).
+# Below the three-sample quota: 1,092 names; 2,669 missing name-sample assignments.
+# Shared records cause 4,000 names to occur more than three times in the final manifest.
+# Validation record IDs and audio references are excluded.
+# Coverage and shortages: az://orngwus2cresco/data/boren/data/verl/name/en_val10k.summary.json
+# names: az://orngwus2cresco/data/boren/data/verl/name/en_val10k.names.json
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/name/en_val10k.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "am_data/"
+      dst_part: "az://orngwus2cresco/data/speech/am_data/"
+    rename_fields:
+      mappings:
+        text: display
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: name_train
+    verl_format:
+      prompt_key: prompt

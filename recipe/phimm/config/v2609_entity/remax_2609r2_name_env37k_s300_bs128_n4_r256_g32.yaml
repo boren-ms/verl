@@ -1,0 +1,39 @@
+# Training samples: 37,212 (name_env37k).
+# Validation samples: 1,000 (name_1k).
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/name_env37k
+  - _self_
+
+reward_functions:
+  asr_measure:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 4}
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        keyword: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.5}
+
+reward_function_by_data_source:
+  name_train: asr_measure
+
+actor_rollout_ref:
+  rollout:
+    n: 4
+
+data:
+  train_batch_size: 128
+
+trainer:
+  nnodes: 4
+  total_epochs: 4
+  total_training_steps: 300
