@@ -1025,3 +1025,14 @@ def test_training_audio_retries_remote_cache_failures():
     assert "RemoteAudioCacheError" in {
         element.id for element in recoverable_errors.elts if isinstance(element, ast.Name)
     }
+
+
+def test_name_en13m_training_tolerates_consecutive_missing_audio():
+    config_path = (
+        Path(__file__).parents[3]
+        / "recipe/phimm/config/v2609_entity/remax_2609r2_name_en13m_s1k_bs128_n4_r256_g32.yaml"
+    )
+    config = OmegaConf.load(config_path)
+
+    assert config.data.max_audio_load_retries == 64
+    assert config.actor_rollout_ref.model.path == "/root/models/qwen35_audio_2609r2"

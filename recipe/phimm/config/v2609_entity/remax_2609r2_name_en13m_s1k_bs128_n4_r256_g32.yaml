@@ -25,11 +25,14 @@ reward_function_by_data_source:
   name_train: asr_measure
 
 actor_rollout_ref:
+  model:
+    path: /root/models/qwen35_audio_2609r2
   rollout:
     n: 4
 
 data:
   train_batch_size: 128
+  max_audio_load_retries: 64
 
 trainer:
   nnodes: 4
