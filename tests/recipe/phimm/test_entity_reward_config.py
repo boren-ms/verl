@@ -74,7 +74,10 @@ def test_entity_configs_use_local_2609r2_defaults(config_name):
         assert config.data.train_batch_size == 128
         assert config.actor_rollout_ref.actor.ppo_mini_batch_size == 128
         assert config.trainer.total_training_steps == (300 if "name_env37k" in config_name else 1000)
-        assert config.trainer.total_epochs == (4 if "name_env37k" in config_name else 1)
+        if "name_en10k" in config_name:
+            assert config.trainer.total_epochs == 13
+        else:
+            assert config.trainer.total_epochs == (4 if "name_env37k" in config_name else 1)
         assert config.trainer.nnodes == 4
         assert config.trainer.n_gpus_per_node * config.trainer.nnodes == 32
         assert OmegaConf.to_container(config.trainer, resolve=False)["ngpus"] == (

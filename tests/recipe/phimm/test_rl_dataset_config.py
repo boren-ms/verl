@@ -49,6 +49,21 @@ def test_greedy_advantage_mask_recipe_preserves_reference(recipe_name, masked_re
     assert OmegaConf.to_container(masked) == OmegaConf.to_container(base)
 
 
+def test_r2_smp8_avg4_sfl_changes_only_global_shuffle():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    recipe_name = "remax_2609r2_earning_ml_verb_hint_s400_bs128_n8_r256_g32_smp8_avg4"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        original = compose(config_name=recipe_name, overrides=[searchpath])
+        shuffled = compose(config_name=f"{recipe_name}_sfl", overrides=[searchpath])
+
+    assert original.data.shuffle is False
+    assert shuffled.data.shuffle is True
+    shuffled.data.shuffle = False
+    assert OmegaConf.to_container(shuffled, resolve=False) == OmegaConf.to_container(original, resolve=False)
+
+
 def test_existing_edit_mask_recipe_uses_advantage_mask():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
