@@ -1,6 +1,6 @@
 defaults:
   - /ppo_trainer
-  - /data/val_data/name_10k
+  - /data/val_data/name_1k
   - _self_
 
 nccl_timeout: 3600
