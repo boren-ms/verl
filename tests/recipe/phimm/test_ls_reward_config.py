@@ -112,8 +112,8 @@ def test_ls_training_preserves_experiment_settings(
     assert config.trainer.nnodes == nnodes
     assert config.trainer.total_training_steps == steps
     assert config.trainer.total_epochs == 30
-    assert config.trainer.test_freq == 50
-    assert config.trainer.save_freq == 50
+    assert config.trainer.test_freq == 40
+    assert config.trainer.save_freq == 10
     assert config.algorithm.filter_groups.enable == filtered
     assert config.reward_functions.asr_measure.reward_kwargs.version == 2609
     assert config.reward_function_by_data_source.ls_rare_verb == "asr_measure"
@@ -213,8 +213,8 @@ def test_ls_active_training_settings_and_rewards(recipe_name):
     assert config.trainer.n_gpus_per_node * config.trainer.nnodes == 32
     assert config.trainer.total_training_steps == 400
     assert config.trainer.total_epochs == 30
-    assert config.trainer.test_freq == 50
-    assert config.trainer.save_freq == 50
+    assert config.trainer.test_freq == 40
+    assert config.trainer.save_freq == 10
     assert not config.algorithm.filter_groups.enable
     assert config.reward_function_by_data_source.ls_rare_verb == "asr_measure"
     rewards = config.reward_functions.asr_measure.reward_kwargs
