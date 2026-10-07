@@ -8,10 +8,6 @@ defaults:
   - /data/val_data/openasr_ml_verb
   - _self_
 
-data:
-  # Full-dataset audio batches can exceed vm.max_map_count during worker IPC.
-  dataloader_num_workers: 0
-
 actor_rollout_ref:
   model:
     lora_rank: 128

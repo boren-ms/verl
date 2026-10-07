@@ -18,8 +18,6 @@ trainer:
   nnodes: 4
 
 data:
-  # Full-suite batches exceed mmap limits when sent through multiprocessing queues.
-  dataloader_num_workers: 0
   val_data:
     - ${_mixlang}
     - ${_openasr}
