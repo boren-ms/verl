@@ -24,6 +24,10 @@ _CACHE_SERVER_OWNER_PID = None
 _CACHE_SERVER_LOCK = threading.Lock()
 
 
+class RemoteAudioCacheError(RuntimeError):
+    """Raised when an Orange audio object cannot be cached locally."""
+
+
 def _split_audio_source(source: str) -> tuple[str, str]:
     """Separate the physical file from optional chunk and trailing time selectors."""
     suffix = ""
@@ -86,7 +90,7 @@ def _run_bbb_transfer(remote_path: str, local_path: Path) -> None:
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             local_path.unlink(missing_ok=True)
             if attempt == BLOB_READ_RETRY_LIMIT:
-                raise RuntimeError(
+                raise RemoteAudioCacheError(
                     f"Failed to cache remote audio after {BLOB_READ_RETRY_LIMIT} attempts: {remote_path}"
                 ) from exc
             logger.warning(

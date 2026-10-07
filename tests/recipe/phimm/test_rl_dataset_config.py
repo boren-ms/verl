@@ -1002,3 +1002,26 @@ def test_load_audio_with_retries_avoids_stringifying_broken_audio_error():
         assert str(exc) == "Unable to load audio after 1 attempt(s): ['bad.wav']"
     else:
         raise AssertionError("expected contextual RuntimeError")
+
+
+def test_training_audio_retries_remote_cache_failures():
+    module_path = Path(__file__).parents[3] / "recipe/phimm/data/rl_dataset.py"
+    module = ast.parse(module_path.read_text())
+    getitem = next(
+        node
+        for node in ast.walk(module)
+        if isinstance(node, ast.FunctionDef) and node.name == "__getitem__"
+    )
+    retry_call = next(
+        node
+        for node in ast.walk(getitem)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_load_audio_with_retries"
+    )
+
+    recoverable_errors = retry_call.args[5]
+    assert isinstance(recoverable_errors, ast.Tuple)
+    assert "RemoteAudioCacheError" in {
+        element.id for element in recoverable_errors.elts if isinstance(element, ast.Name)
+    }

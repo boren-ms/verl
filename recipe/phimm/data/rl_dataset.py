@@ -13,6 +13,7 @@ from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer, ProcessorMixin
 
 import verl.utils.torch_functional as verl_F
+from verl.audio_cache import RemoteAudioCacheError
 from verl.utils.model import compute_position_id_with_mask
 from recipe.phimm.data.dataset import create_audio_dataset, get_num_proc
 from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
@@ -260,7 +261,7 @@ class RLHFDataset(Dataset):
             self.max_audio_dur,
             max_retries,
             load_audio,
-            (sf.LibsndfileError, FileNotFoundError, OSError),
+            (sf.LibsndfileError, FileNotFoundError, OSError, RemoteAudioCacheError),
         )
         messages = row_dict[self.prompt_key]
 

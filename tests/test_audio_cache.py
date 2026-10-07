@@ -105,6 +105,26 @@ def test_bbb_timeout_kills_process_group_before_retry(tmp_path, monkeypatch):
     assert local_path.read_bytes() == b"audio"
 
 
+def test_bbb_failure_raises_recoverable_cache_error(tmp_path, monkeypatch):
+    class FakeProcess:
+        returncode = 1
+
+        def __init__(self, command, **kwargs):
+            self.command = command
+
+        def communicate(self, timeout=None):
+            return "", "missing blob"
+
+    monkeypatch.setattr(audio_cache, "BLOB_READ_RETRY_LIMIT", 1)
+    monkeypatch.setattr(audio_cache.subprocess, "Popen", FakeProcess)
+
+    with pytest.raises(audio_cache.RemoteAudioCacheError, match="Failed to cache remote audio after 1 attempts"):
+        audio_cache._run_bbb_transfer(
+            "az://orngwus2cresco/data/missing.wav",
+            tmp_path / "missing.wav",
+        )
+
+
 def test_local_audio_source_preserves_relative_path_and_chunk_suffix(tmp_path, monkeypatch):
     monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path)
 
