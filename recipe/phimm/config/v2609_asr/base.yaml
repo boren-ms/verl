@@ -77,7 +77,7 @@ actor_rollout_ref:
     val_kwargs:
       temperature: 0.0
       top_p: 1.0
-      response_length: 256
+      response_length: 512
     load_format: safetensors
     stop: ["<|im_end|>"]
     stop_token_ids: [248044, 248046]
