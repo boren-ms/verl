@@ -615,6 +615,15 @@ Trainer
 - ``trainer.total_epochs``: Number of epochs in training.
 - ``trainer.project_name``: For wandb, swanlab, mlflow
 - ``trainer.experiment_name``: For wandb, swanlab, mlflow
+  With W&B, launches using the same entity, project, and experiment name reuse
+  the same run ID with ``resume="allow"``. If matching runs already exist, the
+  most recently created run is resumed; older duplicates are not merged.
+  New experiments use a deterministic run ID, including in offline mode
+  (W&B does not resume offline history). Set ``WANDB_RUN_ID`` to explicitly
+  select a run ID, or use a different experiment name to start a separate run.
+  Online lookup failures are surfaced rather than creating a duplicate run.
+  W&B run reuse is independent of ``trainer.resume_mode``, which controls
+  checkpoint loading.
 - ``trainer.logger``: Support console and wandb, swanlab, mlflow, tensorboard, trackio
   PPO and DAPO training log ``data_source/<source>/num_samples`` at each training
   step when the batch contains ``data_source`` metadata. These metrics count

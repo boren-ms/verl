@@ -16,6 +16,7 @@ A unified tracking interface that supports logging data to different backend
 """
 
 import dataclasses
+import hashlib
 import json
 import os
 from enum import Enum
@@ -61,14 +62,16 @@ class Tracking:
         self.logger = {}
 
         if "tracking" in default_backend or "wandb" in default_backend:
-            import os, wandb
+            import os
 
-            # breakpoint()
+            import wandb
+
+            trainer_config = config.get("trainer", {}) if config is not None else {}
             settings = None
-            if config and config["trainer"].get("wandb_proxy", None):
-                settings = wandb.Settings(https_proxy=config["trainer"]["wandb_proxy"])
-            key = config["trainer"].get("wandb_api_key", None)
-            host = config["trainer"].get("wandb_organization", "https://msaip.wandb.io")
+            if trainer_config.get("wandb_proxy"):
+                settings = wandb.Settings(https_proxy=trainer_config["wandb_proxy"])
+            key = trainer_config.get("wandb_api_key", None)
+            host = trainer_config.get("wandb_organization", "https://msaip.wandb.io")
             key = os.environ.get("WANDB_API_KEY", key)
             host = os.environ.get("WANDB_ORGANIZATION", host)
             print("Logging WANDB host:", host)
@@ -80,7 +83,32 @@ class Tracking:
             else:
                 wandb.login(host=host, key=key, relogin=True)
             entity = os.environ.get("WANDB_ENTITY", "genai")
-            wandb.init(entity=entity, project=project_name, name=experiment_name, config=config, settings=settings)
+            run_id = os.environ.get("WANDB_RUN_ID")
+            if not run_id:
+                identity = json.dumps([entity, project_name, experiment_name], ensure_ascii=True)
+                run_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:32]
+                if os.environ.get("WANDB_MODE", "online").lower() not in {"offline", "dryrun", "disabled"}:
+                    api = wandb.Api()
+                    # A new project cannot be queried for runs until its first run is created.
+                    if any(project.name == project_name for project in api.projects(entity=entity)):
+                        runs = api.runs(
+                            path=f"{entity}/{project_name}",
+                            filters={"display_name": experiment_name},
+                            order="-created_at",
+                            per_page=1,
+                        )
+                        existing_run = next(iter(runs), None)
+                        if existing_run is not None:
+                            run_id = existing_run.id
+            wandb.init(
+                entity=entity,
+                project=project_name,
+                name=experiment_name,
+                id=run_id,
+                resume="allow",
+                config=config,
+                settings=settings,
+            )
             self.logger["wandb"] = wandb
 
         if "trackio" in default_backend:
