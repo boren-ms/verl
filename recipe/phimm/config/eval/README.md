@@ -14,6 +14,39 @@ size remains 256.
 `v3.5.4-r2/54000/qwen_hf` baseline checkpoint. Its datasets, scoring, and
 evaluation settings match `eval_2609_openall_mix`; only the model path differs.
 
+## Prefetch evaluation audio
+
+For JSONL-backed dataset YAMLs, warm the local audio cache before evaluation:
+
+```bash
+python -m recipe.phimm.cache_eval_audio \
+  recipe/phimm/config/data/val_data/earnings_aa_chunked_langhint.yaml \
+  --workers 16
+```
+
+Run from the repository root, on **each evaluation node**, as the same user
+that runs evaluation. Downloads use `bbb cp` with the existing cache's retries,
+timeouts, file locks, and atomic writes. Configure `bbb` authentication first.
+Orange files under `az://orngwus2cresco/data/` are mirrored beneath `~/data/`;
+the evaluator automatically uses these copies, so keep using the original YAML.
+No transcripts, prompts, manifests, or audio bytes are changed.
+
+The script reads JSONL (including `.jsonl.gz`, lists, directories, and globs),
+deduplicates manifests and physical audio files across dataset entries, and
+preserves chunk/time selector behavior by caching the underlying file.
+It scans `audio_path`, `audio_file`, `audio_chunk`, and `url` by default.
+Use `--audio-fields audio_path` to select specific source fields; metadata such
+as `parent_audio_path` is not downloaded by default. Local audio must already
+exist. Other dataset types and remote storage prefixes fail explicitly rather
+than claiming to have been cached.
+
+Reruns skip existing files and retry missing files. Failed downloads are logged
+and cause a nonzero exit status. A successful run prints counts of unique,
+already-local, and downloaded files. As with evaluation resume, keep remote
+objects immutable: existing cached files are reused, not checked for updates.
+The full referenced manifests are prefetched; dataset filters and transforms
+are not applied, so ensure sufficient local disk space.
+
 ## Dataset-level resume
 
 Rerun the same config with the same model and `trainer.validation_data_dir`

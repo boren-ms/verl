@@ -1,6 +1,6 @@
 ---
 name: run-openasr-exp
-description: "Use verl-asr-run to run a training config YAML on a specified Brix pool and evaluate its last complete checkpoint with recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml, then use openasr-report to build the results workbook. Optionally replace an explicitly authorized previous job or honor an explicit eval config override. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609_openall_mix after training, or resume a train-to-OpenASR pipeline."
+description: "Use verl-asr-run to run a training config YAML on a specified Brix pool, start early background evaluation-audio precaching only on the main pod without blocking decoding, and evaluate its last complete checkpoint with recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml, then use openasr-report to build the results workbook. Optionally replace an explicitly authorized previous job or honor an explicit eval config override. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609_openall_mix after training, or resume a train-to-OpenASR pipeline."
 argument-hint: "<train.yaml> --node <pool> [--stop-previous | --stop-job <ray-id>] [--eval-config <eval.yaml>] [--out <report.xlsx>] [launch|resume|status]"
 ---
 
@@ -11,6 +11,9 @@ Own one end-to-end pipeline:
 **`/verl-asr-run` training config YAML -> export the last complete checkpoint
 -> `/verl-asr-run` with `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml`
 -> `/openasr-report` results workbook**.
+
+Start audio precaching only on the main pod as an early independent background task; it runs
+alongside training/export and decoding, never as a gate in this pipeline.
 
 This skill is stored in the repository and orchestrates the dependent skills.
 Invoke `verl-asr-run` to execute and monitor both training and evaluation,
@@ -28,6 +31,7 @@ directly with the loaded skills and the policy below.
 | Eval node count | Must equal the successful training run's effective `trainer.nnodes`, including training overrides; use the same pool. |
 | Stop previous | Disabled unless explicitly requested. `--stop-job` identifies one submission; `--stop-previous` requires one unambiguous previous active job. |
 | Eval config | Default `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml`; honor any explicit replacement. |
+| Eval audio cache | Start `recipe.phimm.cache_eval_audio` early in the background only on the main pod; never wait for it before submitting or decoding evaluation. |
 | Checkpoint | Last complete checkpoint of this training run, by numeric step, not best validation score. |
 | Report | Default `tmp/openasr_report/<train-stem>_step<step>.xlsx`. |
 | Operation | `launch` starts the pipeline; `resume` reconciles existing work; `status` is read-only. |
@@ -47,13 +51,16 @@ without stopping, submitting, or scheduling remote jobs.
    pool. Request **training only** from that invocation; leave its automatic
    best-checkpoint/standard-benchmark post-training pipeline disabled.
    Pass the replacement authorization, if any, and the safety constraints
-   below. Wait for verified training completion.
+   below. Once training is verified running, start section 5's background audio
+   precache workflow without waiting for training to finish. Continue monitoring
+   training until verified completion.
 2. Resolve and export this run's **last complete checkpoint** as described
    in section 4. This skill owns checkpoint selection; do not let the general
    runner replace it with a best-validation checkpoint.
 3. Invoke `/verl-asr-run` again for a **standalone evaluation** using
    `recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml` unless the user
-   explicitly supplied another eval YAML. Supply the verified last-checkpoint
+   explicitly supplied another eval YAML. Keep section 5's early background
+   audio precaching running alongside decoding; do not wait for it. Supply the verified last-checkpoint
    HF export, same pool and node count as training, unique evaluation
    experiment name, and section 5's overrides. Wait for all configured
    evaluation datasets to finish.
@@ -65,7 +72,7 @@ Example handoff requests (natural-language skill inputs, not shell commands):
 
 ```text
 /verl-asr-run Run <train.yaml> on <pool>; training only, no automatic post-training benchmark. Follow run-openasr-exp safety constraints and shared pipeline monitor.
-/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml on <pool> with model <verified-last-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<training-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the successful training run's effective node count, not the eval YAML default or currently available node count. Follow the same pipeline constraints and monitor.
+/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval/eval_2609_openall_mix.yaml on <pool> with model <verified-last-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<training-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the successful training run's effective node count, not the eval YAML default or currently available node count. Keep the early recipe.phimm.cache_eval_audio task running only on the main pod alongside decoding; its completion or failure must not block evaluation submission. Do not launch prefetchers on worker pods. Follow the same pipeline constraints and monitor.
 /openasr-report <train-stem>@step<N> --metrics <artifact-dir>/metrics.json --model-info <artifact-dir>/model_info.json --dataset-results <artifact-dir>/dataset_results.json --out <report.xlsx>
 ```
 
@@ -77,6 +84,12 @@ generic defaults during both handoffs:
 - Select the **last complete** checkpoint, never the best validation checkpoint.
 - Run the **specified eval YAML**, not the full in-house/reference benchmark
   suite. Do not invoke `eval-2609-benchmark-report` automatically.
+- Precache evaluation audio with the existing
+  [cache_eval_audio.py](../../../recipe/phimm/cache_eval_audio.py), which reuses
+  [verl/audio_cache.py](../../../verl/audio_cache.py). Do not implement another
+  downloader or claim completed precaching from process startup. Downloads run
+  only on the main pod in the background; incomplete or failed prefetching must not gate evaluation,
+  whose existing on-demand cache handles audio not yet prefetched.
 - Keep training and evaluation on the requested pool. A Brix pool can contain
   multiple Ray GPU nodes: `verl-n4-i0` normally has four pods and 32 GPUs.
   Set evaluation `trainer.nnodes` to the successful training run's effective
@@ -91,7 +104,9 @@ generic defaults during both handoffs:
 ## 1. Preflight and durable state
 
 Create a todo list for preflight, replacement/submission, training, export,
-evaluation, and report verification. Mark completion only from observed state.
+evaluation audio precache, evaluation, and report verification. Mark completion
+only from observed state. Track audio precache independently, not as a
+prerequisite for evaluation; its launch and monitoring overlap other phases.
 
 Read the training and eval YAMLs and their defaults. Compose the training
 config with the repository's Hydra resolvers; record the resolved model path,
@@ -113,6 +128,11 @@ a duplicate run because the skill was renamed. Store:
   training topology provenance if an authorized recovery changes it.
 - Current phase, stopped job ID, training/export/eval job IDs and statuses,
   observed step/target, selected checkpoint path and step, W&B and Ray URLs.
+- Audio precache input paths and hashes, resolved dataset/manifest inventory,
+  code snapshot, download worker count, and main-pod identity, user/HOME/cache root,
+  command, remote PID/background execution identity, status, exit code,
+  log/summary paths, counts, and completion time. Keep this separate from the
+  main training/export/evaluation phase, including explicit prefetch failures.
 - Report path, verified artifact paths, and current monitor identity.
 
 Do not store credentials or signed URLs. Never treat files left by a previous
@@ -123,8 +143,9 @@ Maintain `recipe/phimm/config/verl_job.txt` using the general runner's
 timestamp/table/Reports format. Preserve unrelated entries, replace only this
 pool's current row, and do not retain superseded job IDs. Use `n4-i0` rather
 than ambiguous `i0` when multiple pool sizes share the index. Report phases as
-training, exporting last checkpoint, evaluating the actual dataset, or
-building report; adapt best-checkpoint wording to this last-checkpoint policy.
+training, exporting last checkpoint, evaluating the actual dataset, or building
+report, with concurrent audio-prefetch progress alongside the main phase;
+adapt best-checkpoint wording to this last-checkpoint policy.
 Do not update `recipe/phimm/config/ver_2607v1a/job.txt`.
 
 ## 2. Identify and replace the previous job
@@ -186,6 +207,13 @@ saves and uploads. Accumulate training metrics and W&B/Ray links. Diagnose
 failures from tracebacks, apply minimal local fixes, sync and resubmit under
 the original training name. Record recovery overrides and replace stale IDs.
 Do not copy unrelated prior jobs' runtime overrides without evidence.
+
+As soon as this training submission is verified running, start section 5's
+audio-prefetch task only on the main pod using the resolved eval
+dataset inventory. Do not wait for the final checkpoint or HF export: audio
+inputs do not depend on checkpoint weights. Run inventory preparation and
+downloads asynchronously so they do not hold up training monitoring, export,
+or evaluation submission.
 
 Require Ray `SUCCEEDED`, the intended final training step, and finished
 checkpoint writes before advancing. If epochs exhaust before the step target,
@@ -259,7 +287,80 @@ node count, increase it to use spare nodes, or move evaluation to another
 pool. If training topology provenance is missing, recover it from this run's
 resolved config/logs rather than guessing from the pool size.
 
-Sync current code again. Use a candidate-specific experiment name, for example
+Sync current code again before evaluation. Reconcile the early background
+main-pod prefetch task, but do not wait for its preparation or transfers to finish
+before asking `verl-asr-run` to submit evaluation.
+
+### Early, non-blocking evaluation audio precache
+
+1. Use the **resolved `data.val_data` inventory from the actual eval config**,
+   including overrides and nested dataset lists. The cache CLI accepts a
+   dataset YAML, not a Hydra job YAML: do not pass `eval_2609_openall_mix.yaml`
+   directly. Keep evaluation pointed at its original manifests and config.
+2. Build a cache-only JSONL inventory and dataset YAML beneath
+   `tmp/run_openasr_exp/<train-stem>/audio_precache/` from all configured sources.
+   Use the existing `jsonl_dataset`, `path_map`, and `rename_fields` helpers in
+   `recipe/phimm/data/dataset.py` to read and normalize source references in the
+   loader's order (`path_map` before `rename_fields`). Export only the effective
+   audio reference fields; do not decode audio or run prompt/reward generation.
+   In the default suite, MixLang maps `WavPath` to `audio_path`, the English
+   OpenASR entries map relative `audio/` paths to Orange URLs, and AA entries
+   map `url` to `audio_path`. Raw input scanning without these mappings is not
+   sufficient. Preserve chunk/time selectors and deduplicate physical files.
+   Verify every configured source is covered and every normalized reference
+   resolves to the same physical file the evaluator will read. If an override
+   requires additional path-producing transforms, use its existing loader
+   helpers to resolve those references too; do not guess paths.
+3. The cache-only YAML must contain `dataset_name: jsonl` and `jsonl_paths`
+   pointing to the generated inventory at its verified remote location. Sync
+   it and the inventory only to the main pod along with the cache script.
+   For a directly compatible dataset YAML such as
+   `recipe/phimm/config/data/val_data/earnings_aa_chunked_langhint.yaml`, the
+   original dataset YAML can be passed directly instead. Never rewrite source
+   manifests. Unsupported dataset types/storage prefixes, unresolved paths,
+   empty inventories, insufficient disk, or missing `bbb` authentication must
+   be recorded as explicit prefetch failures. Diagnose them independently;
+   they do not block evaluation or permit dropping evaluation datasets.
+4. Identify the pool's main/head pod and use `brix ssh` to target that pod only,
+   verifying the actual hostname and installed CLI's pod-selection behavior.
+   Do not launch prefetchers on worker pods or fan out according to
+   `training_nnodes`; evaluation topology remains unchanged.
+   Use the evaluation interpreter and user/HOME, verify `bbb` authentication
+   and available disk, and start this command from `/root/code/verl` on the main pod
+   as a background execution, without waiting for it to finish:
+
+   ```bash
+   python -m recipe.phimm.cache_eval_audio \
+     <verified-cache-dataset.yaml> --workers 16 --audio-fields audio_path
+   ```
+
+   This uses the evaluator's persistent Orange cache under that user's
+   `~/data`, including existing retries, timeouts, locks, and atomic writes.
+   If the verified inventory uses other effective audio fields, supply those
+   explicitly. Do not change `HOME` or use a different cache root. This warms
+   the main pod's cache only; do not claim worker-local caches are populated.
+   Capture a remote process/background identity and
+   verify startup and log activity, then immediately continue the main pipeline.
+   Use the verified remote background execution mechanism so the task remains
+   alive across subsequent pipeline phases. Use a single download process on
+   the main pod; if I/O contention harms training or decoding, lower its concurrency.
+5. Capture full logs, exit status, and JSON summary for the **main pod**. Require
+   exit code zero and `unique_files == already_local + downloaded` only when
+   marking the main pod's precache complete, and verify the expected unique
+   physical-file count against the inventory. Record running, failed, and
+   completed states accurately; never wait for prefetch completion before evaluation.
+   Diagnose and retry missing/failed prefetch work in the background. Existing
+   files are reused, so the main pod need not redownload immutable audio.
+   On resume, reconcile the main pod's identity, HOME, inventory hashes and local cache
+   availability; start the CLI asynchronously on a replaced main pod or whenever
+   cache evidence is stale, unless the same task is already running. Do not
+   treat an old completion flag as proof on a new pod. Keep downloads running
+   in parallel with decoding: existing file locks and atomic writes coordinate
+   the prefetcher with the evaluator's on-demand cache safely.
+
+### Submit and verify evaluation
+
+Use a candidate-specific experiment name, for example
 `<eval-stem>__<train-stem>_step<N>`, so evaluation outputs cannot overwrite
 another model's results. Pass the verified HF export as the model, disable
 new LoRA adapters for the already-merged model, and prevent training resume:
@@ -274,7 +375,9 @@ brix ssh <pool> -- 'bash -l /root/code/verl/quick_run.sh <eval.yaml> \
 ```
 
 Check the composed config is validation-only and uses the intended candidate.
-Before submission, verify `eval trainer.nnodes == training_nnodes`; after
+Before submission, verify `eval trainer.nnodes == training_nnodes`; audio
+prefetch may still be preparing, running, or failed and is not a submission
+gate. After
 startup, verify the effective config and runtime worker topology use that
 same node count. Do not advance a mismatched evaluation to reporting; correct
 and resubmit only this pipeline's evaluation under its recovery policy.
@@ -365,7 +468,8 @@ scheduling tool. Its prompt must identify this skill, `verl-asr-run` for
 training/evaluation and `openasr-report` for reporting, the durable
 state path, node, train/eval configs and current Ray job ID, and explicitly
 retain the **last complete checkpoint -> specified eval -> OpenASR report**
-policy. Inspect existing schedules and replace only this pipeline's stale
+policy with **early main-pod-only audio precache in parallel, never gating decoding**.
+Inspect existing schedules and replace only this pipeline's stale
 monitor after resubmission or phase changes. Plain text claiming monitoring
 is installed is not sufficient.
 
@@ -375,7 +479,13 @@ first incomplete phase. Never double-submit an export/evaluation, restart
 training after it succeeded, or stop unrelated work encountered on recovery.
 `status` only observes and reports; it does not schedule or advance work.
 
-Keep monitoring through training, export, evaluation and workbook validation.
+Keep monitoring through training, export, evaluation and workbook validation,
+tracking background audio precache alongside each phase. Reconcile the main pod's
+prefetch process, logs and summary without waiting or starting duplicate
+commands. Once evaluation and report verification finish, stop only this
+pipeline's still-running main-pod prefetch process by its verified exact process
+identity, record it as cancelled after evaluation, and verify termination.
+No unfinished optional prefetch task may keep the main pipeline open.
 Stop the schedule only when all requested work is complete or the user
 cancels it. If genuinely blocked, record the exact blocker and do not claim
 success or retry destructively. Pause a pool resumed by this pipeline only
