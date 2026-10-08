@@ -117,6 +117,18 @@ Example:
 
 Do not abbreviate, truncate, or replace these paths with only a directory.
 
+### Windows Paths from WSL
+When running in WSL, include a Windows-accessible path for every HTML report by default, alongside its clickable workspace link and absolute Linux path. If the user asks to "show wslpath", return the converted paths for all generated reports.
+
+- Read the actual HTML filenames from the summary's `reports` section and verify each file exists.
+- Run `wslpath -w` on each absolute Linux path, quoting the argument to support spaces:
+  ```bash
+  wslpath -w "/home/boren/code/verl/tmp/asr-detail-compare/ami/ami-step10-vs-step70.overall-top30.html"
+  ```
+- Show the complete returned Windows path in a copyable `text` code block, labeled Overall, Improved, or Degraded under its dataset. It can be pasted into Windows File Explorer or a browser.
+- Use the command's actual output; do not hardcode the distribution name or construct a `\\wsl.localhost\Ubuntu` prefix.
+- If `wslpath` is unavailable or conversion fails, explicitly report that Windows path conversion is unavailable and retain the Linux paths. Do not invent Windows paths or block delivery of otherwise valid reports.
+
 ## Join Rules
 - Prefer `audio_file` as the join key by default when it is present and unique in both files.
 - If `audio_file` is unavailable or unstable, the script can fall back to other stable keys such as `audio_file_stem`, `utt_id`, `utterance_id`, `id`, `key`, or `audio_path`.
