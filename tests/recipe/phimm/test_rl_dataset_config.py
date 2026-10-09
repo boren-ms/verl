@@ -98,6 +98,66 @@ def test_400_step_recipe_accepts_string_advantage_mask_modes(mode):
     assert config.trainer.nnodes * config.trainer.n_gpus_per_node == 16
 
 
+@pytest.mark.parametrize(
+    "source_ratio,earnings_samples,total_steps,steps_per_pass",
+    [("021", 0, 616, 308), ("121", 13169, 822, 411)],
+)
+def test_ml0_ls_recipe_preserves_training_settings_and_weights_sources(
+    source_sampler, source_ratio, earnings_samples, total_steps, steps_per_pass
+):
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    donor_name = "remax_2609r2_earning_ml0_verb_hint_s306_bs128_n16_r128_g32_ds0_sfl_avg4_flr1"
+    recipe_name = (
+        f"remax_2609r2_earning_ml0_ls_verb_hint_s{total_steps}_bs128_n16_r256_g32_ds{source_ratio}_sfl_avg4_flr1"
+    )
+    original_name = "remax_2609r2_earning_ml_ls_verb_hint_s753_bs128_n8_r256_g32_ds1s_sfl_avg4_edit_smts_lr0"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        donor = compose(config_name=donor_name, overrides=[searchpath])
+        config = compose(config_name=recipe_name, overrides=[searchpath])
+        original = compose(config_name=original_name, overrides=[searchpath])
+
+    assert config.actor_rollout_ref.model.lora_rank == 256
+    donor.actor_rollout_ref.model.lora_rank = 256
+    assert config.trainer.total_training_steps == total_steps
+    assert config.trainer.total_epochs == 2
+    donor.trainer.total_training_steps = total_steps
+    donor.trainer.total_epochs = 2
+    for section in ("actor_rollout_ref", "algorithm", "trainer"):
+        assert OmegaConf.to_container(config[section], resolve=False) == OmegaConf.to_container(
+            donor[section], resolve=False
+        )
+    assert config.data.train_batch_size == donor.data.train_batch_size == 128
+    assert config.data.shuffle == donor.data.shuffle is True
+    assert OmegaConf.to_container(config.data.data_source) == {
+        "earnings_fy27": {"num_sample": earnings_samples, "shuffle": True},
+        "openml": {"num_sample": 26338, "shuffle": True},
+        "ls_rare_verb": {"num_sample": 13169, "shuffle": True},
+    }
+    assert OmegaConf.to_container(config._ml_train) == OmegaConf.to_container(donor._ml_train)
+    assert len(config._ml_train[0].jsonl_paths) == 2
+    assert OmegaConf.to_container(config._ls_train) == OmegaConf.to_container(original._ls_train)
+    assert len(config.data.train_data) == len(config.data.val_data) == 3
+    assert OmegaConf.to_container(config.reward_functions) == OmegaConf.to_container(original.reward_functions)
+    assert OmegaConf.to_container(config.reward_function_by_data_source) == OmegaConf.to_container(
+        original.reward_function_by_data_source
+    )
+    for name in ("_earning_val", "_ml_val", "_ls_val"):
+        assert OmegaConf.to_container(config[name]) == OmegaConf.to_container(original[name])
+    inputs = [
+        datasets.Dataset.from_dict({"id": [source], "data_source": [source]})
+        for source in config.data.data_source
+    ]
+    sampled = source_sampler(inputs, config.data.data_source)
+    expected_sources = (["earnings_fy27"] if earnings_samples else []) + ["openml", "ls_rare_verb"]
+    expected_samples = ([earnings_samples] if earnings_samples else []) + [26338, 13169]
+    assert [group[0]["data_source"] for group in sampled] == expected_sources
+    assert [len(group) for group in sampled] == expected_samples
+    assert sum(len(group) for group in sampled) // config.data.train_batch_size == steps_per_pass
+    assert config.trainer.total_training_steps == 2 * steps_per_pass
+
+
 def _load_flatten_data_confs():
     module_path = Path(__file__).parents[3] / "recipe/phimm/data/rl_dataset.py"
     module = ast.parse(module_path.read_text())
