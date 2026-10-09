@@ -1,5 +1,7 @@
 # OpenASR English evaluation suite with known-language prompts and no assistant prefix.
 # ZIP-backed audio; AMI and GigaSpeech retain the >=1s openasr_clean subsets.
+# URGENT2024 noisy/clean test splits follow open_asr_leaderboard commit 60e2e3b.
+# Source: hf-audio/open-asr-leaderboard @ de79e57adf9983993bcc72586d7313460825f5eb.
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data_zip.jsonl
@@ -124,5 +126,33 @@
     add_field:
       fields:
         data_source: monsoon_en_in
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024/data_zip.jsonl
+  cache_name: auto_urgent2024_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: urgent2024
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024_clean/data_zip.jsonl
+  cache_name: auto_urgent2024_clean_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: urgent2024_clean
     verl_format:
       prompt_key: prompt
