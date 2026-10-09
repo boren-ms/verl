@@ -1,0 +1,21 @@
+# URGENT2024-only subset of eval_2609r2a_openall_zip.yaml (noisy and clean).
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/urgent_zip@_urgent
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2609_asr/remax_2609r2_ml_verb_hint_s100_bs128_n8_r256_g32_flr1/global_step_80/qwen_hf
+
+trainer:
+  experiment_name: 2609r2a_urgent
+  nnodes: 4
+
+data:
+  val_data:
+    - ${_urgent}

@@ -1,0 +1,23 @@
+# ZIP-backed OpenASR and OpenML evaluation.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/openasr_verb_langhint_zip@_openasr
+  - /data/val_data/openasr_ml_verb_langhint_zip@_openml
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2609_asr/remax_2609r2_ml_verb_hint_s100_bs128_n8_r256_g32_flr1/global_step_80/qwen_hf
+
+trainer:
+  experiment_name: 2609r2a
+  nnodes: 4
+
+data:
+  val_data:
+    - ${_openasr}
+    - ${_openml}

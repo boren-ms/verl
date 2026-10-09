@@ -1,0 +1,28 @@
+# ZIP-backed URGENT2024 noisy and clean evaluation with known-language prompts.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024/data_zip.jsonl
+  cache_name: auto_urgent2024_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: urgent2024
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024_clean/data_zip.jsonl
+  cache_name: auto_urgent2024_clean_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: urgent2024_clean
+    verl_format:
+      prompt_key: prompt

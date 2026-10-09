@@ -1,0 +1,20 @@
+# URGENT2024-only subset of eval_2609r2_openall_mix_zip.yaml (noisy and clean).
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/urgent_zip@_urgent
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+
+trainer:
+  nnodes: 4
+
+data:
+  val_data:
+    - ${_urgent}
