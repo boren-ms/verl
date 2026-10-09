@@ -555,6 +555,75 @@ def test_parse_response_reports_keyword_accuracy():
 
 
 @pytest.mark.parametrize(
+    ("reference", "hypothesis", "expected"),
+    [
+        ("a b c", "a b c", (1.0, 1.0, 1.0, 1.0, 1.0, 1.0)),
+        ("a b c", "a c", (2 / 3, 1.0, 2 / 3, 1.0, 2 / 3, 2 / 3)),
+        ("a b c", "a b c d", (1.0, 2 / 3, 1.0, 2 / 3, 2 / 3, 2 / 3)),
+        ("a b c", "a x c", (1.0, 1.0, 1.0, 1.0, 2 / 3, 2 / 3)),
+        ("a b c", "a c d e", (2 / 3, 1 / 3, 2 / 3, 1 / 3, 0.0, 0.0)),
+        ("cat dog", "ct dog", (1.0, 1.0, 5 / 6, 1.0, 0.5, 5 / 6)),
+        ("cat dog", "cart dog", (1.0, 1.0, 1.0, 5 / 6, 0.5, 5 / 6)),
+        ("", "", (1.0, 1.0, 1.0, 1.0, 1.0, 1.0)),
+        ("", "a b", (1.0, -1.0, 1.0, -1.0, -1.0, -1.0)),
+        ("a b", "", (0.0, 1.0, 0.0, 1.0, 0.0, 0.0)),
+        ("a", "a b c d", (1.0, -2.0, 1.0, -2.0, -2.0, -2.0)),
+    ],
+)
+def test_parse_response_reports_edit_accuracies(reference, hypothesis, expected):
+    result = _parse_response(
+        f"<TXT>{hypothesis}</TXT>",
+        ground_truth=reference,
+        language="English",
+        version=2609,
+        text_norm="identity",
+    )
+
+    metrics = ("word_del", "word_ins", "char_del", "char_ins", "word", "char")
+    assert tuple(result[name] for name in metrics) == pytest.approx(expected)
+
+
+def test_parse_response_edit_accuracies_use_text_normalization():
+    result = _parse_response(
+        "<TXT>HELLO WORLD!</TXT>",
+        ground_truth="hello, world.",
+        language="English",
+        version=2609,
+        text_norm="simple",
+    )
+
+    for name in ("word_del", "word_ins", "char_del", "char_ins", "word", "char"):
+        assert result[name] == 1.0
+
+
+@pytest.mark.parametrize(
+    ("metric", "hypothesis", "expected"),
+    [
+        ("word_del", "a c", 2 / 3),
+        ("word_ins", "a b c d", 2 / 3),
+        ("char_del", "a c", 2 / 3),
+        ("char_ins", "a b c d", 2 / 3),
+    ],
+)
+@pytest.mark.parametrize("cut", [None, 1 - 1 / 3])
+def test_compute_score_supports_edit_accuracies(metric, hypothesis, expected, cut):
+    config = {"beta": 0.5}
+    if cut is not None:
+        config["cut"] = cut
+    result = compute_score(
+        f"<TXT>{hypothesis}</TXT>",
+        ground_truth="a b c",
+        language="English",
+        version=2609,
+        text_norm="identity",
+        measures={metric: config},
+    )
+
+    assert result[metric] == pytest.approx(expected)
+    assert result["score"] == pytest.approx(0.0 if cut is not None else 0.5 * expected)
+
+
+@pytest.mark.parametrize(
     ("output", "expected"),
     [
         ("<src=English><tgt=English>\n<TXT>Hello</TXT>", 1.0),

@@ -297,7 +297,13 @@ def compute_kw_acc(
 
 
 def _parse_response(solution_str, ground_truth=None, **kwargs):
-    """Extract text, format/language, lexical, and edge-check accuracies."""
+    """Extract text, format/language, lexical, and edge-check accuracies.
+
+    ``word_del``, ``word_ins``, ``char_del``, and ``char_ins`` isolate the
+    corresponding edit operation using the same normalized alignments as
+    ``word`` and ``char``. Each is ``1 - count / max(n_ref, 1)``; substitutions
+    are ignored and insertion accuracies may be negative.
+    """
     from recipe.phimm.reward.asr_edge import measure
 
     extra_info = kwargs.get("extra_info") or {}
@@ -320,7 +326,11 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
 
     return {
         "char": char_error.accuracy(),
+        "char_del": char_error.accuracy(sub=0.0, ins=0.0),
+        "char_ins": char_error.accuracy(sub=0.0, **{"del": 0.0}),
         "word": word_error.accuracy(),
+        "word_del": word_error.accuracy(sub=0.0, ins=0.0),
+        "word_ins": word_error.accuracy(sub=0.0, **{"del": 0.0}),
         "keyword": keyword_result["accuracy"],
         **fmts,
         "lang": check_lang(task_output, tgt_lang),
@@ -445,8 +455,10 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Uses :func:`recipe.phimm.reward.asr_edge.measure` for the lexical accuracy
     and :func:`compute_fmt_acc` for punctuation/capitalisation accuracy.
 
-    Only the components listed in ``measures`` contribute to the reward. The
-    contribution of each component ``k`` is::
+    Only the components listed in ``measures`` contribute to the reward.
+    ``word_del``, ``word_ins``, ``char_del``, and ``char_ins`` components are
+    deletion-only and insertion-only accuracies from :func:`_parse_response`.
+    The contribution of each component ``k`` is::
 
         beta * signed_pow(clip(acc_k, lo, hi), gamma)
 
