@@ -11,7 +11,7 @@ liger-kernel
 numpy<2.0.0
 pandas
 peft
-pyarrow>=19.0.0
+pyarrow>=19.0.0,<26.0.0
 pybind11
 pylatexenc
 pre-commit
