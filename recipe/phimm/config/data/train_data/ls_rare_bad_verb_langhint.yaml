@@ -1,0 +1,15 @@
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1a_earning_step650/ls_rare_nonempty_verb_g32_nonzero_n_err.jsonl
+# Generated bad-case records already have text; do not rename transcription.
+pre_process: null
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: ls_rare_verb
+  verl_format:
+    prompt_key: prompt

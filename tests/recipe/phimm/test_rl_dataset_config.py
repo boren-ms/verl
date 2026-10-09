@@ -158,6 +158,92 @@ def test_ml0_ls_recipe_preserves_training_settings_and_weights_sources(
     assert config.trainer.total_training_steps == 2 * steps_per_pass
 
 
+@pytest.mark.parametrize(
+    "recipe_name,openml_samples,ls_samples,total_steps,shuffle",
+    [
+        (
+            "remax_2609r2_earning_ml0_ls_bad_verb_hint_s308_bs128_n16_r256_g32_ds0105_sfl_avg4_flr1",
+            13169,
+            6584,
+            308,
+            True,
+        ),
+        (
+            "remax_2609r2_earning_ml0_ls_bad_verb_hint_s616_bs128_n16_r256_g32_ds021_avg4_flr1",
+            26338,
+            13169,
+            616,
+            False,
+        ),
+        (
+            "remax_2609r2_earning_ml0_ls_bad_verb_hint_s616_bs128_n16_r256_g32_ds021_sfl_avg4_flr1",
+            26338,
+            13169,
+            616,
+            True,
+        ),
+    ],
+)
+def test_ml0_ls_bad_recipes_change_only_ls_manifest_preprocessing_budgets_and_shuffle(
+    source_sampler, recipe_name, openml_samples, ls_samples, total_steps, shuffle
+):
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    original_name = "remax_2609r2_earning_ml0_ls_verb_hint_s616_bs128_n16_r256_g32_ds021_sfl_avg4_flr1"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        original = compose(config_name=original_name, overrides=[searchpath])
+        config = compose(config_name=recipe_name, overrides=[searchpath])
+
+    bad_manifest = (
+        "az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1a_earning_step650/"
+        "ls_rare_nonempty_verb_g32_nonzero_n_err.jsonl"
+    )
+    data_config = OmegaConf.load(config_root / "data/train_data/ls_rare_bad_verb_langhint.yaml")
+    recipe = OmegaConf.load(config_root / "v2609_asr" / f"{recipe_name}.yaml")
+    assert "/data/train_data/ls_rare_bad_verb_langhint@_ls_train" in recipe.defaults
+    assert "_ls_train" not in recipe
+    assert OmegaConf.to_container(config._ls_train) == OmegaConf.to_container(data_config)
+    assert config._ls_train.jsonl_paths == bad_manifest
+    assert config._ls_train.pre_process is None
+    assert config.data.train_data[2].jsonl_paths == bad_manifest
+    assert config.data.train_data[2].pre_process is None
+    assert config._ls_train.add_task_info.lang_hint is True
+    source = config._ls_train.post_process.add_field.fields.data_source
+    assert source == "ls_rare_verb"
+    assert config.reward_function_by_data_source[source] == "librispeech"
+    assert OmegaConf.to_container(config.data.data_source) == {
+        "earnings_fy27": {"num_sample": 0, "shuffle": True},
+        "openml": {"num_sample": openml_samples, "shuffle": True},
+        "ls_rare_verb": {"num_sample": ls_samples, "shuffle": True},
+    }
+    assert config.data.shuffle is shuffle
+    assert config.data.use_interleave is False
+    assert config.data.data_source.ls_rare_verb.num_sample == math.floor(
+        config.data.data_source.openml.num_sample * 0.5
+    )
+    inputs = [
+        datasets.Dataset.from_dict({"id": [name], "data_source": [name]})
+        for name in config.data.data_source
+    ]
+    sampled = source_sampler(inputs, config.data.data_source)
+    assert [group[0]["data_source"] for group in sampled] == ["openml", "ls_rare_verb"]
+    assert [len(group) for group in sampled] == [openml_samples, ls_samples]
+    combined = datasets.concatenate_datasets(sampled)
+    assert list(combined["data_source"]) == ["openml"] * openml_samples + ["ls_rare_verb"] * ls_samples
+    steps_per_pass = sum(len(group) for group in sampled) // config.data.train_batch_size
+    assert steps_per_pass == total_steps // 2
+    assert config.trainer.total_epochs == 2
+    assert config.trainer.total_training_steps == 2 * steps_per_pass == total_steps
+
+    config._ls_train.jsonl_paths = original._ls_train.jsonl_paths
+    config._ls_train.pre_process = original._ls_train.pre_process
+    config.data.data_source = original.data.data_source
+    config.data.shuffle = original.data.shuffle
+    config.trainer.total_training_steps = original.trainer.total_training_steps
+    assert OmegaConf.to_container(config, resolve=False) == OmegaConf.to_container(original, resolve=False)
+
+
 def _load_flatten_data_confs():
     module_path = Path(__file__).parents[3] / "recipe/phimm/data/rl_dataset.py"
     module = ast.parse(module_path.read_text())
