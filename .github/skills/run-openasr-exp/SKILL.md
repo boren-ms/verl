@@ -1,7 +1,7 @@
 ---
 name: run-openasr-exp
-description: "Use verl-asr-run to run a training config YAML on a specified Brix pool, start early background ZIP evaluation-audio precaching only on the main pod without blocking decoding, and evaluate its last complete checkpoint with recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml, then use openasr-report to build the results workbook. Optionally replace an explicitly authorized previous job or honor an explicit eval config override. Use when: train then evaluate last checkpoint, replace a training job and report OpenASR, run eval_2609r2_openall_mix_zip after training, or resume a train-to-OpenASR pipeline."
-argument-hint: "<train.yaml> --node <pool> [--stop-previous | --stop-job <ray-id>] [--eval-config <eval.yaml>] [--out <report.xlsx>] [launch|resume|status]"
+description: "Use verl-asr-run to train or evaluate ready ASR checkpoints on a specified Brix pool, with early main-pod-only nonblocking ZIP audio precaching, then use openasr-report to build the results workbook. Check checkpoint artifacts, not source training completion; defer unready queued checkpoints and evaluate the next ready request. Use when: train and report, evaluate an explicit checkpoint, queue checkpoint evaluations, or resume an OpenASR pipeline."
+argument-hint: "<train.yaml> --node <pool> [--step <N> | --checkpoint <path>] [--stop-previous | --stop-job <ray-id>] [--eval-config <eval.yaml>] [--out <report.xlsx>] [launch|resume|status]"
 ---
 
 # Run OpenASR Experiment
@@ -15,6 +15,13 @@ Own one end-to-end pipeline:
 Start audio precaching only on the main pod as an early independent background task; it runs
 alongside training/export and decoding, never as a gate in this pipeline.
 
+**Checkpoint readiness, not training-job completion, gates evaluation.**
+For explicit or queued checkpoint evaluations, skip training submission and inspect
+the exact requested checkpoint path. Source training may still be running or may
+have stopped or failed; its lifecycle status alone must not block a complete,
+provenance-verified checkpoint. Never stop or change source training to evaluate it.
+If a queued checkpoint is not ready, defer it and check the next request for readiness.
+
 This skill is stored in the repository and orchestrates the dependent skills.
 Invoke `verl-asr-run` to execute and monitor both training and evaluation,
 not merely as a mechanics reference. Invoke `remote-development` when needed
@@ -26,13 +33,13 @@ directly with the loaded skills and the policy below.
 
 | Input | Behavior |
 | --- | --- |
-| Training config | Required existing YAML under `recipe/phimm/config/`; retain its experiment name. |
+| Training config | Required for launching training; for evaluation-only requests, recover the actual producer config/base/rank/alpha from the checkpoint's provenance. Retain the experiment name. |
 | Node | Required Brix pool; normalize `n4i0` or `n4-i0` to `verl-n4-i0`. |
-| Eval node count | Must equal the successful training run's effective `trainer.nnodes`, including training overrides; use the same pool. |
+| Eval node count | Default to the producing run's effective `trainer.nnodes` and pool. Honor an explicitly authorized evaluation pool/topology override, retaining actual source topology in provenance. |
 | Stop previous | Disabled unless explicitly requested. `--stop-job` identifies one submission; `--stop-previous` requires one unambiguous previous active job. |
 | Eval config | Default `recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml`; honor any explicit replacement. |
 | Eval audio cache | Start `recipe.phimm.cache_eval_audio` early in the background only on the main pod to cache physical ZIP archives for the resolved suite; never wait for it before submitting or decoding evaluation. |
-| Checkpoint | Last complete checkpoint of this training run, by numeric step, not best validation score. |
+| Checkpoint | Exact user-requested step/path when supplied; otherwise the numerically last complete checkpoint observed for this run, not best validation score. Readiness is artifact-based, independent of training lifecycle. |
 | Report | Default `tmp/openasr_report/<train-stem>_step<step>.xlsx`. |
 | Operation | `launch` starts the pipeline; `resume` reconciles existing work; `status` is read-only. |
 
@@ -47,21 +54,25 @@ without stopping, submitting, or scheduling remote jobs.
 
 ## Required skill handoffs
 
-1. Invoke `/verl-asr-run` with the supplied training config YAML and requested
+1. **Training launch only:** invoke `/verl-asr-run` with the supplied training config YAML and requested
    pool. Request **training only** from that invocation; leave its automatic
    best-checkpoint/standard-benchmark post-training pipeline disabled.
    Pass the replacement authorization, if any, and the safety constraints
    below. Once training is verified running, start section 5's background audio
    precache workflow without waiting for training to finish. Continue monitoring
-   training until verified completion.
-2. Resolve and export this run's **last complete checkpoint** as described
+   training until verified completion independently of checkpoint evaluation.
+   Do not wait for that completion before handoff 2 when a checkpoint is ready
+   and authorized export/evaluation resources are free. For evaluation-only or queued requests,
+   skip this handoff; do not restart or extend source training.
+2. Resolve and export the **requested checkpoint**, or this run's **last complete
+   checkpoint** when no step/path was supplied, as described
    in section 4. This skill owns checkpoint selection; do not let the general
    runner replace it with a best-validation checkpoint.
 3. Invoke `/verl-asr-run` again for a **standalone evaluation** using
    `recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml` unless the user
    explicitly supplied another eval YAML. Keep section 5's early background
-   audio precaching running alongside decoding; do not wait for it. Supply the verified last-checkpoint
-   HF export, same pool and node count as training, unique evaluation
+   audio precaching running alongside decoding; do not wait for it. Supply the verified checkpoint
+   HF export, producing run's pool/node count unless explicitly overridden, unique evaluation
    experiment name, and section 5's overrides. Wait for all configured
    evaluation datasets to finish.
 4. Invoke `/openasr-report` with the candidate label, canonical metrics,
@@ -72,7 +83,7 @@ Example handoff requests (natural-language skill inputs, not shell commands):
 
 ```text
 /verl-asr-run Run <train.yaml> on <pool>; training only, no automatic post-training benchmark. Follow run-openasr-exp safety constraints and shared pipeline monitor.
-/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml on <pool> with model <verified-last-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<training-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the successful training run's effective node count, not the eval YAML default or currently available node count. Keep the early recipe.phimm.cache_eval_audio task caching physical ZIP archives only on the main pod alongside decoding; its completion or failure must not block evaluation submission. Do not launch prefetchers on worker pods. Follow the same pipeline constraints and monitor.
+/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval/eval_2609r2_openall_mix_zip.yaml on <authorized-eval-pool> with model <verified-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<verified-eval-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the producing run's effective node count unless an explicit evaluation-topology override was authorized, not the eval YAML default or currently available node count. Check checkpoint readiness, not source training completion; leave source jobs untouched. Keep the early recipe.phimm.cache_eval_audio task caching physical ZIP archives only on the main pod alongside decoding; its completion or failure must not block evaluation submission. Do not launch prefetchers on worker pods. Follow the same pipeline constraints and shared monitor.
 /openasr-report <train-stem>@step<N> --metrics <artifact-dir>/metrics.json --model-info <artifact-dir>/model_info.json --dataset-results <artifact-dir>/dataset_results.json --out <report.xlsx>
 ```
 
@@ -82,6 +93,13 @@ The following pipeline constraints take precedence over `verl-asr-run`'s
 generic defaults during both handoffs:
 
 - Select the **last complete** checkpoint, never the best validation checkpoint.
+  An explicit requested step/path takes precedence; never substitute another step.
+- Check checkpoint readiness without waiting for source training `SUCCEEDED`.
+  This overrides the general runner's post-training completion gate for this
+  skill's checkpoint-evaluation handoff. Use standalone evaluation, not its
+  automatic best-checkpoint pipeline.
+- For a queue, move a genuinely missing/incomplete checkpoint to the tail and
+  check the next request in the same tick. Follow section 4's bounded readiness pass.
 - Run the **specified eval YAML**, not the full in-house/reference benchmark
   suite. Do not invoke `eval-2609-benchmark-report` automatically.
 - Precache evaluation audio with the existing
@@ -90,10 +108,11 @@ generic defaults during both handoffs:
   downloader or claim completed precaching from process startup. Downloads run
   only on the main pod in the background; incomplete or failed prefetching must not gate evaluation,
   whose existing on-demand cache handles audio not yet prefetched.
-- Keep training and evaluation on the requested pool. A Brix pool can contain
+- Keep training and evaluation on their authorized pools. A Brix pool can contain
   multiple Ray GPU nodes: `verl-n4-i0` normally has four pods and 32 GPUs.
-  Set evaluation `trainer.nnodes` to the successful training run's effective
-  value. Do not force `trainer.nnodes=1` merely because there is one pool name,
+  Set evaluation `trainer.nnodes` to the producing run's effective
+  value unless the user explicitly authorized a different evaluation topology.
+  Do not force `trainer.nnodes=1` merely because there is one pool name,
   or change the count to match currently available nodes.
 - Stop only the authorized previous Ray submission. Never call
   `ray_job.py cleanup`, including through `submit_job.sh`'s default cleanup.
@@ -122,9 +141,11 @@ existing state path recorded by this pipeline's monitor rather than starting
 a duplicate run because the skill was renamed. Store:
 
 - Normalized train/eval paths, pool, experiment names, overrides, code snapshot,
-  output roots, checkpoint policy `last_complete`, and replacement authorization.
-- `training_nnodes` from the successful training run's resolved config and
-  runtime logs, and `eval_nnodes`, which must equal `training_nnodes`. Update
+  output roots, checkpoint policy `user_requested_step`/`user_requested_path` or
+  `last_complete`, requested step/path, and replacement authorization.
+- `training_nnodes` from the producing run's resolved config and
+  runtime logs, and `eval_nnodes`, which must equal `training_nnodes` unless an
+  explicit evaluation-topology authorization is recorded. Update
   training topology provenance if an authorized recovery changes it.
 - Current phase, stopped job ID, training/export/eval job IDs and statuses,
   observed step/target, selected checkpoint path and step, W&B and Ray URLs.
@@ -134,6 +155,10 @@ a duplicate run because the skill was renamed. Store:
   log/summary paths, counts, and completion time. Keep this separate from the
   main training/export/evaluation phase, including explicit prefetch failures.
 - Report path, verified artifact paths, and current monitor identity.
+- Fresh checkpoint-readiness observation time, missing/empty shards, current
+  fingerprints and producer identity; source lifecycle as informational provenance,
+  not a readiness gate. For queues, reciprocal links, deferral count/time/positions
+  and predecessor-report dependencies.
 
 Do not store credentials or signed URLs. Never treat files left by a previous
 run with the same experiment name as proof this run succeeded. Reconcile live
@@ -215,10 +240,12 @@ inputs do not depend on checkpoint weights. Run inventory preparation and
 downloads asynchronously so they do not hold up training monitoring, export,
 or evaluation submission.
 
-Require Ray `SUCCEEDED`, the intended final training step, and finished
-checkpoint writes before advancing. If epochs exhaust before the step target,
-recover to the intended target rather than reporting full completion.
-Do not launch checkpoint evaluation while training is running.
+Require Ray `SUCCEEDED` and the intended final step only when claiming the
+training task itself completed. If epochs exhaust before its target, recover
+that training task rather than claiming full completion. Evaluation eligibility
+is separate: a complete checkpoint may be exported/evaluated while source
+training continues, provided the authorized evaluation/export resources are idle.
+Do not evict source training to free those resources.
 
 ## 4. Resolve and export the last complete checkpoint
 
@@ -229,13 +256,42 @@ are complete and belong to this run. Do not assume every pod contains every
 shard, that a directory name proves completeness, or that an old HF export
 with the same path is current.
 
-Choose the largest complete step after successful training. Wait for the
-final save if still uploading; never silently fall back past an incomplete
-expected final save. Record the actual selected step (which need not equal
-the target if the configured save behavior legitimately differs). Do not
-substitute an earlier checkpoint because its validation metric is better.
+For an explicit step/path, inspect only that exact checkpoint at its turn;
+do not require a terminal source job or substitute another step. Otherwise,
+choose the largest complete step currently observed and record the observation
+time. An incomplete newer save is not complete; for an explicitly requested final
+step, keep that request pending rather than substituting an earlier checkpoint.
+Never select an earlier checkpoint because its validation metric is better.
 
-Wait until the training pool is free. If an HF export verified against this
+### Readiness-aware evaluation queue
+
+1. Reconcile durable queue links and existing active work first. Do not duplicate,
+   rotate, or interrupt an export/evaluation/report already in progress.
+2. At a request's turn, freshly inspect its exact checkpoint path. Ready means
+   all required nonempty actor shards for the verified producer world size with
+   completed writes and matched provenance, or an exact-step HF export verified
+   against that checkpoint. A directory name alone is not proof. Missing HF
+   weights with complete actor shards means export is needed, not an unready checkpoint.
+3. Missing/empty/incomplete shards or unfinished uploads: persist the observation,
+   deferral time/count and old/new position, move the request to the current tail,
+   and immediately inspect the next request. Preserve every other request's
+   relative order and authorization; never mark a deferred report complete.
+4. Update reciprocal forward/backward links and only affected
+   predecessor-report -> preflight todo dependencies; preserve registration and
+   within-request lifecycle dependencies. Refresh the single shared monitor's FIFO.
+5. Check each distinct unfinished request at most once per tick. Start the first
+   ready request; if none are ready, persist the queue and retry in five minutes.
+   Authentication, unreadable artifacts and unresolved provenance are explicit
+   errors, not evidence of a missing checkpoint; diagnose them without hiding the
+   failure or rotating on a fabricated readiness result.
+
+Source `RUNNING`, `STOPPED`, `FAILED`, `LOST`, or `SUCCEEDED` alone neither proves
+nor disproves checkpoint readiness. Independently verify each step's actual
+producer, effective base/topology/rank/alpha and current fingerprints, including
+same-name recoveries or overwritten output paths; never reuse another step's proof.
+
+Require the authorized export/evaluation pool to be free, not the source training
+pool when the user authorized a separate target. If an HF export verified against this
 checkpoint already exists, reuse it. Otherwise use the converter at its
 current repository location:
 
@@ -266,25 +322,28 @@ assets before publishing to `<training-output>/global_step_<N>/qwen_hf/`.
 Verify the uploaded files. Never reuse a cached failed export; invalidate
 only specifically identified stale files, not broad cache directories.
 
-## 5. Evaluate on the same pool and node count as training
+## 5. Evaluate on the authorized pool and node count
 
 Invoke `verl-asr-run` for the standalone-evaluation handoff only after the
-last-checkpoint export is verified. Supply the exact eval YAML and exported
+selected-checkpoint export is verified. Supply the exact eval YAML and exported
 model path; do not enable the runner's best-checkpoint benchmark pipeline.
 
 Compose the exact requested eval YAML and inventory its datasets. Retrieve
-`training_nnodes` from the successful training run's effective resolved
+`training_nnodes` from the producing run's effective resolved
 config, including overrides, and confirm it against runtime logs. Set eval
-`trainer.nnodes` explicitly to that value, overriding any eval YAML default.
+`trainer.nnodes` explicitly to that value, overriding any eval YAML default,
+unless the user explicitly authorized a different evaluation topology.
 For example, training with `trainer.nnodes=4` requires evaluation with
-`trainer.nnodes=4`, even if the eval YAML defaults to 1.
+`trainer.nnodes=4`, even if the eval YAML defaults to 1, unless a different
+evaluation topology was explicitly authorized.
 
-Require the pool to be idle and at least `training_nnodes` healthy GPU Ray
+Require the evaluation pool to be idle and at least `eval_nnodes` healthy GPU Ray
 nodes to be available before launching. Count GPU-capable nodes, not Brix
 pool names or CPU-only Ray nodes. If too few are available, recover node
 readiness or record a blocker and wait; never silently reduce the evaluation
-node count, increase it to use spare nodes, or move evaluation to another
-pool. If training topology provenance is missing, recover it from this run's
+node count, increase it to use spare nodes, or move evaluation to an unauthorized
+pool. Source training need not finish or release GPUs on a separate source pool.
+If training topology provenance is missing, recover it from this run's
 resolved config/logs rather than guessing from the pool size.
 
 Sync current code again before evaluation. Reconcile the early background
@@ -381,14 +440,15 @@ new LoRA adapters for the already-merged model, and prevent training resume:
 ```bash
 brix ssh <pool> -- 'bash -l /root/code/verl/quick_run.sh <eval.yaml> \
   trainer.experiment_name=<candidate-eval-name> \
-  trainer.nnodes=<training-nnodes> \
+  trainer.nnodes=<verified-eval-nnodes> \
   trainer.resume_mode=disable \
   actor_rollout_ref.model.path=<verified-hf-export> \
   actor_rollout_ref.model.lora_rank=0'
 ```
 
 Check the composed config is validation-only and uses the intended candidate.
-Before submission, verify `eval trainer.nnodes == training_nnodes`; audio
+Before submission, verify `eval trainer.nnodes == training_nnodes` or matches
+the explicitly recorded evaluation-topology override; audio
 prefetch may still be preparing, running, or failed and is not a submission
 gate. After
 startup, verify the effective config and runtime worker topology use that
@@ -480,8 +540,11 @@ After verifying a live submission, install or update that monitor using the
 scheduling tool. Its prompt must identify this skill, `verl-asr-run` for
 training/evaluation and `openasr-report` for reporting, the durable
 state path, node, train/eval configs and current Ray job ID, and explicitly
-retain the **last complete checkpoint -> specified eval -> OpenASR report**
+retain the **ready requested/last complete checkpoint -> specified eval -> OpenASR report**
 policy with **early main-pod-only audio precache in parallel, never gating decoding**.
+State explicitly that source training completion is not an evaluation gate,
+and that missing/incomplete queued checkpoints move to the tail while the monitor
+checks the next request, at most one pass per tick.
 Inspect existing schedules and replace only this pipeline's stale
 monitor after resubmission or phase changes. Plain text claiming monitoring
 is installed is not sufficient.
@@ -490,6 +553,9 @@ On each tick, rediscover current jobs and reconcile artifacts before taking
 action; update durable state and the pool's status row. Resume from the
 first incomplete phase. Never double-submit an export/evaluation, restart
 training after it succeeded, or stop unrelated work encountered on recovery.
+Replace stale source-training-completion blockers with fresh checkpoint-path
+readiness observations. Record source lifecycle accurately without making it
+a prerequisite, and never relabel a failed/stopped source job as successful.
 `status` only observes and reports; it does not schedule or advance work.
 
 Keep monitoring through training, export, evaluation and workbook validation,

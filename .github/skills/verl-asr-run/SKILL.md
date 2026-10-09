@@ -13,6 +13,13 @@ Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`
 For evaluation, start audio precaching early in the background **only on the
 main pod**, using Step 1c. It overlaps model startup/export and decoding;
 prefetch preparation, completion, or failure must never block evaluation.
+For standalone checkpoint evaluation, verify the requested checkpoint/HF
+artifacts and provenance, not whether source training reached `SUCCEEDED`.
+Source training may continue on a separate authorized pool; leave it untouched
+and require only the evaluation target's resources to be idle. When invoked by
+[run-openasr-exp](../run-openasr-exp/SKILL.md#readiness-aware-evaluation-queue),
+follow its readiness-aware queue: defer missing/incomplete checkpoints and check
+the next request without enabling this runner's automatic post-training pipeline.
 When this skill is invoked only to edit its instructions, do not launch,
 stop, or schedule remote jobs.
 
