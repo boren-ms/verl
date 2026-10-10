@@ -1,0 +1,89 @@
+# Keep OpenML, earnings, and LibriSpeech bad cases grouped in that order at a 2:1:1 sample ratio.
+# Shuffle within each source; sample 26338/13168/13168 and run one full epoch with a constant LR of 5e-7.
+# Add word/character insertion and deletion accuracies with beta 0.5 and a fixed average divisor of 6.
+# Earnings and LibriSpeech share the keyword-aware reward; OpenML retains its bracket measure.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/openml_verb_langhint@_ml_train
+  - /data/train_data/earnings_tts_verb_langhint@_earning_train
+  - /data/train_data/ls_rare_bad_verb_langhint@_ls_train
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/ls_kw_verb_langhint@_ls_val
+  - _self_
+
+reward_functions:
+  openml:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 6}
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        char_del: {beta: 0.5}
+        char_ins: {beta: 0.5}
+        word_del: {beta: 0.5}
+        word_ins: {beta: 0.5}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.5}
+        bracket: {beta: 1.0}
+  librispeech:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 6}
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        char_del: {beta: 0.5}
+        char_ins: {beta: 0.5}
+        word_del: {beta: 0.5}
+        word_ins: {beta: 0.5}
+        keyword: {beta: 1.0}
+        lang: {beta: 0.5}
+        fmt: {beta: 0.5}
+
+reward_function_by_data_source:
+  openml: openml
+  earnings_fy27: librispeech
+  ls_rare_verb: librispeech
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 256
+  actor:
+    optim:
+      lr: 5.0e-7
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 16
+
+data:
+  data_source:
+    openml: {num_sample: 26338, shuffle: true}
+    earnings_fy27: {num_sample: 13168, shuffle: true}
+    ls_rare_verb: {num_sample: 13168, shuffle: true}
+  train_data:
+    - ${_ml_train}
+    - ${_earning_train}
+    - ${_ls_train}
+  val_data:
+    - ${_earning_val}
+    - ${_ml_val}
+    - ${_ls_val}
+  train_batch_size: 128
+  shuffle: false
+
+trainer:
+  nnodes: 4
+  total_epochs: 1
+  total_training_steps: null
