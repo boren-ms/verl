@@ -1,13 +1,15 @@
-# Keep earnings, OpenML including repeats, and LibriSpeech bad cases grouped at a 1:2:2 sample ratio.
-# Shuffle within each source, sample 7000/14000/14000 rows respectively, and run two epochs with a constant LR.
+# Globally shuffle OpenML, earnings, and LibriSpeech bad cases at approximately a 4:1:2 sample ratio.
+# Shuffle within each source; sample 26338/6584/13168 and run three full epochs with a constant LR of 8e-7.
+# Add word/character insertion and deletion accuracies with beta 0.5 and a fixed average divisor of 6.
+# Earnings and LibriSpeech share the keyword-aware reward; OpenML retains its bracket measure.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/earnings_tts_verb_langhint@_earning_train
   - /data/train_data/openml_verb_langhint@_ml_train
+  - /data/train_data/earnings_tts_verb_langhint@_earning_train
   - /data/train_data/ls_rare_bad_verb_langhint@_ls_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
   - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
@@ -15,26 +17,19 @@ defaults:
   - _self_
 
 reward_functions:
-  earnings:
-    path: recipe/phimm/reward/asr_measure.py
-    name: compute_score
-    reward_kwargs:
-      version: 2609
-      reduce: {mode: average, total: 4}
-      measures:
-        char: {beta: 1.0}
-        word: {beta: 1.0}
-        lang: {beta: 0.5}
-        fmt: {beta: 0.5}
   openml:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
     reward_kwargs:
       version: 2609
-      reduce: {mode: average, total: 4}
+      reduce: {mode: average, total: 6}
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
+        char_del: {beta: 0.5}
+        char_ins: {beta: 0.5}
+        word_del: {beta: 0.5}
+        word_ins: {beta: 0.5}
         lang: {beta: 0.5}
         fmt: {beta: 0.5}
         bracket: {beta: 1.0}
@@ -43,17 +38,21 @@ reward_functions:
     name: compute_score
     reward_kwargs:
       version: 2609
-      reduce: {mode: average, total: 4}
+      reduce: {mode: average, total: 6}
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
+        char_del: {beta: 0.5}
+        char_ins: {beta: 0.5}
+        word_del: {beta: 0.5}
+        word_ins: {beta: 0.5}
         keyword: {beta: 1.0}
         lang: {beta: 0.5}
         fmt: {beta: 0.5}
 
 reward_function_by_data_source:
-  earnings_fy27: earnings
   openml: openml
+  earnings_fy27: librispeech
   ls_rare_verb: librispeech
 
 actor_rollout_ref:
@@ -62,7 +61,7 @@ actor_rollout_ref:
     lora_rank: 256
   actor:
     optim:
-      lr: 3.0e-6
+      lr: 8.0e-7
       warmup_style: constant
       lr_warmup_steps: 0
   rollout:
@@ -70,21 +69,21 @@ actor_rollout_ref:
 
 data:
   data_source:
-    earnings_fy27: {num_sample: 7000, shuffle: true}
-    openml: {num_sample: 14000, shuffle: true}
-    ls_rare_verb: {num_sample: 14000, shuffle: true}
+    openml: {num_sample: 26338, shuffle: true}
+    earnings_fy27: {num_sample: 6584, shuffle: true}
+    ls_rare_verb: {num_sample: 13168, shuffle: true}
   train_data:
-    - ${_earning_train}
     - ${_ml_train}
+    - ${_earning_train}
     - ${_ls_train}
   val_data:
     - ${_earning_val}
     - ${_ml_val}
     - ${_ls_val}
-  train_batch_size: 128
-  shuffle: false
+  train_batch_size: 256
+  shuffle: true
 
 trainer:
   nnodes: 4
-  total_epochs: 2
+  total_epochs: 3
   total_training_steps: null
