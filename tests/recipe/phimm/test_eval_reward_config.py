@@ -21,6 +21,8 @@ REWARD_SOURCES = {
         "gigaspeech",
         "earnings22_cleaned_aa_chunked",
         "monsoon_en_in",
+        "urgent2024",
+        "urgent2024_clean",
     ],
     "openasr_ml": [
         "de_fleurs",
@@ -189,6 +191,31 @@ def test_eval_configs_inherit_reward_assignments(config_name):
     if config_name != "eval_base":
         local_config = OmegaConf.load(EVAL_CONFIG_DIR / f"{config_name}.yaml")
         assert "reward_function_by_data_source" not in local_config.get("val_reward", {})
+
+
+@pytest.mark.parametrize("config_name", ["eval_2609r2_urgent_zip", "eval_2609r2a_urgent_zip"])
+def test_urgent_eval_sources_dispatch_to_english_scorer(config_name):
+    from verl.trainer.ppo.reward import get_reward_fn_dispatcher
+
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        config = compose(config_name=config_name)
+    scorer = get_reward_fn_dispatcher(config.val_reward)
+    entries = [row for group in config.data.val_data for row in group]
+    assert [row.post_process.add_field.fields.data_source for row in entries] == [
+        "urgent2024", "urgent2024_clean",
+    ]
+    for row in entries:
+        source = row.post_process.add_field.fields.data_source
+        assert config.val_reward.reward_function_by_data_source[source] == "openasr_en"
+        result = scorer(
+            source,
+            "<TXT>hello world</TXT>",
+            "hello world",
+            extra_info={"language": "English"},
+        )
+        assert result["score"] == 1.0
+        assert result["n_err"] == 0
+        assert result["n_ref"] == 2
 
 
 @pytest.mark.parametrize(

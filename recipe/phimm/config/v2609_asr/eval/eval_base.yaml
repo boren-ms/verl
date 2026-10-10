@@ -24,6 +24,8 @@ val_reward:
     earnings22_cleaned_aa: ${val_reward.aa_reward_function}
     earnings22_cleaned_aa_chunked: openasr_en
     monsoon_en_in: openasr_en
+    urgent2024: openasr_en
+    urgent2024_clean: openasr_en
     de_fleurs: openasr_ml
     fr_fleurs: openasr_ml
     it_fleurs: openasr_ml

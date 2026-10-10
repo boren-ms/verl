@@ -4,6 +4,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 from pathlib import Path
 import hashlib
+import json
 import os
 import re
 
@@ -58,12 +59,28 @@ def merge_lora(
     baseline: Mapping[str, torch.Tensor],
     lora_state: Mapping[str, torch.Tensor],
     scaling: float,
+    mtp_baseline: Mapping[str, torch.Tensor] | None = None,
 ) -> tuple[OrderedDict[str, torch.Tensor], list[str]]:
     merged = normalize_baseline_keys(baseline)
+    if mtp_baseline is not None:
+        mtp_state = OrderedDict(
+            (key, tensor) for key, tensor in normalize_baseline_keys(mtp_baseline).items()
+            if key.startswith("mtp.")
+        )
+        if not mtp_state:
+            raise ValueError("MTP baseline contains no mtp.* tensors")
+        for key, tensor in mtp_state.items():
+            if LORA_KEY_PATTERN.match(key):
+                raise ValueError(f"MTP baseline must contain plain, unchanged MTP tensors: {key}")
+            if key in merged and (merged[key].dtype != tensor.dtype or not torch.equal(merged[key], tensor)):
+                raise ValueError(f"MTP baseline conflicts with baseline tensor: {key}")
+            merged[key] = tensor
     pairs = collect_pairs(lora_state)
     updated_keys = []
 
     for (prefix, adapter), sides in sorted(pairs.items()):
+        if prefix.startswith("mtp."):
+            raise ValueError(f"LoRA must not modify baseline MTP tensors: {prefix}")
         _, a = sides["A"]
         _, b = sides["B"]
         base_key = f"{prefix}.weight"
@@ -84,12 +101,37 @@ def merge_lora(
     return merged, updated_keys
 
 
+def validate_mtp_layers(state: Mapping[str, torch.Tensor], config_path: Path) -> None:
+    if not config_path.is_file():
+        return
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    depth = config.get("mtp_num_hidden_layers", 0)
+    if not isinstance(depth, int) or isinstance(depth, bool) or depth < 0:
+        raise ValueError(f"Invalid mtp_num_hidden_layers in {config_path}: {depth}")
+    layers = {
+        int(match.group(1)) for key in state
+        if (match := re.match(r"^mtp\.layers\.(\d+)\.", key))
+    }
+    missing = sorted(set(range(depth)) - layers)
+    if missing:
+        raise ValueError(
+            f"Baseline is missing configured MTP layers {missing}; "
+            "use --mtp-baseline with the original full baseline checkpoint"
+        )
+
+
 def write_checkpoint(state: OrderedDict[str, torch.Tensor], output: Path) -> str:
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_name(f".{output.name}.tmp")
     if temporary.exists():
         temporary.unlink()
-    torch.save({"module": state}, temporary)
+    # Training MTP views can share flat storage with unrelated parameters.
+    serializable = OrderedDict(
+        (key, tensor.clone() if key.startswith("mtp.")
+         and tensor.untyped_storage().nbytes() > tensor.numel() * tensor.element_size() else tensor)
+        for key, tensor in state.items()
+    )
+    torch.save({"module": serializable}, temporary)
     os.replace(temporary, output)
 
     digest = hashlib.md5()
@@ -104,6 +146,10 @@ def write_checkpoint(state: OrderedDict[str, torch.Tensor], output: Path) -> str
 def parse_args():
     parser = ArgumentParser(description="Merge extracted verl LoRA A/B weights into a full baseline checkpoint.")
     parser.add_argument("--baseline", required=True, type=Path)
+    parser.add_argument(
+        "--mtp-baseline", type=Path,
+        help="Original full baseline checkpoint supplying unchanged mtp.* tensors if baseline was inference-pruned.",
+    )
     parser.add_argument("--lora", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--lora-alpha", type=float, default=640.0)
@@ -113,7 +159,10 @@ def parse_args():
 
 def main() -> None:
     args = parse_args()
-    if args.output.resolve() in {args.baseline.resolve(), args.lora.resolve()}:
+    inputs = {args.baseline.resolve(), args.lora.resolve()}
+    if args.mtp_baseline is not None:
+        inputs.add(args.mtp_baseline.resolve())
+    if args.output.resolve() in inputs:
         raise ValueError("Output must differ from baseline and LoRA input paths")
     if args.lora_rank <= 0:
         raise ValueError("LoRA rank must be positive")
@@ -124,10 +173,13 @@ def main() -> None:
         raise ValueError("LoRA artifact must be a bare tensor dictionary")
 
     scaling = args.lora_alpha / args.lora_rank
-    merged, updated_keys = merge_lora(baseline, lora_state, scaling)
+    mtp_baseline = load_tensor_dict(args.mtp_baseline)[0] if args.mtp_baseline is not None else None
+    merged, updated_keys = merge_lora(baseline, lora_state, scaling, mtp_baseline)
+    validate_mtp_layers(merged, args.baseline.parent / "config.json")
     checksum = write_checkpoint(merged, args.output)
     print(
         f"{args.output}: {len(merged)} tensors, {len(updated_keys)} LoRA pairs merged, "
+        f"{sum(key.startswith('mtp.') for key in merged)} baseline MTP tensors preserved, "
         f"scaling={scaling:g}, wrapped=True, baseline_wrapped={wrapped}, md5={checksum}"
     )
 
