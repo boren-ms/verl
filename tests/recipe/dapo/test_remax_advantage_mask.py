@@ -1,9 +1,12 @@
 from dataclasses import replace
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
 import torch
+from hydra import compose, initialize_config_dir
+from omegaconf import OmegaConf
 
 from recipe.dapo.dapo_ray_trainer import _attach_remax_disagreement_mask
 from verl import DataProto
@@ -15,6 +18,7 @@ from verl.trainer.ppo.ray_trainer import (
     compute_advantage,
     compute_response_mask,
 )
+from verl.utils.config import omega_conf_to_dataclass
 
 
 def _rollouts(responses):
@@ -87,6 +91,86 @@ def _advantage_batch():
     )
 
 
+def test_remax_measure_order_survives_config_conversion_and_batch_operations():
+    algorithm = OmegaConf.create(
+        {
+            "_target_": "verl.trainer.config.AlgoConfig",
+            "adv_estimator": "remax",
+            "remax_measures": {"char": {"beta": 2.0, "delta": 0}, "lang": {"beta": 1.0, "delta": 0}},
+        }
+    )
+    config = omega_conf_to_dataclass(algorithm)
+    assert list(config.remax_measures) == ["char", "lang"]
+    original = _advantage_batch().repeat(2, interleave=True)
+    retained = original[torch.tensor([0, 2, 3])]
+    merged = DataProto.concat([retained[:1], retained[1:]])
+    merged.reorder(torch.tensor([2, 0, 1]))
+    for cfg in (algorithm, config):
+        actual = compute_advantage(merged, "remax", config=cfg)
+        raw = torch.tensor(merged.non_tensor_batch["char"], dtype=torch.float)
+        expected = 2 * (raw - merged.batch["reward_baselines_char"])
+        torch.testing.assert_close(actual.batch["advantages"], expected[:, None] * actual.batch["response_mask"])
+        torch.testing.assert_close(actual.batch["returns"], (2 * raw + 1)[:, None] * actual.batch["response_mask"])
+
+
+@pytest.mark.parametrize(
+    "overrides,error",
+    [
+        ({"adv_estimator": "gdpo", "remax_measures": {"char": {"delta": 0}}}, "adv_estimator=remax"),
+        ({"use_kl_in_reward": True, "remax_measures": {"char": {"delta": 0}}}, "actor-side KL"),
+        ({"gdpo_reward_keys": ["char"]}, "GDPO-only"),
+        ({"gdpo_reward_weights": [1]}, "GDPO-only"),
+    ],
+)
+def test_remax_measure_configuration_rejected_before_trainer_startup(overrides, error):
+    algorithm = AlgoConfig(**{"adv_estimator": "remax", **overrides})
+    with pytest.raises(ValueError, match=error):
+        RayPPOTrainer(
+            SimpleNamespace(algorithm=algorithm), tokenizer=None, role_worker_mapping={}, resource_pool_manager=None
+        )
+    with pytest.raises(ValueError, match=error):
+        compute_advantage(_advantage_batch(), algorithm.adv_estimator, config=algorithm)
+
+
+@pytest.mark.parametrize(
+    "recipe,keys,weights,norm",
+    [
+        ("remax/remax_r2_punc_p0_7_n12_s200_multi", ["char", "punc"], [1, 1], None),
+        ("remax/remax_r2_punc_p0_7_n12_s1k_multi", ["char", "punc"], [1, 1], None),
+        (
+            "ver_2607v1_exp/remax_2607v1_mix_openml2x_verb_s100_bs256_n2_w10_fp8_lid",
+            ["char", "word", "fmt", "lang", "bracket", "repeat"],
+            [1, 1, 1, 1, 10, 10],
+            "l2",
+        ),
+        (
+            "ver_2607v1_exp/remax_2607v1_mix_openml2x_verb_s100_bs256_n2_gdpo_l2_fp8_lid",
+            ["char", "word", "fmt", "lang", "bracket", "repeat"],
+            [1, 1, 1, 1, 1, 1],
+            "l2",
+        ),
+        (
+            "ver_2607v1_exp/remax_2607v1_mix_openml2x_verb_s100_bs256_n4_gdpo_fp8_lid",
+            ["char", "word", "fmt", "lang", "bracket", "repeat"],
+            [1, 1, 1, 1, 1, 1],
+            None,
+        ),
+    ],
+)
+def test_migrated_remax_recipe_composes_without_legacy_keys(recipe, keys, weights, norm):
+    root = Path(__file__).resolve().parents[3]
+    directory, name = recipe.split("/")
+    with initialize_config_dir(config_dir=str(root / "recipe/phimm/config" / directory), version_base=None):
+        algorithm = compose(config_name=name).algorithm
+    assert algorithm.adv_estimator == "remax"
+    assert algorithm.get("gdpo_reward_keys") is None
+    assert algorithm.get("gdpo_reward_weights") is None
+    assert list(algorithm.remax_measures) == keys
+    assert [entry.beta for entry in algorithm.remax_measures.values()] == weights
+    assert all(entry.delta == 0 for entry in algorithm.remax_measures.values())
+    assert algorithm.get("norm_adv_in_remax") == norm
+
+
 @pytest.mark.parametrize("norm", [None, "l2", "rms"])
 @pytest.mark.parametrize("binary", [False, True])
 @pytest.mark.parametrize("multi_reward", [False, True])
@@ -97,15 +181,14 @@ def test_masks_final_advantages_only(norm, binary, multi_reward, mode):
         norm_adv_in_remax=norm,
         binary_adv=binary,
         adv_scale={"openml": 2.0},
-        gdpo_reward_keys=["char", "lang"] if multi_reward else None,
-        gdpo_reward_weights=[0.2, 0.1] if multi_reward else None,
+        remax_measures={"char": {"beta": 0.2, "delta": 0.2}, "lang": {"beta": 0.1, "delta": 0}}
+        if multi_reward
+        else None,
     )
     original = compute_advantage(_advantage_batch(), "remax", config=config)
     masked_config = replace(config, remax_advantage_mask=mode)
     masked = compute_advantage(_advantage_batch(), "remax", config=masked_config)
-    assert torch.equal(
-        masked.batch["advantages"], original.batch["advantages"] * masked.batch["remax_advantage_mask"]
-    )
+    assert torch.equal(masked.batch["advantages"], original.batch["advantages"] * masked.batch["remax_advantage_mask"])
     for key in ("returns", "response_mask", "token_level_scores", "token_level_rewards", "reward_baselines"):
         assert torch.equal(masked.batch[key], original.batch[key])
     assert masked.batch["advantages"][0, 1] > 0

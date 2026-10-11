@@ -21,7 +21,9 @@ implement PPO-like algorithms.
 __all__ = ["register_adv_est", "get_adv_estimator_fn", "AdvantageEstimator"]
 
 import difflib
+import math
 from collections import defaultdict
+from collections.abc import Mapping
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -325,6 +327,19 @@ def compute_grpo_outcome_advantage(
     return scores, scores
 
 
+def _reward_component_tensors(values, size: int, device, key: str) -> tuple[torch.Tensor, torch.Tensor]:
+    raw = np.asarray(values, dtype=object)
+    if raw.shape != (size,):
+        raise ValueError(f"Reward component '{key}' must have shape ({size},)")
+    present = torch.as_tensor([value is not None for value in raw], dtype=torch.bool, device=device)
+    scores = torch.as_tensor(
+        np.asarray([0.0 if value is None else value for value in raw], dtype=np.float32), device=device
+    )
+    if not torch.isfinite(scores).all():
+        raise ValueError(f"Reward component '{key}' must contain only finite present values")
+    return scores, present
+
+
 @register_adv_est(AdvantageEstimator.GDPO)  # or simply: @register_adv_est("gdpo")
 def compute_gdpo_outcome_advantage(
     token_level_rewards: torch.Tensor,
@@ -344,6 +359,9 @@ def compute_gdpo_outcome_advantage(
     Instead of summing all reward dimensions first (like GRPO), GDPO normalizes
     each reward dimension independently within each group before aggregation.
     This prevents a dominant reward signal from drowning out weaker ones.
+    Absent keys and None values are excluded from each component's group statistics.
+    A missing component contributes zero; samples with no available components
+    are excluded from final whitening and receive zero advantage.
 
     Mathematical formulation:
         Step 1 - Group-wise decoupled normalization (via GRPO per dimension):
@@ -358,7 +376,7 @@ def compute_gdpo_outcome_advantage(
 
     Args:
         token_level_rewards: (bs, response_length) - standard token-level rewards.
-            Used as fallback when per-dimension rewards are not provided.
+            Used as fallback only when no algorithm config is provided.
         response_mask: (bs, response_length)
         index: (bs,) - group id per sample (from ``uid``).
         epsilon: Numerical stability constant.
@@ -376,19 +394,16 @@ def compute_gdpo_outcome_advantage(
         advantages: (bs, response_length)
         returns: (bs, response_length) - same as advantages (outcome-only).
     """
-    score_list = None
-    reward_weights = None
-
-    if config is not None and non_tensor_batch is not None and batch is not None:
-        gdpo_reward_keys = config.get("gdpo_reward_keys", None)
+    device = token_level_rewards.device
+    size = response_mask.shape[0]
+    gdpo_reward_keys = config.get("gdpo_reward_keys", None) if config is not None else None
+    if config is not None:
         assert gdpo_reward_keys, (
             "GDPO requires 'algorithm.gdpo_reward_keys' listing the individual reward "
             "component keys returned by compute_score (e.g. ['char', 'punc'])."
         )
-        device = token_level_rewards.device
-        prompt_length = batch["prompts"].size(1)
-        valid_response_length = batch["attention_mask"][:, prompt_length:].sum(dim=1) - 1
-
+        if non_tensor_batch is None:
+            raise ValueError("GDPO configured reward components require non_tensor_batch")
         gdpo_weights = config.get("gdpo_reward_weights", None)
         if gdpo_weights is not None:
             assert len(gdpo_weights) == len(gdpo_reward_keys), (
@@ -396,56 +411,44 @@ def compute_gdpo_outcome_advantage(
                 f"'gdpo_reward_keys' has {len(gdpo_reward_keys)} entries; they must match."
             )
 
-        score_list = []
-        reward_weights = [] if gdpo_weights is not None else None
+        components = []
         for key_index, key in enumerate(gdpo_reward_keys):
-            if key not in non_tensor_batch:
-                continue
-            comp = non_tensor_batch[key]
-            rm_score = torch.tensor(np.asarray(comp, dtype=np.float32), device=device)
+            rm_score, present = _reward_component_tensors(non_tensor_batch.get(key, [None] * size), size, device, key)
+            present = present & response_mask.bool().any(dim=-1)
             rm_scores = torch.zeros_like(response_mask, dtype=torch.float32)
-            rm_scores[torch.arange(rm_scores.size(0), device=device), valid_response_length] = rm_score
-            score_list.append(rm_scores)
-            if reward_weights is not None:
-                reward_weights.append(gdpo_weights[key_index])
-
-        if not score_list:
-            score_list = None
-            reward_weights = None
-
-    if score_list is None:
-        score_list = [token_level_rewards]
-
-    num_scores = len(score_list)
-
-    if reward_weights is not None:
-        assert len(reward_weights) == num_scores, (
-            f"GDPO 'gdpo_reward_weights' has {len(reward_weights)} entries but "
-            f"'gdpo_reward_keys' has {num_scores} entries; they must match."
-        )
-        weights = torch.tensor(reward_weights, dtype=torch.float32, device=token_level_rewards.device)
+            if present.any():
+                positions = torch.arange(response_mask.shape[1], device=device).expand_as(response_mask)
+                terminal = positions.masked_fill(~response_mask.bool(), -1).max(dim=-1).values
+                rows = torch.arange(size, device=device)[present]
+                rm_scores[rows, terminal[present]] = rm_score[present]
+            weight = gdpo_weights[key_index] if gdpo_weights is not None else 1.0
+            components.append((rm_scores, present, weight))
     else:
-        weights = torch.ones(num_scores, dtype=torch.float32, device=token_level_rewards.device)
+        components = [(token_level_rewards, response_mask.bool().any(dim=-1), 1.0)]
 
-    new_advantage = None
-
-    for i in range(num_scores):
+    new_advantage = torch.zeros_like(response_mask, dtype=torch.float32)
+    available = torch.zeros(size, dtype=torch.bool, device=device)
+    for scores, present, weight in components:
+        if not present.any():
+            continue
         normalized_score, _ = compute_grpo_outcome_advantage(
-            token_level_rewards=score_list[i],
-            response_mask=response_mask,
-            index=index,
+            token_level_rewards=scores[present],
+            response_mask=response_mask[present],
+            index=np.asarray(index)[present.detach().cpu().numpy()],
             epsilon=epsilon,
             norm_adv_by_std_in_grpo=norm_adv_by_std_in_grpo,
             norm_adv_by_mean_in_grpo=norm_adv_by_mean_in_grpo,
             config=config,
         )
 
-        if new_advantage is None:
-            new_advantage = weights[i] * normalized_score
-        else:
-            new_advantage = new_advantage + weights[i] * normalized_score
+        new_advantage[present] += weight * normalized_score
+        available |= present
 
-    advantages = verl_F.masked_whiten(new_advantage, response_mask) * response_mask
+    whitening_mask = response_mask * available.unsqueeze(-1)
+    if whitening_mask.sum() > 1:
+        advantages = verl_F.masked_whiten(new_advantage, whitening_mask) * whitening_mask
+    else:
+        advantages = new_advantage * whitening_mask
 
     return advantages, advantages
 
@@ -798,6 +801,126 @@ def compute_remax_disagreement_mask(
     return torch.from_numpy(out).to(device=response_mask.device, dtype=response_mask.dtype)
 
 
+def get_remax_reward_keys(config, adv_estimator=None) -> list[str]:
+    """Validate ReMax configuration and return its ordered metric keys."""
+    if config is None:
+        return []
+    estimator = adv_estimator if adv_estimator is not None else config.get("adv_estimator")
+    measures = config.get("remax_measures")
+    if estimator in (AdvantageEstimator.REMAX, "remax"):
+        if any(config.get(key) is not None for key in ("gdpo_reward_keys", "gdpo_reward_weights")):
+            raise ValueError(
+                "gdpo_reward_keys/gdpo_reward_weights are GDPO-only; migrate ReMax to "
+                "algorithm.remax_measures with beta weights and delta: 0 for no stopping"
+            )
+    elif measures is not None:
+        raise ValueError("algorithm.remax_measures requires adv_estimator=remax")
+    if measures is None:
+        return []
+    if not isinstance(measures, (Mapping, DictConfig)) or not measures:
+        raise ValueError("algorithm.remax_measures must be a nonempty ordered mapping")
+    if config.get("use_kl_in_reward", False):
+        raise ValueError("algorithm.remax_measures cannot use use_kl_in_reward; use actor-side KL instead")
+    for key, measure in measures.items():
+        if not isinstance(key, str) or not key or not isinstance(measure, (Mapping, DictConfig)):
+            raise ValueError("Each remax_measures entry must have a nonempty metric name and a mapping")
+        if set(measure) - {"beta", "delta"}:
+            raise ValueError(f"remax_measures.{key} accepts only beta and delta")
+        for field, value in (("beta", measure.get("beta", 1.0)), ("delta", measure.get("delta", 0.0))):
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                raise ValueError(f"remax_measures.{key}.{field} must be a finite number")
+            if field == "delta" and value < 0:
+                raise ValueError(f"remax_measures.{key}.delta must be nonnegative; zero disables stopping")
+    return list(measures)
+
+
+def capture_remax_metric_baselines(config, reward_extra_info, batch, size: int):
+    """Store all configured baselines and availability for batch concatenation."""
+    for key in get_remax_reward_keys(config):
+        values = reward_extra_info.get(key, [None] * size)
+        baseline, present = _reward_component_tensors(values, size, "cpu", key)
+        batch[f"reward_baselines_{key}"] = baseline
+        batch[f"reward_baselines_{key}_present"] = present
+
+
+def compute_reward_component_metrics(config, non_tensor_batch, batch) -> dict[str, float]:
+    """Report component statistics only for rows where the metric exists."""
+    metrics = {}
+    keys = get_remax_reward_keys(config)
+    if config is not None and config.get("adv_estimator") in ("gdpo", AdvantageEstimator.GDPO):
+        keys = config.get("gdpo_reward_keys") or []
+    for key in keys:
+        if key in non_tensor_batch:
+            values = non_tensor_batch[key]
+            present = np.asarray([value is not None for value in values], dtype=bool)
+            vals = np.asarray(values, dtype=np.float32)[present]
+            if vals.size:
+                for name, reduce in (("mean", np.mean), ("std", np.std), ("max", np.max), ("min", np.min)):
+                    metrics[f"gdpo/{key}/{name}"] = float(reduce(vals))
+        baseline_key = f"reward_baselines_{key}"
+        if baseline_key in batch:
+            values = batch[baseline_key].float()
+            present = batch.get(f"{baseline_key}_present", torch.ones_like(values, dtype=torch.bool))
+            vals = values[present.bool()]
+            if vals.numel():
+                metrics[f"gdpo/{key}/base_mean"] = float(vals.mean())
+                metrics[f"gdpo/{key}/base_std"] = float(vals.std()) if vals.numel() > 1 else 0.0
+    return metrics
+
+
+def compute_remax_metric_accumulation(
+    config,
+    non_tensor_batch,
+    batch,
+    response_mask: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Accumulate per row, skipping metric pairs absent from that data source."""
+    keys = get_remax_reward_keys(config, AdvantageEstimator.REMAX)
+    if not keys:
+        raise ValueError("Metric accumulation requires algorithm.remax_measures")
+    if non_tensor_batch is None or batch is None:
+        raise ValueError("ReMax measures require sampled metric data and greedy metric baselines")
+    if response_mask.ndim != 2:
+        raise ValueError("ReMax response_mask must be two-dimensional")
+    device = response_mask.device
+    size = response_mask.shape[0]
+    active = response_mask.bool().any(dim=-1)
+    score = torch.zeros(size, dtype=torch.float32, device=device)
+    sampled_score = torch.zeros_like(score)
+    for key in keys:
+        baseline_key = f"reward_baselines_{key}"
+        values = non_tensor_batch.get(key, [None] * size)
+        sampled, sampled_present = _reward_component_tensors(values, size, device, key)
+        baseline_present = torch.as_tensor(
+            batch.get(f"{baseline_key}_present", torch.full((size,), baseline_key in batch)),
+            dtype=torch.bool,
+            device=device,
+        )
+        if sampled_present.shape != (size,) or baseline_present.shape != (size,):
+            raise ValueError(f"ReMax metric '{key}' availability must have shape ({size},)")
+        if not torch.equal(sampled_present, baseline_present):
+            raise ValueError(f"ReMax metric '{key}' is missing on only one side of sampled/greedy pair")
+        baseline = torch.as_tensor(batch.get(baseline_key, torch.zeros(size)), dtype=torch.float32, device=device)
+        if sampled.shape != (size,) or baseline.shape != (size,):
+            raise ValueError(f"ReMax metric '{key}' and its baseline must have shape ({size},)")
+        if not torch.isfinite(sampled[sampled_present]).all() or not torch.isfinite(baseline[baseline_present]).all():
+            raise ValueError(f"ReMax metric '{key}' and its baseline must contain only finite values")
+        sampled = torch.where(sampled_present, sampled, 0.0)
+        baseline = torch.where(baseline_present, baseline, 0.0)
+        delta = sampled - baseline
+        measure = config.get("remax_measures")[key]
+        beta = measure.get("beta", 1.0)
+        included = active & sampled_present
+        score += torch.where(included, beta * delta, 0.0)
+        sampled_score += torch.where(included, beta * sampled, 0.0)
+        threshold = measure.get("delta", 0.0)
+        if threshold > 0:
+            active = active & (~sampled_present | (delta.abs() <= threshold))
+    if not torch.isfinite(score).all() or not torch.isfinite(sampled_score).all():
+        raise ValueError("ReMax weighted metric accumulation produced nonfinite values")
+    return score, sampled_score
+
+
 def _normalize_remax_advantages(
     advantages: torch.Tensor,
     response_mask: torch.Tensor,
@@ -842,14 +965,13 @@ def compute_remax_outcome_advantage(
     This implementation is based on the paper: https://arxiv.org/abs/2310.10505
     (with only one scalar reward for each response).
 
-    Multi-reward (GDPO-style) support:
-        When ``config.gdpo_reward_keys`` is provided, each named reward dimension is
-        handled independently: its own greedy baseline (stored as
-        ``reward_baselines_<key>``) is subtracted from the sampled per-dimension reward,
-        the resulting per-dimension advantages are optionally L2- or RMS-normalized within
-        each prompt group, and then combined with ``config.gdpo_reward_weights``.
-        This mirrors how GDPO decouples reward dimensions, but keeps the ReMax
-        greedy-baseline formulation per dimension.
+    Ordered metric support:
+        ``config.remax_measures`` accumulates beta-weighted sampled-minus-greedy
+        deltas in mapping order. Include the current metric, then stop the row
+        if its absolute raw delta exceeds its positive threshold; zero disables
+        stopping. Normalize only the final aggregate. Returns use the same
+        selected metrics' weighted sampled rewards, without normalization.
+        Skip metrics absent on both sides per row; reject one-sided absence.
 
     Args:
         token_level_rewards: `(torch.Tensor)`
@@ -865,10 +987,10 @@ def compute_remax_outcome_advantage(
             data source name for each row (optional, required for per-datasource adv_scale)
         non_tensor_batch: `(Optional[dict])`
             Non-tensor batch data containing per-dimension sampled reward scores
-            (used when ``gdpo_reward_keys`` is set).
+            (used when ``remax_measures`` is set).
         batch: `(Optional[dict])`
             Batch data containing prompts, attention_mask, and per-dimension greedy
-            baselines ``reward_baselines_<key>`` (used when ``gdpo_reward_keys`` is set).
+            baselines ``reward_baselines_<key>`` (used when ``remax_measures`` is set).
 
     Returns:
         advantages: `(torch.Tensor)`
@@ -878,83 +1000,26 @@ def compute_remax_outcome_advantage(
     """
 
     with torch.no_grad():
-        remax_reward_keys = None
+        remax_reward_keys = get_remax_reward_keys(config, AdvantageEstimator.REMAX)
         norm_adv_in_remax = None
         if config is not None:
-            remax_reward_keys = config.get("gdpo_reward_keys", None)
             norm_adv_in_remax = config.get("norm_adv_in_remax", None)
         if norm_adv_in_remax not in (None, "l2", "rms"):
             raise ValueError(f"Unsupported ReMax advantage normalization mode: {norm_adv_in_remax}")
-        use_multi_reward = bool(remax_reward_keys and non_tensor_batch is not None and batch is not None)
-        if use_multi_reward:
-            # Multi-reward path: decouple each reward dimension, subtract its own
-            # greedy baseline, then aggregate with optional weights.
-            device = token_level_rewards.device
-            prompt_length = batch["prompts"].size(1)
-            valid_response_length = batch["attention_mask"][:, prompt_length:].sum(dim=1) - 1
-            row_idx = torch.arange(response_mask.size(0), device=device)
-
-            remax_weights = config.get("gdpo_reward_weights", None)
-            if remax_weights is not None:
-                assert len(remax_weights) == len(remax_reward_keys), (
-                    f"'gdpo_reward_weights' has {len(remax_weights)} entries but "
-                    f"'gdpo_reward_keys' has {len(remax_reward_keys)} entries; they must match."
-                )
-                weights = torch.tensor(list(remax_weights), dtype=torch.float32, device=device)
-            else:
-                weights = torch.ones(len(remax_reward_keys), dtype=torch.float32, device=device)
-
-            normalize_per_reward = norm_adv_in_remax is not None and index is not None
-
-            returns = None
-            advantages = None
-            for i, key in enumerate(remax_reward_keys):
-                assert key in non_tensor_batch, (
-                    f"ReMax reward key '{key}' not found in non_tensor_batch. "
-                    f"Available keys: {list(non_tensor_batch.keys())}. "
-                    f"Make sure your compute_score returns a dict containing '{key}'."
-                )
-                baseline_key = f"reward_baselines_{key}"
-                assert baseline_key in batch, (
-                    f"ReMax per-dimension baseline '{baseline_key}' not found in batch. "
-                    f"Make sure the greedy baseline reward is computed with return_dict=True "
-                    f"and the '{key}' component is stored as '{baseline_key}'."
-                )
-
-                comp = non_tensor_batch[key]
-                rm_score = torch.tensor(np.asarray(comp, dtype=np.float32), device=device)
-                rm_scores = torch.zeros_like(response_mask, dtype=torch.float32)
-                rm_scores[row_idx, valid_response_length] = rm_score
-
-                baseline_k = batch[baseline_key].to(device=device, dtype=torch.float32)
-
-                returns_k = (rm_scores * response_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
-                advantages_k = returns_k - baseline_k.unsqueeze(-1) * response_mask
-
-                if normalize_per_reward:
-                    advantages_k = _normalize_remax_advantages(
-                        advantages=advantages_k,
-                        response_mask=response_mask,
-                        index=index,
-                        mode=norm_adv_in_remax,
-                    )
-
-                if returns is None:
-                    returns = weights[i] * returns_k
-                    advantages = weights[i] * advantages_k
-                else:
-                    returns = returns + weights[i] * returns_k
-                    advantages = advantages + weights[i] * advantages_k
+        if remax_reward_keys:
+            score, sampled_score = compute_remax_metric_accumulation(config, non_tensor_batch, batch, response_mask)
+            advantages = score.unsqueeze(-1) * response_mask
+            returns = sampled_score.unsqueeze(-1) * response_mask
         else:
             returns = (token_level_rewards * response_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
             advantages = returns - reward_baselines.unsqueeze(-1) * response_mask
-            if norm_adv_in_remax is not None and index is not None:
-                advantages = _normalize_remax_advantages(
-                    advantages=advantages,
-                    response_mask=response_mask,
-                    index=index,
-                    mode=norm_adv_in_remax,
-                )
+        if norm_adv_in_remax is not None and index is not None:
+            advantages = _normalize_remax_advantages(
+                advantages=advantages,
+                response_mask=response_mask,
+                index=index,
+                mode=norm_adv_in_remax,
+            )
 
         if config is not None:
             if config.get("binary_adv", False):

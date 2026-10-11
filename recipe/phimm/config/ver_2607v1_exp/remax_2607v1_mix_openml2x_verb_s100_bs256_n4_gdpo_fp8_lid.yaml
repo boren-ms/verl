@@ -87,8 +87,13 @@ actor_rollout_ref:
 algorithm:
   adv_estimator: remax
   # norm_adv_in_remax: l2
-  gdpo_reward_keys: [char, word, fmt, lang, bracket, repeat]
-  gdpo_reward_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  remax_measures:
+    char: {beta: 1.0, delta: 0}
+    word: {beta: 1.0, delta: 0}
+    fmt: {beta: 1.0, delta: 0}
+    lang: {beta: 1.0, delta: 0}
+    bracket: {beta: 1.0, delta: 0}
+    repeat: {beta: 1.0, delta: 0}
 
 data:
   trust_remote_code: false

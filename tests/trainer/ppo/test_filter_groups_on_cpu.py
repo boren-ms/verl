@@ -14,7 +14,9 @@
 
 import numpy as np
 import pytest
+import torch
 
+from verl.trainer.config import AlgoConfig
 from verl.trainer.ppo.filter_groups import compute_remax_advantage_metric, select_prompt_uids_by_metric
 
 
@@ -50,3 +52,46 @@ def test_invalid_configuration_is_rejected():
         select_prompt_uids_by_metric(np.array(["prompt"]), np.array([1.0]), mode="unknown")
     with pytest.raises(ValueError, match="atol must be non-negative"):
         select_prompt_uids_by_metric(np.array(["prompt"]), np.array([1.0]), atol=-1.0)
+
+
+@pytest.mark.parametrize("mode", ["variance", "nonzero"])
+def test_missing_filter_values_are_not_fabricated(mode):
+    assert select_prompt_uids_by_metric(
+        np.array(["absent", "absent", "useful", "useful"]),
+        np.array([None, None, None, 0.5], dtype=object),
+        mode=mode,
+    ) == ["useful"]
+    with pytest.raises(ValueError, match="finite"):
+        select_prompt_uids_by_metric(np.array(["bad"]), np.array([float("nan")]), mode=mode)
+
+
+def test_metric_filter_uses_raw_stopped_deltas_not_scalar_rewards_or_transforms():
+    config = AlgoConfig(
+        adv_estimator="remax",
+        binary_adv=True,
+        adv_scale=100,
+        norm_adv_in_remax="l2",
+        remax_measures={"char": {"delta": 0.25}, "word": {"beta": 2, "delta": 0}},
+    )
+    sampled = {"char": np.array([0.875, 0.125, 0.5, 0.875]), "word": np.ones(4)}
+    batch = {"reward_baselines_char": torch.full((4,), 0.5), "reward_baselines_word": torch.ones(4)}
+    score = compute_remax_advantage_metric(
+        np.ones(4),
+        np.zeros(4),
+        config=config,
+        non_tensor_batch=sampled,
+        batch=batch,
+        response_mask=torch.tensor([[1], [1], [1], [0]]),
+    )
+    np.testing.assert_allclose(score, [0.375, -0.375, 0, 0])
+    assert select_prompt_uids_by_metric(np.array(["useful", "useful", "empty", "empty"]), score, mode="nonzero") == [
+        "useful"
+    ]
+
+
+def test_metric_filter_requires_metric_data_and_response_mask():
+    config = AlgoConfig(adv_estimator="remax", remax_measures={"char": {"delta": 0}})
+    with pytest.raises(ValueError, match="response mask"):
+        compute_remax_advantage_metric(np.ones(1), np.zeros(1), config=config)
+    with pytest.raises(ValueError, match="sampled metric data"):
+        compute_remax_advantage_metric(np.ones(1), np.zeros(1), config=config, response_mask=torch.ones((1, 1)))

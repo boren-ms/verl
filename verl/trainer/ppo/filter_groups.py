@@ -16,12 +16,24 @@ from collections import defaultdict
 
 import numpy as np
 
+from verl.trainer.ppo.core_algos import compute_remax_metric_accumulation, get_remax_reward_keys
+
 
 def compute_remax_advantage_metric(
     sampled_rewards: np.ndarray,
     reward_baselines: np.ndarray,
+    *,
+    config=None,
+    non_tensor_batch=None,
+    batch=None,
+    response_mask=None,
 ) -> np.ndarray:
-    """Compute scalar sampled-minus-greedy rewards for ReMax group filtering."""
+    """Compute raw ReMax signal before normalization, binarization, and scaling."""
+    if get_remax_reward_keys(config, "remax"):
+        if response_mask is None:
+            raise ValueError("ReMax metric filtering requires a response mask")
+        score, _ = compute_remax_metric_accumulation(config, non_tensor_batch, batch, response_mask)
+        return score.detach().cpu().numpy()
     sampled_rewards = np.asarray(sampled_rewards)
     reward_baselines = np.asarray(reward_baselines)
     if sampled_rewards.shape != reward_baselines.shape:
@@ -46,10 +58,15 @@ def select_prompt_uids_by_metric(
 
     prompt_uid2metric_vals = defaultdict(list)
     for uid, metric_value in zip(prompt_uids, metric_values, strict=True):
+        if metric_value is None:
+            continue
         value = np.asarray(metric_value)
         if value.size != 1:
             raise ValueError(f"Filter group metric must be scalar, got shape {value.shape}")
-        prompt_uid2metric_vals[uid].append(float(value.item()))
+        scalar = float(value.item())
+        if not np.isfinite(scalar):
+            raise ValueError("Filter group metric must be finite when present")
+        prompt_uid2metric_vals[uid].append(scalar)
 
     kept_prompt_uids = []
     for uid, values in prompt_uid2metric_vals.items():

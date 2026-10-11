@@ -542,6 +542,64 @@ Algorithm
 - ``gamma``: discount factor
 - ``lam``: Trade-off between bias and variance in the GAE estimator
 - ``adv_estimator``: Support ``gae``, ``grpo``, ``reinforce_plus_plus``, ``reinforce_plus_plus_baseline``, ``rloo``
+- Reward managers preserve source-specific missing components as row-aligned
+  ``None`` values, not synthetic ``1.0`` scores. A genuine ``0.0`` remains a
+  present value. No ``remax_metric_present_*`` reward fields are needed.
+- GDPO's ``gdpo_reward_keys``/``gdpo_reward_weights`` normalize each component
+  using only samples where it is present in that prompt group, then accumulate
+  the weighted normalized components. Missing components contribute zero.
+  Final whitening excludes samples with no configured components, leaving their
+  advantages zero; it never substitutes the scalar reward for absent configured
+  components. Nonfinite present values are errors. Component diagnostics exclude
+  missing values. This intentionally replaces the former fabricated ``1.0``
+  behavior for mixed data sources.
+  A singleton available group retains the existing GRPO singleton normalization.
+  If only one valid token participates in whitening, its aggregate is retained
+  without whitening to avoid an undefined sample variance.
+- ``remax_measures``: Optional ordered metric accumulation for ``adv_estimator: remax``.
+  A data source may omit a configured metric (or return ``None``).
+  Skip it independently for each sample when both sampled and greedy values
+  are absent: it contributes zero and does not stop accumulation. Continue
+  to the next available metric. A value missing on only one side is an error,
+  as are nonfinite present values. Missing metrics are excluded from component
+  diagnostics. For each available metric, compute ``d = metric - greedy_metric``,
+  add ``beta * d`` to the signed advantage, then stop accumulating later metrics
+  if ``delta > 0`` and ``abs(d) > delta``. Include the triggering metric.
+  Equality continues, and **delta: 0 disables stopping** for that metric.
+  YAML mapping order defines priority. ``beta`` defaults to ``1.0``; ``delta``
+  defaults to ``0`` (no stopping) and must be finite and nonnegative.
+  Weights must also be finite. An empty metric mapping, such as ``char: {}``,
+  uses both defaults.
+
+  .. code:: yaml
+
+     algorithm:
+       adv_estimator: remax
+       remax_measures:
+         char: {beta: 1.0, delta: 0.2}
+         word: {beta: 1.0, delta: 0.2}
+         char_del: {beta: 1.0, delta: 0.2}
+
+  With these unit weights, a char delta of ``-0.3`` yields ``-0.3`` and skips
+  the remaining metrics; char ``0.1`` followed by word ``0.25`` yields ``0.35``
+  and skips char_del. Thresholds use individual raw deltas, not weighted or
+  cumulative scores. Reward-level ``measures`` and scalar reduction are unchanged;
+  the advantage uses raw metric components rather than the reduced reward.
+
+  ``norm_adv_in_remax: l2`` or ``rms`` normalizes the final aggregate within
+  each prompt group, followed by ``binary_adv``, ``adv_scale``, and any
+  ``remax_advantage_mask``. Returns remain unnormalized weighted sampled rewards
+  from the same included metrics. Empty responses have zero metric signal.
+  DAPO's ``filter_groups.metric: remax_advantage`` uses the raw stopped advantage,
+  before normalization, binarization, scaling, or token masking.
+  In-reward KL (``use_kl_in_reward: true``) is rejected; actor-side KL is supported.
+
+  ``gdpo_reward_keys`` and ``gdpo_reward_weights`` are now **GDPO-only** and
+  rejected for ReMax. Migrate ReMax keys in their original order to this mapping,
+  set ``beta`` to each corresponding weight, and use ``delta: 0`` to accumulate
+  all metrics without stopping. Unlike the removed multi-reward ReMax path,
+  L2/RMS normalization applies to the aggregate, not independently to each metric.
+  With ``remax_measures: null`` (the default), scalar ReMax remains unchanged.
 - ``remax_advantage_mask``: Optional DAPO/ReMax policy-credit mask, disabled by default.
   Align each sampled rollout's actual token IDs against its own greedy result using
   ``SequenceMatcher(autojunk=False)``. This is token disagreement, not a minimum-edit

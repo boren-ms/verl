@@ -101,10 +101,16 @@ class BatchRewardManager(AbstractRewardManager):
 
             if isinstance(score, dict):
                 reward = score["score"]
+                for key in reward_extra_info.keys() - score.keys():
+                    reward_extra_info[key].append(None)
                 for key, value in score.items():
+                    if key not in reward_extra_info:
+                        reward_extra_info[key].extend([None] * i)
                     reward_extra_info[key].append(value)
             else:
                 reward = score
+                for key in reward_extra_info:
+                    reward_extra_info[key].append(None)
 
             rewards.append(reward)
             reward_tensor[i, length - 1] = reward

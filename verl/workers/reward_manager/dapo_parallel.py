@@ -141,17 +141,17 @@ class DAPOParallelRewardManager(AbstractRewardManager):
                 score = result["score"]
                 # Keep source-specific reward components aligned with their batch rows.
                 for key in reward_extra_info.keys() - result.keys():
-                    reward_extra_info[key].append(1.0)
+                    reward_extra_info[key].append(None)
                 for key, value in result.items():
                     if key not in reward_extra_info:
-                        reward_extra_info[key].extend([1.0] * i)
+                        reward_extra_info[key].extend([None] * i)
                     reward_extra_info[key].append(value)
             else:
                 score = result
                 for key in reward_extra_info.keys() - {"acc"}:
-                    reward_extra_info[key].append(1.0)
+                    reward_extra_info[key].append(None)
                 if "acc" not in reward_extra_info:
-                    reward_extra_info["acc"].extend([1.0] * i)
+                    reward_extra_info["acc"].extend([None] * i)
                 reward_extra_info["acc"].append(score)
 
             reward = score

@@ -77,8 +77,14 @@ class AlgoConfig(BaseConfig):
         norm_adv_by_std_in_grpo (bool): Whether to normalize advantages by std (specific to GRPO).
         norm_adv_in_remax (Optional[str]): ReMax normalization mode. ``None`` disables
             normalization, "l2" divides by the prompt-group L2 norm, and "rms" divides by
-            the prompt-group root mean square. Multi-reward ReMax normalizes each reward
-            dimension before weighted aggregation.
+            the prompt-group root mean square. Metric ReMax normalizes the final
+            weighted accumulation.
+        remax_measures (Optional[dict[str, dict[str, float]]]): Ordered metric names
+            with beta (default 1) and delta (default 0). Include a metric's weighted
+            sampled-minus-greedy delta, then stop if its absolute delta exceeds
+            the positive threshold. A zero threshold disables stopping. Skip
+            source-specific metrics absent from both sampled and greedy rewards;
+            one-sided absence is an error.
         binary_adv (bool): Whether to binarize ReMax advantages to sign-only scores.
         adv_scale (float | dict): Scale applied to ReMax advantages. Float applies uniformly;
             a dict maps data source names to float scales. The optional 'default' key applies to unknown sources.
@@ -96,11 +102,11 @@ class AlgoConfig(BaseConfig):
         filter_groups (Optional[FilterGroupsConfig]): Filter groups configuration, used in DAPO and Entropy
         gdpo_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score).
             For GDPO, each dimension is normalized independently within each group before aggregation.
-            For ReMax multi-reward, each dimension has its own greedy baseline subtracted before
-            weighted aggregation. Shared by both the GDPO and REMAX adv_estimators.
+            Missing components (None) are excluded per sample from group statistics
+            and contribute zero. Samples with no components are excluded from whitening.
         gdpo_reward_weights (Optional[list[float]]): Optional weights for each reward dimension;
-            must align with gdpo_reward_keys. Defaults to equal weights when omitted. Shared by
-            both the GDPO and REMAX adv_estimators.
+            must align with gdpo_reward_keys. Defaults to equal weights when omitted.
+            These fields are GDPO-only; ReMax uses remax_measures.
     """
     gamma: float = 1.0
     lam: float = 1.0
@@ -108,6 +114,7 @@ class AlgoConfig(BaseConfig):
     norm_adv_by_std_in_grpo: bool = True
     norm_adv_by_mean_in_grpo: bool = True
     norm_adv_in_remax: Optional[str] = None
+    remax_measures: Optional[dict[str, dict[str, float]]] = None
     binary_adv: bool = False
     adv_scale: Any = 1.0
     remax_advantage_mask: Optional[str] = None

@@ -77,6 +77,10 @@ algorithm:
   # Whether to normalize advantages by std (specific to GRPO)
   norm_adv_by_std_in_grpo: True
 
+  # Ordered ReMax metrics: {metric: {beta: 1.0, delta: 0.2}}.
+  # Include the triggering metric; delta: 0 disables stopping.
+  remax_measures: null
+
   # DAPO/ReMax: mask only final policy advantages. Preserve actor KL, entropy, and loss denominators.
   # Incompatible with use_kl_in_reward.
   # null disables masking; edit_boundary selects edits/deletion boundaries;

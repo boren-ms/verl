@@ -125,15 +125,15 @@ class NaiveParallelRewardManager(AbstractRewardManager):
             if isinstance(score, dict):
                 reward = score["score"]
                 for key in reward_extra_info.keys() - score.keys():
-                    reward_extra_info[key].append(1.0)
+                    reward_extra_info[key].append(None)
                 for key, value in score.items():
                     if key not in reward_extra_info:
-                        reward_extra_info[key].extend([1.0] * i)
+                        reward_extra_info[key].extend([None] * i)
                     reward_extra_info[key].append(value)
             else:
                 reward = score
                 for key in reward_extra_info:
-                    reward_extra_info[key].append(1.0)
+                    reward_extra_info[key].append(None)
 
             valid_response_length = item["valid_response_length"]
             reward_tensor[i, valid_response_length - 1] = reward

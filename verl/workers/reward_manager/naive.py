@@ -104,15 +104,15 @@ class NaiveRewardManager(AbstractRewardManager):
                 reward = score["score"]
                 # Keep source-specific reward components aligned with their batch rows.
                 for key in reward_extra_info.keys() - score.keys():
-                    reward_extra_info[key].append(1.0)
+                    reward_extra_info[key].append(None)
                 for key, value in score.items():
                     if key not in reward_extra_info:
-                        reward_extra_info[key].extend([1.0] * i)
+                        reward_extra_info[key].extend([None] * i)
                     reward_extra_info[key].append(value)
             else:
                 reward = score
                 for key in reward_extra_info:
-                    reward_extra_info[key].append(1.0)
+                    reward_extra_info[key].append(None)
 
             reward_tensor[i, valid_response_length - 1] = reward
 
