@@ -1,13 +1,13 @@
-updated_at_utc: 2026-10-12T21:11:41Z
+updated_at_utc: 2026-10-12T21:17:45Z
 
 ┌────────┬──────────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                       │ STATUS  │ JOB / CONFIG                                                                         │ PROGRESS / PHASE                                  │
 ├────────┼──────────────────────────────────┼─────────┼──────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
-│ n4-i0  │ raysubmit_5t83edy93ebJi6bq       │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b        │ training 56/306 (18.30%); checkpoint50 verified │
-│ n4-i1  │ raysubmit_LgFDchq2KwkH9P1k       │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0 │ training 11/546 (2.01%); checkpoint10 verified │
+│ n4-i0  │ raysubmit_5t83edy93ebJi6bq       │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b        │ training 59/306 (19.28%); validating60          │
+│ n4-i1  │ raysubmit_LgFDchq2KwkH9P1k       │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0 │ training 19/546 (3.48%); validating20           │
 │ n4-i2  │ raysubmit_UcfzsFufr2Bzq4HS         │ SUCCEEDED │ eval_2609r2_openall_mix_zip / ds1a-bs256-n4@step600                                   │ building report (complete; node resumed/Assigning) │
 │ n2-i3  │ raysubmit_Rb4Gbxa99YuZuwBk       │ RUNNING │ ds0105_sfl_avg4_flr1 / step300                                                       │ evaluating it_fleurs (11/26 done; decoding)       │
-│ n4-i4  │ raysubmit_HyhZf8wzdnqevmni        │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c          │ training startup (validation0 scoring3610)    │
+│ n4-i4  │ raysubmit_HyhZf8wzdnqevmni        │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c          │ training startup (validation0 scoring4634)    │
 │ n4-i5  │ raysubmit_TVKdaBStetBMwcAX       │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b_v0       │ training 119/306 (38.89%); validating120 4122/6293  │
 │ n4-i6  │ raysubmit_k4s5RcVe1zMfDxXp       │ SUCCEEDED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs512_n16_r256_g32_ds1c_sfl_avg6_flr0_rw0 │ training 270/270 (100%; complete)                 │
 │ n4-i7  │ raysubmit_fMJmPawybpFfZHX6       │ SUCCEEDED │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm1      │ training 306/306 (complete)                     │
@@ -17,10 +17,10 @@ updated_at_utc: 2026-10-12T21:11:41Z
 └────────┴──────────────────────────────────┴─────────┴──────────────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
 
 Reports:
-- `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0` [`n4-i1`]: training 11/546 (2.01%)
+- `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0` [`n4-i1`]: training 19/546 (3.48%)
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs256_n4_r256_g32_ds1a_sfl_avg6_flr2_rw0@step600` [`n4-i2`]: complete step 600
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b_v0` [`n4-i5`]: training 119/306 (38.89%)
-- `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b` [`n4-i0`]: training 56/306 (18.30%)
+- `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b` [`n4-i0`]: training 59/306 (19.28%)
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rw0` [`n4-i2`]: complete step 540
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm1` [`n4-i7`]: complete step 306
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1a_avg6_flr1a_rw0` [`n4-i7`]: stopped training 0/615 (0%)
