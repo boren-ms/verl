@@ -1,11 +1,13 @@
 import json
 import io
+from pathlib import Path
 
 import numpy as np
 import pytest
 import soundfile as sf
 from datasets import Audio, Dataset, Features, Value
 from omegaconf import OmegaConf
+from hydra import compose, initialize_config_dir
 
 from recipe.phimm.data import dataset as dataset_module
 from recipe.phimm.data.dataset import (
@@ -21,6 +23,148 @@ class MinimalDataset:
     def map(self, function, **kwargs):
         self.example = function({"text": "bonjour"})
         return self
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("I (love you)", "I love you"),
+        ("I [love you] {very much} <indeed>", "I love you very much indeed"),
+        ("I ([love] {you})", "I love you"),
+        ("(one)(two)", "onetwo"),
+        ("I (love you", "I (love you"),
+        ("I love you)", "I love you)"),
+        ("(outer [inner]", "(outer inner"),
+        ("I ([love)] you", "I (love) you"),
+        ("I () love [] you {}", "I  love  you "),
+        ("I （love you）", "I love you"),
+        ("【你好】，「世界」！", "你好，世界！"),
+        ("《book》 〈chapter〉 『quote』", "book chapter quote"),
+        ("I （[love] 【you】）", "I love you"),
+        ("({[<love you>]})", "love you"),
+        ("｟〖『「《〈〔【＜｛［（words）］｝＞】〕〉》」』〗｠", "words"),
+        ("(one)[two]{three}<four>（five）【six】", "onetwothreefourfivesix"),
+        ("()[]{}<>（）［］｛｝＜＞【】〔〕〈〉《》「」『』〖〗｟｠", ""),
+        ("Before (\n[first]\tsecond\n) after", "Before \nfirst\tsecond\n after"),
+        ("Say (don't) [stop!] {3.14} <a/b>", "Say don't stop! 3.14 a/b"),
+        ("I (love you）", "I (love you）"),
+        ("I （love you)", "I （love you)"),
+        ("I [love you}", "I [love you}"),
+        ("【outer (inner)", "【outer inner"),
+        ("【outer (inner】)", "【outer inner】"),
+        ("】I 【love you】)", "】I love you)"),
+        ("((words)", "(words"),
+        ("(words))", "words)"),
+        ("No brackets.\nKeep  spaces!", "No brackets.\nKeep  spaces!"),
+        ("", ""),
+        (None, None),
+    ],
+)
+def test_remove_brackets_preserves_words_and_unmatched_characters(text, expected):
+    dataset = Dataset.from_dict({"text": [text], "keywords": [["love you"]], "id": ["sample"]})
+    result = dataset_module.process_ds(dataset, remove_brackets={})
+    assert result[0]["text"] == expected
+    assert result[0]["keywords"] == ["love you"]
+    assert result[0]["id"] == "sample"
+
+
+@pytest.mark.parametrize(
+    "pair",
+    [
+        "()",
+        "[]",
+        "{}",
+        "<>",
+        "（）",
+        "［］",
+        "｛｝",
+        "＜＞",
+        "【】",
+        "〔〕",
+        "〈〉",
+        "《》",
+        "「」",
+        "『』",
+        "〖〗",
+        "｟｠",
+    ],
+)
+@pytest.mark.parametrize(
+    "template,expected",
+    [
+        ("I {open}love you{close}", "I love you"),
+        ("{open}{close}", ""),
+        ("{open}one{close}{open}two{close}", "onetwo"),
+        ("{open}outer {open}inner{close}{close}", "outer inner"),
+        ("{open}first\n\tsecond{close}", "first\n\tsecond"),
+        ("{open}don't stop! 3.14{close}", "don't stop! 3.14"),
+        ("I {open}love you", None),
+        ("I love you{close}", None),
+    ],
+)
+def test_remove_brackets_supports_common_bracket_types(pair, template, expected):
+    text = template.format(open=pair[0], close=pair[1])
+    dataset = Dataset.from_dict({"text": [text]})
+    assert dataset_module.remove_brackets(dataset)[0]["text"] == (text if expected is None else expected)
+
+
+def test_remove_brackets_runs_before_task_output_generation():
+    dataset = Dataset.from_dict({"text": ["I (love you)"]})
+    result = dataset_module.augment(
+        dataset,
+        version=2609,
+        pre_process={"remove_brackets": {}},
+        add_task_info={"task": "lang_asr_verb", "language": "English", "prefix_prob": 0.0, "lang_hint": True},
+    )
+    assert result[0]["text"] == "I love you"
+    assert result[0]["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\n<TXT>I love you</TXT>"
+
+
+def test_remove_brackets_supports_parallel_map_and_rename():
+    dataset = Dataset.from_dict({"transcript": ["I (love you)", "[hello]"]})
+    result = dataset_module.process_ds(
+        dataset,
+        rename_fields={"mappings": {"text": "transcript"}},
+        remove_brackets={},
+        num_proc=2,
+    )
+    assert result["text"] == ["I love you", "hello"]
+
+
+def test_remove_brackets_rejects_non_text_values():
+    with pytest.raises(ValueError, match="string or None"):
+        dataset_module.remove_brackets(Dataset.from_dict({"text": [123]}))
+
+
+def test_remove_brackets_accepts_optional_field():
+    dataset = Dataset.from_dict({"text": ["Keep (text)", "Keep (text)"], "transcription": ["I (love you)", None]})
+    result = dataset_module.process_ds(dataset, remove_brackets={"field": "transcription"})
+    assert result["transcription"] == ["I love you", None]
+    assert result["text"] == ["Keep (text)", "Keep (text)"]
+
+
+@pytest.mark.parametrize("field", ["", None, 123])
+def test_remove_brackets_rejects_invalid_field(field):
+    with pytest.raises(ValueError, match="nonempty column name"):
+        dataset_module.remove_brackets(Dataset.from_dict({"text": ["hello"]}), field=field)
+
+
+def test_rm0b_v0_recipe_only_changes_openml_training_preprocessing():
+    root = Path(__file__).resolve().parents[4] / "recipe/phimm/config/v2609_asr"
+    prefix = "remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b"
+    with initialize_config_dir(config_dir=str(root), version_base=None):
+        original = compose(config_name=prefix)
+        variant = compose(config_name=prefix + "_v0")
+    original_train = OmegaConf.to_container(original.data.train_data, resolve=True)
+    variant_train = OmegaConf.to_container(variant.data.train_data, resolve=True)
+    assert len(variant_train) == 1
+    assert variant_train[0][0]["post_process"]["add_field"]["fields"]["data_source"] == "openml"
+    assert variant_train[0][0].pop("pre_process") == {"remove_brackets": {}}
+    assert original_train == variant_train
+    source = OmegaConf.to_container(original, resolve=False)
+    changed = OmegaConf.to_container(variant, resolve=False)
+    assert changed["_ml_train"][0].pop("pre_process") == {"remove_brackets": {}}
+    assert source == changed
 
 
 def test_jsonl_dataset_keeps_date_shaped_keywords_as_strings(tmp_path):

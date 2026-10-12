@@ -898,6 +898,45 @@ def add_tag_keywords(ds, **kwargs):
     return ds
 
 
+def remove_brackets(ds, **kwargs):
+    """Remove matched bracket characters from a field, retaining enclosed contents.
+
+    Enable with ``pre_process: {remove_brackets: {}}`` before
+    ``add_task_info`` to clean both text and generated reference outputs.
+    Supports ASCII and common full-width/CJK bracket pairs, including nested
+    pairs. Unmatched characters, whitespace, and other fields are unchanged.
+    ``field`` optionally selects another column; it defaults to ``text``.
+    """
+    field = kwargs.get("field", "text")
+    if not isinstance(field, str) or not field:
+        raise ValueError("remove_brackets field must be a nonempty column name")
+    pairs = dict(zip("([{<（［｛＜【〔〈《「『〖｟", ")]}>）］｝＞】〕〉》」』〗｠", strict=True))
+    bracket_pattern = re.compile("[" + re.escape("".join(pairs) + "".join(pairs.values())) + "]")
+
+    def clean_text(example):
+        text = example[field]
+        if text is None:
+            return {field: None}
+        if not isinstance(text, str):
+            raise ValueError(f"remove_brackets requires a string or None in the '{field}' field")
+        stack = []
+        characters = None
+        for match in bracket_pattern.finditer(text):
+            index = match.start()
+            char = match.group()
+            if char in pairs:
+                stack.append((index, pairs[char]))
+            elif stack and stack[-1][1] == char:
+                start, _ = stack.pop()
+                if characters is None:
+                    characters = list(text)
+                characters[start] = ""
+                characters[index] = ""
+        return {field: "".join(characters) if characters is not None else text}
+
+    return ds.map(clean_text, **pop_map_kwargs(kwargs))
+
+
 def clean_tagged_text(ds, **kwargs):
     """Strip angle- or square-bracket tags and move paired contents to keywords."""
     src_field = kwargs.get("src_field", "text")
@@ -1797,6 +1836,9 @@ def process_ds(ds, **kwargs):
         ds = path_map(ds, **merge_kwargs(map_kwargs, path_map_kwargs))
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
+    if "remove_brackets" in kwargs:
+        bracket_kwargs = kwargs.get("remove_brackets") or {}
+        ds = remove_brackets(ds, **merge_kwargs(map_kwargs, bracket_kwargs))
     if "clean_tagged_text" in kwargs:
         clean_tagged_text_kwargs = kwargs.get("clean_tagged_text") or {}
         ds = clean_tagged_text(ds, **merge_kwargs(map_kwargs, clean_tagged_text_kwargs))
