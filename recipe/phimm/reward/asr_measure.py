@@ -215,14 +215,38 @@ def _empty_result() -> dict:
 # ---------------------------------------------------------------------------
 
 
+def compute_bracket_del(hyp_text: str) -> float:
+    """Return the fraction of hypothesis words remaining after bracket removal.
+
+    Computes ``n_left / n_total`` using whitespace-separated words and the
+    shared 16-style bracket pattern. ``<nonspeech>`` is excluded, just like
+    :func:`has_brackets`. Empty bracket pairs are removed; unmatched brackets
+    are preserved. No text normalization is applied. Empty text scores 1.0.
+    """
+    from recipe.phimm.utils.shared import BRACKET_EXCLUDE, BRACKET_PATTERN
+
+    n_total = len(hyp_text.split())
+    remaining_text = BRACKET_PATTERN.sub(
+        lambda match: match.group(0) if BRACKET_EXCLUDE.fullmatch(match.group(0)) else "",
+        hyp_text,
+    )
+    n_left = len(remaining_text.split())
+    return n_left / n_total if n_total else 1.0
+
+
 def compute_openml_acc(hyp_text: str, ground_truth: str, tgt_lang: str, **kwargs) -> dict:
-    """Return bracket, repeat, and tail-hallucination accuracies."""
+    """Return bracket, repeat, and tail-hallucination accuracies.
+
+    ``bracket`` is binary, using :func:`has_brackets`. ``bracket_del`` is the
+    remaining-word ratio from :func:`compute_bracket_del`.
+    """
     from recipe.phimm.utils.shared import has_brackets, has_repeat_error, has_tail_hallucination
 
     repeat_opts = kwargs.get("repeat") or {}
     tail_opts = kwargs.get("tail_hallucination") or {}
     return {
         "bracket": 1.0 - float(has_brackets(hyp_text)),
+        "bracket_del": compute_bracket_del(hyp_text),
         "repeat": 1.0
         - float(
             has_repeat_error(
@@ -458,6 +482,9 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Only the components listed in ``measures`` contribute to the reward.
     ``word_del``, ``word_ins``, ``char_del``, and ``char_ins`` components are
     deletion-only and insertion-only accuracies from :func:`_parse_response`.
+    ``bracket_del`` is the fraction of hypothesis words remaining after
+    bracket removal (see :func:`compute_bracket_del`). It is reported by default
+    but contributes to the reward only when included in ``measures``.
     The contribution of each component ``k`` is::
 
         beta * signed_pow(clip(acc_k, lo, hi), gamma)

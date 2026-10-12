@@ -4,12 +4,119 @@ from recipe.phimm.reward.asr_measure import (
     _parse_response,
     check_fmt,
     check_lang,
+    compute_bracket_del,
+    compute_openml_acc,
     compute_score,
     compute_kw_acc,
     lang_score,
     reduce_scores,
 )
 from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
+
+
+@pytest.mark.parametrize(
+    ("hypothesis", "bracket", "bracket_del"),
+    [
+        ("hello world", 1.0, 1.0),
+        ("hello [background noise] world", 0.0, 2 / 4),
+        ("hello <background noise> world", 0.0, 2 / 4),
+        ("hello (background noise) world", 0.0, 2 / 4),
+        ("one [two three] <four> (five six) seven", 0.0, 2 / 7),
+        ("[all words removed]", 0.0, 0.0),
+        ("<all words removed>", 0.0, 0.0),
+        ("(all words removed)", 0.0, 0.0),
+        ("hello [] <> world", 0.0, 2 / 4),
+        ("hello () world", 0.0, 2 / 3),
+        ("hello {background noise} world", 0.0, 2 / 4),
+        ("hello [unfinished words", 1.0, 1.0),
+        ("hello [background noise> world", 1.0, 1.0),
+        ("hello <background noise] world", 1.0, 1.0),
+        ("hello <nonspeech> world", 1.0, 1.0),
+        ("hello <NONSPEECH> world", 1.0, 1.0),
+        ("hello[noise]world", 0.0, 1.0),
+        ("hello\t[background\nnoise]\tworld", 0.0, 2 / 4),
+        ("", 1.0, 1.0),
+        (" \t\n", 1.0, 1.0),
+    ],
+)
+def test_compute_openml_acc_bracket_metrics(hypothesis, bracket, bracket_del):
+    assert compute_bracket_del(hypothesis) == pytest.approx(bracket_del)
+    result = compute_openml_acc(hypothesis, "hello world", "english")
+
+    assert result["bracket"] == bracket
+    assert result["bracket_del"] == pytest.approx(bracket_del)
+
+
+@pytest.mark.parametrize(
+    "pair",
+    [
+        "<>", "[]", "{}", "()", "（）", "［］", "｛｝", "＜＞",
+        "【】", "〔〕", "〈〉", "《》", "「」", "『』", "〖〗", "｟｠",
+    ],
+)
+@pytest.mark.parametrize(
+    ("template", "expected"),
+    [
+        ("hello {left}background noise{right} world", 0.5),
+        ("{left}all words removed{right}", 0.0),
+        ("hello {left}{right} world", 2 / 3),
+        ("hello {left}unfinished words", 1.0),
+    ],
+)
+def test_bracket_del_supports_all_bracket_styles(pair, template, expected):
+    hypothesis = template.format(left=pair[0], right=pair[1])
+    assert compute_bracket_del(hypothesis) == pytest.approx(expected)
+    result = compute_openml_acc(hypothesis, "hello world", "english")
+
+    assert result["bracket_del"] == pytest.approx(expected)
+    assert result["bracket"] == (1.0 if expected == 1.0 else 0.0)
+
+
+@pytest.mark.parametrize(
+    ("output", "expected"),
+    [
+        ("<TXT>hello [background noise] world</TXT>", 0.5),
+        ("<TXT>hello world</TXT>", 1.0),
+        ("<nonspeech>", 1.0),
+        ("<TXT>[background noise]</TXT>", 0.0),
+        ("<TXT>hello 【background noise】 world</TXT>", 0.5),
+        ("<TXT>hello {background noise} world</TXT>", 0.5),
+    ],
+)
+def test_parse_response_reports_bracket_del_after_markup_cleanup(output, expected):
+    result = _parse_response(output, ground_truth="hello world", version=2609)
+
+    assert result["bracket_del"] == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("cut", [None, 0.5])
+@pytest.mark.parametrize("pair", ["[]", "{}", "（）", "【】"])
+def test_compute_score_supports_bracket_del(cut, pair):
+    config = {"beta": 0.5}
+    if cut is not None:
+        config["cut"] = cut
+    result = compute_score(
+        f"<TXT>hello {pair[0]}background noise{pair[1]} world</TXT>",
+        ground_truth="hello world",
+        version=2609,
+        measures={"bracket_del": config},
+    )
+
+    assert result["bracket_del"] == 0.5
+    assert result["score"] == (0.25 if cut is None else 0.0)
+
+
+def test_bracket_del_does_not_change_reward_unless_configured():
+    result = compute_score(
+        "<TXT>hello [background noise] world</TXT>",
+        ground_truth="hello world",
+        version=2609,
+        measures={"bracket": {"beta": 1.0}},
+    )
+
+    assert result["bracket"] == 0.0
+    assert result["bracket_del"] == 0.5
+    assert result["score"] == 0.0
 
 
 def test_accepts_code_switch_output():
