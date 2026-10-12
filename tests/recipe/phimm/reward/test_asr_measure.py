@@ -569,6 +569,97 @@ def test_compute_score_mapping_total_overrides_reward_kwargs():
     assert result["score"] == pytest.approx(0.25)
 
 
+@pytest.mark.parametrize("scale", ["constant", "char", "word"])
+@pytest.mark.parametrize("gamma", [1.0, 2.0])
+@pytest.mark.parametrize(
+    "reduction",
+    ["sum", "mean", "multiply", "geometric", "harmonic", {"mode": "average", "total": 4}],
+)
+def test_compute_score_scales_after_reduction_and_global_gamma(scale, gamma, reduction):
+    kwargs = {
+        "version": 2609,
+        "text_norm": "identity",
+        "reduce": reduction,
+        "gamma": gamma,
+        "measures": {"fmt": {"beta": 0.4}, "char": {"beta": 0.6, "gamma": 2.0}},
+    }
+    baseline = compute_score("<TXT>ct dog</TXT>", ground_truth="cat dog", **kwargs)
+    result = compute_score("<TXT>ct dog</TXT>", ground_truth="cat dog", scale=scale, **kwargs)
+
+    assert result["char"] == pytest.approx(5 / 6)
+    assert result["word"] == pytest.approx(0.5)
+    factor = 1.0 if scale == "constant" else result[scale]
+    assert result["score"] == pytest.approx(baseline["score"] * factor)
+    assert {key: value for key, value in result.items() if key != "score"} == {
+        key: value for key, value in baseline.items() if key != "score"
+    }
+
+
+@pytest.mark.parametrize("scale", ["char", "word"])
+@pytest.mark.parametrize(
+    ("reference", "hypothesis", "accuracy"),
+    [("a", "a b c d", -2.0), ("a", "b", 0.0), ("", "", 1.0), ("", "a b", -1.0)],
+)
+def test_compute_score_scale_uses_raw_accuracy_without_measure(scale, reference, hypothesis, accuracy):
+    result = compute_score(
+        f"<TXT>{hypothesis}</TXT>",
+        ground_truth=reference,
+        version=2609,
+        text_norm="identity",
+        scale=scale,
+        measures={"fmt": {"beta": 0.5}},
+    )
+
+    assert result[scale] == accuracy
+    assert result["score"] == pytest.approx(accuracy * 0.5)
+
+
+@pytest.mark.parametrize("scale", ["constant", "char", "word"])
+def test_compute_score_scale_preserves_cut(scale):
+    result = compute_score(
+        "<TXT>a b c d</TXT>",
+        ground_truth="a",
+        version=2609,
+        text_norm="identity",
+        scale=scale,
+        measures={"fmt": {"beta": 1.0}, "word": {"cut": 0.0}},
+    )
+
+    assert result["word"] == -2.0
+    assert result["score"] == 0.0
+
+
+@pytest.mark.parametrize("scale", ["constant", "char", "word"])
+def test_compute_score_scale_with_no_measures(scale):
+    result = compute_score("<TXT>ct dog</TXT>", ground_truth="cat dog", version=2609, scale=scale)
+
+    assert result["score"] == 0.0
+
+
+@pytest.mark.parametrize("scale", ["unknown", "fmt", 1, None, {}, ["word"]])
+def test_compute_score_rejects_invalid_scale(scale):
+    with pytest.raises(ValueError, match="Unsupported score scale"):
+        compute_score("<TXT>hello</TXT>", ground_truth="hello", scale=scale)
+
+
+@pytest.mark.parametrize(
+    ("reference", "hypothesis"),
+    [("hello", "hello"), ("hello", "wrong"), ("", ""), ("hello", ""), ("", "hello")],
+)
+def test_fixed_metric_is_always_one(reference, hypothesis):
+    output = f"<TXT>{hypothesis}</TXT>"
+    kwargs = {"version": 2609, "text_norm": "identity"}
+    parsed = _parse_response(output, ground_truth=reference, **kwargs)
+    result = compute_score(output, ground_truth=reference, **kwargs)
+    weighted = compute_score(output, ground_truth=reference, measures={"fixed": {"beta": 0.5}}, **kwargs)
+
+    assert parsed["fixed"] == 1.0
+    assert result["fixed"] == 1.0
+    assert result["score"] == 0.0
+    assert weighted["fixed"] == 1.0
+    assert weighted["score"] == 0.5
+
+
 def test_compute_score_cut_zeros_reward_at_threshold():
     result = compute_score(
         "<ASR><lang=English><TXT>hello world",

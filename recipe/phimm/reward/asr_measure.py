@@ -323,6 +323,7 @@ def compute_kw_acc(
 def _parse_response(solution_str, ground_truth=None, **kwargs):
     """Extract text, format/language, lexical, and edge-check accuracies.
 
+    ``fixed`` is always 1.0, independent of the reference and hypothesis.
     ``word_del``, ``word_ins``, ``char_del``, and ``char_ins`` isolate the
     corresponding edit operation using the same normalized alignments as
     ``word`` and ``char``. Each is ``1 - count / max(n_ref, 1)``; substitutions
@@ -349,6 +350,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
 
     return {
+        "fixed": 1.0,
         "char": char_error.accuracy(),
         "char_del": char_error.accuracy(sub=0.0, ins=0.0),
         "char_ins": char_error.accuracy(sub=0.0, **{"del": 0.0}),
@@ -497,15 +499,23 @@ def compute_score(solution_str, ground_truth, **kwargs):
     options. Mapping options override the corresponding reward kwargs.
     ``mean`` divides by the component count; ``average`` uses ``total`` as
     the divisor when provided.
+    ``scale`` defaults to ``"constant"`` (1.0), or can be ``"char"`` or
+    ``"word"`` to multiply the reduced, globally gamma-transformed score by
+    that raw accuracy. Scaling is independent of ``measures`` and does not
+    clip or transform the accuracy, which may be negative.
 
     Configuration example (YAML)::
 
         reward_kwargs:
           reduce: {mode: average, total: 4}
+          scale: word
           measures:
             char: {beta: 1.0, gamma: 0.5, low: 0.0, high: 1.0}
             fmt: {beta: 0.5, cut: 0.5}
     """
+    scale = kwargs.get("scale", "constant")
+    if scale not in ("constant", "char", "word"):
+        raise ValueError(f"Unsupported score scale: {scale!r}. Expected 'constant', 'char', or 'word'.")
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
 
     measures = kwargs.get("measures") or {}
@@ -517,7 +527,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     gamma = float(kwargs.get("gamma", 1.0))
     scores = [scale_score(parsed.get(k, 1.0), cfg) for k, cfg in measures.items()]
     score = reduce_scores(scores, **(kwargs | reduction))
-    score = signed_pow(score, gamma)
+    score = signed_pow(score, gamma) * (1.0 if scale == "constant" else parsed[scale])
 
     if any("cut" in cfg and parsed.get(name, 1.0) <= float(cfg["cut"]) for name, cfg in measures.items()):
         score = 0.0
