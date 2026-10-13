@@ -1,12 +1,12 @@
-# Use the keyword-aware LibriSpeech reward for every training data source.
-# Set keyword beta to 0.5, bracket_del beta to 5.0, and average total to 4; omit edit-only rewards.
+# Match rm0b_v0 without edit-only char/word rewards, using average total 4.
+# Strip paired bracket characters from OpenML reference text before add_task_info.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/openml_verb_langhint@_ml_train
+  - /data/train_data/openml_verb_langhint_v0@_ml_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
   - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
   - /data/val_data/ls_kw_verb_langhint@_ls_val
@@ -23,7 +23,6 @@ reward_functions:
         char: {beta: 1.0}
         word: {beta: 1.0}
         keyword: {beta: 0.5}
-        bracket_del: {beta: 5.0}
         lang: {beta: 0.5}
         fmt: {beta: 0.5}
 
@@ -58,5 +57,5 @@ data:
 
 trainer:
   nnodes: 2
-  total_epochs: 3
+  total_epochs: 2
   total_training_steps: null

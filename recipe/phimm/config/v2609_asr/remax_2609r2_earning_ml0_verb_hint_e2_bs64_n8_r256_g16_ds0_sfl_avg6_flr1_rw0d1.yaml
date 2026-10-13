@@ -1,14 +1,13 @@
-# Keep the source recipe's 1:2:2 sampling and constant LR; train for three epochs.
-# Apply rm0b rewards to all sources and strip OpenML reference brackets before add_task_info.
+# Use the keyword-aware LibriSpeech reward for every training data source.
+# Set keyword/lang/fmt/bracket betas to 0.1 and average total to 3; omit edit-only rewards.
+# Scale the reduced reward by character accuracy and replace its char component with fixed=1.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/earnings_tts_verb_langhint@_earning_train
-  - /data/train_data/openml_verb_langhint_v0@_ml_train
-  - /data/train_data/ls_rare_bad_verb_langhint@_ls_train
+  - /data/train_data/openml_verb_langhint@_ml_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
   - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
   - /data/val_data/ls_kw_verb_langhint@_ls_val
@@ -20,21 +19,19 @@ reward_functions:
     name: compute_score
     reward_kwargs:
       version: 2609
-      reduce: {mode: average, total: 5}
+      reduce: {mode: average, total: 3}
+      scale: char
       measures:
-        char: {beta: 1.0}
+        fixed: {beta: 1.0}
         word: {beta: 1.0}
-        char_del: {beta: 0.25}
-        char_ins: {beta: 0.25}
-        word_del: {beta: 0.25}
-        word_ins: {beta: 0.25}
-        keyword: {beta: 0.5}
-        lang: {beta: 0.5}
-        fmt: {beta: 0.5}
+        keyword: {beta: 0.1}
+        lang: {beta: 0.1}
+        fmt: {beta: 0.1}
+        bracket: {beta: 0.1}
 
 reward_function_by_data_source:
-  earnings_fy27: librispeech
   openml: librispeech
+  earnings_fy27: librispeech
   ls_rare_verb: librispeech
 
 actor_rollout_ref:
@@ -51,21 +48,17 @@ actor_rollout_ref:
 
 data:
   data_source:
-    earnings_fy27: {num_sample: 7000, shuffle: true}
-    openml: {num_sample: 14000, shuffle: true}
-    ls_rare_verb: {num_sample: 14000, shuffle: true}
+    openml: {num_sample: 13169, shuffle: true}
   train_data:
-    - ${_earning_train}
     - ${_ml_train}
-    - ${_ls_train}
   val_data:
     - ${_earning_val}
     - ${_ml_val}
     - ${_ls_val}
   train_batch_size: 64
-  shuffle: false
+  shuffle: true
 
 trainer:
   nnodes: 2
-  total_epochs: 3
+  total_epochs: 2
   total_training_steps: null
