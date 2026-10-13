@@ -1,5 +1,5 @@
 # Use the keyword-aware LibriSpeech reward for every training data source.
-# Set keyword beta to 0.5, bracket_del beta to 10.0, and average total to 4; omit edit-only rewards.
+# Set word_kw beta to 0.5, bracket_del beta to 10.0, and average total to 4; omit edit-only rewards.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -22,7 +22,7 @@ reward_functions:
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        keyword: {beta: 0.5}
+        word_kw: {beta: 0.5}
         bracket_del: {beta: 10.0}
         lang: {beta: 0.5}
         fmt: {beta: 0.5}

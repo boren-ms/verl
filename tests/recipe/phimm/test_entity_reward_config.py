@@ -53,7 +53,7 @@ def test_entity_configs_use_local_2609r2_defaults(config_name):
         assert OmegaConf.to_container(reward_kwargs.measures) == {
             "char": {"beta": 1.0},
             "word": {"beta": 1.0},
-            "keyword": {"beta": 1.0},
+            "word_kw": {"beta": 1.0},
             "lang": {"beta": 0.5},
             "fmt": {"beta": 0.5},
         }

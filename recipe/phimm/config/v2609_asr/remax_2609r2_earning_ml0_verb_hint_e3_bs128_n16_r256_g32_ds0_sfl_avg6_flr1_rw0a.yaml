@@ -45,7 +45,7 @@ reward_functions:
         char_ins: {beta: 0.5}
         word_del: {beta: 0.5}
         word_ins: {beta: 0.5}
-        keyword: {beta: 1.0}
+        word_kw: {beta: 1.0}
         lang: {beta: 0.5}
         fmt: {beta: 0.5}
 

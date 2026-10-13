@@ -223,7 +223,7 @@ def test_ls_active_training_settings_and_rewards(recipe_name):
     assert OmegaConf.to_container(rewards.measures) == {
         "char": {"beta": 1.0},
         "word": {"beta": 1.0},
-        "keyword": {"beta": 1.0},
+        "word_kw": {"beta": 1.0},
         "lang": {"beta": 0.5},
         "fmt": {"beta": 0.5},
     }

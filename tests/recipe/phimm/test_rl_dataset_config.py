@@ -1078,7 +1078,7 @@ def test_ls_rare_sampling_recipe_adds_verbatim_hint_data(dataset_class, dataset_
         assert OmegaConf.to_container(added, resolve=True) == expected
 
     assert config.reward_function_by_data_source.ls_rare_verb == "openml"
-    assert config.reward_functions.openml.reward_kwargs.measures.keyword.beta == 1.0
+    assert config.reward_functions.openml.reward_kwargs.measures.word_kw.beta == 1.0
     assert config.reward_functions.openml.reward_kwargs.version == 2609
     for source in ("ls_clean", "ls_other"):
         assert base.val_reward.reward_function_by_data_source[source] == "openasr_en"
@@ -1104,7 +1104,7 @@ def test_ls_rare_sampling_recipe_adds_verbatim_hint_data(dataset_class, dataset_
     remaining = OmegaConf.to_container(config, resolve=False)
     del remaining["_ls_train"]
     del remaining["_ls_val"]
-    del remaining["reward_functions"]["openml"]["reward_kwargs"]["measures"]["keyword"]
+    del remaining["reward_functions"]["openml"]["reward_kwargs"]["measures"]["word_kw"]
     del remaining["reward_function_by_data_source"]["ls_rare_verb"]
     del remaining["data"]["data_source"]["ls_rare_verb"]
     assert remaining == OmegaConf.to_container(base, resolve=False)

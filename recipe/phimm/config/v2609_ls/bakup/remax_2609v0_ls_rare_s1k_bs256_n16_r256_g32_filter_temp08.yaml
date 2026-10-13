@@ -22,7 +22,7 @@ reward_functions:
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        keyword: {beta: 1.0}
+        word_kw: {beta: 1.0}
         lang: {beta: 1}
         fmt: {beta: 0.1, cut: 0.9}
 

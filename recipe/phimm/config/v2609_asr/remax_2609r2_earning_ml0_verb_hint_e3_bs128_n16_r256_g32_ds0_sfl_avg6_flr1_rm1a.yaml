@@ -43,7 +43,7 @@ reward_functions:
         char_ins: {beta: 0.5}
         word_del: {beta: 0.5}
         word_ins: {beta: 0.5}
-        keyword: {beta: 1.0}
+        word_kw: {beta: 1.0}
         lang: {beta: 0.5}
         fmt: {beta: 0.5}
 
@@ -68,7 +68,7 @@ algorithm:
   remax_measures:
     char: {beta: 1.0, delta: 0.2}
     word: {beta: 1.0, delta: 0.2}
-    keyword: {beta: 0.1}
+    word_kw: {beta: 0.1}
     lang: {beta: 0.1}
     fmt: {beta: 0.1}
     bracket: {beta: 0.1}
