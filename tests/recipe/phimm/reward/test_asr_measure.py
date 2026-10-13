@@ -5,6 +5,7 @@ from recipe.phimm.reward.asr_measure import (
     check_fmt,
     check_lang,
     compute_bracket_del,
+    compute_deltas,
     compute_openml_acc,
     compute_score,
     compute_kw_acc,
@@ -12,6 +13,96 @@ from recipe.phimm.reward.asr_measure import (
     reduce_scores,
 )
 from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
+
+
+@pytest.mark.parametrize("baseline", [None, {}])
+def test_compute_deltas_skips_missing_baseline(baseline):
+    assert compute_deltas({"score": 0.5, "word": 1.0}, baseline) == {}
+
+
+def test_compute_deltas_subtracts_only_shared_scores_without_mutation():
+    raw_scores = {"score": 0.5, "word": 0.25, "char": 0.75, "fmt": 1.0}
+    baseline = {"score": 0.25, "word": 0.75, "char": 0.75, "other": 1.0}
+
+    assert compute_deltas(raw_scores, baseline) == {
+        "d_score": 0.25,
+        "d_word": -0.5,
+        "d_char": 0.0,
+    }
+    assert raw_scores == {"score": 0.5, "word": 0.25, "char": 0.75, "fmt": 1.0}
+    assert baseline == {"score": 0.25, "word": 0.75, "char": 0.75, "other": 1.0}
+
+
+@pytest.mark.parametrize("scale", ["constant", "char", "word"])
+@pytest.mark.parametrize("cut", [None, 0.5])
+def test_compute_score_returns_deltas_from_greedy_reward(scale, cut):
+    config = {"beta": 0.5, "gamma": 2.0}
+    if cut is not None:
+        config["cut"] = cut
+    kwargs = {
+        "version": 2609,
+        "text_norm": "identity",
+        "scale": scale,
+        "gamma": 2.0,
+        "reduce": {"mode": "average", "total": 2},
+        "measures": {"word": config},
+    }
+    baseline = compute_score("<TXT>cat dog</TXT>", ground_truth="cat dog", **kwargs)
+    raw = compute_score("<TXT>ct dog</TXT>", ground_truth="cat dog", **kwargs)
+    extra_info = {"greedy_reward": baseline}
+    result = compute_score("<TXT>ct dog</TXT>", ground_truth="cat dog", extra_info=extra_info, **kwargs)
+
+    assert {key: result[key] for key in raw} == raw
+    assert set(result) == set(raw) | {f"d_{key}" for key in raw}
+    for key, value in raw.items():
+        assert result[f"d_{key}"] == pytest.approx(value - baseline[key])
+    assert result["d_word"] == -0.5
+    assert extra_info == {"greedy_reward": baseline}
+
+
+@pytest.mark.parametrize("extra_info", [None, {}, {"greedy_reward": None}, {"greedy_reward": {}}])
+def test_compute_score_omits_deltas_without_baseline(extra_info):
+    result = compute_score(
+        "<TXT>hello</TXT>",
+        ground_truth="hello",
+        version=2609,
+        extra_info=extra_info,
+        measures={"word": {"beta": 1.0}},
+    )
+
+    assert result["score"] == 1.0
+    assert not any(key.startswith("d_") for key in result)
+
+
+@pytest.mark.parametrize("measures", [None, {}, {"word": {}}, {"word": {"beta": 0.0}, "fmt": {}}])
+@pytest.mark.parametrize("scale", ["constant", "char", "word"])
+@pytest.mark.parametrize("with_baseline", [False, True])
+def test_compute_score_returns_only_configured_raw_metrics(measures, scale, with_baseline):
+    extra_info = {}
+    if with_baseline:
+        extra_info["greedy_reward"] = {"score": 0.25, "word": 0.75, "fmt": 0.5, "char": 0.9}
+    result = compute_score(
+        "<TXT>ct dog</TXT>",
+        ground_truth="cat dog",
+        version=2609,
+        text_norm="identity",
+        measures=measures,
+        scale=scale,
+        extra_info=extra_info,
+    )
+
+    raw_keys = {"score", *(measures or {})}
+    expected_keys = raw_keys | ({f"d_{key}" for key in raw_keys} if with_baseline else set())
+    assert set(result) == expected_keys
+    if measures:
+        assert result["word"] == 0.5
+        if "fmt" in measures:
+            assert result["fmt"] == 1.0
+    else:
+        assert result["score"] == 0.0
+    if with_baseline:
+        for key in raw_keys:
+            assert result[f"d_{key}"] == pytest.approx(result[key] - extra_info["greedy_reward"][key])
 
 
 @pytest.mark.parametrize(
@@ -115,7 +206,7 @@ def test_bracket_del_does_not_change_reward_unless_configured():
     )
 
     assert result["bracket"] == 0.0
-    assert result["bracket_del"] == 0.5
+    assert "bracket_del" not in result
     assert result["score"] == 0.0
 
 
@@ -587,8 +678,8 @@ def test_compute_score_scales_after_reduction_and_global_gamma(scale, gamma, red
     result = compute_score("<TXT>ct dog</TXT>", ground_truth="cat dog", scale=scale, **kwargs)
 
     assert result["char"] == pytest.approx(5 / 6)
-    assert result["word"] == pytest.approx(0.5)
-    factor = 1.0 if scale == "constant" else result[scale]
+    assert "word" not in result
+    factor = {"constant": 1.0, "char": 5 / 6, "word": 0.5}[scale]
     assert result["score"] == pytest.approx(baseline["score"] * factor)
     assert {key: value for key, value in result.items() if key != "score"} == {
         key: value for key, value in baseline.items() if key != "score"
@@ -610,7 +701,7 @@ def test_compute_score_scale_uses_raw_accuracy_without_measure(scale, reference,
         measures={"fmt": {"beta": 0.5}},
     )
 
-    assert result[scale] == accuracy
+    assert scale not in result
     assert result["score"] == pytest.approx(accuracy * 0.5)
 
 
@@ -654,8 +745,7 @@ def test_fixed_metric_is_always_one(reference, hypothesis):
     weighted = compute_score(output, ground_truth=reference, measures={"fixed": {"beta": 0.5}}, **kwargs)
 
     assert parsed["fixed"] == 1.0
-    assert result["fixed"] == 1.0
-    assert result["score"] == 0.0
+    assert result == {"score": 0.0}
     assert weighted["fixed"] == 1.0
     assert weighted["score"] == 0.5
 

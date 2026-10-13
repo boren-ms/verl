@@ -475,18 +475,29 @@ def scale_score(acc, cfg):
     return beta * signed_pow(acc, gamma)
 
 
+def compute_deltas(raw_scores: dict[str, float], baseline: dict[str, float] | None) -> dict[str, float]:
+    """Return ``d_<name> = raw_score - baseline`` for shared score keys.
+
+    No delta fields are returned when the baseline is absent or empty.
+    """
+    if not baseline:
+        return {}
+    return {f"d_{name}": value - baseline[name] for name, value in raw_scores.items() if name in baseline}
+
+
 def compute_score(solution_str, ground_truth, **kwargs):
     """Combined lexical + formatting reward.
 
     Uses :func:`recipe.phimm.reward.asr_edge.measure` for the lexical accuracy
     and :func:`compute_fmt_acc` for punctuation/capitalisation accuracy.
 
-    Only the components listed in ``measures`` contribute to the reward.
+    Only the components listed in ``measures`` contribute to the reward and
+    are returned as raw metrics alongside the combined ``score``.
     ``word_del``, ``word_ins``, ``char_del``, and ``char_ins`` components are
     deletion-only and insertion-only accuracies from :func:`_parse_response`.
     ``bracket_del`` is the fraction of hypothesis words remaining after
-    bracket removal (see :func:`compute_bracket_del`). It is reported by default
-    but contributes to the reward only when included in ``measures``.
+    bracket removal (see :func:`compute_bracket_del`). It is returned and
+    contributes to the reward only when included in ``measures``.
     The contribution of each component ``k`` is::
 
         beta * signed_pow(clip(acc_k, lo, hi), gamma)
@@ -503,6 +514,12 @@ def compute_score(solution_str, ground_truth, **kwargs):
     ``"word"`` to multiply the reduced, globally gamma-transformed score by
     that raw accuracy. Scaling is independent of ``measures`` and does not
     clip or transform the accuracy, which may be negative.
+
+    When ``extra_info["greedy_reward"]`` contains precomputed baseline scores,
+    also returns ``d_<name>`` for each shared score or metric, computed by
+    :func:`compute_deltas` as raw value minus baseline. Raw values, including
+    the combined ``score``, are unchanged. Missing baselines or metric keys
+    produce no corresponding delta fields.
 
     Configuration example (YAML)::
 
@@ -532,10 +549,12 @@ def compute_score(solution_str, ground_truth, **kwargs):
     if any("cut" in cfg and parsed.get(name, 1.0) <= float(cfg["cut"]) for name, cfg in measures.items()):
         score = 0.0
 
-    return {
+    result = {
         "score": score,
-        **parsed,
+        **{name: parsed.get(name, 1.0) for name in measures},
     }
+    extra_info = kwargs.get("extra_info") or {}
+    return {**result, **compute_deltas(result, extra_info.get("greedy_reward"))}
 
 
 def lang_score(solution_str, ground_truth=None, **kwargs):
