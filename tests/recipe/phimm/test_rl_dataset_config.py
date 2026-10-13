@@ -824,11 +824,19 @@ def test_asr_base_accepts_grouped_mix_hydra_override():
     ]
 
 
-def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(dataset_namespace, dataset_class, monkeypatch):
+@pytest.mark.parametrize(
+    ("recipe_name", "budget_key", "first_budget", "tail_budget"),
+    [
+        ("remax_2609r2_mx0_bs64_n4_g16_rw0", "sample", 13168, {"ls_rare_verb": 58539}),
+        ("remax_2609r2_mx0a_bs64_n4_g16_rw0", "batch", 100, {"openml": 100, "ls_rare_verb": 1000}),
+    ],
+)
+def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(
+    dataset_namespace, dataset_class, monkeypatch, recipe_name, budget_key, first_budget, tail_budget,
+):
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
     donor_name = "remax_2609r2_earning_ml0_ls_bad_verb_hint_e2_bs64_n4_r256_g16_ds1e_sfl_avg6_flr_rm0b_v0a"
-    recipe_name = "remax_2609r2_mx0_bs64_n4_g16_rw0"
     searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
         donor = compose(config_name=donor_name, overrides=[searchpath])
@@ -849,11 +857,21 @@ def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(dataset_namesp
     }
     assert OmegaConf.to_container(config.reward_functions.librispeech.reward_kwargs.measures) == expected_measures
     donor.reward_functions.librispeech.reward_kwargs.measures = expected_measures
+    source = OmegaConf.load(config_root / "v2609_asr/remax_2609r2_mx0_bs64_n4_g16_rw0.yaml")
+    expected_reduction = source.reward_functions.librispeech.reward_kwargs.reduce
+    assert OmegaConf.to_container(expected_reduction) == {"mode": "average", "total": 2}
+    assert config.reward_functions.librispeech.reward_kwargs.reduce == expected_reduction
+    donor.reward_functions.librispeech.reward_kwargs.reduce = expected_reduction
     assert OmegaConf.to_container(config, resolve=False) == OmegaConf.to_container(donor, resolve=False)
-    assert [entry.sample for entry in config.data.mix[0].datasource] == [13168] * 3
+    assert [entry[budget_key] for entry in config.data.mix[0].datasource] == [first_budget] * 3
+    unused_budget_key = "sample" if budget_key == "batch" else "batch"
+    assert all(unused_budget_key not in entry for group in config.data.mix for entry in group.datasource)
     assert "range" not in config.data.mix[0].datasource[2]
-    assert "range" not in config.data.mix[1].datasource[0]
-    assert config.data.mix[1].datasource[0].sample == 71707 - 13168 == 58539
+    assert all("range" not in entry for entry in config.data.mix[1].datasource)
+    assert {entry.name: entry[budget_key] for entry in config.data.mix[1].datasource} == tail_budget
+    factor = config.data.train_batch_size if budget_key == "batch" else 1
+    first_count = first_budget * factor
+    tail_counts = {name: budget * factor for name, budget in tail_budget.items()}
 
     counts = {"earnings_fy27": 3, "openml": 13168, "ls_rare_verb": 71707}
     sources = {
@@ -863,18 +881,26 @@ def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(dataset_namesp
     monkeypatch.setitem(dataset_namespace, "create_audio_dataset", lambda source, **kwargs: sources[source])
     configs = [{"source": name} for name in sources]
     dataset = dataset_class(configs, None, config.data)
-    first_size = 13168 * 3
-    assert len(dataset) == 98043
+    first_size = first_count * 3
+    assert len(dataset) == first_size + sum(tail_counts.values())
     assert Counter(dataset.ds[:first_size]["data_source"]) == {
-        "earnings_fy27": 13168, "openml": 13168, "ls_rare_verb": 13168
+        "earnings_fy27": first_count, "openml": first_count, "ls_rare_verb": first_count
     }
-    assert dataset.ds[first_size:]["data_source"] == ["ls_rare_verb"] * 58539
+    assert Counter(dataset.ds[first_size:]["data_source"]) == tail_counts
     ls_first = {
         row["id"] for row in dataset.ds.select(range(first_size)) if row["data_source"] == "ls_rare_verb"
     }
-    ls_tail = set(dataset.ds[first_size:]["id"])
-    assert ls_first == set(sources["ls_rare_verb"].shuffle(seed=44).select(range(13168))["id"])
-    assert ls_tail == set(sources["ls_rare_verb"].shuffle(seed=43).select(range(58539))["id"])
+    assert ls_first == set(sources["ls_rare_verb"].shuffle(seed=44).select(range(first_count))["id"])
+    tail_rows = dataset.ds[first_size:]
+    for index, entry in enumerate(config.data.mix[1].datasource):
+        name = entry.name
+        count = tail_counts[name]
+        selected = {
+            row_id
+            for row_id, source in zip(tail_rows["id"], tail_rows["data_source"], strict=True)
+            if source == name
+        }
+        assert selected == set(sources[name].shuffle(seed=43 + index).select(range(count))["id"])
     assert dataset_class(configs, None, config.data).ds.to_dict() == dataset.ds.to_dict()
 
 
