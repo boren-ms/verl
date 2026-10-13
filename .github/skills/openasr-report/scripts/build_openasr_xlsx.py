@@ -4,11 +4,11 @@
 Metrics layout (`openasr` sheet):
   Row 2  : Header | Baseline | <model-label-1> | <model-label-2> | ... | WERR(s)
   Row 3  : Column | A        | B               | C               | ... | A->B, A->C, ...
-  Row 4-11 : OpenASR datasets (ami_clean..voxpopuli-cleaned-aa)
-  Row 12 : avg (numeric dataset mean)
-  Row 13 : Column row repeated for the ML section
-  Row 14-37 : ML datasets with per-language avg rows mixed in
-  Row 38 : ml avg (numeric mean of available language means)
+  Row 4-13 : OpenASR datasets (ami_clean..urgent2024_clean)
+  Row 14 : avg (numeric dataset mean)
+  Row 15 : Column row repeated for the ML section
+  Row 16-39 : ML datasets with per-language avg rows mixed in
+  Row 40 : ml avg (numeric mean of available language means)
   Column(s) after the last model column: WERR = 1 - <model>/Baseline for each model column.
 Additional sheets: `model_info` and `dataset_results`.
 """
@@ -48,6 +48,8 @@ OPENASR_DATASETS: List[str] = [
     "monsoon_en_in",
     "spgispeech",
     "voxpopuli-cleaned-aa",
+    "urgent2024",
+    "urgent2024_clean",
 ]
 
 # Ordered: list of (language_code, [datasets in that language]).
@@ -62,7 +64,7 @@ OPENASR_ML_GROUPS: List[Tuple[str, List[str]]] = [
 ]
 
 BASELINE_LABEL = "2609r2"
-# User-supplied 2609r2 column A percentages (2026-10-07), converted to fractions.
+# User-supplied 2609r2 percentages (2026-10-07; URGENT2024 added 2026-10-13), converted to fractions.
 BASELINE_METRICS: Dict[str, float] = {
     # OpenASR
     "ami_clean": 0.0672,
@@ -73,6 +75,8 @@ BASELINE_METRICS: Dict[str, float] = {
     "monsoon_en_in": 0.0339,
     "spgispeech": 0.0215,
     "voxpopuli-cleaned-aa": 0.0163,
+    "urgent2024": 0.0957,
+    "urgent2024_clean": 0.0451,
     # OpenASR_ML
     "de_fleurs": 0.0232,
     "de_mcv": 0.0190,
@@ -151,11 +155,11 @@ def load_metrics(args: argparse.Namespace) -> Dict[str, float]:
 
 
 OPENASR_START = 4  # row of first OpenASR dataset
-OPENASR_END = OPENASR_START + len(OPENASR_DATASETS) - 1  # 11
-OPENASR_AVG = OPENASR_END + 1  # 12
+OPENASR_END = OPENASR_START + len(OPENASR_DATASETS) - 1  # 13
+OPENASR_AVG = OPENASR_END + 1  # 14
 
-ML_HEADER = OPENASR_AVG + 1  # 13
-ML_START = ML_HEADER + 1  # 14
+ML_HEADER = OPENASR_AVG + 1  # 15
+ML_START = ML_HEADER + 1  # 16
 
 MODEL_INFO_FIELDS = [
     ("model_path", "Model path"),
@@ -322,7 +326,7 @@ def build_workbook(
         target_letter = chr(ord("A") + 1 + j)  # B, C, D...
         ws.cell(row=3, column=wc, value=f"A->{target_letter}").font = bold
 
-    # OpenASR section (rows 4..11)
+    # OpenASR section (rows 4..13)
     for r, ds in enumerate(OPENASR_DATASETS, start=OPENASR_START):
         ws.cell(row=r, column=1, value=ds)
         for i, (_, metrics) in enumerate(columns):
@@ -332,7 +336,7 @@ def build_workbook(
         for j, wc in enumerate(werr_cols):
             _write_dataset_werr(ws, r, wc, model_cols[0], model_cols[1 + j])
 
-    # OpenASR avg row 12 (computed numeric values so cells are always filled)
+    # OpenASR avg row 14 (computed numeric values so cells are always filled)
     r = OPENASR_AVG
     ws.cell(row=r, column=1, value="avg").font = bold
     for i, (_, metrics) in enumerate(columns):
@@ -343,7 +347,7 @@ def build_workbook(
     for j, wc in enumerate(werr_cols):
         _write_average_werr(ws.cell(r, wc), [OPENASR_DATASETS], columns[0][1], columns[1 + j][1])
 
-    # ML header row 13
+    # ML header row 15
     ws.cell(row=ML_HEADER, column=1, value="Column").font = bold
     for i, mc in enumerate(model_cols):
         ws.cell(row=ML_HEADER, column=mc, value=chr(ord("A") + i)).font = bold

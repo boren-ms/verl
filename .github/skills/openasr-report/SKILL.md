@@ -6,7 +6,7 @@ argument-hint: '<model-label> [--from-ray <node> <job-id> [<job-id> ...]] | [--f
 
 # OpenASR Comparison Report (xlsx)
 
-Generate an Excel report (`.xlsx`) that compares a new model column against the `2609r2` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, and Dutch.
+Generate an Excel report (`.xlsx`) that compares a new model column against the `2609r2` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, URGENT2024 noisy/clean, and Dutch.
 
 ## When to Use
 
@@ -20,10 +20,10 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
 
 - **Row 2** `Header`: `<baseline-label>`, `<model-label-1>`, `<model-label-2>`, ..., `WERR` (one WERR header per non-baseline model column).
 - **Row 3** `Column`: `A`, `B`, `C`, ..., `A->B`, `A->C`, ...
-- **Rows 4–11**: OpenASR datasets — `ami_clean`, `earnings22-cleaned-aa-chunked`, `gigaspeech_clean`, `librispeech-clean`, `librispeech-other`, `monsoon_en_in`, `spgispeech`, `voxpopuli-cleaned-aa`.
-- **Row 12** `avg`: numeric mean across the 8 OpenASR datasets per column.
-- **Row 13**: repeated `Column` header for the ML section.
-- **Rows 14–37**: ML datasets grouped by language with per-language `<lang> avg` rows interleaved:
+- **Rows 4–13**: OpenASR datasets — `ami_clean`, `earnings22-cleaned-aa-chunked`, `gigaspeech_clean`, `librispeech-clean`, `librispeech-other`, `monsoon_en_in`, `spgispeech`, `voxpopuli-cleaned-aa`, `urgent2024`, `urgent2024_clean`.
+- **Row 14** `avg`: numeric mean across the 10 OpenASR datasets per column.
+- **Row 15**: repeated `Column` header for the ML section.
+- **Rows 16–39**: ML datasets grouped by language with per-language `<lang> avg` rows interleaved:
   - de: `de_fleurs`, `de_mcv`
   - es: `es_fleurs`, `es_mcv`, `es_mls`
   - fr: `fr_fleurs`, `fr_mcv`, `fr_mls`
@@ -31,7 +31,7 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
   - it: `it_fleurs`, `it_mcv`, `it_mls`
   - nl: `nl_fleurs`, `nl_mcv`, `nl_mls`
   - pt: `pt_fleurs`, `pt_mls`
-- **Row 38** `ml avg`: numeric unweighted mean of the seven unrounded language means per column. With partial coverage, include only languages with available datasets.
+- **Row 40** `ml avg`: numeric unweighted mean of the seven unrounded language means per column. With partial coverage, include only languages with available datasets.
 - **WERR columns**: compute `1 - model / baseline` for every available pair with a positive baseline. Per-dataset cells use Excel formulas; average rows store numeric WERR. Positive values mean improvement; negative values mean regression. Do not remove deltas because baseline checkpoint/scoring provenance is incomplete.
 
 Formatting:
@@ -133,7 +133,9 @@ appropriate baseline, override with `--baseline <json>` and
 | monsoon_en_in | 3.39% |
 | spgispeech | 2.15% |
 | voxpopuli-cleaned-aa | 1.63% |
-| avg | 3.81% |
+| urgent2024 | 9.57% |
+| urgent2024_clean | 4.51% |
+| avg | 4.46% |
 | de_fleurs | 2.32% |
 | de_mcv | 1.90% |
 | de avg | 2.11% |
@@ -161,7 +163,7 @@ appropriate baseline, override with `--baseline <json>` and
 | ml avg | 3.64% |
 
 Recompute averages from the dataset values with full precision, displaying
-two decimal places. English averages the eight datasets (`3.81125%`).
+two decimal places. English averages the ten datasets (`4.457%`).
 ML averages the seven unrounded language means (`3.636666...%`), not all
 17 datasets (`3.145294...%`). Apply this language-macro rule to candidates
 and matched-coverage ML WERR too. Summary rows are not dataset metrics.

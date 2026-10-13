@@ -17,6 +17,8 @@ SUPPLIED = {
     "monsoon_en_in": (3.39, 3.41),
     "spgispeech": (2.15, 2.13),
     "voxpopuli-cleaned-aa": (1.63, 1.69),
+    "urgent2024": (9.57, 9.00),
+    "urgent2024_clean": (4.51, 4.00),
     "de_fleurs": (2.32, 2.24), "de_mcv": (1.90, 1.90),
     "es_fleurs": (2.71, 2.81), "es_mcv": (2.20, 2.16), "es_mls": (2.58, 2.67),
     "fr_fleurs": (2.86, 2.65), "fr_mcv": (4.17, 4.18), "fr_mls": (2.37, 2.43),
@@ -63,17 +65,17 @@ def test_baseline_and_full_report(report, tmp_path, monkeypatch):
             assert row[3].value == f"=1-C{row[0].row}/B{row[0].row}"
             assert all(cell.number_format == "0.00%" for cell in row[1:4])
     assert seen == set(SUPPLIED)
-    assert sheet["B12"].value == pytest.approx(30.49 / 800)
-    assert sheet["C12"].value == pytest.approx(31.05 / 800)
-    assert sheet["B38"].value == pytest.approx(3.6366666666666667 / 100)
+    assert sheet["B14"].value == pytest.approx(44.57 / 1000)
+    assert sheet["C14"].value == pytest.approx(44.05 / 1000)
+    assert sheet["B40"].value == pytest.approx(3.6366666666666667 / 100)
     candidate_ml_mean = sum(
         sum(candidate[ds] for ds in datasets) / len(datasets)
         for _, datasets in report.OPENASR_ML_GROUPS
     ) / len(report.OPENASR_ML_GROUPS)
-    assert sheet["C38"].value == pytest.approx(candidate_ml_mean)
-    assert sheet["D38"].value == pytest.approx(1 - candidate_ml_mean / sheet["B38"].value)
+    assert sheet["C40"].value == pytest.approx(candidate_ml_mean)
+    assert sheet["D40"].value == pytest.approx(1 - candidate_ml_mean / sheet["B40"].value)
     summaries = {
-        "avg": "3.81%", "de avg": "2.11%", "es avg": "2.50%",
+        "avg": "4.46%", "de avg": "2.11%", "es avg": "2.50%",
         "fr avg": "3.13%", "hi avg": "8.78%", "it avg": "2.36%",
         "nl avg": "3.35%", "pt avg": "3.23%", "ml avg": "3.64%",
     }
@@ -93,11 +95,15 @@ def test_log_names_and_latest_value(report):
         "val-aux/fleurs_nl/p_err/mean@1:0.04",
         "val-aux/nl_fleurs/p_err/mean@1:0.0365",
         "val-aux/monsoon_hi_in/p_err/mean@1:0.0963",
+        "val-aux/urgent2024/p_err/mean@1:0.09",
+        "val-aux/urgent2024_clean/p_err/mean@1:0.04",
     ])
     assert report.parse_wer_lines(text) == {
         "earnings22-cleaned-aa-chunked": 0.0537,
         "nl_fleurs": 0.0365,
         "monsoon_hi_in": 0.0963,
+        "urgent2024": 0.09,
+        "urgent2024_clean": 0.04,
     }
 
 
@@ -135,18 +141,18 @@ def test_partial_coverage_deltas_use_matched_datasets(report, tmp_path):
     workbook = load_workbook(output)
     sheet = workbook["openasr"]
     assert sheet["D4"].value == "=1-C4/B4"
-    assert sheet["D12"].value == pytest.approx(0.50)
-    assert sheet["B12"].value == pytest.approx(0.25)
-    assert sheet["C12"].value == pytest.approx(0.05)
-    assert sheet["D12"].comment is None
-    assert sheet["D14"].value == "=1-C14/B14"
-    assert sheet["D16"].value == pytest.approx(-1.0)
-    assert sheet["D38"].value == pytest.approx(-1.0)
-    assert sheet["D38"].comment is None
-    for row in (5, 10, 15):
+    assert sheet["D14"].value == pytest.approx(0.50)
+    assert sheet["B14"].value == pytest.approx(0.25)
+    assert sheet["C14"].value == pytest.approx(0.05)
+    assert sheet["D14"].comment is None
+    assert sheet["D16"].value == "=1-C16/B16"
+    assert sheet["D18"].value == pytest.approx(-1.0)
+    assert sheet["D40"].value == pytest.approx(-1.0)
+    assert sheet["D40"].comment is None
+    for row in (5, 10, 12, 13, 17):
         assert sheet.cell(row, 4).value is None
         assert sheet.cell(row, 4).comment is None
-    assert sheet.max_row == 38
+    assert sheet.max_row == 40
     assert all(cell.comment is None for row in sheet for cell in row)
     assert all(cell.value is None for cell in sheet[1])
     workbook.close()
@@ -164,9 +170,9 @@ def test_zero_baseline_and_zero_candidate(report, tmp_path):
     assert sheet["D4"].comment is None
     assert sheet["D10"].value == "=1-C10/B10"
     assert sheet["C10"].value == 0
-    assert sheet["D12"].value == pytest.approx(0.5)
-    assert sheet["D38"].value is None
-    assert sheet["D38"].comment is None
+    assert sheet["D14"].value == pytest.approx(0.5)
+    assert sheet["D40"].value is None
+    assert sheet["D40"].comment is None
     workbook.close()
 
 
@@ -181,10 +187,10 @@ def test_ml_macro_mean_and_werr_use_matched_language_coverage(report, tmp_path):
     report.build_workbook([("baseline", baseline), ("candidate", candidate)], output)
     workbook = load_workbook(output)
     sheet = workbook["openasr"]
-    assert sheet["B38"].value == pytest.approx((0.20 + 2.30 / 3 + 0.90) / 3)
-    assert sheet["C38"].value == pytest.approx((0.05 + 0.175) / 2)
-    assert sheet["D38"].value == pytest.approx(1 - 0.1125 / 0.40)
-    assert sheet["D38"].value != pytest.approx(1 - 0.40 / 1.50)
+    assert sheet["B40"].value == pytest.approx((0.20 + 2.30 / 3 + 0.90) / 3)
+    assert sheet["C40"].value == pytest.approx((0.05 + 0.175) / 2)
+    assert sheet["D40"].value == pytest.approx(1 - 0.1125 / 0.40)
+    assert sheet["D40"].value != pytest.approx(1 - 0.40 / 1.50)
     workbook.close()
 
 
@@ -196,9 +202,9 @@ def test_no_common_ml_language_leaves_werr_blank(report, tmp_path):
     ], output)
     workbook = load_workbook(output)
     sheet = workbook["openasr"]
-    assert sheet["B38"].value == pytest.approx(0.10)
-    assert sheet["C38"].value == pytest.approx(0.20)
-    assert sheet["D38"].value is None
+    assert sheet["B40"].value == pytest.approx(0.10)
+    assert sheet["C40"].value == pytest.approx(0.20)
+    assert sheet["D40"].value is None
     workbook.close()
 
 
@@ -218,8 +224,8 @@ def test_every_model_gets_its_own_delta(report, tmp_path, monkeypatch):
     sheet = workbook["openasr"]
     assert sheet["E4"].value == "=1-C4/B4"
     assert sheet["F4"].value == "=1-D4/B4"
-    assert sheet["E12"].value == pytest.approx(0.5)
-    assert sheet["F12"].value == pytest.approx(-1.0)
+    assert sheet["E14"].value == pytest.approx(0.5)
+    assert sheet["F14"].value == pytest.approx(-1.0)
     assert len(sheet.conditional_formatting) == 2
     for key in sheet.conditional_formatting:
         rules = sheet.conditional_formatting[key]
@@ -235,7 +241,10 @@ def test_invalid_error_rate_is_rejected(report, tmp_path, value):
 
 def test_metadata_round_trip_and_extension(report, tmp_path, monkeypatch):
     metrics = tmp_path / "metrics.json"
-    metrics.write_text(json.dumps({"ami_clean": 0.05, "de_fleurs": 0.02}))
+    metrics.write_text(json.dumps({
+        "ami_clean": 0.05, "de_fleurs": 0.02,
+        "urgent2024": 0.09, "urgent2024_clean": 0.04,
+    }))
     model_path = tmp_path / "model.json"
     result_path = tmp_path / "results.json"
     prior = tmp_path / "prior.xlsx"
@@ -250,6 +259,8 @@ def test_metadata_round_trip_and_extension(report, tmp_path, monkeypatch):
     first_results = {
         "ami_clean": "az://account/container/model1/ami/0.jsonl",
         "de_fleurs": "/results/model1/de_fleurs/result_details.jsonl",
+        "urgent2024": "/results/model1/urgent2024/0.jsonl",
+        "urgent2024_clean": "/results/model1/urgent2024_clean/0.jsonl",
     }
     model_path.write_text(json.dumps(first))
     result_path.write_text(json.dumps({**first_results, "fleurs_de": first_results["de_fleurs"]}))
@@ -277,9 +288,9 @@ def test_metadata_round_trip_and_extension(report, tmp_path, monkeypatch):
     assert results == {"first": first_results, "second": second_results}
     workbook = load_workbook(output)
     assert workbook.sheetnames == ["openasr", "model_info", "dataset_results"]
-    assert workbook["openasr"].max_row == 38
+    assert workbook["openasr"].max_row == 40
     assert workbook["model_info"].max_row == 4
-    assert workbook["dataset_results"].max_row == 76
+    assert workbook["dataset_results"].max_row == 82
     assert all(cell.comment is None for sheet in workbook for row in sheet for cell in row)
     workbook.close()
 
