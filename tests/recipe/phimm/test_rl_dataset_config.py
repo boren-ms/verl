@@ -13,6 +13,47 @@ from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
 
+def test_ls_only_word_reward_recipe_preserves_donor_settings():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    donor_name = "remax_2609r2_earning_ml0_ls_bad_verb_hint_e2_bs64_n4_r256_g16_ds1e_sfl_avg6_flr_rm0b_v0a"
+    recipe_name = "remax_2609r2_ls_bad_e1_g16_n4_rw0"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        donor = compose(config_name=donor_name, overrides=[searchpath])
+        config = compose(config_name=recipe_name, overrides=[searchpath])
+
+    assert config.trainer.total_epochs == 1
+    donor.trainer.total_epochs = 1
+    for section in ("actor_rollout_ref", "algorithm", "trainer", "val_reward"):
+        assert OmegaConf.to_container(config[section], resolve=False) == OmegaConf.to_container(
+            donor[section], resolve=False
+        )
+    assert OmegaConf.to_container(config.data.data_source) == {
+        "ls_rare_verb": {"num_epoch": 1, "shuffle": True},
+    }
+    assert OmegaConf.to_container(config.data.train_data, resolve=True) == [OmegaConf.to_container(donor._ls_train)]
+    donor.data.data_source = config.data.data_source
+    donor.data.train_data = config.data.train_data
+    assert OmegaConf.to_container(config.data) == OmegaConf.to_container(donor.data)
+    assert config.data.train_data[0].pre_process.remove_brackets == {}
+    assert OmegaConf.to_container(config.reward_function_by_data_source) == {"ls_rare_verb": "librispeech"}
+    reward = config.reward_functions.librispeech
+    assert reward.path == donor.reward_functions.librispeech.path
+    assert reward.name == "compute_score"
+    assert reward.reward_kwargs.version == 2609
+    assert OmegaConf.to_container(reward.reward_kwargs.reduce) == {"mode": "average", "total": 4}
+    assert OmegaConf.to_container(reward.reward_kwargs.measures) == {
+        "char": {"beta": 1.0},
+        "word": {"beta": 1.0},
+        "word_kw": {"beta": 10.0},
+        "word_del": {"beta": 2.0},
+        "word_ins": {"beta": 2.0},
+        "word_lang": {"beta": 5.0},
+        "word_fmt": {"beta": 5.0},
+    }
+
+
 @pytest.mark.parametrize(
     "recipe_name, masked_recipe_name",
     [
