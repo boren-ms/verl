@@ -828,7 +828,7 @@ def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(dataset_namesp
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
     donor_name = "remax_2609r2_earning_ml0_ls_bad_verb_hint_e2_bs64_n4_r256_g16_ds1e_sfl_avg6_flr_rm0b_v0a"
-    recipe_name = "remax_2609r2_mx0_e1_bs64_n4_g16_rw0"
+    recipe_name = "remax_2609r2_mx0_bs64_n4_g16_rw0"
     searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
         donor = compose(config_name=donor_name, overrides=[searchpath])
