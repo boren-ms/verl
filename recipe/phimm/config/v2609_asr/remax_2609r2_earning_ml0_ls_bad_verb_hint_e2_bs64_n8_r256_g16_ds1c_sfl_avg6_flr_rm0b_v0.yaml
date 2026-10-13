@@ -1,7 +1,7 @@
 # Globally shuffle OpenML, earnings, and LibriSpeech bad cases at approximately a 4:1:2 sample ratio.
 # Shuffle within each source; sample 26338/6584/13168 and run two full epochs with a constant LR of 3e-6.
 # Apply rm0b rewards to all sources with a fixed average divisor of 5.
-# Strip OpenML reference brackets before add_task_info, preserving enclosed words.
+# Use v0 training data for all sources, stripping reference brackets before add_task_info and preserving enclosed words.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -9,8 +9,8 @@ hydra:
 defaults:
   - base
   - /data/train_data/openml_verb_langhint_v0@_ml_train
-  - /data/train_data/earnings_tts_verb_langhint@_earning_train
-  - /data/train_data/ls_rare_bad_verb_langhint@_ls_train
+  - /data/train_data/earnings_tts_verb_langhint_v0@_earning_train
+  - /data/train_data/ls_rare_bad_verb_langhint_v0@_ls_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
   - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
   - /data/val_data/ls_kw_verb_langhint@_ls_val
