@@ -1083,7 +1083,7 @@ def _is_bad_lang(example):
         example.get("raw_response", ""),
         version=example.get("version", 2609),
     )
-    return check_lang(task_output, lang) < 1.0
+    return check_lang(task_output, lang)["acc"] < 1.0
 
 
 def _has_brackets(example):

@@ -222,16 +222,77 @@ def test_accepts_code_switch_output():
         {"src": "Italian", "tgt": "Italian", "text": "<TXT>E, inoltre, attore.</TXT>"},
     ]
     assert check_fmt(task_output, version=2609)
-    assert check_lang(task_output, "Chinese Italian") == 1.0
+    assert check_lang(task_output, "Chinese Italian") == {"acc": 1.0, "n_err": 0, "n_ref": 2}
 
 
-def test_code_switch_language_reward_requires_exact_match():
+def test_code_switch_language_reward_gives_partial_credit():
     task_output = parse_task_output(
         "<src=Chinese><tgt=Chinese>\n<TXT>祖父叶与良。</TXT>",
         version=2609,
     )
 
-    assert check_lang(task_output, "Chinese Italian") == 0.0
+    assert check_lang(task_output, "Chinese Italian") == {"acc": 0.5, "n_err": 1, "n_ref": 2}
+
+
+@pytest.mark.parametrize(
+    ("reference", "predictions", "expected_acc", "expected_errors", "expected_references"),
+    [
+        ("English Chinese", ["English", "Chinese"], 1.0, 0, 2),
+        ("English Chinese", ["English"], 0.5, 1, 2),
+        ("English Chinese", ["English", "French"], 0.5, 1, 2),
+        ("English Chinese", ["Chinese", "English"], 0.0, 2, 2),
+        ("English Chinese French", ["English", "German", "French"], 2 / 3, 1, 3),
+        ("English Chinese", ["English", "Chinese", "French"], 0.5, 1, 2),
+        ("English", ["English", "French", "Chinese"], -1.0, 2, 1),
+        ("English English", ["English"], 0.5, 1, 2),
+        ("English", ["English", "English"], 0.0, 1, 1),
+        ("en_zh", ["English", "Mandarin"], 1.0, 0, 2),
+        ("English Chinese", ["en_zh"], 1.0, 0, 2),
+        ("English Chinese", [None, "English"], 0.5, 1, 2),
+        ("English Chinese", [], 0.0, 2, 2),
+        ("", [], 1.0, 0, 0),
+        (None, [], 1.0, 0, 0),
+        ("", ["English"], 0.0, 1, 0),
+    ],
+)
+def test_check_lang_returns_ordered_edit_details(
+    reference, predictions, expected_acc, expected_errors, expected_references,
+):
+    task_output = [{"src": None, "tgt": language, "text": None} for language in predictions]
+    result = check_lang(task_output, reference)
+
+    assert set(result) == {"acc", "n_err", "n_ref"}
+    assert result["acc"] == pytest.approx(expected_acc)
+    assert result["n_err"] == expected_errors
+    assert result["n_ref"] == expected_references
+
+
+@pytest.mark.parametrize(
+    ("predictions", "expected_acc", "expected_errors"),
+    [
+        (["English"], 0.5, 1),
+        (["English", "French"], 0.5, 1),
+        (["Chinese", "English"], 0.0, 2),
+        (["English", "Chinese", "French"], 0.5, 1),
+    ],
+)
+def test_language_rewards_use_ordered_accuracy_and_error_count(predictions, expected_acc, expected_errors):
+    solution = "\n".join(f"<src={lang}><tgt={lang}>\n<TXT>word</TXT>" for lang in predictions)
+    kwargs = {"version": 2609, "text_norm": "identity", "language": "English Chinese"}
+    parsed = _parse_response(solution, ground_truth="one two three four", **kwargs)
+    score = compute_score(
+        solution, ground_truth="one two three four",
+        measures={"lang": {}, "word_lang": {"beta": 1.0}}, **kwargs,
+    )
+
+    assert parsed["lang"] == expected_acc
+    assert parsed["word_lang"] == 1.0 - expected_errors / 4
+    assert score == {
+        "score": expected_acc + 1.0 - expected_errors / 4,
+        "lang": expected_acc,
+        "word_lang": 1.0 - expected_errors / 4,
+    }
+    assert lang_score(solution, **kwargs) == {"score": expected_acc, "p_lang": expected_acc}
 
 
 def test_language_reward_uses_header_with_raw_text():
@@ -241,7 +302,7 @@ def test_language_reward_uses_header_with_raw_text():
     )
 
     assert not check_fmt(task_output, version=2609)
-    assert check_lang(task_output, "English") == 1.0
+    assert check_lang(task_output, "English")["acc"] == 1.0
 
 
 def test_code_switch_language_reward_uses_headers_with_later_raw_text():
@@ -252,7 +313,7 @@ def test_code_switch_language_reward_uses_headers_with_later_raw_text():
     )
 
     assert not check_fmt(task_output, version=2609)
-    assert check_lang(task_output, "English Chinese") == 1.0
+    assert check_lang(task_output, "English Chinese")["acc"] == 1.0
 
 
 def test_accepts_code_switch_output_without_first_header():
@@ -275,7 +336,7 @@ def test_format_and_language_ignore_source_language():
     task_output = parse_task_output(output, version=2609)
 
     assert check_fmt(task_output, version=2609)
-    assert check_lang(task_output, "French") == 1.0
+    assert check_lang(task_output, "French")["acc"] == 1.0
 
 
 @pytest.mark.parametrize("mode_tag", ["LEXICAL", "verbatim", "ASR_READABLE"])
@@ -308,7 +369,7 @@ def test_parse_task_output_accepts_text_without_language_header():
         }
     ]
     assert check_fmt(task_output, version=2609)
-    assert check_lang(task_output, "English") == 0.0
+    assert check_lang(task_output, "English")["acc"] == 0.0
 
 
 def test_parse_response_uses_text_without_language_header():
@@ -468,7 +529,7 @@ def test_nonspeech_language_score_depends_only_on_language_tags(output, version,
     task_output = parse_task_output(output, version=version)
 
     assert check_fmt(task_output, version=version)
-    assert check_lang(task_output, "English") == expected
+    assert check_lang(task_output, "English")["acc"] == expected
     assert lang_score(output, language="English", version=version) == {
         "score": expected,
         "p_lang": expected,
@@ -501,7 +562,7 @@ def test_parse_task_output_defaults_to_2607_response_format(tag):
 
     assert task_output == [{"src": "English", "tgt": "English", "text": "hello world"}]
     assert check_fmt(task_output, version=2607)
-    assert check_lang(task_output, "English") == 1.0
+    assert check_lang(task_output, "English")["acc"] == 1.0
 
 
 def test_parse_task_output_falls_back_to_2607_for_unknown_version():
@@ -525,7 +586,7 @@ def test_parse_task_output_accepts_2607_code_switch_response():
         {"src": "Chinese", "tgt": "Chinese", "text": "你好"},
     ]
     assert check_fmt(task_output, version=2607)
-    assert check_lang(task_output, "English Chinese") == 1.0
+    assert check_lang(task_output, "English Chinese")["acc"] == 1.0
 
 
 def test_parse_response_uses_2607_response_text():
@@ -958,6 +1019,77 @@ def test_compute_score_omits_unconfigured_keyword():
     )
 
     assert result == {"score": 0.75, "word": 0.75}
+
+
+@pytest.mark.parametrize(
+    ("solution", "reference", "expected_lang", "expected_fmt", "word_lang", "word_fmt"),
+    [
+        ("<src=English><tgt=English>\n<TXT>hello world</TXT>", "hello world", 1.0, 1.0, 1.0, 1.0),
+        ("<src=French><tgt=French>\n<TXT>hello world</TXT>", "hello world", 0.0, 1.0, 0.5, 1.0),
+        (
+            "<src=English><tgt=English>\n<TXT>hello world</TXT>\n<src=broken",
+            "hello world", 1.0, 0.0, 1.0, 0.5,
+        ),
+        ("", "one two three four", 0.0, 0.0, 0.75, 0.75),
+        ("", "", 0.0, 0.0, 0.0, 0.0),
+        ("<src=English><tgt=English>\n<TXT>hello</TXT>", "", 1.0, 1.0, 1.0, 1.0),
+        (
+            "<src=English><tgt=English>\n<TXT>hello</TXT>\n"
+            "<src=French><tgt=French>\n<TXT>bonjour</TXT>\n"
+            "<src=Chinese><tgt=Chinese>\n<TXT>你好</TXT>",
+            "hello", -1.0, 1.0, -1.0, 1.0,
+        ),
+    ],
+)
+def test_word_lang_and_word_fmt_normalize_utterance_errors(
+    solution, reference, expected_lang, expected_fmt, word_lang, word_fmt,
+):
+    result = _parse_response(
+        solution, ground_truth=reference, version=2609,
+        text_norm="identity", extra_info={"language": "English"},
+    )
+
+    assert result["lang"] == expected_lang
+    assert result["fmt"] == expected_fmt
+    assert result["word_lang"] == word_lang
+    assert result["word_fmt"] == word_fmt
+
+
+def test_word_lang_and_word_fmt_use_normalized_reference_words():
+    result = _parse_response(
+        "", ground_truth="one   two\nthree four",
+        version=2609, text_norm="identity", language="English",
+    )
+
+    assert result["word_lang"] == 0.75
+    assert result["word_fmt"] == 0.75
+
+
+def test_compute_score_word_lang_and_word_fmt_support_weights_and_deltas():
+    result = compute_score(
+        "", ground_truth="one two three four",
+        version=2609, text_norm="identity", language="English",
+        measures={"word_lang": {"beta": 2.0}, "word_fmt": {"beta": 1.0}},
+        extra_info={"greedy_reward": {"score": 3.0, "word_lang": 1.0, "word_fmt": 1.0}},
+    )
+
+    assert result == {
+        "score": 2.25,
+        "word_lang": 0.75,
+        "word_fmt": 0.75,
+        "d_score": -0.75,
+        "d_word_lang": -0.25,
+        "d_word_fmt": -0.25,
+    }
+
+
+def test_compute_score_omits_unconfigured_word_lang_and_word_fmt():
+    result = compute_score(
+        "", ground_truth="hello world", version=2609, text_norm="identity",
+        measures={"lang": {}, "fmt": {}},
+    )
+
+    assert result == {"score": 0.0, "lang": 0.0, "fmt": 0.0}
 
 
 @pytest.mark.parametrize(

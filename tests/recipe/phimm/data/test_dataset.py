@@ -425,6 +425,21 @@ def test_nonspeech_without_language_tags_is_bad_language():
     assert _is_bad_lang({"raw_response": nonspeech, "language": "French"})
 
 
+@pytest.mark.parametrize(
+    ("predictions", "expected"),
+    [
+        (["English", "Chinese"], False),
+        (["English"], True),
+        (["English", "French"], True),
+        (["Chinese", "English"], True),
+        (["English", "Chinese", "French"], True),
+    ],
+)
+def test_bad_language_handles_detailed_ordered_scores(predictions, expected):
+    response = "\n".join(f"<src={lang}><tgt={lang}>\n<TXT>word</TXT>" for lang in predictions)
+    assert _is_bad_lang({"raw_response": response, "language": "English Chinese"}) is expected
+
+
 def test_wrong_numbers_uses_openasr_english_normalization():
     assert not _has_wrong_numbers(
         {"text": "Revenue was twenty-five million dollars.", "response": "Revenue was $25 million."},

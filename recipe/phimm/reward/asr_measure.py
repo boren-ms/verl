@@ -341,6 +341,9 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     ``word_kw`` is ``1 - keyword_errors / max(total_reference_words, 1)``.
     It divides by the whole normalized reference utterance, not just its
     keyword words.
+    ``word_lang`` is one minus ordered language edit errors divided by
+    ``max(total_reference_words, 1)``. ``word_fmt`` uses the same accuracy
+    formula with one error per failed utterance-level format check.
     """
     from recipe.phimm.reward.asr_edge import measure
 
@@ -361,6 +364,9 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     )
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
+    lang = check_lang(task_output, tgt_lang)
+    fmt = float(check_fmt(task_output, version=version))
+    n_total = max(word_error.n_ref, 1)
 
     return {
         "fixed": 1.0,
@@ -372,40 +378,40 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "word_ins": word_error.accuracy(sub=0.0, **{"del": 0.0}),
         "word_kw": keyword_result["word_kw"],
         **fmts,
-        "lang": check_lang(task_output, tgt_lang),
-        "fmt": float(check_fmt(task_output, version=version)),
+        "lang": lang["acc"],
+        "fmt": fmt,
+        "word_lang": 1.0 - lang["n_err"] / n_total,
+        "word_fmt": 1.0 - (1.0 - fmt) / n_total,
         **openml_acc,
     }
 
 
-def _lang_code_set(lang) -> set[str]:
-    """Return the set of ISO language codes contained in *lang* (or empty set)."""
+def _lang_codes(lang) -> list[str]:
+    """Return ISO language codes in their original order, including repeats."""
     if not lang:
-        return set()
-    return {c for c in get_language_code(lang).split("_") if c}
+        return []
+    return [code for code in get_language_code(lang).split("_") if code]
 
 
-def check_lang(task_output, tgt_lang) -> float:
-    """Return a binary language-identification score.
+def check_lang(task_output, tgt_lang) -> dict[str, float | int]:
+    """Return accuracy and edit counts for the ordered language sequence.
 
     Predicted language(s) come from any parsed target/segment language values,
-    even when the surrounding response format is malformed. A response only
-    scores ``0.0`` when its best-effort predicted language set does not exactly
-    match the target language set.
-
-    The predicted and target language sets must match exactly. Partial
-    code-switch matches receive ``0.0``.
-
+    even when the surrounding response format is malformed. Substitutions,
+    deletions, and insertions each count as one error; order and repeats matter.
+    ``n_ref`` is the reference language count and
+    ``acc = 1 - n_err / max(n_ref, 1)``. Extra languages can make accuracy negative.
     Hypothesis text, including ``<nonspeech>``, does not affect this score.
     """
-    tgt_codes = _lang_code_set(tgt_lang)
-    pred_codes: set[str] = set()
+    tgt_codes = _lang_codes(tgt_lang)
+    pred_codes = []
     for name in (segment["tgt"] for segment in task_output):
-        if name is None:
-            continue
-        pred_codes |= _lang_code_set(name)
+        pred_codes.extend(_lang_codes(name))
 
-    return float(pred_codes == tgt_codes)
+    alignment = process_words(" ".join(tgt_codes), " ".join(pred_codes))
+    n_err = alignment.substitutions + alignment.deletions + alignment.insertions
+    n_ref = len(tgt_codes)
+    return {"acc": 1.0 - n_err / max(n_ref, 1), "n_err": n_err, "n_ref": n_ref}
 
 
 def check_fmt(task_output, version=2609) -> bool:
@@ -515,6 +521,10 @@ def compute_score(solution_str, ground_truth, **kwargs):
     ``extra_info["keywords"]`` divided by the total normalized reference word
     count, not the keyword count: ``1 - n_err / max(n_total, 1)``. No keywords
     means no keyword errors and a score of 1.0. Raw scores can be negative.
+    ``lang`` uses the ordered language accuracy from :func:`check_lang`.
+    ``word_lang`` is ``1 - language_edit_count / max(total_reference_words, 1)``.
+    ``word_fmt`` uses the same accuracy formula with one error per failed
+    format check. Passing checks give one; errors reduce the score.
     The contribution of each component ``k`` is::
 
         beta * signed_pow(clip(acc_k, lo, hi), gamma)
@@ -581,7 +591,7 @@ def lang_score(solution_str, ground_truth=None, **kwargs):
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
     version = kwargs.get("version")
     task_output = parse_task_output(solution_str, version=version)
-    p_lang = check_lang(task_output, tgt_lang)
+    p_lang = check_lang(task_output, tgt_lang)["acc"]
     return {
         "score": p_lang,
         "p_lang": p_lang,
