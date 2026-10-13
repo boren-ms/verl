@@ -1,19 +1,20 @@
-updated_at_utc: 2026-10-13T04:50:07Z
+updated_at_utc: 2026-10-13T05:45:47Z
 
 ┌────────┬──────────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                       │ STATUS  │ JOB / CONFIG                                                                         │ PROGRESS / PHASE                                  │
 ├────────┼──────────────────────────────────┼─────────┼──────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
-│ n2-i0  │ —                                │ PENDING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs64_n4_r256_g16_dsv1a_avg4_flr1_rm0b_v0     │ training startup (quota wait; synced; save 10)     │
-│ n2-i1  │ raysubmit_2NmQAypVmRPVh3k9         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0a          │ training 0/615 (0%; initial validation)            │
+│ n2-i0  │ —                                │ PENDING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e2_bs64_n4_r256_g16_dsv1a_avg4_flr1_rm0b_v0     │ training startup (quota short 9 GPUs; save 10)     │
+│ n2-i1  │ raysubmit_2nPMYCmaBZgnMhKL         │ LOST    │ remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0a          │ training 9/410 (2.2%; failed; pool Assigning)     │
 │ n4-i0  │ —                               │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b_v0a    │ training startup (pool Assigning; recovery queued)  │
 │ n4-i1  │ —                               │ STOPPED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0 │ training 219/546 (user stopped; pool paused)       │
 │ n4-i2  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0d1          │ training startup (waiting GPU quota; save10)      │
-│ n2-i2  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0          │ training startup (team-high; quota short 1 GPU)    │
-│ n2-i3  │ raysubmit_mkmrTZRzixBYEybt         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g16_ds0_sfl_avg6_flr1_rw0d1           │ training 0/306 (0%; initial val; LS scored 3038)    │
-│ n2-i4  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c1              │ training startup (quota needs 16; synced; save 10) │
-│ n2-i5  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c2              │ training startup (GPU allocation wait; save 10)    │
-│ n4-i4  │ raysubmit_twMexPvebDuLpEb5        │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1         │ training 119/306 (38.89%); pause after step200      │
-│ n4-i5  │ raysubmit_9zDKUR2ikDiujxbs       │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 46/540 (8.52%; ckpt40 verified97/97)      │
+│ n2-i2  │ raysubmit_Mypg4kSN32hNdgXE         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0          │ training startup (vLLM init; save 10)              │
+│ n2-i3  │ raysubmit_z3pqnFh5pwLryKzm         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rw0d1             │ training 28/410 (6.83%); checkpoint20 verified      │
+│ n2-i4  │ raysubmit_SducMzZs2y4VB6Xw         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c1              │ training startup (applying LoRA; save 10)          │
+│ n2-i5  │ raysubmit_utECiuRjiJw7aDPH         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c2              │ training 0/410 (0%; validation startup; save 10)   │
+│ n2-i6  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c0              │ training startup (quota 8/16; save 10)            │
+│ n4-i4  │ raysubmit_twMexPvebDuLpEb5        │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1         │ training 146/306 (47.71%); pause after step160      │
+│ n4-i5  │ raysubmit_9zDKUR2ikDiujxbs       │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 72/540 (13.33%; ckpt70 verified97/97)     │
 │ n4-i6  │ raysubmit_k4s5RcVe1zMfDxXp       │ SUCCEEDED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs512_n16_r256_g32_ds1c_sfl_avg6_flr0_rw0 │ training 270/270 (100%; complete)                 │
 │ n4-i7  │ raysubmit_fMJmPawybpFfZHX6       │ SUCCEEDED │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm1      │ training 306/306 (complete)                     │
 │ n4-i9  │ —                               │ PENDING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0   │ training startup (pool Assigning; save 10)     │
@@ -22,17 +23,18 @@ updated_at_utc: 2026-10-13T04:50:07Z
 └────────┴──────────────────────────────────┴─────────┴──────────────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
 
 Reports:
-- `remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c1` [`n2-i4`]: training startup
-- `remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c2` [`n2-i5`]: training startup
-- `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs64_n4_r256_g16_dsv1a_avg4_flr1_rm0b_v0` [`n2-i0`]: training startup
-- `remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0a` [`n2-i1`]: training 0/615 (0%)
-- `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g16_ds0_sfl_avg6_flr1_rw0d1` [`n2-i3`]: training 0/306 (0%)
-- `remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0` [`n2-i2`]: training startup
+- `remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c0` [`n2-i6`]: training startup
+- `remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c1` [`n2-i4`]: training startup
+- `remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0c2` [`n2-i5`]: training 0/410 (0%)
+- `remax_2609r2_earning_ml0_ls_bad_verb_hint_e2_bs64_n4_r256_g16_dsv1a_avg4_flr1_rm0b_v0` [`n2-i0`]: training startup
+- `remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0a` [`n2-i1`]: failed training step 9
+- `remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rw0d1` [`n2-i3`]: training 28/410 (6.83%)
+- `remax_2609r2_earning_ml0_verb_hint_e2_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0` [`n2-i2`]: training startup
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0d1` [`n4-i2`]: training startup
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0` [`n4-i1`]: stopped training by user; last observed step 219
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs256_n4_r256_g32_ds1a_sfl_avg6_flr2_rw0@step600` [`n4-i2`]: complete step 600
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b_v0` [`n4-i5`]: complete step 306
-- `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0` [`n4-i5`]: training 46/540 (8.52%)
+- `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0` [`n4-i5`]: training 72/540 (13.33%)
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b` [`n4-i0`]: stopped training 109/306 (35.62%)
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b_v0a` [`n4-i0`]: training startup
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rw0` [`n4-i2`]: complete step 540
@@ -62,7 +64,7 @@ Reports:
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1` [`n4-i4`]: complete step 546 (checkpoint verified; terminal logs unavailable)
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1e_sfl_avg6_flr_rw0` [`n4-i4`]: stopped training 519/1119 (46.38%)
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c` [`n4-i4`]: stopped training 214/306 (user requested)
-- `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1` [`n4-i4`]: training 119/306 (38.89%)
+- `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1` [`n4-i4`]: training 146/306 (47.71%)
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_s308_bs128_n16_r256_g32_ds0105_sfl_avg4_flr1` [`n4-i2`]: complete step 308
 - `remax_2609r2_earning_ml0_ls_verb_hint_s616_bs128_n16_r256_g32_ds021_sfl_avg4_flr1` [`n4-i6`]: stopped training; last captured step 599, checkpoint 600
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0` [`n4-i6`]: stopped by user
