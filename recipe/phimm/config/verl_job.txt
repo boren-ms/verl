@@ -1,17 +1,17 @@
-updated_at_utc: 2026-10-13T04:34:16Z
+updated_at_utc: 2026-10-13T04:40:50Z
 
 ┌────────┬──────────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                       │ STATUS  │ JOB / CONFIG                                                                         │ PROGRESS / PHASE                                  │
 ├────────┼──────────────────────────────────┼─────────┼──────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
-│ n2-i0  │ —                                │ PENDING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs64_n4_r256_g16_dsv1a_avg4_flr1_rm0b_v0     │ training startup (pool Assigning; save 10)         │
-│ n2-i1  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0a          │ training startup (pool Scheduled; save 10)         │
+│ n2-i0  │ —                                │ PENDING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs64_n4_r256_g16_dsv1a_avg4_flr1_rm0b_v0     │ training startup (quota wait; synced; save 10)     │
+│ n2-i1  │ raysubmit_2NmQAypVmRPVh3k9         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0a          │ training startup (Ray connected; save 10)          │
 │ n4-i0  │ —                               │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b_v0a    │ training startup (pool Assigning; recovery queued)  │
 │ n4-i1  │ —                               │ STOPPED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0 │ training 219/546 (user stopped; pool paused)       │
 │ n4-i2  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0d1          │ training startup (waiting GPU quota; save10)      │
 │ n2-i2  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs64_n8_r256_g16_ds0_sfl_avg6_flr1_rm0b_v0          │ training startup (waiting GPU allocation; save 10) │
-│ n2-i3  │ raysubmit_mkmrTZRzixBYEybt         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g16_ds0_sfl_avg6_flr1_rw0d1           │ training 0/306 (0%; initial validation)             │
-│ n4-i4  │ raysubmit_twMexPvebDuLpEb5        │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1         │ training 103/306 (33.66%); checkpoint100 verified   │
-│ n4-i5  │ raysubmit_9zDKUR2ikDiujxbs       │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 38/540 (7.04%; ckpt30 verified97/97)      │
+│ n2-i3  │ raysubmit_mkmrTZRzixBYEybt         │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g16_ds0_sfl_avg6_flr1_rw0d1           │ training 0/306 (0%; initial validation, LS keywords)│
+│ n4-i4  │ raysubmit_twMexPvebDuLpEb5        │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1         │ training 110/306 (35.95%); checkpoint110 verified   │
+│ n4-i5  │ raysubmit_9zDKUR2ikDiujxbs       │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 39/540 (7.22%; validating40 6170/6293)   │
 │ n4-i6  │ raysubmit_k4s5RcVe1zMfDxXp       │ SUCCEEDED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs512_n16_r256_g32_ds1c_sfl_avg6_flr0_rw0 │ training 270/270 (100%; complete)                 │
 │ n4-i7  │ raysubmit_fMJmPawybpFfZHX6       │ SUCCEEDED │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm1      │ training 306/306 (complete)                     │
 │ n4-i9  │ —                               │ PENDING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0   │ training startup (pool Assigning; save 10)     │
@@ -28,7 +28,7 @@ Reports:
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0` [`n4-i1`]: stopped training by user; last observed step 219
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs256_n4_r256_g32_ds1a_sfl_avg6_flr2_rw0@step600` [`n4-i2`]: complete step 600
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b_v0` [`n4-i5`]: complete step 306
-- `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0` [`n4-i5`]: training 38/540 (7.04%)
+- `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0` [`n4-i5`]: training 39/540 (7.22%)
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b` [`n4-i0`]: stopped training 109/306 (35.62%)
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0b_v0a` [`n4-i0`]: training startup
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rw0` [`n4-i2`]: complete step 540
@@ -58,7 +58,7 @@ Reports:
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1` [`n4-i4`]: complete step 546 (checkpoint verified; terminal logs unavailable)
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1e_sfl_avg6_flr_rw0` [`n4-i4`]: stopped training 519/1119 (46.38%)
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c` [`n4-i4`]: stopped training 214/306 (user requested)
-- `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1` [`n4-i4`]: training 103/306 (33.66%)
+- `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1` [`n4-i4`]: training 110/306 (35.95%)
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_s308_bs128_n16_r256_g32_ds0105_sfl_avg4_flr1` [`n4-i2`]: complete step 308
 - `remax_2609r2_earning_ml0_ls_verb_hint_s616_bs128_n16_r256_g32_ds021_sfl_avg4_flr1` [`n4-i6`]: stopped training; last captured step 599, checkpoint 600
 - `remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0` [`n4-i6`]: stopped by user
