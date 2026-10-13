@@ -22,6 +22,7 @@ data:
   val_batch_size: 1024
   shuffle: true
   use_interleave: true
+  mix: null # Ordered training groups; requires shuffle: false. See ../data/train_data/MIXING.md.
   custom_cls:
     path: recipe/phimm/data/rl_dataset.py
     name: RLHFDataset

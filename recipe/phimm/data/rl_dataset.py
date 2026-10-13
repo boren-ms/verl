@@ -122,12 +122,8 @@ def _align_null_features(data_sets):
     return aligned
 
 
-def group_datasets(
-    data_sets: Sequence[datasets.Dataset], source_config: Mapping | None = None
-) -> list[datasets.Dataset]:
-    """Return weighted groups in configured source order; all sources must match."""
-    if not isinstance(source_config, Mapping):
-        raise ValueError("data.data_source must map datasource names to num_epoch/num_sample settings.")
+def _collect_datasources(data_sets: Sequence[datasets.Dataset]) -> dict[str, datasets.Dataset]:
+    """Return one combined dataset per datasource in first-seen source order."""
     grouped = {}
     for index, ds in enumerate(data_sets):
         if not len(ds):
@@ -135,6 +131,19 @@ def group_datasets(
             continue
         source = ds[0].get("data_source", "default")
         grouped.setdefault(source, []).append(ds)
+    return {
+        name: datasets.concatenate_datasets(parts) if len(parts) > 1 else parts[0]
+        for name, parts in grouped.items()
+    }
+
+
+def group_datasets(
+    data_sets: Sequence[datasets.Dataset], source_config: Mapping | None = None
+) -> list[datasets.Dataset]:
+    """Return weighted groups in configured source order; all sources must match."""
+    if not isinstance(source_config, Mapping):
+        raise ValueError("data.data_source must map datasource names to num_epoch/num_sample settings.")
+    grouped = _collect_datasources(data_sets)
     if set(source_config) != set(grouped):
         missing = [source for source in source_config if source not in grouped]
         unlisted = [source for source in grouped if source not in source_config]
@@ -146,8 +155,7 @@ def group_datasets(
 
     sampled = []
     for source, options in source_config.items():
-        parts = grouped[source]
-        ds = datasets.concatenate_datasets(parts) if len(parts) > 1 else parts[0]
+        ds = grouped[source]
         num_epoch, num_sample = options.get("num_epoch"), options.get("num_sample")
         size = len(ds)
         if num_epoch is not None:
@@ -156,7 +164,7 @@ def group_datasets(
             num_sample = size
         if num_sample < 0:
             raise ValueError(f"Datasource {source} has a negative sampled size: {num_sample}")
-        logger.info("Datasource %s: %s datasets, %s => %s rows", source, len(parts), size, num_sample)
+        logger.info("Datasource %s: %s => %s rows", source, size, num_sample)
         if num_sample == 0:
             continue
         if num_sample != size:
@@ -172,6 +180,114 @@ def group_datasets(
     if not sampled:
         raise ValueError("No samples remain after applying data.data_source budgets.")
     return sampled
+
+
+def mix_datasets(
+    data_sets: Sequence[datasets.Dataset],
+    mix: Sequence[Mapping],
+    train_batch_size: int | None = None,
+    seed: int = 42,
+) -> datasets.Dataset:
+    """Concatenate ordered groups with independent source budgets and local shuffling."""
+    if isinstance(mix, (str, bytes)) or not isinstance(mix, Sequence) or not mix:
+        raise ValueError("data.mix must be a non-empty list of groups.")
+    sources = _collect_datasources(data_sets)
+    groups = []
+    for group_index, group in enumerate(mix):
+        context = f"data.mix[{group_index}]"
+        if not isinstance(group, Mapping) or set(group) - {"datasource", "shuffle"}:
+            raise ValueError(f"{context} must contain datasource and optional shuffle only.")
+        entries = group.get("datasource")
+        if isinstance(entries, (str, bytes)) or not isinstance(entries, Sequence) or not entries:
+            raise ValueError(f"{context}.datasource must be a non-empty list.")
+        if not isinstance(group.get("shuffle", False), bool):
+            raise ValueError(f"{context}.shuffle must be a boolean.")
+        parts = []
+        for source_index, options in enumerate(entries):
+            source_context = f"{context}.datasource[{source_index}]"
+            if not isinstance(options, Mapping) or set(options) - {
+                "name", "sample", "batch", "epoch", "shuffle", "range", "shuffle_seed"
+            }:
+                raise ValueError(
+                    f"{source_context} accepts name, sample, batch, epoch, shuffle, range, and shuffle_seed only."
+                )
+            name = options.get("name")
+            if not isinstance(name, str) or name not in sources:
+                raise ValueError(f"{source_context}.name has no non-empty training datasource: {name!r}")
+            if not isinstance(options.get("shuffle", False), bool):
+                raise ValueError(f"{source_context}.shuffle must be a boolean.")
+            budgets = [key for key in ("sample", "batch", "epoch") if options.get(key) is not None]
+            if len(budgets) > 1:
+                raise ValueError(f"{source_context} must use only one of sample, batch, or epoch.")
+            ds = sources[name]
+            size = len(ds)
+            source_range = options.get("range")
+            if source_range is not None:
+                if (
+                    isinstance(source_range, (str, bytes))
+                    or not isinstance(source_range, Sequence)
+                    or len(source_range) != 2
+                    or any(isinstance(bound, bool) or not isinstance(bound, int) for bound in source_range)
+                ):
+                    raise ValueError(f"{source_context}.range must be [start, end] with integer bounds.")
+                start, end = source_range
+                if not 0 <= start <= end <= size:
+                    raise ValueError(
+                        f"{source_context}.range must satisfy 0 <= start <= end <= datasource size ({size})."
+                    )
+                ds = ds.select(range(start, end) if start < end else [])
+                size = len(ds)
+            source_seed = options.get("shuffle_seed", seed + group_index + source_index)
+            if isinstance(source_seed, bool) or not isinstance(source_seed, int) or source_seed < 0:
+                raise ValueError(f"{source_context}.shuffle_seed must be a non-negative integer.")
+            count = size
+            if budgets:
+                key = budgets[0]
+                value = options[key]
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, (int, float))
+                    or not math.isfinite(value)
+                    or value < 0
+                ):
+                    raise ValueError(f"{source_context}.{key} must be a finite non-negative number.")
+                if key == "batch":
+                    if (
+                        isinstance(train_batch_size, bool)
+                        or not isinstance(train_batch_size, int)
+                        or train_batch_size <= 0
+                    ):
+                        raise ValueError("data.train_batch_size must be a positive integer for mix batch budgets.")
+                    count = value * train_batch_size
+                elif key == "epoch":
+                    count = size * value
+                else:
+                    count = value
+                if not math.isfinite(count):
+                    raise ValueError(f"{source_context}.{key} produces a non-finite row count.")
+                count = round(count)
+            logger.info("Mix group %s datasource %s: %s => %s rows", group_index, name, size, count)
+            if not count:
+                continue
+            if not size:
+                raise ValueError(f"{source_context}.range leaves no rows for a positive sample budget.")
+            if options.get("shuffle", False):
+                ds = ds.shuffle(seed=source_seed)
+            full_passes, remainder = divmod(count, size)
+            repeated = [ds] * full_passes
+            if remainder:
+                repeated.append(ds.select(range(remainder)))
+            parts.append(datasets.concatenate_datasets(repeated) if len(repeated) > 1 else repeated[0])
+        if not parts:
+            logger.warning("Skipping mix group %s: all datasource budgets select zero rows.", group_index)
+            continue
+        ds = datasets.concatenate_datasets(parts) if len(parts) > 1 else parts[0]
+        if group.get("shuffle", False):
+            ds = ds.shuffle(seed=seed + group_index)
+        groups.append(ds)
+    if not groups:
+        raise ValueError("No samples remain after applying data.mix budgets.")
+    return datasets.concatenate_datasets(groups) if len(groups) > 1 else groups[0]
 
 
 class RLHFDataset(Dataset):
@@ -230,6 +346,16 @@ class RLHFDataset(Dataset):
         ]
         data_sets = _align_null_features(data_sets)
         source_config = self.config.get("data_source")
+        mix = self.config.get("mix")
+        if self.is_training and mix is not None:
+            if source_config is not None:
+                raise ValueError("data.mix and data.data_source cannot be configured together.")
+            if self.config.get("shuffle", False):
+                raise ValueError("Set data.shuffle=false when using data.mix to preserve ordered mix groups.")
+            seed = self.config.get("seed") or 42
+            return mix_datasets(
+                data_sets, mix, self.config.get("train_batch_size"), seed=seed
+            )
         if self.is_training and source_config is not None:
             data_sets = group_datasets(data_sets, source_config)
         if self.is_training and self.use_interleave and len(data_sets) > 1:

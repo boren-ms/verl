@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import datasets
 import pytest
 from hydra import compose, initialize_config_dir
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, open_dict
 
 
 def test_ls_only_word_reward_recipe_preserves_donor_settings():
@@ -422,6 +422,30 @@ def cached_sources(tmp_path):
     return [{"dataset_name": "cached", "cache_path": path} for path in paths]
 
 
+def test_collect_datasources_returns_combined_datasets_by_name(dataset_namespace):
+    first = datasets.Dataset.from_dict({"id": ["a", "b"], "data_source": ["earning"] * 2})
+    other = datasets.Dataset.from_dict({"id": ["c"], "data_source": ["openml"]})
+    second = datasets.Dataset.from_dict({"id": ["d"], "data_source": ["earning"]})
+    collected = dataset_namespace["_collect_datasources"]([first, other, second])
+
+    assert isinstance(collected, dict)
+    assert list(collected) == ["earning", "openml"]
+    assert all(isinstance(ds, datasets.Dataset) for ds in collected.values())
+    assert list(collected["earning"]["id"]) == ["a", "b", "d"]
+    assert collected["openml"] is other
+    assert [len(ds) for ds in (first, other, second)] == [2, 1, 1]
+
+
+def test_collect_datasources_skips_empty_inputs(dataset_namespace, caplog):
+    empty = datasets.Dataset.from_dict({"id": [], "data_source": []})
+    other = datasets.Dataset.from_dict({"id": ["a"], "data_source": ["openml"]})
+    with caplog.at_level(logging.WARNING):
+        collected = dataset_namespace["_collect_datasources"]([empty, other])
+
+    assert collected == {"openml": other}
+    assert "Skipping empty training dataset 0" in caplog.text
+
+
 def test_dataset_budgets_combined_datasources_and_preserves_caches(dataset_class, cached_sources):
     config = OmegaConf.create(
         {
@@ -520,6 +544,426 @@ def test_validation_and_generation_ignore_training_budgets(dataset_class, cached
         is_train=False,
     )
     assert list(dataset.ds["id"]) == ["first-0", "first-1", "first-2", "other-0", "other-1", "second-0", "second-1"]
+
+
+def test_mix_orders_groups_and_combines_matching_sources(dataset_class, cached_sources):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "shuffle": False,
+            "use_interleave": True,
+            "interleave_ds": {"probabilities": [1]},
+            "train_batch_size": 2,
+            "mix": [
+                {"datasource": [{"name": "earning", "sample": 7}, {"name": "openml", "batch": 2}]},
+                {"datasource": [{"name": "earning", "epoch": 0.5}]},
+            ],
+        }
+    )
+    original = OmegaConf.to_container(config)
+    dataset = dataset_class(cached_sources, None, config)
+    earning = ["first-0", "first-1", "first-2", "second-0", "second-1"]
+    assert list(dataset.ds["id"]) == earning + earning[:2] + ["other-0", "other-1"] * 2 + earning[:2]
+    assert Counter(dataset.ds["data_source"]) == {"earning": 9, "openml": 4}
+    assert OmegaConf.to_container(config) == original
+    assert [len(datasets.Dataset.load_from_disk(conf["cache_path"])) for conf in cached_sources] == [3, 2, 2]
+
+
+@pytest.mark.parametrize("seed", [None, 7])
+def test_mix_shuffle_is_seeded_and_stays_within_groups(dataset_class, cached_sources, seed):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "seed": seed,
+            "mix": [
+                {
+                    "shuffle": True,
+                    "datasource": [{"name": "earning", "shuffle": True, "sample": 3}, {"name": "openml"}],
+                },
+                {"datasource": [{"name": "earning", "sample": 2}]},
+            ],
+        }
+    )
+    dataset = dataset_class(cached_sources, None, config)
+    effective_seed = 42 if seed is None else seed
+    earning = datasets.concatenate_datasets(
+        [datasets.Dataset.load_from_disk(cached_sources[i]["cache_path"]) for i in (0, 2)]
+    )
+    openml = datasets.Dataset.load_from_disk(cached_sources[1]["cache_path"])
+    first = datasets.concatenate_datasets(
+        [earning.shuffle(seed=effective_seed).select(range(3)), openml]
+    ).shuffle(seed=effective_seed)
+    expected = datasets.concatenate_datasets([first, earning.select(range(2))])
+    assert dataset.ds.to_dict() == expected.to_dict()
+    assert dataset_class(cached_sources, None, config).ds.to_dict() == expected.to_dict()
+
+
+@pytest.mark.parametrize("budget", [{"sample": 12}, {"sample": 12.0}, {"batch": 6.0}, {"epoch": 2.4}])
+def test_mix_budgets_repeat_passes_after_source_shuffle(dataset_class, cached_sources, budget):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "train_batch_size": 2,
+            "mix": [{"datasource": [{"name": "earning", "shuffle": True, **budget}]}],
+        }
+    )
+    dataset = dataset_class(cached_sources, None, config)
+    source = datasets.concatenate_datasets(
+        [datasets.Dataset.load_from_disk(cached_sources[i]["cache_path"]) for i in (0, 2)]
+    ).shuffle(seed=42)
+    assert list(dataset.ds["id"]) == list(source["id"]) * 2 + list(source["id"])[:2]
+
+
+@pytest.mark.parametrize(
+    ("budget", "expected_count"),
+    [
+        ({"sample": 2.4}, 2),
+        ({"sample": 2.5}, 2),
+        ({"sample": 2.6}, 3),
+        ({"sample": 3.5}, 4),
+        ({"batch": 0.5}, 1),
+        ({"batch": 1.2}, 2),
+        ({"batch": 1.3}, 3),
+        ({"epoch": 0.5}, 2),
+        ({"epoch": 0.75}, 4),
+        ({"epoch": 1.5}, 8),
+    ],
+)
+def test_mix_rounds_fractional_budgets_after_scaling(dataset_class, cached_sources, budget, expected_count):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "train_batch_size": 2,
+            "mix": [{"datasource": [{"name": "earning", **budget}]}],
+        }
+    )
+    dataset = dataset_class(cached_sources, None, config)
+    earning = ["first-0", "first-1", "first-2", "second-0", "second-1"]
+    assert len(dataset) == expected_count
+    assert list(dataset.ds["id"]) == (earning * 2)[:expected_count]
+
+
+@pytest.mark.parametrize("budget", [{"sample": 0.4}, {"batch": 0.2}, {"epoch": 0.09}])
+def test_mix_fractional_budgets_can_round_to_zero(dataset_class, cached_sources, budget):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "train_batch_size": 2,
+            "mix": [{"datasource": [{"name": "earning", **budget}, {"name": "openml"}]}],
+        }
+    )
+    dataset = dataset_class(cached_sources, None, config)
+    assert list(dataset.ds["id"]) == ["other-0", "other-1"]
+
+
+@pytest.mark.parametrize("budget", [{"batch": 1e308}, {"epoch": 1e308}])
+def test_mix_rejects_non_finite_scaled_counts(dataset_class, cached_sources, budget):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "train_batch_size": 2,
+            "mix": [{"datasource": [{"name": "earning", **budget}]}],
+        }
+    )
+    with pytest.raises(ValueError, match="produces a non-finite row count"):
+        dataset_class(cached_sources, None, config)
+
+
+def test_mix_omits_unlisted_and_zero_sources_and_warns_for_empty_groups(dataset_class, cached_sources, caplog):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "mix": [
+                {"datasource": [{"name": "earning", "epoch": 0.1}]},
+                {"datasource": [{"name": "openml", "sample": None}]},
+            ],
+        }
+    )
+    with caplog.at_level(logging.WARNING):
+        dataset = dataset_class(cached_sources, None, config)
+    assert list(dataset.ds["id"]) == ["other-0", "other-1"]
+    assert "Skipping mix group 0" in caplog.text
+    config.mix[1].datasource[0].sample = 0
+    with pytest.raises(ValueError, match="No samples remain"):
+        dataset_class(cached_sources, None, config)
+
+
+@pytest.mark.parametrize(
+    ("mix", "message"),
+    [
+        ([], "non-empty list of groups"),
+        ({}, "non-empty list of groups"),
+        ("earning", "non-empty list of groups"),
+        ([None], "must contain datasource"),
+        ([{"datasource": [], "unexpected": 1}], "must contain datasource"),
+        ([{}], "datasource must be a non-empty list"),
+        ([{"datasource": "earning"}], "datasource must be a non-empty list"),
+        ([{"datasource": {}}], "datasource must be a non-empty list"),
+        ([{"datasource": [{"name": "earning"}], "shuffle": "true"}], "shuffle must be a boolean"),
+        ([{"datasource": [None]}], "accepts name"),
+        ([{"datasource": [{"name": "missing"}]}], "no non-empty training datasource"),
+        ([{"datasource": [{"name": ["earning"]}]}], "no non-empty training datasource"),
+        ([{"datasource": [{"name": "earning", "samples": 2}]}], "accepts name"),
+        ([{"datasource": [{"name": "earning", "shuffle": 1}]}], "shuffle must be a boolean"),
+        ([{"datasource": [{"name": "earning", "sample": 2, "epoch": 1}]}], "only one"),
+    ],
+)
+def test_mix_rejects_invalid_structure(dataset_class, cached_sources, mix, message):
+    with pytest.raises(ValueError, match=message):
+        dataset_class(cached_sources, None, OmegaConf.create({"num_proc": None, "mix": mix}))
+
+
+@pytest.mark.parametrize(
+    "budget",
+    [
+        {"sample": -1},
+        {"sample": True},
+        {"sample": "1"},
+        {"sample": float("nan")},
+        {"sample": float("inf")},
+        {"batch": -1},
+        {"batch": True},
+        {"batch": "1"},
+        {"batch": float("nan")},
+        {"batch": float("inf")},
+        {"epoch": -0.1},
+        {"epoch": True},
+        {"epoch": "1"},
+        {"epoch": float("nan")},
+        {"epoch": float("inf")},
+    ],
+)
+def test_mix_rejects_invalid_budgets(dataset_class, cached_sources, budget):
+    config = OmegaConf.create({"num_proc": None, "mix": [{"datasource": [{"name": "earning", **budget}]}]})
+    with pytest.raises(ValueError, match="finite non-negative"):
+        dataset_class(cached_sources, None, config)
+
+
+@pytest.mark.parametrize("batch_size", [None, 0, -1, True, 1.5])
+def test_mix_batch_budget_requires_valid_batch_size(dataset_class, cached_sources, batch_size):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "train_batch_size": batch_size,
+            "mix": [{"datasource": [{"name": "earning", "batch": 1}]}],
+        }
+    )
+    with pytest.raises(ValueError, match="train_batch_size must be a positive integer"):
+        dataset_class(cached_sources, None, config)
+
+
+@pytest.mark.parametrize(
+    ("extra", "message"),
+    [({"shuffle": True}, "data.shuffle=false"), ({"data_source": {}}, "cannot be configured together")],
+)
+def test_mix_rejects_conflicting_training_options(dataset_class, cached_sources, extra, message):
+    config = OmegaConf.create(
+        {"num_proc": None, "mix": [{"datasource": [{"name": "earning"}]}], **extra}
+    )
+    with pytest.raises(ValueError, match=message):
+        dataset_class(cached_sources, None, config)
+
+
+def test_validation_ignores_mix_and_conflicting_training_options(dataset_class, cached_sources):
+    config = OmegaConf.create({"num_proc": None, "mix": [], "shuffle": True, "data_source": {}})
+    dataset = dataset_class(cached_sources, None, config, is_train=False)
+    assert list(dataset.ds["id"]) == ["first-0", "first-1", "first-2", "other-0", "other-1", "second-0", "second-1"]
+
+
+@pytest.mark.parametrize("use_interleave", [True, False])
+def test_null_mix_preserves_legacy_loader(dataset_class, cached_sources, use_interleave):
+    config = OmegaConf.create({"num_proc": None, "mix": None, "use_interleave": use_interleave})
+    dataset = dataset_class(cached_sources, None, config)
+    assert len(dataset) == (6 if use_interleave else 7)
+
+
+def test_mix_preserves_order_through_training_sampler(dataset_class, cached_sources):
+    from torch.utils.data import SequentialSampler
+
+    root = Path(__file__).parents[3]
+    module_path = root / "verl/trainer/main_ppo.py"
+    module = ast.parse(module_path.read_text())
+    sampler_def = next(
+        node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "create_rl_sampler"
+    )
+    namespace = {}
+    exec(compile(ast.Module(body=[sampler_def], type_ignores=[]), str(module_path), "exec"), namespace)
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "shuffle": False,
+            "sampler": None,
+            "mix": [{"datasource": [{"name": "openml"}]}, {"datasource": [{"name": "earning"}]}],
+        }
+    )
+    dataset = dataset_class(cached_sources, None, config)
+    sampler = namespace["create_rl_sampler"](config, dataset)
+    assert isinstance(sampler, SequentialSampler)
+    assert [dataset.ds[i]["data_source"] for i in sampler] == ["openml"] * 2 + ["earning"] * 5
+
+
+def test_asr_base_accepts_grouped_mix_hydra_override():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "base"), version_base=None):
+        config = compose(
+            config_name="dapo_asr",
+            overrides=[
+                searchpath,
+                "data.shuffle=false",
+                "data.mix=[{shuffle:true,datasource:[{name:earning,sample:128,shuffle:true},{name:openml,batch:2}]}]",
+            ],
+        )
+    assert config.data.shuffle is False
+    assert OmegaConf.to_container(config.data.mix) == [
+        {
+            "shuffle": True,
+            "datasource": [{"name": "earning", "sample": 128, "shuffle": True}, {"name": "openml", "batch": 2}],
+        }
+    ]
+
+
+def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(dataset_namespace, dataset_class, monkeypatch):
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    donor_name = "remax_2609r2_earning_ml0_ls_bad_verb_hint_e2_bs64_n4_r256_g16_ds1e_sfl_avg6_flr_rm0b_v0a"
+    recipe_name = "remax_2609r2_mx0_e1_bs64_n4_g16_rw0"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        donor = compose(config_name=donor_name, overrides=[searchpath])
+        config = compose(config_name=recipe_name, overrides=[searchpath])
+    assert config.trainer.total_epochs == 1
+    assert config.trainer.total_training_steps is None
+    donor.trainer.total_epochs = 1
+    with open_dict(donor.data):
+        donor.data.pop("data_source")
+    donor.data.shuffle = False
+    OmegaConf.update(donor, "data.mix", OmegaConf.to_container(config.data.mix), force_add=True)
+    expected_measures = {
+        "char": {"beta": 1.0},
+        "word": {"beta": 1.0},
+        "word_kw": {"beta": 2.0},
+        "word_lang": {"beta": 2.0},
+        "word_fmt": {"beta": 2.0},
+    }
+    assert OmegaConf.to_container(config.reward_functions.librispeech.reward_kwargs.measures) == expected_measures
+    donor.reward_functions.librispeech.reward_kwargs.measures = expected_measures
+    assert OmegaConf.to_container(config, resolve=False) == OmegaConf.to_container(donor, resolve=False)
+    assert [entry.sample for entry in config.data.mix[0].datasource] == [13168] * 3
+    assert "range" not in config.data.mix[0].datasource[2]
+    assert "range" not in config.data.mix[1].datasource[0]
+    assert config.data.mix[1].datasource[0].sample == 71707 - 13168 == 58539
+
+    counts = {"earnings_fy27": 3, "openml": 13168, "ls_rare_verb": 71707}
+    sources = {
+        name: datasets.Dataset.from_dict({"id": [f"{name}-{i}" for i in range(count)], "data_source": [name] * count})
+        for name, count in counts.items()
+    }
+    monkeypatch.setitem(dataset_namespace, "create_audio_dataset", lambda source, **kwargs: sources[source])
+    configs = [{"source": name} for name in sources]
+    dataset = dataset_class(configs, None, config.data)
+    first_size = 13168 * 3
+    assert len(dataset) == 98043
+    assert Counter(dataset.ds[:first_size]["data_source"]) == {
+        "earnings_fy27": 13168, "openml": 13168, "ls_rare_verb": 13168
+    }
+    assert dataset.ds[first_size:]["data_source"] == ["ls_rare_verb"] * 58539
+    ls_first = {
+        row["id"] for row in dataset.ds.select(range(first_size)) if row["data_source"] == "ls_rare_verb"
+    }
+    ls_tail = set(dataset.ds[first_size:]["id"])
+    assert ls_first == set(sources["ls_rare_verb"].shuffle(seed=44).select(range(13168))["id"])
+    assert ls_tail == set(sources["ls_rare_verb"].shuffle(seed=43).select(range(58539))["id"])
+    assert dataset_class(configs, None, config.data).ds.to_dict() == dataset.ds.to_dict()
+
+
+@pytest.mark.parametrize(
+    ("options", "message"),
+    [
+        ({"sample": {"source": "openml"}}, "finite non-negative number"),
+        ({"offset": 2}, "accepts name"),
+        ({"range": {"source": "openml"}}, "integer bounds"),
+        ({"range": "0,2"}, "integer bounds"),
+        ({"range": [0]}, "integer bounds"),
+        ({"range": [0, 2, 3]}, "integer bounds"),
+        ({"range": [0, 1.5]}, "integer bounds"),
+        ({"range": [False, 2]}, "integer bounds"),
+        ({"range": [-1, 2]}, "must satisfy"),
+        ({"range": [3, 2]}, "must satisfy"),
+        ({"range": [0, 6]}, "must satisfy"),
+        ({"shuffle_seed": True}, "shuffle_seed must be a non-negative integer"),
+        ({"shuffle_seed": -1}, "shuffle_seed must be a non-negative integer"),
+        ({"shuffle_seed": 1.5}, "shuffle_seed must be a non-negative integer"),
+    ],
+)
+def test_mix_rejects_non_numeric_budgets_and_invalid_ranges(dataset_class, cached_sources, options, message):
+    config = OmegaConf.create({"num_proc": None, "mix": [{"datasource": [{"name": "earning", **options}]}]})
+    with pytest.raises(ValueError, match=message):
+        dataset_class(cached_sources, None, config)
+
+
+@pytest.mark.parametrize(
+    ("source_range", "expected"),
+    [
+        ([2, 5], ["first-2", "second-0", "second-1", "first-2"]),
+        ([1, 3], ["first-1", "first-2"] * 2),
+        ([4, 5], ["second-1"] * 4),
+        ([0, 5], ["first-0", "first-1", "first-2", "second-0"]),
+        (None, ["first-0", "first-1", "first-2", "second-0"]),
+    ],
+)
+def test_mix_ranges_select_subsets_and_repeat_selected_rows(dataset_class, cached_sources, source_range, expected):
+    config = OmegaConf.create(
+        {"num_proc": None, "mix": [{"datasource": [{"name": "earning", "sample": 4, "range": source_range}]}]}
+    )
+    assert list(dataset_class(cached_sources, None, config).ds["id"]) == expected
+
+
+def test_mix_applies_range_before_source_shuffle(dataset_class, cached_sources):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "mix": [{"datasource": [{"name": "earning", "sample": 4, "range": [1, 4], "shuffle": True}]}],
+        }
+    )
+    source = datasets.concatenate_datasets(
+        [datasets.Dataset.load_from_disk(cached_sources[i]["cache_path"]) for i in (0, 2)]
+    )
+    remaining = source.select(range(1, 4)).shuffle(seed=42)
+    expected = list(remaining["id"]) + list(remaining["id"])[:1]
+    actual = list(dataset_class(cached_sources, None, config).ds["id"])
+    assert actual == expected
+    assert not set(actual) & set(source.select([0, 4])["id"])
+
+
+@pytest.mark.parametrize(("budget", "expected_count"), [({}, 3), ({"epoch": 0.5}, 2), ({"epoch": 2}, 6)])
+def test_mix_range_default_and_epoch_budgets_use_subset_rows(dataset_class, cached_sources, budget, expected_count):
+    config = OmegaConf.create(
+        {"num_proc": None, "mix": [{"datasource": [{"name": "earning", "range": [2, 5], **budget}]}]}
+    )
+    dataset = dataset_class(cached_sources, None, config)
+    assert len(dataset) == expected_count
+    assert list(dataset.ds["id"]) == (["first-2", "second-0", "second-1"] * 2)[:expected_count]
+
+
+@pytest.mark.parametrize("budget", [{}, {"sample": 0}, {"epoch": 1}])
+def test_mix_empty_range_skips_empty_selection(dataset_class, cached_sources, budget):
+    config = OmegaConf.create(
+        {
+            "num_proc": None,
+            "mix": [{"datasource": [{"name": "earning", "range": [5, 5], **budget}, {"name": "openml"}]}],
+        }
+    )
+    assert list(dataset_class(cached_sources, None, config).ds["id"]) == ["other-0", "other-1"]
+
+
+def test_mix_empty_range_rejects_positive_budget(dataset_class, cached_sources):
+    config = OmegaConf.create(
+        {"num_proc": None, "mix": [{"datasource": [{"name": "earning", "range": [5, 5], "sample": 1}]}]}
+    )
+    with pytest.raises(ValueError, match="leaves no rows for a positive sample budget"):
+        dataset_class(cached_sources, None, config)
 
 
 def test_single_datasource_group_uses_all_weighted_rows(dataset_class, cached_sources):
