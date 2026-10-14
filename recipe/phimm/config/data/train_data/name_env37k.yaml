@@ -26,8 +26,10 @@
       mappings:
         text: display
   add_task_info:
-    task: lang_asr
+    task: lang_asr_verb
     language: English
+    prefix_prob: 0.0
+    lang_hint: true
   post_process:
     add_field:
       fields:

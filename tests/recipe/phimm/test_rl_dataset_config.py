@@ -904,6 +904,48 @@ def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(
     assert dataset_class(configs, None, config.data).ds.to_dict() == dataset.ds.to_dict()
 
 
+def test_name_env37k_rw0a_recipe_preserves_ls_settings_and_routes_name_data():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        source = compose(config_name="remax_2609r2_ls_bad_e1_g16_n4_rw0a", overrides=[searchpath])
+        variant = compose(config_name="remax_2609r2_name_env37k_e1_g16_n4_rw0a", overrides=[searchpath])
+
+    name_data = OmegaConf.load(config_root / "data/train_data/name_env37k.yaml")
+    assert variant._name_train == name_data
+    assert len(variant.data.train_data) == 1
+    assert variant.data.train_data[0] == name_data
+    assert name_data[0].post_process.add_field.fields.data_source == "name_train"
+    assert OmegaConf.to_container(variant.data.data_source) == {"name_train": {"num_epoch": 1, "shuffle": True}}
+    assert OmegaConf.to_container(variant.reward_function_by_data_source) == {"name_train": "asr_measure"}
+    expected_reward = OmegaConf.create(OmegaConf.to_container(source.reward_functions.librispeech))
+    expected_reward.reward_kwargs.reduce.total = 2
+    assert variant.reward_functions.asr_measure == expected_reward
+    name_val = OmegaConf.load(config_root / "data/val_data/name_10k.yaml")
+    assert variant._name_val == name_val
+    assert len(variant.data.val_data) == 1
+    assert variant.data.val_data[0] == name_val
+    assert name_val[0].post_process.add_field.fields.data_source == "name_val"
+    assert variant.val_reward.reward_function_by_data_source.name_val == "openasr_en"
+    assert variant.val_reward.reward_functions.openasr_en.name == "openasr_en_eval"
+
+    with open_dict(source):
+        source.pop("_ls_train")
+        source._name_train = name_data
+        for name in ("_earning_val", "_ml_val", "_ls_val"):
+            source.pop(name)
+        source._name_val = name_val
+    source.data.train_data = variant.data.train_data
+    source.data.val_data = variant.data.val_data
+    source.data.data_source = variant.data.data_source
+    source.reward_functions = variant.reward_functions
+    source.reward_function_by_data_source = variant.reward_function_by_data_source
+    with open_dict(source.val_reward.reward_function_by_data_source):
+        source.val_reward.reward_function_by_data_source.name_val = "openasr_en"
+    assert OmegaConf.to_container(variant, resolve=False) == OmegaConf.to_container(source, resolve=False)
+
+
 def test_mx0a_rw0b_recipe_preserves_mix_and_uses_keyword_rewards_without_lang_fmt():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"

@@ -15,6 +15,27 @@ SEED_MODEL_PATH = (
 
 @pytest.mark.parametrize(
     "config_name",
+    [
+        "train_data/name_en13m",
+        "train_data/name_en10k",
+        "train_data/name_env37k",
+        "val_data/name_1k",
+        "val_data/name_10k",
+    ],
+)
+def test_name_data_configs_use_verbatim_language_hints(config_name):
+    config = OmegaConf.load(CONFIG_ROOT / f"data/{config_name}.yaml")
+    assert len(config) == 1
+    assert OmegaConf.to_container(config[0].add_task_info) == {
+        "task": "lang_asr_verb",
+        "language": "English",
+        "prefix_prob": 0.0,
+        "lang_hint": True,
+    }
+
+
+@pytest.mark.parametrize(
+    "config_name",
     sorted(path.stem for path in ENTITY_CONFIG_DIR.glob("*.yaml")),
 )
 def test_entity_configs_use_local_2609r2_defaults(config_name):
