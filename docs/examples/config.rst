@@ -689,7 +689,10 @@ Trainer
   unique prompts or cumulative samples. Only sources present in that batch are
   emitted. Enable ``wandb`` in ``trainer.logger`` to track these counts in W&B;
   the counts are also sent to other configured logging backends.
-- ``trainer.log_val_generations``: The number of logged generation during validation (default ``0``)
+- ``trainer.log_val_generations``: The number of lowest-scoring generations logged
+  during validation across all datasets (default ``0``, disables logging).
+  Samples are ordered by ascending reward score, with input text breaking ties.
+  This does not limit the full generation dumps in ``trainer.validation_data_dir``.
 - ``trainer.nnodes``: Number of nodes used in the training.
 - ``trainer.n_gpus_per_node``: Number of GPUs per node.
 - ``trainer.save_freq``: The frequency (by iteration) to save checkpoint

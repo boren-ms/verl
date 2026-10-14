@@ -149,7 +149,7 @@ trainer:
   # Logging backends to use: "console", "wandb", etc.
   logger: ["console", "wandb"]
 
-  # Number of generations to log during validation
+  # Number of lowest-scoring generations to log during validation; 0 disables logging
   log_val_generations: 0
 
   # Directory for logging rollout data; no dump if null

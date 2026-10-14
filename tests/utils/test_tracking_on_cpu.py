@@ -237,12 +237,40 @@ def test_validation_sample_selection_keeps_ground_truth_aligned():
     gts = [f"reference-{value}" for value in inputs]
     log_samples(trainer, inputs, outputs, scores)
     original = trainer.validation_generations_logger.log.call_args.args[1]
+    assert original == [("a", "output-a", 0.1), ("b", "output-b", 0.2)]
     log_samples(trainer, inputs, outputs, scores, gts=gts)
     selected = trainer.validation_generations_logger.log.call_args.args[1]
     assert [sample[:3] for sample in selected] == original
     assert len(selected) == 2
     assert all(sample[3] == f"reference-{sample[0]}" for sample in selected)
     trainer.validation_generations_logger.log.assert_called_with(["wandb"], selected, 10)
+
+
+@pytest.mark.parametrize("limit", [1, 2, 5])
+def test_validation_sample_selection_orders_lowest_scores_first(limit):
+    trainer, log_samples = validation_sample_trainer(limit=limit)
+    inputs = ["a", "c", "b"]
+    outputs = [f"output-{value}" for value in inputs]
+    log_samples(trainer, inputs, outputs, [0.9, -0.5, 0.1])
+    expected = [("c", "output-c", -0.5), ("b", "output-b", 0.1), ("a", "output-a", 0.9)]
+    trainer.validation_generations_logger.log.assert_called_once_with(["wandb"], expected[:limit], 10)
+
+
+def test_validation_sample_selection_breaks_score_ties_by_input():
+    trainer, log_samples = validation_sample_trainer()
+    for inputs in (["c", "a", "b"], ["b", "c", "a"]):
+        log_samples(trainer, inputs, [f"output-{value}" for value in inputs], [0.1] * 3)
+        trainer.validation_generations_logger.log.assert_called_with(
+            ["wandb"], [("a", "output-a", 0.1), ("b", "output-b", 0.1)], 10
+        )
+
+
+def test_validation_sample_selection_tracks_current_scores():
+    trainer, log_samples = validation_sample_trainer(limit=1)
+    log_samples(trainer, ["a", "b"], ["output-a", "output-b"], [0.1, 0.9])
+    trainer.validation_generations_logger.log.assert_called_with(["wandb"], [("a", "output-a", 0.1)], 10)
+    log_samples(trainer, ["a", "b"], ["output-a", "output-b"], [0.9, 0.1])
+    trainer.validation_generations_logger.log.assert_called_with(["wandb"], [("b", "output-b", 0.1)], 10)
 
 
 def test_validation_sample_selection_rejects_misaligned_references():

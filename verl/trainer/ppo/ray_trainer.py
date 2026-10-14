@@ -656,26 +656,18 @@ class RayPPOTrainer:
             )
 
     def _maybe_log_val_generations(self, inputs, outputs, scores, gts=None):
-        """Log a table of validation samples to the configured logger (wandb or swanlab)"""
+        """Log the lowest-scoring validation samples to the configured loggers."""
 
         generations_to_log = self.config.trainer.log_val_generations
 
         if generations_to_log == 0:
             return
 
-        import numpy as np
-
         samples = list(
             zip(inputs, outputs, scores, strict=True)
             if gts is None else zip(inputs, outputs, scores, gts, strict=True)
         )
-        samples.sort(key=lambda x: x[0])  # Sort by input text
-
-        # Use fixed random seed for deterministic shuffling
-        rng = np.random.RandomState(42)
-        rng.shuffle(samples)
-
-        # Take first N samples after shuffling
+        samples.sort(key=lambda x: (x[2], x[0]))
         samples = samples[:generations_to_log]
 
         # Log to each configured logger
