@@ -67,5 +67,5 @@ data:
 
 trainer:
   nnodes: 2
-  total_epochs: 2
+  total_epochs: 1
   total_training_steps: null
