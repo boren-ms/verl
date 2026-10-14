@@ -1,0 +1,30 @@
+# @package data.train_data
+# Cached LibriSpeech with additive noise + speed perturbation; NO RIR operation.
+# Full manifest inspected 2026-10-14: 20,424 rows, IDs, source paths, and output paths.
+# Duplicate IDs/source/output paths: 0; missing augmentation fields: 0.
+# Noise: probability 1.0; configured SNR [10, 12] dB; 0 out-of-range rows.
+# Recorded SNR mean/std/p50/p95: 11.002/0.578/11.002/11.904 dB.
+# Speed: probability 1.0; configured [1, 2]x; 0 out-of-range rows.
+# Recorded speed mean/std/p50/p95: 1.498/0.288/1.496/1.950x.
+# Resampling changes speed AND pitch; this is not pitch-preserving time stretching.
+# Distinct noise files used: 100; reuse min/mean/max: 175/204.24/247.
+# Reference word count mean/p50/p95: 31.22/34/49.
+# WAV-header sample: 512 uniformly sampled files, seed 20261014; all readable,
+# 16 kHz mono 16-bit. Duration mean/p50/p95: 8.18/8.52/13.50 seconds.
+# Estimated audio hours: 46.42; approximate 95% sampling CI [44.71, 48.13].
+# Hours are sampled estimates, not a full audio census; no waveform SNR remeasurement.
+# No additional number filter is applied to the cached manifest.
+# Dataset source: noisy_ls; verbatim/language references are rebuilt.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio/data.jsonl
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: noisy_ls
+  verl_format:
+    prompt_key: prompt
