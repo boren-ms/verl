@@ -1,17 +1,19 @@
-# Train one shuffled name_env37k epoch (37,212 records) and validate on name_1k with verbatim language hints.
-# Preserve LS rw0a rewards: char/word beta 1 and word_kw/word_lang/word_fmt beta 2.
+# Train one shuffled LibriSpeech bad-case epoch; retain the mixed-source validation suite.
+# Strip reference brackets; use char/word beta 1 and lang beta 0.1.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/name_env37k@_name_train
-  - /data/val_data/name_1k@_name_val
+  - /data/train_data/ls_rare_bad_verb_langhint_v0@_ls_train
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/ls_kw_verb_langhint@_ls_val
   - _self_
 
 reward_functions:
-  asr_measure:
+  librispeech:
     path: recipe/phimm/reward/asr_measure.py
     name: compute_score
     reward_kwargs:
@@ -20,16 +22,10 @@ reward_functions:
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        word_kw: {beta: 2.0}
-        word_lang: {beta: 2.0}
-        word_fmt: {beta: 2.0}
+        lang: {beta: 0.1}
 
 reward_function_by_data_source:
-  name_train: asr_measure
-
-val_reward:
-  reward_function_by_data_source:
-    name_val: openasr_en
+  ls_rare_verb: librispeech
 
 actor_rollout_ref:
   model:
@@ -41,15 +37,17 @@ actor_rollout_ref:
       warmup_style: constant
       lr_warmup_steps: 0
   rollout:
-    n: 4
+    n: 8
 
 data:
   data_source:
-    name_train: {num_epoch: 1, shuffle: true}
+    ls_rare_verb: {num_epoch: 1, shuffle: true}
   train_data:
-    - ${_name_train}
+    - ${_ls_train}
   val_data:
-    - ${_name_val}
+    - ${_earning_val}
+    - ${_ml_val}
+    - ${_ls_val}
   train_batch_size: 64
   shuffle: true
 

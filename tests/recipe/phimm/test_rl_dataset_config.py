@@ -904,13 +904,13 @@ def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(
     assert dataset_class(configs, None, config.data).ds.to_dict() == dataset.ds.to_dict()
 
 
-def test_name_env37k_rw0a_recipe_preserves_ls_settings_and_routes_name_data():
+def test_name_env37k_rw1a_recipe_preserves_ls_settings_and_routes_name_data():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
     searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
         source = compose(config_name="remax_2609r2_ls_bad_e1_g16_n4_rw0a", overrides=[searchpath])
-        variant = compose(config_name="remax_2609r2_name_env37k_e1_g16_n4_rw0a", overrides=[searchpath])
+        variant = compose(config_name="remax_2609r2_name_env37k_e1_g16_n4_rw1a", overrides=[searchpath])
 
     name_data = OmegaConf.load(config_root / "data/train_data/name_env37k.yaml")
     assert variant._name_train == name_data
@@ -921,6 +921,12 @@ def test_name_env37k_rw0a_recipe_preserves_ls_settings_and_routes_name_data():
     assert OmegaConf.to_container(variant.reward_function_by_data_source) == {"name_train": "asr_measure"}
     expected_reward = OmegaConf.create(OmegaConf.to_container(source.reward_functions.librispeech))
     expected_reward.reward_kwargs.reduce.total = 2
+    expected_reward.reward_kwargs.measures = {
+        "char": {"beta": 1.0},
+        "word": {"beta": 1.0},
+        "word_kw": {"beta": 2.0},
+        "lang": {"beta": 0.2},
+    }
     assert variant.reward_functions.asr_measure == expected_reward
     name_val = OmegaConf.load(config_root / "data/val_data/name_1k.yaml")
     assert variant._name_val == name_val

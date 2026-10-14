@@ -1,5 +1,5 @@
 # Train one shuffled non-bad-only LibriSpeech rare-keyword/nonempty epoch; retain the mixed-source validation suite.
-# Use char/word beta 1 and lang/fmt beta 0.1.
+# Use char/word beta 1 and lang beta 0.1.
 hydra:
   searchpath:
     - file://recipe/phimm/config
