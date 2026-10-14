@@ -1,0 +1,149 @@
+# Train one shuffled epoch of all Indian 10k subsets with language hints from the 2609r2 step-54000 checkpoint.
+# Validate on hinted Indian chunks and OpenML Monsoon Hindi lattice OIWER.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/indian/as_in_10k@_as_train
+  - /data/train_data/indian/bn_in_10k@_bn_train
+  - /data/train_data/indian/gu_in_10k@_gu_train
+  - /data/train_data/indian/hi_in_10k@_hi_train
+  - /data/train_data/indian/kn_in_10k@_kn_train
+  - /data/train_data/indian/ml_in_10k@_ml_train
+  - /data/train_data/indian/mr_in_10k@_mr_train
+  - /data/train_data/indian/or_in_10k@_or_train
+  - /data/train_data/indian/pa_in_10k@_pa_train
+  - /data/train_data/indian/ta_in_10k@_ta_train
+  - /data/train_data/indian/te_in_10k@_te_train
+  - /data/train_data/indian/ur_in_10k@_ur_train
+  - /data/val_data/indian/as_in@_as_val
+  - /data/val_data/indian/bn_in@_bn_val
+  - /data/val_data/indian/gu_in@_gu_val
+  - /data/val_data/indian/hi_in@_hi_val
+  - /data/val_data/indian/kn_in@_kn_val
+  - /data/val_data/indian/ml_in@_ml_val
+  - /data/val_data/indian/mr_in@_mr_val
+  - /data/val_data/indian/or_in@_or_val
+  - /data/val_data/indian/pa_in@_pa_val
+  - /data/val_data/indian/ta_in@_ta_val
+  - /data/val_data/indian/te_in@_te_val
+  - /data/val_data/indian/ur_in@_ur_val
+  - /data/val_data/openasr_ml_hi_in_langhint@_openasr_hi_val
+  - _self_
+
+reward_functions:
+  indian:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2.2}
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        lang: {beta: 0.1}
+        fmt: {beta: 0.1}
+
+reward_function_by_data_source:
+  as_in_tr: indian
+  bn_in_tr: indian
+  gu_in_tr: indian
+  hi_in_tr: indian
+  kn_in_tr: indian
+  ml_in_tr: indian
+  mr_in_tr: indian
+  or_in_tr: indian
+  pa_in_tr: indian
+  ta_in_tr: indian
+  te_in_tr: indian
+  ur_in_tr: indian
+
+val_reward:
+  reward_functions:
+    indian:
+      path: recipe/phimm/reward/asr_eval.py
+      name: openasr_eval
+      reward_kwargs:
+        version: 2609
+    openasr_hi_in:
+      path: recipe/phimm/reward/asr_eval.py
+      name: openasr_hi_in_eval
+      reward_kwargs:
+        version: 2609
+  reward_function_by_data_source:
+    as_in_val: indian
+    bn_in_val: indian
+    gu_in_val: indian
+    hi_in_val: indian
+    kn_in_val: indian
+    ml_in_val: indian
+    mr_in_val: indian
+    or_in_val: indian
+    pa_in_val: indian
+    ta_in_val: indian
+    te_in_val: indian
+    ur_in_val: indian
+    monsoon_hi_in: openasr_hi_in
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 256
+  actor:
+    optim:
+      lr: 3.0e-6
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+
+data:
+  data_source:
+    as_in_tr: {num_epoch: 1, shuffle: true}
+    bn_in_tr: {num_epoch: 1, shuffle: true}
+    gu_in_tr: {num_epoch: 1, shuffle: true}
+    hi_in_tr: {num_epoch: 1, shuffle: true}
+    kn_in_tr: {num_epoch: 1, shuffle: true}
+    ml_in_tr: {num_epoch: 1, shuffle: true}
+    mr_in_tr: {num_epoch: 1, shuffle: true}
+    or_in_tr: {num_epoch: 1, shuffle: true}
+    pa_in_tr: {num_epoch: 1, shuffle: true}
+    ta_in_tr: {num_epoch: 1, shuffle: true}
+    te_in_tr: {num_epoch: 1, shuffle: true}
+    ur_in_tr: {num_epoch: 1, shuffle: true}
+  train_data:
+    - ${_as_train}
+    - ${_bn_train}
+    - ${_gu_train}
+    - ${_hi_train}
+    - ${_kn_train}
+    - ${_ml_train}
+    - ${_mr_train}
+    - ${_or_train}
+    - ${_pa_train}
+    - ${_ta_train}
+    - ${_te_train}
+    - ${_ur_train}
+  val_data:
+    - ${_as_val}
+    - ${_bn_val}
+    - ${_gu_val}
+    - ${_hi_val}
+    - ${_kn_val}
+    - ${_ml_val}
+    - ${_mr_val}
+    - ${_or_val}
+    - ${_pa_val}
+    - ${_ta_val}
+    - ${_te_val}
+    - ${_ur_val}
+    - ${_openasr_hi_val}
+  train_batch_size: 64
+  shuffle: true
+
+trainer:
+  nnodes: 2
+  total_epochs: 1
+  total_training_steps: null

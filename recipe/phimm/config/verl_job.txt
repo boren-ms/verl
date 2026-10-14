@@ -1,4 +1,4 @@
-updated_at_utc: 2026-10-14T16:52:37Z
+updated_at_utc: 2026-10-14T17:42:22Z
 
 ┌────────┬──────────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                       │ STATUS  │ JOB / CONFIG                                                                         │ PROGRESS / PHASE                                  │
@@ -14,7 +14,7 @@ updated_at_utc: 2026-10-14T16:52:37Z
 │ n2-i5  │ raysubmit_PwkyWrw8FqCv8qi8         │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e2_bs64_n8_r256_g16_ds1c_avg6_flr_rm0b_v0        │ training 287/1440 (19.93%)                         │
 │ n2-i6  │ —                                │ PENDING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e2_bs64_n4_r256_g16_ds1c_sfl_avg6_flr_rm0b_v0a   │ training startup (pod booting; save10)             │
 │ n2-i7  │ raysubmit_r2Th6sa2vZky6hz4        │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs128_n8_r256_g16_ds1c_sfl_avg6_flr_rm0b_v0     │ training 574/1080 (53.15%)                         │
-│ n2-i8  │ raysubmit_eqkrCr2VwD5KN8Xp         │ RUNNING │ remax_2609r2_ls_g16_n8_rw1                                                            │ training 0/2001 (0%; first rollout)                │
+│ n2-i8  │ raysubmit_LJG56Q7VqsWJxzUt         │ RUNNING │ remax_2609r2_ls_g16_n8_rw1                                                            │ training startup (validation scoring 2782)        │
 │ n4-i4  │ raysubmit_twMexPvebDuLpEb5        │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1         │ training 146/306 (47.71%); pause after step160      │
 │ n4-i6  │ raysubmit_k4s5RcVe1zMfDxXp       │ SUCCEEDED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs512_n16_r256_g32_ds1c_sfl_avg6_flr0_rw0 │ training 270/270 (100%; complete)                 │
 │ n4-i7  │ raysubmit_fMJmPawybpFfZHX6       │ SUCCEEDED │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm1      │ training 306/306 (complete)                     │
@@ -28,7 +28,7 @@ Reports:
 - `remax_2609r2b_in10k_g16_n8_rw1` [`n2-i1`]: training 327/1863 (17.55%)
 - `remax_2609r2_ls_bad_g16_n8_rw1` [`n2-i0`]: training 460/1120 (41.07%)
 - `remax_2609r2_mx0a_bs64_n4_g16_rw0` [`n2-i9`]: stopped training step 219
-- `remax_2609r2_ls_g16_n8_rw1` [`n2-i8`]: training 0/2001 (0%)
+- `remax_2609r2_ls_g16_n8_rw1` [`n2-i8`]: training startup
 - `remax_2609r2_ls_bad_e1_g16_n4_rw0a_er` [`n2-i0`]: training 239/1120 (21.34%; user stopped)
 - `remax_2609r2_ls_bad_e1_g16_n4_rw0a` [`n2-i1`]: stopped training step 331 (user requested)
 - `remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs128_n8_r256_g16_ds1c_sfl_avg6_flr_rm0b_v0@step400` [`n2-i0`]: complete step 400

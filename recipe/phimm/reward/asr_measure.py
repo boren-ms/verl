@@ -8,7 +8,6 @@ reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
 from __future__ import annotations
 
 import math
-import re
 import unicodedata
 from dataclasses import dataclass
 from numbers import Real
@@ -415,28 +414,8 @@ def check_lang(task_output, tgt_lang) -> dict[str, float | int]:
 
 
 def check_fmt(task_output, version=2609) -> bool:
-    """Return whether the parsed output uses the format required by its version."""
-    if not task_output or any(segment["text"] is None for segment in task_output):
-        return False
-    if str(version) != "2609":
-        return True
-
-    def is_wrapped(text) -> bool:
-        if not isinstance(text, str):
-            return False
-        text = re.sub(
-            r"^\s*<(?:asr_)?(?:lexical|verbatim|readable)>\s*",
-            "",
-            text,
-            count=1,
-            flags=re.IGNORECASE,
-        )
-        return bool(
-            re.fullmatch(r"\s*<TXT>.*?</TXT>\s*", text, flags=re.DOTALL | re.IGNORECASE)
-            or re.fullmatch(r"\s*<nonspeech>\s*", text, flags=re.IGNORECASE)
-        )
-
-    return all(segment["text"] is not None for segment in task_output)
+    """Require parsed text in every segment; 2609 ``<TXT>`` tags are optional."""
+    return bool(task_output) and all(segment["text"] is not None for segment in task_output)
 
 
 def clip(x, lo=-1.0, hi=1.0):

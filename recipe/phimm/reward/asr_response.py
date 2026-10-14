@@ -10,11 +10,6 @@ _SEGMENT_RE = re.compile(
 _2607_HEADER_RE = re.compile(r"^Audio Language:\s*(?P<langs>[^\n]+?)\.?\n(?P<body>.*)$", re.DOTALL)
 _2607_TAG_RE = re.compile(r"^<(?P<tag>ASR(?:_[^>]+)?)>(?P<inner>.*)</(?P=tag)>$", re.DOTALL)
 _2607_SEGMENT_RE = re.compile(r"\s*<lang=(?P<lang>[^>]+)><TXT>(?P<text>.*?)</TXT>\s*", re.DOTALL)
-_2609_MODE_PREFIX_RE = re.compile(
-    r"^\s*<(?:asr_)?(?:lexical|verbatim|readable)>\s*",
-    re.IGNORECASE,
-)
-_TXT_WRAPPER_RE = re.compile(r"^\s*<TXT>(?P<text>.*?)</TXT>\s*$", re.DOTALL | re.IGNORECASE)
 
 
 class TaskOutputSegment(TypedDict):
@@ -60,14 +55,8 @@ def parse_task_output(solution_str, version=None):
 
 
 def get_asr_text(task_output):
-    """Join the text segments from a parsed ASR task output."""
-    return " ".join(_unwrap_txt(segment["text"]) for segment in task_output if segment["text"] is not None)
-
-
-def _unwrap_txt(text: str) -> str:
-    text = _2609_MODE_PREFIX_RE.sub("", text, count=1)
-    match = _TXT_WRAPPER_RE.match(text)
-    return match.group("text") if match else text
+    """Join parsed ASR text segments without modifying their content."""
+    return " ".join(segment["text"] for segment in task_output if segment["text"] is not None)
 
 
 def _parse_task_output_2607(solution_str):
@@ -111,25 +100,16 @@ def _split_2607_langs(header: str) -> list[str]:
     return [part for part in re.split(r"[,\s、&/]+", header) if part]
 
 
-def _parse_task_output_2609(solution_str):
-    """Parse a 2609 single- or multi-segment task output."""
-    if not isinstance(solution_str, str):
-        return [_segment()]
+def _parse_task_output_2609(solution_str: str):
+    """Require 2609 language headers except for standalone ``<nonspeech>``.
+
+    ``<TXT>`` tags are optional.
+    """
     output = solution_str.strip()
     if output.lower() == "<nonspeech>":
         return [_segment(text="<nonspeech>")]
-    if not output:
-        return [_segment()]
-    first_header = output.find("\n<src=")
-    if not output.startswith("<src=") and first_header < 0:
-        return [_segment(text=output)]
-
     segments = []
-    if first_header >= 0 and not output.startswith("<src="):
-        segments.append(_segment(text=output[:first_header].strip()))
-        pos = first_header
-    else:
-        pos = 0
+    pos = 0
     while pos < len(output):
         match = _SEGMENT_RE.match(output, pos)
         if not match:
