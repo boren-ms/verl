@@ -120,6 +120,39 @@ def test_remove_brackets_runs_before_task_output_generation():
     assert result[0]["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\n<TXT>I love you</TXT>"
 
 
+@pytest.mark.parametrize(
+    "config_name",
+    [
+        "train_data/name_en13m",
+        "train_data/name_en10k",
+        "train_data/name_env37k",
+        "val_data/name_1k",
+        "val_data/name_10k",
+    ],
+)
+def test_name_data_configs_remove_brackets_before_verbatim_reference_generation(config_name):
+    config_root = Path(__file__).parents[4] / "recipe/phimm/config/data"
+    config = OmegaConf.to_container(OmegaConf.load(config_root / f"{config_name}.yaml"))[0]
+    dataset = Dataset.from_dict({
+        "text": ["John (Smith)"],
+        "display": ["John [Smith]"],
+        "audio_path": ["am_data/example.wav"],
+        "keywords": [["Smith"]],
+    })
+    result = dataset_module.augment(
+        dataset,
+        version=2609,
+        pre_process=config["pre_process"],
+        add_task_info=config["add_task_info"],
+    )
+
+    assert result[0]["text"] == "John Smith"
+    assert result[0]["keywords"] == ["Smith"]
+    assert result[0]["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\n<TXT>John Smith</TXT>"
+    assert "The language is English." in result[0]["prompt"]
+    assert result[0]["prefix"] == ""
+
+
 def test_remove_brackets_supports_parallel_map_and_rename():
     dataset = Dataset.from_dict({"transcript": ["I (love you)", "[hello]"]})
     result = dataset_module.process_ds(

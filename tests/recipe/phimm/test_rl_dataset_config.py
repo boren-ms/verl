@@ -922,10 +922,11 @@ def test_name_env37k_rw0a_recipe_preserves_ls_settings_and_routes_name_data():
     expected_reward = OmegaConf.create(OmegaConf.to_container(source.reward_functions.librispeech))
     expected_reward.reward_kwargs.reduce.total = 2
     assert variant.reward_functions.asr_measure == expected_reward
-    name_val = OmegaConf.load(config_root / "data/val_data/name_10k.yaml")
+    name_val = OmegaConf.load(config_root / "data/val_data/name_1k.yaml")
     assert variant._name_val == name_val
     assert len(variant.data.val_data) == 1
     assert variant.data.val_data[0] == name_val
+    assert variant.data.val_data[0][0].pre_process.input_egs_limit == 1000
     assert name_val[0].post_process.add_field.fields.data_source == "name_val"
     assert variant.val_reward.reward_function_by_data_source.name_val == "openasr_en"
     assert variant.val_reward.reward_functions.openasr_en.name == "openasr_en_eval"

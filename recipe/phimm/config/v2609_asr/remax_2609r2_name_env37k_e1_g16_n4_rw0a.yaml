@@ -1,4 +1,4 @@
-# Train one shuffled name_env37k epoch (37,212 records) and validate on name_10k with verbatim language hints.
+# Train one shuffled name_env37k epoch (37,212 records) and validate on name_1k with verbatim language hints.
 # Preserve LS rw0a rewards: char/word beta 1 and word_kw/word_lang/word_fmt beta 2.
 hydra:
   searchpath:
@@ -7,7 +7,7 @@ hydra:
 defaults:
   - base
   - /data/train_data/name_env37k@_name_train
-  - /data/val_data/name_10k@_name_val
+  - /data/val_data/name_1k@_name_val
   - _self_
 
 reward_functions:

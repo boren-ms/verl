@@ -26,6 +26,7 @@ SEED_MODEL_PATH = (
 def test_name_data_configs_use_verbatim_language_hints(config_name):
     config = OmegaConf.load(CONFIG_ROOT / f"data/{config_name}.yaml")
     assert len(config) == 1
+    assert OmegaConf.to_container(config[0].pre_process.remove_brackets) == {}
     assert OmegaConf.to_container(config[0].add_task_info) == {
         "task": "lang_asr_verb",
         "language": "English",
