@@ -1,0 +1,141 @@
+# One TER benchmark dataset per India locale, using the v2609r2b step-400 checkpoint.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/inhouse/indian/enin_ter@_enin
+  - /data/val_data/inhouse/indian/hiin_ter@_hiin
+  - /data/val_data/inhouse/indian/asin_ter@_asin
+  - /data/val_data/inhouse/indian/bnin_ter@_bnin
+  - /data/val_data/inhouse/indian/guin_ter@_guin
+  - /data/val_data/inhouse/indian/knin_ter@_knin
+  - /data/val_data/inhouse/indian/mlin_ter@_mlin
+  - /data/val_data/inhouse/indian/mrin_ter@_mrin
+  - /data/val_data/inhouse/indian/orin_ter@_orin
+  - /data/val_data/inhouse/indian/pain_ter@_pain
+  - /data/val_data/inhouse/indian/tain_ter@_tain
+  - /data/val_data/inhouse/indian/tein_ter@_tein
+  - /data/val_data/inhouse/indian/urin_ter@_urin
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2609_asr/remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs128_n8_r256_g16_ds1c_sfl_avg6_flr_rm0b_v0/global_step_400/qwen_hf/
+
+trainer:
+  experiment_name: v2609r2b_in1
+  nnodes: 1
+
+data:
+  val_data:
+    - ["${_enin.0}"]
+    - ["${_hiin.0}"]
+    - ["${_asin.0}"]
+    - ["${_bnin.0}"]
+    - ["${_guin.0}"]
+    - ["${_knin.0}"]
+    - ["${_mlin.0}"]
+    - ["${_mrin.0}"]
+    - ["${_orin.0}"]
+    - ["${_pain.0}"]
+    - ["${_tain.0}"]
+    - ["${_tein.0}"]
+    - ["${_urin.0}"]
+
+val_reward:
+  reward_functions:
+    inhouse_enin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: en-in
+    inhouse_asin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: as-in
+    inhouse_bnin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: bn-in
+    inhouse_guin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: gu-in
+    inhouse_knin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: kn-in
+    inhouse_mlin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: ml-in
+    inhouse_mrin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: mr-in
+    inhouse_orin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: or-in
+    inhouse_pain:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: pa-in
+    inhouse_tain:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: ta-in
+    inhouse_tein:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: te-in
+    inhouse_urin:
+      path: recipe/phimm/reward/asr_inhouse_measure.py
+      name: eval_score
+      reward_kwargs:
+        version: 2609
+        locale: ur-in
+  reward_function_by_data_source:
+    enin_conversation_dtest_fy23q3_en_in_dtest: inhouse_enin
+    enin_conversation_onlinemeetings_dtest_fy24q2_en_in: inhouse_enin
+    enin_dictation_dtest_l_d_fy23q2_en_in_dtest: inhouse_enin
+    asin_dictation_displaygpt: inhouse_asin
+    bnin_devicecommands_displaygpt: inhouse_bnin
+    bnin_dictation_displaygpt: inhouse_bnin
+    guin_devicecommands_displaygpt: inhouse_guin
+    guin_dictation_displaygpt: inhouse_guin
+    knin_devicecommands_displaygpt: inhouse_knin
+    knin_dictation_displaygpt: inhouse_knin
+    mlin_devicecommands_displaygpt: inhouse_mlin
+    mlin_dictation_displaygpt: inhouse_mlin
+    mrin_devicecommands_displaygpt: inhouse_mrin
+    orin_dictation_displaygpt: inhouse_orin
+    pain_dictation_displaygpt: inhouse_pain
+    tain_devicecommands_displaygpt: inhouse_tain
+    tain_dictation_displaygpt: inhouse_tain
+    tein_devicecommandsdisplaygpt_clean: inhouse_tein
+    tein_dictationdisplaygpt_clean: inhouse_tein
+    urin_dictation_displaygpt: inhouse_urin

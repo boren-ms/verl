@@ -15,13 +15,52 @@ size remains 256.
 evaluation settings match `eval_2609_openall_mix`; only the model path differs.
 
 [eval_2609r2b_in](../v2609_asr/eval/eval_2609r2b_in.yaml) evaluates the same
-step-400 checkpoint as `eval_2609r2b_openall_zip` on the five pre-segmented Hindi
-datasets in [hiin_seg](../data/val_data/inhouse/indian/hiin_seg.yaml).
-It uses the in-house TER scorer, one node, and experiment name `v2609r2b_in`.
-The dataset default is imported as `_inhouse` and included explicitly in
-`data.val_data` as `- ${_inhouse}`, matching the grouped dataset-loading pattern
-used by the ReMax recipes. The evaluation base reuses that list for
-`data.train_data`; the loader flattens its five dataset entries.
+step-400 checkpoint as `eval_2609r2b_openall_zip` on the 23 India-locale
+datasets selected from the benchmark table:
+
+| Locale | Selected corpora |
+|---|---|
+| en-IN | Conversation FY23Q3, OnlineMeetings FY24Q2, Dictation FY23Q2 |
+| hi-IN | Conversation FY23Q3, OnlineMeetings FY24Q2, Dictation FY23Q2 |
+| as-IN | Dictation_DisplayGPT |
+| bn-IN | DeviceCommands_DisplayGPT, Dictation_DisplayGPT |
+| gu-IN | DeviceCommands_DisplayGPT, Dictation_DisplayGPT |
+| kn-IN | DeviceCommands_DisplayGPT, Dictation_DisplayGPT |
+| ml-IN | DeviceCommands_DisplayGPT, Dictation_DisplayGPT |
+| mr-IN | DeviceCommands_DisplayGPT |
+| or-IN | Dictation_DisplayGPT |
+| pa-IN | Dictation_DisplayGPT |
+| ta-IN | DeviceCommands_DisplayGPT, Dictation_DisplayGPT |
+| te-IN | DeviceCommandsDisplayGPT_Clean, DictationDisplayGPT_Clean |
+| ur-IN | Dictation_DisplayGPT |
+
+Each locale has a separate benchmark-only `<locale>_ter.yaml` config in
+[inhouse/indian](../data/val_data/inhouse/indian), using the existing compact
+locale tags: [enin_ter](../data/val_data/inhouse/indian/enin_ter.yaml),
+[hiin_ter](../data/val_data/inhouse/indian/hiin_ter.yaml), `asin_ter`, `bnin_ter`,
+`guin_ter`, `knin_ter`, `mlin_ter`, `mrin_ter`, `orin_ter`, `pain_ter`,
+`tain_ter`, `tein_ter`, and `urin_ter`. The general locale configs are unchanged.
+These TER configs are imported as 13 locale groups in `data.val_data`.
+The evaluation base reuses that list for `data.train_data`; the loader flattens
+the 23 entries. Banking, medical, and legacy corpus variants are excluded.
+English and Hindi use their existing pre-segmented manifests; other locales use on-the-fly
+SVAD splitting with a 40-second limit. Locale-prefixed source IDs keep results
+separate, and explicit TER locale registrations prevent the new languages
+and en-IN from falling back to en-US scoring.
+English, Hindi, and Bengali dictation use complete-dataset validation batches
+(`val_batch_size: -1`) so long-audio parent segments are scored together rather
+than split across minibatches.
+The job still uses one node and experiment name `v2609r2b_in`.
+
+This dataset selection is incompatible with older Hindi-only resume checkpoints.
+Use a fresh `trainer.validation_data_dir` or set `trainer.validation_resume=false`
+for the first run after this update.
+
+[in1](../v2609_asr/eval/in1.yaml) is the smaller India-locale evaluation:
+it selects the first TER dataset from each of the 13 locale configs, retaining
+the full job's checkpoint, scorer registrations, and segmented English/Hindi
+inputs. Its experiment name is `v2609r2b_in1`, keeping output and resume state
+separate from the full 23-dataset evaluation.
 
 Validation sample previews include the reference ground truth alongside the
 input, generated output, and score. W&B's `val/generations` table has a

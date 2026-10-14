@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 import pytest
 from hydra import compose, initialize_config_dir
@@ -70,31 +71,133 @@ REWARD_SOURCES = {
 }
 
 
-def test_r2b_in_uses_segmented_hindi_data_and_r2b_checkpoint():
+def test_r2b_in_matches_india_benchmark_datasets_and_r2b_checkpoint():
     with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
         config = compose(config_name="eval_2609r2b_in")
         original = compose(config_name="eval_2609r2b_openall_zip")
 
-    expected = OmegaConf.load(CONFIG_ROOT / "data/val_data/inhouse/indian/hiin_seg.yaml")
-    expected_rows = OmegaConf.to_container(expected, resolve=True)
-    assert OmegaConf.to_container(config._inhouse, resolve=True) == expected_rows
-    assert OmegaConf.to_container(config.data.val_data, resolve=False) == ["${_inhouse}"]
-    assert OmegaConf.to_container(config.data.val_data, resolve=True) == [expected_rows]
-    assert OmegaConf.to_container(config.data.train_data, resolve=True) == [expected_rows]
-    assert len(config.data.val_data) == 1
-    assert len(config.data.val_data[0]) == 5
+    expected_corpora = {
+        "en-IN": [
+            "Conversation_DTEST_FY23Q3_en-IN_DTEST",
+            "Conversation_OnlineMeetings_DTEST_FY24Q2_en-IN",
+            "Dictation_DTEST_L_D_FY23Q2_en-IN_DTEST",
+        ],
+        "hi-IN": [
+            "Conversation_DTEST_FY23Q3_hi-IN_DTEST",
+            "Conversation_OnlineMeetings_DTEST_FY24Q2_hi-IN",
+            "Dictation_DTEST_L_D_FY23Q2_hi-IN_DTEST",
+        ],
+        "as-IN": ["Dictation_DisplayGPT"],
+        "bn-IN": ["DeviceCommands_DisplayGPT", "Dictation_DisplayGPT"],
+        "gu-IN": ["DeviceCommands_DisplayGPT", "Dictation_DisplayGPT"],
+        "kn-IN": ["DeviceCommands_DisplayGPT", "Dictation_DisplayGPT"],
+        "ml-IN": ["DeviceCommands_DisplayGPT", "Dictation_DisplayGPT"],
+        "mr-IN": ["DeviceCommands_DisplayGPT"],
+        "or-IN": ["Dictation_DisplayGPT"],
+        "pa-IN": ["Dictation_DisplayGPT"],
+        "ta-IN": ["DeviceCommands_DisplayGPT", "Dictation_DisplayGPT"],
+        "te-IN": ["DeviceCommandsDisplayGPT_Clean", "DictationDisplayGPT_Clean"],
+        "ur-IN": ["Dictation_DisplayGPT"],
+    }
+    groups = OmegaConf.to_container(config.data.val_data, resolve=True)
+    assert OmegaConf.to_container(config.data.train_data, resolve=True) == groups
+    assert len(groups) == len(expected_corpora) == 13
+    assert sum(map(len, groups)) == 23
+    sources = []
+    for group, (locale, corpora) in zip(groups, expected_corpora.items(), strict=True):
+        assert [row["jsonl_paths"].split("/")[-2] for row in group] == corpora
+        code = locale.replace("-", "").lower()
+        filename = f"{code}_ter"
+        original_rows = OmegaConf.to_container(
+            OmegaConf.load(CONFIG_ROOT / f"data/val_data/inhouse/indian/{filename}.yaml"),
+            resolve=True,
+        )
+        assert group == original_rows
+        for row in group:
+            assert row["jsonl_paths"].split("/")[-3] == locale
+            source = row["post_process"]["add_field"]["fields"]["data_source"]
+            assert source.startswith(f"{code}_")
+            sources.append(source)
+            registration = config.val_reward.reward_function_by_data_source[source]
+            scorer = config.val_reward.reward_functions[registration]
+            assert scorer.name == "eval_score"
+            assert scorer.path == "recipe/phimm/reward/asr_inhouse_measure.py"
+            if locale == "hi-IN":
+                assert registration == "inhouse_all"
+            else:
+                assert scorer.reward_kwargs.locale == locale.lower()
+            if locale in ("en-IN", "hi-IN"):
+                assert "svad_explode" not in row["pre_process"]
+                assert "/InhouseASR_2605_seg_presegment/" in row["jsonl_paths"]
+                segmented_rows = OmegaConf.to_container(
+                    OmegaConf.load(CONFIG_ROOT / f"data/val_data/inhouse/indian/{code}_seg.yaml"),
+                    resolve=True,
+                )
+                expected_segment = next(
+                    entry for entry in segmented_rows if entry["jsonl_paths"] == row["jsonl_paths"]
+                )
+                assert {key: value for key, value in row.items() if key != "val_batch_size"} == expected_segment
+            else:
+                assert row["pre_process"]["svad_explode"]["max_len_sec"] == 40.0
+            if locale in ("en-IN", "hi-IN") or (
+                locale == "bn-IN" and row["jsonl_paths"].split("/")[-2] == "Dictation_DisplayGPT"
+            ):
+                assert row["val_batch_size"] == -1
+            assert "parent_audio_path" in row["post_process"]["verl_format"]["extra_keys"]
+    assert len(set(sources)) == 23
     assert config.actor_rollout_ref.model.path == original.actor_rollout_ref.model.path
     assert config.trainer.experiment_name == "v2609r2b_in"
     assert config.trainer.nnodes == 1
     assert config.trainer.val_only is True
     assert config.trainer.val_before_train is True
-    for row in config.data.val_data[0]:
-        source = row.post_process.add_field.fields.data_source
-        registration = config.val_reward.reward_function_by_data_source[source]
-        assert registration == "inhouse_all"
-        assert config.val_reward.reward_functions[registration].name == "eval_score"
-        assert row.add_task_info.language == "Hindi"
-        assert "parent_audio_path" in row.post_process.verl_format.extra_keys
+
+
+def test_r2b_in_dispatches_each_dataset_to_its_ter_locale(monkeypatch):
+    from verl.trainer.ppo.reward import get_reward_fn_dispatcher
+
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        config = compose(config_name="eval_2609r2b_in")
+    scorer = get_reward_fn_dispatcher(config.val_reward)
+    path = str(Path(__file__).parents[3] / "recipe/phimm/reward/asr_inhouse_measure.py")
+    module = sys.modules[f"custom_reward_module::{path}"]
+    locales = []
+
+    def compute_dter(ref, hyp, locale):
+        locales.append(locale)
+        return 0, 1, 0.0, None
+
+    monkeypatch.setattr(module, "ensure_pack_dir", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module, "_compute_dter", compute_dter)
+    for group in config.data.val_data:
+        for row in group:
+            source = row.post_process.add_field.fields.data_source
+            result = scorer(
+                source, "<TXT>hello</TXT>", "hello",
+                extra_info={"language": row.add_task_info.language},
+            )
+            assert result["score"] == 1.0
+            assert locales[-1] == row.jsonl_paths.split("/")[-3].lower()
+
+
+def test_in1_selects_first_ter_dataset_from_each_locale():
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        config = compose(config_name="in1")
+        full = compose(config_name="eval_2609r2b_in")
+
+    groups = OmegaConf.to_container(config.data.val_data, resolve=True)
+    full_groups = OmegaConf.to_container(full.data.val_data, resolve=True)
+    assert groups == [[group[0]] for group in full_groups]
+    assert len(groups) == 13
+    assert len({group[0]["jsonl_paths"].split("/")[-3] for group in groups}) == 13
+    assert OmegaConf.to_container(config.data.train_data, resolve=True) == groups
+    assert config.trainer.experiment_name == "v2609r2b_in1"
+    assert config.trainer.experiment_name != full.trainer.experiment_name
+    assert config.trainer.val_only is True
+    assert config.trainer.nnodes == full.trainer.nnodes == 1
+    assert config.actor_rollout_ref.model.path == full.actor_rollout_ref.model.path
+    assert OmegaConf.to_container(config.val_reward, resolve=True) == OmegaConf.to_container(
+        full.val_reward, resolve=True
+    )
 
 
 def test_r2_openall_mix_changes_only_model_checkpoint():
@@ -220,7 +323,7 @@ def test_eval_configs_inherit_reward_assignments(config_name):
     for reward_function in config.val_reward.reward_functions.values():
         assert reward_function.reward_kwargs.version == 2609
 
-    if config_name != "eval_base":
+    if config_name not in ("eval_base", "eval_2609r2b_in"):
         local_config = OmegaConf.load(EVAL_CONFIG_DIR / f"{config_name}.yaml")
         assert "reward_function_by_data_source" not in local_config.get("val_reward", {})
 
