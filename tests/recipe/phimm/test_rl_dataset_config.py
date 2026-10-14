@@ -904,6 +904,29 @@ def test_mx0_recipe_preserves_donor_and_samples_ls_without_ranges(
     assert dataset_class(configs, None, config.data).ds.to_dict() == dataset.ds.to_dict()
 
 
+def test_mx0a_rw0b_recipe_preserves_mix_and_uses_keyword_rewards_without_lang_fmt():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        source = compose(config_name="remax_2609r2_mx0a_bs64_n4_g16_rw0", overrides=[searchpath])
+        variant = compose(config_name="remax_2609r2_mx0a_bs64_n4_g16_rw0b", overrides=[searchpath])
+
+    assert variant.reward_function_by_data_source == source.reward_function_by_data_source
+    assert variant.reward_functions.librispeech.path == source.reward_functions.librispeech.path
+    assert variant.reward_functions.librispeech.name == source.reward_functions.librispeech.name
+    kwargs = variant.reward_functions.librispeech.reward_kwargs
+    assert kwargs.version == 2609
+    assert OmegaConf.to_container(kwargs.reduce) == {"mode": "average", "total": 2}
+    assert OmegaConf.to_container(kwargs.measures) == {
+        "char": {"beta": 1.0},
+        "word": {"beta": 1.0},
+        "word_kw": {"beta": 2.0},
+    }
+    source.reward_functions = variant.reward_functions
+    assert OmegaConf.to_container(variant, resolve=False) == OmegaConf.to_container(source, resolve=False)
+
+
 @pytest.mark.parametrize(
     ("options", "message"),
     [
