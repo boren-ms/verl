@@ -1,10 +1,10 @@
-o not cupdated_at_utc: 2026-10-14T05:54:35Z
+updated_at_utc: 2026-10-14T06:37:43Z
 
 ┌────────┬──────────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                       │ STATUS  │ JOB / CONFIG                                                                         │ PROGRESS / PHASE                                  │
 ├────────┼──────────────────────────────────┼─────────┼──────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
-│ n2-i0  │ raysubmit_69u9Bbgrpktsi4qr         │ STOPPED │ remax_2609r2_ls_bad_e1_g16_n4_rw0a_er                                                   │ training 239/1120 (21.34%; user stopped)            │
-│ n2-i1  │ raysubmit_1RBaSSmbAA2RdnHQ         │ RUNNING │ eval_2609r2b_openall_zip                                                               │ evaluating openall (dataset loading)               │
+│ n2-i0  │ none                             │ PENDING │ remax_2609r2_ls_bad_g16_n8_rw1                                                        │ training startup (pool resuming; save10)           │
+│ n2-i1  │ raysubmit_wAKixqR34qK9Abxn         │ RUNNING │ remax_2609r2b_in10k_g16_n8_rw1                                                         │ training startup (dataset loading; save10)         │
 │ n4-i0  │ raysubmit_P9YsymiQKL4xu6qN         │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 111/540 (20.56%)                          │
 │ n4-i1  │ —                               │ STOPPED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0 │ training 219/546 (user stopped; pool paused)       │
 │ n4-i2  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0d1          │ training startup (waiting GPU quota; save10)      │
@@ -25,6 +25,8 @@ o not cupdated_at_utc: 2026-10-14T05:54:35Z
 └────────┴──────────────────────────────────┴─────────┴──────────────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
 
 Reports:
+- `remax_2609r2b_in10k_g16_n8_rw1` [`n2-i1`]: training startup
+- `remax_2609r2_ls_bad_g16_n8_rw1` [`n2-i0`]: training startup
 - `remax_2609r2_mx0a_bs64_n4_g16_rw0` [`n2-i9`]: stopped training step 219
 - `remax_2609r2_mx0_bs64_n4_g16_rw0` [`n2-i8`]: stopped training step 229 (user requested)
 - `remax_2609r2_ls_bad_e1_g16_n4_rw0a_er` [`n2-i0`]: training 239/1120 (21.34%; user stopped)

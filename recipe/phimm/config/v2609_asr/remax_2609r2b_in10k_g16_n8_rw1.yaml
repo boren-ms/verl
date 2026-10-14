@@ -39,7 +39,7 @@ reward_functions:
     name: compute_score
     reward_kwargs:
       version: 2609
-      reduce: {mode: average, total: 2}
+      reduce: {mode: average, total: 2.2}
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
