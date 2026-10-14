@@ -1,7 +1,8 @@
-# Auto-generated InhouseASR_2605 en-IN D-test sets.
+# @package data.val_data
+# Auto-generated InhouseASR_2605 hi-IN D-test sets.
 # One section per subdir test.jsonl; uses on-the-fly svad_explode.
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-IN/Conversation_DTEST_FY23Q3_en-IN_DTEST/test.jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/hi-IN/Conversation_DTEST_FY23Q3_hi-IN_DTEST/test.jsonl
   pre_process:
     svad_explode:
       max_len_sec: 40.0
@@ -15,14 +16,14 @@
         data_source: CorpusName
   add_task_info:
     task: lang_asr
-    language: English
+    language: Hindi
   post_process:
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-IN/Conversation_DomainSet_DTEST_Banking_Entity_FY24Q1_en-IN_DTEST/test.jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/hi-IN/Conversation_DomainSet_DTEST_Banking_Entity_FY25Q2_hi-IN_DTEST_OfflineDataCollection/test.jsonl
   pre_process:
     svad_explode:
       max_len_sec: 40.0
@@ -36,14 +37,14 @@
         data_source: CorpusName
   add_task_info:
     task: lang_asr
-    language: English
+    language: Hindi
   post_process:
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-IN/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_en-IN_DTEST/test.jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/hi-IN/Conversation_DomainSet_DTEST_Medical_Entity_FY24Q1_hi-IN_DTEST/test.jsonl
   pre_process:
     svad_explode:
       max_len_sec: 40.0
@@ -57,14 +58,14 @@
         data_source: CorpusName
   add_task_info:
     task: lang_asr
-    language: English
+    language: Hindi
   post_process:
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-IN/Conversation_OnlineMeetings_DTEST_FY24Q2_en-IN/test.jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/hi-IN/Conversation_OnlineMeetings_DTEST_FY24Q2_hi-IN/test.jsonl
   pre_process:
     svad_explode:
       max_len_sec: 40.0
@@ -78,14 +79,14 @@
         data_source: CorpusName
   add_task_info:
     task: lang_asr
-    language: English
+    language: Hindi
   post_process:
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_start"]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/en-IN/Dictation_DTEST_L_D_FY23Q2_en-IN_DTEST/test.jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/hi-IN/Dictation_DTEST_L_D_FY23Q2_hi-IN_DTEST/test.jsonl
   pre_process:
     svad_explode:
       max_len_sec: 40.0
@@ -99,7 +100,7 @@
         data_source: CorpusName
   add_task_info:
     task: lang_asr
-    language: English
+    language: Hindi
   post_process:
     verl_format:
       prompt_key: prompt

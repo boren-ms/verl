@@ -1,7 +1,26 @@
 import ast
 from pathlib import Path
 
+import pytest
 import yaml
+from hydra import compose, initialize_config_dir
+from omegaconf import OmegaConf
+
+
+@pytest.mark.parametrize("dataset_name", ["hiin", "enin", "hiin_seg", "enin_seg"])
+def test_indian_long_eval_uses_explicit_grouped_data_config(dataset_name):
+    config_root = Path(__file__).parents[3] / "recipe/phimm/config"
+    with initialize_config_dir(config_dir=str(config_root / "eval"), version_base=None):
+        config = compose(config_name=f"long_eval_inhouse_2605_{dataset_name}")
+
+    expected = OmegaConf.load(config_root / f"data/val_data/inhouse/indian/{dataset_name}.yaml")
+    expected_rows = OmegaConf.to_container(expected, resolve=True)
+    assert OmegaConf.to_container(config._inhouse, resolve=True) == expected_rows
+    assert OmegaConf.to_container(config.data.val_data, resolve=False) == ["${_inhouse}"]
+    assert OmegaConf.to_container(config.data.val_data, resolve=True) == [expected_rows]
+    assert len(config.data.val_data) == 1
+    assert len(config.data.val_data[0]) == 5
+    assert config.data.output_path.endswith(f"/inhouse_2605_{dataset_name}")
 
 
 def test_build_dataloader_disables_training_interleave():

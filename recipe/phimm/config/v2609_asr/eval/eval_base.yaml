@@ -61,6 +61,11 @@ val_reward:
     cscz_conv_fy23q2: inhouse_all
     cscz_conv_om_fy24q2: inhouse_all
     cscz_dict_fy24q2: inhouse_all
+    hiin_conversation_dtest_fy23q3_hi_in_dtest: inhouse_all
+    hiin_conversation_domainset_dtest_banking_entity_fy25q2_hi_in_dtest_offlinedatacollection: inhouse_all
+    hiin_conversation_domainset_dtest_medical_entity_fy24q1_hi_in_dtest: inhouse_all
+    hiin_conversation_onlinemeetings_dtest_fy24q2_hi_in: inhouse_all
+    hiin_dictation_dtest_l_d_fy23q2_hi_in_dtest: inhouse_all
 
 data:
   # RayDAPOTrainer initializes both dataloaders before honoring val_only.

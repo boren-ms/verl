@@ -14,6 +14,15 @@ size remains 256.
 `v3.5.4-r2/54000/qwen_hf` baseline checkpoint. Its datasets, scoring, and
 evaluation settings match `eval_2609_openall_mix`; only the model path differs.
 
+[eval_2609r2b_in](../v2609_asr/eval/eval_2609r2b_in.yaml) evaluates the same
+step-400 checkpoint as `eval_2609r2b_openall_zip` on the five pre-segmented Hindi
+datasets in [hiin_seg](../data/val_data/inhouse/indian/hiin_seg.yaml).
+It uses the in-house TER scorer, one node, and experiment name `v2609r2b_in`.
+The dataset default is imported as `_inhouse` and included explicitly in
+`data.val_data` as `- ${_inhouse}`, matching the grouped dataset-loading pattern
+used by the ReMax recipes. The evaluation base reuses that list for
+`data.train_data`; the loader flattens its five dataset entries.
+
 ## Prefetch evaluation audio
 
 For JSONL-backed dataset YAMLs, warm the local audio cache before evaluation:

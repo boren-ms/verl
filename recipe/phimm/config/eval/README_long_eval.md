@@ -31,6 +31,22 @@ data:
 
 To evaluate another long-audio JSONL, copy `recipe/phimm/config/data/val_data/long_eval_test.yaml` and update `jsonl_paths`. The raw JSONL should provide fields compatible with the configured `rename_fields` mapping, typically `WavPath`, `DisplayTranscription`, and `CorpusName`.
 
+In-house India-locale datasets live in
+[`data/val_data/inhouse/indian/`](../data/val_data/inhouse/indian/), with
+locale-only filenames such as [`hiin.yaml`](../data/val_data/inhouse/indian/hiin.yaml)
+and [`enin.yaml`](../data/val_data/inhouse/indian/enin.yaml). Use
+`/data/val_data/inhouse/indian/hiin@_inhouse` (or the corresponding locale) in
+the eval config's defaults, then set `data.val_data` explicitly to a list
+containing `- ${_inhouse}`.
+The loader flattens this grouped list into individual datasets. These configs
+retain the InhouseASR_2605 source manifests
+and on-the-fly SVAD preprocessing. The pre-segmented variants
+[`hiin_seg.yaml`](../data/val_data/inhouse/indian/hiin_seg.yaml) and
+[`enin_seg.yaml`](../data/val_data/inhouse/indian/enin_seg.yaml) live in the
+same folder and use `/data/val_data/inhouse/indian/hiin_seg@_inhouse` and
+`/data/val_data/inhouse/indian/enin_seg@_inhouse` defaults, respectively, with
+the same explicit `data.val_data` list.
+
 ## Run With Config Values
 
 From the repository root, use the wrapper when `long_eval_test.yaml` already contains the desired `model.path` and `data.output_path`:

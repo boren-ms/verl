@@ -61,8 +61,40 @@ REWARD_SOURCES = {
         "cscz_conv_fy23q2",
         "cscz_conv_om_fy24q2",
         "cscz_dict_fy24q2",
+        "hiin_conversation_dtest_fy23q3_hi_in_dtest",
+        "hiin_conversation_domainset_dtest_banking_entity_fy25q2_hi_in_dtest_offlinedatacollection",
+        "hiin_conversation_domainset_dtest_medical_entity_fy24q1_hi_in_dtest",
+        "hiin_conversation_onlinemeetings_dtest_fy24q2_hi_in",
+        "hiin_dictation_dtest_l_d_fy23q2_hi_in_dtest",
     ],
 }
+
+
+def test_r2b_in_uses_segmented_hindi_data_and_r2b_checkpoint():
+    with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
+        config = compose(config_name="eval_2609r2b_in")
+        original = compose(config_name="eval_2609r2b_openall_zip")
+
+    expected = OmegaConf.load(CONFIG_ROOT / "data/val_data/inhouse/indian/hiin_seg.yaml")
+    expected_rows = OmegaConf.to_container(expected, resolve=True)
+    assert OmegaConf.to_container(config._inhouse, resolve=True) == expected_rows
+    assert OmegaConf.to_container(config.data.val_data, resolve=False) == ["${_inhouse}"]
+    assert OmegaConf.to_container(config.data.val_data, resolve=True) == [expected_rows]
+    assert OmegaConf.to_container(config.data.train_data, resolve=True) == [expected_rows]
+    assert len(config.data.val_data) == 1
+    assert len(config.data.val_data[0]) == 5
+    assert config.actor_rollout_ref.model.path == original.actor_rollout_ref.model.path
+    assert config.trainer.experiment_name == "v2609r2b_in"
+    assert config.trainer.nnodes == 1
+    assert config.trainer.val_only is True
+    assert config.trainer.val_before_train is True
+    for row in config.data.val_data[0]:
+        source = row.post_process.add_field.fields.data_source
+        registration = config.val_reward.reward_function_by_data_source[source]
+        assert registration == "inhouse_all"
+        assert config.val_reward.reward_functions[registration].name == "eval_score"
+        assert row.add_task_info.language == "Hindi"
+        assert "parent_audio_path" in row.post_process.verl_format.extra_keys
 
 
 def test_r2_openall_mix_changes_only_model_checkpoint():

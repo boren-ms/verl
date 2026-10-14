@@ -1,4 +1,5 @@
-# Auto-generated pre-segmented variant of inhouse_2605_enin.
+# @package data.val_data
+# Auto-generated pre-segmented variant of inhouse/indian/enin.yaml.
 # If locale-specific presegment data is not uploaded yet, these paths
 # still follow the canonical InhouseASR_2605_seg_presegment layout.
 - dataset_name: jsonl
