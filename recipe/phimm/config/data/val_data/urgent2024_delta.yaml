@@ -1,0 +1,15 @@
+# All 283 utterances with more noisy than clean errors in the 2609r2a step-0 evaluation.
+# Retain noisy audio and reuse the original URGENT2024 ZIP without copying audio.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024_delta/data.jsonl
+  cache_name: auto_urgent2024_delta_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: urgent2024_delta
+    verl_format:
+      prompt_key: prompt

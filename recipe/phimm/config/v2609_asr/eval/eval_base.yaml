@@ -26,6 +26,7 @@ val_reward:
     monsoon_en_in: openasr_en
     urgent2024: openasr_en
     urgent2024_clean: openasr_en
+    urgent2024_delta: openasr_en
     de_fleurs: openasr_ml
     fr_fleurs: openasr_ml
     it_fleurs: openasr_ml
