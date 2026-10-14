@@ -1,0 +1,293 @@
+# @package data.train_data
+# Noise/RIR-only variant of entity_en_ht_v1_cer with verbatim + language hints.
+# Statistics inspected 2026-10-14: 65 sources, 4,207 JSONL gzip shards.
+# Declared input totals sum to 41,723,131; NOT a verified row or training count.
+# mix.json totals can be stale: Canadian music-background reports 958 but has
+# 60,958 rows. Other unscanned totals remain unverified; do not use as weights.
+# Exact rows below come from full shard scans. Upstream duration summaries are
+# before entity extraction; all counts precede filter_by_keywords(min_num=1).
+# Final keyword-filtered training counts and aggregate audio hours are unknown.
+# Per-source SNR/RT60 and noise-only/RIR-only/both proportions are unavailable.
+# Dataset source: noisy_enht_v1; existing entity preprocessing is preserved.
+- dataset_name: jsonl
+  jsonl_paths:
+  # Engineer_Telephony_8kHz | short_form_fix_16k | r8
+  # Declared input examples: 6,187,660 (unverified); shards: 619.
+  # Upstream summary: 6,187,660 utterances; 5,146.03 hours; 17,270,258 words.
+  # Duration mean/p50/p95: 2.99/2.70/5.80 seconds; mean words: 2.79.
+  # Upstream CER-filter retention: 69.60%; removed: 2,703,021/8,890,681.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix_16k/noise_rir/r8/Engineer_Telephony_8kHz/samples/
+  # SwitchBoard_Fisher_8kHz | short_form_fix_16k | r8
+  # Declared input examples: 1,343,686 (unverified); shards: 135.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix_16k/noise_rir/r8/SwitchBoard_Fisher_8kHz/samples/
+  # Engineer_Telephony_EVM_6kHz | short_form_fix | r8
+  # Declared input examples: 1,311,349 (unverified); shards: 132.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/Engineer_Telephony_EVM_6kHz/samples/
+  # MSIT_call_center | short_form_fix | r8
+  # Declared input examples: 649,006 (unverified); shards: 65.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/MSIT_call_center/samples/
+  # Txflow_enUS_Train_OOCL_CallCenter_FY20Q2-8KHZ_en-US_TRAIN | short_form_fix_16k | r9
+  # Declared input examples: 26,987 (unverified); shards: 3.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix_16k/noise_rir/r9/Txflow_enUS_Train_OOCL_CallCenter_FY20Q2-8KHZ_en-US_TRAIN/samples/
+  # AppTek_ConversationalCallCenter_FY21_8k_TRAIN | long_form_16k | r10
+  # Declared input examples: 451,476 (unverified); shards: 46.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form_16k/noise_rir/r10/AppTek_ConversationalCallCenter_FY21_8k_TRAIN/samples/
+  # Apptek_telephony_FY22_8k_en-CN | long_form_16k | r10
+  # Declared input examples: 31,159 (unverified); shards: 4.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form_16k/noise_rir/r10/Apptek_telephony_FY22_8k_en-CN/samples/
+  # Apptek_telephony_FY22_8k_en-SG | long_form_16k | r10
+  # Declared input examples: 7,889 (unverified); shards: 1.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form_16k/noise_rir/r10/Apptek_telephony_FY22_8k_en-SG/samples/
+  # Vystadial_Voip_16k | short_form_fix | r10
+  # Declared input examples: 39,411 (unverified); shards: 4.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r10/Vystadial_Voip_16k/samples/
+  # en-US_Videoindex_PT_Earningscall_FY22_TRAIN | short_form_fix | r12
+  # Declared input examples: 328,976 (unverified); shards: 33.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-US_Videoindex_PT_Earningscall_FY22_TRAIN/samples/
+  # Online_Meeting_Training_3_Corpus | short_form_fix | r8
+  # Declared input examples: 205,085 (unverified); shards: 21.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/Online_Meeting_Training_3_Corpus/samples/
+  # en-GB_Public_OnlineMeeting_FY22_TRAIN-withseg | long_form | r12
+  # Declared input examples: 17,431 (unverified); shards: 2.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-GB_Public_OnlineMeeting_FY22_TRAIN-withseg/samples/
+  # en-US_Public_OnlineMeeting_FY22_TRAIN-withseg | long_form | r12
+  # Declared input examples: 29,734 (unverified); shards: 3.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-US_Public_OnlineMeeting_FY22_TRAIN-withseg/samples/
+  # TED_ResNet_Youtube_Channel9_Live_16kHz | short_form_fix | r8
+  # Declared input examples: 4,241,876 (unverified); shards: 425.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/TED_ResNet_Youtube_Channel9_Live_16kHz/samples/
+  # Lynda_data | short_form_fix | r8
+  # Declared input examples: 958,137 (unverified); shards: 96.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/Lynda_data/samples/
+  # Video_Index | short_form_fix | r8
+  # Declared input examples: 474,655 (unverified); shards: 48.
+  # Exact manifest rows: 474,655 (full shard scan; before keyword filtering).
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/Video_Index/samples/
+  # Videoindex_IS_FY20 | long_form | r9
+  # Declared input examples: 127,278 (unverified); shards: 13.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r9/Videoindex_IS_FY20/samples/
+  # enCA-Videoindex_PT_FY20_en-CA_TRAIN | short_form_fix | r9
+  # Declared input examples: 54,344 (unverified); shards: 6.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/enCA-Videoindex_PT_FY20_en-CA_TRAIN/samples/
+  # enAU-Videoindex_PT_FY20_en-AU_TRAIN | short_form_fix | r9
+  # Declared input examples: 237,331 (unverified); shards: 24.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/enAU-Videoindex_PT_FY20_en-AU_TRAIN/samples/
+  # enUS-Videoindex_PT_FY20_en-US_TRAIN | short_form_fix | r9
+  # Declared input examples: 110,926 (unverified); shards: 12.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/enUS-Videoindex_PT_FY20_en-US_TRAIN/samples/
+  # enGB-Videoindex_PT_FY20_en-GB_TRAIN | short_form_fix | r9
+  # Declared input examples: 131,550 (unverified); shards: 14.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/enGB-Videoindex_PT_FY20_en-GB_TRAIN/samples/
+  # FY21_en-US_MusicBackGround_en-US_TRAIN | short_form_fix | r9
+  # Declared input examples: 98,843 (unverified); shards: 10.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/FY21_en-US_MusicBackGround_en-US_TRAIN/samples/
+  # Videoindex_IS_FY21_en-US_TRAIN | long_form | r10
+  # Declared input examples: 67,959 (unverified); shards: 7.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r10/Videoindex_IS_FY21_en-US_TRAIN/samples/
+  # AppTek_BroadcastEntertainment_FY21_16k_en-UK_TRAIN | long_form | r10
+  # Declared input examples: 87,972 (unverified); shards: 9.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r10/AppTek_BroadcastEntertainment_FY21_16k_en-UK_TRAIN/samples/
+  # TEDLIUM_release_3_16k_en-US_TRAIN | long_form | r10
+  # Declared input examples: 111,088 (unverified); shards: 12.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r10/TEDLIUM_release_3_16k_en-US_TRAIN/samples/
+  # Videoindex_PT_FY21_TRAIN | short_form_fix | r10
+  # Declared input examples: 297,596 (unverified); shards: 30.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r10/Videoindex_PT_FY21_TRAIN/samples/
+  # en-GB_Videoindex_IS_LiveGaming_FY22_TRAIN-withseg | long_form | r12
+  # Declared input examples: 8,163 (unverified); shards: 1.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-GB_Videoindex_IS_LiveGaming_FY22_TRAIN-withseg/samples/
+  # Videoindex_IS_FY22_en-US_TRAIN_NONJSON-withseg | long_form | r12
+  # Declared input examples: 39,656 (unverified); shards: 4.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/Videoindex_IS_FY22_en-US_TRAIN_NONJSON-withseg/samples/
+  # Videoindex_IS_FY22_en-GB_TRAIN_NONJSON-withseg | long_form | r12
+  # Declared input examples: 32,484 (unverified); shards: 4.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/Videoindex_IS_FY22_en-GB_TRAIN_NONJSON-withseg/samples/
+  # en-US_Videoindex_IS_Musicbackground_FY22_TRAIN-withseg | long_form | r12
+  # Declared input examples: 21,812 (unverified); shards: 3.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-US_Videoindex_IS_Musicbackground_FY22_TRAIN-withseg/samples/
+  # en-GB_Videoindex_IS_Musicbackground_FY22_TRAIN-withseg | long_form | r12
+  # Declared input examples: 18,526 (unverified); shards: 2.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-GB_Videoindex_IS_Musicbackground_FY22_TRAIN-withseg/samples/
+  # en-US_Videoindex_IS_Podcast_FY22_TRAIN-withseg | long_form | r12
+  # Declared input examples: 17,341 (unverified); shards: 2.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-US_Videoindex_IS_Podcast_FY22_TRAIN-withseg/samples/
+  # en-US_Videoindex_IS_LiveGaming_FY22_TRAIN-withseg | long_form | r12
+  # Declared input examples: 5,617 (unverified); shards: 1.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-US_Videoindex_IS_LiveGaming_FY22_TRAIN-withseg/samples/
+  # en-AU_Videoindex_PT_Musicbackground_FY22_TRAIN | short_form_fix | r12
+  # Declared input examples: 61,918 (unverified); shards: 7.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-AU_Videoindex_PT_Musicbackground_FY22_TRAIN/samples/
+  # en-US_Videoindex_PT_Musicbackground_FY22_TRAIN | short_form_fix | r12
+  # Declared input examples: 106,452 (unverified); shards: 11.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-US_Videoindex_PT_Musicbackground_FY22_TRAIN/samples/
+  # en-CA_Videoindex_PT_FY22_TRAIN | short_form_fix | r12
+  # Declared input examples: 95,819 (unverified); shards: 10.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-CA_Videoindex_PT_FY22_TRAIN/samples/
+  # en-AU_Videoindex_PT_FY22_TRAIN | short_form_fix | r12
+  # Declared input examples: 95,074 (unverified); shards: 10.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-AU_Videoindex_PT_FY22_TRAIN/samples/
+  # en-US_Videoindex_PT_Podcast_FY22_TRAIN | short_form_fix | r12
+  # Declared input examples: 230,841 (unverified); shards: 24.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-US_Videoindex_PT_Podcast_FY22_TRAIN/samples/
+  # en-CA_Videoindex_PT_Musicbackground_FY22_TRAIN | short_form_fix | r12
+  # Declared input examples: 958 (unverified); shards: 7.
+  # Exact manifest rows: 60,958 (full shard scan; before keyword filtering).
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-CA_Videoindex_PT_Musicbackground_FY22_TRAIN/samples/
+  # EN-IN_LS4M | short_form_fix | r8
+  # Declared input examples: 799,437 (unverified); shards: 80.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/EN-IN_LS4M/samples/
+  # en-AU | short_form_fix | r8
+  # Declared input examples: 2,559,325 (unverified); shards: 256.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/en-AU/samples/
+  # en-NZ | short_form_fix | r8
+  # Declared input examples: 18,901 (unverified); shards: 2.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/en-NZ/samples/
+  # Other_Locale | short_form_fix | r8
+  # Declared input examples: 337,904 (unverified); shards: 34.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/Other_Locale/samples/
+  # EU_80hr | short_form_fix | r8
+  # Declared input examples: 14,912 (unverified); shards: 2.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/EU_80hr/samples/
+  # King-ASR-Accents-27 | short_form_fix | r8
+  # Declared input examples: 3,036,210 (unverified); shards: 304.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/King-ASR-Accents-27/samples/
+  # en-GB | short_form_fix | r8
+  # Declared input examples: 6,558,453 (unverified); shards: 656.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/en-GB/samples/
+  # Live_accent_data_EN-ZH | short_form_fix | r8
+  # Declared input examples: 457,318 (unverified); shards: 46.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/Live_accent_data_EN-ZH/samples/
+  # HK_Speaker_Live | short_form_fix | r8
+  # Declared input examples: 2,308,380 (unverified); shards: 231.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/HK_Speaker_Live/samples/
+  # en-CA | short_form_fix | r8
+  # Declared input examples: 1,273,415 (unverified); shards: 128.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/en-CA/samples/
+  # Apptek-en-GB-8kHZ_en-GB_TRAIN | short_form_fix_16k | r9
+  # Declared input examples: 186,799 (unverified); shards: 19.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix_16k/noise_rir/r9/Apptek-en-GB-8kHZ_en-GB_TRAIN/samples/
+  # Txflow_enAU_Train_data_en-AU_TRAIN | short_form_fix | r9
+  # Declared input examples: 27,861 (unverified); shards: 3.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/Txflow_enAU_Train_data_en-AU_TRAIN/samples/
+  # en-IN_en-IN_TRAIN | short_form_fix | r9
+  # Declared input examples: 2,431,939 (unverified); shards: 244.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/en-IN_en-IN_TRAIN/samples/
+  # Apptek-en-GB-16kHZ_en-GB_TRAIN | short_form_fix | r9
+  # Declared input examples: 753,615 (unverified); shards: 76.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/Apptek-en-GB-16kHZ_en-GB_TRAIN/samples/
+  # Txflow_enCA_Train_data_en-CA_TRAIN | short_form_fix | r9
+  # Declared input examples: 24,261 (unverified); shards: 3.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/Txflow_enCA_Train_data_en-CA_TRAIN/samples/
+  # Txflow_enGB_Train_data_en-GB_TRAIN | short_form_fix | r9
+  # Declared input examples: 37,969 (unverified); shards: 4.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r9/Txflow_enGB_Train_data_en-GB_TRAIN/samples/
+  # en-GB_DAI_single-speaker-spontaneous_FY22Q4_TRAIN-withseg | long_form | r12
+  # Declared input examples: 554,298 (unverified); shards: 56.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-GB_DAI_single-speaker-spontaneous_FY22Q4_TRAIN-withseg/samples/
+  # en-GB_King-ASR-680_TRAIN-withseg | long_form | r12
+  # Declared input examples: 65,489 (unverified); shards: 7.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-GB_King-ASR-680_TRAIN-withseg/samples/
+  # en-AU_DAI_multiple-speaker-spontaneous_FY22Q4_TRAIN-withseg | long_form | r12
+  # Declared input examples: 174,111 (unverified); shards: 18.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-AU_DAI_multiple-speaker-spontaneous_FY22Q4_TRAIN-withseg/samples/
+  # en-AU_AppTek_FY22H2_TRAIN-withseg | long_form | r12
+  # Declared input examples: 107,083 (unverified); shards: 11.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-AU_AppTek_FY22H2_TRAIN-withseg/samples/
+  # en-GB_DAI_multiple-speaker-spontaneous_FY22Q4_TRAIN-withseg | long_form | r12
+  # Declared input examples: 431,623 (unverified); shards: 44.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-GB_DAI_multiple-speaker-spontaneous_FY22Q4_TRAIN-withseg/samples/
+  # en-CA_AppTek_FY22H2_TRAIN-withseg | long_form | r12
+  # Declared input examples: 133,194 (unverified); shards: 14.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/long_form/noise_rir/r12/en-CA_AppTek_FY22H2_TRAIN-withseg/samples/
+  # en-GB_DAI_single-speaker-scripted_FY22Q4_TRAIN | short_form_fix | r12
+  # Declared input examples: 133,023 (unverified); shards: 14.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-GB_DAI_single-speaker-scripted_FY22Q4_TRAIN/samples/
+  # en-AU_DAI_single-speaker-scripted_FY22Q4_TRAIN | short_form_fix | r12
+  # Declared input examples: 91,949 (unverified); shards: 10.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r12/en-AU_DAI_single-speaker-scripted_FY22Q4_TRAIN/samples/
+  # SpeechOceanCar | short_form_fix | r8
+  # Declared input examples: 129,750 (unverified); shards: 13.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/SpeechOceanCar/samples/
+  # 2000_Connected_Car | short_form_fix | r8
+  # Declared input examples: 711,847 (unverified); shards: 72.
+  # Audio hours/duration: unavailable; final keyword-filtered training count: unknown.
+  - az://orngwus2cresco/data/boren/data/audio_trans_filter_cer05_entity/inhouse/mlang_asr_data_2025_readable/en/en_asr_ht/short_form_fix/noise_rir/r8/2000_Connected_Car/samples/
+  pre_process:
+    extract_chat:
+      metadata_key: metadata
+    filter_by_keywords:
+      min_num: 1
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: noisy_enht_v1
+    verl_format:
+      prompt_key: prompt
