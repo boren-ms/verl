@@ -16,12 +16,12 @@ reward_functions:
     name: compute_score
     reward_kwargs:
       version: 2609
-      reduce: {mode: average, total: 2}
+      reduce: {mode: average, total: 3}
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        word_kw: {beta: 2.0}
-        lang: {beta: 0.2}
+        word_kw: {beta: 5.0}
+        lang: {beta: 1.0}
 
 reward_function_by_data_source:
   name_train: asr_measure
@@ -40,7 +40,7 @@ actor_rollout_ref:
       warmup_style: constant
       lr_warmup_steps: 0
   rollout:
-    n: 4
+    n: 8
 
 data:
   data_source:
@@ -49,7 +49,7 @@ data:
     - ${_name_train}
   val_data:
     - ${_name_val}
-  train_batch_size: 64
+  train_batch_size: 128
   shuffle: true
 
 trainer:
