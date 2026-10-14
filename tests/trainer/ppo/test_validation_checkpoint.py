@@ -5,6 +5,7 @@ from collections import defaultdict
 from itertools import chain
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import blobfile as bf
 import numpy as np
@@ -86,7 +87,7 @@ def trainer(tmp_path):
     instance.tokenizer = Tokenizer()
     instance.dump_fn = None
     instance.async_rollout_mode = False
-    instance._maybe_log_val_generations = lambda **kwargs: None
+    instance._maybe_log_val_generations = MagicMock()
     instance.val_dataloaders = [
         DataLoader(Samples(source), batch_size=2, collate_fn=collate) for source in ["first", "second"]
     ]
@@ -136,6 +137,9 @@ def test_dataset_resume_preserves_metrics_outputs_and_skips_completed_audio(trai
     assert trainer.calls == 4
     assert not (tmp_path / "_resume/0.json").exists()
     assert resumed_outputs == [(tmp_path / source / "0.jsonl").read_text() for source in ["first", "second"]]
+    logged = trainer._maybe_log_val_generations.call_args.kwargs
+    assert logged["gts"] == ["reference"] * 12
+    assert len(logged["inputs"]) == len(logged["outputs"]) == len(logged["scores"]) == len(logged["gts"])
 
 
 def test_intra_dataset_resume_skips_checkpointed_batches(trainer, tmp_path):

@@ -23,6 +23,12 @@ The dataset default is imported as `_inhouse` and included explicitly in
 used by the ReMax recipes. The evaluation base reuses that list for
 `data.train_data`; the loader flattens its five dataset entries.
 
+Validation sample previews include the reference ground truth alongside the
+input, generated output, and score. W&B's `val/generations` table has a
+`ground_truth_<n>` column for each selected sample. Selection is controlled by
+`trainer.log_val_generations` (zero disables previews), and references stay
+aligned with their samples through sorting and deterministic shuffling.
+
 ## Prefetch evaluation audio
 
 For JSONL-backed dataset YAMLs, warm the local audio cache before evaluation:

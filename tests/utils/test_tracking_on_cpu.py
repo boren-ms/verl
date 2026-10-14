@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
+import json
 import os
 import sys
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 
-from verl.utils.tracking import Tracking
+from verl.utils.tracking import Tracking, ValidationGenerationsLogger
 
 
 @pytest.fixture
@@ -144,3 +147,112 @@ def test_non_wandb_backend_does_not_initialize_wandb(wandb):
     assert tracking.logger == {}
     wandb.init.assert_not_called()
     wandb.Api.assert_not_called()
+
+
+@pytest.mark.parametrize("with_ground_truth", [False, True])
+def test_validation_wandb_table_preserves_samples_and_history(wandb, with_ground_truth):
+    class Table:
+        def __init__(self, columns, data=None):
+            self.columns = columns
+            self.data = list(data or [])
+
+        def add_data(self, *row):
+            assert len(row) == len(self.columns)
+            self.data.append(list(row))
+
+    wandb.Table.side_effect = Table
+    samples = [("input-a", "output-a", 0.5), ("input-b", "output-b", 0.75)]
+    if with_ground_truth:
+        samples = [(*samples[0], "reference-a"), (*samples[1], None)]
+    logger = ValidationGenerationsLogger()
+    for step in [10, 20]:
+        logger.log(["wandb"], samples, step)
+    table = wandb.log.call_args.args[0]["val/generations"]
+    fields = ["input", "output", "score"] + (["ground_truth"] if with_ground_truth else [])
+    assert table.columns == ["step"] + [f"{field}_{i}" for i in [1, 2] for field in fields]
+    assert table.data == [[step, *samples[0], *samples[1]] for step in [10, 20]]
+    assert wandb.log.call_args.kwargs == {"step": 20}
+
+
+@pytest.mark.parametrize("backend", ["swanlab", "mlflow", "clearml", "tensorboard", "vemlp_wandb"])
+@pytest.mark.parametrize("with_ground_truth", [False, True])
+def test_validation_backends_include_optional_ground_truth(monkeypatch, backend, with_ground_truth):
+    module = MagicMock()
+    monkeypatch.setitem(sys.modules, backend, module)
+    sample = ("input", "output", 0.5)
+    if with_ground_truth:
+        sample += ("reference",)
+    expected = {"input": "input", "output": "output", "score": 0.5}
+    if with_ground_truth:
+        expected["ground_truth"] = "reference"
+    logger = ValidationGenerationsLogger()
+    if backend == "tensorboard":
+        logger.writer = MagicMock()
+    elif backend == "mlflow":
+        artifacts = []
+        module.log_artifact.side_effect = lambda path: artifacts.append(json.loads(Path(path).read_text()))
+    elif backend == "vemlp_wandb":
+        monkeypatch.setitem(sys.modules, "volcengine_ml_platform", SimpleNamespace(wandb=module))
+        logger._log_generations_to_wandb = MagicMock()
+    logger.log([backend], [sample], 10)
+    if backend == "swanlab":
+        module.echarts.Table.return_value.add.assert_called_once_with(
+            headers=["step", *expected], rows=[[10, *sample]]
+        )
+    elif backend == "mlflow":
+        assert artifacts == [[expected]]
+    elif backend == "clearml":
+        call = module.Task.current_task.return_value.get_logger.return_value.report_table.call_args
+        assert call.kwargs["table_plot"].to_dict(orient="records") == [{"step": 10, **expected}]
+    elif backend == "tensorboard":
+        text = logger.writer.add_text.call_args.args[1]
+        assert ("**Ground truth:** reference" in text) == with_ground_truth
+        logger.writer.add_text.assert_called_once_with("val/generations", text, 10)
+    else:
+        logger._log_generations_to_wandb.assert_called_once_with([sample], 10, module)
+
+
+def validation_sample_trainer(limit=2):
+    path = Path(__file__).parents[2] / "verl/trainer/ppo/ray_trainer.py"
+    tree = ast.parse(path.read_text())
+    cls = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "RayPPOTrainer")
+    method = next(
+        node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == "_maybe_log_val_generations"
+    )
+    namespace = {}
+    exec(compile(ast.Module(body=[method], type_ignores=[]), str(path), "exec"), namespace)
+    trainer = SimpleNamespace(
+        config=SimpleNamespace(trainer=SimpleNamespace(log_val_generations=limit, logger=["wandb"])),
+        validation_generations_logger=MagicMock(),
+        global_steps=10,
+    )
+    return trainer, namespace["_maybe_log_val_generations"]
+
+
+def test_validation_sample_selection_keeps_ground_truth_aligned():
+    trainer, log_samples = validation_sample_trainer()
+    inputs = ["c", "a", "b"]
+    outputs = [f"output-{value}" for value in inputs]
+    scores = [0.3, 0.1, 0.2]
+    gts = [f"reference-{value}" for value in inputs]
+    log_samples(trainer, inputs, outputs, scores)
+    original = trainer.validation_generations_logger.log.call_args.args[1]
+    log_samples(trainer, inputs, outputs, scores, gts=gts)
+    selected = trainer.validation_generations_logger.log.call_args.args[1]
+    assert [sample[:3] for sample in selected] == original
+    assert len(selected) == 2
+    assert all(sample[3] == f"reference-{sample[0]}" for sample in selected)
+    trainer.validation_generations_logger.log.assert_called_with(["wandb"], selected, 10)
+
+
+def test_validation_sample_selection_rejects_misaligned_references():
+    trainer, log_samples = validation_sample_trainer()
+    with pytest.raises(ValueError, match="shorter"):
+        log_samples(trainer, ["input"], ["output"], [0.5], gts=[])
+    trainer.validation_generations_logger.log.assert_not_called()
+
+
+def test_disabled_validation_sample_logging_does_not_require_references():
+    trainer, log_samples = validation_sample_trainer(limit=0)
+    log_samples(trainer, ["input"], ["output"], [0.5], gts=[])
+    trainer.validation_generations_logger.log.assert_not_called()
