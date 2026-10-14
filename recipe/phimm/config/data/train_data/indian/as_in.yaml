@@ -1,0 +1,21 @@
+# @package data.train_data
+# 2607 Assamese chunks; excludes noise variants and folders without audio.
+dataset_name: chunk
+specs:
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/as/display_corrected_gpt2/AI4Bharat/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/as/display_corrected_gpt2_lid/AI4Bharat/chunks/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/as/display_corrected_gpt2/AI4BharatSimu/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/as/display_corrected_gpt2_lid/AI4BharatSimu/chunks/
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+  language: Assamese
+post_process:
+  add_field:
+    fields:
+      data_source: as_in_tr
+  verl_format:
+    prompt_key: prompt

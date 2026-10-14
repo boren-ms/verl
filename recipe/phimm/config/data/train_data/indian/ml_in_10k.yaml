@@ -1,0 +1,31 @@
+# @package data.train_data
+# 9,970 samples across 6 folders; deterministic whole-chunk subset (seed 42).
+# Excludes noise variants and folders without audio; chunk transfers may still be in progress.
+dataset_name: chunk
+specs:
+- manifest_file: az://orngwus2cresco/data/speech/users/boren/DataSpecs/mlang_asr_data_2607/indian_10k/ml_in/mlIN_KaryaVoice_B2_withwav/fileset.10k.json
+  chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/ml/display_corrected_gpt2_lid/mlIN_KaryaVoice_B2_withwav/chunks/
+- manifest_file: az://orngwus2cresco/data/speech/users/boren/DataSpecs/mlang_asr_data_2607/indian_10k/ml_in/mlIN_KaryaVoice_withwav/fileset.10k.json
+  chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/ml/display_corrected_gpt2_lid/mlIN_KaryaVoice_withwav/chunks/
+- manifest_file: az://orngwus2cresco/data/speech/users/boren/DataSpecs/mlang_asr_data_2607/indian_10k/ml_in/mlIN_Kathbath_withwav/fileset.10k.json
+  chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/ml/display_corrected_gpt2_lid/mlIN_Kathbath_withwav/chunks/
+- manifest_file: az://orngwus2cresco/data/speech/users/boren/DataSpecs/mlang_asr_data_2607/indian_10k/ml_in/mlIN_Shruthilipi_withwav/fileset.10k.json
+  chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/ml/display_corrected_gpt2_lid/mlIN_Shruthilipi_withwav/chunks/
+- manifest_file: az://orngwus2cresco/data/speech/users/boren/DataSpecs/mlang_asr_data_2607/indian_10k/ml_in/AI4Bharat/fileset.10k.json
+  chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/ml/display_corrected_gpt2_lid/AI4Bharat/chunks/
+- manifest_file: az://orngwus2cresco/data/speech/users/boren/DataSpecs/mlang_asr_data_2607/indian_10k/ml_in/AI4BharatSimu/fileset.10k.json
+  chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/ml/display_corrected_gpt2_lid/AI4BharatSimu/chunks/
+chunk_types:
+- audio
+- transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+  language: Malayalam
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: ml_in_tr
+  verl_format:
+    prompt_key: prompt

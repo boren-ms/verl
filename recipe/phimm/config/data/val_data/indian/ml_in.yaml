@@ -1,0 +1,20 @@
+# @package data.val_data
+# One audio-backed chunk; disjoint from all locale 10k training chunk names.
+dataset_name: chunk
+specs:
+- manifest_file: az://orngwus2cresco/data/speech/users/boren/DataSpecs/mlang_asr_data_2607/indian_val/ml_in/fileset.val.json
+  chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/ml/display_corrected_gpt2_lid/mlIN_KaryaVoice_B2_withwav/chunks/
+chunk_types:
+- audio
+- transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+  lang_hint: true
+  language: Malayalam
+post_process:
+  add_field:
+    fields:
+      data_source: ml_in_val
+  verl_format:
+    prompt_key: prompt

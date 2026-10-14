@@ -1,0 +1,27 @@
+# @package data.train_data
+# 2607 Hindi chunks; excludes noise variants and folders without audio.
+dataset_name: chunk
+specs:
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2/Normalized_Combined_Corrected/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2_lid/Normalized_Combined_Corrected/chunks/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2/IndicVoices/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2_lid/IndicVoices/chunks/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2/Callcenter_monostream/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2_lid/Callcenter_monostream/chunks/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2/Callcenter_monostream_Sulekha/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2_lid/Callcenter_monostream_Sulekha/chunks/
+  - manifest_file: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2/AI4Bharat/file_set.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/E2E/pjham/Multilingual/hi/display_corrected_gpt2_lid/AI4Bharat/chunks/
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+  language: Hindi
+post_process:
+  add_field:
+    fields:
+      data_source: hi_in_tr
+  verl_format:
+    prompt_key: prompt

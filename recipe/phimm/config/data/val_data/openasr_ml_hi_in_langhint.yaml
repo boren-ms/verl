@@ -1,0 +1,15 @@
+# OpenML Monsoon Hindi validation with language hints and lattice OIWER references.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/monsoon/hi_in/data.jsonl
+  cache_name: auto_openasr_ml_langhint_monsoon_hi_in_jsonl
+  add_task_info:
+    task: lang_asr
+    language: Hindi
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: monsoon_hi_in
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["lattice"]
