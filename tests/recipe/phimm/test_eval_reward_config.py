@@ -71,6 +71,21 @@ REWARD_SOURCES = {
 }
 
 
+@pytest.mark.parametrize(
+    "config_path",
+    sorted((CONFIG_ROOT / "data/val_data/inhouse/indian").glob("*.yaml")),
+    ids=lambda path: path.stem,
+)
+def test_indian_inhouse_datasets_enable_language_hints(config_path):
+    entries = OmegaConf.load(config_path)
+
+    assert entries
+    for entry in entries:
+        assert entry.add_task_info.task == "lang_asr"
+        assert entry.add_task_info.language
+        assert entry.add_task_info.lang_hint is True
+
+
 def test_r2b_in_matches_india_benchmark_datasets_and_r2b_checkpoint():
     with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
         config = compose(config_name="eval_2609r2b_in")

@@ -17,6 +17,7 @@
   add_task_info:
     task: lang_asr
     language: Tamil
+    lang_hint: true
   post_process:
     add_field:
       fields:
@@ -41,6 +42,7 @@
   add_task_info:
     task: lang_asr
     language: Tamil
+    lang_hint: true
   post_process:
     add_field:
       fields:

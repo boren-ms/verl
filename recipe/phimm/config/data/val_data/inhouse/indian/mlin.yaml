@@ -17,6 +17,7 @@
   add_task_info:
     task: lang_asr
     language: Malayalam
+    lang_hint: true
   post_process:
     verl_format:
       prompt_key: prompt
@@ -38,6 +39,7 @@
   add_task_info:
     task: lang_asr
     language: Malayalam
+    lang_hint: true
   post_process:
     verl_format:
       prompt_key: prompt
@@ -59,6 +61,7 @@
   add_task_info:
     task: lang_asr
     language: Malayalam
+    lang_hint: true
   post_process:
     verl_format:
       prompt_key: prompt
@@ -80,6 +83,7 @@
   add_task_info:
     task: lang_asr
     language: Malayalam
+    lang_hint: true
   post_process:
     verl_format:
       prompt_key: prompt
