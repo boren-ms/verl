@@ -77,7 +77,7 @@ def _format_task_output_2609(task, lang, text, components=None):
         parts = [f"<src={source_lang}><tgt={target_lang}>"]
         if mode_tag:
             parts.append(f"<{mode_tag}>")
-        parts.append(f"<TXT>{segment_text}</TXT>")
+        parts.append(segment_text)
         formatted_segments.append("\n".join(parts))
     return "\n".join(formatted_segments)
 

@@ -6,8 +6,47 @@ from recipe.phimm.data.prompts import (
     get_task_prompt,
     resolve_task_language,
 )
-from recipe.phimm.reward.asr_measure import check_fmt
+from recipe.phimm.reward.asr_measure import check_fmt, check_lang
 from recipe.phimm.reward.asr_response import parse_task_output
+from recipe.phimm.utils.languages import get_language_code, get_language_name
+
+
+@pytest.mark.parametrize(
+    ("name", "code"),
+    [
+        ("Assamese", "as"),
+        ("Bengali", "bn"),
+        ("Gujarati", "gu"),
+        ("Hindi", "hi"),
+        ("Kannada", "kn"),
+        ("Malayalam", "ml"),
+        ("Marathi", "mr"),
+        ("Odia", "or"),
+        ("Punjabi", "pa"),
+        ("Tamil", "ta"),
+        ("Telugu", "te"),
+        ("Urdu", "ur"),
+    ],
+)
+def test_indian_languages_normalize_names_codes_prompts_and_rewards(name, code):
+    for identifier in (name, name.lower(), name.upper(), code, code.upper()):
+        assert get_language_name(identifier) == name
+        assert get_language_code(identifier) == code
+        assert resolve_task_language("lang_asr", lang=identifier) == name
+        assert resolve_task_language(f"lang_asr_{identifier}") == name
+        assert get_task_prompt(task="lang_asr", lang=identifier, version=2609) == (
+            f"Transcribe the audio clip into text.<audio>\nThe language is {name}."
+        )
+        output = get_task_output(task="lang_asr", lang=identifier, text="sample", version=2609)
+        assert output == f"<src={name}><tgt={name}>\nsample"
+        assert check_lang(parse_task_output(output, version=2609), code) == {
+            "acc": 1.0, "n_err": 0, "n_ref": 1,
+        }
+
+
+def test_indian_languages_normalize_code_switch_identifiers():
+    assert get_language_name("as_or_pa") == "Assamese Odia Punjabi"
+    assert get_language_code("Assamese Odia Punjabi") == "as_or_pa"
 
 
 def test_get_task_output_formats_mixed_components():
@@ -22,22 +61,22 @@ def test_get_task_output_formats_mixed_components():
     )
 
     assert output == (
-        "<src=English><tgt=English>\n<TXT>hello</TXT>\n"
-        "<src=Chinese><tgt=Chinese>\n<TXT>你好</TXT>"
+        "<src=English><tgt=English>\nhello\n"
+        "<src=Chinese><tgt=Chinese>\n你好"
     )
     assert check_fmt(parse_task_output(output, version=2609))
 
 
 def test_get_task_output_preserves_single_language_format():
     assert get_task_output(task="lang_asr", lang="en", text="hello") == (
-        "<src=English><tgt=English>\n<TXT>hello</TXT>"
+        "<src=English><tgt=English>\nhello"
     )
 
 
 def test_get_task_output_supports_new_2609_format():
     output = get_task_output(task="lang_asr", lang="en", text="hello", version=2609)
 
-    assert output == "<src=English><tgt=English>\n<TXT>hello</TXT>"
+    assert output == "<src=English><tgt=English>\nhello"
     assert parse_task_output(output, version=2609) == [
         {"src": "English", "tgt": "English", "text": "hello"}
     ]
@@ -53,9 +92,9 @@ def test_get_task_output_supports_new_2609_format():
 def test_get_task_output_supports_2609_mode_tags(task, mode):
     output = get_task_output(task=task, lang="en", text="hello", version="2609")
 
-    assert output == f"<src=English><tgt=English>\n<{mode}>\n<TXT>hello</TXT>"
+    assert output == f"<src=English><tgt=English>\n<{mode}>\nhello"
     assert parse_task_output(output, version=2609) == [
-        {"src": "English", "tgt": "English", "text": "hello"}
+        {"src": "English", "tgt": "English", "text": f"<{mode}>\nhello"}
     ]
 
 
@@ -74,7 +113,7 @@ def test_get_task_output_supports_2609_source_target_languages():
         version=2609,
     )
 
-    assert output == "<src=Spanish><tgt=English>\n<TXT>hello</TXT>"
+    assert output == "<src=Spanish><tgt=English>\nhello"
 
 
 def test_get_task_output_keeps_non_lid_2609_output_plain():
@@ -145,7 +184,7 @@ def test_lang_asr_verb_uses_verbatim_prompt_and_output_format():
         "Transcribe verbatim, including all filler words and disfluencies."
     )
     assert get_task_output(task="lang_asr_verb_en", lang="en", text="um hello") == (
-        "<src=English><tgt=English>\n<VERBATIM>\n<TXT>um hello</TXT>"
+        "<src=English><tgt=English>\n<VERBATIM>\num hello"
     )
     assert resolve_task_language(task="lang_asr_verb_en") == "English"
 

@@ -117,7 +117,7 @@ def test_remove_brackets_runs_before_task_output_generation():
         add_task_info={"task": "lang_asr_verb", "language": "English", "prefix_prob": 0.0, "lang_hint": True},
     )
     assert result[0]["text"] == "I love you"
-    assert result[0]["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\n<TXT>I love you</TXT>"
+    assert result[0]["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\nI love you"
 
 
 @pytest.mark.parametrize(
@@ -148,7 +148,7 @@ def test_name_data_configs_remove_brackets_before_verbatim_reference_generation(
 
     assert result[0]["text"] == "John Smith"
     assert result[0]["keywords"] == ["Smith"]
-    assert result[0]["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\n<TXT>John Smith</TXT>"
+    assert result[0]["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\nJohn Smith"
     assert "The language is English." in result[0]["prompt"]
     assert result[0]["prefix"] == ""
 
@@ -244,7 +244,7 @@ def test_add_task_info_enables_language_prefix_by_default():
     )
 
     assert dataset.example["prefix"] == "<src=French><tgt=French>\n"
-    assert dataset.example["gt_output"] == "<TXT>bonjour</TXT>"
+    assert dataset.example["gt_output"] == "bonjour"
 
 
 def test_add_task_info_supports_2607_prefix_and_completion():
@@ -276,7 +276,7 @@ def test_add_task_info_supports_2609_prompt_prefix_and_completion():
         "Transcribe the audio clip into text.<audio>\nThe language is French."
     )
     assert dataset.example["prefix"] == "<src=French><tgt=French>\n"
-    assert dataset.example["gt_output"] == "<TXT>bonjour</TXT>"
+    assert dataset.example["gt_output"] == "bonjour"
 
 
 def test_add_task_info_supports_2609_detect_language_prompt():
@@ -293,7 +293,7 @@ def test_add_task_info_supports_2609_detect_language_prompt():
     )
     assert dataset.example["prefix"] == ""
     assert dataset.example["gt_output"] == (
-        "<src=French><tgt=French>\n<TXT>bonjour</TXT>"
+        "<src=French><tgt=French>\nbonjour"
     )
 
 
@@ -307,7 +307,7 @@ def test_add_task_info_supports_2609_detect_language_prompt():
             "Transcribe the audio clip into text. Output must be in lexical format.<audio>\n"
             "The language is French.",
             "<src=French><tgt=French>\n",
-            "<LEXICAL>\n<TXT>bonjour</TXT>",
+            "<LEXICAL>\nbonjour",
         ),
         (
             "lang_asr_verb",
@@ -316,7 +316,7 @@ def test_add_task_info_supports_2609_detect_language_prompt():
             "Detect the language and transcribe the audio clip into text. "
             "Transcribe verbatim, including all filler words and disfluencies.<audio>",
             "",
-            "<src=French><tgt=French>\n<VERBATIM>\n<TXT>bonjour</TXT>",
+            "<src=French><tgt=French>\n<VERBATIM>\nbonjour",
         ),
     ],
 )

@@ -52,14 +52,14 @@ The prefix ends with a newline.
 ### Generated completion
 
 ```text
-<TXT>你好，世界。</TXT>
+你好，世界。
 ```
 
 ### Full assistant output
 
 ```text
 <src=Chinese><tgt=Chinese>
-<TXT>你好，世界。</TXT>
+你好，世界。
 ```
 
 ## Language-Detection ASR
@@ -81,7 +81,7 @@ The prefix is empty.
 
 ```text
 <src=French><tgt=French>
-<TXT>Bonjour le monde.</TXT>
+Bonjour le monde.
 ```
 
 ## Multiple Known Languages
@@ -105,18 +105,21 @@ language.
 
 ## Standard 2609 Output Grammar
 
+Generated 2609 outputs use plain transcription text without `<TXT>` or
+`</TXT>` wrappers. The legacy 2607 output format is unchanged.
+
 Each language segment has this form:
 
 ```text
 <src=SOURCE_LANGUAGE><tgt=TARGET_LANGUAGE>
-<TXT>TRANSCRIPTION</TXT>
+TRANSCRIPTION
 ```
 
 For ordinary ASR, source and target languages are normally identical:
 
 ```text
 <src=English><tgt=English>
-<TXT>Hello world.</TXT>
+Hello world.
 ```
 
 Source and target may differ when the sample explicitly provides a target
@@ -124,7 +127,7 @@ language:
 
 ```text
 <src=Spanish><tgt=English>
-<TXT>Hello, how are you?</TXT>
+Hello, how are you?
 ```
 
 ## Code-Switching Output
@@ -133,9 +136,9 @@ Code-switching output contains one block per language segment:
 
 ```text
 <src=English><tgt=English>
-<TXT>Hello, how are you?</TXT>
+Hello, how are you?
 <src=Spanish><tgt=Spanish>
-<TXT>Estoy bien, gracias.</TXT>
+Estoy bien, gracias.
 ```
 
 The parser returns one dictionary for each segment:
@@ -161,11 +164,11 @@ The language is English.
 ```text
 <src=English><tgt=English>
 <LEXICAL>
-<TXT>twenty five dollars</TXT>
+twenty five dollars
 ```
 
-`parse_task_output` removes the leading `<LEXICAL>` marker and returns the
-contents of `<TXT>`.
+`parse_task_output` preserves the leading `<LEXICAL>` marker in the segment
+text. Hypothesis extraction removes this marker with `clean_text`.
 
 ## Verbatim ASR
 
@@ -180,11 +183,11 @@ Detect the language and transcribe the audio clip into text. Transcribe verbatim
 ```text
 <src=English><tgt=English>
 <VERBATIM>
-<TXT>um hello uh world</TXT>
+um hello uh world
 ```
 
-`parse_task_output` removes the leading `<VERBATIM>` marker and returns the
-contents of `<TXT>`.
+`parse_task_output` preserves the leading `<VERBATIM>` marker in the segment
+text. Hypothesis extraction removes this marker with `clean_text`.
 
 ## Nonspeech Output
 

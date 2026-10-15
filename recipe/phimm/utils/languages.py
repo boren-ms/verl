@@ -37,7 +37,10 @@ LANGUAGES = {
     "welsh": "cy",
     "persian": "fa",
     "urdu": "ur",
+    "assamese": "as",
     "bengali": "bn",
+    "odia": "or",
+    "punjabi": "pa",
     "tamil": "ta",
     "telugu": "te",
     "marathi": "mr",
@@ -65,7 +68,7 @@ def _single_language_name(lang):
     lang = LANG_NAME_MAPPING.get(lang, lang)
     if lang in LANGUAGES:
         return lang.capitalize()
-    return LANG_CODE_TO_NAME.get(lang, lang)
+    return LANG_CODE_TO_NAME.get(lang, lang).capitalize()
 
 
 def get_language_name(lang):
