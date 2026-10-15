@@ -9,7 +9,7 @@ argument-hint: "<train.yaml> --node <pool> [--step <N> | --checkpoint <path>] [-
 Own one end-to-end pipeline:
 
 **`/verl-asr-run` training config YAML -> export the last complete checkpoint
--> `/verl-asr-run` with `recipe/phimm/config/v2609_asr/eval/eval_2609r3_openall_zip.yaml`
+-> `/verl-asr-run` with `recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml`
 -> `/openasr-report` results workbook**.
 
 Start audio precaching only on the main pod as an early independent background task; it runs
@@ -33,11 +33,11 @@ directly with the loaded skills and the policy below.
 
 | Input | Behavior |
 | --- | --- |
-| Training config | Required for launching training; for evaluation-only requests, recover the actual producer config/base/rank/alpha from the checkpoint's provenance. Retain the experiment name. |
+| Training config | Required for launching training; use recipes under `recipe/phimm/config/v2611_dev/` by default. For evaluation-only requests, recover the actual producer config/base/rank/alpha from the checkpoint's provenance. Retain the experiment name. |
 | Node | Required Brix pool; normalize `n4i0` or `n4-i0` to `verl-n4-i0`. |
 | Eval node count | Default to the producing run's effective `trainer.nnodes` and pool. Honor an explicitly authorized evaluation pool/topology override, retaining actual source topology in provenance. |
 | Stop previous | Disabled unless explicitly requested. `--stop-job` identifies one submission; `--stop-previous` requires one unambiguous previous active job. |
-| Eval config | Default `recipe/phimm/config/v2609_asr/eval/eval_2609r3_openall_zip.yaml`; honor any explicit replacement. |
+| Eval config | Default `recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml`; honor any explicit replacement. |
 | Eval audio cache | Start `recipe.phimm.cache_eval_audio` early in the background only on the main pod to cache physical ZIP archives for the resolved suite; never wait for it before submitting or decoding evaluation. |
 | Checkpoint | Exact user-requested step/path when supplied; otherwise the numerically last complete checkpoint observed for this run, not best validation score. Readiness is artifact-based, independent of training lifecycle. |
 | Report | Default `tmp/openasr_report/<train-stem>_step<step>.xlsx`. |
@@ -46,8 +46,13 @@ directly with the loaded skills and the policy below.
 Example:
 
 ```text
-/run-openasr-exp recipe/phimm/config/v2609_asr/remax_2609v0a_earning_s1k_bs128_n4_r256_g32.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2609_asr/eval/eval_2609r3_openall_zip.yaml
+/run-openasr-exp recipe/phimm/config/v2611_dev/remax_2609r2_mx0a_bs64_n4_g16_rw0.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml
 ```
+
+The v2611 configs use project names `v2611` for training and `v2611_eval`
+for evaluation, with `trainer.nnodes=2` by default. Derive output roots and
+effective topology from the composed configs and authorized overrides;
+do not substitute legacy project names or infer node count from the pool name.
 
 When the user only requests creating or editing this skill, modify the skill
 without stopping, submitting, or scheduling remote jobs.
@@ -69,7 +74,7 @@ without stopping, submitting, or scheduling remote jobs.
    in section 4. This skill owns checkpoint selection; do not let the general
    runner replace it with a best-validation checkpoint.
 3. Invoke `/verl-asr-run` again for a **standalone evaluation** using
-   `recipe/phimm/config/v2609_asr/eval/eval_2609r3_openall_zip.yaml` unless the user
+   `recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml` unless the user
    explicitly supplied another eval YAML. Keep section 5's early background
    audio precaching running alongside decoding; do not wait for it. Supply the verified checkpoint
    HF export, producing run's pool/node count unless explicitly overridden, unique evaluation
@@ -83,7 +88,7 @@ Example handoff requests (natural-language skill inputs, not shell commands):
 
 ```text
 /verl-asr-run Run <train.yaml> on <pool>; training only, no automatic post-training benchmark. Follow run-openasr-exp safety constraints and shared pipeline monitor.
-/verl-asr-run Run standalone evaluation recipe/phimm/config/v2609_asr/eval/eval_2609r3_openall_zip.yaml on <authorized-eval-pool> with model <verified-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<verified-eval-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the producing run's effective node count unless an explicit evaluation-topology override was authorized, not the eval YAML default or currently available node count. Check checkpoint readiness, not source training completion; leave source jobs untouched. Keep the early recipe.phimm.cache_eval_audio task caching physical ZIP archives only on the main pod alongside decoding; its completion or failure must not block evaluation submission. Do not launch prefetchers on worker pods. Follow the same pipeline constraints and shared monitor.
+/verl-asr-run Run standalone evaluation recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml on <authorized-eval-pool> with model <verified-checkpoint-hf-export>, trainer.experiment_name=<candidate-eval-name>, trainer.nnodes=<verified-eval-nnodes>, trainer.resume_mode=disable, actor_rollout_ref.model.lora_rank=0. Use the producing run's effective node count unless an explicit evaluation-topology override was authorized, not the eval YAML default or currently available node count. Check checkpoint readiness, not source training completion; leave source jobs untouched. Keep the early recipe.phimm.cache_eval_audio task caching physical ZIP archives only on the main pod alongside decoding; its completion or failure must not block evaluation submission. Do not launch prefetchers on worker pods. Follow the same pipeline constraints and shared monitor.
 /openasr-report <train-stem>@step<N> --metrics <artifact-dir>/metrics.json --model-info <artifact-dir>/model_info.json --dataset-results <artifact-dir>/dataset_results.json --out <report.xlsx>
 ```
 
@@ -334,7 +339,7 @@ config, including overrides, and confirm it against runtime logs. Set eval
 `trainer.nnodes` explicitly to that value, overriding any eval YAML default,
 unless the user explicitly authorized a different evaluation topology.
 For example, training with `trainer.nnodes=4` requires evaluation with
-`trainer.nnodes=4`, even if the eval YAML defaults to 1, unless a different
+`trainer.nnodes=4`, even if the eval YAML defaults to 2, unless a different
 evaluation topology was explicitly authorized.
 
 Require the evaluation pool to be idle and at least `eval_nnodes` healthy GPU Ray
@@ -354,7 +359,7 @@ before asking `verl-asr-run` to submit evaluation.
 
 1. Use the **resolved `data.val_data` inventory from the actual eval config**,
    including overrides and nested dataset lists. The cache CLI accepts a
-   dataset YAML, not a Hydra job YAML: do not pass `eval_2609r3_openall_zip.yaml`
+   dataset YAML, not a Hydra job YAML: do not pass `eval_2609r2_openall_zip.yaml`
    directly. Keep evaluation pointed at its original manifests and config.
 2. Build a cache-only JSONL inventory and dataset YAML beneath
    `tmp/run_openasr_exp/<train-stem>/audio_precache/` from all configured sources.
@@ -460,7 +465,7 @@ verified identical shared pod-local model path on every participating pod;
 keep the original exported model URI in provenance.
 
 Monitor until Ray `SUCCEEDED` and all configured datasets have final metrics
-and detailed artifacts. For `eval_2609r3_openall_zip.yaml`, this includes
+and detailed artifacts. For `eval_2609r2_openall_zip.yaml`, this includes
 ten English datasets (including `urgent2024` and `urgent2024_clean`) and
 seventeen ML datasets. Do not declare
 success from one intermediate validation metric line.

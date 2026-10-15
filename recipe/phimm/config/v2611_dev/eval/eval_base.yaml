@@ -1,0 +1,84 @@
+defaults:
+  - ../base@_here_
+  - _self_
+
+val_reward:
+  reward_functions:
+    openasr_hi_in:
+      path: recipe/phimm/reward/asr_eval.py
+      name: openasr_hi_in_eval
+      reward_kwargs:
+        version: 2609
+  # The mixed TER30 suite uses the multilingual scorer for the AA datasets.
+  aa_reward_function: openasr_en
+  reward_function_by_data_source:
+    monsoon_hi_in: openasr_hi_in
+    mixlang_fy26q2: inhouse_zh
+    name_val: openasr_en
+    ls_clean: openasr_en
+    ls_other: openasr_en
+    spgispeech: openasr_en
+    ami: openasr_en
+    gigaspeech: openasr_en
+    voxpopuli_cleaned_aa: ${val_reward.aa_reward_function}
+    earnings22_cleaned_aa: ${val_reward.aa_reward_function}
+    earnings22_cleaned_aa_chunked: openasr_en
+    monsoon_en_in: openasr_en
+    urgent2024: openasr_en
+    urgent2024_clean: openasr_en
+    urgent2024_delta: openasr_en
+    de_fleurs: openasr_ml
+    fr_fleurs: openasr_ml
+    it_fleurs: openasr_ml
+    es_fleurs: openasr_ml
+    pt_fleurs: openasr_ml
+    de_mcv: openasr_ml
+    fr_mcv: openasr_ml
+    it_mcv: openasr_ml
+    es_mcv: openasr_ml
+    fr_mls: openasr_ml
+    it_mls: openasr_ml
+    es_mls: openasr_ml
+    pt_mls: openasr_ml
+    nl_fleurs: openasr_ml
+    nl_mcv: openasr_ml
+    nl_mls: openasr_ml
+    enus_conv_fy21q1: inhouse_all
+    enus_conv_om_fy25q3: inhouse_all
+    enus_dict_office_fy24q3: inhouse_all
+    dadk_conv_fy21q3: inhouse_all
+    dadk_conv_om_fy23q1: inhouse_all
+    dadk_dict_fy23q4: inhouse_all
+    huhu_conv_fy22q4: inhouse_all
+    huhu_conv_om_fy24q2: inhouse_all
+    huhu_dict_fy25q2: inhouse_all
+    nbno_conv_fy21q3: inhouse_all
+    nbno_conv_om_fy23q1: inhouse_all
+    nbno_dict_fy23q4: inhouse_all
+    nlnl_conv_fy23q2: inhouse_all
+    nlnl_conv_om_fy23q1: inhouse_all
+    nlnl_dict_fy23q4: inhouse_all
+    cscz_conv_fy23q2: inhouse_all
+    cscz_conv_om_fy24q2: inhouse_all
+    cscz_dict_fy24q2: inhouse_all
+    hiin_conversation_dtest_fy23q3_hi_in_dtest: inhouse_all
+    hiin_conversation_domainset_dtest_banking_entity_fy25q2_hi_in_dtest_offlinedatacollection: inhouse_all
+    hiin_conversation_domainset_dtest_medical_entity_fy24q1_hi_in_dtest: inhouse_all
+    hiin_conversation_onlinemeetings_dtest_fy24q2_hi_in: inhouse_all
+    hiin_dictation_dtest_l_d_fy23q2_hi_in_dtest: inhouse_all
+
+data:
+  # RayDAPOTrainer initializes both dataloaders before honoring val_only.
+  train_data: ${data.val_data}
+  shuffle: false
+  use_interleave: false
+  dataloader_num_workers: 8
+  prefetch_factor: 4
+  val_batch_size: ${eval:256*${trainer.nnodes}}
+
+trainer:
+  validation_resume: true
+  validation_resume_save_freq: 2
+  project_name: v2611_eval
+  val_only: true
+  val_before_train: true
