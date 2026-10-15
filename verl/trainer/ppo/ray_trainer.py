@@ -121,7 +121,10 @@ def _compute_reward_metrics(reward_extra_infos: dict[str, list]) -> dict[str, fl
         numeric_values = numeric_values[np.isfinite(numeric_values)]
         if numeric_values.size == 0:
             continue
-        metrics[f"reward-core/{key}/mean"] = float(np.mean(numeric_values))
+        if key.startswith("d_"):
+            metrics[f"reward-delta/{key.removeprefix('d_')}/mean"] = float(np.mean(numeric_values))
+        else:
+            metrics[f"reward-core/{key}/mean"] = float(np.mean(numeric_values))
         metrics[f"reward-aux/{key}/std"] = float(np.std(numeric_values))
         metrics[f"reward-aux/{key}/max"] = float(np.max(numeric_values))
         metrics[f"reward-aux/{key}/min"] = float(np.min(numeric_values))
