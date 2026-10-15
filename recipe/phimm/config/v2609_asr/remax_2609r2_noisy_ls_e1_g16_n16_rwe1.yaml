@@ -1,4 +1,4 @@
-# Train one shuffled name_env37k epoch (37,212 records) and validate on name_1k with verbatim language hints.
+# Use the LS training settings with cached noisy audio and URGENT2024 delta validation.
 # Average signed char, word, word edit, keyword, and word-normalized language errors with a fixed divisor of 6.
 hydra:
   searchpath:
@@ -6,12 +6,12 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/name_env37k@_name_train
-  - /data/val_data/name_1k@_name_val
+  - /data/train_data/noisy/ls_verb_langhint@_ls_train
+  - /data/val_data/urgent2024_delta@_urgent_val
   - _self_
 
 reward_functions:
-  asr_measure:
+  librispeech:
     path: recipe/phimm/reward/asr_measure_v0.py
     name: compute_score
     reward_kwargs:
@@ -26,11 +26,11 @@ reward_functions:
         word_lang: {beta: 1.0}
 
 reward_function_by_data_source:
-  name_train: asr_measure
+  noisy_ls: librispeech
 
 val_reward:
   reward_function_by_data_source:
-    name_val: openasr_en
+    urgent2024_delta: openasr_en
 
 actor_rollout_ref:
   model:
@@ -42,19 +42,20 @@ actor_rollout_ref:
       warmup_style: constant
       lr_warmup_steps: 0
   rollout:
-    n: 8
+    n: 16
 
 data:
   data_source:
-    name_train: {num_epoch: 1, shuffle: true}
+    noisy_ls: {num_epoch: 1, shuffle: true}
   train_data:
-    - ${_name_train}
+    - ${_ls_train}
   val_data:
-    - ${_name_val}
+    - ${_urgent_val}
   train_batch_size: 128
   shuffle: true
 
 trainer:
+  experiment_name: remax_2609r2_noisy_ls_e1_g16_n16_rwe1
   nnodes: 2
   total_epochs: 1
   total_training_steps: null
