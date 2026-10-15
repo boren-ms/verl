@@ -95,7 +95,7 @@ def test_base0a_nohint_validation_scores_separately_from_hinted(
 
     searchpath = f"hydra.searchpath=[file://{CONFIG_ROOT},file://{TRAINER_CONFIG_DIR}]"
     with initialize_config_dir(config_dir=str(CONFIG_ROOT / "v2611_dev/dev"), version_base=None):
-        config = compose(config_name="remax_base0a_r0", overrides=[searchpath])
+        config = compose(config_name="remax_dev_base0a_r0", overrides=[searchpath])
 
     groups = OmegaConf.to_container(config.data.val_data, resolve=True)
     assert len(groups) == 6

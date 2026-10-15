@@ -31,7 +31,13 @@ val_reward:
       name: openasr_en_eval
       reward_kwargs:
         version: 2609
+    openasr_hi_in:
+      path: recipe/phimm/reward/asr_eval.py
+      name: openasr_hi_in_eval
+      reward_kwargs:
+        version: 2609
   reward_function_by_data_source:
+    monsoon_hi_in: openasr_hi_in
     ls_clean: openasr_en
     ls_other: openasr_en
     mixlang: inhouse_zh
