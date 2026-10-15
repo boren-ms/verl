@@ -13,6 +13,60 @@ from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf, open_dict
 
 
+def test_v1b0_mixhint_preserves_settings_and_balances_each_source(source_sampler):
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    donor_name = "remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_n8_r320_g16_ds1c_v1b0"
+    recipe_name = "remax_2609r2_earning_ml0_ls_bad_verb_e1_n8_r320_g16_ds1c_v1b0"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+        donor = compose(config_name=donor_name, overrides=[searchpath])
+        config = compose(config_name=recipe_name, overrides=[searchpath])
+
+    for section in ("actor_rollout_ref", "algorithm", "trainer", "reward_functions", "val_reward"):
+        assert OmegaConf.to_container(config[section], resolve=False) == OmegaConf.to_container(
+            donor[section], resolve=False
+        )
+    config_data = OmegaConf.to_container(config.data, resolve=False)
+    donor_data = OmegaConf.to_container(donor.data, resolve=False)
+    for key in donor_data.keys() - {"train_data", "data_source"}:
+        assert config_data[key] == donor_data[key]
+    config_data["train_data"] = OmegaConf.to_container(config.data.train_data, resolve=True)
+    donor_data["train_data"] = OmegaConf.to_container(donor.data.train_data, resolve=True)
+    assert len(config_data["train_data"]) == 6
+    assert config_data["train_data"][:3] == donor_data["train_data"]
+
+    for hinted, unhinted in zip(config_data["train_data"][:3], config_data["train_data"][3:], strict=True):
+        hinted_rows = hinted if isinstance(hinted, list) else [hinted]
+        unhinted_rows = unhinted if isinstance(unhinted, list) else [unhinted]
+        for before, after in zip(hinted_rows, unhinted_rows, strict=True):
+            assert before["add_task_info"]["lang_hint"] is True
+            assert after["add_task_info"]["lang_hint"] is False
+            source = before["post_process"]["add_field"]["fields"]["data_source"]
+            assert after["post_process"]["add_field"]["fields"]["data_source"] == f"{source}_nohint"
+            assert config.reward_function_by_data_source[f"{source}_nohint"] == donor.reward_function_by_data_source[source]
+            after["add_task_info"]["lang_hint"] = True
+            after["post_process"]["add_field"]["fields"]["data_source"] = source
+            assert after == before
+
+    assert len(config.data.data_source) == 6
+    for source, options in donor.data.data_source.items():
+        hinted = config.data.data_source[source]
+        unhinted = config.data.data_source[f"{source}_nohint"]
+        assert hinted.num_sample == unhinted.num_sample == options.num_sample // 2
+        assert hinted.shuffle is unhinted.shuffle is True
+
+    inputs = [
+        datasets.Dataset.from_dict({"data_source": [source]})
+        for source in config.data.data_source
+    ]
+    sampled = source_sampler(inputs, config.data.data_source)
+    assert {group[0]["data_source"]: len(group) for group in sampled} == {
+        source: options.num_sample for source, options in config.data.data_source.items()
+    }
+    assert sum(map(len, sampled)) == 46090
+
+
 def test_ls_only_word_reward_recipe_preserves_donor_settings():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
