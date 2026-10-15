@@ -30,7 +30,7 @@ def test_variant_calls_original_parser(monkeypatch):
     kwargs = {"version": 2609, "text_norm": "identity"}
     assert asr_measure_v0.compute_score(
         "<TXT>cat</TXT>", ground_truth="cat dog", measures={"word": {}}, **kwargs,
-    ) == {"score": -0.5, "word": 0.5}
+    ) == {"score": -0.5, "word": -0.5}
     assert len(calls) == 1
     assert asr_measure_v0.lang_score(
         "<src=English><tgt=English>\n<TXT>cat</TXT>", language="English", **kwargs,
@@ -50,13 +50,13 @@ def test_variant_calls_original_parser(monkeypatch):
         ("", "<TXT>hello</TXT>"),
     ],
 )
-def test_every_parsed_component_is_an_error_rate(reference, hypothesis):
+def test_every_parsed_component_is_a_negative_error_rate(reference, hypothesis):
     kwargs = {"version": 2609, "text_norm": "identity", "extra_info": {"keywords": ["brown"]}}
     accuracies = asr_measure._parse_response(hypothesis, ground_truth=reference, **kwargs)
-    errors = asr_measure_v0._parse_response(hypothesis, ground_truth=reference, **kwargs)
+    negative_errors = asr_measure_v0._parse_response(hypothesis, ground_truth=reference, **kwargs)
 
-    assert errors == pytest.approx({name: 1.0 - value for name, value in accuracies.items()})
-    assert errors["fixed"] == 0.0
+    assert negative_errors == pytest.approx({name: value - 1.0 for name, value in accuracies.items()})
+    assert negative_errors["fixed"] == 0.0
 
 
 @pytest.mark.parametrize(
@@ -89,11 +89,11 @@ def test_parser_returns_keyword_error_rate_from_shared_helper(
 
     kwargs = {"version": 2609, "text_norm": "identity", "extra_info": {"keywords": keywords}}
     parsed = asr_measure_v0._parse_response(f"<TXT>{hypothesis}</TXT>", ground_truth=reference, **kwargs)
-    assert parsed["word_kw"] == pytest.approx(expected)
+    assert parsed["word_kw"] == pytest.approx(-expected)
     result = asr_measure_v0.compute_score(
-        f"<TXT>{hypothesis}</TXT>", ground_truth=reference, measures={"word_kw": {"high": 10.0}}, **kwargs,
+        f"<TXT>{hypothesis}</TXT>", ground_truth=reference, measures={"word_kw": {"low": -10.0}}, **kwargs,
     )
-    assert result == pytest.approx({"word_kw": expected, "score": -expected})
+    assert result == pytest.approx({"word_kw": -expected, "score": -expected})
 
 
 def test_keyword_alignment_is_computed_only_once(monkeypatch):
@@ -115,7 +115,7 @@ def test_keyword_alignment_is_computed_only_once(monkeypatch):
     )
 
     assert len(calls) == 1
-    assert result == pytest.approx({"word_kw": 1 / 3, "score": -1 / 3})
+    assert result == pytest.approx({"word_kw": -1 / 3, "score": -1 / 3})
 
 
 @pytest.mark.parametrize(
@@ -124,12 +124,12 @@ def test_keyword_alignment_is_computed_only_once(monkeypatch):
         ("sum", -0.75),
         ("mean", -0.375),
         ({"mode": "average", "total": 4}, -0.1875),
-        ("multiply", -0.125),
-        ("geometric", -(0.125 ** 0.5)),
+        ("multiply", 0.125),
+        ("geometric", 0.125 ** 0.5),
         ("harmonic", -(2 / 6)),
     ],
 )
-def test_score_is_negative_reduced_error(reduction, expected):
+def test_score_reduces_signed_negative_errors(reduction, expected):
     result = asr_measure_v0.compute_score(
         "<TXT>cat</TXT>",
         ground_truth="cat dog",
@@ -139,7 +139,7 @@ def test_score_is_negative_reduced_error(reduction, expected):
         measures={"word": {"beta": 1.0}, "word_del": {"beta": 0.5}},
     )
 
-    assert result == pytest.approx({"score": expected, "word": 0.5, "word_del": 0.5})
+    assert result == pytest.approx({"score": expected, "word": -0.5, "word_del": -0.5})
 
 
 @pytest.mark.parametrize("measures", [None, {}, {"word": {}}, {"fixed": {"beta": 1.0}}])
@@ -151,21 +151,21 @@ def test_perfect_response_has_zero_score(measures):
     assert result == {"score": 0.0, **{name: 0.0 for name in measures or {}}}
 
 
-@pytest.mark.parametrize(("high", "expected"), [(1.0, -1.0), (10.0, -3.0)])
-def test_insertion_errors_are_unclipped_in_raw_metrics(high, expected):
+@pytest.mark.parametrize(("low", "expected"), [(-1.0, -1.0), (-10.0, -3.0)])
+def test_insertion_errors_are_unclipped_in_raw_metrics(low, expected):
     result = asr_measure_v0.compute_score(
         "<TXT>a b c d</TXT>",
         ground_truth="a",
         version=2609,
         text_norm="identity",
-        measures={"word_ins": {"high": high}},
+        measures={"word_ins": {"low": low}},
     )
 
-    assert result == {"score": expected, "word_ins": 3.0}
+    assert result == {"score": expected, "word_ins": -3.0}
 
 
-@pytest.mark.parametrize(("scale", "factor"), [("constant", 1.0), ("word", 0.5), ("char", 1 / 6)])
-def test_weighting_gamma_and_error_scaling(scale, factor):
+@pytest.mark.parametrize(("scale", "factor"), [("constant", 1.0), ("word", -0.5), ("char", -1 / 6)])
+def test_weighting_gamma_and_signed_scaling(scale, factor):
     result = asr_measure_v0.compute_score(
         "<TXT>ct dog</TXT>",
         ground_truth="cat dog",
@@ -176,7 +176,7 @@ def test_weighting_gamma_and_error_scaling(scale, factor):
         measures={"word": {"beta": 2.0, "gamma": 2.0}},
     )
 
-    assert result["word"] == 0.5
+    assert result["word"] == -0.5
     assert result["score"] == pytest.approx(-0.25 * factor)
 
 
@@ -189,7 +189,7 @@ def test_cut_does_not_override_negative_error_score(cut):
         measures={"word": {"cut": cut}},
     )
 
-    assert result == {"score": -0.5, "word": 0.5}
+    assert result == {"score": -0.5, "word": -0.5}
 
 
 def test_greedy_deltas_use_error_metrics_and_negative_reward():
@@ -199,7 +199,7 @@ def test_greedy_deltas_use_error_metrics_and_negative_reward():
         "<TXT>cat</TXT>", ground_truth="cat dog", extra_info={"greedy_reward": baseline}, **kwargs,
     )
 
-    assert result == {"score": -0.5, "word": 0.5, "d_score": -0.5, "d_word": 0.5}
+    assert result == {"score": -0.5, "word": -0.5, "d_score": -0.5, "d_word": -0.5}
     assert baseline == {"score": 0.0, "word": 0.0}
 
 

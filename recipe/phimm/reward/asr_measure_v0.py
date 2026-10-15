@@ -2,7 +2,8 @@
 
 Select ``path: recipe/phimm/reward/asr_measure_v0.py`` and
 ``name: compute_score`` in a reward-function configuration. Shared helpers
-retain their original contracts; ``_parse_response`` returns error rates.
+retain their original contracts; ``_parse_response`` returns negative error
+rates.
 The original module and its configurations are unchanged.
 """
 
@@ -19,36 +20,38 @@ from recipe.phimm.reward.asr_measure import (
 
 
 def _parse_response(solution_str, ground_truth=None, **kwargs) -> dict[str, float]:
-    """Return all parsed reward components as unclipped error rates."""
+    """Return all parsed reward components as unclipped negative error rates."""
     accuracies = _parse_accuracy(solution_str, ground_truth=ground_truth, **kwargs)
-    return {name: 1.0 - accuracy for name, accuracy in accuracies.items()}
+    return {name: accuracy - 1.0 for name, accuracy in accuracies.items()}
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
-    """Return configured raw errors and ``0 - reduced_error_rate``.
+    """Return configured negative errors and their reduced score.
 
-    Each component contributes ``beta * signed_pow(clip(error, low, high),
-    gamma)`` using the shared weighting helper. Defaults remain unchanged:
-    beta/gamma are one, low is minus one, and high is one. Raw metrics are
-    not clipped, so insertion errors may exceed one.
+    Like :func:`asr_measure.compute_score`, each parsed component contributes
+    ``beta * signed_pow(clip(value, low, high), gamma)`` using the shared
+    weighting helper. Parsed and returned values use ``accuracy - 1``.
+    Defaults remain unchanged: beta/gamma are one, low is minus one, and high
+    is one. Raw metrics are not clipped, so insertion errors may be below
+    minus one.
 
     ``reduce`` accepts a mode string or mapping; mapping options override
-    reward kwargs. The reduced error is transformed by the global ``gamma``
-    and multiplied by the raw ``char``/``word`` error if that ``scale`` is
+    reward kwargs. The reduced score is transformed by the global ``gamma``
+    and multiplied by the raw ``char``/``word`` value if that ``scale`` is
     selected. Default ``scale: constant`` leaves it unchanged.
 
     This variant does not apply ``cut`` thresholds.
 
     Greedy baselines must use this variant. Shared ``d_<name>`` fields are
-    raw value minus baseline; component deltas measure error increases and
-    ``d_score`` measures reward gains.
+    raw value minus baseline; component deltas and ``d_score`` both use the
+    reward direction, so negative values indicate regressions.
 
     Configuration example (YAML)::
 
         reward_kwargs:
           reduce: {mode: average, total: 2}
           measures:
-            word: {beta: 1.0, low: 0.0, high: 10.0}
+            word: {beta: 1.0, low: -1.0, high: 0.0}
             word_fmt: {beta: 0.5}
     """
     scale = kwargs.get("scale", "constant")
@@ -65,10 +68,9 @@ def compute_score(solution_str, ground_truth, **kwargs):
     else:
         reduction = {**reduction, "mode": reduction.get("mode", "sum").lower()}
     gamma = float(kwargs.get("gamma", 1.0))
-    errors = [scale_score(parsed[name], cfg) for name, cfg in measures.items()]
-    reduced_error = reduce_scores(errors, **(kwargs | reduction))
-    reduced_error = signed_pow(reduced_error, gamma) * (1.0 if scale == "constant" else parsed[scale])
-    score = 0.0 - reduced_error
+    scores = [scale_score(parsed[name], cfg) for name, cfg in measures.items()]
+    score = reduce_scores(scores, **(kwargs | reduction))
+    score = signed_pow(score, gamma) * (1.0 if scale == "constant" else parsed[scale])
 
     result = {"score": score, **{name: parsed[name] for name in measures}}
     extra_info = kwargs.get("extra_info") or {}
