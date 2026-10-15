@@ -1,0 +1,11 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - gen_base
+  - /data/train_data/indian/indic_voice@data.train_data
+  - _self_
+
+data:
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/v2611/indic_voice

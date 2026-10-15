@@ -1,0 +1,41 @@
+defaults:
+  - /v2611_dev/base@_global_
+  - /generation
+  - _self_
+
+nccl_timeout: 1800
+
+custom_reward_function: ${val_reward.reward_functions.openasr_ml}
+
+data:
+  # Outputs are resumable JSONL part files; use a fresh path when changing model or scoring.
+  validation_shuffle: false
+  resume_from_output: true
+  batch_size: 512
+  output_split_size: 20000
+  num_workers: 4
+  prefetch_factor: 4
+  persistent_workers: false
+  prefetch_depth: 3
+  chunk_load_mode: cached
+
+model:
+  path: ${actor_rollout_ref.model.path}
+  trust_remote_code: ${actor_rollout_ref.model.trust_remote_code}
+
+rollout:
+  engine_kwargs:
+    vllm:
+      gdn_prefill_backend: ${actor_rollout_ref.rollout.engine_kwargs.vllm.gdn_prefill_backend}
+      quantization: fp8
+  temperature: 0.0
+  dtype: auto
+  gpu_memory_utilization: ${actor_rollout_ref.rollout.gpu_memory_utilization}
+  prompt_length: ${data.max_prompt_length}
+  response_length: ${data.max_response_length}
+  load_format: ${actor_rollout_ref.rollout.load_format}
+  max_num_seqs: 36
+  enforce_eager: ${actor_rollout_ref.rollout.enforce_eager}
+  no_repeat_ngram_size: ${actor_rollout_ref.rollout.no_repeat_ngram_size}
+  stop: ${actor_rollout_ref.rollout.stop}
+  stop_token_ids: ${actor_rollout_ref.rollout.stop_token_ids}
