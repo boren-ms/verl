@@ -1082,16 +1082,16 @@ def test_parse_response_keyword_uses_whole_utterance(reference, hypothesis, keyw
 
 
 @pytest.mark.parametrize(
-    ("reference", "hypothesis", "keywords", "expected_kw_acc", "expected_counts"),
+    ("reference", "hypothesis", "keywords", "expected_counts"),
     [
-        ("the quick brown fox", "the quick blue fox", ["brown"], 1.0, (1, 1)),
-        ("new york state", "new state", ["new york"], 0.5, (1, 2)),
-        ("hello world", "hello brown world", ["brown"], 1.0, (1, 0)),
-        ("hello world", "hello world", None, 0.0, (0, 0)),
+        ("the quick brown fox", "the quick blue fox", ["brown"], (1, 1)),
+        ("new york state", "new state", ["new york"], (1, 2)),
+        ("hello world", "hello brown world", ["brown"], (1, 0)),
+        ("hello world", "hello world", None, (0, 0)),
     ],
 )
-def test_keyword_evaluation_uses_kw_acc_not_word_kw(
-    monkeypatch, reference, hypothesis, keywords, expected_kw_acc, expected_counts,
+def test_keyword_evaluation_reports_counts_without_rewards(
+    monkeypatch, reference, hypothesis, keywords, expected_counts,
 ):
     from recipe.phimm.reward import asr_eval
 
@@ -1104,13 +1104,9 @@ def test_keyword_evaluation_uses_kw_acc_not_word_kw(
         version=2609, extra_info={"keywords": keywords},
     )
 
-    helper = compute_kw_score(
-        reference, hypothesis, keywords, text_norm="hf_english",
-    )
     assert "word_kw" not in result
-    assert result["kw_acc"] == pytest.approx(expected_kw_acc)
-    assert result["kw_acc"] == helper["kw_nerr"] / max(helper["kw_nref"], 1)
-    assert result["kw_acc"] == expected_counts[0] / max(expected_counts[1], 1)
+    assert "keyword" not in result
+    assert "kw_acc" not in result
     assert (result["nb_err"], result["nb_ref"]) == expected_counts
     assert result["score"] == 0.75
 

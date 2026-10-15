@@ -266,7 +266,6 @@ def test_openasr_evals_use_versioned_compound_aware_wer():
     assert en_result == {
         "score": 1.0,
         "wer": 0.0,
-        "kw_acc": 0.0,
         "n_err": 0,
         "n_ref": 2,
         "nb_err": 0,

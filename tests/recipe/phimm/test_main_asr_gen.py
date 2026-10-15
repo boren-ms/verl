@@ -333,7 +333,7 @@ def test_generation_defaults_to_openasr_and_preserves_metadata(generation_pipeli
     [
         (
             {"path": "recipe/phimm/reward/asr_eval.py", "name": "openasr_en_eval"},
-            {"kw_acc", "nb_err", "nb_ref"},
+            {"nb_err", "nb_ref"},
         ),
         (
             {"path": "recipe/phimm/reward/asr_edge.py", "name": "eval_score"},
@@ -358,6 +358,7 @@ def test_generation_saves_configured_measurements_without_edge_fields(
     assert result.error is None
     record, = _read_jsonl(generation_pipeline.output_dir / "part-000.jsonl")
     assert extra_metrics <= record.keys()
+    assert "kw_acc" not in record
     assert record["keywords"] == ["world"]
     assert record["response"] == "hello"
     assert record["n_err"] == 1 and record["n_ref"] == 2 and record["wer"] == 0.5

@@ -103,7 +103,7 @@ def openasr_hi_in_eval(solution_str, ground_truth, **kwargs):
 
 
 def openasr_en_eval(solution_str, ground_truth, **kwargs):
-    """Return HF compound-aware WER and the kw_acc keyword error ratio."""
+    """Return HF compound-aware WER and keyword error counts."""
     from recipe.phimm.reward.asr_measure import compute_kw_score
 
     extra_info = kwargs.get("extra_info") or {}
@@ -119,7 +119,6 @@ def openasr_en_eval(solution_str, ground_truth, **kwargs):
     return {
         "score": 1.0 - result["wer"],
         "wer": result["wer"],
-        "kw_acc": keyword_result["kw_nerr"] / max(keyword_result["kw_nref"], 1),
         "n_err": result["n_err"],
         "n_ref": result["n_ref"],
         "nb_err": keyword_result["kw_nerr"],
