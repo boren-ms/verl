@@ -1,13 +1,13 @@
 # Globally shuffle OpenML, earnings, and LibriSpeech bad cases at approximately a 4:1:2 sample ratio.
 # Shuffle within each source; sample 26338/6584/13168 and run three full epochs with a constant LR of 3e-6.
-# v0b: apply rm0b rewards without fmt to all sources with a fixed average divisor of 5.
+# Apply rm0b rewards to all sources with a fixed average divisor of 5.
 # Use v0 training data for all sources, stripping reference brackets before add_task_info and preserving enclosed words.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base
+  - ../base@_here_
   - /data/train_data/openml_verb_langhint_v0@_ml_train
   - /data/train_data/earnings_tts_verb_langhint_v0@_earning_train
   - /data/train_data/ls_rare_bad_verb_langhint_v0@_ls_train
@@ -30,8 +30,9 @@ reward_functions:
         char_ins: {beta: 0.25}
         word_del: {beta: 0.25}
         word_ins: {beta: 0.25}
-        # word_kw: {beta: 0.5}
+        keyword: {beta: 0.5}
         lang: {beta: 0.5}
+        fmt: {beta: 0.5}
 
 reward_function_by_data_source:
   openml: librispeech

@@ -46,7 +46,7 @@ directly with the loaded skills and the policy below.
 Example:
 
 ```text
-/run-openasr-exp recipe/phimm/config/v2611_dev/remax_2609r2_mx0a_bs64_n4_g16_rw0.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml
+/run-openasr-exp recipe/phimm/config/v2611_dev/release/remax_2609r2_mx0a_bs64_n4_g16_rw0.yaml --node verl-n4-i0 --stop-previous --eval-config recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml
 ```
 
 The v2611 configs use project names `v2611` for training and `v2611_eval`

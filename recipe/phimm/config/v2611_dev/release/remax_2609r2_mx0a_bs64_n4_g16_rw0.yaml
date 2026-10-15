@@ -1,13 +1,13 @@
-# Globally shuffle OpenML, earnings, and LibriSpeech bad cases at approximately a 4:1:2 sample ratio.
-# Shuffle within each source; sample 26338/6584/13168 and run three full epochs with a constant LR of 3e-6.
-# Apply rm0b rewards to all sources with a fixed average divisor of 5.
-# Use v0 training data for all sources, stripping reference brackets before add_task_info and preserving enclosed words.
+# First group: 100 batches each of earnings/OpenML/LS.
+# Second group: 100 OpenML batches and 1000 LS batches; 1400 batches total.
+# At batch size 64, groups contain 19200 and 70400 rows.
+# Groups independently sample the full sources and may overlap.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base
+  - ../base@_here_
   - /data/train_data/openml_verb_langhint_v0@_ml_train
   - /data/train_data/earnings_tts_verb_langhint_v0@_earning_train
   - /data/train_data/ls_rare_bad_verb_langhint_v0@_ls_train
@@ -22,17 +22,13 @@ reward_functions:
     name: compute_score
     reward_kwargs:
       version: 2609
-      reduce: {mode: average, total: 5}
+      reduce: {mode: average, total: 2}
       measures:
         char: {beta: 1.0}
         word: {beta: 1.0}
-        char_del: {beta: 0.25}
-        char_ins: {beta: 0.25}
-        word_del: {beta: 0.25}
-        word_ins: {beta: 0.25}
-        keyword: {beta: 0.5}
-        lang: {beta: 0.5}
-        fmt: {beta: 0.5}
+        word_kw: {beta: 2.0}
+        word_lang: {beta: 2.0}
+        word_fmt: {beta: 2.0}
 
 reward_function_by_data_source:
   openml: librispeech
@@ -49,13 +45,9 @@ actor_rollout_ref:
       warmup_style: constant
       lr_warmup_steps: 0
   rollout:
-    n: 8
+    n: 4
 
 data:
-  data_source:
-    openml: {num_sample: 26338, shuffle: true}
-    earnings_fy27: {num_sample: 6584, shuffle: true}
-    ls_rare_verb: {num_sample: 13168, shuffle: true}
   train_data:
     - ${_ml_train}
     - ${_earning_train}
@@ -64,10 +56,30 @@ data:
     - ${_earning_val}
     - ${_ml_val}
     - ${_ls_val}
-  train_batch_size: 128
-  shuffle: true
+  shuffle: false
+  train_batch_size: 64
+  mix:
+    - shuffle: true
+      datasource:
+        - name: earnings_fy27
+          batch: 100
+          shuffle: true
+        - name: openml
+          batch: 100
+          shuffle: true
+        - name: ls_rare_verb
+          batch: 100
+          shuffle: true
+    - shuffle: true
+      datasource:
+        - name: openml
+          batch: 100
+          shuffle: true
+        - name: ls_rare_verb
+          batch: 1000
+          shuffle: true
 
 trainer:
   nnodes: 2
-  total_epochs: 3
+  total_epochs: 1
   total_training_steps: null

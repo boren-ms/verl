@@ -1,0 +1,20 @@
+# IndicVoices Hindi verbatim training data with a language hint.
+dataset_name: chunk
+specs:
+  - manifest_file: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/hi_verbatim_c96f9088/file_set_train.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/hi_verbatim_c96f9088/chunks
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/hi_verbatim_c96f9088/chunks
+chunk_types:
+  - audio
+  - transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr_verb
+  language: Hindi
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: indic_voice
+  verl_format:
+    prompt_key: prompt
