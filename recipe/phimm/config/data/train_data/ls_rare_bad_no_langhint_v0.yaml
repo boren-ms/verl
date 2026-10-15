@@ -1,0 +1,16 @@
+# Plain ASR variant of ls_rare_bad_verb_langhint_v0, retaining preprocessing and source ID.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_qwen/2607v1a_earning_step650/ls_rare_nonempty_verb_g32_nonzero_n_err.jsonl
+pre_process:
+  remove_brackets: {}
+add_task_info:
+  task: lang_asr
+  language: English
+  prefix_prob: 0.0
+  lang_hint: false
+post_process:
+  add_field:
+    fields:
+      data_source: ls_rare_verb
+  verl_format:
+    prompt_key: prompt

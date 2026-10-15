@@ -1,0 +1,20 @@
+# Plain ASR variant of openml_verb_langhint_v0, retaining preprocessing and source ID.
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_brackets/all_wav.jsonl
+    - az://orngwus2cresco/data/boren/data/verl/cached_qwen/qwen_oss_reps/all_wav.jsonl
+  pre_process:
+    remove_brackets: {}
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+    lang_hint: false
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt

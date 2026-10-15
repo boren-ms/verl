@@ -72,6 +72,114 @@ REWARD_SOURCES = {
 
 
 @pytest.mark.parametrize(
+    ("group_index", "entry_index", "language", "words"),
+    [
+        (0, 0, "English", ["hello", "world"]),
+        (1, 0, "German", ["hallo", "welt"]),
+        (2, 0, "English", ["hello", "world"]),
+        (2, 1, "English", ["hello", "world"]),
+    ],
+    ids=["earnings", "openml", "ls_clean", "ls_other"],
+)
+def test_base0a_nohint_validation_scores_separately_from_hinted(
+    group_index, entry_index, language, words
+):
+    import numpy as np
+    import torch
+    from datasets import Dataset
+
+    from recipe.phimm.data.dataset import add_task_info
+    from recipe.phimm.reward.long_audio_grouped import LongAudioGroupedRewardManager
+    from verl import DataProto
+    from verl.trainer.ppo.reward import get_reward_fn_dispatcher
+
+    searchpath = f"hydra.searchpath=[file://{CONFIG_ROOT},file://{TRAINER_CONFIG_DIR}]"
+    with initialize_config_dir(config_dir=str(CONFIG_ROOT / "v2611_dev/dev"), version_base=None):
+        config = compose(config_name="remax_base0a_r0", overrides=[searchpath])
+
+    groups = OmegaConf.to_container(config.data.val_data, resolve=True)
+    assert len(groups) == 6
+    hinted = groups[group_index][entry_index]
+    nohint = groups[group_index + 3][entry_index]
+    assert hinted["jsonl_paths"] == nohint["jsonl_paths"]
+    if "cache_name" in hinted:
+        assert hinted["cache_name"] != nohint["cache_name"]
+
+    responses = {}
+    sources = []
+    extra_info = []
+    for entry, use_hint in [(hinted, True), (nohint, False)]:
+        task_info = entry["add_task_info"]
+        assert task_info["task"] == ("lang_asr_verb" if use_hint else "lang_asr")
+        assert task_info["lang_hint"] is use_hint
+        dataset = add_task_info(
+            Dataset.from_dict({"text": words, "language": [language] * 2}),
+            **task_info,
+            version=config.data.version,
+        )
+        source = entry["post_process"]["add_field"]["fields"]["data_source"]
+        for index, row in enumerate(dataset):
+            assert ("The language is" in row["prompt"]) is use_hint
+            assert ("<VERBATIM>" in row["gt_output"]) is use_hint
+            assert row["prefix"] == ""
+            responses[len(responses) + 1] = row["gt_output"]
+            sources.append(source)
+            extra_info.append({
+                "parent_audio_path": "shared-parent.wav",
+                "seg_start": float(index),
+                "language": language,
+                "keywords": words,
+            })
+
+    assert sources[0] != sources[2]
+    routes = config.val_reward.reward_function_by_data_source
+    assert routes[sources[0]] == routes[sources[2]]
+    scorer = get_reward_fn_dispatcher(config.val_reward)
+    calls = []
+
+    def compute_score(**kwargs):
+        calls.append(kwargs)
+        return scorer(**kwargs)
+
+    class Tokenizer:
+        eos_token = None
+
+        def decode(self, token_ids, skip_special_tokens=True):
+            return responses[int(token_ids[0])]
+
+    data = DataProto.from_dict(
+        tensors={
+            "prompts": torch.ones((4, 1), dtype=torch.long),
+            "responses": torch.arange(1, 5).reshape(4, 1),
+            "attention_mask": torch.ones((4, 2), dtype=torch.long),
+        },
+        non_tensors={
+            "extra_info": np.array(extra_info, dtype=object),
+            "reward_model": np.array(
+                [{"ground_truth": " ".join(words)} for _ in range(4)], dtype=object
+            ),
+            "data_source": np.array(sources, dtype=object),
+        },
+    )
+    manager = LongAudioGroupedRewardManager(
+        tokenizer=Tokenizer(),
+        num_examine=0,
+        compute_score=compute_score,
+        version=config.val_reward.reward_kwargs.version,
+    )
+    result = manager(data, return_dict=True)
+
+    assert len(calls) == 2
+    assert [call["data_source"] for call in calls] == [sources[0], sources[2]]
+    assert all(call["solution_str"] == "\n".join(words) for call in calls)
+    assert all(call["extra_info"]["n_segments"] == 2 for call in calls)
+    assert result["reward_extra_info"]["wer"] == [0.0, None, 0.0, None]
+    assert result["reward_extra_info"]["n_err"] == [0, None, 0, None]
+    assert result["reward_extra_info"]["n_ref"] == [2, None, 2, None]
+    assert torch.all(result["reward_tensor"] == 1.0)
+
+
+@pytest.mark.parametrize(
     "config_path",
     sorted((CONFIG_ROOT / "data/val_data/inhouse/indian").glob("*.yaml")),
     ids=lambda path: path.stem,

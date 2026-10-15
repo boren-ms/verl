@@ -1,0 +1,21 @@
+# Plain ASR Earnings22 AA chunks without language hints or assistant prefixes.
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr
+    language: English
+    prefix_prob: 0.0
+    lang_hint: false
+  post_process:
+    add_field:
+      fields:
+        data_source: earning_chunk_nohint
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
