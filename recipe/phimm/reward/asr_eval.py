@@ -119,7 +119,7 @@ def openasr_en_eval(solution_str, ground_truth, **kwargs):
     return {
         "score": 1.0 - result["wer"],
         "wer": result["wer"],
-        "kw_acc": keyword_result["kw_acc"],
+        "kw_acc": keyword_result["kw_nerr"] / max(keyword_result["kw_nref"], 1),
         "n_err": result["n_err"],
         "n_ref": result["n_ref"],
         "nb_err": keyword_result["kw_nerr"],

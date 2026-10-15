@@ -82,7 +82,7 @@ def test_parser_returns_keyword_error_rate_from_shared_helper(
     )
     assert keyword_result == pytest.approx({
         "word_kw": 1.0 - expected,
-        "kw_acc": errors / max(references, 1),
+        "keyword": 1.0 - errors / max(references, 1),
         "kw_nerr": errors,
         "kw_nref": references,
     })
@@ -94,6 +94,19 @@ def test_parser_returns_keyword_error_rate_from_shared_helper(
         f"<TXT>{hypothesis}</TXT>", ground_truth=reference, measures={"word_kw": {"low": -10.0}}, **kwargs,
     )
     assert result == pytest.approx({"word_kw": -expected, "score": -expected})
+
+
+def test_keyword_reward_accepts_raw_2609_text():
+    result = asr_measure_v0.compute_score(
+        "new state",
+        ground_truth="new york state",
+        version=2609,
+        text_norm="identity",
+        extra_info={"keywords": ["new york"]},
+        measures={"keyword": {}},
+    )
+
+    assert result == {"score": -0.5, "keyword": -0.5}
 
 
 def test_keyword_alignment_is_computed_only_once(monkeypatch):

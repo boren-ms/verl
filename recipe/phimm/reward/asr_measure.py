@@ -290,17 +290,17 @@ def compute_kw_score(
     text_norm: str | None = None,
     tgt_lang: str = "english",
 ) -> dict[str, float | int]:
-    """Return keyword errors normalized by the whole reference word count.
+    """Return keyword rewards and evaluation counts.
 
     ``word_kw`` is ``1 - kw_nerr / max(total_reference_words, 1)``.
-    ``kw_acc`` is the error ratio ``kw_nerr / max(kw_nref, 1)``, not one minus
-    that ratio. Both denominators are at least one for empty references.
+    ``keyword`` is ``1 - kw_nerr / max(kw_nref, 1)``.
+    Both denominators are at least one for empty references.
     ``kw_nerr`` and ``kw_nref`` are keyword-only counts for evaluation reporting.
     """
     from recipe.phimm.reward.asr_edge import _norm_text
 
     if not keywords:
-        return {"word_kw": 1.0, "kw_acc": 0.0, "kw_nerr": 0, "kw_nref": 0}
+        return {"word_kw": 1.0, "keyword": 1.0, "kw_nerr": 0, "kw_nref": 0}
 
     ref_words = _norm_text(ref or "", name=text_norm, lang=tgt_lang).split()
     hyp_words = _norm_text(hyp or "", name=text_norm, lang=tgt_lang).split()
@@ -323,7 +323,7 @@ def compute_kw_score(
 
     return {
         "word_kw": 1.0 - errors / max(len(ref_words), 1),
-        "kw_acc": errors / max(references, 1),
+        "keyword": 1.0 - errors / max(references, 1),
         "kw_nerr": errors,
         "kw_nref": references,
     }
@@ -339,7 +339,8 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     are ignored and insertion accuracies may be negative.
     ``word_kw`` is ``1 - keyword_errors / max(total_reference_words, 1)``.
     It divides by the whole normalized reference utterance, not just its
-    keyword words.
+    keyword words. ``keyword`` is ``1 - keyword_errors /
+    max(total_reference_keyword_words, 1)``.
     ``word_lang`` is one minus ordered language edit errors divided by
     ``max(total_reference_words, 1)``. ``word_fmt`` uses the same accuracy
     formula with one error per failed utterance-level format check.
@@ -376,6 +377,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "word_del": word_error.accuracy(sub=0.0, ins=0.0),
         "word_ins": word_error.accuracy(sub=0.0, **{"del": 0.0}),
         "word_kw": keyword_result["word_kw"],
+        "keyword": keyword_result["keyword"],
         **fmts,
         "lang": lang["acc"],
         "fmt": fmt,
@@ -500,6 +502,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
     ``extra_info["keywords"]`` divided by the total normalized reference word
     count, not the keyword count: ``1 - n_err / max(n_total, 1)``. No keywords
     means no keyword errors and a score of 1.0. Raw scores can be negative.
+    ``keyword`` instead divides by the number of normalized reference keyword
+    words: ``1 - n_err_kw / max(n_ref_kw, 1)``.
     ``lang`` uses the ordered language accuracy from :func:`check_lang`.
     ``word_lang`` is ``1 - language_edit_count / max(total_reference_words, 1)``.
     ``word_fmt`` uses the same accuracy formula with one error per failed

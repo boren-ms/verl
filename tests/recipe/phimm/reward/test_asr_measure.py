@@ -1009,8 +1009,10 @@ def test_compute_kw_score(reference, hypothesis, keywords, expected):
     result = compute_kw_score(reference, hypothesis, keywords)
 
     assert result["word_kw"] == pytest.approx(expected)
-    assert result["kw_acc"] == result["kw_nerr"] / max(result["kw_nref"], 1)
-    assert set(result) == {"word_kw", "kw_acc", "kw_nerr", "kw_nref"}
+    assert result["keyword"] == pytest.approx(
+        1.0 - result["kw_nerr"] / max(result["kw_nref"], 1)
+    )
+    assert set(result) == {"word_kw", "keyword", "kw_nerr", "kw_nref"}
 
 
 def test_compute_kw_score_reports_error_and_reference_counts():
@@ -1021,18 +1023,18 @@ def test_compute_kw_score_reports_error_and_reference_counts():
     )
 
     assert result["word_kw"] == pytest.approx(2 / 3)
-    assert result["kw_acc"] == 0.5
+    assert result["keyword"] == 0.5
     assert result["kw_nerr"] == 1
     assert result["kw_nref"] == 2
 
 
 def test_compute_kw_score_without_keywords_preserves_evaluation_counts():
     assert compute_kw_score("the quick brown fox", "the quick blue fox") == {
-        "word_kw": 1.0, "kw_acc": 0.0, "kw_nerr": 0, "kw_nref": 0,
+        "word_kw": 1.0, "keyword": 1.0, "kw_nerr": 0, "kw_nref": 0,
     }
 
 
-def test_parse_response_reports_keyword_accuracy():
+def test_parse_response_reports_keyword_rewards():
     result = _parse_response(
         "the quick blue fox",
         ground_truth="the quick brown fox",
@@ -1040,8 +1042,7 @@ def test_parse_response_reports_keyword_accuracy():
     )
 
     assert result["word_kw"] == 0.75
-    assert "keyword" not in result
-    assert "kw_err" not in result
+    assert result["keyword"] == 0.0
 
 
 @pytest.mark.parametrize(
@@ -1074,7 +1075,10 @@ def test_parse_response_keyword_uses_whole_utterance(reference, hypothesis, keyw
 
     assert result["word_kw"] == pytest.approx(expected)
     assert result["word_kw"] == keyword_result["word_kw"]
-    assert keyword_result["kw_acc"] == keyword_result["kw_nerr"] / max(keyword_result["kw_nref"], 1)
+    assert result["keyword"] == keyword_result["keyword"]
+    assert result["keyword"] == pytest.approx(
+        1.0 - keyword_result["kw_nerr"] / max(keyword_result["kw_nref"], 1)
+    )
 
 
 @pytest.mark.parametrize(
@@ -1096,7 +1100,7 @@ def test_keyword_evaluation_uses_kw_acc_not_word_kw(
         lambda hyp, ref: {"wer": 0.25, "n_err": 1, "n_ref": len(ref.split())},
     )
     result = asr_eval.openasr_en_eval(
-        f"<TXT>{hypothesis}</TXT>", reference,
+        hypothesis, reference,
         version=2609, extra_info={"keywords": keywords},
     )
 
@@ -1105,7 +1109,7 @@ def test_keyword_evaluation_uses_kw_acc_not_word_kw(
     )
     assert "word_kw" not in result
     assert result["kw_acc"] == pytest.approx(expected_kw_acc)
-    assert result["kw_acc"] == helper["kw_acc"]
+    assert result["kw_acc"] == helper["kw_nerr"] / max(helper["kw_nref"], 1)
     assert result["kw_acc"] == expected_counts[0] / max(expected_counts[1], 1)
     assert (result["nb_err"], result["nb_ref"]) == expected_counts
     assert result["score"] == 0.75
@@ -1134,6 +1138,19 @@ def test_compute_score_keyword_is_configurable_and_reports_greedy_delta():
     )
 
     assert result == {"score": 1.5, "word_kw": 0.75, "d_score": -0.5, "d_word_kw": -0.25}
+
+
+def test_compute_score_keyword_only_accepts_raw_2609_text():
+    result = compute_score(
+        "new state",
+        ground_truth="new york state",
+        version=2609,
+        text_norm="identity",
+        extra_info={"keywords": ["new york"]},
+        measures={"keyword": {"beta": 2.0}},
+    )
+
+    assert result == {"score": 1.0, "keyword": 0.5}
 
 
 def test_compute_score_omits_unconfigured_keyword():
