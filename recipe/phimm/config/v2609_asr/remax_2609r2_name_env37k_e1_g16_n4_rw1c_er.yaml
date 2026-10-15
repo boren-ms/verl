@@ -1,0 +1,58 @@
+# Train one shuffled name_env37k epoch (37,212 records) and validate on name_1k with verbatim language hints.
+# Sum signed negative char and word errors with beta 1.0, keyword error with beta 5.0, and language error with beta 0.1.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base
+  - /data/train_data/name_env37k@_name_train
+  - /data/val_data/name_1k@_name_val
+  - _self_
+
+reward_functions:
+  asr_measure:
+    path: recipe/phimm/reward/asr_measure_v0.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: sum}
+      measures:
+        char: {beta: 1.0}
+        word: {beta: 1.0}
+        word_kw: {beta: 5.0}
+        lang: {beta: 0.1}
+
+reward_function_by_data_source:
+  name_train: asr_measure
+
+val_reward:
+  reward_function_by_data_source:
+    name_val: openasr_en
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 256
+  actor:
+    optim:
+      lr: 3.0e-6
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+
+data:
+  data_source:
+    name_train: {num_epoch: 1, shuffle: true}
+  train_data:
+    - ${_name_train}
+  val_data:
+    - ${_name_val}
+  train_batch_size: 128
+  shuffle: true
+
+trainer:
+  nnodes: 2
+  total_epochs: 1
+  total_training_steps: null
