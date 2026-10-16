@@ -1,0 +1,15 @@
+# IndicVoices Hindi verbatim samples with cached WER in [0.001, 200].
+dataset_name: jsonl
+jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/verl/cached_qwen/v2611/2609r2/indic_voice_wer0001_200/data.jsonl
+num_proc: auto
+add_task_info:
+  task: lang_asr_verb
+  language: Hindi
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: indic_voice
+  verl_format:
+    prompt_key: prompt
