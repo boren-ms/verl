@@ -1,0 +1,34 @@
+# Train on cached IndicVoices Hindi samples with WER in [0.001, 200] for two epochs.
+# Validate only on OpenML Monsoon Hindi using language hints and lattice OIWER references.
+defaults:
+  - ../base@_here_
+  - /data/train_data/indian/indic_voice_wer0001_200@_indic_train
+  - /data/val_data/openasr_ml_hi_in_langhint@_hi_val
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim:
+      lr: 3.0e-6
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+
+data:
+  data_source:
+    indic_voice: {num_epoch: 1, shuffle: true}
+  train_data:
+    - ${_indic_train}
+  val_data:
+    - ${_hi_val}
+  train_batch_size: 128
+  shuffle: true
+
+trainer:
+  nnodes: 2
+  total_epochs: 2
+  total_training_steps: null

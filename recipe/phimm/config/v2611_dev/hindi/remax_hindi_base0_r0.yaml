@@ -4,7 +4,7 @@ hydra:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base0_2609r2_indic_voice_e2_bs128_n8_r320_g16_flr
+  - base0_2609r2_indic_full_e2_bs128_n8_r320_g16_flr
   - _self_
 
 reward_functions:
