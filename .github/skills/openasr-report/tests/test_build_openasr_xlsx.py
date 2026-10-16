@@ -26,6 +26,10 @@ SUPPLIED = {
     "it_fleurs": (1.30, 1.27), "it_mcv": (1.78, 1.85), "it_mls": (3.99, 4.10),
     "nl_fleurs": (3.88, 3.65), "nl_mcv": (1.64, 1.81), "nl_mls": (4.53, 3.99),
     "pt_fleurs": (3.10, 3.41), "pt_mls": (3.36, 3.27),
+    "earnings21": (7.9156, 7.0),
+    "earnings22": (10.1216, 11.0),
+    "coraal": (15.4380, 14.0),
+    "earnings22_cleaned_aa": (4.3131, 4.0),
 }
 
 
@@ -44,7 +48,7 @@ def test_baseline_and_full_report(report, tmp_path, monkeypatch):
     assert report.BASELINE_METRICS == pytest.approx(baseline)
     assert set(report.OPENASR_DATASETS) | {
         key for _, datasets in report.OPENASR_ML_GROUPS for key in datasets
-    } == set(SUPPLIED)
+    } | set(report.OPENLONG_DATASETS) == set(SUPPLIED)
     source = tmp_path / "candidate.json"
     source.write_text(json.dumps(candidate))
     output = tmp_path / "report.xlsx"
@@ -55,6 +59,8 @@ def test_baseline_and_full_report(report, tmp_path, monkeypatch):
     workbook = load_workbook(output)
     assert workbook.sheetnames == ["openasr", "model_info", "dataset_results"]
     sheet = workbook["openasr"]
+    assert sheet["A3"].value == "OpenEN"
+    assert sheet["A15"].value == "OpenML"
     seen = set()
     for row in sheet.iter_rows():
         name = row[0].value
@@ -74,6 +80,9 @@ def test_baseline_and_full_report(report, tmp_path, monkeypatch):
     ) / len(report.OPENASR_ML_GROUPS)
     assert sheet["C40"].value == pytest.approx(candidate_ml_mean)
     assert sheet["D40"].value == pytest.approx(1 - candidate_ml_mean / sheet["B40"].value)
+    assert sheet["B46"].value == pytest.approx(0.09447075)
+    assert sheet["C46"].value == pytest.approx(0.09)
+    assert sheet["D46"].value == pytest.approx(1 - 0.09 / 0.09447075)
     summaries = {
         "avg": "4.46%", "de avg": "2.11%", "es avg": "2.50%",
         "fr avg": "3.13%", "hi avg": "8.78%", "it avg": "2.36%",
@@ -152,7 +161,7 @@ def test_partial_coverage_deltas_use_matched_datasets(report, tmp_path):
     for row in (5, 10, 12, 13, 17):
         assert sheet.cell(row, 4).value is None
         assert sheet.cell(row, 4).comment is None
-    assert sheet.max_row == 40
+    assert sheet.max_row == 46
     assert all(cell.comment is None for row in sheet for cell in row)
     assert all(cell.value is None for cell in sheet[1])
     workbook.close()
@@ -288,9 +297,9 @@ def test_metadata_round_trip_and_extension(report, tmp_path, monkeypatch):
     assert results == {"first": first_results, "second": second_results}
     workbook = load_workbook(output)
     assert workbook.sheetnames == ["openasr", "model_info", "dataset_results"]
-    assert workbook["openasr"].max_row == 40
+    assert workbook["openasr"].max_row == 46
     assert workbook["model_info"].max_row == 4
-    assert workbook["dataset_results"].max_row == 82
+    assert workbook["dataset_results"].max_row == 94
     assert all(cell.comment is None for sheet in workbook for row in sheet for cell in row)
     workbook.close()
 
@@ -314,3 +323,116 @@ def test_unknown_metadata_is_rejected(report, tmp_path):
     with pytest.raises(ValueError, match="unknown dataset result names"):
         report.build_workbook([("candidate", {})], tmp_path / "bad.xlsx",
                               dataset_results={"candidate": {"wrong_dataset": "/some/result.jsonl"}})
+
+
+def test_openlong_logs_metadata_and_extension(report, tmp_path, monkeypatch):
+    baseline = {ds: report.BASELINE_METRICS[ds] for ds in report.OPENLONG_DATASETS}
+    candidate = {ds: value / 2 for ds, value in baseline.items()}
+    logs = tmp_path / "eval.log"
+    logs.write_text("\n".join(
+        f"val-aux/{ds}/p_err/mean@1:{value}" for ds, value in candidate.items()
+    ))
+    results = {
+        ds: f"az://account/container/candidate/val_data_gen/{ds}/0.jsonl"
+        for ds in candidate
+    }
+    result_file = tmp_path / "results.json"
+    result_file.write_text(json.dumps(results))
+    prior = tmp_path / "openlong.xlsx"
+    monkeypatch.setattr(sys, "argv", [
+        str(SCRIPT), "candidate", "--from-text", str(logs),
+        "--dataset-results", str(result_file), "--out", str(prior),
+    ])
+    assert report.main() == 0
+    assert report.read_existing_metadata(prior)[1] == {"candidate": results}
+    assert report.read_existing_xlsx(prior)[1] == ("candidate", candidate)
+    output = tmp_path / "extended.xlsx"
+    monkeypatch.setattr(sys, "argv", [
+        str(SCRIPT), "next", "--from-text", str(logs),
+        "--extend-xlsx", str(prior), "--out", str(output),
+    ])
+    assert report.main() == 0
+    assert report.read_existing_metadata(output)[1] == {"candidate": results}
+    workbook = load_workbook(output)
+    sheet = workbook["openasr"]
+    assert sheet["A41"].value == "OpenLong"
+    assert sheet["A46"].value == "openlong avg"
+    assert sheet["B46"].value == pytest.approx(sum(baseline.values()) / 4)
+    for row in range(42, 46):
+        assert sheet.cell(row, 5).value == f"=1-C{row}/B{row}"
+        assert sheet.cell(row, 6).value == f"=1-D{row}/B{row}"
+    for column in range(2, 7):
+        cell = sheet.cell(46, column)
+        assert cell.number_format == "0.00%"
+        assert cell.alignment.horizontal == "center"
+        assert cell.fill == report.OVERALL_AVG_FILL
+    assert sheet["E46"].value == pytest.approx(0.5)
+    assert sheet["F46"].value == pytest.approx(0.5)
+    assert sheet["C14"].value is None
+    assert sheet["C40"].value is None
+    for key in sheet.conditional_formatting:
+        assert str(key.sqref).endswith("46")
+        assert sheet.conditional_formatting[key][0].colorScale.cfvo[1].val == 0
+    workbook.close()
+
+
+@pytest.mark.parametrize("candidate, expected_werr", [
+    ({"earnings21": 0.05}, 0.5),
+    ({"earnings21": 0.20}, -1.0),
+    ({"earnings21": 0.0}, 1.0),
+    ({"coraal": 0.05}, None),
+])
+def test_openlong_partial_coverage_and_zero_baseline(report, tmp_path, candidate, expected_werr):
+    output = tmp_path / "partial.xlsx"
+    report.build_workbook([
+        ("baseline", {"earnings21": 0.10, "earnings22": 0.30, "coraal": 0.0}),
+        ("candidate", candidate),
+    ], output)
+    workbook = load_workbook(output)
+    sheet = workbook["openasr"]
+    assert sheet["B46"].value == pytest.approx(0.40 / 3)
+    assert sheet["C46"].value == pytest.approx(next(iter(candidate.values())))
+    if expected_werr is None:
+        assert sheet["D46"].value is None
+    else:
+        assert sheet["D46"].value == pytest.approx(expected_werr)
+        assert sheet["D42"].value == "=1-C42/B42"
+    assert sheet["D43"].value is None
+    assert sheet["D44"].value is None
+    assert sheet["D45"].value is None
+    workbook.close()
+
+
+def test_extend_pre_openlong_report_preserves_existing_values(report, tmp_path, monkeypatch):
+    prior = tmp_path / "legacy.xlsx"
+    columns = [("baseline", {"ami_clean": 0.1}), ("first", {"ami_clean": 0.05})]
+    report.build_workbook(columns, prior)
+    workbook = load_workbook(prior)
+    workbook["openasr"].delete_rows(41, 6)
+    workbook.save(prior)
+    workbook.close()
+    assert report.read_existing_xlsx(prior) == columns
+    metrics = tmp_path / "metrics.json"
+    metrics.write_text(json.dumps({"earnings21": 0.05}))
+    output = tmp_path / "extended.xlsx"
+    monkeypatch.setattr(sys, "argv", [
+        str(SCRIPT), "long", "--metrics", str(metrics),
+        "--extend-xlsx", str(prior), "--out", str(output),
+    ])
+    assert report.main() == 0
+    assert report.read_existing_xlsx(output) == columns + [("long", {"earnings21": 0.05})]
+    workbook = load_workbook(output)
+    assert workbook["openasr"]["B42"].value is None
+    assert workbook["openasr"]["F42"].value is None
+    workbook.close()
+
+
+def test_rejects_mismatched_openlong_layout(report, tmp_path):
+    output = tmp_path / "bad.xlsx"
+    report.build_workbook([("baseline", report.BASELINE_METRICS)], output)
+    workbook = load_workbook(output)
+    workbook["openasr"]["A45"] = "earnings22-cleaned-aa-chunked"
+    workbook.save(output)
+    workbook.close()
+    with pytest.raises(ValueError, match="incompatible dataset layout at row 45"):
+        report.read_existing_xlsx(output)

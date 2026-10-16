@@ -3,12 +3,15 @@
 
 Metrics layout (`openasr` sheet):
   Row 2  : Header | Baseline | <model-label-1> | <model-label-2> | ... | WERR(s)
-  Row 3  : Column | A        | B               | C               | ... | A->B, A->C, ...
+  Row 3  : OpenEN | A        | B               | C               | ... | A->B, A->C, ...
   Row 4-13 : OpenASR datasets (ami_clean..urgent2024_clean)
   Row 14 : avg (numeric dataset mean)
-  Row 15 : Column row repeated for the ML section
+  Row 15 : OpenML column header
   Row 16-39 : ML datasets with per-language avg rows mixed in
   Row 40 : ml avg (numeric mean of available language means)
+  Row 41 : OpenLong column header
+  Row 42-45 : grouped OpenLong datasets (earnings21..earnings22_cleaned_aa)
+  Row 46 : openlong avg (numeric dataset mean, separate from English/ML)
   Column(s) after the last model column: WERR = 1 - <model>/Baseline for each model column.
 Additional sheets: `model_info` and `dataset_results`.
 """
@@ -50,6 +53,13 @@ OPENASR_DATASETS: List[str] = [
     "voxpopuli-cleaned-aa",
     "urgent2024",
     "urgent2024_clean",
+]
+
+OPENLONG_DATASETS: List[str] = [
+    "earnings21",
+    "earnings22",
+    "coraal",
+    "earnings22_cleaned_aa",
 ]
 
 # Ordered: list of (language_code, [datasets in that language]).
@@ -95,6 +105,11 @@ BASELINE_METRICS: Dict[str, float] = {
     "nl_mls": 0.0453,
     "pt_fleurs": 0.0310,
     "pt_mls": 0.0336,
+    # Grouped OpenLong, verbatim + known-language prompts (2026-10-16).
+    "earnings21": 0.079156,
+    "earnings22": 0.101216,
+    "coraal": 0.154380,
+    "earnings22_cleaned_aa": 0.043131,
 }
 
 WER_LINE_RE = re.compile(
@@ -160,6 +175,9 @@ OPENASR_AVG = OPENASR_END + 1  # 14
 
 ML_HEADER = OPENASR_AVG + 1  # 15
 ML_START = ML_HEADER + 1  # 16
+OPENLONG_HEADER = ML_START + sum(len(datasets) + 1 for _, datasets in OPENASR_ML_GROUPS) + 1
+OPENLONG_START = OPENLONG_HEADER + 1
+OPENLONG_AVG = OPENLONG_START + len(OPENLONG_DATASETS)
 
 MODEL_INFO_FIELDS = [
     ("model_path", "Model path"),
@@ -188,7 +206,7 @@ def _write_metadata_sheets(wb, columns, model_info, dataset_results) -> None:
     results_sheet = wb.create_sheet("dataset_results")
     info_sheet.append(MODEL_INFO_HEADER)
     results_sheet.append(DATASET_RESULTS_HEADER)
-    datasets = OPENASR_DATASETS + [ds for _, group in OPENASR_ML_GROUPS for ds in group]
+    datasets = OPENASR_DATASETS + [ds for _, group in OPENASR_ML_GROUPS for ds in group] + OPENLONG_DATASETS
     for label, _ in columns:
         info = model_info.get(label, {})
         unknown = set(info) - {key for key, _ in MODEL_INFO_FIELDS}
@@ -319,7 +337,7 @@ def build_workbook(
         ws.cell(row=2, column=werr_cols[j], value="WERR").font = bold
 
     # Column row 3
-    ws.cell(row=3, column=1, value="Column").font = bold
+    ws.cell(row=3, column=1, value="OpenEN").font = bold
     for i, mc in enumerate(model_cols):
         ws.cell(row=3, column=mc, value=chr(ord("A") + i)).font = bold
     for j, wc in enumerate(werr_cols):
@@ -348,7 +366,7 @@ def build_workbook(
         _write_average_werr(ws.cell(r, wc), [OPENASR_DATASETS], columns[0][1], columns[1 + j][1])
 
     # ML header row 15
-    ws.cell(row=ML_HEADER, column=1, value="Column").font = bold
+    ws.cell(row=ML_HEADER, column=1, value="OpenML").font = bold
     for i, mc in enumerate(model_cols):
         ws.cell(row=ML_HEADER, column=mc, value=chr(ord("A") + i)).font = bold
     for j, wc in enumerate(werr_cols):
@@ -400,19 +418,43 @@ def build_workbook(
     for j, wc in enumerate(werr_cols):
         _write_average_werr(ws.cell(r, wc), ml_groups, columns[0][1], columns[1 + j][1])
 
+    ws.cell(row=OPENLONG_HEADER, column=1, value="OpenLong").font = bold
+    for c in model_cols + werr_cols:
+        ws.cell(row=OPENLONG_HEADER, column=c, value=ws.cell(row=3, column=c).value).font = bold
+    for r, ds in enumerate(OPENLONG_DATASETS, start=OPENLONG_START):
+        ws.cell(row=r, column=1, value=ds)
+        for i, (_, metrics) in enumerate(columns):
+            if ds in metrics:
+                ws.cell(row=r, column=model_cols[i], value=float(metrics[ds]))
+        for j, wc in enumerate(werr_cols):
+            _write_dataset_werr(ws, r, wc, model_cols[0], model_cols[1 + j])
+    ws.cell(row=OPENLONG_AVG, column=1, value="openlong avg").font = bold
+    for i, (_, metrics) in enumerate(columns):
+        avg = _mean_error(metrics, [OPENLONG_DATASETS])
+        if avg is not None:
+            ws.cell(row=OPENLONG_AVG, column=model_cols[i], value=avg).font = bold
+    for j, wc in enumerate(werr_cols):
+        _write_average_werr(
+            ws.cell(OPENLONG_AVG, wc), [OPENLONG_DATASETS], columns[0][1], columns[1 + j][1]
+        )
+
     # Cell formatting: percentages for numeric data, column widths.
     pct_fmt = "0.00%"
-    for r in list(range(OPENASR_START, OPENASR_AVG + 1)) + list(range(ML_START, ml_avg_row + 1)):
+    for r in (
+        list(range(OPENASR_START, OPENASR_AVG + 1))
+        + list(range(ML_START, ml_avg_row + 1))
+        + list(range(OPENLONG_START, OPENLONG_AVG + 1))
+    ):
         for mc in model_cols + werr_cols:
             ws.cell(row=r, column=mc).number_format = pct_fmt
 
     # Row highlights.
     all_cols = [1] + model_cols + werr_cols
-    header_rows = [2, 3, ML_HEADER]
+    header_rows = [2, 3, ML_HEADER, OPENLONG_HEADER]
     lang_avg_rows = [
         ML_START + offset for offset, (kind, _) in enumerate(layout) if kind == "lang_avg"
     ]
-    overall_avg_rows = [OPENASR_AVG, ml_avg_row]
+    overall_avg_rows = [OPENASR_AVG, ml_avg_row, OPENLONG_AVG]
     for r in header_rows:
         for c in all_cols:
             ws.cell(row=r, column=c).fill = HEADER_FILL
@@ -429,7 +471,7 @@ def build_workbook(
 
     # Center-align every cell except column A across the whole used range.
     center = Alignment(horizontal="center", vertical="center")
-    for r in range(2, ml_avg_row + 1):
+    for r in range(2, OPENLONG_AVG + 1):
         for c in model_cols + werr_cols:
             ws.cell(row=r, column=c).alignment = center
 
@@ -437,7 +479,7 @@ def build_workbook(
     # white at 0, green for positive (WER reduction). Midpoint fixed at 0.
     for wc in werr_cols:
         col_letter = get_column_letter(wc)
-        rng = f"{col_letter}{OPENASR_START}:{col_letter}{ml_avg_row}"
+        rng = f"{col_letter}{OPENASR_START}:{col_letter}{OPENLONG_AVG}"
         rule = ColorScaleRule(
             start_type="num", start_value=-1, start_color="FFF8696B",  # red
             mid_type="num", mid_value=0, mid_color="FFFFFFFF",          # white
@@ -496,6 +538,11 @@ def read_existing_xlsx(path: Path) -> List[Tuple[str, Dict[str, float]]]:
     for offset, (kind, label) in enumerate(layout):
         if kind == "data":
             rows.append((ML_START + offset, label))
+    # Reports created before OpenLong support end at the ML average.
+    if ws.max_row > ml_avg_row:
+        if ws.cell(OPENLONG_HEADER, 1).value != "OpenLong":
+            raise ValueError(f"{path}: incompatible OpenLong section header; rebuild with the current schema.")
+        rows.extend(enumerate(OPENLONG_DATASETS, start=OPENLONG_START))
     for r, ds in rows:
         if ws.cell(row=r, column=1).value != ds:
             raise ValueError(
@@ -507,6 +554,7 @@ def read_existing_xlsx(path: Path) -> List[Tuple[str, Dict[str, float]]]:
             if isinstance(v, (int, float)):
                 metrics_per_col[i][ds] = float(v)
 
+    wb.close()
     return [(label, m) for label, m in zip(labels, metrics_per_col)]
 
 

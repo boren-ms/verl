@@ -485,6 +485,34 @@ separately without inserting extra canonical rows.
 
 ## 6. Build and verify the OpenASR report
 
+### OpenLong baseline override
+
+For an explicitly requested evaluation using
+[openlong_seg_verb_langhint_zip.yaml](../../../recipe/phimm/config/data/val_data/openlong_seg_verb_langhint_zip.yaml),
+use these user-supplied grouped long-audio `p_err` baselines (2026-10-16):
+
+| Dataset | Exact `data_source` | Baseline `p_err` | Fraction |
+| --- | --- | --- | --- |
+| Earnings21 | `earnings21` | 7.9156% | 0.079156 |
+| Earnings22 | `earnings22` | 10.1216% | 0.101216 |
+| CORAAL | `coraal` | 15.4380% | 0.154380 |
+| Earnings22-Cleaned-AA | `earnings22_cleaned_aa` | 4.3131% | 0.043131 |
+
+Compare matching candidate `val-aux/<data_source>/p_err/mean@1` fractions
+using `WERR = 1 - candidate / baseline`. Keep these values scoped to this
+verbatim, known-language, grouped OpenLong configuration; do not substitute
+them for unsegmented, differently prompted, or short-audio baselines.
+In particular, `earnings22_cleaned_aa` is not the short-audio
+`earnings22-cleaned-aa-chunked` dataset. Include these exact source keys in
+`metrics.json` and `dataset_results.json` when evaluated. The OpenASR workbook
+builder includes all four in its separate OpenLong section, with per-dataset
+WERR and an `openlong avg` row averaging all four datasets (available datasets
+only for partial coverage). Verify the average's matched-coverage WERR and
+exact result paths; never insert OpenLong into the English/ML averages.
+Updating baseline guidance alone does not authorize launching remote jobs.
+
+### Canonical OpenASR report
+
 Invoke `openasr-report` and use its supplied `2609r2` baseline, canonical
 layout and builder. Do not substitute a new baseline evaluation or copy
 candidate metrics from baseline values.

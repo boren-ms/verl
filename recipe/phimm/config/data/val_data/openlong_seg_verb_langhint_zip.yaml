@@ -3,6 +3,12 @@
 # Audio fields use Bitbank audio.zip!offset:length#start:end references.
 # Full parent references and grouping metadata are unchanged; val_batch_size=-1
 # keeps each corpus's parent groups complete for grouped long-audio scoring.
+# User-supplied OpenLong baseline p_err (2026-10-16), keyed by data_source:
+#   earnings21: 7.9156% (0.079156)
+#   earnings22: 10.1216% (0.101216)
+#   coraal: 15.4380% (0.154380)
+#   earnings22_cleaned_aa: 4.3131% (0.043131)
+# These grouped long-audio baselines are distinct from short-audio OpenASR.
 
 - dataset_name: jsonl
   val_batch_size: -1

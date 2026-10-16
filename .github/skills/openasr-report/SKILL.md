@@ -6,7 +6,7 @@ argument-hint: '<model-label> [--from-ray <node> <job-id> [<job-id> ...]] | [--f
 
 # OpenASR Comparison Report (xlsx)
 
-Generate an Excel report (`.xlsx`) that compares a new model column against the `2609r2` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, URGENT2024 noisy/clean, and Dutch.
+Generate an Excel report (`.xlsx`) that compares a new model column against the `2609r2` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, URGENT2024 noisy/clean, Dutch, and a separate grouped OpenLong section.
 
 ## When to Use
 
@@ -19,10 +19,10 @@ Generate an Excel report (`.xlsx`) that compares a new model column against the 
 Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metrics layout remains:
 
 - **Row 2** `Header`: `<baseline-label>`, `<model-label-1>`, `<model-label-2>`, ..., `WERR` (one WERR header per non-baseline model column).
-- **Row 3** `Column`: `A`, `B`, `C`, ..., `A->B`, `A->C`, ...
+- **Row 3** `OpenEN`: `A`, `B`, `C`, ..., `A->B`, `A->C`, ...
 - **Rows 4–13**: OpenASR datasets — `ami_clean`, `earnings22-cleaned-aa-chunked`, `gigaspeech_clean`, `librispeech-clean`, `librispeech-other`, `monsoon_en_in`, `spgispeech`, `voxpopuli-cleaned-aa`, `urgent2024`, `urgent2024_clean`.
 - **Row 14** `avg`: numeric mean across the 10 OpenASR datasets per column.
-- **Row 15**: repeated `Column` header for the ML section.
+- **Row 15** `OpenML`: repeated column identifiers for the ML section.
 - **Rows 16–39**: ML datasets grouped by language with per-language `<lang> avg` rows interleaved:
   - de: `de_fleurs`, `de_mcv`
   - es: `es_fleurs`, `es_mcv`, `es_mls`
@@ -32,13 +32,16 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
   - nl: `nl_fleurs`, `nl_mcv`, `nl_mls`
   - pt: `pt_fleurs`, `pt_mls`
 - **Row 40** `ml avg`: numeric unweighted mean of the seven unrounded language means per column. With partial coverage, include only languages with available datasets.
+- **Row 41** `OpenLong`: repeated column identifiers for the long-audio section.
+- **Rows 42–45**: `earnings21`, `earnings22`, `coraal`, `earnings22_cleaned_aa`.
+- **Row 46** `openlong avg`: numeric unweighted mean across all four OpenLong datasets per column. With partial coverage, average only available datasets; never fill missing candidate metrics from the baseline. Its numeric WERR uses matched dataset coverage, independently of the English and ML averages.
 - **WERR columns**: compute `1 - model / baseline` for every available pair with a positive baseline. Per-dataset cells use Excel formulas; average rows store numeric WERR. Positive values mean improvement; negative values mean regression. Do not remove deltas because baseline checkpoint/scoring provenance is incomplete.
 
 Formatting:
 - All data columns (everything except column A) center-aligned.
-- Header / `Column` rows: light blue.
+- Header / section header rows (`OpenEN`, `OpenML`, `OpenLong`): light blue.
 - Per-language `<lang> avg` rows: light yellow.
-- `avg` and `ml avg` rows: light green.
+- `avg`, `ml avg`, and `openlong avg` rows: light green.
 - WERR columns carry a 3-color scale rule (red ← 0 → green) with midpoint fixed at 0.
 - Numeric cells formatted as `0.00%`.
 - Keep `openasr` limited to the canonical table. Do not add notes, disclaimers, cell comments, coverage banners, or footers. Put the requested structured model information and result paths in the two metadata sheets instead.
@@ -57,7 +60,7 @@ Formatting:
    - **Ray job(s)**: `--from-ray <node> <job-id>`. Repeat for separate openasr / openasr_ml jobs. The script runs `brix ssh <node> -- ray job logs <id>` and parses `val-aux/<dataset>/p_err/mean@1:<float>`.
    - **Text dump**: `--from-text <path>` containing lines like `val-aux/ami_clean/p_err/mean@1:0.0705`.
    - **JSON**: `--metrics <path>` with `{"ami_clean": 0.0705, ...}` (fractions, not percent). ML names in either order (`fleurs_de` / `de_fleurs`) are accepted for logs and JSON, including baseline overrides.
-3. Optionally pass `--extend-xlsx <prior.xlsx>` to append the new model as the next column after the existing baseline/model columns. Older dataset layouts are rejected rather than misreading rows; rebuild them from matching metrics. Do not alias uncleaned English datasets to cleaned versions.
+3. Optionally pass `--extend-xlsx <prior.xlsx>` to append the new model as the next column after the existing baseline/model columns. Reports with the current English/ML layout but no OpenLong section can be extended: new OpenLong rows are added while existing baseline/model values remain unchanged, including missing OpenLong baselines. Rebuild from original candidate metrics to adopt the new baseline defaults. Other incompatible dataset layouts are rejected rather than misreading rows. Do not alias uncleaned English datasets to cleaned versions.
    Collect the new model's metadata and pass `--model-info <model.json>` and `--dataset-results <results.json>`:
    ```json
    {
@@ -161,6 +164,21 @@ appropriate baseline, override with `--baseline <json>` and
 | pt_mls | 3.36% |
 | pt avg | 3.23% |
 | ml avg | 3.64% |
+| earnings21 | 7.9156% |
+| earnings22 | 10.1216% |
+| coraal | 15.4380% |
+| earnings22_cleaned_aa | 4.3131% |
+| openlong avg | 9.447075% |
+
+The four OpenLong baselines were supplied on 2026-10-16 for
+[openlong_seg_verb_langhint_zip.yaml](../../../recipe/phimm/config/data/val_data/openlong_seg_verb_langhint_zip.yaml).
+Use the exact `data_source` keys above in metrics and dataset-result JSONs;
+logs already use these keys. These are grouped long-audio scores with verbatim
+and known-language prompts, not short-audio or differently prompted scores.
+In particular, `earnings22_cleaned_aa` must not alias to
+`earnings22-cleaned-aa-chunked`. Include all four rows and their exact supplied
+result paths in `dataset_results`; unavailable paths and metrics remain blank.
+OpenLong does not contribute to the English or ML averages.
 
 Recompute averages from the dataset values with full precision, displaying
 two decimal places. English averages the ten datasets (`4.457%`).
