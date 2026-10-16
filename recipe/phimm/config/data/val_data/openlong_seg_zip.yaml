@@ -1,6 +1,9 @@
 # ZIP-backed counterpart of openlong_seg.yaml; no VAD runs at evaluation time.
 # Preserve full parent references and grouping metadata for grouped scoring.
 # val_batch_size=-1 keeps each corpus's parent groups in one validation batch.
+# Audio fields must contain Bitbank byte ranges, not standalone audio paths:
+#   az://.../audio.zip!<byte-offset>:<byte-length>#<seg-start>:<seg-end>
+# Renaming a manifest to *_zip.jsonl does not convert its audio references.
 #
 # PREREQUISITE: prepare the segmented manifests documented in openlong_seg.yaml,
 # then pack EACH concrete manifest (expand shard globs before running):

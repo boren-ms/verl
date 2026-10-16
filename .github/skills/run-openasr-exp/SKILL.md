@@ -57,6 +57,15 @@ do not substitute legacy project names or infer node count from the pool name.
 When the user only requests creating or editing this skill, modify the skill
 without stopping, submitting, or scheduling remote jobs.
 
+## ZIP manifest verification
+
+A `_zip.yaml` or `_zip.jsonl` name alone does not make audio ZIP-backed: inspect
+real manifest rows for Bitbank `audio.zip!byte_offset:byte_length` references,
+with any `#start:end` segment selector preserved. Use
+`python -m scripts.pack_audio_zip` to publish actual ZIP_STORED archives and
+replacement manifests (`--audio-field url` for AA manifests), then verify a
+byte-range read and unchanged parent/grouping metadata before claiming readiness.
+
 ## Required skill handoffs
 
 1. **Training launch only:** invoke `/verl-asr-run` with the supplied training config YAML and requested
