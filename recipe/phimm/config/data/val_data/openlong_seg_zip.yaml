@@ -1,0 +1,77 @@
+# ZIP-backed counterpart of openlong_seg.yaml; no VAD runs at evaluation time.
+# Preserve full parent references and grouping metadata for grouped scoring.
+# val_batch_size=-1 keeps each corpus's parent groups in one validation batch.
+#
+# PREREQUISITE: prepare the segmented manifests documented in openlong_seg.yaml,
+# then pack EACH concrete manifest (expand shard globs before running):
+#   python -m scripts.pack_audio_zip <segmented-data.jsonl> \
+#     --zip-path <same-directory>/audio.zip \
+#     --output-jsonl <segmented-data-stem>_zip.jsonl
+# Use --audio-field url for Earnings22-Cleaned-AA (audio_path for the others).
+# Packing preserves segment selectors, parent_audio_path, and all other metadata.
+# The ZIP archives and replacement manifests must be published before evaluation.
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/earnings21/test-*/data_zip.jsonl
+  cache_name: auto_openlong_earnings21_seg_zip
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings21
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/earnings22/test-*/data_zip.jsonl
+  cache_name: auto_openlong_earnings22_seg_zip
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/*/test-*/data_zip.jsonl
+  cache_name: auto_openlong_coraal_seg_zip
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1_zip.jsonl
+  cache_name: auto_openlong_earnings22_cleaned_aa_seg_zip
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
