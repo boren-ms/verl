@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Randomly augment speech audio with noise injection and speed perturbation.
+"""Randomly augment speech audio with reverberation, noise, and speed perturbation.
 
 Each run writes augmented WAVs under OUTPUT_DIR/audio/ and example metadata to
 OUTPUT_DIR/data.jsonl. The JSONL uses audio_path to point at each generated WAV.
@@ -36,6 +36,16 @@ Examples:
         --speed_max 2 \
         --speed_prob 1 \
         --max_examples 20
+
+    # URGENT-like acoustic simulation (no speed change).
+    python scripts/augment_audio.py \
+        --input_manifest /path/to/clean.jsonl \
+        --noise_dir /path/to/noise \
+        --rir_dir /path/to/rir_only_wavs \
+        --snr_min -5 --snr_max 20 --speed_prob 0 \
+        --output_dir /tmp/noisy_reverberant
+
+See docs/audio_simulation.md for RIR sources and simulation conventions.
 """
 
 import argparse
@@ -50,6 +60,7 @@ from pathlib import Path
 import blobfile as bf
 import numpy as np
 import soundfile as sf
+from scipy.signal import fftconvolve, resample_poly
 
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
@@ -85,7 +96,10 @@ def write_audio(path: str, audio: np.ndarray, sample_rate: int) -> None:
 
 def collect_audio_paths(audio_dir: str, recursive: bool = True) -> list[str]:
     if is_blob_path(audio_dir):
-        patterns = [f"{audio_dir.rstrip('/')}/**/*{ext}" if recursive else f"{audio_dir.rstrip('/')}/*{ext}" for ext in AUDIO_EXTENSIONS]
+        patterns = [
+            f"{audio_dir.rstrip('/')}/**/*{ext}" if recursive else f"{audio_dir.rstrip('/')}/*{ext}"
+            for ext in AUDIO_EXTENSIONS
+        ]
         paths = []
         for pattern in patterns:
             paths.extend(bf.glob(pattern))
@@ -105,11 +119,13 @@ def read_manifest_audio_paths(manifest_path: str, audio_base: str | None = None)
                 continue
             row = json.loads(line)
             audio_path = row.get("audio_path") or row.get("audio_file") or row.get("audio")
-            if not audio_path:
-                continue
+            if not isinstance(audio_path, str) or not audio_path:
+                raise ValueError(
+                    f"{manifest_path}:{line_idx + 1}: expected a nonempty audio_path/audio_file/audio string"
+                )
             if audio_base and not is_blob_path(audio_path) and not os.path.isabs(audio_path):
                 audio_path = f"{audio_base.rstrip('/')}/{audio_path}"
-            records.append({"id": row.get("id", line_idx), "audio_path": audio_path, "text": row.get("text")})
+            records.append({**row, "id": row.get("id", line_idx), "audio_path": audio_path})
     return records
 
 
@@ -143,10 +159,47 @@ def speed_perturb(audio: np.ndarray, speed_factor: float) -> np.ndarray:
 
 
 def resample_to_sample_rate(audio: np.ndarray, source_sample_rate: int, target_sample_rate: int) -> np.ndarray:
+    if source_sample_rate <= 0 or target_sample_rate <= 0:
+        raise ValueError("Sample rates must be positive")
     if source_sample_rate == target_sample_rate:
         return audio
-    output_len = max(1, int(round(len(audio) * target_sample_rate / source_sample_rate)))
-    return linear_resample(audio, output_len)
+    divisor = math.gcd(source_sample_rate, target_sample_rate)
+    return resample_poly(audio, target_sample_rate // divisor, source_sample_rate // divisor, axis=0)
+
+
+def validate_signal(audio: np.ndarray, name: str) -> float:
+    if audio.ndim not in (1, 2) or audio.size == 0 or not np.all(np.isfinite(audio)):
+        raise ValueError(f"{name} must be nonempty, finite mono or multichannel audio")
+    power = float(np.mean(np.square(audio, dtype=np.float64)))
+    if not math.isfinite(power) or power <= 0:
+        raise ValueError(f"{name} must have finite, positive power (not silence)")
+    return power
+
+
+def reverberate_audio(
+    audio: np.ndarray,
+    rir: np.ndarray,
+    sample_rate: int,
+    rir_sample_rate: int,
+    rng: random.Random,
+) -> tuple[np.ndarray, dict]:
+    """Convolve with one RIR channel, align its peak, and retain the input length."""
+    audio_power = validate_signal(audio, "Speech")
+    validate_signal(rir, "RIR")
+    channel = rng.randrange(rir.shape[1]) if rir.ndim == 2 else 0
+    impulse = rir[:, channel] if rir.ndim == 2 else rir
+    impulse = resample_to_sample_rate(impulse.astype(np.float64), rir_sample_rate, sample_rate)
+    validate_signal(impulse, "Selected RIR channel")
+    impulse /= np.linalg.norm(impulse)
+    delay = int(np.argmax(np.abs(impulse)))
+    kernel = impulse if audio.ndim == 1 else impulse[:, None]
+    reverberant = fftconvolve(audio, kernel, mode="full", axes=0)[delay : delay + len(audio)]
+    gain = math.sqrt(audio_power / validate_signal(reverberant, "Reverberant speech"))
+    return (reverberant * gain).astype(np.float32), {
+        "rir_channel": channel,
+        "rir_peak_delay_samples": delay,
+        "rir_rms_gain": gain,
+    }
 
 
 def match_channels(noise: np.ndarray, target_ndim: int, target_channels: int | None = None) -> np.ndarray:
@@ -178,15 +231,20 @@ def crop_or_tile(noise: np.ndarray, target_len: int, rng: random.Random) -> np.n
 
 def mix_noise_at_snr(clean: np.ndarray, noise: np.ndarray, snr_db: float, rng: random.Random) -> np.ndarray:
     """Inject noise into clean audio at the requested SNR in dB."""
+    clean_power = validate_signal(clean, "Speech")
+    validate_signal(noise, "Noise")
+    if not math.isfinite(snr_db):
+        raise ValueError("SNR must be finite")
     noise = match_channels(noise, clean.ndim, clean.shape[1] if clean.ndim == 2 else None)
     noise = crop_or_tile(noise, len(clean), rng)
 
-    clean_power = float(np.mean(np.square(clean)))
-    noise_power = float(np.mean(np.square(noise)))
-    if clean_power <= 0.0 or noise_power <= 0.0:
-        return clean.copy()
-
-    noise_scale = math.sqrt(clean_power / (noise_power * (10.0 ** (snr_db / 10.0))))
+    noise_power = validate_signal(noise, "Selected noise segment")
+    try:
+        noise_scale = math.sqrt(clean_power / noise_power) * math.exp(-snr_db * math.log(10) / 20)
+    except OverflowError as exc:
+        raise ValueError("SNR produces an unrepresentable noise scale") from exc
+    if not math.isfinite(noise_scale) or noise_scale <= 0:
+        raise ValueError("SNR produces an unrepresentable noise scale")
     return clean + noise * noise_scale
 
 
@@ -206,19 +264,29 @@ def augment_audio(
     speed_range: tuple[float, float] = (0.9, 1.1),
     noise_prob: float = 1.0,
     speed_prob: float = 1.0,
+    rir_paths: list[str] | None = None,
+    rir_prob: float = 1.0,
 ) -> tuple[np.ndarray, dict]:
-    """Apply random speed perturbation and optional random noise injection."""
+    """Apply speed perturbation, then reverberation, then additive noise."""
     metadata = {
         "snr_db": None,
         "noise_path": None,
         "speed_factor": 1.0,
+        "rir_path": None,
     }
 
     augmented = np.asarray(audio, dtype=np.float32)
+    validate_signal(augmented, "Speech")
     if rng.random() < speed_prob:
         speed_factor = rng.uniform(*speed_range)
         augmented = speed_perturb(augmented, speed_factor)
         metadata["speed_factor"] = speed_factor
+
+    if rir_paths and rng.random() < rir_prob:
+        rir_path = rng.choice(rir_paths)
+        rir, rir_sample_rate = read_audio(rir_path)
+        augmented, rir_metadata = reverberate_audio(augmented, rir, sample_rate, rir_sample_rate, rng)
+        metadata.update({"rir_path": rir_path, **rir_metadata})
 
     if noise_paths and rng.random() < noise_prob:
         noise_path = rng.choice(noise_paths)
@@ -267,7 +335,9 @@ def build_input_records(args: argparse.Namespace) -> list[dict]:
     if args.input_manifest:
         records = read_manifest_audio_paths(args.input_manifest, args.manifest_audio_base)
     elif args.input_dir:
-        records = [{"id": Path(path).stem, "audio_path": path, "text": None} for path in collect_audio_paths(args.input_dir)]
+        records = [
+            {"id": Path(path).stem, "audio_path": path, "text": None} for path in collect_audio_paths(args.input_dir)
+        ]
     else:
         raise ValueError("Provide one of --input_dir, --input_manifest, or --openasr_librispeech")
 
@@ -292,6 +362,9 @@ def run(args: argparse.Namespace) -> None:
     noise_paths = collect_audio_paths(args.noise_dir) if args.noise_dir else []
     if args.noise_prob > 0.0 and not noise_paths:
         raise ValueError("--noise_dir must contain at least one .wav/.flac file when --noise_prob > 0")
+    rir_paths = collect_audio_paths(args.rir_dir) if args.rir_dir else []
+    if args.rir_dir and args.rir_prob > 0 and not rir_paths:
+        raise ValueError("--rir_dir must contain at least one .wav/.flac RIR when --rir_prob > 0")
 
     records = build_input_records(args)
     if not records:
@@ -300,7 +373,7 @@ def run(args: argparse.Namespace) -> None:
     data_jsonl_path = f"{args.output_dir.rstrip('/')}/data.jsonl"
     with bf.BlobFile(data_jsonl_path, "w") as manifest_file:
         for index, record in enumerate(records):
-            if "audio" in record:
+            if isinstance(record.get("audio"), np.ndarray):
                 audio = np.asarray(record["audio"], dtype=np.float32)
                 sample_rate = int(record["sample_rate"])
                 source_audio_path = None
@@ -317,39 +390,50 @@ def run(args: argparse.Namespace) -> None:
                 speed_range=(args.speed_min, args.speed_max),
                 noise_prob=args.noise_prob,
                 speed_prob=args.speed_prob,
+                rir_paths=rir_paths,
+                rir_prob=args.rir_prob,
             )
             out_path = f"{audio_output_dir.rstrip('/')}/{output_name(record['id'], index)}"
             write_audio(out_path, augmented, sample_rate)
 
             out_record = {
+                **{key: value for key, value in record.items() if key not in ("audio", "sample_rate")},
                 "id": record["id"],
                 "source_audio_path": source_audio_path,
                 "audio_path": out_path,
                 "sample_rate": sample_rate,
                 "duration": len(augmented) / sample_rate,
                 "text": record.get("text"),
+                "augmentation_seed": args.seed,
                 **metadata,
             }
             manifest_file.write(json.dumps(out_record, ensure_ascii=False) + "\n")
             print(
                 f"[{index + 1}/{len(records)}] wrote {out_path} "
                 f"speed={metadata['speed_factor']:.3f} snr={metadata['snr_db']}"
+                f" rir={metadata['rir_path']}"
             )
 
     print(f"Data JSONL: {data_jsonl_path}")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Augment speech audio with random noise and speed perturbation.")
-    source = parser.add_argument_group("input source")
+    parser = argparse.ArgumentParser(description="Augment speech audio with RIRs, random noise and speed perturbation.")
+    source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--input_dir", type=str, help="Directory containing input .wav/.flac files")
     source.add_argument("--input_manifest", type=str, help="JSONL manifest with audio_path/audio_file/audio field")
-    source.add_argument("--manifest_audio_base", type=str, help="Base directory for relative manifest audio paths")
     source.add_argument("--openasr_librispeech", action="store_true", help="Use example audio from OpenASR LibriSpeech")
-    source.add_argument("--openasr_split", type=str, default="test.clean", help="OpenASR LibriSpeech split")
+    parser.add_argument("--manifest_audio_base", type=str, help="Base directory for relative manifest audio paths")
+    parser.add_argument("--openasr_split", type=str, default="test.clean", help="OpenASR LibriSpeech split")
 
     parser.add_argument("--noise_dir", type=str, help="Directory containing noise .wav/.flac files")
-    parser.add_argument("--output_dir", type=str, required=True, help="Output directory for augmented WAVs and manifest")
+    parser.add_argument(
+        "--rir_dir", type=str, help="Directory containing only RIR .wav/.flac files (searched recursively)"
+    )
+    parser.add_argument("--rir_prob", type=float, default=1.0, help="RIR probability when --rir_dir is supplied")
+    parser.add_argument(
+        "--output_dir", type=str, required=True, help="Output directory for augmented WAVs and manifest"
+    )
     parser.add_argument("--max_examples", type=int, default=None, help="Maximum number of utterances to augment")
     parser.add_argument("--seed", type=int, default=0, help="Random seed")
 
@@ -361,9 +445,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--speed_prob", type=float, default=1.0, help="Probability of speed perturbing an utterance")
     args = parser.parse_args()
 
-    if args.snr_min > args.snr_max:
-        parser.error("--snr_min must be <= --snr_max")
-    if args.speed_min <= 0 or args.speed_max <= 0 or args.speed_min > args.speed_max:
+    if not all(math.isfinite(value) for value in (args.snr_min, args.snr_max)) or args.snr_min > args.snr_max:
+        parser.error("SNR bounds must be finite and --snr_min must be <= --snr_max")
+    if (
+        not all(math.isfinite(value) for value in (args.speed_min, args.speed_max))
+        or args.speed_min <= 0
+        or args.speed_max <= 0
+        or args.speed_min > args.speed_max
+    ):
         parser.error("speed range must be positive and --speed_min must be <= --speed_max")
     if not 0.0 <= args.noise_prob <= 1.0:
         parser.error("--noise_prob must be between 0 and 1")
@@ -371,6 +460,10 @@ def parse_args() -> argparse.Namespace:
         parser.error("--noise_dir is required when --noise_prob > 0")
     if not 0.0 <= args.speed_prob <= 1.0:
         parser.error("--speed_prob must be between 0 and 1")
+    if not 0.0 <= args.rir_prob <= 1.0:
+        parser.error("--rir_prob must be between 0 and 1")
+    if args.max_examples is not None and args.max_examples <= 0:
+        parser.error("--max_examples must be positive")
     return args
 
 
