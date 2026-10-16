@@ -1,0 +1,96 @@
+# MoE scripts/audio_eval/run_opensr_eval.sh: openasr_long (June 2026 suite).
+# TEDLIUM is excluded, matching MoE. SVAD uses 30-second chunks; see openlong_seg.yaml
+# for the offline SVAD counterpart.
+#
+# PREREQUISITE: the earnings21/earnings22/CORAAL JSONL paths below are preparation
+# targets, not published datasets. Extract audio.bytes from the original Parquet:
+#   az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/asr-leaderboard-longform/
+# Use scripts/dump_openasr_parquet_to_jsonl.py once per test shard with
+# --batch-size 1 and --output-dir:
+#   az://orngwus2cresco/data/boren/data/openasr_long_jsonl/<corpus>/<shard-stem>
+# For CORAAL, preserve the region: .../coraal/<region>/<shard-stem>.
+# Each output has data.jsonl with absolute audio_path, text, and id fields.
+# Do not reuse the short-form openasr_jsonl/earnings22 dataset.
+#
+# Every segment retains the FULL parent reference. Use grouped long-audio scoring,
+# not independent segment WER. val_batch_size=-1 keeps each corpus in one
+# validation batch so a parent's segments cannot be split across reward calls.
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-*/data.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 30.0
+      audio_key: audio_path
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings21
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-*/data.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 30.0
+      audio_key: audio_path
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/*/test-*/data.jsonl
+  pre_process:
+    svad_explode:
+      max_len_sec: 30.0
+      audio_key: audio_path
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
+  pre_process:
+    # SVAD runs before path_map/rename_fields; resolve the raw relative URL here.
+    svad_explode:
+      max_len_sec: 30.0
+      audio_key: url
+      path_replace:
+        "audio/": "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/"
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]

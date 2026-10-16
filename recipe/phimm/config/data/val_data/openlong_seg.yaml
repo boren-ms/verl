@@ -1,0 +1,79 @@
+# Offline SVAD counterpart of openlong.yaml; no VAD runs at evaluation time.
+# Same four corpora, prompts, data_source names, full parent references, and
+# grouping metadata. Use grouped long-audio scoring; val_batch_size=-1 keeps
+# each corpus in one validation batch so parent groups remain complete.
+#
+# PREREQUISITE: earnings21/earnings22/CORAAL manifests still need preparation.
+# First extract the original JSONL/audio as documented in openlong.yaml.
+# For EACH extracted data.jsonl, run:
+#   python -m recipe.phimm.data.long_audio_vad_explode \
+#     --src <original-data.jsonl> --dst <segmented-data.jsonl> \
+#     --max-len-sec 30 --audio-key audio_path
+# Replace the source root
+#   az://orngwus2cresco/data/boren/data/openasr_long_jsonl/
+# with the destination root
+#   az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/
+# while preserving corpus/region/shard directories. Output audio_path values
+# are absolute URI#start:end specs; parent references must NOT be split.
+# The cleaned Earnings22-AA manifest already exists at the path below.
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/earnings21/test-*/data.jsonl
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings21
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/earnings22/test-*/data.jsonl
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/*/test-*/data.jsonl
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        audio_path: url
+        text: transcript
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_cleaned_aa
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
