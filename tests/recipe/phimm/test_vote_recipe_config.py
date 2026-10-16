@@ -82,7 +82,7 @@ def test_base0_vote_preserves_training_setup_and_configures_vote_rewards(config_
     assert language_result["v_lang"] == -1.0
 
 
-def test_v0d_removes_word_aux_rewards_and_uses_symmetric_one_percent_thresholds():
+def test_v0d_uses_word_edit_and_word_language_votes():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
     searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
@@ -93,17 +93,18 @@ def test_v0d_removes_word_aux_rewards_and_uses_symmetric_one_percent_thresholds(
     expected = OmegaConf.to_container(original, resolve=False)
     measures = expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"]
     for name in list(measures):
-        if name.startswith("word_"):
+        if name in ("word_kw", "lang"):
             del measures[name]
         else:
-            measures[name].update(low=-0.01, high=0.01)
+            measures[name].update(beta=0.25 if name.startswith("word_") else 1.0, low=-0.001, high=0.001)
+    measures["word_lang"] = {"delta": "rel", "beta": 0.5, "low": -0.001, "high": 0.001}
     assert OmegaConf.to_container(config, resolve=False) == expected
 
     kwargs = OmegaConf.to_container(config.reward_functions.librispeech.reward_kwargs, resolve=True)
-    assert set(kwargs["measures"]) == {"char", "word", "lang"}
+    assert set(kwargs["measures"]) == {"char", "word", "word_del", "word_ins", "word_lang"}
     kwargs["text_norm"] = "identity"
     baseline = compute_score("<src=English><tgt=English>\n<TXT>cat</TXT>", "cat dog", **kwargs)
-    assert set(baseline) == {"score", "char", "word", "lang"}
+    assert set(baseline) == {"score", "char", "word", "word_del", "word_ins", "word_lang"}
     assert baseline["score"] == 0.0
     result = compute_score(
         "<src=English><tgt=English>\n<TXT>cat dog</TXT>",
@@ -111,20 +112,39 @@ def test_v0d_removes_word_aux_rewards_and_uses_symmetric_one_percent_thresholds(
         extra_info={"greedy_reward": baseline},
         **kwargs,
     )
-    assert result["score"] == pytest.approx(2 / 3)
-    assert {name: result[f"v_{name}"] for name in kwargs["measures"]} == {"char": 1.0, "word": 1.0, "lang": 0.0}
+    assert result["score"] == pytest.approx(2.25 / 3)
+    assert {name: result[f"v_{name}"] for name in kwargs["measures"]} == {
+        "char": 1.0,
+        "word": 1.0,
+        "word_del": 1.0,
+        "word_ins": 0.0,
+        "word_lang": 0.0,
+    }
+    language_result = compute_score(
+        "<src=English><tgt=French>\n<TXT>cat</TXT>",
+        "cat dog",
+        extra_info={"greedy_reward": baseline},
+        **kwargs,
+    )
+    assert language_result["score"] == pytest.approx(-0.5 / 3)
+    assert language_result["v_word_lang"] == -1.0
+    assert not any(name in language_result for name in ("lang", "d_lang", "v_lang"))
 
 
-def test_v0e_changes_only_voting_thresholds_to_zero():
+def test_v0e_preserves_three_measure_zero_threshold_recipe():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
     searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config_root / "v2611_dev/dev"), version_base=None):
-        original = compose(config_name="remax_dev_base0_v0d", overrides=[searchpath])
+        original = compose(config_name="remax_dev_base0_v0c", overrides=[searchpath])
         config = compose(config_name="remax_dev_base0_v0e", overrides=[searchpath])
 
     expected = OmegaConf.to_container(original, resolve=False)
-    for cfg in expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"].values():
+    measures = expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"]
+    for name in list(measures):
+        if name.startswith("word_"):
+            del measures[name]
+    for cfg in measures.values():
         cfg.update(low=0.0, high=0.0)
     assert OmegaConf.to_container(config, resolve=False) == expected
 
