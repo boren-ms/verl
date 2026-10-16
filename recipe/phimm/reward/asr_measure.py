@@ -475,14 +475,34 @@ def scale_score(acc, cfg):
     return beta * signed_pow(acc, gamma)
 
 
-def compute_deltas(raw_scores: dict[str, float], baseline: dict[str, float] | None) -> dict[str, float]:
-    """Return ``d_<name> = raw_score - baseline`` for shared score keys.
+def compute_delta(value: float, baseline: float, mode: str = "absolute") -> float:
+    """Return an absolute or relative delta, positive for improvements.
 
+    ``abs`` and ``rel`` alias ``absolute`` and ``relative``. Relative deltas divide
+    ``value - baseline`` by ``max(abs(baseline), 1e-8)``
+    to preserve direction for negative baselines and handle zero baselines.
+    """
+    if mode not in ("abs", "absolute", "rel", "relative"):
+        raise ValueError(f"Unsupported delta mode: {mode!r}. Expected 'abs'/'absolute' or 'rel'/'relative'.")
+    delta = value - baseline
+    return delta / max(abs(baseline), 1e-8) if mode in ("rel", "relative") else delta
+
+
+def compute_deltas(
+    raw_scores: dict[str, float], baseline: dict[str, float] | None, mode: str = "absolute"
+) -> dict[str, float]:
+    """Return ``d_<name>`` using :func:`compute_delta` for shared score keys.
+
+    The default mode is absolute, preserving raw score minus baseline.
     No delta fields are returned when the baseline is absent or empty.
     """
     if not baseline:
         return {}
-    return {f"d_{name}": value - baseline[name] for name, value in raw_scores.items() if name in baseline}
+    return {
+        f"d_{name}": compute_delta(value, baseline[name], mode=mode)
+        for name, value in raw_scores.items()
+        if name in baseline
+    }
 
 
 def compute_score(solution_str, ground_truth, **kwargs):

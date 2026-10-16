@@ -5,6 +5,7 @@ from recipe.phimm.reward.asr_measure import (
     check_fmt,
     check_lang,
     compute_bracket_del,
+    compute_delta,
     compute_deltas,
     compute_openml_acc,
     compute_score,
@@ -13,6 +14,44 @@ from recipe.phimm.reward.asr_measure import (
     reduce_scores,
 )
 from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
+
+
+@pytest.mark.parametrize(
+    ("value", "baseline", "absolute", "relative"),
+    [
+        (0.75, 0.5, 0.25, 0.5),
+        (0.25, 0.5, -0.25, -0.5),
+        (-0.25, -0.5, 0.25, 0.5),
+        (-0.75, -0.5, -0.25, -0.5),
+        (0.0, 0.0, 0.0, 0.0),
+        (1.0, 0.0, 1.0, 1e8),
+        (-1.0, 0.0, -1.0, -1e8),
+        (1e-9, 0.0, 1e-9, 0.1),
+    ],
+)
+def test_compute_delta_modes(value, baseline, absolute, relative):
+    assert compute_delta(value, baseline) == pytest.approx(absolute)
+    assert compute_delta(value, baseline, mode="absolute") == pytest.approx(absolute)
+    assert compute_delta(value, baseline, mode="abs") == pytest.approx(absolute)
+    assert compute_delta(value, baseline, mode="relative") == pytest.approx(relative)
+    assert compute_delta(value, baseline, mode="rel") == pytest.approx(relative)
+
+
+@pytest.mark.parametrize("mode", ["unknown", None])
+def test_compute_delta_rejects_unknown_mode(mode):
+    with pytest.raises(ValueError, match="Unsupported delta mode"):
+        compute_delta(1.0, 0.5, mode=mode)
+
+
+def test_compute_deltas_relative_mode_uses_shared_keys_without_mutation():
+    raw_scores = {"score": 1.0, "word": 0.75, "fmt": 1.0}
+    baseline = {"score": 0.0, "word": 0.5, "other": 1.0}
+
+    assert compute_deltas(raw_scores, baseline, mode="relative") == {
+        "d_score": 1e8, "d_word": 0.5,
+    }
+    assert raw_scores == {"score": 1.0, "word": 0.75, "fmt": 1.0}
+    assert baseline == {"score": 0.0, "word": 0.5, "other": 1.0}
 
 
 @pytest.mark.parametrize("baseline", [None, {}])
