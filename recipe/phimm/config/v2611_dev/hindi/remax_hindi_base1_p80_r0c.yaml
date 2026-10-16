@@ -1,0 +1,25 @@
+# Hindi base1 r0c with the highest-error samples covering 85.6871% of cached errors.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base1_2609r2_indic_bad_e2_bs128_n8_r320_g16_flr
+  - /data/train_data/indian/indic_bad_total_errors_p80@_indic_train
+  - _self_
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_measure.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2.1}
+      measures:
+        word: {beta: 1.0}
+        word_del: {beta: 0.25}
+        word_ins: {beta: 0.25}
+        word_kw: {beta: 0.5}
+        lang: {beta: 0.1}
+reward_function_by_data_source:
+  indic_voice: librispeech
