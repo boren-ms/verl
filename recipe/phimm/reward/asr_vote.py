@@ -36,8 +36,8 @@ def _parse_reduction(reduction):
     return reduction
 
 
-def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> tuple[float, float]:
-    """Return a measure's beta-weighted vote and delta against a required baseline."""
+def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> tuple[float, float, float]:
+    """Return a measure's beta-weighted vote, delta, and raw vote against a required baseline."""
     cfg = cfg or {}
     delta_mode = cfg.get("delta", "abs")
     if delta_mode not in ("abs", "absolute", "rel", "relative"):
@@ -53,7 +53,7 @@ def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> 
 
     delta = compute_delta(value, baseline, mode=delta_mode)
     vote = compute_vote(delta, low=low, high=high)
-    return beta * vote, delta
+    return beta * vote, delta, vote
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
@@ -77,10 +77,11 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Accuracy clipping, gamma transforms, cut gates, and accuracy scaling are
     not applied: low/high define the voting interval, not clipping bounds.
 
-    Raw configured accuracies and shared ``d_<name>`` fields are returned
-    alongside ``score``. These deltas use each measure's ``delta`` mode and
+    Raw configured accuracies, ``d_<name>`` deltas, and ``v_<name>`` votes
+    are returned alongside ``score``. Votes are -1/0/+1 before beta weighting.
+    These deltas use each measure's ``delta`` mode and
     are the same values used for voting. With no baseline (None or empty),
-    the score is zero and no delta fields are returned, allowing the same
+    the score is zero and no delta or vote fields are returned, allowing the same
     scorer to collect greedy baseline measurements. This returns early,
     skipping vote and reduction configuration and computation. A nonempty baseline must
     contain every configured measure; it may come from this scorer or
@@ -115,11 +116,13 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
     reduction = _parse_reduction(kwargs.get("reduce", "mean"))
     deltas = {}
+    votes = {}
     scores = []
     for name, cfg in measures.items():
-        score, delta = compute_measure_vote(name, raw_scores[name], baseline[name], cfg)
+        score, delta, vote = compute_measure_vote(name, raw_scores[name], baseline[name], cfg)
         scores.append(score)
         deltas[f"d_{name}"] = delta
+        votes[f"v_{name}"] = vote
 
     score = reduce_scores(scores, **(kwargs | reduction))
-    return {"score": score, **raw_scores, **deltas}
+    return {"score": score, **raw_scores, **deltas, **votes}

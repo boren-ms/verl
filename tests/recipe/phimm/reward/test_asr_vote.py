@@ -40,12 +40,13 @@ def test_compute_vote_rejects_invalid_values(delta, low, high):
 @pytest.mark.parametrize(
     ("baseline", "cfg", "expected"),
     [
-        (0.5, None, (0.0, 0.0625)),
-        (0.5, {"delta": "abs", "beta": 2.0}, (0.0, 0.0625)),
-        (0.5, {"delta": "rel", "beta": 2.0}, (2.0, 0.125)),
-        (0.75, {"delta": "abs", "beta": 0.5}, (-0.5, -0.1875)),
-        (0.5, {"delta": "rel", "high": 0.125}, (0.0, 0.125)),
-        (0.0, {"delta": "rel"}, (1.0, 56250000.0)),
+        (0.5, None, (0.0, 0.0625, 0.0)),
+        (0.5, {"delta": "abs", "beta": 2.0}, (0.0, 0.0625, 0.0)),
+        (0.5, {"delta": "rel", "beta": 2.0}, (2.0, 0.125, 1.0)),
+        (0.75, {"delta": "abs", "beta": 0.5}, (-0.5, -0.1875, -1.0)),
+        (0.5, {"delta": "rel", "high": 0.125}, (0.0, 0.125, 0.0)),
+        (0.0, {"delta": "rel"}, (1.0, 56250000.0, 1.0)),
+        (0.5, {"delta": "rel", "beta": 0.0}, (0.0, 0.125, 1.0)),
     ],
 )
 def test_compute_measure_vote(baseline, cfg, expected):
@@ -55,7 +56,7 @@ def test_compute_measure_vote(baseline, cfg, expected):
 def test_measure_vote_does_not_modify_configuration():
     cfg = {"delta": "rel", "beta": 2.0, "low": -0.25, "high": 0.25}
     original = cfg.copy()
-    assert asr_vote.compute_measure_vote("word", 0.75, 0.5, cfg) == (2.0, 0.5)
+    assert asr_vote.compute_measure_vote("word", 0.75, 0.5, cfg) == (2.0, 0.5, 1.0)
     assert cfg == original
 
 
@@ -76,7 +77,15 @@ def test_scorer_calls_vote_helper_for_each_measure(monkeypatch):
         extra_info={"greedy_reward": {"word": 0.5, "fmt": 0.5}},
     )
     assert calls == [(0.5, -0.1, 0.1), (-0.5, -0.25, 0.25)]
-    assert result == {"score": 0.5, "word": 0.75, "fmt": 0.25, "d_word": 0.5, "d_fmt": -0.5}
+    assert result == {
+        "score": 0.5,
+        "word": 0.75,
+        "fmt": 0.25,
+        "d_word": 0.5,
+        "d_fmt": -0.5,
+        "v_word": 1.0,
+        "v_fmt": -1.0,
+    }
 
 
 @pytest.mark.parametrize(
@@ -92,7 +101,19 @@ def test_default_votes_and_inclusive_neutral_interval(monkeypatch, delta, expect
         extra_info={"greedy_reward": {"word": 0.0, "score": 0.0}},
     )
 
-    assert result == {"score": expected, "word": delta, "d_word": delta}
+    assert result == {"score": expected, "word": delta, "d_word": delta, "v_word": expected}
+
+
+@pytest.mark.parametrize("beta", [0.0, 0.25, 2.0, -1.0])
+def test_returned_vote_is_independent_of_beta(monkeypatch, beta):
+    monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 1.0})
+    result = asr_vote.compute_score(
+        "",
+        "",
+        measures={"word": {"beta": beta}},
+        extra_info={"greedy_reward": {"word": 0.5}},
+    )
+    assert result == {"score": beta, "word": 1.0, "d_word": 0.5, "v_word": 1.0}
 
 
 @pytest.mark.parametrize(
@@ -132,6 +153,9 @@ def test_beta_weighted_votes_are_reduced(monkeypatch, reduction, expected):
             "d_word": 0.3,
             "d_fmt": -1.0,
             "d_lang": 0.0,
+            "v_word": 1.0,
+            "v_fmt": -1.0,
+            "v_lang": 0.0,
         }
     )
 
@@ -198,6 +222,8 @@ def test_real_parser_baseline_round_trip(baseline_scorer):
         "word_del": 1.0,
         "d_word": 0.5,
         "d_word_del": 0.5,
+        "v_word": 1.0,
+        "v_word_del": 1.0,
     }
     assert regressed["score"] == -1.0
     assert regressed["d_word"] == -0.5
@@ -254,6 +280,7 @@ def test_relative_delta_votes(monkeypatch, accuracy, baseline, expected, mode):
             "score": expected,
             "word": accuracy,
             "d_word": (accuracy - baseline) / max(abs(baseline), 1e-8),
+            "v_word": expected,
         }
     )
 
@@ -268,6 +295,7 @@ def test_relative_delta_threshold_equality_is_neutral(monkeypatch, accuracy):
         extra_info={"greedy_reward": {"word": 0.5}},
     )
     assert result["score"] == 0.0
+    assert result["v_word"] == 0.0
 
 
 def test_relative_mode_changes_votes_and_preserves_beta_and_reduction(monkeypatch):
@@ -310,6 +338,8 @@ def test_mixed_measure_delta_modes(monkeypatch, word_mode, fmt_mode, expected, w
         "fmt": 0.5625,
         "d_word": word_delta,
         "d_fmt": fmt_delta,
+        "v_word": 1.0 if word_delta > 0.1 else 0.0,
+        "v_fmt": 1.0 if fmt_delta > 0.1 else 0.0,
     }
 
 
@@ -321,7 +351,15 @@ def test_measure_without_delta_defaults_to_abs(monkeypatch):
         measures={"word": {"delta": "relative"}, "fmt": None},
         extra_info={"greedy_reward": {"word": 0.5, "fmt": 0.5}},
     )
-    assert result == {"score": 0.5, "word": 0.5625, "fmt": 0.5625, "d_word": 0.125, "d_fmt": 0.0625}
+    assert result == {
+        "score": 0.5,
+        "word": 0.5625,
+        "fmt": 0.5625,
+        "d_word": 0.125,
+        "d_fmt": 0.0625,
+        "v_word": 1.0,
+        "v_fmt": 0.0,
+    }
 
 
 def test_relative_mode_real_parser_baseline_round_trip():
@@ -334,7 +372,7 @@ def test_relative_mode_real_parser_baseline_round_trip():
         extra_info={"greedy_reward": baseline},
         **kwargs,
     )
-    assert result == {"score": 1.0, "word": 1.0, "d_word": 1.0}
+    assert result == {"score": 1.0, "word": 1.0, "d_word": 1.0, "v_word": 1.0}
 
 
 @pytest.mark.parametrize(

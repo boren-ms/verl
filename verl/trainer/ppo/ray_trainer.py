@@ -111,7 +111,7 @@ def _extend_validation_reward_extra_infos(
 
 
 def _compute_reward_metrics(reward_extra_infos: dict[str, list]) -> dict[str, float]:
-    """Aggregate numeric reward details for experiment tracking."""
+    """Aggregate reward means into core, delta, and vote tracking namespaces."""
     metrics = {}
     for key, values in reward_extra_infos.items():
         numeric_values = np.asarray(
@@ -123,6 +123,8 @@ def _compute_reward_metrics(reward_extra_infos: dict[str, list]) -> dict[str, fl
             continue
         if key.startswith("d_"):
             metrics[f"reward-delta/{key.removeprefix('d_')}/mean"] = float(np.mean(numeric_values))
+        elif key.startswith("v_"):
+            metrics[f"reward-vote/{key.removeprefix('v_')}/mean"] = float(np.mean(numeric_values))
         else:
             metrics[f"reward-core/{key}/mean"] = float(np.mean(numeric_values))
         metrics[f"reward-aux/{key}/std"] = float(np.std(numeric_values))

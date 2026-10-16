@@ -10,6 +10,7 @@ def test_compute_reward_metrics_splits_core_and_aux_values():
             "score": [0.8, 0.6, None],
             "wer": np.array([0.2, 0.4, np.nan]),
             "d_score": [-0.2, 0.4, None],
+            "v_word": [1.0, 0.0, -1.0, None, np.nan],
             "is_valid": [True, False, True],
             "detail": [{"error": "substitution"}, {"error": "deletion"}],
         }
@@ -29,6 +30,10 @@ def test_compute_reward_metrics_splits_core_and_aux_values():
             "reward-aux/d_score/std": 0.3,
             "reward-aux/d_score/max": 0.4,
             "reward-aux/d_score/min": -0.2,
+            "reward-vote/word/mean": 0.0,
+            "reward-aux/v_word/std": np.std([1.0, 0.0, -1.0]),
+            "reward-aux/v_word/max": 1.0,
+            "reward-aux/v_word/min": -1.0,
             "reward-core/is_valid/mean": 2 / 3,
             "reward-aux/is_valid/std": np.std([1.0, 0.0, 1.0]),
             "reward-aux/is_valid/max": 1.0,
