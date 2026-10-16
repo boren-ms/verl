@@ -493,10 +493,10 @@ use these user-supplied grouped long-audio `p_err` baselines (2026-10-16):
 
 | Dataset | Exact `data_source` | Baseline `p_err` | Fraction |
 | --- | --- | --- | --- |
-| Earnings21 | `earnings21` | 7.9156% | 0.079156 |
-| Earnings22 | `earnings22` | 10.1216% | 0.101216 |
-| CORAAL | `coraal` | 15.4380% | 0.154380 |
-| Earnings22-Cleaned-AA | `earnings22_cleaned_aa` | 4.3131% | 0.043131 |
+| Earnings21 | `earnings21` | 9.0999% | 0.090999 |
+| Earnings22 | `earnings22` | 9.8599% | 0.098599 |
+| CORAAL | `coraal` | 14.7193% | 0.147193 |
+| Earnings22-Cleaned-AA | `earnings22_cleaned_aa` | 4.8003% | 0.048003 |
 
 Compare matching candidate `val-aux/<data_source>/p_err/mean@1` fractions
 using `WERR = 1 - candidate / baseline`. Keep these values scoped to this
@@ -506,8 +506,10 @@ In particular, `earnings22_cleaned_aa` is not the short-audio
 `earnings22-cleaned-aa-chunked` dataset. Include these exact source keys in
 `metrics.json` and `dataset_results.json` when evaluated. The OpenASR workbook
 builder includes all four in its separate OpenLong section, with per-dataset
-WERR and an `openlong avg` row averaging all four datasets (available datasets
-only for partial coverage). Verify the average's matched-coverage WERR and
+WERR and an `avg` row averaging all four datasets (available datasets
+only for partial coverage). Its additional `avg0` row averages
+`earnings21`, `earnings22`, and `coraal` only, excluding `earnings22_cleaned_aa`.
+Verify both averages' matched-coverage WERR and
 exact result paths; never insert OpenLong into the English/ML averages.
 Updating baseline guidance alone does not authorize launching remote jobs.
 

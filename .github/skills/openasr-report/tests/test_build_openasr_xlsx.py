@@ -26,10 +26,10 @@ SUPPLIED = {
     "it_fleurs": (1.30, 1.27), "it_mcv": (1.78, 1.85), "it_mls": (3.99, 4.10),
     "nl_fleurs": (3.88, 3.65), "nl_mcv": (1.64, 1.81), "nl_mls": (4.53, 3.99),
     "pt_fleurs": (3.10, 3.41), "pt_mls": (3.36, 3.27),
-    "earnings21": (7.9156, 7.0),
-    "earnings22": (10.1216, 11.0),
-    "coraal": (15.4380, 14.0),
-    "earnings22_cleaned_aa": (4.3131, 4.0),
+    "earnings21": (9.0999, 7.0),
+    "earnings22": (9.8599, 11.0),
+    "coraal": (14.7193, 14.0),
+    "earnings22_cleaned_aa": (4.8003, 4.0),
 }
 
 
@@ -74,21 +74,28 @@ def test_baseline_and_full_report(report, tmp_path, monkeypatch):
     assert sheet["B14"].value == pytest.approx(44.57 / 1000)
     assert sheet["C14"].value == pytest.approx(44.05 / 1000)
     assert sheet["B40"].value == pytest.approx(3.6366666666666667 / 100)
+    assert sheet["A40"].value == "avg"
+    assert f"{sheet['B40'].value:.2%}" == "3.64%"
     candidate_ml_mean = sum(
         sum(candidate[ds] for ds in datasets) / len(datasets)
         for _, datasets in report.OPENASR_ML_GROUPS
     ) / len(report.OPENASR_ML_GROUPS)
     assert sheet["C40"].value == pytest.approx(candidate_ml_mean)
     assert sheet["D40"].value == pytest.approx(1 - candidate_ml_mean / sheet["B40"].value)
-    assert sheet["B46"].value == pytest.approx(0.09447075)
+    assert sheet["B46"].value == pytest.approx(0.0961985)
     assert sheet["C46"].value == pytest.approx(0.09)
-    assert sheet["D46"].value == pytest.approx(1 - 0.09 / 0.09447075)
+    assert sheet["D46"].value == pytest.approx(1 - 0.09 / 0.0961985)
+    assert sheet["A46"].value == "avg"
+    assert sheet["A47"].value == "avg0"
+    assert sheet["B47"].value == pytest.approx(0.11226366666666667)
+    assert sheet["C47"].value == pytest.approx(0.32 / 3)
+    assert sheet["D47"].value == pytest.approx(1 - 0.32 / 0.336791)
     summaries = {
         "avg": "4.46%", "de avg": "2.11%", "es avg": "2.50%",
         "fr avg": "3.13%", "hi avg": "8.78%", "it avg": "2.36%",
-        "nl avg": "3.35%", "pt avg": "3.23%", "ml avg": "3.64%",
+        "nl avg": "3.35%", "pt avg": "3.23%",
     }
-    for row in sheet:
+    for row in sheet.iter_rows(max_row=39):
         if row[0].value in summaries:
             assert f"{row[1].value:.2%}" == summaries[row[0].value]
     workbook.close()
@@ -161,7 +168,7 @@ def test_partial_coverage_deltas_use_matched_datasets(report, tmp_path):
     for row in (5, 10, 12, 13, 17):
         assert sheet.cell(row, 4).value is None
         assert sheet.cell(row, 4).comment is None
-    assert sheet.max_row == 46
+    assert sheet.max_row == 47
     assert all(cell.comment is None for row in sheet for cell in row)
     assert all(cell.value is None for cell in sheet[1])
     workbook.close()
@@ -297,7 +304,7 @@ def test_metadata_round_trip_and_extension(report, tmp_path, monkeypatch):
     assert results == {"first": first_results, "second": second_results}
     workbook = load_workbook(output)
     assert workbook.sheetnames == ["openasr", "model_info", "dataset_results"]
-    assert workbook["openasr"].max_row == 46
+    assert workbook["openasr"].max_row == 47
     assert workbook["model_info"].max_row == 4
     assert workbook["dataset_results"].max_row == 94
     assert all(cell.comment is None for sheet in workbook for row in sheet for cell in row)
@@ -356,22 +363,26 @@ def test_openlong_logs_metadata_and_extension(report, tmp_path, monkeypatch):
     workbook = load_workbook(output)
     sheet = workbook["openasr"]
     assert sheet["A41"].value == "OpenLong"
-    assert sheet["A46"].value == "openlong avg"
+    assert sheet["A46"].value == "avg"
+    assert sheet["A47"].value == "avg0"
     assert sheet["B46"].value == pytest.approx(sum(baseline.values()) / 4)
     for row in range(42, 46):
         assert sheet.cell(row, 5).value == f"=1-C{row}/B{row}"
         assert sheet.cell(row, 6).value == f"=1-D{row}/B{row}"
     for column in range(2, 7):
-        cell = sheet.cell(46, column)
-        assert cell.number_format == "0.00%"
-        assert cell.alignment.horizontal == "center"
-        assert cell.fill == report.OVERALL_AVG_FILL
+        for row in (46, 47):
+            cell = sheet.cell(row, column)
+            assert cell.number_format == "0.00%"
+            assert cell.alignment.horizontal == "center"
+            assert cell.fill == report.OVERALL_AVG_FILL
     assert sheet["E46"].value == pytest.approx(0.5)
     assert sheet["F46"].value == pytest.approx(0.5)
+    assert sheet["E47"].value == pytest.approx(0.5)
+    assert sheet["F47"].value == pytest.approx(0.5)
     assert sheet["C14"].value is None
     assert sheet["C40"].value is None
     for key in sheet.conditional_formatting:
-        assert str(key.sqref).endswith("46")
+        assert str(key.sqref).endswith("47")
         assert sheet.conditional_formatting[key][0].colorScale.cfvo[1].val == 0
     workbook.close()
 
@@ -392,10 +403,14 @@ def test_openlong_partial_coverage_and_zero_baseline(report, tmp_path, candidate
     sheet = workbook["openasr"]
     assert sheet["B46"].value == pytest.approx(0.40 / 3)
     assert sheet["C46"].value == pytest.approx(next(iter(candidate.values())))
+    assert sheet["B47"].value == pytest.approx(sheet["B46"].value)
+    assert sheet["C47"].value == pytest.approx(sheet["C46"].value)
     if expected_werr is None:
         assert sheet["D46"].value is None
+        assert sheet["D47"].value is None
     else:
         assert sheet["D46"].value == pytest.approx(expected_werr)
+        assert sheet["D47"].value == pytest.approx(expected_werr)
         assert sheet["D42"].value == "=1-C42/B42"
     assert sheet["D43"].value is None
     assert sheet["D44"].value is None
@@ -408,7 +423,7 @@ def test_extend_pre_openlong_report_preserves_existing_values(report, tmp_path, 
     columns = [("baseline", {"ami_clean": 0.1}), ("first", {"ami_clean": 0.05})]
     report.build_workbook(columns, prior)
     workbook = load_workbook(prior)
-    workbook["openasr"].delete_rows(41, 6)
+    workbook["openasr"].delete_rows(41, 7)
     workbook.save(prior)
     workbook.close()
     assert report.read_existing_xlsx(prior) == columns
@@ -436,3 +451,50 @@ def test_rejects_mismatched_openlong_layout(report, tmp_path):
     workbook.close()
     with pytest.raises(ValueError, match="incompatible dataset layout at row 45"):
         report.read_existing_xlsx(output)
+
+
+@pytest.mark.parametrize("candidate, expected_mean, expected_werr", [
+    ({"earnings22_cleaned_aa": 0.99}, None, None),
+    ({"earnings21": 0.05, "earnings22_cleaned_aa": 0.99}, 0.05, 0.5),
+    ({"earnings21": 0.20, "earnings22": 0.0, "earnings22_cleaned_aa": 0.99}, 0.10, 0.5),
+])
+def test_openlong_avg0_excludes_cleaned_and_matches_coverage(
+    report, tmp_path, candidate, expected_mean, expected_werr
+):
+    output = tmp_path / "avg0.xlsx"
+    baseline = {"earnings21": 0.10, "earnings22": 0.30, "coraal": 0.20, "earnings22_cleaned_aa": 0.01}
+    report.build_workbook([("baseline", baseline), ("candidate", candidate)], output)
+    workbook = load_workbook(output)
+    sheet = workbook["openasr"]
+    assert sheet["B47"].value == pytest.approx(0.20)
+    if expected_mean is None:
+        assert sheet["C47"].value is None
+        assert sheet["D47"].value is None
+    else:
+        assert sheet["C47"].value == pytest.approx(expected_mean)
+        assert sheet["D47"].value == pytest.approx(expected_werr)
+    workbook.close()
+
+
+def test_extend_pre_avg0_report_preserves_metrics_and_metadata(report, tmp_path):
+    prior = tmp_path / "prior.xlsx"
+    columns = [("baseline", report.BASELINE_METRICS), ("candidate", {"earnings21": 0.05})]
+    info = {"baseline": {}, "candidate": {"model_path": "az://account/container/candidate"}}
+    results = {"candidate": {"earnings21": "az://account/container/results/earnings21/0.jsonl"}}
+    report.build_workbook(columns, prior, model_info=info, dataset_results=results)
+    workbook = load_workbook(prior)
+    workbook["openasr"].delete_rows(47)
+    workbook.save(prior)
+    workbook.close()
+    loaded = report.read_existing_xlsx(prior)
+    loaded_info, loaded_results = report.read_existing_metadata(prior)
+    assert loaded == columns
+    assert (loaded_info, loaded_results) == (info, results)
+    output = tmp_path / "updated.xlsx"
+    report.build_workbook(loaded, output, model_info=loaded_info, dataset_results=loaded_results)
+    assert report.read_existing_xlsx(output) == columns
+    assert report.read_existing_metadata(output) == (info, results)
+    workbook = load_workbook(output)
+    assert workbook["openasr"]["A47"].value == "avg0"
+    assert workbook["openasr"]["C47"].value == pytest.approx(0.05)
+    workbook.close()

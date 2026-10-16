@@ -31,17 +31,18 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
   - it: `it_fleurs`, `it_mcv`, `it_mls`
   - nl: `nl_fleurs`, `nl_mcv`, `nl_mls`
   - pt: `pt_fleurs`, `pt_mls`
-- **Row 40** `ml avg`: numeric unweighted mean of the seven unrounded language means per column. With partial coverage, include only languages with available datasets.
+- **Row 40** `avg` (ML): numeric unweighted mean of the seven unrounded language means per column. With partial coverage, include only languages with available datasets.
 - **Row 41** `OpenLong`: repeated column identifiers for the long-audio section.
 - **Rows 42–45**: `earnings21`, `earnings22`, `coraal`, `earnings22_cleaned_aa`.
-- **Row 46** `openlong avg`: numeric unweighted mean across all four OpenLong datasets per column. With partial coverage, average only available datasets; never fill missing candidate metrics from the baseline. Its numeric WERR uses matched dataset coverage, independently of the English and ML averages.
+- **Row 46** `avg` (OpenLong): numeric unweighted mean across all four OpenLong datasets per column. With partial coverage, average only available datasets; never fill missing candidate metrics from the baseline. Its numeric WERR uses matched dataset coverage, independently of the English and ML averages.
+- **Row 47** `avg0` (OpenLong): numeric unweighted mean of `earnings21`, `earnings22`, and `coraal`, excluding `earnings22_cleaned_aa`. Use available datasets for displayed means and matched coverage for numeric WERR; leave empty when none are available. Extending a report without this row adds it while preserving existing metrics and metadata.
 - **WERR columns**: compute `1 - model / baseline` for every available pair with a positive baseline. Per-dataset cells use Excel formulas; average rows store numeric WERR. Positive values mean improvement; negative values mean regression. Do not remove deltas because baseline checkpoint/scoring provenance is incomplete.
 
 Formatting:
 - All data columns (everything except column A) center-aligned.
 - Header / section header rows (`OpenEN`, `OpenML`, `OpenLong`): light blue.
 - Per-language `<lang> avg` rows: light yellow.
-- `avg`, `ml avg`, and `openlong avg` rows: light green.
+- `avg` (English, ML, and OpenLong) and `avg0` rows: light green.
 - WERR columns carry a 3-color scale rule (red ← 0 → green) with midpoint fixed at 0.
 - Numeric cells formatted as `0.00%`.
 - Keep `openasr` limited to the canonical table. Do not add notes, disclaimers, cell comments, coverage banners, or footers. Put the requested structured model information and result paths in the two metadata sheets instead.
@@ -163,12 +164,13 @@ appropriate baseline, override with `--baseline <json>` and
 | pt_fleurs | 3.10% |
 | pt_mls | 3.36% |
 | pt avg | 3.23% |
-| ml avg | 3.64% |
-| earnings21 | 7.9156% |
-| earnings22 | 10.1216% |
-| coraal | 15.4380% |
-| earnings22_cleaned_aa | 4.3131% |
-| openlong avg | 9.447075% |
+| avg | 3.64% |
+| earnings21 | 9.0999% |
+| earnings22 | 9.8599% |
+| coraal | 14.7193% |
+| earnings22_cleaned_aa | 4.8003% |
+| avg | 9.61985% |
+| avg0 | 11.2263666667% |
 
 The four OpenLong baselines were supplied on 2026-10-16 for
 [openlong_seg_verb_langhint_zip.yaml](../../../recipe/phimm/config/data/val_data/openlong_seg_verb_langhint_zip.yaml).
@@ -179,6 +181,9 @@ In particular, `earnings22_cleaned_aa` must not alias to
 `earnings22-cleaned-aa-chunked`. Include all four rows and their exact supplied
 result paths in `dataset_results`; unavailable paths and metrics remain blank.
 OpenLong does not contribute to the English or ML averages.
+Keep both OpenLong summary rows: `avg` includes all four datasets;
+`avg0` excludes only `earnings22_cleaned_aa`. Do not prefix these Excel row
+labels with `openlong`; their section identifies the scope.
 
 Recompute averages from the dataset values with full precision, displaying
 two decimal places. English averages the ten datasets (`4.457%`).
