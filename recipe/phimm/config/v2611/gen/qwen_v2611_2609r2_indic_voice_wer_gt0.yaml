@@ -4,9 +4,8 @@ source_config:
     - az://orngwus2cresco/data/boren/data/verl/gen_qwen/v2611/2609r2/indic_voice/part-*.jsonl
   post_process:
     keep_samples:
-      # Inclusive range starting at the smallest positive float excludes exactly zero.
-      wer_range: [5.0e-324, .inf]
+      wer_range: [0.001, 200]
 
-output_path: /home/boren/data/indic_voice_v2611_2609r2_wer_gt0.jsonl
+output_path: az://orngwus2cresco/data/boren/data/verl/cached_qwen/v2611/2609r2/indic_voice_wer0001_200/data.jsonl
 include_verl_format: false
 overwrite: false
