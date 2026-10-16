@@ -7,7 +7,9 @@ from omegaconf import OmegaConf
 from recipe.phimm.reward.asr_vote import compute_score
 
 
-@pytest.mark.parametrize("config_name", ["remax_dev_base0_v0", "remax_dev_base0_v0a", "remax_dev_base0_v0b"])
+@pytest.mark.parametrize(
+    "config_name", ["remax_dev_base0_v0", "remax_dev_base0_v0a", "remax_dev_base0_v0b", "remax_dev_base0_v0c"]
+)
 def test_base0_vote_preserves_training_setup_and_configures_vote_rewards(config_name):
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
@@ -33,11 +35,14 @@ def test_base0_vote_preserves_training_setup_and_configures_vote_rewards(config_
     assert reward.path == "recipe/phimm/reward/asr_vote.py"
     assert reward.name == "compute_score"
     kwargs = OmegaConf.to_container(reward.reward_kwargs, resolve=True)
-    if config_name in ("remax_dev_base0_v0a", "remax_dev_base0_v0b"):
+    if config_name in ("remax_dev_base0_v0a", "remax_dev_base0_v0b", "remax_dev_base0_v0c"):
         expected = OmegaConf.to_container(v0, resolve=False)
-        for cfg in expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"].values():
-            cfg.update(low=-0.1, high=0.1)
-        if config_name == "remax_dev_base0_v0b":
+        for name, cfg in expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"].items():
+            if config_name == "remax_dev_base0_v0c" and name != "lang":
+                cfg.update(low=-0.05, high=0.02)
+            else:
+                cfg.update(low=-0.1, high=0.1)
+        if config_name in ("remax_dev_base0_v0b", "remax_dev_base0_v0c"):
             expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"]["lang"]["beta"] = 1.0
         assert OmegaConf.to_container(config, resolve=False) == expected
     assert kwargs["version"] == 2609
@@ -45,7 +50,9 @@ def test_base0_vote_preserves_training_setup_and_configures_vote_rewards(config_
     assert "delta" not in kwargs
     assert set(kwargs["measures"]) == set(original.reward_functions.librispeech.reward_kwargs.measures)
     for name, cfg in kwargs["measures"].items():
-        full_weight = name in ("char", "word") or (name == "lang" and config_name == "remax_dev_base0_v0b")
+        full_weight = name in ("char", "word") or (
+            name == "lang" and config_name in ("remax_dev_base0_v0b", "remax_dev_base0_v0c")
+        )
         assert cfg["beta"] == (1.0 if full_weight else 0.25)
         assert cfg["delta"] == ("abs" if name == "lang" else "rel")
         assert cfg["low"] < 0 < cfg["high"]
