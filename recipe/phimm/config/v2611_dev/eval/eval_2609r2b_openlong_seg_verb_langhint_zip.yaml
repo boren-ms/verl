@@ -15,7 +15,6 @@ actor_rollout_ref:
 
 trainer:
   experiment_name: v2609r2b_openlong_seg_verb_langhint_zip
-  nnodes: 1
 
 val_reward:
   reward_function_by_data_source:
