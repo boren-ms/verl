@@ -1,0 +1,16 @@
+# Highest-error samples covering at least 80% of total cached errors.
+# n_err >= 3: 161,596 samples, 85.6871% of errors; includes all threshold ties.
+dataset_name: jsonl
+jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/verl/cached_qwen/v2611/2609r2/indic_voice_wer0001_200/data_total_errors_p80.jsonl
+num_proc: auto
+add_task_info:
+  task: lang_asr_verb
+  language: Hindi
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: indic_voice
+  verl_format:
+    prompt_key: prompt

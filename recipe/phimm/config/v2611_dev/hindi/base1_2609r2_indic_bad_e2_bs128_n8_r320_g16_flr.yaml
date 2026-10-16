@@ -2,7 +2,7 @@
 # Validate only on OpenML Monsoon Hindi using language hints and lattice OIWER references.
 defaults:
   - ../base@_here_
-  - /data/train_data/indian/indic_voice_wer0001_200@_indic_train
+  - /data/train_data/indian/indic_bad@_indic_train
   - /data/val_data/openasr_ml_hi_in_langhint@_hi_val
   - _self_
 
