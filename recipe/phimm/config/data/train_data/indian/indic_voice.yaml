@@ -3,11 +3,14 @@ dataset_name: chunk
 specs:
   - manifest_file: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/hi_verbatim_c96f9088/file_set_train.json
     chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/hi_verbatim_c96f9088/chunks
-    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/hi_verbatim_c96f9088/chunks
 chunk_types:
-  - audio
-  - transcription
+  - audios
+  - sft.0.messages.1.content
 num_proc: auto
+pre_process:
+  rename_fields:
+    mappings:
+      text: sft.0.messages.1.content
 add_task_info:
   task: lang_asr_verb
   language: Hindi
