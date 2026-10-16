@@ -45,14 +45,23 @@ def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> 
             f"Unsupported ASR vote delta mode for {name!r}: {delta_mode!r}. "
             "Expected 'abs'/'absolute' or 'rel'/'relative'."
         )
-    low = float(cfg.get("low", -0.1))
-    high = float(cfg.get("high", 0.1))
+    vote_mode = cfg.get("vote", "thr")
+    if vote_mode not in ("thr", "threshold", "delta"):
+        raise ValueError(
+            f"Unsupported ASR vote mode for {name!r}: {vote_mode!r}. "
+            "Expected 'thr' (alias 'threshold') or 'delta'."
+        )
     beta = float(cfg.get("beta", 1.0))
     if not math.isfinite(beta):
         raise ValueError(f"ASR vote measure {name!r} requires finite beta.")
 
     delta = compute_delta(value, baseline, mode=delta_mode)
-    vote = compute_vote(delta, low=low, high=high)
+    if vote_mode == "delta":
+        if not math.isfinite(delta):
+            raise ValueError("ASR vote requires a finite delta.")
+        vote = delta
+    else:
+        vote = compute_vote(delta, low=float(cfg.get("low", -0.01)), high=float(cfg.get("high", 0.01)))
     return beta * vote, delta, vote
 
 
@@ -71,6 +80,14 @@ def compute_score(solution_str, ground_truth, **kwargs):
     including equality at either threshold. Per-measure ``low`` and ``high``
     default to -0.1 and 0.1, and ``beta`` defaults to one.
 
+    Per-measure ``vote: thr`` is the default behavior above; ``threshold``
+    is also accepted as an alias.
+    ``vote: delta`` instead uses the computed finite delta directly as the
+    vote, ignoring low/high without clipping or a neutral interval. It may
+    exceed [-1, 1], especially for relative deltas near a zero baseline.
+    Both modes can be mixed across measures; beta weighting and reduction
+    are unchanged.
+
     ``score = reduce([beta * vote, ...])`` defaults to ``mean``. As in
     ``asr_measure``, ``reduce`` accepts a mode string or a mapping; mapping
     options override reward kwargs (e.g. ``total`` for ``average``).
@@ -78,7 +95,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
     not applied: low/high define the voting interval, not clipping bounds.
 
     Raw configured accuracies, ``d_<name>`` deltas, and ``v_<name>`` votes
-    are returned alongside ``score``. Votes are -1/0/+1 before beta weighting.
+    are returned alongside ``score``. Votes are unweighted: -1/0/+1 in
+    threshold mode, or the delta itself in delta mode.
     These deltas use each measure's ``delta`` mode and
     are the same values used for voting. With no baseline (None or empty),
     the score is zero and no delta or vote fields are returned, allowing the same
@@ -94,9 +112,19 @@ def compute_score(solution_str, ground_truth, **kwargs):
           measures:
             word: {delta: rel, beta: 1.0, low: -0.1, high: 0.1}
             fmt: {delta: abs, beta: 0.5, low: -0.1, high: 0.1}
+
+    Direct-delta example (YAML)::
+
+        reward_kwargs:
+          reduce: {mode: average, total: 1.5}
+          measures:
+            word: {delta: rel, vote: delta, beta: 1.0}
+            lang: {delta: abs, vote: thr, beta: 0.5}
     """
     if "delta" in kwargs:
         raise ValueError("Configure ASR vote delta per measure, not as a shared reward kwarg.")
+    if "vote" in kwargs:
+        raise ValueError("Configure ASR vote mode per measure, not as a shared reward kwarg.")
 
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
     measures = kwargs.get("measures") or {}

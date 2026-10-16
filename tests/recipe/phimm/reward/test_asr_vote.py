@@ -60,6 +60,63 @@ def test_measure_vote_does_not_modify_configuration():
     assert cfg == original
 
 
+@pytest.mark.parametrize("delta_mode", ["abs", "absolute", "rel", "relative"])
+@pytest.mark.parametrize("baseline", [-0.5, 0.0, 0.5])
+@pytest.mark.parametrize("value", [-1.0, 0.0, 0.55, 2.0])
+@pytest.mark.parametrize("beta", [0.0, 0.25, -2.0])
+def test_direct_delta_vote(delta_mode, baseline, value, beta):
+    cfg = {"delta": delta_mode, "vote": "delta", "beta": beta, "low": 1.0, "high": -1.0}
+    original = cfg.copy()
+    expected = asr_measure.compute_delta(value, baseline, mode=delta_mode)
+    assert asr_vote.compute_measure_vote("word", value, baseline, cfg) == (beta * expected, expected, expected)
+    assert cfg == original
+
+
+@pytest.mark.parametrize("vote_mode", ["unknown", None, True])
+def test_invalid_vote_mode(vote_mode):
+    with pytest.raises(ValueError, match="Unsupported ASR vote mode"):
+        asr_vote.compute_measure_vote("word", 1.0, 0.5, {"vote": vote_mode})
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_direct_delta_vote_rejects_nonfinite_delta(value):
+    with pytest.raises(ValueError, match="finite delta"):
+        asr_vote.compute_measure_vote("word", value, 0.5, {"vote": "delta"})
+
+
+@pytest.mark.parametrize("vote_mode", ["thr", "threshold"])
+def test_mixed_delta_and_threshold_votes(monkeypatch, vote_mode):
+    monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 0.55, "lang": 0.0})
+    result = asr_vote.compute_score(
+        "",
+        "",
+        measures={
+            "word": {"delta": "rel", "vote": "delta", "beta": 2.0},
+            "lang": {"vote": vote_mode, "beta": 0.5},
+        },
+        reduce={"mode": "average", "total": 2.5},
+        extra_info={"greedy_reward": {"word": 0.5, "lang": 1.0}},
+    )
+    assert result == pytest.approx(
+        {"word": 0.55, "lang": 0.0, "d_word": 0.1, "d_lang": -1.0,
+         "v_word": 0.1, "v_lang": -1.0, "score": -0.12}
+    )
+
+
+def test_direct_delta_full_parser_baseline_round_trip():
+    kwargs = {
+        "version": 2609,
+        "text_norm": "identity",
+        "measures": {"word": {"vote": "delta", "delta": "rel", "beta": 0.5}},
+    }
+    baseline = asr_vote.compute_score("<TXT>cat</TXT>", "cat dog", **kwargs)
+    assert baseline == {"score": 0.0, "word": 0.5}
+    result = asr_vote.compute_score(
+        "<TXT>cat dog</TXT>", "cat dog", extra_info={"greedy_reward": baseline}, **kwargs
+    )
+    assert result == {"score": 0.5, "word": 1.0, "d_word": 1.0, "v_word": 1.0}
+
+
 def test_scorer_calls_vote_helper_for_each_measure(monkeypatch):
     monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 0.75, "fmt": 0.25})
     calls = []
@@ -388,6 +445,7 @@ def test_relative_mode_real_parser_baseline_round_trip():
         ({"measures": {"word": {"delta": "unknown"}}}, "Unsupported ASR vote delta mode"),
         ({"measures": {"word": {"delta": None}}}, "Unsupported ASR vote delta mode"),
         ({"delta": "relative"}, "Configure ASR vote delta per measure"),
+        ({"vote": "delta"}, "Configure ASR vote mode per measure"),
         ({"reduce": {"mode": "average", "total": 0}}, "positive, finite"),
         (
             {"measures": {"word": {}}, "extra_info": {"greedy_reward": {"word": float("nan")}}},
