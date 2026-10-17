@@ -13,7 +13,7 @@ reward_functions:
     path: recipe/phimm/reward/asr_measure_v0.py
     name: compute_score
     reward_kwargs:
-      version: 2609recipe/phimm/config/v2611_dev/dev/remax_dev_base0_re0c1.yaml
+      version: 2609
       reduce: {mode: average, total: 2.1}
       measures:
         word: {beta: 1.0, low: -2.0, high: 0.0}

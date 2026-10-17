@@ -1,10 +1,10 @@
-updated_at_utc: 2026-10-16T23:37:13Z
+updated_at_utc: 2026-10-17T03:44:30Z
 
 ┌────────┬──────────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                       │ STATUS  │ JOB / CONFIG                                                                         │ PROGRESS / PHASE                                  │
 ├────────┼──────────────────────────────────┼─────────┼──────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
 │ n2-i0  │ raysubmit_SpX1EdpgEECYwuus       │ RUNNING │ remax_dev_base0_v0f                                                                  │ training 58/720 (8.06%)                           │
-│ n2-i1  │ raysubmit_3MVXyarRihKcHM35         │ RUNNING │ remax_dev_base0a_r0                                                                   │ training startup (restore550 pending)            │
+│ n2-i1  │ raysubmit_3MVXyarRihKcHM35         │ RUNNING │ remax_dev_base0a_r0                                                                   │ training 679/1440 (47.15%)                        │
 │ n4-i0  │ raysubmit_P9YsymiQKL4xu6qN         │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 111/540 (20.56%)                          │
 │ n4-i1  │ —                               │ STOPPED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0 │ training 219/546 (user stopped; pool paused)       │
 │ n4-i2  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0d1          │ training startup (waiting GPU quota; save10)      │
@@ -27,7 +27,7 @@ updated_at_utc: 2026-10-16T23:37:13Z
 Reports:
 - `remax_hindi_base1_p50_r0a` [`n2-i8`]: training 60/826 (7.26%)
 - `remax_dev_base0_v0f` [`n2-i0`]: training 58/720 (8.06%)
-- `remax_dev_base0a_r0` [`n2-i1`]: training startup
+- `remax_dev_base0a_r0` [`n2-i1`]: training 679/1440 (47.15%)
 - `remax_hindi_base0_r0` [`n2-i9`]: training 124/6724 (1.844%)
 - `remax_2609r2_in10k_g16_n8_rw1` [`n2-i1`]: stopped training by user; last observed step 128
 - `remax_2609r2b_in10k_g16_n8_rw1b` [`n2-i7`]: training 19/1863 (1.02%)
