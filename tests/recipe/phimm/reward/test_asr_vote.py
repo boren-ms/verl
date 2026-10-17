@@ -1,11 +1,128 @@
 import pytest
 from omegaconf import OmegaConf
 
-from recipe.phimm.reward import asr_measure, asr_vote
+from recipe.phimm.reward import asr_measure, asr_measure_v0, asr_vote
 
 
 def test_voting_reuses_shared_delta_helpers():
     assert asr_vote.compute_delta is asr_measure.compute_delta
+
+
+@pytest.mark.parametrize("score_type", ["acc", "err"])
+@pytest.mark.parametrize("text", ["cat", "cat dog", "cat dog extra extra extra extra"])
+def test_score_type_converts_all_raw_measures(score_type, text):
+    kwargs = {"version": 2609, "text_norm": "identity"}
+    response = f"<TXT>{text}</TXT>"
+    accuracies = asr_measure._parse_response(response, "cat dog", **kwargs)
+    result = asr_vote.compute_score(
+        response, "cat dog",
+        measures={name: {"score": score_type} for name in accuracies}, **kwargs,
+    )
+    expected = {name: value - 1.0 if score_type == "err" else value for name, value in accuracies.items()}
+    assert result == {"score": 0.0, **expected}
+
+
+@pytest.mark.parametrize("score_type", ["acc", "err"])
+@pytest.mark.parametrize("delta_mode", ["abs", "rel"])
+@pytest.mark.parametrize("vote_mode", ["delta", "thr"])
+@pytest.mark.parametrize("accuracy", [0.625, 0.75, 0.875])
+def test_score_type_changes_relative_denominator(monkeypatch, score_type, delta_mode, vote_mode, accuracy):
+    monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": accuracy})
+    baseline = -0.25 if score_type == "err" else 0.75
+    value = accuracy - 1.0 if score_type == "err" else accuracy
+    delta = accuracy - 0.75
+    if delta_mode == "rel":
+        delta /= abs(baseline)
+    vote = delta if vote_mode == "delta" else 1.0 if delta > 0.25 else -1.0 if delta < -0.25 else 0.0
+    result = asr_vote.compute_score(
+        "", "",
+        measures={
+            "word": {"score": score_type, "delta": delta_mode, "vote": vote_mode, "tol": [-0.25, 0.25], "beta": 0.5}
+        },
+        extra_info={"greedy_reward": {"word": baseline}},
+    )
+    assert result == pytest.approx(
+        {"score": 0.5 * vote, "word": value, "d_word": delta, "v_word": vote}
+    )
+
+
+@pytest.mark.parametrize("baseline_scorer", [asr_vote.compute_score, asr_measure_v0.compute_score])
+def test_error_score_type_full_parser_round_trip(baseline_scorer):
+    kwargs = {
+        "version": 2609,
+        "text_norm": "identity",
+        "measures": {"word": {"score": "err", "delta": "rel", "vote": "delta", "beta": 0.5}},
+    }
+    baseline = baseline_scorer("<TXT>cat</TXT>", "cat dog cat dog", **kwargs)
+    assert baseline["word"] == -0.75
+    original = baseline.copy()
+    result = asr_vote.compute_score(
+        "<TXT>cat dog</TXT>", "cat dog cat dog", extra_info={"greedy_reward": baseline}, **kwargs
+    )
+    assert result == pytest.approx({"score": 1 / 6, "word": -0.5, "d_word": 1 / 3, "v_word": 1 / 3})
+    assert baseline == original
+
+
+def test_error_score_type_perfect_baseline_clips_relative_vote():
+    kwargs = {
+        "version": 2609, "text_norm": "identity",
+        "measures": {"word": {"score": "err", "delta": "rel", "vote": "delta", "beta": 0.5}},
+    }
+    baseline = asr_vote.compute_score("<TXT>cat dog</TXT>", "cat dog", **kwargs)
+    assert baseline == {"score": 0.0, "word": 0.0}
+    result = asr_vote.compute_score(
+        "<TXT>cat</TXT>", "cat dog", extra_info={"greedy_reward": baseline}, **kwargs
+    )
+    assert result == {"score": -5.0, "word": -0.5, "d_word": -5e7, "v_word": -10.0}
+
+
+def test_accuracy_score_type_is_default():
+    kwargs = {"version": 2609, "text_norm": "identity", "measures": {"word": {"delta": "rel", "vote": "delta"}}}
+    baseline = asr_vote.compute_score("<TXT>cat</TXT>", "cat dog", **kwargs)
+    kwargs["extra_info"] = {"greedy_reward": baseline}
+    default_result = asr_vote.compute_score("<TXT>cat dog</TXT>", "cat dog", **kwargs)
+    kwargs["measures"]["word"]["score"] = "acc"
+    assert asr_vote.compute_score("<TXT>cat dog</TXT>", "cat dog", **kwargs) == default_result
+
+
+@pytest.mark.parametrize("score_type", [None, "", "error", "negative_error", "neg_er", "neg_err", True, [], {}])
+def test_invalid_score_type_fails_even_without_baseline(monkeypatch, score_type):
+    monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 0.5})
+    with pytest.raises(ValueError, match="Unsupported ASR vote score type"):
+        asr_vote.compute_score("", "", measures={"word": {"score": score_type}})
+
+
+def test_score_type_rejects_shared_configuration():
+    with pytest.raises(ValueError, match="Configure ASR vote score per measure"):
+        asr_vote.compute_score("", "", score="err")
+
+
+def test_mixed_measure_score_types_baseline_and_reduction(monkeypatch):
+    accuracies = {
+        "baseline": {"word": 0.75, "word_del": 0.5, "lang": 0.25, "word_ins": 0.8},
+        "sample": {"word": 0.875, "word_del": 0.25, "lang": 0.5, "word_ins": 0.9},
+    }
+    monkeypatch.setattr(asr_vote, "_parse_response", lambda solution, **kwargs: accuracies[solution])
+    measures = OmegaConf.create({
+        "word": {"score": "err", "delta": "rel", "vote": "delta", "beta": 2.0, "clip": [-0.25, 0.25]},
+        "word_del": {"score": "acc", "vote": "thr", "tol": [-0.1, 0.1], "beta": 0.5},
+        "lang": {"score": "err", "vote": "delta"},
+        "word_ins": None,
+    })
+    baseline = asr_vote.compute_score("baseline", "", measures=measures)
+    assert baseline == {"score": 0.0, "word": -0.25, "word_del": 0.5, "lang": -0.75, "word_ins": 0.8}
+    original = baseline.copy()
+    result = asr_vote.compute_score(
+        "sample", "", measures=measures,
+        reduce={"mode": "average", "total": 4}, extra_info={"greedy_reward": baseline},
+    )
+    assert result == pytest.approx({
+        "score": 0.3125,
+        "word": -0.125, "word_del": 0.25, "lang": -0.5, "word_ins": 0.9,
+        "d_word": 0.5, "d_word_del": -0.25, "d_lang": 0.25, "d_word_ins": 0.1,
+        "v_word": 0.25, "v_word_del": -1.0, "v_lang": 0.25, "v_word_ins": 1.0,
+    })
+    assert baseline == original
 
 
 @pytest.mark.parametrize(

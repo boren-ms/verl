@@ -1,4 +1,4 @@
-"""Delta-voting ASR reward using the shared accuracy measurements.
+"""Delta-voting ASR reward using accuracy or negative error measurements.
 
 Select ``path: recipe/phimm/reward/asr_vote.py`` and ``name: compute_score``
 in a reward-function configuration. Existing scorers are unchanged.
@@ -88,12 +88,19 @@ def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> 
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
-    """Reduce beta-weighted votes on accuracy deltas against a greedy baseline.
+    """Reduce beta-weighted votes on measure deltas against a greedy baseline.
 
+    Per-measure ``score`` defaults to ``acc`` (accuracy). ``err``
+    instead uses ``accuracy - 1`` (negative error) for that measure, before
+    computing deltas and votes. Score types can be mixed across measures.
+    Returned raw measures and greedy baseline measurements use each measure's
+    selected representation. Absolute deltas are identical for both
+    types; relative deltas use the magnitude of the selected baseline value.
     For each configured measure, ``delta: abs`` (the default) uses
-    ``delta = accuracy - baseline_accuracy``. ``delta: rel`` uses
-    ``delta = (accuracy - baseline_accuracy) / max(abs(baseline_accuracy), 1e-8)``.
-    The denominator stays positive for negative accuracies and is floored at
+    ``delta = value - baseline_value`` for both types, so improvements are positive.
+    ``delta: rel`` divides this improvement by
+    ``max(abs(baseline_value), 1e-8)``.
+    The denominator stays positive for negative values and is floored at
     1e-8 for zero or near-zero baselines; identical zero values have delta zero.
     ``absolute`` and ``relative`` are also accepted for ``abs`` and ``rel``.
     Delta modes are configured per measure, not as a shared reward kwarg.
@@ -124,7 +131,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Accuracy clipping, gamma transforms, cut gates, and accuracy scaling are
     not applied: tol defines the voting interval, not clipping bounds.
 
-    Raw configured accuracies, ``d_<name>`` deltas, and ``v_<name>`` votes
+    Raw configured measures, ``d_<name>`` deltas, and ``v_<name>`` votes
     are returned alongside ``score``. Returned votes are clipped but unweighted:
     -1/0/+1 in threshold mode or the delta itself in delta mode, followed by
     the configured clipping in either mode.
@@ -133,8 +140,11 @@ def compute_score(solution_str, ground_truth, **kwargs):
     the score is zero and no delta or vote fields are returned, allowing the same
     scorer to collect greedy baseline measurements. This returns early,
     skipping vote and reduction configuration and computation. A nonempty baseline must
-    contain every configured measure; it may come from this scorer or
-    ``asr_measure``. Only measure deltas are returned, never ``d_score``.
+    contain every configured measure in the same score type: use this scorer
+    with the same per-measure ``score`` settings, ``asr_measure`` for ``acc``, or
+    ``asr_measure_v0`` for ``err``.
+    Baselines are already in the selected representation and are not converted
+    again. Only measure deltas are returned, never ``d_score``.
 
     Configuration example (YAML)::
 
@@ -149,8 +159,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
         reward_kwargs:
           reduce: {mode: average, total: 1.5}
           measures:
-            word: {delta: rel, vote: delta, beta: 1.0, clip: [-1000, 100]}
-            lang: {delta: abs, vote: thr, beta: 0.5}
+            word: {score: err, delta: rel, vote: delta, beta: 1.0, clip: [-1000, 100]}
+            lang: {score: acc, delta: abs, vote: thr, beta: 0.5}
     """
     if "delta" in kwargs:
         raise ValueError("Configure ASR vote delta per measure, not as a shared reward kwarg.")
@@ -160,6 +170,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
         raise ValueError("Configure ASR vote clipping per measure, not as shared reward kwargs.")
     if "tol" in kwargs:
         raise ValueError("Configure ASR vote tol per measure, not as a shared reward kwarg.")
+    if "score" in kwargs:
+        raise ValueError("Configure ASR vote score per measure, not as a shared reward kwarg.")
 
     parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
     measures = kwargs.get("measures") or {}
@@ -167,7 +179,14 @@ def compute_score(solution_str, ground_truth, **kwargs):
     if unknown:
         raise ValueError(f"Unsupported ASR vote measures: {', '.join(sorted(unknown))}.")
 
-    raw_scores = {name: parsed[name] for name in measures}
+    raw_scores = {}
+    for name, cfg in measures.items():
+        score_type = (cfg or {}).get("score", "acc")
+        if score_type not in ("acc", "err"):
+            raise ValueError(
+                f"Unsupported ASR vote score type for {name!r}: {score_type!r}. Expected 'acc' or 'err'."
+            )
+        raw_scores[name] = parsed[name] - 1.0 if score_type == "err" else parsed[name]
     extra_info = kwargs.get("extra_info") or {}
     baseline = extra_info.get("greedy_reward")
     if not baseline:
