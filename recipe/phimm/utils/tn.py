@@ -29,6 +29,20 @@ def lower(text):
     return text.lower()
 
 
+def voi_hi(text):
+    """Use the exact voi-oiwer Hindi evaluation preprocessing, preserving vowel marks.
+
+    This normalizes a single text, not a reference lattice. Selecting
+    ``text_norm: openasr_ml`` explicitly retains the legacy Hindi behavior.
+    """
+    try:
+        from voi_oiwer import standardize_hypothesis
+    except ImportError as exc:
+        raise ImportError("Install voi-oiwer==0.1.4 to normalize Hindi training rewards.") from exc
+
+    return " ".join(standardize_hypothesis(text, "hi"))
+
+
 def simple_with_tag(text):
     """Simple normalization function."""
     norm = tr.Compose(
@@ -72,13 +86,17 @@ TN_DICT = {
     "openasr_en": OpenASREnglishNormalizer(),
     "hf_english": _HFEnglishTextNormalizer(),
     "openasr_ml": OpenASRMultilingualNormalizer(),
+    "voi_hi": voi_hi,
     "openasr_pt": OpenASRPortugueseNormalizer(remove_diacritics=False),
 }
 
 
 def default_tn_name(lang="english"):
-    """Return the default text-norm name for a language."""
-    return "openasr_en" if (lang or "english").lower() == "english" else "openasr_ml"
+    """Use evaluation-equivalent Hindi normalization; retain other language defaults."""
+    lang = (lang or "english").lower().strip()
+    if lang in ("hindi", "hi", "hi_in", "hi-in"):
+        return "voi_hi"
+    return "openasr_en" if lang == "english" else "openasr_ml"
 
 
 def text_norm(txt, name=None):
