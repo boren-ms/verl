@@ -241,6 +241,7 @@ def test_v2b_gt_preserves_rewards_and_uses_2609_gt_format(language):
     )
     row = verl_format_ds(dataset)[0]
     assert row["reward_model"]["ground_truth"] == "cat dog"
+    # add_task_info formats gt_output through get_task_output for the 2609 lang_asr_verb task.
     assert row["reward_model"]["gt_output"] == f"<src={language}><tgt={language}>\n<VERBATIM>\ncat dog"
     assert row["extra_info"]["prefix"] == ""
 
