@@ -39,9 +39,9 @@ def test_base0_vote_preserves_training_setup_and_configures_vote_rewards(config_
         expected = OmegaConf.to_container(v0, resolve=False)
         for name, cfg in expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"].items():
             if config_name == "remax_dev_base0_v0c" and name != "lang":
-                cfg.update(low=-0.05, high=0.02)
+                cfg.update(tol=[-0.05, 0.02])
             else:
-                cfg.update(low=-0.1, high=0.1)
+                cfg.update(tol=[-0.1, 0.1])
         if config_name in ("remax_dev_base0_v0b", "remax_dev_base0_v0c"):
             expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"]["lang"]["beta"] = 1.0
         assert OmegaConf.to_container(config, resolve=False) == expected
@@ -55,7 +55,7 @@ def test_base0_vote_preserves_training_setup_and_configures_vote_rewards(config_
         )
         assert cfg["beta"] == (1.0 if full_weight else 0.25)
         assert cfg["delta"] == ("abs" if name == "lang" else "rel")
-        assert cfg["low"] < 0 < cfg["high"]
+        assert cfg["tol"][0] < 0 < cfg["tol"][1]
 
     kwargs["text_norm"] = "identity"
     baseline = compute_score("<src=English><tgt=English>\n<TXT>cat</TXT>", "cat dog", **kwargs)
@@ -96,8 +96,8 @@ def test_v0d_uses_word_edit_and_word_language_votes():
         if name in ("word_kw", "lang"):
             del measures[name]
         else:
-            measures[name].update(beta=0.25 if name.startswith("word_") else 1.0, low=-0.001, high=0.001)
-    measures["word_lang"] = {"delta": "rel", "beta": 0.5, "low": -0.001, "high": 0.001}
+            measures[name].update(beta=0.25 if name.startswith("word_") else 1.0, tol=[-0.001, 0.001])
+    measures["word_lang"] = {"delta": "rel", "beta": 0.5, "tol": [-0.001, 0.001]}
     assert OmegaConf.to_container(config, resolve=False) == expected
 
     kwargs = OmegaConf.to_container(config.reward_functions.librispeech.reward_kwargs, resolve=True)
@@ -145,7 +145,7 @@ def test_v0e_preserves_three_measure_zero_threshold_recipe():
         if name.startswith("word_"):
             del measures[name]
     for cfg in measures.values():
-        cfg.update(low=0.0, high=0.0)
+        cfg.update(tol=[0.0, 0.0])
     assert OmegaConf.to_container(config, resolve=False) == expected
 
     from recipe.phimm.reward.asr_vote import compute_measure_vote
@@ -169,7 +169,7 @@ def test_v0f_replaces_language_with_half_weight_word_edit_votes():
     measures = expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"]
     del measures["lang"]
     for name in ("word_ins", "word_del"):
-        measures[name] = {"delta": "rel", "beta": 0.5, "low": 0.0, "high": 0.0}
+        measures[name] = {"delta": "rel", "beta": 0.5, "tol": [0.0, 0.0]}
     assert OmegaConf.to_container(config, resolve=False) == expected
 
     kwargs = OmegaConf.to_container(config.reward_functions.librispeech.reward_kwargs, resolve=True)
@@ -208,9 +208,9 @@ def test_v0g_changes_only_v0f_thresholds_to_half_percent():
 
     expected = OmegaConf.to_container(original, resolve=False)
     for cfg in expected["reward_functions"]["librispeech"]["reward_kwargs"]["measures"].values():
-        cfg.update(low=-0.005, high=0.005)
+        cfg.update(tol=[-0.005, 0.005])
     assert OmegaConf.to_container(config, resolve=False) == expected
 
     for cfg in config.reward_functions.librispeech.reward_kwargs.measures.values():
         for delta, vote in [(-0.006, -1.0), (-0.005, 0.0), (0.0, 0.0), (0.005, 0.0), (0.006, 1.0)]:
-            assert compute_vote(delta, low=cfg.low, high=cfg.high) == vote
+            assert compute_vote(delta, low=cfg.tol[0], high=cfg.tol[1]) == vote

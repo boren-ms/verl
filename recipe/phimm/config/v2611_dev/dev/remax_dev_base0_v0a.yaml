@@ -15,12 +15,12 @@ reward_functions:
       version: 2609
       reduce: {mode: average, total: 3}
       measures:
-        char: {delta: rel, beta: 1.0, low: -0.1, high: 0.1}
-        word: {delta: rel, beta: 1.0, low: -0.1, high: 0.1}
-        word_del: {delta: rel, beta: 0.25, low: -0.1, high: 0.1}
-        word_ins: {delta: rel, beta: 0.25, low: -0.1, high: 0.1}
-        word_kw: {delta: rel, beta: 0.25, low: -0.1, high: 0.1}
-        lang: {delta: abs, beta: 0.25, low: -0.1, high: 0.1}
+        char: {delta: rel, beta: 1.0, tol: [-0.1, 0.1]}
+        word: {delta: rel, beta: 1.0, tol: [-0.1, 0.1]}
+        word_del: {delta: rel, beta: 0.25, tol: [-0.1, 0.1]}
+        word_ins: {delta: rel, beta: 0.25, tol: [-0.1, 0.1]}
+        word_kw: {delta: rel, beta: 0.25, tol: [-0.1, 0.1]}
+        lang: {delta: abs, beta: 0.25, tol: [-0.1, 0.1]}
 
 reward_function_by_data_source:
   openml: librispeech

@@ -1,4 +1,5 @@
 import pytest
+from omegaconf import OmegaConf
 
 from recipe.phimm.reward import asr_measure, asr_vote
 
@@ -9,7 +10,7 @@ def test_voting_reuses_shared_delta_helpers():
 
 @pytest.mark.parametrize(
     ("delta", "expected"),
-    [(None, 0.0), (-0.2, -1.0), (-0.1, 0.0), (0.0, 0.0), (0.1, 0.0), (0.2, 1.0)],
+    [(None, 0.0), (-0.02, -1.0), (-0.01, 0.0), (0.0, 0.0), (0.01, 0.0), (0.02, 1.0)],
 )
 def test_compute_vote(delta, expected):
     assert asr_vote.compute_vote(delta) == expected
@@ -40,11 +41,11 @@ def test_compute_vote_rejects_invalid_values(delta, low, high):
 @pytest.mark.parametrize(
     ("baseline", "cfg", "expected"),
     [
-        (0.5, None, (0.0, 0.0625, 0.0)),
-        (0.5, {"delta": "abs", "beta": 2.0}, (0.0, 0.0625, 0.0)),
+        (0.5, None, (1.0, 0.0625, 1.0)),
+        (0.5, {"delta": "abs", "beta": 2.0}, (2.0, 0.0625, 1.0)),
         (0.5, {"delta": "rel", "beta": 2.0}, (2.0, 0.125, 1.0)),
         (0.75, {"delta": "abs", "beta": 0.5}, (-0.5, -0.1875, -1.0)),
-        (0.5, {"delta": "rel", "high": 0.125}, (0.0, 0.125, 0.0)),
+        (0.5, {"delta": "rel", "tol": [-0.01, 0.125]}, (0.0, 0.125, 0.0)),
         (0.0, {"delta": "rel"}, (1.0, 56250000.0, 1.0)),
         (0.5, {"delta": "rel", "beta": 0.0}, (0.0, 0.125, 1.0)),
     ],
@@ -54,10 +55,25 @@ def test_compute_measure_vote(baseline, cfg, expected):
 
 
 def test_measure_vote_does_not_modify_configuration():
-    cfg = {"delta": "rel", "beta": 2.0, "low": -0.25, "high": 0.25}
+    cfg = {"delta": "rel", "beta": 2.0, "tol": [-0.25, 0.25]}
     original = cfg.copy()
     assert asr_vote.compute_measure_vote("word", 0.75, 0.5, cfg) == (2.0, 0.5, 1.0)
     assert cfg == original
+
+
+@pytest.mark.parametrize("tol", [None, [], [0], [0, 1, 2], "01", 1, [False, 1], [0, "1"], {0: 0, 1: 1}])
+def test_tol_rejects_invalid_bounds(tol):
+    with pytest.raises(ValueError, match="tol"):
+        asr_vote.compute_measure_vote("word", 1.0, 0.0, {"tol": tol})
+
+
+@pytest.mark.parametrize(
+    ("delta", "expected"),
+    [(-0.03, -1.0), (-0.02, 0.0), (0.0, 0.0), (0.01, 0.0), (0.02, 1.0)],
+)
+def test_tol_supports_hydra_and_asymmetric_thresholds(delta, expected):
+    cfg = OmegaConf.create({"tol": [-0.02, 0.01], "beta": 0.25})
+    assert asr_vote.compute_measure_vote("word", delta, 0.0, cfg) == (0.25 * expected, delta, expected)
 
 
 @pytest.mark.parametrize("delta_mode", ["abs", "absolute", "rel", "relative"])
@@ -65,10 +81,12 @@ def test_measure_vote_does_not_modify_configuration():
 @pytest.mark.parametrize("value", [-1.0, 0.0, 0.55, 2.0])
 @pytest.mark.parametrize("beta", [0.0, 0.25, -2.0])
 def test_direct_delta_vote(delta_mode, baseline, value, beta):
-    cfg = {"delta": delta_mode, "vote": "delta", "beta": beta, "low": 1.0, "high": -1.0}
+    cfg = {"delta": delta_mode, "vote": "delta", "beta": beta, "tol": [1.0, -1.0]}
     original = cfg.copy()
     expected = asr_measure.compute_delta(value, baseline, mode=delta_mode)
-    assert asr_vote.compute_measure_vote("word", value, baseline, cfg) == (beta * expected, expected, expected)
+    expected_vote = min(max(expected, -10), 10)
+    expected_score = beta * expected_vote
+    assert asr_vote.compute_measure_vote("word", value, baseline, cfg) == (expected_score, expected, expected_vote)
     assert cfg == original
 
 
@@ -117,6 +135,133 @@ def test_direct_delta_full_parser_baseline_round_trip():
     assert result == {"score": 0.5, "word": 1.0, "d_word": 1.0, "v_word": 1.0}
 
 
+@pytest.mark.parametrize("value", [-100.0, -10.0, -2.0, 0.0, 2.0, 10.0, 100.0])
+@pytest.mark.parametrize("beta", [0.25, -0.25, 2.0])
+def test_score_clipping_defaults_before_beta(value, beta):
+    cfg = {"vote": "delta", "beta": beta}
+    expected_vote = min(max(value, -10), 10)
+    expected = beta * expected_vote
+    assert asr_vote.compute_measure_vote("word", value, 0.0, cfg) == (expected, value, expected_vote)
+    assert "clip" not in cfg
+
+
+def test_score_clipping_default_relative_zero_baseline(monkeypatch):
+    monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 0.5})
+    result = asr_vote.compute_score(
+        "", "",
+        measures={"word": {"delta": "rel", "vote": "delta", "beta": 0.25}},
+        extra_info={"greedy_reward": {"word": 0.0}},
+    )
+    assert result == {"score": 2.5, "word": 0.5, "d_word": 5e7, "v_word": 10.0}
+
+
+@pytest.mark.parametrize("vote_mode", ["delta", "thr", "threshold"])
+@pytest.mark.parametrize(
+    ("value", "expected"), [(0.0, -0.5), (0.5, 0.0), (1.0, 1.0)]
+)
+def test_score_clipping_before_beta_preserves_raw_delta(vote_mode, value, expected):
+    cfg = {"vote": vote_mode, "beta": 2.0, "clip": [-0.25, 0.5]}
+    score, delta, vote = asr_vote.compute_measure_vote("word", value, 0.5, cfg)
+    assert score == expected
+    assert delta == value - 0.5
+    assert vote == expected / 2.0
+
+
+@pytest.mark.parametrize(
+    ("bounds", "value", "expected"),
+    [
+        ({"clip": [-0.25, 100]}, -2.0, -0.25),
+        ({"clip": [-0.25, 100]}, 2.0, 2.0),
+        ({"clip": [-1000, 0.25]}, 2.0, 0.25),
+        ({"clip": [-1000, 0.25]}, -2.0, -2.0),
+        ({"clip": [0.0, 0.0]}, 2.0, 0.0),
+        ({"clip": [-1000, 100]}, -2000.0, -1000.0),
+        ({"clip": [-1000, 100]}, 200.0, 100.0),
+    ],
+)
+def test_score_clipping_custom_and_equal_bounds(bounds, value, expected):
+    cfg = {"vote": "delta", **bounds}
+    original = cfg.copy()
+    assert asr_vote.compute_measure_vote("word", value, 0.0, cfg) == (expected, value, expected)
+    assert cfg == original
+
+
+@pytest.mark.parametrize("beta", [0.0, 0.25, -0.25, 2.0])
+def test_score_clipping_happens_before_weighting(beta):
+    assert asr_vote.compute_measure_vote(
+        "word", 2.0, 0.0, {"vote": "delta", "beta": beta, "clip": [-1.0, 1.0]}
+    ) == (beta, 2.0, 1.0)
+
+
+@pytest.mark.parametrize("value", [-2000.0, -1000.0, 100.0, 200.0])
+def test_score_clipping_requested_bounds_before_beta(value):
+    expected_vote = min(max(value, -1000.0), 100.0)
+    assert asr_vote.compute_measure_vote(
+        "word", value, 0.0, {"vote": "delta", "beta": 0.25, "clip": [-1000, 100]}
+    ) == (0.25 * expected_vote, value, expected_vote)
+
+
+@pytest.mark.parametrize(
+    "bounds",
+    [
+        {"clip": [1.0, -1.0]},
+        {"clip": [float("nan"), 1]},
+        {"clip": [0, float("inf")]},
+        {"clip": None},
+        {"clip": [0, "1"]},
+        {"clip": [True, 1]},
+        {"clip": []},
+        {"clip": [0]},
+        {"clip": [0, 1, 2]},
+        {"clip": "01"},
+        {"clip": 1},
+    ],
+)
+def test_score_clipping_rejects_invalid_bounds(bounds):
+    with pytest.raises(ValueError, match="clip"):
+        asr_vote.compute_measure_vote("word", 1.0, 0.0, {"vote": "delta", **bounds})
+
+
+def test_score_clipping_does_not_hide_nonfinite_weighted_scores():
+    with pytest.raises(ValueError, match="nonfinite weighted score"):
+        asr_vote.compute_measure_vote(
+            "word", 1e308, 0.0, {"vote": "delta", "beta": 2.0, "clip": [-1e308, 1e308]}
+        )
+
+
+def test_score_clipping_prevents_overflow_before_weighting():
+    assert asr_vote.compute_measure_vote(
+        "word", 1e308, 0.0, {"vote": "delta", "beta": 2.0, "clip": [-1, 1]}
+    ) == (2.0, 1e308, 1.0)
+
+
+def test_score_clipping_precedes_reduction_and_returns_clipped_diagnostics(monkeypatch):
+    monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 0.5, "lang": 0.0})
+    result = asr_vote.compute_score(
+        "", "",
+        measures={
+            "word": {"delta": "rel", "vote": "delta", "beta": 0.5, "clip": [-1, 1]},
+            "lang": {"vote": "thr", "beta": 0.25, "clip": [-0.1, 1]},
+        },
+        reduce={"mode": "average", "total": 2},
+        extra_info={"greedy_reward": {"word": 0.0, "lang": 1.0}},
+    )
+    assert result == pytest.approx({
+        "score": 0.2375, "word": 0.5, "lang": 0.0,
+        "d_word": 5e7, "v_word": 1.0, "d_lang": -1.0, "v_lang": -0.1,
+    })
+
+
+def test_score_clipping_rejects_shared_configuration():
+    with pytest.raises(ValueError, match="per measure"):
+        asr_vote.compute_score("", "", clip=[-1000, 100])
+
+
+def test_score_clipping_supports_hydra_config():
+    cfg = OmegaConf.create({"vote": "delta", "beta": 0.25, "clip": [-1000, 100]})
+    assert asr_vote.compute_measure_vote("word", 200.0, 0.0, cfg) == (25.0, 200.0, 100.0)
+
+
 def test_scorer_calls_vote_helper_for_each_measure(monkeypatch):
     monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 0.75, "fmt": 0.25})
     calls = []
@@ -130,10 +275,13 @@ def test_scorer_calls_vote_helper_for_each_measure(monkeypatch):
     result = asr_vote.compute_score(
         "",
         "",
-        measures={"word": {"delta": "relative", "beta": 2.0}, "fmt": {"delta": "relative", "low": -0.25, "high": 0.25}},
+        measures={
+            "word": {"delta": "relative", "beta": 2.0},
+            "fmt": {"delta": "relative", "tol": [-0.25, 0.25]},
+        },
         extra_info={"greedy_reward": {"word": 0.5, "fmt": 0.5}},
     )
-    assert calls == [(0.5, -0.1, 0.1), (-0.5, -0.25, 0.25)]
+    assert calls == [(0.5, -0.01, 0.01), (-0.5, -0.25, 0.25)]
     assert result == {
         "score": 0.5,
         "word": 0.75,
@@ -147,7 +295,7 @@ def test_scorer_calls_vote_helper_for_each_measure(monkeypatch):
 
 @pytest.mark.parametrize(
     ("delta", "expected"),
-    [(-0.2, -1.0), (-0.1, 0.0), (-0.05, 0.0), (0.0, 0.0), (0.05, 0.0), (0.1, 0.0), (0.2, 1.0)],
+    [(-0.02, -1.0), (-0.01, 0.0), (-0.005, 0.0), (0.0, 0.0), (0.005, 0.0), (0.01, 0.0), (0.02, 1.0)],
 )
 def test_default_votes_and_inclusive_neutral_interval(monkeypatch, delta, expected):
     monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": delta})
@@ -225,8 +373,8 @@ def test_measure_specific_thresholds_and_no_accuracy_transforms(monkeypatch):
         gamma=2.0,
         scale="word",
         measures={
-            "word": {"low": -0.5, "high": 0.5, "gamma": 2.0, "cut": 1.0},
-            "fmt": {"low": -0.2, "high": 0.2, "beta": 0.5},
+            "word": {"tol": [-0.5, 0.5], "gamma": 2.0, "cut": 1.0},
+            "fmt": {"tol": [-0.2, 0.2], "beta": 0.5},
         },
         extra_info={"greedy_reward": {"word": 0.0, "fmt": 0.0}},
     )
@@ -328,7 +476,7 @@ def test_relative_delta_votes(monkeypatch, accuracy, baseline, expected, mode):
     result = asr_vote.compute_score(
         "",
         "",
-        measures={"word": {"delta": mode}},
+        measures={"word": {"delta": mode, "tol": [-0.1, 0.1]}},
         extra_info={"greedy_reward": {"word": baseline, "score": 0.25}},
     )
 
@@ -348,7 +496,7 @@ def test_relative_delta_threshold_equality_is_neutral(monkeypatch, accuracy):
     result = asr_vote.compute_score(
         "",
         "",
-        measures={"word": {"delta": "relative", "low": -0.25, "high": 0.25}},
+        measures={"word": {"delta": "relative", "tol": [-0.25, 0.25]}},
         extra_info={"greedy_reward": {"word": 0.5}},
     )
     assert result["score"] == 0.0
@@ -358,7 +506,10 @@ def test_relative_delta_threshold_equality_is_neutral(monkeypatch, accuracy):
 def test_relative_mode_changes_votes_and_preserves_beta_and_reduction(monkeypatch):
     monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 0.5625, "fmt": 0.4375})
     kwargs = {
-        "measures": {"word": {"beta": 2.0}, "fmt": {"beta": 0.5}},
+        "measures": {
+            "word": {"beta": 2.0, "tol": [-0.1, 0.1]},
+            "fmt": {"beta": 0.5, "tol": [-0.1, 0.1]},
+        },
         "extra_info": {"greedy_reward": {"word": 0.5, "fmt": 0.5}},
     }
     assert asr_vote.compute_score("", "", **kwargs)["score"] == 0.0
@@ -386,7 +537,10 @@ def test_mixed_measure_delta_modes(monkeypatch, word_mode, fmt_mode, expected, w
     result = asr_vote.compute_score(
         "",
         "",
-        measures={"word": {"delta": word_mode, "beta": 2.0}, "fmt": {"delta": fmt_mode, "beta": 0.5}},
+        measures={
+            "word": {"delta": word_mode, "beta": 2.0, "tol": [-0.1, 0.1]},
+            "fmt": {"delta": fmt_mode, "beta": 0.5, "tol": [-0.1, 0.1]},
+        },
         extra_info={"greedy_reward": {"word": 0.5, "fmt": 0.5, "score": 0.0}},
     )
     assert result == {
@@ -409,13 +563,13 @@ def test_measure_without_delta_defaults_to_abs(monkeypatch):
         extra_info={"greedy_reward": {"word": 0.5, "fmt": 0.5}},
     )
     assert result == {
-        "score": 0.5,
+        "score": 1.0,
         "word": 0.5625,
         "fmt": 0.5625,
         "d_word": 0.125,
         "d_fmt": 0.0625,
         "v_word": 1.0,
-        "v_fmt": 0.0,
+        "v_fmt": 1.0,
     }
 
 
@@ -437,9 +591,12 @@ def test_relative_mode_real_parser_baseline_round_trip():
     [
         ({"measures": {"unknown": {}}}, "Unsupported ASR vote measures"),
         ({"measures": {"word": {}}, "extra_info": {"greedy_reward": {"fmt": 1.0}}}, "Missing greedy baseline"),
-        ({"measures": {"word": {"low": 0.5, "high": -0.5}}}, "finite low <= high"),
-        ({"measures": {"word": {"high": float("nan")}}}, "finite low <= high"),
-        ({"measures": {"word": {"low": float("-inf")}}}, "finite low <= high"),
+        ({"measures": {"word": {"tol": [0.5, -0.5]}}}, "tol low <= high"),
+        ({"measures": {"word": {"tol": [-0.01, float("nan")]}}}, "finite numeric tol"),
+        ({"measures": {"word": {"tol": [float("-inf"), 0.01]}}}, "finite numeric tol"),
+        ({"measures": {"word": {"low": -0.01}}}, "instead of low/high"),
+        ({"measures": {"word": {"high": 0.01}}}, "instead of low/high"),
+        ({"tol": [-0.01, 0.01]}, "Configure ASR vote tol per measure"),
         ({"measures": {"word": {"beta": float("inf")}}}, "finite beta"),
         ({"reduce": "unknown"}, "Unsupported ASR vote reduction"),
         ({"measures": {"word": {"delta": "unknown"}}}, "Unsupported ASR vote delta mode"),
