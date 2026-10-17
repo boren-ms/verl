@@ -1,4 +1,4 @@
-# v2b with one ground-truth response per training rollout group.
+# v2b with one formatted ground-truth response per training rollout group.
 hydra:
   searchpath:
     - file://recipe/phimm/config

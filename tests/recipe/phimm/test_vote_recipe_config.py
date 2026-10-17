@@ -214,3 +214,40 @@ def test_v0g_changes_only_v0f_thresholds_to_half_percent():
     for cfg in config.reward_functions.librispeech.reward_kwargs.measures.values():
         for delta, vote in [(-0.006, -1.0), (-0.005, 0.0), (0.0, 0.0), (0.005, 0.0), (0.006, 1.0)]:
             assert compute_vote(delta, low=cfg.tol[0], high=cfg.tol[1]) == vote
+
+
+@pytest.mark.parametrize("language", ["English", "French"])
+def test_v2b_gt_preserves_rewards_and_uses_2609_gt_format(language):
+    from datasets import Dataset
+
+    from recipe.phimm.data.dataset import add_task_info, verl_format_ds
+
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2611_dev/dev"), version_base=None):
+        original = compose(config_name="remax_dev_base0_v2b", overrides=[searchpath])
+        config = compose(config_name="remax_dev_base0_v2b_gt", overrides=[searchpath])
+
+    expected = OmegaConf.to_container(original, resolve=False)
+    expected["actor_rollout_ref"]["rollout"]["gt_rollout"] = True
+    assert OmegaConf.to_container(config, resolve=False) == expected
+    assert config.actor_rollout_ref.rollout.n == 8
+    assert config.data.version == 2609
+
+    dataset = Dataset.from_dict({"text": ["cat dog"], "language": [language], "id": ["gt-format"]})
+    dataset = add_task_info(
+        dataset, task="lang_asr_verb", version=config.data.version, prefix_prob=0.0, lang_hint=True
+    )
+    row = verl_format_ds(dataset)[0]
+    assert row["reward_model"]["ground_truth"] == "cat dog"
+    assert row["reward_model"]["gt_output"] == f"<src={language}><tgt={language}>\n<VERBATIM>\ncat dog"
+    assert row["extra_info"]["prefix"] == ""
+
+    result = compute_score(
+        row["reward_model"]["gt_output"],
+        row["reward_model"]["ground_truth"],
+        extra_info=row["extra_info"],
+        **OmegaConf.to_container(config.reward_functions.librispeech.reward_kwargs, resolve=True),
+    )
+    assert result == {"score": 0.0, "word": 0.0, "word_del": 0.0, "word_ins": 0.0, "word_kw": 0.0, "lang": 1.0}
