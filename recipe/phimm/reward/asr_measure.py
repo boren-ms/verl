@@ -341,9 +341,9 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     It divides by the whole normalized reference utterance, not just its
     keyword words. ``keyword`` is ``1 - keyword_errors /
     max(total_reference_keyword_words, 1)``.
-    ``word_lang`` is one minus ordered language edit errors divided by
-    ``max(total_reference_words, 1)``. ``word_fmt`` uses the same accuracy
-    formula with one error per failed utterance-level format check.
+    ``word_lang`` is ``1 - (1 - word_accuracy) * (1 - language_accuracy)``.
+    ``word_fmt`` is one minus one error per failed utterance-level format
+    check divided by ``max(total_reference_words, 1)``.
     """
     from recipe.phimm.reward.asr_edge import measure
 
@@ -366,6 +366,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
     lang = check_lang(task_output, tgt_lang)
     fmt = float(check_fmt(task_output, version=version))
+    word_acc = word_error.accuracy()
     n_total = max(word_error.n_ref, 1)
 
     return {
@@ -373,7 +374,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "char": char_error.accuracy(),
         "char_del": char_error.accuracy(sub=0.0, ins=0.0),
         "char_ins": char_error.accuracy(sub=0.0, **{"del": 0.0}),
-        "word": word_error.accuracy(),
+        "word": word_acc,
         "word_del": word_error.accuracy(sub=0.0, ins=0.0),
         "word_ins": word_error.accuracy(sub=0.0, **{"del": 0.0}),
         "word_kw": keyword_result["word_kw"],
@@ -381,7 +382,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         **fmts,
         "lang": lang["acc"],
         "fmt": fmt,
-        "word_lang": 1.0 - lang["n_err"] / n_total,
+        "word_lang": 1.0 - (1.0 - word_acc) * (1.0 - lang["acc"]),
         "word_fmt": 1.0 - (1.0 - fmt) / n_total,
         **openml_acc,
     }
@@ -525,7 +526,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     ``keyword`` instead divides by the number of normalized reference keyword
     words: ``1 - n_err_kw / max(n_ref_kw, 1)``.
     ``lang`` uses the ordered language accuracy from :func:`check_lang`.
-    ``word_lang`` is ``1 - language_edit_count / max(total_reference_words, 1)``.
+    ``word_lang`` is ``1 - (1 - word) * (1 - lang)``.
     ``word_fmt`` uses the same accuracy formula with one error per failed
     format check. Passing checks give one; errors reduce the score.
     The contribution of each component ``k`` is::

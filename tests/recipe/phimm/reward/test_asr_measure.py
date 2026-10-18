@@ -307,15 +307,15 @@ def test_check_lang_returns_ordered_edit_details(
 
 
 @pytest.mark.parametrize(
-    ("predictions", "expected_acc", "expected_errors"),
+    ("predictions", "expected_acc"),
     [
-        (["English"], 0.5, 1),
-        (["English", "French"], 0.5, 1),
-        (["Chinese", "English"], 0.0, 2),
-        (["English", "Chinese", "French"], 0.5, 1),
+        (["English"], 0.5),
+        (["English", "French"], 0.5),
+        (["Chinese", "English"], 0.0),
+        (["English", "Chinese", "French"], 0.5),
     ],
 )
-def test_language_rewards_use_ordered_accuracy_and_error_count(predictions, expected_acc, expected_errors):
+def test_word_lang_combines_word_and_ordered_language_accuracy(predictions, expected_acc):
     solution = "\n".join(f"<src={lang}><tgt={lang}>\n<TXT>word</TXT>" for lang in predictions)
     kwargs = {"version": 2609, "text_norm": "identity", "language": "English Chinese"}
     parsed = _parse_response(solution, ground_truth="one two three four", **kwargs)
@@ -325,13 +325,32 @@ def test_language_rewards_use_ordered_accuracy_and_error_count(predictions, expe
     )
 
     assert parsed["lang"] == expected_acc
-    assert parsed["word_lang"] == 1.0 - expected_errors / 4
+    expected_word_lang = 1.0 - (1.0 - parsed["word"]) * (1.0 - expected_acc)
+    assert parsed["word_lang"] == expected_word_lang
     assert score == {
-        "score": expected_acc + 1.0 - expected_errors / 4,
+        "score": expected_acc + expected_word_lang,
         "lang": expected_acc,
-        "word_lang": 1.0 - expected_errors / 4,
+        "word_lang": expected_word_lang,
     }
     assert lang_score(solution, **kwargs) == {"score": expected_acc, "p_lang": expected_acc}
+
+
+@pytest.mark.parametrize(
+    ("language", "expected_lang", "expected_word_lang"),
+    [("English", 1.0, 1.0), ("English Chinese", 0.5, 0.75)],
+)
+def test_word_lang_formula(language, expected_lang, expected_word_lang):
+    parsed = _parse_response(
+        "<src=English><tgt=English>\n<TXT>one two</TXT>",
+        ground_truth="one two three four",
+        version=2609,
+        text_norm="identity",
+        language=language,
+    )
+
+    assert parsed["word"] == 0.5
+    assert parsed["lang"] == expected_lang
+    assert parsed["word_lang"] == expected_word_lang
 
 
 def test_language_reward_uses_header_with_raw_text():
@@ -1205,19 +1224,19 @@ def test_compute_score_omits_unconfigured_keyword():
     ("solution", "reference", "expected_lang", "expected_fmt", "word_lang", "word_fmt"),
     [
         ("<src=English><tgt=English>\n<TXT>hello world</TXT>", "hello world", 1.0, 1.0, 1.0, 1.0),
-        ("<src=French><tgt=French>\n<TXT>hello world</TXT>", "hello world", 0.0, 1.0, 0.5, 1.0),
+        ("<src=French><tgt=French>\n<TXT>hello world</TXT>", "hello world", 0.0, 1.0, 1.0, 1.0),
         (
             "<src=English><tgt=English>\n<TXT>hello world</TXT>\n<src=broken",
             "hello world", 1.0, 0.0, 1.0, 0.5,
         ),
-        ("", "one two three four", 0.0, 0.0, 0.75, 0.75),
-        ("", "", 0.0, 0.0, 0.0, 0.0),
+        ("", "one two three four", 0.0, 0.0, 0.0, 0.75),
+        ("", "", 0.0, 0.0, 1.0, 0.0),
         ("<src=English><tgt=English>\n<TXT>hello</TXT>", "", 1.0, 1.0, 1.0, 1.0),
         (
             "<src=English><tgt=English>\n<TXT>hello</TXT>\n"
             "<src=French><tgt=French>\n<TXT>bonjour</TXT>\n"
             "<src=Chinese><tgt=Chinese>\n<TXT>你好</TXT>",
-            "hello", -1.0, 1.0, -1.0, 1.0,
+            "hello", -1.0, 1.0, -3.0, 1.0,
         ),
     ],
 )
@@ -1235,13 +1254,13 @@ def test_word_lang_and_word_fmt_normalize_utterance_errors(
     assert result["word_fmt"] == word_fmt
 
 
-def test_word_lang_and_word_fmt_use_normalized_reference_words():
+def test_word_lang_uses_word_accuracy_and_word_fmt_uses_normalized_reference_words():
     result = _parse_response(
         "", ground_truth="one   two\nthree four",
         version=2609, text_norm="identity", language="English",
     )
 
-    assert result["word_lang"] == 0.75
+    assert result["word_lang"] == 0.0
     assert result["word_fmt"] == 0.75
 
 
@@ -1254,11 +1273,11 @@ def test_compute_score_word_lang_and_word_fmt_support_weights_and_deltas():
     )
 
     assert result == {
-        "score": 2.25,
-        "word_lang": 0.75,
+        "score": 0.75,
+        "word_lang": 0.0,
         "word_fmt": 0.75,
-        "d_score": -0.75,
-        "d_word_lang": -0.25,
+        "d_score": -2.25,
+        "d_word_lang": -1.0,
         "d_word_fmt": -0.25,
     }
 
