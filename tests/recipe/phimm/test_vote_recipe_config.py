@@ -7,6 +7,46 @@ from omegaconf import OmegaConf
 from recipe.phimm.reward.asr_vote import compute_score
 
 
+def test_v1h1a1_adds_language_reward_and_normalizes_by_beta_sum():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2611_dev/dev"), version_base=None):
+        original = compose(config_name="remax_dev_base0_v1h1a", overrides=[searchpath])
+        config = compose(config_name="remax_dev_base0_v1h1a1", overrides=[searchpath])
+
+    expected = OmegaConf.to_container(original, resolve=False)
+    reward_kwargs = expected["reward_functions"]["librispeech"]["reward_kwargs"]
+    reward_kwargs["measures"]["lang"] = {
+        "delta": "abs", "beta": 0.1, "vote": "delta", "clip": [-10, 10],
+    }
+    reward_kwargs["reduce"]["total"] = 3.5
+    assert OmegaConf.to_container(config, resolve=False) == expected
+    assert config.actor_rollout_ref.rollout.gt_rollout is False
+    reward = config.reward_functions.librispeech.reward_kwargs
+    assert reward.measures.lang.beta == 0.1
+    assert reward.reduce.total == pytest.approx(sum(measure.beta for measure in reward.measures.values()))
+
+
+def test_v1h1a2_increases_word_language_weight_and_normalizes_by_beta_sum():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2611_dev/dev"), version_base=None):
+        original = compose(config_name="remax_dev_base0_v1h1a", overrides=[searchpath])
+        config = compose(config_name="remax_dev_base0_v1h1a2", overrides=[searchpath])
+
+    expected = OmegaConf.to_container(original, resolve=False)
+    reward_kwargs = expected["reward_functions"]["librispeech"]["reward_kwargs"]
+    reward_kwargs["measures"]["word_lang"]["beta"] = 3.0
+    reward_kwargs["reduce"]["total"] = 5.4
+    assert OmegaConf.to_container(config, resolve=False) == expected
+    assert config.actor_rollout_ref.rollout.gt_rollout is False
+    reward = config.reward_functions.librispeech.reward_kwargs
+    assert reward.measures.word_lang.beta == 3.0
+    assert reward.reduce.total == pytest.approx(sum(measure.beta for measure in reward.measures.values()))
+
+
 def test_v1h2c_smooth_language_penalty_with_real_parser():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
