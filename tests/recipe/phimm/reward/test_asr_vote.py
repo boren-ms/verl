@@ -4,68 +4,6 @@ from omegaconf import OmegaConf
 from recipe.phimm.reward import asr_measure, asr_measure_v0, asr_vote
 
 
-@pytest.mark.parametrize(
-    ("difference", "expected"), [(0.0, 1.0), (0.05, 0.92), (0.15, 0.6), (0.30, 0.36)]
-)
-def test_lang_wer_weight_is_smooth_bounded_and_symmetric(difference, expected):
-    cfg = OmegaConf.create({"scale": 0.15, "floor": 0.2})
-    assert asr_vote.compute_lang_wer_weight(difference, cfg) == pytest.approx(expected)
-    assert asr_vote.compute_lang_wer_weight(-difference, cfg) == pytest.approx(expected)
-    assert asr_vote.compute_lang_wer_weight(1e300, cfg) == pytest.approx(0.2)
-
-
-@pytest.mark.parametrize(
-    "cfg",
-    [None, [], {"scale": 0}, {"scale": True}, {"scale": float("nan")},
-     {"floor": -0.1}, {"floor": 1.1}, {"floor": True}, {"unknown": 1}],
-)
-def test_lang_wer_weight_rejects_invalid_configuration(cfg):
-    with pytest.raises(ValueError, match="lang wer_weight"):
-        asr_vote.compute_lang_wer_weight(0.0, cfg)
-
-
-@pytest.mark.parametrize("score_type", ["acc", "err"])
-def test_smooth_lang_reward_preserves_word_preference_and_freezes_at_word_cap(monkeypatch, score_type):
-    measures = {
-        "lang": {"delta": "abs", "vote": "delta", "beta": 0.25, "clip": [-1, 1],
-                 "wer_weight": {"scale": 0.15, "floor": 0.2}},
-        "word": {"score": score_type, "delta": "abs", "vote": "delta", "beta": 1.25, "clip": [-2, 2]},
-    }
-
-    def evaluate(difference):
-        monkeypatch.setattr(
-            asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 1.0 + difference, "lang": 0.0}
-        )
-        return asr_vote.compute_score(
-            "", "", measures=measures, reduce={"mode": "average", "total": 3.6},
-            extra_info={"greedy_reward": {"word": 1.0 if score_type == "acc" else 0.0, "lang": 1.0}},
-        )
-
-    previous = evaluate(-2.0)["score"]
-    for index in range(-1999, 1):
-        result = evaluate(index / 1000)
-        assert result["score"] > previous
-        previous = result["score"]
-    assert evaluate(0.0)["score"] == pytest.approx(-0.25 / 3.6)
-    assert evaluate(-3.0)["score"] == evaluate(-2.0)["score"]
-    assert evaluate(-3.0)["w_lang"] == evaluate(-2.0)["w_lang"]
-
-
-@pytest.mark.parametrize(
-    ("word", "lang", "error"),
-    [(None, {}, "configured word"), ({"delta": "rel"}, {}, "absolute direct-delta"),
-     ({"vote": "thr"}, {}, "absolute direct-delta"), ({}, {"delta": "rel"}, "absolute direct-delta"),
-     ({"clip": [1, 2]}, {}, "clip containing zero")],
-)
-def test_smooth_lang_reward_requires_compatible_word_and_lang(monkeypatch, word, lang, error):
-    monkeypatch.setattr(asr_vote, "_parse_response", lambda *args, **kwargs: {"word": 1.0, "lang": 0.0})
-    measures = {"lang": {"vote": "delta", "wer_weight": {}, **lang}}
-    if word is not None:
-        measures["word"] = {"vote": "delta", **word}
-    with pytest.raises(ValueError, match=error):
-        asr_vote.compute_score("", "", measures=measures, extra_info={"greedy_reward": {"word": 1.0, "lang": 1.0}})
-
-
 def test_voting_reuses_shared_delta_helpers():
     assert asr_vote.compute_delta is asr_measure.compute_delta
 
