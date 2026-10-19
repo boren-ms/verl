@@ -7,6 +7,21 @@ from omegaconf import OmegaConf
 from recipe.phimm.reward.asr_vote import compute_score
 
 
+def test_v1h2_disables_only_ground_truth_rollouts():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2611_dev/dev"), version_base=None):
+        original = compose(config_name="remax_dev_base0_v1h2_gt", overrides=[searchpath])
+        config = compose(config_name="remax_dev_base0_v1h2", overrides=[searchpath])
+
+    assert original.actor_rollout_ref.rollout.gt_rollout is True
+    assert config.actor_rollout_ref.rollout.gt_rollout is False
+    expected = OmegaConf.to_container(original, resolve=False)
+    expected["actor_rollout_ref"]["rollout"]["gt_rollout"] = False
+    assert OmegaConf.to_container(config, resolve=False) == expected
+
+
 @pytest.mark.parametrize(
     "config_name", ["remax_dev_base0_v0", "remax_dev_base0_v0a", "remax_dev_base0_v0b", "remax_dev_base0_v0c"]
 )
