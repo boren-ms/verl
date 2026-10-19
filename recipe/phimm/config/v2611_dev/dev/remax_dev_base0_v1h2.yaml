@@ -1,4 +1,4 @@
-# v1h2 rewards without ground-truth rollouts; normalize by the beta sum of 3.6.
+# v1h2 rewards with standard ReMax rollout instead of GT rollout.
 hydra:
   searchpath:
     - file://recipe/phimm/config
