@@ -351,6 +351,18 @@ def test_word_lang_formula(language, expected_lang, expected_word_lang):
     assert parsed["word"] == 0.5
     assert parsed["lang"] == expected_lang
     assert parsed["word_lang"] == expected_word_lang
+    assert parsed["char_lang"] == 1.0 - (1.0 - parsed["char"]) * (1.0 - expected_lang)
+
+
+def test_char_lang_contributes_to_score():
+    solution = "<src=English><tgt=English>\n<TXT>one too</TXT>"
+    kwargs = {"version": 2609, "text_norm": "identity", "language": "English Chinese"}
+    parsed = _parse_response(solution, ground_truth="one two", **kwargs)
+    result = compute_score(solution, ground_truth="one two", measures={"char_lang": {}}, **kwargs)
+
+    expected = 1.0 - (1.0 - parsed["char"]) * (1.0 - parsed["lang"])
+    assert parsed["char_lang"] == expected
+    assert result == {"score": expected, "char_lang": expected}
 
 
 def test_language_reward_uses_header_with_raw_text():
@@ -1070,7 +1082,26 @@ def test_compute_kw_score(reference, hypothesis, keywords, expected):
     assert result["keyword"] == pytest.approx(
         1.0 - result["kw_nerr"] / max(result["kw_nref"], 1)
     )
-    assert set(result) == {"word_kw", "keyword", "kw_nerr", "kw_nref"}
+    assert set(result) == {"word_kw", "char_kw", "keyword", "kw_nerr", "kw_nref"}
+
+
+@pytest.mark.parametrize(
+    ("reference", "hypothesis", "keywords", "expected"),
+    [
+        ("abc xyz", "abc xyz", ["xyz"], 1.0),
+        ("abc xyz", "abc xqz", ["xyz"], 5 / 6),
+        ("abc xyz", "abc xz", ["xyz"], 5 / 6),
+        ("new york state", "new yark state", ["new york"], 11 / 12),
+        ("abc", "abc xyz", ["xyz"], 0.0),
+        ("abc xyz", "abc xqz", None, 1.0),
+    ],
+)
+def test_compute_kw_score_reports_character_keyword_accuracy(
+    reference, hypothesis, keywords, expected,
+):
+    result = compute_kw_score(reference, hypothesis, keywords, text_norm="identity")
+
+    assert result["char_kw"] == pytest.approx(expected)
 
 
 def test_compute_kw_score_reports_error_and_reference_counts():
@@ -1088,7 +1119,7 @@ def test_compute_kw_score_reports_error_and_reference_counts():
 
 def test_compute_kw_score_without_keywords_preserves_evaluation_counts():
     assert compute_kw_score("the quick brown fox", "the quick blue fox") == {
-        "word_kw": 1.0, "keyword": 1.0, "kw_nerr": 0, "kw_nref": 0,
+        "word_kw": 1.0, "char_kw": 1.0, "keyword": 1.0, "kw_nerr": 0, "kw_nref": 0,
     }
 
 
@@ -1100,6 +1131,7 @@ def test_parse_response_reports_keyword_rewards():
     )
 
     assert result["word_kw"] == 0.75
+    assert result["char_kw"] == 0.75
     assert result["keyword"] == 0.0
 
 

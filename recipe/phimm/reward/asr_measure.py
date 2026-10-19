@@ -12,7 +12,7 @@ import unicodedata
 from dataclasses import dataclass
 from numbers import Real
 
-from jiwer import process_words
+from jiwer import process_characters, process_words
 
 from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
 from recipe.phimm.utils.languages import get_language_code
@@ -270,17 +270,35 @@ def compute_openml_acc(hyp_text: str, ground_truth: str, tgt_lang: str, **kwargs
     }
 
 
-def _keyword_indices(words: list[str], keywords: list[str]) -> set[int]:
+def _keyword_indices(units: list[str], keywords: list[list[str]]) -> set[int]:
     indices = set()
     for keyword in keywords:
-        keyword_words = keyword.split()
-        if not keyword_words:
+        if not keyword:
             continue
-        width = len(keyword_words)
-        for start in range(len(words) - width + 1):
-            if words[start : start + width] == keyword_words:
+        width = len(keyword)
+        for start in range(len(units) - width + 1):
+            if units[start : start + width] == keyword:
                 indices.update(range(start, start + width))
     return indices
+
+
+def _keyword_error_counts(
+    alignments,
+    ref_keyword_indices: set[int],
+    hyp_keyword_indices: set[int],
+) -> tuple[int, int]:
+    errors = 0
+    references = 0
+    for chunk in alignments:
+        if chunk.type == "equal":
+            references += sum(idx in ref_keyword_indices for idx in range(chunk.ref_start_idx, chunk.ref_end_idx))
+        elif chunk.type in {"substitute", "delete"}:
+            keyword_errors = sum(idx in ref_keyword_indices for idx in range(chunk.ref_start_idx, chunk.ref_end_idx))
+            references += keyword_errors
+            errors += keyword_errors
+        elif chunk.type == "insert":
+            errors += sum(idx in hyp_keyword_indices for idx in range(chunk.hyp_start_idx, chunk.hyp_end_idx))
+    return errors, references
 
 
 def compute_kw_score(
@@ -292,7 +310,8 @@ def compute_kw_score(
 ) -> dict[str, float | int]:
     """Return keyword rewards and evaluation counts.
 
-    ``word_kw`` is ``1 - kw_nerr / max(total_reference_words, 1)``.
+    ``word_kw`` is ``1 - kw_nerr / max(total_reference_words, 1)`` and
+    ``char_kw`` is the equivalent character-level keyword error accuracy.
     ``keyword`` is ``1 - kw_nerr / max(kw_nref, 1)``.
     Both denominators are at least one for empty references.
     ``kw_nerr`` and ``kw_nref`` are keyword-only counts for evaluation reporting.
@@ -300,29 +319,33 @@ def compute_kw_score(
     from recipe.phimm.reward.asr_edge import _norm_text
 
     if not keywords:
-        return {"word_kw": 1.0, "keyword": 1.0, "kw_nerr": 0, "kw_nref": 0}
+        return {"word_kw": 1.0, "char_kw": 1.0, "keyword": 1.0, "kw_nerr": 0, "kw_nref": 0}
 
     ref_words = _norm_text(ref or "", name=text_norm, lang=tgt_lang).split()
     hyp_words = _norm_text(hyp or "", name=text_norm, lang=tgt_lang).split()
-    kw_words = [_norm_text(keyword, name=text_norm, lang=tgt_lang) for keyword in keywords]
+    normalized_keywords = [_norm_text(keyword, name=text_norm, lang=tgt_lang) for keyword in keywords]
+    kw_words = [keyword.split() for keyword in normalized_keywords]
     ref_keyword_indices = _keyword_indices(ref_words, kw_words)
     hyp_keyword_indices = _keyword_indices(hyp_words, kw_words)
 
     output = process_words(" ".join(ref_words), " ".join(hyp_words))
-    errors = 0
-    references = 0
-    for chunk in output.alignments[0]:
-        if chunk.type == "equal":
-            references += sum(idx in ref_keyword_indices for idx in range(chunk.ref_start_idx, chunk.ref_end_idx))
-        elif chunk.type in {"substitute", "delete"}:
-            keyword_errors = sum(idx in ref_keyword_indices for idx in range(chunk.ref_start_idx, chunk.ref_end_idx))
-            references += keyword_errors
-            errors += keyword_errors
-        elif chunk.type == "insert":
-            errors += sum(idx in hyp_keyword_indices for idx in range(chunk.hyp_start_idx, chunk.hyp_end_idx))
+    errors, references = _keyword_error_counts(output.alignments[0], ref_keyword_indices, hyp_keyword_indices)
+
+    ref_chars = list("".join(ref_words))
+    hyp_chars = list("".join(hyp_words))
+    kw_chars = [list("".join(keyword)) for keyword in kw_words]
+    ref_keyword_char_indices = _keyword_indices(ref_chars, kw_chars)
+    hyp_keyword_char_indices = _keyword_indices(hyp_chars, kw_chars)
+    char_output = process_characters("".join(ref_chars), "".join(hyp_chars))
+    char_errors, _ = _keyword_error_counts(
+        char_output.alignments[0],
+        ref_keyword_char_indices,
+        hyp_keyword_char_indices,
+    )
 
     return {
         "word_kw": 1.0 - errors / max(len(ref_words), 1),
+        "char_kw": 1.0 - char_errors / max(len(ref_chars), 1),
         "keyword": 1.0 - errors / max(references, 1),
         "kw_nerr": errors,
         "kw_nref": references,
@@ -337,11 +360,13 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     corresponding edit operation using the same normalized alignments as
     ``word`` and ``char``. Each is ``1 - count / max(n_ref, 1)``; substitutions
     are ignored and insertion accuracies may be negative.
-    ``word_kw`` is ``1 - keyword_errors / max(total_reference_words, 1)``.
+    ``word_kw`` and ``char_kw`` divide word- and character-level keyword
+    errors by the corresponding whole normalized reference length.
     It divides by the whole normalized reference utterance, not just its
     keyword words. ``keyword`` is ``1 - keyword_errors /
     max(total_reference_keyword_words, 1)``.
-    ``word_lang`` is ``1 - (1 - word_accuracy) * (1 - language_accuracy)``.
+    ``word_lang`` and ``char_lang`` combine their lexical accuracy with
+    language accuracy as ``1 - (1 - lexical_accuracy) * (1 - language_accuracy)``.
     ``word_fmt`` is one minus one error per failed utterance-level format
     check divided by ``max(total_reference_words, 1)``.
     """
@@ -366,14 +391,16 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
     lang = check_lang(task_output, tgt_lang)
     fmt = float(check_fmt(task_output, version=version))
+    char_acc = char_error.accuracy()
     word_acc = word_error.accuracy()
     n_total = max(word_error.n_ref, 1)
 
     return {
         "fixed": 1.0,
-        "char": char_error.accuracy(),
+        "char": char_acc,
         "char_del": char_error.accuracy(sub=0.0, ins=0.0),
         "char_ins": char_error.accuracy(sub=0.0, **{"del": 0.0}),
+        "char_kw": keyword_result["char_kw"],
         "word": word_acc,
         "word_del": word_error.accuracy(sub=0.0, ins=0.0),
         "word_ins": word_error.accuracy(sub=0.0, **{"del": 0.0}),
@@ -382,6 +409,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         **fmts,
         "lang": lang["acc"],
         "fmt": fmt,
+        "char_lang": 1.0 - (1.0 - char_acc) * (1.0 - lang["acc"]),
         "word_lang": 1.0 - (1.0 - word_acc) * (1.0 - lang["acc"]),
         "word_fmt": 1.0 - (1.0 - fmt) / n_total,
         **openml_acc,
@@ -519,14 +547,16 @@ def compute_score(solution_str, ground_truth, **kwargs):
     ``bracket_del`` is the fraction of hypothesis words remaining after
     bracket removal (see :func:`compute_bracket_del`). It is returned and
     contributes to the reward only when included in ``measures``.
-    ``word_kw`` uses keyword substitution/deletion/insertion errors from
-    ``extra_info["keywords"]`` divided by the total normalized reference word
-    count, not the keyword count: ``1 - n_err / max(n_total, 1)``. No keywords
-    means no keyword errors and a score of 1.0. Raw scores can be negative.
+    ``word_kw`` and ``char_kw`` use keyword substitution/deletion/insertion
+    errors from ``extra_info["keywords"]`` divided by the total normalized
+    reference word or character count, not the keyword count:
+    ``1 - n_err / max(n_total, 1)``. No keywords means no keyword errors and
+    a score of 1.0. Raw scores can be negative.
     ``keyword`` instead divides by the number of normalized reference keyword
     words: ``1 - n_err_kw / max(n_ref_kw, 1)``.
     ``lang`` uses the ordered language accuracy from :func:`check_lang`.
-    ``word_lang`` is ``1 - (1 - word) * (1 - lang)``.
+    ``word_lang`` and ``char_lang`` are
+    ``1 - (1 - lexical_accuracy) * (1 - lang)``.
     ``word_fmt`` uses the same accuracy formula with one error per failed
     format check. Passing checks give one; errors reduce the score.
     The contribution of each component ``k`` is::
