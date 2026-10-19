@@ -7,6 +7,37 @@ from omegaconf import OmegaConf
 from recipe.phimm.reward.asr_vote import compute_score
 
 
+def test_v1h2c_smooth_language_penalty_with_real_parser():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2611_dev/dev"), version_base=None):
+        config = compose(config_name="remax_dev_base0_v1h2c", overrides=[searchpath])
+    kwargs = OmegaConf.to_container(config.reward_functions.librispeech.reward_kwargs, resolve=True)
+    kwargs["text_norm"] = "identity"
+    assert "word_lang" not in kwargs["measures"]
+    reference = " ".join(f"word{index}" for index in range(100))
+
+    def response(text, language):
+        return f"<src=English><tgt={language}>\n<TXT>{text}</TXT>"
+
+    correct = response(reference, "English")
+    incorrect = response(reference, "French")
+    baseline = compute_score(correct, reference, **kwargs)
+    assert baseline["word"] == 1.0 and baseline["lang"] == 1.0
+    for n_errors, weight in [(0, 1.0), (5, 0.92), (15, 0.6)]:
+        text = " ".join(reference.split()[:-n_errors]) if n_errors else reference
+        good = compute_score(response(text, "English"), reference, extra_info={"greedy_reward": baseline}, **kwargs)
+        bad = compute_score(response(text, "French"), reference, extra_info={"greedy_reward": baseline}, **kwargs)
+        assert bad["score"] - good["score"] == pytest.approx(-0.25 * weight / 3.6)
+        assert bad["w_lang"] == pytest.approx(weight)
+    wrong_baseline = compute_score(incorrect, reference, **kwargs)
+    recovery = compute_score(correct, reference, extra_info={"greedy_reward": wrong_baseline}, **kwargs)
+    unchanged = compute_score(incorrect, reference, extra_info={"greedy_reward": wrong_baseline}, **kwargs)
+    assert recovery["score"] == pytest.approx(0.25 / 3.6)
+    assert unchanged["score"] == 0.0
+
+
 def test_v1h1a_gt_doubles_word_weight_and_normalizes_by_beta_sum():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"

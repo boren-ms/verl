@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 from numbers import Real
 
-from omegaconf import ListConfig
+from omegaconf import DictConfig, ListConfig
 
 from recipe.phimm.reward.asr_measure import _parse_response, clip, compute_delta, reduce_scores
 
@@ -87,6 +87,22 @@ def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> 
     return score, delta, vote
 
 
+def compute_lang_wer_weight(word_delta: float, cfg) -> float:
+    """Smoothly emphasize language when the clipped absolute WER difference is small."""
+    if not isinstance(cfg, (dict, DictConfig)) or set(cfg) - {"scale", "floor"}:
+        raise ValueError("lang wer_weight requires a mapping with scale and floor options.")
+    scale = cfg.get("scale", 0.15)
+    floor = cfg.get("floor", 0.2)
+    if isinstance(scale, bool) or not isinstance(scale, Real) or not math.isfinite(scale) or scale <= 0:
+        raise ValueError("lang wer_weight requires a finite positive scale.")
+    if isinstance(floor, bool) or not isinstance(floor, Real) or not math.isfinite(floor) or not 0 <= floor <= 1:
+        raise ValueError("lang wer_weight requires a finite floor in [0, 1].")
+    if not math.isfinite(word_delta):
+        raise ValueError("lang wer_weight requires a finite word delta.")
+    # hypot avoids overflow for large but finite WER differences.
+    return floor + (1.0 - floor) * (scale / math.hypot(scale, word_delta)) ** 2
+
+
 def compute_score(solution_str, ground_truth, **kwargs):
     """Reduce beta-weighted votes on measure deltas against a greedy baseline.
 
@@ -123,6 +139,18 @@ def compute_score(solution_str, ground_truth, **kwargs):
     Omitting clip uses [-10, 10]; both bounds must be finite
     numbers with low <= high. Raw deltas remain unchanged.
     ``tol`` defines voting thresholds, not clipping bounds.
+
+    Optional ``lang.wer_weight: {scale: 0.15, floor: 0.2}`` multiplies the
+    language contribution by ``floor + (1-floor)/(1+(d/scale)**2)``, where
+    ``d`` is the magnitude of the clipped absolute word-accuracy delta.
+    Both ``word`` and ``lang`` must use absolute direct-delta votes, and the
+    word clip must contain zero. Small WER differences retain the full
+    language weight; large differences smoothly approach the floor. Using
+    the clipped word delta freezes the weighting when the lexical vote
+    saturates. ``w_lang`` reports the multiplier; ``d_lang`` and ``v_lang``
+    remain unweighted. This shapes a sample/greedy pair, rather than
+    subtracting two independent scalar language rewards. Without this
+    option existing scoring behavior and returned fields are unchanged.
 
     ``score = reduce([beta * clip(vote, *bounds), ...])``
     defaults to ``mean``. As in
@@ -199,12 +227,29 @@ def compute_score(solution_str, ground_truth, **kwargs):
     reduction = _parse_reduction(kwargs.get("reduce", "mean"))
     deltas = {}
     votes = {}
-    scores = []
+    scores = {}
     for name, cfg in measures.items():
+        if "wer_weight" in (cfg or {}) and name != "lang":
+            raise ValueError("ASR vote wer_weight is supported only for lang.")
         score, delta, vote = compute_measure_vote(name, raw_scores[name], baseline[name], cfg)
-        scores.append(score)
+        scores[name] = score
         deltas[f"d_{name}"] = delta
         votes[f"v_{name}"] = vote
 
-    score = reduce_scores(scores, **(kwargs | reduction))
-    return {"score": score, **raw_scores, **deltas, **votes}
+    weights = {}
+    lang_cfg = measures.get("lang") or {}
+    if "wer_weight" in lang_cfg:
+        if "word" not in measures:
+            raise ValueError("lang wer_weight requires a configured word measure.")
+        for name in ("lang", "word"):
+            cfg = measures[name] or {}
+            if cfg.get("delta", "abs") not in ("abs", "absolute") or cfg.get("vote", "thr") != "delta":
+                raise ValueError("lang wer_weight requires absolute direct-delta word and lang votes.")
+        low, high = _parse_bounds("word", "clip", (measures["word"] or {}).get("clip", [-10, 10]))
+        if not low <= 0 <= high:
+            raise ValueError("lang wer_weight requires a word clip containing zero.")
+        weights["w_lang"] = compute_lang_wer_weight(votes["v_word"], lang_cfg["wer_weight"])
+        scores["lang"] *= weights["w_lang"]
+
+    score = reduce_scores(list(scores.values()), **(kwargs | reduction))
+    return {"score": score, **raw_scores, **deltas, **votes, **weights}
