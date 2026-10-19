@@ -7,6 +7,25 @@ from omegaconf import OmegaConf
 from recipe.phimm.reward.asr_vote import compute_score
 
 
+def test_v1h1a_gt_doubles_word_weight_and_normalizes_by_beta_sum():
+    root = Path(__file__).parents[3]
+    config_root = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config_root / "v2611_dev/dev"), version_base=None):
+        original = compose(config_name="remax_dev_base0_v1h1_gt", overrides=[searchpath])
+        config = compose(config_name="remax_dev_base0_v1h1a_gt", overrides=[searchpath])
+
+    expected = OmegaConf.to_container(original, resolve=False)
+    reward_kwargs = expected["reward_functions"]["librispeech"]["reward_kwargs"]
+    reward_kwargs["measures"]["word"]["beta"] = 2.0
+    reward_kwargs["reduce"]["total"] = 3.4
+    assert OmegaConf.to_container(config, resolve=False) == expected
+    assert config.actor_rollout_ref.rollout.gt_rollout is True
+    reward = config.reward_functions.librispeech.reward_kwargs
+    assert reward.measures.word.beta == 2.0
+    assert reward.reduce.total == pytest.approx(sum(measure.beta for measure in reward.measures.values()))
+
+
 def test_v1h2_disables_only_ground_truth_rollouts():
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
