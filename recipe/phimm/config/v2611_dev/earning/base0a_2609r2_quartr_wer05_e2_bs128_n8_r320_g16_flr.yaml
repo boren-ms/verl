@@ -1,0 +1,34 @@
+# Train on reviewed Quartr segments with WER <= 5% for two epochs.
+# Validate only on Earnings22 AA chunks with verbatim English language hints.
+defaults:
+  - ../base@_here_
+  - /data/train_data/quartr_20261016_wer05@_earning_train
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim:
+      lr: 3.0e-6
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+
+data:
+  data_source:
+    quartr_20261016: {num_epoch: 1, shuffle: true}
+  train_data:
+    - ${_earning_train}
+  val_data:
+    - ${_earning_val}
+  train_batch_size: 128
+  shuffle: true
+
+trainer:
+  nnodes: 2
+  total_epochs: 2
+  total_training_steps: null

@@ -1,0 +1,16 @@
+# @package data.train_data
+# Quartr reviewed data: 19,728 segments, 213 events, 182.39 hours; reuse 32 native BitBank ZIPs.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/speech/users/xiaoych/quartr_earliest2_reviewed_bitbank_20261016/data_zip.jsonl.gz
+cache_name: auto_quartr_earliest2_reviewed_bitbank_20261016_verb_langhint_zip
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: quartr_20261016
+  verl_format:
+    prompt_key: prompt

@@ -48,6 +48,43 @@ change `cache_name` to avoid reusing the original processed dataset.
 `recipe.phimm.utils.audio.load_raw_audio` supports ZIP references alongside
 existing standalone files, chunk containers, embedded bytes, and time ranges.
 
+### Quartr reviewed native BitBank data
+
+The training configuration
+`recipe/phimm/config/data/train_data/quartr_20261016.yaml`
+uses `lang_asr_verb` with an English language hint, like the URGENT ZIP config.
+Its JSONL is published at
+`az://orngwus2cresco/data/speech/users/xiaoych/quartr_earliest2_reviewed_bitbank_20261016/data_zip.jsonl.gz`.
+The YAML uses lossless gzip compression (8.16 MB instead of 63.00 MB) for faster
+remote loading; the uncompressed `data_zip.jsonl` is also available alongside it.
+It contains all 19,728 records from the 32 Parquet shards (213 events,
+182.39 decoded hours). Every Parquet field is retained, including `text` as the
+training reference, the comparison transcript/WER, keywords, company/speaker
+metadata, timestamps, and the original `audio_ref`. Added fields are `id`,
+`language`, `audio_path`, `audio_zip_member`, and `source_parquet`.
+
+The audio paths reuse the existing 32 ZIPs under the same dataset's `bitbank/`
+directory: `audio_ref.blob_path` selects the ZIP, and `start_byte`/`size` form
+the `!offset:length` selector. No audio is extracted, repacked, or uploaded.
+Original `start`/`end` values describe positions in the parent event; they are
+metadata only, not an additional crop of the already segmented FLAC.
+
+Use `recipe/phimm/config/data/train_data/quartr_20261016_wer05.yaml` to retain
+only records with `wer_maiears <= 0.05` (inclusive 5% WER). This variant maps
+`wer_maiears` to the existing filter's `wer` field before filtering and keeps
+9,893 records (approximately 82.02 hours), including the 81 records at exactly
+5%. It reuses the same JSONL and ZIPs, prompts, and `quartr_20261016` data source,
+with a separate processed-dataset cache name. The unfiltered YAML is unchanged.
+
+The earnings-only ReMax recipe is
+`recipe/phimm/config/v2611_dev/earning/remax_earning_base0a_r0.yaml`, with its
+local base dependency in the same folder. It uses `quartr_20261016_wer05` for
+training and only `earnings22_verb_langhint` (Earnings22 AA chunks) for validation.
+It preserves the dev `remax_dev_base0a_r0` model, reward weights, and training
+settings: two epochs, batch size 128, eight rollouts, LoRA rank 320, constant
+learning rate `3e-6`, and two eight-GPU nodes. Each epoch uses the complete
+filtered Quartr dataset once, with shuffling rather than mixed-source quotas.
+
 Without a local archive, the loader uses a streaming byte-range read of only
 the selected audio member. If the Orange archive exists under the normal
 `~/data` cache, it is read locally. Background dataset caching and
