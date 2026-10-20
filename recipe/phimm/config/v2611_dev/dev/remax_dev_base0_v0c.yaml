@@ -1,4 +1,4 @@
-# v0b with non-language voting thresholds of -0.05 and 0.02.
+# r0c with ASR delta-voting rewards.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -13,14 +13,13 @@ reward_functions:
     name: compute_score
     reward_kwargs:
       version: 2609
-      reduce: {mode: average, total: 3}
+      reduce: {mode: average, total: 2.1}
       measures:
-        char: {delta: rel, beta: 1.0, tol: [-0.05, 0.02]}
-        word: {delta: rel, beta: 1.0, tol: [-0.05, 0.02]}
-        word_del: {delta: rel, beta: 0.25, tol: [-0.05, 0.02]}
-        word_ins: {delta: rel, beta: 0.25, tol: [-0.05, 0.02]}
-        word_kw: {delta: rel, beta: 0.25, tol: [-0.05, 0.02]}
-        lang: {delta: abs, beta: 1.0, tol: [-0.1, 0.1]}
+        word: {beta: 1.0}
+        word_del: {beta: 0.25}
+        word_ins: {beta: 0.25}
+        word_kw: {beta: 0.5}
+        lang: {beta: 0.1}
 
 reward_function_by_data_source:
   openml: librispeech
