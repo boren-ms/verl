@@ -700,6 +700,26 @@ def test_get_hyp_text_removes_model_markup():
     assert get_hyp_text(output, version=2609) == "Hello world"
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("<VERBAT hello world", "hello world"),
+        ("</VERBAT hello world", "hello world"),
+        ("  <unknown>\nhello world", "hello world"),
+        ("<TXT><VERBAT hello world</TXT>", "hello world"),
+        ("<VERBAT", ""),
+        ("</VERBAT .", ""),
+        ("<first <second hello", "<second hello"),
+        ("hello <VERBAT world", "hello <VERBAT world"),
+        ("hello world", "hello world"),
+    ],
+)
+def test_get_hyp_text_cleans_only_first_tag_like_word(text, expected):
+    output = f"<src=English><tgt=English>\n{text}"
+
+    assert get_hyp_text(output, version=2609) == expected
+
+
 @pytest.mark.parametrize("output", ["<nonspeech>", "<NONSPEECH>", " \n<NonSpeech>\t "])
 def test_parse_task_output_accepts_standalone_2609_nonspeech(output):
     task_output = parse_task_output(output, version=2609)

@@ -23,7 +23,7 @@ def _segment(src=None, tgt=None, text=None) -> TaskOutputSegment:
 
 
 def clean_text(text: str) -> str:
-    """Remove model markup and empty punctuation from generated text."""
+    """Remove model markup, a leading tag-like word, and empty punctuation."""
     cleanup_patterns = (
         r"<nonspeech>",
         r"</?lexical>",
@@ -38,6 +38,8 @@ def clean_text(text: str) -> str:
 
     for pattern in cleanup_patterns:
         cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE).strip()
+
+    cleaned = re.sub(r"^</?\S*", "", cleaned).strip()
 
     if cleaned in (".", "。"):
         return ""
