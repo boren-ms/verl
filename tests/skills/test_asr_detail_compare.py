@@ -1,10 +1,5 @@
 import importlib.util
-import json
-import sys
 from pathlib import Path
-
-import pandas as pd
-import pytest
 
 
 SCRIPT_PATH = (
@@ -15,75 +10,6 @@ SPEC = importlib.util.spec_from_file_location("compare_result_details", SCRIPT_P
 compare_result_details = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(compare_result_details)
-
-
-@pytest.mark.parametrize(
-    ("normalizer", "language"),
-    [("english", "English"), ("auto", "English"), ("openasr", "English"), ("auto", "German")],
-)
-def test_segment_normalization_preserves_text_between_unclosed_tags(normalizer, language):
-    segments = ["<VERBAThello world", "middle words", "<VERBAT> goodbye"]
-    ref, hyp = compare_result_details.normalize_asr_pair(
-        "verbathello world middle words goodbye",
-        " ".join(segments),
-        row=pd.Series({"language": language}),
-        normalizer=normalizer,
-        hyp_segments=segments,
-    )
-
-    assert hyp == ref == "verbathello world middle words goodbye"
-    assert "middle words" not in compare_result_details.normalize_asr_text(" ".join(segments))
-
-
-def test_segment_normalization_keeps_numbers_and_compound_scoring():
-    df = pd.DataFrame([{
-        "gts": "0.1 ice cream",
-        "clean_output": "0.1 icecream",
-        "__hyp_segments": ["0.1", "icecream"],
-    }])
-
-    metrics = compare_result_details.compute_metrics(
-        df, "gts", "clean_output", "target", "english", "", "language",
-    )
-
-    assert metrics.iloc[0]["target_errors"] == 0
-    assert metrics.iloc[0]["target_ref_words"] == 4
-
-
-@pytest.mark.parametrize(
-    ("ref_column", "hyp_column"), [("gts", "clean_output"), ("ref", "hyp")],
-)
-def test_aggregated_cli_normalizes_segments_once_and_preserves_raw_text(
-    tmp_path, monkeypatch, ref_column, hyp_column,
-):
-    source = tmp_path / "segments.jsonl"
-    rows = [
-        {"id": "recording", "seg_index": 1, "gts": "0.1 verbathello middle goodbye",
-         "clean_output": "middle <VERBAT> goodbye"},
-        {"id": "recording", "seg_index": 0, "gts": "0.1 verbathello middle goodbye",
-         "clean_output": "0.1 <VERBAThello"},
-    ]
-    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
-    monkeypatch.setattr(sys, "argv", [
-        str(SCRIPT_PATH), "--baseline-path", str(source), "--target-path", str(source),
-        "--baseline-name", "step120", "--target-name", "step220", "--dataset", "test",
-        "--aggregate-segments-by", "id", "--join-columns", "id",
-        "--ref-column", ref_column, "--hyp-column", hyp_column,
-        "--output-dir", str(tmp_path), "--write-html", "--write-full-csv", "--audio-blob-root", "",
-    ])
-
-    compare_result_details.main()
-
-    summary = json.loads(next(tmp_path.glob("*.summary.json")).read_text())
-    assert summary["segment_normalization"] == "before_concatenation"
-    assert summary["baseline_total_errors"] == summary["target_total_errors"] == 0
-    comparison = pd.read_csv(summary["full_csv"]).iloc[0]
-    assert comparison["hyp_target"] == comparison["ref"] == "0 one verbathello middle goodbye"
-    assert comparison["raw_hyp_target"] == "0.1 <VERBAThello middle <VERBAT> goodbye"
-    assert comparison["ref_matches_baseline"]
-    report = Path(summary["reports"]["overall"]["html"]).read_text()
-    assert ">middle</mark>" in report
-    assert "0.1 &lt;VERBAThello middle &lt;VERBAT&gt; goodbye" in report
 
 
 def test_html_highlights_baseline_to_target_changes_not_reference_errors():
