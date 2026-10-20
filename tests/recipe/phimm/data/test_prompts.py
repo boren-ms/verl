@@ -64,7 +64,7 @@ def test_get_task_output_formats_mixed_components():
         "<src=English><tgt=English>\nhello\n"
         "<src=Chinese><tgt=Chinese>\n你好"
     )
-    assert check_fmt(parse_task_output(output, version=2609))
+    assert check_fmt(parse_task_output(output, version=2609)) == 1.0
 
 
 def test_get_task_output_preserves_single_language_format():

@@ -8,6 +8,7 @@ reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
 from __future__ import annotations
 
 import math
+import re
 import unicodedata
 from dataclasses import dataclass
 from numbers import Real
@@ -370,8 +371,10 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     For ``word_lang`` only, lexical accuracy is capped at 0.99 so language
     errors contribute even for perfect text. Raw ``word`` accuracy and
     negative insertion accuracies are unchanged.
-    ``word_fmt`` is one minus one error per failed utterance-level format
-    check divided by ``max(total_reference_words, 1)``.
+    ``fmt`` is one minus the fraction of invalid 2609 segments: missing
+    parsed text or an incomplete leading tag in the raw parsed text.
+    ``word_fmt`` is one minus ``(1 - fmt)`` divided by
+    ``max(total_reference_words, 1)``.
     """
     from recipe.phimm.reward.asr_edge import measure
 
@@ -393,7 +396,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
     lang = check_lang(task_output, tgt_lang)
-    fmt = float(check_fmt(task_output, version=version))
+    fmt = check_fmt(task_output, version=version)
     char_acc = char_error.accuracy()
     word_acc = word_error.accuracy()
     n_total = max(word_error.n_ref, 1)
@@ -447,9 +450,36 @@ def check_lang(task_output, tgt_lang) -> dict[str, float | int]:
     return {"acc": 1.0 - n_err / max(n_ref, 1), "n_err": n_err, "n_ref": n_ref}
 
 
-def check_fmt(task_output, version=2609) -> bool:
-    """Require parsed text in every segment; 2609 ``<TXT>`` tags are optional."""
-    return bool(task_output) and all(segment["text"] is not None for segment in task_output)
+def check_fmt(task_output, version=2609) -> float:
+    """Dispatch format scoring by version; unrecognized versions use legacy."""
+    if str(version) == "2609":
+        return check_fmt_2609(task_output)
+    return check_fmt_2607(task_output)
+
+
+def check_fmt_2607(task_output) -> float:
+    """Require parsed text in every legacy segment."""
+    return float(bool(task_output) and all(segment["text"] is not None for segment in task_output))
+
+
+def check_fmt_2609(task_output) -> float:
+    """Return ``1 - errors / total`` for raw parsed 2609 segment text.
+
+    Complete leading tags and untagged text are valid. Missing parsed text
+    and incomplete leading tags count as errors. Empty output scores zero.
+    """
+    if not task_output:
+        return 0.0
+    errors = 0
+    for segment in task_output:
+        text = segment["text"]
+        if text is None:
+            errors += 1
+            continue
+        raw_text = text.lstrip()
+        if raw_text.startswith("<") and re.match(r"</?[A-Za-z][\w:.-]*>", raw_text) is None:
+            errors += 1
+    return 1.0 - errors / len(task_output)
 
 
 def clip(x, lo=-1.0, hi=1.0):

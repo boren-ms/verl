@@ -3,6 +3,8 @@ import pytest
 from recipe.phimm.reward.asr_measure import (
     _parse_response,
     check_fmt,
+    check_fmt_2607,
+    check_fmt_2609,
     check_lang,
     compute_bracket_del,
     compute_delta,
@@ -396,7 +398,7 @@ def test_language_reward_uses_header_with_raw_text():
         version=2609,
     )
 
-    assert check_fmt(task_output, version=2609)
+    assert check_fmt(task_output, version=2609) == 1.0
     assert check_lang(task_output, "English")["acc"] == 1.0
 
 
@@ -407,7 +409,7 @@ def test_code_switch_language_reward_uses_headers_with_later_raw_text():
         version=2609,
     )
 
-    assert check_fmt(task_output, version=2609)
+    assert check_fmt(task_output, version=2609) == 1.0
     assert check_lang(task_output, "English Chinese")["acc"] == 1.0
 
 
@@ -501,7 +503,7 @@ def test_parse_task_output_preserves_raw_2609_text(output, expected):
     result = parse_task_output(output, version=2609)
 
     assert result == expected
-    assert check_fmt(result, version=2609)
+    assert check_fmt(result, version=2609) == 1.0
 
 
 @pytest.mark.parametrize(
@@ -536,7 +538,7 @@ def test_parse_task_output_strips_2609_header_language_values(src, tgt):
     task_output = parse_task_output(f"<src={src}><tgt={tgt}>\nplain text", version=2609)
 
     assert task_output == [{"src": src.strip(), "tgt": tgt.strip(), "text": "plain text"}]
-    assert check_fmt(task_output, version=2609)
+    assert check_fmt(task_output, version=2609) == 1.0
 
 
 def test_parse_task_output_rejects_later_missing_target_header():
@@ -549,28 +551,73 @@ def test_parse_task_output_rejects_later_missing_target_header():
         {"src": "English", "tgt": "English", "text": "hello"},
         {"src": None, "tgt": None, "text": None},
     ]
-    assert not check_fmt(task_output, version=2609)
+    assert check_fmt(task_output, version=2609) == 0.5
     assert check_lang(task_output, "English")["acc"] == 1.0
 
 
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("<TXT>speech</TXT>", True),
-        ("<nonspeech>", True),
-        ("<VERBATIM>\n<TXT>speech</TXT>", True),
-        ("speech", True),
-        ("<VERBATIM>\nspeech", True),
-        ("<TXT>missing closing tag", True),
-        ("speech</TXT>", True),
-        ("<nonspeech>speech", True),
-        (None, False),
+        ("<TXT>speech</TXT>", 1.0),
+        ("<nonspeech>", 1.0),
+        ("<VERBATIM>\n<TXT>speech</TXT>", 1.0),
+        ("speech", 1.0),
+        ("<VERBATIM>\nspeech", 1.0),
+        ("<TXT>missing closing tag", 1.0),
+        ("speech</TXT>", 1.0),
+        ("<nonspeech>speech", 1.0),
+        ("<verbatim>speech", 1.0),
+        ("</verbatim>speech", 1.0),
+        ("<OTHER_MODE>speech", 1.0),
+        ("  \n<TXT>speech", 1.0),
+        ("<VERBAT speech", 0.0),
+        ("</VERBAT speech", 0.0),
+        ("<VERBAT speech<TXT>", 0.0),
+        ("<VERBAT<TXT>speech", 0.0),
+        ("<>", 0.0),
+        ("<", 0.0),
+        ("", 1.0),
+        ("  \n", 1.0),
+        ("speech <VERBAT", 1.0),
+        (None, 0.0),
     ],
 )
-def test_check_fmt_accepts_optional_2609_text_wrapper(text, expected):
+@pytest.mark.parametrize("version", [2609, "2609"])
+def test_check_fmt_rejects_incomplete_leading_2609_tags(text, expected, version):
     task_output = [{"src": "English", "tgt": "English", "text": text}]
 
-    assert check_fmt(task_output, version=2609) is expected
+    result = check_fmt(task_output, version=version)
+    assert isinstance(result, float)
+    assert result == expected
+    assert check_fmt_2609(task_output) == expected
+
+
+@pytest.mark.parametrize("version", [2609, "2609"])
+def test_check_fmt_returns_fraction_of_valid_2609_segments(version):
+    task_output = parse_task_output(
+        "<src=English><tgt=English>\n<VERBATIM>hello\n"
+        "<src=French><tgt=French>\n<VERBAT bonjour\n"
+        "<src=Chinese><tgt=Chinese>\n你好\n"
+        "<src=broken",
+        version=version,
+    )
+
+    assert check_fmt(task_output, version=version) == 0.5
+
+
+def test_parse_response_scores_incomplete_tag_before_text_cleanup():
+    output = (
+        "<src=English><tgt=English>\n<VERBATIM>hello\n"
+        "<src=English><tgt=English>\n<VERBAT world\n"
+        "<src=English><tgt=English>\nagain"
+    )
+    result = _parse_response(
+        output, ground_truth="hello world again", language="English",
+        version=2609, text_norm="identity",
+    )
+
+    assert result["fmt"] == 1.0 - 1 / 3
+    assert result["word_fmt"] == pytest.approx(1.0 - (1 / 3) / 3)
 
 
 @pytest.mark.parametrize("version", [2607, 2609, "2609"])
@@ -585,19 +632,23 @@ def test_check_fmt_accepts_optional_2609_text_wrapper(text, expected):
         ],
     ],
 )
-def test_check_fmt_rejects_missing_parsed_text(task_output, version):
-    assert not check_fmt(task_output, version=version)
+def test_check_fmt_scores_missing_parsed_text(task_output, version):
+    expected = 0.5 if str(version) == "2609" and len(task_output) == 2 else 0.0
+    assert check_fmt(task_output, version=version) == expected
+    check_version_fmt = check_fmt_2609 if str(version) == "2609" else check_fmt_2607
+    assert check_version_fmt(task_output) == expected
 
 
 @pytest.mark.parametrize(
-    "output",
+    ("output", "expected_fmt"),
     [
-        "<src=English><tgt=English>\nhello world",
-        "<src=English><tgt=English>\n<TXT>hello world</TXT>",
-        "<src=English><tgt=English>\n<VERBATIM>\nhello world",
+        ("<src=English><tgt=English>\nhello world", 1.0),
+        ("<src=English><tgt=English>\n<TXT>hello world</TXT>", 1.0),
+        ("<src=English><tgt=English>\n<VERBATIM>\nhello world", 1.0),
+        ("<src=English><tgt=English>\n<VERBAT hello world", 0.0),
     ],
 )
-def test_parse_response_accepts_optional_2609_text_wrapper(output):
+def test_parse_response_scores_2609_leading_tag_without_changing_word_score(output, expected_fmt):
     result = _parse_response(
         output,
         ground_truth="hello world",
@@ -606,14 +657,16 @@ def test_parse_response_accepts_optional_2609_text_wrapper(output):
         text_norm="identity",
     )
 
-    assert result["fmt"] == 1.0
+    assert result["fmt"] == expected_fmt
     assert result["word"] == 1.0
 
 
-def test_check_fmt_keeps_legacy_text_behavior():
+@pytest.mark.parametrize("version", [2607, "2607", None, "unknown"])
+def test_check_fmt_keeps_legacy_text_behavior(version):
     task_output = [{"src": "English", "tgt": "English", "text": "speech"}]
 
-    assert check_fmt(task_output, version=2607)
+    assert check_fmt(task_output, version=version) == 1.0
+    assert check_fmt_2607(task_output) == 1.0
 
 
 @pytest.mark.parametrize(
@@ -1304,7 +1357,7 @@ def test_compute_score_omits_unconfigured_keyword():
         ("<src=French><tgt=French>\n<TXT>hello world</TXT>", "hello world", 0.0, 1.0, 0.99, 1.0),
         (
             "<src=English><tgt=English>\n<TXT>hello world</TXT>\n<src=broken",
-            "hello world", 1.0, 0.0, 1.0, 0.5,
+            "hello world", 1.0, 0.5, 1.0, 0.75,
         ),
         ("", "one two three four", 0.0, 0.0, 0.0, 0.75),
         ("", "", 0.0, 0.0, 0.99, 0.0),
