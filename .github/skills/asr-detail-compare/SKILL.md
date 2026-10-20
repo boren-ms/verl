@@ -10,6 +10,7 @@ Compare utterance-level ASR detail files without re-implementing the same merge 
 ## Workflow
 1. Determine whether the user supplied one result or two. With two results, compare baseline vs target normally. When the user supplies only one result or dataset, always treat it as the Target, synthesize its reference baseline as described in **Single-Result Reference Baseline**, and pass `--hide-baseline` so the HTML shows only Reference and Target. Do not ask for a second model result. Use baseline-only mode only when the user explicitly requests a baseline-only review.
 2. For verl training-validation comparisons, resolve `trainer.default_hdfs_dir` from the effective config, then list `<trainer.default_hdfs_dir>/val_data_gen/` and `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/`. Confirm the requested numeric step files exist before downloading or comparing them. Do not substitute a separate benchmark or evaluation output directory.
+   - If rows repeat a full parent reference across audio chunks, follow **Segmented Long-Audio Comparisons** below. Normalize hypotheses per segment before concatenation; never score each chunk against the full parent reference.
 3. Run `scripts/compare_result_details.py` with `--baseline-model`, `--target-model`, and `--dataset`. Only pass explicit paths when you need to override auto-discovery. The model name is `<project>/<experiment>` (e.g. `verl_repeat/eval_openasr`). For a single result, first create the reference-baseline JSONL described in **Single-Result Reference Baseline**, then pass it through `--baseline-path` and the supplied result through `--target-path`.
 4. Run the script with `--write-html` by default so the main deliverable is a human-friendly utterance review page.
 5. Read the generated `*.summary.json` for dataset-level WER numbers and improved/degraded/unchanged counts. Use the three HTML reports as the primary review artifacts:
@@ -68,7 +69,7 @@ Useful options:
 - `--top-n 20`: keep the top 20 utterances by target-model error count.
 - `--join-columns audio_file`: use `audio_file` as the default explicit join key.
 - `--join-columns audio_file_stem`: force the join to use the stem derived from `audio_file` when the full path is not stable across runs.
-- `--aggregate-segments-by id`: for long-form validation files that repeat the full reference on each segment, group by recording ID, order by `seg_index`, and concatenate segment hypotheses before computing WER. Use `--segment-index-column` to override the ordering column.
+- `--aggregate-segments-by parent_audio_path`: group repeated parent references, normalize each segment independently, and concatenate in `seg_index` order for parent-level WER. Use a stable parent ID instead when appropriate; chunk-level `id` may be unique per segment. See **Segmented Long-Audio Comparisons** for verification and scoring caveats. Use `--segment-index-column` to override the ordering column.
 - `--ref-column ref` and `--hyp-column hyp`: override schema defaults if needed. For verl training JSONL files, use `--ref-column gts --hyp-column clean_output`.
 - `--normalizer auto`: default. Infer each row's language, use the same HF normalization and compound-aware `kaldialign` scoring as `openasr_en_eval` for English (`en`), and use the language-specific OpenASR normalizer for every other language.
 - `--normalizer english` or `--normalizer openasr`: explicitly force the English path or the OpenASR dispatch path when auto-detection is not appropriate.
@@ -181,11 +182,34 @@ Example — compare two verl experiments on ami:
   --top-n 30
 ```
 
+## Segmented Long-Audio Comparisons
+
+Use this procedure when each chunk carries the same full-recording reference, such as Earnings validation outputs:
+
+1. Inspect `parent_audio_path`, `id`, `seg_index`, and `n_segments`. Choose a stable parent key, not a unique chunk ID. Verify both checkpoints have the same parent/segment pairs, unique segment indices, complete segment coverage, and one consistent raw reference per parent.
+2. Pass `--aggregate-segments-by parent_audio_path --join-columns parent_audio_path` (or the equivalent parent ID), with `--ref-column gts --hyp-column clean_output` for verl data. Keep the source JSONL unchanged.
+3. The script sorts segments, normalizes each raw hypothesis independently using the selected language normalizer, then concatenates the normalized results. It normalizes the full parent reference once, scores the already-normalized tokens without another text-normalization pass, and preserves the original outputs for HTML raw disclosures. English retains compound-aware `kaldialign` scoring.
+4. Confirm the summary contains `"segment_normalization": "before_concatenation"`; regenerate grouped reports that lack this marker instead of reusing their old scores. Independently recompute parent counts from the ordered raw segments using this same normalization order and check that the scored tokens match the report's normalized transcripts. Do not validate by normalizing raw concatenated hypotheses or by renormalizing the displayed text: English numeric normalization is not idempotent (`0.1` -> `0 one` -> `one`).
+5. Compare with logged parent-level counts, but investigate rather than force equality if training normalized after concatenation. Label these as recomputed segment-normalized scores; generating a comparison does not change training-time rewards or historical logs. State parent counts, the join key, reference consistency, and any score discrepancy in the result.
+
+Example options for the two checkpoint paths:
+```bash
+--dataset earning_chunk_verb \
+--ref-column gts --hyp-column clean_output \
+--aggregate-segments-by parent_audio_path \
+--join-columns parent_audio_path \
+--write-html --write-full-csv --audio-blob-root ''
+```
+
+## Learnings
+
+- Normalize within segment boundaries, not after concatenation: an unclosed `<VERBAT` prefix in one chunk can match a later chunk's closing `>` and make the normalizer discard hundreds of intervening spoken words. For example, `["<VERBAThello", "middle words", "<VERBAT> goodbye"]` must retain `middle words`; joining first can remove them. Diagnose apparent deletion spikes using raw per-segment outputs before concluding the model omitted speech.
+
 ## Verl Training Checkpoint Comparison
 When comparing verl training outputs at different steps (e.g., step0 vs step200):
 - First inspect `<trainer.default_hdfs_dir>/val_data_gen/<dataset>/` and confirm both requested numeric JSONL files are present. Training validation results belong here, not under `eval_2607_reports` or a long-evaluation output root.
 - Use `--baseline-path` / `--target-path` with explicit local JSONL files and `--baseline-name` / `--target-name` for labels.
-- Set `--ref-column gts --hyp-column clean_output` — verl JSONL uses `gts` for reference and `clean_output` for hypothesis. Do not rely on automatic `hyp` remapping for these comparisons: the derived `hyp_baseline`/`hyp_target` columns can overwrite the merged raw hypothesis columns before scoring, causing a second normalization pass. English numeric normalization is not always idempotent (for example, `0.1` becomes `0 one`, then `one`), so this can create errors even when the displayed normalized transcripts match. Verify recomputed counts against scoring the original raw `gts`/`clean_output`, and against logged parent-level counts when available.
+- Set `--ref-column gts --hyp-column clean_output` — verl JSONL uses `gts` for reference and `clean_output` for hypothesis. Do not rely on automatic `hyp` remapping for these comparisons: the derived `hyp_baseline`/`hyp_target` columns can overwrite the merged raw hypothesis columns before scoring, causing a second normalization pass. English numeric normalization is not always idempotent (for example, `0.1` becomes `0 one`, then `one`), so this can create errors even when the displayed normalized transcripts match. Verify unsegmented counts against the original raw `gts`/`clean_output`; for repeated parent references, use **Segmented Long-Audio Comparisons** and its log-discrepancy checks instead.
 - Check for a unique stable key such as `id` first and pass it through `--join-columns` when available. Only fall back to `__row_idx` when no stable key exists, row counts match, and raw `gts` sequences are identical in order.
 - Verl JSONL schema: `input`, `output` (→ `raw_output`), `gts`, `clean_output`, `score`, `step`, `data_source`, `reward`, `n_err`, `n_ref`, `n_edge`, `n_fmt`, `n_lang`.
 

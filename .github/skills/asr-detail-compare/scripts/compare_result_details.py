@@ -20,7 +20,10 @@ if (REPO_ROOT / "recipe").is_dir() and str(REPO_ROOT) not in sys.path:
 
 from recipe.phimm.reward.asr_eval import measure_openasr_en_wer  # noqa: E402
 from recipe.phimm.utils.languages import get_language_code  # noqa: E402
-from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_for_wer  # noqa: E402
+from recipe.phimm.utils.open_asr_normalizer.eval_utils import (  # noqa: E402
+    normalize_compound_pairs,
+    normalize_for_wer,
+)
 from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (  # noqa: E402
     _HFEnglishTextNormalizer,
 )
@@ -137,7 +140,10 @@ def parse_args() -> argparse.Namespace:
         "--aggregate-segments-by",
         nargs="+",
         default=None,
-        help="Group segmented rows by these columns and concatenate hypotheses before comparison.",
+        help=(
+            "Group segmented rows by these columns, normalize each hypothesis separately, "
+            "then concatenate for comparison."
+        ),
     )
     parser.add_argument(
         "--segment-index-column",
@@ -350,7 +356,8 @@ def aggregate_segment_rows(
 
         record = group.iloc[0].to_dict()
         record[ref_column] = unique_references[0] if unique_references else ""
-        record[hyp_column] = " ".join(normalize_text(value) for value in group[hyp_column] if normalize_text(value))
+        record["__hyp_segments"] = [normalize_text(value) for value in group[hyp_column]]
+        record[hyp_column] = " ".join(value for value in record["__hyp_segments"] if value)
         if "output" in group.columns:
             record["output"] = "\n".join(normalize_text(value) for value in group["output"] if normalize_text(value))
         record["n_segments"] = len(group)
@@ -428,12 +435,24 @@ def normalize_asr_pair(
     lang_override: str = "",
     lang_column: str = "language",
     prefix: str = "",
+    hyp_segments: Sequence[str] | None = None,
 ) -> tuple[str, str]:
     row_data = row if row is not None else pd.Series(dtype=object)
     lang_code = infer_language(row_data, lang_override, lang_column, prefix)
     if normalizer == "english" or (normalizer == "auto" and lang_code == "en"):
-        return normalize_asr_text(ref_value), normalize_asr_text(hyp_value)
+        hypotheses = [hyp_value] if hyp_segments is None else hyp_segments
+        return normalize_asr_text(ref_value), " ".join(
+            text for value in hypotheses if (text := normalize_asr_text(value))
+        )
     if normalizer in ("auto", "openasr"):
+        if hyp_segments is not None:
+            _, ref_norm = normalize_for_wer("", normalize_text(ref_value), lang=lang_code, merge_compounds=False)
+            hypotheses = [
+                normalize_for_wer(value, "", lang=lang_code, merge_compounds=False)[0]
+                for value in hyp_segments
+            ]
+            [ref_norm], [hyp_norm] = normalize_compound_pairs([ref_norm], [" ".join(filter(None, hypotheses))])
+            return ref_norm, hyp_norm
         hyp_norm, ref_norm = normalize_for_wer(normalize_text(hyp_value), normalize_text(ref_value), lang=lang_code)
         return ref_norm, hyp_norm
     raise ValueError(f"Unknown normalizer: {normalizer}")
@@ -558,10 +577,27 @@ def compute_metrics(
     stats = []
     for _, row in df.iterrows():
         lang_code = infer_language(row, lang_override, lang_column, prefix)
+        hyp_segments = row.get(f"__hyp_segments_{prefix}", row.get("__hyp_segments"))
         if normalizer == "english" or (normalizer == "auto" and lang_code == "en"):
-            result = measure_openasr_en_wer(
-                normalize_text(row[hyp_column]), normalize_text(row[ref_column])
-            )
+            if hyp_segments is None:
+                result = measure_openasr_en_wer(
+                    normalize_text(row[hyp_column]), normalize_text(row[ref_column])
+                )
+            else:
+                from kaldialign import batch_error_rate
+
+                ref_norm, hyp_norm = normalize_asr_pair(
+                    row[ref_column], row[hyp_column], row, normalizer, lang_override,
+                    lang_column, prefix, hyp_segments,
+                )
+                counts = batch_error_rate([ref_norm.split()], [hyp_norm.split()], merge_compounds=True)
+                result = {
+                    "n_ref": max(counts["ref_len"], 1),
+                    "n_err": counts["total"],
+                    "n_sub": counts["sub"],
+                    "n_del": counts["del"],
+                    "n_ins": counts["ins"],
+                }
             stats.append(ErrorStats(
                 ref_words=result["n_ref"],
                 errors=result["n_err"],
@@ -578,6 +614,7 @@ def compute_metrics(
             lang_override,
             lang_column,
             prefix,
+            hyp_segments,
         )))
     return pd.DataFrame(
         {
@@ -1858,8 +1895,14 @@ def main() -> None:
     merged["raw_output"] = merged.get("output_target", merged.get("output", pd.Series([""] * len(merged))))
     normalized_rows = [
         (
-            *normalize_asr_pair(row[ref_baseline], row[hyp_baseline], row, args.normalizer, args.lang, args.lang_column, "baseline"),
-            *normalize_asr_pair(row[ref_target], row[hyp_target], row, args.normalizer, args.lang, args.lang_column, "target"),
+            *normalize_asr_pair(
+                row[ref_baseline], row[hyp_baseline], row, args.normalizer, args.lang,
+                args.lang_column, "baseline", row.get("__hyp_segments_baseline"),
+            ),
+            *normalize_asr_pair(
+                row[ref_target], row[hyp_target], row, args.normalizer, args.lang,
+                args.lang_column, "target", row.get("__hyp_segments_target"),
+            ),
         )
         for _, row in merged.iterrows()
     ]
@@ -2013,6 +2056,7 @@ def main() -> None:
         "normalizer": args.normalizer,
         "lang": args.lang,
         "lang_column": args.lang_column,
+        "segment_normalization": "before_concatenation" if args.aggregate_segments_by else None,
         "baseline_path": baseline_path,
         "target_path": target_path,
         "local_baseline_jsonl": str(local_baseline_jsonl),
