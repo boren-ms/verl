@@ -4,6 +4,25 @@ from omegaconf import OmegaConf
 from recipe.phimm.reward import asr_measure, asr_measure_v0, asr_vote
 
 
+@pytest.mark.parametrize("score_type", ["acc", "err"])
+def test_word_lang_perfect_text_retains_language_error_delta(score_type):
+    kwargs = {
+        "version": 2609, "text_norm": "identity",
+        "measures": {"word_lang": {"score": score_type, "delta": "abs", "vote": "delta"}},
+    }
+    correct = "<src=English><tgt=English>\n<TXT>hello world</TXT>"
+    wrong = "<src=English><tgt=French>\n<TXT>hello world</TXT>"
+    baseline = asr_vote.compute_score(correct, "hello world", **kwargs)
+    result = asr_vote.compute_score(wrong, "hello world", extra_info={"greedy_reward": baseline}, **kwargs)
+    assert result["score"] == pytest.approx(-0.01)
+    assert result["d_word_lang"] == pytest.approx(-0.01)
+
+    baseline = asr_vote.compute_score(wrong, "hello world", **kwargs)
+    result = asr_vote.compute_score(correct, "hello world", extra_info={"greedy_reward": baseline}, **kwargs)
+    assert result["score"] == pytest.approx(0.01)
+    assert result["d_word_lang"] == pytest.approx(0.01)
+
+
 def test_voting_reuses_shared_delta_helpers():
     assert asr_vote.compute_delta is asr_measure.compute_delta
 

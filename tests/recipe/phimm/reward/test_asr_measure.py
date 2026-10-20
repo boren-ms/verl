@@ -325,7 +325,7 @@ def test_word_lang_combines_word_and_ordered_language_accuracy(predictions, expe
     )
 
     assert parsed["lang"] == expected_acc
-    expected_word_lang = 1.0 - (1.0 - parsed["word"]) * (1.0 - expected_acc)
+    expected_word_lang = 1.0 - (1.0 - min(parsed["word"], 0.99)) * (1.0 - expected_acc)
     assert parsed["word_lang"] == expected_word_lang
     assert score == {
         "score": expected_acc + expected_word_lang,
@@ -351,6 +351,31 @@ def test_word_lang_formula(language, expected_lang, expected_word_lang):
     assert parsed["word"] == 0.5
     assert parsed["lang"] == expected_lang
     assert parsed["word_lang"] == expected_word_lang
+    assert parsed["char_lang"] == 1.0 - (1.0 - parsed["char"]) * (1.0 - expected_lang)
+
+
+@pytest.mark.parametrize("deleted_words", [0, 1, 2, 4])
+@pytest.mark.parametrize(
+    ("language", "expected_lang"),
+    [("English", 1.0), ("French", 0.0), ("English Chinese", 0.5)],
+)
+def test_word_lang_caps_only_lexical_input_at_099(deleted_words, language, expected_lang):
+    words = [f"word{index}" for index in range(200)]
+    text = " ".join(words[:len(words) - deleted_words])
+    solution = f"<src=English><tgt=English>\n<TXT>{text}</TXT>"
+    kwargs = {"version": 2609, "text_norm": "identity", "language": language}
+    parsed = _parse_response(solution, ground_truth=" ".join(words), **kwargs)
+    result = compute_score(solution, ground_truth=" ".join(words), measures={"word_lang": {}}, **kwargs)
+
+    word_acc = 1.0 - deleted_words / 200
+    assert parsed["word"] == pytest.approx(word_acc)
+    assert parsed["lang"] == expected_lang
+    if deleted_words <= 2:
+        expected = {1.0: 1.0, 0.5: 0.995, 0.0: 0.99}[expected_lang]
+    else:
+        expected = {1.0: 1.0, 0.5: 0.99, 0.0: 0.98}[expected_lang]
+    assert parsed["word_lang"] == pytest.approx(expected)
+    assert result["score"] == pytest.approx(expected)
     assert parsed["char_lang"] == 1.0 - (1.0 - parsed["char"]) * (1.0 - expected_lang)
 
 
@@ -1256,13 +1281,13 @@ def test_compute_score_omits_unconfigured_keyword():
     ("solution", "reference", "expected_lang", "expected_fmt", "word_lang", "word_fmt"),
     [
         ("<src=English><tgt=English>\n<TXT>hello world</TXT>", "hello world", 1.0, 1.0, 1.0, 1.0),
-        ("<src=French><tgt=French>\n<TXT>hello world</TXT>", "hello world", 0.0, 1.0, 1.0, 1.0),
+        ("<src=French><tgt=French>\n<TXT>hello world</TXT>", "hello world", 0.0, 1.0, 0.99, 1.0),
         (
             "<src=English><tgt=English>\n<TXT>hello world</TXT>\n<src=broken",
             "hello world", 1.0, 0.0, 1.0, 0.5,
         ),
         ("", "one two three four", 0.0, 0.0, 0.0, 0.75),
-        ("", "", 0.0, 0.0, 1.0, 0.0),
+        ("", "", 0.0, 0.0, 0.99, 0.0),
         ("<src=English><tgt=English>\n<TXT>hello</TXT>", "", 1.0, 1.0, 1.0, 1.0),
         (
             "<src=English><tgt=English>\n<TXT>hello</TXT>\n"

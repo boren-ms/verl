@@ -367,6 +367,9 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     max(total_reference_keyword_words, 1)``.
     ``word_lang`` and ``char_lang`` combine their lexical accuracy with
     language accuracy as ``1 - (1 - lexical_accuracy) * (1 - language_accuracy)``.
+    For ``word_lang`` only, lexical accuracy is capped at 0.99 so language
+    errors contribute even for perfect text. Raw ``word`` accuracy and
+    negative insertion accuracies are unchanged.
     ``word_fmt`` is one minus one error per failed utterance-level format
     check divided by ``max(total_reference_words, 1)``.
     """
@@ -410,7 +413,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
         "lang": lang["acc"],
         "fmt": fmt,
         "char_lang": 1.0 - (1.0 - char_acc) * (1.0 - lang["acc"]),
-        "word_lang": 1.0 - (1.0 - word_acc) * (1.0 - lang["acc"]),
+        "word_lang": 1.0 - (1.0 - min(word_acc, 0.99)) * (1.0 - lang["acc"]),
         "word_fmt": 1.0 - (1.0 - fmt) / n_total,
         **openml_acc,
     }
@@ -557,6 +560,8 @@ def compute_score(solution_str, ground_truth, **kwargs):
     ``lang`` uses the ordered language accuracy from :func:`check_lang`.
     ``word_lang`` and ``char_lang`` are
     ``1 - (1 - lexical_accuracy) * (1 - lang)``.
+    ``word_lang`` caps lexical accuracy at 0.99, retaining a language-error
+    contribution for perfect text; raw ``word`` and ``char_lang`` are unchanged.
     ``word_fmt`` uses the same accuracy formula with one error per failed
     format check. Passing checks give one; errors reduce the score.
     The contribution of each component ``k`` is::
