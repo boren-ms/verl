@@ -1,19 +1,19 @@
-updated_at_utc: 2026-10-20T00:35:06Z
+updated_at_utc: 2026-10-20T04:21:38Z
 
 ┌────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                              │ PROGRESS / PHASE                                 │
 ├────────┼────────────────────────────┼───────────┼───────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────┤
 │ n2-i0  │ raysubmit_b9fJzhstj7P8NNrp │ RUNNING   │ remax_dev_base0_v1h1a                                                                     │ training 119/720 (16.53%); validating step120    │
-│ n2-i1  │ raysubmit_cSkPBk7R3RE1DsGj │ STOPPED   │ remax_dev_base0_v1h2c                                                                     │ training stopped by user at step0                │
-│ n2-i2  │ raysubmit_mxZYywbJ2q63PyDX │ RUNNING   │ remax_dev_base0_v1h1                                                                      │ training 150/720 (20.83%)                        │
+│ n2-i1  │ raysubmit_GQDp5wJ5g1qaHDPm │ STOPPED   │ remax_dev_base0_v1h1a3                                                                    │ training stopped by user (pool paused; saved100) │
+│ n2-i2  │ raysubmit_4nJLVFqKB93pq2ih │ RUNNING   │ remax_dev_base0_v1h1                                                                      │ training 336/720 (46.67%; val320; saved330)      │
 │ n2-i3  │ raysubmit_Bk6MHF7Q7QBiaGW2 │ RUNNING   │ remax_dev_base0_v1h2a                                                                     │ training startup (model sync; save10; fresh run) │
 │ n2-i4  │ raysubmit_ZnqbznTM5CVrpD9M │ RUNNING   │ remax_dev_base0_v1k_gt                                                                    │ training 579/720 (80.42%; validation)            │
 │ n2-i5  │ raysubmit_JdJ347eAaeyM8GCF │ RUNNING   │ remax_dev_base0_v1h2                                                                      │ training 250/720 (34.72%; validation)            │
 │ n2-i6  │ raysubmit_3RHmXuDtNf9di1ya │ RUNNING   │ remax_dev_base0_gt_vc1h                                                                   │ training 599/720 (83.2%; val600; saved590)       │
-│ n2-i7  │ raysubmit_hUhKynBNJMALch97 │ RUNNING   │ remax_dev_base0_v1h                                                                       │ training 166/720 (23.06%)                        │
-│ n2-i8  │ raysubmit_FasMafwz2N81jqKi │ RUNNING   │ remax_dev_base0_v2a_gt                                                                    │ training 202/720 (28.06%)                        │
+│ n2-i7  │ raysubmit_B3a7ySj8nFNBrTjE-retry-1 │ RUNNING   │ remax_dev_base0_r0c                                                                       │ training 10/720 (1.39%; retry1; saved10)          │
+│ n2-i8  │ raysubmit_CsSd9q2WSYa93XfF │ RUNNING   │ remax_dev_base0_v1h1a1                                                                    │ training 98/720 (13.61%; validated80; saved90)    │
 │ n2-i9  │ raysubmit_4Wb3R9WRYt3jv14z │ SUCCEEDED │ remax_earning_base0a_r0                                                                   │ training 154/154 (complete; saved154; val140)    │
-│ n2-i10 │ raysubmit_X1L76uew2adX1TAi │ RUNNING   │ remax_dev_base0_vc1h                                                                      │ training 145/720 (20.1%)                         │
+│ n2-i10 │ raysubmit_3Gt3PffaFPecPwVS │ RUNNING   │ remax_dev_base0_v1h2a2                                                                    │ training 19/720 (2.64%; validation20; saved10)    │
 │ n4-i0  │ raysubmit_P9YsymiQKL4xu6qN │ RUNNING   │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 111/540 (20.56%)                        │
 │ n4-i1  │ —                          │ STOPPED   │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0    │ training 219/546 (user stopped; pool paused)     │
 │ n4h-i1 │ raysubmit_b7VCNWU5h6LNHsBY │ STOPPED   │ remax_2609r2_name_en13m_s1k_bs128_n4_r256_g32                                             │ training 138/1000 (13.80%)                       │
@@ -26,6 +26,10 @@ updated_at_utc: 2026-10-20T00:35:06Z
 └────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────────┘
 
 Reports:
+- `remax_dev_base0_v1h2a2` [`n2-i10`]: training 19/720 (2.64%; validation20 in progress); checkpoint10 complete in blob (49 resume files verified); initial validation p_err: earning_chunk_verb=0.048652, openml_bad=0.152563, ls_clean=0.012659, ls_other=0.027422
+- `remax_dev_base0_r0c` [`n2-i7`]: training 10/720 (1.39%; retry1); checkpoint10 complete in blob (49 resume files verified); initial validation p_err: earning_chunk_verb=0.048392, openml_bad=0.150080, ls_clean=0.012622, ls_other=0.027270
+- `remax_dev_base0_v1h1a1` [`n2-i8`]: training 98/720 (13.61%)
+- `remax_dev_base0_v1h1a3` [`n2-i1`]: stopped by user; pool paused; last observed104; checkpoint100 verified; recovery disabled
 - `remax_dev_base0_v1h2c` [`n2-i1`]: training stopped by user at step0; initial validation5402/6293; monitor deleted
 - `remax_dev_base0_v1h2b` [`n2-i3`]: training stopped by user at step87; checkpoint80 saved
 - `remax_dev_base0_v1h1a` [`n2-i0`]: training 119/720 (16.53%)
@@ -50,10 +54,10 @@ Reports:
 - `remax_dev_base0_v2e_gt` [`n2-i2`]: stopped training by user; last aggregate step119
 - `remax_dev_base0_v1f_gt` [`n2-i2`]: stopped training step 549
 - `remax_dev_base0_v1h_gt` [`n2-i2`]: stopped training by user; last aggregate step 559
-- `remax_dev_base0_v1h1` [`n2-i2`]: training 150/720 (20.83%)
+- `remax_dev_base0_v1h1` [`n2-i2`]: training 336/720 (46.67%)
 - `remax_dev_base0_v1e_gt` [`n2-i9`]: stopped training step 528
 - `remax_dev_base0_v2d_gt` [`n2-i11`]: stopped training step 125; node paused
-- `remax_dev_base0_vc1h` [`n2-i10`]: training 145/720 (20.1%)
+- `remax_dev_base0_vc1h` [`n2-i10`]: training 314/720 (43.61%)
 - `remax_dev_base0_v2b_gt` [`n2-i2`]: stopped training by user; last observed step 327
 - `remax_dev_base0_v1a` [`n2-i4`]: stopped training by user at step709; node paused
 - `remax_dev_base0_re0c` [`n2-i4`]: stopped training by user; last observed step 232
