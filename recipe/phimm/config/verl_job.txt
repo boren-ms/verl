@@ -1,4 +1,4 @@
-updated_at_utc: 2026-10-19T23:51:36Z
+updated_at_utc: 2026-10-20T00:22:50Z
 
 ┌────────┬──────────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
 │ NODE   │ RAY JOB ID                       │ STATUS  │ JOB / CONFIG                                                                         │ PROGRESS / PHASE                                  │
@@ -9,7 +9,7 @@ updated_at_utc: 2026-10-19T23:51:36Z
 │ n4-i1  │ —                               │ STOPPED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0 │ training 219/546 (user stopped; pool paused)       │
 │ n4-i2  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0d1          │ training startup (waiting GPU quota; save10)      │
 │ n2-i2  │ raysubmit_mxZYywbJ2q63PyDX         │ RUNNING │ remax_dev_base0_v1h1                                                                  │ training 150/720 (20.83%)                         │
-│ n2-i3  │ raysubmit_smk3jawcaaA8rhPX       │ RUNNING │ remax_dev_base0_v1h2b                                                                │ training 63/720 (8.75%); saved60; val60 complete  │
+│ n2-i3  │ raysubmit_smk3jawcaaA8rhPX       │ STOPPED │ remax_dev_base0_v1h2b                                                                │ training stopped by user at step87; saved80       │
 │ n2-i4  │ raysubmit_ZnqbznTM5CVrpD9M         │ RUNNING │ remax_dev_base0_v1k_gt                                                                 │ training 579/720 (80.42%; validation)           │
 │ n2-i5  │ raysubmit_JdJ347eAaeyM8GCF         │ RUNNING │ remax_dev_base0_v1h2                                                                 │ training 250/720 (34.72%; validation)              │
 │ n2-i6  │ raysubmit_3RHmXuDtNf9di1ya       │ RUNNING │ remax_dev_base0_gt_vc1h                                                              │ training 599/720 (83.2%; val600; saved590)        │
@@ -27,7 +27,7 @@ updated_at_utc: 2026-10-19T23:51:36Z
 
 Reports:
 - `remax_dev_base0_v1h2c` [`n2-i1`]: training stopped by user at step0; initial validation5402/6293; monitor deleted
-- `remax_dev_base0_v1h2b` [`n2-i3`]: training 63/720 (8.75%); saved60; val60 complete
+- `remax_dev_base0_v1h2b` [`n2-i3`]: training stopped by user at step87; checkpoint80 saved
 - `remax_dev_base0_v1h1a` [`n2-i0`]: training 119/720 (16.53%)
 - `remax_dev_base0_v1h` [`n2-i7`]: training 166/720 (23.06%)
 - `remax_dev_base0_v1h1a_gt` [`n2-i1`]: failed training step 360

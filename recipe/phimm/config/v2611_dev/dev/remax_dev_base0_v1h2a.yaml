@@ -1,4 +1,4 @@
-# v1h2a: v1h2 with simple reward normalization (lowercase, remove punctuation, normalize whitespace).
+# v1h2a: v1h1a3 with word beta 1.0 and lang beta 0.2; normalize by the beta sum of 1.6.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -13,17 +13,13 @@ reward_functions:
     name: compute_score
     reward_kwargs:
       version: 2609
-      text_norm: simple
-      reduce: {mode: average, total: 3.6}
+      reduce: {mode: average, total: 1.6}
       measures:
-        char: {delta: abs, beta: 1.0, vote: delta, clip: [-10, 10]}
-        char_del: {delta: abs, beta: 0.1, vote: delta, clip: [-10, 10]}
-        char_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-10, 10]}
         word: {delta: abs, beta: 1.0, vote: delta, clip: [-10, 10]}
         word_del: {delta: abs, beta: 0.1, vote: delta, clip: [-10, 10]}
         word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-10, 10]}
         word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-10, 10]}
-        word_lang: {delta: abs, beta: 1.0, vote: delta, clip: [-10, 10]}
+        lang: {delta: abs, beta: 0.2, vote: delta, clip: [-10, 10]}
 
 reward_function_by_data_source:
   openml: librispeech
