@@ -125,7 +125,7 @@ or benchmark execution directly from this skill.
 
 ## Reinstall the recurring monitor
 
-Maintain exactly one five-minute schedule. Stop stale schedules before creating the
+Maintain exactly one 30-minute schedule. Stop stale schedules before creating the
 replacement. The schedule must:
 
 - Restore `recipe/phimm/config/verl_job.txt`, then rediscover and monitor every

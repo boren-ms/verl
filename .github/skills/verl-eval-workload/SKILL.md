@@ -219,7 +219,7 @@ steps exist; otherwise preserve the user's checkpoint order.
 
 ## Monitoring and Completion
 
-For a long-running workload, maintain one five-minute monitor. Each poll must:
+For a long-running workload, maintain one 30-minute monitor. Each poll must:
 
 - rediscover all Ready GPU nodes rather than relying on a hard-coded pool;
 - rediscover matching Ray jobs instead of relying on saved job IDs;

@@ -294,7 +294,7 @@ Never select an earlier checkpoint because its validation metric is better.
    predecessor-report -> preflight todo dependencies; preserve registration and
    within-request lifecycle dependencies. Refresh the single shared monitor's FIFO.
 5. Check each distinct unfinished request at most once per tick. Start the first
-   ready request; if none are ready, persist the queue and retry in five minutes.
+   ready request; if none are ready, persist the queue and retry in 30 minutes.
    Authentication, unreadable artifacts and unresolved provenance are explicit
    errors, not evidence of a missing checkpoint; diagnose them without hiding the
    failure or rotating on a fabricated readiness result.
@@ -584,7 +584,7 @@ Reopen the workbook and verify:
 
 ## Monitoring, recovery and completion
 
-Use one shared recurring five-minute monitor across the pipeline and both
+Use one shared recurring 30-minute monitor across the pipeline and both
 `verl-asr-run` handoffs; do not install a competing generic runner monitor.
 After verifying a live submission, install or update that monitor using the
 scheduling tool. Its prompt must identify this skill, `verl-asr-run` for

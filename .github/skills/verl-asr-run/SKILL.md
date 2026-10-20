@@ -6,7 +6,7 @@ argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0,
 
 # verl ASR Run
 
-Run ASR training or evaluation jobs on remote verl Brix nodes. The default training pipeline is **training -> training summary -> persistent auto-monitor completion**. Only when the user explicitly requests post-training evaluation, continue with **select and export the best validation checkpoint -> standard 2609 benchmark suite on the same training node -> final report**. Submit jobs via `submit_job.sh` and continuously monitor until the requested work completes with structured metrics. When post-training evaluation is enabled, invoke the **eval-2609-benchmark-report** skill once for the best eligible checkpoint only after training has finished successfully and released the training node's GPUs. That skill owns the required in-house DTER, OpenASR-ML, and MixLang evaluations, matching reference baselines, and the final workbook. Persist the latest training and evaluation state in `recipe/phimm/config/verl_job.txt` throughout the pipeline. After submission, always install a `/every 5m update job status and autofix job` schedule (Step 5) so status updates and auto-fixes continue without manual re-prompting.
+Run ASR training or evaluation jobs on remote verl Brix nodes. The default training pipeline is **training -> training summary -> persistent auto-monitor completion**. Only when the user explicitly requests post-training evaluation, continue with **select and export the best validation checkpoint -> standard 2609 benchmark suite on the same training node -> final report**. Submit jobs via `submit_job.sh` and continuously monitor until the requested work completes with structured metrics. When post-training evaluation is enabled, invoke the **eval-2609-benchmark-report** skill once for the best eligible checkpoint only after training has finished successfully and released the training node's GPUs. That skill owns the required in-house DTER, OpenASR-ML, and MixLang evaluations, matching reference baselines, and the final workbook. Persist the latest training and evaluation state in `recipe/phimm/config/verl_job.txt` throughout the pipeline. After submission, always install a `/every 30m update job status and autofix job` schedule (Step 5) so status updates and auto-fixes continue without manual re-prompting.
 
 Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
@@ -154,7 +154,7 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
 Before submitting a standalone `eval_*` or `long_eval_*` job, determine the number of Ready nodes that will participate in that evaluation and set `{EVAL_NNODES}` to that count. Always pass `trainer.nnodes={EVAL_NNODES}` as a Hydra override; do not rely on the inherited training default. For a training pipeline's best-checkpoint evaluation, reuse `{TRAIN_NODE}` and set `trainer.nnodes=1` for every child evaluation job.
 
-When `post_train_eval` is enabled, after training succeeds confirm `{TRAIN_NODE}` has no running Ray job and its GPUs are idle before launching evaluation. If training processes are still releasing resources, keep the selected best checkpoint queued and retry every 5 minutes on the same node. Do not select or resume another node.
+When `post_train_eval` is enabled, after training succeeds confirm `{TRAIN_NODE}` has no running Ray job and its GPUs are idle before launching evaluation. If training processes are still releasing resources, keep the selected best checkpoint queued and retry every 30 minutes on the same node. Do not select or resume another node.
 
 ### Step 1c — Early, non-blocking main-pod evaluation audio precache
 
@@ -322,8 +322,8 @@ Also reconcile Step 1c's background main-pod prefetch when present. Report its
 state separately from Ray progress; its failure is not a training/evaluation
 failure and must not block decoding or pipeline advancement.
 
-- **Eval jobs**: Poll every **5 minutes**. Typically takes 10–30 minutes.
-- **Training jobs**: Poll every **5 minutes** during startup, then adapt cadence based on step time. Training can take hours to days.
+- **Eval jobs**: Poll every **30 minutes**. Typically takes 10–30 minutes.
+- **Training jobs**: Poll every **30 minutes**, including during startup. Training can take hours to days.
 
 #### 3a. Check Ray job status
 ```bash
@@ -632,10 +632,10 @@ Clean up only this pipeline's remaining prefetch process at completion.
 Emit this slash command as the final line of your response, on its own line, with the placeholders resolved and no surrounding code fence or extra text after it:
 
 ```
-/every 5m update job status and autofix job for node {NODE}, config {CONFIG}, Ray job {JOB_ID}; re-discover and track any replacement job IDs for this pipeline
+/every 30m update job status and autofix job for node {NODE}, config {CONFIG}, Ray job {JOB_ID}; re-discover and track any replacement job IDs for this pipeline
 ```
 
-This schedules VS Code Copilot to re-invoke the agent every 5 minutes with an explicit pipeline identity. Each scheduled invocation must:
+This schedules VS Code Copilot to re-invoke the agent every 30 minutes with an explicit pipeline identity. Each scheduled invocation must:
 
 1. **Load durable state and re-discover the active job(s)**: read `recipe/phimm/config/verl_job.txt`, then run `ray_job.py list` for the tracked `{NODE}` / `{CONFIG}` pair. Treat `{JOB_ID}` as the initial job, not an immutable ID: after an autofix or user-requested replacement, update the schedule to name the replacement config and job ID. After training succeeds, select and track the best-checkpoint evaluation state and every candidate and reference job launched on the same node by **eval-2609-benchmark-report** only when `post_train_eval` is enabled. Reconcile and rewrite `verl_job.txt` with only the latest job state for the node before printing the user-facing update. Every active row must say `training ...`, `selecting best checkpoint (...)`, `exporting best checkpoint (...)`, `evaluating <dataset> (...)`, or `generating <dataset> (...)` as appropriate; never retain a generic phase from the previous job.
 2. **Reprint the status header** from Step 3g (Job ID, status, progress, node, config, W&B URL, Ray URL, GPU utilization) for every active job.
@@ -647,7 +647,7 @@ This schedules VS Code Copilot to re-invoke the agent every 5 minutes with an ex
    - Training `SUCCEEDED` with `post_train_eval` enabled → select the best complete saved checkpoint using Step 3h, reconcile the current report status and artifacts to avoid duplicate work, set `waiting for best checkpoint step <step>`, wait for the training node's GPUs and Ray job slot to become idle, then run Step 4a and Step 4b on that same node.
    - A child benchmark job `SUCCEEDED` → let the benchmark workflow launch its next missing candidate/reference evaluation or, when the best checkpoint's required jobs are complete, build and validate its workbook and report the result.
 6. **Replace stale schedules immediately** when a user stops the tracked job, requests a different config, or an autofix creates a new job ID. Stop the old schedule, then install a monitor naming the current `{NODE}`, `{CONFIG}`, and `{JOB_ID}`.
-7. **Stop the schedule** with `/every stop` (emitted as the final line) when all requested work is complete. With `post_train_eval` disabled, this means training reached `SUCCEEDED`, its final summary was presented, and the terminal training state was written. With `post_train_eval` enabled, this additionally requires the best checkpoint to be selected and exported, all required 2609 candidate/reference benchmark jobs to reach `SUCCEEDED`, the final `.xlsx` workbook to pass the benchmark skill's quality gates and be presented, and the report bullet to be `complete step <step>`. Do not add workbook paths under `Reports:` in `recipe/phimm/config/verl_job.txt`. Until the applicable completion condition is met, every scheduled response must end with the explicit `/every 5m ... node {NODE}, config {CONFIG}, Ray job {JOB_ID}` command to keep the loop alive.
+7. **Stop the schedule** with `/every stop` (emitted as the final line) when all requested work is complete. With `post_train_eval` disabled, this means training reached `SUCCEEDED`, its final summary was presented, and the terminal training state was written. With `post_train_eval` enabled, this additionally requires the best checkpoint to be selected and exported, all required 2609 candidate/reference benchmark jobs to reach `SUCCEEDED`, the final `.xlsx` workbook to pass the benchmark skill's quality gates and be presented, and the report bullet to be `complete step <step>`. Do not add workbook paths under `Reports:` in `recipe/phimm/config/verl_job.txt`. Until the applicable completion condition is met, every scheduled response must end with the explicit `/every 30m ... node {NODE}, config {CONFIG}, Ray job {JOB_ID}` command to keep the loop alive.
 
 **Rules**:
 - `/every` lines must be the **very last line** of the assistant message — no trailing prose, no markdown blockquotes, no code fences around them.
@@ -674,7 +674,7 @@ This schedules VS Code Copilot to re-invoke the agent every 5 minutes with an ex
 - The remote workspace is at `/root/code/verl` on Brix nodes.
 - **Always push code first** before submitting jobs. Use `bpush {NODE}` or `submit_job.sh` (which pushes automatically). Never submit a job without syncing code first.
 - For remote operations, use `brix ssh`, `brix scp`, or the convenience wrappers `bpush` and `submit_job.sh`.
-- For long-running training jobs, use the **persistent-job-monitor** skill to poll every 5 minutes until a target step is reached.
+- For long-running training jobs, use the **persistent-job-monitor** skill to poll every 30 minutes until a target step is reached.
 
 ## Command Reference
 
@@ -714,7 +714,7 @@ bash submit_jobs_repeat.sh
 - When monitoring, report the current phase and what to expect next
 - On failure, show the error, diagnose, and proceed to fix without asking
 - **Do not stop monitoring** until all requested work is complete. For training-only runs, stop after training succeeds and the final training summary and durable terminal state are complete. When `post_train_eval` is enabled, continue until the best validation checkpoint is selected, exported, and reported on the same training node, all required candidate/reference jobs from **eval-2609-benchmark-report** succeed there, and the final workbook plus benchmark summary are generated.
-- **End every non-terminal response with the explicit pipeline-specific `/every 5m ... node {NODE}, config {CONFIG}, Ray job {JOB_ID}` command** on its own final line (see Step 5). Replace with `/every stop` only once the full stack is complete.
+- **End every non-terminal response with the explicit pipeline-specific `/every 30m ... node {NODE}, config {CONFIG}, Ray job {JOB_ID}` command** on its own final line (see Step 5). Replace with `/every stop` only once the full stack is complete.
 
 ## Dependent Skills
 
