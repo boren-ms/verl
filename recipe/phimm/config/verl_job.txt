@@ -1,29 +1,29 @@
-updated_at_utc: 2026-10-20T00:22:50Z
+updated_at_utc: 2026-10-20T00:35:06Z
 
-┌────────┬──────────────────────────────────┬─────────┬──────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────┐
-│ NODE   │ RAY JOB ID                       │ STATUS  │ JOB / CONFIG                                                                         │ PROGRESS / PHASE                                  │
-├────────┼──────────────────────────────────┼─────────┼──────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────────┤
-│ n2-i0  │ raysubmit_b9fJzhstj7P8NNrp         │ RUNNING │ remax_dev_base0_v1h1a                                                                 │ training 119/720 (16.53%); validating step120       │
-│ n2-i1  │ raysubmit_cSkPBk7R3RE1DsGj       │ STOPPED │ remax_dev_base0_v1h2c                                                                │ training stopped by user at step0                 │
-│ n4-i0  │ raysubmit_P9YsymiQKL4xu6qN         │ RUNNING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 111/540 (20.56%)                          │
-│ n4-i1  │ —                               │ STOPPED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0 │ training 219/546 (user stopped; pool paused)       │
-│ n4-i2  │ —                                │ PENDING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0d1          │ training startup (waiting GPU quota; save10)      │
-│ n2-i2  │ raysubmit_mxZYywbJ2q63PyDX         │ RUNNING │ remax_dev_base0_v1h1                                                                  │ training 150/720 (20.83%)                         │
-│ n2-i3  │ raysubmit_smk3jawcaaA8rhPX       │ STOPPED │ remax_dev_base0_v1h2b                                                                │ training stopped by user at step87; saved80       │
-│ n2-i4  │ raysubmit_ZnqbznTM5CVrpD9M         │ RUNNING │ remax_dev_base0_v1k_gt                                                                 │ training 579/720 (80.42%; validation)           │
-│ n2-i5  │ raysubmit_JdJ347eAaeyM8GCF         │ RUNNING │ remax_dev_base0_v1h2                                                                 │ training 250/720 (34.72%; validation)              │
-│ n2-i6  │ raysubmit_3RHmXuDtNf9di1ya       │ RUNNING │ remax_dev_base0_gt_vc1h                                                              │ training 599/720 (83.2%; val600; saved590)        │
-│ n2-i7  │ raysubmit_hUhKynBNJMALch97       │ RUNNING │ remax_dev_base0_v1h                                                                  │ training 166/720 (23.06%)                         │
-│ n2-i8  │ raysubmit_FasMafwz2N81jqKi       │ RUNNING │ remax_dev_base0_v2a_gt                                                               │ training 202/720 (28.06%)                         │
-│ n4-i4  │ raysubmit_twMexPvebDuLpEb5        │ RUNNING │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1         │ training 146/306 (47.71%); pause after step160      │
-│ n4-i6  │ raysubmit_k4s5RcVe1zMfDxXp       │ SUCCEEDED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs512_n16_r256_g32_ds1c_sfl_avg6_flr0_rw0 │ training 270/270 (100%; complete)                 │
-│ n4-i7  │ raysubmit_fMJmPawybpFfZHX6       │ SUCCEEDED │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm1      │ training 306/306 (complete)                     │
-│ n4-i9  │ —                               │ PENDING │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0   │ training startup (pool Assigning; save 10)     │
-│ n4h-i1 │ raysubmit_b7VCNWU5h6LNHsBY       │ STOPPED │ remax_2609r2_name_en13m_s1k_bs128_n4_r256_g32                                        │ training 138/1000 (13.80%)                        │
-│ n4h-i2 │ —                              │ PENDING │ remax_2609r2_earning_ml_verb_hint_s501_bs128_n8_r256_g32_ds1s_sfl_avg4_flr0           │ training startup (Assigning; no pods/no Ray job)  │
-│ n2-i9  │ raysubmit_4Wb3R9WRYt3jv14z        │ SUCCEEDED │ remax_earning_base0a_r0                                                              │ training 154/154 (complete; saved154; val140)      │
-│ n2-i10 │ raysubmit_X1L76uew2adX1TAi       │ RUNNING │ remax_dev_base0_vc1h                                                                 │ training 145/720 (20.1%)                          │
-└────────┴──────────────────────────────────┴─────────┴──────────────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────┘
+┌────────┬────────────────────────────┬───────────┬───────────────────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────────┐
+│ NODE   │ RAY JOB ID                 │ STATUS    │ JOB / CONFIG                                                                              │ PROGRESS / PHASE                                 │
+├────────┼────────────────────────────┼───────────┼───────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────┤
+│ n2-i0  │ raysubmit_b9fJzhstj7P8NNrp │ RUNNING   │ remax_dev_base0_v1h1a                                                                     │ training 119/720 (16.53%); validating step120    │
+│ n2-i1  │ raysubmit_cSkPBk7R3RE1DsGj │ STOPPED   │ remax_dev_base0_v1h2c                                                                     │ training stopped by user at step0                │
+│ n2-i2  │ raysubmit_mxZYywbJ2q63PyDX │ RUNNING   │ remax_dev_base0_v1h1                                                                      │ training 150/720 (20.83%)                        │
+│ n2-i3  │ raysubmit_Bk6MHF7Q7QBiaGW2 │ RUNNING   │ remax_dev_base0_v1h2a                                                                     │ training startup (model sync; save10; fresh run) │
+│ n2-i4  │ raysubmit_ZnqbznTM5CVrpD9M │ RUNNING   │ remax_dev_base0_v1k_gt                                                                    │ training 579/720 (80.42%; validation)            │
+│ n2-i5  │ raysubmit_JdJ347eAaeyM8GCF │ RUNNING   │ remax_dev_base0_v1h2                                                                      │ training 250/720 (34.72%; validation)            │
+│ n2-i6  │ raysubmit_3RHmXuDtNf9di1ya │ RUNNING   │ remax_dev_base0_gt_vc1h                                                                   │ training 599/720 (83.2%; val600; saved590)       │
+│ n2-i7  │ raysubmit_hUhKynBNJMALch97 │ RUNNING   │ remax_dev_base0_v1h                                                                       │ training 166/720 (23.06%)                        │
+│ n2-i8  │ raysubmit_FasMafwz2N81jqKi │ RUNNING   │ remax_dev_base0_v2a_gt                                                                    │ training 202/720 (28.06%)                        │
+│ n2-i9  │ raysubmit_4Wb3R9WRYt3jv14z │ SUCCEEDED │ remax_earning_base0a_r0                                                                   │ training 154/154 (complete; saved154; val140)    │
+│ n2-i10 │ raysubmit_X1L76uew2adX1TAi │ RUNNING   │ remax_dev_base0_vc1h                                                                      │ training 145/720 (20.1%)                         │
+│ n4-i0  │ raysubmit_P9YsymiQKL4xu6qN │ RUNNING   │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0b_v0 │ training 111/540 (20.56%)                        │
+│ n4-i1  │ —                          │ STOPPED   │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e1_bs128_n4_r256_g32_dsv1a_avg4_flr1_rm0b_v0    │ training 219/546 (user stopped; pool paused)     │
+│ n4h-i1 │ raysubmit_b7VCNWU5h6LNHsBY │ STOPPED   │ remax_2609r2_name_en13m_s1k_bs128_n4_r256_g32                                             │ training 138/1000 (13.80%)                       │
+│ n4-i2  │ —                          │ PENDING   │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rw0d1          │ training startup (waiting GPU quota; save10)     │
+│ n4h-i2 │ —                          │ PENDING   │ remax_2609r2_earning_ml_verb_hint_s501_bs128_n8_r256_g32_ds1s_sfl_avg4_flr0               │ training startup (Assigning; no pods/no Ray job) │
+│ n4-i4  │ raysubmit_twMexPvebDuLpEb5 │ RUNNING   │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm0c1          │ training 146/306 (47.71%); pause after step160   │
+│ n4-i6  │ raysubmit_k4s5RcVe1zMfDxXp │ SUCCEEDED │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs512_n16_r256_g32_ds1c_sfl_avg6_flr0_rw0    │ training 270/270 (100%; complete)                │
+│ n4-i7  │ raysubmit_fMJmPawybpFfZHX6 │ SUCCEEDED │ remax_2609r2_earning_ml0_verb_hint_e3_bs128_n16_r256_g32_ds0_sfl_avg6_flr1_rm1            │ training 306/306 (complete)                      │
+│ n4-i9  │ —                          │ PENDING   │ remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs256_n16_r256_g32_ds1c_sfl_avg6_flr_rm0     │ training startup (pool Assigning; save 10)       │
+└────────┴────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────────┘
 
 Reports:
 - `remax_dev_base0_v1h2c` [`n2-i1`]: training stopped by user at step0; initial validation5402/6293; monitor deleted
@@ -39,7 +39,7 @@ Reports:
 - `remax_dev_base0_v1h1_gt` [`n2-i0`]: stopped training by user
 - `remax_dev_base0_v1k_gt` [`n2-i4`]: training 579/720 (80.42%)
 - `remax_dev_base0_v1j_gt` [`n2-i3`]: stopped training step 290
-- `remax_dev_base0_v1h2a` [`n2-i3`]: stopped training 266/720; checkpoint260 saved; node paused
+- `remax_dev_base0_v1h2a` [`n2-i3`]: training startup (model sync; save10; fresh run)
 - `remax_dev_base0_v1g` [`n2-i11`]: failed training step 89
 - `remax_ls_base0_v1g_gt` [`n2-i7`]: stopped training step 420
 - `remax_dev_base0_v1g1_gt` [`n2-i5`]: stopped training step 350
