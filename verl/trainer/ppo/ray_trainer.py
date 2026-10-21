@@ -1307,6 +1307,21 @@ class RayPPOTrainer:
                     batch = batch.repeat(repeat_times=self.config.actor_rollout_ref.rollout.n, interleave=True)
                     batch = batch.union(gen_batch_output)
 
+                    # Bind greedy metadata while rows are still interleaved by prompt.
+                    # It must follow the batch through deduplication and balancing.
+                    if self.config.algorithm.adv_estimator == AdvantageEstimator.REMAX and greedy_hyps is not None:
+                        if "extra_info" not in batch.non_tensor_batch:
+                            batch.non_tensor_batch["extra_info"] = np.array(
+                                [{} for _ in range(len(batch))], dtype=object
+                            )
+                        n_rollout = self.config.actor_rollout_ref.rollout.n
+                        for i in range(len(batch)):
+                            ei = batch.non_tensor_batch["extra_info"][i]
+                            ei = ei.copy() if isinstance(ei, dict) else {}
+                            ei["greedy_hyp"] = greedy_hyps[i // n_rollout]
+                            ei["greedy_reward"] = greedy_rewards[i // n_rollout]
+                            batch.non_tensor_batch["extra_info"][i] = ei
+
                     if "response_mask" not in batch.batch.keys():
                         batch.batch["response_mask"] = compute_response_mask(batch)
 
@@ -1333,20 +1348,6 @@ class RayPPOTrainer:
                     batch.meta_info["global_token_num"] = torch.sum(batch.batch["attention_mask"], dim=-1).tolist()
 
                     with marked_timer("reward", timing_raw, color="yellow"):
-                        # Ensure greedy_hyp is in extra_info for the main reward computation.
-                        # It may have been overwritten by batch.union(gen_batch_output) above.
-                        if self.config.algorithm.adv_estimator == AdvantageEstimator.REMAX and greedy_hyps is not None:
-                            if "extra_info" not in batch.non_tensor_batch:
-                                batch.non_tensor_batch["extra_info"] = [{} for _ in range(len(batch))]
-                            n_rollout = self.config.actor_rollout_ref.rollout.n
-                            for i in range(len(batch)):
-                                ei = batch.non_tensor_batch["extra_info"][i]
-                                if not isinstance(ei, dict):
-                                    ei = {}
-                                    batch.non_tensor_batch["extra_info"][i] = ei
-                                ei["greedy_hyp"] = greedy_hyps[i // n_rollout]
-                                ei["greedy_reward"] = greedy_rewards[i // n_rollout]
-
                         # compute reward model score
                         if self.use_rm and "rm_scores" not in batch.batch.keys():
                             reward_tensor = self.rm_wg.compute_rm_score(batch)
