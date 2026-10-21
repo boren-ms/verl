@@ -637,6 +637,28 @@ def test_clean_tagged_text_removes_tags_and_extracts_keywords():
     assert result[0]["keywords"] == ["Collar"]
 
 
+@pytest.mark.parametrize(
+    "tagged,expected,keywords",
+    [
+        ("from<NE> Morgan Stanley</NE>.", "from Morgan Stanley.", ["Morgan Stanley"]),
+        ("<NE>Morgan Stanley </NE>analyst", "Morgan Stanley analyst", ["Morgan Stanley"]),
+        ("to<NE> QDN</NE>'s call", "to QDN's call", ["QDN"]),
+        ("with<PName> Nikolaj Lippmann </PName>from", "with Nikolaj Lippmann from", ["Nikolaj Lippmann"]),
+        ("from[ENTITY] Morgan Stanley[/ENTITY].", "from Morgan Stanley.", ["Morgan Stanley"]),
+        ("from<NE>\nMorgan Stanley\t</NE>today", "from Morgan Stanley today", ["Morgan Stanley"]),
+        ("bullion<NE> </NE>on-hand", "bullion on-hand", []),
+        ("multi<NE>modal</NE>", "multimodal", ["modal"]),
+    ],
+)
+def test_clean_tagged_text_preserves_word_separators_inside_tags(tagged, expected, keywords):
+    dataset = Dataset.from_dict({"text": [tagged]})
+
+    result = dataset_module.clean_tagged_text(dataset)
+
+    assert result[0]["text"] == expected
+    assert result[0]["keywords"] == keywords
+
+
 def test_clean_tagged_text_handles_bracket_tags_and_tagged_keywords():
     dataset = Dataset.from_list(
         [

@@ -968,7 +968,15 @@ def clean_tagged_text(ds, **kwargs):
         return remove_tags(value or "").strip(string.punctuation + string.whitespace)
 
     def replace_paired_tag(match):
-        return clean_tagged_value(match.group(2) or match.group(4))
+        value = match.group(2) or match.group(4) or ""
+        text = clean_tagged_value(value)
+        # Transcribers sometimes put the word separator inside the entity tag,
+        # e.g. "from<NE> Morgan Stanley</NE>". Keep it when removing the tag.
+        if value and value[0].isspace():
+            text = " " + text
+        if value and value[-1].isspace():
+            text += " "
+        return text
 
     def replace_inline_tag(match):
         return clean_tagged_value(match.group(2))
