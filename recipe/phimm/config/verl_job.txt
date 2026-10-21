@@ -1,17 +1,19 @@
-updated_at_utc: 2026-10-20T18:28:36Z
+updated_at_utc: 2026-10-21T20:55:27Z
 
-┌────────┬────────────────────────────┬─────────┬──────────────────────────────────────────┬────────────────────────────────────────────────────┐
-│ NODE   │ RAY JOB ID                 │ STATUS  │ JOB / CONFIG                             │ PROGRESS / PHASE                                   │
-├────────┼────────────────────────────┼─────────┼──────────────────────────────────────────┼────────────────────────────────────────────────────┤
-│ n2-i1  │ raysubmit_ABh3YCcsqx1HB5g4 │ RUNNING │ remax_dev_base0_v0c_n2i1_20261019_200148 │ training 27/720 (3.75%); saved20                   │
-│ n2-i3  │ raysubmit_8hrqC5TuFASjFRBZ │ RUNNING │ remax_dev_base0_v1h2a_20261020T003002Z   │ training 149/720 (20.69%)                          │
-│ n2-i4  │ raysubmit_FcWbriUZeCSf3ctX │ RUNNING │ remax_dev_base0_v1h_l0                   │ training 483/720 (67.08%); saved480                │
-│ n2-i5  │ raysubmit_DNsGwPPG96wYNz2p │ RUNNING │ remax_dev_base0_v1h_l1                   │ training 0/720 (0%; validation scored5146; save10) │
-│ n2-i6  │ raysubmit_LstgXy4FzaBrZqkh │ RUNNING │ remax_dev_base0_v1h_l2                   │ training 0/720 (0%; validation scored4122; save10) │
-│ n2-i7  │ raysubmit_7fDgiXRh8fZEpJ7z │ RUNNING │ remax_dev_base0_v1h_l3                   │ training 0/720 (0%; validation scored2526)         │
-│ n2-i8  │ raysubmit_XbeCDurVNJ9bMU63 │ RUNNING │ remax_dev_base0_v1h1a1                   │ training 100/720 (13.89%; validation decoding)     │
-│ n2-i10 │ raysubmit_m9gvvRzApPk5d9im │ RUNNING │ remax_dev_base0_v1h2a2                   │ training 20/720 (2.78%); validation scored2270     │
-└────────┴────────────────────────────┴─────────┴──────────────────────────────────────────┴────────────────────────────────────────────────────┘
+┌────────┬──────────────────────────────────────────────────────┬─────────┬──────────────────────────────────────────┬────────────────────────────────────────────────────┐
+│ NODE   │ RAY JOB ID                                           │ STATUS  │ JOB / CONFIG                             │ PROGRESS / PHASE                                   │
+├────────┼──────────────────────────────────────────────────────┼─────────┼──────────────────────────────────────────┼────────────────────────────────────────────────────┤
+│ n2h-i0 │ raysubmit_mSEV2qe8xYc8dtqY                           │ RUNNING │ remax_dev_base0_v1h2a_fix                │ training startup (building dataset cache)          │
+│ n2-i1  │ raysubmit_ABh3YCcsqx1HB5g4                           │ RUNNING │ remax_dev_base0_v0c_n2i1_20261019_200148 │ training 27/720 (3.75%); saved20                   │
+│ n2-i3  │ raysubmit_8hrqC5TuFASjFRBZ                           │ RUNNING │ remax_dev_base0_v1h2a_20261020T003002Z   │ training 149/720 (20.69%)                          │
+│ n2-i4  │ raysubmit_FcWbriUZeCSf3ctX                           │ RUNNING │ remax_dev_base0_v1h_l0                   │ training 483/720 (67.08%); saved480                │
+│ n2-i5  │ raysubmit_DNsGwPPG96wYNz2p                           │ RUNNING │ remax_dev_base0_v1h_l1                   │ training 0/720 (0%; validation scored5146; save10) │
+│ n2-i6  │ raysubmit_LstgXy4FzaBrZqkh                           │ RUNNING │ remax_dev_base0_v1h_l2                   │ training 0/720 (0%; validation scored4122; save10) │
+│ n2-i7  │ remax-earning-base1-v0-20261021T200857Z-a1           │ RUNNING │ remax_earning_base1_v0                   │ training 2/148 (1.35%; first checkpoint due10)     │
+│ n2-i8  │ raysubmit_XbeCDurVNJ9bMU63                           │ RUNNING │ remax_dev_base0_v1h1a1                   │ training 100/720 (13.89%; validation decoding)     │
+│ n2-i9  │ remax-hindi-base1-v0-20261021T202243Z-recovery-1     │ RUNNING │ remax_hindi_base1_v0                     │ training 10/4468 (0.22%); saved10                  │
+│ n2-i10 │ remax-earning-base1-v0-ne-tagged-20261021T200857Z-a1 │ RUNNING │ remax_earning_base1_v0_ne_tagged         │ training 0/148 (0%; first completed step pending)  │
+└────────┴──────────────────────────────────────────────────────┴─────────┴──────────────────────────────────────────┴────────────────────────────────────────────────────┘
 
 Reports:
 - `remax_dev_base0_v0c_n2i1_20261019_200148` [`n2-i1`]: training 27/720 (3.75%)
@@ -19,6 +21,8 @@ Reports:
 - `remax_dev_base0_v1h_l0` [`n2-i4`]: training 483/720 (67.08%)
 - `remax_dev_base0_v1h_l1` [`n2-i5`]: training 0/720 (0%)
 - `remax_dev_base0_v1h_l2` [`n2-i6`]: training 0/720 (0%)
-- `remax_dev_base0_v1h_l3` [`n2-i7`]: training 0/720 (0%)
 - `remax_dev_base0_v1h1a1` [`n2-i8`]: training 100/720 (13.89%)
-- `remax_dev_base0_v1h2a2` [`n2-i10`]: training 20/720 (2.78%)
+- `remax_earning_base1_v0` [`n2-i7`]: training 2/148 (1.35%; first checkpoint due10)
+- `remax_earning_base1_v0_ne_tagged` [`n2-i10`]: training 0/148 (0%; first completed step pending)
+- `remax_hindi_base1_v0` [`n2-i9`]: training 10/4468 (0.22%); saved10; training only.
+- `remax_dev_base0_v1h2a_fix` [`n2h-i0`]: training startup (building dataset cache)

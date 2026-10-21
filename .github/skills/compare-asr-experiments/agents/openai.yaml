@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compare ASR Experiments"
+  short_description: "Compare rewards, dataset p_err, and validation errors"
+  default_prompt: "Use $compare-asr-experiments to compare these experiment jobs, inspect validation examples, and prioritize the next fixes."
