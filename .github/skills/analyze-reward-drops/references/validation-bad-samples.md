@@ -168,6 +168,26 @@ coverage independently because the comparison uses an inner join. Read the
 generated summary for actual HTML/CSV paths and inspect reference-match flags.
 Label top-N reports as ranked subsets; use the full CSV for population counts.
 
+### Check extraction and normalization artifacts
+
+Inspect text discarded by the normalizer before interpreting large deletion
+counts as missing speech. Some normalizers remove parenthesized content: the
+same spoken words may score much better when the model replaces parentheses
+with commas. Compare raw content and bracket frequency across checkpoints.
+A diagnostic rescore that preserves parenthetical words must apply the same
+alternative convention to both references and hypotheses at every checkpoint;
+label it separately from official metrics and report any denominator change.
+
+For grouped long audio, a malformed opening angle tag can survive extraction.
+If normalization strips angle-bracket spans across newlines, a closing angle
+bracket in a later chunk can cause many otherwise correct chunks to disappear
+from the scored hypothesis. Locate the discarded span and its start/end
+segment IDs, then compare parent-level normalization with segment-local
+normalization or the run's verified extraction fix. Reproduce the logged score
+first. These counterfactuals diagnose scoring sensitivity; they do not replace
+official validation results or establish acoustic correctness. Record the
+scorer revision when current cleanup differs from the run's dumped text.
+
 ## Identify patterns and test regression claims
 
 Classify examples using text differences and available logged components:
