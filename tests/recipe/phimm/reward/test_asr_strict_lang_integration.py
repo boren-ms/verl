@@ -169,15 +169,15 @@ def test_legacy_scoring_distinguishes_chinese_and_cantonese():
     }
 
 
-def test_public_scorers_count_a_malformed_trailing_segment_as_a_language_error():
+def test_public_scorers_score_a_malformed_trailing_segment_as_text_and_a_language_error():
     response = CORRECT_2609 + "\n<src=English>\n<TXT>extra</TXT>"
     kwargs = {"version": 2609, "text_norm": "identity"}
 
     assert asr_measure.lang_score(response, **kwargs) == {"score": 0.0, "p_lang": 0.0}
     result = asr_measure._parse_response(response, "hello world", **kwargs)
-    assert result["word"] == 1.0
+    assert result["word"] < 1.0
     assert result["lang"] == 0.0
-    assert result["word_lang"] == pytest.approx(0.99)
+    assert result["word_lang"] == pytest.approx(result["word"])
 
 
 def test_matching_unknown_headers_cannot_earn_language_credit():

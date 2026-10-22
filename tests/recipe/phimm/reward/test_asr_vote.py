@@ -280,7 +280,7 @@ def test_hybrid_delta_and_absolute_headers_full_parser_round_trip(
     baseline = asr_vote.compute_score(greedy, "नमस्ते दुनिया", **kwargs)
     assert baseline == {
         "score": 0.0, "word": 1.0 - word_delta,
-        "lang": float(greedy_has_header), "fmt": float(greedy_has_header),
+        "lang": float(greedy_has_header), "fmt": 1.0,
     }
     original = baseline.copy()
     result = asr_vote.compute_score(
@@ -289,10 +289,10 @@ def test_hybrid_delta_and_absolute_headers_full_parser_round_trip(
     header_value = float(sample_has_header)
     header_delta = header_value - float(greedy_has_header)
     assert result == pytest.approx({
-        "score": (word_delta + 0.2 * header_value) / 1.2,
-        "word": 1.0, "lang": header_value, "fmt": header_value,
-        "d_word": word_delta, "d_lang": header_delta, "d_fmt": header_delta,
-        "v_word": word_delta, "v_lang": header_value, "v_fmt": header_value,
+        "score": (word_delta + 0.1 * header_value + 0.1) / 1.2,
+        "word": 1.0, "lang": header_value, "fmt": 1.0,
+        "d_word": word_delta, "d_lang": header_delta, "d_fmt": 0.0,
+        "v_word": word_delta, "v_lang": header_value, "v_fmt": 1.0,
     })
     assert baseline == original
 

@@ -109,7 +109,8 @@ def _split_2607_langs(header: str) -> list[str]:
 def _parse_task_output_2609(solution_str: str):
     """Require 2609 language headers except for standalone ``<nonspeech>``.
 
-    ``<TXT>`` tags are optional.
+    ``<TXT>`` tags are optional. Preserve an unparsed remainder in a final
+    segment without source or target language information.
     """
     output = solution_str.strip()
     if output.lower() == "<nonspeech>":
@@ -119,7 +120,7 @@ def _parse_task_output_2609(solution_str: str):
     while pos < len(output):
         match = _SEGMENT_RE.match(output, pos)
         if not match:
-            segments.append(_segment())
+            segments.append(_segment(text=output[pos:].strip()))
             break
         segments.append(
             _segment(
@@ -133,6 +134,20 @@ def _parse_task_output_2609(solution_str: str):
 
 
 def get_hyp_text(solution_str, version=None):
+    """Extract lexical text, retaining malformed suffixes after valid segments."""
     task_output = parse_task_output(solution_str, version=version)
-    hyp_text = get_asr_text(task_output) or str(solution_str or "")
-    return clean_text(hyp_text)
+    last_segment = task_output[-1]
+    if (
+        str(version) == "2609"
+        and len(task_output) > 1
+        and last_segment["src"] is None
+        and last_segment["tgt"] is None
+        and last_segment["text"] is not None
+    ):
+        # Keep raw unparsed text in its language-less segment. Neutralize its
+        # angle brackets only for lexical scoring so cleanup and normalizers
+        # cannot swallow words inside broken tags.
+        prefix = clean_text(get_asr_text(task_output[:-1]))
+        suffix = last_segment["text"].replace("<", " ").replace(">", " ").strip()
+        return " ".join(part for part in (prefix, suffix) if part)
+    return clean_text(get_asr_text(task_output) or str(solution_str or ""))
