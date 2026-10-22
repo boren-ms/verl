@@ -92,6 +92,22 @@ def test_parse_response_extracts_hyp_text_by_version(solution_str, version, expe
         assert result["p_lang"] == 1.0
 
 
+@pytest.mark.parametrize("version", [2609, "2609"])
+@pytest.mark.parametrize(
+    "suffix",
+    [
+        "<src=English>\nthis is a hallucination",
+        "<src=\nthis is a hallucination",
+        "<src=English><tgt=English>this is a hallucination",
+    ],
+)
+def test_parse_response_scores_text_in_a_language_less_tail(version, suffix):
+    response = "<src=English><tgt=English>\n<TXT>hello world</TXT>\n" + suffix
+    result = _parse_response(response, ground_truth="hello world", language="English", version=version)
+
+    assert "this is a hallucination" in result["hyp_text"]
+
+
 def test_openasr_eval_gets_versioned_hyp_text_directly(monkeypatch):
     received = {}
 

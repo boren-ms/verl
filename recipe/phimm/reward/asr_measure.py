@@ -11,12 +11,13 @@ import math
 import re
 import unicodedata
 from dataclasses import dataclass
+from itertools import zip_longest
 from numbers import Real
 
 from jiwer import process_characters, process_words
 
 from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
-from recipe.phimm.utils.languages import get_language_code
+from recipe.phimm.utils.languages import LANGUAGES, get_language_code
 
 
 # ---------------------------------------------------------------------------
@@ -432,21 +433,40 @@ def _lang_codes(lang) -> list[str]:
 def check_lang(task_output, tgt_lang) -> dict[str, float | int]:
     """Return accuracy and edit counts for the ordered language sequence.
 
-    Predicted language(s) come from any parsed target/segment language values,
-    even when the surrounding response format is malformed. Substitutions,
-    deletions, and insertions each count as one error; order and repeats matter.
-    ``n_ref`` is the reference language count and
-    ``acc = 1 - n_err / max(n_ref, 1)``. Extra languages can make accuracy negative.
-    Hypothesis text, including ``<nonspeech>``, does not affect this score.
-    """
-    tgt_codes = _lang_codes(tgt_lang)
-    pred_codes = []
-    for name in (segment["tgt"] for segment in task_output):
-        pred_codes.extend(_lang_codes(name))
+    For every response version, each predicted position pairs its segment's source and target
+    languages. Both must resolve to a supported language and match the expected
+    language at that position. Names, ISO codes, and existing aliases are
+    normalized. Chinese/Mandarin (zh) and Cantonese (yue) remain distinct.
+    Language identifiers must use supported English names or ISO codes.
+    Order and repeats matter. Missing or unsupported values
+    cannot match a reference, and a completely missing header counts as one
+    invalid prediction. Unsupported reference languages cannot earn matching credit.
+    Missing source languages count as errors, including in legacy responses.
 
-    alignment = process_words(" ".join(tgt_codes), " ".join(pred_codes))
+    Substitutions, deletions, and insertions each count as one error per language
+    position, even if both fields are wrong. ``n_ref`` is the expected language
+    count and ``acc = 1 - n_err / max(n_ref, 1)``. Extra predictions can make
+    accuracy negative. Hypothesis text, including ``<nonspeech>``, is not checked.
+    """
+    ref_codes = _lang_codes(tgt_lang)
+    supported_codes = frozenset(LANGUAGES.values())
+    references = [
+        f"{code}:{code}" if code in supported_codes else "invalid-reference"
+        for code in ref_codes
+    ]
+    predictions = []
+    for segment in task_output:
+        src_codes = _lang_codes(segment["src"])
+        tgt_codes = _lang_codes(segment["tgt"])
+        pairs = zip_longest(src_codes or [None], tgt_codes or [None])
+        predictions.extend(
+            f"{src}:{tgt}" if src in supported_codes and tgt in supported_codes else "invalid-prediction"
+            for src, tgt in pairs
+        )
+
+    alignment = process_words(" ".join(references), " ".join(predictions))
     n_err = alignment.substitutions + alignment.deletions + alignment.insertions
-    n_ref = len(tgt_codes)
+    n_ref = len(ref_codes)
     return {"acc": 1.0 - n_err / max(n_ref, 1), "n_err": n_err, "n_ref": n_ref}
 
 

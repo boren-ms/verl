@@ -1,0 +1,29 @@
+# Hindi base1 v0 with absolute language and format rewards.
+# Lexical measures keep delta votes; lang/fmt use current parsed accuracy.
+# Preserve the reference's fixed divisor 4 (it is not the sum of betas).
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base1_2609r2_indic_bad_e2_bs128_n8_r320_g16_flr
+  - _self_
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 4}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.5, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.1, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.1, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source:
+  indic_voice: librispeech

@@ -138,7 +138,7 @@ def test_compute_score_returns_only_configured_raw_metrics(measures, scale, with
     if measures:
         assert result["word"] == 0.5
         if "fmt" in measures:
-            assert result["fmt"] == 0.0
+            assert result["fmt"] == 1.0
     else:
         assert result["score"] == 0.0
     if with_baseline:
@@ -289,7 +289,7 @@ def test_code_switch_language_reward_gives_partial_credit():
         ("English", ["English", "English"], 0.0, 1, 1),
         ("en_zh", ["English", "Mandarin"], 1.0, 0, 2),
         ("English Chinese", ["en_zh"], 1.0, 0, 2),
-        ("English Chinese", [None, "English"], 0.5, 1, 2),
+        ("English Chinese", [None, "English"], 0.0, 2, 2),
         ("English Chinese", [], 0.0, 2, 2),
         ("", [], 1.0, 0, 0),
         (None, [], 1.0, 0, 0),
@@ -299,13 +299,94 @@ def test_code_switch_language_reward_gives_partial_credit():
 def test_check_lang_returns_ordered_edit_details(
     reference, predictions, expected_acc, expected_errors, expected_references,
 ):
-    task_output = [{"src": None, "tgt": language, "text": None} for language in predictions]
+    task_output = [{"src": language, "tgt": language, "text": None} for language in predictions]
     result = check_lang(task_output, reference)
 
     assert set(result) == {"acc", "n_err", "n_ref"}
     assert result["acc"] == pytest.approx(expected_acc)
     assert result["n_err"] == expected_errors
     assert result["n_ref"] == expected_references
+
+
+@pytest.mark.parametrize(
+    ("reference", "headers", "expected_errors"),
+    [
+        ("English", [("French", "English")], 1),
+        ("English", [("English", "French")], 1),
+        ("English", [("French", "French")], 1),
+        ("English", [(None, "English")], 1),
+        ("English", [("English", None)], 1),
+        ("English", [("", "English")], 1),
+        ("English", [("English", " ")], 1),
+        ("English", [("bogus", "English")], 1),
+        ("English", [("English", "bogus")], 1),
+        ("English", [("Unknown", "English")], 1),
+        ("Unknown", [("Unknown", "Unknown")], 1),
+        ("Klingon", [("Klingon", "Klingon")], 1),
+        ("English Klingon", [("English_Klingon", "English_Klingon")], 1),
+        ("English", [("en-US", "en-US")], 1),
+        ("English", [("en_zh", "en")], 1),
+        ("English", [("en", "en_zh")], 1),
+        ("English Chinese", [("en_zh", "en")], 1),
+        ("English Chinese", [("en", "en_zh")], 1),
+        ("English Chinese", [("English Chinese", "Chinese English")], 2),
+        ("English Chinese", [("French", "English"), ("Chinese", "French")], 2),
+        ("English Chinese", [("en_zh", "en"), (None, "zh")], 2),
+        ("English", [("English", "English"), (None, None)], 1),
+        ("en_zh", [("EN Mandarin", "English_ZH")], 0),
+        ("Chinese", [("Chinese", "Cantonese")], 1),
+        ("Chinese", [("Cantonese", "Chinese")], 1),
+        ("Chinese", [("Cantonese", "Cantonese")], 1),
+        ("Cantonese", [("Chinese", "Chinese")], 1),
+        ("zh", [("yue", "zh")], 1),
+        ("yue", [("zh", "yue")], 1),
+        ("Mandarin", [("Cantonese", "Mandarin")], 1),
+        ("Cantonese", [("Cantonese", "yue")], 0),
+        ("Mandarin", [("Chinese", "zh")], 0),
+        ("中文", [("粤语", "中文")], 1),
+        ("粤语", [("中文", "粤语")], 1),
+        ("Chinese", [("中文", "Chinese")], 1),
+        ("Chinese", [("Chinese", "粤语")], 1),
+        ("Chinese", [("中文", "粤语")], 1),
+        ("中文", [("Chinese", "Chinese")], 1),
+        ("粤语", [("Cantonese", "Cantonese")], 1),
+        ("Chinese", [("French", "Cantonese")], 1),
+        ("Chinese", [("Cantonese", "Japanese")], 1),
+        ("English", [("Chinese", "Cantonese")], 1),
+        ("English Chinese", [("English Cantonese", "en zh")], 1),
+        ("English Chinese", [("English Chinese", "en 中文")], 1),
+        ("English Chinese", [("Cantonese English", "Cantonese English")], 2),
+        ("Chinese Chinese", [("Chinese", "Cantonese")], 2),
+        ("Chinese", [("Chinese Cantonese", "Cantonese Chinese")], 2),
+        ("English English", [("en_EN", "English English")], 0),
+        ("English", [("English English", "English English")], 1),
+    ],
+)
+def test_check_lang_strictly_matches_both_headers(reference, headers, expected_errors):
+    task_output = [{"src": src, "tgt": tgt, "text": None} for src, tgt in headers]
+    n_ref = len(reference.split("_")) if "_" in reference else len(reference.split())
+
+    assert check_lang(task_output, reference) == {
+        "acc": 1.0 - expected_errors / n_ref,
+        "n_err": expected_errors,
+        "n_ref": n_ref,
+    }
+
+
+@pytest.mark.parametrize("version", [2609, "2609", 2607, "2607", None, "unknown"])
+@pytest.mark.parametrize(("src", "expected_acc"), [("English", 1.0), ("French", 0.0), (None, 0.0)])
+def test_check_lang_requires_correct_source_for_all_response_versions(version, src, expected_acc):
+    if str(version) == "2609":
+        header = f"<src={src}>" if src else ""
+        response = f"{header}<tgt=English>\nhello"
+    else:
+        header = f"Audio Language: {src}.\n" if src else ""
+        response = f"{header}<ASR><lang=English><TXT>hello</TXT></ASR>"
+    task_output = parse_task_output(response, version=version)
+
+    assert check_lang(task_output, "English") == {
+        "acc": expected_acc, "n_err": int(1 - expected_acc), "n_ref": 1
+    }
 
 
 @pytest.mark.parametrize(
@@ -413,7 +494,7 @@ def test_code_switch_language_reward_uses_headers_with_later_raw_text():
     assert check_lang(task_output, "English Chinese")["acc"] == 1.0
 
 
-def test_rejects_code_switch_output_without_first_header():
+def test_code_switch_output_without_first_header_preserves_text_without_language_information():
     output = (
         "<TXT>祖父叶与良。</TXT>\n"
         "<src=Italian><tgt=Italian>\n<TXT>E, inoltre, attore.</TXT>"
@@ -422,18 +503,18 @@ def test_rejects_code_switch_output_without_first_header():
     task_output = parse_task_output(output, version=2609)
 
     assert task_output == [
-        {"src": None, "tgt": None, "text": None},
+        {"src": None, "tgt": None, "text": output},
     ]
-    assert not check_fmt(task_output, version=2609)
+    assert check_fmt(task_output, version=2609) == 1.0
     assert check_lang(task_output, "Italian")["acc"] == 0.0
 
 
-def test_format_and_language_ignore_source_language():
+def test_language_rejects_wrong_source_even_when_format_is_valid():
     output = "<src=English><tgt=French>\n<TXT>Bonjour</TXT>"
     task_output = parse_task_output(output, version=2609)
 
     assert check_fmt(task_output, version=2609)
-    assert check_lang(task_output, "French")["acc"] == 1.0
+    assert check_lang(task_output, "French")["acc"] == 0.0
 
 
 @pytest.mark.parametrize("mode_tag", ["LEXICAL", "verbatim", "ASR_READABLE"])
@@ -455,21 +536,22 @@ def test_parse_task_output_preserves_segment_mode_tags(mode_tag):
     assert check_fmt(task_output, version=2609)
 
 
-def test_parse_task_output_rejects_text_without_language_header():
-    task_output = parse_task_output("<VERBATIM>\n<TXT>She's pregnant.</TXT>", version=2609)
+def test_parse_task_output_preserves_text_without_language_header():
+    output = "<VERBATIM>\n<TXT>She's pregnant.</TXT>"
+    task_output = parse_task_output(output, version=2609)
 
     assert task_output == [
         {
             "src": None,
             "tgt": None,
-            "text": None,
+            "text": output,
         }
     ]
-    assert not check_fmt(task_output, version=2609)
+    assert check_fmt(task_output, version=2609) == 1.0
     assert check_lang(task_output, "English")["acc"] == 0.0
 
 
-def test_parse_response_scores_text_but_rejects_format_without_language_header():
+def test_parse_response_scores_text_and_format_without_language_credit_for_missing_header():
     result = _parse_response(
         "<VERBATIM>\n<TXT>She's pregnant.</TXT>",
         ground_truth="She's pregnant.",
@@ -478,7 +560,7 @@ def test_parse_response_scores_text_but_rejects_format_without_language_header()
     )
 
     assert result["word"] == 1.0
-    assert result["fmt"] == 0.0
+    assert result["fmt"] == 1.0
     assert result["lang"] == 0.0
 
 
@@ -507,27 +589,27 @@ def test_parse_task_output_preserves_raw_2609_text(output, expected):
 
 
 @pytest.mark.parametrize(
-    "output",
+    ("output", "expected_fmt"),
     [
-        "",
-        " \t\n ",
-        "plain text",
-        "<TXT>plain text</TXT>",
-        "<VERBATIM>\nplain text",
-        "<nonspeech>plain text",
-        "plain text<nonspeech>",
-        "<TXT><nonspeech></TXT>",
-        "<src=English>\nplain text",
-        "<tgt=English>\nplain text",
-        "<src=English><tgt=English>plain text",
-        "<src=><tgt=English>\nplain text",
+        ("", 0.0),
+        (" \t\n ", 0.0),
+        ("plain text", 1.0),
+        ("<TXT>plain text</TXT>", 1.0),
+        ("<VERBATIM>\nplain text", 1.0),
+        ("<nonspeech>plain text", 1.0),
+        ("plain text<nonspeech>", 1.0),
+        ("<TXT><nonspeech></TXT>", 1.0),
+        ("<src=English>\nplain text", 0.0),
+        ("<tgt=English>\nplain text", 0.0),
+        ("<src=English><tgt=English>plain text", 0.0),
+        ("<src=><tgt=English>\nplain text", 0.0),
     ],
 )
-def test_parse_task_output_requires_2609_language_header(output):
+def test_parse_task_output_preserves_unparsed_2609_text_without_language_information(output, expected_fmt):
     task_output = parse_task_output(output, version=2609)
 
-    assert task_output == [{"src": None, "tgt": None, "text": None}]
-    assert not check_fmt(task_output, version=2609)
+    assert task_output == [{"src": None, "tgt": None, "text": output.strip() or None}]
+    assert check_fmt(task_output, version=2609) == expected_fmt
 
 
 @pytest.mark.parametrize(
@@ -549,10 +631,11 @@ def test_parse_task_output_rejects_later_missing_target_header():
 
     assert task_output == [
         {"src": "English", "tgt": "English", "text": "hello"},
-        {"src": None, "tgt": None, "text": None},
+        {"src": None, "tgt": None, "text": "<src=Chinese>\n你好"},
     ]
+    assert get_asr_text(task_output) == "hello <src=Chinese>\n你好"
     assert check_fmt(task_output, version=2609) == 0.5
-    assert check_lang(task_output, "English")["acc"] == 1.0
+    assert check_lang(task_output, "English")["acc"] == 0.0
 
 
 @pytest.mark.parametrize(
@@ -637,6 +720,24 @@ def test_check_fmt_scores_missing_parsed_text(task_output, version):
     assert check_fmt(task_output, version=version) == expected
     check_version_fmt = check_fmt_2609 if str(version) == "2609" else check_fmt_2607
     assert check_version_fmt(task_output) == expected
+
+
+@pytest.mark.parametrize("version", [2609, "2609"])
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("plain text", 1.0),
+        ("<TXT>plain text</TXT>", 1.0),
+        ("<VERBAT plain text", 0.0),
+        ("<src=English>\nplain text", 0.0),
+    ],
+)
+def test_check_fmt_checks_unparsed_and_language_tagged_text_identically(text, expected, version):
+    unparsed = [{"src": None, "tgt": None, "text": text}]
+    language_tagged = [{"src": "English", "tgt": "English", "text": text}]
+
+    assert check_fmt(unparsed, version=version) == expected
+    assert check_fmt(language_tagged, version=version) == expected
 
 
 @pytest.mark.parametrize(
@@ -797,7 +898,7 @@ def test_parse_task_output_accepts_2609_nonspeech_with_header():
     [
         (
             "<TXT><nonspeech></TXT>",
-            [{"src": None, "tgt": None, "text": None}],
+            [{"src": None, "tgt": None, "text": "<TXT><nonspeech></TXT>"}],
         ),
         (
             "<src=English><tgt=English>\n<TXT><nonspeech></TXT>",
@@ -805,7 +906,7 @@ def test_parse_task_output_accepts_2609_nonspeech_with_header():
         ),
     ],
 )
-def test_parse_task_output_requires_header_for_wrapped_2609_nonspeech(output, expected):
+def test_parse_task_output_preserves_wrapped_2609_nonspeech_with_or_without_header(output, expected):
     assert parse_task_output(output, version=2609) == expected
 
 
@@ -813,12 +914,13 @@ def test_parse_task_output_requires_header_for_wrapped_2609_nonspeech(output, ex
     ("output", "version", "expected", "expected_fmt"),
     [
         ("<nonspeech>", 2609, 0.0, 1.0),
-        ("<TXT><nonspeech></TXT>", 2609, 0.0, 0.0),
+        ("<TXT><nonspeech></TXT>", 2609, 0.0, 1.0),
         ("<src=English><tgt=English>\n<nonspeech>", 2609, 1.0, 1.0),
         ("<src=English><tgt=English>\n<TXT><nonspeech></TXT>", 2609, 1.0, 1.0),
         ("<src=English><tgt=French>\n<TXT><nonspeech></TXT>", 2609, 0.0, 1.0),
-        ("<ASR><lang=English><TXT><nonspeech></TXT></ASR>", 2607, 1.0, 1.0),
-        ("<ASR><lang=French><TXT><nonspeech></TXT></ASR>", 2607, 0.0, 1.0),
+        ("<ASR><lang=English><TXT><nonspeech></TXT></ASR>", 2607, 0.0, 1.0),
+        ("Audio Language: English.\n<ASR><lang=English><TXT><nonspeech></TXT></ASR>", 2607, 1.0, 1.0),
+        ("Audio Language: French.\n<ASR><lang=French><TXT><nonspeech></TXT></ASR>", 2607, 0.0, 1.0),
     ],
 )
 def test_nonspeech_language_score_depends_only_on_language_tags(output, version, expected, expected_fmt):
@@ -885,6 +987,18 @@ def test_parse_task_output_accepts_2607_code_switch_response():
     assert check_lang(task_output, "English Chinese")["acc"] == 1.0
 
 
+@pytest.mark.parametrize("version", [2607, "2607", None, "unknown"])
+@pytest.mark.parametrize("extra_source", ["English", "French", "Klingon"])
+def test_parse_task_output_preserves_surplus_2607_source_languages(version, extra_source):
+    output = f"Audio Language: English and {extra_source}.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
+    task_output = parse_task_output(output, version=version)
+
+    assert task_output == [{"src": f"English {extra_source}", "tgt": "English", "text": "hello"}]
+    assert check_lang(task_output, "English") == {"acc": 0.0, "n_err": 1, "n_ref": 1}
+    assert check_fmt(task_output, version=version) == 1.0
+    assert get_hyp_text(output, version=version) == "hello"
+
+
 def test_parse_response_uses_2607_response_text():
     result = _parse_response(
         "Audio Language: English.\n<ASR><lang=English><TXT>hello world</TXT></ASR>",
@@ -898,7 +1012,7 @@ def test_parse_response_uses_2607_response_text():
     assert result["fmt"] == 1.0
 
 
-def test_parse_response_accepts_2607_response_without_audio_language():
+def test_parse_response_scores_text_but_rejects_language_without_2607_audio_language():
     result = _parse_response(
         "<ASR><lang=English><TXT>hello world</TXT></ASR>",
         ground_truth="hello world",
@@ -907,7 +1021,7 @@ def test_parse_response_accepts_2607_response_without_audio_language():
     )
 
     assert result["word"] == 1.0
-    assert result["lang"] == 1.0
+    assert result["lang"] == 0.0
     assert result["fmt"] == 1.0
 
     task_output = parse_task_output(
@@ -951,7 +1065,7 @@ def test_existing_reductions_ignore_additional_kwargs(mode, expected):
 @pytest.mark.parametrize("reduction", ["average", {"mode": "average", "total": 4}])
 def test_compute_score_forwards_average_total(reduction):
     result = compute_score(
-        "<ASR><lang=English><TXT>hello world</TXT></ASR>",
+        "Audio Language: English.\n<ASR><lang=English><TXT>hello world</TXT></ASR>",
         ground_truth="hello world",
         language="English",
         version=2607,
@@ -992,7 +1106,7 @@ def test_compute_score_average_preserves_cut(reduction):
 )
 def test_compute_score_mapping_reduction(reduction, expected):
     result = compute_score(
-        "<ASR><lang=English><TXT>hello world</TXT></ASR>",
+        "Audio Language: English.\n<ASR><lang=English><TXT>hello world</TXT></ASR>",
         ground_truth="hello world",
         language="English",
         version=2607,
@@ -1129,7 +1243,7 @@ def test_compute_score_cut_zeros_reward_at_threshold():
 
 def test_compute_score_cut_preserves_reward_above_threshold():
     result = compute_score(
-        "<ASR><lang=English><TXT>hello world</TXT></ASR>",
+        "Audio Language: English.\n<ASR><lang=English><TXT>hello world</TXT></ASR>",
         ground_truth="hello world",
         language="English",
         version=2607,
@@ -1357,7 +1471,7 @@ def test_compute_score_omits_unconfigured_keyword():
         ("<src=French><tgt=French>\n<TXT>hello world</TXT>", "hello world", 0.0, 1.0, 0.99, 1.0),
         (
             "<src=English><tgt=English>\n<TXT>hello world</TXT>\n<src=broken",
-            "hello world", 1.0, 0.5, 1.0, 0.75,
+            "hello world", 0.0, 0.5, 0.5, 0.75,
         ),
         ("", "one two three four", 0.0, 0.0, 0.0, 0.75),
         ("", "", 0.0, 0.0, 0.99, 0.0),
