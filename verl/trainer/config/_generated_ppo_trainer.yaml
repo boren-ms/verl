@@ -453,6 +453,7 @@ algorithm:
   lam: 1.0
   adv_estimator: gae
   norm_adv_by_std_in_grpo: true
+  remax_measures: null
   remax_advantage_mask: null
   use_kl_in_reward: false
   kl_penalty: kl
@@ -466,6 +467,17 @@ algorithm:
   pf_ppo:
     reweight_method: pow
     weight_pow: 2.0
+  bad_case_replay:
+    _target_: verl.trainer.config.BadCaseReplayConfig
+    enable: false
+    capacity: 400
+    replay_size: 16
+    sampling: random
+    selection:
+      _target_: verl.trainer.config.BadCaseReplaySelectionConfig
+      weights:
+        word: 1.0
+    seed: 42
 trainer:
   balance_batch: true
   dedup_responses: false

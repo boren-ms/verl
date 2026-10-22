@@ -11,6 +11,7 @@ from omegaconf import OmegaConf, open_dict
 from torch.utils.data import Dataset
 from torchdata.stateful_dataloader import StatefulDataLoader
 
+from verl.trainer.ppo.bad_case_replay import BadCaseReplay
 
 def _load_trainer_helpers():
     """Exercise loader code without importing the GPU/model training stack."""
@@ -28,6 +29,7 @@ def _load_trainer_helpers():
     module = ModuleType("validation_loader_helpers")
     module.__dict__.update(
         OmegaConf=OmegaConf, open_dict=open_dict, Mapping=Mapping, StatefulDataLoader=StatefulDataLoader,
+        BadCaseReplay=BadCaseReplay,
     )
     body = ast.parse("from __future__ import annotations").body + functions + [trainer]
     exec(compile(ast.Module(body=body, type_ignores=[]), str(path), "exec"), module.__dict__)
@@ -150,17 +152,22 @@ def test_positive_override_takes_precedence_over_global_full_batch():
 
 
 @pytest.mark.parametrize("recipe", [
-    "remax_2609v0_earning_ml_ls_verb_hint_s1k_bs128_n8_r256_g32_flr_smp",
-    "eval_2609_openall_mix",
-    "eval_2609_openml_verb",
+    "backup/remax_2609v0_earning_ml_ls_verb_hint_s1k_bs128_n8_r256_g32_flr_smp",
+    "eval/eval_2609_openall_mix",
+    "eval/eval_2609_openml_verb",
 ])
 def test_2609_composed_recipes_select_full_batches_only_for_parent_audio(recipe):
     root = Path(__file__).parents[3]
     config_root = root / "recipe/phimm/config"
-    with initialize_config_dir(config_dir=str(config_root / "v2609_asr"), version_base=None):
+    recipe_path = config_root / "v2609_asr" / recipe
+    with initialize_config_dir(config_dir=str(recipe_path.parent), version_base=None):
         config = compose(
-            config_name=recipe,
-            overrides=[f"hydra.searchpath=[file://{config_root},file://{root / 'verl/trainer/config'}]"],
+            config_name=recipe_path.name,
+            overrides=[
+                f"hydra.searchpath=[file://{config_root / 'v2609_asr'},"
+                f"file://{config_root},file://{root / 'verl/trainer/config'}]",
+                "data.val_batch_size=256",
+            ],
         )
     assert config.data.val_batch_size == 256
     specs = list(ray_trainer._validation_dataset_batches(config.data.val_data, config.data.val_batch_size))

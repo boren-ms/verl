@@ -46,6 +46,7 @@ from verl.single_controller.ray.base import create_colocated_worker_cls
 from verl.trainer.config import AlgoConfig
 from verl.trainer.config.algorithm import REMAX_ADVANTAGE_MASK_MODES
 from verl.trainer.ppo import core_algos
+from verl.trainer.ppo.bad_case_replay import BadCaseReplay, ReplayMetrics
 from verl.trainer.ppo.core_algos import AdvantageEstimator, agg_loss, deduplicate_rollout_responses
 from verl.trainer.ppo.metric_utils import (
     compute_data_metrics,
@@ -489,6 +490,15 @@ class RayPPOTrainer:
 
         gen_batch_size = self.config.data.get("gen_batch_size", self.config.data.train_batch_size)
         default_val_batch_size = self.config.data.val_batch_size or gen_batch_size
+        replay_config = self.config.get("algorithm", {}).get("bad_case_replay", {})
+        self.bad_case_replay = BadCaseReplay(
+            replay_config,
+            gen_batch_size,
+            pad_token_id=getattr(self.tokenizer, "pad_token_id", 0) or 0,
+            data_parallel_size=self.config.trainer.get("nnodes", 1) * self.config.trainer.get("n_gpus_per_node", 1),
+        )
+        if self.bad_case_replay.enabled and self.config.algorithm.adv_estimator != AdvantageEstimator.REMAX:
+            raise ValueError("algorithm.bad_case_replay requires the ReMax greedy baseline")
         if train_dataset is None:
             train_data = self.config.data.get("train_data", None) or self.config.data.get("train_files", None)
             train_dataset = create_rl_dataset(train_data, self.config.data, self.tokenizer, self.processor, True)
@@ -518,7 +528,7 @@ class RayPPOTrainer:
         pin_memory = self.config.data.get("pin_memory", False)
         self.train_dataloader = StatefulDataLoader(
             dataset=self.train_dataset,
-            batch_size=gen_batch_size,
+            batch_size=self.bad_case_replay.fresh_batch_size,
             num_workers=num_workers,
             drop_last=True,
             collate_fn=get_collate_fn(self.train_dataset, collate_fn),
@@ -1229,6 +1239,7 @@ class RayPPOTrainer:
                     )
 
                 batch: DataProto = DataProto.from_single_dict(batch_dict)
+                batch, replay_context = self.bad_case_replay.prepare(batch)
 
                 # add uid to batch
                 batch.non_tensor_batch["uid"] = np.array(
@@ -1284,6 +1295,11 @@ class RayPPOTrainer:
                             baseline_result = self.reward_fn(batch, return_dict=True)
                             reward_baseline_tensor = baseline_result["reward_tensor"]
                             baseline_extra = baseline_result.get("reward_extra_info", {})
+                            replay_metrics = ReplayMetrics()
+                            replay_metrics.update(
+                                self.bad_case_replay.update(replay_context, baseline_extra)
+                            )
+                            metrics.update(replay_metrics.as_dict())
 
                             core_algos.capture_remax_metric_baselines(
                                 self.config.algorithm, baseline_extra, batch.batch, len(batch)

@@ -123,6 +123,7 @@ def test_remax_greedy_metadata_follows_rows_through_reward_dispatch(rollout_n, d
         }
     )
     trainer.actor_rollout_wg = SimpleNamespace(world_size=2)
+    trainer.bad_case_replay = SimpleNamespace(enabled=False)
     trainer.use_rm = False
     trainer.reward_fn = object()
 

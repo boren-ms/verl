@@ -50,6 +50,111 @@ bash recipe/dapo/run_dapo_qwen2.5_32b.sh # or other scripts
 
 ## Configuration
 
+### Bad case replay for ReMax
+
+Enable `algorithm.bad_case_replay` for a ReMax job to revisit inputs whose
+greedy baseline has low metric scores. This works in the shared PPO trainer
+and DAPO trainer. It is disabled by default and requires
+`algorithm.adv_estimator: remax`. All other supported settings follow the
+existing trainer path.
+
+```yaml
+algorithm:
+  adv_estimator: remax
+  bad_case_replay:
+    enable: true
+    capacity: 400
+    replay_size: 16
+    sampling: random # random | worst
+    selection:
+      weights: {word: 1.0}
+    seed: 42
+```
+
+Use these overrides with an existing ASR ReMax config that returns a `word`
+metric:
+
+```bash
+python -m recipe.dapo.main_dapo \
+  --config-path ../phimm/config/v2611_dev/dev \
+  --config-name remax_dev_base0_v1h2 \
+  algorithm.bad_case_replay.enable=true \
+  algorithm.bad_case_replay.replay_size=16 \
+  algorithm.bad_case_replay.sampling=random
+```
+
+The replay score is `sum(weight * raw_metric) / sum(weight)`. These weights are
+independent of training reward weights. Metrics are used exactly as returned;
+negative error metrics are neither shifted nor sign-reversed. Lower scores are
+selected first. Weights must be finite and nonnegative, with a positive total.
+Missing configured metrics raise an error; rows with NaN or infinite scores
+are skipped and counted. In particular, the `asr_vote` scorer can return zero
+for every greedy total `score`; select meaningful raw components such as
+`word` and `char` instead. A scorer must return every selected component.
+The default uses only `word`. To combine word and character accuracy, use a
+scorer that returns both metrics and explicitly add the character weight:
+
+```bash
+algorithm.bad_case_replay.selection.weights.word=0.7 \
+  +algorithm.bad_case_replay.selection.weights.char=0.3
+```
+
+Let `B` be the nominal `data.gen_batch_size` (or `data.train_batch_size` when
+unset), before expanding each prompt to `rollout.n` responses, and `D` the
+trainer's data-parallel size. Set the integer `replay_size=K` to reserve replay
+slots and fix the DataLoader batch size to `F=B-K` fresh inputs. An enabled
+configuration requires `0 <= K < B`, `K % D == 0`, and `B % D == 0`.
+At each generation, draw `k=floor(min(K, buffer_size)/D)*D` replay inputs and
+immediately remove them from the buffer. Combine them with the fixed F fresh
+inputs, giving `N=F+k`. Unselected entries stay in the buffer. Missing replay
+inputs leave the batch smaller; they do not increase fresh sampling.
+With B=128, K=16, and D=16, the first generation has 112 fresh inputs. All
+112 inputs are eligible for the buffer when their scores are finite. Once at
+least 16 replay inputs are available, a generation has 112 fresh plus 16 replay
+inputs. The loader retains `drop_last=True` and does not generate buffer-only
+batches after fresh data is exhausted.
+
+The combined batch contains the same padded raw inputs as the DataLoader
+batch, including audio and sample metadata. Replay construction happens before
+generation; sampled rollout, greedy baseline decoding, reward processing,
+batch balancing, and the actor update then use the original trainer path.
+Fresh and replay inputs share the existing ReMax/PPO loss and normalization.
+The combined batch retains the trainer's existing row-count divisibility
+requirements; replay does not add copied training rows to satisfy them.
+
+`random` samples uniformly without replacement using the configured seed;
+`worst` takes the lowest saved scores, preserving order for ties. All inputs
+run through new sampled rollouts, greedy baseline generation, reward
+computation, and training. After each greedy reward computation, all original
+inputs with finite scores are eligible for insertion. Merge these inputs with
+the remaining buffer by stable input identity, updating observed entries to
+their latest valid scores, then retain the globally lowest-scored `capacity`
+entries. There is no per-generation preselection quota. Unobserved entries keep
+their last known scores. Expanded rollout rows do not count as additional
+inputs. A sampled replay input reenters only if its new score survives global
+capacity eviction; being sampled does not automatically reinsert it.
+
+The buffer holds independent CPU copies of original inputs and metadata. It
+persists across batches and epochs in one process, starts empty whenever the
+process starts, and is not saved or restored with model or DataLoader
+checkpoints. DAPO updates the buffer for every generation batch before group
+filtering can continue to the next generation; `data.train_batch_size` remains
+the filtering target. Automatic total steps use the fresh DataLoader length;
+an explicit `trainer.total_training_steps` takes precedence.
+
+Replay logs count original prompts and include requested/actual replay,
+fresh/actual generation counts, candidates, invalid scores, duplicates,
+capacity evictions, buffer size, and score distributions. Reentry metrics are:
+
+| Metric | Meaning |
+| --- | --- |
+| `replay/reinsert_candidates` | Sampled replay inputs with finite current scores, eligible for global buffer selection. |
+| `replay/reinserted` | Those inputs still retained after ID deduplication and capacity eviction. |
+| `replay/reinsert_rate` | Retained reentries divided by actual replay inputs; zero when no inputs were replayed. |
+
+When DAPO accumulates several generation batches for one optimizer step,
+counts accumulate and rates use their accumulated numerators and denominators.
+
 ### ReMax advantage masking
 
 Select the masking mode directly with:
