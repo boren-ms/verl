@@ -37,6 +37,7 @@ from verl.trainer.ppo.core_algos import (
     filter_nonfinite_log_probs,
 )
 from verl.trainer.ppo.filter_groups import compute_remax_advantage_metric, select_prompt_uids_by_metric
+from verl.trainer.ppo.rollout_log_probs import align_gt_rollout_log_probs
 
 from verl.utils.metric import reduce_metrics
 from verl.trainer.ppo.metric_utils import (
@@ -398,6 +399,8 @@ class RayDAPOTrainer(RayPPOTrainer):
 
                     # recompute old_log_probs (or reuse rollout_log_probs if configured)
                     with marked_timer("old_log_prob", timing_raw, "blue"):
+                        batch.meta_info["temperature"] = self.config.actor_rollout_ref.rollout.temperature
+                        align_gt_rollout_log_probs(batch, self.actor_rollout_wg)
                         use_rollout_as_old = getattr(self.config.actor_rollout_ref.rollout, "use_rollout_log_probs_as_old", False)
                         has_rollout = "rollout_log_probs" in batch.batch
                         if use_rollout_as_old and has_rollout:
