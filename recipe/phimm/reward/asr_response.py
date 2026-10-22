@@ -85,6 +85,10 @@ def _parse_task_output_2607(solution_str):
         return [_segment()]
 
     header_langs = _split_2607_langs(header_match.group("langs")) if header_match else []
+    if len(header_langs) > len(segments):
+        # Keep surplus source languages visible to language scoring.
+        last_index = len(segments) - 1
+        header_langs[last_index:] = [" ".join(header_langs[last_index:])]
     return [
         _segment(
             src=header_langs[index] if index < len(header_langs) else None,
