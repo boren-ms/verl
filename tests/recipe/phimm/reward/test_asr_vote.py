@@ -226,6 +226,77 @@ def test_direct_delta_vote(delta_mode, baseline, value, beta):
     assert cfg == original
 
 
+@pytest.mark.parametrize("vote_mode", ["abs", "absolute"])
+@pytest.mark.parametrize("delta_mode", ["abs", "rel"])
+@pytest.mark.parametrize("value", [-0.75, 0.0, 0.375, 1.0])
+def test_absolute_vote_uses_current_value_independent_of_baseline(vote_mode, delta_mode, value):
+    cfg = {"vote": vote_mode, "delta": delta_mode, "beta": 0.25, "tol": [1.0, -1.0]}
+    original = cfg.copy()
+    for baseline in (-0.5, 0.0, 0.5):
+        expected_delta = asr_measure.compute_delta(value, baseline, mode=delta_mode)
+        assert asr_vote.compute_measure_vote("lang", value, baseline, cfg) == (
+            0.25 * value, expected_delta, value
+        )
+    assert cfg == original
+
+
+@pytest.mark.parametrize("vote_mode", ["abs", "absolute"])
+@pytest.mark.parametrize(("value", "vote"), [(-2.0, -0.25), (0.375, 0.375), (2.0, 0.5)])
+def test_absolute_vote_clips_current_value_before_beta(vote_mode, value, vote):
+    cfg = OmegaConf.create({"vote": vote_mode, "beta": -2.0, "clip": [-0.25, 0.5]})
+    assert asr_vote.compute_measure_vote("lang", value, 0.75, cfg) == (
+        -2.0 * vote, value - 0.75, vote
+    )
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_absolute_vote_rejects_nonfinite_current_value(value):
+    with pytest.raises(ValueError, match="finite measure value"):
+        asr_vote.compute_measure_vote("lang", value, 0.5, {"vote": "abs"})
+
+
+@pytest.mark.parametrize("greedy_has_header", [False, True])
+@pytest.mark.parametrize(
+    ("sample_has_header", "greedy_text", "word_delta"),
+    [(True, "नमस्ते दुनिया", 0.0), (True, "नमस्ते", 0.5), (False, "नमस्ते दुनिया", 0.0)],
+)
+def test_hybrid_delta_and_absolute_headers_full_parser_round_trip(
+    greedy_has_header, sample_has_header, greedy_text, word_delta
+):
+    kwargs = {
+        "version": 2609,
+        "text_norm": "identity",
+        "language": "Hindi",
+        "measures": {
+            "word": {"delta": "abs", "vote": "delta", "beta": 1.0, "clip": [-2, 2]},
+            "lang": {"delta": "abs", "vote": "abs", "beta": 0.1, "clip": [-2, 2]},
+            "fmt": {"delta": "abs", "vote": "absolute", "beta": 0.1, "clip": [-2, 2]},
+        },
+        "reduce": {"mode": "average", "total": 1.2},
+    }
+    header = "<src=Hindi><tgt=Hindi>\n"
+    greedy = (header if greedy_has_header else "") + f"<TXT>{greedy_text}</TXT>"
+    sample = (header if sample_has_header else "") + "<TXT>नमस्ते दुनिया</TXT>"
+    baseline = asr_vote.compute_score(greedy, "नमस्ते दुनिया", **kwargs)
+    assert baseline == {
+        "score": 0.0, "word": 1.0 - word_delta,
+        "lang": float(greedy_has_header), "fmt": float(greedy_has_header),
+    }
+    original = baseline.copy()
+    result = asr_vote.compute_score(
+        sample, "नमस्ते दुनिया", extra_info={"greedy_reward": baseline}, **kwargs
+    )
+    header_value = float(sample_has_header)
+    header_delta = header_value - float(greedy_has_header)
+    assert result == pytest.approx({
+        "score": (word_delta + 0.2 * header_value) / 1.2,
+        "word": 1.0, "lang": header_value, "fmt": header_value,
+        "d_word": word_delta, "d_lang": header_delta, "d_fmt": header_delta,
+        "v_word": word_delta, "v_lang": header_value, "v_fmt": header_value,
+    })
+    assert baseline == original
+
+
 @pytest.mark.parametrize("vote_mode", ["unknown", None, True])
 def test_invalid_vote_mode(vote_mode):
     with pytest.raises(ValueError, match="Unsupported ASR vote mode"):

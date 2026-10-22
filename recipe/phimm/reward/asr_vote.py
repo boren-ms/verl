@@ -1,4 +1,4 @@
-"""Delta-voting ASR reward using accuracy or negative error measurements.
+"""ASR reward mixing delta votes and absolute measure scores.
 
 Select ``path: recipe/phimm/reward/asr_vote.py`` and ``name: compute_score``
 in a reward-function configuration. Existing scorers are unchanged.
@@ -51,7 +51,7 @@ def _parse_bounds(name, option, bounds):
 
 
 def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> tuple[float, float, float]:
-    """Return a beta-weighted clipped vote, raw delta, and clipped vote against a required baseline."""
+    """Return a weighted clipped vote, diagnostic delta, and clipped vote."""
     cfg = cfg or {}
     if "low" in cfg or "high" in cfg:
         raise ValueError(f"ASR vote measure {name!r} requires tol: [low, high] instead of low/high.")
@@ -62,17 +62,23 @@ def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> 
             "Expected 'abs'/'absolute' or 'rel'/'relative'."
         )
     vote_mode = cfg.get("vote", "thr")
-    if vote_mode not in ("thr", "threshold", "delta"):
+    if vote_mode not in ("thr", "threshold", "delta", "abs", "absolute"):
         raise ValueError(
             f"Unsupported ASR vote mode for {name!r}: {vote_mode!r}. "
-            "Expected 'thr' (alias 'threshold') or 'delta'."
+            "Expected 'thr' (alias 'threshold'), 'delta', or 'abs' (alias 'absolute')."
         )
     beta = float(cfg.get("beta", 1.0))
     if not math.isfinite(beta):
         raise ValueError(f"ASR vote measure {name!r} requires finite beta.")
 
     delta = compute_delta(value, baseline, mode=delta_mode)
-    if vote_mode == "delta":
+    if vote_mode in ("abs", "absolute"):
+        if not math.isfinite(value):
+            raise ValueError("ASR absolute vote requires a finite measure value.")
+        if not math.isfinite(delta):
+            raise ValueError("ASR vote requires a finite delta.")
+        vote = value
+    elif vote_mode == "delta":
         if not math.isfinite(delta):
             raise ValueError("ASR vote requires a finite delta.")
         vote = delta
@@ -88,7 +94,7 @@ def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> 
 
 
 def compute_score(solution_str, ground_truth, **kwargs):
-    """Reduce beta-weighted votes on measure deltas against a greedy baseline.
+    """Reduce beta-weighted delta votes or absolute scores per measure.
 
     Per-measure ``score`` defaults to ``acc`` (accuracy). ``err``
     instead uses ``accuracy - 1`` (negative error) for that measure, before
@@ -115,11 +121,16 @@ def compute_score(solution_str, ground_truth, **kwargs):
     ``vote: delta`` instead uses the computed finite delta directly as the
     vote, ignoring tol without thresholding or a neutral interval. It may
     exceed [-1, 1], especially for relative deltas near a zero baseline.
-    Both modes can be mixed across measures; beta weighting and reduction
-    are unchanged.
+    ``vote: abs`` (alias ``absolute``) uses the current measure value directly,
+    without subtracting the greedy value or taking its mathematical absolute
+    value. ``score: acc`` therefore votes with current accuracy; ``score: err``
+    votes with current negative error. Language and format scores are parsed
+    correctness scores, not model token probabilities. Delta remains available
+    as a diagnostic and does not affect an absolute vote. All three modes can
+    be mixed across measures; beta weighting and reduction are unchanged.
 
     Per-measure ``clip: [low, high]`` bounds the vote BEFORE beta
-    multiplication and reduction, for either vote mode.
+    multiplication and reduction, for every vote mode.
     Omitting clip uses [-10, 10]; both bounds must be finite
     numbers with low <= high. Raw deltas remain unchanged.
     ``tol`` defines voting thresholds, not clipping bounds.
@@ -133,12 +144,14 @@ def compute_score(solution_str, ground_truth, **kwargs):
 
     Raw configured measures, ``d_<name>`` deltas, and ``v_<name>`` votes
     are returned alongside ``score``. Returned votes are clipped but unweighted:
-    -1/0/+1 in threshold mode or the delta itself in delta mode, followed by
-    the configured clipping in either mode.
+    -1/0/+1 in threshold mode, the delta in delta mode, or the current measure
+    value in absolute mode, followed by the configured clipping.
     These deltas use each measure's ``delta`` mode and
-    are the same values used for voting. With no baseline (None or empty),
-    the score is zero and no delta or vote fields are returned, allowing the same
-    scorer to collect greedy baseline measurements. This returns early,
+    are used for voting only in threshold and delta modes. With no baseline
+    (None or empty), the score is zero and no delta or vote fields are returned,
+    including for absolute measures. This lets the same scorer collect greedy
+    baseline measurements without ReMax subtracting absolute measures again.
+    This returns early,
     skipping vote and reduction configuration and computation. A nonempty baseline must
     contain every configured measure in the same score type: use this scorer
     with the same per-measure ``score`` settings, ``asr_measure`` for ``acc``, or
@@ -161,6 +174,15 @@ def compute_score(solution_str, ground_truth, **kwargs):
           measures:
             word: {score: err, delta: rel, vote: delta, beta: 1.0, clip: [-1000, 100]}
             lang: {score: acc, delta: abs, vote: thr, beta: 0.5}
+
+    Mixed delta/absolute example (YAML)::
+
+        reward_kwargs:
+          reduce: {mode: average, total: 4}
+          measures:
+            word: {delta: abs, vote: delta, beta: 1.0, clip: [-2, 2]}
+            lang: {score: acc, vote: abs, beta: 0.1, clip: [-2, 2]}
+            fmt: {score: acc, vote: abs, beta: 0.1, clip: [-2, 2]}
     """
     if "delta" in kwargs:
         raise ValueError("Configure ASR vote delta per measure, not as a shared reward kwarg.")
