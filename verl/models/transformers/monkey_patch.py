@@ -323,3 +323,11 @@ def apply_monkey_patch(
             print(f"Monkey patch _flash_attention_forward in {flash_attention.__name__}")
 
     patch_forward_with_backends(model, use_fused_kernels=use_fused_kernels, fused_kernels_backend=fused_kernels_backend)
+
+    if model.config.model_type in ("qwen3_5", "qwen3_5_text", "qwen3_5_audio") and (
+        use_remove_padding or ulysses_sp_size > 1
+    ):
+        from verl.models.transformers.qwen3_5 import patch_qwen3_5_packed_sequences
+
+        patch_qwen3_5_packed_sequences(model, ulysses_sp_size=ulysses_sp_size)
+        print(f"Monkey patch packed Qwen3.5 linear attention in {model.__class__.__name__}")
