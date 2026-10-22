@@ -463,6 +463,12 @@ class vLLMRollout(BaseRollout):
         if self.config.calculate_log_probs:
             # we will recompute old log prob with actor
             batch["rollout_log_probs"] = rollout_log_probs
+            if self.config.gt_rollout and not is_validate:
+                # prompt_logprobs ignore temperature even in processed_logprobs mode.
+                # Keep this row marker through balancing/filtering for actor-side rescoring.
+                batch["gt_response_mask"] = torch.tensor(
+                    [i in gt_responses for i in range(batch_size)], dtype=torch.bool, device=idx.device
+                )
 
         return DataProto(batch=batch, non_tensor_batch=non_tensor_batch)
 

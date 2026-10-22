@@ -47,6 +47,7 @@ from verl.trainer.config import AlgoConfig
 from verl.trainer.config.algorithm import REMAX_ADVANTAGE_MASK_MODES
 from verl.trainer.ppo import core_algos
 from verl.trainer.ppo.core_algos import AdvantageEstimator, agg_loss, deduplicate_rollout_responses
+from verl.trainer.ppo.rollout_log_probs import align_gt_rollout_log_probs
 from verl.trainer.ppo.metric_utils import (
     compute_data_metrics,
     compute_throughout_metrics,
@@ -1360,6 +1361,8 @@ class RayPPOTrainer:
 
                     # recompute old_log_probs
                     with marked_timer("old_log_prob", timing_raw, color="blue"):
+                        batch.meta_info["temperature"] = self.config.actor_rollout_ref.rollout.temperature
+                        align_gt_rollout_log_probs(batch, self.actor_rollout_wg)
                         use_rollout_as_old = self.config.actor_rollout_ref.rollout.get(
                             "use_rollout_log_probs_as_old", False
                         )
