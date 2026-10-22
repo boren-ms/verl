@@ -427,7 +427,10 @@ def test_patch_installation_is_idempotent_and_preserves_saved_weights(tmp_path):
 
 
 @pytest.mark.parametrize("use_remove_padding", [False, True])
-def test_apply_monkey_patch_installs_the_fix_only_when_requested(monkeypatch, use_remove_padding):
+@pytest.mark.parametrize("use_linear_attention_packing", [None, False, True], ids=["default", "disabled", "enabled"])
+def test_apply_monkey_patch_installs_the_fix_only_when_requested(
+    monkeypatch, use_remove_padding, use_linear_attention_packing
+):
     from verl.models.transformers.monkey_patch import apply_monkey_patch
 
     _preserve_monkey_patch_globals(monkeypatch)
@@ -437,14 +440,44 @@ def test_apply_monkey_patch_installs_the_fix_only_when_requested(monkeypatch, us
     with torch.no_grad():
         independent = _separate_logits(model, tokens, lengths)
         unpatched = model(tokens, position_ids=positions, use_cache=False).logits
-        apply_monkey_patch(model, use_remove_padding=use_remove_padding, use_fused_kernels=False)
+        packing_options = (
+            {}
+            if use_linear_attention_packing is None
+            else {"use_linear_attention_packing": use_linear_attention_packing}
+        )
+        apply_monkey_patch(model, use_remove_padding=use_remove_padding, use_fused_kernels=False, **packing_options)
         actual = model(tokens, position_ids=positions, use_cache=False).logits
 
-    if use_remove_padding:
+    assert getattr(model, "_verl_qwen3_5_packing_patched", False) is bool(use_linear_attention_packing)
+    if use_linear_attention_packing:
         torch.testing.assert_close(actual, independent, atol=2e-6, rtol=2e-5)
     else:
         torch.testing.assert_close(actual, unpatched, atol=0, rtol=0)
         assert (actual[:, lengths[0] :] - independent[:, lengths[0] :]).abs().max() > 1e-4
+
+
+@pytest.mark.parametrize("use_remove_padding", [False, True])
+def test_sequence_parallel_size_does_not_enable_linear_attention_packing(monkeypatch, use_remove_padding):
+    from verl.models.transformers.monkey_patch import apply_monkey_patch
+
+    _preserve_monkey_patch_globals(monkeypatch)
+    model = _model()
+    tokens, positions = _tokens([3, 4])
+    with torch.no_grad():
+        expected = model(tokens, position_ids=positions, use_cache=False).logits
+        apply_monkey_patch(model, ulysses_sp_size=2, use_remove_padding=use_remove_padding)
+        actual = model(tokens, position_ids=positions, use_cache=False).logits
+
+    assert not getattr(model, "_verl_qwen3_5_packing_patched", False)
+    torch.testing.assert_close(actual, expected, atol=0, rtol=0)
+
+
+def test_explicit_linear_attention_packing_rejects_unsupported_sequence_parallelism(monkeypatch):
+    from verl.models.transformers.monkey_patch import apply_monkey_patch
+
+    _preserve_monkey_patch_globals(monkeypatch)
+    with pytest.raises(ValueError, match="Ulysses sequence parallelism"):
+        apply_monkey_patch(_model(), ulysses_sp_size=2, use_linear_attention_packing=True)
 
 
 def test_audio_model_uses_the_patched_native_decoder_through_normal_installation(monkeypatch):
@@ -477,13 +510,13 @@ def test_audio_model_uses_the_patched_native_decoder_through_normal_installation
     tokens, positions = _tokens(lengths)
     with torch.no_grad():
         expected = _separate_logits(model, tokens, lengths)
-        apply_monkey_patch(model, use_remove_padding=True, use_fused_kernels=False)
+        apply_monkey_patch(model, use_remove_padding=True, use_fused_kernels=False, use_linear_attention_packing=True)
         actual = model(tokens, position_ids=positions, use_cache=False).logits
 
     torch.testing.assert_close(actual, expected, atol=2e-6, rtol=2e-5)
 
 
-def test_cuda_fast_kernels_match_independent_samples():
+def _cuda_fast_model(**config_overrides):
     if not torch.cuda.is_available():
         pytest.skip("CUDA is unavailable")
     if torch.cuda.get_device_capability()[0] < 8:
@@ -491,14 +524,49 @@ def test_cuda_fast_kernels_match_independent_samples():
     if native.causal_conv1d_fn is None or native.chunk_gated_delta_rule is None:
         pytest.skip("Both FLA and causal-conv1d kernels are required")
 
-    model = _model(
+    kwargs = dict(
         use_fast_kernels=True,
         linear_num_value_heads=4,
         linear_key_head_dim=32,
         linear_value_head_dim=32,
         dtype=torch.bfloat16,
-    ).to(device="cuda", dtype=torch.bfloat16)
-    lengths = [63, 66]
+    )
+    kwargs.update(config_overrides)
+    return _model(**kwargs).to(device="cuda", dtype=torch.bfloat16)
+
+
+def _assert_cuda_parameter_gradients_equal(actual, expected):
+    expected_parameters = dict(expected.named_parameters())
+    for name, parameter in actual.named_parameters():
+        other = expected_parameters[name]
+        assert (parameter.grad is None) == (other.grad is None), name
+        if parameter.grad is not None:
+            assert torch.isfinite(parameter.grad).all(), name
+            assert torch.isfinite(other.grad).all(), name
+            # BF16 fused reductions and accumulation across independent calls
+            # can differ in rounding. Scale the absolute tolerance to this
+            # parameter's gradient so small projections are still checked.
+            scale = other.grad.float().abs().max().item()
+            torch.testing.assert_close(
+                parameter.grad.float(),
+                other.grad.float(),
+                atol=max(1e-6, scale * 5e-3),
+                rtol=5e-2,
+                msg=name,
+            )
+
+
+@pytest.mark.parametrize(
+    ("lengths", "value_heads"),
+    [
+        pytest.param([1, 1, 1], 2, id="adjacent-single-token-samples"),
+        pytest.param([3, 5, 1], 4, id="short-convolution-segments-grouped-heads"),
+        pytest.param([63, 1, 65], 4, id="fla-chunk-boundaries-with-single-token"),
+        pytest.param([64, 65, 127], 4, id="multiple-fla-chunks"),
+    ],
+)
+def test_cuda_fast_kernels_match_independent_samples(lengths, value_heads):
+    model = _cuda_fast_model(linear_num_value_heads=value_heads)
     tokens, positions = _tokens(lengths)
     tokens, positions = tokens.cuda(), positions.cuda()
     with torch.no_grad():
@@ -518,3 +586,76 @@ def test_cuda_fast_kernels_match_independent_samples():
     assert torch.count_nonzero(embeddings.grad[:, : lengths[0]]) == 0
     assert torch.count_nonzero(embeddings.grad[:, lengths[0] :]) > 0
     assert all(torch.isfinite(parameter.grad).all() for parameter in model.parameters() if parameter.grad is not None)
+
+
+@pytest.mark.parametrize("lengths", [[3, 5, 1], [63, 1, 65]], ids=["short-segments", "fla-chunk-boundaries"])
+def test_cuda_fast_kernel_parameter_gradients_match_independent_samples(lengths):
+    expected = _cuda_fast_model().train()
+    actual = _cuda_fast_model().train()
+    patch_qwen3_5_packed_sequences(actual)
+    tokens, positions = _tokens(lengths)
+    tokens, positions = tokens.cuda(), positions.cuda()
+
+    expected_logits = _separate_logits(expected, tokens, lengths)
+    actual_logits = actual(tokens, position_ids=positions, use_cache=False).logits
+    expected_logits.float().square().sum().backward()
+    actual_logits.float().square().sum().backward()
+
+    torch.testing.assert_close(actual_logits, expected_logits, atol=3e-3, rtol=3e-2)
+    _assert_cuda_parameter_gradients_equal(actual, expected)
+
+
+@pytest.mark.parametrize("use_reentrant", [False, True], ids=["non-reentrant", "reentrant"])
+def test_cuda_gradient_checkpoint_recomputation_keeps_fast_kernel_boundaries(use_reentrant):
+    expected = _cuda_fast_model().train()
+    actual = _cuda_fast_model().train()
+    patch_qwen3_5_packed_sequences(expected)
+    patch_qwen3_5_packed_sequences(actual)
+    actual.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": use_reentrant})
+    lengths = [63, 1, 65]
+    tokens, positions = _tokens(lengths)
+    tokens, positions = tokens.cuda(), positions.cuda()
+
+    expected_logits = expected(tokens, position_ids=positions, use_cache=False).logits
+    actual_logits = actual(tokens, position_ids=positions, use_cache=False).logits
+    expected_logits.float().square().sum().backward()
+    actual_logits.float().square().sum().backward()
+
+    torch.testing.assert_close(actual_logits, expected_logits, atol=0, rtol=0)
+    _assert_cuda_parameter_gradients_equal(actual, expected)
+
+
+def test_cuda_real_fast_kernels_receive_all_sample_boundaries(monkeypatch):
+    from verl.models.transformers.monkey_patch import apply_monkey_patch
+
+    _preserve_monkey_patch_globals(monkeypatch)
+    model = _cuda_fast_model()
+    apply_monkey_patch(model, use_remove_padding=True, use_linear_attention_packing=True)
+    linear_attention = model.model.layers[0].linear_attn
+    original_conv = linear_attention.causal_conv1d_fn
+    original_delta = linear_attention.chunk_gated_delta_rule
+    observed = {}
+
+    def conv(*args, **kwargs):
+        observed["seq_idx"] = kwargs["seq_idx"].detach().cpu()
+        return original_conv(*args, **kwargs)
+
+    def delta(*args, **kwargs):
+        observed["cu_seqlens"] = kwargs["cu_seqlens"].detach().cpu()
+        return original_delta(*args, **kwargs)
+
+    # Install transparent recorders after choosing the real fast-kernel path.
+    # Both implementations still execute and their outputs are checked below.
+    monkeypatch.setattr(linear_attention, "causal_conv1d_fn", conv)
+    monkeypatch.setattr(linear_attention, "chunk_gated_delta_rule", delta)
+    lengths = [1, 63, 1, 65]
+    tokens, positions = _tokens(lengths)
+    tokens, positions = tokens.cuda(), positions.cuda()
+    with torch.no_grad():
+        actual = model(tokens, position_ids=positions, use_cache=False).logits
+
+    assert torch.isfinite(actual).all()
+    expected_seq_idx = torch.repeat_interleave(torch.arange(len(lengths), dtype=torch.int32), torch.tensor(lengths))
+    torch.testing.assert_close(observed["seq_idx"], expected_seq_idx.unsqueeze(0))
+    expected_cu_seqlens = torch.tensor([0, 1, 64, 65, 130], dtype=torch.int32)
+    torch.testing.assert_close(observed["cu_seqlens"], expected_cu_seqlens)
