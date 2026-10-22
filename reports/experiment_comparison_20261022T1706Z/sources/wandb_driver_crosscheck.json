@@ -1,0 +1,6066 @@
+{
+  "source_wandb": "wandb/scalar_evidence.json",
+  "source_driver": "driver_current.json",
+  "tolerance": {
+    "relative": 1e-09,
+    "absolute": 1e-10
+  },
+  "runs": {
+    "L0": {
+      "id": "0d485800242bfc5784c5bd4a88f8d102",
+      "run_label": "L0",
+      "driver_submission_id": "l0_recover_b9fea389_w3c436454_step350",
+      "driver_observed_at_utc": "2026-10-22T17:11:49.926441+00:00",
+      "driver_log_path": "/tmp/ray/session_latest/logs/job-driver-l0_recover_b9fea389_w3c436454_step350.log",
+      "shared_numeric_points": 6764,
+      "conflicts": [
+        {
+          "step": 351,
+          "key": "actor/kl_loss",
+          "wandb": 0.027296843036310747,
+          "driver": 0.015045084874145687,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "actor/loss",
+          "wandb": 0.000601548636041116,
+          "driver": 0.0005932078327077761,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "actor/pg_loss",
+          "wandb": 0.0005742517828366545,
+          "driver": 0.0005781627576197934,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "actor/grad_norm",
+          "wandb": 0.022216796875,
+          "driver": 0.0166015625,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "critic/score/mean",
+          "wandb": -0.005388373043388128,
+          "driver": -0.0034797422122210264,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "critic/score/min",
+          "wandb": -0.7166666388511658,
+          "driver": -0.36000001430511475,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "critic/rewards/mean",
+          "wandb": -0.005388373043388128,
+          "driver": -0.0034797422122210264,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "critic/rewards/min",
+          "wandb": -0.7166666388511658,
+          "driver": -0.36000001430511475,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "critic/advantages/mean",
+          "wandb": -0.004553344566375017,
+          "driver": -0.0037572714500129223,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "critic/advantages/min",
+          "wandb": -0.7166666388511658,
+          "driver": -0.36000001430511475,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "critic/returns/mean",
+          "wandb": -0.004553344566375017,
+          "driver": -0.0037572714500129223,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "critic/returns/min",
+          "wandb": -0.7166666388511658,
+          "driver": -0.36000001430511475,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9943749969002916,
+          "driver": 0.9931633883861615,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9620204170021804,
+          "driver": 0.9549658665170764,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.015490210060014872,
+          "driver": -0.00990083377338702,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.005230791742064445,
+          "driver": 0.0015364970683453933,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -2.0366530847389336e-05,
+          "driver": -0.00037769027867561077,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.005230791742064445,
+          "driver": 0.0015364970683453933,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-core/score/mean",
+          "wandb": -0.005388372775319417,
+          "driver": -0.0034797421376454567,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.0013553586705902232,
+          "driver": -0.0038989012344339937,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -2.0366530847389336e-05,
+          "driver": -0.00037769027867561077,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-core/word/mean",
+          "wandb": 0.8849437849777567,
+          "driver": 0.8711858011731126,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.0013553586705902232,
+          "driver": -0.0038989012344339937,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.015490210060014872,
+          "driver": -0.00990083377338702,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9811002604185276,
+          "driver": 0.982902336853138,
+          "driver_log_row": 2
+        },
+        {
+          "step": 351,
+          "key": "timing_s/step",
+          "wandb": 59.71821713299869,
+          "driver": 57.29858502599927,
+          "driver_log_row": 2
+        },
+        {
+          "step": 352,
+          "key": "actor/kl_loss",
+          "wandb": 0.01694281867821701,
+          "driver": 0.016579231072682887,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "actor/loss",
+          "wandb": 0.000637487763469835,
+          "driver": 0.00039066499152795586,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "actor/pg_loss",
+          "wandb": 0.0006205449215599401,
+          "driver": 0.00037408576099551283,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "actor/grad_norm",
+          "wandb": 0.01953125,
+          "driver": 0.01123046875,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "critic/score/mean",
+          "wandb": -0.005180758889764547,
+          "driver": -0.005809666123241186,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "critic/score/min",
+          "wandb": -0.3499999940395355,
+          "driver": -0.25256410241127014,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "critic/rewards/mean",
+          "wandb": -0.005180758889764547,
+          "driver": -0.005809666123241186,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "critic/rewards/min",
+          "wandb": -0.3499999940395355,
+          "driver": -0.25256410241127014,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "critic/advantages/mean",
+          "wandb": -0.005178056191653013,
+          "driver": -0.005403128918260336,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "critic/advantages/min",
+          "wandb": -0.3499999940395355,
+          "driver": -0.25256410241127014,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "critic/returns/mean",
+          "wandb": -0.005178056191653013,
+          "driver": -0.005403128918260336,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "critic/returns/min",
+          "wandb": -0.3499999940395355,
+          "driver": -0.25256410241127014,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9956468212904388,
+          "driver": 0.9933558881930322,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9680214160931584,
+          "driver": 0.9688562477554068,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.014876927652060242,
+          "driver": -0.01587417564347248,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.0014085605654414702,
+          "driver": -0.00043773539805663504,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.00023186942143793416,
+          "driver": -0.001146201817008525,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.0014085605654414702,
+          "driver": -0.00043773539805663504,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-core/score/mean",
+          "wandb": -0.005180758791598055,
+          "driver": -0.005809666152205353,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.0033899712903942957,
+          "driver": -0.005940878197310945,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.00023186942143793416,
+          "driver": -0.001146201817008525,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-core/word/mean",
+          "wandb": 0.8883947026885406,
+          "driver": 0.8947846243059047,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.0033899712903942957,
+          "driver": -0.005940878197310945,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.014876927652060242,
+          "driver": -0.01587417564347248,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9877467691518842,
+          "driver": 0.9854114562675726,
+          "driver_log_row": 4
+        },
+        {
+          "step": 352,
+          "key": "timing_s/step",
+          "wandb": 58.884734483996,
+          "driver": 61.87481498099987,
+          "driver_log_row": 4
+        },
+        {
+          "step": 353,
+          "key": "actor/kl_loss",
+          "wandb": 0.015368229971500114,
+          "driver": 0.014429179369471967,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "actor/loss",
+          "wandb": -1.8820748664438725e-05,
+          "driver": 0.000911121873286902,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "actor/pg_loss",
+          "wandb": -3.418897586016101e-05,
+          "driver": 0.0008966926975517708,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "actor/grad_norm",
+          "wandb": 0.00726318359375,
+          "driver": 0.013671875,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/score/mean",
+          "wandb": -0.002552845049649477,
+          "driver": -0.005468869116157293,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/score/max",
+          "wandb": 0.18333333730697632,
+          "driver": 0.14266666769981384,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/score/min",
+          "wandb": -0.15238095819950104,
+          "driver": -0.2266666740179062,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/rewards/mean",
+          "wandb": -0.002552845049649477,
+          "driver": -0.005468869116157293,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/rewards/max",
+          "wandb": 0.18333333730697632,
+          "driver": 0.14266666769981384,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/rewards/min",
+          "wandb": -0.15238095819950104,
+          "driver": -0.2266666740179062,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/advantages/mean",
+          "wandb": -0.002931287046521902,
+          "driver": -0.004989303182810545,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/advantages/max",
+          "wandb": 0.18333333730697632,
+          "driver": 0.14266666769981384,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/advantages/min",
+          "wandb": -0.15238095819950104,
+          "driver": -0.2266666740179062,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/returns/mean",
+          "wandb": -0.002931287046521902,
+          "driver": -0.004989303182810545,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/returns/max",
+          "wandb": 0.18333333730697632,
+          "driver": 0.14266666769981384,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "critic/returns/min",
+          "wandb": -0.15238095819950104,
+          "driver": -0.2266666740179062,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9921456739099408,
+          "driver": 0.9919765762454069,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9550368496628858,
+          "driver": 0.9587642850462328,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.005567377505211009,
+          "driver": -0.014210313033017395,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.0004997761430844056,
+          "driver": 0.00015288775804422666,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.0024101586533583253,
+          "driver": -0.0020635605931903734,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.0004997761430844056,
+          "driver": 0.00015288775804422666,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-core/score/mean",
+          "wandb": -0.0025528451118091416,
+          "driver": -0.005468868842161252,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.0021300852183819595,
+          "driver": -0.0056073379471848536,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.0024101586533583253,
+          "driver": -0.0020635605931903734,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-core/word/mean",
+          "wandb": 0.9008728211640928,
+          "driver": 0.8974039046036518,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.0021300852183819595,
+          "driver": -0.0056073379471848536,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.005567377505211009,
+          "driver": -0.014210313033017395,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9874903792422683,
+          "driver": 0.9880145048698696,
+          "driver_log_row": 6
+        },
+        {
+          "step": 353,
+          "key": "timing_s/step",
+          "wandb": 62.434236220004095,
+          "driver": 64.9247392670004,
+          "driver_log_row": 6
+        },
+        {
+          "step": 354,
+          "key": "actor/kl_loss",
+          "wandb": 0.01168166809818811,
+          "driver": 0.014673014389700256,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "actor/loss",
+          "wandb": 0.000564910800145905,
+          "driver": 0.0008546776007278822,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "actor/pg_loss",
+          "wandb": 0.0005532291339073305,
+          "driver": 0.0008400045967391634,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "actor/grad_norm",
+          "wandb": 0.08984375,
+          "driver": 0.008056640625,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/score/mean",
+          "wandb": 0.0021207304671406746,
+          "driver": -0.0016982478555291891,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/score/max",
+          "wandb": 1.7999999523162842,
+          "driver": 0.3333333432674408,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/score/min",
+          "wandb": -0.12222222238779068,
+          "driver": -0.25,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/rewards/mean",
+          "wandb": 0.0021207304671406746,
+          "driver": -0.0016982478555291891,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/rewards/max",
+          "wandb": 1.7999999523162842,
+          "driver": 0.3333333432674408,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/rewards/min",
+          "wandb": -0.12222222238779068,
+          "driver": -0.25,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/advantages/mean",
+          "wandb": -0.0002022581029450521,
+          "driver": -0.0025205386336892843,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/advantages/max",
+          "wandb": 1.7999999523162842,
+          "driver": 0.3333333432674408,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/advantages/min",
+          "wandb": -0.12222222238779068,
+          "driver": -0.25,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/returns/mean",
+          "wandb": -0.0002022581029450521,
+          "driver": -0.0025205386336892843,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/returns/max",
+          "wandb": 1.7999999523162842,
+          "driver": 0.3333333432674408,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "critic/returns/min",
+          "wandb": -0.12222222238779068,
+          "driver": -0.25,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9924992092510664,
+          "driver": 0.9940454598157117,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.969861087874491,
+          "driver": 0.9781089788533914,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-vote/word/mean",
+          "wandb": 0.005751026012175028,
+          "driver": -0.004265344358554986,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.012122506243040884,
+          "driver": -0.0008850994248052447,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.0004493835776302816,
+          "driver": -0.001004752872703604,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.012122506243040884,
+          "driver": -0.0008850994248052447,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-core/score/mean",
+          "wandb": 0.0021207305930438427,
+          "driver": -0.0016982478868883299,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.0024157799524336413,
+          "driver": 0.000629129385334042,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.0004493835776302816,
+          "driver": -0.001004752872703604,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-core/word/mean",
+          "wandb": 0.8797410422158614,
+          "driver": 0.9179535572747781,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.0024157799524336413,
+          "driver": 0.000629129385334042,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-delta/word/mean",
+          "wandb": 0.005751026012175028,
+          "driver": -0.004265344358554986,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9706593537674378,
+          "driver": 0.9910896572993817,
+          "driver_log_row": 8
+        },
+        {
+          "step": 354,
+          "key": "timing_s/step",
+          "wandb": 67.7227295470002,
+          "driver": 65.1095132419996,
+          "driver_log_row": 8
+        },
+        {
+          "step": 355,
+          "key": "actor/kl_loss",
+          "wandb": 0.015214495899272151,
+          "driver": 0.017137148330220953,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "actor/loss",
+          "wandb": 0.0004075518882018514,
+          "driver": 0.0007092539268569453,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "actor/pg_loss",
+          "wandb": 0.0003923373969882959,
+          "driver": 0.0006921167760083335,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/score/mean",
+          "wandb": -0.002857938874512911,
+          "driver": -0.004723822697997093,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/score/max",
+          "wandb": 0.18421052396297455,
+          "driver": 0.1433333307504654,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/score/min",
+          "wandb": -0.46666666865348816,
+          "driver": -0.36666667461395264,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/rewards/mean",
+          "wandb": -0.002857938874512911,
+          "driver": -0.004723822697997093,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/rewards/max",
+          "wandb": 0.18421052396297455,
+          "driver": 0.1433333307504654,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/rewards/min",
+          "wandb": -0.46666666865348816,
+          "driver": -0.36666667461395264,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/advantages/mean",
+          "wandb": -0.0024242475628852844,
+          "driver": -0.0039614783599972725,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/advantages/max",
+          "wandb": 0.18421052396297455,
+          "driver": 0.1433333307504654,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/advantages/min",
+          "wandb": -0.46666666865348816,
+          "driver": -0.36666667461395264,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/returns/mean",
+          "wandb": -0.0024242475628852844,
+          "driver": -0.0039614783599972725,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/returns/max",
+          "wandb": 0.18421052396297455,
+          "driver": 0.1433333307504654,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "critic/returns/min",
+          "wandb": -0.46666666865348816,
+          "driver": -0.36666667461395264,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9876423136821636,
+          "driver": 0.9932598593660762,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9585125768518048,
+          "driver": 0.9733028499614693,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.007215601790388455,
+          "driver": -0.013111210316551169,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.0006091501717526051,
+          "driver": -0.0032096134644942404,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.001729597310511487,
+          "driver": -0.0006570993294314558,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.0006091501717526051,
+          "driver": -0.0032096134644942404,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-core/score/mean",
+          "wandb": -0.0028579387066527276,
+          "driver": -0.004723822809030421,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.0003545149833579773,
+          "driver": -0.0021361730054550165,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.001729597310511487,
+          "driver": -0.0006570993294314558,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-core/word/mean",
+          "wandb": 0.8869816059974966,
+          "driver": 0.9176967180257507,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.0003545149833579773,
+          "driver": -0.0021361730054550165,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.007215601790388455,
+          "driver": -0.013111210316551169,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9769072667360296,
+          "driver": 0.9909654597842255,
+          "driver_log_row": 10
+        },
+        {
+          "step": 355,
+          "key": "timing_s/step",
+          "wandb": 58.42444743699889,
+          "driver": 64.55981693000103,
+          "driver_log_row": 10
+        }
+      ],
+      "driver_only_points": [
+        {
+          "step": 350,
+          "key": "val-core/earning_chunk_verb/p_err/mean@1",
+          "driver": 0.04423514127963624,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 350,
+          "key": "val-core/openml_bad/p_err/mean@1",
+          "driver": 0.09218472468916519,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 350,
+          "key": "val-core/ls_clean/p_err/mean@1",
+          "driver": 0.01145196588936684,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 350,
+          "key": "val-core/ls_other/p_err/mean@1",
+          "driver": 0.02647565337522,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/kl_loss",
+          "driver": 0.05159163643838838,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/kl_coef",
+          "driver": 0.001,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/loss",
+          "driver": -4.719774597106152e-05,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/pg_loss",
+          "driver": -9.878938203655707e-05,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/pg_clipfrac",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/ppo_kl",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/pg_clipfrac_lower",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/grad_norm",
+          "driver": 0.02734375,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "actor/lr",
+          "driver": 3e-06,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/score/mean",
+          "driver": -0.002776085864752531,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/score/max",
+          "driver": 0.20952381193637848,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/score/min",
+          "driver": -0.2750000059604645,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/rewards/mean",
+          "driver": -0.002776085864752531,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/rewards/max",
+          "driver": 0.20952381193637848,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/rewards/min",
+          "driver": -0.2750000059604645,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/advantages/mean",
+          "driver": -0.0015138359740376472,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/advantages/max",
+          "driver": 0.20952381193637848,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/advantages/min",
+          "driver": -0.2750000059604645,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/returns/mean",
+          "driver": -0.0015138359740376472,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/returns/max",
+          "driver": 0.20952381193637848,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/returns/min",
+          "driver": -0.2750000059604645,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/baseline_score/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/baseline_score/max",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "critic/baseline_score/min",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-core/word_kw/mean",
+          "driver": 0.991620666054652,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-vote/fmt/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-core/word_del/mean",
+          "driver": 0.9649091529939215,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-core/lang/mean",
+          "driver": 0.9921875,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-vote/word/mean",
+          "driver": -0.007472539201707064,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-delta/word_ins/mean",
+          "driver": -0.0006531484211738816,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-delta/fmt/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-core/fmt/mean",
+          "driver": 0.9921875,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-vote/word_kw/mean",
+          "driver": -0.000885991092825391,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-vote/word_ins/mean",
+          "driver": -0.0006531484211738816,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-core/score/mean",
+          "driver": -0.002776085915560193,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-delta/word_del/mean",
+          "driver": -0.0008161082859581431,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-delta/lang/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-delta/word_kw/mean",
+          "driver": -0.000885991092825391,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-vote/lang/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-core/word/mean",
+          "driver": 0.8977827758811513,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-vote/word_del/mean",
+          "driver": -0.0008161082859581431,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-delta/word/mean",
+          "driver": -0.007472539201707064,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "reward-core/word_ins/mean",
+          "driver": 0.979893428818901,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 504,
+          "key": "timing_s/step",
+          "driver": 58.8824142630001,
+          "reason": "Absent from earlier W&B snapshot"
+        }
+      ]
+    },
+    "hindi_v1": {
+      "id": "d9f3c96e5073da21a91680a234a6453f",
+      "run_label": "hindi_v1",
+      "driver_submission_id": "remax-hindi-base1-v1-20261022T152258Z-recovery-2",
+      "driver_observed_at_utc": "2026-10-22T17:11:49.763816+00:00",
+      "driver_log_path": "/tmp/ray/session_latest/logs/job-driver-remax-hindi-base1-v1-20261022T152258Z-recovery-2.log",
+      "shared_numeric_points": 3765,
+      "conflicts": [
+        {
+          "step": 580,
+          "key": "val-core/monsoon_hi_in/p_err/mean@1",
+          "wandb": 0.089410552652881,
+          "driver": 0.08939081812831076,
+          "driver_log_row": 0
+        },
+        {
+          "step": 581,
+          "key": "actor/kl_loss",
+          "wandb": 0.05391316248902253,
+          "driver": 0.058795011934957335,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "actor/loss",
+          "wandb": -0.001218612230981567,
+          "driver": -0.0012426850402594677,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "actor/pg_loss",
+          "wandb": -0.001272525441891048,
+          "driver": -0.0013014800473943719,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "actor/grad_norm",
+          "wandb": 0.0191650390625,
+          "driver": 0.037353515625,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/score/mean",
+          "wandb": 0.01307142712175846,
+          "driver": 0.007276986725628376,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/score/max",
+          "wandb": 0.48750001192092896,
+          "driver": 0.550000011920929,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/score/min",
+          "wandb": -0.46736112236976624,
+          "driver": -0.699999988079071,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/rewards/mean",
+          "wandb": 0.01307142712175846,
+          "driver": 0.007276986725628376,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/rewards/max",
+          "wandb": 0.48750001192092896,
+          "driver": 0.550000011920929,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/rewards/min",
+          "wandb": -0.46736112236976624,
+          "driver": -0.699999988079071,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/advantages/mean",
+          "wandb": 0.00872072670608759,
+          "driver": 0.0020433058962225914,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/advantages/max",
+          "wandb": 0.48750001192092896,
+          "driver": 0.550000011920929,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/advantages/min",
+          "wandb": -0.46736112236976624,
+          "driver": -0.699999988079071,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/returns/mean",
+          "wandb": 0.00872072670608759,
+          "driver": 0.0020433058962225914,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/returns/max",
+          "wandb": 0.48750001192092896,
+          "driver": 0.550000011920929,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "critic/returns/min",
+          "wandb": -0.46736112236976624,
+          "driver": -0.699999988079071,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.0778869174995062,
+          "driver": -0.09160244261481619,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-core/word/mean",
+          "wandb": 0.6680612823552466,
+          "driver": 0.6962979295214353,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-core/score/mean",
+          "wandb": 0.013071426406196872,
+          "driver": 0.00727698637634491,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.0012638739080595555,
+          "driver": -0.006877057956465986,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.009591628651054156,
+          "driver": -0.008489303525661022,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.0012638739080595555,
+          "driver": -0.006877057956465986,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-delta/char/mean",
+          "wandb": -0.0671135012359279,
+          "driver": -0.07642458400927242,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9807982154109935,
+          "driver": 0.9828646903108558,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-core/char/mean",
+          "wandb": 0.8216078918293318,
+          "driver": 0.8222499210767555,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-vote/char/mean",
+          "wandb": -0.0671135012359279,
+          "driver": -0.07544802150927242,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.009591628651054156,
+          "driver": -0.008489303525661022,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9629775055735212,
+          "driver": 0.9553416967725779,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.0778869174995062,
+          "driver": -0.09160244261481619,
+          "driver_log_row": 2
+        },
+        {
+          "step": 581,
+          "key": "timing_s/step",
+          "wandb": 50.16299946399522,
+          "driver": 55.64419750500019,
+          "driver_log_row": 2
+        },
+        {
+          "step": 582,
+          "key": "actor/kl_loss",
+          "wandb": 0.07086503831669688,
+          "driver": 0.06820305444610615,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "actor/loss",
+          "wandb": -0.0009693233490300676,
+          "driver": -0.0019535663401863226,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "actor/pg_loss",
+          "wandb": -0.0010401884022333736,
+          "driver": -0.002021769336958338,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "actor/grad_norm",
+          "wandb": 0.022216796875,
+          "driver": 0.037109375,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "critic/score/mean",
+          "wandb": 0.016520744189620018,
+          "driver": 0.013261864893138409,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "critic/score/max",
+          "wandb": 0.3062500059604645,
+          "driver": 0.3769230842590332,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "critic/rewards/mean",
+          "wandb": 0.016520744189620018,
+          "driver": 0.013261864893138409,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "critic/rewards/max",
+          "wandb": 0.3062500059604645,
+          "driver": 0.3769230842590332,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "critic/advantages/mean",
+          "wandb": 0.008747708052396774,
+          "driver": 0.01040596142411232,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "critic/advantages/max",
+          "wandb": 0.3062500059604645,
+          "driver": 0.3769230842590332,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "critic/returns/mean",
+          "wandb": 0.008747708052396774,
+          "driver": 0.01040596142411232,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "critic/returns/max",
+          "wandb": 0.3062500059604645,
+          "driver": 0.3769230842590332,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.0686022726693424,
+          "driver": -0.07627589511239308,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-core/word/mean",
+          "wandb": 0.6717858280435327,
+          "driver": 0.6684885536248524,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-core/score/mean",
+          "wandb": 0.016520743917052907,
+          "driver": 0.013261864176764122,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.006078172449416258,
+          "driver": -0.0021840059832322527,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.005453749053763212,
+          "driver": -0.00774712470083001,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.006078172449416258,
+          "driver": -0.0021840059832322527,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-delta/char/mean",
+          "wandb": -0.062431771286651096,
+          "driver": -0.06819386550953488,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9739820137306552,
+          "driver": 0.9803210853141997,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-core/char/mean",
+          "wandb": 0.8214999361174493,
+          "driver": 0.8057920078335797,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-vote/char/mean",
+          "wandb": -0.062431771286651096,
+          "driver": -0.06819386550953488,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.005453749053763212,
+          "driver": -0.00774712470083001,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9510383819579014,
+          "driver": 0.9554647220001002,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.0686022726693424,
+          "driver": -0.07627589511239308,
+          "driver_log_row": 4
+        },
+        {
+          "step": 582,
+          "key": "timing_s/step",
+          "wandb": 57.13599519700074,
+          "driver": 55.83440747300028,
+          "driver_log_row": 4
+        },
+        {
+          "step": 583,
+          "key": "actor/kl_loss",
+          "wandb": 0.055703257609690936,
+          "driver": 0.055535037868789265,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "actor/loss",
+          "wandb": -0.00013063172809779644,
+          "driver": -0.001406663736556116,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "actor/pg_loss",
+          "wandb": -0.00018633498517114537,
+          "driver": -0.001462198775698198,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "actor/grad_norm",
+          "wandb": 0.0233154296875,
+          "driver": 0.032470703125,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/score/mean",
+          "wandb": 0.010555662214756012,
+          "driver": 0.015075542032718658,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/score/max",
+          "wandb": 0.283108115196228,
+          "driver": 0.550000011920929,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/score/min",
+          "wandb": -0.46745026111602783,
+          "driver": -0.35555556416511536,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/rewards/mean",
+          "wandb": 0.010555662214756012,
+          "driver": 0.015075542032718658,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/rewards/max",
+          "wandb": 0.283108115196228,
+          "driver": 0.550000011920929,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/rewards/min",
+          "wandb": -0.46745026111602783,
+          "driver": -0.35555556416511536,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/advantages/mean",
+          "wandb": 0.006502767559140921,
+          "driver": 0.010154073126614094,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/advantages/max",
+          "wandb": 0.283108115196228,
+          "driver": 0.550000011920929,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/advantages/min",
+          "wandb": -0.46745026111602783,
+          "driver": -0.35555556416511536,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/returns/mean",
+          "wandb": 0.006502767559140921,
+          "driver": 0.010154073126614094,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/returns/max",
+          "wandb": 0.283108115196228,
+          "driver": 0.550000011920929,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "critic/returns/min",
+          "wandb": -0.46745026111602783,
+          "driver": -0.35555556416511536,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.08472341122701435,
+          "driver": -0.07301166163184247,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-core/word/mean",
+          "wandb": 0.6594537619880128,
+          "driver": 0.6827691771064075,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-core/score/mean",
+          "wandb": 0.01055566207283433,
+          "driver": 0.015075541197143744,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.008912951111598857,
+          "driver": -0.006610606551625697,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.012069197481110534,
+          "driver": -0.007878145662956876,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.008912951111598857,
+          "driver": -0.006610606551625697,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-delta/char/mean",
+          "wandb": -0.06780840333347099,
+          "driver": -0.06306398552593691,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9677777328749196,
+          "driver": 0.9859943511214311,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-core/char/mean",
+          "wandb": 0.8011697369210824,
+          "driver": 0.8216827512206031,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-vote/char/mean",
+          "wandb": -0.06780840333347099,
+          "driver": -0.06306398552593691,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.012069197481110534,
+          "driver": -0.007878145662956876,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9514523731544892,
+          "driver": 0.9542683982892488,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.08472341122701435,
+          "driver": -0.07301166163184247,
+          "driver_log_row": 6
+        },
+        {
+          "step": 583,
+          "key": "timing_s/step",
+          "wandb": 60.51411617299891,
+          "driver": 66.0142149179992,
+          "driver_log_row": 6
+        }
+      ],
+      "driver_only_points": []
+    },
+    "bcr64": {
+      "id": "e51cc81ed31e918470dbcc8143a6b731",
+      "run_label": "bcr64",
+      "driver_submission_id": "bcr64-recover390-20261022T1535Z",
+      "driver_observed_at_utc": "2026-10-22T17:11:50.209366+00:00",
+      "driver_log_path": "/tmp/ray/session_latest/logs/job-driver-bcr64-recover390-20261022T1535Z.log",
+      "shared_numeric_points": 1607,
+      "conflicts": [
+        {
+          "step": 391,
+          "key": "actor/kl_loss",
+          "wandb": 0.06321454480556506,
+          "driver": 0.024408250115811825,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "actor/loss",
+          "wandb": 0.0004981047968612984,
+          "driver": 0.0004049410299558076,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "actor/pg_loss",
+          "wandb": 0.0004348902700387823,
+          "driver": 0.00038053277330618585,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "actor/grad_norm",
+          "wandb": 0.055419921875,
+          "driver": 0.01080322265625,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/score/mean",
+          "wandb": -0.003914865665137768,
+          "driver": -0.004453398287296295,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/score/max",
+          "wandb": 0.6875,
+          "driver": 0.0982142835855484,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/score/min",
+          "wandb": -0.828125,
+          "driver": -0.34375,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/rewards/mean",
+          "wandb": -0.003914865665137768,
+          "driver": -0.004453398287296295,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/rewards/max",
+          "wandb": 0.6875,
+          "driver": 0.0982142835855484,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/rewards/min",
+          "wandb": -0.828125,
+          "driver": -0.34375,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/advantages/mean",
+          "wandb": -0.00423447648063302,
+          "driver": -0.0030098273418843746,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/advantages/max",
+          "wandb": 0.6875,
+          "driver": 0.0982142835855484,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/advantages/min",
+          "wandb": -0.828125,
+          "driver": -0.34375,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/returns/mean",
+          "wandb": -0.00423447648063302,
+          "driver": -0.0030098273418843746,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/returns/max",
+          "wandb": 0.6875,
+          "driver": 0.0982142835855484,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "critic/returns/min",
+          "wandb": -0.828125,
+          "driver": -0.34375,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.9189453125,
+          "driver": 0.966796875,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.006013076186821509,
+          "driver": -0.006554684455469009,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.002629558359091312,
+          "driver": -0.0018176054144030509,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-delta/word_del/mean",
+          "wandb": 0.002451718503359892,
+          "driver": 0.003974780183360531,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.0008644970166062911,
+          "driver": -0.001979230203175448,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.002629558359091312,
+          "driver": -0.0018176054144030509,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9630712151804024,
+          "driver": 0.9944302780766991,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9902371071120262,
+          "driver": 0.9862863095638208,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-vote/lang/mean",
+          "wandb": -0.0029296875,
+          "driver": -0.001953125,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-vote/word_del/mean",
+          "wandb": 0.002451718503359892,
+          "driver": 0.003974780183360531,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.0008644970166062911,
+          "driver": -0.001979230203175448,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.8814825893701829,
+          "driver": 0.9845075368694367,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.006013076186821509,
+          "driver": -0.006554684455469009,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-core/score/mean",
+          "wandb": -0.003914865877436028,
+          "driver": -0.004453398762005219,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-delta/lang/mean",
+          "wandb": -0.0029296875,
+          "driver": -0.001953125,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "reward-core/word/mean",
+          "wandb": 0.7430928806557437,
+          "driver": 0.9362264842737997,
+          "driver_log_row": 2
+        },
+        {
+          "step": 391,
+          "key": "timing_s/step",
+          "wandb": 55.70337771397317,
+          "driver": 40.48738353299996,
+          "driver_log_row": 2
+        },
+        {
+          "step": 392,
+          "key": "actor/kl_loss",
+          "wandb": 0.06816687727613109,
+          "driver": 0.02688392624258995,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "actor/loss",
+          "wandb": 0.0016568526459325636,
+          "driver": 0.0005365665228964644,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "actor/pg_loss",
+          "wandb": 0.0015886857779280814,
+          "driver": 0.0005096825925647863,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "actor/grad_norm",
+          "wandb": 0.07666015625,
+          "driver": 0.0301513671875,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/score/mean",
+          "wandb": -0.00810857955366373,
+          "driver": -0.008024333044886589,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/score/max",
+          "wandb": 0.4000000059604645,
+          "driver": 0.125,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/score/min",
+          "wandb": -0.48046875,
+          "driver": -0.42500001192092896,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/rewards/mean",
+          "wandb": -0.00810857955366373,
+          "driver": -0.008024333044886589,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/rewards/max",
+          "wandb": 0.4000000059604645,
+          "driver": 0.125,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/rewards/min",
+          "wandb": -0.48046875,
+          "driver": -0.42500001192092896,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/advantages/mean",
+          "wandb": -0.007645417470484972,
+          "driver": -0.006793246604502201,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/advantages/max",
+          "wandb": 0.4000000059604645,
+          "driver": 0.125,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/advantages/min",
+          "wandb": -0.48046875,
+          "driver": -0.42500001192092896,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/returns/mean",
+          "wandb": -0.007645417470484972,
+          "driver": -0.006793246604502201,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/returns/max",
+          "wandb": 0.4000000059604645,
+          "driver": 0.125,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "critic/returns/min",
+          "wandb": -0.48046875,
+          "driver": -0.42500001192092896,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.8779296875,
+          "driver": 0.9755859375,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.011311503265206836,
+          "driver": -0.011642647858348856,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.0055414506737093755,
+          "driver": -0.003950557320991521,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.012826556274402592,
+          "driver": -0.0033017232588694345,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": 0.0002142415754491883,
+          "driver": -0.0013787229606704165,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.0055414506737093755,
+          "driver": -0.003950557320991521,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.964655679283792,
+          "driver": 0.9930267805246555,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9873445881924492,
+          "driver": 0.9908123148136443,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-vote/lang/mean",
+          "wandb": -0.0048828125,
+          "driver": -0.0009765625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.012826556274402592,
+          "driver": -0.0033017232588694345,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": 0.0002142415754491883,
+          "driver": -0.0013787229606704165,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.8682896851267188,
+          "driver": 0.9795829137177828,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.011311503265206836,
+          "driver": -0.011642647858348856,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-core/score/mean",
+          "wandb": -0.008108580006366453,
+          "driver": -0.008024333130293146,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-delta/lang/mean",
+          "wandb": -0.0048828125,
+          "driver": -0.0009765625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "reward-core/word/mean",
+          "wandb": 0.698764536019761,
+          "driver": 0.9372988643798368,
+          "driver_log_row": 4
+        },
+        {
+          "step": 392,
+          "key": "timing_s/step",
+          "wandb": 54.5416816539946,
+          "driver": 64.69681379500071,
+          "driver_log_row": 4
+        },
+        {
+          "step": 393,
+          "key": "actor/kl_loss",
+          "wandb": 0.0621557948179543,
+          "driver": 0.029806122387526557,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "actor/loss",
+          "wandb": 0.0019642126571852714,
+          "driver": 0.0009609806838852819,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "actor/pg_loss",
+          "wandb": 0.0019020569203088856,
+          "driver": 0.0009311745735658405,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "actor/grad_norm",
+          "wandb": 0.08935546875,
+          "driver": 0.0274658203125,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/score/mean",
+          "wandb": -0.003883855184540153,
+          "driver": -0.005595154594630003,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/score/max",
+          "wandb": 0.6875,
+          "driver": 0.34375,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/score/min",
+          "wandb": -0.6875,
+          "driver": -0.5928571224212646,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/rewards/mean",
+          "wandb": -0.003883855184540153,
+          "driver": -0.005595154594630003,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/rewards/max",
+          "wandb": 0.6875,
+          "driver": 0.34375,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/rewards/min",
+          "wandb": -0.6875,
+          "driver": -0.5928571224212646,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/advantages/mean",
+          "wandb": -0.006112806033343077,
+          "driver": -0.004206785466521978,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/advantages/max",
+          "wandb": 0.6875,
+          "driver": 0.34375,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/advantages/min",
+          "wandb": -0.6875,
+          "driver": -0.5928571224212646,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/returns/mean",
+          "wandb": -0.006112806033343077,
+          "driver": -0.004206785466521978,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/returns/max",
+          "wandb": 0.6875,
+          "driver": 0.34375,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "critic/returns/min",
+          "wandb": -0.6875,
+          "driver": -0.5928571224212646,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.9287109375,
+          "driver": 0.9833984375,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.006355166898010624,
+          "driver": -0.008143894466403524,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.003124136473441536,
+          "driver": -0.0014839921911964766,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.00040958036033915185,
+          "driver": -0.003651003072824859,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": 0.00032427620298835006,
+          "driver": -0.0004977044549845882,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.003124136473441536,
+          "driver": -0.0014839921911964766,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9720134507610582,
+          "driver": 0.9938149662867296,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9928958211537556,
+          "driver": 0.9939058027761687,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.00040958036033915185,
+          "driver": -0.003651003072824859,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": 0.00032427620298835006,
+          "driver": -0.0004977044549845882,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.879397711365369,
+          "driver": 0.9669449523655355,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.006355166898010624,
+          "driver": -0.008143894466403524,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-core/score/mean",
+          "wandb": -0.0038838553413141986,
+          "driver": -0.005595154614876609,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "reward-core/word/mean",
+          "wandb": 0.7182741106170005,
+          "driver": 0.9271119831497338,
+          "driver_log_row": 6
+        },
+        {
+          "step": 393,
+          "key": "timing_s/step",
+          "wandb": 56.151346856029704,
+          "driver": 61.94827653399989,
+          "driver_log_row": 6
+        },
+        {
+          "step": 394,
+          "key": "actor/kl_loss",
+          "wandb": 0.06114278297172859,
+          "driver": 0.02022727287840098,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "actor/loss",
+          "wandb": 0.0026575131341814995,
+          "driver": 0.00032117763043970626,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "actor/pg_loss",
+          "wandb": 0.002596370377432322,
+          "driver": 0.0003009503434441285,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "actor/grad_norm",
+          "wandb": 0.07080078125,
+          "driver": 0.06591796875,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/score/mean",
+          "wandb": -0.01110265590250492,
+          "driver": -0.01277442742139101,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/score/max",
+          "wandb": 0.25,
+          "driver": 0.26249998807907104,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/score/min",
+          "wandb": -0.5104166865348816,
+          "driver": -3.375,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/rewards/mean",
+          "wandb": -0.01110265590250492,
+          "driver": -0.01277442742139101,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/rewards/max",
+          "wandb": 0.25,
+          "driver": 0.26249998807907104,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/rewards/min",
+          "wandb": -0.5104166865348816,
+          "driver": -3.375,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/advantages/mean",
+          "wandb": -0.009774268604815006,
+          "driver": -0.00756793050095439,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/advantages/max",
+          "wandb": 0.25,
+          "driver": 0.26249998807907104,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/advantages/min",
+          "wandb": -0.5104166865348816,
+          "driver": -3.375,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/returns/mean",
+          "wandb": -0.009774268604815006,
+          "driver": -0.00756793050095439,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/returns/max",
+          "wandb": 0.25,
+          "driver": 0.26249998807907104,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "critic/returns/min",
+          "wandb": -0.5104166865348816,
+          "driver": -3.375,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.87109375,
+          "driver": 0.9541015625,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.015729423647135414,
+          "driver": -0.01923537525765346,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.004991763174244061,
+          "driver": -0.008841607188330328,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.005423757043462849,
+          "driver": -0.004022628093324569,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.0010601242500795649,
+          "driver": -0.0005629905678446996,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.004991763174244061,
+          "driver": -0.008841607188330328,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9570447951054896,
+          "driver": 0.98407655605144,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9942937333883825,
+          "driver": 0.9936075525228704,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-vote/lang/mean",
+          "wandb": -0.00390625,
+          "driver": 0.0009765625,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.005423757043462849,
+          "driver": -0.004022628093324569,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.0010601242500795649,
+          "driver": -0.0005629905678446996,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.8641254937912253,
+          "driver": 0.9696493579112422,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.015729423647135414,
+          "driver": -0.01923537525765346,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-core/score/mean",
+          "wandb": -0.011102656574326264,
+          "driver": -0.012774427749617429,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-delta/lang/mean",
+          "wandb": -0.00390625,
+          "driver": 0.0009765625,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "reward-core/word/mean",
+          "wandb": 0.6841729869856138,
+          "driver": 0.9084440016868083,
+          "driver_log_row": 8
+        },
+        {
+          "step": 394,
+          "key": "timing_s/step",
+          "wandb": 59.52987140096957,
+          "driver": 59.83465728899864,
+          "driver_log_row": 8
+        },
+        {
+          "step": 395,
+          "key": "actor/kl_loss",
+          "wandb": 0.040522812865674496,
+          "driver": 0.03195432445500046,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "actor/loss",
+          "wandb": 0.000668259133817628,
+          "driver": 0.0003630247888395388,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "actor/pg_loss",
+          "wandb": 0.0006277363040680939,
+          "driver": 0.0003310704591967806,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "actor/grad_norm",
+          "wandb": 0.068359375,
+          "driver": 0.024169921875,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/score/mean",
+          "wandb": -0.004766726866364479,
+          "driver": -0.005115161649882793,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/score/max",
+          "wandb": 0.640625,
+          "driver": 0.28409090638160706,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/score/min",
+          "wandb": -0.8020833134651184,
+          "driver": -0.6590909361839294,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/rewards/mean",
+          "wandb": -0.004766726866364479,
+          "driver": -0.005115161649882793,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/rewards/max",
+          "wandb": 0.640625,
+          "driver": 0.28409090638160706,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/rewards/min",
+          "wandb": -0.8020833134651184,
+          "driver": -0.6590909361839294,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/advantages/mean",
+          "wandb": -0.00437003280967474,
+          "driver": -0.004949426278471947,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/advantages/max",
+          "wandb": 0.640625,
+          "driver": 0.28409090638160706,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/advantages/min",
+          "wandb": -0.8020833134651184,
+          "driver": -0.6590909361839294,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/returns/mean",
+          "wandb": -0.00437003280967474,
+          "driver": -0.004949426278471947,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/returns/max",
+          "wandb": 0.640625,
+          "driver": 0.28409090638160706,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "critic/returns/min",
+          "wandb": -0.8020833134651184,
+          "driver": -0.6590909361839294,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.876953125,
+          "driver": 0.9765625,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.007634507554744016,
+          "driver": -0.007681082954381224,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.0030531823833271237,
+          "driver": -0.0007297918995638143,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.00141219139945781,
+          "driver": -0.0023567827586622493,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": 0.00031828394991783985,
+          "driver": -0.000972586644595303,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.0030531823833271237,
+          "driver": -0.0007297918995638143,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.957588353717858,
+          "driver": 0.9896541268910998,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9941401651898089,
+          "driver": 0.9932301587922074,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-vote/lang/mean",
+          "wandb": 0.001953125,
+          "driver": 0,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.00141219139945781,
+          "driver": -0.0023567827586622493,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": 0.00031828394991783985,
+          "driver": -0.000972586644595303,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.8893068668368335,
+          "driver": 0.9769062257104306,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.007634507554744016,
+          "driver": -0.007681082954381224,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-core/score/mean",
+          "wandb": -0.004766726964399339,
+          "driver": -0.0051151610932018065,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-delta/lang/mean",
+          "wandb": 0.001953125,
+          "driver": 0,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "reward-core/word/mean",
+          "wandb": 0.727204075725614,
+          "driver": 0.9133690915161793,
+          "driver_log_row": 10
+        },
+        {
+          "step": 395,
+          "key": "timing_s/step",
+          "wandb": 60.696194535004906,
+          "driver": 66.86584280100033,
+          "driver_log_row": 10
+        },
+        {
+          "step": 396,
+          "key": "actor/kl_loss",
+          "wandb": 0.09658796074134963,
+          "driver": 0.031938449828885496,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "actor/loss",
+          "wandb": 0.0005293018413275215,
+          "driver": 0.000531758792931214,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "actor/pg_loss",
+          "wandb": 0.00043271392392593304,
+          "driver": 0.0004998203489776643,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "actor/grad_norm",
+          "wandb": 0.08544921875,
+          "driver": 0.1650390625,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/score/mean",
+          "wandb": -0.0003081200993619859,
+          "driver": -0.008857429027557373,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/score/max",
+          "wandb": 1.0499999523162842,
+          "driver": 0.125,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/score/min",
+          "wandb": -0.625,
+          "driver": -0.7250000238418579,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/rewards/mean",
+          "wandb": -0.0003081200993619859,
+          "driver": -0.008857429027557373,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/rewards/max",
+          "wandb": 1.0499999523162842,
+          "driver": 0.125,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/rewards/min",
+          "wandb": -0.625,
+          "driver": -0.7250000238418579,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/advantages/mean",
+          "wandb": -0.002135756192728877,
+          "driver": -0.006489373743534088,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/advantages/max",
+          "wandb": 1.0499999523162842,
+          "driver": 0.125,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/advantages/min",
+          "wandb": -0.625,
+          "driver": -0.7250000238418579,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/returns/mean",
+          "wandb": -0.002135756192728877,
+          "driver": -0.006489373743534088,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/returns/max",
+          "wandb": 1.0499999523162842,
+          "driver": 0.125,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "critic/returns/min",
+          "wandb": -0.625,
+          "driver": -0.7250000238418579,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.927734375,
+          "driver": 0.9833984375,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.0007419854135816183,
+          "driver": -0.013154682768948076,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.00233223595031769,
+          "driver": -0.0023586901147863563,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-delta/word_del/mean",
+          "wandb": 0.0026133054532839735,
+          "driver": -0.005468769210509537,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": 0.0007253196500956155,
+          "driver": -0.00019572499353757587,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.00233223595031769,
+          "driver": -0.0023586901147863563,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9596899422152334,
+          "driver": 0.9940561060314127,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9896417519080948,
+          "driver": 0.9959184772678686,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-vote/lang/mean",
+          "wandb": -0.001953125,
+          "driver": -0.0009765625,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-vote/word_del/mean",
+          "wandb": 0.0026133054532839735,
+          "driver": -0.005468769210509537,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": 0.0007253196500956155,
+          "driver": -0.00019572499353757587,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.8975992464510536,
+          "driver": 0.9740931613048218,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.0007419854135816183,
+          "driver": -0.013154682768948076,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-core/score/mean",
+          "wandb": -0.00030812021450145636,
+          "driver": -0.008857428875115737,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-delta/lang/mean",
+          "wandb": -0.001953125,
+          "driver": -0.0009765625,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "reward-core/word/mean",
+          "wandb": 0.7044183358699019,
+          "driver": 0.9306493500122317,
+          "driver_log_row": 12
+        },
+        {
+          "step": 396,
+          "key": "timing_s/step",
+          "wandb": 57.22437683597673,
+          "driver": 62.93426608700065,
+          "driver_log_row": 12
+        }
+      ],
+      "driver_only_points": [
+        {
+          "step": 390,
+          "key": "val-core/earning_chunk_verb/p_err/mean@1",
+          "driver": 0.05138031828515752,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 390,
+          "key": "val-core/openml_bad/p_err/mean@1",
+          "driver": 0.08701829160007103,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 390,
+          "key": "val-core/ls_clean/p_err/mean@1",
+          "driver": 0.011414232888083917,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 390,
+          "key": "val-core/ls_other/p_err/mean@1",
+          "driver": 0.02660812626558922,
+          "reason": "Absent from earlier W&B snapshot"
+        }
+      ]
+    },
+    "fix": {
+      "id": "0ca34a537b05e74628264cac2ea86a75",
+      "run_label": "fix",
+      "driver_submission_id": "raysubmit_wUz37YEmnzCbLxpH",
+      "driver_observed_at_utc": "2026-10-22T17:11:50.256294+00:00",
+      "driver_log_path": "/tmp/ray/session_latest/logs/job-driver-raysubmit_wUz37YEmnzCbLxpH.log",
+      "shared_numeric_points": 4862,
+      "conflicts": [
+        {
+          "step": 451,
+          "key": "actor/kl_loss",
+          "wandb": 0.02253079929505475,
+          "driver": 0.01897797209676355,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "actor/loss",
+          "wandb": 0.0008277086203634099,
+          "driver": 0.00028508444938779576,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "actor/pg_loss",
+          "wandb": 0.0008051778340814053,
+          "driver": 0.0002661064645508304,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "actor/grad_norm",
+          "wandb": 0.06640625,
+          "driver": 0.0159912109375,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/score/mean",
+          "wandb": 0.0009145846124738456,
+          "driver": -0.0027210493572056293,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/score/max",
+          "wandb": 2,
+          "driver": 0.38749998807907104,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/score/min",
+          "wandb": -0.5824999809265137,
+          "driver": -0.2635135054588318,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/rewards/mean",
+          "wandb": 0.0009145846124738456,
+          "driver": -0.0027210493572056293,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/rewards/max",
+          "wandb": 2,
+          "driver": 0.38749998807907104,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/rewards/min",
+          "wandb": -0.5824999809265137,
+          "driver": -0.2635135054588318,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/advantages/mean",
+          "wandb": 0.0003123478381894529,
+          "driver": -0.002926463959738612,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/advantages/max",
+          "wandb": 2,
+          "driver": 0.38749998807907104,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/advantages/min",
+          "wandb": -0.5824999809265137,
+          "driver": -0.2635135054588318,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/returns/mean",
+          "wandb": 0.0003123478381894529,
+          "driver": -0.002926463959738612,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/returns/max",
+          "wandb": 2,
+          "driver": 0.38749998807907104,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "critic/returns/min",
+          "wandb": -0.5824999809265137,
+          "driver": -0.2635135054588318,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.9775390625,
+          "driver": 0.958984375,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.004211245816101682,
+          "driver": -0.0005679959007395652,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-core/score/mean",
+          "wandb": 0.0009145845534972936,
+          "driver": -0.0027210494012019793,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9753241044459408,
+          "driver": 0.9876921940280705,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.00021507479991060064,
+          "driver": -0.0003003333419654985,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.00021507479991060064,
+          "driver": -0.0003003333419654985,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.004211245816101682,
+          "driver": -0.0005679959007395652,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-core/word/mean",
+          "wandb": 0.8792829804358199,
+          "driver": 0.9032667769243194,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.967524632689298,
+          "driver": 0.9572722908211149,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-delta/lang/mean",
+          "wandb": 0.0009765625,
+          "driver": -0.001953125,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.0039528600179173845,
+          "driver": 0.00023398515938455908,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-vote/lang/mean",
+          "wandb": 0.0009765625,
+          "driver": -0.001953125,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-delta/word/mean",
+          "wandb": 0.0013368763253962183,
+          "driver": -0.0038695862993945664,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.991160772737116,
+          "driver": 0.9949192898993793,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-vote/word/mean",
+          "wandb": 0.0013368763253962183,
+          "driver": -0.0038695862993945664,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.0039528600179173845,
+          "driver": 0.00023398515938455908,
+          "driver_log_row": 2
+        },
+        {
+          "step": 451,
+          "key": "timing_s/step",
+          "wandb": 61.04162772197742,
+          "driver": 57.79707174299983,
+          "driver_log_row": 2
+        },
+        {
+          "step": 452,
+          "key": "actor/kl_loss",
+          "wandb": 0.02432767499703914,
+          "driver": 0.024939757771790028,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "actor/loss",
+          "wandb": 0.0013080157027616224,
+          "driver": 0.00026240310603498074,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "actor/pg_loss",
+          "wandb": 0.001283688006878947,
+          "driver": 0.00023746335105556682,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "actor/grad_norm",
+          "wandb": 0.039794921875,
+          "driver": 0.035888671875,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/score/mean",
+          "wandb": -0.008249562233686447,
+          "driver": 5.2120769396424294e-05,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/score/max",
+          "wandb": 0.34375,
+          "driver": 0.5625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/score/min",
+          "wandb": -1.3125,
+          "driver": -0.5538194179534912,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/rewards/mean",
+          "wandb": -0.008249562233686447,
+          "driver": 5.2120769396424294e-05,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/rewards/max",
+          "wandb": 0.34375,
+          "driver": 0.5625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/rewards/min",
+          "wandb": -1.3125,
+          "driver": -0.5538194179534912,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/advantages/mean",
+          "wandb": -0.005700069945305586,
+          "driver": -0.0016983175883069634,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/advantages/max",
+          "wandb": 0.34375,
+          "driver": 0.5625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/advantages/min",
+          "wandb": -1.3125,
+          "driver": -0.5538194179534912,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/returns/mean",
+          "wandb": -0.005700069945305586,
+          "driver": -0.0016983175883069634,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/returns/max",
+          "wandb": 0.34375,
+          "driver": 0.5625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "critic/returns/min",
+          "wandb": -1.3125,
+          "driver": -0.5538194179534912,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.96484375,
+          "driver": 0.9560546875,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-delta/word_del/mean",
+          "wandb": 0.0007784262801652606,
+          "driver": -0.0014134159425714774,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-core/score/mean",
+          "wandb": -0.008249562026678245,
+          "driver": 5.2120770240909366e-05,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9805448966388424,
+          "driver": 0.990665771651932,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.0006673010698469515,
+          "driver": 7.753551277235344e-05,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.0006673010698469515,
+          "driver": 7.753551277235344e-05,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-vote/word_del/mean",
+          "wandb": 0.0007784262801652606,
+          "driver": -0.0014134159425714774,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-core/word/mean",
+          "wandb": 0.895766511711639,
+          "driver": 0.8945501318234186,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.968971758045418,
+          "driver": 0.9579935766122551,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-delta/lang/mean",
+          "wandb": 0.00390625,
+          "driver": 0.0029296875,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.0012077317098977934,
+          "driver": 0.005012806128800462,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-vote/lang/mean",
+          "wandb": 0.00390625,
+          "driver": 0.0029296875,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.013804158485742547,
+          "driver": -0.0008779903887919139,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9935534257686782,
+          "driver": 0.9918840422370652,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.013804158485742547,
+          "driver": -0.0008779903887919139,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.0012077317098977934,
+          "driver": 0.005012806128800462,
+          "driver_log_row": 4
+        },
+        {
+          "step": 452,
+          "key": "timing_s/step",
+          "wandb": 62.559056464000605,
+          "driver": 62.29458077399977,
+          "driver_log_row": 4
+        },
+        {
+          "step": 453,
+          "key": "actor/kl_loss",
+          "wandb": 0.025518141250358894,
+          "driver": 0.023848556069424376,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "actor/loss",
+          "wandb": 0.0006586472009075806,
+          "driver": 0.00010208460184912838,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "actor/pg_loss",
+          "wandb": 0.0006331290824164171,
+          "driver": 7.823604391887784e-05,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "actor/grad_norm",
+          "wandb": 0.01263427734375,
+          "driver": 0.0390625,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/score/mean",
+          "wandb": -0.0041261292062699795,
+          "driver": 5.228584632277489e-05,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/score/max",
+          "wandb": 0.2734375,
+          "driver": 0.38942307233810425,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/score/min",
+          "wandb": -0.2578125,
+          "driver": -0.3229166567325592,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/rewards/mean",
+          "wandb": -0.0041261292062699795,
+          "driver": 5.228584632277489e-05,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/rewards/max",
+          "wandb": 0.2734375,
+          "driver": 0.38942307233810425,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/rewards/min",
+          "wandb": -0.2578125,
+          "driver": -0.3229166567325592,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/advantages/mean",
+          "wandb": -0.004311100579798222,
+          "driver": -0.0024166861549019814,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/advantages/max",
+          "wandb": 0.2734375,
+          "driver": 0.38942307233810425,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/advantages/min",
+          "wandb": -0.2578125,
+          "driver": -0.3229166567325592,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/returns/mean",
+          "wandb": -0.004311100579798222,
+          "driver": -0.0024166861549019814,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/returns/max",
+          "wandb": 0.2734375,
+          "driver": 0.38942307233810425,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "critic/returns/min",
+          "wandb": -0.2578125,
+          "driver": -0.3229166567325592,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.953125,
+          "driver": 0.955078125,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.0015832432425819062,
+          "driver": -0.0011720643378627595,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-core/score/mean",
+          "wandb": -0.004126129213033078,
+          "driver": 5.228584330505101e-05,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9892750986283972,
+          "driver": 0.9830774355969815,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": 0.00011814220141386368,
+          "driver": -0.0003613283398120191,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": 0.00011814220141386368,
+          "driver": -0.0003613283398120191,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.0015832432425819062,
+          "driver": -0.0011720643378627595,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-core/word/mean",
+          "wandb": 0.9220119484176792,
+          "driver": 0.9127264208495325,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.981056255201245,
+          "driver": 0.9772941066182342,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-delta/lang/mean",
+          "wandb": 0,
+          "driver": 0.001953125,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.0005388104579674616,
+          "driver": 0.006083765340923943,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-vote/lang/mean",
+          "wandb": 0,
+          "driver": 0.001953125,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.006413229811080762,
+          "driver": -0.0007258720830556329,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9938254426244236,
+          "driver": 0.9953936901295504,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.006413229811080762,
+          "driver": -0.0007258720830556329,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.0005388104579674616,
+          "driver": 0.006083765340923943,
+          "driver_log_row": 6
+        },
+        {
+          "step": 453,
+          "key": "timing_s/step",
+          "wandb": 62.33765957504511,
+          "driver": 60.88540169099906,
+          "driver_log_row": 6
+        },
+        {
+          "step": 454,
+          "key": "actor/kl_loss",
+          "wandb": 0.022826802218332887,
+          "driver": 0.02739828743506223,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "actor/loss",
+          "wandb": 0.00045894916183897294,
+          "driver": 0.0005526170425582677,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "actor/pg_loss",
+          "wandb": 0.0004361223600426456,
+          "driver": 0.0005252187738733483,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "actor/grad_norm",
+          "wandb": 0.0174560546875,
+          "driver": 0.030029296875,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/score/mean",
+          "wandb": -0.0012058685533702374,
+          "driver": -0.0043072267435491085,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/score/max",
+          "wandb": 0.2916666567325592,
+          "driver": 0.6875,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/score/min",
+          "wandb": -0.3916666805744171,
+          "driver": -0.625,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/rewards/mean",
+          "wandb": -0.0012058685533702374,
+          "driver": -0.0043072267435491085,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/rewards/max",
+          "wandb": 0.2916666567325592,
+          "driver": 0.6875,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/rewards/min",
+          "wandb": -0.3916666805744171,
+          "driver": -0.625,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/advantages/mean",
+          "wandb": -0.0013259542174637318,
+          "driver": -0.004632971249520779,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/advantages/max",
+          "wandb": 0.2916666567325592,
+          "driver": 0.6875,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/advantages/min",
+          "wandb": -0.3916666805744171,
+          "driver": -0.625,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/returns/mean",
+          "wandb": -0.0013259542174637318,
+          "driver": -0.004632971249520779,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/returns/max",
+          "wandb": 0.2916666567325592,
+          "driver": 0.6875,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "critic/returns/min",
+          "wandb": -0.3916666805744171,
+          "driver": -0.625,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.9521484375,
+          "driver": 0.9677734375,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-delta/word_del/mean",
+          "wandb": 0.0023811030847350305,
+          "driver": -0.0050095074431595,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-core/score/mean",
+          "wandb": -0.0012058683802508956,
+          "driver": -0.004307226531288998,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9898192726518116,
+          "driver": 0.984862767755166,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.0012598092150869905,
+          "driver": -0.0002793027999058869,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.0012598092150869905,
+          "driver": -0.0002793027999058869,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-vote/word_del/mean",
+          "wandb": 0.0023811030847350305,
+          "driver": -0.0050095074431595,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-core/word/mean",
+          "wandb": 0.914530440470922,
+          "driver": 0.8698352908298459,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.975720803768531,
+          "driver": 0.9529357035567145,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.0027597537918292578,
+          "driver": 0.005717812863428073,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.0019962007530404634,
+          "driver": -0.0067112199321080765,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9926320740298678,
+          "driver": 0.9942061535605651,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.0019962007530404634,
+          "driver": -0.0067112199321080765,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.0027597537918292578,
+          "driver": 0.005717812863428073,
+          "driver_log_row": 8
+        },
+        {
+          "step": 454,
+          "key": "timing_s/step",
+          "wandb": 64.3777589329984,
+          "driver": 61.31804202999956,
+          "driver_log_row": 8
+        },
+        {
+          "step": 455,
+          "key": "actor/kl_loss",
+          "wandb": 0.02830258579342626,
+          "driver": 0.023643200867809355,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "actor/loss",
+          "wandb": 0.0009153653227258474,
+          "driver": 0.0005270469951028645,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "actor/pg_loss",
+          "wandb": 0.0008870628053045948,
+          "driver": 0.000503403785842238,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "actor/grad_norm",
+          "wandb": 0.05078125,
+          "driver": 0.021728515625,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/score/mean",
+          "wandb": -0.006812762934714556,
+          "driver": -0.008491062559187412,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/score/max",
+          "wandb": 0.6875,
+          "driver": 0.12890625,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/score/min",
+          "wandb": -0.6875,
+          "driver": -0.34375,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/rewards/mean",
+          "wandb": -0.006812762934714556,
+          "driver": -0.008491062559187412,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/rewards/max",
+          "wandb": 0.6875,
+          "driver": 0.12890625,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/rewards/min",
+          "wandb": -0.6875,
+          "driver": -0.34375,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/advantages/mean",
+          "wandb": -0.0072495946660637856,
+          "driver": -0.007273172959685326,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/advantages/max",
+          "wandb": 0.6875,
+          "driver": 0.12890625,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/advantages/min",
+          "wandb": -0.6875,
+          "driver": -0.34375,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/returns/mean",
+          "wandb": -0.0072495946660637856,
+          "driver": -0.007273172959685326,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/returns/max",
+          "wandb": 0.6875,
+          "driver": 0.12890625,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "critic/returns/min",
+          "wandb": -0.6875,
+          "driver": -0.34375,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.9365234375,
+          "driver": 0.9609375,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-delta/word_del/mean",
+          "wandb": 0.00013977132519732492,
+          "driver": -0.002775373442881317,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-core/score/mean",
+          "wandb": -0.0068127631905614576,
+          "driver": -0.00849106247954657,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.96727997111555,
+          "driver": 0.98181395961858,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.00069741522842128,
+          "driver": -0.0014929077933128559,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.00069741522842128,
+          "driver": -0.0014929077933128559,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-vote/word_del/mean",
+          "wandb": 0.00013977132519732492,
+          "driver": -0.002775373442881317,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-core/word/mean",
+          "wandb": 0.882039764856804,
+          "driver": 0.8929007628495382,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9653994209088566,
+          "driver": 0.9581437303696051,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-delta/lang/mean",
+          "wandb": -0.0087890625,
+          "driver": 0,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.0007520854418149001,
+          "driver": -0.0009113124360711609,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-vote/lang/mean",
+          "wandb": -0.0087890625,
+          "driver": 0,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.0090923112359153,
+          "driver": -0.012918449820716695,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9917832437763516,
+          "driver": 0.9870616740720259,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.0090923112359153,
+          "driver": -0.012918449820716695,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.0007520854418149001,
+          "driver": -0.0009113124360711609,
+          "driver_log_row": 10
+        },
+        {
+          "step": 455,
+          "key": "timing_s/step",
+          "wandb": 67.29470298299566,
+          "driver": 66.19865826900059,
+          "driver_log_row": 10
+        },
+        {
+          "step": 456,
+          "key": "actor/kl_loss",
+          "wandb": 0.021582700551435765,
+          "driver": 0.02612884341215249,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "actor/loss",
+          "wandb": 0.0008720698048515866,
+          "driver": 0.001566117185575422,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "actor/pg_loss",
+          "wandb": 0.0008504870980282754,
+          "driver": 0.0015399883113786927,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "actor/grad_norm",
+          "wandb": 0.0213623046875,
+          "driver": 0.02392578125,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "critic/score/mean",
+          "wandb": -0.012785677798092364,
+          "driver": -0.009690148755908012,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "critic/score/max",
+          "wandb": 0.2750000059604645,
+          "driver": 0.375,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "critic/rewards/mean",
+          "wandb": -0.012785677798092364,
+          "driver": -0.009690148755908012,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "critic/rewards/max",
+          "wandb": 0.2750000059604645,
+          "driver": 0.375,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "critic/advantages/mean",
+          "wandb": -0.008888177573680878,
+          "driver": -0.009537063539028168,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "critic/advantages/max",
+          "wandb": 0.2750000059604645,
+          "driver": 0.375,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "critic/returns/mean",
+          "wandb": -0.008888177573680878,
+          "driver": -0.009537063539028168,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "critic/returns/max",
+          "wandb": 0.2750000059604645,
+          "driver": 0.375,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.0009257266850191112,
+          "driver": -0.005690546569285655,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-core/score/mean",
+          "wandb": -0.012785678097265694,
+          "driver": -0.009690148954126161,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.986428732826775,
+          "driver": 0.9802508119102145,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.001081264104882419,
+          "driver": 0.0014445779135810791,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.001081264104882419,
+          "driver": 0.0014445779135810791,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.0009257266850191112,
+          "driver": -0.005690546569285655,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-core/word/mean",
+          "wandb": 0.909695204169598,
+          "driver": 0.9043948514815985,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9736444981252684,
+          "driver": 0.9690110840861319,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.004538957422770789,
+          "driver": -0.0010433097695639406,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.019694363723869637,
+          "driver": -0.015119768275433116,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.99133635719076,
+          "driver": 0.9866404019248343,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.019694363723869637,
+          "driver": -0.015119768275433116,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.004538957422770789,
+          "driver": -0.0010433097695639406,
+          "driver_log_row": 12
+        },
+        {
+          "step": 456,
+          "key": "timing_s/step",
+          "wandb": 68.97988965397235,
+          "driver": 62.49791922300028,
+          "driver_log_row": 12
+        },
+        {
+          "step": 457,
+          "key": "actor/kl_loss",
+          "wandb": 0.02419333005673252,
+          "driver": 0.016568632912822068,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "actor/loss",
+          "wandb": 0.000241327083131182,
+          "driver": 5.799590360311413e-05,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "actor/pg_loss",
+          "wandb": 0.0002171337582694832,
+          "driver": 4.1427236283198e-05,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "actor/grad_norm",
+          "wandb": 0.06884765625,
+          "driver": 0.0281982421875,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/score/mean",
+          "wandb": 0.0032639787532389164,
+          "driver": -0.002758198417723179,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/score/max",
+          "wandb": 1.21875,
+          "driver": 0.2638888955116272,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/score/min",
+          "wandb": -0.6056034564971924,
+          "driver": -0.3125,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/rewards/mean",
+          "wandb": 0.0032639787532389164,
+          "driver": -0.002758198417723179,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/rewards/max",
+          "wandb": 1.21875,
+          "driver": 0.2638888955116272,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/rewards/min",
+          "wandb": -0.6056034564971924,
+          "driver": -0.3125,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/advantages/mean",
+          "wandb": -0.002667070832103491,
+          "driver": -0.0031394422985613346,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/advantages/max",
+          "wandb": 1.21875,
+          "driver": 0.2638888955116272,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/advantages/min",
+          "wandb": -0.6056034564971924,
+          "driver": -0.3125,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/returns/mean",
+          "wandb": -0.002667070832103491,
+          "driver": -0.0031394422985613346,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/returns/max",
+          "wandb": 1.21875,
+          "driver": 0.2638888955116272,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "critic/returns/min",
+          "wandb": -0.6056034564971924,
+          "driver": -0.3125,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.958984375,
+          "driver": 0.95703125,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.008147403051456493,
+          "driver": 0.00017004172618353118,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-core/score/mean",
+          "wandb": 0.00326397879523718,
+          "driver": -0.0027581982820074034,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9833050601874131,
+          "driver": 0.9909055852490485,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": 0.0005932372691888856,
+          "driver": -0.0004815103149144606,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": 0.0005932372691888856,
+          "driver": -0.0004815103149144606,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.008147403051456493,
+          "driver": 0.00017004172618353118,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-core/word/mean",
+          "wandb": 0.8856725523014277,
+          "driver": 0.9072682772370262,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9603443894015564,
+          "driver": 0.9686482673204179,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-delta/lang/mean",
+          "wandb": -0.001953125,
+          "driver": 0.00390625,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.010555825269530215,
+          "driver": 0.0007144771520179757,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-vote/lang/mean",
+          "wandb": -0.001953125,
+          "driver": 0.00390625,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-delta/word/mean",
+          "wandb": 0.005253501396734339,
+          "driver": -0.005186517076049104,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9879390290428058,
+          "driver": 0.9891395826119345,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-vote/word/mean",
+          "wandb": 0.005253501396734339,
+          "driver": -0.005186517076049104,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.010555825269530215,
+          "driver": 0.0007144771520179757,
+          "driver_log_row": 14
+        },
+        {
+          "step": 457,
+          "key": "timing_s/step",
+          "wandb": 64.37317382101901,
+          "driver": 63.27519568800017,
+          "driver_log_row": 14
+        },
+        {
+          "step": 458,
+          "key": "actor/kl_loss",
+          "wandb": 0.022163153247674927,
+          "driver": 0.023584556096466258,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "actor/loss",
+          "wandb": 0.0011789085638156394,
+          "driver": 0.001559589996759314,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "actor/pg_loss",
+          "wandb": 0.0011567454457690474,
+          "driver": 0.0015360054521806887,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "actor/grad_norm",
+          "wandb": 0.018310546875,
+          "driver": 0.09326171875,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/score/mean",
+          "wandb": -0.005312520079314709,
+          "driver": -0.011680792085826397,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/score/max",
+          "wandb": 0.15625,
+          "driver": 0.6458333134651184,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/score/min",
+          "wandb": -0.484375,
+          "driver": -0.949999988079071,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/rewards/mean",
+          "wandb": -0.005312520079314709,
+          "driver": -0.011680792085826397,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/rewards/max",
+          "wandb": 0.15625,
+          "driver": 0.6458333134651184,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/rewards/min",
+          "wandb": -0.484375,
+          "driver": -0.949999988079071,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/advantages/mean",
+          "wandb": -0.004639896564185619,
+          "driver": -0.010395718738436699,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/advantages/max",
+          "wandb": 0.15625,
+          "driver": 0.6458333134651184,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/advantages/min",
+          "wandb": -0.484375,
+          "driver": -0.949999988079071,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/returns/mean",
+          "wandb": -0.004639896564185619,
+          "driver": -0.010395718738436699,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/returns/max",
+          "wandb": 0.15625,
+          "driver": 0.6458333134651184,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "critic/returns/min",
+          "wandb": -0.484375,
+          "driver": -0.949999988079071,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-core/lang/mean",
+          "wandb": 0.97265625,
+          "driver": 0.9384765625,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.00155434201934372,
+          "driver": -0.004581015020314895,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-core/score/mean",
+          "wandb": -0.005312520054031391,
+          "driver": -0.011680791776249361,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.993014169820744,
+          "driver": 0.9762876057641836,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": -0.0001467462303042622,
+          "driver": -0.0003910738103195783,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": -0.0001467462303042622,
+          "driver": -0.0003910738103195783,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.00155434201934372,
+          "driver": -0.004581015020314895,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-core/word/mean",
+          "wandb": 0.9360614372677734,
+          "driver": 0.9031208879490438,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9765915318740346,
+          "driver": 0.9786809243193151,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-delta/lang/mean",
+          "wandb": 0.00390625,
+          "driver": 0.0009765625,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": -0.0017953362966398345,
+          "driver": -0.007934564881367859,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-vote/lang/mean",
+          "wandb": 0.00390625,
+          "driver": 0.0009765625,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.008916965008791017,
+          "driver": -0.01755480658976679,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9929222717063866,
+          "driver": 0.9937263409647187,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.008916965008791017,
+          "driver": -0.01755480658976679,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": -0.0017953362966398345,
+          "driver": -0.007934564881367859,
+          "driver_log_row": 16
+        },
+        {
+          "step": 458,
+          "key": "timing_s/step",
+          "wandb": 62.96558246400673,
+          "driver": 61.69496536099905,
+          "driver_log_row": 16
+        }
+      ],
+      "driver_only_points": [
+        {
+          "step": 450,
+          "key": "val-core/earning_chunk_verb/p_err/mean@1",
+          "driver": 0.04313088665151023,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 450,
+          "key": "val-core/openml_bad/p_err/mean@1",
+          "driver": 0.085419996448233,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 450,
+          "key": "val-core/ls_clean/p_err/mean@1",
+          "driver": 0.0114708323900083,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 450,
+          "key": "val-core/ls_other/p_err/mean@1",
+          "driver": 0.02687307204632766,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/kl_loss",
+          "driver": 0.022918405709788203,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/kl_coef",
+          "driver": 0.001,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/loss",
+          "driver": 0.0005732621956440198,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/pg_loss",
+          "driver": 0.0005503437882907747,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/pg_clipfrac",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/ppo_kl",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/pg_clipfrac_lower",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/grad_norm",
+          "driver": 0.0228271484375,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "actor/lr",
+          "driver": 3e-06,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/score/mean",
+          "driver": -0.007126775570213795,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/score/max",
+          "driver": 0.06402438879013062,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/score/min",
+          "driver": -0.34375,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/rewards/mean",
+          "driver": -0.007126775570213795,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/rewards/max",
+          "driver": 0.06402438879013062,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/rewards/min",
+          "driver": -0.34375,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/advantages/mean",
+          "driver": -0.0059355259872972965,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/advantages/max",
+          "driver": 0.06402438879013062,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/advantages/min",
+          "driver": -0.34375,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/returns/mean",
+          "driver": -0.0059355259872972965,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/returns/max",
+          "driver": 0.06402438879013062,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/returns/min",
+          "driver": -0.34375,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/baseline_score/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/baseline_score/max",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "critic/baseline_score/min",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-core/lang/mean",
+          "driver": 0.9443359375,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-delta/word_del/mean",
+          "driver": -0.001974280408315196,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-core/score/mean",
+          "driver": -0.007126775049140346,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-core/word_ins/mean",
+          "driver": 0.9891600559564595,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-vote/word_kw/mean",
+          "driver": -0.0008003146889754213,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-delta/word_kw/mean",
+          "driver": -0.0008003146889754213,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-vote/word_del/mean",
+          "driver": -0.001974280408315196,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-core/word/mean",
+          "driver": 0.9329430447078946,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-core/word_del/mean",
+          "driver": 0.9741455808452345,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-delta/lang/mean",
+          "driver": -0.0087890625,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-vote/word_ins/mean",
+          "driver": -0.0011174836498653014,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-vote/lang/mean",
+          "driver": -0.0087890625,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-delta/word/mean",
+          "driver": -0.00917578823501142,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-core/word_kw/mean",
+          "driver": 0.9927731550761412,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-vote/word/mean",
+          "driver": -0.00917578823501142,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "reward-delta/word_ins/mean",
+          "driver": -0.0011174836498653014,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 569,
+          "key": "timing_s/step",
+          "driver": 59.30143233700073,
+          "reason": "Absent from earlier W&B snapshot"
+        }
+      ]
+    },
+    "bcr": {
+      "id": "5dc3fdb4c014c9dc1570a5af6e0c1e6e",
+      "run_label": "bcr",
+      "driver_submission_id": "raysubmit_UmggvqWDkrghRcrn",
+      "driver_observed_at_utc": "2026-10-22T17:11:50.144814+00:00",
+      "driver_log_path": "/tmp/ray/session_latest/logs/job-driver-raysubmit_UmggvqWDkrghRcrn.log",
+      "shared_numeric_points": 906,
+      "conflicts": [
+        {
+          "step": 571,
+          "key": "actor/kl_loss",
+          "wandb": 0.09523668384645134,
+          "driver": 0.09522144496440887,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "actor/loss",
+          "wandb": 0.0017628616260481067,
+          "driver": 0.0008368159968605531,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "actor/pg_loss",
+          "wandb": 0.0016676249392730824,
+          "driver": 0.0007415945209296686,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "actor/grad_norm",
+          "wandb": 0.06787109375,
+          "driver": 0.0245361328125,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "critic/score/mean",
+          "wandb": -0.0008431306341663003,
+          "driver": -0.0021207535173743963,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "critic/score/min",
+          "wandb": -0.5892857313156128,
+          "driver": -0.5056818127632141,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "critic/rewards/mean",
+          "wandb": -0.0008431306341663003,
+          "driver": -0.0021207535173743963,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "critic/rewards/min",
+          "wandb": -0.5892857313156128,
+          "driver": -0.5056818127632141,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "critic/advantages/mean",
+          "wandb": -0.003986687865108252,
+          "driver": -0.003638615133240819,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "critic/advantages/min",
+          "wandb": -0.5892857313156128,
+          "driver": -0.5056818127632141,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "critic/returns/mean",
+          "wandb": -0.003986687865108252,
+          "driver": -0.003638615133240819,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "critic/returns/min",
+          "wandb": -0.5892857313156128,
+          "driver": -0.5056818127632141,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.0015436649478770717,
+          "driver": -0.002821903165813892,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9830851627248084,
+          "driver": 0.991476931777174,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": 0.0005405261136104157,
+          "driver": -3.595153946119951e-05,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.007625754725998714,
+          "driver": -0.006798317626279181,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": 0.0005405261136104157,
+          "driver": -3.595153946119951e-05,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.008491262119353011,
+          "driver": 0.001157197894438645,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-core/word/mean",
+          "wandb": 0.8179833618557837,
+          "driver": 0.904862233231704,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.008491262119353011,
+          "driver": 0.001157197894438645,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.0015436649478770717,
+          "driver": -0.002821903165813892,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.007625754725998714,
+          "driver": -0.006798317626279181,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9226726589245868,
+          "driver": 0.9740831432735657,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-core/score/mean",
+          "wandb": -0.000843130616137224,
+          "driver": -0.0021207534043063657,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9816336471067796,
+          "driver": 0.9889352956493018,
+          "driver_log_row": 2
+        },
+        {
+          "step": 571,
+          "key": "timing_s/step",
+          "wandb": 57.85803358419798,
+          "driver": 51.40394472819753,
+          "driver_log_row": 2
+        },
+        {
+          "step": 572,
+          "key": "actor/kl_loss",
+          "wandb": 0.1052159292739816,
+          "driver": 0.08367610233835876,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "actor/loss",
+          "wandb": 0.00023540337360827832,
+          "driver": -0.00048608022916596383,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "actor/pg_loss",
+          "wandb": 0.00013018744084547507,
+          "driver": -0.0005697563319699839,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "actor/grad_norm",
+          "wandb": 0.052978515625,
+          "driver": 0.06982421875,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/score/mean",
+          "wandb": -0.0009130711550824344,
+          "driver": -0.006699409801512957,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/score/max",
+          "wandb": 0.5,
+          "driver": 0.3348214328289032,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/score/min",
+          "wandb": -0.4910714328289032,
+          "driver": -0.625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/rewards/mean",
+          "wandb": -0.0009130711550824344,
+          "driver": -0.006699409801512957,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/rewards/max",
+          "wandb": 0.5,
+          "driver": 0.3348214328289032,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/rewards/min",
+          "wandb": -0.4910714328289032,
+          "driver": -0.625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/advantages/mean",
+          "wandb": -0.004856828134506941,
+          "driver": -0.0057709417305886745,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/advantages/max",
+          "wandb": 0.5,
+          "driver": 0.3348214328289032,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/advantages/min",
+          "wandb": -0.4910714328289032,
+          "driver": -0.625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/returns/mean",
+          "wandb": -0.004856828134506941,
+          "driver": -0.0057709417305886745,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/returns/max",
+          "wandb": 0.5,
+          "driver": 0.3348214328289032,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "critic/returns/min",
+          "wandb": -0.4910714328289032,
+          "driver": -0.625,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-delta/word/mean",
+          "wandb": -0.001694257479521138,
+          "driver": -0.010471863975416114,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-core/word_kw/mean",
+          "wandb": 0.9841205767964872,
+          "driver": 0.9903059030734261,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-vote/word_kw/mean",
+          "wandb": 0.0006799749129953015,
+          "driver": -0.0003597961574170872,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-delta/word_del/mean",
+          "wandb": -0.0015353261061416146,
+          "driver": -0.0014954712150011752,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-delta/word_kw/mean",
+          "wandb": 0.0006799749129953015,
+          "driver": -0.0003597961574170872,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-vote/word_ins/mean",
+          "wandb": 0.0025088137880210403,
+          "driver": -0.0002568538115006675,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-core/word/mean",
+          "wandb": 0.8368975758739535,
+          "driver": 0.8728449446996964,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-delta/word_ins/mean",
+          "wandb": 0.0025088137880210403,
+          "driver": -0.0002568538115006675,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-vote/word/mean",
+          "wandb": -0.001694257479521138,
+          "driver": -0.010471863975416114,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-vote/word_del/mean",
+          "wandb": -0.0015353261061416146,
+          "driver": -0.0014954712150011752,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-core/word_del/mean",
+          "wandb": 0.9427322080313778,
+          "driver": 0.9485844841716886,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-core/score/mean",
+          "wandb": -0.000913071080458834,
+          "driver": -0.006699409818468572,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "reward-core/word_ins/mean",
+          "wandb": 0.9819469198697912,
+          "driver": 0.9812640690936414,
+          "driver_log_row": 4
+        },
+        {
+          "step": 572,
+          "key": "timing_s/step",
+          "wandb": 55.149727907031775,
+          "driver": 58.930894067976624,
+          "driver_log_row": 4
+        }
+      ],
+      "driver_only_points": [
+        {
+          "step": 570,
+          "key": "val-core/earning_chunk_verb/p_err/mean@1",
+          "driver": 0.05099058135758363,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 570,
+          "key": "val-core/openml_bad/p_err/mean@1",
+          "driver": 0.08684070324986681,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 570,
+          "key": "val-core/ls_clean/p_err/mean@1",
+          "driver": 0.01179156290091314,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 570,
+          "key": "val-core/ls_other/p_err/mean@1",
+          "driver": 0.027402963607804542,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/kl_loss",
+          "driver": 0.09171244536992162,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/kl_coef",
+          "driver": 0.001,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/loss",
+          "driver": 0.00023647637135582045,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/pg_loss",
+          "driver": 0.0001447639197067474,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/pg_clipfrac",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/ppo_kl",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/pg_clipfrac_lower",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/grad_norm",
+          "driver": 0.044921875,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "actor/lr",
+          "driver": 3e-06,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/score/mean",
+          "driver": -0.009359101764857769,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/score/max",
+          "driver": 0.5562499761581421,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/score/min",
+          "driver": -0.6770833134651184,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/rewards/mean",
+          "driver": -0.009359101764857769,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/rewards/max",
+          "driver": 0.5562499761581421,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/rewards/min",
+          "driver": -0.6770833134651184,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/advantages/mean",
+          "driver": -0.003953692968934774,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/advantages/max",
+          "driver": 0.5562499761581421,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/advantages/min",
+          "driver": -0.6770833134651184,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/returns/mean",
+          "driver": -0.003953692968934774,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/returns/max",
+          "driver": 0.5562499761581421,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/returns/min",
+          "driver": -0.6770833134651184,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/baseline_score/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/baseline_score/max",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "critic/baseline_score/min",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-delta/word/mean",
+          "driver": -0.014618498898967285,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-core/word_kw/mean",
+          "driver": 0.9942253111746402,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-vote/word_kw/mean",
+          "driver": -0.0005835567882440679,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-delta/word_del/mean",
+          "driver": -0.0037734814928842373,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-delta/word_kw/mean",
+          "driver": -0.0005835567882440679,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-vote/word_ins/mean",
+          "driver": 0.001379956288432672,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-core/word/mean",
+          "driver": 0.8820409820274943,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-core/lang/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-delta/word_ins/mean",
+          "driver": 0.001379956288432672,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-vote/lang/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-delta/lang/mean",
+          "driver": 0,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-vote/word/mean",
+          "driver": -0.014618498898967285,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-vote/word_del/mean",
+          "driver": -0.0037734814928842373,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-core/word_del/mean",
+          "driver": 0.9514736786950779,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-core/score/mean",
+          "driver": -0.009359101735663285,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "reward-core/word_ins/mean",
+          "driver": 0.9823035815008341,
+          "reason": "Absent from earlier W&B snapshot"
+        },
+        {
+          "step": 593,
+          "key": "timing_s/step",
+          "driver": 58.67553342087194,
+          "reason": "Absent from earlier W&B snapshot"
+        }
+      ]
+    }
+  }
+}

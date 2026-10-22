@@ -1,0 +1,241 @@
+{
+  "checked_at_utc": "2026-10-22T17:20:03.732830+00:00",
+  "evidence_path": "/home/boren/code/verl/reports/experiment_comparison_20261022T1706Z/evidence.json",
+  "evidence_generated_at_utc": "2026-10-22T17:19:08.678546+00:00",
+  "evidence_sha256": "f289ce786e89e36c023e493647a02c547854200c8606b9dd1828f49cd5efc85c",
+  "checks": [
+    {
+      "check": "L0_current_driver_all_selected_metrics",
+      "passed": true,
+      "run": "L0",
+      "resume_checkpoint_step": 350,
+      "latest_driver_step": 504,
+      "expected_metric_points": 3578,
+      "reported_metric_points": 3578,
+      "mismatches": [],
+      "extra_metric_points": [],
+      "unexpected_sources": []
+    },
+    {
+      "check": "L0_latest_exact_validation",
+      "passed": true,
+      "run": "L0",
+      "expected": {
+        "val-core/earning_chunk_verb/p_err/mean@1": {
+          "step": 500,
+          "value": 0.043845404352062356
+        },
+        "val-core/openml_bad/p_err/mean@1": {
+          "step": 500,
+          "value": 0.09057005860415557
+        },
+        "val-core/ls_clean/p_err/mean@1": {
+          "step": 500,
+          "value": 0.01182929590219606
+        },
+        "val-core/ls_other/p_err/mean@1": {
+          "step": 500,
+          "value": 0.026816297950455138
+        }
+      },
+      "mismatches": []
+    },
+    {
+      "check": "hindi_v1_current_driver_all_selected_metrics",
+      "passed": true,
+      "run": "hindi_v1",
+      "resume_checkpoint_step": 580,
+      "latest_driver_step": 660,
+      "expected_metric_points": 2085,
+      "reported_metric_points": 2085,
+      "mismatches": [],
+      "extra_metric_points": [],
+      "unexpected_sources": []
+    },
+    {
+      "check": "hindi_v1_latest_exact_validation",
+      "passed": true,
+      "run": "hindi_v1",
+      "expected": {
+        "val-core/monsoon_hi_in/p_err/mean@1": {
+          "step": 660,
+          "value": 0.08915042294961383
+        }
+      },
+      "mismatches": []
+    },
+    {
+      "check": "bcr64_current_driver_all_selected_metrics",
+      "passed": true,
+      "run": "bcr64",
+      "resume_checkpoint_step": 390,
+      "latest_driver_step": 429,
+      "expected_metric_points": 792,
+      "reported_metric_points": 792,
+      "mismatches": [],
+      "extra_metric_points": [],
+      "unexpected_sources": []
+    },
+    {
+      "check": "bcr64_latest_exact_validation",
+      "passed": true,
+      "run": "bcr64",
+      "expected": {
+        "val-core/earning_chunk_verb/p_err/mean@1": {
+          "step": 420,
+          "value": 0.04585904514452744
+        },
+        "val-core/openml_bad/p_err/mean@1": {
+          "step": 420,
+          "value": 0.08613034984904991
+        },
+        "val-core/ls_clean/p_err/mean@1": {
+          "step": 420,
+          "value": 0.011678363897064371
+        },
+        "val-core/ls_other/p_err/mean@1": {
+          "step": 420,
+          "value": 0.02708124373119358
+        }
+      },
+      "mismatches": []
+    },
+    {
+      "check": "fix_current_driver_all_selected_metrics",
+      "passed": true,
+      "run": "fix",
+      "resume_checkpoint_step": 450,
+      "latest_driver_step": 569,
+      "expected_metric_points": 2408,
+      "reported_metric_points": 2408,
+      "mismatches": [],
+      "extra_metric_points": [],
+      "unexpected_sources": []
+    },
+    {
+      "check": "fix_latest_exact_validation",
+      "passed": true,
+      "run": "fix",
+      "expected": {
+        "val-core/earning_chunk_verb/p_err/mean@1": {
+          "step": 560,
+          "value": 0.04598895745371874
+        },
+        "val-core/openml_bad/p_err/mean@1": {
+          "step": 560,
+          "value": 0.08206039076376555
+        },
+        "val-core/ls_clean/p_err/mean@1": {
+          "step": 560,
+          "value": 0.011546298392574145
+        },
+        "val-core/ls_other/p_err/mean@1": {
+          "step": 560,
+          "value": 0.02694877084082436
+        }
+      },
+      "mismatches": []
+    },
+    {
+      "check": "bcr_current_driver_all_selected_metrics",
+      "passed": true,
+      "run": "bcr",
+      "resume_checkpoint_step": 570,
+      "latest_driver_step": 593,
+      "expected_metric_points": 468,
+      "reported_metric_points": 468,
+      "mismatches": [],
+      "extra_metric_points": [],
+      "unexpected_sources": []
+    },
+    {
+      "check": "bcr_latest_exact_validation",
+      "passed": true,
+      "run": "bcr",
+      "expected": {
+        "val-core/earning_chunk_verb/p_err/mean@1": {
+          "step": 580,
+          "value": 0.051770055212731404
+        },
+        "val-core/openml_bad/p_err/mean@1": {
+          "step": 580,
+          "value": 0.08805254748801704
+        },
+        "val-core/ls_clean/p_err/mean@1": {
+          "step": 580,
+          "value": 0.01164063089578145
+        },
+        "val-core/ls_other/p_err/mean@1": {
+          "step": 580,
+          "value": 0.027289415416059497
+        }
+      },
+      "mismatches": []
+    },
+    {
+      "check": "L1_retained_recovery2_driver_all_selected_metrics",
+      "passed": true,
+      "run": "L1",
+      "resume_checkpoint_step": 10,
+      "interval": [
+        11,
+        340
+      ],
+      "expected_metric_points": 8648,
+      "mismatches": []
+    },
+    {
+      "check": "active_dev_latest_common_exact_validation_step",
+      "passed": true,
+      "group": "active_dev",
+      "expected_step": 420,
+      "observed_steps": [
+        420
+      ],
+      "rows": 16,
+      "mismatches": []
+    },
+    {
+      "check": "dev_latest_common_exact_validation_step",
+      "passed": true,
+      "group": "dev",
+      "expected_step": 340,
+      "observed_steps": [
+        340
+      ],
+      "rows": 28,
+      "mismatches": []
+    },
+    {
+      "check": "hindi_latest_common_exact_validation_step",
+      "passed": true,
+      "group": "hindi",
+      "expected_step": 660,
+      "observed_steps": [
+        660
+      ],
+      "rows": 2,
+      "mismatches": []
+    },
+    {
+      "check": "full_unsampled_WandB_source_preserved",
+      "passed": true,
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/scalar_evidence.json",
+      "frozen_source": "/home/boren/code/verl/reports/experiment_comparison_20261022T1706Z/sources/wandb_scalar_evidence.json"
+    },
+    {
+      "check": "offline_interactive_series_matches_evidence",
+      "passed": true,
+      "mismatch_runs": []
+    }
+  ],
+  "errors": [],
+  "notes": [
+    "Exact original W&B rows and driver mismatch source are retained separately. A continuous W&B step axis does not establish retained model lineage.",
+    "L0 <=350 remains original W&B history; known current rollback351-355 is checked against current driver.",
+    "L2 observations through346 belong to its original preempted attempt; no restored progress is inferred.",
+    "L1 retained recovery2 ends checkpoint340; later visible W&B341-347 need explicit historical unsaved-tail labeling or exclusion from retained-lineage figures."
+  ],
+  "passed": true,
+  "checks_count": 16
+}

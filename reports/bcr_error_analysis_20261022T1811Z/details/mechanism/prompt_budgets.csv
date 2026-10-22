@@ -1,0 +1,7 @@
+cutoff,run,status,optimizer_rows,fresh_presentations,replay_presentations,raw_prompt_presentations,fresh_vs_fix_percent,available_through
+440,Fix,complete,440,56320,0,56320,100.0,
+440,R16,complete,440,49480,6780,56260,87.85511363636364,
+440,R64,complete,440,28160,28032,56192,50.0,
+580,Fix,complete,580,74240,0,74240,100.0,
+580,R16,complete,580,65160,9004,74164,87.76939655172414,
+580,R64,N/A,,,,,,458

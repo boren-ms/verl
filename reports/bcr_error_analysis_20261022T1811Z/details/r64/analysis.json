@@ -1,0 +1,582 @@
+{
+  "generated_at_utc": "2026-10-22T18:26:17.749020+00:00",
+  "scope": "Frozen step440; R64 versus direct Fix; four complete matched validation corpora",
+  "selected_common_validation_step": 440,
+  "baseline": {
+    "name": "Fix",
+    "run_id": "0ca34a537b05e74628264cac2ea86a75",
+    "retained_segment": "baseline_current_after_80",
+    "source_identity": {
+      "submission_id": "raysubmit_cQWZbUZbcVRYkXpu",
+      "driver_job_id": "03000000"
+    },
+    "scalar_source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/baseline_history_capture_20261022T1250.json",
+    "scalar_evidence_coverage": "wandb_only"
+  },
+  "target": {
+    "name": "R64",
+    "run_id": "e51cc81ed31e918470dbcc8143a6b731",
+    "retained_segment": "bcr64-recover390-20261022T1535Z",
+    "job_id": "bcr64-recover390-20261022T1535Z",
+    "driver_id": "1a000000",
+    "scalar_source": "/home/boren/code/verl/tmp/verl_asr_run/remax_dev_base0_v1h2a_fix_bcr64/driver_metrics_20261022T174012Z.json",
+    "lineage": "Original raysubmit_a5BkBYyJeRuPPHft retained through390; current recovery retained391+; discarded original391-396 excluded"
+  },
+  "metrics_policy": "Official logged n_err/n_ref are primary. Exact scorer S/D/I recomputation reproduces all per-dataset totals and official scalars. Each side retains its own denominator. No averaging or pooling across datasets.",
+  "bad_case_policy": "Disjoint categories compare each matched unit logged n_err/n_ref. Improved includes recovered; persistent means both bad and equal rate; worsening_persistent means both bad and higher rate. Rate comparisons preserve each run logged denominator, including any compound-dependent changes.",
+  "per_dataset": {
+    "earning_chunk_verb": {
+      "step": 440,
+      "unit": "parent_recording",
+      "baseline_raw_rows": 341,
+      "target_raw_rows": 341,
+      "baseline_units": 6,
+      "target_units": 6,
+      "matched": 6,
+      "baseline_only": 0,
+      "target_only": 0,
+      "reference_conflicts": [],
+      "metadata_conflicts": [],
+      "logged_n_ref_differences_despite_equal_gts": [],
+      "baseline_invalid_units": [],
+      "target_invalid_units": [],
+      "category_counts": {
+        "improved": 4,
+        "newly_failed": 0,
+        "worsening_persistent": 2,
+        "persistent": 0,
+        "unchanged_correct": 0,
+        "unknown": 0
+      },
+      "recovered_subset_of_improved": 0,
+      "delta_n_err": 7,
+      "delta_p_err_percentage_points": 0.045469308216953414,
+      "added_errors_in_newly_failed": 0,
+      "added_errors_in_worsening_persistent": 33,
+      "removed_errors_in_improved": 26,
+      "metrics": {
+        "baseline": {
+          "n_sub": 340,
+          "n_del": 270,
+          "n_ins": 82,
+          "n_err": 692,
+          "n_ref": 15395,
+          "p_err": 0.04494965898018837,
+          "p_err_percent": 4.494965898018837,
+          "logged_validation_p_err": 0.04494965898018837,
+          "recomputed_total_matches_logged_counts_and_validation_scalar": true
+        },
+        "target": {
+          "n_sub": 361,
+          "n_del": 262,
+          "n_ins": 76,
+          "n_err": 699,
+          "n_ref": 15395,
+          "p_err": 0.045404352062357906,
+          "p_err_percent": 4.540435206235791,
+          "logged_validation_p_err": 0.045404352062357906,
+          "recomputed_total_matches_logged_counts_and_validation_scalar": true
+        }
+      },
+      "full_csv": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/detail_reports/earning_chunk_verb/earning-chunk-verb-fix-step440-vs-r64-step440.full.csv",
+      "normalized_references_equal": 6,
+      "original_raw_references_equal": 6,
+      "source_files": {
+        "baseline": {
+          "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/earning_chunk_verb_440.jsonl",
+          "sha256": "9e80a4ca062d54c1ec797ced85a78e45a3bdc85ff0b6b5cbea82b0d884ea6a64"
+        },
+        "target": {
+          "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/earning_chunk_verb_440.jsonl",
+          "sha256": "3f36e7ea88389dc9ac13fcee1cb4fbb99816c3618b327bb8541be1d29b9f7ae9"
+        }
+      },
+      "sdi_delta_target_minus_baseline": {
+        "n_sub": 21,
+        "n_del": -8,
+        "n_ins": -6,
+        "n_err": 7,
+        "n_ref": 0
+      },
+      "examples": [],
+      "parent_error_changes": [
+        {
+          "stable_identity": "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/03c13d67-c016-4a2b-91d8-e013d5d6bd2b.mp3",
+          "baseline_n_err": 164,
+          "target_n_err": 187,
+          "delta_n_err": 23,
+          "segment_count": 66
+        },
+        {
+          "stable_identity": "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/4468919_trimmed_v2.mp3",
+          "baseline_n_err": 80,
+          "target_n_err": 90,
+          "delta_n_err": 10,
+          "segment_count": 51
+        },
+        {
+          "stable_identity": "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/c6efdf26-e19a-4e33-8bbc-c40283fea3a3.mp3",
+          "baseline_n_err": 64,
+          "target_n_err": 54,
+          "delta_n_err": -10,
+          "segment_count": 44
+        },
+        {
+          "stable_identity": "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/647936bd-87b4-4f20-b467-b954263513e6.mp3",
+          "baseline_n_err": 150,
+          "target_n_err": 142,
+          "delta_n_err": -8,
+          "segment_count": 62
+        }
+      ]
+    },
+    "openml_bad": {
+      "step": 440,
+      "unit": "utterance",
+      "baseline_raw_rows": 393,
+      "target_raw_rows": 393,
+      "baseline_units": 393,
+      "target_units": 393,
+      "matched": 393,
+      "baseline_only": 0,
+      "target_only": 0,
+      "reference_conflicts": [],
+      "metadata_conflicts": [],
+      "logged_n_ref_differences_despite_equal_gts": [
+        {
+          "stable_identity": "9071737899953350186",
+          "baseline_n_ref": 25,
+          "target_n_ref": 26,
+          "baseline_lines": [
+            111
+          ],
+          "target_lines": [
+            111
+          ]
+        },
+        {
+          "stable_identity": "common_voice_it_20059916",
+          "baseline_n_ref": 1,
+          "target_n_ref": 3,
+          "baseline_lines": [
+            353
+          ],
+          "target_lines": [
+            353
+          ]
+        }
+      ],
+      "baseline_invalid_units": [],
+      "target_invalid_units": [],
+      "category_counts": {
+        "improved": 20,
+        "newly_failed": 16,
+        "worsening_persistent": 11,
+        "persistent": 142,
+        "unchanged_correct": 204,
+        "unknown": 0
+      },
+      "recovered_subset_of_improved": 4,
+      "delta_n_err": 7,
+      "delta_p_err_percentage_points": 0.11976493506452579,
+      "added_errors_in_newly_failed": 22,
+      "added_errors_in_worsening_persistent": 15,
+      "removed_errors_in_improved": 30,
+      "metrics": {
+        "baseline": {
+          "n_sub": 311,
+          "n_del": 71,
+          "n_ins": 94,
+          "n_err": 476,
+          "n_ref": 5630,
+          "p_err": 0.08454706927175844,
+          "p_err_percent": 8.454706927175843,
+          "logged_validation_p_err": 0.08454706927175844,
+          "recomputed_total_matches_logged_counts_and_validation_scalar": true
+        },
+        "target": {
+          "n_sub": 315,
+          "n_del": 81,
+          "n_ins": 87,
+          "n_err": 483,
+          "n_ref": 5633,
+          "p_err": 0.0857447186224037,
+          "p_err_percent": 8.574471862240369,
+          "logged_validation_p_err": 0.08574471862240368,
+          "recomputed_total_matches_logged_counts_and_validation_scalar": true
+        }
+      },
+      "full_csv": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/detail_reports/openml_bad/openml-bad-fix-step440-vs-r64-step440.full.csv",
+      "normalized_references_equal": 391,
+      "original_raw_references_equal": 393,
+      "source_files": {
+        "baseline": {
+          "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/openml_bad_440.jsonl",
+          "sha256": "ac8dca2396bed6e3dd71b8c8caa308a57a4e2d0912413b1d56557dbe0d813a06"
+        },
+        "target": {
+          "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/openml_bad_440.jsonl",
+          "sha256": "35db594443e8a44b58c21db3fab233097ab0b0312c9f2622a244a90b5784ef84"
+        }
+      },
+      "sdi_delta_target_minus_baseline": {
+        "n_sub": 4,
+        "n_del": 10,
+        "n_ins": -7,
+        "n_err": 7,
+        "n_ref": 3
+      },
+      "examples": [
+        {
+          "id": "8031031497862620363",
+          "baseline_n_err": 1,
+          "target_n_err": 5,
+          "reference": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 kilómetros 31 millas de Buenos Aires, que se postulará para la presidencia.",
+          "baseline_hypothesis": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 km, 31 millas, de Buenos Aires, que se postulará para la presidencia.",
+          "target_hypothesis": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina, anunció anoche en La Plata, ciudad ubicada a 50 km (31 millas) de Buenos Aires, que se postulará para la presidencia."
+        },
+        {
+          "id": "16940047964722835471",
+          "baseline_n_err": 0,
+          "target_n_err": 2,
+          "reference": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km 50 millas desde la costa hacia el interior de Bangladesh y de la India.",
+          "baseline_hypothesis": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km, 50 millas, desde la costa hacia el interior de Bangladesh y de la India.",
+          "target_hypothesis": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km (50 millas) desde la costa hacia el interior de Bangladesh y de la India."
+        },
+        {
+          "id": "9071737899953350186",
+          "baseline_n_err": 0,
+          "target_n_err": 2,
+          "reference": "Al confronto mediante spettroscopia infrarossa FT-IR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+          "baseline_hypothesis": "Al confronto mediante spettroscopia infrarossa, FTIR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+          "target_hypothesis": "Al confronto mediante spettroscopia infrarossa (FTIR), la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti."
+        },
+        {
+          "id": "2114_1656_000013",
+          "baseline_n_err": 4,
+          "target_n_err": 0,
+          "reference": "qui me menait: Canot d'écorce qui vole, qui vole, Canot d'écorce qui va voler! Le marinier qui me menait, Canot d'écorce qui va voler, Me dit, ma belle, embrassez moi: Canot d'écorce qui vole, qui",
+          "baseline_hypothesis": "Canot d'écorce qui vole, qui vole, canot d'écorce qui va voler Le marinier qui me menait, canot d'écorce qui va voler Me dit \"Ma belle, embrassez-moi, canot d'écorce qui vole, qui vole",
+          "target_hypothesis": "Qui me menait canot d'écorce qui vole, qui vole canot d'écorce qui va voler Le marinier qui me menait canot d'écorce qui va voler me dit Ma belle, embrassez-moi canot d'écorce qui vole, qui"
+        }
+      ]
+    },
+    "ls_clean": {
+      "step": 440,
+      "unit": "utterance",
+      "baseline_raw_rows": 2620,
+      "target_raw_rows": 2620,
+      "baseline_units": 2620,
+      "target_units": 2620,
+      "matched": 2620,
+      "baseline_only": 0,
+      "target_only": 0,
+      "reference_conflicts": [],
+      "metadata_conflicts": [],
+      "logged_n_ref_differences_despite_equal_gts": [],
+      "baseline_invalid_units": [],
+      "target_invalid_units": [],
+      "category_counts": {
+        "improved": 31,
+        "newly_failed": 23,
+        "worsening_persistent": 15,
+        "persistent": 380,
+        "unchanged_correct": 2171,
+        "unknown": 0
+      },
+      "recovered_subset_of_improved": 21,
+      "delta_n_err": 6,
+      "delta_p_err_percentage_points": 0.011319900384876465,
+      "added_errors_in_newly_failed": 25,
+      "added_errors_in_worsening_persistent": 16,
+      "removed_errors_in_improved": 35,
+      "metrics": {
+        "baseline": {
+          "n_sub": 492,
+          "n_del": 67,
+          "n_ins": 52,
+          "n_err": 611,
+          "n_ref": 53004,
+          "p_err": 0.011527431891932685,
+          "p_err_percent": 1.1527431891932685,
+          "logged_validation_p_err": 0.011527431891932683,
+          "recomputed_total_matches_logged_counts_and_validation_scalar": true
+        },
+        "target": {
+          "n_sub": 503,
+          "n_del": 64,
+          "n_ins": 50,
+          "n_err": 617,
+          "n_ref": 53004,
+          "p_err": 0.01164063089578145,
+          "p_err_percent": 1.164063089578145,
+          "logged_validation_p_err": 0.01164063089578145,
+          "recomputed_total_matches_logged_counts_and_validation_scalar": true
+        }
+      },
+      "full_csv": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/detail_reports/ls_clean/ls-clean-fix-step440-vs-r64-step440.full.csv",
+      "normalized_references_equal": 2620,
+      "original_raw_references_equal": 2620,
+      "source_files": {
+        "baseline": {
+          "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/ls_clean_440.jsonl",
+          "sha256": "ddd7a410d4e0b7f07dc79a40af6e000cfa41ea4511bda5e169f00b4a0af6f447"
+        },
+        "target": {
+          "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/ls_clean_440.jsonl",
+          "sha256": "a61ca5e94f9d4ea260923036828f980a3ab75fb4a0d5b3a9ab0ba0efb4cd32b6"
+        }
+      },
+      "sdi_delta_target_minus_baseline": {
+        "n_sub": 11,
+        "n_del": -3,
+        "n_ins": -2,
+        "n_err": 6,
+        "n_ref": 0
+      },
+      "examples": [
+        {
+          "id": "7176-92135-0037",
+          "baseline_n_err": 0,
+          "target_n_err": 2,
+          "reference": "then is the time to introduce a meal on the stage",
+          "baseline_hypothesis": "Then is the time to introduce a meal on the stage.",
+          "target_hypothesis": "Then is the time to introduce Amiel on the stage."
+        },
+        {
+          "id": "8555-284447-0006",
+          "baseline_n_err": 0,
+          "target_n_err": 2,
+          "reference": "in one place at the head of the room was a raised platform for the royal family with elegant throne chairs for the king and queen and six smaller but richly upholstered chairs for the snubnosed princesses",
+          "baseline_hypothesis": "In one place, at the head of the room, was a raised platform for the royal family, with elegant throne chairs for the king and queen, and six smaller but richly upholstered chairs for the snub-nosed princesses.",
+          "target_hypothesis": "In one place, at the head of the room, was a raised platform for the royal family, with elegant throne chairs for the king and queen, and six smaller but richly upholstered chairs for the snow-nosed princesses."
+        },
+        {
+          "id": "1995-1837-0005",
+          "baseline_n_err": 2,
+          "target_n_err": 0,
+          "reference": "she was so strange and human a creature",
+          "baseline_hypothesis": "She was so strange, inhuman a creature.",
+          "target_hypothesis": "She was so strange and human a creature."
+        }
+      ]
+    },
+    "ls_other": {
+      "step": 440,
+      "unit": "utterance",
+      "baseline_raw_rows": 2939,
+      "target_raw_rows": 2939,
+      "baseline_units": 2939,
+      "target_units": 2939,
+      "matched": 2939,
+      "baseline_only": 0,
+      "target_only": 0,
+      "reference_conflicts": [],
+      "metadata_conflicts": [],
+      "logged_n_ref_differences_despite_equal_gts": [],
+      "baseline_invalid_units": [],
+      "target_invalid_units": [],
+      "category_counts": {
+        "improved": 85,
+        "newly_failed": 41,
+        "worsening_persistent": 31,
+        "persistent": 766,
+        "unchanged_correct": 2016,
+        "unknown": 0
+      },
+      "recovered_subset_of_improved": 47,
+      "delta_n_err": -14,
+      "delta_p_err_percentage_points": -0.02649457807384417,
+      "added_errors_in_newly_failed": 51,
+      "added_errors_in_worsening_persistent": 43,
+      "removed_errors_in_improved": 108,
+      "metrics": {
+        "baseline": {
+          "n_sub": 1182,
+          "n_del": 106,
+          "n_ins": 135,
+          "n_err": 1423,
+          "n_ref": 52841,
+          "p_err": 0.026929846142200186,
+          "p_err_percent": 2.6929846142200184,
+          "logged_validation_p_err": 0.026929846142200183,
+          "recomputed_total_matches_logged_counts_and_validation_scalar": true
+        },
+        "target": {
+          "n_sub": 1174,
+          "n_del": 111,
+          "n_ins": 124,
+          "n_err": 1409,
+          "n_ref": 52841,
+          "p_err": 0.026664900361461744,
+          "p_err_percent": 2.6664900361461745,
+          "logged_validation_p_err": 0.026664900361461744,
+          "recomputed_total_matches_logged_counts_and_validation_scalar": true
+        }
+      },
+      "full_csv": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/detail_reports/ls_other/ls-other-fix-step440-vs-r64-step440.full.csv",
+      "normalized_references_equal": 2939,
+      "original_raw_references_equal": 2939,
+      "source_files": {
+        "baseline": {
+          "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/ls_other_440.jsonl",
+          "sha256": "ae7763fbf62fa9ba6cf03853509cdf40aaeff80d43ff4e6f87e890c3cf836307"
+        },
+        "target": {
+          "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/ls_other_440.jsonl",
+          "sha256": "64dff99e038c3d4d765d5bab18f3e2024d01a663e8c06b2ca7767d0fcb70efcf"
+        }
+      },
+      "sdi_delta_target_minus_baseline": {
+        "n_sub": -8,
+        "n_del": 5,
+        "n_ins": -11,
+        "n_err": -14,
+        "n_ref": 0
+      },
+      "examples": [
+        {
+          "id": "1998-29454-0017",
+          "baseline_n_err": 0,
+          "target_n_err": 3,
+          "reference": "that ain't what she'll be in when you gets back",
+          "baseline_hypothesis": "That ain't what she'll be in when you gets back.",
+          "target_hypothesis": "That an't what you'll be in when you gets back."
+        },
+        {
+          "id": "2609-157645-0008",
+          "baseline_n_err": 1,
+          "target_n_err": 4,
+          "reference": "let them sing another psalm said the curate",
+          "baseline_hypothesis": "Them them sing another psalm, said the curate.",
+          "target_hypothesis": "Them them sing an oth song, said the curate."
+        },
+        {
+          "id": "2609-169640-0000",
+          "baseline_n_err": 7,
+          "target_n_err": 3,
+          "reference": "proas in that quarter were usually distrusted by ships it is true but the sea is full of them and far more are innocent than are guilty of any acts of violence",
+          "baseline_hypothesis": "Parrots in that quarter were usually distrusted by the sepsa, it is true, but the see us for them, and far more are innocent than are guilty of any acts of violence.",
+          "target_hypothesis": "Parrots in that quarter were usually distrusted by the sepsa, it is true, but the sea is full of them, and far more are innocent than are guilty of any acts of violence."
+        }
+      ]
+    }
+  },
+  "table_coverage": {
+    "baseline": {
+      "raw_flattened_observations": 380,
+      "unique_observations": 380,
+      "duplicate_cumulative_copies_removed": 0,
+      "step_coverage": {
+        "80": 20,
+        "100": 20,
+        "120": 20,
+        "140": 20,
+        "160": 20,
+        "180": 20,
+        "200": 20,
+        "220": 20,
+        "240": 20,
+        "260": 20,
+        "280": 20,
+        "300": 20,
+        "320": 20,
+        "340": 20,
+        "360": 20,
+        "380": 20,
+        "400": 20,
+        "420": 20,
+        "440": 20
+      },
+      "selected_step": 440,
+      "selected_matches": 20,
+      "selected_unmatched": 0,
+      "selected_ambiguous": 0,
+      "selected_dataset_coverage": {
+        "earning_chunk_verb": 0,
+        "openml_bad": 17,
+        "ls_clean": 1,
+        "ls_other": 2
+      }
+    },
+    "target": {
+      "raw_flattened_observations": 160,
+      "unique_observations": 80,
+      "duplicate_cumulative_copies_removed": 80,
+      "step_coverage": {
+        "390": 20,
+        "400": 20,
+        "420": 20,
+        "440": 20
+      },
+      "selected_step": 440,
+      "selected_matches": 20,
+      "selected_unmatched": 0,
+      "selected_ambiguous": 0,
+      "selected_dataset_coverage": {
+        "earning_chunk_verb": 0,
+        "openml_bad": 18,
+        "ls_clean": 1,
+        "ls_other": 1
+      }
+    }
+  },
+  "parentheses_diagnostic": {
+    "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/parentheses_diagnostic.json",
+    "reproduction_script": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/parentheses_diagnostic.py",
+    "official_scoring_replaced": false,
+    "method": "str.translate(str.maketrans('', '', '()')) on both raw gts and clean_output on both sides; all content inside parentheses is preserved",
+    "all_393_original_row_counts_exactly_reproduced": true,
+    "aggregates": {
+      "baseline": {
+        "original": {
+          "ref_words": 5630,
+          "errors": 476,
+          "substitutions": 311,
+          "deletions": 71,
+          "insertions": 94,
+          "p_err": 0.08454706927175844
+        },
+        "diagnostic": {
+          "ref_words": 5630,
+          "errors": 464,
+          "substitutions": 312,
+          "deletions": 58,
+          "insertions": 94,
+          "p_err": 0.08241563055062166
+        }
+      },
+      "target": {
+        "original": {
+          "ref_words": 5633,
+          "errors": 483,
+          "substitutions": 315,
+          "deletions": 81,
+          "insertions": 87,
+          "p_err": 0.0857447186224037
+        },
+        "diagnostic": {
+          "ref_words": 5632,
+          "errors": 466,
+          "substitutions": 316,
+          "deletions": 63,
+          "insertions": 87,
+          "p_err": 0.08274147727272728
+        }
+      }
+    },
+    "original_error_gap": 7,
+    "diagnostic_error_gap": 2,
+    "gap_change": -5,
+    "rows_with_metric_change_on_either_side": 11
+  },
+  "limitations": [
+    "Identical raw gts do not guarantee equal logged n_ref: the actual merge_compounds scorer can normalize ref/hyp jointly. Any observed denominator differences are listed per dataset; retain each run original counts rather than assuming a fixed denominator.",
+    "W&B selected tables are cross-dataset low-score subsets and cannot estimate corpus failure rates.",
+    "Counts use each exact run scorer output; text changes alone do not establish acoustic or causal mechanisms.",
+    "No datasets are pooled or cross-dataset averaged.",
+    "Skill-generated OpenML summary.json baseline_wer incorrectly divides Fix476 by target ref5633. The full CSV has correct separate ref counts5630/5633. This analysis uses official logged counts, hence Fix8.454706927%, R648.574471862%. Comparator source is unchanged.",
+    "The parentheses sensitivity analysis is a scoring diagnostic, not an alternate official result. It cannot establish an acoustic or causal training mechanism.",
+    "These are single fixed-step comparisons without repeated training seeds; small differences are descriptive."
+  ]
+}

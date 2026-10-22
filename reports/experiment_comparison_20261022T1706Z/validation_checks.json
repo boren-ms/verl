@@ -1,0 +1,31 @@
+{
+  "run_count": 9,
+  "group_runs": {
+    "dev": [
+      "historical_v1h2a",
+      "fix",
+      "L0",
+      "L1",
+      "L2",
+      "bcr",
+      "bcr64"
+    ],
+    "hindi": [
+      "hindi_v0",
+      "hindi_v1"
+    ],
+    "active_dev": [
+      "fix",
+      "L0",
+      "bcr",
+      "bcr64"
+    ]
+  },
+  "figures": 14,
+  "matched_rows": 83,
+  "metric_rows": 106638,
+  "issues": 0,
+  "offline_html": true,
+  "all_p_err_finite_nonnegative": true,
+  "source_hashes_verified": true
+}

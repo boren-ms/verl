@@ -1,0 +1,203 @@
+{
+  "captured_at_utc": "2026-10-22T18:15:22.207829+00:00",
+  "summary_source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples_summary.json",
+  "summary_sha256": "6f84b70473758a5bd4b3b64f72c98a9fcb38a45ee2d36b9f94075b7e22d7a058",
+  "observation_binding": {
+    "version": 1,
+    "selected_step": 580,
+    "lineage_fingerprint": "5ff1c2c0449461fc602676edbc7c855f13a21e7bb5baddc3192ac6b3ffcaeccf",
+    "identity_policy": "Run, validation step, resolved segment/submission/driver/source/config and per-dataset p_err; collector paths, collector timestamps and W&B-versus-exact transport are nonidentity evidence. Scalar tolerance 1e-10.",
+    "runs": {
+      "baseline": {
+        "run_id": "0ca34a537b05e74628264cac2ea86a75",
+        "step": 580,
+        "lineage": {
+          "segment_id": "baseline_current_after_450",
+          "submission_id": "raysubmit_wUz37YEmnzCbLxpH",
+          "driver_job_id": "05000000",
+          "source_commit": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+          "config_sha256": "8d6e84dc1d348daa961a48a11349f72e43342f0f9c721d90a812874f334e6c4f"
+        },
+        "primary_p_err": {
+          "earning_chunk_verb": 0.04449496589801884,
+          "openml_bad": 0.08188277087033748,
+          "ls_clean": 0.01145196588936684,
+          "ls_other": 0.026664900361461744
+        },
+        "used_alias_keys": {
+          "earning_chunk_verb": [
+            "val-core/earning_chunk_verb/p_err/mean@1"
+          ],
+          "openml_bad": [
+            "val-core/openml_bad/p_err/mean@1"
+          ],
+          "ls_clean": [
+            "val-core/ls_clean/p_err/mean@1"
+          ],
+          "ls_other": [
+            "val-core/ls_other/p_err/mean@1"
+          ]
+        },
+        "observed_timestamp": 1792690210.2457275,
+        "provenance_source": "/home/boren/code/verl/tmp/verl_asr_run/remax_dev_base0_v1h2a_fix_bcr/baseline_poll_20261022T1733.json",
+        "additional_corroborating_source": "/home/boren/code/verl/tmp/verl_asr_run/remax_dev_base0_v1h2a_fix_bcr/wandb_histories_20261022T1733.json"
+      },
+      "target": {
+        "run_id": "5dc3fdb4c014c9dc1570a5af6e0c1e6e",
+        "step": 580,
+        "lineage": {
+          "segment_id": "target_current_after_570",
+          "submission_id": "raysubmit_UmggvqWDkrghRcrn",
+          "driver_job_id": "05000000",
+          "source_commit": "24276527290b96e6e1531c8164ba2ac2440b289f",
+          "config_sha256": "9afec5069a740d29fbf55be9e855eeaa3f5760325088afdf59912b7ad9bb6295"
+        },
+        "primary_p_err": {
+          "earning_chunk_verb": 0.051770055212731404,
+          "openml_bad": 0.08805254748801704,
+          "ls_clean": 0.01164063089578145,
+          "ls_other": 0.027289415416059497
+        },
+        "used_alias_keys": {
+          "earning_chunk_verb": [
+            "val-core/earning_chunk_verb/p_err/mean@1"
+          ],
+          "openml_bad": [
+            "val-core/openml_bad/p_err/mean@1"
+          ],
+          "ls_clean": [
+            "val-core/ls_clean/p_err/mean@1"
+          ],
+          "ls_other": [
+            "val-core/ls_other/p_err/mean@1"
+          ]
+        },
+        "observed_timestamp": 1792688242.70584,
+        "provenance_source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/current_driver_numeric_20261022T1733.json",
+        "additional_corroborating_source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/current_driver_numeric_20261022T1733.json"
+      }
+    }
+  },
+  "files": [
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/earning_chunk_verb_580.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/baseline/earning_chunk_verb_580.jsonl",
+      "size_bytes": 5886037,
+      "sha256": "f4b54ff3c3dbb628e3f39a0c608167e69529b56f4341d1e8fe972a03ab82484f"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/baseline/ls_clean_580.jsonl",
+      "size_bytes": 2509909,
+      "sha256": "16753a8495b24a5df6a3aec41f398527011f54b5be40bbc5eba44e04588cc715"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/baseline/ls_other_580.jsonl",
+      "size_bytes": 2685100,
+      "sha256": "2784b6d9852f22b20def27e9d08d18670bb7deee4be807c0f54b1d5aafb870bf"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/baseline/openml_bad_580.jsonl",
+      "size_bytes": 350827,
+      "sha256": "cc4ca3ccfff3f4188dc7211d01d5b5e0cb7f830cc899f873bbb6fcfb950e2a24"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/baseline/table_0.json",
+      "size_bytes": 50719,
+      "sha256": "0a1f5e12b0391cce2cbd4dd3c0b902ed6c48c0162d90fc84dadd25715eabe4f9"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/baseline/table_1.json",
+      "size_bytes": 73427,
+      "sha256": "1ffe79297d2f8b80f078e161c87c3b473841d5d169bc5f18368a6d3044fb1d4b"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/examples_evidence.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/examples_evidence.json",
+      "size_bytes": 162234,
+      "sha256": "5d90a9ec14a4576c99d4ffccadd44786ebfbcd22377526387b8d07022f1a35e4"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/examples_fetch_inventory.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/examples_fetch_inventory.json",
+      "size_bytes": 32092,
+      "sha256": "89b5112c736126e390dcfe6c469afe697858a519e95a4bf0e85296eb1a6ad56a"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/examples_format_diagnostics.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/examples_format_diagnostics.json",
+      "size_bytes": 5660,
+      "sha256": "bbdee11b5a9257f909ee7da8ceed0b0958cfa69e77bafb3447615744316e333d"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/examples_summary_snapshot.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/examples_summary_snapshot.json",
+      "size_bytes": 170178,
+      "sha256": "6f84b70473758a5bd4b3b64f72c98a9fcb38a45ee2d36b9f94075b7e22d7a058"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/matched_validation_cases.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/matched_validation_cases.jsonl",
+      "size_bytes": 5725041,
+      "sha256": "4983d0e01f89bc2a1e80c573f3374025e709e7cfab2048ce01e7f545266d7ee0"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/observation_binding.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/observation_binding.json",
+      "size_bytes": 3076,
+      "sha256": "ea7865d9594ab3864767ce5fc98a49ee40ed9cec026047136d8dbe3bb77b2ce8"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/earning_chunk_verb_580.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/target/earning_chunk_verb_580.jsonl",
+      "size_bytes": 5880757,
+      "sha256": "6f4c416960419296d8c120c3b2dbae8a84502ad494dffc1660e90169d7cd4877"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/target/ls_clean_580.jsonl",
+      "size_bytes": 2443341,
+      "sha256": "0b1f3706b09b9ede0b4cfd7b5d2d51d8dbc8a2390d3f989cc58763a227f53239"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/target/ls_other_580.jsonl",
+      "size_bytes": 2610371,
+      "sha256": "ebede68ab9d137dcb5d483784315017097cd6cfec0fcadb56dfbd2caedfdd846"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/target/openml_bad_580.jsonl",
+      "size_bytes": 341158,
+      "sha256": "0e5d0791fbb36cc9c2e82a510f2af0edce663ba2320494142cd81d7a039b060b"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/target/table_0.json",
+      "size_bytes": 12990,
+      "sha256": "abb3acfbc44fa3b8583dedfee03936fa49673e343affdaf090438fbc173f33f2"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/target/table_1.json",
+      "size_bytes": 18796,
+      "sha256": "43d883edbb60439ce2e8286a5e097c070c17afc32b34a2b1add876da3c7322ba"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/target/table_2.json",
+      "size_bytes": 35698,
+      "sha256": "63ad0c6681f56257fa80daa1175a95ff882317a36d5a2d531a5a8f0332a8932f"
+    },
+    {
+      "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+      "snapshot": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r16/source_snapshot/target/table_3.json",
+      "size_bytes": 41504,
+      "sha256": "9bb3aab71b421e4f2fb60a6e5ab1c8d8f6d7b32f2075e748d598641348973227"
+    }
+  ]
+}

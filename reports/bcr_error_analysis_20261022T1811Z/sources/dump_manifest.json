@@ -1,0 +1,98 @@
+[
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/earning_chunk_verb_580.jsonl",
+    "frozen_path": "sources/dumps/R16/Fix/earning_chunk_verb_580.jsonl",
+    "sha256": "f4b54ff3c3dbb628e3f39a0c608167e69529b56f4341d1e8fe972a03ab82484f",
+    "bytes": 5886037
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/earning_chunk_verb_580.jsonl",
+    "frozen_path": "sources/dumps/R16/R16/earning_chunk_verb_580.jsonl",
+    "sha256": "6f4c416960419296d8c120c3b2dbae8a84502ad494dffc1660e90169d7cd4877",
+    "bytes": 5880757
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl",
+    "frozen_path": "sources/dumps/R16/Fix/openml_bad_580.jsonl",
+    "sha256": "cc4ca3ccfff3f4188dc7211d01d5b5e0cb7f830cc899f873bbb6fcfb950e2a24",
+    "bytes": 350827
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl",
+    "frozen_path": "sources/dumps/R16/R16/openml_bad_580.jsonl",
+    "sha256": "0e5d0791fbb36cc9c2e82a510f2af0edce663ba2320494142cd81d7a039b060b",
+    "bytes": 341158
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl",
+    "frozen_path": "sources/dumps/R16/Fix/ls_clean_580.jsonl",
+    "sha256": "16753a8495b24a5df6a3aec41f398527011f54b5be40bbc5eba44e04588cc715",
+    "bytes": 2509909
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl",
+    "frozen_path": "sources/dumps/R16/R16/ls_clean_580.jsonl",
+    "sha256": "0b1f3706b09b9ede0b4cfd7b5d2d51d8dbc8a2390d3f989cc58763a227f53239",
+    "bytes": 2443341
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl",
+    "frozen_path": "sources/dumps/R16/Fix/ls_other_580.jsonl",
+    "sha256": "2784b6d9852f22b20def27e9d08d18670bb7deee4be807c0f54b1d5aafb870bf",
+    "bytes": 2685100
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl",
+    "frozen_path": "sources/dumps/R16/R16/ls_other_580.jsonl",
+    "sha256": "ebede68ab9d137dcb5d483784315017097cd6cfec0fcadb56dfbd2caedfdd846",
+    "bytes": 2610371
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/earning_chunk_verb_440.jsonl",
+    "frozen_path": "sources/dumps/R64/Fix/earning_chunk_verb_440.jsonl",
+    "sha256": "9e80a4ca062d54c1ec797ced85a78e45a3bdc85ff0b6b5cbea82b0d884ea6a64",
+    "bytes": 5890034
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/earning_chunk_verb_440.jsonl",
+    "frozen_path": "sources/dumps/R64/R64/earning_chunk_verb_440.jsonl",
+    "sha256": "3f36e7ea88389dc9ac13fcee1cb4fbb99816c3618b327bb8541be1d29b9f7ae9",
+    "bytes": 5890454
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/openml_bad_440.jsonl",
+    "frozen_path": "sources/dumps/R64/Fix/openml_bad_440.jsonl",
+    "sha256": "ac8dca2396bed6e3dd71b8c8caa308a57a4e2d0912413b1d56557dbe0d813a06",
+    "bytes": 350944
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/openml_bad_440.jsonl",
+    "frozen_path": "sources/dumps/R64/R64/openml_bad_440.jsonl",
+    "sha256": "35db594443e8a44b58c21db3fab233097ab0b0312c9f2622a244a90b5784ef84",
+    "bytes": 351090
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/ls_clean_440.jsonl",
+    "frozen_path": "sources/dumps/R64/Fix/ls_clean_440.jsonl",
+    "sha256": "ddd7a410d4e0b7f07dc79a40af6e000cfa41ea4511bda5e169f00b4a0af6f447",
+    "bytes": 2509420
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/ls_clean_440.jsonl",
+    "frozen_path": "sources/dumps/R64/R64/ls_clean_440.jsonl",
+    "sha256": "a61ca5e94f9d4ea260923036828f980a3ab75fb4a0d5b3a9ab0ba0efb4cd32b6",
+    "bytes": 2509694
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/ls_other_440.jsonl",
+    "frozen_path": "sources/dumps/R64/Fix/ls_other_440.jsonl",
+    "sha256": "ae7763fbf62fa9ba6cf03853509cdf40aaeff80d43ff4e6f87e890c3cf836307",
+    "bytes": 2684526
+  },
+  {
+    "original_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/ls_other_440.jsonl",
+    "frozen_path": "sources/dumps/R64/R64/ls_other_440.jsonl",
+    "sha256": "64dff99e038c3d4d765d5bab18f3e2024d01a663e8c06b2ca7767d0fcb70efcf",
+    "bytes": 2684375
+  }
+]

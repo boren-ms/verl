@@ -1,0 +1,354 @@
+[
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "verl/trainer/ppo/bad_case_replay.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__verl__trainer__ppo__bad_case_replay.py",
+    "sha256": "3be9b6fa6a5f95457ba6f6fbc1bec540d384828efc96639256f63d098c049b00",
+    "lines": 418
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "recipe/phimm/reward/asr_vote.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__recipe__phimm__reward__asr_vote.py",
+    "sha256": "416d9bff59aa2d08d755ba963cdfd24be201f38b2f19e52342f55be3b6b10bd4",
+    "lines": 210
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "recipe/phimm/main_asr_remax.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__recipe__phimm__main_asr_remax.py",
+    "sha256": "6242f6551b5953eb217b606c4fedf2a17219c611866b98688af7580ea0ad315d",
+    "lines": 14
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "recipe/dapo/dapo_ray_trainer.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__recipe__dapo__dapo_ray_trainer.py",
+    "sha256": "c14ccf9287f15c9ee7c468ee9e8a768cf0e9009148f1468d487710811416db05",
+    "lines": 581
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "verl/trainer/ppo/ray_trainer.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__verl__trainer__ppo__ray_trainer.py",
+    "sha256": "7695ed0e8f7949b9a4c34a3473d95a384fdbb0c291e0592952ab1ffad036f975",
+    "lines": 1572
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "verl/workers/actor/dp_actor.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__verl__workers__actor__dp_actor.py",
+    "sha256": "9c4be30918e06a1419ff634408f640930ad08a26b88ed6effb28524f0f068ff7",
+    "lines": 552
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "recipe/phimm/config/v2611_dev/dev/remax_dev_base0_v1h2a_fix.yaml",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__recipe__phimm__config__v2611_dev__dev__remax_dev_base0_v1h2a_fix.yaml",
+    "sha256": "8d6e84dc1d348daa961a48a11349f72e43342f0f9c721d90a812874f334e6c4f",
+    "lines": 28
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "recipe/phimm/config/v2611_dev/dev/remax_dev_base0_v1h2a_fix_bcr.yaml",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__recipe__phimm__config__v2611_dev__dev__remax_dev_base0_v1h2a_fix_bcr.yaml",
+    "sha256": "9afec5069a740d29fbf55be9e855eeaa3f5760325088afdf59912b7ad9bb6295",
+    "lines": 39
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "verl/trainer/ppo/bad_case_replay.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__verl__trainer__ppo__bad_case_replay.py",
+    "sha256": "4130a34abc150045ce38a3e2c02b735d683b9fa1ff93a1445b00614c5775d7a5",
+    "lines": 434
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "recipe/phimm/reward/asr_vote.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__recipe__phimm__reward__asr_vote.py",
+    "sha256": "416d9bff59aa2d08d755ba963cdfd24be201f38b2f19e52342f55be3b6b10bd4",
+    "lines": 210
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "recipe/phimm/main_asr_remax.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__recipe__phimm__main_asr_remax.py",
+    "sha256": "6242f6551b5953eb217b606c4fedf2a17219c611866b98688af7580ea0ad315d",
+    "lines": 14
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "recipe/dapo/dapo_ray_trainer.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__recipe__dapo__dapo_ray_trainer.py",
+    "sha256": "fa872c10d9f4f855701dfba643ec5d9115ec8f926396b1f16d2b53d096714b8c",
+    "lines": 613
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "verl/trainer/ppo/ray_trainer.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__verl__trainer__ppo__ray_trainer.py",
+    "sha256": "bda557130bd920cbfab526a95006a4b0f202ee76781930ca623e13ebf760d215",
+    "lines": 1629
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "verl/workers/actor/dp_actor.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__verl__workers__actor__dp_actor.py",
+    "sha256": "9fcb1888f16f8d0e48a954788a8557990a34ea4889dc76d88cd2157616b2138a",
+    "lines": 577
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "verl/workers/replay_loss.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__verl__workers__replay_loss.py",
+    "sha256": "c37fbf0e8137081c3a8b73ede238f16a6bfd1e50523f267f5ed41e6643d02a16",
+    "lines": 86
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "recipe/phimm/config/v2611_dev/dev/remax_dev_base0_v1h2a_fix.yaml",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__recipe__phimm__config__v2611_dev__dev__remax_dev_base0_v1h2a_fix.yaml",
+    "sha256": "8d6e84dc1d348daa961a48a11349f72e43342f0f9c721d90a812874f334e6c4f",
+    "lines": 28
+  },
+  {
+    "label": "bcr16_early",
+    "revision": "d1da2514f0e486d73e6fb1d2bb15181ccd22b5a3",
+    "path": "recipe/phimm/config/v2611_dev/dev/remax_dev_base0_v1h2a_fix_bcr.yaml",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_early__recipe__phimm__config__v2611_dev__dev__remax_dev_base0_v1h2a_fix_bcr.yaml",
+    "sha256": "54247388ff12789ffa3c0ed51fb423735bf771fd7099c74987ff5746e6cfbd7f",
+    "lines": 42
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "verl/trainer/ppo/bad_case_replay.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__verl__trainer__ppo__bad_case_replay.py",
+    "sha256": "3be9b6fa6a5f95457ba6f6fbc1bec540d384828efc96639256f63d098c049b00",
+    "lines": 418
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/phimm/reward/asr_vote.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__phimm__reward__asr_vote.py",
+    "sha256": "416d9bff59aa2d08d755ba963cdfd24be201f38b2f19e52342f55be3b6b10bd4",
+    "lines": 210
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/phimm/main_asr_remax.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__phimm__main_asr_remax.py",
+    "sha256": "6242f6551b5953eb217b606c4fedf2a17219c611866b98688af7580ea0ad315d",
+    "lines": 14
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/dapo/dapo_ray_trainer.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__dapo__dapo_ray_trainer.py",
+    "sha256": "c14ccf9287f15c9ee7c468ee9e8a768cf0e9009148f1468d487710811416db05",
+    "lines": 581
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "verl/trainer/ppo/ray_trainer.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__verl__trainer__ppo__ray_trainer.py",
+    "sha256": "7695ed0e8f7949b9a4c34a3473d95a384fdbb0c291e0592952ab1ffad036f975",
+    "lines": 1572
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "verl/workers/actor/dp_actor.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__verl__workers__actor__dp_actor.py",
+    "sha256": "9c4be30918e06a1419ff634408f640930ad08a26b88ed6effb28524f0f068ff7",
+    "lines": 552
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/phimm/config/v2611_dev/dev/remax_dev_base0_v1h2a_fix.yaml",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__phimm__config__v2611_dev__dev__remax_dev_base0_v1h2a_fix.yaml",
+    "sha256": "8d6e84dc1d348daa961a48a11349f72e43342f0f9c721d90a812874f334e6c4f",
+    "lines": 28
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/phimm/config/v2611_dev/dev/remax_dev_base0_v1h2a_fix_bcr.yaml",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__phimm__config__v2611_dev__dev__remax_dev_base0_v1h2a_fix_bcr.yaml",
+    "sha256": "9afec5069a740d29fbf55be9e855eeaa3f5760325088afdf59912b7ad9bb6295",
+    "lines": 39
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/phimm/config/v2611_dev/dev/remax_dev_base0_v1h2a_fix_bcr64.yaml",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__phimm__config__v2611_dev__dev__remax_dev_base0_v1h2a_fix_bcr64.yaml",
+    "sha256": "819c79cf19c5754186baff8e8189bd5e5f71e7616c1327cabc2abe734a99daf6",
+    "lines": 39
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "recipe/phimm/reward/asr_vote.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__recipe__phimm__reward__asr_vote.py",
+    "sha256": "416d9bff59aa2d08d755ba963cdfd24be201f38b2f19e52342f55be3b6b10bd4",
+    "lines": 210
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "recipe/phimm/main_asr_remax.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__recipe__phimm__main_asr_remax.py",
+    "sha256": "6242f6551b5953eb217b606c4fedf2a17219c611866b98688af7580ea0ad315d",
+    "lines": 14
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "recipe/dapo/dapo_ray_trainer.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__recipe__dapo__dapo_ray_trainer.py",
+    "sha256": "f95b0671d937b9135daa28aff52f9222a57e7d80ac96f9cc6232f05640c83138",
+    "lines": 570
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "verl/trainer/ppo/ray_trainer.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__verl__trainer__ppo__ray_trainer.py",
+    "sha256": "273e0dcb83d57a9e91a6767ac632d5b0dc77102e2428535526076e787fd69a4f",
+    "lines": 1556
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "verl/workers/actor/dp_actor.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__verl__workers__actor__dp_actor.py",
+    "sha256": "9c4be30918e06a1419ff634408f640930ad08a26b88ed6effb28524f0f068ff7",
+    "lines": 552
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "recipe/phimm/config/v2611_dev/dev/remax_dev_base0_v1h2a_fix.yaml",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__recipe__phimm__config__v2611_dev__dev__remax_dev_base0_v1h2a_fix.yaml",
+    "sha256": "8d6e84dc1d348daa961a48a11349f72e43342f0f9c721d90a812874f334e6c4f",
+    "lines": 28
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "recipe/phimm/reward/asr_measure.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__recipe__phimm__reward__asr_measure.py",
+    "sha256": "f59d1347b94b6f15beb6ae25d78aa34f03c814417e4a48cc1ba9432bd8930e96",
+    "lines": 667
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/phimm/reward/asr_measure.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__phimm__reward__asr_measure.py",
+    "sha256": "f59d1347b94b6f15beb6ae25d78aa34f03c814417e4a48cc1ba9432bd8930e96",
+    "lines": 667
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "recipe/phimm/reward/asr_measure.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__recipe__phimm__reward__asr_measure.py",
+    "sha256": "f59d1347b94b6f15beb6ae25d78aa34f03c814417e4a48cc1ba9432bd8930e96",
+    "lines": 667
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "recipe/phimm/reward/asr_response.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__recipe__phimm__reward__asr_response.py",
+    "sha256": "c71898eed9b04c8a1c203803d99caac687c0b8113dad78cd7266372d0b909c30",
+    "lines": 134
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "recipe/phimm/utils/languages.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__recipe__phimm__utils__languages.py",
+    "sha256": "02600b0126daa3113f895e870c1f7b0b58e7acc83632dfc4529616a6a750ebce",
+    "lines": 111
+  },
+  {
+    "label": "bcr16_modern",
+    "revision": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "path": "verl/trainer/ppo/metric_utils.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr16_modern__verl__trainer__ppo__metric_utils.py",
+    "sha256": "6a6eaba979dfb35bec667a966a9db03a855ed3303427f5c037795deb9befb908",
+    "lines": 560
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/phimm/reward/asr_response.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__phimm__reward__asr_response.py",
+    "sha256": "c71898eed9b04c8a1c203803d99caac687c0b8113dad78cd7266372d0b909c30",
+    "lines": 134
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "recipe/phimm/utils/languages.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__recipe__phimm__utils__languages.py",
+    "sha256": "02600b0126daa3113f895e870c1f7b0b58e7acc83632dfc4529616a6a750ebce",
+    "lines": 111
+  },
+  {
+    "label": "bcr64_recovered",
+    "revision": "d565a7d3a10ae6b65fd1e9cd27dc892c7cd9db80",
+    "path": "verl/trainer/ppo/metric_utils.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/bcr64_recovered__verl__trainer__ppo__metric_utils.py",
+    "sha256": "6a6eaba979dfb35bec667a966a9db03a855ed3303427f5c037795deb9befb908",
+    "lines": 560
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "recipe/phimm/reward/asr_response.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__recipe__phimm__reward__asr_response.py",
+    "sha256": "c71898eed9b04c8a1c203803d99caac687c0b8113dad78cd7266372d0b909c30",
+    "lines": 134
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "recipe/phimm/utils/languages.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__recipe__phimm__utils__languages.py",
+    "sha256": "02600b0126daa3113f895e870c1f7b0b58e7acc83632dfc4529616a6a750ebce",
+    "lines": 111
+  },
+  {
+    "label": "fix",
+    "revision": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "path": "verl/trainer/ppo/metric_utils.py",
+    "snapshot": "tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/mechanism/sources/fix__verl__trainer__ppo__metric_utils.py",
+    "sha256": "6a6eaba979dfb35bec667a966a9db03a855ed3303427f5c037795deb9befb908",
+    "lines": 560
+  }
+]

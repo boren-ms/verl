@@ -1,0 +1,1395 @@
+{
+  "step": 100,
+  "baseline": "replay16",
+  "target": "replay64",
+  "datasets": {
+    "earning_chunk_verb": {
+      "status": "matched",
+      "baseline_inventory": {
+        "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/examples/baseline/earning_chunk_verb_100.jsonl",
+        "raw_rows": 341,
+        "units": 6,
+        "exact_duplicate_rows_removed": 0,
+        "conflicts": []
+      },
+      "target_inventory": {
+        "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/examples/target/earning_chunk_verb_100.jsonl",
+        "raw_rows": 341,
+        "units": 6,
+        "exact_duplicate_rows_removed": 0,
+        "conflicts": []
+      },
+      "baseline_only": 0,
+      "target_only": 0,
+      "matched_units": 6,
+      "reference_conflicts": 0,
+      "segment_conflicts": 0,
+      "invalid_units": [],
+      "categories": {
+        "worsening_persistent": 4,
+        "improved": 2
+      },
+      "baseline_n_err": 672,
+      "baseline_n_ref": 15395,
+      "target_n_err": 685,
+      "target_n_ref": 15395,
+      "baseline_p_err": 0.043650535888275416,
+      "target_p_err": 0.04449496589801884,
+      "target_minus_baseline_pp": 0.08444300097434215,
+      "examples": [
+        {
+          "dataset": "earning_chunk_verb",
+          "identity": [
+            "parent",
+            "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/4468919_trimmed_v2.mp3"
+          ],
+          "category": "improved",
+          "reference_hash": "37a280b9f3ee656b134f040115fb31f3266bbae7a7c42ff4ad47616ae7d10ed9",
+          "baseline_n_err": 80,
+          "baseline_n_ref": 2128,
+          "target_n_err": 75,
+          "target_n_ref": 2128,
+          "delta_n_err": -5,
+          "baseline_lines": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51
+          ],
+          "target_lines": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "cc0d620b-863a-5969-83e2-f6415b084d7b"
+            ],
+            "baseline_line": 1,
+            "target_line": 1,
+            "reference_excerpt": "Good morning and welcome to the Loma Negra Third Quarter 2021 Conference Call and Webcast. All participants will be in listen-only mode. Should you need assistance, please signal a Conference Specialist by pressing the star key followed by zero. After today's presentation, there will be an opportunity to ask questions. Also, Mr. Sergio Faifman will be responding in Spanish immediately following an English translation. To ask your question, you may press star, then one on your telephone keypad. T",
+            "baseline_excerpt": "specialist by pressing the star key followed by zero. After today's presentation, there will be an opportunity",
+            "target_excerpt": "specialist by pressing the star key followed by 0. After today's presentation, there will be an opportunity",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "earning_chunk_verb",
+          "identity": [
+            "parent",
+            "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/e15465c8-dfa8-4483-9051-f65e63f6099b.mp3"
+          ],
+          "category": "improved",
+          "reference_hash": "583eb937a0cd77711c29d883f587e52c50b10fb0b34d1bef0e92d27d654dd350",
+          "baseline_n_err": 224,
+          "baseline_n_ref": 2688,
+          "target_n_err": 222,
+          "target_n_ref": 2688,
+          "delta_n_err": -2,
+          "baseline_lines": [
+            285,
+            286,
+            287,
+            288,
+            289,
+            290,
+            291,
+            292,
+            293,
+            294,
+            295,
+            296,
+            297,
+            298,
+            299,
+            300,
+            301,
+            302,
+            303,
+            304,
+            305,
+            306,
+            307,
+            308,
+            309,
+            310,
+            311,
+            312,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318,
+            319,
+            320,
+            321,
+            322,
+            323,
+            324,
+            325,
+            326,
+            327,
+            328,
+            329,
+            330,
+            331,
+            332,
+            333,
+            334,
+            335,
+            336,
+            337,
+            338,
+            339,
+            340,
+            341
+          ],
+          "target_lines": [
+            285,
+            286,
+            287,
+            288,
+            289,
+            290,
+            291,
+            292,
+            293,
+            294,
+            295,
+            296,
+            297,
+            298,
+            299,
+            300,
+            301,
+            302,
+            303,
+            304,
+            305,
+            306,
+            307,
+            308,
+            309,
+            310,
+            311,
+            312,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318,
+            319,
+            320,
+            321,
+            322,
+            323,
+            324,
+            325,
+            326,
+            327,
+            328,
+            329,
+            330,
+            331,
+            332,
+            333,
+            334,
+            335,
+            336,
+            337,
+            338,
+            339,
+            340,
+            341
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "4bf240bb-52a2-534e-8ece-6af526f6ed14"
+            ],
+            "baseline_line": 287,
+            "target_line": 287,
+            "reference_excerpt": "Now it's on times. They would like to starts the performance briefing sessions of the Q3 of FY March 2022 of TDK Corporation. Today's speaker is Executive Vice President Tetsuji Yamanishi. I'm Yamanishi. Hello, everyone. Thank you very much. Okay, I'm Yamanishi speaking. Thank you very much for joining us today in your very busy schedule. Thank you. Okay, then I'd like to start with the performance briefing of Q3 of FY March 2022. I start with the key points concerning earnings. And even under t",
+            "baseline_excerpt": "Okay, then. I'd like to start with the performance briefing",
+            "target_excerpt": "Okay, then, I'd like to start with the performance briefing",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "earning_chunk_verb",
+          "identity": [
+            "parent",
+            "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/c6efdf26-e19a-4e33-8bbc-c40283fea3a3.mp3"
+          ],
+          "category": "worsening_persistent",
+          "reference_hash": "46a54db1d82e4bcc1f5479def95c3c63e6b9bed8fae65376f11b1d454e4364db",
+          "baseline_n_err": 64,
+          "baseline_n_ref": 1719,
+          "target_n_err": 71,
+          "target_n_ref": 1719,
+          "delta_n_err": 7,
+          "baseline_lines": [
+            114,
+            115,
+            116,
+            117,
+            118,
+            119,
+            120,
+            121,
+            122,
+            123,
+            124,
+            125,
+            126,
+            127,
+            128,
+            129,
+            130,
+            131,
+            132,
+            133,
+            134,
+            135,
+            136,
+            137,
+            138,
+            139,
+            140,
+            141,
+            142,
+            143,
+            144,
+            145,
+            146,
+            147,
+            148,
+            149,
+            150,
+            151,
+            152,
+            153,
+            154,
+            155,
+            156,
+            157
+          ],
+          "target_lines": [
+            114,
+            115,
+            116,
+            117,
+            118,
+            119,
+            120,
+            121,
+            122,
+            123,
+            124,
+            125,
+            126,
+            127,
+            128,
+            129,
+            130,
+            131,
+            132,
+            133,
+            134,
+            135,
+            136,
+            137,
+            138,
+            139,
+            140,
+            141,
+            142,
+            143,
+            144,
+            145,
+            146,
+            147,
+            148,
+            149,
+            150,
+            151,
+            152,
+            153,
+            154,
+            155,
+            156,
+            157
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "51d4927d-5df3-5dd9-8496-e49e04e98db1"
+            ],
+            "baseline_line": 114,
+            "target_line": 114,
+            "reference_excerpt": "Hello ladies and gentlemen, thank you for standing by for Qudian’s third quarter 2021 earnings conference call. At this time, all participants are listen-only mode. After management's prepared remarks, there will be a question and answer session. Today's conference is being recorded. I will now turn the call over to our host from Qudian. Please go ahead. Hello everyone and welcome to Qudian’s third quarter 2021 earnings conference call. The company's results were issued via Newswire services ear",
+            "baseline_excerpt": "and gentlemen. Thank you for standing by for Curion's third quarter 2021 earnings conference call. At this time,",
+            "target_excerpt": "and gentlemen. Thank you for standing by for Qudian's 3rd quarter 2021 earnings conference call. At this time,",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "earning_chunk_verb",
+          "identity": [
+            "parent",
+            "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/647936bd-87b4-4f20-b467-b954263513e6.mp3"
+          ],
+          "category": "worsening_persistent",
+          "reference_hash": "74b8ab59376e6f624c6a2a9869a369e94727ee75c9140e66768486971f74b23e",
+          "baseline_n_err": 126,
+          "baseline_n_ref": 2647,
+          "target_n_err": 132,
+          "target_n_ref": 2647,
+          "delta_n_err": 6,
+          "baseline_lines": [
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113
+          ],
+          "target_lines": [
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "f9c9e800-8afa-506d-91e0-a12a38ae001e"
+            ],
+            "baseline_line": 52,
+            "target_line": 52,
+            "reference_excerpt": "Please stand by, we're about to begin. Good day and welcome to the Polyus Third Quarter 2021 Financial Results Conference Call. Today's call is being recorded. At this time I'd like to turn the call over to Victor Drozdov. Please go ahead. Thanks a lot. Hi everyone. Uh. Welcome to our uh conference call for the third quarter uh financial results. Uh today we have uh our uh CFO uh here with us. Uh so Mikhail will uh provide uh valuable comments on uh uh the financial results for the third quarter",
+            "baseline_excerpt": "begin. Good day, and welcome to the Polis third-quarter 2021 financial results conference call. Today's call is",
+            "target_excerpt": "begin. Good day, and welcome to the Polis Third Quarter 2021 Financial Results Conference Call. Today's call is",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        }
+      ]
+    },
+    "openml_bad": {
+      "status": "matched",
+      "baseline_inventory": {
+        "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/examples/baseline/openml_bad_100.jsonl",
+        "raw_rows": 393,
+        "units": 393,
+        "exact_duplicate_rows_removed": 0,
+        "conflicts": []
+      },
+      "target_inventory": {
+        "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/examples/target/openml_bad_100.jsonl",
+        "raw_rows": 393,
+        "units": 393,
+        "exact_duplicate_rows_removed": 0,
+        "conflicts": []
+      },
+      "baseline_only": 0,
+      "target_only": 0,
+      "matched_units": 393,
+      "reference_conflicts": 0,
+      "segment_conflicts": 0,
+      "invalid_units": [],
+      "categories": {
+        "persistent": 170,
+        "unchanged_correct": 162,
+        "improved": 40,
+        "newly_failed": 7,
+        "worsening_persistent": 14
+      },
+      "baseline_n_err": 741,
+      "baseline_n_ref": 5631,
+      "target_n_err": 675,
+      "target_n_ref": 5632,
+      "baseline_p_err": 0.13159296750133193,
+      "target_p_err": 0.11985085227272728,
+      "target_minus_baseline_pp": -1.1742115228604646,
+      "examples": [
+        {
+          "dataset": "openml_bad",
+          "identity": [
+            "id",
+            "482398938592448850"
+          ],
+          "category": "improved",
+          "reference_hash": "d311f2261ed3437ff714739f782a7ce952b28eca3edd13731254337473dbe232",
+          "baseline_n_err": 15,
+          "baseline_n_ref": 28,
+          "target_n_err": 3,
+          "target_n_ref": 28,
+          "delta_n_err": -12,
+          "baseline_lines": [
+            135
+          ],
+          "target_lines": [
+            135
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "482398938592448850"
+            ],
+            "baseline_line": 135,
+            "target_line": 135,
+            "reference_excerpt": "Um jantar simples e popular, especialmente no verão, é o Pa amb Oli: pão com azeite de oliva, tomate e qualquer ingrediente à disposição, como queijo, atum, etc.",
+            "baseline_excerpt": "simples e popular, especialmente no verão, é o \"pa amb oli\" (pão com azeite de oliva, tomate e qualquer ingrediente",
+            "target_excerpt": "simples e popular, especialmente no verão, é o \"pain avec olive\", pão com azeite de oliva, tomate e qualquer ingrediente",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "openml_bad",
+          "identity": [
+            "id",
+            "10665671122752108668"
+          ],
+          "category": "improved",
+          "reference_hash": "37d4e88a04039d9b45e8f58aef62e19fa0b1f1958b680e5052bedec6c147b8eb",
+          "baseline_n_err": 11,
+          "baseline_n_ref": 37,
+          "target_n_err": 4,
+          "target_n_ref": 37,
+          "delta_n_err": -7,
+          "baseline_lines": [
+            138
+          ],
+          "target_lines": [
+            138
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "10665671122752108668"
+            ],
+            "baseline_line": 138,
+            "target_line": 138,
+            "reference_excerpt": "Embora ninguém saiba ao certo quem a escreveu, é sabido que, no início de sua existência, o grande documento de pergaminho ele mede 29 polegadas por 24 polegadas foi enrolado para ser armazenado.",
+            "baseline_excerpt": "de sua existência, o grande documento de pergaminho (ele mede 29 3/4 polegadas por 24 1/2 polegadas)",
+            "target_excerpt": "de sua existência, o grande documento de pergaminho - ele mede 29 ¾ polegadas por 24 ½ polegadas",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "openml_bad",
+          "identity": [
+            "id",
+            "16793362546560783580"
+          ],
+          "category": "newly_failed",
+          "reference_hash": "814f2d250182da122868061099a6eac8a98b14b73ded98510dcb7c6255fcb040",
+          "baseline_n_err": 0,
+          "baseline_n_ref": 47,
+          "target_n_err": 4,
+          "target_n_ref": 47,
+          "delta_n_err": 4,
+          "baseline_lines": [
+            112
+          ],
+          "target_lines": [
+            112
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "16793362546560783580"
+            ],
+            "baseline_line": 112,
+            "target_line": 112,
+            "reference_excerpt": "O uso apropriado de blogs pode tornar os alunos mais analíticos e críticos, interagindo com os conteúdos da Internet de modo ativo, os alunos podem se posicionar no contexto dos escritos de outros, bem como definir suas próprias perspectivas sobre questões específicas Oravec, 2002.",
+            "baseline_excerpt": "blogs pode tornar os alunos mais analíticos e críticos, interagindo com os conteúdos da internet de modo ativo.",
+            "target_excerpt": "blogs pode tornar os alunos mais analíticos e críticos. Interagindo com os conteúdos da internet de modo ativo,",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "openml_bad",
+          "identity": [
+            "id",
+            "1110861974519460653"
+          ],
+          "category": "newly_failed",
+          "reference_hash": "c69df30beb8e0dd9b66cc80cbb60edf5bba244d80488d688089c2c847bad1343",
+          "baseline_n_err": 0,
+          "baseline_n_ref": 44,
+          "target_n_err": 1,
+          "target_n_ref": 44,
+          "delta_n_err": 1,
+          "baseline_lines": [
+            12
+          ],
+          "target_lines": [
+            12
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "1110861974519460653"
+            ],
+            "baseline_line": 12,
+            "target_line": 12,
+            "reference_excerpt": "Die angemessene Nutzung von Blogs kann Schülerinnen und Schüler befähigen, analytischer und kritischer zu werden, durch die aktive Reaktion auf Internetmaterialien können die Schülerinnen und Schüler ihre Positionen im Kontext der Texte anderer definieren und ihre eigenen Perspektiven zu bestimmten Themen darlegen Oravec, 2002.",
+            "baseline_excerpt": "und ihre eigenen Perspektiven zu bestimmten Themen darlegen. Oravec, 2002.",
+            "target_excerpt": "und ihre eigenen Perspektiven zu bestimmten Themen darlegen. Oravetz, 2002.",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "openml_bad",
+          "identity": [
+            "id",
+            "5161983009398441910"
+          ],
+          "category": "worsening_persistent",
+          "reference_hash": "5710aa7e57bf15bd4fab21a71f0d46da91e95f83013b13cbeffe4e997d91103f",
+          "baseline_n_err": 4,
+          "baseline_n_ref": 66,
+          "target_n_err": 8,
+          "target_n_ref": 66,
+          "delta_n_err": 4,
+          "baseline_lines": [
+            73
+          ],
+          "target_lines": [
+            73
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "5161983009398441910"
+            ],
+            "baseline_line": 73,
+            "target_line": 73,
+            "reference_excerpt": "Leur comportement thermique n'est pas aussi stable que celui des grandes grottes de la planète qui maintiennent une température constante, mais ils se ressemblent en ce qu'ils sont des trous profonds dans la terre , selon Glen Cushing, membre de l'équipage de l'USGS Centre américain d'études géologiques et du personnel de l'Université d'Arizona du Nord situé à Flagstaff, en Arizona.",
+            "baseline_excerpt": "stable que celui des grandes grottes de la planète qui maintiennent une température constante, mais ils se",
+            "target_excerpt": "stable que celui des grandes grottes de la planète, qui maintiennent une température constante, mais ils se",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "openml_bad",
+          "identity": [
+            "id",
+            "14383874547909808480"
+          ],
+          "category": "worsening_persistent",
+          "reference_hash": "ba46dea2556e672da15b3ae37ae240dd7105b13bab86eac1929c48efa7483e49",
+          "baseline_n_err": 6,
+          "baseline_n_ref": 30,
+          "target_n_err": 9,
+          "target_n_ref": 30,
+          "delta_n_err": 3,
+          "baseline_lines": [
+            126
+          ],
+          "target_lines": [
+            126
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "14383874547909808480"
+            ],
+            "baseline_line": 126,
+            "target_line": 126,
+            "reference_excerpt": "A época em que tais eventos ocorreram é comumente denominada Alta Idade Média, período da história europeia entre os séculos XI, XII e XIII 1000-1300 d.C.",
+            "baseline_excerpt": "Média, período da história europeia entre os séculos XI, XII e XIII (1000-1300 d.C.).",
+            "target_excerpt": "Média, período da história europeia entre os séculos 11, 12 e 13 (1000–1300 d.C.).",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        }
+      ]
+    },
+    "ls_clean": {
+      "status": "matched",
+      "baseline_inventory": {
+        "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/examples/baseline/ls_clean_100.jsonl",
+        "raw_rows": 2620,
+        "units": 2620,
+        "exact_duplicate_rows_removed": 0,
+        "conflicts": []
+      },
+      "target_inventory": {
+        "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/examples/target/ls_clean_100.jsonl",
+        "raw_rows": 2620,
+        "units": 2620,
+        "exact_duplicate_rows_removed": 0,
+        "conflicts": []
+      },
+      "baseline_only": 0,
+      "target_only": 0,
+      "matched_units": 2620,
+      "reference_conflicts": 0,
+      "segment_conflicts": 0,
+      "invalid_units": [],
+      "categories": {
+        "unchanged_correct": 2172,
+        "persistent": 415,
+        "worsening_persistent": 4,
+        "newly_failed": 13,
+        "improved": 16
+      },
+      "baseline_n_err": 639,
+      "baseline_n_ref": 53004,
+      "target_n_err": 641,
+      "target_n_ref": 53004,
+      "baseline_p_err": 0.012055693909893594,
+      "target_p_err": 0.012093426911176515,
+      "target_minus_baseline_pp": 0.003773300128292155,
+      "examples": [
+        {
+          "dataset": "ls_clean",
+          "identity": [
+            "id",
+            "3729-6852-0027"
+          ],
+          "category": "improved",
+          "reference_hash": "c2fd99fef8d8cab76879fdfdfccf169f427beaa9a96ecfd31a778a841d49a8a1",
+          "baseline_n_err": 3,
+          "baseline_n_ref": 4,
+          "target_n_err": 1,
+          "target_n_ref": 4,
+          "delta_n_err": -2,
+          "baseline_lines": [
+            452
+          ],
+          "target_lines": [
+            452
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "3729-6852-0027"
+            ],
+            "baseline_line": 452,
+            "target_line": 452,
+            "reference_excerpt": "that is true badauderie",
+            "baseline_excerpt": "That is true, but I disagree.",
+            "target_excerpt": "That is true, but.",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_clean",
+          "identity": [
+            "id",
+            "5639-40744-0031"
+          ],
+          "category": "improved",
+          "reference_hash": "fbc0e39254e466883cea90725cc1528b6d373fa8497921d971bc5e91d4d0ea91",
+          "baseline_n_err": 2,
+          "baseline_n_ref": 84,
+          "target_n_err": 0,
+          "target_n_ref": 84,
+          "delta_n_err": -2,
+          "baseline_lines": [
+            1534
+          ],
+          "target_lines": [
+            1534
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "5639-40744-0031"
+            ],
+            "baseline_line": 1534,
+            "target_line": 1534,
+            "reference_excerpt": "so persuasive were her entreaties and so strong her assurances that no harm whatever could result to them from the information she sought they were induced to confess that one summer's night the same she had mentioned themselves and another friend being out on a stroll with rodolfo they had been concerned in the abduction of a girl whom rodolfo carried off whilst the rest of them detained her family who made a great outcry and would have defended her if they could",
+            "baseline_excerpt": "another friend being out on a stroll with Rodolpho, they had been concerned in the abduction of",
+            "target_excerpt": "another friend being out on a stroll with Rodolfo, they had been concerned in the abduction of",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_clean",
+          "identity": [
+            "id",
+            "7176-92135-0037"
+          ],
+          "category": "newly_failed",
+          "reference_hash": "42837e6014e3c191776df064f407dc5aac7f43aa52dcd522090e01df6909e907",
+          "baseline_n_err": 0,
+          "baseline_n_ref": 11,
+          "target_n_err": 3,
+          "target_n_ref": 11,
+          "delta_n_err": 3,
+          "baseline_lines": [
+            2506
+          ],
+          "target_lines": [
+            2506
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "7176-92135-0037"
+            ],
+            "baseline_line": 2506,
+            "target_line": 2506,
+            "reference_excerpt": "then is the time to introduce a meal on the stage",
+            "baseline_excerpt": "Then is the time to introduce a meal on the stage.",
+            "target_excerpt": "Then is the time to introduce Amiel onto the stage.",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_clean",
+          "identity": [
+            "id",
+            "61-70968-0049"
+          ],
+          "category": "newly_failed",
+          "reference_hash": "34ebb15eb16eb2fe70001cec3276be6d0eb8cca52760b33370dd1f2d06035a02",
+          "baseline_n_err": 0,
+          "baseline_n_ref": 22,
+          "target_n_err": 2,
+          "target_n_ref": 22,
+          "delta_n_err": 2,
+          "baseline_lines": [
+            2074
+          ],
+          "target_lines": [
+            2074
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "61-70968-0049"
+            ],
+            "baseline_line": 2074,
+            "target_line": 2074,
+            "reference_excerpt": "have your will child if the boy also wills it montfichet answered feeling too ill to oppose anything very strongly just then",
+            "baseline_excerpt": "boy also wills it, Montfichet answered, feeling too ill to oppose anything very strongly just then.",
+            "target_excerpt": "boy also wills it, Montfichet answered, feeling too I'll to oppose anything very strongly just then.",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_clean",
+          "identity": [
+            "id",
+            "121-123859-0001"
+          ],
+          "category": "worsening_persistent",
+          "reference_hash": "b79d6abce1c99dd014347f905b421aac6279d1d997b96737a2190b9ab9cd14d7",
+          "baseline_n_err": 1,
+          "baseline_n_ref": 54,
+          "target_n_err": 3,
+          "target_n_ref": 54,
+          "delta_n_err": 2,
+          "baseline_lines": [
+            650
+          ],
+          "target_lines": [
+            650
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "121-123859-0001"
+            ],
+            "baseline_line": 650,
+            "target_line": 650,
+            "reference_excerpt": "o tis the first tis flattery in my seeing and my great mind most kingly drinks it up mine eye well knows what with his gust is greeing and to his palate doth prepare the cup if it be poison'd tis the lesser sin that mine eye loves it and doth first begin",
+            "baseline_excerpt": "green, And to his palate doth prepare the cup; If it be poison'd, 'tis the lesser sin",
+            "target_excerpt": "green, And to his palate doth prepare the cup. If it be poisoned, 'tis the lesser sin",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_clean",
+          "identity": [
+            "id",
+            "1188-133604-0023"
+          ],
+          "category": "worsening_persistent",
+          "reference_hash": "e7732369435389a151a76308c59bece8532135fee9133ab910cfc84947cbf3ff",
+          "baseline_n_err": 1,
+          "baseline_n_ref": 57,
+          "target_n_err": 2,
+          "target_n_ref": 57,
+          "delta_n_err": 1,
+          "baseline_lines": [
+            2338
+          ],
+          "target_lines": [
+            2338
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "1188-133604-0023"
+            ],
+            "baseline_line": 2338,
+            "target_line": 2338,
+            "reference_excerpt": "the colorist says first of all as my delicious paroquet was ruby so this nasty viper shall be black and then is the question can i round him off even though he is black and make him slimy and yet springy and close down clotted like a pool of black blood on the earth all the same",
+            "baseline_excerpt": "The colorist says, first of all, as my delicious parakeet",
+            "target_excerpt": "The colourist says, first of all, as my delicious parakeet",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        }
+      ]
+    },
+    "ls_other": {
+      "status": "matched",
+      "baseline_inventory": {
+        "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/examples/baseline/ls_other_100.jsonl",
+        "raw_rows": 2939,
+        "units": 2939,
+        "exact_duplicate_rows_removed": 0,
+        "conflicts": []
+      },
+      "target_inventory": {
+        "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/examples/target/ls_other_100.jsonl",
+        "raw_rows": 2939,
+        "units": 2939,
+        "exact_duplicate_rows_removed": 0,
+        "conflicts": []
+      },
+      "baseline_only": 0,
+      "target_only": 0,
+      "matched_units": 2939,
+      "reference_conflicts": 0,
+      "segment_conflicts": 0,
+      "invalid_units": [],
+      "categories": {
+        "unchanged_correct": 2012,
+        "persistent": 797,
+        "newly_failed": 39,
+        "improved": 63,
+        "worsening_persistent": 28
+      },
+      "baseline_n_err": 1461,
+      "baseline_n_ref": 52841,
+      "target_n_err": 1460,
+      "target_n_ref": 52841,
+      "baseline_p_err": 0.027648984689918815,
+      "target_p_err": 0.02763005999129464,
+      "target_minus_baseline_pp": -0.0018924698624175895,
+      "examples": [
+        {
+          "dataset": "ls_other",
+          "identity": [
+            "id",
+            "2609-156975-0016"
+          ],
+          "category": "improved",
+          "reference_hash": "40b0ed9ff69c7f29b51ef13321024ea09c1855cb0ee52dd35571b581b808bb27",
+          "baseline_n_err": 11,
+          "baseline_n_ref": 8,
+          "target_n_err": 6,
+          "target_n_ref": 8,
+          "delta_n_err": -5,
+          "baseline_lines": [
+            398
+          ],
+          "target_lines": [
+            398
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "2609-156975-0016"
+            ],
+            "baseline_line": 398,
+            "target_line": 398,
+            "reference_excerpt": "was moses justified in resisting the egyptian taskmaster",
+            "baseline_excerpt": "Which mores it's just findin and resistsin the gypsin tax, master.",
+            "target_excerpt": "Which mores is justified and resists the Egyptian taxmaster.",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_other",
+          "identity": [
+            "id",
+            "2033-164914-0005"
+          ],
+          "category": "improved",
+          "reference_hash": "2f0c1e01ed10bcc44b2c2beb518cbb4ef860fdc80016663f65183d5632aef5e7",
+          "baseline_n_err": 4,
+          "baseline_n_ref": 8,
+          "target_n_err": 1,
+          "target_n_ref": 8,
+          "delta_n_err": -3,
+          "baseline_lines": [
+            2334
+          ],
+          "target_lines": [
+            2334
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "2033-164914-0005"
+            ],
+            "baseline_line": 2334,
+            "target_line": 2334,
+            "reference_excerpt": "tell me what happened quoth zau al makan",
+            "baseline_excerpt": "Tell me what happened, Quazao Almacan.",
+            "target_excerpt": "Tell me what happened, quoth Zao Al Makan.",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_other",
+          "identity": [
+            "id",
+            "1998-15444-0025"
+          ],
+          "category": "newly_failed",
+          "reference_hash": "076c5d34a5cc6e8fcce60cbac32dff4a227be317a78f74c11c834b0925006ef6",
+          "baseline_n_err": 0,
+          "baseline_n_ref": 30,
+          "target_n_err": 2,
+          "target_n_ref": 30,
+          "delta_n_err": 2,
+          "baseline_lines": [
+            1629
+          ],
+          "target_lines": [
+            1629
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "1998-15444-0025"
+            ],
+            "baseline_line": 1629,
+            "target_line": 1629,
+            "reference_excerpt": "to purify it add a small quantity of dilute sulphuric acid and after evaporating to three quarters of its bulk add a saturated solution of carbonate of potash or soda",
+            "baseline_excerpt": "it, add a small quantity of dilute sulphuric acid, and, after evaporating to three quarters of its",
+            "target_excerpt": "it, add a small quantity of dilute sulphuric acid and, after evaporating to 3/4 of its bulk,",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_other",
+          "identity": [
+            "id",
+            "3005-163390-0019"
+          ],
+          "category": "newly_failed",
+          "reference_hash": "de1140decc3a1360b7c0b36f1be00c54429ce85328ad7d88ad2da81ebf59296e",
+          "baseline_n_err": 0,
+          "baseline_n_ref": 7,
+          "target_n_err": 2,
+          "target_n_ref": 7,
+          "delta_n_err": 2,
+          "baseline_lines": [
+            1963
+          ],
+          "target_lines": [
+            1963
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "3005-163390-0019"
+            ],
+            "baseline_line": 1963,
+            "target_line": 1963,
+            "reference_excerpt": "s'pose he opened his mouthwhat then",
+            "baseline_excerpt": "S'pose he opened his mouth, what then?",
+            "target_excerpt": "Suppose he opened his mouth. What then?",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_other",
+          "identity": [
+            "id",
+            "7902-96595-0017"
+          ],
+          "category": "worsening_persistent",
+          "reference_hash": "7df3044ebc7854843b8b7e0223ff1e82588f0948da1ca6196c1ad0741635ac94",
+          "baseline_n_err": 1,
+          "baseline_n_ref": 11,
+          "target_n_err": 4,
+          "target_n_ref": 11,
+          "delta_n_err": 3,
+          "baseline_lines": [
+            359
+          ],
+          "target_lines": [
+            359
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "7902-96595-0017"
+            ],
+            "baseline_line": 359,
+            "target_line": 359,
+            "reference_excerpt": "i dunno muttered dick and a man can't be sure",
+            "baseline_excerpt": "I dunno, muttered Dick. A man can't be sure.",
+            "target_excerpt": "I don't know, muttered Dick. A man can't be sure.",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        },
+        {
+          "dataset": "ls_other",
+          "identity": [
+            "id",
+            "2609-169640-0001"
+          ],
+          "category": "worsening_persistent",
+          "reference_hash": "62ab317fae2e40cd1771080bfbe79e4cfff6bf26965fadca2ef08d6874708783",
+          "baseline_n_err": 1,
+          "baseline_n_ref": 22,
+          "target_n_err": 3,
+          "target_n_ref": 22,
+          "delta_n_err": 2,
+          "baseline_lines": [
+            1881
+          ],
+          "target_lines": [
+            1881
+          ],
+          "excerpt": {
+            "segment_identity": [
+              "id",
+              "2609-169640-0001"
+            ],
+            "baseline_line": 1881,
+            "target_line": 1881,
+            "reference_excerpt": "an hour after the sun had set the wind fell to a light air that just kept steerage way on the ship",
+            "baseline_excerpt": "An hour after the sun had set, the wind fell",
+            "target_excerpt": "Now, or after the sun had set, the wind fell",
+            "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+          }
+        }
+      ]
+    }
+  },
+  "scope": "Full step100 dumps matched by stable identity and exact reference; no slot/order matching.",
+  "limits": [
+    "Logged n_err/n_ref retained; no normalizer rerun or acoustic judgments.",
+    "Earnings parent counts are used once per parent; chunk rows are retained only for identity and excerpts.",
+    "Selected examples below do not establish a linguistic pattern prevalence.",
+    "An example excerpt is the first changed matched chunk; its parent/utterance category describes total logged error rate, not a causal attribution to that excerpt."
+  ],
+  "validation_crosscheck": {
+    "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/comparison_summary.json",
+    "all_eight_dataset_run_checks_agree": true,
+    "checks": [
+      {
+        "dataset": "earning_chunk_verb",
+        "run": "replay16",
+        "dump_recomputed_p_err": 0.043650535888275416,
+        "frozen_wandb_p_err": 0.04365053588827541,
+        "absolute_difference": 6.938893903907228e-18,
+        "agrees": true
+      },
+      {
+        "dataset": "earning_chunk_verb",
+        "run": "replay64",
+        "dump_recomputed_p_err": 0.04449496589801884,
+        "frozen_wandb_p_err": 0.04449496589801884,
+        "absolute_difference": 0.0,
+        "agrees": true
+      },
+      {
+        "dataset": "openml_bad",
+        "run": "replay16",
+        "dump_recomputed_p_err": 0.13159296750133193,
+        "frozen_wandb_p_err": 0.1315929675013319,
+        "absolute_difference": 2.7755575615628914e-17,
+        "agrees": true
+      },
+      {
+        "dataset": "openml_bad",
+        "run": "replay64",
+        "dump_recomputed_p_err": 0.11985085227272728,
+        "frozen_wandb_p_err": 0.11985085227272728,
+        "absolute_difference": 0.0,
+        "agrees": true
+      },
+      {
+        "dataset": "ls_clean",
+        "run": "replay16",
+        "dump_recomputed_p_err": 0.012055693909893594,
+        "frozen_wandb_p_err": 0.012055693909893592,
+        "absolute_difference": 1.734723475976807e-18,
+        "agrees": true
+      },
+      {
+        "dataset": "ls_clean",
+        "run": "replay64",
+        "dump_recomputed_p_err": 0.012093426911176515,
+        "frozen_wandb_p_err": 0.012093426911176515,
+        "absolute_difference": 0.0,
+        "agrees": true
+      },
+      {
+        "dataset": "ls_other",
+        "run": "replay16",
+        "dump_recomputed_p_err": 0.027648984689918815,
+        "frozen_wandb_p_err": 0.02764898468991881,
+        "absolute_difference": 3.469446951953614e-18,
+        "agrees": true
+      },
+      {
+        "dataset": "ls_other",
+        "run": "replay64",
+        "dump_recomputed_p_err": 0.02763005999129464,
+        "frozen_wandb_p_err": 0.02763005999129463,
+        "absolute_difference": 6.938893903907228e-18,
+        "agrees": true
+      }
+    ]
+  },
+  "reference_denominator_differences": [
+    {
+      "dataset": "openml_bad",
+      "identity": [
+        "id",
+        "15292531606276667822"
+      ],
+      "category": "newly_failed",
+      "reference_hash": "6e76bc05f5049cfebada385fec5263bf31273b64513a74808e06c34cd3063bd2",
+      "baseline_n_err": 0,
+      "baseline_n_ref": 19,
+      "target_n_err": 1,
+      "target_n_ref": 20,
+      "delta_n_err": 1,
+      "baseline_lines": [
+        139
+      ],
+      "target_lines": [
+        139
+      ],
+      "excerpt": {
+        "segment_identity": [
+          "id",
+          "15292531606276667822"
+        ],
+        "baseline_line": 139,
+        "target_line": 139,
+        "reference_excerpt": "O nível de pH é indicado pela quantidade de íons de hidrogênio o H em pH na substância química testada.",
+        "baseline_excerpt": "pH é indicado pela quantidade de íons de hidrogênio OH em pH na substância química testada.",
+        "target_excerpt": "pH é indicado pela quantidade de íons de hidrogênio, ou H, em pH, na substância química testada.",
+        "scope": "first changed matched chunk; excerpts only, no acoustic/scorer attribution"
+      }
+    }
+  ]
+}
