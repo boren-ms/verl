@@ -39,6 +39,9 @@ enable_activation_offload: False
 # whether to use remove padding. Only valid when we use hf model definition
 use_remove_padding: False
 
+# Whether to isolate Qwen3.5 linear-attention states between packed samples
+use_linear_attention_packing: False
+
 # Set to positive value to enable LoRA (e.g., 32)
 lora_rank: 0
 

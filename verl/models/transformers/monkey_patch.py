@@ -202,6 +202,7 @@ def apply_monkey_patch(
     use_remove_padding: bool = True,
     use_fused_kernels: bool = False,
     fused_kernels_backend: str = None,
+    use_linear_attention_packing: bool = False,
 ):
     """
     Apply monkey patch to the models for ulysses sequence parallel and fused kernel.
@@ -323,3 +324,9 @@ def apply_monkey_patch(
             print(f"Monkey patch _flash_attention_forward in {flash_attention.__name__}")
 
     patch_forward_with_backends(model, use_fused_kernels=use_fused_kernels, fused_kernels_backend=fused_kernels_backend)
+
+    if use_linear_attention_packing and model.config.model_type in ("qwen3_5", "qwen3_5_text", "qwen3_5_audio"):
+        from verl.models.transformers.qwen3_5 import patch_qwen3_5_packed_sequences
+
+        patch_qwen3_5_packed_sequences(model, ulysses_sp_size=ulysses_sp_size)
+        print(f"Monkey patch packed Qwen3.5 linear attention in {model.__class__.__name__}")

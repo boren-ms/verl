@@ -75,6 +75,7 @@ class HFModelConfig(BaseConfig):
     enable_activation_offload: bool = False
 
     use_remove_padding: bool = False
+    use_linear_attention_packing: bool = False
 
     # lora related. We may setup a separate config later
     lora_rank: int = 0

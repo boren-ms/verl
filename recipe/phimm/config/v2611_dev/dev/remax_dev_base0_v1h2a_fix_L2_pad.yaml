@@ -13,6 +13,14 @@ defaults:
 actor_rollout_ref:
   model:
     use_remove_padding: False
+    enable_gradient_checkpointing: True
+  # Bound padded activation/logit memory; retain the global batch via accumulation.
+  actor:
+    use_dynamic_bsz: False
+    ppo_micro_batch_size_per_gpu: 1
+  rollout:
+    log_prob_use_dynamic_bsz: False
+    log_prob_micro_batch_size_per_gpu: 1
 
 reward_functions:
   librispeech:
