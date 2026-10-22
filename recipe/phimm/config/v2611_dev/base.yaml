@@ -56,8 +56,6 @@ actor_rollout_ref:
     gt_rollout: false
     engine_kwargs:
       vllm:
-        # Return the behavior-policy probabilities after temperature and sampling processors.
-        logprobs_mode: processed_logprobs
         gdn_prefill_backend: triton
         # Match actor targets without adding an unused lm_head LoRA wrapper.
         lora_target_modules:
