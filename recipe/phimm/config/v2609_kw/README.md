@@ -61,6 +61,121 @@ fauchelevent
 - 只有合法块才从正文剥离。缺头、坏头、重复、空项、额外解释和截断不给列表/格式奖励；坏尾部保留可见词计正文错误。
 - 优先使用 rollout 传递的 vLLM 原生 finish_reason；stop 正常、length 截断，abort 等异常按超时失败处理。旧产物无该字段时才由 response mask/EOS/budget 回退推断，并记录来源。新协议 response mask 同时按真实返回 token 数限制，防止 PAD≠EOS 时把 padding 算作答案。
 
+## 真实数据：处理前与处理后
+
+以下是实际 manifest 记录，经当前配置的 `augment()`（`add_task_info` → `add_field` → `verl_format_ds`）处理后的结果。这里“处理前”指 loader 读取的已准备 JSONL，已完成关键词标注和数据划分；不是原始 TSV。为便于阅读，省略 speaker/chapter 与 hash 等元数据，音频路径在处理后保持不变。
+
+### 训练样本
+
+配置：[training/remax_ls_joint_pilot.yaml](training/remax_ls_joint_pilot.yaml)，数据：[data/training/ls_pilot10k.yaml](data/training/ls_pilot10k.yaml)。输入 manifest 为 `${keyword_experiment.manifest_root}/train_pilot10k_seed42.jsonl`。
+
+处理前：
+
+```yaml
+id: 4018-103416-0012
+text: no toots dear but i can easily mother marion explained
+keywords: [toots, marion]
+audio_path: az://orngwus2cresco/data/boren/data/LibriSpeech/train-clean-100/4018/103416/4018-103416-0012.flac
+split: train
+keyword_annotation_valid: true
+annotation_policy: ls-common5k-v1
+```
+
+处理后，`prompt` 是一条 `role: user` 消息，`content` 为下文。训练和 A1 联合输出评估使用相同 prompt，具体目标词不放入 prompt。
+
+```text
+Transcribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.<audio>
+The language is English.
+Also output the rare words that occur in this audio. After the complete transcription, write <KEYWORDS> on a new line, then a comma-separated list on the next line. List each word once, in its order of first occurrence. If there are no keywords, leave that line empty. Do not add explanations.
+```
+
+处理后的参考字段：
+
+```yaml
+data_source: ls_joint_train
+reward_model:
+  ground_truth: no toots dear but i can easily mother marion explained
+  gt_group_id: 4018-103416-0012
+  output_protocol: asr-keywords-v1
+  gt_output: |
+    <src=English><tgt=English>
+    <VERBATIM>
+    no toots dear but i can easily mother marion explained
+    <KEYWORDS>
+    toots, marion
+extra_info:
+  id: 4018-103416-0012
+  keywords: [toots, marion]
+  language: English
+  prefix: ""
+  output_protocol: asr-keywords-v1
+  keyword_annotation_valid: true
+```
+
+`ground_truth` 只保存转写正文。`gt_output` 是完整的格式化目标答案，用于训练采样阶段的 GT rollout；每组 1 条 GT completion + 7 条 sampled completions。当前 `prefix_prob: 0.0`，因此 `prefix` 为空，GT 中保留完整任务头。
+
+### 评估样本：A1 联合输出
+
+配置：[baseline_eval/eval_joint_prompt_ls.yaml](baseline_eval/eval_joint_prompt_ls.yaml)，数据：[data/eval/ls_official.yaml](data/eval/ls_official.yaml)。输入 manifest 为 `${keyword_experiment.manifest_root}/test_clean.jsonl`。
+
+处理前：
+
+```yaml
+id: 1089-134686-0001
+text: stuff it into you his belly counselled him
+keywords: [belly, counselled]
+audio_path: az://orngwus2cresco/data/boren/data/LibriSpeech/test-clean/1089/134686/1089-134686-0001.flac
+split: test-clean
+keyword_annotation_valid: true
+annotation_policy: ls-common5k-v1
+```
+
+处理后，`prompt` 使用上面相同的联合输出指令；参考字段为：
+
+```yaml
+data_source: ls_clean
+reward_model:
+  ground_truth: stuff it into you his belly counselled him
+  gt_group_id: 1089-134686-0001
+  output_protocol: asr-keywords-v1
+  gt_output: |
+    <src=English><tgt=English>
+    <VERBATIM>
+    stuff it into you his belly counselled him
+    <KEYWORDS>
+    belly, counselled
+extra_info:
+  id: 1089-134686-0001
+  keywords: [belly, counselled]
+  language: English
+  prefix: ""
+  output_protocol: asr-keywords-v1
+  keyword_annotation_valid: true
+```
+
+评估时 `gt_rollout: false`：reference/关键词标签仅用于评分，不作为模型输入，也不替换预测。上面的 `gt_output` 是参考答案示例，不是模型生成结果。dev 验证同样不使用 GT rollout。
+
+### A0 原 prompt 的区别
+
+[baseline_eval/eval_base_ls.yaml](baseline_eval/eval_base_ls.yaml) 读取相同评估记录，但设置 `output_keywords: false`，prompt 为：
+
+```text
+Transcribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.<audio>
+The language is English.
+```
+
+同一条评估记录的 `reward_model.gt_output` 不含关键词块：
+
+```text
+<src=English><tgt=English>
+<VERBATIM>
+stuff it into you his belly counselled him
+```
+
+A0 的 `reward_model.ground_truth` 仍是正文，`extra_info.keywords` 仍为 `[belly, counselled]`，用于计算 BWER；不添加 `asr-keywords-v1` 协议字段。联合输出的有效空关键词目标则保留精确尾部 `"\n<KEYWORDS>\n\n"`。
+
+以上展示文本与 schema 转换；`RLHFDataset.__getitem__()` 随后才加载音频、应用 chat template，并构建音频特征与 token tensors。
+
 ## 数据与准备
 
 冻结 `ls-common5k-v1`：按 `r"[\w'\-]+"` 小写分词，排除 common5k，保留正文首次出现顺序。全部 5,559 条官方 keyword 标签与该规则完全一致。旧 `ls_rare05.yaml` 使用 common10k + 随机裁剪，不作为本轮标注规则。
