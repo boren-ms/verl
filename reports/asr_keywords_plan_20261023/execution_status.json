@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-10-23T21:01:52.506751+00:00",
+  "updated_at": "2026-10-23T21:03:49.594133+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
   "keyword_tag": "<KEYWORDS>",
   "annotation_policy": "ls-common5k-v1",
-  "implementation": "GPU verified full GT body/list, 1 GT per 8-row group; finish-reason cleanup and dump alignment fix pending replacement",
+  "implementation": "GPU verified full GT body/list and 1GT+7samples on prior run; metadata and dump-alignment fixes submitted",
   "config_root": "recipe/phimm/config/v2609_kw",
   "local_manifest_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1",
   "remote_reference_manifest_local_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote",
@@ -64,20 +64,25 @@
     "remax_finish_reason_fix": {
       "passed": 14,
       "includes": "3 finish-reason lifecycle + 11 selector/config tests",
-      "full_trainer_local_collection": "blocked by pre-existing torchvision::nms import; run on remote next"
+      "full_trainer_local_collection": "blocked by pre-existing torchvision::nms import; run on remote next",
+      "remote_regression": {
+        "passed": 59,
+        "command": "python -m pytest tests/recipe/dapo/test_remax_baseline_outputs.py tests/recipe/dapo/test_dapo_reward_metrics.py tests/recipe/dapo/test_remax_advantage_mask.py -q"
+      }
     }
   },
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "FAILED at step5; fixing greedy finish-reason union and training dump row alignment",
+    "A2_training": "RUNNING replacement raysubmit_pfpa7hyGA1AgVaPF, model startup; 59 regression tests passed",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
     "raysubmit_8QYAUSqkEcEr7Ji8",
     "raysubmit_X7JKdMjtL7Vfr4CZ",
     "raysubmit_b5GvZq1k3Yyeb2ws",
-    "raysubmit_BXxnPGWufEfNkCc5"
+    "raysubmit_BXxnPGWufEfNkCc5",
+    "raysubmit_pfpa7hyGA1AgVaPF"
   ],
   "model_metrics": {
     "A0_base_original_prompt": {
@@ -157,9 +162,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Verify loaded validation exactly1000 and train-only GT groups in replacement job",
-    "Verify 1000-only validation and GT/sample behavior; finish training",
-    "Select dev1k checkpoint and export rank256/alpha512; evaluate internal/clean/other"
+    "Verify replacement progresses beyond step5 and training dumps align with IDs/reference; continue100steps",
+    "Select complete checkpoint using dev1000 only",
+    "Export rank256/alpha512 and evaluate internal/clean/other; verify corpus counts"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
   "parent_merge": {
@@ -182,7 +187,7 @@
   },
   "active_job": {
     "pool": "verl-n2-i10",
-    "status": "FAILED",
+    "status": "RUNNING",
     "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
     "experiment_name": "remax_ls_joint_pilot_dev1k",
     "nnodes": 2,
@@ -200,17 +205,14 @@
       "lora_rank": 256,
       "lora_alpha": 512
     },
-    "gpu_gt_group_behavior_verified": true,
-    "replacement_for": "raysubmit_b5GvZq1k3Yyeb2ws",
-    "job_id": "raysubmit_BXxnPGWufEfNkCc5",
-    "code_commit": "635f45ecf",
+    "gpu_gt_group_behavior_verified": false,
+    "replacement_for": "raysubmit_BXxnPGWufEfNkCc5",
+    "job_id": "raysubmit_pfpa7hyGA1AgVaPF",
+    "code_commit": "737ad7176",
     "dashboard": "http://10.151.61.214:9209",
-    "phase": "failed before step5: greedy rollout_finish_reason retained during sampled union",
-    "submitted_at": "2026-10-23T20:41:06Z",
-    "last_completed_training_step": 4,
-    "initial_dev_processed": 1000,
-    "initial_dev_total": 1000,
-    "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b"
+    "phase": "runtime initialized; model startup after fix",
+    "submitted_at": "2026-10-23T21:03:05Z",
+    "last_completed_training_step": 0
   },
   "audio_precache": {
     "main_pod": "verl-n2-i10-0",
@@ -240,15 +242,15 @@
     "status": "ACTIVE"
   },
   "occupancy_observation": {
-    "observed_at": "2026-10-23T21:01:52.506751+00:00",
+    "observed_at": "2026-10-23T21:03:49.594133+00:00",
     "pool": "verl-n2-i10",
-    "running_job_id": null,
+    "running_job_id": "raysubmit_pfpa7hyGA1AgVaPF",
     "both_pods_checked": true,
     "gpu_memory_mib_range": [
       1,
       1
     ],
-    "action": "pool idle after failed owned pilot; safe to sync fix"
+    "action": "own replacement running; do not sync while occupied"
   },
   "config_layout": {
     "base": "recipe/phimm/config/v2609_kw/base.yaml",
@@ -326,6 +328,38 @@
       "initial_dev_processed": 6096,
       "initial_dev_total": 6096,
       "stopped_at": "2026-10-23T20:40:13Z"
+    },
+    {
+      "pool": "verl-n2-i10",
+      "status": "FAILED",
+      "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
+      "experiment_name": "remax_ls_joint_pilot_dev1k",
+      "nnodes": 2,
+      "settings": {
+        "train_samples": 10000,
+        "dev_samples": 1000,
+        "steps": 100,
+        "batch_size": 64,
+        "rollout_n": 8,
+        "gt_per_group": 1,
+        "sampled_per_group": 7,
+        "save_freq": 10,
+        "test_freq": 20,
+        "selection_split": "dev",
+        "lora_rank": 256,
+        "lora_alpha": 512
+      },
+      "gpu_gt_group_behavior_verified": true,
+      "replacement_for": "raysubmit_b5GvZq1k3Yyeb2ws",
+      "job_id": "raysubmit_BXxnPGWufEfNkCc5",
+      "code_commit": "635f45ecf",
+      "dashboard": "http://10.151.61.214:9209",
+      "phase": "failed before step5: greedy rollout_finish_reason retained during sampled union",
+      "submitted_at": "2026-10-23T20:41:06Z",
+      "last_completed_training_step": 4,
+      "initial_dev_processed": 1000,
+      "initial_dev_total": 1000,
+      "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b"
     }
   ],
   "previous_audio_precache": {
