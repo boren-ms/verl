@@ -27,6 +27,7 @@ def test_remax_recipes_use_expected_behavior_log_probs(recipe_path):
     rollout = config.actor_rollout_ref.rollout
     assert config.algorithm.adv_estimator == "remax"
     assert rollout.engine_kwargs.vllm.get("logprobs_mode", "raw_logprobs") == "raw_logprobs"
-    expected_temperature = 1.0 if "t1" in recipe_path.stem.split("_") else 1.2
+    tags = recipe_path.stem.split("_")
+    expected_temperature = 2.0 if "t2" in tags else 1.0 if "t1" in tags else 1.2
     assert rollout.temperature == pytest.approx(expected_temperature)
     assert rollout.calculate_log_probs is True
