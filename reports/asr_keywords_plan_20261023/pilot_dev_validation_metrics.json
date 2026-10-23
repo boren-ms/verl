@@ -1,0 +1,29 @@
+{
+  "20": {
+    "job_id": "raysubmit_pfpa7hyGA1AgVaPF",
+    "unique_count_and_selected_ids_verified": true,
+    "metrics": {
+      "ls_dev_lowbwer1000": {
+        "utterances": 1000,
+        "n_err": 318,
+        "n_ref": 34583,
+        "nb_err": 115,
+        "nb_ref": 3427,
+        "nu_err": 203,
+        "nu_ref": 31156,
+        "WER": 0.009195269351993754,
+        "BWER": 0.03355704697986577,
+        "UWER": 0.006515598921556041,
+        "NWER": 0.006515598921556041,
+        "keyword_word_accuracy": 0.9664429530201343,
+        "kw_micro_precision": 0.40051347881899874,
+        "kw_micro_recall": 0.09358128374325135,
+        "kw_micro_f1": 0.15171407731582787,
+        "kw_macro_f1": 0.08397533904004492,
+        "kw_exact": 0.005,
+        "kw_format_success": 0.165,
+        "kw_empty_false_positive": null
+      }
+    }
+  }
+}

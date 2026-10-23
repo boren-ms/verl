@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T21:30:04.763105+00:00",
+  "updated_at": "2026-10-23T21:30:45.318379+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING: step20 dev validation, last logged optimization step19",
+    "A2_training": "RUNNING: dev20 complete1000; checkpoint20 saving",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -158,6 +158,27 @@
         "kw_format_success": 0.0,
         "kw_empty_false_positive": 0.0
       }
+    },
+    "A2_dev1000_step20": {
+      "utterances": 1000,
+      "n_err": 318,
+      "n_ref": 34583,
+      "nb_err": 115,
+      "nb_ref": 3427,
+      "nu_err": 203,
+      "nu_ref": 31156,
+      "WER": 0.009195269351993754,
+      "BWER": 0.03355704697986577,
+      "UWER": 0.006515598921556041,
+      "NWER": 0.006515598921556041,
+      "keyword_word_accuracy": 0.9664429530201343,
+      "kw_micro_precision": 0.40051347881899874,
+      "kw_micro_recall": 0.09358128374325135,
+      "kw_micro_f1": 0.15171407731582787,
+      "kw_macro_f1": 0.08397533904004492,
+      "kw_exact": 0.005,
+      "kw_format_success": 0.165,
+      "kw_empty_false_positive": null
     }
   },
   "blockers": [],
@@ -210,11 +231,11 @@
     "job_id": "raysubmit_pfpa7hyGA1AgVaPF",
     "code_commit": "737ad7176",
     "dashboard": "http://10.151.61.214:9209",
-    "phase": "step20 dev1000 validation; training progressed beyond prior failure",
+    "phase": "saving checkpoint20 after completed dev1000 validation",
     "submitted_at": "2026-10-23T21:03:05Z",
     "last_completed_training_step": 19,
     "optimizer_step_in_validation": 20,
-    "validation_processed": 448,
+    "validation_processed": 1000,
     "validation_total": 1000,
     "training_dump_counts_aligned": true,
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b"
