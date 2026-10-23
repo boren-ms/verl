@@ -4,6 +4,7 @@ import re
 import json
 import ast
 import uuid
+import os
 import blobfile as bf
 import subprocess
 import sys
@@ -215,8 +216,32 @@ def save_dataset(
         print(f"  Wrote part {i + 1}/{n_parts}: {part_path} ({len(shard)} rows)")
 
 
-@functools.cache
 def cache_remote_path(remote_path, local_path=None, cache_dir=None):
+    """Cache an Azure resource, optionally sharing immutable versions per node.
+
+    Set VERL_REMOTE_CACHE_NAMESPACE to an immutable version or manifest digest
+    to share downloads across processes and restarts. Change it when remote
+    content changes. Explicit destinations retain the legacy behavior.
+    """
+    if not remote_path.startswith("az://"):
+        return remote_path
+    namespace = os.environ.get("VERL_REMOTE_CACHE_NAMESPACE")
+    if local_path is None and namespace:
+        from recipe.phimm.utils.remote_cache import shared_remote_cache
+
+        def populate(destination):
+            result = _legacy_cache_remote_path(remote_path, local_path=destination)
+            if result is None:
+                raise FileNotFoundError(remote_path)
+
+        return shared_remote_cache(
+            remote_path, cache_dir or str(Path.home() / ".blobfile"), namespace, populate
+        )
+    return _legacy_cache_remote_path(remote_path, local_path=local_path, cache_dir=cache_dir)
+
+
+@functools.cache
+def _legacy_cache_remote_path(remote_path, local_path=None, cache_dir=None):
     """Sync remote to local."""
     if not remote_path.startswith("az://"):
         return remote_path

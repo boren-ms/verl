@@ -22,6 +22,10 @@ actor_rollout_ref:
     log_prob_use_dynamic_bsz: False
     log_prob_micro_batch_size_per_gpu: 1
 
+# Keep two local actor checkpoints for future launches; remote checkpoints are retained.
+trainer:
+  max_actor_ckpt_to_keep: 2
+
 reward_functions:
   librispeech:
     path: recipe/phimm/reward/asr_vote.py

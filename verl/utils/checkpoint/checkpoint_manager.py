@@ -17,6 +17,7 @@ import random
 import shutil
 
 import numpy as np
+from filelock import FileLock
 import torch
 import torch.distributed
 from omegaconf import DictConfig
@@ -137,9 +138,15 @@ class BaseCheckpointManager:
         for p in path:
             abs_path = os.path.abspath(p)
             print(f"Checkpoint manager remove previous save local path: {abs_path}")
-            if not os.path.exists(abs_path):
+            # Every rank participates so node-local files are removed on every node.
+            # Keep the lock outside the removed directory. Ranks sharing a filesystem
+            # serialize removal; ranks on independent filesystems clean their own copy.
+            parent = os.path.dirname(abs_path)
+            if not os.path.isdir(parent):
                 continue
-            shutil.rmtree(abs_path, ignore_errors=True)
+            with FileLock(os.path.join(parent, ".checkpoint-retention.lock"), timeout=1800):
+                if os.path.exists(abs_path):
+                    shutil.rmtree(abs_path)
 
     @staticmethod
     def get_rng_state():

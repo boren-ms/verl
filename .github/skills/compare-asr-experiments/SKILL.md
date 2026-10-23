@@ -1,6 +1,6 @@
 ---
 name: compare-asr-experiments
-description: 'Compare verl ASR experiment jobs using available reward-core, reward-delta, and reward-vote histories, validation p_err for each dataset separately, and val/generations examples. Identify error patterns and recommend evidence-backed next fixes. Use for comparing experiment runs or jobs, explaining validation tradeoffs, or deciding what to fix next; does not launch experiments.'
+description: 'Compare verl ASR experiment jobs using reward histories, per-dataset validation p_err, and val/generations examples. Generate a slide-style PDF report with figures, identify error patterns, and recommend evidence-backed next fixes. Use for comparing runs, explaining validation tradeoffs, or deciding what to fix next; does not launch experiments.'
 ---
 
 # Compare ASR Experiments
@@ -144,7 +144,8 @@ suggestion does not authorize modifying configs or launching jobs.
 
 ## Deliver the comparison
 
-Write a concise `report.md` and a machine-readable `evidence.json` in a unique
+Generate a **slide-style `report.pdf` with embedded figures** by default, alongside
+a concise `report.md` and a machine-readable `evidence.json`, in a unique
 output directory (default `tmp/experiment_comparisons/<timestamp>/` in the working
 project). Include source IDs/paths, exact keys, histories/steps used, sanitized
 comparison settings, missing/conflicting observations, example identities and
@@ -153,8 +154,18 @@ pattern evidence. Use JSON `null` plus a reason for missing values.
 The report should contain a run/coverage inventory, reward comparison, a separate
 `p_err` table or section for each dataset, validation pattern/example evidence,
 and prioritized fixing directions with practical limits. A compact combined
-table is fine if every row retains its dataset identity. Use plots when they
-clarify trajectories, with separate panels for datasets and metrics of differing
-units. Link the report and evidence in the answer and lead with the dataset
-tradeoffs and best-supported next direction. If access fails, complete the
-available comparison and state exactly which requested dimensions remain unknown.
+table is fine if every row retains its dataset identity.
+
+Read [slide-style PDF reporting](references/pdf-slides.md) when preparing the
+deliverables. Build landscape 16:9 slides with one main finding per page,
+readable charts and tables, and evidence-backed captions. Include per-dataset
+`p_err` trajectories and comparable reward trajectories when histories exist,
+plus figures for quantified validation error patterns when supported. Save the
+editable deck source and reusable figure files with the report. Export and
+inspect the actual PDF; an HTML deck or export instructions alone do not fulfill
+the PDF requirement.
+
+Link the PDF, Markdown report, and evidence in the answer and lead with the
+dataset tradeoffs and best-supported next direction. If access or PDF rendering
+fails, complete the available deliverables and state exactly which requested
+dimensions or artifact remain unavailable; do not claim PDF generation succeeded.

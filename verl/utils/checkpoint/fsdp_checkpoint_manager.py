@@ -226,15 +226,14 @@ class FSDPCheckpointManager(BaseCheckpointManager):
 
         # Drain in-flight uploads scheduled by the previous save before any rotation deletes old
         # checkpoint dirs. remove_previous_save_local_path shutil.rmtree old global_step_* dirs
-        # (rank 0 only, but the dir holds every rank's shard), so all ranks must finish uploading
-        # and sync before rank 0 rotates, otherwise rmtree can race a live upload.
+        # so all ranks must finish uploading and sync before rotation; otherwise rmtree
+        # can race a live upload. Local removal is serialized with a filesystem lock.
         wait_for_remote_uploads(timeout=1800)
         torch.distributed.barrier()
 
-        # remove previous local_path, only rank 0 should do this
+        # Every rank rotates its local history, including ranks on worker nodes.
         if (
-            self.rank == 0
-            and max_ckpt_to_keep
+            max_ckpt_to_keep
             and isinstance(max_ckpt_to_keep, int)
             and max_ckpt_to_keep > 0
             and len(self.previous_saved_paths) >= max_ckpt_to_keep
