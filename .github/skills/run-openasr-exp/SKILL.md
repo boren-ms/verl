@@ -178,13 +178,12 @@ Do not store credentials or signed URLs. Never treat files left by a previous
 run with the same experiment name as proof this run succeeded. Reconcile live
 jobs, run identity, logs and artifact provenance before reusing state.
 
-Maintain `recipe/phimm/config/verl_job.txt` using the general runner's
-timestamp/table/Reports format. Preserve unrelated entries, replace only this
-pool's current row, and do not retain superseded job IDs. Use `n4-i0` rather
-than ambiguous `i0` when multiple pool sizes share the index. Report phases as
+Report the current pool, config, Ray job ID, activity, and progress to the user
+and carry current pipeline identities in the recurring monitor prompt. Do not
+create or update `recipe/phimm/config/verl_job.txt`. Use `n4-i0` rather than
+ambiguous `i0` when multiple pool sizes share the index. Report phases as
 training, exporting last checkpoint, evaluating the actual dataset, or building
-report, with concurrent audio-prefetch progress alongside the main phase;
-adapt best-checkpoint wording to this last-checkpoint policy.
+report, with concurrent audio-prefetch progress alongside the main phase.
 Do not update `recipe/phimm/config/ver_2607v1a/job.txt`.
 
 ## 2. Identify and replace the previous job

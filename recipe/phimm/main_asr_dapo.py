@@ -35,6 +35,9 @@ from verl.utils.fs import copy_to_local
 
 def get_env_vars():
     env_vars = EnvMgr().envs()
+    namespace = os.environ.get("VERL_REMOTE_CACHE_NAMESPACE")
+    if namespace:
+        env_vars["VERL_REMOTE_CACHE_NAMESPACE"] = namespace
     required_envs = ["DATA_PATH"]
     assert all(k in env_vars for k in required_envs), (
         f"Missing env vars: {[k for k in required_envs if k not in env_vars]}"

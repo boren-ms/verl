@@ -10,7 +10,7 @@ Recover and manage the current multi-node verl training workload after a session
 machine, schedule, or Ray-job interruption. Live Brix and Ray state is authoritative.
 
 This skill owns workload-wide pool discovery, cache restoration, placement decisions,
-and aggregate status persistence in `recipe/phimm/config/verl_job.txt`. It must invoke
+and aggregate status reporting. It must invoke
 the `verl-asr-run` skill for every
 job's submission, monitoring, failure diagnosis, fix, resubmission, checkpoint export,
 evaluation, report generation, and per-job recurring monitor. Do not reproduce those
@@ -75,23 +75,13 @@ Ray submission and GPUs are idle. This inspection establishes placement and capa
 delegate all log parsing, progress tracking, metrics, phase detection, and continued
 polling for each discovered job to `verl-asr-run`.
 
-### 4. Persist the reconciled cache
+### 4. Report the reconciled workload
 
-After discovery and after every delegated `verl-asr-run` transition, reconcile and
-rewrite `recipe/phimm/config/verl_job.txt` with the workload-wide state. Keep its
-existing human-readable format:
-
-1. An `updated_at_utc:` timestamp in UTC.
-2. One table row per discovered `verl-n1-i*` node with node, Ray job ID, status,
-  job/config, and progress/phase.
-3. A `Reports:` section containing each tracked experiment's queued, evaluating, and
-  reported checkpoint steps.
-
-Use `none` for unavailable values. Write a temporary file in the same directory and
-rename it over the cache only after the full content is ready, so interruptions cannot
-leave a partial cache. Never discard a valid cached report entry merely because its
-job has moved nodes; update the node/job row from live state and retain pipeline
-history. Do not commit routine cache refreshes unless explicitly requested.
+After discovery and every delegated `verl-asr-run` transition, report the current
+workload-wide node/job state to the user. Track replacement IDs, progress, phases,
+and report state in conversation context and the recurring monitor prompt.
+Do not create or update `recipe/phimm/config/verl_job.txt`; an existing file is
+read-only recovery input.
 
 ### 5. Delegate missing cached jobs
 
@@ -105,7 +95,7 @@ Before submitting, verify all of the following:
 After these checks pass, invoke `verl-asr-run` with the selected pool and config and
 instruct it to submit and monitor the single-node job through the full pipeline. That
 skill owns code sync, `trainer.nnodes=1` overrides when needed, command execution, Ray
-job ID capture, and cache updates. Never stop an unrelated evaluation or training job
+job ID capture, and status reporting. Never stop an unrelated evaluation or training job
 to make room. Wait for it to finish or choose another verified-free `verl-n1-i*` pool.
 
 ### 6. Delegate failures and resubmissions
@@ -114,13 +104,13 @@ For each failed tracked job, invoke `verl-asr-run` with its current pool, config
 Ray job ID and instruct it to diagnose, fix, validate, sync, resubmit, record the
 replacement ID, and continue monitoring. Never perform a direct resubmission from
 this skill. If the delegated result reports blocked Ray resources, preserve the state
-in the cache and wait rather than restarting or disrupting unrelated jobs.
+in the monitor context and wait rather than restarting or disrupting unrelated jobs.
 
 ### 7. Delegate completed pipelines
 
 When training succeeds, keep that pipeline delegated to `verl-asr-run` until it has
 exported all required checkpoints, completed the benchmark/report workflow, validated
-the consolidated workbook, and updated the cache. Do not invoke checkpoint conversion
+the consolidated workbook, and reported the final state. Do not invoke checkpoint conversion
 or benchmark execution directly from this skill.
 
 ## Reinstall the recurring monitor
@@ -130,14 +120,12 @@ replacement. The schedule must:
 
 - Restore `recipe/phimm/config/verl_job.txt`, then rediscover and monitor every
   existing `verl-n1-i*` pool while delegating only cached jobs to `verl-asr-run`.
-- Atomically refresh `recipe/phimm/config/verl_job.txt` after every monitoring pass
-  and workload transition.
 - Rediscover live and replacement Ray IDs.
-- Keep the aggregate node/job table, progress, phases, metrics, and report state in
-  `recipe/phimm/config/verl_job.txt`; do not duplicate the table in responses.
+- Report the aggregate node/job table, progress, phases, metrics, and report state
+  in responses, and carry current pipeline identities in the monitor prompt.
 - Invoke `verl-asr-run` to monitor each active pipeline and to handle every submission,
   failure, fix, resubmission, export, evaluation, and report transition.
-- Reconcile delegated results into the aggregate table and cache without disrupting
+- Reconcile delegated results into the aggregate status and monitor context without disrupting
   unrelated jobs.
 - Stop only after all tracked pipelines are complete.
 
