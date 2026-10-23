@@ -5,12 +5,24 @@ env_tag="torch2.11.0_vllm0.24.0_flashattn2.8.3_cu130_v3"
 done_file=".env_done_${env_tag}"
 running_file=".env_running_${env_tag}"
 
-echo "[INFO] Checking environment installation status..."
+# Serialize setup processes; the kernel releases this lock even after a crash.
+# Markers describe state only and must never act as locks.
+exec 9>".env_install.lock"
+echo "[INFO] Waiting for the environment installation lock..."
+flock 9
+rm -f "${running_file}"
+setup_complete=false
+cleanup_setup() {
+    rm -f "${running_file}"
+    if [[ "${setup_complete}" != true ]]; then
+        rm -f "${done_file}"
+    fi
+}
+trap cleanup_setup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
-while [ -f "${running_file}" ]; do
-    echo "[INFO] Waiting for the installation to complete..."
-    sleep 10
-done
+echo "[INFO] Checking environment installation status..."
 
 if [ -f "${done_file}" ] && ! python - <<'PY'
 from importlib.metadata import PackageNotFoundError, version
@@ -80,7 +92,6 @@ fi
 
 if [ ! -f "${done_file}" ]; then
     touch "${running_file}"
-    trap 'rm -f "${running_file}"' ERR
     echo "[INFO] Installing environment..."
 
     # IMPORTANT: The base image ships Ray with a running `ray start
@@ -231,8 +242,14 @@ if [ ! -f "${done_file}" ]; then
     if ! command -v lsof >/dev/null; then
         apt install -y lsof || echo "[WARN] Could not install lsof; GPU cleanup helpers may be unavailable." >&2
     fi
-
-    mv "${running_file}" "${done_file}"
 else
     echo "[INFO] Environment already installed, skipping installation."
 fi
+
+# Check even when the main environment marker is valid: older markers predate
+# these dependencies, and an extension can break after a Torch/CUDA change.
+touch "${running_file}"
+bash "$(dirname "$(readlink -f "$0")")/quick_install_linear_attention.sh"
+mv "${running_file}" "${done_file}"
+setup_complete=true
+echo "[INFO] Environment installation and GPU kernel checks complete."
