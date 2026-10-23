@@ -16,6 +16,7 @@ val_reward:
     ls_clean: ls_keywords
     ls_other: ls_keywords
     ls_dev: ls_keywords
+    ls_dev_lowbwer1000: ls_keywords
     ls_internal: ls_keywords
     ls_probe: ls_keywords
 actor_rollout_ref:

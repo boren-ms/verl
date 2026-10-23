@@ -397,7 +397,8 @@ R = R_existing_asr(parsed_transcription)
 |---|---:|---|
 | train | 120,024 | 仅本地已存在音频；排除 official/heldout 重复正文 |
 | train_pilot10k_seed42 | 10,000 | 保留非空/空比例 |
-| dev | 6,096 | 仅 dev 选 checkpoint |
+| full dev | 6,096 | 保留；未训练 step-0 baseline 用于筛选 |
+| training validation | 1,000 | dev 中 baseline 逐句 BWER 最低；仅此子集选 checkpoint |
 | internal_test | 6,131 | 与训练 speaker 不交叉 |
 | test_clean | 2,620 | 全部保留 |
 | test_other | 2,939 | 全部保留 |
@@ -465,3 +466,8 @@ Brix/Blob 已恢复，云端引用版 manifests 已上传；主节点已缓存�
 评估统一使用 unit-cost jiwer 与单词边界匹配，BWER/UWER 错误分区总和等于 WER；NWER 为 UWER 别名。不能直接与旧加权 alignment/子串匹配的历史 BWER 混比。最终结果按集合累计计数，分母 0 报 N/A。
 
 完成实验仍需：**无 GT 泄漏的实际 RL 运行，以及 LibriSpeech 正文/关键词/协议三组模型结果**。连续 biasing 留待后续，不作为本轮依赖。
+
+
+### 2026-10-23 训练验证集缩小（覆盖先前 full-dev 训练验证安排）
+
+用户要求训练期间 validation 使用 baseline BWER 最低的 1,000 条。选择源限定原有 dev 的未训练 step-0 结果，禁止使用 test-clean/test-other/internal-test。按 (BWER, WER, ID) 排序，排除无关键词分母的样本，冻结名单并记录输入/输出 SHA256 与原始计数。实现为 `recipe.phimm.select_keyword_validation`，配置为 `data/eval/ls_dev_lowbwer1000.yaml`；full dev 配置保留。训练入口加载新子集，使用独立实验名 `remax_ls_joint_pilot_dev1k` 与数据源，避免与历史 full-dev 指标混合。100 steps、save10、test20、10k train、n8 (1 GT+7 samples) 不变。该子集为容易样本，存在基线 BWER 为零的地板效应；完整 held-out 测试继续用于最终结果。

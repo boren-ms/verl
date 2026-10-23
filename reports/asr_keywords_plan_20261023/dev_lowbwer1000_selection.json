@@ -1,0 +1,9026 @@
+{
+  "selection": "ascending (nb_err/nb_ref, n_err/n_ref, id), exact rational ordering",
+  "purpose": "training validation and checkpoint selection only; easy subset, not unbiased evaluation",
+  "baseline_step": 0,
+  "baseline_data_source": "ls_dev",
+  "source_count": 6096,
+  "eligible_count": 5671,
+  "excluded_undefined_bwer": 425,
+  "selected_count": 1000,
+  "manifest_sha256": "e3aaba1c261130aba5296aa1dbc7df6f5b0c5e0546a702895f87c350223c157d",
+  "baseline_sha256": "182055954cd2ac8805e9c752a57ccc0dcb9882a34c393ccd55f29166fb83086e",
+  "baseline_corpus": {
+    "n_err": 0,
+    "n_ref": 34583,
+    "nb_err": 0,
+    "nb_ref": 3427,
+    "nu_err": 0,
+    "nu_ref": 31156,
+    "WER": 0.0,
+    "BWER": 0.0,
+    "UWER": 0.0
+  },
+  "selected": [
+    {
+      "id": "118-121721-0000",
+      "n_err": 0,
+      "n_ref": 7,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 3
+    },
+    {
+      "id": "118-121721-0001",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "118-121721-0004",
+      "n_err": 0,
+      "n_ref": 11,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 6
+    },
+    {
+      "id": "118-121721-0006",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "118-121721-0007",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 13
+    },
+    {
+      "id": "118-121721-0015",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 6
+    },
+    {
+      "id": "118-121721-0017",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "118-121721-0019",
+      "n_err": 0,
+      "n_ref": 7,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 6
+    },
+    {
+      "id": "118-124588-0000",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "118-124588-0001",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "118-124588-0003",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "118-124588-0008",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "118-124588-0009",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "118-124588-0010",
+      "n_err": 0,
+      "n_ref": 52,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 47
+    },
+    {
+      "id": "118-124588-0015",
+      "n_err": 0,
+      "n_ref": 55,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 54
+    },
+    {
+      "id": "118-124588-0017",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "118-124588-0019",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 10,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "118-124588-0021",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 13
+    },
+    {
+      "id": "118-47824-0001",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "118-47824-0002",
+      "n_err": 0,
+      "n_ref": 13,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "118-47824-0009",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "118-47824-0012",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "118-47824-0015",
+      "n_err": 0,
+      "n_ref": 9,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "118-47824-0019",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "118-47824-0020",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "118-47824-0021",
+      "n_err": 0,
+      "n_ref": 9,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "118-47824-0022",
+      "n_err": 0,
+      "n_ref": 10,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 9
+    },
+    {
+      "id": "118-47824-0026",
+      "n_err": 0,
+      "n_ref": 6,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 5
+    },
+    {
+      "id": "118-47824-0028",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "118-47824-0031",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "118-47824-0032",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 16
+    },
+    {
+      "id": "118-47824-0034",
+      "n_err": 0,
+      "n_ref": 55,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 51
+    },
+    {
+      "id": "118-47824-0036",
+      "n_err": 0,
+      "n_ref": 15,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "118-47824-0038",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "118-47824-0041",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "118-47824-0043",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "118-47824-0044",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "118-47824-0045",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "118-47824-0046",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "118-47824-0047",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "118-47824-0048",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "118-47824-0049",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "118-47824-0050",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "118-47824-0051",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "118-47824-0052",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "118-47824-0054",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "118-47824-0056",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 16
+    },
+    {
+      "id": "118-47824-0058",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "118-47824-0060",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 6
+    },
+    {
+      "id": "118-47824-0061",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "118-47824-0063",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "118-47824-0064",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "118-47824-0065",
+      "n_err": 0,
+      "n_ref": 7,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 5
+    },
+    {
+      "id": "118-47824-0066",
+      "n_err": 0,
+      "n_ref": 57,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 52
+    },
+    {
+      "id": "118-47824-0067",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "118-47824-0068",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "118-47824-0069",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "118-47824-0071",
+      "n_err": 0,
+      "n_ref": 6,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 5
+    },
+    {
+      "id": "118-47824-0072",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "118-47824-0073",
+      "n_err": 0,
+      "n_ref": 7,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 6
+    },
+    {
+      "id": "118-47824-0074",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "118-47824-0077",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "118-47824-0079",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "118-47824-0081",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "118-47824-0083",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "118-47824-0086",
+      "n_err": 0,
+      "n_ref": 15,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "1316-132782-0004",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1316-132782-0007",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "1316-132782-0010",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "1316-132782-0011",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "1316-132782-0013",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "1316-132782-0014",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "1316-132782-0025",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 50
+    },
+    {
+      "id": "1316-132782-0026",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "1316-132782-0027",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1316-132782-0029",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 11,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "1316-132782-0030",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1316-132782-0031",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1316-132782-0032",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "1316-132782-0033",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "1316-132782-0036",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "1316-132782-0039",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "1316-132782-0040",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "1316-132782-0041",
+      "n_err": 0,
+      "n_ref": 20,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "1316-132782-0042",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "1316-132782-0043",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "1316-132782-0045",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "1316-132782-0046",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "1316-132782-0047",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1316-132782-0051",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "1316-132782-0052",
+      "n_err": 0,
+      "n_ref": 20,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "1316-132800-0000",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "1316-132800-0001",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1316-132800-0002",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "1316-132800-0003",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1316-132800-0004",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1316-132800-0005",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1316-132800-0006",
+      "n_err": 0,
+      "n_ref": 52,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 49
+    },
+    {
+      "id": "1316-132800-0007",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "1316-132800-0008",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "1316-132800-0012",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "1316-132800-0013",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1316-132800-0014",
+      "n_err": 0,
+      "n_ref": 11,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 10
+    },
+    {
+      "id": "1316-132800-0015",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "1316-132800-0017",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 11,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "1316-132800-0018",
+      "n_err": 0,
+      "n_ref": 54,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 49
+    },
+    {
+      "id": "1316-132800-0019",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "1316-132800-0022",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1316-132800-0024",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "1316-132800-0025",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "1316-132800-0026",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "1316-132800-0027",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1316-132800-0029",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "1316-132800-0031",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "1316-132800-0032",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 10,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1316-132800-0033",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "1316-132800-0034",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 10
+    },
+    {
+      "id": "1316-132800-0035",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "1316-132800-0036",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1316-132800-0037",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 9,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1316-132800-0038",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "1316-132800-0039",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "1316-132800-0041",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "1316-132800-0044",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1316-132800-0046",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "1316-132800-0047",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "1316-132800-0048",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1316-132800-0049",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "1316-132800-0050",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "1316-132800-0051",
+      "n_err": 0,
+      "n_ref": 9,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 6
+    },
+    {
+      "id": "1316-132800-0052",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "1316-132800-0053",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "1316-132800-0054",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 10,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "1316-132800-0055",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "1316-132800-0056",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "1316-132800-0058",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 10,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "1355-39947-0000",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "1355-39947-0001",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1355-39947-0002",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "1355-39947-0003",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1355-39947-0004",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "1355-39947-0005",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "1355-39947-0006",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "1355-39947-0007",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "1355-39947-0008",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 12,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "1355-39947-0009",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "1355-39947-0010",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "1355-39947-0011",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "1355-39947-0012",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "1355-39947-0013",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "1355-39947-0014",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "1355-39947-0016",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "1355-39947-0018",
+      "n_err": 0,
+      "n_ref": 51,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "1355-39947-0019",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1355-39947-0020",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "1355-39947-0021",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "1355-39947-0022",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "1355-39947-0023",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "1355-39947-0024",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1355-39947-0025",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1355-39947-0027",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "1355-39947-0028",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1355-39947-0029",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "1355-39947-0031",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1355-39947-0032",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "1355-39947-0035",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "1355-39947-0036",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1355-39947-0037",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1355-39947-0038",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "1355-39947-0039",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "1355-39947-0041",
+      "n_err": 0,
+      "n_ref": 9,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "1355-39947-0046",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "1355-39947-0048",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "1355-39947-0049",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "1355-39947-0050",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "1355-39947-0051",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "1355-39947-0052",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "1355-39947-0055",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1355-39947-0056",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "1355-39947-0057",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "1355-39947-0058",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1355-39947-0059",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "1355-39947-0060",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "1355-39947-0061",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "1355-39947-0062",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "1355-39947-0063",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1355-39947-0064",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1355-39947-0065",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "1355-39947-0066",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "1355-39947-0067",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "1355-39947-0068",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "1355-39947-0069",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1355-39947-0070",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1355-39947-0071",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1355-39947-0072",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 9,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "1355-39947-0073",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1355-39947-0076",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1355-39947-0077",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "1355-39947-0079",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "1355-39947-0081",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "1355-39947-0082",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "1355-39947-0084",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1355-39947-0087",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1355-39947-0088",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1355-39947-0089",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "1355-39947-0091",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "1355-39947-0092",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "1355-39947-0093",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "1355-39947-0094",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "1355-39947-0095",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "1355-39947-0097",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2012-139355-0002",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2012-139355-0004",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2012-139355-0006",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "2012-139355-0011",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2012-139355-0012",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 13
+    },
+    {
+      "id": "2012-139355-0019",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2012-139355-0022",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2012-139355-0023",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2012-139355-0024",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2012-139355-0025",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2012-139355-0027",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2012-139355-0032",
+      "n_err": 0,
+      "n_ref": 9,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "2012-139355-0033",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2012-139355-0035",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2012-139355-0036",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2012-139355-0037",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2012-139355-0038",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2012-139355-0040",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2012-139356-0003",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2012-139356-0005",
+      "n_err": 0,
+      "n_ref": 10,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "2012-139356-0006",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2012-139356-0008",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2012-139356-0009",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2012-139356-0010",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2012-139356-0012",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 9,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2012-139356-0014",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2012-139356-0019",
+      "n_err": 0,
+      "n_ref": 51,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 47
+    },
+    {
+      "id": "2012-139356-0020",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2012-139356-0022",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 11
+    },
+    {
+      "id": "2012-139356-0027",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2012-139356-0032",
+      "n_err": 0,
+      "n_ref": 9,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "2012-139356-0033",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 11
+    },
+    {
+      "id": "2012-139356-0034",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "2012-139356-0035",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "2012-139356-0037",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 10
+    },
+    {
+      "id": "2012-139356-0040",
+      "n_err": 0,
+      "n_ref": 16,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "2012-139358-0001",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2012-139358-0002",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2012-139358-0003",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2012-139358-0004",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2012-139358-0006",
+      "n_err": 0,
+      "n_ref": 55,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 49
+    },
+    {
+      "id": "2012-139358-0007",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2012-139358-0009",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2012-139358-0010",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2012-139358-0011",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2012-139358-0013",
+      "n_err": 0,
+      "n_ref": 13,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 11
+    },
+    {
+      "id": "2012-139358-0019",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2012-139358-0021",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2012-139358-0023",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2012-139358-0026",
+      "n_err": 0,
+      "n_ref": 11,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 10
+    },
+    {
+      "id": "2012-139358-0028",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2012-139358-0030",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2012-139358-0031",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2012-139358-0032",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2012-139358-0033",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2012-139358-0037",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "2012-139358-0038",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2012-139358-0048",
+      "n_err": 0,
+      "n_ref": 7,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 3
+    },
+    {
+      "id": "2074-147193-0002",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "2074-147193-0004",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2074-147193-0005",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2074-147193-0007",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2074-147193-0010",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2074-147193-0011",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2074-147193-0014",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2074-147193-0015",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2074-147193-0017",
+      "n_err": 0,
+      "n_ref": 15,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2074-147193-0018",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2074-147193-0019",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2074-147193-0020",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2074-147193-0021",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2074-147193-0028",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2074-147193-0029",
+      "n_err": 0,
+      "n_ref": 16,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2074-147193-0030",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2074-147193-0032",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2074-147193-0034",
+      "n_err": 0,
+      "n_ref": 20,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "2074-147193-0035",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2074-147193-0036",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2074-149033-0001",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2074-149033-0002",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2074-149033-0005",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2074-149033-0006",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "2074-149033-0007",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2074-149033-0008",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2074-149033-0009",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2074-149033-0011",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2074-149033-0012",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2074-149033-0014",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2074-149033-0018",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2074-149033-0036",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2074-149033-0037",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2074-149033-0040",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2074-149033-0041",
+      "n_err": 0,
+      "n_ref": 15,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "2074-159371-0000",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2074-159371-0001",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2074-159371-0002",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2074-159371-0003",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "2074-159371-0004",
+      "n_err": 0,
+      "n_ref": 51,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2074-159371-0006",
+      "n_err": 0,
+      "n_ref": 51,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 50
+    },
+    {
+      "id": "2074-159371-0007",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 52
+    },
+    {
+      "id": "2074-159371-0008",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2074-159371-0012",
+      "n_err": 0,
+      "n_ref": 54,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 51
+    },
+    {
+      "id": "2074-159371-0014",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2074-159371-0016",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2074-159371-0017",
+      "n_err": 0,
+      "n_ref": 56,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 53
+    },
+    {
+      "id": "2074-159371-0019",
+      "n_err": 0,
+      "n_ref": 16,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "2074-159371-0020",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2074-159371-0021",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2074-159371-0024",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2074-159371-0026",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 52
+    },
+    {
+      "id": "2074-159371-0027",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2074-159371-0030",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2074-159371-0031",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2074-159371-0034",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 52
+    },
+    {
+      "id": "2074-159371-0036",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2074-159371-0037",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2074-159371-0039",
+      "n_err": 0,
+      "n_ref": 52,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 50
+    },
+    {
+      "id": "2074-159371-0040",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 49
+    },
+    {
+      "id": "209-157830-0000",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "209-157830-0002",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "209-157830-0003",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "209-157830-0004",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "209-157830-0005",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "209-157830-0006",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "209-157830-0007",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "209-157830-0008",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "209-157830-0012",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "209-157830-0016",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "209-157830-0017",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "209-157830-0018",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "209-157830-0019",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "209-157830-0022",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "209-157830-0023",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "209-157830-0024",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "209-157830-0025",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "209-157830-0027",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "209-157830-0030",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "209-157830-0031",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "209-157830-0032",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "209-157830-0034",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "209-4731-0002",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "209-4731-0008",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "209-4731-0009",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "209-4731-0010",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "209-4731-0015",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "209-4731-0016",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "209-4731-0019",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "209-4731-0020",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "209-4731-0021",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "209-4731-0022",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "209-4731-0023",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "209-4731-0025",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "209-4731-0031",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "209-4731-0032",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "209-4731-0033",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "209-4731-0036",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "209-4731-0037",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "209-4731-0040",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "209-4731-0041",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "209-4733-0001",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "209-4733-0005",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 51
+    },
+    {
+      "id": "209-4733-0014",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "209-4733-0015",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "209-4733-0016",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "209-4733-0019",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "209-4733-0020",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "209-4733-0024",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "209-4733-0028",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "209-4733-0029",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "209-4733-0032",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "209-4733-0033",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 49
+    },
+    {
+      "id": "209-4733-0034",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2156-17942-0001",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2156-17942-0002",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-17942-0003",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-17942-0004",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2156-17942-0006",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2156-17942-0007",
+      "n_err": 0,
+      "n_ref": 11,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 10
+    },
+    {
+      "id": "2156-17942-0009",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2156-17942-0011",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2156-17942-0013",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2156-17942-0017",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2156-17942-0019",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-17942-0021",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2156-17942-0023",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2156-17942-0024",
+      "n_err": 0,
+      "n_ref": 20,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2156-17942-0025",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2156-17942-0026",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-17942-0027",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2156-17942-0028",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2156-17942-0029",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2156-17942-0030",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "2156-25563-0001",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-25563-0002",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2156-25563-0003",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2156-25563-0005",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2156-25563-0007",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-25563-0010",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "2156-25563-0011",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2156-25563-0015",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2156-25563-0016",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2156-25563-0017",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "2156-25563-0018",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-25563-0019",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2156-25563-0020",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2156-25563-0021",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2156-25563-0022",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2156-25563-0023",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2156-25563-0025",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2156-25563-0026",
+      "n_err": 0,
+      "n_ref": 9,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "2156-25563-0029",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2156-25563-0031",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2156-25563-0032",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "2156-25563-0033",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2156-25563-0034",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2156-25563-0037",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-25563-0038",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2156-25563-0039",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2156-25563-0041",
+      "n_err": 0,
+      "n_ref": 13,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 11
+    },
+    {
+      "id": "2156-82458-0010",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2156-82458-0013",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 10,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2156-82458-0015",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2156-82458-0016",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2156-82458-0021",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2156-82458-0023",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2156-82458-0025",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2156-82458-0026",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2156-82458-0032",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2156-82458-0037",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2240-148521-0001",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2240-148521-0002",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2240-148521-0003",
+      "n_err": 0,
+      "n_ref": 13,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2240-148521-0005",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2240-148521-0006",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2240-148521-0007",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2240-148521-0008",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2240-148521-0009",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2240-148521-0010",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2240-148521-0011",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "2240-148521-0013",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2240-148521-0014",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2240-148521-0016",
+      "n_err": 0,
+      "n_ref": 6,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 5
+    },
+    {
+      "id": "2240-148521-0017",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2240-148521-0018",
+      "n_err": 0,
+      "n_ref": 9,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "2240-148521-0019",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "2240-148521-0020",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2240-148521-0022",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2240-148521-0023",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "2240-148521-0024",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "2240-148521-0025",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148521-0026",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2240-148521-0027",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "2240-148521-0028",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2240-148521-0029",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2240-148521-0031",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2240-148521-0032",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "2240-148521-0033",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2240-148521-0034",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148521-0035",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2240-148521-0036",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2240-148521-0037",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 13
+    },
+    {
+      "id": "2240-148521-0038",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2240-148521-0039",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2240-148521-0040",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2240-148521-0042",
+      "n_err": 0,
+      "n_ref": 20,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2240-148522-0000",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2240-148522-0001",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148522-0002",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2240-148522-0003",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2240-148522-0004",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2240-148522-0006",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 16
+    },
+    {
+      "id": "2240-148522-0007",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2240-148522-0009",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "2240-148522-0010",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148522-0014",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "2240-148522-0015",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2240-148522-0016",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 16
+    },
+    {
+      "id": "2240-148522-0020",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2240-148522-0021",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2240-148522-0024",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148522-0025",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 6
+    },
+    {
+      "id": "2240-148522-0026",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2240-148522-0027",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2240-148522-0028",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2240-148522-0029",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2240-148522-0031",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2240-148522-0032",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148522-0035",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "2240-148529-0005",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148529-0007",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2240-148529-0008",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2240-148529-0009",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2240-148529-0010",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2240-148529-0011",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2240-148529-0012",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2240-148529-0013",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2240-148529-0014",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 16
+    },
+    {
+      "id": "2240-148529-0015",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2240-148529-0016",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 15
+    },
+    {
+      "id": "2240-148529-0019",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2240-148529-0021",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148529-0022",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2240-148529-0023",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2240-148529-0024",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2240-148529-0025",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2240-148529-0026",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 16
+    },
+    {
+      "id": "2240-148529-0028",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2240-148529-0029",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2240-148529-0031",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2240-148529-0033",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2240-148529-0034",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 11
+    },
+    {
+      "id": "2240-148529-0037",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2240-148529-0038",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2240-148529-0039",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "2240-148529-0040",
+      "n_err": 0,
+      "n_ref": 15,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "2348-143895-0000",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2348-143895-0001",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2348-143895-0003",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2348-143895-0004",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2348-143895-0005",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2348-143895-0007",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2348-143895-0008",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2348-143895-0009",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2348-143895-0010",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2348-143895-0011",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2348-143895-0012",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2348-143895-0013",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2348-143895-0016",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2348-143895-0017",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2348-143895-0019",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0020",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2348-143895-0021",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2348-143895-0022",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0024",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0026",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2348-143895-0028",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2348-143895-0030",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0031",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2348-143895-0032",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2348-143895-0034",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2348-143895-0035",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2348-143895-0037",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2348-143895-0038",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2348-143895-0039",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2348-143895-0040",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2348-143895-0042",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2348-143895-0045",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2348-143895-0049",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2348-143895-0050",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0053",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2348-143895-0055",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2348-143895-0056",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0059",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2348-143895-0061",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2348-143895-0062",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0063",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2348-143895-0064",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2348-143895-0068",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0069",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2348-143895-0071",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2348-143895-0072",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2348-143895-0076",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2348-143895-0079",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2348-143895-0080",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2348-143895-0081",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 47
+    },
+    {
+      "id": "2348-143895-0083",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2348-143895-0084",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2348-143895-0086",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2348-143895-0088",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2348-143895-0089",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2348-143895-0094",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2512-157242-0001",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2512-157242-0002",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 50
+    },
+    {
+      "id": "2512-157242-0004",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2512-157242-0005",
+      "n_err": 0,
+      "n_ref": 62,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 56
+    },
+    {
+      "id": "2512-157242-0006",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2512-157242-0007",
+      "n_err": 0,
+      "n_ref": 57,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 50
+    },
+    {
+      "id": "2512-157242-0008",
+      "n_err": 0,
+      "n_ref": 51,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2512-157242-0011",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "2512-157242-0013",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 52
+    },
+    {
+      "id": "2512-157242-0014",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2512-157242-0015",
+      "n_err": 0,
+      "n_ref": 51,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2512-157242-0018",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2512-157242-0019",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2512-157242-0021",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2512-157242-0023",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 47
+    },
+    {
+      "id": "2512-157242-0025",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2512-157242-0031",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2512-157242-0032",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2512-157242-0034",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2512-157242-0035",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2512-157242-0040",
+      "n_err": 0,
+      "n_ref": 55,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 50
+    },
+    {
+      "id": "2512-157242-0041",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2512-157242-0042",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2512-157242-0045",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2512-157242-0046",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2512-157242-0047",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2512-157242-0049",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2512-157242-0050",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2512-157242-0051",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2512-157242-0052",
+      "n_err": 0,
+      "n_ref": 58,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 56
+    },
+    {
+      "id": "2512-157242-0053",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2512-157242-0055",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2512-157242-0056",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2512-157242-0057",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2512-157242-0058",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2512-157242-0059",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2512-157242-0061",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2512-157242-0062",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 10,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2512-157242-0063",
+      "n_err": 0,
+      "n_ref": 52,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2512-157242-0064",
+      "n_err": 0,
+      "n_ref": 52,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 47
+    },
+    {
+      "id": "2512-157242-0066",
+      "n_err": 0,
+      "n_ref": 54,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 51
+    },
+    {
+      "id": "2512-157242-0068",
+      "n_err": 0,
+      "n_ref": 16,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2512-157242-0071",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2512-157242-0073",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2512-157242-0074",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2512-157242-0075",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2512-157242-0076",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2512-157242-0077",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2512-157242-0078",
+      "n_err": 0,
+      "n_ref": 11,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 9
+    },
+    {
+      "id": "2512-157242-0079",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2512-157242-0081",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2512-157242-0083",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2512-157242-0084",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "2512-157242-0086",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2512-157242-0087",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2512-157242-0090",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 11
+    },
+    {
+      "id": "2512-157242-0091",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2512-157242-0092",
+      "n_err": 0,
+      "n_ref": 51,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "2512-157480-0001",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2512-157480-0002",
+      "n_err": 0,
+      "n_ref": 52,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 49
+    },
+    {
+      "id": "2512-157480-0003",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2512-157480-0004",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2512-157480-0005",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2512-157480-0006",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2512-157480-0008",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2512-157480-0010",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2512-157480-0012",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2512-157480-0014",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2512-157480-0015",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2512-157480-0019",
+      "n_err": 0,
+      "n_ref": 57,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 54
+    },
+    {
+      "id": "2512-157480-0020",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2512-157480-0021",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "2512-157480-0023",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2512-157480-0024",
+      "n_err": 0,
+      "n_ref": 10,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 9
+    },
+    {
+      "id": "2709-158074-0001",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2709-158074-0002",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2709-158074-0004",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2709-158074-0006",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2709-158074-0007",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2709-158074-0008",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2709-158074-0009",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2709-158074-0011",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2709-158074-0013",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 9,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2709-158074-0016",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2709-158074-0018",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2709-158074-0020",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2709-158074-0023",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2709-158074-0024",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2709-158074-0026",
+      "n_err": 0,
+      "n_ref": 16,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 13
+    },
+    {
+      "id": "2709-158074-0027",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2709-158074-0030",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 9,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2709-158074-0031",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2709-158074-0032",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2709-158074-0033",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 8,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2709-158074-0035",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2709-158074-0036",
+      "n_err": 0,
+      "n_ref": 10,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 9
+    },
+    {
+      "id": "2709-158074-0038",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "2709-158074-0040",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2709-158074-0042",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "2709-158074-0043",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2709-158074-0044",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2709-158074-0045",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2709-158074-0046",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2709-158074-0049",
+      "n_err": 0,
+      "n_ref": 12,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 9
+    },
+    {
+      "id": "2709-158074-0050",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2709-158074-0051",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2709-158074-0052",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2709-158074-0053",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2709-158074-0054",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2709-158074-0056",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2709-158074-0057",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2709-158074-0058",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2709-158074-0059",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2709-158074-0061",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2709-158074-0066",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2709-158074-0067",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2709-158074-0069",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2709-158074-0070",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2709-158074-0071",
+      "n_err": 0,
+      "n_ref": 11,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 10
+    },
+    {
+      "id": "2709-158074-0072",
+      "n_err": 0,
+      "n_ref": 15,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2709-158074-0073",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2709-158074-0076",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "2709-158074-0078",
+      "n_err": 0,
+      "n_ref": 10,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "2709-158074-0079",
+      "n_err": 0,
+      "n_ref": 5,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 4
+    },
+    {
+      "id": "2709-158074-0081",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "2709-158074-0086",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2709-158074-0092",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "272-130225-0000",
+      "n_err": 0,
+      "n_ref": 4,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 1
+    },
+    {
+      "id": "272-130225-0001",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "272-130225-0005",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "272-130225-0006",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "272-130225-0008",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "272-130225-0009",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "272-130225-0010",
+      "n_err": 0,
+      "n_ref": 55,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 52
+    },
+    {
+      "id": "272-130225-0011",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "272-130225-0013",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "272-130225-0014",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "272-130225-0016",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "272-130225-0018",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 11
+    },
+    {
+      "id": "272-130225-0021",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "272-130226-0000",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "272-130226-0001",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "272-130226-0002",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "272-130226-0004",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "272-130226-0008",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "272-130226-0013",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "272-130226-0014",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "272-130226-0015",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "272-130226-0018",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "272-130226-0020",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "272-130227-0002",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "272-130227-0003",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "272-130227-0004",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 20
+    },
+    {
+      "id": "272-130227-0005",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "272-130227-0006",
+      "n_err": 0,
+      "n_ref": 53,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 50
+    },
+    {
+      "id": "272-130227-0007",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "272-130227-0009",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "272-130227-0011",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "272-130227-0012",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "272-130227-0013",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "272-130227-0015",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "272-130227-0017",
+      "n_err": 0,
+      "n_ref": 6,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 5
+    },
+    {
+      "id": "272-130229-0000",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "272-130229-0001",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "272-130229-0002",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "272-130229-0004",
+      "n_err": 0,
+      "n_ref": 58,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 54
+    },
+    {
+      "id": "272-130229-0005",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "272-130229-0006",
+      "n_err": 0,
+      "n_ref": 52,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 50
+    },
+    {
+      "id": "272-130229-0007",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 13
+    },
+    {
+      "id": "272-130229-0009",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "272-130229-0013",
+      "n_err": 0,
+      "n_ref": 54,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 49
+    },
+    {
+      "id": "272-130229-0014",
+      "n_err": 0,
+      "n_ref": 25,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "272-130229-0015",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "272-130229-0018",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2836-5354-0001",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2836-5354-0002",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2836-5354-0003",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2836-5354-0004",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2836-5354-0006",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2836-5354-0008",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2836-5354-0010",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2836-5354-0011",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2836-5354-0012",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "2836-5354-0014",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2836-5354-0015",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2836-5354-0019",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2836-5354-0020",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "2836-5354-0021",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2836-5354-0025",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2836-5354-0026",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "2836-5354-0027",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2836-5354-0028",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2836-5354-0030",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2836-5354-0031",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2836-5354-0033",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2836-5354-0035",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2836-5354-0036",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2836-5354-0038",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2836-5354-0039",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2836-5354-0040",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 16
+    },
+    {
+      "id": "2836-5354-0042",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2836-5354-0044",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2836-5354-0045",
+      "n_err": 0,
+      "n_ref": 20,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 18
+    },
+    {
+      "id": "2836-5354-0046",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "2836-5354-0047",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2836-5354-0049",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2836-5354-0050",
+      "n_err": 0,
+      "n_ref": 11,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 10
+    },
+    {
+      "id": "2836-5354-0053",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2836-5354-0054",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2836-5355-0000",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2836-5355-0004",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2836-5355-0006",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2836-5355-0008",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2836-5355-0009",
+      "n_err": 0,
+      "n_ref": 56,
+      "nb_err": 0,
+      "nb_ref": 9,
+      "nu_err": 0,
+      "nu_ref": 47
+    },
+    {
+      "id": "2836-5355-0010",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2836-5355-0011",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2836-5355-0012",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2836-5355-0013",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2836-5355-0014",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2836-5355-0015",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2836-5355-0016",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2836-5355-0017",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2836-5355-0019",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2836-5355-0022",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2836-5355-0023",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2836-5355-0025",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2836-5355-0026",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2836-5355-0027",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2836-5355-0028",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2836-5355-0029",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2836-5355-0032",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2836-5355-0035",
+      "n_err": 0,
+      "n_ref": 49,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 48
+    },
+    {
+      "id": "2836-5355-0037",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2836-5355-0039",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "2836-5355-0041",
+      "n_err": 0,
+      "n_ref": 48,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2836-5355-0042",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2836-5355-0043",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2836-5355-0045",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2836-5355-0047",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2836-5355-0048",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2836-5355-0049",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2836-5355-0050",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2843-152918-0000",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "2843-152918-0001",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "2843-152918-0002",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2843-152918-0004",
+      "n_err": 0,
+      "n_ref": 50,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 46
+    },
+    {
+      "id": "2843-152918-0010",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2843-152918-0011",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2843-152918-0012",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2843-152918-0013",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2843-152918-0014",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2843-152918-0015",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "2843-152918-0017",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2843-152918-0018",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2843-152918-0019",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "2843-152918-0021",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2843-152918-0022",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2843-152918-0025",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2843-152918-0028",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2843-152918-0030",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2843-152918-0033",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2843-152918-0035",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2843-152918-0038",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "2843-152918-0039",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2843-152918-0040",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "2843-152918-0041",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2843-152918-0045",
+      "n_err": 0,
+      "n_ref": 10,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "2843-152918-0046",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2843-152918-0047",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2843-152918-0048",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2843-152918-0050",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2843-152918-0052",
+      "n_err": 0,
+      "n_ref": 20,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2843-152918-0054",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "2843-152918-0057",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "2843-152918-0058",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "2843-152918-0060",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2843-152918-0061",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "2843-152918-0062",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2843-152918-0064",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "2843-152918-0065",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2843-152918-0071",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2843-152918-0072",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "2843-152918-0073",
+      "n_err": 0,
+      "n_ref": 13,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2843-152918-0075",
+      "n_err": 0,
+      "n_ref": 13,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 11
+    },
+    {
+      "id": "2843-152918-0076",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "2843-152918-0077",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2843-152918-0079",
+      "n_err": 0,
+      "n_ref": 13,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2843-152918-0080",
+      "n_err": 0,
+      "n_ref": 15,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "2843-152918-0081",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2843-152918-0082",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2843-152918-0086",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2843-152918-0089",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "2843-152918-0090",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "2843-152918-0091",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "2843-152918-0096",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "2843-152918-0097",
+      "n_err": 0,
+      "n_ref": 21,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 19
+    },
+    {
+      "id": "2843-152918-0099",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "2843-152918-0101",
+      "n_err": 0,
+      "n_ref": 19,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 17
+    },
+    {
+      "id": "2843-152918-0104",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2843-152918-0105",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 25
+    },
+    {
+      "id": "2843-152918-0106",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "2843-152918-0107",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2843-152918-0109",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "2843-152918-0113",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "2843-152918-0114",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "2843-152918-0115",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-12539-0001",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "3003-12539-0004",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "3003-12539-0006",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "3003-12539-0011",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "3003-12539-0016",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "3003-12539-0019",
+      "n_err": 0,
+      "n_ref": 11,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 9
+    },
+    {
+      "id": "3003-12539-0023",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "3003-12539-0028",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "3003-12539-0029",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "3003-12539-0030",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "3003-12539-0033",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "3003-14274-0000",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "3003-14274-0001",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "3003-14274-0005",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "3003-14274-0006",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "3003-14274-0008",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-14274-0010",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "3003-14274-0011",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "3003-14274-0012",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "3003-14274-0013",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "3003-14274-0015",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "3003-14274-0017",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "3003-14274-0018",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "3003-14274-0020",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "3003-14274-0021",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "3003-14274-0024",
+      "n_err": 0,
+      "n_ref": 13,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 12
+    },
+    {
+      "id": "3003-14274-0025",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "3003-14274-0026",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "3003-14274-0027",
+      "n_err": 0,
+      "n_ref": 22,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 21
+    },
+    {
+      "id": "3003-14274-0028",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-14274-0030",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "3003-14274-0033",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "3003-14274-0034",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-14274-0035",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "3003-14274-0036",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-14274-0037",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "3003-14274-0038",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "3003-14274-0040",
+      "n_err": 0,
+      "n_ref": 41,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 38
+    },
+    {
+      "id": "3003-14274-0041",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "3003-14274-0042",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 43
+    },
+    {
+      "id": "3003-14274-0043",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "3003-14274-0045",
+      "n_err": 0,
+      "n_ref": 44,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "3003-14274-0050",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "3003-14274-0051",
+      "n_err": 0,
+      "n_ref": 8,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 7
+    },
+    {
+      "id": "3003-14274-0053",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "3003-14274-0056",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "3003-14274-0058",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "3003-14274-0059",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 10,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "3003-14274-0060",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "3003-14274-0061",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "3003-14274-0063",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "3003-14274-0064",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "3003-14274-0065",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-14274-0066",
+      "n_err": 0,
+      "n_ref": 42,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 41
+    },
+    {
+      "id": "3003-14274-0068",
+      "n_err": 0,
+      "n_ref": 18,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "3003-14274-0069",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-14274-0071",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-14274-0072",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "3003-14274-0075",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3003-14274-0076",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "3003-14274-0077",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "3003-14274-0079",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "3003-14274-0080",
+      "n_err": 0,
+      "n_ref": 24,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "3112-9554-0002",
+      "n_err": 0,
+      "n_ref": 46,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "3112-9554-0003",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "3112-9554-0006",
+      "n_err": 0,
+      "n_ref": 58,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 57
+    },
+    {
+      "id": "3112-9554-0009",
+      "n_err": 0,
+      "n_ref": 29,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "3112-9554-0020",
+      "n_err": 0,
+      "n_ref": 26,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 23
+    },
+    {
+      "id": "3112-9554-0021",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 13
+    },
+    {
+      "id": "3112-9554-0022",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 44
+    },
+    {
+      "id": "3112-9554-0023",
+      "n_err": 0,
+      "n_ref": 15,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 14
+    },
+    {
+      "id": "3112-9555-0001",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "3112-9555-0002",
+      "n_err": 0,
+      "n_ref": 32,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "3112-9555-0003",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "3112-9555-0006",
+      "n_err": 0,
+      "n_ref": 17,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 16
+    },
+    {
+      "id": "3112-9555-0009",
+      "n_err": 0,
+      "n_ref": 27,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 24
+    },
+    {
+      "id": "3112-9555-0010",
+      "n_err": 0,
+      "n_ref": 10,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 8
+    },
+    {
+      "id": "3112-9555-0013",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 26
+    },
+    {
+      "id": "3112-9555-0016",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3112-9555-0017",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3112-9555-0018",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 31
+    },
+    {
+      "id": "3112-9555-0019",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "3112-9555-0020",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "3112-9555-0023",
+      "n_err": 0,
+      "n_ref": 47,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 45
+    },
+    {
+      "id": "3112-9555-0024",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3112-9555-0027",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3112-9555-0028",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "3112-9555-0029",
+      "n_err": 0,
+      "n_ref": 43,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 40
+    },
+    {
+      "id": "3112-9555-0030",
+      "n_err": 0,
+      "n_ref": 23,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 22
+    },
+    {
+      "id": "3112-9555-0032",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3112-9555-0033",
+      "n_err": 0,
+      "n_ref": 14,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 13
+    },
+    {
+      "id": "3112-9555-0034",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "3112-9555-0035",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 33
+    },
+    {
+      "id": "3112-9555-0036",
+      "n_err": 0,
+      "n_ref": 7,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 5
+    },
+    {
+      "id": "3112-9555-0037",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "3112-9555-0038",
+      "n_err": 0,
+      "n_ref": 31,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "3112-9555-0039",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 28
+    },
+    {
+      "id": "3112-9555-0040",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "3112-9555-0041",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3112-9555-0042",
+      "n_err": 0,
+      "n_ref": 38,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "3112-9555-0046",
+      "n_err": 0,
+      "n_ref": 30,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 29
+    },
+    {
+      "id": "3112-9555-0051",
+      "n_err": 0,
+      "n_ref": 40,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 39
+    },
+    {
+      "id": "3112-9555-0054",
+      "n_err": 0,
+      "n_ref": 35,
+      "nb_err": 0,
+      "nb_ref": 5,
+      "nu_err": 0,
+      "nu_ref": 30
+    },
+    {
+      "id": "3112-9555-0055",
+      "n_err": 0,
+      "n_ref": 45,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 42
+    },
+    {
+      "id": "3112-9555-0057",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 37
+    },
+    {
+      "id": "3112-9555-0059",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 3,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3112-9555-0061",
+      "n_err": 0,
+      "n_ref": 34,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 32
+    },
+    {
+      "id": "3112-9555-0062",
+      "n_err": 0,
+      "n_ref": 36,
+      "nb_err": 0,
+      "nb_ref": 2,
+      "nu_err": 0,
+      "nu_ref": 34
+    },
+    {
+      "id": "3112-9555-0063",
+      "n_err": 0,
+      "n_ref": 39,
+      "nb_err": 0,
+      "nb_ref": 4,
+      "nu_err": 0,
+      "nu_ref": 35
+    },
+    {
+      "id": "3112-9555-0064",
+      "n_err": 0,
+      "n_ref": 37,
+      "nb_err": 0,
+      "nb_ref": 1,
+      "nu_err": 0,
+      "nu_ref": 36
+    },
+    {
+      "id": "3112-9555-0065",
+      "n_err": 0,
+      "n_ref": 33,
+      "nb_err": 0,
+      "nb_ref": 6,
+      "nu_err": 0,
+      "nu_ref": 27
+    },
+    {
+      "id": "3112-9555-0067",
+      "n_err": 0,
+      "n_ref": 28,
+      "nb_err": 0,
+      "nb_ref": 7,
+      "nu_err": 0,
+      "nu_ref": 21
+    }
+  ],
+  "output_sha256": "d4406a8305e0ea3aa9fcc97ce5a6cd0ac63aee6bb92fdd4bacd260e323845890"
+}

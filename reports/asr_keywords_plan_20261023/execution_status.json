@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T20:22:08.647554+00:00",
+  "updated_at": "2026-10-23T20:40:19.951411+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -59,7 +59,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING: initial dev validation 3008/6096; no optimization step yet",
+    "A2_training": "PREPARING replacement with user-requested 1000-utterance training validation",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -145,9 +145,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Finish initial dev validation, then verify GT/sample groups during first optimization steps",
-    "Continue training to completion; select complete checkpoint using dev only",
-    "Export rank256/alpha512 and evaluate internal/clean/other with corpus metrics and keyword list metrics"
+    "Confirm old pilot stopped and GPUs released; sync and submit dev1k replacement",
+    "Verify 1000-only validation and GT/sample behavior; finish training",
+    "Select dev1k checkpoint and export rank256/alpha512; evaluate internal/clean/other"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
   "parent_merge": {
@@ -170,19 +170,13 @@
   },
   "active_job": {
     "pool": "verl-n2-i10",
-    "nnodes": 2,
-    "gpus_per_node": 8,
+    "status": "PREPARING",
     "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
-    "job_id": "raysubmit_b5GvZq1k3Yyeb2ws",
-    "code_commit": "00f6f06f6",
-    "dashboard": "http://10.151.61.214:9209",
-    "status": "RUNNING",
-    "phase": "initial dev validation before first optimization step",
-    "submitted_at": "2026-10-23T20:01:03.839+00:00",
-    "metrics_available": false,
+    "experiment_name": "remax_ls_joint_pilot_dev1k",
+    "nnodes": 2,
     "settings": {
       "train_samples": 10000,
-      "dev_samples": 6096,
+      "dev_samples": 1000,
       "steps": 100,
       "batch_size": 64,
       "rollout_n": 8,
@@ -195,9 +189,7 @@
       "lora_alpha": 512
     },
     "gpu_gt_group_behavior_verified": false,
-    "last_completed_training_step": 0,
-    "initial_dev_processed": 3008,
-    "initial_dev_total": 6096
+    "replacement_for": "raysubmit_b5GvZq1k3Yyeb2ws"
   },
   "audio_precache": {
     "main_pod": "verl-n2-i10-0",
@@ -281,6 +273,37 @@
       "submitted_at": "2026-10-23T19:31:53.984+00:00",
       "phase": "full results verified",
       "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/e0f714652abe6a55c193f3d9edb9d033"
+    },
+    {
+      "pool": "verl-n2-i10",
+      "nnodes": 2,
+      "gpus_per_node": 8,
+      "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
+      "job_id": "raysubmit_b5GvZq1k3Yyeb2ws",
+      "code_commit": "00f6f06f6",
+      "dashboard": "http://10.151.61.214:9209",
+      "status": "STOP_REQUESTED",
+      "phase": "replaced at user request: training validation reduced to baseline-lowest-BWER dev1000",
+      "submitted_at": "2026-10-23T20:01:03.839+00:00",
+      "metrics_available": false,
+      "settings": {
+        "train_samples": 10000,
+        "dev_samples": 6096,
+        "steps": 100,
+        "batch_size": 64,
+        "rollout_n": 8,
+        "gt_per_group": 1,
+        "sampled_per_group": 7,
+        "save_freq": 10,
+        "test_freq": 20,
+        "selection_split": "dev",
+        "lora_rank": 256,
+        "lora_alpha": 512
+      },
+      "gpu_gt_group_behavior_verified": false,
+      "last_completed_training_step": 0,
+      "initial_dev_processed": 6096,
+      "initial_dev_total": 6096
     }
   ],
   "previous_audio_precache": {
@@ -294,5 +317,17 @@
     "status": "SUCCEEDED",
     "exit_code": 0,
     "finished_at": "2026-10-23T17:57:20.199340+00:00"
+  },
+  "training_validation_subset": {
+    "manifest": "dev_lowbwer1000_step0_v1.jsonl",
+    "source": "untrained joint-prompt full dev step0",
+    "source_job": "raysubmit_b5GvZq1k3Yyeb2ws",
+    "source_utterances": 6096,
+    "selected_utterances": 1000,
+    "excluded_undefined_bwer": 425,
+    "selection_report": "reports/asr_keywords_plan_20261023/dev_lowbwer1000_selection.json",
+    "baseline_WER": 0,
+    "baseline_BWER": 0,
+    "test_sets_used": false
   }
 }

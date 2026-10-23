@@ -2,14 +2,14 @@
 defaults:
 - ../base@_here_
 - ../data/training/ls_pilot10k@_here_
-- ../data/eval/ls_dev@_here_
+- ../data/eval/ls_dev_lowbwer1000@_here_
 - _self_
 actor_rollout_ref:
   rollout:
     n: 8
     gt_rollout: true
 trainer:
-  experiment_name: remax_ls_joint_pilot
+  experiment_name: remax_ls_joint_pilot_dev1k
   val_only: false
   total_training_steps: 100
   save_freq: 10

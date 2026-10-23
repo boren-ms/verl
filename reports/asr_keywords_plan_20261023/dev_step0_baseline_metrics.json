@@ -1,0 +1,23 @@
+{
+  "ls_dev": {
+    "utterances": 6096,
+    "n_err": 4585,
+    "n_ref": 211546,
+    "nb_err": 1238,
+    "nb_ref": 21855,
+    "nu_err": 3347,
+    "nu_ref": 189691,
+    "WER": 0.0216737730800866,
+    "BWER": 0.0566460764127202,
+    "UWER": 0.01764448497820139,
+    "NWER": 0.01764448497820139,
+    "keyword_word_accuracy": 0.9433539235872798,
+    "kw_micro_precision": null,
+    "kw_micro_recall": 0.0,
+    "kw_micro_f1": 0.0,
+    "kw_macro_f1": 0.0,
+    "kw_exact": 0.0,
+    "kw_format_success": 0.0,
+    "kw_empty_false_positive": 0.0
+  }
+}

@@ -11,7 +11,8 @@ v2609_kw/
 │   ├── training/
 │   │   └── ls_pilot10k.yaml              # 仅 train pilot 10k
 │   └── eval/
-│       ├── ls_dev.yaml                   # 训练期间的 dev 验证
+│       ├── ls_dev.yaml                   # 完整 dev，6,096 条，保留
+│       ├── ls_dev_lowbwer1000.yaml       # 训练期间验证，baseline BWER 最低的 1,000 条
 │       ├── ls_official.yaml              # test-clean + test-other，A0/A1 共用
 │       └── ls_checkpoint.yaml            # internal + test-clean + test-other
 ├── baseline_eval/
@@ -23,7 +24,7 @@ v2609_kw/
     └── eval_joint_checkpoint_ls.yaml     # A2：internal + 官方测试；必须指定训练后模型
 ```
 
-`data/` 仅定义 manifest、数据转换、数据源标记及 train/val 集合。训练数据放在 `data/training/`，验证和测试数据放在 `data/eval/`。`baseline_eval/`、`training/`、`evaluation/` 中的入口 YAML 通过 Hydra defaults 组合 `base.yaml` 和对应数据 YAML，仅保留 prompt 开关、rollout 和执行设置。A0/A1 共用 `data/eval/ls_official.yaml`；训练分别加载 `data/training/ls_pilot10k.yaml` 与 `data/eval/ls_dev.yaml`。修改模型、学习率或训练步数无需编辑数据文件。文件夹名称为 `v2609_kw`；已有 W&B project 与云端结果目录仍为 `2609-Keyword`，保留实验连续性。
+`data/` 仅定义 manifest、数据转换、数据源标记及 train/val 集合。训练数据放在 `data/training/`，验证和测试数据放在 `data/eval/`。`baseline_eval/`、`training/`、`evaluation/` 中的入口 YAML 通过 Hydra defaults 组合 `base.yaml` 和对应数据 YAML，仅保留 prompt 开关、rollout 和执行设置。A0/A1 共用 `data/eval/ls_official.yaml`；训练分别加载 `data/training/ls_pilot10k.yaml` 与 `data/eval/ls_dev_lowbwer1000.yaml`。修改模型、学习率或训练步数无需编辑数据文件。文件夹名称为 `v2609_kw`；已有 W&B project 与云端结果目录仍为 `2609-Keyword`，保留实验连续性。
 
 顺序为 A0 → A1 → pilot → 冻结 checkpoint → A2。A0/A1 的 test-clean 和 test-other 均完成、结果条数与计数分区检查通过后再训练。训练只使用 train/dev，不用 official test 选 checkpoint 或调超参。
 
@@ -193,7 +194,8 @@ A0 的 `reward_model.ground_truth` 仍是正文，`extra_info.keywords` 仍为 `
 |---|---:|---:|
 | train | 120,024 | 111,159 / 8,865 |
 | pilot seed42 | 10,000 | 9,261 / 739 |
-| dev | 6,096 | 5,671 / 425 |
+| full dev（保留） | 6,096 | 5,671 / 425 |
+| training validation：dev low-BWER 1000 | 1,000 | 1,000 / 0 |
 | internal test | 6,131 | 5,806 / 325 |
 | test-clean | 2,620 | 1,980 / 640 |
 | test-other | 2,939 | 2,141 / 798 |
@@ -219,7 +221,7 @@ python -m recipe.phimm.prepare_ls_keywords \
 bash quick_run.sh recipe/phimm/config/v2609_kw/baseline_eval/eval_base_ls.yaml trainer.nnodes=2
 bash quick_run.sh recipe/phimm/config/v2609_kw/baseline_eval/eval_joint_prompt_ls.yaml trainer.nnodes=2
 # 两项 baseline 完成后：
-bash quick_run.sh recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml trainer.nnodes=2
+bash quick_run.sh recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml trainer.nnodes=2 trainer.experiment_name=remax_ls_joint_pilot_dev1k
 # dev 选择、导出并验证训练后 HF checkpoint 后：
 bash quick_run.sh recipe/phimm/config/v2609_kw/evaluation/eval_joint_checkpoint_ls.yaml \
   trainer.nnodes=2 actor_rollout_ref.model.path=/absolute/path/to/exported_trained_hf
@@ -257,3 +259,22 @@ python -m recipe.phimm.summarize_keyword_eval \
 代码与配置已经实现；Hydra 配置、实际数据转换链路、真实 tokenizer 的 27,786 条 GT round-trip 已通过，全部 GT 含 EOS 长度小于 768。测试覆盖协议、空目标、错误格式、prefix、reward dispatcher、GT purpose/group/EOS/overflow 和计数汇总。详细证据在 `reports/asr_keywords_plan_20261023/`。
 
 Brix/Blob 已恢复。A0 已完成，Ray job 为 `raysubmit_8QYAUSqkEcEr7Ji8`，使用代码快照 `5307f0132` 和重命名前的配置路径。已验证完整 5,559 条结果：test-clean WER 2.36%、BWER 7.79%；test-other WER 4.16%、BWER 15.21%。主节点测试音频缓存 5,559 条就绪；A1 与训练尚未启动。父分支 `origin/boren/rl_2611_dev` 的 `d34b3ba28` 已无冲突合并到本分支；下一个 job 提交前同步新配置。最近检查发现 `verl-n2-i10` 被其他训练占用，因此等待资源空闲后继续。实时进度以 `reports/asr_keywords_plan_20261023/execution_status.json` 和实际 Ray 状态为准，每 30 分钟自动跟进与修复。
+
+
+### 训练期间的 1,000 条验证集
+
+训练入口改为加载 `data/eval/ls_dev_lowbwer1000.yaml`。从原有 6,096 条 dev 的未训练模型 step-0 联合 prompt 结果中，按逐句 `nb_err/nb_ref`（BWER）升序选取 1,000 条；同分时依次按 `n_err/n_ref`（WER）和 utterance ID 排序，比例使用精确分数。排除 `nb_ref=0` 的 425 条，BWER 对这些样本无定义。保留原始 manifest 字段和 dev split，不改关键词标签、音频或 GT 构造。
+
+这是用户指定的容易子集，适合快速训练验证和 checkpoint 选择，基线可能已达到 BWER=0，无法衡量广泛难例或空关键词表现。最终泛化质量仍由完整 internal test、test-clean、test-other 衡量；这些测试不参与筛选。完整 `dev.jsonl` 与 `ls_dev.yaml` 保留，官方测试配置保持原样。
+
+筛选器要求 baseline 完整覆盖 dev、step=0、data_source=ls_dev，并核对 reference、keywords、annotation/source hashes、唯一 ID 和 WER 计数分区。冻结后的 JSONL 与 provenance 一同上传，训练使用独立 cache/source `ls_dev_lowbwer1000`。新运行名为 `remax_ls_joint_pilot_dev1k`，避免与历史 full-dev 验证混合；提交时须显式传入该 experiment_name（quick_run 默认使用配置文件名）。
+
+```bash
+python -m recipe.phimm.select_keyword_validation \
+  --manifest /home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote/dev.jsonl \
+  --baseline tmp/verl_asr_run/keyword_joint_pipeline/dev_baseline/0.jsonl \
+  --output /home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote/dev_lowbwer1000_step0_v1.jsonl \
+  --provenance reports/asr_keywords_plan_20261023/dev_lowbwer1000_selection.json
+```
+
+冻结结果：1,000 条、34,583 个正文 reference words、3,427 个 keyword reference words；筛选时的 baseline WER/BWER/UWER 均为 0%。这不代表 keyword 列表已正确输出（base 模型未输出列表）。完整名单与计数见 `reports/asr_keywords_plan_20261023/dev_lowbwer1000_selection.json`。
