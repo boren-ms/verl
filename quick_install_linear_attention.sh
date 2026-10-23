@@ -14,10 +14,20 @@ for package, expected in {
     "flash-linear-attention": "0.6.0",
     "fla-core": "0.6.0",
     "causal-conv1d": "1.7.0",
+    "tilelang": "0.1.9",
+    "apache-tvm-ffi": "0.1.9",
+    "ml-dtypes": "0.5.4",
 }.items():
     installed = version(package)
     if Version(installed) != Version(expected):
         raise RuntimeError(f"{package}: expected {expected}, got {installed}")
+
+import os
+if os.environ.get("VERL_LINEAR_INSTALL_ONLY") == "1":
+    # CUDA execution is verified explicitly on the fresh GPU node.
+    import torch  # Load libtorch before importing the compiled extension.
+    import causal_conv1d_cuda
+    raise SystemExit(0)
 
 import torch
 from transformers.models.qwen3_5 import modeling_qwen3_5 as native
@@ -38,10 +48,31 @@ result = causal_conv1d_fn(x, weight, activation="silu")
 torch.cuda.synchronize()
 if not torch.isfinite(result).all():
     raise RuntimeError("causal-conv1d CUDA smoke check produced nonfinite output")
+# FLA 0.6 rejects gated backward on Hopper with the base Triton 3.6.
+# TileLang supplies its supported backend; test backward to catch this class
+# of failure before a training job starts.
+q = torch.randn(1, 16, 2, 32, device="cuda", dtype=torch.bfloat16, requires_grad=True)
+k = torch.randn_like(q, requires_grad=True)
+v = torch.randn_like(q, requires_grad=True)
+g = torch.full((1, 16, 2), -0.1, device="cuda", dtype=torch.float32)
+beta = torch.full((1, 16, 2), 0.5, device="cuda", dtype=torch.bfloat16)
+output, _ = native.chunk_gated_delta_rule(q, k, v, g, beta, use_qk_l2norm_in_kernel=True)
+output.float().square().mean().backward()
+torch.cuda.synchronize()
+if not torch.isfinite(output).all() or any(
+    t.grad is None or not torch.isfinite(t.grad).all() for t in (q, k, v)
+):
+    raise RuntimeError("FLA forward/backward smoke check produced nonfinite output")
 print("[INFO] Qwen3.5 fast linear-attention kernels verified.")
 PY
 }
 
+if [[ "${1:-}" == "--install-only" ]]; then
+    export VERL_LINEAR_INSTALL_ONLY=1
+elif [[ -n "${1:-}" && "${1:-}" != "--check" ]]; then
+    echo "Usage: $0 [--check|--install-only]" >&2
+    exit 2
+fi
 if [[ "${1:-}" == "--check" ]]; then
     check_linear_attention
     exit 0
@@ -54,7 +85,8 @@ fi
 echo "[INFO] Installing Qwen3.5 linear-attention kernels..."
 # Avoid pulling a different Torch, Transformers, Ray, or protobuf version.
 python3 -m pip install --no-deps \
-    "fla-core==0.6.0" "flash-linear-attention==0.6.0"
+    "fla-core==0.6.0" "flash-linear-attention==0.6.0" \
+    "tilelang==0.1.9" "apache-tvm-ffi==0.1.9" "ml-dtypes==0.5.4"
 # Installing FLA alone may have repaired the environment.
 if check_linear_attention; then
     exit 0

@@ -1,6 +1,15 @@
 #!/bin/bash
 set -xeuo pipefail
 
+# Image builds have no GPU and use packages staged outside Docker (no Blob
+# credentials in layers). Normal job setup always runs the CUDA checks.
+install_mode="${1:-}"
+if [[ -n "${install_mode}" && "${install_mode}" != "--image-build" ]]; then
+    echo "Usage: $0 [--image-build]" >&2
+    exit 2
+fi
+cd "$(dirname "$(readlink -f "$0")")"
+
 env_tag="torch2.11.0_vllm0.24.0_flashattn2.8.3_cu130_v3"
 done_file=".env_done_${env_tag}"
 running_file=".env_running_${env_tag}"
@@ -23,6 +32,12 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 echo "[INFO] Checking environment installation status..."
+
+# A baked image provides a candidate marker. The checks below must still
+# validate it, and the GPU checks always run before declaring setup complete.
+if [[ ! -f "${done_file}" && -f "/opt/verl-env/${done_file}" ]]; then
+    cp "/opt/verl-env/${done_file}" "${done_file}"
+fi
 
 if [ -f "${done_file}" ] && ! python - <<'PY'
 from importlib.metadata import PackageNotFoundError, version
@@ -140,13 +155,15 @@ if [ ! -f "${done_file}" ]; then
     torch_wheel_dir="${package_dir}/torch211-cu130"
     torch_wheel_blob="az://orngwus2cresco/data/boren/data/packages/torch211-cu130/"
     mkdir -p "${torch_wheel_dir}"
-    command -v bbb >/dev/null || {
-        echo "[ERROR] bbb is required to download ${torch_wheel_blob}" >&2
-        exit 1
-    }
-    # Always sync: it is incremental and ensures newly added dependency wheels
-    # are fetched even when an older, incomplete local bundle is present.
-    bbb sync "${torch_wheel_blob}" "${torch_wheel_dir}/"
+    if [[ "${VERL_STAGED_PACKAGES:-0}" != 1 ]]; then
+        command -v bbb >/dev/null || {
+            echo "[ERROR] bbb is required to download ${torch_wheel_blob}" >&2
+            exit 1
+        }
+        # Always sync: it is incremental and ensures newly added dependency wheels
+        # are fetched even when an older, incomplete local bundle is present.
+        bbb sync "${torch_wheel_blob}" "${torch_wheel_dir}/"
+    fi
 
     # Torch's offline wheel install still resolves Python-level dependencies
     # locally, so seed sympy before disabling the package index.
@@ -244,12 +261,24 @@ if [ ! -f "${done_file}" ]; then
     fi
 else
     echo "[INFO] Environment already installed, skipping installation."
+    # Jobs may push a newer checkout than the one baked into the image.
+    pip install --no-deps -e .
+    pip install --no-deps -e plugins/qwen35_audio
 fi
 
 # Check even when the main environment marker is valid: older markers predate
 # these dependencies, and an extension can break after a Torch/CUDA change.
 touch "${running_file}"
-bash "$(dirname "$(readlink -f "$0")")/quick_install_linear_attention.sh"
+if [[ "${install_mode}" == "--image-build" ]]; then
+    bash ./quick_install_linear_attention.sh --install-only
+    # Never publish a GPU-verified marker from a CPU-only Docker build.
+    mkdir -p /opt/verl-env
+    touch "/opt/verl-env/${done_file}"
+    rm -f "${running_file}" "${done_file}"
+    setup_complete=true
+    exit 0
+fi
+bash ./quick_install_linear_attention.sh
 mv "${running_file}" "${done_file}"
 setup_complete=true
 echo "[INFO] Environment installation and GPU kernel checks complete."

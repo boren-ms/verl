@@ -1,0 +1,45 @@
+# Base0c: base0b settings with OpenML and LibriSpeech training only.
+# Keep sample counts 26338/13168 and all validation datasets, including Earnings22.
+# LR 1e-6, temperature 1.0, 16 rollouts, one epoch, and packing state isolation.
+defaults:
+  - ../base@_here_
+  - /data/train_data/openml_verb_langhint_v0@_ml_train
+  - /data/train_data/ls_rare_bad_verb_langhint_v0@_ls_train
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/ls_kw_verb_langhint@_ls_val
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+    use_remove_padding: true
+    use_linear_attention_packing: true
+  actor:
+    optim:
+      lr: 1.0e-6
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    temperature: 1.0
+    n: 16
+
+data:
+  data_source:
+    openml: {num_sample: 26338, shuffle: true}
+    ls_rare_verb: {num_sample: 13168, shuffle: true}
+  train_data:
+    - ${_ml_train}
+    - ${_ls_train}
+  val_data:
+    - ${_earning_val}
+    - ${_ml_val}
+    - ${_ls_val}
+  train_batch_size: 128
+  shuffle: true
+
+trainer:
+  nnodes: 2
+  total_epochs: 1
+  total_training_steps: null
