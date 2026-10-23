@@ -183,9 +183,72 @@ GPU smoke 需后续选定节点后进行：先小批量 rollout，人工查看 p
 
 输出头、空列表格式、使用已有标注并按转写过滤已确认。下一步建议优先确定：
 
-1. 先从哪些标注可靠的数据开始；是否以现有三源 recipe 为审计起点。
+1. 已按用户最新指示，改以 LibriSpeech keywords 数据为参考起点；先完成下面列出的原始训练 JSONL 核验，不从三源混合开始。
 2. keywords 在各源中的含义是否足够一致，是否先限定 rare words / entities 某一类。
 3. 是否接受 CSV 引号处理短语内逗号，以及缺标注样本继续使用原转写任务的安排。
 4. 第一版是否复用 n=8、1 GT + 7 sampled；列表 reward 权重以离线结果校准。
 
 本轮不启动训练，不修改模型/解析/GT rollout 实现。后续所有实现与实验准备继续在上述独立 worktree 和远程分支中进行。
+
+## 11. 已定位的 LibriSpeech keywords 参考数据（2026-10-23 更新）
+
+用户指定先以 LibriSpeech keywords 数据为参照。第一阶段的数据范围据此收敛为 LibriSpeech，不先引入 OpenML/Earnings。
+
+### 训练候选与现有配置
+
+- 原始关键词训练 JSONL：`az://orngwus2cresco/data/boren/data/LibriSpeech/asr_train_transcribe_rare_keywords_nonempty.jsonl`。
+- 现有配置：`recipe/phimm/config/data/train_data/ls_rare_nonempty_verb_langhint.yaml`；将 `transcription` 映射为 `text`，task 为 `lang_asr_verb`，English，lang_hint=true，prefix_prob=0。
+- 另有同源不带语言提示版本：`ls_rare_nonempty_verb.yaml`。
+- 10k 候选路径也已有配置引用：`asr_train_transcribe_rare_keywords_nonempty_sample10k_seed42.jsonl`，见 `recipe/phimm/config/v2609_ls/gen/gen_2609v0_ls_rare_nonempty_10k_g16.yaml`。
+- 当前混合训练使用的 `ls_rare_nonempty_verb_g32_nonzero_n_err.jsonl` 是另一个经过 bad-case 筛选的产物；仓库已有统计报告记录其 71,707 条样本。该数值不属于上面的原始关键词训练 JSONL，不能混用。
+
+建议以原始关键词训练 JSONL 的字段和标注规则定义新任务，bad-case 版本仅作为后续训练子集选择。文件名提示 nonempty，但仍需读取后验证，不能用文件名代替全量统计。
+
+本机 `bbb ls` 访问 orngwus2cresco/data 返回缺少可用访问凭据。本轮确认了代码引用的路径，尚未读取这份云端训练 JSONL；不宣称已核实其条数、字段类型和 rare-word 生成阈值。
+
+### 验证集配置和本地已检查数据
+
+现有 `recipe/phimm/config/data/val_data/ls_kw_verb_langhint.yaml` 引用：
+
+```text
+az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-clean.biasing_100.think.jsonl
+az://orngwus2cresco/data/boren/data/librispeech_biasing/ref/test-other.biasing_100.think.jsonl
+```
+
+本地已实际读取的对应原始 biasing 参考文件为 `/home/boren/data/librispeech_biasing/ref/test-{clean,other}.biasing_100.jsonl`，不带 `.think` 后缀。其字段为 `id / text / ground_truth / distractors / audio_path`，其中 `ground_truth` 是关键词列表，`text` 是转写，`distractors` 是包含大量干扰词的候选列表。
+
+| 本地参考 split | 样本数 | 非空关键词样本 | 空关键词样本 | 关键词条目总数 | 不在转写中的关键词（精确单词匹配） |
+|---|---:|---:|---:|---:|---:|
+| test-clean | 2,620 | 1,980 | 640 | 5,692 | 0 |
+| test-other | 2,939 | 2,141 | 798 | 5,248 | 0 |
+
+两个本地文件均无重复 id、无单样本内重复关键词。这些统计只适用于已读的本地原始参考文件，不能视为云端 `.think.jsonl` 的统计或证明两者逐行相同。
+
+本地 test-clean SHA-256：`aafb4820032a8fa7a0fb329e5877da2c48832999e9dbbd0a6f589f9fb29beabd`。
+本地 test-other SHA-256：`35400b5608c255be4031bd1d4138649f0b77453b2c7b39bef287681a9a2014c7`。
+
+实际例子（test-other，`3764-168670-0020`）：
+
+```text
+text: asked jean valjean fauchelevent replied
+ground_truth keywords: ["fauchelevent"]
+```
+
+对应拟议任务输出：
+
+```text
+<src=English><tgt=English>
+<VERBATIM>
+asked jean valjean fauchelevent replied
+<keywords>
+fauchelevent
+```
+
+### 对方案的具体约束
+
+1. keywords 的首轮语义明确为数据标注的 rare words，而不是让模型任意做语义摘要或抽取主题词。本地数据 README 定义 rare words 为词频表中前 5,000 常见词之外的词；仓库另一套动态 `ls_rare05.yaml` 使用 common_num=10,000、rare_ratio=0.5。两套规则不同，原始训练 JSONL 实际采用哪套规则仍待核实。
+2. 不能把 distractors 输出为 keywords，也不把它们放入首轮用户 prompt。文件名 `biasing_100` 的 100 是候选 biasing list 大小，不是每句有 100 个正确关键词。
+3. 原始验证文件的 `ground_truth` 是 list，而 RL 的 `reward_model.ground_truth` 应为纯转写 string；必须显式适配为 text→reference、ground_truth-list→target_keywords，不能直接重用同名字段。
+4. 本地关键词列表未必按文本出现顺序排列。例如样本 `237-134493-0004` 原列表为 `["intermingled", "mated"]`，转写中先出现 mated；GT formatter 应输出 `mated, intermingled`，列表集合评分不受顺序影响。
+5. 验证数据有真实空标注，可验证空块协议；它们继续保持 held-out，不能拿来补训练负例。训练文件若确实全是 nonempty，需从训练 split 获得同规则的真实空标注样本，或明确第一轮只验证非空任务、保留空样本泛化风险。
+6. 下一步数据审计只需围绕该原始训练 JSONL、可能的 10k 子集和上述验证适配展开；无需先审计三源数据。功能实现仍等待方案讨论。
