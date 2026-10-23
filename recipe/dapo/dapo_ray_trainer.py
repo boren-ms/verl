@@ -38,6 +38,7 @@ from verl.trainer.ppo.core_algos import (
 )
 from verl.trainer.ppo.filter_groups import compute_remax_advantage_metric, select_prompt_uids_by_metric
 from verl.trainer.ppo.rollout_log_probs import align_gt_rollout_log_probs
+from verl.trainer.ppo.remax_baseline import clear_baseline_outputs
 
 from verl.utils.metric import reduce_metrics
 from verl.trainer.ppo.metric_utils import (
@@ -224,7 +225,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                                     values[key] = value.item() if hasattr(value, "item") else value
                                 greedy_rewards.append(values)
 
-                            new_batch.pop(batch_keys=list(gen_baseline_output.batch.keys()))
+                            clear_baseline_outputs(new_batch, gen_baseline_output)
 
                             new_batch.batch["reward_baselines"] = reward_baseline_tensor
 
@@ -494,7 +495,13 @@ class RayDAPOTrainer(RayPPOTrainer):
                     # Log rollout generations if enabled
                     rollout_data_dir = self.config.trainer.get("rollout_data_dir", None)
                     if rollout_data_dir:
-                        self._log_rollout_data(batch, reward_extra_infos_dict, timing_raw, rollout_data_dir)
+                        # Reward columns travel with the batch through balancing/filtering.
+                        # The original lists still have generation order.
+                        aligned_reward_extras = {
+                            key: batch.non_tensor_batch[key].tolist()
+                            for key in reward_extra_info_keys if key in batch.non_tensor_batch
+                        }
+                        self._log_rollout_data(batch, aligned_reward_extras, timing_raw, rollout_data_dir)
 
                 # validate
                 if (

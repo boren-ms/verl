@@ -1,0 +1,35 @@
+{
+  "failed_job": "raysubmit_BXxnPGWufEfNkCc5",
+  "validation_unique": 1000,
+  "validation_selected_ids_match": true,
+  "validation_metrics": {
+    "ls_dev_lowbwer1000": {
+      "utterances": 1000,
+      "n_err": 2,
+      "n_ref": 34583,
+      "nb_err": 1,
+      "nb_ref": 3427,
+      "nu_err": 1,
+      "nu_ref": 31156,
+      "WER": 5.783188271694185e-05,
+      "BWER": 0.0002918004085205719,
+      "UWER": 3.209654641160611e-05,
+      "NWER": 3.209654641160611e-05,
+      "keyword_word_accuracy": 0.9997081995914794,
+      "kw_micro_precision": null,
+      "kw_micro_recall": 0.0,
+      "kw_micro_f1": 0.0,
+      "kw_macro_f1": 0.0,
+      "kw_exact": 0.0,
+      "kw_format_success": 0.0,
+      "kw_empty_false_positive": null
+    }
+  },
+  "training_groups_checked": 64,
+  "rows_per_group": 8,
+  "full_gt_blocks_per_group": 1,
+  "gt_body_and_list_correct": true,
+  "greedy_has_no_keyword_blocks": true,
+  "training_dump_counts_aligned": false,
+  "training_dump_note": "Old dump used pre-balancing reward lists; fixed to use row-attached columns. Reward tensors and aggregate metrics already traveled with the batch."
+}

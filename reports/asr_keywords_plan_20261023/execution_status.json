@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-10-23T20:41:26.054158+00:00",
+  "updated_at": "2026-10-23T21:01:52.506751+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
   "keyword_tag": "<KEYWORDS>",
   "annotation_policy": "ls-common5k-v1",
-  "implementation": "complete; GPU integration not yet verified",
+  "implementation": "GPU verified full GT body/list, 1 GT per 8-row group; finish-reason cleanup and dump alignment fix pending replacement",
   "config_root": "recipe/phimm/config/v2609_kw",
   "local_manifest_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1",
   "remote_reference_manifest_local_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote",
@@ -60,12 +60,17 @@
       "ruff": "passed",
       "config_composition": "passed",
       "diff_check": "passed"
+    },
+    "remax_finish_reason_fix": {
+      "passed": 14,
+      "includes": "3 finish-reason lifecycle + 11 selector/config tests",
+      "full_trainer_local_collection": "blocked by pre-existing torchvision::nms import; run on remote next"
     }
   },
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING startup: dev1000 replacement raysubmit_BXxnPGWufEfNkCc5",
+    "A2_training": "FAILED at step5; fixing greedy finish-reason union and training dump row alignment",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -177,7 +182,7 @@
   },
   "active_job": {
     "pool": "verl-n2-i10",
-    "status": "RUNNING",
+    "status": "FAILED",
     "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
     "experiment_name": "remax_ls_joint_pilot_dev1k",
     "nnodes": 2,
@@ -195,14 +200,17 @@
       "lora_rank": 256,
       "lora_alpha": 512
     },
-    "gpu_gt_group_behavior_verified": false,
+    "gpu_gt_group_behavior_verified": true,
     "replacement_for": "raysubmit_b5GvZq1k3Yyeb2ws",
     "job_id": "raysubmit_BXxnPGWufEfNkCc5",
     "code_commit": "635f45ecf",
     "dashboard": "http://10.151.61.214:9209",
-    "phase": "startup with 1000-utterance training validation",
+    "phase": "failed before step5: greedy rollout_finish_reason retained during sampled union",
     "submitted_at": "2026-10-23T20:41:06Z",
-    "last_completed_training_step": 0
+    "last_completed_training_step": 4,
+    "initial_dev_processed": 1000,
+    "initial_dev_total": 1000,
+    "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b"
   },
   "audio_precache": {
     "main_pod": "verl-n2-i10-0",
@@ -232,15 +240,15 @@
     "status": "ACTIVE"
   },
   "occupancy_observation": {
-    "observed_at": "2026-10-23T19:30:07.384285+00:00",
+    "observed_at": "2026-10-23T21:01:52.506751+00:00",
     "pool": "verl-n2-i10",
-    "head_ip": "10.151.61.214",
-    "worker_ip": "10.151.239.218",
+    "running_job_id": null,
     "both_pods_checked": true,
-    "gpus_idle": true,
-    "no_running_jobs_before_submission": true,
-    "action": "synced isolated branch; launching A1",
-    "note": "Head pod replaced; former Ray history and prefetch state no longer present."
+    "gpu_memory_mib_range": [
+      1,
+      1
+    ],
+    "action": "pool idle after failed owned pilot; safe to sync fix"
   },
   "config_layout": {
     "base": "recipe/phimm/config/v2609_kw/base.yaml",

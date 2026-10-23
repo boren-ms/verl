@@ -47,6 +47,7 @@ from verl.trainer.config import AlgoConfig
 from verl.trainer.config.algorithm import REMAX_ADVANTAGE_MASK_MODES
 from verl.trainer.ppo import core_algos
 from verl.trainer.ppo.core_algos import AdvantageEstimator, agg_loss, deduplicate_rollout_responses
+from verl.trainer.ppo.remax_baseline import clear_baseline_outputs
 from verl.trainer.ppo.rollout_log_probs import align_gt_rollout_log_probs
 from verl.trainer.ppo.metric_utils import (
     compute_data_metrics,
@@ -1300,7 +1301,7 @@ class RayPPOTrainer:
                                     values[key] = value.item() if hasattr(value, "item") else value
                                 greedy_rewards.append(values)
 
-                            batch.pop(batch_keys=list(gen_baseline_output.batch.keys()))
+                            clear_baseline_outputs(batch, gen_baseline_output)
 
                             batch.batch["reward_baselines"] = reward_baseline_tensor
 
