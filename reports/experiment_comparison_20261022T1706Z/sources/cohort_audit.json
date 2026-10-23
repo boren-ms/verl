@@ -1,0 +1,1173 @@
+{
+  "generated_at_utc": "2026-10-22T17:17:11.751869+00:00",
+  "scope": "Read-only audit for chart interpretation; fresh W&B sanitized configs plus explicitly dated cached pinned-source and validation-example audits. No jobs launched and no config/monitor mutations.",
+  "cohorts": {
+    "dev": {
+      "labels": [
+        "historical_v1h2a",
+        "fix",
+        "L0",
+        "L1",
+        "L2",
+        "bcr",
+        "bcr64"
+      ],
+      "validation_datasets": [
+        "earning_chunk_verb",
+        "openml_bad",
+        "ls_clean",
+        "ls_other"
+      ],
+      "interpretation": "Dataset-wise descriptive comparison at exact shared optimizer steps; training mixtures differ for replay runs."
+    },
+    "hindi": {
+      "labels": [
+        "hindi_v0",
+        "hindi_v1"
+      ],
+      "validation_datasets": [
+        "monsoon_hi_in"
+      ],
+      "interpretation": "Separate IndicVoices training / Monsoon Hindi lattice reference cohort; do not compare reward levels or p_err with the dev cohort."
+    }
+  },
+  "identity_correction": {
+    "historical_baseline": {
+      "run_id": "bee227f074fb5352265059c051944c2a",
+      "recipe": "remax_dev_base0_v1h2a"
+    },
+    "v1h2a3_is_different_recipe": "v1h2a3 has fmt, lang beta0.5, clipping +/-2 and divisor2.4; it is not the historical bee... baseline in these charts."
+  },
+  "fresh_logged_config_checks": {
+    "fix": {
+      "reference": "fix",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [],
+        "algorithm": []
+      },
+      "collected_at_utc": "2026-10-22T17:12:32.484873+00:00"
+    },
+    "L0": {
+      "reference": "fix",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [
+          "reward_functions.librispeech.reward_kwargs.measures.fmt",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.word_kw.beta",
+          "reward_functions.librispeech.reward_kwargs.reduce.total"
+        ],
+        "algorithm": []
+      },
+      "collected_at_utc": "2026-10-22T17:12:31.959815+00:00"
+    },
+    "L1": {
+      "reference": "fix",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [
+          "reward_functions.librispeech.reward_kwargs.measures.char",
+          "reward_functions.librispeech.reward_kwargs.measures.fmt",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.clip",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.delta",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.score",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.vote",
+          "reward_functions.librispeech.reward_kwargs.measures.word.clip",
+          "reward_functions.librispeech.reward_kwargs.measures.word_del.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.word_del.clip",
+          "reward_functions.librispeech.reward_kwargs.measures.word_ins.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.word_ins.clip",
+          "reward_functions.librispeech.reward_kwargs.measures.word_kw.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.word_kw.clip",
+          "reward_functions.librispeech.reward_kwargs.reduce.total"
+        ],
+        "algorithm": []
+      },
+      "collected_at_utc": "2026-10-22T17:12:32.227493+00:00"
+    },
+    "L2": {
+      "reference": "fix",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [
+          "reward_functions.librispeech.reward_kwargs.measures.char",
+          "reward_functions.librispeech.reward_kwargs.measures.fmt",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.clip",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.delta",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.score",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.vote",
+          "reward_functions.librispeech.reward_kwargs.measures.word.clip",
+          "reward_functions.librispeech.reward_kwargs.measures.word_del.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.word_del.clip",
+          "reward_functions.librispeech.reward_kwargs.measures.word_ins.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.word_ins.clip",
+          "reward_functions.librispeech.reward_kwargs.measures.word_kw.beta",
+          "reward_functions.librispeech.reward_kwargs.measures.word_kw.clip",
+          "reward_functions.librispeech.reward_kwargs.reduce.total"
+        ],
+        "algorithm": []
+      },
+      "collected_at_utc": "2026-10-22T17:12:34.848146+00:00"
+    },
+    "bcr": {
+      "reference": "fix",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [
+          "actor.optim.total_training_steps"
+        ],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [],
+        "algorithm": [
+          "algorithm.bad_case_replay"
+        ]
+      },
+      "collected_at_utc": "2026-10-22T17:12:37.261413+00:00"
+    },
+    "bcr64": {
+      "reference": "fix",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [
+          "actor.optim.total_training_steps"
+        ],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [],
+        "algorithm": [
+          "algorithm.bad_case_replay"
+        ]
+      },
+      "collected_at_utc": "2026-10-22T17:12:36.102529+00:00"
+    },
+    "hindi_v0": {
+      "reference": "hindi_v0",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [],
+        "algorithm": []
+      },
+      "collected_at_utc": "2026-10-22T17:12:39.699323+00:00"
+    },
+    "hindi_v1": {
+      "reference": "hindi_v0",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [
+          "reward_functions.librispeech.reward_kwargs.measures.fmt",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.delta",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.score",
+          "reward_functions.librispeech.reward_kwargs.measures.lang.vote"
+        ],
+        "algorithm": []
+      },
+      "collected_at_utc": "2026-10-22T17:12:40.540885+00:00"
+    },
+    "historical_v1h2a": {
+      "reference": "fix",
+      "section_differences": {
+        "data": [],
+        "model": [],
+        "actor": [],
+        "rollout": [],
+        "val_reward": [],
+        "reward_functions": [],
+        "algorithm": []
+      },
+      "collected_at_utc": "2026-10-22T17:12:41.062542+00:00"
+    }
+  },
+  "common_dev_settings": {
+    "model": {
+      "path": "az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf",
+      "lora_rank": 320,
+      "lora_alpha": 640
+    },
+    "train_source_budget_per_fresh_epoch": {
+      "earnings_fy27": {
+        "num_sample": 6584,
+        "shuffle": true
+      },
+      "ls_rare_verb": {
+        "num_sample": 13168,
+        "shuffle": true
+      },
+      "openml": {
+        "num_sample": 26338,
+        "shuffle": true
+      }
+    },
+    "fresh_examples_per_epoch": 46090,
+    "train_batch_size": 128,
+    "rollout_n": 8,
+    "validation_decode": {
+      "_target_": "verl.workers.config.SamplingConfig",
+      "do_sample": false,
+      "n": 1,
+      "response_length": 512,
+      "temperature": 0,
+      "top_k": -1,
+      "top_p": 1
+    },
+    "lr": 3e-06,
+    "ppo_epochs": 1,
+    "loss_agg_mode": "token-mean",
+    "scorer": "Configured validation p_err uses complete-corpus sum(n_err)/sum(n_ref), with grouped Earnings parent scoring and dataset-specific normalizers."
+  },
+  "runs": {
+    "fix": {
+      "run_id": "0ca34a537b05e74628264cac2ea86a75",
+      "name": "remax_dev_base0_v1h2a_fix",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/0ca34a537b05e74628264cac2ea86a75",
+      "source_config_collected_at_utc": "2026-10-22T17:12:32.484873+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "lang": {
+            "beta": 0.2,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.2,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 1.6
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "lang": 0.125,
+        "word": 0.625,
+        "word_del": 0.0625,
+        "word_ins": 0.0625,
+        "word_kw": 0.125
+      },
+      "reward_formula_group": "five_delta_div1.6"
+    },
+    "L0": {
+      "run_id": "0d485800242bfc5784c5bd4a88f8d102",
+      "name": "remax_dev_base0_v1h2a_fix_L0",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/0d485800242bfc5784c5bd4a88f8d102",
+      "source_config_collected_at_utc": "2026-10-22T17:12:31.959815+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "fmt": {
+            "beta": 0.5,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "lang": {
+            "beta": 0.5,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.8,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 3
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "fmt": 0.16666666666666666,
+        "lang": 0.16666666666666666,
+        "word": 0.3333333333333333,
+        "word_del": 0.03333333333333333,
+        "word_ins": 0.03333333333333333,
+        "word_kw": 0.26666666666666666
+      },
+      "reward_formula_group": "six_delta_div3"
+    },
+    "L1": {
+      "run_id": "f42206aacf1f9a861601f4078737ad08",
+      "name": "remax_dev_base0_v1h2a_fix_L1",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/f42206aacf1f9a861601f4078737ad08",
+      "source_config_collected_at_utc": "2026-10-22T17:12:32.227493+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "char": {
+            "beta": 1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "fmt": {
+            "beta": 0.1,
+            "clip": [
+              -2,
+              2
+            ],
+            "score": "acc",
+            "vote": "abs"
+          },
+          "lang": {
+            "beta": 0.1,
+            "clip": [
+              -2,
+              2
+            ],
+            "score": "acc",
+            "vote": "abs"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.25,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.25,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.5,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 4
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "char": 0.25,
+        "fmt": 0.025,
+        "lang": 0.025,
+        "word": 0.25,
+        "word_del": 0.0625,
+        "word_ins": 0.0625,
+        "word_kw": 0.125
+      },
+      "reward_formula_group": "absolute_lang_fmt_0.05"
+    },
+    "L2": {
+      "run_id": "06a732c00714070c46b72a90837f6121",
+      "name": "remax_dev_base0_v1h2a_fix_L2",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/06a732c00714070c46b72a90837f6121",
+      "source_config_collected_at_utc": "2026-10-22T17:12:34.848146+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "char": {
+            "beta": 1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "fmt": {
+            "beta": 0.01,
+            "clip": [
+              -2,
+              2
+            ],
+            "score": "acc",
+            "vote": "abs"
+          },
+          "lang": {
+            "beta": 0.01,
+            "clip": [
+              -2,
+              2
+            ],
+            "score": "acc",
+            "vote": "abs"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.25,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.25,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.5,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 4
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "char": 0.25,
+        "fmt": 0.0025,
+        "lang": 0.0025,
+        "word": 0.25,
+        "word_del": 0.0625,
+        "word_ins": 0.0625,
+        "word_kw": 0.125
+      },
+      "reward_formula_group": "absolute_lang_fmt_0.005"
+    },
+    "bcr": {
+      "run_id": "5dc3fdb4c014c9dc1570a5af6e0c1e6e",
+      "name": "remax_dev_base0_v1h2a_fix_bcr",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/5dc3fdb4c014c9dc1570a5af6e0c1e6e",
+      "source_config_collected_at_utc": "2026-10-22T17:12:37.261413+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "lang": {
+            "beta": 0.2,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.2,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 1.6
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "lang": 0.125,
+        "word": 0.625,
+        "word_del": 0.0625,
+        "word_ins": 0.0625,
+        "word_kw": 0.125
+      },
+      "reward_formula_group": "five_delta_div1.6"
+    },
+    "bcr64": {
+      "run_id": "e51cc81ed31e918470dbcc8143a6b731",
+      "name": "remax_dev_base0_v1h2a_fix_bcr64",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/e51cc81ed31e918470dbcc8143a6b731",
+      "source_config_collected_at_utc": "2026-10-22T17:12:36.102529+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "lang": {
+            "beta": 0.2,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.2,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 1.6
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "lang": 0.125,
+        "word": 0.625,
+        "word_del": 0.0625,
+        "word_ins": 0.0625,
+        "word_kw": 0.125
+      },
+      "reward_formula_group": "five_delta_div1.6"
+    },
+    "hindi_v0": {
+      "run_id": "7fd617c24690b4b598ad9ae15113156f",
+      "name": "remax_hindi_base1_v0",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/7fd617c24690b4b598ad9ae15113156f",
+      "source_config_collected_at_utc": "2026-10-22T17:12:39.699323+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "char": {
+            "beta": 1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "lang": {
+            "beta": 0.1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.25,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.25,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.5,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 4
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "char": 0.25,
+        "lang": 0.025,
+        "word": 0.25,
+        "word_del": 0.0625,
+        "word_ins": 0.0625,
+        "word_kw": 0.125
+      },
+      "reward_formula_group": "hindi_delta_div4"
+    },
+    "hindi_v1": {
+      "run_id": "d9f3c96e5073da21a91680a234a6453f",
+      "name": "remax_hindi_base1_v1",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/d9f3c96e5073da21a91680a234a6453f",
+      "source_config_collected_at_utc": "2026-10-22T17:12:40.540885+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "char": {
+            "beta": 1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "fmt": {
+            "beta": 0.1,
+            "clip": [
+              -2,
+              2
+            ],
+            "score": "acc",
+            "vote": "abs"
+          },
+          "lang": {
+            "beta": 0.1,
+            "clip": [
+              -2,
+              2
+            ],
+            "score": "acc",
+            "vote": "abs"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.25,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.25,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.5,
+            "clip": [
+              -2,
+              2
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 4
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "char": 0.25,
+        "fmt": 0.025,
+        "lang": 0.025,
+        "word": 0.25,
+        "word_del": 0.0625,
+        "word_ins": 0.0625,
+        "word_kw": 0.125
+      },
+      "reward_formula_group": "absolute_lang_fmt_0.05"
+    },
+    "historical_v1h2a": {
+      "run_id": "bee227f074fb5352265059c051944c2a",
+      "name": "remax_dev_base0_v1h2a_20261020T003002Z",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/bee227f074fb5352265059c051944c2a",
+      "source_config_collected_at_utc": "2026-10-22T17:12:41.062542+00:00",
+      "reward_kwargs_as_logged": {
+        "measures": {
+          "lang": {
+            "beta": 0.2,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word": {
+            "beta": 1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_del": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_ins": {
+            "beta": 0.1,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          },
+          "word_kw": {
+            "beta": 0.2,
+            "clip": [
+              -10,
+              10
+            ],
+            "delta": "abs",
+            "vote": "delta"
+          }
+        },
+        "reduce": {
+          "mode": "average",
+          "total": 1.6
+        },
+        "version": 2609
+      },
+      "effective_coefficients": {
+        "lang": 0.125,
+        "word": 0.625,
+        "word_del": 0.0625,
+        "word_ins": 0.0625,
+        "word_kw": 0.125
+      },
+      "reward_formula_group": "five_delta_div1.6"
+    }
+  },
+  "pinned_source_provenance": {
+    "fix": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+    "L0": "b4f242da5177d8375d0bb21663fadd6e7f7cd146",
+    "L1": "3fc2dbdcd88238fad86c2e312388412709ad76de",
+    "L2": {
+      "name": "remax_dev_base0_v1h2a_fix_L2",
+      "run_id": "06a732c00714070c46b72a90837f6121",
+      "url": "https://msaip.wandb.io/genai/v2611/runs/06a732c00714070c46b72a90837f6121",
+      "submission_id": "remax_L2_20261022T083103Z",
+      "source_revision": "c6a69fdb959c9d7281998b1fbf005de143d31383",
+      "recipe_sha256": "cb8cfb0acff55c15f7a2373e3fd99779bcbdae1329d00ca31e0b544fafb26d51",
+      "initialization": "Fresh from configured base model; auto-resume configured, launch found no prior L2 checkpoint; continuous local actor history starts at1.",
+      "state_snapshot": "RUNNING",
+      "observed_at_utc": "2026-10-22T15:34:46.733860+00:00"
+    },
+    "bcr_modern": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "bcr64": "5def8a1bf4589357de1e0215fb2dc13a3c49390b",
+    "historical_v1h2a": null,
+    "historical_v1h2a_reason": "Historical/resumed deployed revisions unknown. Matching config and initial metrics do not establish equal parser behavior at every segment."
+  },
+  "reward_interpretation": [
+    "delta: abs means signed sample_accuracy minus current-greedy_accuracy, not an absolute value. Clipping occurs per item before beta weighting; reward-vote metrics are unweighted clipped values.",
+    "reward-core/score is the final formula reward; other core fields are sampled raw component measures, not validation corpus p_err.",
+    "L1/L2 absolute language and format contributions survive this ReMax path because greedy scalar baseline is0; near-perfect fields add approximately+0.05 in L1 and+0.005 in L2. Their total-score scales therefore differ from fix.",
+    "The fix language measure checks ordered target codes. L0/L1/L2 check supported matching source:target pairs; cross-run language reward values are not the same function. Hindi v0/v1 share this old/new semantic confound.",
+    "Current BCR configurations share the five-term fix formula. Their changing replay prompt mix and own greedy baselines prevent interpreting reward level as a fixed-data quality test.",
+    "Missing configured terms remain N/A. No cross-dataset average or interpolation creates shared validation observations."
+  ],
+  "replay_budget_and_lineage": {
+    "source_snapshot_utc": {
+      "slot": "20261022T1650",
+      "collection_started_at_utc": "2026-10-22T16:52:50.623214+00:00",
+      "collection_finished_at_utc": "2026-10-22T16:53:21.300834+00:00",
+      "exact_current_driver_observed_at_utc": "2026-10-22T16:55:16.742849+00:00",
+      "target_head_observed_at_utc": "2026-10-22T16:52:48.681269+00:00",
+      "baseline_gate_observed_at_utc": "2026-10-22T16:53:14.081151+00:00"
+    },
+    "bcr16": {
+      "display_label": "BCR early12 ->16",
+      "early_steps1_50": {
+        "fresh": 116,
+        "replay_target": 12,
+        "capacity": 400,
+        "actor_loss": "ReplayLossNormalizer"
+      },
+      "steps51_plus": {
+        "fresh": 112,
+        "replay_size": 16,
+        "capacity": 400,
+        "actor_loss": "original"
+      },
+      "optimizer_horizon": 820,
+      "server_config_stale": true,
+      "authoritative_modern_config_sha256": "9afec5069a740d29fbf55be9e855eeaa3f5760325088afdf59912b7ad9bb6295",
+      "rolled_back_updates": [
+        [
+          231,
+          235
+        ],
+        [
+          431,
+          439
+        ],
+        [
+          571,
+          574
+        ]
+      ]
+    },
+    "bcr64": {
+      "fresh": 64,
+      "replay_size": 64,
+      "capacity": 1280,
+      "actor_loss": "original from first update",
+      "optimizer_horizon": 1440,
+      "rolled_back_updates": [
+        [
+          391,
+          396
+        ]
+      ],
+      "restore_step": 390
+    },
+    "plain_dev": {
+      "fresh_per_normal_step": 128,
+      "optimizer_horizon": 720
+    },
+    "same_step380_fresh_presentations": {
+      "plain_configured": 48640,
+      "bcr16": 42760,
+      "bcr64": 24320
+    },
+    "limits": [
+      "Fresh presentations are counts along retained model ancestry, not unique audio, identical order, GPU time or total hardware work.",
+      "No exact same fresh-exposure validation pair beyond initial0 was established for replay16 vs64; do not interpolate an exposure-matched conclusion.",
+      "Capacity and replay size change together, and replay16 inherits50 custom-loss updates. This is not a one-factor replay-size ablation.",
+      "Replay buffers reset on recovery and are not checkpointed; rebuilt source grouping/shuffle is not fully seeded. A saved numeric data-loader cursor does not prove sample identity continuity.",
+      "BCR server config contains obsolete replay knobs; pinned modern config/source audits override stale merged metadata.",
+      "Repeated global steps must be bound to launch segment. Exclude abandoned branches from main curves, keep startup revalidations separate, and never substitute stale W&B rows for current-driver gaps."
+    ]
+  },
+  "general_limits": [
+    "Same model/manifest URIs and equal logged definitions do not establish byte-identical Azure payloads; payload checksums were not collected.",
+    "Equal optimizer steps do not pair actual training prompts or seeds across independent runs/resumes; code, runtime and recovery histories also differ.",
+    "Actual validation identity/reference comparability is proven only at explicitly inspected steps in examples_audit.json. Pair-dependent compound normalization can change n_ref even when reference strings match.",
+    "Historical v1h2a Earnings120/180/220 malformed-tag spans have diagnostic evidence of inflated deletion scores. Preserve official p_err; do not replace it or assume all later spikes share that cause.",
+    "Earnings and NE standalone training families were excluded because none is among the fresh running cohorts requested here; dev earning_chunk_verb validation remains included."
+  ],
+  "hindi_source_confounds": "V1 rows use exact4e58353 parser/check_lang/check_fmt; V0 rows use exactea08.2609 parsing and asr_eval are unchanged, but v1 check_lang requires matching supported source+target pairs, while v0 compares target languages. These separate runs and different source/runtime/recovery histories do not identify a causal absolute-reward effect.",
+  "source_manifest": {
+    "tmp/experiment_comparisons/20261022_live/wandb/fix_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/fix_scalars.json",
+      "sha256": "2c301b2b509aed43c76403cb41df52a02e7c99748088bc7e76885e3e500e0e80",
+      "bytes": 1714013
+    },
+    "tmp/experiment_comparisons/20261022_live/wandb/L0_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/L0_scalars.json",
+      "sha256": "14adc72ac919103545b5d6215c8a02764873493b233171fa713f1ff7db83d5ea",
+      "bytes": 1553002
+    },
+    "tmp/experiment_comparisons/20261022_live/wandb/L1_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/L1_scalars.json",
+      "sha256": "4ae4bf349694c8742e935d0e859bd9d9a4b4fd34764e1febdd6ffca16bee3ae5",
+      "bytes": 1216253
+    },
+    "tmp/experiment_comparisons/20261022_live/wandb/L2_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/L2_scalars.json",
+      "sha256": "c467bc0c2ed8c3ededb052a0703d574bbfd4a2594e5d8fdfad984b0dc16efc37",
+      "bytes": 940588
+    },
+    "tmp/experiment_comparisons/20261022_live/wandb/bcr_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/bcr_scalars.json",
+      "sha256": "aa6d1cbaeb5b3c0d2b2d5f2ae3d0b8078d8a9f7873fded7928942b83a00d864c",
+      "bytes": 2163050
+    },
+    "tmp/experiment_comparisons/20261022_live/wandb/bcr64_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/bcr64_scalars.json",
+      "sha256": "bf622a0fc7047e283696981f67bb175ef397f0767720e29f80433b5b4e4e2709",
+      "bytes": 1568592
+    },
+    "tmp/experiment_comparisons/20261022_live/wandb/hindi_v0_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/hindi_v0_scalars.json",
+      "sha256": "0ce247c6b3a89ea7ad95ae4d1314ff3b03f977a83d7fe31f4a3d346ccc278399",
+      "bytes": 1849015
+    },
+    "tmp/experiment_comparisons/20261022_live/wandb/hindi_v1_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/hindi_v1_scalars.json",
+      "sha256": "54bbae3218cbe8f5e7155de3263da54660e1c0565909570ea77d101dbafa3736",
+      "bytes": 1818664
+    },
+    "tmp/experiment_comparisons/20261022_live/wandb/historical_v1h2a_scalars.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/wandb/historical_v1h2a_scalars.json",
+      "sha256": "0fc0471af373beb67ee58008cf7f1cd2c10fe8c6e574e05d3bab566c2e6960f9",
+      "bytes": 1524478
+    },
+    "tmp/experiment_comparisons/20261022T072230Z_L1_vs_v1h2a_fix_step100/source_semantics.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T072230Z_L1_vs_v1h2a_fix_step100/source_semantics.json",
+      "sha256": "5bf87fa17200da9511764c2a907024149e3a961fdddc238e02a61f6cb93b6e89",
+      "bytes": 83109
+    },
+    "tmp/experiment_comparisons/20261022T1540Z_L2_vs_v1h2a_fix/config/comparison_settings.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1540Z_L2_vs_v1h2a_fix/config/comparison_settings.json",
+      "sha256": "f5878f274a6570bd563b16748d1ff8db72fb1836199e9c49d56dfefa7cb54791",
+      "bytes": 18531
+    },
+    "tmp/experiment_comparisons/20261022T154000Z_L0_vs_v1h2a_fix/evidence.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T154000Z_L0_vs_v1h2a_fix/evidence.json",
+      "sha256": "1e48e9ff6ce9f704bd0f3e3cbdcd2c751e3029732762a1125546243418e01f25",
+      "bytes": 768596
+    },
+    "tmp/experiment_comparisons/20261022T154040Z_v1h2a_fix_vs_baseline_charts/evidence.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T154040Z_v1h2a_fix_vs_baseline_charts/evidence.json",
+      "sha256": "e5cd7a88a5200d91a75a2c84fe21ea4871b7c86e6c174986c9dcd517f09608c8",
+      "bytes": 1454890
+    },
+    "tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/comparability.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073516Z_bcr64_vs_bcr16/comparability.json",
+      "sha256": "507ed40f9614179ecebfc2be2a86067b1127a36530f69f9fb3ad8173f95f69be",
+      "bytes": 13287
+    },
+    "tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/normalized_data.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/normalized_data.json",
+      "sha256": "30a7d1a94ddfc4775ae423f38d6b20fd845f4c50d3f705b84298e63c22dedcda",
+      "bytes": 12963585
+    },
+    "tmp/experiment_comparisons/20261022T154000Z_L0_vs_v1h2a_fix/examples_analysis.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T154000Z_L0_vs_v1h2a_fix/examples_analysis.json",
+      "sha256": "743af3f81d075c6acfc4ce8b7574468fb33de21458d7778728160815184bb6ba",
+      "bytes": 174505,
+      "frozen_copy": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/audit_sources/20261022T154000Z_L0_vs_v1h2a_fix__examples_analysis.json"
+    },
+    "tmp/experiment_comparisons/20261022T072230Z_L1_vs_v1h2a_fix_step100/examples_analysis.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T072230Z_L1_vs_v1h2a_fix_step100/examples_analysis.json",
+      "sha256": "6bc175e5e3ee6adc2ce0608bd7862909c1f0222f7b7c464b87489ddd1cd2bc3e",
+      "bytes": 210216,
+      "frozen_copy": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/audit_sources/20261022T072230Z_L1_vs_v1h2a_fix_step100__examples_analysis.json"
+    },
+    "tmp/experiment_comparisons/20261022T1540Z_L2_vs_v1h2a_fix/examples/summary.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1540Z_L2_vs_v1h2a_fix/examples/summary.json",
+      "sha256": "381972e0ad3c61eee08f5e56cc3c70564504274ce0c5593e86638980babe5df6",
+      "bytes": 25060,
+      "frozen_copy": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/audit_sources/examples__summary.json"
+    },
+    "tmp/experiment_comparisons/20261022T155904Z_bcr64_vs_bcr16_charts/examples/summary_step100.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T155904Z_bcr64_vs_bcr16_charts/examples/summary_step100.json",
+      "sha256": "275599251e4318196bfd599c91a33349b28d6d591dcb8a7696043d73025bedd9",
+      "bytes": 46305,
+      "frozen_copy": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/audit_sources/examples__summary_step100.json"
+    },
+    "tmp/experiment_comparisons/20261022T155904Z_bcr64_vs_bcr16_charts/examples/fetch_inventory.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T155904Z_bcr64_vs_bcr16_charts/examples/fetch_inventory.json",
+      "sha256": "bc9b3064f85984287cbeb20a9a6f6b61be11157dab60059140e86903044c9a6b",
+      "bytes": 4434
+    },
+    "tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples_summary.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples_summary.json",
+      "sha256": "b7b010443942bb120224f9529498baf65b781e95801aa7ac6e85a76151fb51bc",
+      "bytes": 158091,
+      "frozen_copy": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/audit_sources/20261022T073852Z_bcr_rolling__examples_summary.json"
+    },
+    "tmp/verl_asr_run/remax_hindi_base1_v1/quality_watch/validation_followup_20261022T1646Z_164934_final.json": {
+      "path": "/home/boren/code/verl/tmp/verl_asr_run/remax_hindi_base1_v1/quality_watch/validation_followup_20261022T1646Z_164934_final.json",
+      "sha256": "5cd4a50f48bc36226c811c6c283883b4cf1b76242229d41d2a89dd0c7a6168b9",
+      "bytes": 2334748,
+      "frozen_copy": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/audit_sources/quality_watch__validation_followup_20261022T1646Z_164934_final.json"
+    },
+    "tmp/experiment_comparisons/20261022_live/status.json": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022_live/status.json",
+      "sha256": "bf141aa547460b4c3819877d231f91171995631f5c946342ecff55655c028abd",
+      "bytes": 53032
+    }
+  }
+}

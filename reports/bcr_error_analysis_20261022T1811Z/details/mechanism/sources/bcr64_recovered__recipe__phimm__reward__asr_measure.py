@@ -1,0 +1,667 @@
+"""Lightweight punctuation & capitalization error measurement.
+
+Uses ``jiwer`` for word-level alignment and simple Unicode-category-based
+classification to count punctuation and capitalization errors between a
+reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
+"""
+
+from __future__ import annotations
+
+import math
+import re
+import unicodedata
+from dataclasses import dataclass
+from numbers import Real
+
+from jiwer import process_characters, process_words
+
+from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
+from recipe.phimm.utils.languages import get_language_code
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+# Regular punctuation marks that matter for ASR punc accuracy.
+# Excludes apostrophes, hyphens, quotes, brackets, etc.
+REGULAR_PUNC = set(".,?!;:;。？！、，：；…")
+
+
+def _is_punc_char(c: str) -> bool:
+    """Return True if *c* is a Unicode punctuation character."""
+    return unicodedata.category(c).startswith("P")
+
+
+def _is_regular_punc(c: str) -> bool:
+    """Return True if *c* is a regular (sentence-level) punctuation mark."""
+    return c in REGULAR_PUNC
+
+
+def _is_edge_punc(word: str, idx: int) -> bool:
+    """Return True if char at *idx* is a regular punctuation at a word edge.
+
+    Only punctuation at the very start or end of *word* counts.  Mid-word
+    punctuation (e.g. the ``.`` in ``4.5`` or ``U.S.A``) is ignored.
+    """
+    if not _is_regular_punc(word[idx]):
+        return False
+    # Walk outward — all chars between idx and the nearest edge must also be punc.
+    # e.g. "Hello," → comma is edge; "4.5" → period is NOT edge.
+    # Left edge: every char from 0..idx is punc.
+    left_ok = all(_is_punc_char(word[j]) for j in range(0, idx))
+    # Right edge: every char from idx..end is punc.
+    right_ok = all(_is_punc_char(word[j]) for j in range(idx + 1, len(word)))
+    return left_ok or right_ok
+
+
+def _strip_punc(word: str) -> str:
+    """Remove all Unicode punctuation characters from *word*."""
+    return "".join(c for c in word if not _is_punc_char(c))
+
+
+def _is_pure_punc(word: str) -> bool:
+    """Return True if *word* consists entirely of punctuation characters."""
+    return len(word) > 0 and all(_is_punc_char(c) for c in word)
+
+
+def _has_regular_punc(word: str) -> bool:
+    """Return True if *word* has regular punctuation at a word edge."""
+    return any(_is_edge_punc(word, i) for i in range(len(word)))
+
+
+def _is_pure_regular_punc(word: str) -> bool:
+    """Return True if *word* consists entirely of regular punctuation marks."""
+    return len(word) > 0 and all(_is_regular_punc(c) for c in word)
+
+
+def _punc_signature(word: str) -> str:
+    """Return a string encoding edge regular-punctuation positions & characters.
+
+    E.g. ``"Hello,"`` → ``",5"`` (comma at index 5).
+    Used to detect whether two tokens differ only in punctuation attachment.
+    Only considers regular punctuation at word edges.
+    """
+    return "".join(c + str(i) for i, c in enumerate(word) if _is_edge_punc(word, i))
+
+
+# ---------------------------------------------------------------------------
+# Edit classification
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class EditDetail:
+    """One aligned edit between ref and hyp."""
+
+    op: str  # "sub", "ins", "del"
+    ref_word: str | None
+    hyp_word: str | None
+    category: str | None = None  # one of {"punc", "cap", "lex"} or None
+
+
+def classify_edit(ref_word: str, hyp_word: str) -> str:
+    """Classify a substitution pair into one of ``{"punc", "cap", "lex"}``.
+
+    Priority: ``lex`` > ``punc`` > ``cap`` — each edit counts as exactly one
+    category, the most severe one.
+    """
+    ref_base = _strip_punc(ref_word)
+    hyp_base = _strip_punc(hyp_word)
+
+    if ref_base.lower() != hyp_base.lower():
+        return "lex"
+    if _punc_signature(ref_word) != _punc_signature(hyp_word):
+        return "punc"
+    if ref_base != hyp_base:
+        return "cap"
+    # Identical after stripping but original strings still differ — treat as punc.
+    return "punc"
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
+# ---------------------------------------------------------------------------
+
+
+def compute_fmt_acc(ref: str, hyp: str) -> dict:
+    """Compute punctuation, capitalisation and lexical accuracies.
+
+    Parameters
+    ----------
+    ref : str
+        Reference (ground-truth) text — should contain punctuation & casing.
+    hyp : str
+        Hypothesis text from the ASR model.
+
+    Returns
+    -------
+    dict with keys ``punc``, ``cap``, ``lex`` mapping to ``1 - err / (hit + err)``
+    (defaults to 1.0 when ``hit + err == 0``).
+    """
+    ref = (ref or "").strip()
+    hyp = (hyp or "").strip()
+
+    if not ref and not hyp:
+        return _empty_result()
+
+    output = process_words(ref, hyp)
+
+    ref_words: list[str] = output.references[0]
+    hyp_words: list[str] = output.hypotheses[0]
+
+    counts: dict[str, dict[str, int]] = {
+        "punc": {"err": 0, "hit": 0},
+        "cap": {"err": 0, "hit": 0},
+        "lex": {"err": 0, "hit": 0},
+    }
+    details: list[EditDetail] = []
+
+    for chunk in output.alignments[0]:
+        if chunk.type == "equal":
+            # Equal-aligned words count as hits per category independently:
+            # punc hit if the word has edge regular punctuation; cap hit if
+            # it contains any uppercase; lex hit always.
+            for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
+                rw = ref_words[ri]
+                counts["lex"]["hit"] += 1
+                if _has_regular_punc(rw):
+                    counts["punc"]["hit"] += 1
+                if any(c.isupper() for c in rw):
+                    counts["cap"]["hit"] += 1
+            continue
+
+        if chunk.type == "substitute":
+            for ri, hi in zip(
+                range(chunk.ref_start_idx, chunk.ref_end_idx),
+                range(chunk.hyp_start_idx, chunk.hyp_end_idx),
+                strict=False,
+            ):
+                rw = ref_words[ri]
+                hw = hyp_words[hi]
+                cat = classify_edit(rw, hw)
+                details.append(EditDetail(op="sub", ref_word=rw, hyp_word=hw, category=cat))
+                counts[cat]["err"] += 1
+
+        elif chunk.type == "delete":
+            for ri in range(chunk.ref_start_idx, chunk.ref_end_idx):
+                rw = ref_words[ri]
+                cat = "punc" if _is_pure_regular_punc(rw) else "lex"
+                details.append(EditDetail(op="del", ref_word=rw, hyp_word=None, category=cat))
+                counts[cat]["err"] += 1
+
+        elif chunk.type == "insert":
+            for hi in range(chunk.hyp_start_idx, chunk.hyp_end_idx):
+                hw = hyp_words[hi]
+                cat = "punc" if _is_pure_regular_punc(hw) else "lex"
+                details.append(EditDetail(op="ins", ref_word=None, hyp_word=hw, category=cat))
+                counts[cat]["err"] += 1
+
+    return {cat: _accuracy(c["err"], c["hit"]) for cat, c in counts.items()}
+
+
+def _accuracy(err: int, hit: int) -> float:
+    n = err + hit
+    return 1.0 - (err / n if n else 0.0)
+
+
+def _empty_result() -> dict:
+    return {"punc": 1.0, "cap": 1.0, "lex": 1.0}
+
+
+# ---------------------------------------------------------------------------
+# Reward / scoring
+# ---------------------------------------------------------------------------
+
+
+def compute_bracket_del(hyp_text: str) -> float:
+    """Return the fraction of hypothesis words remaining after bracket removal.
+
+    Computes ``n_left / n_total`` using whitespace-separated words and the
+    shared 16-style bracket pattern. ``<nonspeech>`` is excluded, just like
+    :func:`has_brackets`. Empty bracket pairs are removed; unmatched brackets
+    are preserved. No text normalization is applied. Empty text scores 1.0.
+    """
+    from recipe.phimm.utils.shared import BRACKET_EXCLUDE, BRACKET_PATTERN
+
+    n_total = len(hyp_text.split())
+    remaining_text = BRACKET_PATTERN.sub(
+        lambda match: match.group(0) if BRACKET_EXCLUDE.fullmatch(match.group(0)) else "",
+        hyp_text,
+    )
+    n_left = len(remaining_text.split())
+    return n_left / n_total if n_total else 1.0
+
+
+def compute_openml_acc(hyp_text: str, ground_truth: str, tgt_lang: str, **kwargs) -> dict:
+    """Return bracket, repeat, and tail-hallucination accuracies.
+
+    ``bracket`` is binary, using :func:`has_brackets`. ``bracket_del`` is the
+    remaining-word ratio from :func:`compute_bracket_del`.
+    """
+    from recipe.phimm.utils.shared import has_brackets, has_repeat_error, has_tail_hallucination
+
+    repeat_opts = kwargs.get("repeat") or {}
+    tail_opts = kwargs.get("tail_hallucination") or {}
+    return {
+        "bracket": 1.0 - float(has_brackets(hyp_text)),
+        "bracket_del": compute_bracket_del(hyp_text),
+        "repeat": 1.0
+        - float(
+            has_repeat_error(
+                hyp_text,
+                ground_truth,
+                min_reps=repeat_opts.get("min_reps", 4),
+                max_ngram=repeat_opts.get("max_ngram", 5),
+                tn_name=kwargs.get("text_norm"),
+                lang=tgt_lang,
+            )
+        ),
+        "tail_hallu": 1.0
+        - float(
+            has_tail_hallucination(
+                hyp_text,
+                ground_truth,
+                min_words=tail_opts.get("min_words", 3),
+                tn_name=tail_opts.get("text_norm"),
+                lang=tgt_lang,
+            )
+        ),
+    }
+
+
+def _keyword_indices(units: list[str], keywords: list[list[str]]) -> set[int]:
+    indices = set()
+    for keyword in keywords:
+        if not keyword:
+            continue
+        width = len(keyword)
+        for start in range(len(units) - width + 1):
+            if units[start : start + width] == keyword:
+                indices.update(range(start, start + width))
+    return indices
+
+
+def _keyword_error_counts(
+    alignments,
+    ref_keyword_indices: set[int],
+    hyp_keyword_indices: set[int],
+) -> tuple[int, int]:
+    errors = 0
+    references = 0
+    for chunk in alignments:
+        if chunk.type == "equal":
+            references += sum(idx in ref_keyword_indices for idx in range(chunk.ref_start_idx, chunk.ref_end_idx))
+        elif chunk.type in {"substitute", "delete"}:
+            keyword_errors = sum(idx in ref_keyword_indices for idx in range(chunk.ref_start_idx, chunk.ref_end_idx))
+            references += keyword_errors
+            errors += keyword_errors
+        elif chunk.type == "insert":
+            errors += sum(idx in hyp_keyword_indices for idx in range(chunk.hyp_start_idx, chunk.hyp_end_idx))
+    return errors, references
+
+
+def compute_kw_score(
+    ref: str,
+    hyp: str,
+    keywords: list[str] | None = None,
+    text_norm: str | None = None,
+    tgt_lang: str = "english",
+) -> dict[str, float | int]:
+    """Return keyword rewards and evaluation counts.
+
+    ``word_kw`` is ``1 - kw_nerr / max(total_reference_words, 1)`` and
+    ``char_kw`` is the equivalent character-level keyword error accuracy.
+    ``keyword`` is ``1 - kw_nerr / max(kw_nref, 1)``.
+    Both denominators are at least one for empty references.
+    ``kw_nerr`` and ``kw_nref`` are keyword-only counts for evaluation reporting.
+    """
+    from recipe.phimm.reward.asr_edge import _norm_text
+
+    if not keywords:
+        return {"word_kw": 1.0, "char_kw": 1.0, "keyword": 1.0, "kw_nerr": 0, "kw_nref": 0}
+
+    ref_words = _norm_text(ref or "", name=text_norm, lang=tgt_lang).split()
+    hyp_words = _norm_text(hyp or "", name=text_norm, lang=tgt_lang).split()
+    normalized_keywords = [_norm_text(keyword, name=text_norm, lang=tgt_lang) for keyword in keywords]
+    kw_words = [keyword.split() for keyword in normalized_keywords]
+    ref_keyword_indices = _keyword_indices(ref_words, kw_words)
+    hyp_keyword_indices = _keyword_indices(hyp_words, kw_words)
+
+    output = process_words(" ".join(ref_words), " ".join(hyp_words))
+    errors, references = _keyword_error_counts(output.alignments[0], ref_keyword_indices, hyp_keyword_indices)
+
+    ref_chars = list("".join(ref_words))
+    hyp_chars = list("".join(hyp_words))
+    kw_chars = [list("".join(keyword)) for keyword in kw_words]
+    ref_keyword_char_indices = _keyword_indices(ref_chars, kw_chars)
+    hyp_keyword_char_indices = _keyword_indices(hyp_chars, kw_chars)
+    char_output = process_characters("".join(ref_chars), "".join(hyp_chars))
+    char_errors, _ = _keyword_error_counts(
+        char_output.alignments[0],
+        ref_keyword_char_indices,
+        hyp_keyword_char_indices,
+    )
+
+    return {
+        "word_kw": 1.0 - errors / max(len(ref_words), 1),
+        "char_kw": 1.0 - char_errors / max(len(ref_chars), 1),
+        "keyword": 1.0 - errors / max(references, 1),
+        "kw_nerr": errors,
+        "kw_nref": references,
+    }
+
+
+def _parse_response(solution_str, ground_truth=None, **kwargs):
+    """Extract text, format/language, lexical, and edge-check accuracies.
+
+    ``fixed`` is always 1.0, independent of the reference and hypothesis.
+    ``word_del``, ``word_ins``, ``char_del``, and ``char_ins`` isolate the
+    corresponding edit operation using the same normalized alignments as
+    ``word`` and ``char``. Each is ``1 - count / max(n_ref, 1)``; substitutions
+    are ignored and insertion accuracies may be negative.
+    ``word_kw`` and ``char_kw`` divide word- and character-level keyword
+    errors by the corresponding whole normalized reference length.
+    It divides by the whole normalized reference utterance, not just its
+    keyword words. ``keyword`` is ``1 - keyword_errors /
+    max(total_reference_keyword_words, 1)``.
+    ``word_lang`` and ``char_lang`` combine their lexical accuracy with
+    language accuracy as ``1 - (1 - lexical_accuracy) * (1 - language_accuracy)``.
+    For ``word_lang`` only, lexical accuracy is capped at 0.99 so language
+    errors contribute even for perfect text. Raw ``word`` accuracy and
+    negative insertion accuracies are unchanged.
+    ``fmt`` is one minus the fraction of invalid 2609 segments: missing
+    parsed text or an incomplete leading tag in the raw parsed text.
+    ``word_fmt`` is one minus ``(1 - fmt)`` divided by
+    ``max(total_reference_words, 1)``.
+    """
+    from recipe.phimm.reward.asr_edge import measure
+
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
+    version = kwargs.get("version")
+    task_output = parse_task_output(solution_str, version=version)
+    hyp_text = get_hyp_text(solution_str, version=version)
+
+    char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
+    word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
+    keyword_result = compute_kw_score(
+        ground_truth or "",
+        hyp_text,
+        keywords=extra_info.get("keywords"),
+        text_norm=kwargs.get("text_norm"),
+        tgt_lang=tgt_lang,
+    )
+    fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
+    openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
+    lang = check_lang(task_output, tgt_lang)
+    fmt = check_fmt(task_output, version=version)
+    char_acc = char_error.accuracy()
+    word_acc = word_error.accuracy()
+    n_total = max(word_error.n_ref, 1)
+
+    return {
+        "fixed": 1.0,
+        "char": char_acc,
+        "char_del": char_error.accuracy(sub=0.0, ins=0.0),
+        "char_ins": char_error.accuracy(sub=0.0, **{"del": 0.0}),
+        "char_kw": keyword_result["char_kw"],
+        "word": word_acc,
+        "word_del": word_error.accuracy(sub=0.0, ins=0.0),
+        "word_ins": word_error.accuracy(sub=0.0, **{"del": 0.0}),
+        "word_kw": keyword_result["word_kw"],
+        "keyword": keyword_result["keyword"],
+        **fmts,
+        "lang": lang["acc"],
+        "fmt": fmt,
+        "char_lang": 1.0 - (1.0 - char_acc) * (1.0 - lang["acc"]),
+        "word_lang": 1.0 - (1.0 - min(word_acc, 0.99)) * (1.0 - lang["acc"]),
+        "word_fmt": 1.0 - (1.0 - fmt) / n_total,
+        **openml_acc,
+    }
+
+
+def _lang_codes(lang) -> list[str]:
+    """Return ISO language codes in their original order, including repeats."""
+    if not lang:
+        return []
+    return [code for code in get_language_code(lang).split("_") if code]
+
+
+def check_lang(task_output, tgt_lang) -> dict[str, float | int]:
+    """Return accuracy and edit counts for the ordered language sequence.
+
+    Predicted language(s) come from any parsed target/segment language values,
+    even when the surrounding response format is malformed. Substitutions,
+    deletions, and insertions each count as one error; order and repeats matter.
+    ``n_ref`` is the reference language count and
+    ``acc = 1 - n_err / max(n_ref, 1)``. Extra languages can make accuracy negative.
+    Hypothesis text, including ``<nonspeech>``, does not affect this score.
+    """
+    tgt_codes = _lang_codes(tgt_lang)
+    pred_codes = []
+    for name in (segment["tgt"] for segment in task_output):
+        pred_codes.extend(_lang_codes(name))
+
+    alignment = process_words(" ".join(tgt_codes), " ".join(pred_codes))
+    n_err = alignment.substitutions + alignment.deletions + alignment.insertions
+    n_ref = len(tgt_codes)
+    return {"acc": 1.0 - n_err / max(n_ref, 1), "n_err": n_err, "n_ref": n_ref}
+
+
+def check_fmt(task_output, version=2609) -> float:
+    """Dispatch format scoring by version; unrecognized versions use legacy."""
+    if str(version) == "2609":
+        return check_fmt_2609(task_output)
+    return check_fmt_2607(task_output)
+
+
+def check_fmt_2607(task_output) -> float:
+    """Require parsed text in every legacy segment."""
+    return float(bool(task_output) and all(segment["text"] is not None for segment in task_output))
+
+
+def check_fmt_2609(task_output) -> float:
+    """Return ``1 - errors / total`` for raw parsed 2609 segment text.
+
+    Complete leading tags and untagged text are valid. Missing parsed text
+    and incomplete leading tags count as errors. Empty output scores zero.
+    """
+    if not task_output:
+        return 0.0
+    errors = 0
+    for segment in task_output:
+        text = segment["text"]
+        if text is None:
+            errors += 1
+            continue
+        raw_text = text.lstrip()
+        if raw_text.startswith("<") and re.match(r"</?[A-Za-z][\w:.-]*>", raw_text) is None:
+            errors += 1
+    return 1.0 - errors / len(task_output)
+
+
+def clip(x, lo=-1.0, hi=1.0):
+    return max(lo, min(hi, x))
+
+
+def signed_pow(x, gamma):
+    sign = 1 if x >= 0 else -1
+    return (abs(x) ** gamma) * sign
+
+
+def reduce_scores(scores, mode="sum", **kwargs):
+    """Reduce a list of scores into a single value.
+
+    Modes: "sum", "mean", "average", "multiply", "geometric", "harmonic".
+    "average" divides the sum by ``total`` (a positive, finite number),
+    defaulting to the number of scores. Empty scores return zero.
+    """
+    if mode == "average":
+        total = kwargs.get("total", len(scores) or 1)
+        if isinstance(total, bool) or not isinstance(total, Real) or not math.isfinite(total) or total <= 0:
+            raise ValueError("average reduction requires total to be a positive, finite number.")
+        return sum(scores) / total
+    if not scores:
+        return 0.0
+    if mode == "multiply":
+        score = 1.0
+        for s in scores:
+            score *= s
+        return score
+    elif mode == "mean":
+        return sum(scores) / len(scores)
+    elif mode == "geometric":
+        product = 1.0
+        for s in scores:
+            product *= abs(s)
+        return product ** (1.0 / len(scores))
+    elif mode == "harmonic":
+        try:
+            return len(scores) / sum(1.0 / s for s in scores)
+        except ZeroDivisionError:
+            return 0.0
+    else:
+        return sum(scores)
+
+
+def scale_score(acc, cfg):
+    """Compute a single weighted score from an accuracy value and config."""
+    cfg = cfg or {}
+    beta = float(cfg.get("beta", 1.0))
+    gamma = float(cfg.get("gamma", 1.0))
+    lo = float(cfg.get("low", -1))
+    hi = float(cfg.get("high", 1.0))
+    acc = clip(acc, lo, hi)
+    return beta * signed_pow(acc, gamma)
+
+
+def compute_delta(value: float, baseline: float, mode: str = "absolute") -> float:
+    """Return an absolute or relative delta, positive for improvements.
+
+    ``abs`` and ``rel`` alias ``absolute`` and ``relative``. Relative deltas divide
+    ``value - baseline`` by ``max(abs(baseline), 1e-8)``
+    to preserve direction for negative baselines and handle zero baselines.
+    """
+    if mode not in ("abs", "absolute", "rel", "relative"):
+        raise ValueError(f"Unsupported delta mode: {mode!r}. Expected 'abs'/'absolute' or 'rel'/'relative'.")
+    delta = value - baseline
+    return delta / max(abs(baseline), 1e-8) if mode in ("rel", "relative") else delta
+
+
+def compute_deltas(
+    raw_scores: dict[str, float], baseline: dict[str, float] | None, mode: str = "absolute"
+) -> dict[str, float]:
+    """Return ``d_<name>`` using :func:`compute_delta` for shared score keys.
+
+    The default mode is absolute, preserving raw score minus baseline.
+    No delta fields are returned when the baseline is absent or empty.
+    """
+    if not baseline:
+        return {}
+    return {
+        f"d_{name}": compute_delta(value, baseline[name], mode=mode)
+        for name, value in raw_scores.items()
+        if name in baseline
+    }
+
+
+def compute_score(solution_str, ground_truth, **kwargs):
+    """Combined lexical + formatting reward.
+
+    Uses :func:`recipe.phimm.reward.asr_edge.measure` for the lexical accuracy
+    and :func:`compute_fmt_acc` for punctuation/capitalisation accuracy.
+
+    Only the components listed in ``measures`` contribute to the reward and
+    are returned as raw metrics alongside the combined ``score``.
+    ``word_del``, ``word_ins``, ``char_del``, and ``char_ins`` components are
+    deletion-only and insertion-only accuracies from :func:`_parse_response`.
+    ``bracket_del`` is the fraction of hypothesis words remaining after
+    bracket removal (see :func:`compute_bracket_del`). It is returned and
+    contributes to the reward only when included in ``measures``.
+    ``word_kw`` and ``char_kw`` use keyword substitution/deletion/insertion
+    errors from ``extra_info["keywords"]`` divided by the total normalized
+    reference word or character count, not the keyword count:
+    ``1 - n_err / max(n_total, 1)``. No keywords means no keyword errors and
+    a score of 1.0. Raw scores can be negative.
+    ``keyword`` instead divides by the number of normalized reference keyword
+    words: ``1 - n_err_kw / max(n_ref_kw, 1)``.
+    ``lang`` uses the ordered language accuracy from :func:`check_lang`.
+    ``word_lang`` and ``char_lang`` are
+    ``1 - (1 - lexical_accuracy) * (1 - lang)``.
+    ``word_lang`` caps lexical accuracy at 0.99, retaining a language-error
+    contribution for perfect text; raw ``word`` and ``char_lang`` are unchanged.
+    ``word_fmt`` uses the same accuracy formula with one error per failed
+    format check. Passing checks give one; errors reduce the score.
+    The contribution of each component ``k`` is::
+
+        beta * signed_pow(clip(acc_k, lo, hi), gamma)
+
+    Both ``beta`` and ``gamma`` default to ``1.0`` when omitted.
+    A component with ``cut`` forces the combined reward to zero when its raw
+    accuracy is less than or equal to that threshold.
+    Additional reward kwargs are forwarded to :func:`reduce_scores`.
+    ``reduce`` accepts a mode string or a mapping with ``mode`` and reducer
+    options. Mapping options override the corresponding reward kwargs.
+    ``mean`` divides by the component count; ``average`` uses ``total`` as
+    the divisor when provided.
+    ``scale`` defaults to ``"constant"`` (1.0), or can be ``"char"`` or
+    ``"word"`` to multiply the reduced, globally gamma-transformed score by
+    that raw accuracy. Scaling is independent of ``measures`` and does not
+    clip or transform the accuracy, which may be negative.
+
+    When ``extra_info["greedy_reward"]`` contains precomputed baseline scores,
+    also returns ``d_<name>`` for each shared score or metric, computed by
+    :func:`compute_deltas` as raw value minus baseline. Raw values, including
+    the combined ``score``, are unchanged. Missing baselines or metric keys
+    produce no corresponding delta fields.
+
+    Configuration example (YAML)::
+
+        reward_kwargs:
+          reduce: {mode: average, total: 4}
+          scale: word
+          measures:
+            char: {beta: 1.0, gamma: 0.5, low: 0.0, high: 1.0}
+            fmt: {beta: 0.5, cut: 0.5}
+            word_kw: {beta: 1.0}
+    """
+    scale = kwargs.get("scale", "constant")
+    if scale not in ("constant", "char", "word"):
+        raise ValueError(f"Unsupported score scale: {scale!r}. Expected 'constant', 'char', or 'word'.")
+    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
+
+    measures = kwargs.get("measures") or {}
+    reduction = kwargs.get("reduce", "sum")
+    if isinstance(reduction, str):
+        reduction = {"mode": reduction.lower()}
+    else:
+        reduction = {**reduction, "mode": reduction.get("mode", "sum").lower()}
+    gamma = float(kwargs.get("gamma", 1.0))
+    scores = [scale_score(parsed.get(k, 1.0), cfg) for k, cfg in measures.items()]
+    score = reduce_scores(scores, **(kwargs | reduction))
+    score = signed_pow(score, gamma) * (1.0 if scale == "constant" else parsed[scale])
+
+    if any("cut" in cfg and parsed.get(name, 1.0) <= float(cfg["cut"]) for name, cfg in measures.items()):
+        score = 0.0
+
+    result = {
+        "score": score,
+        **{name: parsed.get(name, 1.0) for name in measures},
+    }
+    extra_info = kwargs.get("extra_info") or {}
+    return {**result, **compute_deltas(result, extra_info.get("greedy_reward"))}
+
+
+def lang_score(solution_str, ground_truth=None, **kwargs):
+    """Return only the language-identification reward and metric."""
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
+    version = kwargs.get("version")
+    task_output = parse_task_output(solution_str, version=version)
+    p_lang = check_lang(task_output, tgt_lang)["acc"]
+    return {
+        "score": p_lang,
+        "p_lang": p_lang,
+    }

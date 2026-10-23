@@ -123,6 +123,21 @@ algorithm:
     # Power used for weight scaling in "pow" method
     weight_pow: 2.0
 
+  # ReMax: replay raw inputs with low greedy baseline metric scores.
+  # The buffer starts empty on every process launch, including checkpoint resume.
+  bad_case_replay:
+    _target_: verl.trainer.config.BadCaseReplayConfig
+    enable: False
+    capacity: 400
+    # Reserved input rows; must be divisible by the trainer data-parallel size.
+    replay_size: 16
+    sampling: random # random (uniform without replacement) | worst
+    selection:
+      _target_: verl.trainer.config.BadCaseReplaySelectionConfig
+      # Independent of training rewards; raw negative error values remain unchanged.
+      weights: {word: 1.0}
+    seed: 42
+
 # config for the trainer
 trainer:
 
