@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T20:02:15.754714+00:00",
+  "updated_at": "2026-10-23T20:22:08.647554+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -59,7 +59,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING: startup / base model sync",
+    "A2_training": "RUNNING: initial dev validation 3008/6096; no optimization step yet",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -145,7 +145,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "Monitor pilot through startup, verify GT/sample behavior and dev validation",
+    "Finish initial dev validation, then verify GT/sample groups during first optimization steps",
     "Continue training to completion; select complete checkpoint using dev only",
     "Export rank256/alpha512 and evaluate internal/clean/other with corpus metrics and keyword list metrics"
   ],
@@ -177,7 +177,7 @@
     "code_commit": "00f6f06f6",
     "dashboard": "http://10.151.61.214:9209",
     "status": "RUNNING",
-    "phase": "base model sync",
+    "phase": "initial dev validation before first optimization step",
     "submitted_at": "2026-10-23T20:01:03.839+00:00",
     "metrics_available": false,
     "settings": {
@@ -194,7 +194,10 @@
       "lora_rank": 256,
       "lora_alpha": 512
     },
-    "gpu_gt_group_behavior_verified": false
+    "gpu_gt_group_behavior_verified": false,
+    "last_completed_training_step": 0,
+    "initial_dev_processed": 3008,
+    "initial_dev_total": 6096
   },
   "audio_precache": {
     "main_pod": "verl-n2-i10-0",
