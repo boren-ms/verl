@@ -1,0 +1,45 @@
+# Reusable LS entity-data base, derived from the LS base0b training settings.
+# Train: 743 samples (LS 602 + MLS 58 + CV 47 + Libriheavy 36).
+# Word-form coverage: 54/60; error patterns: 58/65; weighted occurrences: 172/191.
+# Val: 288 entity samples, clean 109 / other 179, using the remote copy of
+# /home/boren/data/LibriSpeech/entity_error_val_20261023/entity_val.jsonl.
+# Train and val use data_source=ls_kw, lang_asr_verb, English hints, prefix_prob=0.
+# Qwen 2609r2, LoRA 320, constant LR 1e-6, batch 128, 16 rollouts at T=1,
+# packing state isolation, 2 nodes, 2 epochs. No training is launched by this file.
+# Entity selection used LS test errors; validation is targeted diagnostic data.
+# ReMax vote reward and source routing are defined by the inheriting recipe.
+defaults:
+- ../base@_here_
+- /data/train_data/ls_entity/expanded_entity_train_v2@_entity_train
+- /data/val_data/ls_entity_val@_entity_val
+- _self_
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+    use_remove_padding: true
+    use_linear_attention_packing: true
+  actor:
+    optim:
+      lr: 1.0e-06
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    temperature: 1.0
+    n: 16
+data:
+  data_source:
+    ls_kw: {num_epoch: 1, shuffle: true}
+  train_data:
+  - ${_entity_train}
+  val_data:
+  - ${_entity_val}
+  train_batch_size: 128
+  shuffle: true
+trainer:
+  nnodes: 2
+  total_epochs: 2
+  total_training_steps: null
+val_reward:
+  reward_function_by_data_source:
+    ls_kw: openasr_en

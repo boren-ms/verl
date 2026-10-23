@@ -28,6 +28,10 @@ The manifest uses remote audio references throughout. The 83 previously local CV
 
 ## Usage and validation
 
+The data YAML overrides every loaded training row to `data_source: ls_kw` before verl formatting, providing a single sampling, reward-routing, and training-metrics group. The remote JSONL retains the original source provenance. Validation also uses `data_source: ls_kw`; its raw JSONL retains the original clean/other source labels.
+
+Task formatting uses `lang_asr_verb`, `language: English`, `lang_hint: true`, and `prefix_prob: 0.0`. The LS keyword base imports these settings directly from this data YAML; validation formatting is defined in `data/val_data/ls_entity_val.yaml`.
+
 Use this YAML as the complete targeted training subset, or mix it with a general training corpus using an explicitly chosen sampling weight. Historical component subsets overlap with this combined set and should not be added again. No sampling weight or training recipe is prescribed here.
 
 All 101 uploaded payload files passed SHA256 readback checks. All 819 distinct audio files/chunks referenced across the exported subsets existed at verification time. The repository ASR dataset loader successfully loaded and formatted all 743 rows directly from this YAML and its remote JSONL.
