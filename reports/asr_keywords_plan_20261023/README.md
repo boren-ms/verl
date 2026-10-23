@@ -31,6 +31,6 @@ Python 标准库用于 manifest 审计；安装 soundfile 时额外检查测试�
 
 数据划分只是对拟议 split 函数进行只读统计，正式训练/验证 JSONL 尚未生成。音频存在性与 header 检查也不代表全部音频经过逐帧解码或人工检查。
 
-详细设计与修改位置见 [v3 联合输出方案](../../docs/plans/asr_keywords_joint_output_detailed_20261023.md)，交互流程图见 [HTML](../../paper_notes/asr_keywords_joint_output_architecture.html)。
+详细设计与修改位置见 [v4 统一联合输出方案](../../docs/plans/asr_keywords_joint_output_detailed_20261023.md)，交互流程图见 [HTML](../../paper_notes/asr_keywords_joint_output_architecture.html)。
 
 本轮聚焦联合输出。上述历史覆盖率仅为此前审计留下的统计，不属于本轮实验或验收；跨段 biasing 留待后续计划。
