@@ -2,7 +2,7 @@
 
 日期：2026-10-23。代码调研基线：`aa0f6d523`。
 
-后续详细版与连续识别设计见 [v2 方案](asr_keywords_continuous_detailed_20261023.md)，包含已完成的本地数据核验、划分统计、biasing 闭环和实验矩阵；数据选择以 v2 为准。
+当前详细计划见 [v3 联合输出方案](asr_keywords_joint_output_detailed_20261023.md)，包含数据核验、划分统计、改动位置与 A0/A1/A2 实验矩阵。本轮仅研究关键词联合输出；连续 biasing 已移至独立后续计划。数据和范围以 v3 为准。
 
 隔离分支：`boren/asr-transcription-keywords`，跟踪同名 origin 分支。
 工作目录：`/home/boren/.codex/worktrees/asr-transcription-keywords/verl`。
