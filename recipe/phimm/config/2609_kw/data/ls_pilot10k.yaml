@@ -1,7 +1,4 @@
 # @package _global_
-defaults:
-- ../base@_here_
-- _self_
 data:
   train_data:
     dataset_name: jsonl
@@ -47,17 +44,3 @@ data:
         - speaker_id
         - chapter_id
         - source_manifest_sha
-actor_rollout_ref:
-  rollout:
-    n: 8
-    gt_rollout: true
-trainer:
-  experiment_name: remax_ls_joint_pilot
-  val_only: false
-  total_training_steps: 100
-  save_freq: 10
-  test_freq: 20
-hydra:
-  searchpath:
-  - file://recipe/phimm/config
-  - file://verl/trainer/config

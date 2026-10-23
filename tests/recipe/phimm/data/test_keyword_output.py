@@ -145,7 +145,7 @@ def test_keyword_config_composes_without_official_train_leak(config, joint, ngt)
     OmegaConf.register_new_resolver("eval", eval, replace=True)
     with initialize_config_dir(config_dir=str(root), version_base=None):
         cfg = compose(
-            config_name="2609-Keyword/" + config,
+            config_name="2609_kw/" + config,
             overrides=(
                 ["actor_rollout_ref.model.path=/tmp/exported_trained_model"] if config.startswith("evaluation/") else []
             ),

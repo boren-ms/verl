@@ -5,8 +5,12 @@
 ## 配置布局与执行顺序
 
 ```text
-2609-Keyword/
+2609_kw/
 ├── base.yaml
+├── data/
+│   ├── ls_official.yaml                  # test-clean + test-other，A0/A1 共用
+│   ├── ls_pilot10k.yaml                  # train pilot 10k + dev，训练专用
+│   └── ls_checkpoint.yaml                # internal + test-clean + test-other
 ├── baseline_eval/
 │   ├── eval_base_ls.yaml                 # A0：原 prompt、base、两套官方测试
 │   └── eval_joint_prompt_ls.yaml         # A1：联合 prompt、base、两套官方测试
@@ -15,6 +19,8 @@
 └── evaluation/
     └── eval_joint_checkpoint_ls.yaml     # A2：internal + 官方测试；必须指定训练后模型
 ```
+
+`data/` 仅定义 manifest、数据转换、数据源标记及 train/val 集合。`baseline_eval/`、`training/`、`evaluation/` 中的入口 YAML 通过 Hydra defaults 组合 `base.yaml` 和对应数据 YAML，仅保留 prompt 开关、rollout 和执行设置。A0/A1 共用 `data/ls_official.yaml`；修改模型、学习率或训练步数无需编辑数据文件。文件夹名称为 `2609_kw`；已有 W&B project 与云端结果目录仍为 `2609-Keyword`，保留实验连续性。
 
 顺序为 A0 → A1 → pilot → 冻结 checkpoint → A2。A0/A1 的 test-clean 和 test-other 均完成、结果条数与计数分区检查通过后再训练。训练只使用 train/dev，不用 official test 选 checkpoint 或调超参。
 
@@ -92,13 +98,13 @@ python -m recipe.phimm.prepare_ls_keywords \
 以下在已同步、依赖就绪的远端 worktree 根目录运行。`quick_run.sh` 只提交 Ray job，返回不代表执行成功；须记录 job ID 并监控至完成。
 
 ```bash
-bash quick_run.sh recipe/phimm/config/2609-Keyword/baseline_eval/eval_base_ls.yaml trainer.nnodes=1
-bash quick_run.sh recipe/phimm/config/2609-Keyword/baseline_eval/eval_joint_prompt_ls.yaml trainer.nnodes=1
+bash quick_run.sh recipe/phimm/config/2609_kw/baseline_eval/eval_base_ls.yaml trainer.nnodes=2
+bash quick_run.sh recipe/phimm/config/2609_kw/baseline_eval/eval_joint_prompt_ls.yaml trainer.nnodes=2
 # 两项 baseline 完成后：
-bash quick_run.sh recipe/phimm/config/2609-Keyword/training/remax_ls_joint_pilot.yaml trainer.nnodes=1
+bash quick_run.sh recipe/phimm/config/2609_kw/training/remax_ls_joint_pilot.yaml trainer.nnodes=2
 # dev 选择、导出并验证训练后 HF checkpoint 后：
-bash quick_run.sh recipe/phimm/config/2609-Keyword/evaluation/eval_joint_checkpoint_ls.yaml \
-  trainer.nnodes=1 actor_rollout_ref.model.path=/absolute/path/to/exported_trained_hf
+bash quick_run.sh recipe/phimm/config/2609_kw/evaluation/eval_joint_checkpoint_ls.yaml \
+  trainer.nnodes=2 actor_rollout_ref.model.path=/absolute/path/to/exported_trained_hf
 ```
 
 基础 checkpoint 在 `base.yaml` 中冻结。LoRA rank256 / alpha512，导出时保留该参数，不套用其他实验的 rank320/alpha640。训练 n8，每组 1 条完整 GT + 7 条采样；greedy ReMax baseline、validation 和独立 eval 均禁止 GT。GT 组必须完整且 identity/target 一致；超 token budget 直接失败，禁止静默截断。100 steps，batch64，每 10 steps 保存，每 20 steps dev 验证。
@@ -132,4 +138,4 @@ python -m recipe.phimm.summarize_keyword_eval \
 
 代码与配置已经实现；Hydra 配置、实际数据转换链路、真实 tokenizer 的 27,786 条 GT round-trip 已通过，全部 GT 含 EOS 长度小于 768。测试覆盖协议、空目标、错误格式、prefix、reward dispatcher、GT purpose/group/EOS/overflow 和计数汇总。详细证据在 `reports/asr_keywords_plan_20261023/`。
 
-Brix/Blob 已恢复。A0 已提交到空闲 `verl-n2-i10`（2×8 H100，`trainer.nnodes=2`），初始 Ray job 为 `raysubmit_8QYAUSqkEcEr7Ji8`，使用代码快照 `5307f0132`。主节点测试音频缓存 5,559 条就绪；当前尚无模型指标、训练未启动。父分支 `origin/boren/rl_2611_dev` 的最新 `d34b3ba28` 已无冲突合并到本分支；下一个 job 提交前同步新代码。实时进度以 `reports/asr_keywords_plan_20261023/execution_status.json` 和实际 Ray 状态为准，每 30 分钟自动跟进与修复。
+Brix/Blob 已恢复。A0 已完成，Ray job 为 `raysubmit_8QYAUSqkEcEr7Ji8`，使用代码快照 `5307f0132` 和重命名前的配置路径。已验证完整 5,559 条结果：test-clean WER 2.36%、BWER 7.79%；test-other WER 4.16%、BWER 15.21%。主节点测试音频缓存 5,559 条就绪；A1 与训练尚未启动。父分支 `origin/boren/rl_2611_dev` 的 `d34b3ba28` 已无冲突合并到本分支；下一个 job 提交前同步新配置。最近检查发现 `verl-n2-i10` 被其他训练占用，因此等待资源空闲后继续。实时进度以 `reports/asr_keywords_plan_20261023/execution_status.json` 和实际 Ray 状态为准，每 30 分钟自动跟进与修复。

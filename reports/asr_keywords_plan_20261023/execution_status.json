@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-10-23T18:29:10.522856+00:00",
+  "updated_at": "2026-10-23T18:41:46.515180+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
   "keyword_tag": "<KEYWORDS>",
   "annotation_policy": "ls-common5k-v1",
   "implementation": "complete; GPU integration not yet verified",
-  "config_root": "recipe/phimm/config/2609-Keyword",
+  "config_root": "recipe/phimm/config/2609_kw",
   "local_manifest_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1",
   "remote_reference_manifest_local_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote",
   "remote_manifests_uploaded": true,
@@ -48,6 +48,12 @@
         "checkpoint retention",
         "joint keyword protocol/reward/report"
       ]
+    },
+    "config_layout_refactor": {
+      "fully_resolved_configs_identical": 4,
+      "passed": 33,
+      "command": "python -m pytest tests/recipe/phimm/data/test_keyword_output.py tests/recipe/phimm/reward/test_keyword_manager.py -q",
+      "diff_check": "passed"
     }
   },
   "model_runs": {
@@ -161,5 +167,12 @@
     "gpu_memory_mib_per_gpu": 532,
     "both_pods_checked": true,
     "action": "wait; no remote modifications"
+  },
+  "config_layout": {
+    "data": "recipe/phimm/config/2609_kw/data",
+    "baseline_eval": "recipe/phimm/config/2609_kw/baseline_eval",
+    "training": "recipe/phimm/config/2609_kw/training",
+    "evaluation": "recipe/phimm/config/2609_kw/evaluation",
+    "note": "Folder rename and data extraction only; existing W&B project/output paths and completed A0 provenance preserved."
   }
 }

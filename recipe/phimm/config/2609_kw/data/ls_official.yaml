@@ -1,9 +1,4 @@
 # @package _global_
-defaults:
-- ../base@_here_
-- _self_
-keyword_experiment:
-  output_keywords: false
 data:
   train_data: ${data.val_data}
   val_data:
@@ -50,16 +45,3 @@ data:
         - chapter_id
         - source_manifest_sha
   shuffle: false
-actor_rollout_ref:
-  rollout:
-    n: 1
-    gt_rollout: false
-trainer:
-  experiment_name: eval_base_ls
-  val_only: true
-  val_before_train: true
-  validation_resume: true
-hydra:
-  searchpath:
-  - file://recipe/phimm/config
-  - file://verl/trainer/config
