@@ -17,7 +17,13 @@ from typing import Any, Optional
 
 from verl.base_config import BaseConfig
 
-__all__ = ["AlgoConfig", "FilterGroupsConfig", "KLControlConfig"]
+__all__ = [
+    "AlgoConfig",
+    "BadCaseReplayConfig",
+    "BadCaseReplaySelectionConfig",
+    "FilterGroupsConfig",
+    "KLControlConfig",
+]
 
 REMAX_ADVANTAGE_MASK_MODES = ("edit_boundary", "first_diff")
 
@@ -65,6 +71,39 @@ class FilterGroupsConfig(BaseConfig):
 
 
 @dataclass
+class BadCaseReplaySelectionConfig(BaseConfig):
+    """Raw greedy reward metrics used to rank replay inputs.
+
+    The selection score is ``sum(weight * metric) / sum(weight)``. These
+    weights are independent of training reward weights. Values are used as
+    returned, including negative error metrics; lower scores are harder.
+    """
+
+    weights: dict[str, float] = field(default_factory=lambda: {"word": 1.0})
+
+
+@dataclass
+class BadCaseReplayConfig(BaseConfig):
+    """In-memory replay of raw ReMax inputs with low greedy metric scores.
+
+    ``replay_size`` reserves a fixed number of slots in each generation batch;
+    an empty buffer leaves that part unfilled. All current inputs with finite
+    scores are merged with the remaining buffer by stable identity, then capacity
+    retains the globally lowest scores. Sampling removes entries; they reenter
+    only if their new scores survive global capacity eviction. Enabled replay
+    requires the nominal batch and ``replay_size`` to be divisible by the
+    data-parallel size. Replay state is never checkpointed.
+    """
+
+    enable: bool = False
+    capacity: int = 400
+    replay_size: int = 16
+    sampling: str = "random"
+    selection: BadCaseReplaySelectionConfig = field(default_factory=BadCaseReplaySelectionConfig)
+    seed: int = 42
+
+
+@dataclass
 class AlgoConfig(BaseConfig):
     """Configuration for the algorithm.
 
@@ -99,6 +138,7 @@ class AlgoConfig(BaseConfig):
         kl_ctrl (KLControlConfig): KL control configuration.
         use_pf_ppo (bool): Whether to enable preference feedback PPO.
         pf_ppo (dict[str, Any]): Preference feedback PPO settings.
+        bad_case_replay (BadCaseReplayConfig): ReMax raw-input replay settings.
         filter_groups (Optional[FilterGroupsConfig]): Filter groups configuration, used in DAPO and Entropy
         gdpo_reward_keys (Optional[list[str]]): Per-dimension reward component keys (from compute_score).
             For GDPO, each dimension is normalized independently within each group before aggregation.
@@ -123,6 +163,7 @@ class AlgoConfig(BaseConfig):
     kl_ctrl: KLControlConfig = field(default_factory=KLControlConfig)
     use_pf_ppo: bool = False
     pf_ppo: dict[str, Any] = field(default_factory=dict)
+    bad_case_replay: BadCaseReplayConfig = field(default_factory=BadCaseReplayConfig)
     filter_groups: Optional[FilterGroupsConfig] = None
     gdpo_reward_keys: Optional[list[str]] = None
     gdpo_reward_weights: Optional[list[float]] = None
