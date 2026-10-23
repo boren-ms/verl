@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T22:04:03.102028+00:00",
+  "updated_at": "2026-10-23T22:30:01.875784+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING: recovery job startup, restore40 pending",
+    "A2_training": "INTERRUPTED again by pool recreation; cloud checkpoint40 remains latest",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -249,12 +249,12 @@
     },
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
     "job_id": "raysubmit_bsbih6mwPBeLPs2w",
-    "status": "RUNNING",
+    "status": "LOST",
     "code_commit": "3f32ff113",
     "dashboard": "http://10.151.152.26:9209",
     "submitted_at": "2026-10-23T22:02:54Z",
     "replacement_for": "raysubmit_pfpa7hyGA1AgVaPF",
-    "phase": "RUNNING: processing training manifest; checkpoint40 restoration pending",
+    "phase": "Both pods recreated again around22:25Z; no new cloud training outputs beyond40; current head Ray just initialized",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
     "resume_verified": false,
@@ -262,19 +262,9 @@
     "last_completed_training_step": 40
   },
   "audio_precache": {
-    "status": "RUNNING",
-    "head_ip": "10.151.152.26",
-    "note": "One main-pod-only prefetch on fresh head; completion pending",
-    "pid": 28682,
-    "started_at": "2026-10-23T22:03:20.215791+00:00",
-    "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
-    "state_dir": "/root/code/verl/tmp/verl_asr_run/keyword_joint_pipeline/audio_precache",
-    "user": "root",
-    "HOME": "/root",
-    "cache_root": "/root/data",
-    "processed": 1500,
-    "total": 5559,
-    "failures": 0
+    "status": "LOST_WITH_PODS",
+    "head_ip": "10.151.59.231",
+    "note": "Prior PID28682 and cache belonged to previous head; completion unknown. Reconcile new head after env install."
   },
   "monitor": {
     "automation_id": "librispeech",
@@ -486,14 +476,18 @@
     }
   },
   "pool_recreation": {
-    "observed_at": "2026-10-23T22:00:16.396035+00:00",
-    "head_ip": "10.151.152.26",
-    "worker_ip": "10.151.61.145",
-    "dashboard": "http://10.151.152.26:9209",
-    "previous_job_not_found": true,
-    "both_pods_idle": true,
+    "observed_at": "2026-10-23T22:30:01.875784+00:00",
+    "head_ip": "10.151.59.231",
+    "worker_ip": "10.151.239.170",
+    "dashboard": "http://10.151.59.231:9209",
     "checkpoint_for_resume": 40,
-    "skip_duplicate_initial_validation": true
+    "skip_duplicate_initial_validation": true,
+    "pod_age_minutes": 4,
+    "warning_events": [
+      "Readiness probes503",
+      "FailedToRetrieveImagePullSecret (pod nevertheless started)"
+    ],
+    "head_ray_started_at": "2026-10-23T22:29:43Z"
   },
   "previous_audio_precache_recreated_head": {
     "main_pod": "verl-n2-i10-0",
@@ -515,5 +509,34 @@
     "unique_files": 5559,
     "already_local": 0,
     "downloaded": 5559
-  }
+  },
+  "pool_recreation_history": [
+    {
+      "observed_at": "2026-10-23T22:00:16.396035+00:00",
+      "head_ip": "10.151.152.26",
+      "worker_ip": "10.151.61.145",
+      "dashboard": "http://10.151.152.26:9209",
+      "previous_job_not_found": true,
+      "both_pods_idle": true,
+      "checkpoint_for_resume": 40,
+      "skip_duplicate_initial_validation": true
+    }
+  ],
+  "previous_audio_precaches": [
+    {
+      "status": "RUNNING",
+      "head_ip": "10.151.152.26",
+      "note": "One main-pod-only prefetch on fresh head; completion pending",
+      "pid": 28682,
+      "started_at": "2026-10-23T22:03:20.215791+00:00",
+      "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
+      "state_dir": "/root/code/verl/tmp/verl_asr_run/keyword_joint_pipeline/audio_precache",
+      "user": "root",
+      "HOME": "/root",
+      "cache_root": "/root/data",
+      "processed": 1500,
+      "total": 5559,
+      "failures": 0
+    }
+  ]
 }
