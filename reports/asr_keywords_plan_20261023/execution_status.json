@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T20:00:29.558023+00:00",
+  "updated_at": "2026-10-23T20:02:15.754714+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -59,12 +59,13 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "not submitted",
+    "A2_training": "RUNNING: startup / base model sync",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
     "raysubmit_8QYAUSqkEcEr7Ji8",
-    "raysubmit_X7JKdMjtL7Vfr4CZ"
+    "raysubmit_X7JKdMjtL7Vfr4CZ",
+    "raysubmit_b5GvZq1k3Yyeb2ws"
   ],
   "model_metrics": {
     "A0_base_original_prompt": {
@@ -144,9 +145,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Sync latest isolated branch and launch pilot on verified idle pool with nnodes2/save_freq10",
-    "Monitor training and validate GT/sample group behavior",
-    "Select complete checkpoint using dev only; export rank256/alpha512; evaluate internal/clean/other"
+    "Monitor pilot through startup, verify GT/sample behavior and dev validation",
+    "Continue training to completion; select complete checkpoint using dev only",
+    "Export rank256/alpha512 and evaluate internal/clean/other with corpus metrics and keyword list metrics"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
   "parent_merge": {
@@ -171,20 +172,29 @@
     "pool": "verl-n2-i10",
     "nnodes": 2,
     "gpus_per_node": 8,
-    "config": "recipe/phimm/config/v2609_kw/baseline_eval/eval_joint_prompt_ls.yaml",
-    "job_id": "raysubmit_X7JKdMjtL7Vfr4CZ",
-    "code_commit": "a2266fece",
+    "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
+    "job_id": "raysubmit_b5GvZq1k3Yyeb2ws",
+    "code_commit": "00f6f06f6",
     "dashboard": "http://10.151.61.214:9209",
-    "status": "SUCCEEDED",
-    "datasets": {
-      "ls_clean": 2620,
-      "ls_other": 2939
+    "status": "RUNNING",
+    "phase": "base model sync",
+    "submitted_at": "2026-10-23T20:01:03.839+00:00",
+    "metrics_available": false,
+    "settings": {
+      "train_samples": 10000,
+      "dev_samples": 6096,
+      "steps": 100,
+      "batch_size": 64,
+      "rollout_n": 8,
+      "gt_per_group": 1,
+      "sampled_per_group": 7,
+      "save_freq": 10,
+      "test_freq": 20,
+      "selection_split": "dev",
+      "lora_rank": 256,
+      "lora_alpha": 512
     },
-    "metrics_available": true,
-    "submission_session": 32700,
-    "submitted_at": "2026-10-23T19:31:53.984+00:00",
-    "phase": "full results verified",
-    "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/e0f714652abe6a55c193f3d9edb9d033"
+    "gpu_gt_group_behavior_verified": false
   },
   "audio_precache": {
     "main_pod": "verl-n2-i10-0",
@@ -249,6 +259,25 @@
         "ls_other": 2939
       },
       "metrics_available": true
+    },
+    {
+      "pool": "verl-n2-i10",
+      "nnodes": 2,
+      "gpus_per_node": 8,
+      "config": "recipe/phimm/config/v2609_kw/baseline_eval/eval_joint_prompt_ls.yaml",
+      "job_id": "raysubmit_X7JKdMjtL7Vfr4CZ",
+      "code_commit": "a2266fece",
+      "dashboard": "http://10.151.61.214:9209",
+      "status": "SUCCEEDED",
+      "datasets": {
+        "ls_clean": 2620,
+        "ls_other": 2939
+      },
+      "metrics_available": true,
+      "submission_session": 32700,
+      "submitted_at": "2026-10-23T19:31:53.984+00:00",
+      "phase": "full results verified",
+      "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/e0f714652abe6a55c193f3d9edb9d033"
     }
   ],
   "previous_audio_precache": {
