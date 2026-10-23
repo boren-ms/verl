@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T20:40:19.951411+00:00",
+  "updated_at": "2026-10-23T20:41:26.054158+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -54,18 +54,25 @@
       "passed": 33,
       "command": "python -m pytest tests/recipe/phimm/data/test_keyword_output.py tests/recipe/phimm/reward/test_keyword_manager.py -q",
       "diff_check": "passed"
+    },
+    "dev1000_selector": {
+      "passed": 12,
+      "ruff": "passed",
+      "config_composition": "passed",
+      "diff_check": "passed"
     }
   },
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "PREPARING replacement with user-requested 1000-utterance training validation",
+    "A2_training": "RUNNING startup: dev1000 replacement raysubmit_BXxnPGWufEfNkCc5",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
     "raysubmit_8QYAUSqkEcEr7Ji8",
     "raysubmit_X7JKdMjtL7Vfr4CZ",
-    "raysubmit_b5GvZq1k3Yyeb2ws"
+    "raysubmit_b5GvZq1k3Yyeb2ws",
+    "raysubmit_BXxnPGWufEfNkCc5"
   ],
   "model_metrics": {
     "A0_base_original_prompt": {
@@ -145,7 +152,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "Confirm old pilot stopped and GPUs released; sync and submit dev1k replacement",
+    "Verify loaded validation exactly1000 and train-only GT groups in replacement job",
     "Verify 1000-only validation and GT/sample behavior; finish training",
     "Select dev1k checkpoint and export rank256/alpha512; evaluate internal/clean/other"
   ],
@@ -170,7 +177,7 @@
   },
   "active_job": {
     "pool": "verl-n2-i10",
-    "status": "PREPARING",
+    "status": "RUNNING",
     "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
     "experiment_name": "remax_ls_joint_pilot_dev1k",
     "nnodes": 2,
@@ -189,7 +196,13 @@
       "lora_alpha": 512
     },
     "gpu_gt_group_behavior_verified": false,
-    "replacement_for": "raysubmit_b5GvZq1k3Yyeb2ws"
+    "replacement_for": "raysubmit_b5GvZq1k3Yyeb2ws",
+    "job_id": "raysubmit_BXxnPGWufEfNkCc5",
+    "code_commit": "635f45ecf",
+    "dashboard": "http://10.151.61.214:9209",
+    "phase": "startup with 1000-utterance training validation",
+    "submitted_at": "2026-10-23T20:41:06Z",
+    "last_completed_training_step": 0
   },
   "audio_precache": {
     "main_pod": "verl-n2-i10-0",
@@ -282,8 +295,8 @@
       "job_id": "raysubmit_b5GvZq1k3Yyeb2ws",
       "code_commit": "00f6f06f6",
       "dashboard": "http://10.151.61.214:9209",
-      "status": "STOP_REQUESTED",
-      "phase": "replaced at user request: training validation reduced to baseline-lowest-BWER dev1000",
+      "status": "STOPPED",
+      "phase": "user-requested replacement after full step0 dev; no saved training checkpoint",
       "submitted_at": "2026-10-23T20:01:03.839+00:00",
       "metrics_available": false,
       "settings": {
@@ -303,7 +316,8 @@
       "gpu_gt_group_behavior_verified": false,
       "last_completed_training_step": 0,
       "initial_dev_processed": 6096,
-      "initial_dev_total": 6096
+      "initial_dev_total": 6096,
+      "stopped_at": "2026-10-23T20:40:13Z"
     }
   ],
   "previous_audio_precache": {
@@ -328,6 +342,9 @@
     "selection_report": "reports/asr_keywords_plan_20261023/dev_lowbwer1000_selection.json",
     "baseline_WER": 0,
     "baseline_BWER": 0,
-    "test_sets_used": false
+    "test_sets_used": false,
+    "remote_readback_sha256": "d4406a8305e0ea3aa9fcc97ce5a6cd0ac63aee6bb92fdd4bacd260e323845890",
+    "remote_readback_rows": 1000,
+    "id_and_speaker_disjoint_with_train_and_tests": true
   }
 }
