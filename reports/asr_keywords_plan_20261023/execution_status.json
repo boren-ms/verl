@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T19:32:55.017242+00:00",
+  "updated_at": "2026-10-23T20:00:29.558023+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -58,7 +58,7 @@
   },
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
-    "A1_base_joint_prompt": "RUNNING: base model syncing on recreated head",
+    "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
     "A2_training": "not submitted",
     "A2_checkpoint_evaluation": "not submitted"
   },
@@ -96,13 +96,57 @@
         "NWER": 0.0289830400272381,
         "keyword_word_accuracy": 0.8478504672897196
       }
+    },
+    "A1_base_joint_prompt": {
+      "ls_clean": {
+        "utterances": 2620,
+        "n_err": 1237,
+        "n_ref": 52576,
+        "nb_err": 441,
+        "nb_ref": 5761,
+        "nu_err": 796,
+        "nu_ref": 46815,
+        "WER": 0.023527845404747415,
+        "BWER": 0.07654921020656136,
+        "UWER": 0.017003097297874612,
+        "NWER": 0.017003097297874612,
+        "keyword_word_accuracy": 0.9234507897934386,
+        "kw_micro_precision": null,
+        "kw_micro_recall": 0.0,
+        "kw_micro_f1": 0.0,
+        "kw_macro_f1": 0.0,
+        "kw_exact": 0.0,
+        "kw_format_success": 0.0,
+        "kw_empty_false_positive": 0.0
+      },
+      "ls_other": {
+        "utterances": 2939,
+        "n_err": 2185,
+        "n_ref": 52343,
+        "nb_err": 821,
+        "nb_ref": 5350,
+        "nu_err": 1364,
+        "nu_ref": 46993,
+        "WER": 0.04174388170337963,
+        "BWER": 0.15345794392523365,
+        "UWER": 0.029025599557380887,
+        "NWER": 0.029025599557380887,
+        "keyword_word_accuracy": 0.8465420560747663,
+        "kw_micro_precision": null,
+        "kw_micro_recall": 0.0,
+        "kw_micro_f1": 0.0,
+        "kw_macro_f1": 0.0,
+        "kw_exact": 0.0,
+        "kw_format_success": 0.0,
+        "kw_empty_false_positive": 0.0
+      }
     }
   },
   "blockers": [],
   "next_actions": [
-    "Monitor A1 raysubmit_X7JKdMjtL7Vfr4CZ through completion and verify full corpus counts; reconcile independent audio prefetch",
-    "After A1 succeeds launch pilot training",
-    "Select checkpoint using dev only; evaluate internal/clean/other"
+    "Sync latest isolated branch and launch pilot on verified idle pool with nnodes2/save_freq10",
+    "Monitor training and validate GT/sample group behavior",
+    "Select complete checkpoint using dev only; export rank256/alpha512; evaluate internal/clean/other"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
   "parent_merge": {
@@ -131,22 +175,22 @@
     "job_id": "raysubmit_X7JKdMjtL7Vfr4CZ",
     "code_commit": "a2266fece",
     "dashboard": "http://10.151.61.214:9209",
-    "status": "RUNNING",
+    "status": "SUCCEEDED",
     "datasets": {
       "ls_clean": 2620,
       "ls_other": 2939
     },
-    "metrics_available": false,
+    "metrics_available": true,
     "submission_session": 32700,
     "submitted_at": "2026-10-23T19:31:53.984+00:00",
-    "phase": "base model sync",
-    "wandb_url": null
+    "phase": "full results verified",
+    "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/e0f714652abe6a55c193f3d9edb9d033"
   },
   "audio_precache": {
     "main_pod": "verl-n2-i10-0",
     "head_ip": "10.151.61.214",
     "pid": 32763,
-    "status": "RUNNING",
+    "status": "SUCCEEDED",
     "started_at": "2026-10-23T19:32:19.938668+00:00",
     "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
     "state_dir": "/root/code/verl/tmp/verl_asr_run/keyword_joint_pipeline/audio_precache",
@@ -156,7 +200,12 @@
       "pid": 26489,
       "exit_code": 1,
       "cause": "Missing tensordict before environment installation; retried after environment preparation"
-    }
+    },
+    "exit_code": 0,
+    "finished_at": "2026-10-23T19:34:17.642869+00:00",
+    "unique_files": 5559,
+    "already_local": 0,
+    "downloaded": 5559
   },
   "monitor": {
     "automation_id": "librispeech",
