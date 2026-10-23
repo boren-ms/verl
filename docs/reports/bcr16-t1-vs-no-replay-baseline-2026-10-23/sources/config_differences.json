@@ -1,0 +1,193 @@
+{
+  "algorithm.bad_case_replay": {
+    "baseline": null,
+    "target": {
+      "_target_": "verl.trainer.config.BadCaseReplayConfig",
+      "capacity": 400,
+      "enable": true,
+      "replay_size": 16,
+      "sampling": "worst",
+      "seed": 42,
+      "selection": {
+        "_target_": "verl.trainer.config.BadCaseReplaySelectionConfig",
+        "weights": {
+          "word": 1
+        }
+      }
+    }
+  },
+  "trainer.resume_from_path": {
+    "baseline": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_L2_t1/global_step_580",
+    "target": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_L2_RCB16_T1/global_step_750"
+  },
+  "trainer.experiment_name": {
+    "baseline": "remax_dev_base0_v1h2a_fix_L2_t1",
+    "target": "remax_dev_base0_v1h2a_fix_L2_RCB16_T1"
+  },
+  "trainer.total_training_steps": {
+    "baseline": null,
+    "target": 822
+  },
+  "trainer.validation_data_dir": {
+    "baseline": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_L2_t1/val_data_gen",
+    "target": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_L2_RCB16_T1/val_data_gen"
+  },
+  "reward_functions": {
+    "baseline": {
+      "librispeech": {
+        "name": "compute_score",
+        "path": "recipe/phimm/reward/asr_vote.py",
+        "reward_kwargs": {
+          "measures": {
+            "char": {
+              "beta": 1,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            },
+            "fmt": {
+              "beta": 0.01,
+              "clip": [
+                -2,
+                2
+              ],
+              "score": "acc",
+              "vote": "abs"
+            },
+            "lang": {
+              "beta": 0.01,
+              "clip": [
+                -2,
+                2
+              ],
+              "score": "acc",
+              "vote": "abs"
+            },
+            "word": {
+              "beta": 1,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            },
+            "word_del": {
+              "beta": 0.25,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            },
+            "word_ins": {
+              "beta": 0.25,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            },
+            "word_kw": {
+              "beta": 0.5,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            }
+          },
+          "reduce": {
+            "mode": "average",
+            "total": 4
+          },
+          "version": 2609
+        }
+      }
+    },
+    "target": {
+      "librispeech": {
+        "name": "compute_score",
+        "path": "recipe/phimm/reward/asr_vote.py",
+        "reward_kwargs": {
+          "measures": {
+            "char": {
+              "beta": 1,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            },
+            "fmt": {
+              "beta": 0.01,
+              "clip": [
+                -2,
+                2
+              ],
+              "score": "acc",
+              "vote": "abs"
+            },
+            "lang": {
+              "beta": 0.01,
+              "clip": [
+                -2,
+                2
+              ],
+              "score": "acc",
+              "vote": "abs"
+            },
+            "word": {
+              "beta": 1,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            },
+            "word_del": {
+              "beta": 0.25,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            },
+            "word_ins": {
+              "beta": 0.25,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            },
+            "word_kw": {
+              "beta": 0.5,
+              "clip": [
+                -2,
+                2
+              ],
+              "delta": "abs",
+              "vote": "delta"
+            }
+          },
+          "reduce": {
+            "mode": "average",
+            "total": 3
+          },
+          "version": 2609
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,232 @@
+{
+  "observed_at_utc": "2026-10-23T23:30:19.275550+00:00",
+  "read_only": true,
+  "submission_id": "raysubmit_RCB16T1r75020261023T2312",
+  "expected_source_commit": "1d72d5a4a58c1ff5534d4efbeabfc5a5f0aa8a2f",
+  "expected_config_sha256": "cdc39037f5e82bfb0d0f7893fe986457f3ac57e440b87871d085458538d90c5d",
+  "job": {
+    "submission_id": "raysubmit_RCB16T1r75020261023T2312",
+    "job_id": "10000000",
+    "type": "SUBMISSION",
+    "status": "STOPPED",
+    "start_time": 1792797617153,
+    "end_time": 1792798182184
+  },
+  "driver_job_id": "10000000",
+  "ray_session_path": "/tmp/ray/session_2026-10-23_16-26-38_563737_2965",
+  "exact_identity_verified": true,
+  "source_identity": {
+    "submission_id": "raysubmit_RCB16T1r75020261023T2312",
+    "driver_job_id": "10000000",
+    "ray_session_path": "/tmp/ray/session_2026-10-23_16-26-38_563737_2965"
+  },
+  "remote_source_commit": "1d72d5a4a58c1ff5534d4efbeabfc5a5f0aa8a2f",
+  "remote_config_sha256": "cdc39037f5e82bfb0d0f7893fe986457f3ac57e440b87871d085458538d90c5d",
+  "source_matches": true,
+  "config_matches": true,
+  "driver_log_exists": true,
+  "log_coverage": {
+    "total_bytes": 1153790,
+    "head_limit_bytes": 12000000,
+    "tail_limit_bytes": 4000000,
+    "coverage_gap_bytes": 0,
+    "raw_log_emitted": false
+  },
+  "traceback_present": false,
+  "exception_classes": [],
+  "exception_tail_line_sha256": [],
+  "sanitized_parsed_log_sha256": "37ef752d8725a47a692e92e42d8fc95f6cef2eff1d3f6ea9a6c04180c305aa7f",
+  "runtime_train_dataset_size": 46090,
+  "runtime_train_dataloader_batches": 411,
+  "logged_total_training_steps": 822,
+  "validation_samples_expected": 6293,
+  "model_weights_loaded_marker": false,
+  "model_shard_progress_pct": 100,
+  "wandb_public_url": "https://msaip.wandb.io/genai/v2611/runs/73acea8095b222e76c04affb7133c92e",
+  "unexpected_checkpoint_restore_present": true,
+  "initial_validation": null,
+  "initial_validation_progress": null,
+  "initial_validation_samples_scored": 3038,
+  "initial_validation_generation_started": true,
+  "initial_validation_generation_batch_completed": true,
+  "initial_validation_complete": false,
+  "initial_validation_p_err": null,
+  "completed_optimizer_step": null,
+  "observed_optimizer_step_count": 0,
+  "optimizer_rows": [],
+  "first_optimizer_row": null,
+  "first_update_verified": false,
+  "first_update_empty_replay_verified": false,
+  "runtime_config_parsed": true,
+  "runtime_effective": {
+    "replay_enabled": true,
+    "replay_size": 16,
+    "replay_capacity": 400,
+    "replay_sampling": "worst",
+    "selection_weights": {
+      "word": 1.0
+    },
+    "seed": 42,
+    "nominal_batch": 128,
+    "gen_batch": 128,
+    "total_epochs": 2,
+    "explicit_total_training_steps": 822,
+    "nnodes": 2,
+    "gpus_per_node": 8,
+    "resume_mode": "resume_path",
+    "resume_from_path_is_null": false,
+    "reward_divisor": 3,
+    "temperature": 1.0,
+    "rollout_n": 8,
+    "logprobs_mode": null,
+    "lora_rank": 320,
+    "lr": 3e-06,
+    "warmup_style": "constant",
+    "save_freq": 10,
+    "test_freq": 20
+  },
+  "runtime_checks": {
+    "replay_enabled": true,
+    "replay_size": true,
+    "replay_capacity": true,
+    "replay_sampling": true,
+    "selection_weights": true,
+    "seed": true,
+    "nominal_batch": true,
+    "gen_batch": true,
+    "total_epochs": true,
+    "explicit_total_training_steps": true,
+    "nnodes": true,
+    "gpus_per_node": true,
+    "resume_mode": true,
+    "resume_from_path_is_null": true,
+    "reward_divisor": true,
+    "temperature": true,
+    "rollout_n": true,
+    "logprobs_mode": true,
+    "lora_rank": true,
+    "lr": true,
+    "warmup_style": true,
+    "save_freq": true,
+    "test_freq": true
+  },
+  "runtime_config_matches": true,
+  "phase": "initial_validation",
+  "fresh_startup_verified": false,
+  "restore_set_global_step750": true,
+  "restore_model_rank_count": 16,
+  "restore_model_all16": true,
+  "restore_optimizer_rank_count": 16,
+  "restore_optimizer_all16": true,
+  "restore_rng_rank_count": 16,
+  "restore_rng_all16": true,
+  "restore_scheduler_rank_count": 16,
+  "restore_scheduler_all16": true,
+  "restore_dataloader_loaded": true,
+  "restored_loader_cursor_verified": true,
+  "actual_saved_fresh_cursor": 37968,
+  "restored_loader_sha256": "6aeb0c2ab6f9c8f9edf5c7be234eca2110a71e128dedf4b955cfeff6a90b45a3",
+  "restore_verified": true,
+  "resume_checkpoint_verified": true,
+  "ray_nodes": [
+    {
+      "node_id": "22a3c81dc5841ba849752ace88c3b2c33b960adbd677d6059b907fb7",
+      "node_ip": "10.151.77.233",
+      "state": "ALIVE",
+      "node_name": "10.151.77.233",
+      "resources_total": {
+        "oainode:dh115-r258-node-02": 1.0,
+        "node:__internal_head__": 1.0,
+        "node:10.151.77.233": 1.0,
+        "CPU": 122.0,
+        "object_store_memory": 266587274752.0,
+        "memory": 266587274752.0,
+        "GPU": 8.0,
+        "accelerator_type:H100": 1.0
+      }
+    },
+    {
+      "node_id": "7ce3e94d16be96ca92d705397adff605e36eaf1afb118d81c3188f4c",
+      "node_ip": "10.151.213.145",
+      "state": "DEAD",
+      "node_name": "10.151.213.145",
+      "resources_total": {
+        "oainode:dh115-r408-node-02": 1.0,
+        "node:10.151.213.145": 1.0,
+        "CPU": 122.0,
+        "memory": 266587278848.0,
+        "object_store_memory": 266587278848.0,
+        "GPU": 8.0,
+        "accelerator_type:H100": 1.0
+      }
+    },
+    {
+      "node_id": "c0f31703d525d26de39e9f1fc7503993ecfcc63f0eb753c7d6185c5f",
+      "node_ip": "10.151.152.72",
+      "state": "ALIVE",
+      "node_name": "10.151.152.72",
+      "resources_total": {
+        "node:10.151.152.72": 1.0,
+        "CPU": 122.0,
+        "object_store_memory": 266587278848.0,
+        "memory": 266587278848.0,
+        "GPU": 8.0,
+        "oainode:dh115-r316-node-01": 1.0,
+        "accelerator_type:H100": 1.0
+      }
+    }
+  ],
+  "exact_driver_alive_actors": [],
+  "exact_driver_gpu_allocation": 0,
+  "head_gpu_query_exit_code": 0,
+  "head_gpus": [
+    [
+      0,
+      0,
+      1,
+      81559
+    ],
+    [
+      1,
+      0,
+      1,
+      81559
+    ],
+    [
+      2,
+      0,
+      1,
+      81559
+    ],
+    [
+      3,
+      0,
+      1,
+      81559
+    ],
+    [
+      4,
+      0,
+      1,
+      81559
+    ],
+    [
+      5,
+      0,
+      1,
+      81559
+    ],
+    [
+      6,
+      0,
+      1,
+      81559
+    ],
+    [
+      7,
+      0,
+      1,
+      81559
+    ]
+  ]
+}

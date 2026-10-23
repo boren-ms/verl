@@ -1,0 +1,60 @@
+diff --git a/recipe/dapo/dapo_ray_trainer.py b/recipe/dapo/dapo_ray_trainer.py
+index 842f0e47e6..c81f06dd5b 100644
+--- a/recipe/dapo/dapo_ray_trainer.py
++++ b/recipe/dapo/dapo_ray_trainer.py
+@@ -28,6 +28,7 @@ import torch
+ from tqdm import tqdm
+ 
+ from verl import DataProto
++from verl.trainer.ppo.bad_case_replay import ReplayMetrics
+ from verl.trainer.ppo.core_algos import (
+     agg_loss,
+     capture_remax_metric_baselines,
+@@ -146,6 +147,8 @@ class RayDAPOTrainer(RayPPOTrainer):
+         reward_extra_info_keys = set()
+         num_prompt_in_batch = 0
+         num_gen_batches = 0
++        num_generated_prompts = 0
++        replay_metrics = ReplayMetrics()
+         # breakpoint()
+         for epoch in range(self.config.trainer.total_epochs):
+             for batch_dict in self.train_dataloader:
+@@ -159,7 +162,9 @@ class RayDAPOTrainer(RayPPOTrainer):
+                     )
+ 
+                 new_batch: DataProto = DataProto.from_single_dict(batch_dict)
++                new_batch, replay_context = self.bad_case_replay.prepare(new_batch)
+                 num_gen_batches += 1
++                num_generated_prompts += len(new_batch)
+                 # pop those keys for generation
+                 tensor_keys = ["input_ids", "attention_mask", "position_ids"]
+                 non_tensor_keys = ["raw_prompt_ids", "multi_modal_data", "reward_model"]
+@@ -207,6 +212,9 @@ class RayDAPOTrainer(RayPPOTrainer):
+                             baseline_result = self.reward_fn(new_batch, return_dict=True)
+                             reward_baseline_tensor = baseline_result["reward_tensor"]
+                             baseline_extra = baseline_result.get("reward_extra_info", {})
++                            replay_metrics.update(
++                                self.bad_case_replay.update(replay_context, baseline_extra)
++                            )
+ 
+                             capture_remax_metric_baselines(
+                                 self.config.algorithm, baseline_extra, new_batch.batch, len(new_batch)
+@@ -537,7 +545,8 @@ class RayDAPOTrainer(RayPPOTrainer):
+                 metrics.update(compute_throughout_metrics(batch=batch, timing_raw=timing_raw, n_gpus=n_gpus))
+                 timing_raw = defaultdict(float)  # clear timing
+ 
+-                gen_kept_frac = num_prompt_in_batch / (num_gen_batches * self.train_dataloader.batch_size)
++                gen_kept_frac = num_prompt_in_batch / num_generated_prompts
++                metrics.update(replay_metrics.as_dict())
+                 metrics.update(
+                     {
+                         "train/num_gen_batches": num_gen_batches,
+@@ -550,6 +559,8 @@ class RayDAPOTrainer(RayPPOTrainer):
+                 reward_extra_info_keys.clear()
+                 num_prompt_in_batch = 0
+                 num_gen_batches = 0
++                num_generated_prompts = 0
++                replay_metrics.reset()
+ 
+                 # TODO: make a canonical logger that supports various backend
+                 logger.log(data=metrics, step=self.global_steps)
