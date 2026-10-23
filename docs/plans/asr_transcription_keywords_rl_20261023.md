@@ -4,4 +4,4 @@
 
 本文件旧稿已由 v5 替代，历史内容可从 Git 查看。连续 biasing 仅保存在[后续备忘](asr_keywords_biasing_followup_20261023.md)，暂不开展。
 
-分支：`boren/asr-transcription-keywords`。独立 worktree：`/home/boren/.codex/worktrees/asr-transcription-keywords/verl`。联合输出代码与本地预检已完成；远端 GPU baseline/训练因 DNS 和 Blob 凭据阻塞，尚未提交。
+分支：`boren/asr-transcription-keywords`。独立 worktree：`/home/boren/.codex/worktrees/asr-transcription-keywords/verl`。联合输出代码与本地预检已完成；Brix/Blob 已恢复，执行进度以统一计划和 `reports/asr_keywords_plan_20261023/execution_status.json` 为准。

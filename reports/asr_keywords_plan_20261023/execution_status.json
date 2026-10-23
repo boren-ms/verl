@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T14:31:49.139129+00:00",
+  "updated_at": "2026-10-23T17:59:51.201505+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -9,7 +9,7 @@
   "config_root": "recipe/phimm/config/2609-Keyword",
   "local_manifest_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1",
   "remote_reference_manifest_local_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote",
-  "remote_manifests_uploaded": false,
+  "remote_manifests_uploaded": true,
   "remote_audio_readability_verified": false,
   "tokenizer_preflight": {
     "records": 27786,
@@ -39,38 +39,85 @@
       "deselected": 2,
       "note": "Keyword protocol/reward/report and existing prompt, bias, dataset, extra-field suites. Two existing failures explicitly excluded."
     },
-    "legacy_file_lint": "Nine pre-existing E501 long lines in touched legacy modules; new-file lint passes."
+    "legacy_file_lint": "Nine pre-existing E501 long lines in touched legacy modules; new-file lint passes.",
+    "parent_merge_regression": {
+      "passed": 51,
+      "includes": [
+        "parent model-directory preparation",
+        "shared remote cache",
+        "checkpoint retention",
+        "joint keyword protocol/reward/report"
+      ]
+    }
   },
   "model_runs": {
-    "A0_base_original_prompt": "not submitted",
+    "A0_base_original_prompt": "RUNNING: startup / datasets loaded",
     "A1_base_joint_prompt": "not submitted",
     "A2_training": "not submitted",
     "A2_checkpoint_evaluation": "not submitted"
   },
-  "ray_job_ids": [],
-  "model_metrics": null,
-  "blockers": [
-    {
-      "kind": "cluster_dns",
-      "last_command": "brix pools -c prod-westus2-cw-6 'verl-*'",
-      "exit_code": 2,
-      "detail": "prod-westus2-cw-6.k8s.dev.openai.org lookup on 172.27.16.1:53: no such host; also failed Windows host DNS earlier"
-    },
-    {
-      "kind": "blob_credentials",
-      "detail": "bbb cannot find credentials for account orngwus2cresco, container data"
-    },
-    {
-      "kind": "local_gpu",
-      "detail": "torch.cuda.is_available() is false"
-    }
+  "ray_job_ids": [
+    "raysubmit_8QYAUSqkEcEr7Ji8"
   ],
+  "model_metrics": null,
+  "blockers": [],
   "next_actions": [
-    "Restore cluster DNS and Blob access",
-    "Upload remote-reference JSONL/metadata and verify audio reads",
-    "Sync isolated worktree to a free Ready GPU node",
-    "Run A0 then A1 through both official test sets, summarize corpus WER/BWER/UWER",
-    "Run 100-step 10k pilot, select checkpoint using dev only",
-    "Export checkpoint with correct LoRA rank256/alpha512 and evaluate internal/clean/other"
-  ]
+    "Complete A0 and check output counts / corpus metrics",
+    "Sync latest merged branch before A1, then run joint-prompt baseline",
+    "Only after both baselines succeed launch pilot with save_freq10",
+    "Select checkpoint using dev only, export and evaluate internal/clean/other"
+  ],
+  "connectivity": "Brix and Blob restored; verified on 2026-10-23",
+  "parent_merge": {
+    "branch": "origin/boren/rl_2611_dev",
+    "parent_tip": "d34b3ba28",
+    "merge_commit": "45c370aab",
+    "conflicts": false
+  },
+  "remote_audio_verification": {
+    "sample_readable_per_manifest": 2,
+    "manifests": [
+      "test_clean",
+      "test_other",
+      "train_pilot10k_seed42",
+      "dev",
+      "internal_test"
+    ],
+    "official_main_pod_cached_files": 5559,
+    "full_train_audio_verified": false
+  },
+  "active_job": {
+    "pool": "verl-n2-i10",
+    "nnodes": 2,
+    "gpus_per_node": 8,
+    "config": "recipe/phimm/config/2609-Keyword/baseline_eval/eval_base_ls.yaml",
+    "job_id": "raysubmit_8QYAUSqkEcEr7Ji8",
+    "code_commit": "5307f0132",
+    "dashboard": "http://10.151.68.221:9209",
+    "wandb_url": null,
+    "status": "RUNNING",
+    "datasets": {
+      "ls_clean": 2620,
+      "ls_other": 2939
+    },
+    "metrics_available": false
+  },
+  "audio_precache": {
+    "main_pod": "verl-n2-i10-0",
+    "pid": 545163,
+    "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
+    "unique_files": 5559,
+    "already_local": 5559,
+    "downloaded": 0,
+    "state_dir": "/root/code/verl/tmp/verl_asr_run/keyword_joint_pipeline/audio_precache",
+    "status": "SUCCEEDED",
+    "exit_code": 0,
+    "finished_at": "2026-10-23T17:57:20.199340+00:00"
+  },
+  "monitor": {
+    "automation_id": "librispeech",
+    "kind": "heartbeat",
+    "interval_minutes": 30,
+    "status": "ACTIVE"
+  }
 }

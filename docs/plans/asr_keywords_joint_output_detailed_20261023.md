@@ -1,6 +1,6 @@
 # LibriSpeech 转写与关键词联合输出：统一实验计划 v5
 
-日期：2026-10-23。状态：**联合输出代码、配置和本地预检已完成；GPU baseline 与训练因集群 DNS/Blob 凭据阻塞，尚未提交**。
+日期：2026-10-23。状态：**联合输出代码、配置和本地预检已完成；Brix/Blob 已恢复，A0 baseline 已提交运行；训练待两套 baseline 完成**。
 
 唯一当前计划为本文件；v1/v2 入口均指向这里。连续 biasing 在[后续备忘](asr_keywords_biasing_followup_20261023.md)中，属于暂不开展的独立实验。实现位置见第 10 节；可运行配置、命令和当前限制以 [2609-Keyword/README](../../recipe/phimm/config/2609-Keyword/README.md) 为准。下面保留实验设计，最终落地与执行状态见第 14 节。
 
@@ -391,7 +391,7 @@ R = R_existing_asr(parsed_transcription)
 
 配置按用户要求放在 `recipe/phimm/config/2609-Keyword/`：根目录 `base.yaml`，`baseline_eval/` 包含原 prompt / 联合 prompt 两套 base eval，`training/` 包含 ReMax 10k pilot，`evaluation/` 包含训练后 checkpoint eval。完整树、字段说明和执行命令见 [README](../../recipe/phimm/config/2609-Keyword/README.md)。
 
-本地清单目录 `/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1/` 已存在；`_remote/` 为云端音频引用版本，但仍只保存在本机、尚未上传。配置默认云端根目录为 `az://orngwus2cresco/data/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1`；远端 manifest 与音频可读性必须恢复凭据后确认。
+本地清单目录 `/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1/` 已存在；`_remote/` 为云端音频引用版本，已上传到云端。配置默认云端根目录为 `az://orngwus2cresco/data/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1`；远端 manifest 与音频可读性必须恢复凭据后确认。
 
 | 正式清单 | 条数 | 备注 |
 |---|---:|---|
@@ -460,7 +460,7 @@ R = R_existing_asr(parsed_transcription)
 
 本地主回归 299 passed / 2 deselected；两项排除是已有 torchcodec/FFmpeg 环境不兼容及旧 bad-format 断言不符。定向测试另覆盖 parser/GT/reward/汇总；实际 GT 辅助函数及温度对齐测试 56 passed。CPU rollout 测试通过 namespace 加载实际 helper，避开本机 torchvision GPU registry 导入错误，未模拟 helper 算法。这些不是 GPU 端到端验证。
 
-未完成 GPU 模型 baseline、训练及训练后评估，尚无 job ID 或 WER/BWER 结果。Brix 集群 DNS 在 WSL 与 Windows 均失败，Blob 账号缺可用凭据，本机没有 CUDA。恢复后先上传云端引用版 manifests、检查音频可读、同步代码并确认空闲节点，再按 A0 → A1 → pilot → A2 执行。GT log-prob/mask、实际吞吐与模型质量仍须 GPU 验证。
+Brix/Blob 已恢复，云端引用版 manifests 已上传；主节点已缓存全部 5,559 条测试音频，训练/dev/internal 各抽样读取通过。A0 job `raysubmit_8QYAUSqkEcEr7Ji8` 已在 `verl-n2-i10`（2×8 H100）启动，代码快照 `5307f0132`，暂无 WER/BWER 结果。父分支最新 `d34b3ba28` 已无冲突合并（merge `45c370aab`），后续 job 同步新版本。继续按 A0 → A1 → pilot → A2 执行；GT log-prob/mask、实际吞吐与模型质量仍待 GPU 验证。实时状态见 execution_status.json 和 Ray，已配置 30 分钟跟进。
 
 评估统一使用 unit-cost jiwer 与单词边界匹配，BWER/UWER 错误分区总和等于 WER；NWER 为 UWER 别名。不能直接与旧加权 alignment/子串匹配的历史 BWER 混比。最终结果按集合累计计数，分母 0 报 N/A。
 

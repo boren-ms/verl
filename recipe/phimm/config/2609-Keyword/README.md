@@ -74,7 +74,7 @@ fauchelevent
 | test-clean | 2,620 | 1,980 / 640 |
 | test-other | 2,939 | 2,141 / 798 |
 
-还生成了 `_remote` 目录，其 manifest 使用云端音频引用。**它仍在本机，尚未上传；云端音频可读性尚未验证。** 配置默认 manifest root 为 `az://orngwus2cresco/data/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1`，可用 `keyword_experiment.manifest_root=...` 覆盖。
+还生成了 `_remote` 目录，其 manifest 使用云端音频引用。云端引用版已上传；5,559 条官方测试音频在主节点缓存就绪，训练/dev/internal 已各抽样验证音频可读，尚未做全量训练音频审计。 配置默认 manifest root 为 `az://orngwus2cresco/data/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1`，可用 `keyword_experiment.manifest_root=...` 覆盖。
 
 可复现 builder（拒绝覆盖已存在目录；换一个全新输出目录）：
 
@@ -132,4 +132,4 @@ python -m recipe.phimm.summarize_keyword_eval \
 
 代码与配置已经实现；Hydra 配置、实际数据转换链路、真实 tokenizer 的 27,786 条 GT round-trip 已通过，全部 GT 含 EOS 长度小于 768。测试覆盖协议、空目标、错误格式、prefix、reward dispatcher、GT purpose/group/EOS/overflow 和计数汇总。详细证据在 `reports/asr_keywords_plan_20261023/`。
 
-目前没有 GPU 模型评估或训练结果，也没有 Ray job ID。Brix Kubernetes 域名在 WSL 和 Windows 均解析失败；Blob 账号无可用访问凭据；本机没有 CUDA。恢复连接后按上述顺序继续执行，不能把 CPU GT 校验作为模型能力结果。
+Brix/Blob 已恢复。A0 已提交到空闲 `verl-n2-i10`（2×8 H100，`trainer.nnodes=2`），初始 Ray job 为 `raysubmit_8QYAUSqkEcEr7Ji8`，使用代码快照 `5307f0132`。主节点测试音频缓存 5,559 条就绪；当前尚无模型指标、训练未启动。父分支 `origin/boren/rl_2611_dev` 的最新 `d34b3ba28` 已无冲突合并到本分支；下一个 job 提交前同步新代码。实时进度以 `reports/asr_keywords_plan_20261023/execution_status.json` 和实际 Ray 状态为准，每 30 分钟自动跟进与修复。
