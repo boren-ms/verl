@@ -1,0 +1,70 @@
+{
+  "annotation_policy": "ls-common5k-v1",
+  "annotation_policy_sha": "30eadb83c338df9376e4fabd31bd1349becc06b896b81dbc5fb7dac6fca72a8e",
+  "source_hashes": {
+    "/home/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl": "aafb4820032a8fa7a0fb329e5877da2c48832999e9dbbd0a6f589f9fb29beabd",
+    "/home/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl": "35400b5608c255be4031bd1d4138649f0b77453b2c7b39bef287681a9a2014c7",
+    "/home/boren/data/LibriSpeech/asr_train_transcribe.tsv": "f9ba99761f1c4a217147eca5d9a5b8a044982f7714a2e3f220f85002a4f6d9f5"
+  },
+  "stats": {
+    "source_train_rows": 280393,
+    "missing_local_audio": 148126,
+    "removed_official_duplicate_text": 7,
+    "removed_dev_internal_duplicate_text": 0,
+    "removed_train_heldout_duplicate_text": 9
+  },
+  "seed": 42,
+  "require_local_audio": true,
+  "audio_prefix": "az://orngwus2cresco/data/boren/data",
+  "split_rule": "int(SHA256(ls-keywords-v1:<speaker>).hexdigest(),16)%100: dev<5, internal<10, train otherwise",
+  "manifests": {
+    "test_clean": {
+      "rows": 2620,
+      "nonempty": 1980,
+      "empty": 640,
+      "sha256": "bba6587f223c9d068bc13ea85902d785d8a0eaa1913a7f918700331bd1af00c6"
+    },
+    "test_other": {
+      "rows": 2939,
+      "nonempty": 2141,
+      "empty": 798,
+      "sha256": "2bc2860ae97b6f5f5bfbd2e458ebc5f3224ad293936ed4a8f5133c54c4c5f656"
+    },
+    "train": {
+      "rows": 120024,
+      "nonempty": 111159,
+      "empty": 8865,
+      "sha256": "171ae799ef76da1dafdc584068e4b8044c9c89c9938651f6ab22fe8d27700c2f"
+    },
+    "internal_test": {
+      "rows": 6131,
+      "nonempty": 5806,
+      "empty": 325,
+      "sha256": "1b901041999f5f2332e5618796dd9f37636d777657e6df699a561f89350f6969"
+    },
+    "dev": {
+      "rows": 6096,
+      "nonempty": 5671,
+      "empty": 425,
+      "sha256": "e3aaba1c261130aba5296aa1dbc7df6f5b0c5e0546a702895f87c350223c157d"
+    },
+    "train_pilot10k_seed42": {
+      "rows": 10000,
+      "nonempty": 9261,
+      "empty": 739,
+      "sha256": "f35fb5de755ec2a50d867bb29cac923e271074b6c5a6867d57b09f30c0d9fe27"
+    },
+    "train_probe": {
+      "rows": 256,
+      "nonempty": 230,
+      "empty": 26,
+      "sha256": "dca6ce99abb9a278ac0de5cdd1f423486f1a29952d30c0b616f9f89af4834d37"
+    },
+    "dev_smoke512": {
+      "rows": 512,
+      "nonempty": 481,
+      "empty": 31,
+      "sha256": "ba299646299335f1bb89d8c78750fc1c754858a650e682542f845bba940097a9"
+    }
+  }
+}

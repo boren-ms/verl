@@ -1736,14 +1736,32 @@ def verl_format_ds(ds, **kwargs):
     """Format the dataset for verl training."""
     prompt_key = kwargs.get("prompt_key", "prompt")
     default_extra_keys = ["id", "language", "keywords", "prefix"]
+    default_extra_keys += [key for key in (
+        "output_protocol", "keyword_annotation_valid", "annotation_policy", "annotation_policy_sha"
+    ) if key in ds.column_names]
     configured_extra_keys = kwargs.get("extra_keys", []) or []
     extra_keys = list(dict.fromkeys(default_extra_keys + list(configured_extra_keys)))
 
     def map_fn(egs):
         text = egs.get("text", "")
+        reward_model = {"ground_truth": text, "gt_output": egs.get("gt_output", text)}
+        if egs.get("output_protocol") == "asr-keywords-v1":
+            from recipe.phimm.data.keyword_output import validate_keywords
+
+            if not egs.get("keyword_annotation_valid") or not egs.get("gt_output"):
+                raise ValueError("joint output requires validated labels and complete gt_output")
+            validate_keywords(text, egs.get("keywords"))
+            from recipe.phimm.data.keyword_output import parse_keyword_output
+            from recipe.phimm.reward.asr_response import get_hyp_text
+
+            parsed = parse_keyword_output((egs.get("prefix") or "") + egs["gt_output"], "stop")
+            if (not parsed.valid or parsed.predicted_keywords != egs["keywords"]
+                    or get_hyp_text(parsed.body_raw, version=2609) != text):
+                raise ValueError("joint gt_output does not round-trip to the reference and target keywords")
+            reward_model.update(output_protocol="asr-keywords-v1", gt_group_id=egs["id"])
         result = {
             prompt_key: to_user_msg(egs[prompt_key]),
-            "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
+            "reward_model": reward_model,
             "extra_info": {key: _extra_info_value(egs, key) for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),
         }
@@ -1926,15 +1944,19 @@ def add_task_info(ds, **kwargs):
     prompt_suffix = kwargs.get("prompt_suffix", "")
     prefix_prob = float(kwargs.get("prefix_prob", 0.0))
     lang_hint = kwargs.get("lang_hint", False)
+    output_keywords = kwargs.get("output_keywords", False)
 
     def add_task_info_fn(egs):
         lang = resolve_task_language(task, lang=egs.get("language") or language)
+        if output_keywords and not egs.get("keyword_annotation_valid"):
+            raise ValueError("joint output requires keyword_annotation_valid=true")
         prefix = get_task_prefix(task, lang=lang, prob=prefix_prob, version=version)
         prompt = get_task_prompt(
             task=task,
             rand=rand,
             version=version,
             lang=lang if lang_hint else None,
+            **({"output_keywords": True} if output_keywords else {}),
         )
         prompt = f"{prompt}{prompt_suffix}"
         gt_output = get_task_output(
@@ -1943,15 +1965,21 @@ def add_task_info(ds, **kwargs):
             text=egs.get("text", ""),
             components=egs.get("components"),
             version=version,
+            **({"output_keywords": True, "keywords": egs.get("keywords")} if output_keywords else {}),
         )
+        if output_keywords:
+            if not gt_output.startswith(prefix):
+                raise ValueError("assistant prefix does not match full GT answer")
+            gt_output = gt_output[len(prefix):]
         prefix_stem = prefix.rstrip("\n")
-        if prefix_stem and gt_output.startswith(prefix_stem):
+        if not output_keywords and prefix_stem and gt_output.startswith(prefix_stem):
             gt_output = gt_output[len(prefix_stem) :].lstrip(". \n")
         return {
             "prompt": format_asr_prompt(prompt),
             "prefix": prefix,
             "gt_output": gt_output,
             "language": lang,
+            **({"output_protocol": "asr-keywords-v1"} if output_keywords else {}),
         }
 
     ds = ds.map(add_task_info_fn, **pop_map_kwargs(kwargs))

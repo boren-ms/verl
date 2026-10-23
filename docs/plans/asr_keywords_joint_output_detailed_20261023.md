@@ -1,8 +1,8 @@
-# LibriSpeech 转写与关键词联合输出：统一实验计划 v4
+# LibriSpeech 转写与关键词联合输出：统一实验计划 v5
 
-日期：2026-10-23。状态：**计划与已有代码/数据核验；尚未实现联合输出功能，尚未启动训练**。
+日期：2026-10-23。状态：**联合输出代码、配置和本地预检已完成；GPU baseline 与训练因集群 DNS/Blob 凭据阻塞，尚未提交**。
 
-唯一当前计划为本文件；v1/v2 入口均指向这里。连续 biasing 在[后续备忘](asr_keywords_biasing_followup_20261023.md)中，属于暂不开展的独立实验。本文“拟新增”“伪代码”“配置草案”都是实施规范，不表示代码已经具备这些接口。
+唯一当前计划为本文件；v1/v2 入口均指向这里。连续 biasing 在[后续备忘](asr_keywords_biasing_followup_20261023.md)中，属于暂不开展的独立实验。实现位置见第 10 节；可运行配置、命令和当前限制以 [2609-Keyword/README](../../recipe/phimm/config/2609-Keyword/README.md) 为准。下面保留实验设计，最终落地与执行状态见第 14 节。
 
 - 远程/本地分支：`boren/asr-transcription-keywords`。
 - 独立 worktree：`/home/boren/.codex/worktrees/asr-transcription-keywords/verl`。
@@ -196,7 +196,7 @@ fauchelevent
 
 ### 6.4 例二：真实多个关键词，按正文顺序
 
-来源：test-clean `237-134493-0004`。原始 JSON 的标签 list 顺序为 `intermingled, mated`；目标集合不变，展示顺序按正文为 `mated, intermingled`。集合评分不惩罚仅顺序不同，另报顺序遵循率。
+来源：test-clean `237-134493-0004`。原始 JSON 的标签 list 顺序为 `intermingled, mated`；目标集合不变，展示顺序按正文为 `mated, intermingled`。集合评分不惩罚仅顺序不同；生成目标固定首次出现顺序。
 
 ```text
 <src=English><tgt=English>
@@ -253,15 +253,13 @@ when i was a young man i thought paul was making too much of his call
 
 ### 7.2 GT formatter 实施规范
 
-拟新增共享 helper，例如 `recipe/phimm/data/keyword_output.py`，提供目标校验、关键词块 formatter 和 envelope parser（或 parser 放在现有 reward 模块并复用同一协议定义）。所有接口名称是提议，必须在实施时落到真实调用点，不能只定义闲置函数。
+已新增共享 `recipe/phimm/data/keyword_output.py`，提供目标校验、关键词块 formatter 和 envelope parser，由数据 formatter 与训练/验证 scorer 实际调用。
 
 ```python
 base_answer = get_task_output(
     task="lang_asr_verb", lang="English", text=reference_text, version=2609
 )
 full_answer = base_answer + "\n<KEYWORDS>\n" + ", ".join(target_keywords) + "\n"
-if not target_keywords:
-    full_answer += "\n"  # 空目标结尾为 \n<KEYWORDS>\n\n
 
 # 首轮 prefix_prob=0，prefix=""，completion 等于 full_answer。
 # 若将来启用 prefix，必须按真实 prefix 精确移除一次，不用 lstrip 改写正文。
@@ -301,18 +299,7 @@ assert prefix + gt_output == full_answer
 
 ## 8. Parser 实施设计与所有评分调用点
 
-现状实测：把例一联合答案传给当前 `get_hyp_text(version=2609)`，结果包含 `\n<KEYWORDS>\nfauchelevent`。因此当前 parser **不满足新任务要求**，不能直接拿其输出算正文 WER。
-
-拟实现结构化返回：
-
-```text
-ParsedASROutput:
-  raw_response
-  body_raw, segments, transcription
-  predicted_keywords_raw, predicted_keywords
-  keyword_block_status, protocol_errors
-  finish_reason, truncated
-```
+修改前 `get_hyp_text(version=2609)` 会把合法关键词尾部混入正文；当前通过显式协议先调用 `keyword_output.parse_keyword_output`，再调用旧 segment parser。返回 `KeywordOutput(raw_response, body_raw, predicted_keywords, keyword_block_status, protocol_errors)`，正文由 `asr_keywords.parse_response` 提取。终止原因优先使用 rollout 传递的原生 vLLM finish_reason；只有旧产物缺字段时才回退到 EOS/response mask/budget 推断，并记录来源。length/timeout/abort 不计合法列表。新协议 mask 按真实返回 token 数限制，修复 PAD 与 EOS 不同且 stop 被消费时 padding 误算答案的问题。
 
 解析步骤：
 
@@ -324,7 +311,7 @@ ParsedASROutput:
 6. `finish_reason=length` 或调度超时一律不是合法空结果。若解码层去掉末尾空白，只有确认正常 EOS/stop 时允许仅头结尾规范化为 `valid_empty_normalized`；无终止元信息又没有明确空行时记 `incomplete`，不奖励猜测空目标。原始合法空行可直接识别。
 7. 单独检查 predicted keywords 是否在预测正文中出现，但不通过过滤预测来增加 precision；不要求输出列表等于“对预测正文再运行 common5k”的结果，模型预测要独立评估。
 
-`asr_measure`、greedy baseline reward、validation、`main_asr_gen` 与结果分析工具必须使用同一个 envelope 结果。现有 `word_kw`/`keyword` 是正文中关键词识别指标，继续基于纯正文；新增列表指标使用 `predicted_keywords`。禁止只修改离线 eval 而遗漏训练 reward。
+本轮训练、greedy baseline reward 与独立 evaluation 都通过 `main_asr_dapo` / `asr_keywords` 使用同一 envelope 结果；不使用 `main_asr_gen` 路径。现有 `word_kw`/`keyword` 是正文中关键词识别指标，继续基于纯正文；新增列表指标使用 `predicted_keywords`。禁止只修改离线 eval 而遗漏训练 reward。
 
 若多语言/多段 components 出现，本轮数据检查应拒绝不支持的结构或先隔离，不能以英文单段 parser 静默处理。2607 本轮不扩展；旧 2607 行为回归验证。
 
@@ -334,9 +321,9 @@ ParsedASROutput:
 
 沿用现有 `v2609_ls` 的 ReMax 路径，新增独立 recipe，首轮默认 `n=8`、每个 prompt **1 条完整 GT + 7 条模型采样**。现有基础配置 `gt_rollout: false`，新 recipe 需显式开启，不能以为已自动启用。
 
-已定位的现有 GT 注入条件只有 `gt_rollout and not validate`，没有排除 `do_sample=False`。实施必须增加明确 rollout purpose：只有 train sampling 才可注入，同时要求 `do_sample=True`、`validate=False`。greedy baseline、validation、standalone eval 均为 0 GT。
+已修复旧注入条件未排除 `do_sample=False` 的问题，增加明确 rollout purpose：只有 train sampling 才可注入，同时要求 `do_sample=True`、`validate=False`。greedy baseline、validation、standalone eval 均为 0 GT。
 
-现有每 n 行选一条依赖重复和重排顺序。实施需要以 prompt/group uid、candidate index 校验每组恰好一条 GT；sharding、padding、dedup、排序之后均不误配。不支持某种分组布局时显式失败，不能静默给别的音频注入答案。
+每组第一个 candidate 使用 GT，新增 `gt_group_id` 和组内 target 一致性校验；本地 shard 必须保留完整 n 行组，否则显式失败。GPU 分片、mask 与实际 vLLM 联动仍待远程运行验证。
 
 复用 `gt_rollout.py` teacher-forced scoring 与 `rollout_log_probs.py` actor 温度对齐能力。GT 属于人为示范轨迹，报告其与 sampled 的不同来源；不宣称是无偏 on-policy 样本。检查 TIS/IS、KL、response_mask、EOS、非有限 log-prob、过滤器是否保留有效训练信号。GT 的 advantage 不保证每次为正，但正文和列表全对的示范应有正确 reward，且不能全被 mask/filter 掉。
 
@@ -381,59 +368,42 @@ R = R_existing_asr(parsed_transcription)
 
 在同一小批数据打印分项 reward、聚合 reward、baseline、advantage、mask 与来源标记。若列表复制收益压过正文错误代价，先调整权重再训练，不能以正文退化换取漂亮格式率。
 
-## 10. 具体实现位置与完成标准
+## 10. 已落地的实现位置
 
-| 文件 / 位置 | 已有能力 | 本轮必须补充 | 完成标准 |
-|---|---|---|---|
-| `recipe/phimm/data/prompts.py:get_task_prompt/get_task_output` | 原任务 prompt、语言/模式 formatter | opt-in 联合指令，调用共享块 formatter | 原任务关闭开关不变；新 GT 包含完整列表 |
-| 拟新增 `recipe/phimm/data/keyword_output.py` | 尚无该新协议 helper | 常量、目标校验/formatter；可复用规范化逻辑 | 同一份规则供数据/评分使用，无重复私有实现 |
-| `recipe/phimm/data/dataset.py:add_task_info` | prompt/prefix/gt_output 构建 | 显式目标与标注状态，prefix 精确处理 | `prefix+completion` 精确还原 full_answer |
-| 同文件 `verl_format_ds/_extra_info_value` | 正文 GT、gt_output、extra_info | 新任务禁止 text fallback；保留 policy/protocol/标注状态；修正 keywords 缺失占位 | `[]` 与 missing 不混淆；新字段到达 worker/scorer |
-| 同文件 `process_ds/clean_tagged_text` 调用配置 | 通用文本清理，可覆盖 keywords | 新 recipe 避免覆盖已有标注，保证处理顺序 | 清理后目标未丢失；不扩大到全仓重构 |
-| `recipe/phimm/data/rl_dataset.py` | processor/tokenization 与 prefix 拼接 | 显式传播新 metadata；检查新 prompt token 长度 | 输入只有音频/指令，无 reference/候选词泄漏 |
-| `recipe/phimm/reward/asr_response.py` | 旧 ASR segment parser | 联合 envelope parser 与失败策略 | 合法列表不进正文；异常可见；保留旧 API |
-| `recipe/phimm/reward/asr_measure.py` | 正文/关键词词错误率与 reducer | 共享解析、列表/块指标、训练与 baseline 同评分 | 不把 word_kw 当作列表分；空/缺/坏分清 |
-| `recipe/phimm/reward/asr_vote.py`（如使用） | 可选 vote/reduction | 仅在新 recipe 选用时传递新指标 | 不遗漏 baseline/sample 的同一语义 |
-| `verl/workers/rollout/vllm_rollout/vllm_rollout_spmd.py` | GT 注入与响应长度切片 | purpose 限制、完整长度、group 映射、EOS | greedy/val/eval 零 GT；不截关键词 |
-| `verl/workers/rollout/gt_rollout.py`、`verl/trainer/ppo/rollout_log_probs.py` | teacher forcing、温度对齐 | 按需修补，首先增加联动验证与可观测性 | GT token/log-prob/mask 对齐且有限 |
-| `verl/trainer/ppo/ray_trainer.py`（按需） | sampling/baseline 调度与分组 | 显式 rollout purpose、uid 和来源传播 | 各调用方不能绕过 train-only 条件 |
-| `recipe/phimm/main_asr_gen.py` / 验证输出 | 独立解码 | 原始答案、finish_reason、解析正文、列表和状态 | 训练/离线评分相同，结果可回溯 |
-| 新数据清单构建脚本 | 现有只读 audit，不是训练 builder | 独立 manifest builder、hash、split、去重、音频与目标校验 | 可重现；源数据不覆盖；没有未落地路径 |
-| 新 YAML、测试 | 旧 rare recipes 可参考 | 新数据与联合输出 recipe，协议/GT/隔离测试 | 真实 Hydra compose 与端到端样例验证通过 |
+| 文件 | 实际改动 |
+|---|---|
+| `recipe/phimm/data/keyword_output.py` | common5k 分词/校验、统一 formatter、严格 envelope parser |
+| `recipe/phimm/data/prompts.py` | opt-in 指令与完整联合 GT |
+| `recipe/phimm/data/dataset.py` | 目标显式校验、prefix 精确切分、GT round-trip、字段传播 |
+| `recipe/phimm/reward/asr_keywords.py` | 共用解析、正文 WER/BWER/UWER 计数、列表与格式 reward |
+| `recipe/phimm/reward/keyword_manager.py` | 注册 per-utterance manager，保留完整输出，使用原生终止状态并兼容旧产物回退，隔离候选 metadata 别名 |
+| `recipe/phimm/reward/asr_response.py` | opt-in 解析，保留旧接口 |
+| `recipe/phimm/main_asr_dapo.py` | 注册新 manager，解析结果接入验证 dumps；eval/remax 入口复用 |
+| `recipe/dapo/dapo_ray_trainer.py`、`verl/trainer/ppo/ray_trainer.py` | 显式 train_sampling/baseline purpose |
+| `verl/workers/rollout/gt_rollout.py`、`vllm_rollout/vllm_rollout_spmd.py` | train-only、完整分组、完整 GT 编码、EOS、预算检查；超长失败 |
+| `recipe/phimm/prepare_ls_keywords.py` | 固定 hash、speaker split、文本去重、音频存在检查、独立 manifests |
+| `recipe/phimm/keyword_preflight.py` | 真实 tokenizer round-trip / 长度 / hash 核验 |
+| `recipe/phimm/summarize_keyword_eval.py` | 分集合累计 WER/BWER/UWER/NWER 和列表指标，拒绝重复/混 step |
 
-字段与开关须显式接入实际 Hydra schema 和调用链。下节示意配置不是可以直接运行的新 recipe；仅给出新 key 而无代码消费不算实现完成。
+旧 `asr_measure` 的正文 reward 由新 scorer 在剥离合法块后调用；本轮没有使用 vote reducer 或 `main_asr_gen`，无需改写这些独立路径。`rl_dataset.py` 既有 metadata/tokenization 链路复用，实际 dataset 配置链路已验证；GPU processor/vLLM 联动仍待验证。
 
-## 11. 计划中的产物与配置草案
+## 11. 实际产物与配置
 
-新数据产物建议置于独立目录 `ls_joint_keywords_common5k_v1/`，文件为 `train.jsonl`、`dev.jsonl`、`internal_test.jsonl`、`train_probe.jsonl`、`train_pilot10k_seed42.jsonl`、`test_clean.jsonl`、`test_other.jsonl`、`manifest_metadata.json`。路径在实际生成后才登记为可用。
+配置按用户要求放在 `recipe/phimm/config/2609-Keyword/`：根目录 `base.yaml`，`baseline_eval/` 包含原 prompt / 联合 prompt 两套 base eval，`training/` 包含 ReMax 10k pilot，`evaluation/` 包含训练后 checkpoint eval。完整树、字段说明和执行命令见 [README](../../recipe/phimm/config/2609-Keyword/README.md)。
 
-新增 YAML 建议名称：`data/train_data/ls_joint_keywords_common5k_v1.yaml`、`data/val_data/ls_joint_keywords_dev_v1.yaml`、独立 internal/official evaluation 配置，以及 `v2609_ls/remax_joint_keywords_common5k_v1_pilot.yaml`。云端上传目录在确认运行位置后设置，禁止假定 raw source 在本机存在就意味着远端节点可读。
+本地清单目录 `/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1/` 已存在；`_remote/` 为云端音频引用版本，但仍只保存在本机、尚未上传。配置默认云端根目录为 `az://orngwus2cresco/data/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1`；远端 manifest 与音频可读性必须恢复凭据后确认。
 
-配置意图示例（**拟议 key，不可直接运行**）：
+| 正式清单 | 条数 | 备注 |
+|---|---:|---|
+| train | 120,024 | 仅本地已存在音频；排除 official/heldout 重复正文 |
+| train_pilot10k_seed42 | 10,000 | 保留非空/空比例 |
+| dev | 6,096 | 仅 dev 选 checkpoint |
+| internal_test | 6,131 | 与训练 speaker 不交叉 |
+| test_clean | 2,620 | 全部保留 |
+| test_other | 2,939 | 全部保留 |
+| train_probe / dev_smoke512 | 256 / 512 | 预检用途 |
 
-```yaml
-add_task_info:
-  task: lang_asr_verb
-  version: 2609
-  language: English
-  lang_hint: true
-  rand: false
-  prefix_prob: 0.0
-  output_keywords: true                 # 待实现
-  output_protocol: asr-keywords-v1      # 待实现
-
-actor_rollout_ref:
-  rollout:
-    n: 8
-    gt_rollout: true
-
-# annotation_policy、keyword_annotation_valid、keywords 由已验证 manifest 提供。
-# 新 reward 参数须显式接入实际 reducer，不靠 YAML 中未消费的字段。
-```
-
-pilot 默认从本地可读音频的 train fold 抽 10k（不足则明确记录实际数量），seed42，按空/非空分层近似保持自然比例，先排除 7 条与测试重复正文；不会复用未核验的云端旧 10k。固定 train-probe 取其中 256 条。首轮建议 batch64、100 optimizer steps，沿用当前 base 的优化器/LoRA 设置；n=8 与 GT 是此实验变量。显存或 batch 需要调整时记录最终 resolved config，不以历史文件名推断实际值。
-
-dev 可先固定 512 条作 smoke，再用完整可用 dev 选 checkpoint。internal 与 official 不用于选择 checkpoint。全量训练/扩容不是 pilot 自动触发的本轮工作；该文档阶段不启动任何训练。
+原始 TSV 中 148,126 条音频本地缺失，builder 使用 `--require-local-audio` 显式排除；这不是全量 LibriSpeech 训练。最终排除 7 条 official 重复正文及 9 条 train/heldout 重复正文，第 4 节表格为排除前原始审计，不代表正式清单数量。
 
 ## 12. 实验矩阵、统计与结果报告
 
@@ -467,7 +437,7 @@ dev 可先固定 512 条作 smoke，再用完整可用 dev 选 checkpoint。inte
 
 | 阶段 | 工作与测试 | 进入下一阶段的硬条件 |
 |---|---|---|
-| P0 本轮 | 统一文档、真实数据和代码核验、流程图 | 所有当前入口指向本计划；未实施模型功能 |
+| P0 本轮 | 统一文档、真实数据和代码核验、流程图 | 已完成；代码与 CPU 预检状态见第 14 节 |
 | P1 数据 | builder 重现 common5k；split/去重；原始 GT list 映射；空/缺标注；音频可读与来源 hash | 正式 manifest 存在；数值与审计差异有解释；测试不混入训练 |
 | P2 协议 | 实现 formatter/parser/真实调用点；单/多词/空块/坏块；旧任务回归；prefix 与 EOS | 全部有效 GT round-trip，正文不含合法列表，新任务禁止 text fallback |
 | P3 训练链路 | 实际 tokenizer/processor 小批贯通；GT purpose、group、shard/pad/mask；greedy/val/eval 零 GT；奖励排序 | GT 长度完整，reward 与 token/log-prob 对齐；正确示范有可观测信号 |
@@ -484,10 +454,14 @@ dev 可先固定 512 条作 smoke，再用完整可用 dev 选 checkpoint。inte
 - GT 只在 train sampling；1/8 示范分组正确；greedy 不被注入；完整 completion 超长 fail fast。
 - 2609 旧任务和 2607 旧任务的兼容；新任务中音频占位符、language hint、prefix 均不重复。
 
-## 14. 当前证据与尚待实施的事实
+## 14. 当前证据与待执行事项
 
-已经完成：独立远程分支/worktree；旧 rare-word YAML 定位；本地 raw TSV 与 official keyword references 审计；真实输出示例核对；直接复现当前 parser 会把关键词尾部混入正文的问题。
+已完成独立远程分支/worktree、联合输出实现、四套配置、正式 manifests。A0/A1 与 training/dev 的实际 Hydra 数据转换链路通过；真实 tokenizer 对 pilot/dev/internal/clean/other 共 27,786 条 GT round-trip 与长度校验全部通过，最大 182 tokens（含 EOS），预算 768。证据见 `reports/asr_keywords_plan_20261023/` 的 manifest metadata、dataset config preflight 和 tokenizer preflight JSON。
 
-尚未完成：新 manifest、统一 formatter/parser、列表 reward、GT train-only/完整长度修复、新 recipe、实际 tokenizer round-trip 与 GPU pilot。它们是上述计划的明确实施内容，不能在没有验证前声称“已有完整支持”。云端 legacy 文件仍仅定位，未读取；全量训练音频仍需验证运行节点可读。
+本地主回归 299 passed / 2 deselected；两项排除是已有 torchcodec/FFmpeg 环境不兼容及旧 bad-format 断言不符。定向测试另覆盖 parser/GT/reward/汇总；实际 GT 辅助函数及温度对齐测试 56 passed。CPU rollout 测试通过 namespace 加载实际 helper，避开本机 torchvision GPU registry 导入错误，未模拟 helper 算法。这些不是 GPU 端到端验证。
 
-本计划执行完成的产物应是：**一套统一标注协议、一套共用格式生成与解析实现、一个无 GT 泄漏的联合输出 RL 试验，以及 LibriSpeech 正文/关键词/协议三组结果**。连续 biasing 单独留待后续计划，不作为本轮依赖。
+未完成 GPU 模型 baseline、训练及训练后评估，尚无 job ID 或 WER/BWER 结果。Brix 集群 DNS 在 WSL 与 Windows 均失败，Blob 账号缺可用凭据，本机没有 CUDA。恢复后先上传云端引用版 manifests、检查音频可读、同步代码并确认空闲节点，再按 A0 → A1 → pilot → A2 执行。GT log-prob/mask、实际吞吐与模型质量仍须 GPU 验证。
+
+评估统一使用 unit-cost jiwer 与单词边界匹配，BWER/UWER 错误分区总和等于 WER；NWER 为 UWER 别名。不能直接与旧加权 alignment/子串匹配的历史 BWER 混比。最终结果按集合累计计数，分母 0 报 N/A。
+
+完成实验仍需：**无 GT 泄漏的实际 RL 运行，以及 LibriSpeech 正文/关键词/协议三组模型结果**。连续 biasing 留待后续，不作为本轮依赖。

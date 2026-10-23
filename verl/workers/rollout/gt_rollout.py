@@ -12,7 +12,8 @@ def generate_with_gt_responses(
     gt_responses: dict[int, list[int]],
     calculate_log_probs: bool,
     lora_requests: Any = None,
-) -> tuple[list[list[int]], list[list[float]]]:
+    return_finish_reasons: bool = False,
+):
     """Generate sampled responses and score prompt+GT in the same engine call.
 
     prompt_logprobs=0 includes each observed token's probability. Use the
@@ -49,6 +50,7 @@ def generate_with_gt_responses(
 
     responses = []
     log_probs = []
+    finish_reasons = []
     for i, output in enumerate(outputs):
         if gt_responses and len(output.outputs) != 1:
             raise ValueError("GT rollout requires pre-repeated prompts and one vLLM output per input")
@@ -56,6 +58,7 @@ def generate_with_gt_responses(
         for sample in output.outputs:
             response = gt_response if gt_response is not None else list(sample.token_ids)
             responses.append(response)
+            finish_reasons.append("stop" if gt_response is not None else getattr(sample, "finish_reason", None))
             if not calculate_log_probs:
                 continue
             if gt_response is None:
@@ -72,4 +75,46 @@ def generate_with_gt_responses(
             if gt_response is not None and not all(math.isfinite(prob) for prob in row):
                 raise FloatingPointError("Non-finite vLLM GT response log probabilities")
             log_probs.append(row)
+    if return_finish_reasons:
+        return responses, log_probs, finish_reasons
     return responses, log_probs
+
+
+def prepare_gt_responses(reward_models, tokenizer, n, response_length, *, do_sample=True, validate=False, purpose=None):
+    """Build complete GT rows, excluding greedy/validation and rejecting truncation.
+
+    New joint-output records carry an explicit prompt identity. Pre-repeated
+    groups must stay whole on the local rollout shard or fail before generation.
+    """
+    if validate or not do_sample or purpose in {"baseline", "evaluation"}:
+        return {}
+    if n < 1 or len(reward_models) % n:
+        raise ValueError("GT rollout shard must contain complete n-response groups")
+    responses = {}
+    for i in range(0, len(reward_models), n):
+        group = reward_models[i : i + n]
+        row = group[0]
+        joint = row.get("output_protocol") == "asr-keywords-v1"
+        if joint:
+            if purpose != "train_sampling":
+                raise ValueError("joint GT rollout requires explicit train_sampling purpose")
+            group_id = row.get("gt_group_id")
+            if not group_id or any(r.get("gt_group_id") != group_id for r in group):
+                raise ValueError("GT rollout group identity mismatch")
+            text = row.get("gt_output")
+            if any(r.get("gt_output") != text or r.get("ground_truth") != row.get("ground_truth") for r in group):
+                raise ValueError("GT rollout group target mismatch")
+            if not isinstance(text, str) or text.count("<KEYWORDS>") != 1:
+                raise ValueError("joint GT rollout requires full KEYWORDS gt_output; no text fallback")
+        else:
+            text = row.get("gt_output", row.get("ground_truth", ""))
+        token_ids = tokenizer.encode(text, add_special_tokens=False)
+        eos = tokenizer.eos_token_id
+        if eos is None:
+            raise ValueError("GT rollout tokenizer must define EOS")
+        if not token_ids or token_ids[-1] != eos:
+            token_ids.append(eos)
+        if len(token_ids) > response_length:
+            raise ValueError(f"GT response has {len(token_ids)} tokens, budget {response_length}; cannot truncate")
+        responses[i] = token_ids
+    return responses

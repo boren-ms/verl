@@ -1,0 +1,63 @@
+# @package _global_
+defaults:
+- ../base@_here_
+- _self_
+data:
+  train_data:
+    dataset_name: jsonl
+    jsonl_paths: ${keyword_experiment.manifest_root}/train_pilot10k_seed42.jsonl
+    cache_name: auto_ls_joint_train_pilot10k_seed42_v1
+    add_task_info:
+      task: lang_asr_verb
+      version: 2609
+      language: English
+      lang_hint: true
+      prefix_prob: 0.0
+      output_keywords: ${keyword_experiment.output_keywords}
+    post_process:
+      add_field:
+        fields:
+          data_source: ls_joint_train
+      verl_format:
+        prompt_key: prompt
+        extra_keys:
+        - split
+        - speaker_id
+        - chapter_id
+        - source_manifest_sha
+  val_data:
+  - dataset_name: jsonl
+    jsonl_paths: ${keyword_experiment.manifest_root}/dev.jsonl
+    cache_name: auto_ls_joint_dev_v1
+    add_task_info:
+      task: lang_asr_verb
+      version: 2609
+      language: English
+      lang_hint: true
+      prefix_prob: 0.0
+      output_keywords: ${keyword_experiment.output_keywords}
+    post_process:
+      add_field:
+        fields:
+          data_source: ls_dev
+      verl_format:
+        prompt_key: prompt
+        extra_keys:
+        - split
+        - speaker_id
+        - chapter_id
+        - source_manifest_sha
+actor_rollout_ref:
+  rollout:
+    n: 8
+    gt_rollout: true
+trainer:
+  experiment_name: remax_ls_joint_pilot
+  val_only: false
+  total_training_steps: 100
+  save_freq: 10
+  test_freq: 20
+hydra:
+  searchpath:
+  - file://recipe/phimm/config
+  - file://verl/trainer/config

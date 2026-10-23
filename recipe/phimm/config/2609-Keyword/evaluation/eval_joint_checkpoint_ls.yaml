@@ -1,0 +1,89 @@
+# @package _global_
+# Override actor_rollout_ref.model.path with the exported trained HF model.
+defaults:
+- ../base@_here_
+- _self_
+keyword_experiment:
+  output_keywords: true
+data:
+  train_data: ${data.val_data}
+  val_data:
+  - dataset_name: jsonl
+    jsonl_paths: ${keyword_experiment.manifest_root}/internal_test.jsonl
+    cache_name: auto_ls_joint_internal_test_v1
+    add_task_info:
+      task: lang_asr_verb
+      version: 2609
+      language: English
+      lang_hint: true
+      prefix_prob: 0.0
+      output_keywords: ${keyword_experiment.output_keywords}
+    post_process:
+      add_field:
+        fields:
+          data_source: ls_internal
+      verl_format:
+        prompt_key: prompt
+        extra_keys:
+        - split
+        - speaker_id
+        - chapter_id
+        - source_manifest_sha
+  - dataset_name: jsonl
+    jsonl_paths: ${keyword_experiment.manifest_root}/test_clean.jsonl
+    cache_name: auto_ls_joint_test_clean_v1
+    add_task_info:
+      task: lang_asr_verb
+      version: 2609
+      language: English
+      lang_hint: true
+      prefix_prob: 0.0
+      output_keywords: ${keyword_experiment.output_keywords}
+    post_process:
+      add_field:
+        fields:
+          data_source: ls_clean
+      verl_format:
+        prompt_key: prompt
+        extra_keys:
+        - split
+        - speaker_id
+        - chapter_id
+        - source_manifest_sha
+  - dataset_name: jsonl
+    jsonl_paths: ${keyword_experiment.manifest_root}/test_other.jsonl
+    cache_name: auto_ls_joint_test_other_v1
+    add_task_info:
+      task: lang_asr_verb
+      version: 2609
+      language: English
+      lang_hint: true
+      prefix_prob: 0.0
+      output_keywords: ${keyword_experiment.output_keywords}
+    post_process:
+      add_field:
+        fields:
+          data_source: ls_other
+      verl_format:
+        prompt_key: prompt
+        extra_keys:
+        - split
+        - speaker_id
+        - chapter_id
+        - source_manifest_sha
+  shuffle: false
+actor_rollout_ref:
+  model:
+    path: ???
+  rollout:
+    n: 1
+    gt_rollout: false
+trainer:
+  experiment_name: eval_joint_checkpoint_ls
+  val_only: true
+  val_before_train: true
+  validation_resume: true
+hydra:
+  searchpath:
+  - file://recipe/phimm/config
+  - file://verl/trainer/config

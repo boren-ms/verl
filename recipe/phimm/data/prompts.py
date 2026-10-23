@@ -117,7 +117,7 @@ def _format_known_language_prompt(prompt):
     return prompt
 
 
-def get_task_prompt(task="asr", rand=False, version=None, lang=None):
+def get_task_prompt(task="asr", rand=False, version=None, lang=None, output_keywords=False):
     """Get the prompt for the specified task."""
     if task == "asr":
         prompt = rand_prompt(ASR_PROMPTS, rand=rand)
@@ -139,6 +139,12 @@ def get_task_prompt(task="asr", rand=False, version=None, lang=None):
         language_hint = _format_2609_language_hint(lang)
         if language_hint:
             prompt = f"{prompt}<audio>\n{language_hint}"
+    if output_keywords:
+        from recipe.phimm.data.keyword_output import KEYWORD_INSTRUCTION
+
+        if str(version) != "2609":
+            raise ValueError("KEYWORDS output requires format version 2609")
+        prompt += KEYWORD_INSTRUCTION
     return prompt
 
 
@@ -159,18 +165,26 @@ def get_task_prefix(task, lang, prob=1.0, version=None):
     raise ValueError(f"Unknown task: {task}")
 
 
-def get_task_output(task="asr", lang="English", text="", components=None, version=None):
+def get_task_output(task="asr", lang="English", text="", components=None, version=None,
+                    output_keywords=False, keywords=None):
     """Get the expected output format for the specified task."""
     if task not in ("asr", "rare_asr", "biasing") and not task.startswith("lang_asr"):
         raise ValueError(f"Unknown task: {task}")
-    return _format_task_output(
+    output = _format_task_output(
         task,
         get_language_name(lang),
         text,
         components,
         version=version,
     )
-    
+    if output_keywords:
+        from recipe.phimm.data.keyword_output import append_keyword_block, validate_keywords
+
+        if str(version) != "2609" or components:
+            raise ValueError("KEYWORDS v1 supports single-segment 2609 output only")
+        validate_keywords(text, keywords)
+        output = append_keyword_block(output, keywords)
+    return output
 
 
 ASR_PROMPTS = [

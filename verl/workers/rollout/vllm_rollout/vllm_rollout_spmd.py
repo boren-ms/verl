@@ -62,7 +62,7 @@ from verl.utils.torch_functional import get_response_mask, pad_2d_list_to_length
 from verl.utils.vllm import STABLE_LORA_ID, TensorLoRARequest, VLLMHijack, is_version_ge, replace_lora_adapter
 from verl.workers.config import HFModelConfig, RolloutConfig
 from verl.workers.rollout.base import BaseRollout
-from verl.workers.rollout.gt_rollout import generate_with_gt_responses
+from verl.workers.rollout.gt_rollout import generate_with_gt_responses, prepare_gt_responses
 
 logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
@@ -403,21 +403,25 @@ class vLLMRollout(BaseRollout):
         # users can customize different sampling_params at different run
         with self.update_sampling_params(**kwargs):
             gt_responses = {}
-            if self.config.gt_rollout and not is_validate:
-                for i in range(0, batch_size, self.config.n):
-                    reward_i = non_tensor_batch["reward_model"][i]
-                    gt_text = reward_i.get("gt_output", reward_i.get("ground_truth", ""))
-                    gt_token_ids = self.tokenizer.encode(gt_text)
-                    gt_responses[i] = gt_token_ids[: self.config.response_length - 1] + [self.tokenizer.eos_token_id]
+            if self.config.gt_rollout:
+                gt_responses = prepare_gt_responses(
+                    non_tensor_batch.get("reward_model", []), self.tokenizer,
+                    self.config.n, self.config.response_length,
+                    do_sample=do_sample, validate=is_validate,
+                    purpose=prompts.meta_info.get("rollout_purpose"),
+                )
 
-            response, rollout_log_probs = generate_with_gt_responses(
+            response, rollout_log_probs, finish_reasons = generate_with_gt_responses(
                 self.inference_engine,
                 vllm_inputs,
                 self.sampling_params,
                 gt_responses=gt_responses,
                 calculate_log_probs=self.config.calculate_log_probs,
                 lora_requests=lora_requests,
+                return_finish_reasons=True,
             )
+            actual_response_lengths = [len(row) for row in response]
+            non_tensor_batch["rollout_finish_reason"] = np.array(finish_reasons, dtype=object)
 
             response = pad_2d_list_to_length(response, self.pad_token_id, max_length=self.config.response_length).to(
                 idx.device
@@ -447,6 +451,13 @@ class vLLMRollout(BaseRollout):
         response_attention_mask = get_response_mask(
             response_id=response, eos_token=eos_token_id, dtype=attention_mask.dtype
         )
+        if any(row.get("output_protocol") == "asr-keywords-v1" for row in non_tensor_batch.get("reward_model", [])):
+            # PAD and EOS differ for this model; a consumed stop string need not
+            # emit EOS. Never include padded tokens in joint-output loss/reward.
+            valid_lengths = torch.tensor(actual_response_lengths, device=response.device)
+            response_attention_mask *= (
+                torch.arange(response_length, device=response.device)[None, :] < valid_lengths[:, None]
+            ).to(response_attention_mask.dtype)
         attention_mask = torch.cat((attention_mask, response_attention_mask), dim=-1)
 
         # all the tp ranks should contain the same data here. data in all ranks are valid
@@ -463,7 +474,7 @@ class vLLMRollout(BaseRollout):
         if self.config.calculate_log_probs:
             # we will recompute old log prob with actor
             batch["rollout_log_probs"] = rollout_log_probs
-            if self.config.gt_rollout and not is_validate:
+            if self.config.gt_rollout and not is_validate and do_sample:
                 # prompt_logprobs ignore temperature even in processed_logprobs mode.
                 # Keep this row marker through balancing/filtering for actor-side rescoring.
                 batch["gt_response_mask"] = torch.tensor(

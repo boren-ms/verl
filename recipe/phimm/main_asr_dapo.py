@@ -119,6 +119,7 @@ class TaskRunner:
 
         from omegaconf import OmegaConf
         import recipe.phimm.reward.long_audio_grouped  # noqa: F401
+        import recipe.phimm.reward.keyword_manager  # noqa: F401
 
         OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {}, {}))
 
@@ -226,7 +227,10 @@ class TaskRunner:
             ray_worker_group_cls=ray_worker_group_cls,
             reward_fn=reward_fn,
             val_reward_fn=val_reward_fn,
-            dump_fn=lambda t: get_hyp_text(t, version=val_reward_kwargs.get("version")),
+            dump_fn=lambda t: get_hyp_text(
+                t, version=val_reward_kwargs.get("version", config.data.get("version")),
+                output_keywords=config.get("keyword_experiment", {}).get("output_keywords", False),
+            ),
         )
         trainer.init_workers()
         trainer.fit()

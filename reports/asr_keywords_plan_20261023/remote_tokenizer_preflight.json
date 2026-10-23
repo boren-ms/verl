@@ -1,0 +1,42 @@
+{
+  "tokenizer_path": "/home/boren/data/ckp/remax_2609r2_ml_verb_hint_s100_bs128_n8_r256_g32_flr1/global_step_80",
+  "response_length": 768,
+  "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+  "manifests": {
+    "train_pilot10k_seed42": {
+      "rows": 10000,
+      "sha256": "f35fb5de755ec2a50d867bb29cac923e271074b6c5a6867d57b09f30c0d9fe27",
+      "max_tokens": 119,
+      "p99_tokens": 103,
+      "roundtrip_failures": 0
+    },
+    "dev": {
+      "rows": 6096,
+      "sha256": "e3aaba1c261130aba5296aa1dbc7df6f5b0c5e0546a702895f87c350223c157d",
+      "max_tokens": 120,
+      "p99_tokens": 104,
+      "roundtrip_failures": 0
+    },
+    "internal_test": {
+      "rows": 6131,
+      "sha256": "1b901041999f5f2332e5618796dd9f37636d777657e6df699a561f89350f6969",
+      "max_tokens": 123,
+      "p99_tokens": 104,
+      "roundtrip_failures": 0
+    },
+    "test_clean": {
+      "rows": 2620,
+      "sha256": "bba6587f223c9d068bc13ea85902d785d8a0eaa1913a7f918700331bd1af00c6",
+      "max_tokens": 165,
+      "p99_tokens": 118,
+      "roundtrip_failures": 0
+    },
+    "test_other": {
+      "rows": 2939,
+      "sha256": "2bc2860ae97b6f5f5bfbd2e458ebc5f3224ad293936ed4a8f5133c54c4c5f656",
+      "max_tokens": 182,
+      "p99_tokens": 111,
+      "roundtrip_failures": 0
+    }
+  }
+}

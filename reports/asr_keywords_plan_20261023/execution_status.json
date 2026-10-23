@@ -1,0 +1,76 @@
+{
+  "updated_at": "2026-10-23T14:31:49.139129+00:00",
+  "branch": "boren/asr-transcription-keywords",
+  "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
+  "output_protocol": "asr-keywords-v1",
+  "keyword_tag": "<KEYWORDS>",
+  "annotation_policy": "ls-common5k-v1",
+  "implementation": "complete; GPU integration not yet verified",
+  "config_root": "recipe/phimm/config/2609-Keyword",
+  "local_manifest_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1",
+  "remote_reference_manifest_local_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote",
+  "remote_manifests_uploaded": false,
+  "remote_audio_readability_verified": false,
+  "tokenizer_preflight": {
+    "records": 27786,
+    "failures": 0,
+    "response_budget": 768,
+    "largest_gt_including_eos": 182,
+    "model_inference": false
+  },
+  "tests": {
+    "targeted_latest": {
+      "passed": 37,
+      "command": "python -m pytest tests/recipe/phimm/data/test_keyword_output.py tests/recipe/phimm/reward/test_keyword_manager.py tests/recipe/phimm/test_keyword_report.py tests/recipe/phimm/data/test_dataset_add_field.py -q"
+    },
+    "gt_cpu_latest": {
+      "passed": 56,
+      "command": "python /tmp/run_gt_cpu_tests.py",
+      "note": "Namespace-only CPU runner avoids unrelated torchvision GPU registry import. Actual gt_rollout source and existing temperature/log-prob tests run; no model inference."
+    },
+    "ruff_new_files": "passed",
+    "diff_check": "passed",
+    "known_exclusions": [
+      "Existing torchcodec/FFmpeg ABI incompatibility in parquet embedded audio test",
+      "Existing bad-format assertion disagrees with original HEAD implementation"
+    ],
+    "broad_latest": {
+      "passed": 299,
+      "deselected": 2,
+      "note": "Keyword protocol/reward/report and existing prompt, bias, dataset, extra-field suites. Two existing failures explicitly excluded."
+    },
+    "legacy_file_lint": "Nine pre-existing E501 long lines in touched legacy modules; new-file lint passes."
+  },
+  "model_runs": {
+    "A0_base_original_prompt": "not submitted",
+    "A1_base_joint_prompt": "not submitted",
+    "A2_training": "not submitted",
+    "A2_checkpoint_evaluation": "not submitted"
+  },
+  "ray_job_ids": [],
+  "model_metrics": null,
+  "blockers": [
+    {
+      "kind": "cluster_dns",
+      "last_command": "brix pools -c prod-westus2-cw-6 'verl-*'",
+      "exit_code": 2,
+      "detail": "prod-westus2-cw-6.k8s.dev.openai.org lookup on 172.27.16.1:53: no such host; also failed Windows host DNS earlier"
+    },
+    {
+      "kind": "blob_credentials",
+      "detail": "bbb cannot find credentials for account orngwus2cresco, container data"
+    },
+    {
+      "kind": "local_gpu",
+      "detail": "torch.cuda.is_available() is false"
+    }
+  ],
+  "next_actions": [
+    "Restore cluster DNS and Blob access",
+    "Upload remote-reference JSONL/metadata and verify audio reads",
+    "Sync isolated worktree to a free Ready GPU node",
+    "Run A0 then A1 through both official test sets, summarize corpus WER/BWER/UWER",
+    "Run 100-step 10k pilot, select checkpoint using dev only",
+    "Export checkpoint with correct LoRA rank256/alpha512 and evaluate internal/clean/other"
+  ]
+}

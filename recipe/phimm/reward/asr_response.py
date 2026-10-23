@@ -133,8 +133,12 @@ def _parse_task_output_2609(solution_str: str):
     return segments or [_segment()]
 
 
-def get_hyp_text(solution_str, version=None):
+def get_hyp_text(solution_str, version=None, output_keywords=False, finish_reason=None):
     """Extract lexical text, retaining malformed suffixes after valid segments."""
+    if output_keywords:
+        from recipe.phimm.data.keyword_output import parse_keyword_output
+
+        solution_str = parse_keyword_output(solution_str, finish_reason).body_raw
     task_output = parse_task_output(solution_str, version=version)
     last_segment = task_output[-1]
     if (

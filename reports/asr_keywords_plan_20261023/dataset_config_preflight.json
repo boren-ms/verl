@@ -1,0 +1,44 @@
+[
+  {
+    "config": "baseline_eval/eval_base_ls",
+    "source": "ls_clean",
+    "rows": 2620,
+    "joint": false,
+    "schema_pass": true
+  },
+  {
+    "config": "baseline_eval/eval_base_ls",
+    "source": "ls_other",
+    "rows": 2939,
+    "joint": false,
+    "schema_pass": true
+  },
+  {
+    "config": "baseline_eval/eval_joint_prompt_ls",
+    "source": "ls_clean",
+    "rows": 2620,
+    "joint": true,
+    "schema_pass": true
+  },
+  {
+    "config": "baseline_eval/eval_joint_prompt_ls",
+    "source": "ls_other",
+    "rows": 2939,
+    "joint": true,
+    "schema_pass": true
+  },
+  {
+    "config": "training/remax_ls_joint_pilot",
+    "source": "ls_joint_train",
+    "rows": 10000,
+    "joint": true,
+    "schema_pass": true
+  },
+  {
+    "config": "training/remax_ls_joint_pilot",
+    "source": "ls_dev",
+    "rows": 6096,
+    "joint": true,
+    "schema_pass": true
+  }
+]

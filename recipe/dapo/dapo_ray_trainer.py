@@ -166,6 +166,7 @@ class RayDAPOTrainer(RayPPOTrainer):
                 non_tensor_keys = [k for k in non_tensor_keys if k in new_batch.non_tensor_batch.keys()]
                 gen_batch = new_batch.pop(batch_keys=tensor_keys, non_tensor_batch_keys=non_tensor_keys)
 
+                gen_batch.meta_info["rollout_purpose"] = "train_sampling"
                 gen_batch_output = gen_batch.repeat(repeat_times=self.config.actor_rollout_ref.rollout.n, interleave=True)
 
                 is_last_step = self.global_steps >= self.total_training_steps
@@ -182,6 +183,8 @@ class RayDAPOTrainer(RayPPOTrainer):
                         with marked_timer("gen_max", timing_raw, "red"):
                             gen_baseline_batch = deepcopy(gen_batch)
                             gen_baseline_batch.meta_info["validate"] = True
+                            gen_baseline_batch.meta_info["do_sample"] = False
+                            gen_baseline_batch.meta_info["rollout_purpose"] = "baseline"
                             gen_baseline_output = self.actor_rollout_wg.generate_sequences(gen_baseline_batch)
 
                             # Decode greedy baseline responses and inject into extra_info
