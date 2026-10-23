@@ -1,0 +1,47 @@
+# Verbatim transcription with an English language hint; no sampled prefix.
+# Targeted ASR entity training subset, selected from reviewed LibriSpeech
+# test-clean + test-other entity errors (60 canonical word forms / 65 patterns).
+#
+# Composition: 743 real-audio samples, with original reference labels:
+#   LibriSpeech: 602; MLS: 58; Common Voice: 47; Libriheavy: 36.
+# The 36 Libriheavy additions cover Elexander (4), Innerlochy (2), Kaffar (10),
+# Leocadia (10), and Torquilstone (10). Counts are utterances, not entity tokens.
+#
+# Training-data coverage against the reviewed error inventory:
+#   Canonical word forms: 54/60 (90.0%).
+#   Error patterns: 58/65 (89.2%).
+#   Weighted by observed error occurrences: 172/191 (90.1%).
+# These measure correct word-form presence, not model correction rates or
+# guaranteed identity of the same person/place across recordings.
+# Still missing: fristoe, gobey, grandpap buzzard, hen lord, mainhall, pigeoncote.
+#
+# Storage: JSONL and all audio references are remote Orange blob paths.
+# The 47 Common Voice + 36 Libriheavy WAVs are under this manifest's audio/
+# prefix; existing LibriSpeech files and MLS audio chunks reuse original paths.
+# The repository ASR loader verified 743 rows from this remote manifest.
+#
+# Curation: new Libriheavy clips use published book-text labels and timestamps,
+# verified source-recording durations, and 16 kHz PCM output. They exclude
+# LibriSpeech dev/test reader IDs, matching evaluation text, duplicate text,
+# and overlapping source-audio cuts. Original 707 rows were not retroactively
+# audited at audio-fingerprint level; clips have not all been manually heard.
+#
+# Usage: use this complete subset alone or mix with general training data at
+# an explicitly chosen weight. Do not also add its historical component sets:
+# they overlap. This YAML does not set sampling weights or launch training.
+# Selection used test-clean/test-other errors; scores on those sets are targeted
+# diagnostics, not independent evidence of generalization. See README.md.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/entity_error_subset_20261023/remote_train_v1/expanded_entity_train_v2.jsonl
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  # One source name for sampling, reward routing, and training metrics.
+  add_field:
+    fields:
+      data_source: ls_kw
+  verl_format:
+    prompt_key: prompt
