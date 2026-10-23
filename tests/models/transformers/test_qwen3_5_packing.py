@@ -91,6 +91,49 @@ def _assert_parameter_gradients_equal(actual, expected):
             torch.testing.assert_close(parameter.grad, other.grad, atol=2e-5, rtol=2e-4, msg=name)
 
 
+@pytest.mark.parametrize("checkpointing", [False, True])
+def test_packed_adamw_updates_match_independent_sequences(checkpointing):
+    """Check losses, gradients, weights and optimizer moments over changing batches.
+
+    Independent unpadded sequences are the semantic reference; an unpatched
+    concatenation leaks convolution/recurrent state. Tokenwise labels keep
+    targets inside their own sample boundaries.
+    """
+    expected = _model().train()
+    actual = _model().train()
+    patch_qwen3_5_packed_sequences(actual)
+    if checkpointing:
+        actual.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    optimizers = [torch.optim.AdamW(model.parameters(), lr=3e-6) for model in (expected, actual)]
+
+    for lengths in ([3, 5, 1], [1, 1, 7], [6, 2, 3], [2, 4, 1]):
+        tokens, positions = _tokens(lengths)
+        tokens = (tokens + sum(lengths)) % 63
+        targets = (tokens + 7) % 64
+        losses = []
+        for model, optimizer in zip((expected, actual), optimizers, strict=True):
+            optimizer.zero_grad(set_to_none=True)
+            logits = (
+                _separate_logits(model, tokens, lengths)
+                if model is expected
+                else model(tokens, position_ids=positions, use_cache=False).logits
+            )
+            loss = torch.nn.functional.cross_entropy(logits.reshape(-1, 64), targets.reshape(-1))
+            loss.backward()
+            losses.append(loss.detach())
+        torch.testing.assert_close(losses[0], losses[1], atol=2e-6, rtol=2e-5)
+        _assert_parameter_gradients_equal(actual, expected)
+        for optimizer in optimizers:
+            optimizer.step()
+        for reference, packed in zip(expected.parameters(), actual.parameters(), strict=True):
+            torch.testing.assert_close(packed, reference, atol=2e-6, rtol=2e-5)
+            for key in ("exp_avg", "exp_avg_sq", "step"):
+                torch.testing.assert_close(
+                    optimizers[1].state[packed][key], optimizers[0].state[reference][key],
+                    atol=2e-7, rtol=2e-4,
+                )
+
+
 def _preserve_monkey_patch_globals(monkeypatch):
     from transformers.integrations import flash_attention
 

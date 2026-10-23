@@ -11,7 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Keep Qwen3.5's convolution and delta-rule states separate in packed batches."""
+"""Keep Qwen3.5's convolution and delta-rule states separate in packed batches.
+
+Map MoE's packed decoder contract onto verl's existing remove-padding path:
+the actor gathers valid tokens and position IDs before this module runs;
+full attention uses the reset text positions; convolution uses ``seq_idx``;
+the delta-rule kernel uses ``cu_seqlens``. Both stateful kernels must receive
+the same boundaries. Reset positions alone do not isolate recurrent state.
+
+Unlike MoE's internal hidden-state packing, verl already enters the decoder
+with packed embeddings, so gathering them a second time is unnecessary.
+See docs/l2_packing_validation.md for the reference and validation limits.
+"""
 
 import inspect
 import sys
