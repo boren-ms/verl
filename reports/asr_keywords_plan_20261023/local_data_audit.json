@@ -1,0 +1,267 @@
+{
+  "scope": "local raw TSV + local original biasing JSONL; cloud keyword JSONL not read",
+  "split_rule": "speaker SHA256(ls-keywords-v1:<speaker>) mod 100: 0..4 dev, 5..9 internal_test, else train",
+  "word_lists": {
+    "common5k_size": 5000,
+    "rare_size": 209291,
+    "common5k_sha256": "30eadb83c338df9376e4fabd31bd1349becc06b896b81dbc5fb7dac6fca72a8e",
+    "rare_list_sha256": "31073783030c105da0d666ff43ac3a243359478e7df55d91edf92f1afb90245d"
+  },
+  "evaluation": {
+    "test-clean": {
+      "path": "/home/boren/data/librispeech_biasing/ref/test-clean.biasing_100.jsonl",
+      "sha256": "aafb4820032a8fa7a0fb329e5877da2c48832999e9dbbd0a6f589f9fb29beabd",
+      "rows": 2620,
+      "nonempty": 1980,
+      "empty": 640,
+      "keyword_items": 5692,
+      "keywords_not_in_text": 0,
+      "rows_differ_from_text_minus_common5k": 0,
+      "rows_differ_from_text_intersect_rare_list": 108,
+      "sample_rate_16000": 2620,
+      "channels_1": 2620,
+      "chapters": 87,
+      "speakers": 40,
+      "audio_available": 2620,
+      "audio_header_errors": [],
+      "audio_hours": 5.403466840277796,
+      "ordered_chapter_diagnostics": {
+        "ordered_pairs": 2533,
+        "consecutive_number_pairs": 2533,
+        "pairs_with_repeated_keyword": 169,
+        "current_keyword_items_after_first": 5449,
+        "repeated_items_from_previous": 192,
+        "repeated_items_from_previous_three": 367
+      },
+      "examples": [
+        {
+          "id": "237-134493-0004",
+          "text": "the air and the earth are curiously mated and intermingled as if the one were the breath of the other",
+          "keywords": [
+            "intermingled",
+            "mated"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/test-clean/237/134493/237-134493-0004.flac"
+        },
+        {
+          "id": "260-123286-0016",
+          "text": "these thoughts agitated me all day and my imagination scarcely calmed down after several hours sleep",
+          "keywords": [
+            "calmed"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/test-clean/260/123286/260-123286-0016.flac"
+        }
+      ]
+    },
+    "test-other": {
+      "path": "/home/boren/data/librispeech_biasing/ref/test-other.biasing_100.jsonl",
+      "sha256": "35400b5608c255be4031bd1d4138649f0b77453b2c7b39bef287681a9a2014c7",
+      "rows": 2939,
+      "nonempty": 2141,
+      "empty": 798,
+      "keyword_items": 5248,
+      "keywords_not_in_text": 0,
+      "rows_differ_from_text_minus_common5k": 0,
+      "rows_differ_from_text_intersect_rare_list": 161,
+      "sample_rate_16000": 2939,
+      "channels_1": 2939,
+      "chapters": 90,
+      "speakers": 33,
+      "audio_available": 2939,
+      "audio_header_errors": [],
+      "audio_hours": 5.341547256944436,
+      "ordered_chapter_diagnostics": {
+        "ordered_pairs": 2849,
+        "consecutive_number_pairs": 2849,
+        "pairs_with_repeated_keyword": 167,
+        "current_keyword_items_after_first": 5073,
+        "repeated_items_from_previous": 193,
+        "repeated_items_from_previous_three": 415
+      },
+      "examples": [
+        {
+          "id": "3764-168670-0020",
+          "text": "asked jean valjean fauchelevent replied",
+          "keywords": [
+            "fauchelevent"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/test-other/3764/168670/3764-168670-0020.flac"
+        },
+        {
+          "id": "533-131562-0001",
+          "text": "the keys of your cabinet desk drawers and whatever else you possess said he rising and holding out his hand",
+          "keywords": [
+            "cabinet",
+            "drawers"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/test-other/533/131562/533-131562-0001.flac"
+        }
+      ]
+    }
+  },
+  "training_tsv": {
+    "path": "/home/boren/data/LibriSpeech/asr_train_transcribe.tsv",
+    "sha256": "f9ba99761f1c4a217147eca5d9a5b8a044982f7714a2e3f220f85002a4f6d9f5",
+    "rows": 280393,
+    "duplicate_ids": 0,
+    "test_id_overlap": 0,
+    "test_normalized_text_overlap_rows": 7,
+    "test_speaker_overlap_rows": 0,
+    "nonempty_under_explicit_rare_list": 256213,
+    "empty_under_explicit_rare_list": 24180,
+    "nonempty_under_common5k_exclusion": 256213,
+    "empty_under_common5k_exclusion": 24180,
+    "local_audio_available": 132266,
+    "chapters": 5466,
+    "splits": {
+      "train": {
+        "rows": 254249,
+        "nonempty_under_explicit_rare_list": 232066,
+        "empty_under_explicit_rare_list": 22183,
+        "nonempty_under_common5k_exclusion": 232066,
+        "empty_under_common5k_exclusion": 22183,
+        "test_normalized_text_overlap_rows": 7,
+        "local_audio_available": 120039,
+        "speakers": 2119
+      },
+      "internal_test": {
+        "rows": 12847,
+        "nonempty_under_explicit_rare_list": 11929,
+        "empty_under_explicit_rare_list": 918,
+        "nonempty_under_common5k_exclusion": 11929,
+        "empty_under_common5k_exclusion": 918,
+        "test_normalized_text_overlap_rows": 0,
+        "local_audio_available": 6131,
+        "speakers": 109
+      },
+      "dev": {
+        "rows": 13297,
+        "nonempty_under_explicit_rare_list": 12218,
+        "empty_under_explicit_rare_list": 1079,
+        "nonempty_under_common5k_exclusion": 12218,
+        "empty_under_common5k_exclusion": 1079,
+        "test_normalized_text_overlap_rows": 0,
+        "local_audio_available": 6096,
+        "speakers": 110
+      }
+    },
+    "examples": {
+      "train": [
+        {
+          "id": "103-1240-0000",
+          "text": "chapter one missus rachel lynde is surprised missus rachel lynde lived just where the avonlea main road dipped down into a little hollow fringed with alders and ladies eardrops and traversed by a brook",
+          "derived_common5k_keywords_example": [
+            "alders",
+            "avonlea",
+            "dipped",
+            "eardrops",
+            "fringed",
+            "lynde",
+            "traversed"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/103/1240/103-1240-0000.flac"
+        },
+        {
+          "id": "103-1240-0001",
+          "text": "that had its source away back in the woods of the old cuthbert place it was reputed to be an intricate headlong brook in its earlier course through those woods with dark secrets of pool and cascade but by the time it reached lynde's hollow it was a quiet well conducted little stream",
+          "derived_common5k_keywords_example": [
+            "cascade",
+            "cuthbert",
+            "headlong",
+            "intricate",
+            "lynde's",
+            "reputed"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/103/1240/103-1240-0001.flac"
+        },
+        {
+          "id": "103-1240-0002",
+          "text": "for not even a brook could run past missus rachel lynde's door without due regard for decency and decorum it probably was conscious that missus rachel was sitting at her window keeping a sharp eye on everything that passed from brooks and children up",
+          "derived_common5k_keywords_example": [
+            "brooks",
+            "decency",
+            "decorum",
+            "lynde's"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/103/1240/103-1240-0002.flac"
+        }
+      ],
+      "internal_test": [
+        {
+          "id": "1069-133699-0000",
+          "text": "he took a resolve after this not to misinterpret her words even when miss stackpole appeared to strike the personal note most strongly he bethought himself that persons in her view were simple and homogeneous organisms",
+          "derived_common5k_keywords_example": [
+            "bethought",
+            "homogeneous",
+            "misinterpret",
+            "organisms",
+            "resolve",
+            "stackpole"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/1069/133699/1069-133699-0000.flac"
+        },
+        {
+          "id": "1069-133699-0001",
+          "text": "to deal with her in strict reciprocity he carried out his resolve with a great deal of tact and the young lady found in renewed contact with him no obstacle to the exercise of her genius for unshrinking enquiry",
+          "derived_common5k_keywords_example": [
+            "enquiry",
+            "obstacle",
+            "reciprocity",
+            "resolve",
+            "tact",
+            "unshrinking"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/1069/133699/1069-133699-0001.flac"
+        },
+        {
+          "id": "1069-133699-0002",
+          "text": "the general application of her confidence her situation at gardencourt therefore appreciated as we have seen her to be by isabel and full of appreciation herself of that free play of intelligence",
+          "derived_common5k_keywords_example": [
+            "appreciated",
+            "appreciation",
+            "gardencourt"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/1069/133699/1069-133699-0002.flac"
+        }
+      ],
+      "dev": [
+        {
+          "id": "118-121721-0000",
+          "text": "a stitch in time saves embarrassing exposure",
+          "derived_common5k_keywords_example": [
+            "embarrassing",
+            "exposure",
+            "saves",
+            "stitch"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/118/121721/118-121721-0000.flac"
+        },
+        {
+          "id": "118-121721-0001",
+          "text": "wonderful parents are yet to be heard from who don't think theirs is a wonder a nocturnal animal to which everyone in a sleeping car is eager to give a wide berth bachelor from latin baculus a stick unattached",
+          "derived_common5k_keywords_example": [
+            "bachelor",
+            "baculus",
+            "berth",
+            "nocturnal",
+            "unattached"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/118/121721/118-121721-0001.flac"
+        },
+        {
+          "id": "118-121721-0002",
+          "text": "hence an unattached man which any lady may stick stick to or get stuck on backbiter a mosquito balance something wanted by book keepers and often lost by topers",
+          "derived_common5k_keywords_example": [
+            "backbiter",
+            "keepers",
+            "mosquito",
+            "topers",
+            "unattached"
+          ],
+          "audio_path": "/home/boren/data/LibriSpeech/train-clean-100/118/121721/118-121721-0002.flac"
+        }
+      ]
+    },
+    "note": "Derived-label counts do not verify the cloud keyword manifest. common5k exclusion matches all local test labels; explicit rare-list intersection does not."
+  }
+}
