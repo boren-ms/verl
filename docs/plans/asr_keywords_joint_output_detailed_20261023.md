@@ -13,7 +13,7 @@
 
 本次实验定性为**关键词联合输出**：让模型对一条音频既给出原始 transcription，又给出该段音频转写中实际出现的 rare words 列表。检验 RL 是否能让原 base 学会此能力，同时保留正文识别质量。
 
-用户已确认：保留原转写；`<keywords>` 独占一行，下一行使用英文逗号分隔；没有关键词时保留头和空行；利用已有关键词数据；RL 使用完整 ground-truth rollout；在 LibriSpeech 上训练与验证；先做详细计划，不急于实现。
+用户已确认：保留原转写；`<KEYWORDS>` 独占一行，下一行使用英文逗号分隔；没有关键词时保留头和空行；利用已有关键词数据；RL 使用完整 ground-truth rollout；在 LibriSpeech 上训练与验证；先做详细计划，不急于实现。
 
 本轮每条音频独立生成，不输入关键词候选、distractors 或 history。跨段预测反馈、连续识别、history TTL、rolling 策略、流式调度器及相关训练全部留待下一轮计划。
 
@@ -145,7 +145,7 @@ for word in re.findall(r"[\w'\-]+", reference_text.lower()):
 
 ```text
 Also output the rare words that occur in this audio. After the complete
-transcription, write <keywords> on a new line, then a comma-separated list
+transcription, write <KEYWORDS> on a new line, then a comma-separated list
 on the next line. List each word once, in its order of first occurrence.
 If there are no keywords, leave that line empty. Do not add explanations.
 ```
@@ -164,11 +164,11 @@ The language is English.
 ```text
 [原有语言头与模式头]
 [完整原始 transcription]
-<keywords>
+<KEYWORDS>
 [以英文逗号分隔的关键词，或空行]
 ```
 
-`<keywords>` 为普通文本协议，不新增 tokenizer token 或 embedding；大小写固定；只有一个块；无需 `</keywords>`；没有 JSON、Markdown code fence、项目符号或解释。正文模式继续为 `<VERBATIM>`，不新增 `transcription` tag。
+`<KEYWORDS>` 为普通文本协议，不新增 tokenizer token 或 embedding；标签必须全大写并区分大小写，小写或混合大小写标签记为协议错误；只有一个块；无需 `</KEYWORDS>`；没有 JSON、Markdown code fence、项目符号或解释。正文模式继续为 `<VERBATIM>`，不新增 `transcription` tag。
 
 生成端使用 `", ".join(target_keywords)`；解析端接受英文逗号两侧空格。当前目标是单个词，正则不会产生含英文逗号或换行的项，**v1 不引入 CSV 引号/短语语法**。例如 `"Washington, D.C."` 不作为本轮合法单项。短语与 CSV 支持留给未来协议版本，避免“有的配置 split，有的配置 CSV”的冲突。
 
@@ -180,7 +180,7 @@ The language is English.
 <src=English><tgt=English>
 <VERBATIM>
 asked jean valjean fauchelevent replied
-<keywords>
+<KEYWORDS>
 fauchelevent
 ```
 
@@ -202,7 +202,7 @@ fauchelevent
 <src=English><tgt=English>
 <VERBATIM>
 the air and the earth are curiously mated and intermingled as if the one were the breath of the other
-<keywords>
+<KEYWORDS>
 mated, intermingled
 ```
 
@@ -214,21 +214,21 @@ mated, intermingled
 <src=English><tgt=English>
 <VERBATIM>
 when i was a young man i thought paul was making too much of his call
-<keywords>
+<KEYWORDS>
 
 ```
 
-尾部的精确字符串为 `"\n<keywords>\n\n"`，之后是模型正常 EOS（EOS 是 token，不作为可见文本输出）。合法空列表应得到空目标的正确列表分，不能被当成漏块。raw response 必须保存 strip 前版本和 finish_reason，以识别空尾部。
+尾部的精确字符串为 `"\n<KEYWORDS>\n\n"`，之后是模型正常 EOS（EOS 是 token，不作为可见文本输出）。合法空列表应得到空目标的正确列表分，不能被当成漏块。raw response 必须保存 strip 前版本和 finish_reason，以识别空尾部。
 
 ### 6.6 例四：异常与评分边界
 
 | 原始尾部 / 行为 | 状态 | 处理 |
 |---|---|---|
-| 正文后完全无 `<keywords>` | `missing` | 正文按旧 parser 提取；关键词任务分为 0，即使 GT 为空也不算成功 |
-| `<keywords>` 与正文同一行 | `malformed` | 不当作合法块；保留可见错误，不能任意删去尾部来降低 WER |
+| 正文后完全无 `<KEYWORDS>` | `missing` | 正文按旧 parser 提取；关键词任务分为 0，即使 GT 为空也不算成功 |
+| `<KEYWORDS>` 与正文同一行 | `malformed` | 不当作合法块；保留可见错误，不能任意删去尾部来降低 WER |
 | `fauchelevent, fauchelevent` | `malformed`，原因 duplicate | 保存原列表与去重诊断；主列表任务分为 0 |
 | `fauchelevent,` | `malformed`，原因 empty_item | 不用空字符串填充列表 |
-| 两个 `<keywords>` 块 | `malformed`，原因 duplicate_header | 不采取“取最后一个块”或覆盖前块 |
+| 两个 `<KEYWORDS>` 块 | `malformed`，原因 duplicate_header | 不采取“取最后一个块”或覆盖前块 |
 | 列表下一行后又出现解释文字 | `malformed`，原因 extra_lines | 不把解释悄悄丢弃；记录格式失败及可见多余内容 |
 | 因 token 上限在头后结束 | `truncated` | 不当成合法空列表；主列表任务分为 0 |
 | 正确语法，但词不在预测正文中 | `valid_nonempty` + consistency=false | 保留原预测并与 GT 评分，不先过滤到好看的结果 |
@@ -259,9 +259,9 @@ when i was a young man i thought paul was making too much of his call
 base_answer = get_task_output(
     task="lang_asr_verb", lang="English", text=reference_text, version=2609
 )
-full_answer = base_answer + "\n<keywords>\n" + ", ".join(target_keywords) + "\n"
+full_answer = base_answer + "\n<KEYWORDS>\n" + ", ".join(target_keywords) + "\n"
 if not target_keywords:
-    full_answer += "\n"  # 空目标结尾为 \n<keywords>\n\n
+    full_answer += "\n"  # 空目标结尾为 \n<KEYWORDS>\n\n
 
 # 首轮 prefix_prob=0，prefix=""，completion 等于 full_answer。
 # 若将来启用 prefix，必须按真实 prefix 精确移除一次，不用 lstrip 改写正文。
@@ -276,7 +276,7 @@ assert prefix + gt_output == full_answer
 {
   "reward_model": {
     "ground_truth": "asked jean valjean fauchelevent replied",
-    "gt_output": "<src=English><tgt=English>\n<VERBATIM>\nasked jean valjean fauchelevent replied\n<keywords>\nfauchelevent\n"
+    "gt_output": "<src=English><tgt=English>\n<VERBATIM>\nasked jean valjean fauchelevent replied\n<KEYWORDS>\nfauchelevent\n"
   },
   "extra_info": {
     "keywords": ["fauchelevent"],
@@ -301,7 +301,7 @@ assert prefix + gt_output == full_answer
 
 ## 8. Parser 实施设计与所有评分调用点
 
-现状实测：把例一联合答案传给当前 `get_hyp_text(version=2609)`，结果包含 `\n<keywords>\nfauchelevent`。因此当前 parser **不满足新任务要求**，不能直接拿其输出算正文 WER。
+现状实测：把例一联合答案传给当前 `get_hyp_text(version=2609)`，结果包含 `\n<KEYWORDS>\nfauchelevent`。因此当前 parser **不满足新任务要求**，不能直接拿其输出算正文 WER。
 
 拟实现结构化返回：
 
@@ -317,7 +317,7 @@ ParsedASROutput:
 解析步骤：
 
 1. 通过显式 `output_protocol` 选择新 parser；旧任务走旧路径，不自动猜测所有任务均有新块。
-2. 在原始文本中找**独占行、精确匹配**的 `<keywords>`。先识别 envelope，再调用已有语言/模式段 parser 解析正文，不能先清标签或 `.strip()` 后丢失结构证据。
+2. 在原始文本中找**独占行、精确匹配**的 `<KEYWORDS>`。先识别 envelope，再调用已有语言/模式段 parser 解析正文，不能先清标签或 `.strip()` 后丢失结构证据。
 3. 恰好一个头时分开正文与尾部；尾部只能有一个列表行及末尾空白。列表按英文逗号拆分、trim，每项验证为一个 v1 token，无空项、无重复。不使用 GT 参与解析或修复。
 4. 没有头、重复头或坏位置时明确报错。非空异常尾部保存为 `unparsed_suffix`，在正文词法评分中保留其可见词；不因 parser 丢弃错误而改善 WER。合法列表才从正文中移除。
 5. 合法头但语法错误、带解释的尾部不按合法列表剥离；诊断可单独展示解析候选，但主评分使用保守正文路径并记录协议失败。训练与独立评估采用相同失败规则。

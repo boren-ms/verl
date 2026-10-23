@@ -18,7 +18,7 @@
 <path d="M268 101H310" stroke="#58a6ff" marker-end="url(#tb)"/>
 <rect x="310" y="60" width="244" height="82" rx="8" fill="#2a1f00" stroke="#9e6a03"/><text x="327" y="88" class="title">Canonical target_keywords</text><text x="327" y="112">去重 / 按出现顺序 / 空列表</text><text x="327" y="131" class="small">固定标注协议与词表 hash</text>
 <path d="M554 101H598" stroke="#58a6ff" marker-end="url(#tb)"/>
-<rect x="598" y="60" width="532" height="82" rx="8" fill="#0d2818" stroke="#238636"/><text x="615" y="88" class="title">共享 Prompt / GT formatter</text><text x="615" y="112">原转写 + &lt;keywords&gt; + 英文逗号单词列表；保留语言与 VERBATIM 头</text><text x="615" y="131" class="small">ground_truth = 纯正文；gt_output = 可直接接在 prefix 后的完整答案</text>
+<rect x="598" y="60" width="532" height="82" rx="8" fill="#0d2818" stroke="#238636"/><text x="615" y="88" class="title">共享 Prompt / GT formatter</text><text x="615" y="112">原转写 + &lt;KEYWORDS&gt; + 英文逗号单词列表；保留语言与 VERBATIM 头</text><text x="615" y="131" class="small">ground_truth = 纯正文；gt_output = 可直接接在 prefix 后的完整答案</text>
 <path d="M866 143V190H310V221" stroke="#58a6ff" fill="none" marker-end="url(#tb)"/>
 <rect x="8" y="208" width="724" height="151" rx="12" fill="none" stroke="#8957e5" stroke-dasharray="6 4"/><text x="27" y="235" class="pool">GPU · ActorRolloutRefWorker (Ray actor)</text>
 <rect x="28" y="254" width="298" height="80" rx="8" fill="#0a1628" stroke="#388bfd"/><text x="46" y="283" class="title">Train sampling / n = 8（提议）</text><text x="46" y="307">1 完整 GT + 7 模型真实采样</text><text x="46" y="326" class="small">长度超限提前处理；不截掉 keywords</text>
@@ -32,7 +32,7 @@
 <div class="stage-grid"><div class="stage-card"><h3>任务格式<span class="loc loc-gpu">联合输出</span></h3><p>保留原正文和语言/模式头，追加关键词块；空目标保留头与空行。</p><div class="fields">&lt;src=English&gt;&lt;tgt=English&gt;
 &lt;VERBATIM&gt;
 asked jean valjean fauchelevent replied
-&lt;keywords&gt;
+&lt;KEYWORDS&gt;
 fauchelevent</div></div><div class="stage-card"><h3>本轮验收<span class="loc">单段独立生成</span></h3><p>正文质量、关键词准确性和协议正确性分别验收。GT 轨迹必须包含完整联合答案，并能提供有效训练信号。</p><div class="fields">输入：音频 + 原 prompt + 联合输出指令
 输出：transcription + keyword list
 不输入候选词或跨段 history</div></div></div></section>
@@ -40,14 +40,14 @@ fauchelevent</div></div><div class="stage-card"><h3>本轮验收<span class="loc
 <div class="stage-card"><h3>真实多词样本 · test-clean 237-134493-0004</h3><div class="fields">&lt;src=English&gt;&lt;tgt=English&gt;
 &lt;VERBATIM&gt;
 the air and the earth are curiously mated and intermingled as if the one were the breath of the other
-&lt;keywords&gt;
+&lt;KEYWORDS&gt;
 mated, intermingled</div><p>稳定去重、按正文首次出现排序，集合评分与顺序分开。v1 仅单词，不引入 CSV 引号或短语。</p></div>
 <div class="stage-card"><h3>真实空样本 · test-clean 2830-3980-0017</h3><div class="fields">&lt;src=English&gt;&lt;tgt=English&gt;
 &lt;VERBATIM&gt;
 when i was a young man i thought paul was making too much of his call
-&lt;keywords&gt;
+&lt;KEYWORDS&gt;
 
-</div><p>精确尾部为 <code>\n&lt;keywords&gt;\n\n</code>。缺头与 token 上限截断均不是合法空列表。</p></div></div>
+</div><p>精确尾部为 <code>\n&lt;KEYWORDS&gt;\n\n</code>。缺头与 token 上限截断均不是合法空列表。</p></div></div>
 <div class="notice">现有 ls_rare05 使用 common10k + rare_ratio=0.5；本轮统一 common5k、无随机裁剪。已核验测试标注与 common5k 逐行一致。现有 formatter/parser 尚需实现新协议，不能直接用于联合输出。</div></section>
 <section id="parsing"><h2>02 · 解析与独立评分流程</h2><div class="diagram">
 <svg viewBox="0 0 1160 320" role="img" aria-label="模型原始答案分别解析为正文、关键词和协议状态后独立评分">
