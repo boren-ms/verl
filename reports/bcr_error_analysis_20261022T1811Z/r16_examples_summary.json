@@ -1,0 +1,3496 @@
+{
+  "scope": "Ongoing BCR vs baseline comparison; exact same-run full validation dumps at step580",
+  "selected_common_validation_step": 580,
+  "bad_case_threshold": "logged n_err > 0 (equivalent p_err > 0 where n_ref > 0)",
+  "categories": "Disjoint categories compare each matched unit logged n_err/n_ref. Improved includes recovered; persistent means both bad and equal rate; worsening_persistent means both bad and higher rate. Rate comparisons preserve each run logged denominator, including any compound-dependent changes.",
+  "matching": "dataset + stable id; grouped Earnings uses parent_audio_path, ordered segments; unchanged gts and segment identities required",
+  "count_policy": "Only nonnull logged counts; Earnings contributes one group-head count per parent. No rescoring or null-to-zero replacement.",
+  "table_policy": "Flatten actual run files by columns; deduplicate identical cumulative observations, preserve source row/slot; enrich by exact input/output/gts and numeric score within rel/abs 1e-6 (table scores cast to float32)",
+  "per_dataset": {
+    "earning_chunk_verb": {
+      "step": 580,
+      "unit": "parent_recording",
+      "baseline_raw_rows": 341,
+      "target_raw_rows": 341,
+      "baseline_units": 6,
+      "target_units": 6,
+      "matched": 6,
+      "baseline_only": 0,
+      "target_only": 0,
+      "reference_conflicts": [],
+      "metadata_conflicts": [],
+      "logged_n_ref_differences_despite_equal_gts": [],
+      "baseline_invalid_units": [],
+      "target_invalid_units": [],
+      "category_counts": {
+        "improved": 0,
+        "newly_failed": 0,
+        "worsening_persistent": 5,
+        "persistent": 1,
+        "unchanged_correct": 0,
+        "unknown": 0
+      },
+      "recovered_subset_of_improved": 0,
+      "baseline_counts": {
+        "n_err": 685,
+        "n_err_counted_units": 6,
+        "n_ref": 15395,
+        "n_ref_counted_units": 6,
+        "nb_err": 0,
+        "nb_err_counted_units": 6,
+        "nb_ref": 0,
+        "nb_ref_counted_units": 6
+      },
+      "target_counts": {
+        "n_err": 797,
+        "n_err_counted_units": 6,
+        "n_ref": 15395,
+        "n_ref_counted_units": 6,
+        "nb_err": 0,
+        "nb_err_counted_units": 6,
+        "nb_ref": 0,
+        "nb_ref_counted_units": 6
+      },
+      "baseline_p_err_from_logged_counts": 0.04449496589801884,
+      "target_p_err_from_logged_counts": 0.051770055212731404,
+      "baseline_pb_err_from_logged_counts": null,
+      "target_pb_err_from_logged_counts": null,
+      "delta_n_err": 112,
+      "delta_p_err_percentage_points": 0.7275089314712567,
+      "added_errors_in_newly_failed": 0,
+      "added_errors_in_worsening_persistent": 112,
+      "removed_errors_in_improved": 0,
+      "examples": [
+        {
+          "dataset": "earning_chunk_verb",
+          "stable_identity": "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/c6efdf26-e19a-4e33-8bbc-c40283fea3a3.mp3",
+          "category": "worsening_persistent",
+          "baseline_n_err": 63,
+          "target_n_err": 106,
+          "baseline_n_ref": 1719,
+          "target_n_ref": 1719,
+          "delta_n_err": 43,
+          "reference_equal": true,
+          "reference_sha256": "491e295a7fb89128bde0050a31dca128ddabdf9af317fd91ff51af8b7381a7ef",
+          "baseline_lines": [
+            114,
+            115,
+            116,
+            117,
+            118,
+            119,
+            120,
+            121,
+            122,
+            123,
+            124,
+            125,
+            126,
+            127,
+            128,
+            129,
+            130,
+            131,
+            132,
+            133,
+            134,
+            135,
+            136,
+            137,
+            138,
+            139,
+            140,
+            141,
+            142,
+            143,
+            144,
+            145,
+            146,
+            147,
+            148,
+            149,
+            150,
+            151,
+            152,
+            153,
+            154,
+            155,
+            156,
+            157
+          ],
+          "target_lines": [
+            114,
+            115,
+            116,
+            117,
+            118,
+            119,
+            120,
+            121,
+            122,
+            123,
+            124,
+            125,
+            126,
+            127,
+            128,
+            129,
+            130,
+            131,
+            132,
+            133,
+            134,
+            135,
+            136,
+            137,
+            138,
+            139,
+            140,
+            141,
+            142,
+            143,
+            144,
+            145,
+            146,
+            147,
+            148,
+            149,
+            150,
+            151,
+            152,
+            153,
+            154,
+            155,
+            156,
+            157
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/earning_chunk_verb/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/earning_chunk_verb/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/earning_chunk_verb_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/earning_chunk_verb_580.jsonl",
+          "segment_count": 44,
+          "reference": null,
+          "reference_excerpt": "Hello ladies and gentlemen, thank you for standing by for Qudian’s third quarter 2021 earnings conference call. At this time, all participants are listen-only mode. After management's prepared remarks, there will be a question and answer session. Today's conference is being recorded. I will now turn the call over to our host from Qudian. Please go ahead. Hello everyone and welcome to Qudian’s third quarter 2021 earnings conference call. The company's results were issued via Newswire services earlier today and were posted online. You can download the earnings press release and sign up for the company's distribution list by visiting our website",
+          "baseline_output": null,
+          "target_output": null,
+          "changed_output_spans": [
+            {
+              "baseline": "for standing by for Curion's third quarter 2021 earnings",
+              "target": "for standing by for Qudian's third quarter 2021 earnings",
+              "operation": "replace"
+            },
+            {
+              "baseline": "there will be a question and answer session. Today's conference is",
+              "target": "there will be a question-and-answer session. Today's conference is",
+              "operation": "replace"
+            },
+            {
+              "baseline": "to our host from Curion. Please go ahead. Hello,",
+              "target": "to our host from Qudian. Please go ahead. Hello,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "chairman, and chief executive officer, and Ms. Sisi Zhu,",
+              "target": "chairman, and chief executive officer; and Miss Sisi Zhu,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "chief executive officer, and Ms. Sisi Zhu, our VP",
+              "target": "chief executive officer; and Miss Sisi Zhu, our VP",
+              "operation": "replace"
+            },
+            {
+              "baseline": "will open the call to Q&A. Before we continue, please",
+              "target": "will open the call Q and A. Before we continue, please",
+              "operation": "replace"
+            },
+            {
+              "baseline": "Harbor provisions of the U.S. Private Securities Litigation Reform",
+              "target": "Harbor provisions of the US Private Securities Litigation Reform",
+              "operation": "replace"
+            },
+            {
+              "baseline": "as required under applicable laws. Please also note that",
+              "target": "as required under applicable law. Please also note that",
+              "operation": "replace"
+            },
+            {
+              "baseline": "Please also note that Tridiant's earnings press release and",
+              "target": "Please also note that Tidian's earnings press release and",
+              "operation": "replace"
+            },
+            {
+              "baseline": "unaudited non-GAAP financial measures. Tridiant's press release contains a",
+              "target": "unaudited non-GAAP financial measures. Tidian's press release contains a",
+              "operation": "replace"
+            },
+            {
+              "baseline": "the third quarter, we continue to execute prudent operational",
+              "target": "the third quarter, we continued to execute prudent operational",
+              "operation": "replace"
+            },
+            {
+              "baseline": "sequentially by 40.4% to RMB 3 billion. During the",
+              "target": "sequentially by 40.4% to 3 billion RMB. During",
+              "operation": "delete"
+            }
+          ]
+        },
+        {
+          "dataset": "earning_chunk_verb",
+          "stable_identity": "az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/OpenASR/ArtificialAnalysis/Earnings22-Cleaned-AA/audio/647936bd-87b4-4f20-b467-b954263513e6.mp3",
+          "category": "worsening_persistent",
+          "baseline_n_err": 143,
+          "target_n_err": 179,
+          "baseline_n_ref": 2647,
+          "target_n_ref": 2647,
+          "delta_n_err": 36,
+          "reference_equal": true,
+          "reference_sha256": "a8b24faeaf52589ec51f6a4feb0da4ca0735a7c52ac9965a4db0c630cf4cf6dc",
+          "baseline_lines": [
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113
+          ],
+          "target_lines": [
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/earning_chunk_verb/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/earning_chunk_verb/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/earning_chunk_verb_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/earning_chunk_verb_580.jsonl",
+          "segment_count": 62,
+          "reference": null,
+          "reference_excerpt": "Please stand by, we're about to begin. Good day and welcome to the Polyus Third Quarter 2021 Financial Results Conference Call. Today's call is being recorded. At this time I'd like to turn the call over to Victor Drozdov. Please go ahead. Thanks a lot. Hi everyone. Uh. Welcome to our uh conference call for the third quarter uh financial results. Uh today we have uh our uh CFO uh here with us. Uh so Mikhail will uh provide uh valuable comments on uh uh the financial results for the third quarter, uh as well as uh we'll be answering your uh questions. Uh with that in mind, uh I'll pass the floor uh to Mikhail. Please go ahead. Yes, hello, and ",
+          "baseline_output": null,
+          "target_output": null,
+          "changed_output_spans": [
+            {
+              "baseline": "Drozdov. Please go ahead. Uh, today we have,",
+              "target": "Drozdov. Please go ahead. Hi, everyone. Uh, welcome to our, uh, conference call for the third quarter, uh, financial results. Uh, today we have,",
+              "operation": "insert"
+            },
+            {
+              "baseline": "CFO, uh, here with us, uh, so Mikhail will, uh,",
+              "target": "CFO, uh, here with us. Uh, so Mihail will, uh,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "with us, uh, so Mikhail will, uh, provide, uh,",
+              "target": "with us. Uh, so Mihail will, uh, provide, uh,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "the floor, uh, to Mihail, please go ahead. Yes, hello,",
+              "target": "the floor, uh, to Mihail. Please go ahead. Yes, hello,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "you for joining our call, so I'll take you briefly,",
+              "target": "you for joining our call. So I'll take you briefly,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "the revenue in the 3rd quarter was 1.4 billion,",
+              "target": "the revenue in the third quarter was 1.4 billion,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "our sales in the 3rd quarter, we sold approximately",
+              "target": "our sales in the third quarter, we sold approximately",
+              "operation": "replace"
+            },
+            {
+              "baseline": "Now, our quarterly EBITDA uh increased to approximately uh",
+              "target": "Now, our quarterly EBITDA increased to approximately 1",
+              "operation": "delete"
+            },
+            {
+              "baseline": "uh increased to approximately uh 1 billion USD, which",
+              "target": "EBITDA increased to approximately 1 billion US, which",
+              "operation": "delete"
+            },
+            {
+              "baseline": "approximately uh 1 billion USD, which is up 10%",
+              "target": "to approximately 1 billion US, which is up 10%",
+              "operation": "replace"
+            },
+            {
+              "baseline": "our TCC figure. As we uh highlighted during the uh",
+              "target": "our TCC figure. As we, uh, highlighted during the, uh,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "we uh highlighted during the uh previous calls, TCC uh",
+              "target": "we, uh, highlighted during the, uh, previous calls, TCC, uh,",
+              "operation": "replace"
+            }
+          ]
+        }
+      ]
+    },
+    "openml_bad": {
+      "step": 580,
+      "unit": "utterance",
+      "baseline_raw_rows": 393,
+      "target_raw_rows": 393,
+      "baseline_units": 393,
+      "target_units": 393,
+      "matched": 393,
+      "baseline_only": 0,
+      "target_only": 0,
+      "reference_conflicts": [],
+      "metadata_conflicts": [],
+      "logged_n_ref_differences_despite_equal_gts": [
+        {
+          "stable_identity": "9071737899953350186",
+          "baseline_n_ref": 25,
+          "target_n_ref": 26,
+          "baseline_lines": [
+            111
+          ],
+          "target_lines": [
+            111
+          ]
+        },
+        {
+          "stable_identity": "common_voice_es_18352998",
+          "baseline_n_ref": 4,
+          "target_n_ref": 5,
+          "baseline_lines": [
+            243
+          ],
+          "target_lines": [
+            243
+          ]
+        },
+        {
+          "stable_identity": "common_voice_it_19979389",
+          "baseline_n_ref": 1,
+          "target_n_ref": 2,
+          "baseline_lines": [
+            303
+          ],
+          "target_lines": [
+            303
+          ]
+        }
+      ],
+      "baseline_invalid_units": [],
+      "target_invalid_units": [],
+      "category_counts": {
+        "improved": 17,
+        "newly_failed": 17,
+        "worsening_persistent": 14,
+        "persistent": 140,
+        "unchanged_correct": 205,
+        "unknown": 0
+      },
+      "recovered_subset_of_improved": 3,
+      "baseline_counts": {
+        "n_err": 461,
+        "n_err_counted_units": 393,
+        "n_ref": 5630,
+        "n_ref_counted_units": 393,
+        "nb_err": null,
+        "nb_err_counted_units": 0,
+        "nb_ref": null,
+        "nb_ref_counted_units": 0
+      },
+      "target_counts": {
+        "n_err": 496,
+        "n_err_counted_units": 393,
+        "n_ref": 5633,
+        "n_ref_counted_units": 393,
+        "nb_err": null,
+        "nb_err_counted_units": 0,
+        "nb_ref": null,
+        "nb_ref_counted_units": 0
+      },
+      "baseline_p_err_from_logged_counts": 0.08188277087033748,
+      "target_p_err_from_logged_counts": 0.08805254748801704,
+      "baseline_pb_err_from_logged_counts": null,
+      "target_pb_err_from_logged_counts": null,
+      "delta_n_err": 35,
+      "delta_p_err_percentage_points": 0.6169776617679562,
+      "added_errors_in_newly_failed": 36,
+      "added_errors_in_worsening_persistent": 22,
+      "removed_errors_in_improved": 23,
+      "examples": [
+        {
+          "dataset": "openml_bad",
+          "stable_identity": "common_voice_es_19741241",
+          "category": "newly_failed",
+          "baseline_n_err": 0,
+          "target_n_err": 8,
+          "baseline_n_ref": 8,
+          "target_n_ref": 8,
+          "delta_n_err": 8,
+          "reference_equal": true,
+          "reference_sha256": "128b864dd640d1c8e6e04e1904e138a69d2f67e0ff43f13c73f103f87dc7ee0a",
+          "baseline_lines": [
+            237
+          ],
+          "target_lines": [
+            237
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl",
+          "segment_count": 1,
+          "reference": "Bacterial charity work leads to population-wide resistance.",
+          "reference_excerpt": "Bacterial charity work leads to population-wide resistance.",
+          "baseline_output": "Bacterial charity work leads to population-wide resistance.",
+          "target_output": "",
+          "changed_output_spans": [
+            {
+              "baseline": "Bacterial charity work leads to population-wide resistance.",
+              "target": "",
+              "operation": "delete"
+            }
+          ]
+        },
+        {
+          "dataset": "openml_bad",
+          "stable_identity": "17411379747303396458",
+          "category": "newly_failed",
+          "baseline_n_err": 0,
+          "target_n_err": 4,
+          "baseline_n_ref": 25,
+          "target_n_ref": 25,
+          "delta_n_err": 4,
+          "reference_equal": true,
+          "reference_sha256": "bc53a56c1ea7fc69b1cf47bc344602f27321230e993c5d21426b50f560749403",
+          "baseline_lines": [
+            122
+          ],
+          "target_lines": [
+            122
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl",
+          "segment_count": 1,
+          "reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+          "reference_excerpt": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+          "baseline_output": "Angel, 2006, esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+          "target_output": "Angell (2006) esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+          "changed_output_spans": [
+            {
+              "baseline": "Angel, 2006, esclarece a abordagem Continuum",
+              "target": "Angell (2006) esclarece a abordagem continuum",
+              "operation": "replace"
+            },
+            {
+              "baseline": "2006, esclarece a abordagem Continuum como uma metodologia usado",
+              "target": "(2006) esclarece a abordagem continuum como uma metodologia usado",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "openml_bad",
+          "stable_identity": "8031031497862620363",
+          "category": "worsening_persistent",
+          "baseline_n_err": 1,
+          "target_n_err": 5,
+          "baseline_n_ref": 45,
+          "target_n_ref": 45,
+          "delta_n_err": 4,
+          "reference_equal": true,
+          "reference_sha256": "a4102c43f618de6916b2dad51fe0c1659f0dddb4766371913dfc8b4bd0a5c484",
+          "baseline_lines": [
+            28
+          ],
+          "target_lines": [
+            28
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl",
+          "segment_count": 1,
+          "reference": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 kilómetros 31 millas de Buenos Aires, que se postulará para la presidencia.",
+          "reference_excerpt": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 kilómetros 31 millas de Buenos Aires, que se postulará para la presidencia.",
+          "baseline_output": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 km, 31 millas, de Buenos Aires, que se postulará para la presidencia.",
+          "target_output": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 km (31 millas) de Buenos Aires, que se postulará para la presidencia.",
+          "changed_output_spans": [
+            {
+              "baseline": "ciudad ubicada a 50 km, 31 millas, de Buenos Aires, que",
+              "target": "ciudad ubicada a 50 km (31 millas) de Buenos Aires, que",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "openml_bad",
+          "stable_identity": "15813539945032003892",
+          "category": "worsening_persistent",
+          "baseline_n_err": 5,
+          "target_n_err": 8,
+          "baseline_n_ref": 30,
+          "target_n_ref": 30,
+          "delta_n_err": 3,
+          "reference_equal": true,
+          "reference_sha256": "99474dd52a0a4421d2068a26ee945265fd8ab82e15a8ce2967c6a52350d5d1da",
+          "baseline_lines": [
+            77
+          ],
+          "target_lines": [
+            77
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl",
+          "segment_count": 1,
+          "reference": "Les Sundarbans sont la plus grande ceinture de mangroves côtières du monde, s'étendant sur 80 km 50 miles depuis la côte jusqu'à l'arrière-pays bangladais et indien.",
+          "reference_excerpt": "Les Sundarbans sont la plus grande ceinture de mangroves côtières du monde, s'étendant sur 80 km 50 miles depuis la côte jusqu'à l'arrière-pays bangladais et indien.",
+          "baseline_output": "Les Sundarbans sont la plus grande ceinture de mangroves côtières du monde, s'étendant sur 80 km, 50 milles, depuis le côté jusqu'à l'arrière-pays, Bangladesh et Inde.",
+          "target_output": "sont la plus grande ceinture de mangroves côtières du monde, s'étendant sur 80 km, 50 milles, depuis le côté jusqu'à l'arrière-pays, Bangla, De et India.",
+          "changed_output_spans": [
+            {
+              "baseline": "Les Sundarbans sont la plus grande",
+              "target": "sont la plus grande",
+              "operation": "delete"
+            },
+            {
+              "baseline": "le côté jusqu'à l'arrière-pays, Bangladesh et Inde.",
+              "target": "le côté jusqu'à l'arrière-pays, Bangla, De et India.",
+              "operation": "replace"
+            },
+            {
+              "baseline": "jusqu'à l'arrière-pays, Bangladesh et Inde.",
+              "target": "l'arrière-pays, Bangla, De et India.",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "openml_bad",
+          "stable_identity": "common_voice_fr_17360598",
+          "category": "improved",
+          "baseline_n_err": 4,
+          "target_n_err": 0,
+          "baseline_n_ref": 5,
+          "target_n_ref": 5,
+          "delta_n_err": -4,
+          "reference_equal": true,
+          "reference_sha256": "3e308e84b614f117771e2f18ea144231a4bdb48e8b93c0f1b209594490b1c4a6",
+          "baseline_lines": [
+            256
+          ],
+          "target_lines": [
+            256
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl",
+          "segment_count": 1,
+          "reference": "Le mât d'un bateau.",
+          "reference_excerpt": "Le mât d'un bateau.",
+          "baseline_output": "Le marais d'en bas tout.",
+          "target_output": "Le mât d'un bateau.",
+          "changed_output_spans": [
+            {
+              "baseline": "Le marais d'en bas tout.",
+              "target": "Le mât d'un bateau.",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "openml_bad",
+          "stable_identity": "16484223790439156916",
+          "category": "improved",
+          "baseline_n_err": 4,
+          "target_n_err": 1,
+          "baseline_n_ref": 30,
+          "target_n_ref": 30,
+          "delta_n_err": -3,
+          "reference_equal": true,
+          "reference_sha256": "490e658549c73337bc940e8ae8309860d6b72293c90c5c9472ffe9e6d287ec3f",
+          "baseline_lines": [
+            128
+          ],
+          "target_lines": [
+            128
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl",
+          "segment_count": 1,
+          "reference": "A época em que tais eventos ocorreram é comumente denominada Alta Idade Média, período da história europeia entre os séculos XI, XII e XIII 1000-1300 d.C.",
+          "reference_excerpt": "A época em que tais eventos ocorreram é comumente denominada Alta Idade Média, período da história europeia entre os séculos XI, XII e XIII 1000-1300 d.C.",
+          "baseline_output": "A época em que tais eventos ocorreram é comumente denominada Alta Idade Média, período da história europeia entre os séculos 11, 12 e 13, 1000 e 1300 d.C.",
+          "target_output": "A época em que tais eventos ocorreram é comumente denominada Alta Idade Média, período da história europeia entre os séculos XI, XII e XIII, 1000 e 1300 d.C.",
+          "changed_output_spans": [
+            {
+              "baseline": "europeia entre os séculos 11, 12 e 13, 1000 e",
+              "target": "europeia entre os séculos XI, XII e XIII, 1000 e",
+              "operation": "replace"
+            },
+            {
+              "baseline": "séculos 11, 12 e 13, 1000 e 1300 d.C.",
+              "target": "séculos XI, XII e XIII, 1000 e 1300 d.C.",
+              "operation": "replace"
+            }
+          ]
+        }
+      ]
+    },
+    "ls_clean": {
+      "step": 580,
+      "unit": "utterance",
+      "baseline_raw_rows": 2620,
+      "target_raw_rows": 2620,
+      "baseline_units": 2620,
+      "target_units": 2620,
+      "matched": 2620,
+      "baseline_only": 0,
+      "target_only": 0,
+      "reference_conflicts": [],
+      "metadata_conflicts": [],
+      "logged_n_ref_differences_despite_equal_gts": [],
+      "baseline_invalid_units": [],
+      "target_invalid_units": [],
+      "category_counts": {
+        "improved": 33,
+        "newly_failed": 23,
+        "worsening_persistent": 15,
+        "persistent": 378,
+        "unchanged_correct": 2171,
+        "unknown": 0
+      },
+      "recovered_subset_of_improved": 25,
+      "baseline_counts": {
+        "n_err": 607,
+        "n_err_counted_units": 2620,
+        "n_ref": 53004,
+        "n_ref_counted_units": 2620,
+        "nb_err": 385,
+        "nb_err_counted_units": 2620,
+        "nb_ref": 5940,
+        "nb_ref_counted_units": 2620
+      },
+      "target_counts": {
+        "n_err": 617,
+        "n_err_counted_units": 2620,
+        "n_ref": 53004,
+        "n_ref_counted_units": 2620,
+        "nb_err": 395,
+        "nb_err_counted_units": 2620,
+        "nb_ref": 5940,
+        "nb_ref_counted_units": 2620
+      },
+      "baseline_p_err_from_logged_counts": 0.01145196588936684,
+      "target_p_err_from_logged_counts": 0.01164063089578145,
+      "baseline_pb_err_from_logged_counts": 0.06481481481481481,
+      "target_pb_err_from_logged_counts": 0.0664983164983165,
+      "delta_n_err": 10,
+      "delta_p_err_percentage_points": 0.018866500641460948,
+      "added_errors_in_newly_failed": 28,
+      "added_errors_in_worsening_persistent": 18,
+      "removed_errors_in_improved": 36,
+      "examples": [
+        {
+          "dataset": "ls_clean",
+          "stable_identity": "1188-133604-0019",
+          "category": "newly_failed",
+          "baseline_n_err": 0,
+          "target_n_err": 2,
+          "baseline_n_ref": 32,
+          "target_n_ref": 32,
+          "delta_n_err": 2,
+          "reference_equal": true,
+          "reference_sha256": "29db7109757a568599731f59af45f5480c73700cde1c19db4fe0ec1feb080e25",
+          "baseline_lines": [
+            233
+          ],
+          "target_lines": [
+            233
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_clean/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_clean/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl",
+          "segment_count": 1,
+          "reference": "the large letter contains indeed entirely feeble and ill drawn figures that is merely childish and failing work of an inferior hand it is not characteristic of gothic or any other school",
+          "reference_excerpt": "the large letter contains indeed entirely feeble and ill drawn figures that is merely childish and failing work of an inferior hand it is not characteristic of gothic or any other school",
+          "baseline_output": "The large letter contains indeed entirely feeble and ill drawn figures. That is merely childish and failing work of an inferior hand. It is not characteristic of Gothic or any other school.",
+          "target_output": "The large letter contains indeed entirely feeble and I'll drawn figures. That is merely childish and failing work of an inferior hand. It is not characteristic of Gothic or any other school.",
+          "changed_output_spans": [
+            {
+              "baseline": "indeed entirely feeble and ill drawn figures. That is",
+              "target": "indeed entirely feeble and I'll drawn figures. That is",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_clean",
+          "stable_identity": "1221-135767-0016",
+          "category": "newly_failed",
+          "baseline_n_err": 0,
+          "target_n_err": 2,
+          "baseline_n_ref": 40,
+          "target_n_ref": 40,
+          "delta_n_err": 2,
+          "reference_equal": true,
+          "reference_sha256": "d0c8ebf1a7357bc583f85c3ebe0d3eb33ade371e59f2b06e704fc920127ea9f1",
+          "baseline_lines": [
+            637
+          ],
+          "target_lines": [
+            637
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_clean/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_clean/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl",
+          "segment_count": 1,
+          "reference": "with many variations suggested by the nature of his building materials diversity of climate and a different mode of social life governor bellingham had planned his new habitation after the residences of gentlemen of fair estate in his native land",
+          "reference_excerpt": "with many variations suggested by the nature of his building materials diversity of climate and a different mode of social life governor bellingham had planned his new habitation after the residences of gentlemen of fair estate in his native land",
+          "baseline_output": "With many variations suggested by the nature of his building materials, diversity of climate, and a different mode of social life, Governor Bellingham had planned his new habitation after the residences of gentlemen of fair estate in his native land.",
+          "target_output": "With many variations suggested by the nature of his building materials, diversity of climate, and a different mode of social life, Governor Bellingham had planned his new habitation after the residences of gentlemen of fairer state in his native land.",
+          "changed_output_spans": [
+            {
+              "baseline": "residences of gentlemen of fair estate in his native land.",
+              "target": "residences of gentlemen of fairer state in his native land.",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_clean",
+          "stable_identity": "5639-40744-0000",
+          "category": "worsening_persistent",
+          "baseline_n_err": 1,
+          "target_n_err": 3,
+          "baseline_n_ref": 47,
+          "target_n_ref": 47,
+          "delta_n_err": 2,
+          "reference_equal": true,
+          "reference_sha256": "2a2904f7725b25d23f92a14d5b7a90aeb98f8358f30ae30a78c7380f3881b77a",
+          "baseline_lines": [
+            2577
+          ],
+          "target_lines": [
+            2577
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_clean/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_clean/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl",
+          "segment_count": 1,
+          "reference": "eleven o'clock had struck it was a fine clear night they were the only persons on the road and they sauntered leisurely along to avoid paying the price of fatigue for the recreation provided for the toledans in their valley or on the banks of their river",
+          "reference_excerpt": "eleven o'clock had struck it was a fine clear night they were the only persons on the road and they sauntered leisurely along to avoid paying the price of fatigue for the recreation provided for the toledans in their valley or on the banks of their river",
+          "baseline_output": "Eleven o'clock had struck. It was a fine clear night. They were the only persons on the road, and they sauntered leisurely along to avoid paying the price of fatigue for the recreation provided for the Toledans in the valley or on the banks of their river.",
+          "target_output": "11:00 had struck. It was a fine clear night. There were the only persons on the road, and they sauntered leisurely along to avoid paying the price of fatigue for the recreation provided for the Toledans in the valley or on the banks of their river.",
+          "changed_output_spans": [
+            {
+              "baseline": "Eleven o'clock had struck. It was",
+              "target": "11:00 had struck. It was",
+              "operation": "replace"
+            },
+            {
+              "baseline": "a fine clear night. They were the only persons",
+              "target": "a fine clear night. There were the only persons",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_clean",
+          "stable_identity": "8455-210777-0042",
+          "category": "worsening_persistent",
+          "baseline_n_err": 1,
+          "target_n_err": 3,
+          "baseline_n_ref": 11,
+          "target_n_ref": 11,
+          "delta_n_err": 2,
+          "reference_equal": true,
+          "reference_sha256": "5175ae20767efe99d8bb439be36b142399b9d14cded3d897da0c37160ffdb66c",
+          "baseline_lines": [
+            1231
+          ],
+          "target_lines": [
+            1231
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_clean/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_clean/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl",
+          "segment_count": 1,
+          "reference": "you hear what sir ferdinando brown has said replied captain battleax",
+          "reference_excerpt": "you hear what sir ferdinando brown has said replied captain battleax",
+          "baseline_output": "You hear what Sir Fernando Brown has said, replied Captain Battleaxe.",
+          "target_output": "You hear what Sir Fernando Brown has said, replied Captain Battle Axe.",
+          "changed_output_spans": [
+            {
+              "baseline": "has said, replied Captain Battleaxe.",
+              "target": "has said, replied Captain Battle Axe.",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_clean",
+          "stable_identity": "3575-170457-0033",
+          "category": "improved",
+          "baseline_n_err": 3,
+          "target_n_err": 1,
+          "baseline_n_ref": 29,
+          "target_n_ref": 29,
+          "delta_n_err": -2,
+          "reference_equal": true,
+          "reference_sha256": "0d5ceadd5e563f3bfebf2641477a8d2317e31ef7f4e3620b59c662d37203bc2a",
+          "baseline_lines": [
+            2150
+          ],
+          "target_lines": [
+            2150
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_clean/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_clean/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl",
+          "segment_count": 1,
+          "reference": "saturday after saturday comes round and i can have no hope of hearing your knock at the door and then being told that miss e is come oh dear",
+          "reference_excerpt": "saturday after saturday comes round and i can have no hope of hearing your knock at the door and then being told that miss e is come oh dear",
+          "baseline_output": "Saturday after Saturday comes around and I can have no hope of hearing your knock at the door and then being told that Missy is come. Oh dear.",
+          "target_output": "Saturday after Saturday comes around and I can have no hope of hearing your knock at the door and then being told that Miss E is come. Oh dear.",
+          "changed_output_spans": [
+            {
+              "baseline": "then being told that Missy is come. Oh dear.",
+              "target": "then being told that Miss E is come. Oh dear.",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_clean",
+          "stable_identity": "61-70970-0005",
+          "category": "improved",
+          "baseline_n_err": 2,
+          "target_n_err": 0,
+          "baseline_n_ref": 6,
+          "target_n_ref": 6,
+          "delta_n_err": -2,
+          "reference_equal": true,
+          "reference_sha256": "38bae64f37adaab4d6be650e679edb0ed5162528467207cb605341490300f105",
+          "baseline_lines": [
+            357
+          ],
+          "target_lines": [
+            357
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_clean/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_clean/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl",
+          "segment_count": 1,
+          "reference": "the lad had checked him then",
+          "reference_excerpt": "the lad had checked him then",
+          "baseline_output": "The lad ejected him then.",
+          "target_output": "The lad had checked him then.",
+          "changed_output_spans": [
+            {
+              "baseline": "The lad ejected him then.",
+              "target": "The lad had checked him then.",
+              "operation": "replace"
+            }
+          ]
+        }
+      ]
+    },
+    "ls_other": {
+      "step": 580,
+      "unit": "utterance",
+      "baseline_raw_rows": 2939,
+      "target_raw_rows": 2939,
+      "baseline_units": 2939,
+      "target_units": 2939,
+      "matched": 2939,
+      "baseline_only": 0,
+      "target_only": 0,
+      "reference_conflicts": [],
+      "metadata_conflicts": [],
+      "logged_n_ref_differences_despite_equal_gts": [],
+      "baseline_invalid_units": [],
+      "target_invalid_units": [],
+      "category_counts": {
+        "improved": 92,
+        "newly_failed": 60,
+        "worsening_persistent": 51,
+        "persistent": 741,
+        "unchanged_correct": 1995,
+        "unknown": 0
+      },
+      "recovered_subset_of_improved": 55,
+      "baseline_counts": {
+        "n_err": 1409,
+        "n_err_counted_units": 2939,
+        "n_ref": 52841,
+        "n_ref_counted_units": 2939,
+        "nb_err": 796,
+        "nb_err_counted_units": 2939,
+        "nb_ref": 5543,
+        "nb_ref_counted_units": 2939
+      },
+      "target_counts": {
+        "n_err": 1442,
+        "n_err_counted_units": 2939,
+        "n_ref": 52841,
+        "n_ref_counted_units": 2939,
+        "nb_err": 812,
+        "nb_err_counted_units": 2939,
+        "nb_ref": 5543,
+        "nb_ref_counted_units": 2939
+      },
+      "baseline_p_err_from_logged_counts": 0.026664900361461744,
+      "target_p_err_from_logged_counts": 0.0272894154160595,
+      "baseline_pb_err_from_logged_counts": 0.14360454627458055,
+      "target_pb_err_from_logged_counts": 0.1464910698177882,
+      "delta_n_err": 33,
+      "delta_p_err_percentage_points": 0.0624515054597756,
+      "added_errors_in_newly_failed": 70,
+      "added_errors_in_worsening_persistent": 71,
+      "removed_errors_in_improved": 108,
+      "examples": [
+        {
+          "dataset": "ls_other",
+          "stable_identity": "7018-75789-0016",
+          "category": "newly_failed",
+          "baseline_n_err": 0,
+          "target_n_err": 3,
+          "baseline_n_ref": 22,
+          "target_n_ref": 22,
+          "delta_n_err": 3,
+          "reference_equal": true,
+          "reference_sha256": "f218725ca4eb7c2cb51bedab8f0ad566b68b0272dbb18aa48dfdb2286842728b",
+          "baseline_lines": [
+            120
+          ],
+          "target_lines": [
+            120
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_other/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl",
+          "segment_count": 1,
+          "reference": "then i took leave of him and of all my intimates and acquaintances in the island and embarked with the merchants aforesaid",
+          "reference_excerpt": "then i took leave of him and of all my intimates and acquaintances in the island and embarked with the merchants aforesaid",
+          "baseline_output": "Then I took leave of him and of all my intimates and acquaintances in the island, and embarked with the merchants afore said.",
+          "target_output": "Then I took leave of him and of all my intimates and acquaintances in the island, and embarked with the merchants I fore said.",
+          "changed_output_spans": [
+            {
+              "baseline": "embarked with the merchants afore said.",
+              "target": "embarked with the merchants I fore said.",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_other",
+          "stable_identity": "8188-269290-0003",
+          "category": "newly_failed",
+          "baseline_n_err": 0,
+          "target_n_err": 3,
+          "baseline_n_ref": 12,
+          "target_n_ref": 12,
+          "delta_n_err": 3,
+          "reference_equal": true,
+          "reference_sha256": "ce67cc6788b5b1ec9484a6526650b4b679a2929634a8c6ade1e54b0e870a1f8d",
+          "baseline_lines": [
+            2218
+          ],
+          "target_lines": [
+            2218
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_other/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl",
+          "segment_count": 1,
+          "reference": "every student is to be in east hall at half past eight",
+          "reference_excerpt": "every student is to be in east hall at half past eight",
+          "baseline_output": "Every student is to be in East Hall at half past eight.",
+          "target_output": "Every student is to be in East Hall at 8:30.",
+          "changed_output_spans": [
+            {
+              "baseline": "in East Hall at half past eight.",
+              "target": "in East Hall at 8:30.",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_other",
+          "stable_identity": "2609-156975-0016",
+          "category": "worsening_persistent",
+          "baseline_n_err": 6,
+          "target_n_err": 12,
+          "baseline_n_ref": 8,
+          "target_n_ref": 8,
+          "delta_n_err": 6,
+          "reference_equal": true,
+          "reference_sha256": "40ab0b21cf28beb221ce6cccb6c33d128794a9ecb70032210c88b6b7f09c7dea",
+          "baseline_lines": [
+            398
+          ],
+          "target_lines": [
+            398
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_other/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl",
+          "segment_count": 1,
+          "reference": "was moses justified in resisting the egyptian taskmaster",
+          "reference_excerpt": "was moses justified in resisting the egyptian taskmaster",
+          "baseline_output": "Which mores it's justified in resisting the Egyptian tax, Master?",
+          "target_output": "Which mo's it's just findin' resists in the gipsy tax, master?",
+          "changed_output_spans": [
+            {
+              "baseline": "Which mores it's justified in resisting",
+              "target": "Which mo's it's just findin' resists",
+              "operation": "replace"
+            },
+            {
+              "baseline": "Which mores it's justified in resisting the Egyptian",
+              "target": "Which mo's it's just findin' resists in the gipsy tax,",
+              "operation": "replace"
+            },
+            {
+              "baseline": "mores it's justified in resisting the Egyptian tax, Master?",
+              "target": "just findin' resists in the gipsy tax, master?",
+              "operation": "delete"
+            },
+            {
+              "baseline": "justified in resisting the Egyptian tax, Master?",
+              "target": "findin' resists in the gipsy tax, master?",
+              "operation": "replace"
+            },
+            {
+              "baseline": "resisting the Egyptian tax, Master?",
+              "target": "in the gipsy tax, master?",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_other",
+          "stable_identity": "2609-157645-0008",
+          "category": "worsening_persistent",
+          "baseline_n_err": 1,
+          "target_n_err": 4,
+          "baseline_n_ref": 8,
+          "target_n_ref": 8,
+          "delta_n_err": 3,
+          "reference_equal": true,
+          "reference_sha256": "7ab834e9429a0136187cae733ae1a8f2b9975f8fe6995c794d70694fe9c7717e",
+          "baseline_lines": [
+            297
+          ],
+          "target_lines": [
+            297
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_other/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl",
+          "segment_count": 1,
+          "reference": "let them sing another psalm said the curate",
+          "reference_excerpt": "let them sing another psalm said the curate",
+          "baseline_output": "Them them sing another psalm, said the curate.",
+          "target_output": "Them them sing an oth' psalms, said the curate.",
+          "changed_output_spans": [
+            {
+              "baseline": "Them them sing another psalm, said the curate.",
+              "target": "Them them sing an oth' psalms, said the curate.",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_other",
+          "stable_identity": "2609-169640-0000",
+          "category": "improved",
+          "baseline_n_err": 7,
+          "target_n_err": 4,
+          "baseline_n_ref": 32,
+          "target_n_ref": 32,
+          "delta_n_err": -3,
+          "reference_equal": true,
+          "reference_sha256": "b191f324c8d5a050c2e852158e6788ff14eb0645d0ce903a27aec3592b7bd562",
+          "baseline_lines": [
+            381
+          ],
+          "target_lines": [
+            381
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_other/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl",
+          "segment_count": 1,
+          "reference": "proas in that quarter were usually distrusted by ships it is true but the sea is full of them and far more are innocent than are guilty of any acts of violence",
+          "reference_excerpt": "proas in that quarter were usually distrusted by ships it is true but the sea is full of them and far more are innocent than are guilty of any acts of violence",
+          "baseline_output": "Parrots in that quarter were usually distrusted by the sepsa, it is true, but the see us for them, and far more are innocent than are guilty of any acts of violence.",
+          "target_output": "Parrots in that quarter were usually distrusted by the sepsa, it is true, but the see is full of them, and far more are innocent than are guilty of any acts of violence.",
+          "changed_output_spans": [
+            {
+              "baseline": "true, but the see us for them, and far more",
+              "target": "true, but the see is full of them, and far more",
+              "operation": "replace"
+            }
+          ]
+        },
+        {
+          "dataset": "ls_other",
+          "stable_identity": "7902-96595-0017",
+          "category": "improved",
+          "baseline_n_err": 4,
+          "target_n_err": 1,
+          "baseline_n_ref": 11,
+          "target_n_ref": 11,
+          "delta_n_err": -3,
+          "reference_equal": true,
+          "reference_sha256": "1c8417e8eb64162f7ecf75cf24d37979a13b3b3f20aac8688dda6470a8406652",
+          "baseline_lines": [
+            359
+          ],
+          "target_lines": [
+            359
+          ],
+          "baseline_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/580.jsonl",
+          "target_source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_other/580.jsonl",
+          "baseline_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl",
+          "target_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl",
+          "segment_count": 1,
+          "reference": "i dunno muttered dick and a man can't be sure",
+          "reference_excerpt": "i dunno muttered dick and a man can't be sure",
+          "baseline_output": "I don't know, muttered Dick. A man can't be sure.",
+          "target_output": "I dunno, muttered Dick. A man can't be sure.",
+          "changed_output_spans": [
+            {
+              "baseline": "I don't know, muttered Dick. A man",
+              "target": "I dunno, muttered Dick. A man",
+              "operation": "replace"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "tables": {
+    "baseline": {
+      "raw_flattened_observations": 320,
+      "unique_observations": 160,
+      "duplicate_cumulative_copies_removed": 160,
+      "step_coverage": {
+        "450": 20,
+        "460": 20,
+        "480": 20,
+        "500": 20,
+        "520": 20,
+        "540": 20,
+        "560": 20,
+        "580": 20
+      },
+      "selected_step": 580,
+      "selected_observations": [
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French><tgt=French>\n<VERBATIM>\nCanot d'écorce qui va voler. Me dis, ma belle, embrassez-moi, canot d'écorce qui va voler. Non, non, monsieur, je ne saurais. Canot d'écorce qui vole, qui vole, canot d'écorce qui va voler. Non, non monsieur, je ne saurais.",
+          "gts": "non, monsieur, je ne saurais:",
+          "score": -6.599999904632568,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 1
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 1
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "2114_1656_000032",
+              "line": 393,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "2114_1656_000032",
+              "line": 393,
+              "output": "Canot d'écorce qui va voler. Me dis, ma belle, embrassez-moi, canot d'écorce qui va voler. Non, non, monsieur, je ne saurais. Canot d'écorce qui vole, qui vole, canot d'écorce qui va voler. Non, non monsieur, je ne saurais.",
+              "n_err": 38,
+              "n_ref": 5,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Spanish.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Spanish><tgt=Spanish>\n<VERBATIM>\nThe blue one looked at the other one with amazement.",
+          "gts": "Antiguamente el lugar era llamado Canales.",
+          "score": -0.6666666865348816,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 2
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 2
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_es_19757517",
+              "line": 226,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_es_19757517",
+              "line": 226,
+              "output": "Y bueno, pues me voy a ir a la mañana.",
+              "n_err": 10,
+              "n_ref": 6,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Spanish.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Spanish><tgt=Spanish>\n<VERBATIM>\nO. I. Lia.",
+          "gts": "U. Illia.",
+          "score": -0.5,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 3
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 3
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_es_19638285",
+              "line": 249,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_es_19638285",
+              "line": 249,
+              "output": "O. I. Lia.",
+              "n_err": 3,
+              "n_ref": 2,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French><tgt=French>\n<VERBATIM>\nQuand on t'en.",
+          "gts": "Qu'entend-on ?",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 4
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 4
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17426009",
+              "line": 273,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17426009",
+              "line": 273,
+              "output": "Quand on t’entend.",
+              "n_err": 4,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French><tgt=French>\n<VERBATIM>\nUn pouf et une chaise.",
+          "gts": "un pauvre imbécile.",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 5
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 5
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17507533",
+              "line": 288,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17507533",
+              "line": 288,
+              "output": "Empower and the seal.",
+              "n_err": 4,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Italian.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Italian><tgt=Italian>\n<VERBATIM>\nChi mi ha detto.",
+          "gts": "Kim Hee-tae",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 6
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 6
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_it_20012785",
+              "line": 314,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_it_20012785",
+              "line": 314,
+              "output": "Chi me e' dai?",
+              "n_err": 4,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Portuguese.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Portuguese><tgt=Portuguese>\n<VERBATIM>\nI see no man.",
+          "gts": "Assim não vale.",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 7
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 7
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_pt_19496516",
+              "line": 371,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_pt_19496516",
+              "line": 371,
+              "output": "I see nobody.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Spanish.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Spanish><tgt=Spanish>\n<VERBATIM>\nNee nee nee nee.",
+          "gts": "ne, ne , ne.",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 8
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 8
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_es_18681299",
+              "line": 229,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_es_18681299",
+              "line": 229,
+              "output": "¡Né, né, né, né!",
+              "n_err": 4,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German><tgt=German>\n<VERBATIM>\nThis thing, but this thing.",
+          "gts": "Deswegen ballert es mehr.",
+          "score": -0.25,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 9
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 9
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_18688036",
+              "line": 151,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_18688036",
+              "line": 151,
+              "output": "Es ging um alles in der Welt.",
+              "n_err": 7,
+              "n_ref": 4,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Spanish.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Spanish><tgt=Spanish>\n<VERBATIM>\nВот, вот, вот, вот, вот, вот, вот, вот, вот.",
+          "gts": "Inicialmente esta reorganización fue impopular en esas ciudades.",
+          "score": -0.125,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 10
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 10
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_es_19644073",
+              "line": 222,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_es_19644073",
+              "line": 222,
+              "output": "El hombre que estaba sentado en el sofá se levantó.",
+              "n_err": 9,
+              "n_ref": 8,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is English.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=English><tgt=English>\n<VERBATIM>\nStefanos Derlos.",
+          "gts": "stephanos dedalos",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 11
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 11
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "ls_clean",
+              "id": "1089-134691-0024",
+              "line": 1129,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_clean/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "1089-134691-0024",
+              "line": 1129,
+              "output": "Stefanos Derlos.",
+              "n_err": 2,
+              "n_ref": 2,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is English.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=English><tgt=English>\n<VERBATIM>\nSergei Ivanovich, round.",
+          "gts": "sergey ivanovitch frowned",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 12
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 12
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "ls_other",
+              "id": "5442-41168-0014",
+              "line": 384,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "5442-41168-0014",
+              "line": 384,
+              "output": "Sergei Ivanovich, round.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is English.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=English><tgt=English>\n<VERBATIM\nIsis.",
+          "gts": "ices",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 13
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 13
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "ls_other",
+              "id": "3538-142836-0023",
+              "line": 1812,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "3538-142836-0023",
+              "line": 1812,
+              "output": "Ices.",
+              "n_err": 0,
+              "n_ref": 1,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French><tgt=French>\n<VERBATIM>\nIh ih ih ih.",
+          "gts": "Hi ! hi ! hi ! hi !",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 14
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 14
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17767229",
+              "line": 272,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17767229",
+              "line": 272,
+              "output": "Ih ih ih ih.",
+              "n_err": 4,
+              "n_ref": 4,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French><tgt=French>\n<VERBATIM>\nCet homme menable.",
+          "gts": "Cette route mène au port.",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 15
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 15
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17382022",
+              "line": 278,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17382022",
+              "line": 278,
+              "output": "Cet homme est manoubo.",
+              "n_err": 5,
+              "n_ref": 5,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French><tgt=French>\n<VERBATIM>\nCésar.",
+          "gts": "C'est sale.",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 16
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 16
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_18477941",
+              "line": 281,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_18477941",
+              "line": 281,
+              "output": "Cessare.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German><tgt=German>\n<VERBATIM\nLaugh, damn it.",
+          "gts": "Hör auf damit!",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 17
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 17
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_18911836",
+              "line": 158,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_18911836",
+              "line": 158,
+              "output": "Lass, dumme!",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German><tgt=German>\n<VERBATIM\nI was not home.",
+          "gts": "Ist es weit bis Nordhorn?",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 18
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 18
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_17367469",
+              "line": 168,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_17367469",
+              "line": 168,
+              "output": "Weißt du, was Nordhorn ist?",
+              "n_err": 5,
+              "n_ref": 5,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German><tgt=German>\n<VERBATIM>\nAleyküm nas.",
+          "gts": "Alle ihm nach!",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 19
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 19
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_18199286",
+              "line": 180,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_18199286",
+              "line": 180,
+              "output": "Aleyküm.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German><tgt=German>\n<VERBATIM\nVerbremsverlierd.",
+          "gts": "Wer bremst verliert.",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_0.json",
+              "source": "media/table/val/generations_579_e6f79b88864834b1eef0.table.json",
+              "table_row": 8,
+              "slot": 20
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/table_1.json",
+              "source": "run-0ca34a537b05e74628264cac2ea86a75-valgenerations:v32/val/generations.table.json",
+              "table_row": 8,
+              "slot": 20
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_17959026",
+              "line": 182,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_17959026",
+              "line": 182,
+              "output": "Verbremsverlierd.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ]
+        }
+      ],
+      "selected_matches": 20,
+      "selected_unmatched": 0,
+      "selected_ambiguous": 0,
+      "selected_dataset_coverage": {
+        "earning_chunk_verb": 0,
+        "openml_bad": 17,
+        "ls_clean": 1,
+        "ls_other": 2
+      }
+    },
+    "target": {
+      "raw_flattened_observations": 200,
+      "unique_observations": 60,
+      "duplicate_cumulative_copies_removed": 140,
+      "step_coverage": {
+        "570": 20,
+        "580": 20,
+        "600": 20
+      },
+      "selected_step": 580,
+      "selected_observations": [
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French>\nCanot d'écorce qui va voler. Me dis, ma belle, embrassez-moi, canot d'écorce qui va voler. Non, non, monsieur, je ne saurais. Canot d'écorce qui vole, qui vole, canot d'écorce qui va voler. Non, non monsieur, je ne saurais.",
+          "gts": "non, monsieur, je ne saurais:",
+          "score": -6.599999904632568,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 1
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 1
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 1
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 1
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "2114_1656_000032",
+              "line": 393,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "2114_1656_000032",
+              "line": 393,
+              "output": "Canot d'écorce qui va voler. Me dis, ma belle, embrassez-moi, canot d'écorce qui va voler. Non, non, monsieur, je ne saurais. Canot d'écorce qui vole, qui vole, canot d'écorce qui va voler. Non, non monsieur, je ne saurais.",
+              "n_err": 38,
+              "n_ref": 5,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German>\nEs ging um alles in der Welt.",
+          "gts": "Deswegen ballert es mehr.",
+          "score": -0.75,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 2
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 2
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 2
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 2
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_18688036",
+              "line": 151,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_18688036",
+              "line": 151,
+              "output": "This thing, but this thing.",
+              "n_err": 5,
+              "n_ref": 4,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Spanish.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Spanish>\nY bueno, pues me voy a ir a la mañana.",
+          "gts": "Antiguamente el lugar era llamado Canales.",
+          "score": -0.6666666865348816,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 3
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 3
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 3
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 3
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_es_19757517",
+              "line": 226,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_es_19757517",
+              "line": 226,
+              "output": "The blue one looked at the other one with amazement.",
+              "n_err": 10,
+              "n_ref": 6,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is English.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=English\nWhich mo's it's just findin' resists in the gipsy tax, master?",
+          "gts": "was moses justified in resisting the egyptian taskmaster",
+          "score": -0.5,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 4
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 4
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 4
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 4
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "ls_other",
+              "id": "2609-156975-0016",
+              "line": 398,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_other/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "2609-156975-0016",
+              "line": 398,
+              "output": "Which mores it's justified in resisting the Egyptian tax, Master?",
+              "n_err": 6,
+              "n_ref": 8,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Spanish.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Spanish>\nO. I. Lia.",
+          "gts": "U. Illia.",
+          "score": -0.5,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 5
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 5
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 5
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 5
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_es_19638285",
+              "line": 249,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_es_19638285",
+              "line": 249,
+              "output": "O. I. Lia.",
+              "n_err": 3,
+              "n_ref": 2,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French>\nQuand on t’entend.",
+          "gts": "Qu'entend-on ?",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 6
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 6
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 6
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 6
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17426009",
+              "line": 273,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17426009",
+              "line": 273,
+              "output": "Quand on t'en.",
+              "n_err": 4,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French>\nEmpower and the seal.",
+          "gts": "un pauvre imbécile.",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 7
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 7
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 7
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 7
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17507533",
+              "line": 288,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17507533",
+              "line": 288,
+              "output": "Un pouf et une chaise.",
+              "n_err": 4,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Italian.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Italian>\nChi me e' dai?",
+          "gts": "Kim Hee-tae",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 8
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 8
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 8
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 8
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_it_20012785",
+              "line": 314,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_it_20012785",
+              "line": 314,
+              "output": "Chi mi ha detto.",
+              "n_err": 4,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Spanish.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Spanish>\n¡Né, né, né, né!",
+          "gts": "ne, ne , ne.",
+          "score": -0.3333333432674408,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 9
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 9
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 9
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 9
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_es_18681299",
+              "line": 229,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_es_18681299",
+              "line": 229,
+              "output": "Nee nee nee nee.",
+              "n_err": 4,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Italian.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Italian>\nSa, ha, ha, ha, la hootie.",
+          "gts": "Sa'ad Al-Houti",
+          "score": -0.25,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 10
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 10
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 10
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 10
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_it_20011964",
+              "line": 335,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_it_20011964",
+              "line": 335,
+              "output": "Sa had halahuti.",
+              "n_err": 3,
+              "n_ref": 4,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is Spanish.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=Spanish>\nEl hombre que estaba sentado en el sofá se levantó.",
+          "gts": "Inicialmente esta reorganización fue impopular en esas ciudades.",
+          "score": -0.125,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 11
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 11
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 11
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 11
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_es_19644073",
+              "line": 222,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_es_19644073",
+              "line": 222,
+              "output": "Вот, вот, вот, вот, вот, вот, вот, вот, вот.",
+              "n_err": 9,
+              "n_ref": 8,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is English.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=English\nStefanos Derlos.",
+          "gts": "stephanos dedalos",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 12
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 12
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 12
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 12
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "ls_clean",
+              "id": "1089-134691-0024",
+              "line": 1129,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_clean/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_clean_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "1089-134691-0024",
+              "line": 1129,
+              "output": "Stefanos Derlos.",
+              "n_err": 2,
+              "n_ref": 2,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_clean_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is English.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=English\nSergei Ivanovich, round.",
+          "gts": "sergey ivanovitch frowned",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 13
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 13
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 13
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 13
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "ls_other",
+              "id": "5442-41168-0014",
+              "line": 384,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/ls_other/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/ls_other_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "5442-41168-0014",
+              "line": 384,
+              "output": "Sergei Ivanovich, round.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/ls_other_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French>\nIh ih ih ih.",
+          "gts": "Hi ! hi ! hi ! hi !",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 14
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 14
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 14
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 14
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17767229",
+              "line": 272,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17767229",
+              "line": 272,
+              "output": "Ih ih ih ih.",
+              "n_err": 4,
+              "n_ref": 4,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French>\nCet homme est manoubo.",
+          "gts": "Cette route mène au port.",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 15
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 15
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 15
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 15
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17382022",
+              "line": 278,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17382022",
+              "line": 278,
+              "output": "Cet homme menable.",
+              "n_err": 5,
+              "n_ref": 5,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French>\nCessare.",
+          "gts": "C'est sale.",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 16
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 16
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 16
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 16
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_18477941",
+              "line": 281,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_18477941",
+              "line": 281,
+              "output": "César.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is French.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=French>\nMaintenir espace.",
+          "gts": "maintenant il pêche.",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 17
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 17
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 17
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 17
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_fr_17458708",
+              "line": 294,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_fr_17458708",
+              "line": 294,
+              "output": "Maintenant, espèce.",
+              "n_err": 2,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German>\nLass, dumme!",
+          "gts": "Hör auf damit!",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 18
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 18
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 18
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 18
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_18911836",
+              "line": 158,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_18911836",
+              "line": 158,
+              "output": "Laugh, damn it.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German>\nWeißt du, was Nordhorn ist?",
+          "gts": "Ist es weit bis Nordhorn?",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 19
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 19
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 19
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 19
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_17367469",
+              "line": 168,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_17367469",
+              "line": 168,
+              "output": "I was not home.",
+              "n_err": 5,
+              "n_ref": 5,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        },
+        {
+          "step": 580,
+          "input": "user\nTranscribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.\nThe language is German.\nassistant\n<think>\n\n</think>\n\n",
+          "output": "<src=German>\nAleyküm.",
+          "gts": "Alle ihm nach!",
+          "score": 0.0,
+          "provenance": [
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_0.json",
+              "source": "media/table/val/generations_579_caee46651aa4e078dbca.table.json",
+              "table_row": 2,
+              "slot": 20
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_1.json",
+              "source": "media/table/val/generations_599_d6660d6a6c0c18becb3b.table.json",
+              "table_row": 2,
+              "slot": 20
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_2.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v34/val/generations.table.json",
+              "table_row": 2,
+              "slot": 20
+            },
+            {
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/table_3.json",
+              "source": "run-5dc3fdb4c014c9dc1570a5af6e0c1e6e-valgenerations:v35/val/generations.table.json",
+              "table_row": 2,
+              "slot": 20
+            }
+          ],
+          "dump_match_count": 1,
+          "dump_matches": [
+            {
+              "dataset": "openml_bad",
+              "id": "common_voice_de_18199286",
+              "line": 180,
+              "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr/val_data_gen/openml_bad/580.jsonl",
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/target/openml_bad_580.jsonl"
+            }
+          ],
+          "counterpart_match_count": 1,
+          "counterparts": [
+            {
+              "id": "common_voice_de_18199286",
+              "line": 180,
+              "output": "Aleyküm nas.",
+              "n_err": 3,
+              "n_ref": 3,
+              "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/baseline/openml_bad_580.jsonl"
+            }
+          ]
+        }
+      ],
+      "selected_matches": 20,
+      "selected_unmatched": 0,
+      "selected_ambiguous": 0,
+      "selected_dataset_coverage": {
+        "earning_chunk_verb": 0,
+        "openml_bad": 17,
+        "ls_clean": 1,
+        "ls_other": 2
+      }
+    }
+  },
+  "matched_cases_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/matched_validation_cases.jsonl",
+  "fetch_inventory_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/examples_fetch_inventory.json",
+  "limitations": [
+    "Identical raw gts do not guarantee equal logged n_ref: the actual merge_compounds scorer can normalize ref/hyp jointly. Any observed denominator differences are listed per dataset; retain each run original counts rather than assuming a fixed denominator.",
+    "W&B selected tables are cross-dataset low-score subsets and cannot estimate corpus failure rates.",
+    "Counts use each exact run scorer output; text changes alone do not establish acoustic or causal mechanisms.",
+    "No datasets are pooled or cross-dataset averaged."
+  ],
+  "format_diagnostics_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc/examples_format_diagnostics.json",
+  "format_diagnostics": {
+    "earning_chunk_verb": {
+      "baseline": {
+        "raw_rows": 341,
+        "strict_2609_header_rows": 220,
+        "parser_clean_output_exact_agreement_rows": 341,
+        "glued_transcription_token_removed_rows": 0
+      },
+      "target": {
+        "raw_rows": 341,
+        "strict_2609_header_rows": 0,
+        "parser_clean_output_exact_agreement_rows": 341,
+        "glued_transcription_token_removed_rows": 0
+      }
+    },
+    "openml_bad": {
+      "baseline": {
+        "raw_rows": 393,
+        "strict_2609_header_rows": 393,
+        "parser_clean_output_exact_agreement_rows": 393,
+        "glued_transcription_token_removed_rows": 0
+      },
+      "target": {
+        "raw_rows": 393,
+        "strict_2609_header_rows": 0,
+        "parser_clean_output_exact_agreement_rows": 393,
+        "glued_transcription_token_removed_rows": 2
+      }
+    },
+    "ls_clean": {
+      "baseline": {
+        "raw_rows": 2620,
+        "strict_2609_header_rows": 2620,
+        "parser_clean_output_exact_agreement_rows": 2620,
+        "glued_transcription_token_removed_rows": 0
+      },
+      "target": {
+        "raw_rows": 2620,
+        "strict_2609_header_rows": 0,
+        "parser_clean_output_exact_agreement_rows": 2620,
+        "glued_transcription_token_removed_rows": 0
+      }
+    },
+    "ls_other": {
+      "baseline": {
+        "raw_rows": 2939,
+        "strict_2609_header_rows": 2936,
+        "parser_clean_output_exact_agreement_rows": 2939,
+        "glued_transcription_token_removed_rows": 0
+      },
+      "target": {
+        "raw_rows": 2939,
+        "strict_2609_header_rows": 0,
+        "parser_clean_output_exact_agreement_rows": 2939,
+        "glued_transcription_token_removed_rows": 0
+      }
+    }
+  },
+  "status": "complete",
+  "generated_at_utc": "2026-10-22T17:38:48.814256+00:00",
+  "cache_policy": "Reuse complete hash-verified dumps only for the same selected validation lineage and numeric p_err observation. Changed/repeated-step observations use distinct retained lineage directories; collector path/timestamp and W&B-versus-exact transport do not invalidate an otherwise identical observation. Explicit refreshes preserve old paths. Missing uploads remain gaps and may be retried.",
+  "observation_binding": {
+    "version": 1,
+    "selected_step": 580,
+    "lineage_fingerprint": "5ff1c2c0449461fc602676edbc7c855f13a21e7bb5baddc3192ac6b3ffcaeccf",
+    "identity_policy": "Run, validation step, resolved segment/submission/driver/source/config and per-dataset p_err; collector paths, collector timestamps and W&B-versus-exact transport are nonidentity evidence. Scalar tolerance 1e-10.",
+    "runs": {
+      "baseline": {
+        "run_id": "0ca34a537b05e74628264cac2ea86a75",
+        "step": 580,
+        "lineage": {
+          "segment_id": "baseline_current_after_450",
+          "submission_id": "raysubmit_wUz37YEmnzCbLxpH",
+          "driver_job_id": "05000000",
+          "source_commit": "d6b1097798874c26c5227b6b2f99b38892836ccc",
+          "config_sha256": "8d6e84dc1d348daa961a48a11349f72e43342f0f9c721d90a812874f334e6c4f"
+        },
+        "primary_p_err": {
+          "earning_chunk_verb": 0.04449496589801884,
+          "openml_bad": 0.08188277087033748,
+          "ls_clean": 0.01145196588936684,
+          "ls_other": 0.026664900361461744
+        },
+        "used_alias_keys": {
+          "earning_chunk_verb": [
+            "val-core/earning_chunk_verb/p_err/mean@1"
+          ],
+          "openml_bad": [
+            "val-core/openml_bad/p_err/mean@1"
+          ],
+          "ls_clean": [
+            "val-core/ls_clean/p_err/mean@1"
+          ],
+          "ls_other": [
+            "val-core/ls_other/p_err/mean@1"
+          ]
+        },
+        "observed_timestamp": 1792690210.2457275,
+        "provenance_source": "/home/boren/code/verl/tmp/verl_asr_run/remax_dev_base0_v1h2a_fix_bcr/baseline_poll_20261022T1733.json",
+        "additional_corroborating_source": "/home/boren/code/verl/tmp/verl_asr_run/remax_dev_base0_v1h2a_fix_bcr/wandb_histories_20261022T1733.json"
+      },
+      "target": {
+        "run_id": "5dc3fdb4c014c9dc1570a5af6e0c1e6e",
+        "step": 580,
+        "lineage": {
+          "segment_id": "target_current_after_570",
+          "submission_id": "raysubmit_UmggvqWDkrghRcrn",
+          "driver_job_id": "05000000",
+          "source_commit": "24276527290b96e6e1531c8164ba2ac2440b289f",
+          "config_sha256": "9afec5069a740d29fbf55be9e855eeaa3f5760325088afdf59912b7ad9bb6295"
+        },
+        "primary_p_err": {
+          "earning_chunk_verb": 0.051770055212731404,
+          "openml_bad": 0.08805254748801704,
+          "ls_clean": 0.01164063089578145,
+          "ls_other": 0.027289415416059497
+        },
+        "used_alias_keys": {
+          "earning_chunk_verb": [
+            "val-core/earning_chunk_verb/p_err/mean@1"
+          ],
+          "openml_bad": [
+            "val-core/openml_bad/p_err/mean@1"
+          ],
+          "ls_clean": [
+            "val-core/ls_clean/p_err/mean@1"
+          ],
+          "ls_other": [
+            "val-core/ls_other/p_err/mean@1"
+          ]
+        },
+        "observed_timestamp": 1792688242.70584,
+        "provenance_source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/current_driver_numeric_20261022T1733.json",
+        "additional_corroborating_source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/current_driver_numeric_20261022T1733.json"
+      }
+    }
+  },
+  "cache_directory": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_580__5ff1c2c0449461fc",
+  "scalar_validation": {
+    "passed": true,
+    "comparisons": {
+      "baseline": {
+        "earning_chunk_verb": {
+          "logged_counts_p_err": 0.04449496589801884,
+          "normalized_p_err": 0.04449496589801884,
+          "difference": 0.0,
+          "tolerance": 1e-10,
+          "passed": true
+        },
+        "openml_bad": {
+          "logged_counts_p_err": 0.08188277087033748,
+          "normalized_p_err": 0.08188277087033748,
+          "difference": 0.0,
+          "tolerance": 1e-10,
+          "passed": true
+        },
+        "ls_clean": {
+          "logged_counts_p_err": 0.01145196588936684,
+          "normalized_p_err": 0.01145196588936684,
+          "difference": 0.0,
+          "tolerance": 1e-10,
+          "passed": true
+        },
+        "ls_other": {
+          "logged_counts_p_err": 0.026664900361461744,
+          "normalized_p_err": 0.026664900361461744,
+          "difference": 0.0,
+          "tolerance": 1e-10,
+          "passed": true
+        }
+      },
+      "target": {
+        "earning_chunk_verb": {
+          "logged_counts_p_err": 0.051770055212731404,
+          "normalized_p_err": 0.051770055212731404,
+          "difference": 0.0,
+          "tolerance": 1e-10,
+          "passed": true
+        },
+        "openml_bad": {
+          "logged_counts_p_err": 0.08805254748801704,
+          "normalized_p_err": 0.08805254748801704,
+          "difference": 0.0,
+          "tolerance": 1e-10,
+          "passed": true
+        },
+        "ls_clean": {
+          "logged_counts_p_err": 0.01164063089578145,
+          "normalized_p_err": 0.01164063089578145,
+          "difference": 0.0,
+          "tolerance": 1e-10,
+          "passed": true
+        },
+        "ls_other": {
+          "logged_counts_p_err": 0.0272894154160595,
+          "normalized_p_err": 0.027289415416059497,
+          "difference": 3.469446951953614e-18,
+          "tolerance": 1e-10,
+          "passed": true
+        }
+      }
+    }
+  },
+  "retained_previous_summary_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/retained_summaries/step_560__60c062b5cb94a888.json"
+}

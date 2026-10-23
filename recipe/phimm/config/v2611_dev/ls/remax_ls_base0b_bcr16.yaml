@@ -1,0 +1,41 @@
+# LS rare/bad-case training and LS test-clean/test-other validation.
+# RCB16 with temperature 1.0 and the standard vLLM log-probability mode.
+# Nominal 128 = 112 fresh + up to 16 replay; keep the RCB16 reward divisor 3.
+# Replay starts empty and selects prompts with the lowest word scores.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base0b_2609r2_ls_bad_e1_bs128_n16_r320_g16_flr
+  - _self_
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 3}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.5, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.01, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.01, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source:
+  ls_rare_verb: librispeech
+
+algorithm:
+  bad_case_replay:
+    enable: true
+    capacity: 6400
+    replay_size: 16
+    sampling: worst
+    selection:
+      weights:
+        word: 1.0
+    seed: 42

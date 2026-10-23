@@ -1,0 +1,769 @@
+{
+  "input_sources": {
+    "r16_fix_lineage.json": {
+      "path": "/home/boren/code/verl/reports/bcr_error_analysis_20261022T1811Z/sources/r16_fix_lineage.json",
+      "sha256": "1ac0acd58419119f9211c1c578484af2e40441d5598d80bb059edda9e74f7223"
+    },
+    "r64_history.json": {
+      "path": "/home/boren/code/verl/reports/bcr_error_analysis_20261022T1811Z/sources/r64_history.json",
+      "sha256": "be0ce25e3993c0409189c5f9d8433a8ce0bdbda5c84a786d6252233af1458b45"
+    },
+    "manifest.json": {
+      "path": "/home/boren/code/verl/reports/bcr_error_analysis_20261022T1811Z/sources/manifest.json",
+      "sha256": "d8e7366603d15c7b8e09b672b7d7b86180be1a009606b3cbcbd596c3e656cecb"
+    }
+  },
+  "source_manifest_sha256": "dcb8eb850edba5e07201c034f43e2ef8fd10a7dfae7ee169132a851564cd9b61",
+  "reproduction_runtime": {
+    "python": "3.12.9 (main, Jul 14 2025, 06:11:56) [GCC 13.3.0]",
+    "jiwer": "4.0.0",
+    "script_sha256": "dddfc3547605615e563c88262be8a2ee757811d1973865753c366a09f3f484ad"
+  },
+  "generation_batch_metric_coverage": {
+    "Fix": {
+      "n": 584,
+      "mean": 1.0,
+      "min": 1,
+      "max": 1
+    },
+    "R16": {
+      "n": 609,
+      "mean": 1.0,
+      "min": 1,
+      "max": 1
+    },
+    "R64": {
+      "n": 70,
+      "mean": 1.0,
+      "min": 1.0,
+      "max": 1.0
+    }
+  },
+  "fixed_cutoff_budgets": [
+    {
+      "cutoff": 440,
+      "run": "Fix",
+      "status": "complete",
+      "optimizer_rows": 440,
+      "fresh_presentations": 56320,
+      "replay_presentations": 0,
+      "raw_prompt_presentations": 56320,
+      "fresh_vs_fix_percent": 100.0,
+      "basis": "configured fresh128; complete optimizer coverage"
+    },
+    {
+      "cutoff": 440,
+      "run": "R16",
+      "status": "complete",
+      "optimizer_rows": 440,
+      "fresh_presentations": 49480,
+      "replay_presentations": 6780,
+      "raw_prompt_presentations": 56260,
+      "fresh_vs_fix_percent": 87.85511363636364,
+      "basis": "sum retained replay/fresh_count and replay/replayed"
+    },
+    {
+      "cutoff": 440,
+      "run": "R64",
+      "status": "complete",
+      "optimizer_rows": 440,
+      "fresh_presentations": 28160,
+      "replay_presentations": 28032,
+      "raw_prompt_presentations": 56192,
+      "fresh_vs_fix_percent": 50.0,
+      "basis": "sum retained replay/fresh_count and replay/replayed"
+    },
+    {
+      "cutoff": 580,
+      "run": "Fix",
+      "status": "complete",
+      "optimizer_rows": 580,
+      "fresh_presentations": 74240,
+      "replay_presentations": 0,
+      "raw_prompt_presentations": 74240,
+      "fresh_vs_fix_percent": 100.0,
+      "basis": "configured fresh128; complete optimizer coverage"
+    },
+    {
+      "cutoff": 580,
+      "run": "R16",
+      "status": "complete",
+      "optimizer_rows": 580,
+      "fresh_presentations": 65160,
+      "replay_presentations": 9004,
+      "raw_prompt_presentations": 74164,
+      "fresh_vs_fix_percent": 87.76939655172414,
+      "basis": "sum retained replay/fresh_count and replay/replayed"
+    },
+    {
+      "cutoff": 580,
+      "run": "R64",
+      "status": "N/A",
+      "available_through": 458
+    }
+  ],
+  "latest_retained_budgets": {
+    "R16": {
+      "last_step": 609,
+      "fresh": 68408,
+      "replayed": 9468
+    },
+    "R64": {
+      "last_step": 458,
+      "fresh": 29312,
+      "replayed": 29184
+    }
+  },
+  "segment_budgets": {
+    "R16": [
+      {
+        "segment": "target_original_1_50",
+        "first_step": 1,
+        "last_step": 50,
+        "rows": 50,
+        "fresh": 5800,
+        "replayed": 588,
+        "cold_steps": [
+          1
+        ]
+      },
+      {
+        "segment": "target_replacement_51_230",
+        "first_step": 51,
+        "last_step": 230,
+        "rows": 180,
+        "fresh": 20160,
+        "replayed": 2864,
+        "cold_steps": [
+          51
+        ]
+      },
+      {
+        "segment": "target_current_after_230",
+        "first_step": 231,
+        "last_step": 430,
+        "rows": 200,
+        "fresh": 22400,
+        "replayed": 3184,
+        "cold_steps": [
+          231
+        ]
+      },
+      {
+        "segment": "target_current_after_430",
+        "first_step": 431,
+        "last_step": 570,
+        "rows": 140,
+        "fresh": 15680,
+        "replayed": 2224,
+        "cold_steps": [
+          431
+        ]
+      },
+      {
+        "segment": "target_current_after_570",
+        "first_step": 571,
+        "last_step": 609,
+        "rows": 39,
+        "fresh": 4368,
+        "replayed": 608,
+        "cold_steps": [
+          571
+        ]
+      }
+    ],
+    "R64": [
+      {
+        "segment": "original",
+        "first_step": 1,
+        "last_step": 390,
+        "rows": 390,
+        "fresh": 24960,
+        "replayed": 24896,
+        "cold_steps": [
+          1
+        ]
+      },
+      {
+        "segment": "recovered390",
+        "first_step": 391,
+        "last_step": 458,
+        "rows": 68,
+        "fresh": 4352,
+        "replayed": 4288,
+        "cold_steps": [
+          391
+        ]
+      }
+    ]
+  },
+  "common_window_401_440": {
+    "Fix": {
+      "optimizer_steps": 40,
+      "stats": {
+        "reward-core/word/mean": {
+          "n": 40,
+          "mean": 0.9044087282362306,
+          "min": 0.8579291151603712,
+          "max": 0.9286164819123428
+        },
+        "reward-core/score/mean": {
+          "n": 40,
+          "mean": -0.005900182055430203,
+          "min": -0.015537031192613472,
+          "max": 0.009519691469788486
+        },
+        "actor/kl_loss": {
+          "n": 40,
+          "mean": 0.032994532772136154,
+          "min": 0.02260132682567928,
+          "max": 0.048386537993792444
+        },
+        "reward-core/lang/mean": {
+          "n": 40,
+          "mean": 0.938916015625,
+          "min": 0.8994140625,
+          "max": 0.982421875
+        },
+        "reward-aux/lang/min": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-aux/lang/max": {
+          "n": 40,
+          "mean": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "reward-delta/lang/mean": {
+          "n": 40,
+          "mean": -0.002685546875,
+          "min": -0.0146484375,
+          "max": 0.0029296875
+        },
+        "reward-aux/d_lang/min": {
+          "n": 40,
+          "mean": -0.825,
+          "min": -1,
+          "max": 0
+        },
+        "reward-aux/d_lang/max": {
+          "n": 40,
+          "mean": 0.35,
+          "min": 0,
+          "max": 1
+        },
+        "reward-vote/lang/mean": {
+          "n": 40,
+          "mean": -0.002685546875,
+          "min": -0.0146484375,
+          "max": 0.0029296875
+        },
+        "reward-aux/v_lang/min": {
+          "n": 40,
+          "mean": -0.825,
+          "min": -1,
+          "max": 0
+        },
+        "reward-aux/v_lang/max": {
+          "n": 40,
+          "mean": 0.35,
+          "min": 0,
+          "max": 1
+        },
+        "train/gen_kept_frac": {
+          "n": 40,
+          "mean": 0.6677734375,
+          "min": 0.5390625,
+          "max": 0.7421875
+        },
+        "train/num_gen_batches": {
+          "n": 40,
+          "mean": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "replay/score_mean": {
+          "n": 0,
+          "mean": null,
+          "min": null,
+          "max": null
+        },
+        "replay/reinsert_rate": {
+          "n": 0,
+          "mean": null,
+          "min": null,
+          "max": null
+        },
+        "replay/buffer_size": {
+          "n": 0,
+          "mean": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "final_rollout_source_rows": {
+        "openml": 23424.0,
+        "ls_rare_verb": 11832.0,
+        "earnings_fy27": 5704.0
+      },
+      "final_rollout_rows": 40960.0,
+      "final_rollout_source_percent": {
+        "openml": 57.1875,
+        "ls_rare_verb": 28.88671875,
+        "earnings_fy27": 13.92578125
+      }
+    },
+    "R16": {
+      "optimizer_steps": 40,
+      "stats": {
+        "reward-core/word/mean": {
+          "n": 40,
+          "mean": 0.8291782255551151,
+          "min": 0.7780692678096531,
+          "max": 0.9120154761998245
+        },
+        "reward-core/score/mean": {
+          "n": 40,
+          "mean": -0.003826547638502875,
+          "min": -0.015745346703360835,
+          "max": 0.013913833317106135
+        },
+        "actor/kl_loss": {
+          "n": 40,
+          "mean": 0.08665389222109557,
+          "min": 0.06235361285507679,
+          "max": 0.11772264247494084
+        },
+        "reward-core/lang/mean": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-aux/lang/min": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-aux/lang/max": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-delta/lang/mean": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-aux/d_lang/min": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-aux/d_lang/max": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-vote/lang/mean": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-aux/v_lang/min": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "reward-aux/v_lang/max": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "train/gen_kept_frac": {
+          "n": 40,
+          "mean": 0.7216517857142857,
+          "min": 0.6328125,
+          "max": 0.8515625
+        },
+        "train/num_gen_batches": {
+          "n": 40,
+          "mean": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "replay/score_mean": {
+          "n": 40,
+          "mean": 0.8351829541840081,
+          "min": 0.7578353972794754,
+          "max": 0.9229884085929765
+        },
+        "replay/reinsert_rate": {
+          "n": 40,
+          "mean": 0.9046875,
+          "min": 0.0,
+          "max": 1
+        },
+        "replay/buffer_size": {
+          "n": 40,
+          "mean": 386.8,
+          "min": 112.0,
+          "max": 400
+        }
+      },
+      "final_rollout_source_rows": {
+        "openml": 24544.0,
+        "ls_rare_verb": 10640.0,
+        "earnings_fy27": 5648.0
+      },
+      "final_rollout_rows": 40832.0,
+      "final_rollout_source_percent": {
+        "openml": 60.10971786833855,
+        "ls_rare_verb": 26.057993730407524,
+        "earnings_fy27": 13.832288401253917
+      },
+      "fresh": 4480,
+      "replayed": 624,
+      "reinserted": 579,
+      "weighted_retention": 0.9278846153846154,
+      "deduplicated": 86
+    },
+    "R64": {
+      "optimizer_steps": 40,
+      "stats": {
+        "reward-core/word/mean": {
+          "n": 40,
+          "mean": 0.8920652655568905,
+          "min": 0.844816293900111,
+          "max": 0.93358550567537
+        },
+        "reward-core/score/mean": {
+          "n": 40,
+          "mean": -0.006281859304175884,
+          "min": -0.012763860884607124,
+          "max": 0.0004802055880303674
+        },
+        "actor/kl_loss": {
+          "n": 40,
+          "mean": 0.0290126582896673,
+          "min": 0.017587862443178892,
+          "max": 0.044518168273498304
+        },
+        "reward-core/lang/mean": {
+          "n": 40,
+          "mean": 0.954931640625,
+          "min": 0.91796875,
+          "max": 0.9921875
+        },
+        "reward-aux/lang/min": {
+          "n": 40,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "reward-aux/lang/max": {
+          "n": 40,
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "reward-delta/lang/mean": {
+          "n": 40,
+          "mean": -0.001904296875,
+          "min": -0.01171875,
+          "max": 0.0048828125
+        },
+        "reward-aux/d_lang/min": {
+          "n": 40,
+          "mean": -0.8,
+          "min": -1.0,
+          "max": 0.0
+        },
+        "reward-aux/d_lang/max": {
+          "n": 40,
+          "mean": 0.425,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "reward-vote/lang/mean": {
+          "n": 40,
+          "mean": -0.001904296875,
+          "min": -0.01171875,
+          "max": 0.0048828125
+        },
+        "reward-aux/v_lang/min": {
+          "n": 40,
+          "mean": -0.8,
+          "min": -1.0,
+          "max": 0.0
+        },
+        "reward-aux/v_lang/max": {
+          "n": 40,
+          "mean": 0.425,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "train/gen_kept_frac": {
+          "n": 40,
+          "mean": 0.6853515625,
+          "min": 0.6015625,
+          "max": 0.78125
+        },
+        "train/num_gen_batches": {
+          "n": 40,
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "replay/score_mean": {
+          "n": 40,
+          "mean": 0.9012748396824127,
+          "min": 0.8459262879330076,
+          "max": 0.9490384036667678
+        },
+        "replay/reinsert_rate": {
+          "n": 40,
+          "mean": 0.90390625,
+          "min": 0.625,
+          "max": 1.0
+        },
+        "replay/buffer_size": {
+          "n": 40,
+          "mean": 1205.525,
+          "min": 698.0,
+          "max": 1280.0
+        }
+      },
+      "final_rollout_source_rows": {
+        "openml": 22344.0,
+        "ls_rare_verb": 12608.0,
+        "earnings_fy27": 6008.0
+      },
+      "final_rollout_rows": 40960.0,
+      "final_rollout_source_percent": {
+        "openml": 54.55078125,
+        "ls_rare_verb": 30.78125,
+        "earnings_fy27": 14.667968749999998
+      },
+      "fresh": 2560,
+      "replayed": 2560,
+      "reinserted": 2314,
+      "weighted_retention": 0.90390625,
+      "deduplicated": 77
+    }
+  },
+  "language_metric_coverage": {
+    "Fix": {
+      "n_rows": 584,
+      "zero_mean_rows": 0,
+      "zero_mean_step_ranges": []
+    },
+    "R16": {
+      "n_rows": 609,
+      "zero_mean_rows": 441,
+      "zero_mean_step_ranges": [
+        [
+          147,
+          149
+        ],
+        [
+          152,
+          158
+        ],
+        [
+          160,
+          162
+        ],
+        [
+          164,
+          165
+        ],
+        [
+          167,
+          167
+        ],
+        [
+          169,
+          171
+        ],
+        [
+          175,
+          178
+        ],
+        [
+          180,
+          182
+        ],
+        [
+          185,
+          185
+        ],
+        [
+          187,
+          189
+        ],
+        [
+          191,
+          196
+        ],
+        [
+          199,
+          211
+        ],
+        [
+          213,
+          214
+        ],
+        [
+          217,
+          218
+        ],
+        [
+          220,
+          221
+        ],
+        [
+          224,
+          609
+        ]
+      ]
+    },
+    "R64": {
+      "n_rows": 458,
+      "zero_mean_rows": 0,
+      "zero_mean_step_ranges": []
+    }
+  },
+  "parser_demonstration": {
+    "examples": [
+      {
+        "name": "correct_header_with_verbatim",
+        "synthetic": true,
+        "raw": "<src=German><tgt=German>\n<VERBATIM>\nGuten Tag, meine Damen und Herren.\n</VERBATIM>",
+        "parsed": [
+          {
+            "src": "German",
+            "tgt": "German",
+            "text": "<VERBATIM>\nGuten Tag, meine Damen und Herren.\n</VERBATIM>"
+          }
+        ],
+        "lang": {
+          "acc": 1.0,
+          "n_err": 0,
+          "n_ref": 1
+        },
+        "cleaned_hyp": "Guten Tag, meine Damen und Herren."
+      },
+      {
+        "name": "correct_header_without_verbatim",
+        "synthetic": true,
+        "raw": "<src=German><tgt=German>\nGuten Tag, meine Damen und Herren.",
+        "parsed": [
+          {
+            "src": "German",
+            "tgt": "German",
+            "text": "Guten Tag, meine Damen und Herren."
+          }
+        ],
+        "lang": {
+          "acc": 1.0,
+          "n_err": 0,
+          "n_ref": 1
+        },
+        "cleaned_hyp": "Guten Tag, meine Damen und Herren."
+      },
+      {
+        "name": "missing_gt_and_tgt",
+        "synthetic": true,
+        "raw": "<src=German\nGuten Tag, meine Damen und Herren.",
+        "parsed": [
+          {
+            "src": null,
+            "tgt": null,
+            "text": null
+          }
+        ],
+        "lang": {
+          "acc": 0.0,
+          "n_err": 1,
+          "n_ref": 1
+        },
+        "cleaned_hyp": "Guten Tag, meine Damen und Herren."
+      },
+      {
+        "name": "wrong_tgt_language",
+        "synthetic": true,
+        "raw": "<src=German><tgt=English>\nGuten Tag, meine Damen und Herren.",
+        "parsed": [
+          {
+            "src": "German",
+            "tgt": "English",
+            "text": "Guten Tag, meine Damen und Herren."
+          }
+        ],
+        "lang": {
+          "acc": 0.0,
+          "n_err": 1,
+          "n_ref": 1
+        },
+        "cleaned_hyp": "Guten Tag, meine Damen und Herren."
+      }
+    ],
+    "lang_reward_cases": [
+      {
+        "sampled": 0,
+        "greedy": 0,
+        "delta": 0,
+        "clipped_vote": 0,
+        "beta_weighted": 0.0,
+        "reduced_scalar_contribution": 0.0
+      },
+      {
+        "sampled": 1,
+        "greedy": 0,
+        "delta": 1,
+        "clipped_vote": 1,
+        "beta_weighted": 0.2,
+        "reduced_scalar_contribution": 0.125
+      },
+      {
+        "sampled": 0,
+        "greedy": 1,
+        "delta": -1,
+        "clipped_vote": -1,
+        "beta_weighted": -0.2,
+        "reduced_scalar_contribution": -0.125
+      },
+      {
+        "sampled": 1,
+        "greedy": 1,
+        "delta": 0,
+        "clipped_vote": 0,
+        "beta_weighted": 0.0,
+        "reduced_scalar_contribution": 0.0
+      }
+    ],
+    "interpretation": "lang scores parsed target tags, not the language of body text; equal-zero sampled and greedy tags give zero differential contribution, but exploration can recover"
+  },
+  "limitations": [
+    "presentations are not unique audio or equal compute",
+    "source counts are final repeated rollout rows, not buffer composition",
+    "score_mean is current generation batch score, not resident buffer summary",
+    "R16 first50 retained updates used custom ReplayLossNormalizer",
+    "R64 replay size and capacity changed together relative to R16",
+    "unseeded grouping/shuffle means numeric loader cursor does not prove identical audio sequence",
+    "validation malformed header does not prove identical training raw output shape",
+    "current source file hash equality does not prove historical in-memory module identity"
+  ]
+}

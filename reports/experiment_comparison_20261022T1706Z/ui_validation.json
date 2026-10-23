@@ -1,0 +1,139 @@
+{
+  "checked_at_utc": "2026-10-22T17:20:43.506Z",
+  "target": "/home/boren/code/verl/reports/experiment_comparison_20261022T1706Z/index.html",
+  "method": "Node VM mock DOM and Plotly; application script exercised without a browser",
+  "checks": [
+    {
+      "name": "HTML structure",
+      "passed": true,
+      "detail": {
+        "bytes": 23800959,
+        "element_ids": 20,
+        "script_blocks": 3
+      }
+    },
+    {
+      "name": "All application and bundled Plotly syntax",
+      "passed": true,
+      "detail": {
+        "application_bytes": 6721,
+        "plotly_bytes": 4653885
+      }
+    },
+    {
+      "name": "Local links and offline resources",
+      "passed": true,
+      "detail": {
+        "hrefs": 25,
+        "local_files": 23,
+        "external_script_dependencies": 0
+      }
+    },
+    {
+      "name": "Embedded scalar payload",
+      "passed": true,
+      "detail": {
+        "runs": 9,
+        "scalar_points": 106638,
+        "group_sizes": {
+          "dev": 7,
+          "hindi": 2,
+          "active_dev": 4
+        }
+      }
+    },
+    {
+      "name": "Matched validation exact observations",
+      "passed": true,
+      "detail": {
+        "matched_rows": 83
+      }
+    },
+    {
+      "name": "Evidence and source checksums",
+      "passed": true,
+      "detail": {
+        "source_files": 9
+      }
+    },
+    {
+      "name": "Initial application render",
+      "passed": true,
+      "detail": {
+        "initial_plot_calls": 15,
+        "dev_validation_panels": 4,
+        "default_enabled_dev": [
+          "L0",
+          "bcr",
+          "bcr64",
+          "fix"
+        ]
+      }
+    },
+    {
+      "name": "Dev and Hindi switching",
+      "passed": true,
+      "detail": {
+        "hindi_validation_panels": 1,
+        "restored_dev_panels": 4
+      }
+    },
+    {
+      "name": "All reward families",
+      "passed": true,
+      "detail": {
+        "core": 8,
+        "delta": 7,
+        "vote": 7
+      }
+    },
+    {
+      "name": "Raw and smoothed reward values",
+      "passed": true,
+      "detail": {
+        "raw_preserved": true,
+        "trailing_window": 20,
+        "segment_boundaries_respected": true
+      }
+    },
+    {
+      "name": "Individual run checkbox and all-run controls",
+      "passed": true,
+      "detail": {
+        "checkbox": true,
+        "hide_all": true,
+        "show_all": true
+      }
+    },
+    {
+      "name": "Running-only control",
+      "passed": true,
+      "detail": {
+        "dev": [
+          "L0",
+          "bcr",
+          "bcr64",
+          "fix"
+        ],
+        "hindi": [
+          "hindi_v1"
+        ]
+      }
+    },
+    {
+      "name": "Recent range and matched plotted data",
+      "passed": true,
+      "detail": {
+        "recent_range_checked": true,
+        "matched_dataset": "earning_chunk_verb",
+        "matched_runs": 4
+      }
+    }
+  ],
+  "warnings": [],
+  "errors": [],
+  "passed": true,
+  "plot_calls": 279,
+  "html_sha256": "4f8ff164de03c512c86502801388b1f7f8152cdde73353a38c0b636d74d60df8",
+  "completed_at_utc": "2026-10-22T17:20:45.677Z"
+}

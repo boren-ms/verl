@@ -1,0 +1,206 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "name": "Both comparisons have 5958 stable matched scoring units",
+      "passed": true
+    },
+    {
+      "name": "R16/earning_chunk_verb unique complete IDs",
+      "passed": true
+    },
+    {
+      "name": "R16/earning_chunk_verb both official rates reproduced",
+      "passed": true
+    },
+    {
+      "name": "R16/earning_chunk_verb expected exact step",
+      "passed": true
+    },
+    {
+      "name": "R16/openml_bad unique complete IDs",
+      "passed": true
+    },
+    {
+      "name": "R16/openml_bad both official rates reproduced",
+      "passed": true
+    },
+    {
+      "name": "R16/openml_bad expected exact step",
+      "passed": true
+    },
+    {
+      "name": "R16/ls_clean unique complete IDs",
+      "passed": true
+    },
+    {
+      "name": "R16/ls_clean both official rates reproduced",
+      "passed": true
+    },
+    {
+      "name": "R16/ls_clean expected exact step",
+      "passed": true
+    },
+    {
+      "name": "R16/ls_other unique complete IDs",
+      "passed": true
+    },
+    {
+      "name": "R16/ls_other both official rates reproduced",
+      "passed": true
+    },
+    {
+      "name": "R16/ls_other expected exact step",
+      "passed": true
+    },
+    {
+      "name": "R64/earning_chunk_verb unique complete IDs",
+      "passed": true
+    },
+    {
+      "name": "R64/earning_chunk_verb both official rates reproduced",
+      "passed": true
+    },
+    {
+      "name": "R64/earning_chunk_verb expected exact step",
+      "passed": true
+    },
+    {
+      "name": "R64/openml_bad unique complete IDs",
+      "passed": true
+    },
+    {
+      "name": "R64/openml_bad both official rates reproduced",
+      "passed": true
+    },
+    {
+      "name": "R64/openml_bad expected exact step",
+      "passed": true
+    },
+    {
+      "name": "R64/ls_clean unique complete IDs",
+      "passed": true
+    },
+    {
+      "name": "R64/ls_clean both official rates reproduced",
+      "passed": true
+    },
+    {
+      "name": "R64/ls_clean expected exact step",
+      "passed": true
+    },
+    {
+      "name": "R64/ls_other unique complete IDs",
+      "passed": true
+    },
+    {
+      "name": "R64/ls_other both official rates reproduced",
+      "passed": true
+    },
+    {
+      "name": "R64/ls_other expected exact step",
+      "passed": true
+    },
+    {
+      "name": "Sixteen original dumps frozen",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R16/Fix/earning_chunk_verb_580.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R16/R16/earning_chunk_verb_580.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R16/Fix/openml_bad_580.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R16/R16/openml_bad_580.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R16/Fix/ls_clean_580.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R16/R16/ls_clean_580.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R16/Fix/ls_other_580.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R16/R16/ls_other_580.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R64/Fix/earning_chunk_verb_440.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R64/R64/earning_chunk_verb_440.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R64/Fix/openml_bad_440.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R64/R64/openml_bad_440.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R64/Fix/ls_clean_440.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R64/R64/ls_clean_440.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R64/Fix/ls_other_440.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Frozen SHA sources/dumps/R64/R64/ls_other_440.jsonl",
+      "passed": true
+    },
+    {
+      "name": "Initial R16 regression filter has185 units",
+      "passed": true
+    },
+    {
+      "name": "Initial render paginates40 cards",
+      "passed": true
+    },
+    {
+      "name": "R64 regression filter has139 units",
+      "passed": true
+    },
+    {
+      "name": "R64 ls_other85 improved units",
+      "passed": true
+    },
+    {
+      "name": "Search resolves exact improved example",
+      "passed": true
+    },
+    {
+      "name": "Empty search state renders",
+      "passed": true
+    },
+    {
+      "name": "HTML has4 embedded scientific figures",
+      "passed": true
+    },
+    {
+      "name": "No network chart dependency",
+      "passed": true
+    }
+  ],
+  "scope": "Source hashes, official aggregates and functional JS filters via Node VM DOM mocks. Not an actual browser rendering test."
+}

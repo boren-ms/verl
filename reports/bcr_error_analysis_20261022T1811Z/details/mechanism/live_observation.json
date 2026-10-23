@@ -1,0 +1,34 @@
+{
+  "scope": "Separate later read-only live observation; not part of the frozen numeric comparison",
+  "head": {
+    "pod": "verl2-n2-i0-0",
+    "observed_at_utc": "2026-10-22T18:17:19.248039+00:00",
+    "git_head": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "hashes": {
+      "recipe/phimm/reward/asr_vote.py": "416d9bff59aa2d08d755ba963cdfd24be201f38b2f19e52342f55be3b6b10bd4",
+      "recipe/phimm/reward/asr_measure.py": "f59d1347b94b6f15beb6ae25d78aa34f03c814417e4a48cc1ba9432bd8930e96",
+      "recipe/phimm/reward/asr_response.py": "c71898eed9b04c8a1c203803d99caac687c0b8113dad78cd7266372d0b909c30",
+      "recipe/phimm/utils/languages.py": "02600b0126daa3113f895e870c1f7b0b58e7acc83632dfc4529616a6a750ebce",
+      "verl/trainer/ppo/bad_case_replay.py": "3be9b6fa6a5f95457ba6f6fbc1bec540d384828efc96639256f63d098c049b00"
+    },
+    "submission_jobs": []
+  },
+  "worker": {
+    "pod": "verl2-n2-i0-1",
+    "observed_at_utc": "2026-10-22T18:17:19.365174+00:00",
+    "git_head": "24276527290b96e6e1531c8164ba2ac2440b289f",
+    "hashes": {
+      "recipe/phimm/reward/asr_vote.py": "416d9bff59aa2d08d755ba963cdfd24be201f38b2f19e52342f55be3b6b10bd4",
+      "recipe/phimm/reward/asr_measure.py": "f59d1347b94b6f15beb6ae25d78aa34f03c814417e4a48cc1ba9432bd8930e96",
+      "recipe/phimm/reward/asr_response.py": "c71898eed9b04c8a1c203803d99caac687c0b8113dad78cd7266372d0b909c30",
+      "recipe/phimm/utils/languages.py": "02600b0126daa3113f895e870c1f7b0b58e7acc83632dfc4529616a6a750ebce",
+      "verl/trainer/ppo/bad_case_replay.py": "3be9b6fa6a5f95457ba6f6fbc1bec540d384828efc96639256f63d098c049b00"
+    },
+    "ray_api_error": "URLError"
+  },
+  "limits": [
+    "Current on-disk source equality does not establish historical in-memory worker module identity.",
+    "This observation does not prove an R16 training submission is currently running.",
+    "No jobs were launched, restored, stopped, or changed."
+  ]
+}
