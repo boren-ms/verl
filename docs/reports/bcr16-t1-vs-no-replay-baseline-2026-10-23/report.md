@@ -60,7 +60,7 @@ Raw measures and deltas have the same definitions; core/score includes divisor4 
 |LibriSpeech other|2939|99|62|-42|0|
 
 ## Verified scoring diagnostic
-Pinned scorer replay reproduced12/12 selected case error counts. OpenML ID11746087412974645092 loses the parenthesized year2006 during normalization,adding4 errors(2→6). This is one verified scoring-sensitive case,not a population prevalence estimate. See sources/scoring_diagnostics.json.
+Pinned scorer replay reproduced12/12 selected case error counts. OpenML ID11746087412974645092 loses the parenthesized year2006 during normalization,adding4 errors(2→6). This is one verified scoring-sensitive case,not a population prevalence estimate.
 
 ## Limits
 - Baseline is L2_t1 without replay, temperature1; target is BCR16_T1 temperature1. Reward divisor changes4 to3 as well as replay; causal isolation unavailable.
@@ -140,19 +140,19 @@ Step600 full dumps; unchanged stable IDs and references. Earnings grouped341 chu
 
 ## Stable-ID cases: content and scoring-sensitive forms
 
-Excerpts are illustrative; complete outputs, references and logged error counts retained in evidence.json. No acoustic cause inferred.
+Excerpts are illustrative. No acoustic cause inferred.
 
 ![figure](figures/08_examples_0.png)
 
 ## Stable-ID cases: content and scoring-sensitive forms
 
-Excerpts are illustrative; complete outputs, references and logged error counts retained in evidence.json. No acoustic cause inferred.
+Excerpts are illustrative. No acoustic cause inferred.
 
 ![figure](figures/08_examples_1.png)
 
 ## Stable-ID cases: content and scoring-sensitive forms
 
-Excerpts are illustrative; complete outputs, references and logged error counts retained in evidence.json. No acoustic cause inferred.
+Excerpts are illustrative. No acoustic cause inferred.
 
 ![figure](figures/08_examples_2.png)
 
