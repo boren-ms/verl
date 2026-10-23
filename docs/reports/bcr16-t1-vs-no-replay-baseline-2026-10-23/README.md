@@ -2,6 +2,7 @@
 
 Comparison collected on October 23, 2026. Both runs are stopped; the BCR16 T1 recovery monitor was deleted.
 
+- [Compact PDF report](report-compact.pdf): five pages covering the main findings, validation trajectories, reward means, and matched examples.
 - [PDF report](report.pdf): 16 slides covering config/code differences, validation trajectories, reward means, and matched examples.
 - [Markdown report](report.md): results, exact metric keys, counts, comparison limits, and embedded figures.
 
