@@ -1,0 +1,187 @@
+{
+  "observed_at": "2026-10-23T23:02:15.236881+00:00",
+  "pool": "verl-n2-i10",
+  "cause": "Scheduler preemption / PoolUnallocated",
+  "evidence": [
+    {
+      "firstTimestamp": "2026-10-23T22:08:03Z",
+      "lastTimestamp": "2026-10-23T22:08:03Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod from dh115-r316-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10-0"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:24:18Z",
+      "lastTimestamp": "2026-10-23T22:24:18Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod from dh115-r343-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10-0"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:40:47Z",
+      "lastTimestamp": "2026-10-23T22:40:47Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod from dh115-r317-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10-0"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:56:59Z",
+      "lastTimestamp": "2026-10-23T22:56:59Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod from dh115-r287-node-02. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10-0"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:08:03Z",
+      "lastTimestamp": "2026-10-23T22:08:03Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod from dh115-r173-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10-1"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:24:18Z",
+      "lastTimestamp": "2026-10-23T22:24:18Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod from dh115-r229-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10-1"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:40:47Z",
+      "lastTimestamp": "2026-10-23T22:40:47Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod from dh115-r287-node-02. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10-1"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:56:59Z",
+      "lastTimestamp": "2026-10-23T22:56:59Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod from dh115-r317-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10-1"
+    },
+    {
+      "firstTimestamp": "2026-10-20T22:32:49Z",
+      "lastTimestamp": "2026-10-23T22:56:59Z",
+      "reason": "NotAllocated",
+      "message": "No resources available for Pods",
+      "count": 30,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-20T22:33:23Z",
+      "lastTimestamp": "2026-10-23T22:58:02Z",
+      "reason": "Allocated",
+      "message": "Allocated resources on nodes with gpu1 SKU for 2 Pods",
+      "count": 30,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-22T01:38:35Z",
+      "lastTimestamp": "2026-10-23T22:41:59Z",
+      "reason": "Stopped",
+      "message": "Preempted to accommodate a workload (UID: f6fe8509-cfa4-41e2-bf23-f0af77636477, JobUID: 09a018d4-6084-436e-96b7-774117713ed4) due to prioritization in the ClusterQueue; preemptor path: /orange/team-moonfire-speech; preemptee path: /orange/team-moonfire-speech",
+      "count": 82,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-22T20:46:10Z",
+      "lastTimestamp": "2026-10-23T22:40:47Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod verl-n2-i10-0 from dh115-r317-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 2,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-22T21:02:21Z",
+      "lastTimestamp": "2026-10-23T22:08:03Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod verl-n2-i10-0 from dh115-r316-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 3,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:08:03Z",
+      "lastTimestamp": "2026-10-23T22:08:03Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod verl-n2-i10-1 from dh115-r173-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:24:18Z",
+      "lastTimestamp": "2026-10-23T22:24:18Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod verl-n2-i10-1 from dh115-r229-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:24:18Z",
+      "lastTimestamp": "2026-10-23T22:24:18Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod verl-n2-i10-0 from dh115-r343-node-01. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:56:59Z",
+      "lastTimestamp": "2026-10-23T22:56:59Z",
+      "reason": "PoolUnallocated",
+      "message": "Deleted pod verl-n2-i10-0 from dh115-r287-node-02. Pool is not allocated by the scheduler and Pods should not exist.",
+      "count": 1,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    },
+    {
+      "firstTimestamp": "2026-10-23T22:56:59Z",
+      "lastTimestamp": "2026-10-23T22:58:02Z",
+      "reason": "Stopped",
+      "message": "Preempted to accommodate a workload (UID: fabc32cb-483a-419c-ab62-a29a40f0f665, JobUID: 4dd965ff-3835-4f41-8c18-ee90af7c3b28) due to prioritization in the ClusterQueue; preemptor path: /orange/team-moonfire-speech; preemptee path: /orange/team-moonfire-speech",
+      "count": 6,
+      "type": "Normal",
+      "object": "verl-n2-i10"
+    }
+  ],
+  "current_priority_class": "team-high",
+  "current_pods": [
+    {
+      "name": "verl-n2-i10-0",
+      "uid": "3d1de8d0-2ab4-48cf-8495-4f26a6f566d7",
+      "created_at": "2026-10-23T22:58:03Z",
+      "ip": "10.151.59.166"
+    },
+    {
+      "name": "verl-n2-i10-1",
+      "uid": "9051b2b8-c940-4ffa-b866-e3e219e7e6d5",
+      "created_at": "2026-10-23T22:58:03Z",
+      "ip": "10.151.61.153"
+    }
+  ],
+  "latest_complete_cloud_checkpoint": 40,
+  "new_training_metrics": false,
+  "recovery_policy": "Wait until same two pod UIDs persist at least30min and both Ready with no unrelated Ray/GPU work; recheck before bpush and resume40. Do not change priority or displace other workloads."
+}

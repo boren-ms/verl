@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T22:35:37.996211+00:00",
+  "updated_at": "2026-10-23T23:02:15.236881+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING: new recovery startup; verify actual checkpoint40 restore",
+    "A2_training": "WAITING_FOR_STABLE_ALLOCATION: repeated scheduler preemption; resume40 pending",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -204,9 +204,11 @@
       "kw_empty_false_positive": null
     }
   },
-  "blockers": [],
+  "blockers": [
+    "Repeated scheduler preemption removes both pods before recovery completes; no checkpoint beyond40"
+  ],
   "next_actions": [
-    "Verify checkpoint40 model/optimizer/RNG/dataloader restore and step41; continue to100, dev60/80/100",
+    "After stable same-pod allocation>=30min, recheck both GPUs and live Ray, bpush current branch, resume40 and verify model/optimizer/RNG/dataloader plus step41",
     "Select complete checkpoint using dev1000 only after pool releases",
     "Export rank256/alpha512 and evaluate internal/clean/other; verify corpus counts"
   ],
@@ -226,7 +228,7 @@
       "dev",
       "internal_test"
     ],
-    "official_main_pod_cached_files": 5559,
+    "official_main_pod_cached_files": null,
     "full_train_audio_verified": false
   },
   "active_job": {
@@ -250,36 +252,24 @@
     },
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
     "job_id": "raysubmit_DZqw9UYAjx4wWuGE",
-    "status": "RUNNING",
+    "status": "LOST",
     "code_commit": "1b54a4490",
     "dashboard": "http://10.151.59.231:9209",
     "submitted_at": "2026-10-23T22:32:46Z",
     "replacement_for": "raysubmit_bsbih6mwPBeLPs2w",
-    "phase": "Model initialization; training10000/dev1000 confirmed; restore40 pending",
+    "phase": "Scheduler preemption at22:40:47Z; old pods deleted and Ray history lost; restore40 not verified before loss",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
     "resume_verified": false,
     "val_before_train": false,
     "last_completed_training_step": 40,
-    "loaded_validation_samples": 1000
+    "loaded_validation_samples": 1000,
+    "lost_at": "2026-10-23T22:40:47Z"
   },
   "audio_precache": {
-    "status": "SUCCEEDED",
-    "pid": 25670,
-    "head_ip": "10.151.59.231",
-    "started_at": "2026-10-23T22:33:05.931681+00:00",
-    "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
-    "state_dir": "/root/code/verl/tmp/verl_asr_run/keyword_joint_pipeline/audio_precache",
-    "total": 5559,
-    "HOME": "/root",
-    "user": "root",
-    "cache_root": "/root/data",
-    "exit_code": 0,
-    "finished_at": "2026-10-23T22:35:04.275107+00:00",
-    "unique_files": 5559,
-    "already_local": 0,
-    "downloaded": 5559,
-    "failures": 0
+    "status": "NOT_STARTED_ON_NEW_HEAD",
+    "head_ip": "10.151.59.166",
+    "note": "PID25670 completion belongs to deleted head10.151.59.231; defer prefetch until next actual recovery startup"
   },
   "monitor": {
     "automation_id": "librispeech",
@@ -288,19 +278,18 @@
     "status": "ACTIVE"
   },
   "occupancy_observation": {
-    "observed_at": "2026-10-23T22:33:13.131147+00:00",
+    "observed_at": "2026-10-23T23:02:15.236881+00:00",
     "pool": "verl-n2-i10",
+    "head_ip": "10.151.59.166",
+    "worker_ip": "10.151.61.153",
     "both_pods_checked": true,
-    "head_ip": "10.151.59.231",
-    "worker_ip": "10.151.239.170",
     "gpu_memory_mib_range": [
       1,
       1
     ],
-    "jobs_before_submission": [],
-    "ray_alive_nodes": 2,
-    "gpus_per_node": 8,
-    "action": "Both pods idle and ready before bpush and replacement submission"
+    "head_Ray_jobs": [],
+    "both_pods_ready": true,
+    "action": "New empty cluster; waiting for stable scheduler allocation before retry"
   },
   "config_layout": {
     "base": "recipe/phimm/config/v2609_kw/base.yaml",
@@ -477,6 +466,41 @@
       "resume_verified": false,
       "val_before_train": false,
       "last_completed_training_step": 40
+    },
+    {
+      "pool": "verl-n2-i10",
+      "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
+      "experiment_name": "remax_ls_joint_pilot_dev1k",
+      "nnodes": 2,
+      "settings": {
+        "train_samples": 10000,
+        "dev_samples": 1000,
+        "steps": 100,
+        "batch_size": 64,
+        "rollout_n": 8,
+        "gt_per_group": 1,
+        "sampled_per_group": 7,
+        "save_freq": 10,
+        "test_freq": 20,
+        "selection_split": "dev",
+        "lora_rank": 256,
+        "lora_alpha": 512
+      },
+      "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
+      "job_id": "raysubmit_DZqw9UYAjx4wWuGE",
+      "status": "LOST",
+      "code_commit": "1b54a4490",
+      "dashboard": "http://10.151.59.231:9209",
+      "submitted_at": "2026-10-23T22:32:46Z",
+      "replacement_for": "raysubmit_bsbih6mwPBeLPs2w",
+      "phase": "Scheduler preemption at22:40:47Z; old pods deleted and Ray history lost; restore40 not verified before loss",
+      "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
+      "resume_step": 40,
+      "resume_verified": false,
+      "val_before_train": false,
+      "last_completed_training_step": 40,
+      "loaded_validation_samples": 1000,
+      "lost_at": "2026-10-23T22:40:47Z"
     }
   ],
   "previous_audio_precache": {
@@ -525,18 +549,28 @@
     }
   },
   "pool_recreation": {
-    "observed_at": "2026-10-23T22:30:01.875784+00:00",
-    "head_ip": "10.151.59.231",
-    "worker_ip": "10.151.239.170",
-    "dashboard": "http://10.151.59.231:9209",
+    "observed_at": "2026-10-23T23:02:15.236881+00:00",
+    "head_ip": "10.151.59.166",
+    "worker_ip": "10.151.61.153",
+    "dashboard": "http://10.151.59.166:9209",
     "checkpoint_for_resume": 40,
-    "skip_duplicate_initial_validation": true,
-    "pod_age_minutes": 4,
-    "warning_events": [
-      "Readiness probes503",
-      "FailedToRetrieveImagePullSecret (pod nevertheless started)"
+    "cause": "Scheduler preemption / PoolUnallocated",
+    "pods_created_at": "2026-10-23T22:58:03Z",
+    "pod_identities": [
+      {
+        "name": "verl-n2-i10-0",
+        "uid": "3d1de8d0-2ab4-48cf-8495-4f26a6f566d7",
+        "created_at": "2026-10-23T22:58:03Z",
+        "ip": "10.151.59.166"
+      },
+      {
+        "name": "verl-n2-i10-1",
+        "uid": "9051b2b8-c940-4ffa-b866-e3e219e7e6d5",
+        "created_at": "2026-10-23T22:58:03Z",
+        "ip": "10.151.61.153"
+      }
     ],
-    "head_ray_started_at": "2026-10-23T22:29:43Z"
+    "diagnosis_report": "reports/asr_keywords_plan_20261023/pool_preemption_diagnosis.json"
   },
   "previous_audio_precache_recreated_head": {
     "main_pod": "verl-n2-i10-0",
@@ -569,6 +603,20 @@
       "both_pods_idle": true,
       "checkpoint_for_resume": 40,
       "skip_duplicate_initial_validation": true
+    },
+    {
+      "observed_at": "2026-10-23T22:30:01.875784+00:00",
+      "head_ip": "10.151.59.231",
+      "worker_ip": "10.151.239.170",
+      "dashboard": "http://10.151.59.231:9209",
+      "checkpoint_for_resume": 40,
+      "skip_duplicate_initial_validation": true,
+      "pod_age_minutes": 4,
+      "warning_events": [
+        "Readiness probes503",
+        "FailedToRetrieveImagePullSecret (pod nevertheless started)"
+      ],
+      "head_ray_started_at": "2026-10-23T22:29:43Z"
     }
   ],
   "previous_audio_precaches": [
@@ -586,6 +634,40 @@
       "processed": 1500,
       "total": 5559,
       "failures": 0
+    },
+    {
+      "status": "SUCCEEDED",
+      "pid": 25670,
+      "head_ip": "10.151.59.231",
+      "started_at": "2026-10-23T22:33:05.931681+00:00",
+      "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
+      "state_dir": "/root/code/verl/tmp/verl_asr_run/keyword_joint_pipeline/audio_precache",
+      "total": 5559,
+      "HOME": "/root",
+      "user": "root",
+      "cache_root": "/root/data",
+      "exit_code": 0,
+      "finished_at": "2026-10-23T22:35:04.275107+00:00",
+      "unique_files": 5559,
+      "already_local": 0,
+      "downloaded": 5559,
+      "failures": 0
     }
-  ]
+  ],
+  "pending_submission": {
+    "status": "WAITING_FOR_STABLE_ALLOCATION",
+    "minimum_same_pod_age_minutes": 30,
+    "earliest_observation_at": "2026-10-23T23:28:03Z",
+    "must_check_both_ready_idle_and_live_Ray": true,
+    "resume_step": 40,
+    "val_before_train": false,
+    "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
+    "trainer_overrides": {
+      "nnodes": 2,
+      "experiment_name": "remax_ls_joint_pilot_dev1k",
+      "resume_mode": "resume_path",
+      "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
+      "val_before_train": false
+    }
+  }
 }
