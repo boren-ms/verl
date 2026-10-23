@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T18:43:41.612025+00:00",
+  "updated_at": "2026-10-23T19:32:55.017242+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -58,12 +58,13 @@
   },
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
-    "A1_base_joint_prompt": "QUEUED: reserved pool now occupied by unrelated remax_base0b_v0",
+    "A1_base_joint_prompt": "RUNNING: base model syncing on recreated head",
     "A2_training": "not submitted",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
-    "raysubmit_8QYAUSqkEcEr7Ji8"
+    "raysubmit_8QYAUSqkEcEr7Ji8",
+    "raysubmit_X7JKdMjtL7Vfr4CZ"
   ],
   "model_metrics": {
     "A0_base_original_prompt": {
@@ -97,12 +98,10 @@
       }
     }
   },
-  "blockers": [
-    "verl-n2-i10 has unrelated RUNNING Ray job raysubmit_8S6PpKBcqzyKzM1r (remax_base0b_v0). Leave it untouched; do not bpush or submit A1 until pool is free."
-  ],
+  "blockers": [],
   "next_actions": [
-    "Recheck reserved pool; when no live Ray jobs and GPUs idle, bpush isolated branch and submit A1 with trainer.nnodes=2",
-    "After both baselines succeed launch pilot training",
+    "Monitor A1 raysubmit_X7JKdMjtL7Vfr4CZ through completion and verify full corpus counts; reconcile independent audio prefetch",
+    "After A1 succeeds launch pilot training",
     "Select checkpoint using dev only; evaluate internal/clean/other"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
@@ -128,19 +127,82 @@
     "pool": "verl-n2-i10",
     "nnodes": 2,
     "gpus_per_node": 8,
-    "config": "recipe/phimm/config/2609-Keyword/baseline_eval/eval_base_ls.yaml",
-    "job_id": "raysubmit_8QYAUSqkEcEr7Ji8",
-    "code_commit": "5307f0132",
-    "dashboard": "http://10.151.68.221:9209",
-    "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/5ac4a4de096b81b0514a7f621a2aefd7",
-    "status": "SUCCEEDED",
+    "config": "recipe/phimm/config/v2609_kw/baseline_eval/eval_joint_prompt_ls.yaml",
+    "job_id": "raysubmit_X7JKdMjtL7Vfr4CZ",
+    "code_commit": "a2266fece",
+    "dashboard": "http://10.151.61.214:9209",
+    "status": "RUNNING",
     "datasets": {
       "ls_clean": 2620,
       "ls_other": 2939
     },
-    "metrics_available": true
+    "metrics_available": false,
+    "submission_session": 32700,
+    "submitted_at": "2026-10-23T19:31:53.984+00:00",
+    "phase": "base model sync",
+    "wandb_url": null
   },
   "audio_precache": {
+    "main_pod": "verl-n2-i10-0",
+    "head_ip": "10.151.61.214",
+    "pid": 32763,
+    "status": "RUNNING",
+    "started_at": "2026-10-23T19:32:19.938668+00:00",
+    "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
+    "state_dir": "/root/code/verl/tmp/verl_asr_run/keyword_joint_pipeline/audio_precache",
+    "note": "New head pod; old cache completion is historical only.",
+    "attempt": 2,
+    "previous_attempt": {
+      "pid": 26489,
+      "exit_code": 1,
+      "cause": "Missing tensordict before environment installation; retried after environment preparation"
+    }
+  },
+  "monitor": {
+    "automation_id": "librispeech",
+    "kind": "heartbeat",
+    "interval_minutes": 30,
+    "status": "ACTIVE"
+  },
+  "occupancy_observation": {
+    "observed_at": "2026-10-23T19:30:07.384285+00:00",
+    "pool": "verl-n2-i10",
+    "head_ip": "10.151.61.214",
+    "worker_ip": "10.151.239.218",
+    "both_pods_checked": true,
+    "gpus_idle": true,
+    "no_running_jobs_before_submission": true,
+    "action": "synced isolated branch; launching A1",
+    "note": "Head pod replaced; former Ray history and prefetch state no longer present."
+  },
+  "config_layout": {
+    "base": "recipe/phimm/config/v2609_kw/base.yaml",
+    "training_data": "recipe/phimm/config/v2609_kw/data/training",
+    "evaluation_data": "recipe/phimm/config/v2609_kw/data/eval",
+    "baseline_eval": "recipe/phimm/config/v2609_kw/baseline_eval",
+    "training": "recipe/phimm/config/v2609_kw/training",
+    "evaluation": "recipe/phimm/config/v2609_kw/evaluation",
+    "note": "Training data separate from dev/test data; existing W&B project/output paths and completed A0 provenance preserved."
+  },
+  "previous_jobs": [
+    {
+      "pool": "verl-n2-i10",
+      "nnodes": 2,
+      "gpus_per_node": 8,
+      "config": "recipe/phimm/config/2609-Keyword/baseline_eval/eval_base_ls.yaml",
+      "job_id": "raysubmit_8QYAUSqkEcEr7Ji8",
+      "code_commit": "5307f0132",
+      "dashboard": "http://10.151.68.221:9209",
+      "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/5ac4a4de096b81b0514a7f621a2aefd7",
+      "status": "SUCCEEDED",
+      "datasets": {
+        "ls_clean": 2620,
+        "ls_other": 2939
+      },
+      "metrics_available": true
+    }
+  ],
+  "previous_audio_precache": {
     "main_pod": "verl-n2-i10-0",
     "pid": 545163,
     "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
@@ -151,30 +213,5 @@
     "status": "SUCCEEDED",
     "exit_code": 0,
     "finished_at": "2026-10-23T17:57:20.199340+00:00"
-  },
-  "monitor": {
-    "automation_id": "librispeech",
-    "kind": "heartbeat",
-    "interval_minutes": 30,
-    "status": "ACTIVE"
-  },
-  "occupancy_observation": {
-    "observed_at": "2026-10-23T18:29:10.522856+00:00",
-    "pool": "verl-n2-i10",
-    "running_job_id": "raysubmit_8S6PpKBcqzyKzM1r",
-    "config": "v2611_dev/dev/remax_base0b_v0",
-    "stage": "model cache loading",
-    "gpu_memory_mib_per_gpu": 532,
-    "both_pods_checked": true,
-    "action": "wait; no remote modifications"
-  },
-  "config_layout": {
-    "base": "recipe/phimm/config/v2609_kw/base.yaml",
-    "training_data": "recipe/phimm/config/v2609_kw/data/training",
-    "evaluation_data": "recipe/phimm/config/v2609_kw/data/eval",
-    "baseline_eval": "recipe/phimm/config/v2609_kw/baseline_eval",
-    "training": "recipe/phimm/config/v2609_kw/training",
-    "evaluation": "recipe/phimm/config/v2609_kw/evaluation",
-    "note": "Training data separate from dev/test data; existing W&B project/output paths and completed A0 provenance preserved."
   }
 }
