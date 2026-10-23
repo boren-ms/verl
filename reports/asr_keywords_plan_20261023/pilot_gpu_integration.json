@@ -31,5 +31,17 @@
   "gt_body_and_list_correct": true,
   "greedy_has_no_keyword_blocks": true,
   "training_dump_counts_aligned": false,
-  "training_dump_note": "Old dump used pre-balancing reward lists; fixed to use row-attached columns. Reward tensors and aggregate metrics already traveled with the batch."
+  "training_dump_note": "Old dump used pre-balancing reward lists; fixed to use row-attached columns. Reward tensors and aggregate metrics already traveled with the batch.",
+  "fixed_run_verification": {
+    "job": "raysubmit_pfpa7hyGA1AgVaPF",
+    "rows": 512,
+    "groups": 64,
+    "all_scoring_fields_recomputed_match": true,
+    "keyword_blocks_per_group": {
+      "1": 64
+    },
+    "last_logged_step": 19,
+    "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
+    "native_finish_reason_source": "vllm for all 512 rows"
+  }
 }

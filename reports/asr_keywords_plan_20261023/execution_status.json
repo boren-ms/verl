@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-10-23T21:03:49.594133+00:00",
+  "updated_at": "2026-10-23T21:30:04.763105+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
   "keyword_tag": "<KEYWORDS>",
   "annotation_policy": "ls-common5k-v1",
-  "implementation": "GPU verified full GT body/list and 1GT+7samples on prior run; metadata and dump-alignment fixes submitted",
+  "implementation": "GPU verified 1GT+7sample, native finish reasons, and all 512 train10 counts/list scores recomputed match",
   "config_root": "recipe/phimm/config/v2609_kw",
   "local_manifest_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1",
   "remote_reference_manifest_local_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING replacement raysubmit_pfpa7hyGA1AgVaPF, model startup; 59 regression tests passed",
+    "A2_training": "RUNNING: step20 dev validation, last logged optimization step19",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -162,8 +162,8 @@
   },
   "blockers": [],
   "next_actions": [
-    "Verify replacement progresses beyond step5 and training dumps align with IDs/reference; continue100steps",
-    "Select complete checkpoint using dev1000 only",
+    "Continue current training through100steps; collect complete dev20/40/60/80/100 outputs",
+    "Select complete checkpoint using dev1000 only after pool releases",
     "Export rank256/alpha512 and evaluate internal/clean/other; verify corpus counts"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
@@ -205,14 +205,19 @@
       "lora_rank": 256,
       "lora_alpha": 512
     },
-    "gpu_gt_group_behavior_verified": false,
+    "gpu_gt_group_behavior_verified": true,
     "replacement_for": "raysubmit_BXxnPGWufEfNkCc5",
     "job_id": "raysubmit_pfpa7hyGA1AgVaPF",
     "code_commit": "737ad7176",
     "dashboard": "http://10.151.61.214:9209",
-    "phase": "runtime initialized; model startup after fix",
+    "phase": "step20 dev1000 validation; training progressed beyond prior failure",
     "submitted_at": "2026-10-23T21:03:05Z",
-    "last_completed_training_step": 0
+    "last_completed_training_step": 19,
+    "optimizer_step_in_validation": 20,
+    "validation_processed": 448,
+    "validation_total": 1000,
+    "training_dump_counts_aligned": true,
+    "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b"
   },
   "audio_precache": {
     "main_pod": "verl-n2-i10-0",
@@ -242,15 +247,16 @@
     "status": "ACTIVE"
   },
   "occupancy_observation": {
-    "observed_at": "2026-10-23T21:03:49.594133+00:00",
+    "observed_at": "2026-10-23T21:30:04.763105+00:00",
     "pool": "verl-n2-i10",
     "running_job_id": "raysubmit_pfpa7hyGA1AgVaPF",
     "both_pods_checked": true,
     "gpu_memory_mib_range": [
-      1,
-      1
+      60182,
+      60452
     ],
-    "action": "own replacement running; do not sync while occupied"
+    "action": "own training running healthy; no sync/submission",
+    "error_observed": false
   },
   "config_layout": {
     "base": "recipe/phimm/config/v2609_kw/base.yaml",
@@ -388,5 +394,15 @@
     "remote_readback_sha256": "d4406a8305e0ea3aa9fcc97ce5a6cd0ac63aee6bb92fdd4bacd260e323845890",
     "remote_readback_rows": 1000,
     "id_and_speaker_disjoint_with_train_and_tests": true
+  },
+  "saved_checkpoints": {
+    "10": {
+      "cloud_model_shards": 16,
+      "cloud_optimizer_shards": 16,
+      "cloud_extra_state_shards": 16,
+      "world_size": 16,
+      "evaluation_eligible_after_training_only": true,
+      "dev_metrics_at_this_step": false
+    }
   }
 }
