@@ -2,7 +2,7 @@
 
 日期：2026-10-23。状态：**联合输出代码、配置和本地预检已完成；Brix/Blob 已恢复，A0 baseline 已提交运行；训练待两套 baseline 完成**。
 
-唯一当前计划为本文件；v1/v2 入口均指向这里。连续 biasing 在[后续备忘](asr_keywords_biasing_followup_20261023.md)中，属于暂不开展的独立实验。实现位置见第 10 节；可运行配置、命令和当前限制以 [2609_kw/README](../../recipe/phimm/config/2609_kw/README.md) 为准。下面保留实验设计，最终落地与执行状态见第 14 节。
+唯一当前计划为本文件；v1/v2 入口均指向这里。连续 biasing 在[后续备忘](asr_keywords_biasing_followup_20261023.md)中，属于暂不开展的独立实验。实现位置见第 10 节；可运行配置、命令和当前限制以 [v2609_kw/README](../../recipe/phimm/config/v2609_kw/README.md) 为准。下面保留实验设计，最终落地与执行状态见第 14 节。
 
 - 远程/本地分支：`boren/asr-transcription-keywords`。
 - 独立 worktree：`/home/boren/.codex/worktrees/asr-transcription-keywords/verl`。
@@ -389,7 +389,7 @@ R = R_existing_asr(parsed_transcription)
 
 ## 11. 实际产物与配置
 
-配置按用户要求放在 `recipe/phimm/config/2609_kw/`：根目录 `base.yaml` 保存公共设置，`data/` 单独保存官方测试、pilot train/dev、checkpoint 测试的数据配置；`baseline_eval/` 包含原 prompt / 联合 prompt 两套 base eval 设置，`training/` 包含 ReMax 10k pilot 设置，`evaluation/` 包含训练后 checkpoint eval 设置。入口通过 Hydra defaults 组合公共、数据和执行设置；A0/A1 共用同一份官方测试数据 YAML。完整树、字段说明和执行命令见 [README](../../recipe/phimm/config/2609_kw/README.md)。
+配置按用户要求放在 `recipe/phimm/config/v2609_kw/`：根目录 `base.yaml` 保存公共设置，`data/training/` 单独保存 pilot 训练数据，`data/eval/` 单独保存 dev、官方测试与 checkpoint 测试的数据配置；`baseline_eval/` 包含原 prompt / 联合 prompt 两套 base eval 设置，`training/` 包含 ReMax 10k pilot 设置，`evaluation/` 包含训练后 checkpoint eval 设置。入口通过 Hydra defaults 组合公共、数据和执行设置；A0/A1 共用同一份官方测试数据 YAML。完整树、字段说明和执行命令见 [README](../../recipe/phimm/config/v2609_kw/README.md)。
 
 本地清单目录 `/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1/` 已存在；`_remote/` 为云端音频引用版本，已上传到云端。配置默认云端根目录为 `az://orngwus2cresco/data/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1`；远端 manifest 与音频可读性必须恢复凭据后确认。
 

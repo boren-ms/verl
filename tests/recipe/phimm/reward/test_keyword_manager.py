@@ -98,7 +98,7 @@ def test_composed_config_loads_actual_train_and_validation_dispatchers():
     root = Path(__file__).resolve().parents[4] / "recipe/phimm/config"
     OmegaConf.register_new_resolver("eval", eval, replace=True)
     with initialize_config_dir(config_dir=str(root), version_base=None):
-        config = compose(config_name="2609_kw/training/remax_ls_joint_pilot")
+        config = compose(config_name="v2609_kw/training/remax_ls_joint_pilot")
         OmegaConf.resolve(config)
     answer = get_task_output(task="lang_asr_verb", text="rare", version=2609, output_keywords=True, keywords=["rare"])
     extra = {"output_protocol": PROTOCOL, "keyword_annotation_valid": True, "keywords": ["rare"]}

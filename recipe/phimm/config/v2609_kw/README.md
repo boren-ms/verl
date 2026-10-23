@@ -5,12 +5,15 @@
 ## 配置布局与执行顺序
 
 ```text
-2609_kw/
+v2609_kw/
 ├── base.yaml
 ├── data/
-│   ├── ls_official.yaml                  # test-clean + test-other，A0/A1 共用
-│   ├── ls_pilot10k.yaml                  # train pilot 10k + dev，训练专用
-│   └── ls_checkpoint.yaml                # internal + test-clean + test-other
+│   ├── training/
+│   │   └── ls_pilot10k.yaml              # 仅 train pilot 10k
+│   └── eval/
+│       ├── ls_dev.yaml                   # 训练期间的 dev 验证
+│       ├── ls_official.yaml              # test-clean + test-other，A0/A1 共用
+│       └── ls_checkpoint.yaml            # internal + test-clean + test-other
 ├── baseline_eval/
 │   ├── eval_base_ls.yaml                 # A0：原 prompt、base、两套官方测试
 │   └── eval_joint_prompt_ls.yaml         # A1：联合 prompt、base、两套官方测试
@@ -20,7 +23,7 @@
     └── eval_joint_checkpoint_ls.yaml     # A2：internal + 官方测试；必须指定训练后模型
 ```
 
-`data/` 仅定义 manifest、数据转换、数据源标记及 train/val 集合。`baseline_eval/`、`training/`、`evaluation/` 中的入口 YAML 通过 Hydra defaults 组合 `base.yaml` 和对应数据 YAML，仅保留 prompt 开关、rollout 和执行设置。A0/A1 共用 `data/ls_official.yaml`；修改模型、学习率或训练步数无需编辑数据文件。文件夹名称为 `2609_kw`；已有 W&B project 与云端结果目录仍为 `2609-Keyword`，保留实验连续性。
+`data/` 仅定义 manifest、数据转换、数据源标记及 train/val 集合。训练数据放在 `data/training/`，验证和测试数据放在 `data/eval/`。`baseline_eval/`、`training/`、`evaluation/` 中的入口 YAML 通过 Hydra defaults 组合 `base.yaml` 和对应数据 YAML，仅保留 prompt 开关、rollout 和执行设置。A0/A1 共用 `data/eval/ls_official.yaml`；训练分别加载 `data/training/ls_pilot10k.yaml` 与 `data/eval/ls_dev.yaml`。修改模型、学习率或训练步数无需编辑数据文件。文件夹名称为 `v2609_kw`；已有 W&B project 与云端结果目录仍为 `2609-Keyword`，保留实验连续性。
 
 顺序为 A0 → A1 → pilot → 冻结 checkpoint → A2。A0/A1 的 test-clean 和 test-other 均完成、结果条数与计数分区检查通过后再训练。训练只使用 train/dev，不用 official test 选 checkpoint 或调超参。
 
@@ -98,12 +101,12 @@ python -m recipe.phimm.prepare_ls_keywords \
 以下在已同步、依赖就绪的远端 worktree 根目录运行。`quick_run.sh` 只提交 Ray job，返回不代表执行成功；须记录 job ID 并监控至完成。
 
 ```bash
-bash quick_run.sh recipe/phimm/config/2609_kw/baseline_eval/eval_base_ls.yaml trainer.nnodes=2
-bash quick_run.sh recipe/phimm/config/2609_kw/baseline_eval/eval_joint_prompt_ls.yaml trainer.nnodes=2
+bash quick_run.sh recipe/phimm/config/v2609_kw/baseline_eval/eval_base_ls.yaml trainer.nnodes=2
+bash quick_run.sh recipe/phimm/config/v2609_kw/baseline_eval/eval_joint_prompt_ls.yaml trainer.nnodes=2
 # 两项 baseline 完成后：
-bash quick_run.sh recipe/phimm/config/2609_kw/training/remax_ls_joint_pilot.yaml trainer.nnodes=2
+bash quick_run.sh recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml trainer.nnodes=2
 # dev 选择、导出并验证训练后 HF checkpoint 后：
-bash quick_run.sh recipe/phimm/config/2609_kw/evaluation/eval_joint_checkpoint_ls.yaml \
+bash quick_run.sh recipe/phimm/config/v2609_kw/evaluation/eval_joint_checkpoint_ls.yaml \
   trainer.nnodes=2 actor_rollout_ref.model.path=/absolute/path/to/exported_trained_hf
 ```
 

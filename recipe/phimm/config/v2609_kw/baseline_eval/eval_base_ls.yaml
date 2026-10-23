@@ -1,19 +1,16 @@
 # @package _global_
-# Override actor_rollout_ref.model.path with the exported trained HF model.
 defaults:
 - ../base@_here_
-- ../data/ls_checkpoint@_here_
+- ../data/eval/ls_official@_here_
 - _self_
 keyword_experiment:
-  output_keywords: true
+  output_keywords: false
 actor_rollout_ref:
-  model:
-    path: ???
   rollout:
     n: 1
     gt_rollout: false
 trainer:
-  experiment_name: eval_joint_checkpoint_ls
+  experiment_name: eval_base_ls
   val_only: true
   val_before_train: true
   validation_resume: true

@@ -1,7 +1,8 @@
 # @package _global_
 defaults:
 - ../base@_here_
-- ../data/ls_pilot10k@_here_
+- ../data/training/ls_pilot10k@_here_
+- ../data/eval/ls_dev@_here_
 - _self_
 actor_rollout_ref:
   rollout:

@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-10-23T18:41:46.515180+00:00",
+  "updated_at": "2026-10-23T18:43:41.612025+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
   "keyword_tag": "<KEYWORDS>",
   "annotation_policy": "ls-common5k-v1",
   "implementation": "complete; GPU integration not yet verified",
-  "config_root": "recipe/phimm/config/2609_kw",
+  "config_root": "recipe/phimm/config/v2609_kw",
   "local_manifest_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1",
   "remote_reference_manifest_local_root": "/home/boren/data/LibriSpeech/ls_joint_keywords_common5k_v1_remote",
   "remote_manifests_uploaded": true,
@@ -169,10 +169,12 @@
     "action": "wait; no remote modifications"
   },
   "config_layout": {
-    "data": "recipe/phimm/config/2609_kw/data",
-    "baseline_eval": "recipe/phimm/config/2609_kw/baseline_eval",
-    "training": "recipe/phimm/config/2609_kw/training",
-    "evaluation": "recipe/phimm/config/2609_kw/evaluation",
-    "note": "Folder rename and data extraction only; existing W&B project/output paths and completed A0 provenance preserved."
+    "base": "recipe/phimm/config/v2609_kw/base.yaml",
+    "training_data": "recipe/phimm/config/v2609_kw/data/training",
+    "evaluation_data": "recipe/phimm/config/v2609_kw/data/eval",
+    "baseline_eval": "recipe/phimm/config/v2609_kw/baseline_eval",
+    "training": "recipe/phimm/config/v2609_kw/training",
+    "evaluation": "recipe/phimm/config/v2609_kw/evaluation",
+    "note": "Training data separate from dev/test data; existing W&B project/output paths and completed A0 provenance preserved."
   }
 }
