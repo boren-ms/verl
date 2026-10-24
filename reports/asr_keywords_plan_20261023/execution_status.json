@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T01:01:22.306973+00:00",
+  "updated_at": "2026-10-24T01:04:22.466411+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "REPAIRING_DEPENDENCIES: failed first resumed backward; pin compatible TileLang/TVM FFI, GPU smoke test before replacement",
+    "A2_training": "RUNNING: dependency-fixed recovery40, verify actual optimizer41",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -205,7 +205,7 @@
     }
   },
   "blockers": [
-    "Prior scheduler preemption; current stable allocation allowed recovery, restore not yet verified"
+    "No active external blocker; verify repaired recovery passes optimizer41"
   ],
   "next_actions": [
     "After stable same-pod allocation>=30min, recheck both GPUs and live Ray, bpush current branch, resume40 and verify model/optimizer/RNG/dataloader plus step41",
@@ -251,20 +251,20 @@
       "lora_alpha": 512
     },
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
-    "job_id": "raysubmit_xr4mAmPJ4BYG3j8D",
-    "status": "FAILED",
-    "code_commit": "4c37dcaaa",
+    "job_id": "raysubmit_7sXQkPbRusS9fJqH",
+    "status": "RUNNING",
+    "code_commit": "d890526fe",
     "dashboard": "http://10.151.59.202:9209",
-    "submitted_at": "2026-10-24T00:29:27Z",
-    "replacement_for": "raysubmit_DZqw9UYAjx4wWuGE",
-    "phase": "Checkpoint40 restored; backward rejected Triton3.6 Hopper kernel; TileLang import incompatible with TVM FFI0.1.15.post0",
+    "submitted_at": "2026-10-24T01:03:44Z",
+    "replacement_for": "raysubmit_xr4mAmPJ4BYG3j8D",
+    "phase": "RUNNING01:04:09Z; base model sync, resume40 and optimizer41 not yet verified",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
     "resume_verified": false,
     "val_before_train": false,
     "last_completed_training_step": 40,
     "loaded_validation_samples": 1000,
-    "resume_state_loaded": true,
+    "resume_state_loaded": false,
     "optimizer_step41_completed": false
   },
   "audio_precache": {
@@ -760,7 +760,7 @@
     }
   ],
   "pending_submission": {
-    "status": "WAITING_FOR_GPU_DEPENDENCY_CHECK",
+    "status": "SUBMITTED",
     "minimum_same_pod_age_minutes": 30,
     "earliest_observation_at": "2026-10-24T00:14:47+00:00",
     "must_check_both_ready_idle_and_live_Ray": true,
@@ -774,6 +774,6 @@
       "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
       "val_before_train": false
     },
-    "job_id": "raysubmit_xr4mAmPJ4BYG3j8D"
+    "job_id": "raysubmit_7sXQkPbRusS9fJqH"
   }
 }
