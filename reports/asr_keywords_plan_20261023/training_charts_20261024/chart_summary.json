@@ -1,0 +1,60 @@
+{
+  "training_status": "SUCCEEDED 100/100",
+  "selected_checkpoint": 100,
+  "available_training_points": 99,
+  "missing_training_steps": [
+    40
+  ],
+  "first_10_mean": {
+    "critic/score/mean": 1.0557378768920898,
+    "critic/baseline_score/mean": 0.9945186972618103,
+    "reward-core/score/mean": 1.055737859925896,
+    "reward-core/asr_score/mean": 0.980737859925896,
+    "reward-core/kw_list_f1/mean": 0.125,
+    "reward-core/kw_block_fmt/mean": 0.125,
+    "actor/grad_norm": 0.47034537345170974,
+    "actor/kl_loss": 0.006493861490041582,
+    "actor/pg_loss": 0.00020424277948526034,
+    "actor/lr": 4.968495309825435e-06,
+    "nonfinite_prob/invalid": 0.0
+  },
+  "last_10_mean": {
+    "critic/score/mean": 1.3287649035453797,
+    "critic/baseline_score/mean": 1.3475640296936036,
+    "reward-core/score/mean": 1.328764857569976,
+    "reward-core/asr_score/mean": 0.9856705290272674,
+    "reward-core/kw_list_f1/mean": 0.49536834458541695,
+    "reward-core/kw_block_fmt/mean": 0.9541015625,
+    "actor/grad_norm": 0.12539269477128984,
+    "actor/kl_loss": 0.13763360276818276,
+    "actor/pg_loss": 0.0023573251355143527,
+    "actor/lr": 5.425169740081562e-07,
+    "nonfinite_prob/invalid": 0.0
+  },
+  "validation_100": {
+    "utterances": 1000,
+    "n_err": 267,
+    "n_ref": 34583,
+    "nb_err": 118,
+    "nb_ref": 3427,
+    "nu_err": 149,
+    "nu_ref": 31156,
+    "WER": 0.007720556342711737,
+    "BWER": 0.034432448205427485,
+    "UWER": 0.004782385415329311,
+    "NWER": 0.004782385415329311,
+    "keyword_word_accuracy": 0.9655675517945725,
+    "kw_micro_precision": 0.5235970885184316,
+    "kw_micro_recall": 0.668866226754649,
+    "kw_micro_f1": 0.5873831160279205,
+    "kw_macro_f1": 0.5768404589270378,
+    "kw_exact": 0.06,
+    "kw_format_success": 0.967,
+    "kw_empty_false_positive": null
+  },
+  "reward_definition": "ASR score + 0.5 * per-row keyword-list F1 + 0.1 * keyword-block format",
+  "training_population": "512 rows/batch = 64 groups * (1 GT + 7 sampled); GT included in logged reward",
+  "validation_population": "1000 frozen easy-dev utterances, greedy model generation, no GT injection",
+  "validation_selection": "minimum corpus WER (p_err), tie later; test sets not used",
+  "baseline_caveat": "easy dev selected using untrained BWER/WER; selected baseline WER/BWER=0; final test generalization pending"
+}
