@@ -5,7 +5,7 @@
   "failing_worker_ip": "10.151.213.179",
   "new_checkpoint_verified": false,
   "dependency_policy": "Keep vLLM-declared tilelang0.1.9/apache-tvm-ffi0.1.9,torch2.11.0+cu130,triton3.6.0,flashinfer0.6.12; no sampler algorithm change",
-  "diagnosis_limit": "Same failure recurred after all16 standalone GPU checks passed; actual Ray/FSDP/vLLM context remains unproven. No sampling algorithm change.",
+  "diagnosis_limit": "TileLang-before-FlashInfer reproduces same invalid resource handle without ASR weights. FlashInfer-before-TileLang fixes controlled probe and actual audio package bootstrap on all16ranks, including vLLM dummy sampler/CuMem. Full training restore/optimizer41 not verified; fresh FLA backward interrupted by pool unallocation.",
   "rejected_candidate": {
     "tilelang": "0.1.15",
     "apache-tvm-ffi": "0.1.15.post0",
@@ -29,35 +29,12 @@
     "log": "tmp/verl_asr_run/keyword_joint_pipeline/sampler_repeat_0158_evidence.log"
   },
   "occupancy": {
-    "observed_at": "2026-10-24T01:59:28Z",
+    "observed_at": "2026-10-24T03:16Z",
     "pool": "verl-n2-i10",
-    "both_pods_checked": true,
-    "both_pods_ready": true,
-    "head_ip": "10.151.59.202",
-    "worker_ip": "10.151.213.179",
-    "unrelated_running_job": "ls-kw-base0b-a6-20261024T0143Z",
-    "unrelated_entrypoint": "recipe.phimm.main_asr_remax v2611_dev/ls/remax_ls_kw_base0b",
-    "gpu_memory_mib_range": [
-      16456,
-      31222
-    ],
-    "gpu_utilization_percent_range": [
-      4,
-      100
-    ],
-    "action": "Leave unrelated job unchanged; no bpush/install/GPU probe/submission",
-    "pods": [
-      {
-        "name": "verl-n2-i10-0",
-        "uid": "0d226dec-ac9c-47e5-b8ec-2c9bc5666d56",
-        "created_at": "2026-10-23T23:44:47Z"
-      },
-      {
-        "name": "verl-n2-i10-1",
-        "uid": "5cb33471-a838-414f-b4cc-8e601c613ab0",
-        "created_at": "2026-10-23T23:44:47Z"
-      }
-    ]
+    "pod_count": 0,
+    "allocated": false,
+    "reason": "WorkloadUnallocated No resources available for Pods",
+    "current_GPU_and_Ray_status": "unavailable"
   },
   "import_order_diagnosis": {
     "observed_at": "2026-10-24T03:13:58.084893+00:00",
