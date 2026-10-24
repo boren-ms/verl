@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T04:17:41.822239+00:00",
+  "updated_at": "2026-10-24T04:30:08.573580+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING: actual recovery40 and optimizer41 verified; continue to total100",
+    "A2_training": "RUNNING: recovery verified, completed59/100, completecloudcheckpoint50; nextdev60",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -255,12 +255,12 @@
     "dashboard": "http://10.151.56.253:9209",
     "submitted_at": "2026-10-24T04:07:47Z",
     "replacement_for": "raysubmit_Y7PKAfX3xiuR6pWr",
-    "phase": "Actual vLLM init passed; all16ranks checkpoint40 model/optimizer/RNG/lr_scheduler+dataloader restored; optimizer41 complete",
+    "phase": "Healthy resumed training; completed59; next periodicdev60; completecloudcheckpoint50 verified",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
     "resume_verified": true,
     "val_before_train": false,
-    "last_completed_training_step": 41,
+    "last_completed_training_step": 59,
     "loaded_validation_samples": 1000,
     "resume_state_loaded": true,
     "optimizer_step41_completed": true,
@@ -362,7 +362,7 @@
     "status": "ACTIVE"
   },
   "occupancy_observation": {
-    "observed_at": "2026-10-24T04:17:41.822239+00:00",
+    "observed_at": "2026-10-24T04:30:08.573580+00:00",
     "pool": "verl-n2-i10",
     "both_pods_checked": true,
     "both_pods_ready": true,
@@ -381,32 +381,32 @@
     ],
     "GPU_occupancy": {
       "head": [
-        "0, 60324 MiB, 29 %",
-        "1, 60180 MiB, 29 %",
-        "2, 60264 MiB, 29 %",
-        "3, 60288 MiB, 28 %",
-        "4, 60270 MiB, 29 %",
-        "5, 60230 MiB, 29 %",
-        "6, 60226 MiB, 28 %",
-        "7, 60228 MiB, 28 %"
+        "0, 60406 MiB, 95 %",
+        "1, 60370 MiB, 29 %",
+        "2, 60898 MiB, 24 %",
+        "3, 60450 MiB, 12 %",
+        "4, 60464 MiB, 0 %",
+        "5, 61074 MiB, 15 %",
+        "6, 60410 MiB, 0 %",
+        "7, 60428 MiB, 0 %"
       ],
       "worker": [
-        "0, 60230 MiB, 29 %",
-        "1, 60306 MiB, 31 %",
-        "2, 60268 MiB, 31 %",
-        "3, 60246 MiB, 32 %",
-        "4, 60228 MiB, 31 %",
-        "5, 60216 MiB, 31 %",
-        "6, 60344 MiB, 31 %",
-        "7, 60246 MiB, 31 %"
+        "0, 60392 MiB, 100 %",
+        "1, 60410 MiB, 50 %",
+        "2, 60370 MiB, 93 %",
+        "3, 60438 MiB, 0 %",
+        "4, 60436 MiB, 1 %",
+        "5, 61368 MiB, 15 %",
+        "6, 60392 MiB, 100 %",
+        "7, 60446 MiB, 0 %"
       ]
     },
     "evidence": [
-      "tmp/verl_asr_run/keyword_joint_pipeline/pods_0417.json",
-      "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0417_occupancy_0.log",
-      "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0417_occupancy_1.log"
+      "tmp/verl_asr_run/keyword_joint_pipeline/pods_0428.json",
+      "tmp/verl_asr_run/keyword_joint_pipeline/check_0428_0.log",
+      "tmp/verl_asr_run/keyword_joint_pipeline/check_0428_1.log"
     ],
-    "action": "Current authorized training RUNNING; restore40 and optimizer41 verified; no remote mutation"
+    "action": "Healthy currenttraining only; no bpush/install/duplicate submission; nextdev60"
   },
   "config_layout": {
     "base": "recipe/phimm/config/v2609_kw/base.yaml",
@@ -772,6 +772,19 @@
       "world_size": 16,
       "data_pt_exists": true,
       "dev_metrics_at_this_step": true
+    },
+    "50": {
+      "cloud_model_shards": 16,
+      "cloud_optimizer_shards": 16,
+      "cloud_extra_state_shards": 16,
+      "world_size": 16,
+      "data_pt_exists": true,
+      "dev_metrics_at_this_step": false,
+      "verified_at": "2026-10-24T04:30:08.573580+00:00",
+      "evidence": [
+        "tmp/verl_asr_run/keyword_joint_pipeline/cloud50_actor_0428.log",
+        "tmp/verl_asr_run/keyword_joint_pipeline/cloud50_0428.log"
+      ]
     }
   },
   "pool_recreation": {
@@ -1019,15 +1032,16 @@
     "no_duplicate_retry": true
   },
   "cloud_progress_observation": {
-    "observed_at": "2026-10-24T02:30Z",
+    "observed_at": "2026-10-24T04:30:08.573580+00:00",
     "checkpoint_directories": [
       10,
       20,
       30,
-      40
+      40,
+      50
     ],
-    "checkpoint50_present": false,
-    "evidence": "tmp/verl_asr_run/keyword_joint_pipeline/cloud_0228.log"
+    "latest_complete_verified": 50,
+    "evidence": "tmp/verl_asr_run/keyword_joint_pipeline/cloud_0428.log"
   },
   "sampler_recovery": {
     "report": "reports/asr_keywords_plan_20261023/sampler_recovery_20261024.json",
