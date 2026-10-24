@@ -20,6 +20,7 @@ def main():
     parser.add_argument("--dummy-runner", action="store_true")
     parser.add_argument("--cumem", action="store_true")
     parser.add_argument("--preload-flashinfer", action="store_true")
+    parser.add_argument("--audio-first", action="store_true")
     args = parser.parse_args()
     import ray
 
@@ -44,6 +45,9 @@ def main():
             from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
             device = int(ray.get_gpu_ids()[0]) if args.all_visible else 0
             torch.cuda.set_device(device)
+            if args.audio_first:
+                import hf_qwen35_audio  # noqa: F401
+
             if args.preload_flashinfer:
                 import flashinfer  # noqa: F401
 

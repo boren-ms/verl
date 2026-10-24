@@ -1,6 +1,11 @@
 # Self-contained Qwen3.5 Audio model for HF trust_remote_code deployment.
-from .configuration_qwen3_5_audio import Qwen3_5AudioConfig
-from .modeling_qwen3_5_audio import Qwen3_5AudioForCausalLM
+from .runtime_compat import prepare_optional_flashinfer
+
+prepare_optional_flashinfer()
+
+# Keep these after optional runtime initialization: modeling can import TileLang.
+from .configuration_qwen3_5_audio import Qwen3_5AudioConfig  # noqa: E402
+from .modeling_qwen3_5_audio import Qwen3_5AudioForCausalLM  # noqa: E402
 
 __all__ = ["Qwen3_5AudioConfig", "Qwen3_5AudioForCausalLM", "register_hf_audio_model"]
 
