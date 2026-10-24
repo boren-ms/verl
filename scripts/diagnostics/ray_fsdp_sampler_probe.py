@@ -23,13 +23,15 @@ def main():
     nodes = [n for n in ray.nodes() if n["Alive"] and n["Resources"].get("GPU", 0)]
     if len(nodes) != 2 or any(n["Resources"]["GPU"] != 8 for n in nodes):
         raise RuntimeError("Expected exactly two eight-GPU nodes; do not use another pool")
-    if any("verl-n2-i10" not in n["NodeName"] for n in nodes):
+    if not socket.gethostname().startswith("verl-n2-i10-"):
         raise RuntimeError("Probe is restricted to verl-n2-i10")
     from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
 
     @ray.remote(num_gpus=1, num_cpus=1)
     class Probe:
         def address(self):
+            if not socket.gethostname().startswith("verl-n2-i10-"):
+                raise RuntimeError("Actor scheduled outside verl-n2-i10")
             return ray.util.get_node_ip_address()
 
         def run(self, rank, world, master):
@@ -84,7 +86,8 @@ def main():
         runtime_env={"env_vars": env},
     ).remote() for n in nodes for _ in range(8)]
     try:
-        master = ray.get(actors[0].address.remote())
+        addresses = ray.get([actor.address.remote() for actor in actors])
+        master = addresses[0]
         print(ray.get([a.run.remote(i, 16, master) for i, a in enumerate(actors)]))
     finally:
         for actor in actors:
