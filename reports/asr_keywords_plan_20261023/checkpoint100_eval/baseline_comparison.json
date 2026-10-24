@@ -1,0 +1,86 @@
+{
+  "ls_clean": {
+    "A0_original_prompt": {
+      "WER": {
+        "baseline": 0.02358490566037736,
+        "trained": 0.025734175289105297,
+        "delta_percentage_points": 0.21492696287279367,
+        "relative_error_change_percent": 9.112903225806445
+      },
+      "BWER": {
+        "baseline": 0.07793785801076202,
+        "trained": 0.09998264190244749,
+        "delta_percentage_points": 2.2044783891685475,
+        "relative_error_change_percent": 28.285077951002236
+      },
+      "UWER": {
+        "baseline": 0.016896293922887964,
+        "trained": 0.016597244472925345,
+        "delta_percentage_points": -0.02990494499626184,
+        "relative_error_change_percent": -1.7699115044247815
+      }
+    },
+    "A1_joint_prompt": {
+      "WER": {
+        "baseline": 0.023527845404747415,
+        "trained": 0.025734175289105297,
+        "delta_percentage_points": 0.2206329884357882,
+        "relative_error_change_percent": 9.37752627324171
+      },
+      "BWER": {
+        "baseline": 0.07654921020656136,
+        "trained": 0.09998264190244749,
+        "delta_percentage_points": 2.3433431695886133,
+        "relative_error_change_percent": 30.612244897959194
+      },
+      "UWER": {
+        "baseline": 0.017003097297874612,
+        "trained": 0.016597244472925345,
+        "delta_percentage_points": -0.04058528249492668,
+        "relative_error_change_percent": -2.386934673366825
+      }
+    }
+  },
+  "ls_other": {
+    "A0_original_prompt": {
+      "WER": {
+        "baseline": 0.04157193894121468,
+        "trained": 0.04294748103853428,
+        "delta_percentage_points": 0.13755420973196042,
+        "relative_error_change_percent": 3.308823529411775
+      },
+      "BWER": {
+        "baseline": 0.15214953271028037,
+        "trained": 0.1714018691588785,
+        "delta_percentage_points": 1.925233644859814,
+        "relative_error_change_percent": 12.653562653562656
+      },
+      "UWER": {
+        "baseline": 0.0289830400272381,
+        "trained": 0.028323367310024897,
+        "delta_percentage_points": -0.0659672717213202,
+        "relative_error_change_percent": -2.2760646108663685
+      }
+    },
+    "A1_joint_prompt": {
+      "WER": {
+        "baseline": 0.04174388170337963,
+        "trained": 0.04294748103853428,
+        "delta_percentage_points": 0.12035993351546537,
+        "relative_error_change_percent": 2.8832951945080065
+      },
+      "BWER": {
+        "baseline": 0.15345794392523365,
+        "trained": 0.1714018691588785,
+        "delta_percentage_points": 1.7943925233644853,
+        "relative_error_change_percent": 11.693057247259443
+      },
+      "UWER": {
+        "baseline": 0.029025599557380887,
+        "trained": 0.028323367310024897,
+        "delta_percentage_points": -0.07022322473559904,
+        "relative_error_change_percent": -2.4193548387096864
+      }
+    }
+  }
+}

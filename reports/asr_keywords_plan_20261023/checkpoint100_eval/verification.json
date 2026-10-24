@@ -1,0 +1,50 @@
+{
+  "ls_internal": {
+    "count": 6131,
+    "ids_unique": true,
+    "exact_manifest_id_set": true,
+    "reference_text_keywords_and_provenance_match": true,
+    "corpus_partition_per_row_valid": true,
+    "eval_logged_step": 0,
+    "trained_checkpoint_step": 100,
+    "native_vllm_finish_reasons": true,
+    "split": "internal_test",
+    "file_sha256": "aaa1dd1e6f8c5f15435f2d9d00f116ba559e6b2b75f9d00d50a19bc5e91ef64b",
+    "file_bytes": 15797965,
+    "cloud_jsonl": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/eval_joint_checkpoint_ls/val_data_gen/ls_internal/0.jsonl"
+  },
+  "ls_clean": {
+    "count": 2620,
+    "ids_unique": true,
+    "exact_manifest_id_set": true,
+    "reference_text_keywords_and_provenance_match": true,
+    "corpus_partition_per_row_valid": true,
+    "eval_logged_step": 0,
+    "trained_checkpoint_step": 100,
+    "native_vllm_finish_reasons": true,
+    "split": "test-clean",
+    "file_sha256": "38aebe51d7aeffff76d1a7961906fb831bb7e0f5eeb31dc0cdc2d10df3a246f8",
+    "file_bytes": 5761726,
+    "cloud_jsonl": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/eval_joint_checkpoint_ls/val_data_gen/ls_clean/0.jsonl"
+  },
+  "ls_other": {
+    "count": 2939,
+    "ids_unique": true,
+    "exact_manifest_id_set": true,
+    "reference_text_keywords_and_provenance_match": true,
+    "corpus_partition_per_row_valid": true,
+    "eval_logged_step": 0,
+    "trained_checkpoint_step": 100,
+    "native_vllm_finish_reasons": true,
+    "split": "test-other",
+    "file_sha256": "ffa39b1c9047487c4eb29ea57db37df72c26e0362fa14a757ad5724ac51f309e",
+    "file_bytes": 6255493,
+    "cloud_jsonl": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/eval_joint_checkpoint_ls/val_data_gen/ls_other/0.jsonl"
+  },
+  "overall": {
+    "count": 11690,
+    "all_ids_globally_unique": true,
+    "single_eval_step": 0,
+    "note": "Evaluation step0 is standalone evaluation counter, not untrained model; trained checkpoint100 path and export provenance verified."
+  }
+}
