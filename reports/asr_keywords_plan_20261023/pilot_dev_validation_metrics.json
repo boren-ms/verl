@@ -110,5 +110,34 @@
         "kw_empty_false_positive": null
       }
     }
+  },
+  "100": {
+    "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
+    "unique_count_and_selected_ids_verified": true,
+    "single_step_verified": true,
+    "corpus_partitions_verified": true,
+    "metrics": {
+      "ls_dev_lowbwer1000": {
+        "utterances": 1000,
+        "n_err": 267,
+        "n_ref": 34583,
+        "nb_err": 118,
+        "nb_ref": 3427,
+        "nu_err": 149,
+        "nu_ref": 31156,
+        "WER": 0.007720556342711737,
+        "BWER": 0.034432448205427485,
+        "UWER": 0.004782385415329311,
+        "NWER": 0.004782385415329311,
+        "keyword_word_accuracy": 0.9655675517945725,
+        "kw_micro_precision": 0.5235970885184316,
+        "kw_micro_recall": 0.668866226754649,
+        "kw_micro_f1": 0.5873831160279205,
+        "kw_macro_f1": 0.5768404589270378,
+        "kw_exact": 0.06,
+        "kw_format_success": 0.967,
+        "kw_empty_false_positive": null
+      }
+    }
   }
 }

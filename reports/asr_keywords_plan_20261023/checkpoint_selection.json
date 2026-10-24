@@ -1,0 +1,27 @@
+{
+  "selected_step": 100,
+  "criterion": "min val-core/ls_dev_lowbwer1000/p_err/mean@1; tie later step",
+  "data_split": "dev_lowbwer1000 frozen; official/internal test results not used",
+  "candidate_p_err": {
+    "20": 0.009195269351993754,
+    "40": 0.010496486713124946,
+    "60": 0.00812537952173033,
+    "80": 0.009600092531012346,
+    "100": 0.007720556342711737
+  },
+  "selected_p_err": 0.007720556342711737,
+  "selected_checkpoint": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100",
+  "selected_checkpoint_complete": true,
+  "model_shards": 16,
+  "optimizer_shards": 16,
+  "extra_state_shards": 16,
+  "data_pt": true,
+  "training_job": "raysubmit_6PPiWDZg5QJ3zagk",
+  "training_job_status": "SUCCEEDED",
+  "pool_released": true,
+  "verified_at": "2026-10-24T05:10:08.540641+00:00",
+  "export_status": "PENDING",
+  "export_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100/qwen_hf",
+  "lora_rank": 256,
+  "lora_alpha": 512
+}

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T05:01:42.685045+00:00",
+  "updated_at": "2026-10-24T05:10:08.540641+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING92/100; full dev60/80 verified; completecloud60/80",
+    "A2_training": "SUCCEEDED100/100; finaldev1000 verified; selected100 devminp_err",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -244,13 +244,34 @@
       "kw_exact": 0.056,
       "kw_format_success": 0.959,
       "kw_empty_false_positive": null
+    },
+    "A2_dev1000_step100": {
+      "utterances": 1000,
+      "n_err": 267,
+      "n_ref": 34583,
+      "nb_err": 118,
+      "nb_ref": 3427,
+      "nu_err": 149,
+      "nu_ref": 31156,
+      "WER": 0.007720556342711737,
+      "BWER": 0.034432448205427485,
+      "UWER": 0.004782385415329311,
+      "NWER": 0.004782385415329311,
+      "keyword_word_accuracy": 0.9655675517945725,
+      "kw_micro_precision": 0.5235970885184316,
+      "kw_micro_recall": 0.668866226754649,
+      "kw_micro_f1": 0.5873831160279205,
+      "kw_macro_f1": 0.5768404589270378,
+      "kw_exact": 0.06,
+      "kw_format_success": 0.967,
+      "kw_empty_false_positive": null
     }
   },
   "blockers": [],
   "next_actions": [
-    "Continue current job through100 totalsteps; save10/test20; next dev60/80/100; no duplicate initial40 validation",
-    "Rediscover actual poolUIDs,Rayjobs/logs,datasetprogress and bothGPUoccupancy; leave unrelatedwork untouched",
-    "After training succeeds+GPUs release select complete checkpoint via dev1000 minp_err tie later, export LoRA256/512, LibriSpeech-only evaluation and report"
+    "Export selected complete100 with LoRA256/512; verify HF artifacts/provenance",
+    "Evaluate trained exportedmodel nnodes2 on internal6131/clean2620/other2939 only",
+    "Summarize fulloutputs and final baselinecomparison, then delete monitor"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
   "parent_merge": {
@@ -292,17 +313,17 @@
     },
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
     "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
-    "status": "RUNNING",
+    "status": "SUCCEEDED",
     "code_commit": "003d2e76b",
     "dashboard": "http://10.151.56.253:9209",
     "submitted_at": "2026-10-24T04:07:47Z",
     "replacement_for": "raysubmit_Y7PKAfX3xiuR6pWr",
-    "phase": "Completed92/100; full1000dev60/80 verified; nextdev100",
+    "phase": "Training100 complete; full1000dev100 verified; completecloud100 and poolreleased",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
     "resume_verified": true,
     "val_before_train": false,
-    "last_completed_training_step": 92,
+    "last_completed_training_step": 100,
     "loaded_validation_samples": 1000,
     "resume_state_loaded": true,
     "optimizer_step41_completed": true,
@@ -382,7 +403,8 @@
       ]
     },
     "optimizer41_grad_norm": 0.3779986798763275,
-    "loaded_training_samples": 10000
+    "loaded_training_samples": 10000,
+    "ended_at": 1792818548021
   },
   "audio_precache": {
     "status": "SUCCEEDED",
@@ -404,7 +426,7 @@
     "status": "ACTIVE"
   },
   "occupancy_observation": {
-    "observed_at": "2026-10-24T05:01:42.685045+00:00",
+    "observed_at": "2026-10-24T05:10:08.540641+00:00",
     "pool": "verl-n2-i10",
     "both_pods_checked": true,
     "both_pods_ready": true,
@@ -414,7 +436,7 @@
     "Ray_jobs": [
       {
         "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
-        "status": "RUNNING"
+        "status": "SUCCEEDED"
       },
       {
         "job_id": "raysubmit_jsm95qdFrWq4mz6p",
@@ -422,34 +444,15 @@
       }
     ],
     "GPU_occupancy": {
-      "head": [
-        "0, 5058 MiB, 0 %",
-        "1, 5042 MiB, 0 %",
-        "2, 5058 MiB, 0 %",
-        "3, 5042 MiB, 0 %",
-        "4, 5058 MiB, 0 %",
-        "5, 5042 MiB, 0 %",
-        "6, 5060 MiB, 0 %",
-        "7, 5042 MiB, 0 %"
-      ],
-      "worker": [
-        "0, 5044 MiB, 0 %",
-        "1, 5058 MiB, 0 %",
-        "2, 5042 MiB, 0 %",
-        "3, 5058 MiB, 0 %",
-        "4, 5042 MiB, 0 %",
-        "5, 5058 MiB, 0 %",
-        "6, 5044 MiB, 0 %",
-        "7, 5058 MiB, 0 %"
-      ]
+      "head": "8*1MiB/0%, no compute processes",
+      "worker": "8*1MiB/0%, no compute processes"
     },
     "evidence": [
-      "tmp/verl_asr_run/keyword_joint_pipeline/pods_0458.json",
-      "tmp/verl_asr_run/keyword_joint_pipeline/check_0458_0.log",
-      "tmp/verl_asr_run/keyword_joint_pipeline/check_0458_1.log",
-      "tmp/verl_asr_run/keyword_joint_pipeline/check_0502_compact.json"
+      "tmp/verl_asr_run/keyword_joint_pipeline/check_0511_compact.json",
+      "tmp/verl_asr_run/keyword_joint_pipeline/occupancy_0512_0.log",
+      "tmp/verl_asr_run/keyword_joint_pipeline/occupancy_0512_1.log"
     ],
-    "action": "Training92 currentjob; checkpoint90 save accounted for lowGPUoccupancy04:59; no remote mutation"
+    "action": "Training processes released pool; export100 next"
   },
   "config_layout": {
     "base": "recipe/phimm/config/v2609_kw/base.yaml",
@@ -854,6 +857,15 @@
         "tmp/verl_asr_run/keyword_joint_pipeline/cloud80_actor_0500.log",
         "tmp/verl_asr_run/keyword_joint_pipeline/cloud80_0500.log"
       ]
+    },
+    "100": {
+      "cloud_model_shards": 16,
+      "cloud_optimizer_shards": 16,
+      "cloud_extra_state_shards": 16,
+      "world_size": 16,
+      "data_pt_exists": true,
+      "dev_metrics_at_this_step": true,
+      "verified_at": "2026-10-24T05:10:08.540641+00:00"
     }
   },
   "pool_recreation": {
@@ -1096,8 +1108,8 @@
     }
   ],
   "pending_submission": {
-    "status": "RUNNING",
-    "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
+    "status": "EXPORT_SELECTED100_PENDING",
+    "job_id": null,
     "no_duplicate_retry": true
   },
   "cloud_progress_observation": {
@@ -1139,5 +1151,32 @@
       "after_tilelang_fla_import": 16,
       "vllm_dummy_sampler": 16
     }
+  },
+  "checkpoint_selection": {
+    "selected_step": 100,
+    "criterion": "min val-core/ls_dev_lowbwer1000/p_err/mean@1; tie later step",
+    "data_split": "dev_lowbwer1000 frozen; official/internal test results not used",
+    "candidate_p_err": {
+      "20": 0.009195269351993754,
+      "40": 0.010496486713124946,
+      "60": 0.00812537952173033,
+      "80": 0.009600092531012346,
+      "100": 0.007720556342711737
+    },
+    "selected_p_err": 0.007720556342711737,
+    "selected_checkpoint": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100",
+    "selected_checkpoint_complete": true,
+    "model_shards": 16,
+    "optimizer_shards": 16,
+    "extra_state_shards": 16,
+    "data_pt": true,
+    "training_job": "raysubmit_6PPiWDZg5QJ3zagk",
+    "training_job_status": "SUCCEEDED",
+    "pool_released": true,
+    "verified_at": "2026-10-24T05:10:08.540641+00:00",
+    "export_status": "PENDING",
+    "export_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100/qwen_hf",
+    "lora_rank": 256,
+    "lora_alpha": 512
   }
 }
