@@ -24,6 +24,8 @@ required_versions = {
     "transformers": "5.7.0",
     "flashinfer-python": "0.6.12",
     "flashinfer-cubin": "0.6.12",
+    "tilelang": "0.1.9",
+    "apache-tvm-ffi": "0.1.9",
     "bitsandbytes": "0.50.2",
     "bitbank": "0.2.0",
     "voi-oiwer": "0.1.4",

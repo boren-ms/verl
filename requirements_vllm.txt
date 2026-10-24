@@ -25,6 +25,10 @@ numpy<2.0.0
 # vLLM inference deps (installed --no-deps to avoid protobuf/ray conflicts)
 flashinfer-python==0.6.12
 flashinfer-cubin==0.6.12
+# FLA's Hopper backward workaround uses TileLang. Newer TVM FFI releases
+# cannot import the TVM bundled with TileLang 0.1.9.
+tilelang==0.1.9
+apache-tvm-ffi==0.1.9
 xgrammar==0.1.29
 sentencepiece==0.2.1
 compressed-tensors

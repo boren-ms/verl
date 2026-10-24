@@ -1,0 +1,28 @@
+{
+  "failed_job": "raysubmit_xr4mAmPJ4BYG3j8D",
+  "failure": "FLA gated chunk_bwd_dqkwg rejects Triton3.6.0 on Hopper; TileLang0.1.9 import failed with apache-tvm-ffi0.1.15.post0",
+  "repair": {
+    "tilelang": "0.1.9",
+    "apache-tvm-ffi": "0.1.9",
+    "torch_unchanged": "2.11.0+cu130",
+    "triton_unchanged": "3.6.0"
+  },
+  "resume_evidence": {
+    "model_optimizer_rng_scheduler_loaded": true,
+    "dataloader_loaded": true,
+    "optimizer41_completed": false
+  },
+  "verification": {
+    "local": [
+      "bash -n quick_install.sh",
+      "git diff --check"
+    ],
+    "head_gpu": "PASS chunk_gated_delta_rule forward/backward; bf16 q/k [1,128,2,128], v [1,128,4,128], all q/k/v/g/beta gradients finite; TileLang compiled on H100",
+    "worker": "PASS tilelang0.1.9/TVM FFI0.1.9 import, CUDA and nvcc available"
+  },
+  "source_evidence": [
+    "tmp/verl_asr_run/keyword_joint_pipeline/fla_backend_diagnosis.log",
+    "tmp/verl_asr_run/keyword_joint_pipeline/tilelang_metadata.log",
+    "tmp/verl_asr_run/keyword_joint_pipeline/ffi_verify.log"
+  ]
+}

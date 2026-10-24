@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T00:30:03.336943+00:00",
+  "updated_at": "2026-10-24T01:01:22.306973+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING: recovery from checkpoint40 submitted; verify full state restore and optimizer41",
+    "A2_training": "REPAIRING_DEPENDENCIES: failed first resumed backward; pin compatible TileLang/TVM FFI, GPU smoke test before replacement",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -252,26 +252,33 @@
     },
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
     "job_id": "raysubmit_xr4mAmPJ4BYG3j8D",
-    "status": "RUNNING",
+    "status": "FAILED",
     "code_commit": "4c37dcaaa",
     "dashboard": "http://10.151.59.202:9209",
     "submitted_at": "2026-10-24T00:29:27Z",
     "replacement_for": "raysubmit_DZqw9UYAjx4wWuGE",
-    "phase": "Runtime initialization; resume40 not yet verified",
+    "phase": "Checkpoint40 restored; backward rejected Triton3.6 Hopper kernel; TileLang import incompatible with TVM FFI0.1.15.post0",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
     "resume_verified": false,
     "val_before_train": false,
     "last_completed_training_step": 40,
-    "loaded_validation_samples": 1000
+    "loaded_validation_samples": 1000,
+    "resume_state_loaded": true,
+    "optimizer_step41_completed": false
   },
   "audio_precache": {
-    "status": "RUNNING",
+    "status": "SUCCEEDED",
     "pid": 89719,
     "head_ip": "10.151.59.202",
     "started_at": "2026-10-24T00:29:45.501450+00:00",
     "state_dir": "/root/code/verl/tmp/verl_asr_run/keyword_joint_pipeline/audio_precache/",
-    "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2"
+    "inventory_sha256": "bce2fc359bc7798fa0c60fbaf788e74082bbc8ab757ce02cf06748863def8da2",
+    "exit_code": 0,
+    "unique_files": 5559,
+    "already_local": 0,
+    "downloaded": 5559,
+    "completed_at": "2026-10-24T00:31:37.651293+00:00"
   },
   "monitor": {
     "automation_id": "librispeech",
@@ -507,6 +514,42 @@
       "last_completed_training_step": 40,
       "loaded_validation_samples": 1000,
       "lost_at": "2026-10-23T22:40:47Z"
+    },
+    {
+      "pool": "verl-n2-i10",
+      "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
+      "experiment_name": "remax_ls_joint_pilot_dev1k",
+      "nnodes": 2,
+      "settings": {
+        "train_samples": 10000,
+        "dev_samples": 1000,
+        "steps": 100,
+        "batch_size": 64,
+        "rollout_n": 8,
+        "gt_per_group": 1,
+        "sampled_per_group": 7,
+        "save_freq": 10,
+        "test_freq": 20,
+        "selection_split": "dev",
+        "lora_rank": 256,
+        "lora_alpha": 512
+      },
+      "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
+      "job_id": "raysubmit_xr4mAmPJ4BYG3j8D",
+      "status": "FAILED",
+      "code_commit": "4c37dcaaa",
+      "dashboard": "http://10.151.59.202:9209",
+      "submitted_at": "2026-10-24T00:29:27Z",
+      "replacement_for": "raysubmit_DZqw9UYAjx4wWuGE",
+      "phase": "Checkpoint40 restored; backward rejected Triton3.6 Hopper kernel; TileLang import incompatible with TVM FFI0.1.15.post0",
+      "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
+      "resume_step": 40,
+      "resume_verified": false,
+      "val_before_train": false,
+      "last_completed_training_step": 40,
+      "loaded_validation_samples": 1000,
+      "resume_state_loaded": true,
+      "optimizer_step41_completed": false
     }
   ],
   "previous_audio_precache": {
@@ -717,7 +760,7 @@
     }
   ],
   "pending_submission": {
-    "status": "SUBMITTED",
+    "status": "WAITING_FOR_GPU_DEPENDENCY_CHECK",
     "minimum_same_pod_age_minutes": 30,
     "earliest_observation_at": "2026-10-24T00:14:47+00:00",
     "must_check_both_ready_idle_and_live_Ray": true,
