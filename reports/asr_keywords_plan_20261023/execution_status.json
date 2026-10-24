@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T01:30:55.952385+00:00",
+  "updated_at": "2026-10-24T01:35:29.504850+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "REPAIRING_SAMPLER: FlashInfer dummy sampler invalid resource handle, standalone reproduction in progress",
+    "A2_training": "RUNNING: single recovery40 retry after two-node sampler/backward preflight",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -205,7 +205,7 @@
     }
   },
   "blockers": [
-    "Current FlashInfer sampler initialization failure; no new saved checkpoint verified"
+    "FlashInfer original context error not reproduced standalone; verify real Ray/vLLM startup and first optimizer step"
   ],
   "next_actions": [
     "After stable same-pod allocation>=30min, recheck both GPUs and live Ray, bpush current branch, resume40 and verify model/optimizer/RNG/dataloader plus step41",
@@ -251,13 +251,13 @@
       "lora_alpha": 512
     },
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
-    "job_id": "raysubmit_7sXQkPbRusS9fJqH",
-    "status": "FAILED",
-    "code_commit": "d890526fe",
+    "job_id": "raysubmit_Y7PKAfX3xiuR6pWr",
+    "status": "RUNNING",
+    "code_commit": "d709da18d",
     "dashboard": "http://10.151.59.202:9209",
-    "submitted_at": "2026-10-24T01:03:44Z",
-    "replacement_for": "raysubmit_xr4mAmPJ4BYG3j8D",
-    "phase": "vLLM dummy sampler FlashInfer TopKMaskLogits invalid resource handle; repair investigation",
+    "submitted_at": "2026-10-24T01:34:48Z",
+    "replacement_for": "raysubmit_7sXQkPbRusS9fJqH",
+    "phase": "RUNNING01:35:07Z runtime startup; new init/restore40/optimizer41 not yet verified",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
     "resume_verified": false,
@@ -287,7 +287,7 @@
     "status": "ACTIVE"
   },
   "occupancy_observation": {
-    "observed_at": "2026-10-24T00:28:57Z",
+    "observed_at": "2026-10-24T01:34:14Z",
     "pool": "verl-n2-i10",
     "head_ip": "10.151.59.202",
     "worker_ip": "10.151.213.179",
@@ -302,7 +302,7 @@
       0,
       0
     ],
-    "action": "Same UIDs persisted >44min; bpush4c37dcaaa then submit recovery exactly once"
+    "action": "Both sampler/backward preflights complete, idle rechecked, bpush d709da18d before single retry"
   },
   "config_layout": {
     "base": "recipe/phimm/config/v2609_kw/base.yaml",
@@ -796,7 +796,7 @@
     }
   ],
   "pending_submission": {
-    "status": "WAITING_FOR_SAMPLER_GPU_CHECK",
+    "status": "SUBMITTED",
     "minimum_same_pod_age_minutes": 30,
     "earliest_observation_at": "2026-10-24T00:14:47+00:00",
     "must_check_both_ready_idle_and_live_Ray": true,
@@ -810,6 +810,6 @@
       "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
       "val_before_train": false
     },
-    "job_id": "raysubmit_7sXQkPbRusS9fJqH"
+    "job_id": "raysubmit_Y7PKAfX3xiuR6pWr"
   }
 }
