@@ -19,7 +19,7 @@
     ],
     "script": "tmp/verl_asr_run/keyword_joint_pipeline/combined_sampler_smoke.py"
   },
-  "next_action": "No unchanged retries. Local staged Ray/NCCL/FSDP probe prepared at scripts/diagnostics/ray_fsdp_sampler_probe.py; syntax/lint checked only, GPU execution deferred until pool free. A pass requires further full vLLM initialization reproduction.",
+  "next_action": "Wait new sameUIDs>=30min and bothReady/free; bpush fix; prepare env; reproduce fixed actual-package sampler check and finish both-node FLA backward before resume40. No need repeat proven failure path unless new evidence.",
   "repeat_failure": {
     "job_id": "raysubmit_Y7PKAfX3xiuR6pWr",
     "ended_at": "2026-10-24T01:37:55.225Z",
@@ -58,5 +58,61 @@
         "created_at": "2026-10-23T23:44:47Z"
       }
     ]
+  },
+  "import_order_diagnosis": {
+    "observed_at": "2026-10-24T03:13:58.084893+00:00",
+    "baseline_probe": "raysubmit_4g8k8JJhHvkdJPvA",
+    "baseline_result": "SUCCEEDED all16ranks three sampler phases including FSDP backward and TileLang/FLA import",
+    "reproducer": "raysubmit_VnrQHyrJHwGpnU6P",
+    "reproducer_result": "FAILED first ray_nccl sample when TileLang/FLA imported before FlashInfer; same TopKMaskLogits invalid resource handle; no ASR weights loaded",
+    "controlled_fix_probe": "raysubmit_mnZEdCzYb3KQ8ifS",
+    "controlled_fix_result": "SUCCEEDED all16ranks/all4phases including actual vLLM GPUModelRunner._dummy_sampler_run bf16batch32 vocab151936 and CuMem memory pool; only added FlashInfer root import before TileLang",
+    "repair_commit": "7f11ec919",
+    "repair": "hf_qwen35_audio package preloads FlashInfer before model imports only with vllm0.24.0/flashinfer0.6.12/tilelang0.1.9/FFI0.1.9; no sampler algorithm change",
+    "actual_package_probe": {
+      "job_id": "raysubmit_2EzmruCEm5iqmnTt",
+      "status": "SUCCEEDED",
+      "submitted_at": "2026-10-24T03:13:18Z",
+      "args": "--all-visible --hijack --audio-first --fla-first --dummy-runner --cumem",
+      "all_ranks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "phases": [
+        "ray_nccl",
+        "after_fsdp_backward",
+        "after_tilelang_fla_import",
+        "vllm_dummy_sampler"
+      ],
+      "verified_at": "2026-10-24T03:14:33Z"
+    },
+    "fresh_node_dependency": "quick_install completed both nodes; FLA absent, installed flash-linear-attention==0.6.0 and fla-core==0.6.0 --no-deps to reproduce prior FLA context; pins unchanged",
+    "local_validation": "3 optional-runtime unit tests passed,ruff,diff-check passed",
+    "limitation": "Actual package import and all16ranks/FSDP/dummy sampler/CuMem passed; FLA backward interrupted by whole-pool unallocation. No new training submission or optimizer41.",
+    "backward_preflight": {
+      "status": "INTERRUPTED_BY_POOL_UNALLOCATION",
+      "both_nodes_ssh_exit": 255,
+      "pool_allocated_false_at": "2026-10-24T03:15:19Z",
+      "finite_gradients_verified_this_attempt": false,
+      "evidence": [
+        "tmp/verl_asr_run/keyword_joint_pipeline/sampler_fixed_fla_backward_0.log",
+        "tmp/verl_asr_run/keyword_joint_pipeline/sampler_fixed_fla_backward_1.log",
+        "tmp/verl_asr_run/keyword_joint_pipeline/pool_0316.json"
+      ]
+    }
   }
 }
