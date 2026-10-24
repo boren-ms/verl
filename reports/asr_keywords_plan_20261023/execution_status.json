@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T01:04:22.466411+00:00",
+  "updated_at": "2026-10-24T01:30:55.952385+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "RUNNING: dependency-fixed recovery40, verify actual optimizer41",
+    "A2_training": "REPAIRING_SAMPLER: FlashInfer dummy sampler invalid resource handle, standalone reproduction in progress",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -205,7 +205,7 @@
     }
   },
   "blockers": [
-    "No active external blocker; verify repaired recovery passes optimizer41"
+    "Current FlashInfer sampler initialization failure; no new saved checkpoint verified"
   ],
   "next_actions": [
     "After stable same-pod allocation>=30min, recheck both GPUs and live Ray, bpush current branch, resume40 and verify model/optimizer/RNG/dataloader plus step41",
@@ -252,12 +252,12 @@
     },
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
     "job_id": "raysubmit_7sXQkPbRusS9fJqH",
-    "status": "RUNNING",
+    "status": "FAILED",
     "code_commit": "d890526fe",
     "dashboard": "http://10.151.59.202:9209",
     "submitted_at": "2026-10-24T01:03:44Z",
     "replacement_for": "raysubmit_xr4mAmPJ4BYG3j8D",
-    "phase": "RUNNING01:04:09Z; base model sync, resume40 and optimizer41 not yet verified",
+    "phase": "vLLM dummy sampler FlashInfer TopKMaskLogits invalid resource handle; repair investigation",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
     "resume_verified": false,
@@ -550,6 +550,42 @@
       "loaded_validation_samples": 1000,
       "resume_state_loaded": true,
       "optimizer_step41_completed": false
+    },
+    {
+      "pool": "verl-n2-i10",
+      "config": "recipe/phimm/config/v2609_kw/training/remax_ls_joint_pilot.yaml",
+      "experiment_name": "remax_ls_joint_pilot_dev1k",
+      "nnodes": 2,
+      "settings": {
+        "train_samples": 10000,
+        "dev_samples": 1000,
+        "steps": 100,
+        "batch_size": 64,
+        "rollout_n": 8,
+        "gt_per_group": 1,
+        "sampled_per_group": 7,
+        "save_freq": 10,
+        "test_freq": 20,
+        "selection_split": "dev",
+        "lora_rank": 256,
+        "lora_alpha": 512
+      },
+      "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
+      "job_id": "raysubmit_7sXQkPbRusS9fJqH",
+      "status": "FAILED",
+      "code_commit": "d890526fe",
+      "dashboard": "http://10.151.59.202:9209",
+      "submitted_at": "2026-10-24T01:03:44Z",
+      "replacement_for": "raysubmit_xr4mAmPJ4BYG3j8D",
+      "phase": "vLLM dummy sampler FlashInfer TopKMaskLogits invalid resource handle; repair investigation",
+      "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
+      "resume_step": 40,
+      "resume_verified": false,
+      "val_before_train": false,
+      "last_completed_training_step": 40,
+      "loaded_validation_samples": 1000,
+      "resume_state_loaded": false,
+      "optimizer_step41_completed": false
     }
   ],
   "previous_audio_precache": {
@@ -760,7 +796,7 @@
     }
   ],
   "pending_submission": {
-    "status": "SUBMITTED",
+    "status": "WAITING_FOR_SAMPLER_GPU_CHECK",
     "minimum_same_pod_age_minutes": 30,
     "earliest_observation_at": "2026-10-24T00:14:47+00:00",
     "must_check_both_ready_idle_and_live_Ray": true,

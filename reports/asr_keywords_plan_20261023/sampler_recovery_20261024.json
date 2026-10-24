@@ -1,0 +1,23 @@
+{
+  "failed_job": "raysubmit_7sXQkPbRusS9fJqH",
+  "failure_stage": "vLLM init_model dummy sampler, before checkpoint restore",
+  "error": "FlashInfer TopKMaskLogits invalid resource handle",
+  "failing_worker_ip": "10.151.213.179",
+  "new_checkpoint_verified": false,
+  "dependency_policy": "Keep vLLM-declared tilelang0.1.9/apache-tvm-ffi0.1.9,torch2.11.0+cu130,triton3.6.0,flashinfer0.6.12; no sampler algorithm change",
+  "diagnosis_limit": "Original error not reproduced in isolated checks; rebuilt sampling JIT on head after reinstalling original declared dependencies. Do not claim root cause proven or training recovered before real step41.",
+  "rejected_candidate": {
+    "tilelang": "0.1.15",
+    "apache-tvm-ffi": "0.1.15.post0",
+    "result": "TileLang enum registration import failure; reverted head to0.1.9/0.1.9; never submitted with candidate"
+  },
+  "verified": {
+    "both_nodes": "8 GPUs/node passed vLLM TopKTopPSampler, vocab151936,k151935,p0.9,custom CUDAstream; both nodes passed FLA gated delta rule forward/backward with finite gradients",
+    "local_logs": [
+      "tmp/verl_asr_run/keyword_joint_pipeline/combined_sampler_head.log",
+      "tmp/verl_asr_run/keyword_joint_pipeline/combined_sampler_worker.log"
+    ],
+    "script": "tmp/verl_asr_run/keyword_joint_pipeline/combined_sampler_smoke.py"
+  },
+  "next_action": "Single recovery40 retry after idle checks, verify actual initialization and optimizer41; if same error recurs obtain minimal Ray/FSDP-context repro instead of unchanged repeats"
+}
