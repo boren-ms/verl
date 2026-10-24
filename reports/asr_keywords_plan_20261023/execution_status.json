@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T04:07:13.720762+00:00",
+  "updated_at": "2026-10-24T04:17:41.822239+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -74,7 +74,7 @@
   "model_runs": {
     "A0_base_original_prompt": "SUCCEEDED: full output counts and corpus metrics verified",
     "A1_base_joint_prompt": "SUCCEEDED: all 5559 unique records checked; no keyword block generated",
-    "A2_training": "Waiting new allocation sameUID30min; sampler fix verified on prior allocation; fixed FLA backward preflight pending; latest training40",
+    "A2_training": "RUNNING: actual recovery40 and optimizer41 verified; continue to total100",
     "A2_checkpoint_evaluation": "not submitted"
   },
   "ray_job_ids": [
@@ -204,14 +204,11 @@
       "kw_empty_false_positive": null
     }
   },
-  "blockers": [
-    "Training restore40 and optimizer41 not yet verified"
-  ],
+  "blockers": [],
   "next_actions": [
-    "Rediscover bothpods/newUIDs and enforce30min stability, Ready and both GPUidle/no unrelatedRayjobs",
-    "bpush fix7f11ec919 then prepareenv; FLA0.6.0/fla-core0.6.0 were diagnostic installs on deletedpods, reproduce same context for preflight; do not restore brokenFFI",
-    "Verify actual-package sampler and bothnode FLA backward then resume40 and verify optimizer41",
-    "Complete100steps then dev-onlycheckpointselection/export/LibriSpeech-onlyeval/report"
+    "Continue current job through100 totalsteps; save10/test20; next dev60/80/100; no duplicate initial40 validation",
+    "Rediscover actual poolUIDs,Rayjobs/logs,datasetprogress and bothGPUoccupancy; leave unrelatedwork untouched",
+    "After training succeeds+GPUs release select complete checkpoint via dev1000 minp_err tie later, export LoRA256/512, LibriSpeech-only evaluation and report"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
   "parent_merge": {
@@ -252,22 +249,98 @@
       "lora_alpha": 512
     },
     "wandb_url": "https://msaip.wandb.io/genai/2609-Keyword/runs/24964a75bb9508d952a03ab5e6720e5b",
-    "job_id": "raysubmit_Y7PKAfX3xiuR6pWr",
-    "status": "FAILED",
-    "code_commit": "d709da18d",
-    "dashboard": "http://10.151.59.202:9209",
-    "submitted_at": "2026-10-24T01:34:48Z",
-    "replacement_for": "raysubmit_7sXQkPbRusS9fJqH",
-    "phase": "Repeated vLLM dummy sampler TopKMaskLogits invalid resource handle before restore40; waiting for unrelated occupancy to end and context reproduction",
+    "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
+    "status": "RUNNING",
+    "code_commit": "003d2e76b",
+    "dashboard": "http://10.151.56.253:9209",
+    "submitted_at": "2026-10-24T04:07:47Z",
+    "replacement_for": "raysubmit_Y7PKAfX3xiuR6pWr",
+    "phase": "Actual vLLM init passed; all16ranks checkpoint40 model/optimizer/RNG/lr_scheduler+dataloader restored; optimizer41 complete",
     "resume_from_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_40",
     "resume_step": 40,
-    "resume_verified": false,
+    "resume_verified": true,
     "val_before_train": false,
-    "last_completed_training_step": 40,
+    "last_completed_training_step": 41,
     "loaded_validation_samples": 1000,
-    "resume_state_loaded": false,
-    "optimizer_step41_completed": false,
-    "ended_at": "2026-10-24T01:37:55.225Z"
+    "resume_state_loaded": true,
+    "optimizer_step41_completed": true,
+    "restore_evidence": "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0406_restore41_full.log",
+    "restore_ranks": {
+      "model": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "optimizer": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "rng": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "lr_scheduler": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "optimizer41_grad_norm": 0.3779986798763275,
+    "loaded_training_samples": 10000
   },
   "audio_precache": {
     "status": "SUCCEEDED",
@@ -289,7 +362,7 @@
     "status": "ACTIVE"
   },
   "occupancy_observation": {
-    "observed_at": "2026-10-24T04:07:13.720762+00:00",
+    "observed_at": "2026-10-24T04:17:41.822239+00:00",
     "pool": "verl-n2-i10",
     "both_pods_checked": true,
     "both_pods_ready": true,
@@ -298,20 +371,42 @@
     "pod_count": 2,
     "Ray_jobs": [
       {
+        "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
+        "status": "RUNNING"
+      },
+      {
         "job_id": "raysubmit_jsm95qdFrWq4mz6p",
         "status": "SUCCEEDED"
       }
     ],
     "GPU_occupancy": {
-      "head": "8 GPUs each1MiB/0%",
-      "worker": "8 GPUs each1MiB/0%"
+      "head": [
+        "0, 60324 MiB, 29 %",
+        "1, 60180 MiB, 29 %",
+        "2, 60264 MiB, 29 %",
+        "3, 60288 MiB, 28 %",
+        "4, 60270 MiB, 29 %",
+        "5, 60230 MiB, 29 %",
+        "6, 60226 MiB, 28 %",
+        "7, 60228 MiB, 28 %"
+      ],
+      "worker": [
+        "0, 60230 MiB, 29 %",
+        "1, 60306 MiB, 31 %",
+        "2, 60268 MiB, 31 %",
+        "3, 60246 MiB, 32 %",
+        "4, 60228 MiB, 31 %",
+        "5, 60216 MiB, 31 %",
+        "6, 60344 MiB, 31 %",
+        "7, 60246 MiB, 31 %"
+      ]
     },
     "evidence": [
-      "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0358_check_0.log",
-      "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0358_check_1.log",
-      "tmp/verl_asr_run/keyword_joint_pipeline/pods_0406.json"
+      "tmp/verl_asr_run/keyword_joint_pipeline/pods_0417.json",
+      "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0417_occupancy_0.log",
+      "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0417_occupancy_1.log"
     ],
-    "action": "Fixed sampler all16ranks/all4phases and both-node FLA backward passed; idle before recovery submission"
+    "action": "Current authorized training RUNNING; restore40 and optimizer41 verified; no remote mutation"
   },
   "config_layout": {
     "base": "recipe/phimm/config/v2609_kw/base.yaml",
@@ -919,8 +1014,8 @@
     }
   ],
   "pending_submission": {
-    "status": "PREFLIGHT_PASSED_READY_FOR_RESUME40",
-    "job_id": null,
+    "status": "RUNNING",
+    "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
     "no_duplicate_retry": true
   },
   "cloud_progress_observation": {
@@ -940,9 +1035,9 @@
     "actual_package_diagnostic_job": "raysubmit_2EzmruCEm5iqmnTt",
     "actual_package_diagnostic_status": "SUCCEEDED",
     "ranks_verified": 16,
-    "training_step41_verified": false,
+    "training_step41_verified": true,
     "backward_preflight_status": "PASSED_BOTH_NODES",
-    "training_submitted": false,
+    "training_submitted": true,
     "backward_preflight_evidence": [
       "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0358_backward_0.log",
       "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0358_backward_1.log"
