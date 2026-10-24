@@ -19,6 +19,7 @@ def main():
     parser.add_argument("--fla-first", action="store_true")
     parser.add_argument("--dummy-runner", action="store_true")
     parser.add_argument("--cumem", action="store_true")
+    parser.add_argument("--preload-flashinfer", action="store_true")
     args = parser.parse_args()
     import ray
 
@@ -43,6 +44,9 @@ def main():
             from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
             device = int(ray.get_gpu_ids()[0]) if args.all_visible else 0
             torch.cuda.set_device(device)
+            if args.preload_flashinfer:
+                import flashinfer  # noqa: F401
+
             if args.fla_first:
                 import tilelang  # noqa: F401
                 from fla.ops.gated_delta_rule import chunk_gated_delta_rule  # noqa: F401
