@@ -91,5 +91,19 @@
         "tmp/verl_asr_run/keyword_joint_pipeline/pool_0316.json"
       ]
     }
+  },
+  "fresh_allocation_preflight_0406": {
+    "job_id": "raysubmit_jsm95qdFrWq4mz6p",
+    "status": "SUCCEEDED",
+    "phase_rank_counts": {
+      "ray_nccl": 16,
+      "after_fsdp_backward": 16,
+      "after_tilelang_fla_import": 16,
+      "vllm_dummy_sampler": 16
+    },
+    "both_node_fla_backward": "PASSED finite gradients with actual audio-package import first",
+    "code_commit": "f003873a5",
+    "evidence": "tmp/verl_asr_run/keyword_joint_pipeline/recovery_0358_diagnostic_full.log",
+    "production_training_resume_verified": false
   }
 }
