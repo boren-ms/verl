@@ -52,5 +52,63 @@
         "kw_empty_false_positive": null
       }
     }
+  },
+  "60": {
+    "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
+    "unique_count_and_selected_ids_verified": true,
+    "single_step_verified": true,
+    "corpus_partitions_verified": true,
+    "metrics": {
+      "ls_dev_lowbwer1000": {
+        "utterances": 1000,
+        "n_err": 281,
+        "n_ref": 34583,
+        "nb_err": 121,
+        "nb_ref": 3427,
+        "nu_err": 160,
+        "nu_ref": 31156,
+        "WER": 0.00812537952173033,
+        "BWER": 0.035307849430989205,
+        "UWER": 0.005135447425856978,
+        "NWER": 0.005135447425856978,
+        "keyword_word_accuracy": 0.9646921505690108,
+        "kw_micro_precision": 0.5203665987780041,
+        "kw_micro_recall": 0.6130773845230953,
+        "kw_micro_f1": 0.5629303222252823,
+        "kw_macro_f1": 0.5505639640424934,
+        "kw_exact": 0.058,
+        "kw_format_success": 0.961,
+        "kw_empty_false_positive": null
+      }
+    }
+  },
+  "80": {
+    "job_id": "raysubmit_6PPiWDZg5QJ3zagk",
+    "unique_count_and_selected_ids_verified": true,
+    "single_step_verified": true,
+    "corpus_partitions_verified": true,
+    "metrics": {
+      "ls_dev_lowbwer1000": {
+        "utterances": 1000,
+        "n_err": 332,
+        "n_ref": 34583,
+        "nb_err": 140,
+        "nb_ref": 3427,
+        "nu_err": 192,
+        "nu_ref": 31156,
+        "WER": 0.009600092531012346,
+        "BWER": 0.04085205719288007,
+        "UWER": 0.006162536911028373,
+        "NWER": 0.006162536911028373,
+        "keyword_word_accuracy": 0.9591479428071199,
+        "kw_micro_precision": 0.49766822118587606,
+        "kw_micro_recall": 0.6721655668866227,
+        "kw_micro_f1": 0.5719025137169835,
+        "kw_macro_f1": 0.5626440353557691,
+        "kw_exact": 0.056,
+        "kw_format_success": 0.959,
+        "kw_empty_false_positive": null
+      }
+    }
   }
 }
