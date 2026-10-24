@@ -20,8 +20,9 @@
   "training_job_status": "SUCCEEDED",
   "pool_released": true,
   "verified_at": "2026-10-24T05:10:08.540641+00:00",
-  "export_status": "PENDING",
+  "export_status": "SUCCEEDED",
   "export_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100/qwen_hf",
   "lora_rank": 256,
-  "lora_alpha": 512
+  "lora_alpha": 512,
+  "export_provenance": "reports/asr_keywords_plan_20261023/export100_provenance.json"
 }

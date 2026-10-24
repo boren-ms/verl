@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T05:10:08.540641+00:00",
+  "updated_at": "2026-10-24T05:18:41.898364+00:00",
   "branch": "boren/asr-transcription-keywords",
   "worktree": "/home/boren/.codex/worktrees/asr-transcription-keywords/verl",
   "output_protocol": "asr-keywords-v1",
@@ -269,9 +269,8 @@
   },
   "blockers": [],
   "next_actions": [
-    "Export selected complete100 with LoRA256/512; verify HF artifacts/provenance",
-    "Evaluate trained exportedmodel nnodes2 on internal6131/clean2620/other2939 only",
-    "Summarize fulloutputs and final baselinecomparison, then delete monitor"
+    "Evaluate exported trained checkpoint100 on internal6131/clean2620/other2939 only, nnodes2",
+    "Verify complete eval counts/IDs/single step/corpus partitions; final baseline comparison then delete monitor"
   ],
   "connectivity": "Brix and Blob restored; verified on 2026-10-23",
   "parent_merge": {
@@ -1108,7 +1107,7 @@
     }
   ],
   "pending_submission": {
-    "status": "EXPORT_SELECTED100_PENDING",
+    "status": "EXPORT100_RUNNING",
     "job_id": null,
     "no_duplicate_retry": true
   },
@@ -1174,9 +1173,34 @@
     "training_job_status": "SUCCEEDED",
     "pool_released": true,
     "verified_at": "2026-10-24T05:10:08.540641+00:00",
-    "export_status": "PENDING",
+    "export_status": "SUCCEEDED",
     "export_path": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100/qwen_hf",
     "lora_rank": 256,
-    "lora_alpha": 512
+    "lora_alpha": 512,
+    "export_provenance": "reports/asr_keywords_plan_20261023/export100_provenance.json"
+  },
+  "export": {
+    "status": "SUCCEEDED",
+    "step": 100,
+    "host": "verl-n2-i10-0",
+    "code_commit": "b934ea3ee",
+    "source": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100",
+    "output_local": "/root/checkpoints/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100/qwen_hf",
+    "output_cloud": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100/qwen_hf",
+    "converter": "plugins/qwen35_audio/src/hf_qwen35_audio/convert_verl_to_pt.py",
+    "lora_rank": 256,
+    "lora_alpha": 512,
+    "match_lora_merged": true,
+    "log": "tmp/verl_asr_run/keyword_joint_pipeline/export100_convert.log",
+    "exec_session": 38446,
+    "provenance_report": "reports/asr_keywords_plan_20261023/export100_provenance.json",
+    "sha256": "d2223ed6c9aae3d67b173faac953b0be1ba1cab8fac20ebee191936bf9073de8",
+    "tensors": 781,
+    "merged_lora_pairs": 176,
+    "finite_and_key_shape_verified": true,
+    "trained_difference_verified": true,
+    "cloud_size_verified": true,
+    "cloud_provenance_verified": true,
+    "completed_at": "2026-10-24T05:18:41.898364+00:00"
   }
 }

@@ -1,0 +1,27 @@
+{
+  "source_checkpoint": "az://orngwus2cresco/data/boren/outputs/2609-Keyword/remax_ls_joint_pilot_dev1k/global_step_100",
+  "training_job": "raysubmit_6PPiWDZg5QJ3zagk",
+  "training_code_commit": "003d2e76b",
+  "export_code_commit": "b934ea3ee",
+  "base_model": "az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf",
+  "lora_rank": 256,
+  "lora_alpha": 512,
+  "lora_scaling": 2.0,
+  "merged_lora_pairs": 176,
+  "tensors": 781,
+  "all_finite": true,
+  "base_key_shape_match": true,
+  "roundtrip_tensor_equality": true,
+  "base_layer_keys_stripped": true,
+  "trained_weight_max_abs_delta": {
+    "model.layers.0.linear_attn.in_proj_qkv.weight": 0.00048828125,
+    "model.layers.0.linear_attn.in_proj_z.weight": 0.0,
+    "model.layers.0.linear_attn.in_proj_b.weight": 0.0,
+    "model.layers.0.linear_attn.in_proj_a.weight": 0.0,
+    "model.layers.1.linear_attn.in_proj_qkv.weight": 0.00054931640625,
+    "model.layers.1.linear_attn.in_proj_z.weight": 0.0
+  },
+  "sha256": "d2223ed6c9aae3d67b173faac953b0be1ba1cab8fac20ebee191936bf9073de8",
+  "bytes": 19334533240,
+  "created_at": "2026-10-24T05:16:52.321193+00:00"
+}
