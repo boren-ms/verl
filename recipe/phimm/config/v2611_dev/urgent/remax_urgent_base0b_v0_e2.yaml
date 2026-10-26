@@ -28,4 +28,4 @@ reward_function_by_data_source:
   noisy_ls: librispeech
 
 trainer:
-  total_epochs: 2
+  total_epochs: 4
