@@ -32,6 +32,7 @@ def test_remax_recipes_use_expected_behavior_log_probs(recipe_path):
         "t1" in tags
         or "base0b" in tags
         or recipe_path.stem == "remax_base0_v1_e1"
+        or recipe_path.relative_to(RECIPE_ROOT).as_posix() == "dev/remax_dev_base0c_bcr64.yaml"
     )
     expected_temperature = 2.0 if "t2" in tags else 1.0 if temperature_one else 1.2
     assert rollout.temperature == pytest.approx(expected_temperature)
