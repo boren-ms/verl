@@ -1,0 +1,54 @@
+# OpenML, earnings, LibriSpeech, and noisy LibriSpeech training mixture.
+# Add URGENT delta validation alongside the original validation datasets.
+# Original source sample counts are preserved; noisy LS uses two passes worth of samples.
+defaults:
+  - ../base@_here_
+  - /data/train_data/openml_verb_langhint_v0@_ml_train
+  - /data/train_data/earnings_tts_verb_langhint_v0@_earning_train
+  - /data/train_data/ls_rare_bad_verb_langhint_v0@_ls_train
+  - /data/train_data/noisy/ls_verb_langhint@_noisy_ls_train
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/ls_kw_verb_langhint@_ls_val
+  - /data/val_data/urgent2024_delta@_urgent_delta
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim:
+      lr: 3.0e-6
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+
+data:
+  data_source:
+    openml: {num_sample: 26338, shuffle: true}
+    earnings_fy27: {num_sample: 6584, shuffle: true}
+    ls_rare_verb: {num_sample: 13168, shuffle: true}
+    noisy_ls: {num_sample: 40848, shuffle: true}  # 2 * 20424 cached samples
+  train_data:
+    - ${_ml_train}
+    - ${_earning_train}
+    - ${_ls_train}
+    - ${_noisy_ls_train}
+  val_data:
+    - ${_earning_val}
+    - ${_ml_val}
+    - ${_ls_val}
+    - ${_urgent_delta.0}
+  train_batch_size: 128
+  shuffle: true
+
+val_reward:
+  reward_function_by_data_source:
+    urgent2024_delta: openasr_en
+
+trainer:
+  nnodes: 2
+  total_epochs: 1
+  total_training_steps: null
