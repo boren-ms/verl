@@ -68,7 +68,7 @@ actor_rollout_ref:
           - o_proj
           - in_proj_qkv
           - out_proj
-    temperature: 1.2
+    temperature: 1.0
     calculate_log_probs: True
     use_rollout_log_probs_as_old: true
     gpu_memory_utilization: 0.9
@@ -120,6 +120,7 @@ actor_rollout_ref:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf
     trust_remote_code: false
     use_remove_padding: true
+    use_linear_attention_packing: true
     use_fused_kernels: false
     lora_rank: 256
     lora_alpha: ${eval:${actor_rollout_ref.model.lora_rank}*2}

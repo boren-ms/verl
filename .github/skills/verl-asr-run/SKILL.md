@@ -1,7 +1,7 @@
 ---
 name: verl-asr-run
 description: 'Run ASR jobs on remote verl Brix nodes: training, optional best-validation-checkpoint HF export and standard 2609 benchmark evaluation when explicitly requested, or standalone evaluation, while continuously monitoring until completion with structured metrics. Use when: running RL training (ReMax, GRPO), optionally running a requested post-training best-checkpoint 2609 benchmark, evaluating checkpoints on LibriSpeech/in-house/entity datasets, submitting jobs via quick_run.sh, monitoring Ray job progress, tracking training metrics, and pushing code and resubmitting after fixes. Triggers: "submit job", "train on remote", "launch training", "run eval", "evaluate best checkpoint", "evaluate on librispeech", "2609 benchmark report", "check WER", "monitor job", "check training status", "push and submit", "run config on node", "training evaluation report".'
-argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-n1-i0, or eval_libri_h100'
+argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-new-n2-i0, or eval_libri_h100'
 ---
 
 # verl ASR Run
@@ -38,7 +38,7 @@ stop, or schedule remote jobs.
 | Parameter | Required | Default | Example |
 |-----------|----------|---------|---------|
 | **config** | Yes | — | `remax_ls_lr05`, `eval_libri_h100`, `gen_libri` |
-| **node** | No (auto) | First Ready `verl-*` node | `verl-n1-i0`, `verl-n2-i1` |
+| **node** | No (auto) | First free Ready `verl-new-n2-i*` pool | `verl-new-n2-i0`, `verl-new-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
 | **post_train_eval** | No | Disabled; enable only when explicitly requested | Best validation checkpoint: in-house DTER + OpenASR-ML + MixLang |
 | **report** | No | Only produced when `post_train_eval` is enabled | `tmp/eval_2609_reports/<model-label>.xlsx` |
@@ -91,41 +91,52 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 
 ### Step 0 — Find a Ready verl node and check occupancy
 
-1. **List all verl nodes** and their status:
+The default pool family is **`verl-new-n2-i*`**, in cluster
+`prod-westus2-cw-6`, namespace `boren`. These are two-pod pools with eight
+GPUs per pod (16 GPUs per pool). Treat `{NODE}` as a pool name, not a
+single GPU host. Discover current pool/pod identities and Ready GPU-bearing
+Ray members before each launch; pool names and old status reports are not
+proof of readiness. Respect an explicit user-selected pool; do not silently
+fall back to legacy `verl-n1-*` / `verl-n2-*` pools or create new pools.
+Scope Brix commands to this cluster and namespace (for example,
+`brix ssh -c prod-westus2-cw-6 -n boren {NODE} -- ...`).
+
+1. **List the new pools** and their status:
    ```bash
-   brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep '^verl-'
+   brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '^verl-new-n2-i[0-9]+[[:space:]]'
    ```
    Separate into Ready nodes and Paused/Suspended nodes.
 
 2. **Check occupancy** on each Ready node using two signals:
 
-   **a) GPU utilization** — check if GPUs are actively in use:
+   **a) GPU utilization** — resolve every pod in the pool and run this on
+   each exact `{POD}` (both pods for `verl-new-n2-i*`), not only the first pod:
+
    ```bash
-   brix ssh {NODE} -- 'bash -l -c "nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits"'
+   brix ssh -c prod-westus2-cw-6 -n boren {POD} -- 'bash -l -c "nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits"'
    ```
    A node is **GPU-busy** if any GPU shows utilization > 5% or memory used > 5000 MiB.
 
    **b) Ray jobs** — check for running Ray jobs:
    ```bash
-   brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list 2>/dev/null || echo No Ray jobs"'
+   brix ssh {NODE} -- 'bash -l -c "python /root/code/verl/ray_job.py list"'
    ```
 
-   A node is considered **occupied** if either check is positive (GPU-busy OR running Ray jobs). A node is **free** only if GPUs are idle AND no Ray jobs are running.
+   A pool is **occupied** if any pod is GPU-busy or Ray has a running/pending job. It is **free** only when every pod is verified idle, Ray has no active jobs, and there is no startup, validation, checkpointing, recovery intent, reservation, or planned launch. Missing occupancy evidence means unavailable, not free.
 
-3. **Assign node**: reserve the first free (unoccupied) Ready `verl-*` node for the new job. If the user specified a node and it is occupied, leave its jobs running, report what is currently running, and select another free Ready node. Never pause or stop a node that is occupied by a job.
+3. **Assign node**: reserve the first free (unoccupied) Ready `verl-new-n2-i*` pool in numeric index order for the new job. If the user specified a node and it is occupied, leave its jobs running, report what is currently running, and keep the request queued unless the user authorized an alternate pool. Never pause or stop a node that is occupied by a job.
 
-4. **Pause unused idle nodes**: after reserving the submission node, pause every other Ready `verl-*` node that is free (GPUs idle AND no running Ray jobs):
-   ```bash
-   brix pause {IDLE_NODE}
-   ```
-   Do not pause the reserved submission node. Confirm each unused idle node reaches `Paused` or `Suspended` with `brix pools '{IDLE_NODE}' 2>&1` before continuing. A node with any Ray job or unexplained GPU activity is occupied and must remain running.
+4. **Preserve other pools**: selecting a submission pool does not authorize
+   pausing other pools. Leave active workloads, quota queues, reservations,
+   recovery intent, and planned launches intact. Pause pools only under a
+   separate explicit cleanup instruction and after verifying they are unused.
 
 5. **If no unoccupied Ready node exists**:
-   - Check if any `verl-*` nodes are in **Paused** or **Suspended** state:
+   - Check if any `verl-new-n2-i*` pools are in **Paused** or **Suspended** state:
      ```bash
-     brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E 'Paused|Suspended' | awk '{print $1}' | grep '^verl-'
+     brix pools 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E 'Paused|Suspended' | awk '{print $1}' | grep -E '^verl-new-n2-i[0-9]+$'
      ```
-   - If a Paused/Suspended node is available and is known not to contain a job, **automatically resume** the first one and reserve it for submission:
+   - If a Paused/Suspended node is available and is known not to contain a job, **automatically resume** the eligible one in numeric index order and reserve it for submission:
      ```bash
      brix resume {NODE}
      ```
@@ -135,7 +146,7 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
      ```
      Report each poll: `"Resuming {NODE}... status: {STATUS}"`.
    - Once `Ready`, use this node and proceed to Step 1.
-   - If no eligible Paused/Suspended node exists, report the status of all `verl-*` nodes and the unresolved occupancy conflicts; do not pause occupied nodes or submit until a node is free.
+   - If no eligible Paused/Suspended node exists, report the status of the `verl-new-n2-i*` pools and the unresolved occupancy conflicts; do not pause occupied nodes or submit until a node is free.
 
 ### Step 1 — Resolve inputs
 
@@ -150,9 +161,23 @@ submit_jobs_repeat.sh  (batch wrapper — calls submit_job.sh N times)
 - **evaluation node**: When `post_train_eval` is enabled, reuse `{TRAIN_NODE}` for the best-checkpoint benchmark. Keep every candidate and reference child job on that node and run them sequentially.
 - **report**: When `post_train_eval` is enabled, the **eval-2609-benchmark-report** skill owns baseline selection, benchmark execution, metric extraction, and the best-checkpoint `.xlsx` workbook. Do not separately run the legacy in-house-only report pipeline.
 
-### Step 1a — Set evaluation topology
+### Step 1a — Set training and evaluation topology
 
-Before submitting a standalone `eval_*` or `long_eval_*` job, determine the number of Ready nodes that will participate in that evaluation and set `{EVAL_NNODES}` to that count. Always pass `trainer.nnodes={EVAL_NNODES}` as a Hydra override; do not rely on the inherited training default. For a training pipeline's best-checkpoint evaluation, reuse `{TRAIN_NODE}` and set `trainer.nnodes=1` for every child evaluation job.
+Count participating **GPU-bearing Ray members inside the selected pool**,
+not the number of Brix pool names. Verify both pods are Ready and registered
+with Ray, each exposing eight GPUs. For a normal `verl-new-n2-i*` launch,
+`trainer.nnodes=2` and `trainer.n_gpus_per_node=8` (16 GPUs total).
+Compose the training config locally and verify this topology before launch;
+preserve any explicit user-requested topology and report capacity mismatches
+instead of silently changing it. Do not submit a two-node job with only one
+Ready Ray member.
+
+For standalone `eval_*` or `long_eval_*`, set `{EVAL_NNODES}` to the verified
+participating Ray member count (normally 2 on a new pool) and pass
+`trainer.nnodes={EVAL_NNODES}` explicitly. An intentionally single-node
+benchmark may retain `trainer.nnodes=1` on the same training pool; reserve
+and check occupancy across the entire pool, and run child jobs sequentially.
+The best-checkpoint benchmark workflow below retains that single-node policy.
 
 When `post_train_eval` is enabled, after training succeeds confirm `{TRAIN_NODE}` has no running Ray job and its GPUs are idle before launching evaluation. If training processes are still releasing resources, keep the selected best checkpoint queued and retry every 30 minutes on the same node. Do not select or resume another node.
 
@@ -248,12 +273,20 @@ For training jobs, compose the config locally before submission and record the e
    brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m {MODULE} --config-name {CONFIG} trainer.experiment_name={CONFIG} actor_rollout_ref.model.path={MODEL_PATH}"'
    ```
 
-   For `eval_*` and `long_eval_*` jobs requiring overrides, submit directly and include `trainer.nnodes={EVAL_NNODES}`. For the current one-node environment, use `trainer.nnodes=1`:
+   For `eval_*` and `long_eval_*` jobs requiring overrides, submit directly and include `trainer.nnodes={EVAL_NNODES}`. For a fully Ready new two-pod pool, use `{EVAL_NNODES}=2`:
    ```bash
    brix ssh {NODE} -- 'bash -l -c "cd /root/code/verl && python3 ray_tool.py prepare_env && ray job submit --working-dir=/root/code/verl --no-wait -- python3 -m {MODULE} --config-name {CONFIG} trainer.experiment_name={CONFIG} trainer.nnodes={EVAL_NNODES}"'
    ```
 
    Save the output — it contains the Ray job ID (e.g. `raysubmit_XXXX`). Include the node, config, Ray job ID, initial status, and job type in the user-facing update and recurring monitor prompt.
+
+   When training topology needs explicit overrides, use `quick_run.sh`,
+   which forwards trailing Hydra arguments (the wrapper does not expose them):
+   ```bash
+   brix ssh -c prod-westus2-cw-6 -n boren {NODE} -- 'bash -l /root/code/verl/quick_run.sh {CONFIG_PATH} trainer.nnodes=2 trainer.n_gpus_per_node=8'
+   ```
+   Resolve `{CONFIG_PATH}` to the actual config file, sync code first, and
+   perform cleanup only for the verified previous run of this pipeline.
 
 4. **Capture local log**:
    ```bash
@@ -296,9 +329,9 @@ brix ssh {NODE} -- 'bash -l -c "ray job logs {JOB_ID} | tail -n 30"'
 
 #### 3c. Check GPU utilization
 ```bash
-brix ssh {NODE} -- 'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits'
+brix ssh -c prod-westus2-cw-6 -n boren {POD} -- 'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits'
 ```
-Run this on every monitoring check. Parse the CSV output into the status header.
+Run this on every pod in the pool on every monitoring check. Include pod identity in GPU rows so both eight-GPU hosts are visible; do not report first-pod utilization as the whole pool.
 
 #### 3d. Monitoring phases (check in order)
 1. **Startup**: reward functions loaded, dataset loaded, worker count
