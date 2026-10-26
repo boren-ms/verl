@@ -19,4 +19,5 @@ for name in files:
         target = dest / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-shutil.copytree(repo / "docker/remax", dest / "docker/remax", dirs_exist_ok=True)
+shutil.copytree(repo / "docker/remax", dest / "docker/remax", dirs_exist_ok=True,
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))

@@ -9,6 +9,84 @@ constraints select Ray 2.54.0 and preserve protobuf 5.29.5. The verifier checks
 the runtime versions and driver/worker consistency. Job setup
 does not replace Ray after the cluster starts.
 
+## 日常更新：使用脚本
+
+在本地仓库根目录执行。入口是 `docker/remax/update_image.py`，只使用 Python
+标准库，凭据从现有 Azure DevOps Git credential helper 获取。
+`AZURE_DEVOPS_EXT_PAT` 可覆盖 REST API 认证；clone/push 仍使用 Git 自身配置的认证。
+脚本不把凭据写入构建上下文或日志。
+构建需要 `git`、Python 3，以及已配置的 Azure DevOps Git 访问权限。
+
+```bash
+# 1. 修改 Dockerfile 中的依赖；同步更新 verify.py 和相关 installer 的版本检查。
+#    如果增加/替换内部 wheel，同时更新 packages.list。
+
+# 2. 预览流程，不访问网络、不修改文件、不触发构建。
+python3 docker/remax/update_image.py build --dry-run
+
+# 3. 整理当前代码、提交/推送构建分支、触发一次流水线并等待发布。
+python3 docker/remax/update_image.py build
+```
+
+`build` 会在忽略的 `tmp/remax-image-update/bootstrapping` 中管理专用构建
+checkout，默认使用 `codex/verl-remax-image-oct23` 分支和流水线 2910。
+它只在这个构建仓库提交、推送，不会自动提交或合并本地 verl 仓库。
+构建源码包括当前工作区中选定的 tracked 文件内容，因此已跟踪文件的未提交修改
+也会进入镜像；新增运行文件请先 `git add`，让 `stage_source.py` 能找到它们。
+
+默认复用构建 2200290 的 wheel artifact。脚本比较该 artifact 对应提交的
+`packages.list`；清单不同会自动改为重新下载。也可以明确指定：
+
+```bash
+# 强制重新下载 wheel 包。
+python3 docker/remax/update_image.py build --fresh-packages
+
+# 使用另一次提供 verl-context artifact 的构建。
+python3 docker/remax/update_image.py build --reuse-context-build 2200290
+
+# 只提交构建，不持续等待。
+python3 docker/remax/update_image.py build --no-wait
+
+# 断开终端或中断后，查询/继续等待同一个构建；不会重复触发。
+python3 docker/remax/update_image.py status 2201665
+python3 docker/remax/update_image.py status 2201665 --wait
+```
+
+完成后输出流水线链接、镜像 tag、不可变 digest，并保存 `<build-ID>.json`、
+timeline 和 Docker 构建日志。默认等待上限为三小时；超时或 Ctrl-C 只停止本地等待，
+远程构建继续。若提交请求的响应丢失，脚本保存 queue intent 并退出；先在流水线中
+按提交 SHA 检查是否已经创建构建，再决定是否重试。再次执行 `build` 会创建新构建。
+如需改变存储位置，全局参数放在子命令之前：
+
+```bash
+python3 docker/remax/update_image.py --state-dir /absolute/private-dir build
+```
+
+构建完成后，按照下方“Verify on a new pool”创建一个专用的 8-GPU 测试池，
+指定本次输出的 digest。池 Ready 后可用同一个脚本验证：
+
+```bash
+python3 docker/remax/update_image.py verify \
+  --pool verl-image-verify-unique \
+  --image 'iridiumsdc.azurecr.io/boren/verl-remax@sha256:<实际 digest>'
+```
+
+`verify` 不创建、修改或暂停池。它先核对 pod 请求镜像和实际 imageID，要求 Ready
+且零重启，然后用 `bpush` 同步当前代码，依次执行镜像内环境检查、8 卡 NCCL、
+`quick_install.sh` 和当前 checkout 检查，最后确认 pod UID 未变且没有重启。
+只对新建、未运行过依赖安装的专用测试池使用此命令；脚本无法证明此前的容器历史。
+需要本机的 `zsh`/`bpush`、`brix`、`kubectl` 和相应集群权限。
+默认集群为 `prod-westus2-cw-6`，namespace 为 `boren`；可通过
+`--cluster`、`--namespace`、`--kubeconfig` 指定实际配置。
+日志保存在 `tmp/remax-image-update/verify-<pool>-<pod-UID>/`。
+成功后按脚本输出的命令暂停专用测试池，释放 GPU。
+
+本地回归测试（不构建镜像、不访问 GPU）：
+
+```bash
+python3 -m unittest discover -s docker/remax -p 'test_update_image.py'
+```
+
 ## Build with Orange's existing pipeline
 
 The Orange wiki documents two distinct networks/identities:
