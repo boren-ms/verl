@@ -225,7 +225,9 @@ class vLLMRollout(BaseRollout):
         if self._vllm_v1:
             engine_kwargs.setdefault("mm_processor_cache_gb", 0)
 
-        # breakpoint()
+        from verl.utils.vllm.cuda_runtime import configure_cuda_runtime
+
+        configure_cuda_runtime()
         self.inference_engine = LLM(
             model=model_path,
             enable_sleep_mode=config.free_cache_engine,
