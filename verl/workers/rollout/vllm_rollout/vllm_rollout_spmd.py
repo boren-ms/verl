@@ -195,7 +195,7 @@ class vLLMRollout(BaseRollout):
             from verl.utils.vllm.temperature_log_probs import configure_temperature_only_log_probs
 
             configure_temperature_only_log_probs(
-                engine_kwargs, enabled=config.get("temperature_only_log_probs", True)
+                engine_kwargs, enabled=config.get("temperature_only_log_probs", False)
             )
 
         if config.get("limit_images", None):  # support for multi-image data

@@ -178,7 +178,7 @@ class vLLMHttpServer:
         from verl.utils.vllm.temperature_log_probs import configure_temperature_only_log_probs
 
         configure_temperature_only_log_probs(
-            engine_kwargs, enabled=self.config.get("temperature_only_log_probs", True)
+            engine_kwargs, enabled=self.config.get("temperature_only_log_probs", False)
         )
         if self.config.get("limit_images", None):  # support for multi-image data
             engine_kwargs["limit_mm_per_prompt"] = {"image": self.config.get("limit_images")}

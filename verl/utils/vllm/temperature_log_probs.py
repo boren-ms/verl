@@ -9,8 +9,8 @@ import torch
 _raw_score_context = ContextVar("verl_raw_score_context", default=None)
 
 
-def configure_temperature_only_log_probs(engine_kwargs, enabled=True):
-    """Install the default scoring fix unless a control run explicitly disables it."""
+def configure_temperature_only_log_probs(engine_kwargs, enabled=False):
+    """Install temperature-only scoring only when explicitly enabled."""
     if not enabled:
         return
     if engine_kwargs.get("logprobs_mode", "raw_logprobs") != "raw_logprobs":

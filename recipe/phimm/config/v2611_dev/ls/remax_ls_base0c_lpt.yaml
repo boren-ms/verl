@@ -10,7 +10,7 @@ defaults:
   - base0c_2609r2_ls_bad_e1_bs128_n8_r320_g16_flr
   - _self_
 
-# Explicitly name the extension; this worktree also installs it by default.
+# Explicitly enable temperature-only scoring and name its worker extension.
 actor_rollout_ref:
   rollout:
     temperature_only_log_probs: true

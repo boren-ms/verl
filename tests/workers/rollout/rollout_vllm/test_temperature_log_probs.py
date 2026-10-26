@@ -69,10 +69,10 @@ def test_failure_restores_context_and_rejects_processed_mode():
     assert module._raw_score_context.get() is None
 
 
-def test_default_worker_installation_preserves_engine_settings():
+def test_explicit_worker_installation_preserves_engine_settings():
     kwargs = {"gpu_memory_utilization": 0.9}
-    module.configure_temperature_only_log_probs(kwargs)
-    module.configure_temperature_only_log_probs(kwargs)
+    module.configure_temperature_only_log_probs(kwargs, enabled=True)
+    module.configure_temperature_only_log_probs(kwargs, enabled=True)
     assert kwargs["gpu_memory_utilization"] == 0.9
     assert kwargs["worker_extension_cls"].endswith("TemperatureLogProbWorkerExtension")
     assert "logprobs_mode" not in kwargs
@@ -84,10 +84,16 @@ def test_default_worker_installation_preserves_engine_settings():
 ])
 def test_worker_installation_rejects_conflicting_settings(kwargs):
     with pytest.raises(ValueError):
-        module.configure_temperature_only_log_probs(kwargs)
+        module.configure_temperature_only_log_probs(kwargs, enabled=True)
 
 
 def test_control_run_disables_extension_installation():
     kwargs = {"gpu_memory_utilization": 0.9}
     module.configure_temperature_only_log_probs(kwargs, enabled=False)
+    assert kwargs == {"gpu_memory_utilization": 0.9}
+
+
+def test_default_does_not_install_extension():
+    kwargs = {"gpu_memory_utilization": 0.9}
+    module.configure_temperature_only_log_probs(kwargs)
     assert kwargs == {"gpu_memory_utilization": 0.9}
