@@ -1,0 +1,757 @@
+{
+  "generated_at_utc": "2026-10-22T18:23:28.175552+00:00",
+  "dataset": "openml_bad",
+  "step": 440,
+  "baseline_name": "Fix",
+  "target_name": "R64",
+  "official_scoring_replaced": false,
+  "transformation": "str.translate(str.maketrans('', '', '()')) on both raw gts and clean_output on both sides; all content inside parentheses is preserved",
+  "scorer": {
+    "path": "/home/boren/code/verl/.github/skills/asr-detail-compare/scripts/compare_result_details.py",
+    "sha256": "0e575b523a29eabc1783492591c8e92d80eee047f8d1eacd3ffd113e7d31edac",
+    "normalizer": "auto",
+    "language_column": "language",
+    "method": "compute_metrics, exact same English/OpenASR dispatch as full report"
+  },
+  "sources": {
+    "baseline": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/openml_bad_440.jsonl",
+      "sha256": "ac8dca2396bed6e3dd71b8c8caa308a57a4e2d0912413b1d56557dbe0d813a06",
+      "rows": 393
+    },
+    "target": {
+      "path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/openml_bad_440.jsonl",
+      "sha256": "35db594443e8a44b58c21db3fab233097ab0b0312c9f2622a244a90b5784ef84",
+      "rows": 393
+    }
+  },
+  "complete_matched_rows": 393,
+  "all_original_row_errors_and_reference_counts_match_logged": true,
+  "aggregates": {
+    "baseline": {
+      "original": {
+        "ref_words": 5630,
+        "errors": 476,
+        "substitutions": 311,
+        "deletions": 71,
+        "insertions": 94,
+        "p_err": 0.08454706927175844
+      },
+      "diagnostic": {
+        "ref_words": 5630,
+        "errors": 464,
+        "substitutions": 312,
+        "deletions": 58,
+        "insertions": 94,
+        "p_err": 0.08241563055062166
+      }
+    },
+    "target": {
+      "original": {
+        "ref_words": 5633,
+        "errors": 483,
+        "substitutions": 315,
+        "deletions": 81,
+        "insertions": 87,
+        "p_err": 0.0857447186224037
+      },
+      "diagnostic": {
+        "ref_words": 5632,
+        "errors": 466,
+        "substitutions": 316,
+        "deletions": 63,
+        "insertions": 87,
+        "p_err": 0.08274147727272728
+      }
+    }
+  },
+  "original_target_minus_baseline_errors": 7,
+  "diagnostic_target_minus_baseline_errors": 2,
+  "gap_change": -5,
+  "rows_with_ascii_parentheses_on_either_side": 11,
+  "rows_with_metric_change_on_either_side": 11,
+  "cases": [
+    {
+      "id": "8031031497862620363",
+      "language": "Spanish",
+      "baseline": {
+        "original": {
+          "ref_words": 45,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 45,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": 0,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": false,
+        "reference": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 kilómetros 31 millas de Buenos Aires, que se postulará para la presidencia.",
+        "hypothesis": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 km, 31 millas, de Buenos Aires, que se postulará para la presidencia.",
+        "transformed_reference": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 kilómetros 31 millas de Buenos Aires, que se postulará para la presidencia.",
+        "transformed_hypothesis": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 km, 31 millas, de Buenos Aires, que se postulará para la presidencia.",
+        "original_normalized_reference": "cristina fernández de kirchner quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina anunció anoche en la plata ciudad ubicada a cincuenta kilómetros treinta y uno millas de buenos aires que se postulará para la presidencia",
+        "original_normalized_hypothesis": "cristina fernández de kirchner quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina anunció anoche en la plata ciudad ubicada a cincuenta km treinta y uno millas de buenos aires que se postulará para la presidencia",
+        "diagnostic_normalized_reference": "cristina fernández de kirchner quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina anunció anoche en la plata ciudad ubicada a cincuenta kilómetros treinta y uno millas de buenos aires que se postulará para la presidencia",
+        "diagnostic_normalized_hypothesis": "cristina fernández de kirchner quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina anunció anoche en la plata ciudad ubicada a cincuenta km treinta y uno millas de buenos aires que se postulará para la presidencia"
+      },
+      "target": {
+        "original": {
+          "ref_words": 45,
+          "errors": 5,
+          "substitutions": 1,
+          "deletions": 4,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 45,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -4,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 kilómetros 31 millas de Buenos Aires, que se postulará para la presidencia.",
+        "hypothesis": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina, anunció anoche en La Plata, ciudad ubicada a 50 km (31 millas) de Buenos Aires, que se postulará para la presidencia.",
+        "transformed_reference": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la República Argentina, anunció anoche en La Plata, ciudad ubicada a 50 kilómetros 31 millas de Buenos Aires, que se postulará para la presidencia.",
+        "transformed_hypothesis": "Cristina Fernández de Kirchner, quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina, anunció anoche en La Plata, ciudad ubicada a 50 km 31 millas de Buenos Aires, que se postulará para la presidencia.",
+        "original_normalized_reference": "cristina fernández de kirchner quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina anunció anoche en la plata ciudad ubicada a cincuenta kilómetros treinta y uno millas de buenos aires que se postulará para la presidencia",
+        "original_normalized_hypothesis": "cristina fernández de kirchner quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina anunció anoche en la plata ciudad ubicada a cincuenta km de buenos aires que se postulará para la presidencia",
+        "diagnostic_normalized_reference": "cristina fernández de kirchner quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina anunció anoche en la plata ciudad ubicada a cincuenta kilómetros treinta y uno millas de buenos aires que se postulará para la presidencia",
+        "diagnostic_normalized_hypothesis": "cristina fernández de kirchner quien a la fecha ocupa el cargo de senadora y es la primera dama de la república argentina anunció anoche en la plata ciudad ubicada a cincuenta km treinta y uno millas de buenos aires que se postulará para la presidencia"
+      },
+      "original_error_gap": 4,
+      "diagnostic_error_gap": 0,
+      "gap_change": -4,
+      "metric_changed": true
+    },
+    {
+      "id": "16940047964722835471",
+      "language": "Spanish",
+      "baseline": {
+        "original": {
+          "ref_words": 32,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 32,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": 0,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": false,
+        "reference": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km 50 millas desde la costa hacia el interior de Bangladesh y de la India.",
+        "hypothesis": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km, 50 millas, desde la costa hacia el interior de Bangladesh y de la India.",
+        "transformed_reference": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km 50 millas desde la costa hacia el interior de Bangladesh y de la India.",
+        "transformed_hypothesis": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km, 50 millas, desde la costa hacia el interior de Bangladesh y de la India.",
+        "original_normalized_reference": "los sundarbans son la cadena de manglares costeros más grande del mundo con una longitud de ochenta km cincuenta millas desde la costa hacia el interior de bangladesh y de la india",
+        "original_normalized_hypothesis": "los sundarbans son la cadena de manglares costeros más grande del mundo con una longitud de ochenta km cincuenta millas desde la costa hacia el interior de bangladesh y de la india",
+        "diagnostic_normalized_reference": "los sundarbans son la cadena de manglares costeros más grande del mundo con una longitud de ochenta km cincuenta millas desde la costa hacia el interior de bangladesh y de la india",
+        "diagnostic_normalized_hypothesis": "los sundarbans son la cadena de manglares costeros más grande del mundo con una longitud de ochenta km cincuenta millas desde la costa hacia el interior de bangladesh y de la india"
+      },
+      "target": {
+        "original": {
+          "ref_words": 32,
+          "errors": 2,
+          "substitutions": 0,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 32,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -2,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km 50 millas desde la costa hacia el interior de Bangladesh y de la India.",
+        "hypothesis": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km (50 millas) desde la costa hacia el interior de Bangladesh y de la India.",
+        "transformed_reference": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km 50 millas desde la costa hacia el interior de Bangladesh y de la India.",
+        "transformed_hypothesis": "Los Sundarbans son la cadena de manglares costeros más grande del mundo, con una longitud de 80 km 50 millas desde la costa hacia el interior de Bangladesh y de la India.",
+        "original_normalized_reference": "los sundarbans son la cadena de manglares costeros más grande del mundo con una longitud de ochenta km cincuenta millas desde la costa hacia el interior de bangladesh y de la india",
+        "original_normalized_hypothesis": "los sundarbans son la cadena de manglares costeros más grande del mundo con una longitud de ochenta km desde la costa hacia el interior de bangladesh y de la india",
+        "diagnostic_normalized_reference": "los sundarbans son la cadena de manglares costeros más grande del mundo con una longitud de ochenta km cincuenta millas desde la costa hacia el interior de bangladesh y de la india",
+        "diagnostic_normalized_hypothesis": "los sundarbans son la cadena de manglares costeros más grande del mundo con una longitud de ochenta km cincuenta millas desde la costa hacia el interior de bangladesh y de la india"
+      },
+      "original_error_gap": 2,
+      "diagnostic_error_gap": 0,
+      "gap_change": -2,
+      "metric_changed": true
+    },
+    {
+      "id": "9071737899953350186",
+      "language": "Italian",
+      "baseline": {
+        "original": {
+          "ref_words": 25,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 25,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": 0,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": false,
+        "reference": "Al confronto mediante spettroscopia infrarossa FT-IR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+        "hypothesis": "Al confronto mediante spettroscopia infrarossa, FTIR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+        "transformed_reference": "Al confronto mediante spettroscopia infrarossa FT-IR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+        "transformed_hypothesis": "Al confronto mediante spettroscopia infrarossa, FTIR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+        "original_normalized_reference": "al confronto mediante spettroscopia infrarossa ftir la composizione di questi cristalli corrisponde a quella individuata nell urina degli animali da compagnia che ne sono colpiti",
+        "original_normalized_hypothesis": "al confronto mediante spettroscopia infrarossa ftir la composizione di questi cristalli corrisponde a quella individuata nell urina degli animali da compagnia che ne sono colpiti",
+        "diagnostic_normalized_reference": "al confronto mediante spettroscopia infrarossa ftir la composizione di questi cristalli corrisponde a quella individuata nell urina degli animali da compagnia che ne sono colpiti",
+        "diagnostic_normalized_hypothesis": "al confronto mediante spettroscopia infrarossa ftir la composizione di questi cristalli corrisponde a quella individuata nell urina degli animali da compagnia che ne sono colpiti"
+      },
+      "target": {
+        "original": {
+          "ref_words": 26,
+          "errors": 2,
+          "substitutions": 0,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 25,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -2,
+        "ref_words_change": -1,
+        "ascii_parentheses_present": true,
+        "reference": "Al confronto mediante spettroscopia infrarossa FT-IR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+        "hypothesis": "Al confronto mediante spettroscopia infrarossa (FTIR), la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+        "transformed_reference": "Al confronto mediante spettroscopia infrarossa FT-IR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+        "transformed_hypothesis": "Al confronto mediante spettroscopia infrarossa FTIR, la composizione di questi cristalli corrisponde a quella individuata nell'urina degli animali da compagnia che ne sono colpiti.",
+        "original_normalized_reference": "al confronto mediante spettroscopia infrarossa ft ir la composizione di questi cristalli corrisponde a quella individuata nell urina degli animali da compagnia che ne sono colpiti",
+        "original_normalized_hypothesis": "al confronto mediante spettroscopia infrarossa la composizione di questi cristalli corrisponde a quella individuata nell urina degli animali da compagnia che ne sono colpiti",
+        "diagnostic_normalized_reference": "al confronto mediante spettroscopia infrarossa ftir la composizione di questi cristalli corrisponde a quella individuata nell urina degli animali da compagnia che ne sono colpiti",
+        "diagnostic_normalized_hypothesis": "al confronto mediante spettroscopia infrarossa ftir la composizione di questi cristalli corrisponde a quella individuata nell urina degli animali da compagnia che ne sono colpiti"
+      },
+      "original_error_gap": 2,
+      "diagnostic_error_gap": 0,
+      "gap_change": -2,
+      "metric_changed": true
+    },
+    {
+      "id": "12103438688786487405",
+      "language": "Italian",
+      "baseline": {
+        "original": {
+          "ref_words": 28,
+          "errors": 2,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 28,
+          "errors": 2,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": 0,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": false,
+        "reference": "Le Sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale. Si estende per 80 km 50 mi dalla costa nell'entroterra di Bangladesh e India.",
+        "hypothesis": "Le Sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale. Si estende per 80 km, 50 miglia, dalla costa dell'entroterra di Bangladesh e India.",
+        "transformed_reference": "Le Sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale. Si estende per 80 km 50 mi dalla costa nell'entroterra di Bangladesh e India.",
+        "transformed_hypothesis": "Le Sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale. Si estende per 80 km, 50 miglia, dalla costa dell'entroterra di Bangladesh e India.",
+        "original_normalized_reference": "le sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale si estende per ottanta km cinquanta mi dalla costa nell entroterra di bangladesh e india",
+        "original_normalized_hypothesis": "le sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale si estende per ottanta km cinquanta miglia dalla costa dell entroterra di bangladesh e india",
+        "diagnostic_normalized_reference": "le sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale si estende per ottanta km cinquanta mi dalla costa nell entroterra di bangladesh e india",
+        "diagnostic_normalized_hypothesis": "le sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale si estende per ottanta km cinquanta miglia dalla costa dell entroterra di bangladesh e india"
+      },
+      "target": {
+        "original": {
+          "ref_words": 28,
+          "errors": 3,
+          "substitutions": 1,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 28,
+          "errors": 2,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Le Sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale. Si estende per 80 km 50 mi dalla costa nell'entroterra di Bangladesh e India.",
+        "hypothesis": "Le Sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale. Si estende per 80 km (50 miglia) dalla costa dell'entroterra di Bangladesh e India.",
+        "transformed_reference": "Le Sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale. Si estende per 80 km 50 mi dalla costa nell'entroterra di Bangladesh e India.",
+        "transformed_hypothesis": "Le Sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale. Si estende per 80 km 50 miglia dalla costa dell'entroterra di Bangladesh e India.",
+        "original_normalized_reference": "le sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale si estende per ottanta km cinquanta mi dalla costa nell entroterra di bangladesh e india",
+        "original_normalized_hypothesis": "le sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale si estende per ottanta km dalla costa dell entroterra di bangladesh e india",
+        "diagnostic_normalized_reference": "le sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale si estende per ottanta km cinquanta mi dalla costa nell entroterra di bangladesh e india",
+        "diagnostic_normalized_hypothesis": "le sundarbans sono la più ampia fascia litoranea di mangrovie a livello mondiale si estende per ottanta km cinquanta miglia dalla costa dell entroterra di bangladesh e india"
+      },
+      "original_error_gap": 1,
+      "diagnostic_error_gap": 0,
+      "gap_change": -1,
+      "metric_changed": true
+    },
+    {
+      "id": "7633701051967957452",
+      "language": "Italian",
+      "baseline": {
+        "original": {
+          "ref_words": 23,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 23,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": 0,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": false,
+        "reference": "Anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo, l'Organizzazione del Popolo dell'Africa del Sud-Ovest SWAPO.",
+        "hypothesis": "Anche nelle elezioni parlamentari, la maggioranza resta in mano al partito di governo, l'Organizzazione del Popolo dell'Africa del Sud-Ovest, SWAPO.",
+        "transformed_reference": "Anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo, l'Organizzazione del Popolo dell'Africa del Sud-Ovest SWAPO.",
+        "transformed_hypothesis": "Anche nelle elezioni parlamentari, la maggioranza resta in mano al partito di governo, l'Organizzazione del Popolo dell'Africa del Sud-Ovest, SWAPO.",
+        "original_normalized_reference": "anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo l organizzazione del popolo dell africa del sud ovest swapo",
+        "original_normalized_hypothesis": "anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo l organizzazione del popolo dell africa del sud ovest swapo",
+        "diagnostic_normalized_reference": "anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo l organizzazione del popolo dell africa del sud ovest swapo",
+        "diagnostic_normalized_hypothesis": "anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo l organizzazione del popolo dell africa del sud ovest swapo"
+      },
+      "target": {
+        "original": {
+          "ref_words": 23,
+          "errors": 1,
+          "substitutions": 0,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 23,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo, l'Organizzazione del Popolo dell'Africa del Sud-Ovest SWAPO.",
+        "hypothesis": "Anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo, l'Organizzazione del Popolo dell'Africa del Sud-Ovest (SWAPO).",
+        "transformed_reference": "Anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo, l'Organizzazione del Popolo dell'Africa del Sud-Ovest SWAPO.",
+        "transformed_hypothesis": "Anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo, l'Organizzazione del Popolo dell'Africa del Sud-Ovest SWAPO.",
+        "original_normalized_reference": "anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo l organizzazione del popolo dell africa del sud ovest swapo",
+        "original_normalized_hypothesis": "anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo l organizzazione del popolo dell africa del sud ovest",
+        "diagnostic_normalized_reference": "anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo l organizzazione del popolo dell africa del sud ovest swapo",
+        "diagnostic_normalized_hypothesis": "anche nelle elezioni parlamentari la maggioranza resta in mano al partito di governo l organizzazione del popolo dell africa del sud ovest swapo"
+      },
+      "original_error_gap": 1,
+      "diagnostic_error_gap": 0,
+      "gap_change": -1,
+      "metric_changed": true
+    },
+    {
+      "id": "11746087412974645092",
+      "language": "Portuguese",
+      "baseline": {
+        "original": {
+          "ref_words": 25,
+          "errors": 5,
+          "substitutions": 1,
+          "deletions": 4,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 25,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -4,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "hypothesis": "Engel (2006) esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "transformed_reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "transformed_hypothesis": "Engel 2006 esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "original_normalized_reference": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "original_normalized_hypothesis": "engel esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "diagnostic_normalized_reference": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "diagnostic_normalized_hypothesis": "engel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances"
+      },
+      "target": {
+        "original": {
+          "ref_words": 25,
+          "errors": 6,
+          "substitutions": 2,
+          "deletions": 4,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 25,
+          "errors": 2,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -4,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "hypothesis": "Engel (2006) esclarece a abordagem continuum como uma metodologia usada para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "transformed_reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "transformed_hypothesis": "Engel 2006 esclarece a abordagem continuum como uma metodologia usada para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "original_normalized_reference": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "original_normalized_hypothesis": "engel esclarece a abordagem continuum como uma metodologia usada para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "diagnostic_normalized_reference": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "diagnostic_normalized_hypothesis": "engel dois mil e seis esclarece a abordagem continuum como uma metodologia usada para ajudar as organizações a alcançarem níveis mais altos em suas performances"
+      },
+      "original_error_gap": 1,
+      "diagnostic_error_gap": 1,
+      "gap_change": 0,
+      "metric_changed": true
+    },
+    {
+      "id": "13066583163751268675",
+      "language": "Spanish",
+      "baseline": {
+        "original": {
+          "ref_words": 55,
+          "errors": 1,
+          "substitutions": 0,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 55,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta, que suelen sostener una temperatura bastante estable, es consistente con estas profundas cavidades en el suelo, sostuvo Glen Cushing, del equipo de arqueología del Servicio Geológico Estadounidense USGS y de la Universidad del Norte de Arizona, en Flagstaff, Arizona.",
+        "hypothesis": "«Si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta, que suelen sostener una temperatura bastante estable, es consistente con estas profundas cavidades en el suelo», sostuvo Glen Cushing, del equipo de arqueología del Servicio Geológico Estadounidense (USGS) y de la Universidad del Norte de Arizona, en Flagstaff, Arizona.",
+        "transformed_reference": "Si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta, que suelen sostener una temperatura bastante estable, es consistente con estas profundas cavidades en el suelo, sostuvo Glen Cushing, del equipo de arqueología del Servicio Geológico Estadounidense USGS y de la Universidad del Norte de Arizona, en Flagstaff, Arizona.",
+        "transformed_hypothesis": "«Si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta, que suelen sostener una temperatura bastante estable, es consistente con estas profundas cavidades en el suelo», sostuvo Glen Cushing, del equipo de arqueología del Servicio Geológico Estadounidense USGS y de la Universidad del Norte de Arizona, en Flagstaff, Arizona.",
+        "original_normalized_reference": "si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta que suelen sostener una temperatura bastante estable es consistente con estas profundas cavidades en el suelo sostuvo glen cushing del equipo de arqueología del servicio geológico estadounidense usgs y de la universidad del norte de arizona en flagstaff arizona",
+        "original_normalized_hypothesis": "si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta que suelen sostener una temperatura bastante estable es consistente con estas profundas cavidades en el suelo sostuvo glen cushing del equipo de arqueología del servicio geológico estadounidense y de la universidad del norte de arizona en flagstaff arizona",
+        "diagnostic_normalized_reference": "si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta que suelen sostener una temperatura bastante estable es consistente con estas profundas cavidades en el suelo sostuvo glen cushing del equipo de arqueología del servicio geológico estadounidense usgs y de la universidad del norte de arizona en flagstaff arizona",
+        "diagnostic_normalized_hypothesis": "si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta que suelen sostener una temperatura bastante estable es consistente con estas profundas cavidades en el suelo sostuvo glen cushing del equipo de arqueología del servicio geológico estadounidense usgs y de la universidad del norte de arizona en flagstaff arizona"
+      },
+      "target": {
+        "original": {
+          "ref_words": 55,
+          "errors": 1,
+          "substitutions": 0,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 55,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta, que suelen sostener una temperatura bastante estable, es consistente con estas profundas cavidades en el suelo, sostuvo Glen Cushing, del equipo de arqueología del Servicio Geológico Estadounidense USGS y de la Universidad del Norte de Arizona, en Flagstaff, Arizona.",
+        "hypothesis": "«Si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta, que suelen sostener una temperatura bastante estable, es consistente con estas profundas cavidades en el suelo», sostuvo Glen Cushing, del equipo de arqueología del Servicio Geológico estadounidense (USGS) y de la Universidad del Norte de Arizona, en Flagstaff, Arizona.",
+        "transformed_reference": "Si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta, que suelen sostener una temperatura bastante estable, es consistente con estas profundas cavidades en el suelo, sostuvo Glen Cushing, del equipo de arqueología del Servicio Geológico Estadounidense USGS y de la Universidad del Norte de Arizona, en Flagstaff, Arizona.",
+        "transformed_hypothesis": "«Si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta, que suelen sostener una temperatura bastante estable, es consistente con estas profundas cavidades en el suelo», sostuvo Glen Cushing, del equipo de arqueología del Servicio Geológico estadounidense USGS y de la Universidad del Norte de Arizona, en Flagstaff, Arizona.",
+        "original_normalized_reference": "si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta que suelen sostener una temperatura bastante estable es consistente con estas profundas cavidades en el suelo sostuvo glen cushing del equipo de arqueología del servicio geológico estadounidense usgs y de la universidad del norte de arizona en flagstaff arizona",
+        "original_normalized_hypothesis": "si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta que suelen sostener una temperatura bastante estable es consistente con estas profundas cavidades en el suelo sostuvo glen cushing del equipo de arqueología del servicio geológico estadounidense y de la universidad del norte de arizona en flagstaff arizona",
+        "diagnostic_normalized_reference": "si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta que suelen sostener una temperatura bastante estable es consistente con estas profundas cavidades en el suelo sostuvo glen cushing del equipo de arqueología del servicio geológico estadounidense usgs y de la universidad del norte de arizona en flagstaff arizona",
+        "diagnostic_normalized_hypothesis": "si bien su comportamiento térmico no es tan regular como las grandes cuevas en nuestro planeta que suelen sostener una temperatura bastante estable es consistente con estas profundas cavidades en el suelo sostuvo glen cushing del equipo de arqueología del servicio geológico estadounidense usgs y de la universidad del norte de arizona en flagstaff arizona"
+      },
+      "original_error_gap": 0,
+      "diagnostic_error_gap": 0,
+      "gap_change": 0,
+      "metric_changed": true
+    },
+    {
+      "id": "15596527909096614493",
+      "language": "Portuguese",
+      "baseline": {
+        "original": {
+          "ref_words": 60,
+          "errors": 2,
+          "substitutions": 1,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 60,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Seu comportamento térmico não é tão estável quanto as grandes cavernas do planeta Terra, que costumam preservar uma temperatura bem constante, mas é consistente com o fato de serem buracos de grande profundidade no solo, afirmou Glen Cushing, da Equipe de Astrogeologia do Serviço Geológico dos Estados Unidos USGS e da Universidade do Norte do Arizona, localizada em Flagstaff, Arizona.",
+        "hypothesis": "Seu comportamento térmico não é tão instável quanto as grandes cavernas do planeta Terra, que costumam preservar uma temperatura bem constante, mas é consistente com o fato de serem buracos de grande profundidade no solo, afirmou Glenn Cushing, da equipe de astrogeologia do Serviço Geológico dos Estados Unidos (USGS) e da Universidade do Norte do Arizona, localizada em Flagstaff, Arizona.",
+        "transformed_reference": "Seu comportamento térmico não é tão estável quanto as grandes cavernas do planeta Terra, que costumam preservar uma temperatura bem constante, mas é consistente com o fato de serem buracos de grande profundidade no solo, afirmou Glen Cushing, da Equipe de Astrogeologia do Serviço Geológico dos Estados Unidos USGS e da Universidade do Norte do Arizona, localizada em Flagstaff, Arizona.",
+        "transformed_hypothesis": "Seu comportamento térmico não é tão instável quanto as grandes cavernas do planeta Terra, que costumam preservar uma temperatura bem constante, mas é consistente com o fato de serem buracos de grande profundidade no solo, afirmou Glenn Cushing, da equipe de astrogeologia do Serviço Geológico dos Estados Unidos USGS e da Universidade do Norte do Arizona, localizada em Flagstaff, Arizona.",
+        "original_normalized_reference": "seu comportamento térmico não é tão estável quanto as grandes cavernas do planeta terra que costumam preservar uma temperatura bem constante mas é consistente com o fato de serem buracos de grande profundidade no solo afirmou glen cushing da equipe de astrogeologia do serviço geológico dos estados unidos usgs e da universidade do norte do arizona localizada em flagstaf arizona",
+        "original_normalized_hypothesis": "seu comportamento térmico não é tão instável quanto as grandes cavernas do planeta terra que costumam preservar uma temperatura bem constante mas é consistente com o fato de serem buracos de grande profundidade no solo afirmou glen cushing da equipe de astrogeologia do serviço geológico dos estados unidos e da universidade do norte do arizona localizada em flagstaf arizona",
+        "diagnostic_normalized_reference": "seu comportamento térmico não é tão estável quanto as grandes cavernas do planeta terra que costumam preservar uma temperatura bem constante mas é consistente com o fato de serem buracos de grande profundidade no solo afirmou glen cushing da equipe de astrogeologia do serviço geológico dos estados unidos usgs e da universidade do norte do arizona localizada em flagstaf arizona",
+        "diagnostic_normalized_hypothesis": "seu comportamento térmico não é tão instável quanto as grandes cavernas do planeta terra que costumam preservar uma temperatura bem constante mas é consistente com o fato de serem buracos de grande profundidade no solo afirmou glen cushing da equipe de astrogeologia do serviço geológico dos estados unidos usgs e da universidade do norte do arizona localizada em flagstaf arizona"
+      },
+      "target": {
+        "original": {
+          "ref_words": 60,
+          "errors": 2,
+          "substitutions": 1,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 60,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Seu comportamento térmico não é tão estável quanto as grandes cavernas do planeta Terra, que costumam preservar uma temperatura bem constante, mas é consistente com o fato de serem buracos de grande profundidade no solo, afirmou Glen Cushing, da Equipe de Astrogeologia do Serviço Geológico dos Estados Unidos USGS e da Universidade do Norte do Arizona, localizada em Flagstaff, Arizona.",
+        "hypothesis": "Seu comportamento térmico não é tão instável quanto as grandes cavernas do planeta Terra, que costumam preservar uma temperatura bem constante, mas é consistente com o fato de serem buracos de grande profundidade no solo, afirmou Glenn Cushing, da equipe de astrogeologia do Serviço Geológico dos Estados Unidos (USGS) e da Universidade do Norte do Arizona, localizada em Flagstaff, Arizona.",
+        "transformed_reference": "Seu comportamento térmico não é tão estável quanto as grandes cavernas do planeta Terra, que costumam preservar uma temperatura bem constante, mas é consistente com o fato de serem buracos de grande profundidade no solo, afirmou Glen Cushing, da Equipe de Astrogeologia do Serviço Geológico dos Estados Unidos USGS e da Universidade do Norte do Arizona, localizada em Flagstaff, Arizona.",
+        "transformed_hypothesis": "Seu comportamento térmico não é tão instável quanto as grandes cavernas do planeta Terra, que costumam preservar uma temperatura bem constante, mas é consistente com o fato de serem buracos de grande profundidade no solo, afirmou Glenn Cushing, da equipe de astrogeologia do Serviço Geológico dos Estados Unidos USGS e da Universidade do Norte do Arizona, localizada em Flagstaff, Arizona.",
+        "original_normalized_reference": "seu comportamento térmico não é tão estável quanto as grandes cavernas do planeta terra que costumam preservar uma temperatura bem constante mas é consistente com o fato de serem buracos de grande profundidade no solo afirmou glen cushing da equipe de astrogeologia do serviço geológico dos estados unidos usgs e da universidade do norte do arizona localizada em flagstaf arizona",
+        "original_normalized_hypothesis": "seu comportamento térmico não é tão instável quanto as grandes cavernas do planeta terra que costumam preservar uma temperatura bem constante mas é consistente com o fato de serem buracos de grande profundidade no solo afirmou glen cushing da equipe de astrogeologia do serviço geológico dos estados unidos e da universidade do norte do arizona localizada em flagstaf arizona",
+        "diagnostic_normalized_reference": "seu comportamento térmico não é tão estável quanto as grandes cavernas do planeta terra que costumam preservar uma temperatura bem constante mas é consistente com o fato de serem buracos de grande profundidade no solo afirmou glen cushing da equipe de astrogeologia do serviço geológico dos estados unidos usgs e da universidade do norte do arizona localizada em flagstaf arizona",
+        "diagnostic_normalized_hypothesis": "seu comportamento térmico não é tão instável quanto as grandes cavernas do planeta terra que costumam preservar uma temperatura bem constante mas é consistente com o fato de serem buracos de grande profundidade no solo afirmou glen cushing da equipe de astrogeologia do serviço geológico dos estados unidos usgs e da universidade do norte do arizona localizada em flagstaf arizona"
+      },
+      "original_error_gap": 0,
+      "diagnostic_error_gap": 0,
+      "gap_change": 0,
+      "metric_changed": true
+    },
+    {
+      "id": "3354142337001308440",
+      "language": "Italian",
+      "baseline": {
+        "original": {
+          "ref_words": 22,
+          "errors": 2,
+          "substitutions": 1,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 22,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Angel 2006 illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti.",
+        "hypothesis": "Engel (2006) illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti.",
+        "transformed_reference": "Angel 2006 illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti.",
+        "transformed_hypothesis": "Engel 2006 illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti.",
+        "original_normalized_reference": "angel duemilasei illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti",
+        "original_normalized_hypothesis": "engel illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti",
+        "diagnostic_normalized_reference": "angel duemilasei illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti",
+        "diagnostic_normalized_hypothesis": "engel duemilasei illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti"
+      },
+      "target": {
+        "original": {
+          "ref_words": 22,
+          "errors": 2,
+          "substitutions": 1,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 22,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Angel 2006 illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti.",
+        "hypothesis": "Engel (2006) illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti.",
+        "transformed_reference": "Angel 2006 illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti.",
+        "transformed_hypothesis": "Engel 2006 illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti.",
+        "original_normalized_reference": "angel duemilasei illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti",
+        "original_normalized_hypothesis": "engel illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti",
+        "diagnostic_normalized_reference": "angel duemilasei illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti",
+        "diagnostic_normalized_hypothesis": "engel duemilasei illustra la teoria del continuum come un metodo impiegato per aiutare le organizzazioni a raggiungere livelli di performance più alti"
+      },
+      "original_error_gap": 0,
+      "diagnostic_error_gap": 0,
+      "gap_change": 0,
+      "metric_changed": true
+    },
+    {
+      "id": "5135231065849307301",
+      "language": "Portuguese",
+      "baseline": {
+        "original": {
+          "ref_words": 29,
+          "errors": 2,
+          "substitutions": 0,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 29,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -1,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Sundarbans é a maior faixa de manguezais do mundo, se estendendo por 80 km 50 mi em direção ao interior de Bangladesh e da Índia a partir do litoral.",
+        "hypothesis": "Sundarbans é a maior faixa de manguezais do mundo, se estendendo por 80 km (50 milhas) em direção ao interior de Bangladesh e da Índia a partir do litoral.",
+        "transformed_reference": "Sundarbans é a maior faixa de manguezais do mundo, se estendendo por 80 km 50 mi em direção ao interior de Bangladesh e da Índia a partir do litoral.",
+        "transformed_hypothesis": "Sundarbans é a maior faixa de manguezais do mundo, se estendendo por 80 km 50 milhas em direção ao interior de Bangladesh e da Índia a partir do litoral.",
+        "original_normalized_reference": "sundarbans é a maior faixa de manguezais do mundo se estendendo por oitenta km cinquenta mi em direção ao interior de bangladesh e da índia a partir do litoral",
+        "original_normalized_hypothesis": "sundarbans é a maior faixa de manguezais do mundo se estendendo por oitenta km em direção ao interior de bangladesh e da índia a partir do litoral",
+        "diagnostic_normalized_reference": "sundarbans é a maior faixa de manguezais do mundo se estendendo por oitenta km cinquenta mi em direção ao interior de bangladesh e da índia a partir do litoral",
+        "diagnostic_normalized_hypothesis": "sundarbans é a maior faixa de manguezais do mundo se estendendo por oitenta km cinquenta milhas em direção ao interior de bangladesh e da índia a partir do litoral"
+      },
+      "target": {
+        "original": {
+          "ref_words": 29,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 29,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": 0,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": false,
+        "reference": "Sundarbans é a maior faixa de manguezais do mundo, se estendendo por 80 km 50 mi em direção ao interior de Bangladesh e da Índia a partir do litoral.",
+        "hypothesis": "Sundarbans é a maior faixa de manguezais do mundo, se estendendo por 80 km 50 milhas em direção ao interior de Bangladesh e da Índia a partir do litoral.",
+        "transformed_reference": "Sundarbans é a maior faixa de manguezais do mundo, se estendendo por 80 km 50 mi em direção ao interior de Bangladesh e da Índia a partir do litoral.",
+        "transformed_hypothesis": "Sundarbans é a maior faixa de manguezais do mundo, se estendendo por 80 km 50 milhas em direção ao interior de Bangladesh e da Índia a partir do litoral.",
+        "original_normalized_reference": "sundarbans é a maior faixa de manguezais do mundo se estendendo por oitenta km cinquenta mi em direção ao interior de bangladesh e da índia a partir do litoral",
+        "original_normalized_hypothesis": "sundarbans é a maior faixa de manguezais do mundo se estendendo por oitenta km cinquenta milhas em direção ao interior de bangladesh e da índia a partir do litoral",
+        "diagnostic_normalized_reference": "sundarbans é a maior faixa de manguezais do mundo se estendendo por oitenta km cinquenta mi em direção ao interior de bangladesh e da índia a partir do litoral",
+        "diagnostic_normalized_hypothesis": "sundarbans é a maior faixa de manguezais do mundo se estendendo por oitenta km cinquenta milhas em direção ao interior de bangladesh e da índia a partir do litoral"
+      },
+      "original_error_gap": -1,
+      "diagnostic_error_gap": 0,
+      "gap_change": 1,
+      "metric_changed": true
+    },
+    {
+      "id": "17411379747303396458",
+      "language": "Portuguese",
+      "baseline": {
+        "original": {
+          "ref_words": 25,
+          "errors": 4,
+          "substitutions": 0,
+          "deletions": 4,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 25,
+          "errors": 0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": -4,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": true,
+        "reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "hypothesis": "Angel (2006) esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "transformed_reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "transformed_hypothesis": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "original_normalized_reference": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "original_normalized_hypothesis": "angel esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "diagnostic_normalized_reference": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "diagnostic_normalized_hypothesis": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances"
+      },
+      "target": {
+        "original": {
+          "ref_words": 25,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "diagnostic": {
+          "ref_words": 25,
+          "errors": 1,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "error_change": 0,
+        "ref_words_change": 0,
+        "ascii_parentheses_present": false,
+        "reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "hypothesis": "Angell, 2006, esclarece a abordagem Continuum como uma metodologia usada para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "transformed_reference": "Angel 2006 esclarece a abordagem Continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "transformed_hypothesis": "Angell, 2006, esclarece a abordagem Continuum como uma metodologia usada para ajudar as organizações a alcançarem níveis mais altos em suas performances.",
+        "original_normalized_reference": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "original_normalized_hypothesis": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usada para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "diagnostic_normalized_reference": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usado para ajudar as organizações a alcançarem níveis mais altos em suas performances",
+        "diagnostic_normalized_hypothesis": "angel dois mil e seis esclarece a abordagem continuum como uma metodologia usada para ajudar as organizações a alcançarem níveis mais altos em suas performances"
+      },
+      "original_error_gap": -3,
+      "diagnostic_error_gap": 1,
+      "gap_change": 4,
+      "metric_changed": true
+    }
+  ]
+}

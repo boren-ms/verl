@@ -1,0 +1,47 @@
+{
+  "generated_at_utc": "2026-10-22T18:23:45.157480+00:00",
+  "source_and_snapshot_hashes_unchanged": true,
+  "dataset_checks": {
+    "earning_chunk_verb": {
+      "matched": 6,
+      "all_categories_accounted": true,
+      "logged_heads_reaggregate_to_scalar": true,
+      "raw_rows": {
+        "baseline": 341,
+        "target": 341
+      }
+    },
+    "openml_bad": {
+      "matched": 393,
+      "all_categories_accounted": true,
+      "logged_heads_reaggregate_to_scalar": true,
+      "raw_rows": {
+        "baseline": 393,
+        "target": 393
+      }
+    },
+    "ls_clean": {
+      "matched": 2620,
+      "all_categories_accounted": true,
+      "logged_heads_reaggregate_to_scalar": true,
+      "raw_rows": {
+        "baseline": 2620,
+        "target": 2620
+      }
+    },
+    "ls_other": {
+      "matched": 2939,
+      "all_categories_accounted": true,
+      "logged_heads_reaggregate_to_scalar": true,
+      "raw_rows": {
+        "baseline": 2939,
+        "target": 2939
+      }
+    }
+  },
+  "matched_cases_count": 5958,
+  "all_sdi_counts_reproduce": true,
+  "figure_exists": true,
+  "report_exists": true,
+  "status": "passed"
+}

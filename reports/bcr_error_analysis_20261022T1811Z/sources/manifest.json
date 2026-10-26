@@ -1,0 +1,29 @@
+{
+  "frozen_at_utc": "2026-10-22T18:14:20.629090+00:00",
+  "sources": [
+    {
+      "original_path": "tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/normalized_data.json",
+      "snapshot_path": "reports/bcr_error_analysis_20261022T1811Z/sources/r16_fix_lineage.json",
+      "sha256": "1ac0acd58419119f9211c1c578484af2e40441d5598d80bb059edda9e74f7223",
+      "bytes": 13632334
+    },
+    {
+      "original_path": "tmp/verl_asr_run/remax_dev_base0_v1h2a_fix_bcr64/metrics_history.json",
+      "snapshot_path": "reports/bcr_error_analysis_20261022T1811Z/sources/r64_history.json",
+      "sha256": "be0ce25e3993c0409189c5f9d8433a8ce0bdbda5c84a786d6252233af1458b45",
+      "bytes": 2383891
+    },
+    {
+      "original_path": "tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/report_analysis.json",
+      "snapshot_path": "reports/bcr_error_analysis_20261022T1811Z/sources/r16_fix_analysis.json",
+      "sha256": "9690c734ca706d9f291ee623fcb198b287d9ef995e373b6c5d7c645550249448",
+      "bytes": 24546
+    },
+    {
+      "original_path": "tmp/experiment_comparisons/20261022_live/wandb/scalar_evidence.json",
+      "snapshot_path": "reports/bcr_error_analysis_20261022T1811Z/sources/wandb_snapshot.json",
+      "sha256": "7a08851ca1d146e632af448bedfccf89d742cb2ec0f0aeea2ebe7084357f4c8b",
+      "bytes": 15864202
+    }
+  ]
+}

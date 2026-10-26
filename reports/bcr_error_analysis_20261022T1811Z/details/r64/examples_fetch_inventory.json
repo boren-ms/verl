@@ -1,0 +1,397 @@
+{
+  "observed_at_utc": "2026-10-22T18:20:45.581383+00:00",
+  "selected_step": 440,
+  "runs": {
+    "target": {
+      "run_id": "e51cc81ed31e918470dbcc8143a6b731",
+      "validation_data_dir": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen",
+      "tables": [
+        {
+          "source_type": "run_file",
+          "source": "media/table/val/generations_439_4f6b9499e1c07a2ae98e.table.json",
+          "step_coverage": [
+            390,
+            400,
+            420,
+            440
+          ],
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/table_0.json"
+        },
+        {
+          "source_type": "artifact",
+          "source": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v23/val/generations.table.json",
+          "step_coverage": [
+            390,
+            400,
+            420,
+            440
+          ],
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/table_1.json"
+        }
+      ],
+      "table_file_inventory": [
+        {
+          "name": "media/table/val/generations_0_41b4c6d2fcefbdf8ba75.table.json",
+          "size": 7059
+        },
+        {
+          "name": "media/table/val/generations_119_803dde916fde05f18c25.table.json",
+          "size": 41629
+        },
+        {
+          "name": "media/table/val/generations_139_cdf6cd7c732ee1e5dab7.table.json",
+          "size": 47378
+        },
+        {
+          "name": "media/table/val/generations_159_2f7408986f9de27d4cdf.table.json",
+          "size": 53225
+        },
+        {
+          "name": "media/table/val/generations_179_ae74453c037a98e8ab1b.table.json",
+          "size": 59040
+        },
+        {
+          "name": "media/table/val/generations_199_1e20f080a29c0d8eb268.table.json",
+          "size": 64844
+        },
+        {
+          "name": "media/table/val/generations_19_3634272fa5ccf49a1d46.table.json",
+          "size": 12964
+        },
+        {
+          "name": "media/table/val/generations_219_89b43130db93a6f796ad.table.json",
+          "size": 70561
+        },
+        {
+          "name": "media/table/val/generations_239_fba1cfd7836929ab0c70.table.json",
+          "size": 76305
+        },
+        {
+          "name": "media/table/val/generations_259_25d5994dc5c6b97cd5d5.table.json",
+          "size": 82034
+        },
+        {
+          "name": "media/table/val/generations_279_6503ddea6dc3b631efc3.table.json",
+          "size": 87811
+        },
+        {
+          "name": "media/table/val/generations_299_f532e4fe657259d79fda.table.json",
+          "size": 93400
+        },
+        {
+          "name": "media/table/val/generations_319_822f1f4eb87029f69639.table.json",
+          "size": 99143
+        },
+        {
+          "name": "media/table/val/generations_339_77a2a22d587d8cfbf9a8.table.json",
+          "size": 104842
+        },
+        {
+          "name": "media/table/val/generations_359_b2832f7c7c1c1c1e4f3b.table.json",
+          "size": 110470
+        },
+        {
+          "name": "media/table/val/generations_379_6ec3dcf0bbdf252fab61.table.json",
+          "size": 116107
+        },
+        {
+          "name": "media/table/val/generations_397_b6581eadaccadbe8f660.table.json",
+          "size": 6760
+        },
+        {
+          "name": "media/table/val/generations_399_91d306584912980a6ed6.table.json",
+          "size": 12405
+        },
+        {
+          "name": "media/table/val/generations_39_7c1de95b410b14acb793.table.json",
+          "size": 18694
+        },
+        {
+          "name": "media/table/val/generations_419_d0e2170c23e9d767f90d.table.json",
+          "size": 18035
+        },
+        {
+          "name": "media/table/val/generations_439_4f6b9499e1c07a2ae98e.table.json",
+          "size": 23805
+        },
+        {
+          "name": "media/table/val/generations_59_f49d255d1bebf8168190.table.json",
+          "size": 24428
+        },
+        {
+          "name": "media/table/val/generations_79_1d4942b91008dbeaf954.table.json",
+          "size": 30149
+        },
+        {
+          "name": "media/table/val/generations_99_0e3834a063ace6e38967.table.json",
+          "size": 35895
+        }
+      ],
+      "table_artifact_inventory": [
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v0",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v1",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v2",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v3",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v4",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v5",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v6",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v7",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v8",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v9",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v10",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v11",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v12",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v13",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v14",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v15",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v16",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v17",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v18",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v19",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v20",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v21",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v22",
+          "type": "run_table"
+        },
+        {
+          "name": "run-e51cc81ed31e918470dbcc8143a6b731-valgenerations:v23",
+          "type": "run_table"
+        }
+      ],
+      "errors": [],
+      "dumps": {
+        "earning_chunk_verb": {
+          "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen/earning_chunk_verb/440.jsonl",
+          "bytes": 5890454,
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/earning_chunk_verb_440.jsonl",
+          "sha256": "3f36e7ea88389dc9ac13fcee1cb4fbb99816c3618b327bb8541be1d29b9f7ae9"
+        },
+        "openml_bad": {
+          "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen/openml_bad/440.jsonl",
+          "bytes": 351090,
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/openml_bad_440.jsonl",
+          "sha256": "35db594443e8a44b58c21db3fab233097ab0b0312c9f2622a244a90b5784ef84"
+        },
+        "ls_clean": {
+          "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen/ls_clean/440.jsonl",
+          "bytes": 2509694,
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/ls_clean_440.jsonl",
+          "sha256": "a61ca5e94f9d4ea260923036828f980a3ab75fb4a0d5b3a9ab0ba0efb4cd32b6"
+        },
+        "ls_other": {
+          "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen/ls_other/440.jsonl",
+          "bytes": 2684375,
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/target/ls_other_440.jsonl",
+          "sha256": "64dff99e038c3d4d765d5bab18f3e2024d01a663e8c06b2ca7767d0fcb70efcf"
+        }
+      }
+    },
+    "baseline": {
+      "run_id": "0ca34a537b05e74628264cac2ea86a75",
+      "validation_data_dir": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen",
+      "tables": [
+        {
+          "source_type": "run_file",
+          "source": "media/table/val/generations_439_47a5a9726a5b9c600561.table.json",
+          "step_coverage": [
+            80,
+            100,
+            120,
+            140,
+            160,
+            180,
+            200,
+            220,
+            240,
+            260,
+            280,
+            300,
+            320,
+            340,
+            360,
+            380,
+            400,
+            420,
+            440
+          ],
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/table_0.json",
+          "source_cache_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_440__1fd1c1bc500a301b/baseline/table_0.json",
+          "sha256": "a29ad0df012bc97380fdc9c7d1f001df1b114c644b6a9ccb1f07030fea75b1c7"
+        }
+      ],
+      "dumps": {
+        "earning_chunk_verb": {
+          "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/earning_chunk_verb/440.jsonl",
+          "bytes": 5890034,
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/earning_chunk_verb_440.jsonl",
+          "sha256": "9e80a4ca062d54c1ec797ced85a78e45a3bdc85ff0b6b5cbea82b0d884ea6a64",
+          "source_cache_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_440__1fd1c1bc500a301b/baseline/earning_chunk_verb_440.jsonl",
+          "cache_sha256_verified": true
+        },
+        "openml_bad": {
+          "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/openml_bad/440.jsonl",
+          "bytes": 350944,
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/openml_bad_440.jsonl",
+          "sha256": "ac8dca2396bed6e3dd71b8c8caa308a57a4e2d0912413b1d56557dbe0d813a06",
+          "source_cache_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_440__1fd1c1bc500a301b/baseline/openml_bad_440.jsonl",
+          "cache_sha256_verified": true
+        },
+        "ls_clean": {
+          "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_clean/440.jsonl",
+          "bytes": 2509420,
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/ls_clean_440.jsonl",
+          "sha256": "ddd7a410d4e0b7f07dc79a40af6e000cfa41ea4511bda5e169f00b4a0af6f447",
+          "source_cache_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_440__1fd1c1bc500a301b/baseline/ls_clean_440.jsonl",
+          "cache_sha256_verified": true
+        },
+        "ls_other": {
+          "source": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix/val_data_gen/ls_other/440.jsonl",
+          "bytes": 2684526,
+          "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/baseline/ls_other_440.jsonl",
+          "sha256": "ae7763fbf62fa9ba6cf03853509cdf40aaeff80d43ff4e6f87e890c3cf836307",
+          "source_cache_local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_440__1fd1c1bc500a301b/baseline/ls_other_440.jsonl",
+          "cache_sha256_verified": true
+        }
+      },
+      "source_cache_inventory": {
+        "source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/examples/step_440__1fd1c1bc500a301b/examples_fetch_inventory.json",
+        "local_path": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T1811Z_bcr_error_analysis/r64/sources/fix440_cache_inventory.json",
+        "sha256": "348ffa073898ef9b2546d0c3340523bce08bd775c07a547332fd71188224355b"
+      }
+    }
+  },
+  "availability": {
+    "target": {
+      "440": {
+        "earning_chunk_verb": {
+          "path": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen/earning_chunk_verb/440.jsonl",
+          "exists": true
+        },
+        "openml_bad": {
+          "path": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen/openml_bad/440.jsonl",
+          "exists": true
+        },
+        "ls_clean": {
+          "path": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen/ls_clean/440.jsonl",
+          "exists": true
+        },
+        "ls_other": {
+          "path": "az://orngwus2cresco/data/boren/outputs/v2611/remax_dev_base0_v1h2a_fix_bcr64/val_data_gen/ls_other/440.jsonl",
+          "exists": true
+        }
+      }
+    }
+  },
+  "scope": "R64 versus direct Fix retained model lineage, full same-step dumps",
+  "collection_started_at_utc": "2026-10-22T18:20:44.230335+00:00",
+  "baseline_name": "Fix",
+  "target_name": "Replay64",
+  "baseline_observation_binding": {
+    "run_id": "0ca34a537b05e74628264cac2ea86a75",
+    "step": 440,
+    "lineage": {
+      "segment_id": "baseline_current_after_80",
+      "submission_id": "raysubmit_cQWZbUZbcVRYkXpu",
+      "driver_job_id": "03000000",
+      "source_commit": null,
+      "config_sha256": null
+    },
+    "primary_p_err": {
+      "earning_chunk_verb": 0.04494965898018837,
+      "openml_bad": 0.08454706927175844,
+      "ls_clean": 0.011527431891932683,
+      "ls_other": 0.026929846142200183
+    },
+    "used_alias_keys": {
+      "earning_chunk_verb": [
+        "val-core/earning_chunk_verb/p_err/mean@1"
+      ],
+      "openml_bad": [
+        "val-core/openml_bad/p_err/mean@1"
+      ],
+      "ls_clean": [
+        "val-core/ls_clean/p_err/mean@1"
+      ],
+      "ls_other": [
+        "val-core/ls_other/p_err/mean@1"
+      ]
+    },
+    "observed_timestamp": 1792670666.004529,
+    "provenance_source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/baseline_history_capture_20261022T1250.json",
+    "additional_corroborating_source": null
+  },
+  "reuse_script_source": "/home/boren/code/verl/tmp/experiment_comparisons/20261022T073852Z_bcr_rolling/build_examples.py",
+  "reuse_script_sha256": "12e13d9139d5ed05ed8aa4fcd6cc8c71c0222eddb8adb2843a09e84433e51881",
+  "transport": "local read-only existing blob credentials; W&B process-local DNS172.28.40.11 with original TLS hostname",
+  "limitations": [
+    "Fix selected table is reused from the verified same-observation step440 cache.",
+    "Table inventory is attempted for R64; missing current-step table coverage does not imply missing dump cases."
+  ]
+}

@@ -1,0 +1,98 @@
+# Install at .azuredevops/kube-orange-box.yaml on a dedicated bootstrapping branch.
+# Uses the existing pipeline's authorized service connections; no shared tags.
+trigger: none
+pr: none
+parameters:
+- name: reuseContextBuildId
+  type: string
+  default: ''
+stages:
+- stage: StagePackages
+  condition: eq('${{ parameters.reuseContextBuildId }}', '')
+  jobs:
+  - job: Stage
+    pool: orange-builder
+    timeoutInMinutes: 120
+    steps:
+    - checkout: self
+    - template: templates/orange-az-setup.yaml
+      parameters:
+        prepare_sharedtfoutput_login: false
+    - template: templates/orange-tailscale-setup.yaml
+    - bash: |
+        set -euo pipefail
+        context="$(Build.ArtifactStagingDirectory)/context"
+        mkdir -p "$context/packages/bitbank"
+        cp -a images/verl-remax/source "$context/source"
+        cp images/verl-remax/Dockerfile "$context/Dockerfile"
+        blob_prefix=boren/data/packages
+        download_package() {
+          set -euo pipefail
+          relative="$1"
+          target="$relative"
+          case "$relative" in
+            bitbank-*|aiofiles-*|fsspec-*) target="bitbank/$relative" ;;
+          esac
+          mkdir -p "$context/packages/$(dirname "$target")"
+          echo "Downloading $relative"
+          timeout --kill-after=30 1800 az storage blob download --account-name orngwus2cresco --container-name data --auth-mode login --name "$blob_prefix/$relative" --file "$context/packages/$target" --max-connections 16 --no-progress --output none
+          echo "Downloaded $relative"
+        }
+        export context blob_prefix
+        export -f download_package
+        xargs -d '\n' -P 4 -I {} bash -c 'download_package "$1"' _ {} < images/verl-remax/source/docker/remax/packages.list
+        cd "$context"
+        find packages source -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      displayName: Stage verl source and internal wheels
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)/context
+        artifactName: verl-context
+- stage: BuildImage
+  condition: and(not(canceled()), in(dependencies.StagePackages.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'))
+  jobs:
+  - job: Build
+    pool: iridium-builder
+    timeoutInMinutes: 180
+    steps:
+    - checkout: self
+    - template: templates/az-setup.yaml
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        ${{ if eq(parameters.reuseContextBuildId, '') }}:
+          buildType: current
+        ${{ else }}:
+          buildType: specific
+          project: $(System.TeamProject)
+          pipeline: '2910'
+          buildVersionToDownload: specific
+          buildId: ${{ parameters.reuseContextBuildId }}
+          allowPartiallySucceededBuilds: true
+        artifactName: verl-context
+        downloadPath: $(System.DefaultWorkingDirectory)
+    - bash: |
+        set -euo pipefail
+        # Orange's existing pipeline moves Docker onto the larger /mnt disk.
+        sudo systemctl stop docker containerd
+        sudo mkdir -p /mnt/docker-data /mnt/containerd-data /etc/containerd
+        echo '{"data-root":"/mnt/docker-data"}' | sudo tee /etc/docker/daemon.json
+        printf 'version = 2\nroot = "/mnt/containerd-data"\nstate = "/run/containerd"\n' | sudo tee /etc/containerd/config.toml
+        sudo systemctl start containerd docker
+        cd verl-context
+        sha256sum --check SHA256SUMS >/dev/null
+        # Reuse only verified wheel files; always build the current source.
+        cmp source/docker/remax/packages.list ../images/verl-remax/source/docker/remax/packages.list
+        rm -rf source
+        cp -a ../images/verl-remax/source source
+        cp ../images/verl-remax/Dockerfile Dockerfile
+        az acr login --name iridiumsdc
+        image="iridiumsdc.azurecr.io/boren/verl-remax:torch211-vllm024-$(Build.BuildId)"
+        DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg SOURCE_REVISION="$(Build.SourceVersion)" --tag "$image" .
+        docker push "$image"
+        docker inspect --format '{{json .RepoDigests}}' "$image" > image-digest.json
+        printf '%s\n' "$image" > image-tag.txt
+      displayName: Build and publish dedicated verl image
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: $(System.DefaultWorkingDirectory)/verl-context/image-tag.txt
+        artifactName: verl-image-tag

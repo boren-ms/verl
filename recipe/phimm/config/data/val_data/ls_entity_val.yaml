@@ -1,0 +1,16 @@
+# Verbatim transcription with an English language hint; no sampled prefix.
+# LibriSpeech test-clean/test-other entity diagnostic subset.
+# Coverage and provenance: az://orngwus2cresco/data/boren/data/LibriSpeech/entity_error_val_20261023/report.md
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/LibriSpeech/entity_error_val_20261023/entity_val.jsonl
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: ls_kw
+  verl_format:
+    prompt_key: prompt

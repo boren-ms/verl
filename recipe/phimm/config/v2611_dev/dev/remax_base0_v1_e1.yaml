@@ -1,0 +1,40 @@
+# v1 reward variant derived directly from base0 with explicit training overrides.
+# Opt in to Qwen3.5 linear-attention packing state isolation explicitly.
+# Inherit LR 3e-6 and n8; use temperature 1.0, one epoch, and lang/fmt beta 0.05.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base0_2609r2_d3_e2_bs128_n8_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  model:
+    use_linear_attention_packing: true
+  rollout:
+    temperature: 1.0
+
+trainer:
+  total_epochs: 1
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source:
+  openml: librispeech
+  earnings_fy27: librispeech
+  ls_rare_verb: librispeech

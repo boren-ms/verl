@@ -1,18 +1,20 @@
 ---
 name: compare-asr-experiments
-description: 'Compare verl ASR experiment jobs using reward histories, per-dataset validation p_err, and val/generations examples. Generate a slide-style PDF report with figures, identify error patterns, and recommend evidence-backed next fixes. Use for comparing runs, explaining validation tradeoffs, or deciding what to fix next; does not launch experiments.'
+description: 'Compare verl ASR experiments in a concise PDF: key config/code differences, validation p_err figures, training reward mean figures, and brief bad-case analysis. Use for comparing runs and explaining quality tradeoffs; does not launch experiments.'
 ---
 
 # Compare ASR Experiments
 
-Compare the requested experiment jobs along three connected dimensions:
+Keep the PDF focused on these sections, in order:
 
-1. Available `reward-core/*`, `reward-delta/*`, and `reward-vote/*` metrics.
-2. Validation `p_err` **for each dataset separately**, lower is better.
-3. Actual `val/generations` examples, their error patterns, and the next fixing
-   directions supported by those examples and dataset metrics.
+1. **Key config/code differences:** what changed and the expected effect.
+2. **Validation `p_err` figures:** each dataset separately, lower is better.
+3. **Training reward mean-value figures:** comparable `reward-core/*`,
+   `reward-delta/*`, and `reward-vote/*` means.
+4. **Brief bad-case analysis:** a few matched improvements/regressions and the
+   error patterns they support.
 
-Attempt all three for every requested run. Missing reward families or example
+Attempt all four for every requested run. Missing reward families or example
 artifacts are coverage gaps, not zero values. Keep dataset tradeoffs visible;
 do not reduce them to an overall average or winner unless explicitly requested.
 Analyze existing evidence; creating recipes or submitting jobs requires a
@@ -42,12 +44,28 @@ unsampled histories rather than summary values or chart screenshots. Preserve
 source provenance and collection gaps; save only relevant sanitized config
 fields, excluding credentials and signed URL tokens.
 
+## Identify key config/code changes
+
+Compare effective run configs, launch overrides, and the code revisions actually
+used. Show a compact before/after table of material changes with source pointers
+and expected effects. Trace relevant code paths when revisions differ; distinguish
+verified behavior from hypotheses. Exclude unrelated diffs and stale config
+snapshots. If provenance is incomplete, state the gap rather than claiming a
+single-variable comparison.
+
 ## Compare reward components
 
 Discover the actual keys in each run and build a coverage matrix for all three
 families. Preserve exact component names and units. Summarize important shared
 components in the report and retain the full observed metric inventory in the
 evidence. A missing family, component, or step is `N/A` with a reason.
+
+Plot the logged training `*/mean` components against actual optimizer step, with
+one run per line and separate panels for different components/units. Include a
+compact figure comparing their arithmetic means over a stated shared step window;
+label window bounds and observation counts. Raw noisy traces or a numeric table
+alone do not replace these mean-value figures. Disclose any smoothing separately
+and preserve the unsmoothed values in evidence.
 
 For comparable metrics, show values and changes at shared actual training steps,
 plus trajectory and recent stability. A short window of shared steps can help
@@ -151,15 +169,17 @@ project). Include source IDs/paths, exact keys, histories/steps used, sanitized
 comparison settings, missing/conflicting observations, example identities and
 pattern evidence. Use JSON `null` plus a reason for missing values.
 
-The report should contain a run/coverage inventory, reward comparison, a separate
-`p_err` table or section for each dataset, validation pattern/example evidence,
-and prioritized fixing directions with practical limits. A compact combined
-table is fine if every row retains its dataset identity.
+Use the four-section structure above. Keep run identity and comparison limits
+brief; put detailed inventories and provenance in `evidence.json` or `report.md`.
+For bad cases, show a few stable-ID matched reference/output excerpts, the error
+change, and a short interpretation. Include counts and denominators when available,
+and at most a short next-check recommendation. Avoid extra background slides or
+long per-checkpoint tables unless requested.
 
 Read [slide-style PDF reporting](references/pdf-slides.md) when preparing the
 deliverables. Build landscape 16:9 slides with one main finding per page,
 readable charts and tables, and evidence-backed captions. Include per-dataset
-`p_err` trajectories and comparable reward trajectories when histories exist,
+`p_err` trajectories and training reward mean-value figures when histories exist,
 plus figures for quantified validation error patterns when supported. Save the
 editable deck source and reusable figure files with the report. Export and
 inspect the actual PDF; an HTML deck or export instructions alone do not fulfill

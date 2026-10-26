@@ -1,0 +1,19 @@
+# Derived from base0; retain its data and model settings, with LR 1e-6.
+# Enable packing state isolation; use temperature 1.0, 16 rollouts, and one epoch.
+defaults:
+  - base0_2609r2_d3_e2_bs128_n8_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1.0e-6
+  model:
+    use_remove_padding: true
+    use_linear_attention_packing: true
+  rollout:
+    temperature: 1.0
+    n: 16
+
+trainer:
+  total_epochs: 1

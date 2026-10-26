@@ -1,0 +1,35 @@
+# base0b training settings with cached noisy LS and URGENT2024 delta validation.
+defaults:
+  - ../base@_here_
+  - /data/train_data/noisy/ls_verb_langhint@_ls_train
+  - /data/val_data/urgent2024_delta@_urgent_val
+  - _self_
+
+val_reward:
+  reward_function_by_data_source:
+    urgent2024_delta: openasr_en
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+    use_remove_padding: true
+    use_linear_attention_packing: true
+  actor:
+    optim: {lr: 1.0e-06, warmup_style: constant, lr_warmup_steps: 0}
+  rollout: {n: 16, temperature: 1.0}
+
+data:
+  data_source:
+    noisy_ls: {num_epoch: 1, shuffle: true}
+  train_data:
+    - ${_ls_train}
+  val_data:
+    - ${_urgent_val}
+  train_batch_size: 128
+  shuffle: true
+
+trainer:
+  nnodes: 2
+  total_epochs: 1
+  total_training_steps: null

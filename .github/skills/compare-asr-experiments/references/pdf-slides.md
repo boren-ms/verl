@@ -10,25 +10,24 @@ at export time. Follow the user's requested language and presentation format.
 
 ## Narrative and figures
 
-Scale the slide count to the evidence rather than forcing a fixed length. Cover:
+Keep the deck concise and use this order:
 
-- Main findings: per-dataset improvements, regressions, and tradeoffs, plus the
-  best-supported next action and material comparison limits.
-- Run identity and coverage: run IDs, reference run, training budgets, resumed
-  segments, compatible cohorts, and missing metric/example coverage.
-- Validation: a trajectory figure for every observed dataset, followed by a
-  compact initial/latest/best and latest shared-step comparison with actual steps.
-  Split crowded tables or panels across pages. Missing datasets remain visible.
-- Rewards: figures for available comparable components of `reward-core`,
-  `reward-delta`, and `reward-vote`; show missing families explicitly. Put metrics
-  with different units or formulas in separate panels or comparison cohorts.
-- Validation examples: quantified pattern figures when counts exist, and readable
-  matched reference/output excerpts with dataset, stable sample identity,
-  run/step, and source pointer. Show denominators, selection scope, and overlapping
-  labels; do not invent counts to fill a chart.
-- Prioritized fixes: evidence, hypothesis and uncertainty, bounded next action,
-  success metric, and other-dataset guardrails. Include provenance and supporting
-  tables in appendix slides when they would crowd the main narrative.
+1. **Key config/code changes:** compact before/after table, actual run revisions,
+   source pointers, and expected effects; mark unverified behavior explicitly.
+2. **Validation `p_err`:** per-dataset trajectory figures and a compact matched-step
+   comparison. Keep initial/latest/best values with actual steps in captions or a
+   small table rather than a separate slide for every dataset's checkpoint list.
+3. **Training reward means:** component `*/mean` trajectories plus a shared-window
+   mean comparison figure for comparable `reward-core`, `reward-delta`, and
+   `reward-vote` metrics. State the window, arithmetic averaging, observation counts,
+   and any smoothing; keep different units/formulas in separate panels.
+4. **Brief bad-case analysis:** a few matched improvements/regressions with dataset,
+   stable ID, reference/output excerpts, error change, and source pointer. State
+   selection scope and count denominators; finish with a short supported next check.
+
+Place run identity and material limits near the relevant figures. Keep detailed
+inventories, provenance, and exhaustive examples in the supporting artifacts;
+avoid extra background or lengthy recommendation sections unless requested.
 
 Generate scientific charts from collected numeric evidence with a plotting
 library such as Matplotlib. Save vector PDF/SVG figures when supported, plus PNG
