@@ -9,6 +9,11 @@ defaults:
   - base0c_2609r2_ls_bad_e1_bs128_n8_r320_g16_flr
   - _self_
 
+# Control: native vLLM raw log-probs without temperature-only scoring.
+actor_rollout_ref:
+  rollout:
+    temperature_only_log_probs: false
+
 reward_functions:
   librispeech:
     path: recipe/phimm/reward/asr_vote.py

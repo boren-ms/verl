@@ -9,8 +9,10 @@ import torch
 _raw_score_context = ContextVar("verl_raw_score_context", default=None)
 
 
-def configure_temperature_only_log_probs(engine_kwargs):
-    """Install the default scoring fix inside every V1 engine worker."""
+def configure_temperature_only_log_probs(engine_kwargs, enabled=True):
+    """Install the default scoring fix unless a control run explicitly disables it."""
+    if not enabled:
+        return
     if engine_kwargs.get("logprobs_mode", "raw_logprobs") != "raw_logprobs":
         raise ValueError("vLLM rollout temperature-only scoring requires raw_logprobs")
     extension = "verl.utils.vllm.temperature_worker_extension.TemperatureLogProbWorkerExtension"

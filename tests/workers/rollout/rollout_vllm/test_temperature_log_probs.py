@@ -85,3 +85,9 @@ def test_default_worker_installation_preserves_engine_settings():
 def test_worker_installation_rejects_conflicting_settings(kwargs):
     with pytest.raises(ValueError):
         module.configure_temperature_only_log_probs(kwargs)
+
+
+def test_control_run_disables_extension_installation():
+    kwargs = {"gpu_memory_utilization": 0.9}
+    module.configure_temperature_only_log_probs(kwargs, enabled=False)
+    assert kwargs == {"gpu_memory_utilization": 0.9}

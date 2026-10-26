@@ -13,6 +13,7 @@ defaults:
 # Explicitly name the extension; this worktree also installs it by default.
 actor_rollout_ref:
   rollout:
+    temperature_only_log_probs: true
     engine_kwargs:
       vllm:
         worker_extension_cls: verl.utils.vllm.temperature_worker_extension.TemperatureLogProbWorkerExtension
