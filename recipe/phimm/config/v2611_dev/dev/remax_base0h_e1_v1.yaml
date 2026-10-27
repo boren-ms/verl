@@ -1,0 +1,41 @@
+# base0h v1: OpenML:Earnings:LibriSpeech approximately 1:3:6 (10%:30%:60%).
+# Integer rounding preserves the 46088-row budget of base0f/base0g: 4609/13826/27653.
+# Test whether less OpenML exposure improves early Earnings/LS validation p_err.
+# Same initialization, reward, optimizer, validation and one-epoch budget as base0g.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base0_2609r2_d3_e2_bs128_n8_r320_g16_flr
+  - _self_
+
+data:
+  data_source:
+    openml: {num_sample: 4609}
+    earnings_fy27: {num_sample: 13826}
+    ls_rare_verb: {num_sample: 27653}
+
+trainer:
+  total_epochs: 1
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source:
+  openml: librispeech
+  earnings_fy27: librispeech
+  ls_rare_verb: librispeech
