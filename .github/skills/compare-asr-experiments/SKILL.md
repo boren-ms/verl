@@ -189,3 +189,50 @@ Link the PDF, Markdown report, and evidence in the answer and lead with the
 dataset tradeoffs and best-supported next direction. If access or PDF rendering
 fails, complete the available deliverables and state exactly which requested
 dimensions or artifact remain unavailable; do not claim PDF generation succeeded.
+
+## Publish comparison updates to Obsidian
+
+When the user requests an Obsidian update, update **both the detailed comparison
+note and the corresponding Daily Report under the homepage directory**. Updating
+only the comparison directory does not complete this request. This section does
+not authorize vault edits or publication for a comparison-only request.
+
+For this workspace, the shared vault is
+`/mnt/c/Users/boren/code/ASR-Research`. Inspect its instructions, current notes,
+homepage navigation, and Git status before editing. Reuse the existing comparison
+note under `06-对比与结论` and the relevant evidence-date report under `00-首页`
+(for example, `2026-10-26 · 实验对比与分析.md`, type `daily-report`). Follow the
+vault's date convention rather than creating a duplicate report for the edit date.
+Preserve existing filenames/backlinks; if a rename is necessary, repair links or
+leave a redirect. Keep reusable figures, report, evidence, and editable sources
+under the vault's existing asset convention, normally `80-资料/实验总结/<comparison>/`.
+
+- **Detailed note:** include the current results, comparison limits, embedded
+  figures, and links to the PDF and evidence. Preserve experiment/checkpoint
+  provenance and historical snapshots when a training identity continues.
+- **Homepage Daily Report:** update its summary table and the comparison's
+  detailed section with the latest findings and a compact result table. Embed
+  the validation trajectories, full-dataset comparison figures when evaluated,
+  and training reward means when available. Link to the detailed note and PDF;
+  a link alone does not replace the requested inline comparison figures.
+- **Consistency:** replace stale claims such as “final result/full evaluation
+  unavailable” once evidence is complete. Label retained intermediate snapshots
+  as historical and point to the final comparison. Keep validation subsets and
+  full datasets distinct, with sample counts, checkpoint steps, and metric units.
+  Exclude unfinished later epochs from final-result tables unless clearly marked
+  provisional; do not imply their evaluation has completed.
+- **Assets and navigation:** reuse the same verified figures in both locations
+  with vault-relative embeds. Check every added image/report link resolves and
+  the copied figures match the latest generated artifacts. Verify the homepage
+  navigation reaches the Daily Report; preserve unrelated sections, personal
+  additions, and managed-report markers. Respect any existing report generator.
+- **Repository synchronization:** when commit/push is authorized, include only
+  this task's notes/assets. Preserve unrelated dirty, staged, and divergent work;
+  integrate the task changes onto current remote content without resetting or
+  stashing unrelated edits. Verify the pushed remote SHA. Editing the Skill does
+  not itself authorize a vault commit/push.
+
+Report the detailed-note and Daily Report paths, which figures were updated,
+and publication status. Say explicitly when changes are local only; do not call
+the Obsidian update complete after inspecting existing embeds without handling
+the requested Daily Report.
