@@ -1,0 +1,26 @@
+dataset_name: chunk
+specs:
+- manifest_file: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_Box_unzip/chunk_sanity_check/file_set.json
+  chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_Box_unzip/feature_extraction/
+  trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_Box_unzip/feature_extraction/
+  language: en
+- manifest_file: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_devkit/chunk_sanity_check/file_set.json
+  chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_devkit/feature_extraction/
+  trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_devkit/feature_extraction/
+  language: en
+- manifest_file: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_rebuilt/chunk_sanity_check/file_set.json
+  chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_rebuilt/feature_extraction/
+  trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_rebuilt/feature_extraction/
+  language: en
+chunk_types:
+- audio
+- transcription
+num_proc: auto
+add_task_info:
+  task: lang_asr
+post_process:
+  add_field:
+    fields:
+      data_source: asr
+  verl_format:
+    prompt_key: prompt
