@@ -1,10 +1,7 @@
 # OpenML, earnings, LibriSpeech, and noisy LibriSpeech training mixture.
 # Add URGENT delta validation alongside the original validation datasets.
 # Original source sample counts are preserved; noisy LS uses two passes worth of samples.
-hydra:
-  searchpath:
-    - file://recipe/phimm/config
-    - file://verl/trainer/config
+# Entry configs own hydra.searchpath; inherited configs cannot declare it.
 
 defaults:
   - ../base@_here_
