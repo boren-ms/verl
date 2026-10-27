@@ -1,0 +1,31 @@
+# Validation only: restore the exact final native 16-rank checkpoint.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - eval_base
+  - /data/val_data/urgent_zip@_urgent
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+    use_remove_padding: true
+    use_linear_attention_packing: true
+  actor:
+    checkpoint:
+      load_contents: [model]
+
+data:
+  val_data:
+    - ${_urgent}
+
+trainer:
+  # Keep the checkpoint's 16-rank topology for native shard restoration.
+  nnodes: 2
+  resume_mode: resume_path
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/v2611/remax_urgent_base0b_v0_e2/global_step_1272
+  load_dataloader_state: false
