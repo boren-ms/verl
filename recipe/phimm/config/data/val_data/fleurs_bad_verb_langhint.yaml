@@ -1,0 +1,78 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/fleurs_pattern_v1_20261027/validation/de/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: German
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: de_fleurs_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/fleurs_pattern_v1_20261027/validation/es/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: Spanish
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: es_fleurs_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/fleurs_pattern_v1_20261027/validation/fr/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_fleurs_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/fleurs_pattern_v1_20261027/validation/it/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: Italian
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: it_fleurs_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/fleurs_pattern_v1_20261027/validation/nl/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: Dutch
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: nl_fleurs_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/fleurs_pattern_v1_20261027/validation/pt/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: Portuguese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_fleurs_bad
+    verl_format:
+      prompt_key: prompt
