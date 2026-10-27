@@ -323,6 +323,10 @@ def main_task(config):
                      "audio_path": audio_paths[i], "audio_chunk": audio_chunks[i]}
                 if extras[i]:
                     r.update(extras[i])
+                cache_root = os.getenv("VERL_AUDIO_CACHE_ROOT", os.path.expanduser("~/data")).rstrip("/") + "/"
+                for key in ("audio_path", "audio_chunk"):
+                    if isinstance(r[key], str) and r[key].startswith(cache_root):
+                        r[key] = "az://orngwus2cresco/data/" + r[key][len(cache_root):]
                 # Measure the waveform actually decoded, without reopening remote audio.
                 audios = batch_dict["multi_modal_data"][i]["audio"]
                 r["audio_duration_seconds"] = sum(len(waveform) / rate for waveform, rate in audios)

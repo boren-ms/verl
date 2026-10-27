@@ -189,7 +189,15 @@ def run(args):
               '', f"主要过滤数据：`{args.output_dir}/wer_gt1pct/part-*.jsonl`", '',
               'response_at_limit_count 标记达到输出 token 上限的样本，需结合报告检查潜在输出截断。']
     (report_dir / 'report.md').write_text('\n'.join(lines) + '\n')
-    for name in ('summary.json', 'report.md', 'distributions.png'):
+    # JSON is a YAML subset, so no extra parser dependency is needed here.
+    training_config = {
+        'dataset_name': 'jsonl',
+        'jsonl_paths': [args.output_dir.rstrip('/') + '/wer_gt1pct/part-*.jsonl'],
+        'post_process': {'verl_format': {'prompt_key': 'prompt',
+            'extra_keys': ['wer', 'n_err', 'n_ref', 'audio_duration_seconds']}},
+    }
+    (report_dir / 'training_data.yaml').write_text(json.dumps(training_config, indent=2) + '\n')
+    for name in ('summary.json', 'report.md', 'distributions.png', 'training_data.yaml'):
         bf.copy(str(report_dir / name), args.output_dir.rstrip('/') + '/' + name, overwrite=True)
     with bf.BlobFile(args.output_dir.rstrip('/') + '/COMPLETE.json', 'w') as stream:
         json.dump({'rows': args.expected_rows, 'counts': {k: v['count'] for k, v in summary['groups']['all'].items()}}, stream)

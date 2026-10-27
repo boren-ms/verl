@@ -197,6 +197,7 @@ def generation_pipeline(tmp_path):
 
     namespace = {
         "bf": bf,
+        "os": os,
         "json": json,
         "np": np,
         "uuid": uuid,
@@ -808,3 +809,17 @@ def test_generation_resume_rejects_missing_split(generation_io, tmp_path):
     (tmp_path / "part-002.jsonl").write_text('{"id":2}\n')
     with pytest.raises(ValueError, match="Missing output split 1"):
         generation_io._resume_state_from_output(str(tmp_path), 5, 1, True)
+
+
+def test_generation_records_duration_and_portable_audio_pointer(generation_pipeline, monkeypatch):
+    monkeypatch.setenv('VERL_AUDIO_CACHE_ROOT', '/tmp/task-audio-cache')
+    batch = next(_generation_batches(1))
+    batch['audio_path'] = ['/tmp/task-audio-cache/speech/clip.wav']
+    batch['multi_modal_data'] = [{'audio': [(np.zeros(12000), 8000)]}]
+    result = generation_pipeline.run([batch], total=1)
+    assert result.error is None
+    saved = _read_jsonl(generation_pipeline.output_dir / 'part-000.jsonl')[0]
+    assert saved['audio_path'] == 'az://orngwus2cresco/data/speech/clip.wav'
+    assert saved['audio_duration_seconds'] == 1.5
+    assert saved['response_tokens'] == 1
+    assert saved['response_at_limit'] is False
