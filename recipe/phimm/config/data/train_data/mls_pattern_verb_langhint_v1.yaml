@@ -1,0 +1,20 @@
+# MLS train-only subset selected from observed base2@560 MLS error features.
+# 9880 rows: es 3000 / nl 3000 / it 2000 / pt 1880 (five rows per chunk cap).
+# References are unchanged; these are feature-selected candidates, not proven model errors.
+# French control is a separate artifact and is not mixed into this training source.
+# Provenance and held-out exact-text exclusions: sibling evidence.json in blob directory.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mls_pattern_train_v1_20261027/mls_pattern_train_v1.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    cache_audio: {}
+    add_field:
+      fields:
+        data_source: openml
+    shuffle:
+      seed: 44
+    verl_format:
+      prompt_key: prompt

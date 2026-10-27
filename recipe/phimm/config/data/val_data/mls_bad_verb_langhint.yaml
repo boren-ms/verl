@@ -1,0 +1,71 @@
+# Five locale-specific MLS diagnostic sets selected using base2@560 errors.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mls_bad_val_v1_20261027/es/data.jsonl
+  cache_name: mls_es_bad_base2_560_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: Spanish
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: es_mls_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mls_bad_val_v1_20261027/nl/data.jsonl
+  cache_name: mls_nl_bad_base2_560_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: Dutch
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: nl_mls_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mls_bad_val_v1_20261027/it/data.jsonl
+  cache_name: mls_it_bad_base2_560_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: Italian
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: it_mls_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mls_bad_val_v1_20261027/pt/data.jsonl
+  cache_name: mls_pt_bad_base2_560_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: Portuguese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_mls_bad
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mls_bad_val_v1_20261027/fr/data.jsonl
+  cache_name: mls_fr_bad_base2_560_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: fr_mls_bad
+    verl_format:
+      prompt_key: prompt

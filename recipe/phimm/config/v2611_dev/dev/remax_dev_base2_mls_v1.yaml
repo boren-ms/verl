@@ -1,0 +1,33 @@
+# ReMax MLS pattern training with the original base2 reward and hyperparameters.
+# Fresh initialization from v3.5.4-r2/54000, not a base2 RL checkpoint.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - ../base2_mls_v1@_here_
+  - _self_
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char:     {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word:     {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw:  {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang:     {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt:      {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+reward_function_by_data_source:
+  openml: librispeech
+
+trainer:
+  experiment_name: remax_dev_base2_mls_v1
+  resume_mode: disable
+  resume_from_path: null

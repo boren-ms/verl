@@ -1,0 +1,41 @@
+# MLS-only base derived from original base2's initialization and hyperparameters.
+# Train: 9880 pattern-selected MLS train rows (es/nl/it/pt); French control excluded.
+# Val: 2321 held-out base2@560 error cases, five separate locales.
+# Regressed-only datasets are retained for analysis and excluded from this validation suite.
+# Diagnostic selection is biased; these metrics are not full-MLS performance.
+# Entry configs own hydra.searchpath and the training reward definition.
+defaults:
+  - base@_here_
+  - /data/train_data/mls_pattern_verb_langhint_v1@_mls_train
+  - /data/val_data/mls_bad_verb_langhint@_mls_bad
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim: {lr: 3.0e-6, warmup_style: constant, lr_warmup_steps: 0}
+  rollout:
+    n: 8
+
+data:
+  train_data: ${_mls_train}
+  val_data: ${_mls_bad}
+  data_source:
+    openml: {num_sample: 9880, shuffle: true}
+  train_batch_size: 128
+  shuffle: true
+
+val_reward:
+  reward_function_by_data_source:
+    es_mls_bad: openasr_ml
+    nl_mls_bad: openasr_ml
+    it_mls_bad: openasr_ml
+    pt_mls_bad: openasr_ml
+    fr_mls_bad: openasr_ml
+
+trainer:
+  nnodes: 2
+  total_epochs: 1
+  total_training_steps: null
