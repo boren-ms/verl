@@ -134,6 +134,12 @@ def cwd():
 @hydra.main(config_path="config/gen", config_name="generation", version_base=None)
 def main(config):
     run_generation(config)
+    if config.get("wer_filter"):
+        # This runs only after generation has succeeded, including resumed runs.
+        from argparse import Namespace
+        from scripts.filter_asr_generation_wer import run
+
+        run(Namespace(input_dir=config.data.output_path, **dict(config.wer_filter)))
 
 
 def run_generation(config) -> None:
@@ -317,6 +323,9 @@ def main_task(config):
                      "audio_path": audio_paths[i], "audio_chunk": audio_chunks[i]}
                 if extras[i]:
                     r.update(extras[i])
+                # Measure the waveform actually decoded, without reopening remote audio.
+                audios = batch_dict["multi_modal_data"][i]["audio"]
+                r["audio_duration_seconds"] = sum(len(waveform) / rate for waveform, rate in audios)
                 results.append(r)
             data = DataProto.from_single_dict(batch_dict)
             if "uid" not in data.non_tensor_batch:
@@ -350,6 +359,8 @@ def main_task(config):
                 score = {key: value for key, value in score.items() if key not in {"n_edge", "edge_wer"}}
                 score["response"] = get_hyp_text(response_str, version=reward_kwargs.get("version"))
                 score["raw_response"] = response_str
+                score["response_tokens"] = int(valid_response_length)
+                score["response_at_limit"] = int(valid_response_length) >= config.rollout.response_length
                 results[i].update(score)
             tn_err += sum(r["n_err"] for r in results)
             tn_ref += sum(r["n_ref"] for r in results)

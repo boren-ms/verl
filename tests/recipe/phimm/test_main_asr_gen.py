@@ -19,6 +19,7 @@ import datasets
 import numpy as np
 import pytest
 import soundfile as sf
+from verl.audio_cache import RemoteAudioCacheError
 from omegaconf import OmegaConf
 
 
@@ -72,6 +73,7 @@ def dataset_namespace():
         "random": random,
         "datasets": datasets,
         "sf": sf,
+        "RemoteAudioCacheError": RemoteAudioCacheError,
         "logger": logging.getLogger(__name__),
         "get_num_proc": lambda value: value,
         "create_audio_dataset": lambda **kwargs: sources[kwargs["name"]],
@@ -235,6 +237,7 @@ def generation_pipeline(tmp_path):
             try:
                 config = OmegaConf.create({
                     "data": {"prefetch_depth": 1},
+                    "rollout": {"response_length": 16},
                     "custom_reward_function": {
                         "reward_kwargs": namespace["reward_kwargs"],
                         **(scorer_config or {}),
@@ -267,6 +270,7 @@ def _generation_batches(count):
             "reward_model": [{"ground_truth": "hello"}],
             "audio_path": [f"{index}.wav"],
             "extra_info": [{"id": index}],
+            "multi_modal_data": [{"audio": [(np.zeros(16000), 16000)]}],
         }
 
 

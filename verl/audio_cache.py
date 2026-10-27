@@ -14,7 +14,7 @@ from verl.audio_zip import split_zip_audio_source
 logger = logging.getLogger(__name__)
 
 ORANGE_DATA_PREFIX = "az://orngwus2cresco/data/"
-LOCAL_DATA_ROOT = Path("~/data").expanduser()
+LOCAL_DATA_ROOT = Path(os.getenv("VERL_AUDIO_CACHE_ROOT", "~/data")).expanduser()
 LOCK_ROOT = Path("/tmp/verl-audio-locks")
 BLOB_READ_TIMEOUT_SECONDS = int(os.getenv("VERL_BLOB_READ_TIMEOUT_SECONDS", "120"))
 BLOB_READ_RETRY_LIMIT = int(os.getenv("VERL_BLOB_READ_RETRY_LIMIT", "10"))
