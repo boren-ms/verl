@@ -1,0 +1,4 @@
+interface:
+  display_name: "ASR Error Pattern Training"
+  short_description: "Build ASR training subsets from observed error patterns"
+  default_prompt: "Use $asr-error-pattern-training to analyze FLEURS against the selected baseline, build train-only pattern data and bad-case validation, and create a matching ReMax recipe."
