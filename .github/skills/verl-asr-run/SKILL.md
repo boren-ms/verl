@@ -6,7 +6,7 @@ argument-hint: 'Config name and optional node, e.g. remax_ls_lr05 on verl-new-n2
 
 # verl ASR Run
 
-Run ASR training or evaluation jobs on remote verl Brix nodes. The default training pipeline is **training -> training summary -> persistent auto-monitor completion**. Only when the user explicitly requests post-training evaluation, continue with **select and export the best validation checkpoint -> standard 2609 benchmark suite on the same training node -> final report**. Submit jobs via `submit_job.sh` and continuously monitor until the requested work completes with structured metrics. When post-training evaluation is enabled, invoke the **eval-2609-benchmark-report** skill once for the best eligible checkpoint only after training has finished successfully and released the training node's GPUs. That skill owns the required in-house DTER, OpenASR-ML, and MixLang evaluations, matching reference baselines, and the final workbook. After submission, always install a `/every 30m update job status and autofix job` schedule (Step 5) so status updates and auto-fixes continue without manual re-prompting.
+Run ASR training or evaluation jobs on remote verl Brix nodes. The default training pipeline is **training + figures after each new validation result -> training summary -> persistent auto-monitor completion**. Only when the user explicitly requests post-training evaluation, continue with **select and export the best validation checkpoint -> standard 2609 benchmark suite on the same training node -> final report**. Submit jobs via `submit_job.sh` and continuously monitor until the requested work completes with structured metrics. When post-training evaluation is enabled, invoke the **eval-2609-benchmark-report** skill once for the best eligible checkpoint only after training has finished successfully and released the training node's GPUs. That skill owns the required in-house DTER, OpenASR-ML, and MixLang evaluations, matching reference baselines, and the final workbook. After submission, always install a `/every 30m update job status and autofix job` schedule (Step 5) so status updates and auto-fixes continue without manual re-prompting.
 
 Refer to the **remote-development** skill for node connectivity, `brix`, `bpush`, `bbb`, and environment setup.
 
@@ -41,7 +41,7 @@ stop, or schedule remote jobs.
 | **node** | No (auto) | First free Ready `verl-new-n2-i*` pool | `verl-new-n2-i0`, `verl-new-n2-i1` |
 | **model_path** | No | From config | `/data/boren/data/ckp/hf_models/Phi4-7b-STT-2603-SR2` |
 | **post_train_eval** | No | Disabled; enable only when explicitly requested | Best validation checkpoint: in-house DTER + OpenASR-ML + MixLang |
-| **report** | No | Only produced when `post_train_eval` is enabled | `tmp/eval_2609_reports/<model-label>.xlsx` |
+| **report** | No | Validation figures/comparison report after new validation results; benchmark workbook only when `post_train_eval` is enabled | `tmp/experiment_comparisons/<timestamp>/`; optional `tmp/eval_2609_reports/<model-label>.xlsx` |
 
 ## Job Types
 
@@ -451,6 +451,44 @@ If all quality metrics are at their ideal values (p_fmt = 100%, p_lang = 100%, p
 
 **Show ALL steps observed — accumulate across monitoring checks to compare progression.**
 
+#### 3g.1. Generate figures when new validation results are ready
+
+On every monitoring check, including the first available validation and the
+terminal check, invoke [compare-asr-experiments](../compare-asr-experiments/SKILL.md)
+when new usable validation results are available. This is part of training and
+standalone validation monitoring, independent of `post_train_eval`; do not wait
+for training completion or a saved checkpoint. Use existing results only.
+
+- Treat results as ready when finite, nonnegative dataset `p_err/mean@1`
+  observations have been persisted in W&B or verified logs with the actual run,
+  dataset, and validation step. An announced validation phase is not a result.
+  If only some datasets are ready, plot the available observations and mark the
+  remaining coverage pending; refresh when those datasets arrive.
+- Pass the exact current run ID/URL, config/code provenance, full available
+  histories, and validation-example artifacts to the comparison skill. Include
+  the user's comparison/control runs when specified; otherwise show the current
+  run's trajectory without inventing a control or selecting unrelated runs.
+  With only one observation, show a labeled point and state that no trend is
+  established. Missing reward histories or examples are explicit coverage gaps.
+- Follow that skill's evidence and reporting requirements: per-dataset `p_err`
+  figures, available training reward trajectories and mean-value figures, and
+  supported bad-case analysis, with `report.pdf`, `report.md`, `evidence.json`,
+  editable source, and reusable figures in a unique report directory. Keep
+  datasets separate and running-run findings provisional.
+- Persist a report ledger under ignored
+  `tmp/verl_asr_run/<config>/validation_figures/`, and include its path in the
+  pipeline state and recurring monitor prompt. Record run/segment identity,
+  dataset/key/actual-step/value fingerprints, example-artifact versions,
+  processed coverage, output paths, and generation status. Compare against this
+  ledger to skip unchanged evidence and avoid duplicate reports after monitor
+  restarts. Refresh for late or corrected observations and newly ready examples;
+  never treat a retry's reused step number as the previous run's result.
+- Link new figures and the PDF, Markdown, and evidence in the status update.
+  Record retrieval/rendering failures and retry reporting on the next poll;
+  report partial deliverables accurately. Figure-generation failures must not
+  restart, stop, or delay the remote training/evaluation job. At completion,
+  reconcile final validation coverage and disclose any unresolved report gaps.
+
 #### 3h. Optionally select, evaluate, and report the best checkpoint
 
 Run this section only when `post_train_eval` is enabled by an explicit user request. Otherwise, after the training Ray job reaches `SUCCEEDED`, provide the Step 4 training summary, report the terminal training state, and complete the pipeline without selecting, exporting, or externally evaluating a checkpoint.
@@ -469,7 +507,7 @@ Write each pipeline transition to the model's report status bullet. Use `selecti
 ### Step 4 — Training summary (when SUCCEEDED)
 
 When the job completes, provide:
-1. **Full validation metrics table** across ALL val steps (complete trajectory)
+1. **Full validation metrics table** across ALL val steps (complete trajectory), plus the latest Step 3g.1 figures, comparison report, and evidence links
 2. **Final training metrics** from the last step (for training jobs)
 3. **Checkpoint save location** from the `save_checkpoint` log
 4. **W&B run link** (clickable)
@@ -621,7 +659,7 @@ This schedules VS Code Copilot to re-invoke the agent every 30 minutes with an e
 
 1. **Load durable state and re-discover the active job(s)**: use the conversation context and recurring monitor prompt, then run `ray_job.py list` for the tracked `{NODE}` / `{CONFIG}` pair. Treat `{JOB_ID}` as the initial job, not an immutable ID: after an autofix or user-requested replacement, update the schedule to name the replacement config and job ID. After training succeeds, select and track the best-checkpoint evaluation state and every candidate and reference job launched on the same node by **eval-2609-benchmark-report** only when `post_train_eval` is enabled. Report the latest activity and progress, naming the actual dataset for evaluation and generation jobs.
 2. **Reprint the status header** from Step 3g (Job ID, status, progress, node, config, W&B URL, Ray URL, GPU utilization) for every active job.
-3. **Append new rows** to the training-metrics, `p_err`, `p_edge`, and quality-metrics tables for any new steps observed since the previous poll. Do not re-print the entire historical table — only the new rows, plus a one-line trend summary ("score/mean +0.012 vs last poll, p_err 4.98% → 4.71%").
+3. **Refresh validation figures** via Step 3g.1 whenever new validation observations or example artifacts are ready, using the durable report ledger to skip unchanged evidence. **Append new rows** to the training-metrics, `p_err`, `p_edge`, and quality-metrics tables for any new steps observed since the previous poll. Do not re-print the entire historical table — only the new rows, plus a one-line trend summary ("score/mean +0.012 vs last poll, p_err 4.98% → 4.71%").
 4. **Autofix on failure** without asking: if any tracked job is `FAILED`, pull the traceback (`ray job logs {JOB_ID} | tail -n 40`), diagnose using the failure patterns in Step 3f, edit the code locally, run `bpush {NODE}`, and resubmit via Step 2. Record the new job ID and continue monitoring it under the same `/every` schedule.
 5. **Advance the pipeline** automatically when a stage completes:
    - While training is `RUNNING` → do not enqueue or evaluate any checkpoint.
@@ -642,6 +680,7 @@ This schedules VS Code Copilot to re-invoke the agent every 30 minutes with an e
 - **Step 2**: `ray job submit` output shows a job ID. If it errors, check `ray_tool.py prepare_env` ran.
 - **Step 3 (eval)**: WER values are reasonable (0–100%). If WER > 50%, flag as suspicious.
 - **Step 3 (training)**: Training metrics should show learning (score/mean trending up, pg_loss decreasing). If metrics are flat or diverging, flag.
+- **Step 3g.1**: Verify new validation evidence triggered **compare-asr-experiments**, unchanged evidence was skipped, per-dataset figures and report links are recorded, and final coverage or explicit reporting gaps are included in the terminal summary.
 - **Step 1b/3**: Confirm the user-facing status and recurring monitor prompt identify the current node, config, and Ray job ID, with activity and progress matching live state.
 - **Step 3h (only when `post_train_eval` is enabled)**: Verify no external checkpoint evaluation launched before training succeeded; `{BEST_STEP}` is a complete saved checkpoint selected by the documented aggregate-`p_err` rule (or the fallback is explicitly recorded); the report status and artifacts prevent duplicate best-checkpoint work; and every evaluation child ran on the training node with `trainer.nnodes=1` after both occupancy checks showed it idle.
 - **Step 4b (only when `post_train_eval` is enabled)**: Apply every quality gate from **eval-2609-benchmark-report** to the best-checkpoint workbook. At minimum, verify all required candidate/reference jobs succeeded, the workbook opens, the `summary`, `inhouse_dter`, `openasr_ml`, and `mixlang` sheets are present, and each sheet records matching baseline provenance. Optional digits sheets must appear only when requested.
@@ -704,4 +743,5 @@ bash submit_jobs_repeat.sh
 |-------|-------|---------|
 | **remote-development** | 0, 2 | Node discovery, sync, remote commands |
 | **persistent-job-monitor** | 3 | Long-running training job monitoring |
+| **compare-asr-experiments** | 3g.1, 4 | Refresh validation and reward figures plus evidence-backed comparison reports when new validation results are ready |
 | **eval-2609-benchmark-report** | 4b | Run the standard 2609 benchmark suite and build the consolidated baseline-aware workbook |
