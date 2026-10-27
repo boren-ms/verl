@@ -1,0 +1,51 @@
+# Ordered two-stage counterpart to base0h; same 46088 sampled rows (~1:3:6 overall).
+# Stage 1: 7680 rows / 60 batches, OpenML:Earnings:LS = 40%:30%:30%.
+# Stage 2: 38408 rows / 300 full batches + 8 rows, approximately 4%:30%:66%.
+# Each group is shuffled internally; the dataloader preserves group order.
+# Repeated source entries sample independently and may overlap across stages.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base0_2609r2_d3_e2_bs128_n8_r320_g16_flr
+  - _self_
+
+data:
+  data_source: null
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: openml, sample: 3072, shuffle: true}
+        - {name: earnings_fy27, sample: 2304, shuffle: true}
+        - {name: ls_rare_verb, sample: 2304, shuffle: true}
+    - shuffle: true
+      datasource:
+        - {name: openml, sample: 1537, shuffle: true}
+        - {name: earnings_fy27, sample: 11522, shuffle: true}
+        - {name: ls_rare_verb, sample: 25349, shuffle: true}
+
+trainer:
+  total_epochs: 1
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source:
+  openml: librispeech
+  earnings_fy27: librispeech
+  ls_rare_verb: librispeech
