@@ -1,0 +1,19 @@
+# Use the exact retained rows and dry source paths from the original cache.
+# Never convolve the old noisy mixture: regenerate speed -> RIR -> noise.
+source_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio/data.jsonl
+# Exact original 100-file pool order, reconstructed from per-index random draws
+# and validated against every original row's noise path, speed and SNR.
+noise_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/resources/original_noise_paths.jsonl
+original_noise_manifest: az://orngwus2cresco/data/boren/datat/noise/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/data.jsonl
+output_dir: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1
+rir_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/resources/rirs.jsonl
+# Replace unidentified AED noise with CC-BY-4.0 BUT ReverbDB room noise.
+# Its 100 slots map to the original 100 slots, keeping speed/SNR random draws.
+replacement_noise_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/resources/noises.jsonl
+resource_license: CC-BY-4.0
+original_seed: 0
+rir_seed: 20261027
+rir_prob: 1.0
+speed_range: [1.0, 2.0]
+snr_range: [10.0, 12.0]
+workers: 24
