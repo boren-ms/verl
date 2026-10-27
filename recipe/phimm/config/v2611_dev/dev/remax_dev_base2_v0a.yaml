@@ -1,0 +1,36 @@
+# ReMax dev base2 v0a: base2 without ls_rare_verb training.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base2_2609r2_d4_e1_bs128_n8_r320_g16_flr@_here_
+  - _self_
+
+# Same training reward as v0; only the training mixture changes.
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char:     {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word:     {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw:  {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang:     {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt:      {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+reward_function_by_data_source: ${_v0a_reward_sources}
+_v0a_reward_sources: {openml: librispeech, earnings_fy27: librispeech, noisy_ls: librispeech}
+
+data:
+  train_data: ['${_ml_train}', '${_earning_train}', '${_noisy_ls_train}']
+  data_source: ${_v0a_train_sources}
+_v0a_train_sources:
+  openml: {num_sample: 26338, shuffle: true}
+  earnings_fy27: {num_sample: 6584, shuffle: true}
+  noisy_ls: {num_sample: 40848, shuffle: true}
