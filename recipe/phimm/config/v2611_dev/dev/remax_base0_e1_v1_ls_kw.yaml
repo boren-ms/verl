@@ -1,0 +1,85 @@
+# LSKW data variant of remax_base0_e1_v1.yaml; keep the template unchanged.
+# Retain OpenML/Earnings data, LR3e-6, batch128, N8, T1, LoRA320, 2x8 GPU,
+# one epoch, no explicit step cap, and the complete v1 reward settings.
+# Replace only the LS training/validation component and its source routing.
+# Train LSKW: 743 real-audio rows (LS602 / MLS58 / CV47 / Libriheavy36).
+# Keep the template LS budget of 13168 draws: 17 full passes + 537 rows.
+# Combined source draws per epoch remain OpenML26338 / Earnings6584 / LSKW13168.
+# Val LSKW: 288 entity diagnostic rows (test-clean109 / test-other179).
+# Both LSKW datasets use data_source=ls_kw, verbatim + English hint, prefix_prob0.
+# These are test-error-selected diagnostics, not the complete LS test splits.
+# Use existing remote JSONL/audio paths; this file does not launch training.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+- ../base@_here_
+- /data/train_data/openml_verb_langhint_v0@_ml_train
+- /data/train_data/earnings_tts_verb_langhint_v0@_earning_train
+- /data/train_data/ls_entity/expanded_entity_train_v2@_ls_train
+- /data/val_data/earnings22_verb_langhint@_earning_val
+- /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+- /data/val_data/ls_entity_val@_ls_val
+- _self_
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim:
+      lr: 3.0e-06
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+data:
+  data_source:
+    openml:
+      num_sample: 26338
+      shuffle: true
+    earnings_fy27:
+      num_sample: 6584
+      shuffle: true
+    ls_kw:
+      num_sample: 13168
+      shuffle: true
+  train_data:
+  - ${_ml_train}
+  - ${_earning_train}
+  - ${_ls_train}
+  val_data:
+  - ${_earning_val}
+  - ${_ml_val}
+  - ${_ls_val}
+  train_batch_size: 128
+  shuffle: true
+trainer:
+  nnodes: 2
+  total_epochs: 1
+  total_training_steps: null
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source:
+  openml: librispeech
+  earnings_fy27: librispeech
+  ls_kw: librispeech
+
+val_reward:
+  reward_function_by_data_source:
+    ls_kw: openasr_en
