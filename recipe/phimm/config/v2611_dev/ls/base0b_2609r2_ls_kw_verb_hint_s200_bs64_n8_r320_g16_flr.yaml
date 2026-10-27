@@ -4,8 +4,9 @@
 # Val: 288 entity samples, clean 109 / other 179, using the remote copy of
 # /home/boren/data/LibriSpeech/entity_error_val_20261023/entity_val.jsonl.
 # Train and val use data_source=ls_kw, lang_asr_verb, English hints, prefix_prob=0.
-# Qwen 2609r2, LoRA 320, constant LR 1e-6, batch 128, 16 rollouts at T=1,
-# packing state isolation, 2 nodes, 2 epochs. No training is launched by this file.
+# Qwen 2609r2, LoRA 320, constant LR 3e-6, batch 64, 8 rollouts at T=1,
+# packing state isolation, 2 nodes, 200 optimizer steps; no binding epoch cap.
+# No training is launched by this file.
 # Entity selection used LS test errors; validation is targeted diagnostic data.
 # ReMax vote reward and source routing are defined by the inheriting recipe.
 defaults:
@@ -21,12 +22,12 @@ actor_rollout_ref:
     use_linear_attention_packing: true
   actor:
     optim:
-      lr: 1.0e-06
+      lr: 3.0e-6
       warmup_style: constant
       lr_warmup_steps: 0
   rollout:
     temperature: 1.0
-    n: 16
+    n: 8
 data:
   data_source:
     ls_kw: {num_epoch: 1, shuffle: true}
@@ -34,12 +35,14 @@ data:
   - ${_entity_train}
   val_data:
   - ${_entity_val}
-  train_batch_size: 128
+  train_batch_size: 64
   shuffle: true
 trainer:
   nnodes: 2
-  total_epochs: 2
-  total_training_steps: null
+  # The trainer requires an integer epoch bound. At >=1 batch per epoch,
+  # this derived bound cannot stop training before the optimizer-step limit.
+  total_epochs: ${trainer.total_training_steps}
+  total_training_steps: 200
 val_reward:
   reward_function_by_data_source:
     ls_kw: openasr_en

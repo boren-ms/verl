@@ -5,7 +5,7 @@ hydra:
   - file://recipe/phimm/config
   - file://verl/trainer/config
 defaults:
-- base0b_2609r2_ls_kw_verb_hint_e2_bs128_n16_r320_g16_flr
+- base0b_2609r2_ls_kw_verb_hint_s200_bs64_n8_r320_g16_flr
 - _self_
 reward_functions:
   librispeech:
