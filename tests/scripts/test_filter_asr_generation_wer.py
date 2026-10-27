@@ -49,3 +49,11 @@ def test_complete_outputs_and_no_publication_for_partial_run(tmp_path):
     assert summary['wer_gt1pct']['corpus_wer_percent'] == pytest.approx(500 / 101)
     saved = [json.loads(s) for s in (tmp_path / 'filtered/wer_gt1pct/part-000.jsonl').read_text().splitlines()]
     assert saved == rows[2:]
+    # The retained data must still teach the original reference and 2609 language envelope.
+    from recipe.phimm.data.dataset import create_audio_dataset
+
+    config = json.loads((tmp_path / 'report/training_data.yaml').read_text())
+    dataset = create_audio_dataset(**config, num_proc=1)
+    assert len(dataset) == 2
+    assert dataset[0]['reward_model']['ground_truth'] == 'hello world'
+    assert dataset[0]['reward_model']['gt_output'] == '<src=English><tgt=English>\nhello world'

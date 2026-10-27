@@ -192,7 +192,9 @@ def run(args):
     # JSON is a YAML subset, so no extra parser dependency is needed here.
     training_config = {
         'dataset_name': 'jsonl',
+        'version': 2609,
         'jsonl_paths': [args.output_dir.rstrip('/') + '/wer_gt1pct/part-*.jsonl'],
+        'add_task_info': {'task': 'lang_asr'},
         'post_process': {'verl_format': {'prompt_key': 'prompt',
             'extra_keys': ['wer', 'n_err', 'n_ref', 'audio_duration_seconds']}},
     }
