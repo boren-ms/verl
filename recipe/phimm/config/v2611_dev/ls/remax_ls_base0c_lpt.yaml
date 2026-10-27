@@ -1,0 +1,37 @@
+# LS base0c with extension-based temperature-only rollout log-prob scoring.
+# LS rare/bad-case training and LS test-clean/test-other validation.
+# Baseline without replay; inherit base0c training and rollout settings.
+# All 128 training prompts are fresh; use reward divisor 2 without keyword reward.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base0c_2609r2_ls_bad_e1_bs128_n8_r320_g16_flr
+  - _self_
+
+# Explicitly enable temperature-only scoring and name its worker extension.
+actor_rollout_ref:
+  rollout:
+    temperature_only_log_probs: true
+    engine_kwargs:
+      vllm:
+        worker_extension_cls: verl.utils.vllm.temperature_worker_extension.TemperatureLogProbWorkerExtension
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.01, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.01, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source:
+  ls_rare_verb: librispeech

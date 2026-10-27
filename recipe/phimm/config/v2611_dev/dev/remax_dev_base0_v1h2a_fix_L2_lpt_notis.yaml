@@ -1,0 +1,39 @@
+# L2_lpt_notis: L2 with temperature-only rollout log-prob scoring; T=1.2, TIS disabled.
+# Requires e4355766f9 or later; no processed_logprobs or extra option needed.
+# L2 preserves the L1 recipe with lang/fmt beta reduced from 0.1 to 0.01 each.
+# L1 steps 81-100: absolute lang/fmt votes near 1 contributed about +0.05.
+# Their combined contribution becomes about +0.005 with the fixed divisor 4.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - base0_2609r2_d3_e2_bs128_n8_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    tis_imp_ratio_cap: -1
+  rollout:
+    temperature: 1.2
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 4}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.5, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.01, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.01, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source:
+  openml: librispeech
+  earnings_fy27: librispeech
+  ls_rare_verb: librispeech

@@ -1,0 +1,13 @@
+# Derived from LS base0b; retain LR 1e-6, packing, and LS data.
+# Use temperature 1.2, eight rollouts, and one epoch.
+defaults:
+  - base0b_2609r2_ls_bad_e1_bs128_n16_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  rollout:
+    temperature: 1.2
+    n: 8
+
+trainer:
+  total_epochs: 1

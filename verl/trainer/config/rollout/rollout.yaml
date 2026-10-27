@@ -102,6 +102,9 @@ over_sample_rate: 0
 multi_stage_wake_up: false
 
 # Extra inference engine arguments (vllm, sglang), please refer vllm/sglang official doc for detail
+# Opt in to extension-based temperature-only scoring; native raw scoring is the default.
+temperature_only_log_probs: false
+
 engine_kwargs:
 
   # vllm engine config

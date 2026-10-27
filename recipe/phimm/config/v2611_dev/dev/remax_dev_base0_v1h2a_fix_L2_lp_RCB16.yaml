@@ -1,5 +1,5 @@
 # L2_lp with 16 raw-input replay prompts; nominal 128 = 112 fresh + up to 16 replay.
-# Keep L2_lp reward measures and processed behavior log-probs; divide the reward sum by 3.
+# Keep L2_lp reward measures and temperature-only raw scoring; divide the reward sum by 3.
 # Replay starts empty and selects prompts with the lowest word scores.
 hydra:
   searchpath:
@@ -12,9 +12,6 @@ defaults:
 actor_rollout_ref:
   rollout:
     temperature: 1.2
-    engine_kwargs:
-      vllm:
-        logprobs_mode: processed_logprobs
 
 reward_functions:
   librispeech:

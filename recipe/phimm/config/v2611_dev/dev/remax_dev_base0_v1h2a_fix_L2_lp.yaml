@@ -1,5 +1,5 @@
 # Derived from remax_dev_base0_v1h2a_fix_L2; short experiment tag: L2_lp.
-# Run with the log-prob fix in e6abc2377 or later.
+# Uses the shared temperature-only rollout log-probability fix.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -11,9 +11,6 @@ defaults:
 actor_rollout_ref:
   rollout:
     temperature: 1.2
-    engine_kwargs:
-      vllm:
-        logprobs_mode: processed_logprobs
 
 reward_functions:
   librispeech:
