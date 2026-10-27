@@ -192,10 +192,10 @@ class vLLMRollout(BaseRollout):
         # - Otherwise it's the desired value we want to explicitly set.
         engine_kwargs = {key: val for key, val in engine_kwargs.items() if val is not None}
         if self._vllm_v1:
-            from verl.utils.vllm.temperature_log_probs import configure_temperature_only_log_probs
+            from verl.utils.vllm.temperature_log_probs import configure_temperature_scaled_log_probs
 
-            configure_temperature_only_log_probs(
-                engine_kwargs, enabled=config.get("temperature_only_log_probs", False)
+            configure_temperature_scaled_log_probs(
+                engine_kwargs, enabled=config.get("temperature_scaled_log_probs", True)
             )
 
         if config.get("limit_images", None):  # support for multi-image data

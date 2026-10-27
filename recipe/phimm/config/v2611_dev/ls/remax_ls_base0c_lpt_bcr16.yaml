@@ -10,13 +10,10 @@ defaults:
   - base0c_2609r2_ls_bad_e1_bs128_n8_r320_g16_flr
   - _self_
 
-# Explicitly enable temperature-only scoring and name its worker extension.
+# Enable temperature-scaled rollout log probabilities; the extension is installed automatically.
 actor_rollout_ref:
   rollout:
-    temperature_only_log_probs: true
-    engine_kwargs:
-      vllm:
-        worker_extension_cls: verl.utils.vllm.temperature_worker_extension.TemperatureLogProbWorkerExtension
+    temperature_scaled_log_probs: true
 
 reward_functions:
   librispeech:

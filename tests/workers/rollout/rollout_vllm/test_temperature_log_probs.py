@@ -37,8 +37,8 @@ def test_temperature_scores_exclude_processors_and_preserve_sampling(dtype):
     logits = torch.tensor([[4., 2., 1.], [3., 1., 2.]], dtype=dtype)
     metadata = SimpleNamespace(temperature=torch.tensor([1.2, 0.7]), all_greedy=False, max_num_logprobs=0)
     _, expected_sample = unpatched.forward(logits.clone(), metadata)
-    module.patch_temperature_only_log_probs(sampler_cls)
-    module.patch_temperature_only_log_probs(sampler_cls)
+    module.patch_temperature_scaled_log_probs(sampler_cls)
+    module.patch_temperature_scaled_log_probs(sampler_cls)
     scores, sampled = sampler_cls().forward(logits.clone(), metadata)
     expected = (logits.float() / metadata.temperature[:, None]).log_softmax(-1)
     torch.testing.assert_close(scores, expected)
@@ -51,7 +51,7 @@ def test_temperature_scores_exclude_processors_and_preserve_sampling(dtype):
 @pytest.mark.parametrize("all_greedy,temperatures", [(True, [0., 0.]), (False, [0., 1.2])])
 def test_greedy_and_mixed_requests(all_greedy, temperatures):
     sampler_cls = make_sampler()
-    module.patch_temperature_only_log_probs(sampler_cls)
+    module.patch_temperature_scaled_log_probs(sampler_cls)
     logits = torch.tensor([[4., 2., 1.], [3., 1., 2.]])
     metadata = SimpleNamespace(temperature=torch.tensor(temperatures), all_greedy=all_greedy, max_num_logprobs=0)
     scores, _ = sampler_cls().forward(logits.clone(), metadata)
@@ -61,7 +61,7 @@ def test_greedy_and_mixed_requests(all_greedy, temperatures):
 
 def test_failure_restores_context_and_rejects_processed_mode():
     sampler_cls = make_sampler()
-    module.patch_temperature_only_log_probs(sampler_cls)
+    module.patch_temperature_scaled_log_probs(sampler_cls)
     with pytest.raises(ValueError, match="raw_logprobs"):
         sampler_cls().forward(torch.ones(1, 3), None, logprobs_mode_override="processed_logprobs")
     with pytest.raises(AttributeError):
@@ -71,8 +71,8 @@ def test_failure_restores_context_and_rejects_processed_mode():
 
 def test_explicit_worker_installation_preserves_engine_settings():
     kwargs = {"gpu_memory_utilization": 0.9}
-    module.configure_temperature_only_log_probs(kwargs, enabled=True)
-    module.configure_temperature_only_log_probs(kwargs, enabled=True)
+    module.configure_temperature_scaled_log_probs(kwargs, enabled=True)
+    module.configure_temperature_scaled_log_probs(kwargs, enabled=True)
     assert kwargs["gpu_memory_utilization"] == 0.9
     assert kwargs["worker_extension_cls"].endswith("TemperatureLogProbWorkerExtension")
     assert "logprobs_mode" not in kwargs
@@ -84,16 +84,17 @@ def test_explicit_worker_installation_preserves_engine_settings():
 ])
 def test_worker_installation_rejects_conflicting_settings(kwargs):
     with pytest.raises(ValueError):
-        module.configure_temperature_only_log_probs(kwargs, enabled=True)
+        module.configure_temperature_scaled_log_probs(kwargs, enabled=True)
 
 
 def test_control_run_disables_extension_installation():
     kwargs = {"gpu_memory_utilization": 0.9}
-    module.configure_temperature_only_log_probs(kwargs, enabled=False)
+    module.configure_temperature_scaled_log_probs(kwargs, enabled=False)
     assert kwargs == {"gpu_memory_utilization": 0.9}
 
 
-def test_default_does_not_install_extension():
+def test_default_installs_extension():
     kwargs = {"gpu_memory_utilization": 0.9}
-    module.configure_temperature_only_log_probs(kwargs)
-    assert kwargs == {"gpu_memory_utilization": 0.9}
+    module.configure_temperature_scaled_log_probs(kwargs)
+    assert kwargs["gpu_memory_utilization"] == 0.9
+    assert kwargs["worker_extension_cls"].endswith("TemperatureLogProbWorkerExtension")

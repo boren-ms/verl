@@ -12,7 +12,7 @@ defaults:
 # Control: native vLLM raw log-probs without temperature-only scoring.
 actor_rollout_ref:
   rollout:
-    temperature_only_log_probs: false
+    temperature_scaled_log_probs: false
 
 reward_functions:
   librispeech:

@@ -102,8 +102,8 @@ over_sample_rate: 0
 multi_stage_wake_up: false
 
 # Extra inference engine arguments (vllm, sglang), please refer vllm/sglang official doc for detail
-# Opt in to extension-based temperature-only scoring; native raw scoring is the default.
-temperature_only_log_probs: false
+# Scale raw rollout logits by sampling temperature before computing log probabilities (before top-k/top-p filtering).
+temperature_scaled_log_probs: true
 
 engine_kwargs:
 

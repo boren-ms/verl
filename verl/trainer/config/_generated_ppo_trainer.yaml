@@ -219,7 +219,7 @@ actor_rollout_ref:
       tokenization_sanity_check_mode: strict
       format: hermes
     gt_rollout: false
-    temperature_only_log_probs: false
+    temperature_scaled_log_probs: true
     calculate_log_probs: false
     agent:
       _target_: verl.workers.config.AgentLoopConfig

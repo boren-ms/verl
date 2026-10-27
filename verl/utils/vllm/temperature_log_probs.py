@@ -9,8 +9,8 @@ import torch
 _raw_score_context = ContextVar("verl_raw_score_context", default=None)
 
 
-def configure_temperature_only_log_probs(engine_kwargs, enabled=False):
-    """Install temperature-only scoring only when explicitly enabled."""
+def configure_temperature_scaled_log_probs(engine_kwargs, enabled=True):
+    """Install temperature-scaled scoring by default; allow explicit opt-out."""
     if not enabled:
         return
     if engine_kwargs.get("logprobs_mode", "raw_logprobs") != "raw_logprobs":
@@ -22,14 +22,14 @@ def configure_temperature_only_log_probs(engine_kwargs, enabled=False):
     engine_kwargs["worker_extension_cls"] = extension
 
 
-def patch_temperature_only_log_probs(sampler_cls):
+def patch_temperature_scaled_log_probs(sampler_cls):
     """Scale only the raw score computation; leave sampling logits untouched.
 
     V1 calls compute_logprobs on raw logits before applying any processors.
     Prompt log-prob scoring happens outside forward and remains untouched;
     teacher-forced GT rows are separately scored by the actor in the trainer.
     """
-    if getattr(sampler_cls, "_verl_temperature_only_log_probs", False):
+    if getattr(sampler_cls, "_verl_temperature_scaled_log_probs", False):
         return
     original_forward = sampler_cls.forward
     original_compute = sampler_cls.compute_logprobs
@@ -65,4 +65,4 @@ def patch_temperature_only_log_probs(sampler_cls):
 
     sampler_cls.forward = forward
     sampler_cls.compute_logprobs = staticmethod(compute_logprobs)
-    sampler_cls._verl_temperature_only_log_probs = True
+    sampler_cls._verl_temperature_scaled_log_probs = True

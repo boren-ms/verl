@@ -2,9 +2,9 @@
 
 from vllm.v1.sample.sampler import Sampler
 
-from verl.utils.vllm.temperature_log_probs import patch_temperature_only_log_probs
+from verl.utils.vllm.temperature_log_probs import patch_temperature_scaled_log_probs
 
-patch_temperature_only_log_probs(Sampler)
+patch_temperature_scaled_log_probs(Sampler)
 
 
 class TemperatureLogProbWorkerExtension:

@@ -149,7 +149,8 @@ class RolloutConfig(BaseConfig):
     multi_stage_wake_up: bool = False
     engine_kwargs: dict = field(default_factory=dict)
 
-    temperature_only_log_probs: bool = False
+    # Compute rollout log probabilities from temperature-scaled raw logits, before top-k/top-p filtering.
+    temperature_scaled_log_probs: bool = True
     calculate_log_probs: bool = False
     use_rollout_log_probs_as_old: bool = False
 
