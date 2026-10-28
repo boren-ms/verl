@@ -1,5 +1,39 @@
-.git
-__pycache__
-.venv
-logs
+# Version-control, editor, and agent metadata.
+.git/
+.github/
+.gemini/
+.vscode/
+
+# Local Python environments, caches, and build products.
+.venv/
+venv/
+env/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage*
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Generated logs, experiment artifacts, and local scratch data.
+*.log
+logs/
+log/
 tmp/
+outputs/
+reports/
+paper_notes/
+wandb/
+**/wandb/
+checkpoints/
+**/checkpoints/
+
+# Documentation and development-only assets are not needed by Ray workers.
+docs/
+examples/
+tests/
