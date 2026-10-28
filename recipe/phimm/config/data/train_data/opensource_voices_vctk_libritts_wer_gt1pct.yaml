@@ -1,0 +1,32 @@
+# WER-filtered VOiCES/VCTK/LibriTTS generation output.
+#
+# Data details (generation completed 2026-10-28):
+#
+# | Dataset  | Original utts | Original hours | Retained utts | Retained hours | Retention |
+# |----------|--------------:|---------------:|--------------:|---------------:|----------:|
+# | VOiCES   |     1,071,856 |       4,632.67 |       668,839 |       2,915.23 |    62.40% |
+# | VCTK     |       176,312 |         164.99 |        15,195 |          14.41 |     8.62% |
+# | LibriTTS |       671,952 |       1,080.40 |       163,761 |         294.04 |    24.37% |
+# | Total    |     1,920,120 |       5,878.06 |       847,795 |       3,223.67 |    44.15% |
+#
+# - Filter: strict per-utterance WER > 1%; this equals the WER > 0 set here
+#   because the smallest positive WER is above 1%.
+# - Audio pointers were checked across all 1,920,120 generated rows: unique,
+#   with zero duplicates and zero missing pointers.
+# - Source artifacts and full statistics:
+#   az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/opensource_voices_vctk_libritts_20261027/
+dataset_name: jsonl
+version: 2609
+jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/opensource_voices_vctk_libritts_20261027/wer_gt1pct/part-*.jsonl
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: opensource_wer_gt1pct
+  verl_format:
+    prompt_key: prompt
