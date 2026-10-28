@@ -1,0 +1,38 @@
+# Fresh 200-step variant of remax_earning_base2_v0.
+# The 4,957-row dataset yields about 38 optimizer updates per epoch at batch 128;
+# six epoch passes keep the outer loop alive until the exact 200-step cap.
+# Data, model initialization, reward, validation, checkpoint cadence, rollout,
+# LoRA, learning rate, and 2x8-GPU topology are inherited unchanged.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base2_2609r2_fy27_e2_bs128_n8_r320_g16_flr
+  - _self_
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 1.8}
+      measures:
+        word: {delta: abs, beta: 1.0, vote: delta}
+        word_del: {delta: abs, beta: 0.1, vote: delta}
+        word_ins: {delta: abs, beta: 0.1, vote: delta}
+        word_kw: {delta: abs, beta: 1.0, vote: delta}
+        lang: {delta: abs, beta: 0.2, vote: delta}
+        fmt: {delta: abs, beta: 0.2, vote: delta}
+
+reward_function_by_data_source:
+  earnings_fy27: librispeech
+
+trainer:
+  experiment_name: remax_earning_base2_v0_s200
+  total_epochs: 6
+  total_training_steps: 200
+  resume_mode: disable
+  resume_from_path: null
