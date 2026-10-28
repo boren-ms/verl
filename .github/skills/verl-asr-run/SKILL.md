@@ -234,8 +234,7 @@ Orange caching, retries, locks, and atomic writes. Do not add another downloader
 
 Track the current node, config, Ray job ID, activity, progress, and report state in
 conversation context and the recurring monitor prompt. Re-discover live Ray state
-on every poll and report changes to the user. Do not create or update
-`recipe/phimm/config/verl_job.txt`.
+on every poll and report changes to the user.
 
 ### Step 2 — Push code and submit the job
 

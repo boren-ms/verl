@@ -179,8 +179,7 @@ run with the same experiment name as proof this run succeeded. Reconcile live
 jobs, run identity, logs and artifact provenance before reusing state.
 
 Report the current pool, config, Ray job ID, activity, and progress to the user
-and carry current pipeline identities in the recurring monitor prompt. Do not
-create or update `recipe/phimm/config/verl_job.txt`. Use `n4-i0` rather than
+and carry current pipeline identities in the recurring monitor prompt. Use `n4-i0` rather than
 ambiguous `i0` when multiple pool sizes share the index. Report phases as
 training, exporting last checkpoint, evaluating the actual dataset, or building
 report, with concurrent audio-prefetch progress alongside the main phase.
