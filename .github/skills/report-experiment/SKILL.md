@@ -1,6 +1,6 @@
 ---
 name: report-experiment
-description: 'Build a slide-style comparison report for verl ASR experiments using overlaid figures and side-by-side tables: material setting differences, per-dataset validation p_err trajectories, and comparable reward-core trajectories over actual optimizer steps. Use for experiment reporting and tradeoff analysis; use asr-detail-compare for utterance-level error review. Does not launch or modify experiments.'
+description: 'Build an evidence-backed native PPTX comparison report for verl ASR experiments through ppt-master, then update the research note and daily homepage through obsidian-research-notes by default. Covers material settings, validation p_err, and comparable reward-core trajectories. Use asr-detail-compare for utterance-level error review. Does not launch or modify experiments.'
 ---
 
 # Report Experiment — Slide Deck
@@ -12,8 +12,16 @@ evidence-backed **slide deck** centered on three questions:
 2. **How does validation quality change by dataset and optimizer step?**
 3. **How do comparable `reward-core/*` components change over optimizer steps?**
 
-This is a read-only reporting workflow. Do not edit recipes, launch jobs, stop
-runs, or publish to another repository unless separately requested.
+Keep experiment access read-only: do not edit recipes, launch jobs, or stop
+runs. After the evidence package is verified, use
+[ppt-master](../ppt-master/SKILL.md) to generate and verify the editable native
+PPTX. Then use
+[obsidian-research-notes](../obsidian-research-notes/SKILL.md) to update the
+research note and affected daily homepage automatically, unless the user opts
+out of vault updates or requests report artifacts only. These handoffs do not
+authorize Git commit/push or other remote publication; those require separate
+user authorization. When asked only to edit this skill, change its instructions
+without generating reports or editing the vault.
 
 ## Inputs and run identity
 
@@ -90,8 +98,8 @@ For each difference, include its source and a brief expected effect only when
 supported by code/config semantics. Visually emphasize changed cells, not the
 control cells. If several settings changed together, add a table-level note that
 the comparison is multivariable. Save the complete row set as
-`data/config_differences.csv` or JSON and reuse those exact rows in the HTML,
-PDF, Markdown, and evidence artifacts.
+`data/config_differences.csv` or JSON and reuse those exact rows in the PPTX,
+supporting Markdown, and evidence artifacts.
 
 ## 2. Plot validation trajectories
 
@@ -188,19 +196,27 @@ declare one overall winner when datasets trade off or evidence is incompatible.
 Do not recommend changing a reward weight merely because its component mean is
 small.
 
-## Slide-first deliverables
+## Evidence package and native PPTX deliverables
 
-Write a unique directory, defaulting to
-`tmp/experiment_reports/<timestamp>/`, containing:
+Write a unique report directory, defaulting to
+`tmp/experiment_reports/<timestamp>/`. Complete and verify the evidence package
+before invoking the presentation workflow:
 
-- `slides.html`: primary editable, self-contained 16:9 slide deck;
-- `report.pdf`: PDF export of the same slides, one slide per page;
-- `report.md`: supporting notes and detailed tables, not a second primary report;
+- `report.md`: the authoritative source brief for the deck, including the slide
+  roster, exact takeaway titles, concise table rows, findings, and caveats;
 - `evidence.json`: run identity, settings, exact metric keys, raw observations,
-  comparison windows, transformations, and missing-data reasons;
+  comparison windows, transformations, slide/claim provenance, and missing-data
+  reasons;
 - `figures/`: reusable validation and `reward-core` figures;
-- `data/`: plotted CSV/JSON tables so every figure is reproducible;
-- any local assets needed by `slides.html`, copied into the output directory.
+- `data/`: plotted CSV/JSON tables so every figure and numeric table is
+  reproducible.
+
+The primary presentation deliverable is an editable native `report.pptx`
+generated through [ppt-master](../ppt-master/SKILL.md). A rendered `report.pdf`
+or self-contained HTML preview is optional when the environment supports it;
+neither replaces the PPTX or becomes an independent source of claims. Keep the
+ppt-master project/workspace path in `evidence.json` and copy or link the final
+PPTX into the report directory without discarding its verification artifacts.
 
 Use this slide sequence:
 
@@ -238,12 +254,73 @@ cell must trace to `evidence.json` or be marked `Unknown`/`N/A` with a reason.
 Never use decorative charts, invented values, or screenshots as substitutes for
 the underlying numeric evidence.
 
-Read [slide-deck guidance](references/slide-deck.md) before building the deck.
-Embed figures in both slide outputs, export a real PDF, and inspect the rendered
-pages for clipping, tiny text, missing images, and incorrect values. Cross-check
-plotted data and table values against `evidence.json` before delivery.
+Read [slide-deck guidance](references/slide-deck.md) while preparing the source
+brief. It owns the experiment-report content contract, while ppt-master owns
+presentation construction, routing, SVG/PPTX generation, and visual QA.
+
+### Invoke ppt-master
+
+After `report.md`, `evidence.json`, `figures/`, and `data/` agree:
+
+1. Read [ppt-master](../ppt-master/SKILL.md), run its attribution guard, and
+   follow its router. This source-backed new-deck request selects **Generate
+   PPTX**.
+2. For the automatic report path, explicitly request ppt-master's **Quick
+   Generate** profile: no Strategist/confirmation handoff, no template catalog
+   selection, and no speculative research beyond the supplied verified report
+   package. Honor an explicit user request for the Default profile instead.
+3. Give ppt-master `report.md`, `evidence.json`, the saved plotted data, and all
+   required figures as source/resource inputs. State that evidence values,
+   experiment order/color mapping, metric semantics, slide roster, and caveats
+   are binding; visual composition remains ppt-master's responsibility.
+4. Require the PPTX to contain the visuals and tables listed above. Use the
+   saved figures/data rather than screenshots, decorative replacements, or
+   recomputed values. A ppt-master-native chart/table is allowed only when it
+   preserves the exact saved values and provenance.
+5. Complete ppt-master's lockless final quality check and native PPTX export.
+   Render or inspect the exported deck when its workflow/environment provides a
+   renderer, then cross-check every plotted value, numeric table cell, takeaway,
+   and caveat against `evidence.json` before accepting `report.pptx`.
+
+Do not hand-author a competing HTML slide deck or bypass ppt-master with a
+separate presentation generator. If ppt-master is unavailable or fails, retain
+the verified evidence package, report the exact incomplete handoff, and do not
+claim that the PPTX exists.
 
 If an input dimension is unavailable, preserve the gap as `null` with a reason
 and show a compact coverage table instead of an empty or fabricated figure.
-Return links to the HTML slides, PDF slides, supporting Markdown, evidence, and
-figure directory, leading with the best-supported validation findings.
+Return links to the native PPTX, optional rendered PDF/HTML preview when one was
+actually produced, supporting Markdown, evidence, data, and figure directory,
+plus the research note and daily homepage when updated. Lead with the
+best-supported validation findings.
+
+## 5. Update the research note and daily homepage
+
+After the native PPTX and evidence pass verification, invoke
+[obsidian-research-notes](../obsidian-research-notes/SKILL.md). Keep vault
+organization and publication rules in that skill rather than duplicating them
+here. Supply:
+
+- exact compared run identities, control/reference choice, checkpoint/step
+  coverage, and evidence collection time;
+- verified setting differences, per-dataset validation findings and shared-step
+  deltas, comparable `reward-core` windows/means with observation counts, and
+  material provenance or coverage limits;
+- `report.pptx`, any actual `report.pdf`/HTML preview, `report.md`,
+  `evidence.json`, reusable figures, plotted data, the ppt-master project path,
+  and any local dependencies needed to open the copied report;
+- an existing comparison-note/daily-entry identity when known, so a refresh
+  updates the same report rather than creating duplicate notes.
+
+Use only the collected evidence. Utterance-level matches and bad cases are
+optional inputs when already available; their absence must not trigger new
+evaluation or invented examples. The note skill owns selecting figures,
+copying linked assets, and updating the existing detailed note and daily entry.
+
+Before delivery, verify the note links and copied report dependencies resolve,
+the note metrics agree with the verified deck/evidence, and the affected daily
+entry points to the refreshed report. Include both note links with the report
+artifacts and state whether vault changes are local, committed, or pushed.
+If the user opted out, skip the handoff; if the vault is unavailable, deliver
+the verified report and explicitly record the incomplete note handoff rather
+than claiming it succeeded.

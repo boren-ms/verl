@@ -1,10 +1,12 @@
 # Slide-Deck Reporting Guidance
 
-Produce a self-contained `slides.html` deck and export the same deck to
-`report.pdf` with one landscape 16:9 slide per page. The slide deck is the
-primary report; `report.md`, `evidence.json`, plotted data, and figures support
-it. Do not depend on remote fonts, scripts, or images at presentation/export
-time.
+Prepare the experiment-specific content contract that
+[ppt-master](../../ppt-master/SKILL.md) will turn into an editable native PPTX.
+`report.md`, `evidence.json`, plotted data, and figures are the authoritative
+inputs; `report.pptx` is the primary presentation deliverable. This reference
+governs comparison content and traceability. PPT Master governs routing,
+composition, SVG authoring, export, and visual QA. Do not prescribe a parallel
+HTML-first implementation.
 
 ## Slide composition
 
@@ -27,7 +29,8 @@ across slides.
 
 Use a dark or light professional scientific theme with strong contrast. Avoid
 decorative gradients, stock imagery, or animation that competes with the data.
-Animations are optional and must not affect PDF readability.
+Animations are optional and must not hide information needed to read the static
+PPTX or any rendered PDF.
 
 ## Recommended sequence
 
@@ -52,7 +55,8 @@ help the requested comparison.
 
 Generate charts from collected numeric evidence with a scientific plotting
 library. Save vector PDF/SVG figures when supported and PNG previews when
-useful. Embed the figures in both slide outputs.
+useful. Give ppt-master the actual saved figures and their source data; do not
+substitute screenshots or visually similar redraws with different values.
 
 - Keep one color per experiment across the entire deck.
 - Overlay comparable experiments in the same dataset/component axes and use the
@@ -156,16 +160,18 @@ Save the exact numeric rows behind every chart in `data/` and the structured
 rows behind every table in `evidence.json` or a referenced CSV/JSON file. The
 slide deck is a view of those artifacts, not an independent source of truth.
 
-The HTML deck should be self-contained or reference only files copied into the
-same output directory. Define print page dimensions and explicit slide page
-breaks, hide navigation during printing, and ensure the PDF export preserves
-the HTML layout.
+The ppt-master source brief maps every slide, figure, table, and takeaway to its
+supporting evidence. Keep all local inputs available to its project workspace
+and record the resulting project and PPTX paths in `evidence.json`. An optional
+HTML/PDF rendering is a view of the verified PPTX, not a separately authored
+report.
 
 ## Visual QA
 
 Use presentation-scale text—roughly 24 pt body and at least 18 pt chart labels
-on a standard widescreen slide. After export, render or open every PDF page and
-check:
+on a standard widescreen slide. Let ppt-master apply its own typography and
+quality gates. After native PPTX export, inspect its rendered pages or contact
+sheet when the environment provides one and check:
 
 - 16:9 landscape dimensions and one slide per page;
 - clipped/overlapping text, legends, tables, or footers;
@@ -174,6 +180,9 @@ check:
 - agreement between plotted values, slide claims, `evidence.json`, and source
   data.
 
-Fix observed defects before delivery. If PDF export is blocked, still return
-the HTML deck, Markdown notes, evidence, data, and figures while stating exactly
-which PDF step failed.
+Fix observed defects through ppt-master's owning SVG/resource inputs and rerun
+its required quality check and export. If rendering or optional PDF export is
+blocked, still return the verified native PPTX, Markdown, evidence, data, and
+figures while stating exactly which optional rendering step failed. If the PPTX
+itself was not produced and verified, return only the evidence package and mark
+the presentation handoff incomplete.
