@@ -1,0 +1,32 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - gen_base
+  - /data/train_data/earningscall-fy27-en-us-batches-verb-langhint@data.train_data
+  - _self_
+
+custom_reward_function: ${val_reward.reward_functions.openasr_en}
+
+actor_rollout_ref:
+  model:
+    # Match the 2609r2 model used by the current FY27 Earnings recipe.
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+
+data:
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/v2611/2609r2/earnings_fy27_batches_20261028
+  output_split_size: 2048
+
+trainer:
+  nnodes: 2
+  n_gpus_per_node: 8
+
+wer_filter:
+  expected_rows: 9568
+  output_dir: az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/earnings_fy27_batches_20261028
+  report_dir: outputs/earnings_fy27_batches_wer_20261028/report
+  training_task: lang_asr_verb
+  training_language: English
+  training_lang_hint: true
+  training_data_source: earnings_fy27

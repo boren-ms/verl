@@ -15,11 +15,26 @@ def row(index, errors, refs):
                 audio_chunk=f'az://account/data/Chunk/VCTK/simu/features/chunk.audio:400:{index}')
 
 
+def earnings_row(index, errors, refs, batch=1):
+    item = row(index, errors, refs)
+    root = ('EarningsCall_2026_conversion_svad' if batch == 1 else
+            'earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad')
+    item['audio_chunk'] = f'az://account/data/speech/{root}/audio-{index}.wav'
+    return item
+
+
 def test_strict_boundaries_and_insertions():
     assert module.retained(row(0, 0, 100)) == dict(wer_gt0=False, wer_gt1pct=False)
     assert module.retained(row(0, 1, 100)) == dict(wer_gt0=True, wer_gt1pct=False)
     assert module.retained(row(0, 2, 100)) == dict(wer_gt0=True, wer_gt1pct=True)
     assert module.measurements(row(0, 3, 1))[-1][0] == 300
+
+
+def test_generic_data_source_and_earnings_batch_groups():
+    assert module.measurements(earnings_row(0, 1, 10, batch=1))[:2] == (
+        'earnings_fy27', 'earnings_fy27/batch1')
+    assert module.measurements(earnings_row(0, 1, 10, batch=2))[:2] == (
+        'earnings_fy27', 'earnings_fy27/batch2')
 
 
 @pytest.mark.parametrize('bad', [dict(n_err=-1), dict(n_ref=0), dict(wer=float('nan')), dict(wer=.5), dict(audio_duration_seconds=None)])
@@ -57,3 +72,20 @@ def test_complete_outputs_and_no_publication_for_partial_run(tmp_path):
     assert len(dataset) == 2
     assert dataset[0]['reward_model']['ground_truth'] == 'hello world'
     assert dataset[0]['reward_model']['gt_output'] == '<src=English><tgt=English>\nhello world'
+
+
+def test_earnings_training_yaml_preserves_task_semantics(tmp_path):
+    source = tmp_path / 'source'
+    source.mkdir()
+    (source / 'part-000.jsonl').write_text(json.dumps(earnings_row(0, 2, 100)) + '\n')
+    args = SimpleNamespace(input_dir=str(source), output_dir=str(tmp_path / 'filtered'),
+                           report_dir=str(tmp_path / 'report'), expected_rows=1,
+                           training_task='lang_asr_verb', training_language='English',
+                           training_lang_hint=True, training_data_source='earnings_fy27')
+    module.run(args)
+    config = json.loads((tmp_path / 'report/training_data.yaml').read_text())
+    assert config['add_task_info'] == {
+        'task': 'lang_asr_verb', 'language': 'English',
+        'prefix_prob': 0.0, 'lang_hint': True,
+    }
+    assert config['post_process']['add_field']['fields']['data_source'] == 'earnings_fy27'

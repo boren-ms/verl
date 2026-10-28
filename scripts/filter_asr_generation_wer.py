@@ -24,6 +24,25 @@ BINS = {
 }
 
 
+def _source_groups(row, pointer):
+    """Return stable report groups without constraining valid audio layouts."""
+    match = re.search(r'/Chunk/(VOiCES|VCTK|LibriTTS)/(.*?)/[^/]+\.audio:', pointer)
+    if match:
+        source, branch = match.groups()
+        return source, f'{source}/{branch}'
+
+    pointer_lower = pointer.lower()
+    if '/speech/earningscall_2026_conversion_svad/' in pointer_lower:
+        return 'earnings_fy27', 'earnings_fy27/batch1'
+    if '/speech/earningscall-2026/batch2-raw/' in pointer_lower:
+        return 'earnings_fy27', 'earnings_fy27/batch2'
+
+    data_source = row.get('data_source')
+    if isinstance(data_source, str) and data_source:
+        return data_source, data_source
+    return 'unknown', 'unknown'
+
+
 def measurements(row):
     for key in ('n_err', 'n_ref'):
         value = row.get(key)
@@ -43,11 +62,8 @@ def measurements(row):
     pointer = row.get('audio_chunk') or row.get('audio_path')
     if not isinstance(pointer, str) or not pointer:
         raise ValueError('Missing unique audio pointer')
-    match = re.search(r'/Chunk/(VOiCES|VCTK|LibriTTS)/(.*?)/[^/]+\.audio:', pointer)
-    if not match:
-        raise ValueError(f'Unrecognized source: {pointer}')
-    source, branch = match.groups()
-    return source, f'{source}/{branch}', pointer, (
+    source, branch = _source_groups(row, pointer)
+    return source, branch, pointer, (
         100 * errors / refs, duration, len(row['text'].split()), len(row['response'].split()), refs)
 
 
@@ -120,7 +136,7 @@ def run(args):
             raise ValueError(f'Duplicate audio pointer: {pointer}')
         seen.add(pointer)
         subsets = ['original'] + [name for name, keep in retained(row).items() if keep]
-        for group in ('all', source, branch):
+        for group in dict.fromkeys(('all', source, branch)):
             for subset in subsets:
                 stats[group][subset].add(row, values)
     if len(seen) != args.expected_rows:
@@ -177,7 +193,10 @@ def run(args):
     lines = ['# ASR WER 过滤统计', '', '原始分布是全部样本生成后的分布；过滤后分布来自同一批模型响应。原始转写继续作为训练标签。', '',
              '| 数据 | 子集 | 样本数 | 保留率 | Corpus WER | 平均样本 WER | 音频小时 |',
              '|---|---|---:|---:|---:|---:|---:|']
-    for group in ('all', 'VOiCES', 'VCTK', 'LibriTTS'):
+    report_groups = ['all'] + sorted(
+        group for group in summary['groups'] if group != 'all' and '/' not in group
+    )
+    for group in report_groups:
         if group not in summary['groups']:
             continue
         for name, data in summary['groups'][group].items():
@@ -190,13 +209,21 @@ def run(args):
               'response_at_limit_count 标记达到输出 token 上限的样本，需结合报告检查潜在输出截断。']
     (report_dir / 'report.md').write_text('\n'.join(lines) + '\n')
     # JSON is a YAML subset, so no extra parser dependency is needed here.
+    task_info = {'task': getattr(args, 'training_task', 'lang_asr')}
+    if getattr(args, 'training_language', None):
+        task_info.update(language=args.training_language,
+                         prefix_prob=0.0,
+                         lang_hint=getattr(args, 'training_lang_hint', False))
+    post_process = {'verl_format': {'prompt_key': 'prompt',
+        'extra_keys': ['wer', 'n_err', 'n_ref', 'audio_duration_seconds']}}
+    if getattr(args, 'training_data_source', None):
+        post_process['add_field'] = {'fields': {'data_source': args.training_data_source}}
     training_config = {
         'dataset_name': 'jsonl',
         'version': 2609,
         'jsonl_paths': [args.output_dir.rstrip('/') + '/wer_gt1pct/part-*.jsonl'],
-        'add_task_info': {'task': 'lang_asr'},
-        'post_process': {'verl_format': {'prompt_key': 'prompt',
-            'extra_keys': ['wer', 'n_err', 'n_ref', 'audio_duration_seconds']}},
+        'add_task_info': task_info,
+        'post_process': post_process,
     }
     (report_dir / 'training_data.yaml').write_text(json.dumps(training_config, indent=2) + '\n')
     for name in ('summary.json', 'report.md', 'distributions.png', 'training_data.yaml'):
@@ -212,6 +239,10 @@ def main():
     parser.add_argument('--output-dir', required=True)
     parser.add_argument('--report-dir', required=True)
     parser.add_argument('--expected-rows', type=int, required=True)
+    parser.add_argument('--training-task', default='lang_asr')
+    parser.add_argument('--training-language')
+    parser.add_argument('--training-lang-hint', action='store_true')
+    parser.add_argument('--training-data-source')
     run(parser.parse_args())
 
 
