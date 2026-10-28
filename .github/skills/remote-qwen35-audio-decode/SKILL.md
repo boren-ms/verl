@@ -1,7 +1,6 @@
 ---
 name: remote-qwen35-audio-decode
 description: 'Decode local bad-case audio with specified Qwen3.5-Audio checkpoints through Hugging Face or vLLM on a remote Brix GPU node. Use when: transcribing an audio list or folder with run_qwen35_audio_hf.py or run_qwen35_audio_vllm.py, evaluating az:// models on bad cases, uploading local audio before remote inference, or comparing HF and vLLM transcripts.'
-argument-hint: 'Local audio path, model az:// path(s), hf or vllm backend, and optional Brix node'
 ---
 
 # Remote Qwen3.5-Audio Decode

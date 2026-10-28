@@ -1,7 +1,6 @@
 ---
 name: blob-split-fast-download
-description: "Fast-download a single large file from Azure Blob (e.g. orng) to local by splitting it into <50MB zip parts on a remote brix node (in-region with the blob), uploading the parts back to blob, then downloading parts in parallel locally and reassembling with md5 verification. Use when: bbb cp of a single large pt/bin file from az://orngwus2cresco is too slow, transferring 1-100GB single files from orange blob to corp dev box, accelerating one-file blob downloads via parallel split chunks. Triggers: \"download is slow\", \"split and download in parallel\", \"speed up blob download\", \"fast pull large file from orng\"."
-argument-hint: "<blob_url_of_file> [local_dest_dir] [remote_node]"
+description: "Fast-download one large Azure Blob file by creating 48 MB zip parts on an in-region Brix node, downloading the parts in parallel, reassembling, and verifying MD5. Use when a multi-gigabyte single-file bbb copy from Orange is too slow; do not use for directories or many small files."
 ---
 
 # Fast Blob Download via Remote-Side Zip Split

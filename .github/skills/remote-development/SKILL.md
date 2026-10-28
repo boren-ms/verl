@@ -1,7 +1,6 @@
 ---
 name: remote-development
 description: 'Create, resume, or connect to a remote Brix node using brix CLI, switch workspace to ~/code/verl, install dependencies, and run development tasks. Use when: creating a new GPU node, resuming a paused node, setting up a remote dev environment, running code on a GPU node, installing required packages, or developing/testing on a remote machine. Triggers: "create node", "spin up a node", "new devbox", "resume node", "connect to remote", "set up remote", "install deps on node".'
-argument-hint: 'Target node name, e.g. verl-n1-i0'
 ---
 
 # Remote Development

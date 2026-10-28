@@ -1,7 +1,6 @@
 ---
 name: transfer-to-orange
 description: "Transfer external data from highperf01safn blob to Orange (orng) via azcopy through the orngtransfer storage account. Use when: copying data to orange, transfer to orng, azcopy blob to orange, highperf to orngtransfer, two-stage blob transfer, copy dataset to orange storage."
-argument-hint: "<path_under_datablob1> (e.g. am_data/publicdataset_process/SLR94_.../mls_english/train/Chunkfiles/)"
 ---
 
 # Transfer Data to Orange via azcopy

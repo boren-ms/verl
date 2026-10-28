@@ -1,7 +1,6 @@
 ---
 name: lora-weight-transfer
 description: "Check local checkpoints first, reuse verified LoRA artifacts, and transfer actual PEFT LoRA A/B tensors from a complete verl model_world_size_*_rank_*.pt checkpoint set only when needed. Merge into the matching full Qwen3.5-audio baseline with MTP layers preserved by default, produce lora_merged_model_states_mtp.pt, and upload both outputs through /copy-to-corp-blob. Use when: transfer LoRA weights, reconstruct model state dictionaries with MTP, build a LoRA-merged checkpoint, or publish both artifacts to tsstd01safn."
-argument-hint: "<remote_checkpoint_dir> <publish_blob_root> <local_dest_dir> [remote_node] [baseline]"
 ---
 
 # LoRA Weight Transfer

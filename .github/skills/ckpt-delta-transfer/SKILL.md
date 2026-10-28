@@ -1,7 +1,6 @@
 ---
 name: ckpt-delta-transfer
 description: "Compute a checkpoint delta between a new (verl RL) and baseline (fastllm) checkpoint on a remote brix node using ckpt_delta.py, fast-download the delta to local via blob-split, and reconstruct the full checkpoint locally with apply. Use when: transferring RL checkpoints efficiently, diffing verl checkpoints against baseline, creating delta files for checkpoint archival, recovering full checkpoints from baseline + delta. Triggers: 'ckpt delta', 'checkpoint diff', 'diff and recover', 'delta transfer', 'ckpt_delta diff', 'ckpt_delta apply'."
-argument-hint: "<new_blob_path> <baseline_blob_path> <local_dest_dir> [remote_node] [delta_name]"
 ---
 
 # Checkpoint Delta: Remote Diff + Fast-Download + Local Recovery

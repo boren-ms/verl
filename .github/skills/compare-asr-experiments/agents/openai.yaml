@@ -1,4 +1,0 @@
-interface:
-  display_name: "Compare ASR Experiments"
-  short_description: "Compare ASR runs in a PDF slide report with figures"
-  default_prompt: "Use $compare-asr-experiments to compare these experiment jobs, inspect validation examples, prioritize the next fixes, and generate a slide-style PDF report with figures alongside the Markdown report and evidence JSON."

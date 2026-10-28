@@ -1,14 +1,14 @@
 ---
 name: openasr-report
-description: Build an OpenASR + OpenASR_ML xlsx comparison report for a trained verl ASR model, with the new model inserted as the next column (B, C, D, ...) next to the 2609r2 baseline (column A) and per-model WERR columns, then write the results to Obsidian using obsidian-research-notes. Use when summarizing eval_openasr/eval_openasr_ml results from a Ray job, blob checkpoint dir, or local metrics file into the standardized Excel report with per-language and overall averages, comparing a new checkpoint against the baseline, or extending an existing xlsx report with another model column.
-argument-hint: '<model-label> [--from-ray <node> <job-id> [<job-id> ...]] | [--from-text <file>] | [--metrics <json>] [--model-info <json>] [--dataset-results <json>] [--extend-xlsx <xlsx>] [--out <xlsx>]'
+description: Build or extend the canonical OpenASR + OpenASR_ML Excel comparison workbook from completed evaluation metrics, metadata, and exact result paths. Use for baseline-aware WER/WERR reporting; do not use it to launch evaluations, analyze utterance-level errors, or update an Obsidian vault.
 ---
 
 # OpenASR Comparison Report (xlsx)
 
 Generate an Excel report (`.xlsx`) that compares a new model column against the `2609r2` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, URGENT2024 noisy/clean, Dutch, and a separate grouped OpenLong section.
 
-By default, also use [obsidian-research-notes](../obsidian-research-notes/SKILL.md) to write the verified results to a detailed research note and update its daily homepage, unless the user opts out of vault updates. Keep note-writing and homepage organization instructions in that skill.
+This skill is report-only. It consumes completed evaluation evidence and writes
+an `.xlsx`; it does not launch jobs or publish results to another repository.
 
 ## When to Use
 
@@ -81,17 +81,6 @@ Formatting:
    ```
 4. Run [scripts/build_openasr_xlsx.py](./scripts/build_openasr_xlsx.py). Output defaults to `tmp/openasr_report/<label>.xlsx`.
 5. Reopen the workbook and verify every eligible dataset has a WERR formula and every eligible average has a numeric WERR. Verify all three sheets, the model identity/path, and each supplied dataset result filepath; when extending, verify the earlier models' metadata is unchanged. Do not post-process delta cells into blanks. Refresh an existing report if its deltas were previously withheld.
-6. Follow [obsidian-research-notes](../obsidian-research-notes/SKILL.md) with the verified workbook and the evidence described below. Write or update the detailed note and affected daily homepage, then return links to both alongside the `.xlsx`. The workbook builder generates the Excel file only; this handoff is a separate workflow step.
-
-### Obsidian handoff
-
-- Supply the final `.xlsx`, available input metrics and metadata files, exact baseline/candidate model labels and checkpoint steps, run provenance, and per-dataset result paths. Link the workbook from the note, copying it into the note skill's stable report asset directory so it is accessible from the vault. When extending or refreshing a report, update the existing comparison note and workbook asset for that report while preserving earlier models' evidence.
-- Summarize per-dataset WER and WERR, the OpenEN and language-macro OpenML averages, and the separate OpenLong `avg` and `avg0` where available. Preserve the workbook's aggregation rules and distinguish displayed available-coverage means from matched-coverage WERR. Include the main improvements/regressions, missing dataset coverage, and baseline provenance limits without suppressing numeric deltas or adding commentary to the canonical Excel table.
-- Render the note's comparison table as a colorful, readable figure rather than a plain Markdown table. Generate a high-resolution PNG with standard plotting/rendering tools from the verified metrics, save it in the stable report asset directory, and embed it in the detailed note. Include dataset names, baseline/candidate WER, and each candidate's WERR; retain exact model/step labels and separate OpenEN, OpenML, and OpenLong sections. Split large tables into readable section figures when needed. Use distinct section-header colors and bold summary rows.
-- Highlight WERR with a zero-centered diverging color scale: green for positive improvement, red for negative regression, and neutral for zero. Use consistent symmetric color limits across comparable panels and stronger shading for larger absolute WERR. Show signed numeric percentages and a legend (`WERR > 0: improvement; WERR < 0: regression`) so interpretation does not depend on color alone. Mark unavailable values as neutral `—`, never zero; distinguish WER percentages from relative WERR. Compute formula-derived values from verified inputs rather than relying on potentially empty Excel formula caches, and check figure values against the workbook's aggregation rules.
-- Pass the comparison figures to `obsidian-research-notes` for embedding and homepage figure selection under that skill's rules. Refresh the existing figure assets when the report changes. Verify text legibility and color/sign consistency before delivery.
-- Use only available evidence. Aggregate metrics alone do not establish utterance-level matching, error totals, sample counts, or representative bad cases; mark those as unavailable when not analyzed. Do not launch evaluation or invent measurements or training histories to complete the note. The comparison-table figures visualize verified results; pass other existing supporting artifacts and figures when available.
-- Vault edits are part of this reporting workflow by default; committing or pushing the vault requires separate user authorization.
 
 ### Required delta handling
 

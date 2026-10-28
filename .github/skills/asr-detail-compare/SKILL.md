@@ -1,6 +1,6 @@
 ---
 name: asr-detail-compare
-description: Compare one or two ASR `result_details*.jsonl` or verl training-validation JSONL outputs for the same dataset, using the reference as the baseline when only one result is provided. Use when Codex needs to inspect `val_data_gen`, load remote `az://` files, rank utterances by WER impact, generate clickable standalone HTML reports, perform model-to-model detail analysis, investigate top errors, debug utterance-level WER, or compare verl training checkpoints at different steps.
+description: Compare one or two ASR detail JSONL outputs for the same dataset and generate ranked utterance-level HTML reports. Use for `result_details` or `val_data_gen` error analysis; use report-experiment instead for run-level settings, validation, and reward-core reports.
 ---
 
 # ASR Detail Compare
@@ -17,7 +17,8 @@ Compare utterance-level ASR detail files without re-implementing the same merge 
    - `*.improved-topN.html` for wins
    - `*.degraded-topN.html` for regressions
 6. Spot-check a few top-ranked rows before delivering, especially if the script had to fall back to row-order joins.
-7. By default, read and apply [obsidian-research-notes](../obsidian-research-notes/SKILL.md) with the verified summary, HTML reports, source identities, scoring/join details, and reviewed findings to produce the vault deliverables, unless the user requests otherwise.
+7. Return the summary and HTML artifacts. Publishing them to a vault or another
+   repository is a separate, explicitly requested action.
 
 ## Single-Result Reference Baseline
 When only one result JSONL is provided, synthesize a baseline JSONL from that same file so every baseline hypothesis equals its reference. Preserve every row and all identity, language, audio, and metadata columns so the normal join and HTML rendering remain available.

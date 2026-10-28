@@ -1,0 +1,4 @@
+interface:
+  display_name: "Report Experiment"
+  short_description: "Compare experiments with overlaid figures and tables"
+  default_prompt: "Use $report-experiment to create slides with overlaid experiment figures, side-by-side configuration and metric tables, and exact shared-step deltas."

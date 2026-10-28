@@ -1,7 +1,6 @@
 ---
 name: paper-reading
 description: "Read an academic paper (arXiv or other URL/PDF) and produce TWO well-designed HTML slide decks (reveal.js): first an English deck, then a Chinese (简体中文) deck. Both use reveal.js with vertical layout, MathJax formulas, and figures/tables from TeX source. Use when: read paper, paper reading, paper summary, paper report, 读论文, 论文精读, summarize arxiv paper, 中文论文解读, generate paper HTML report, arxiv 2xxx.xxxxx, paper walkthrough, 论文笔记, paper slides."
-argument-hint: "arXiv abs/html/pdf URL, arXiv ID (e.g. 2405.22263), or local PDF path"
 ---
 
 # Paper Reading (Dual-Language reveal.js Slide Decks)

@@ -1,7 +1,6 @@
 ---
 name: paper-search
 description: "Search academic papers for an input topic, research area, author, lab, company, university, or organization. Use when: find papers, literature search, survey recent work, arXiv search, Semantic Scholar search, Google Scholar-style search, papers from OpenAI/Meta/Google/Microsoft/Stanford, papers by organization, related work discovery, build a reading list, compare papers on a topic."
-argument-hint: "Topic, research question, author, lab, company, university, or organization name"
 ---
 
 # Paper Search

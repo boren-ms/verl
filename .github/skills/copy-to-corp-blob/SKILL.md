@@ -1,7 +1,6 @@
 ---
 name: copy-to-corp-blob
-description: "Upload local files/dirs from the dev machine to corp tsstd01safn blob storage via azcopy with a write SAS. Default mapping: ~/data/<path>  ⇄  https://tsstd01safn.blob.core.windows.net/data/users/boren/data/<path>. Use when: copying local files to corp blob, uploading checkpoints/results to tsstd01safn, syncing ~/data to corp, push to safn, local to corp blob, copy to azure speech blob."
-argument-hint: "<local_path> [remote_subpath]   e.g. ~/data/ckp/foo  (defaults to users/boren/data/ckp/foo)"
+description: "Upload local files or directories from the development machine to corp tsstd01safn Blob storage with azcopy and a write SAS. Use for local-to-corp publication under the default users/boren/data mapping; use transfer-to-orange for corp/highperf-to-Orange transfers."
 ---
 
 # Copy Local Data to Corp Blob (tsstd01safn)
@@ -134,4 +133,6 @@ Compare file count and sizes against the local listing from Step 1.
   azcopy sync "<local_dir>" "https://tsstd01safn.blob.core.windows.net/data/<remote_dir>?${SAS}" --recursive
   ```
 - If only certain extensions should be uploaded, add `--include-pattern '*.pt;*.json'` (and `--exclude-pattern` to drop).
-- This skill is **local → corp only**. For corp → orange use `transfer-to-orange`; for orange → corp use `transfer-from-orange`.
+- This skill is **local → corp only**. For corp/highperf → Orange use
+  `transfer-to-orange`. Orange → corp is outside the active skill set and
+  requires an explicit transfer plan rather than an invented skill handoff.
