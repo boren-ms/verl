@@ -1,21 +1,23 @@
 ---
 name: report-experiment
-description: 'Build an evidence-backed native PPTX comparison report for verl ASR experiments through ppt-master, then update the research note and daily homepage through obsidian-research-notes by default. Covers material settings, validation p_err, and comparable reward-core trajectories. Use asr-detail-compare for utterance-level error review. Does not launch or modify experiments.'
+description: 'Build a compact, evidence-backed PDF comparison report for verl ASR experiments focused on configuration differences, validation, and reward-core, with reproducible data and optional Obsidian updates. Use asr-detail-compare for utterance-level error review. Does not create slide decks or launch or modify experiments.'
 ---
 
-# Report Experiment — Slide Deck
+# Report Experiment — Evidence Report
 
 Compare two or more existing verl ASR experiments and produce a concise,
-evidence-backed **slide deck** centered on three questions:
+evidence-backed **report package** centered on three questions:
 
 1. **What settings differ?**
 2. **How does validation quality change by dataset and optimizer step?**
 3. **How do comparable `reward-core/*` components change over optimizer steps?**
 
 Keep experiment access read-only: do not edit recipes, launch jobs, or stop
-runs. After the evidence package is verified, use
-[ppt-master](../ppt-master/SKILL.md) to generate and verify the editable native
-PPTX. Then use
+runs. The default deliverable is a verified, compact `report.pdf` containing
+only configuration differences, validation, and `reward-core`, plus the full
+evidence package, key figures, and non-redundant comparison tables. Read
+[compact PDF layout](references/compact-pdf-layout.md) before rendering the
+PDF. This skill does not generate PPTX or depend on a presentation workflow. Use
 [obsidian-research-notes](../obsidian-research-notes/SKILL.md) to update the
 research note and affected daily homepage automatically, unless the user opts
 out of vault updates or requests report artifacts only. These handoffs do not
@@ -63,8 +65,12 @@ incompatible and appears only in a clearly labeled coverage/provenance panel.
 
 Compare effective settings, not filename tokens or stale YAML defaults. Render
 the result as comparison tables; do not describe configuration differences only
-in prose. Start with the union of relevant fields, then show material
-differences plus a small set of essential shared controls.
+in prose. Start with the union of relevant fields, then render only material
+differences, missing values, and unresolved values in the report table. Do not
+include rows whose effective values are identical across every compared
+experiment. Preserve identical controls in `evidence.json` under a clearly
+named `shared_controls` section so they remain auditable without repeating them
+in the human-facing table.
 
 Cover these groups when present:
 
@@ -85,21 +91,23 @@ Use this table schema, adding one value column per experiment:
 
 For three or more experiments, retain the same schema with additional experiment
 columns. The “Difference / expected effect” cell summarizes the row across all
-runs; split the table by group when the slide would become too wide.
+runs; split the table by group when the report table would become too wide.
 
 Use fully qualified effective config keys whenever available. Normalize simple
 booleans, numbers, paths, and units for readability while preserving raw values
-in `evidence.json`. Summarize long lists/dictionaries in the slide cell and link
-them to the complete structured value in the evidence. Mark absent settings as
-`N/A`, unresolved settings as `Unknown`, and identical essential controls as
-`Same`; never infer values from experiment names.
+in `evidence.json`. Summarize long lists/dictionaries in the report cell and
+link them to the complete structured value in the evidence. Mark absent
+settings as `N/A` and unresolved settings as `Unknown`; never infer values from
+experiment names. A row with identical values in every experiment is not a
+report-table row and belongs only in `shared_controls` evidence.
 
 For each difference, include its source and a brief expected effect only when
 supported by code/config semantics. Visually emphasize changed cells, not the
 control cells. If several settings changed together, add a table-level note that
-the comparison is multivariable. Save the complete row set as
-`data/config_differences.csv` or JSON and reuse those exact rows in the PPTX,
-supporting Markdown, and evidence artifacts.
+the comparison is multivariable. Save only the difference/unresolved row set as
+`data/config_differences.csv` or JSON. Save shared controls separately as
+`data/shared_controls.csv` or JSON when they are useful for audit. Do not repeat
+the same setting in both tables.
 
 ## 2. Plot validation trajectories
 
@@ -147,8 +155,11 @@ datasets.
 ## 3. Plot `reward-core` over optimizer steps
 
 Discover every logged `reward-core/<component>/mean` key for each run. Build a
-coverage matrix first, then plot shared comparable components. Retain run-only
-components in the evidence and label them unavailable for cross-run comparison.
+coverage matrix first, then select the shared comparable components that are
+most decision-relevant for the key figures. Group related components into
+readable panels instead of producing one repetitive figure per metric. Preserve
+all discovered components in data/evidence, including run-only and unplotted
+components, and label why they were not used for cross-run figures.
 
 For every plotted component:
 
@@ -196,107 +207,94 @@ declare one overall winner when datasets trade off or evidence is incompatible.
 Do not recommend changing a reward weight merely because its component mean is
 small.
 
-## Evidence package and native PPTX deliverables
+## Evidence package and default deliverables
 
 Write a unique report directory, defaulting to
-`tmp/experiment_reports/<timestamp>/`. Complete and verify the evidence package
-before invoking the presentation workflow:
+`tmp/experiment_reports/<timestamp>/`. Complete and verify:
 
-- `report.md`: the authoritative source brief for the deck, including the slide
-  roster, exact takeaway titles, concise table rows, findings, and caveats;
-- `evidence.json`: run identity, settings, exact metric keys, raw observations,
-  comparison windows, transformations, slide/claim provenance, and missing-data
-  reasons;
-- `figures/`: reusable validation and `reward-core` figures;
-- `data/`: plotted CSV/JSON tables so every figure and numeric table is
-  reproducible.
+- `report.md`: the authoritative comparison report with concise findings,
+  key-figure captions, difference-only table rows, and caveats;
+- `report.pdf`: the self-contained human-readable report rendered from the
+  verified Markdown, figures, and canonical tables;
+- `evidence.json`: run identity, complete settings, `shared_controls`, exact
+  metric keys, raw observations, comparison windows, transformations, claim
+  provenance, and missing-data reasons;
+- `figures/`: reusable key validation and `reward-core` figures;
+- `data/`: plotted CSV/JSON data and canonical numeric tables so every figure
+  and value is reproducible.
 
-The primary presentation deliverable is an editable native `report.pptx`
-generated through [ppt-master](../ppt-master/SKILL.md). A rendered `report.pdf`
-or self-contained HTML preview is optional when the environment supports it;
-neither replaces the PPTX or becomes an independent source of claims. Keep the
-ppt-master project/workspace path in `evidence.json` and copy or link the final
-PPTX into the report directory without discarding its verification artifacts.
+The default compact PDF must include these key visuals when evidence exists:
 
-Use this slide sequence:
+- one validation trajectory figure per comparable dataset, or a readable set
+  of dataset panels, with all comparable runs overlaid;
+- a validation exact-shared-step comparison figure or table when aligned points
+  exist;
+- reward-core trajectory figures grouped by compatible units and direction,
+  without duplicate panels that communicate the same comparison;
+- a compact reward shared-window table when a common window exists;
+- a difference-only effective-settings table.
 
-1. **Title and executive takeaway:** compared experiments and the main
-   dataset-level tradeoff, without claiming an unsupported overall winner.
-2. **Scope and comparability:** run identities, step coverage, and the most
-   important limitations.
-3. **Settings differences:** one or more readable slides showing material
-   effective-setting differences and sources.
-4. **Validation trajectories:** chart-dominant slides, split by dataset group;
-   follow with a compact exact-shared-step summary when supported.
-5. **Reward-core trajectories:** chart-dominant slides grouped by compatible
-   components; follow with the shared-window summary when supported.
-6. **Findings:** concise observed facts, supported interpretation, hypotheses,
-   and material evidence gaps.
+Do not add a cover, executive-summary page, run-identity/coverage page,
+standalone interpretation page, or evidence-limits page to the PDF. Preserve
+that material in `report.md` and `evidence.json`, where it remains auditable
+without expanding the reading surface.
 
-Every slide must have one main message expressed as a takeaway title. Prefer a
-large figure or compact comparison table over prose; move exhaustive details to
-`report.md` and `evidence.json`. Do not create document-like slides filled with
-paragraphs, tiny tables, or repeated methodology.
-
-The deck must contain actual embedded visuals, not prose placeholders or links:
-
-- a run-identity and step-coverage table;
-- at least one material configuration-difference table using the schema above;
-- per-dataset validation trajectory figures for every comparable dataset;
-- a side-by-side validation comparison table with exact shared-step values and
-  deltas, plus clearly separated first/latest/best values;
-- `reward-core` trajectory figures for every shared comparable component;
-- a side-by-side reward shared-window table with values and deltas, or an
-  explicit coverage table when no component is comparable.
+Each table must have a distinct analytical purpose. Do not repeat the same rows
+or values in multiple tables merely with different formatting. In the PDF,
+prefer one canonical table for effective-setting differences, one for exact
+shared-step validation, and one for reward shared-window summaries. Keep run
+coverage and provenance in the evidence package unless a missing-coverage fact
+must appear as a compact caveat beside the affected figure. Omit any table whose
+content is already fully represented elsewhere and adds no new
+decision-relevant information.
 
 Every figure must be generated from a saved file under `data/`, and every table
 cell must trace to `evidence.json` or be marked `Unknown`/`N/A` with a reason.
 Never use decorative charts, invented values, or screenshots as substitutes for
-the underlying numeric evidence.
+the underlying numeric evidence. If an input dimension is unavailable, preserve
+the gap as `null` with a reason and use a compact coverage table instead of an
+empty or fabricated figure.
 
-Read [slide-deck guidance](references/slide-deck.md) while preparing the source
-brief. It owns the experiment-report content contract, while ppt-master owns
-presentation construction, routing, SVG/PPTX generation, and visual QA.
-
-### Invoke ppt-master
-
-After `report.md`, `evidence.json`, `figures/`, and `data/` agree:
-
-1. Read [ppt-master](../ppt-master/SKILL.md), run its attribution guard, and
-   follow its router. This source-backed new-deck request selects **Generate
-   PPTX**.
-2. For the automatic report path, explicitly request ppt-master's **Quick
-   Generate** profile: no Strategist/confirmation handoff, no template catalog
-   selection, and no speculative research beyond the supplied verified report
-   package. Honor an explicit user request for the Default profile instead.
-3. Give ppt-master `report.md`, `evidence.json`, the saved plotted data, and all
-   required figures as source/resource inputs. State that evidence values,
-   experiment order/color mapping, metric semantics, slide roster, and caveats
-   are binding; visual composition remains ppt-master's responsibility.
-4. Require the PPTX to contain the visuals and tables listed above. Use the
-   saved figures/data rather than screenshots, decorative replacements, or
-   recomputed values. A ppt-master-native chart/table is allowed only when it
-   preserves the exact saved values and provenance.
-5. Complete ppt-master's lockless final quality check and native PPTX export.
-   Render or inspect the exported deck when its workflow/environment provides a
-   renderer, then cross-check every plotted value, numeric table cell, takeaway,
-   and caveat against `evidence.json` before accepting `report.pptx`.
-
-Do not hand-author a competing HTML slide deck or bypass ppt-master with a
-separate presentation generator. If ppt-master is unavailable or fails, retain
-the verified evidence package, report the exact incomplete handoff, and do not
-claim that the PPTX exists.
-
-If an input dimension is unavailable, preserve the gap as `null` with a reason
-and show a compact coverage table instead of an empty or fabricated figure.
-Return links to the native PPTX, optional rendered PDF/HTML preview when one was
-actually produced, supporting Markdown, evidence, data, and figure directory,
-plus the research note and daily homepage when updated. Lead with the
+Return links to `report.pdf`, `report.md`, `evidence.json`, the data directory,
+the figure directory, and any updated research note/homepage. Lead with the
 best-supported validation findings.
+
+### Generate and verify `report.pdf`
+
+Render the PDF only after `report.md`, `evidence.json`, figures, and canonical
+tables agree. Use a deterministic local PDF path appropriate to the available
+environment, such as a document renderer or a direct plotting/PDF library. Do
+not route through presentation software or create an intermediate slide deck.
+
+The PDF must:
+
+- use compact document-oriented pages, normally A4 landscape, rather than
+  slide-sized pages;
+- contain only the three report sections defined in
+  [compact PDF layout](references/compact-pdf-layout.md): difference-only
+  settings, validation, and `reward-core`;
+- place short interpretation and caveats beside the relevant table or figure
+  instead of creating separate narrative pages;
+- embed the saved key figures at readable resolution and preserve the stable
+  run colors and labels;
+- keep tables readable across page boundaries, repeating headers when the
+  renderer supports it and splitting wide tables rather than shrinking text;
+- contain no invented values, duplicate tables, empty placeholder pages, or
+  links standing in for required visuals;
+- record its path and rendering method in `evidence.json` without making the
+  PDF an independent source of claims.
+
+Verify the finished PDF by checking that it opens, has a nonzero page count,
+contains extractable report text when supported, and renders every page without
+clipping, blank figures, or unreadably small tables. Render representative pages
+and a contact sheet for visual inspection when tools are available. Cross-check
+all numeric tables, figure captions, findings, and caveats against
+`evidence.json`. If PDF rendering fails, retain the verified evidence package,
+report the exact failure, and do not claim that `report.pdf` exists.
 
 ## 5. Update the research note and daily homepage
 
-After the native PPTX and evidence pass verification, invoke
+After `report.pdf`, the evidence package, and key figures pass verification, invoke
 [obsidian-research-notes](../obsidian-research-notes/SKILL.md). Keep vault
 organization and publication rules in that skill rather than duplicating them
 here. Supply:
@@ -306,8 +304,7 @@ here. Supply:
 - verified setting differences, per-dataset validation findings and shared-step
   deltas, comparable `reward-core` windows/means with observation counts, and
   material provenance or coverage limits;
-- `report.pptx`, any actual `report.pdf`/HTML preview, `report.md`,
-  `evidence.json`, reusable figures, plotted data, the ppt-master project path,
+- `report.pdf`, `report.md`, `evidence.json`, reusable key figures, plotted data,
   and any local dependencies needed to open the copied report;
 - an existing comparison-note/daily-entry identity when known, so a refresh
   updates the same report rather than creating duplicate notes.
@@ -318,7 +315,7 @@ evaluation or invented examples. The note skill owns selecting figures,
 copying linked assets, and updating the existing detailed note and daily entry.
 
 Before delivery, verify the note links and copied report dependencies resolve,
-the note metrics agree with the verified deck/evidence, and the affected daily
+the note metrics agree with the verified PDF/evidence, and the affected daily
 entry points to the refreshed report. Include both note links with the report
 artifacts and state whether vault changes are local, committed, or pushed.
 If the user opted out, skip the handoff; if the vault is unavailable, deliver
