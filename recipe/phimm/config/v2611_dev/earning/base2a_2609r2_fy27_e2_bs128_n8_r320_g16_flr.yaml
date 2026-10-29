@@ -1,0 +1,7 @@
+# FY27 Earnings Base2a: inclusive WER >= 1% subset.
+# This keeps Base2's model, reward, validation, and optimization settings;
+# only the Earnings training source changes from strict WER > 1% to WER >= 1%.
+defaults:
+  - base2_2609r2_fy27_e2_bs128_n8_r320_g16_flr
+  - /data/train_data/earningscall-fy27-en-us-batches-wer-ge1pct-verb-langhint@_earning_train
+  - _self_

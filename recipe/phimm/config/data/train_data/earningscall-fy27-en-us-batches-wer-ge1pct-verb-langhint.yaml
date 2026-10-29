@@ -1,0 +1,30 @@
+# FY27 Earnings batch 1/2 error-focused training subset.
+# Parent generation: 2609r2 checkpoint 54000, full output under
+# gen_qwen/v2611/2609r2/earnings_fy27_batches_20261028.
+# Filter: inclusive per-row WER >= 1%; rows exactly at 1% are retained.
+# Runtime filtering uses the stored WER (n_err / n_ref) with an inclusive
+# lower bound of 0.01, so this differs from the strict wer_gt1pct manifest.
+# Labels remain the original reference transcript; generated hypotheses are
+# used only for WER metadata and filtering.
+dataset_name: jsonl
+version: 2609
+jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/verl/gen_qwen/v2611/2609r2/earnings_fy27_batches_20261028/part-*.jsonl
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  filter_by_wer:
+    wer_range: [0.01, .inf]
+  add_field:
+    fields:
+      data_source: earnings_fy27
+  verl_format:
+    prompt_key: prompt
+    extra_keys:
+      - wer
+      - n_err
+      - n_ref
+      - audio_duration_seconds
