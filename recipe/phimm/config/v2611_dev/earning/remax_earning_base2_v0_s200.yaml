@@ -1,6 +1,6 @@
-# Fresh 200-step variant of remax_earning_base2_v0.
+# 400-step continuation of remax_earning_base2_v0_s200 (filename retained).
 # The 4,957-row dataset yields about 38 optimizer updates per epoch at batch 128;
-# six epoch passes keep the outer loop alive until the exact 200-step cap.
+# twelve epoch passes keep the outer loop alive until the exact 400-step cap.
 # Data, model initialization, reward, validation, checkpoint cadence, rollout,
 # LoRA, learning rate, and 2x8-GPU topology are inherited unchanged.
 hydra:
@@ -31,8 +31,8 @@ reward_function_by_data_source:
   earnings_fy27: librispeech
 
 trainer:
-  experiment_name: remax_earning_base2_v0_s200
-  total_epochs: 6
-  total_training_steps: 200
-  resume_mode: disable
-  resume_from_path: null
+  experiment_name: remax_earning_base2_v0_s400
+  total_epochs: 12
+  total_training_steps: 400
+  resume_mode: resume_path
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/v2611/remax_earning_base2_v0_s200/global_step_200
