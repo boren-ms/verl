@@ -1,0 +1,24 @@
+# Cleaned Quartr FY27 Batch 1 partial set: 3,125 segments from 23 events,
+# 15.03 hours. NE/PName tags are stripped into text and extracted as keywords.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings_quartr_fy27_batch1_first23events
+    verl_format:
+      prompt_key: prompt

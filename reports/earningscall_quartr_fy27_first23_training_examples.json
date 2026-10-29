@@ -1,0 +1,86 @@
+{
+  "source_jsonl": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+  "training_yaml": "recipe/phimm/config/data/train_data/earningscall-quartr-fy27-batch1-first23events-cleaned-verb-langhint.yaml",
+  "selection": "First record containing NE/PName tags and first record without entity tags, in JSONL order.",
+  "examples": [
+    {
+      "example_number": 1,
+      "selection_reason": "contains NE/PName tags",
+      "before_processing": {
+        "id": "event_52580_seg0",
+        "audio_path": "audio/event_52580_seg0.wav",
+        "display_ne_tagged": "Good day, ladies and gentlemen, and welcome to the <NE> Clipper Realty </NE> 4th Quarter 2022 Earnings Call. At this time, all participants have been placed on a listen-only mode, and the floor will be open for your questions and comments after the presentation. It is now my pleasure to turn the floor over to your host, <PName> Larry Kreider </PName> . The floor is yours.",
+        "language": "English",
+        "audio_duration_seconds": 16.35,
+        "original_audio_url": "https://speechinfratxflow.blob.core.windows.net/earningscall-quartr-earliest2-fy27q2/long_audio_batch1/event_52580.wav",
+        "start_seconds": 1.11,
+        "end_seconds": 17.46,
+        "parent_audio": "../earningscall-quartr-earliest2-fy27q2_batch1_segmented/audio/event_52580_seg0.wav",
+        "part_start_seconds": 0.0,
+        "part_end_seconds": 16.35
+      },
+      "after_processing": {
+        "audio_path": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/event_52580_seg0.wav",
+        "audio_duration_seconds": 16.35,
+        "prompt": [
+          {
+            "content": "Transcribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.<audio>\nThe language is English.",
+            "role": "user"
+          }
+        ],
+        "data_source": "earnings_quartr_fy27_batch1_first23events",
+        "reward_model": {
+          "ground_truth": "Good day, ladies and gentlemen, and welcome to the Clipper Realty 4th Quarter 2022 Earnings Call. At this time, all participants have been placed on a listen-only mode, and the floor will be open for your questions and comments after the presentation. It is now my pleasure to turn the floor over to your host, Larry Kreider. The floor is yours.",
+          "gt_output": "<src=English><tgt=English>\n<VERBATIM>\nGood day, ladies and gentlemen, and welcome to the Clipper Realty 4th Quarter 2022 Earnings Call. At this time, all participants have been placed on a listen-only mode, and the floor will be open for your questions and comments after the presentation. It is now my pleasure to turn the floor over to your host, Larry Kreider. The floor is yours."
+        },
+        "extra_info": {
+          "id": "event_52580_seg0",
+          "keywords": [
+            "Clipper Realty",
+            "Larry Kreider"
+          ],
+          "language": "English",
+          "prefix": ""
+        }
+      }
+    },
+    {
+      "example_number": 2,
+      "selection_reason": "contains no NE/PName tags",
+      "before_processing": {
+        "id": "event_52580_seg1_part1",
+        "audio_path": "audio/event_52580_seg1_part1.wav",
+        "display_ne_tagged": "These statements are subject to numerous risks and uncertainties, including those disclosed in the company's 2022 annual report on Form 10-K, which is accessible at www.sec.gov and our website. As a reminder, the forward-looking statements speak only as of the date of this call, March 16th, 2023, and the company undertakes no duty to update them.",
+        "language": "English",
+        "audio_duration_seconds": 27.4295,
+        "original_audio_url": "https://speechinfratxflow.blob.core.windows.net/earningscall-quartr-earliest2-fy27q2/long_audio_batch1/event_52580.wav",
+        "start_seconds": 18.77,
+        "end_seconds": 75.85,
+        "parent_audio": "../earningscall-quartr-earliest2-fy27q2_batch1_segmented/audio/event_52580_seg1.wav",
+        "part_start_seconds": 29.6505,
+        "part_end_seconds": 57.08
+      },
+      "after_processing": {
+        "audio_path": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/event_52580_seg1_part1.wav",
+        "audio_duration_seconds": 27.4295,
+        "prompt": [
+          {
+            "content": "Transcribe the audio clip into text. Transcribe verbatim, including all filler words and disfluencies.<audio>\nThe language is English.",
+            "role": "user"
+          }
+        ],
+        "data_source": "earnings_quartr_fy27_batch1_first23events",
+        "reward_model": {
+          "ground_truth": "These statements are subject to numerous risks and uncertainties, including those disclosed in the company's 2022 annual report on Form 10-K, which is accessible at www.sec.gov and our website. As a reminder, the forward-looking statements speak only as of the date of this call, March 16th, 2023, and the company undertakes no duty to update them.",
+          "gt_output": "<src=English><tgt=English>\n<VERBATIM>\nThese statements are subject to numerous risks and uncertainties, including those disclosed in the company's 2022 annual report on Form 10-K, which is accessible at www.sec.gov and our website. As a reminder, the forward-looking statements speak only as of the date of this call, March 16th, 2023, and the company undertakes no duty to update them."
+        },
+        "extra_info": {
+          "id": "event_52580_seg1_part1",
+          "keywords": [],
+          "language": "English",
+          "prefix": ""
+        }
+      }
+    }
+  ]
+}
