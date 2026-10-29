@@ -1,24 +1,24 @@
 ---
 name: transfer-to-orange
-description: "Transfer external data from highperf01safn blob to Orange (orng) via azcopy through the orngtransfer storage account. Use when: copying data to orange, transfer to orng, azcopy blob to orange, highperf to orngtransfer, two-stage blob transfer, copy dataset to orange storage."
+description: "Transfer external Azure Blob data to Orange (orng) with azcopy through the orngtransfer bridge, refreshing the source SAS cache when needed. Use for highperf-to-Orange, two-stage blob transfers, and copying datasets to Orange storage."
 ---
 
 # Transfer Data to Orange via azcopy
 
-Two-stage azcopy transfer from external highperf01safn blob storage to Orange (orng) blob storage, routed through the shared `orngtransfer` storage account.
+Two-stage azcopy transfer from an external Azure Blob account (commonly `highperf01*`) to Orange (orng), routed through the shared `orngtransfer` storage account.
 
 ## When to Use
 
-- Transfer datasets, audio data, or models from highperf01safn to Orange storage
+- Transfer datasets, audio data, or models from an external Azure Blob account to Orange storage
 - User says "copy to orange", "transfer to orng", "move data to orange blob"
-- Two-stage pipeline: highperf01safn → orngtransfer → orngwus2cresco (all from dev machine)
+- Two-stage pipeline: source Azure Blob account → orngtransfer → orngwus2cresco (all from dev machine)
 
 ## Architecture
 
 There is no direct Corp → Orange path. Data flows through the Green-accessible `orngtransfer` bridge.
 
 ```
-Stage 1 (from dev machine):  highperf01safn (with SAS)  →  orngtransfer/data/speech/...
+Stage 1 (from dev machine):  source account (with SAS)  →  orngtransfer/data/speech/...
 Stage 2 (from dev machine):  orngtransfer/data/speech/...  →  orngwus2cresco/data/speech/...
 ```
 
@@ -30,7 +30,7 @@ Ref: [Penny wiki: Transfers Orange <=> Green](~/code/Penny.wiki/Orange-wiki/Proj
 
 | Role | Base URL |
 |------|----------|
-| Source | `https://highperf01safn.blob.core.windows.net/data/<relative_path>` |
+| Source | `https://<source-account>.blob.core.windows.net/<container>/<relative_path>` |
 | Stage 1 dest / Stage 2 source | `https://orngtransfer.blob.core.windows.net/data/speech/<relative_path>` |
 | Final dest | `https://orngwus2cresco.blob.core.windows.net/data/speech/<relative_path>` |
 
@@ -38,16 +38,13 @@ Ref: [Penny wiki: Transfers Orange <=> Green](~/code/Penny.wiki/Orange-wiki/Proj
 
 ### Auth setup
 
-**Microsoft corp tenant** (for highperf01safn SAS token):
+**Microsoft corp tenant** supplies a read/list SAS for the exact source account and container. The refresh helper derives both values from the source URL, updates the cache without printing the token, and restores the Green login:
 ```bash
-# Switch to corp tenant and regenerate SAS
-az login --tenant microsoft.com
-EXPIRY=$(date -u -d '+7 days' '+%Y-%m-%dT%H:%MZ')
-SAS=$(az storage container generate-sas --as-user --auth-mode login \
-  --account-name highperf01safn --name data --permissions rl --expiry "$EXPIRY" -o tsv)
-echo "$SAS"
+python .github/skills/transfer-to-orange/scripts/refresh_source_sas.py \
+  --source-url "https://<source-account>.blob.core.windows.net/<container>/<relative_path>/"
 ```
-Update the SAS in `/home/boren/.sas/azure_blob_sas_cache.json` manually (or use `download_blob_with_sas.py` which auto-regenerates).
+
+Run it in a terminal that can open and surface Azure CLI's normal browser authentication. **Never use `az login --use-device-code` or any other device-code flow.** If the browser cannot open, the callback expires, or browser authentication fails, stop and ask the user to complete a fresh browser-based `az login --tenant <tenant>`; do not fall back to device code. Never print the SAS or embed it in commentary/final responses.
 
 **Green tenant** (for `orngtransfer` and final Orange endpoints):
 ```bash
@@ -73,23 +70,32 @@ The user provides a source path. If the path starts with `/datablob1/`, strip th
 
 **Verify the path exists:**
 ```bash
-azcopy list "https://highperf01safn.blob.core.windows.net/data/<relative_path>?<SAS>" | head -5
+azcopy list "https://<source-account>.blob.core.windows.net/<container>/<relative_path>?<SAS>" | head -5
 ```
 
-### Step 1 — Load SAS tokens
+### Step 1 — Load or refresh the source SAS
 
-Read SAS tokens from the cache file for all endpoints that need them:
+Derive the container cache key from the source URL, for example `https://highperf01eus2.blob.core.windows.net/data`. Inspect only whether an entry exists and its `expiry_utc`; do not print the full cache because it contains secrets.
 
 ```bash
-cat /home/boren/.sas/azure_blob_sas_cache.json
+jq --arg key "https://<source-account>.blob.core.windows.net/<container>" \
+  '{has_sas: ((.[$key].sas // "") | length > 0), expiry_utc: .[$key].expiry_utc}' \
+  /home/boren/.sas/azure_blob_sas_cache.json
 ```
 
-Extract the `sas` value for each endpoint key. **Check `expiry_utc`** — if expired, warn the user and stop. They need to regenerate the token first.
+If the entry is missing, expired, has less than 30 minutes remaining, or source listing fails with a SAS authentication error, run the refresh helper and retry the source listing once. Do not repeatedly refresh on path-not-found, authorization, or other non-expiry errors.
+
+```bash
+python .github/skills/transfer-to-orange/scripts/refresh_source_sas.py \
+  --source-url "<full-source-URL>"
+```
+
+The helper switches to the Microsoft corp tenant with browser authentication, generates a seven-day `rl` SAS for the exact source container, atomically updates `/home/boren/.sas/azure_blob_sas_cache.json` with mode `0600`, and restores the Green tenant with browser authentication. If browser login needs user interaction, surface the browser prompt and wait. If it fails or the account denies SAS generation, report that exact blocker and stop; never use device code or fall back to another account or credential.
 
 Construct full URLs with SAS by appending `?<sas_value>` to the blob URL.
 
 Only the external source blob account uses a SAS token:
-- `https://highperf01safn.blob.core.windows.net/data`
+- `https://<source-account>.blob.core.windows.net/<container>`
 
 The bridge and Orange endpoints (`orngtransfer`, `orngwus2cresco`) authenticate via **`AZCOPY_AUTO_LOGIN_TYPE=AZCLI`**, which reuses the `az login` session (green tenant). Ensure the user has run `az login --tenant 8b9ebe14-d942-49e7-ace9-14496d0caff0` and set `export AZCOPY_AUTO_LOGIN_TYPE=AZCLI` before proceeding.
 
@@ -99,11 +105,11 @@ Before copying the full dataset, always test with a single file.
 
 ```bash
 # List files at source to pick one
-azcopy list "https://highperf01safn.blob.core.windows.net/data/<relative_path>?<SAS>" | head -5
+azcopy list "https://<source-account>.blob.core.windows.net/<container>/<relative_path>?<SAS>" | head -5
 
 # Stage 1: Copy 1 file to orngtransfer
 AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy copy \
-  "https://highperf01safn.blob.core.windows.net/data/<relative_path>/<one_file>?<SAS_highperf>" \
+  "https://<source-account>.blob.core.windows.net/<container>/<relative_path>/<one_file>?<SAS_source>" \
   "https://orngtransfer.blob.core.windows.net/data/speech/<relative_path>/<one_file>" \
   --s2s-preserve-access-tier=false
 
@@ -124,7 +130,7 @@ Verify the single file at the final Orange path before proceeding with the full 
 export SAS="<sas_value_from_cache>"
 
 AZCOPY_AUTO_LOGIN_TYPE=AZCLI azcopy copy \
-  "https://highperf01safn.blob.core.windows.net/data/<relative_path>/*?${SAS}" \
+  "https://<source-account>.blob.core.windows.net/<container>/<relative_path>/*?${SAS}" \
   "https://orngtransfer.blob.core.windows.net/data/speech/<relative_path>/" \
   --s2s-preserve-access-tier=false --recursive
 ```
@@ -164,9 +170,10 @@ Compare file count and sizes against the source listing from Step 2.
 - **Always set `AZCOPY_AUTO_LOGIN_TYPE=AZCLI`** for `orngtransfer` and Orange endpoints (reuses `az login` session).
 - **Always add `--s2s-preserve-access-tier=false`** — the bridge and Orange storage accounts don't support blob access tiers.
 - **Only source blobs use SAS tokens** from `/home/boren/.sas/azure_blob_sas_cache.json`. `orngtransfer` and Orange endpoints use `az login` (green tenant).
-- **Check SAS expiry** before starting — if expired, regenerate via `az login --tenant microsoft.com` (see Prerequisites).
+- **Refresh stale source SAS automatically** with the bundled helper, then retry source listing once. The helper must restore the Green tenant before transfer work continues.
+- **Browser login only:** never run Azure CLI with `--use-device-code`. If normal browser authentication fails, stop and request a fresh browser login instead of changing authentication modes.
 - **Always test with 1 file** before doing the full recursive copy.
-- The `data` container in highperf01safn does NOT always have the `datablob1/` prefix — verify the actual path with `azcopy list` first.
+- Source accounts and containers vary. Do not substitute `highperf01safn/data`; derive them from the supplied URL. A `data` container does not always have the `datablob1/` prefix, so verify the actual path with `azcopy list` first.
 - **Run long copies in async terminal mode** — they can take hours for large datasets.
 - The relative path is computed by stripping `/datablob1/` from the source path.
 - Ensure trailing `/` on destination directory URLs.
