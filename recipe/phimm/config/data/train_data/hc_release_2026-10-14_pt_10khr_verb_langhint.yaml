@@ -1,4 +1,4 @@
-# Deterministic ~10,000-hour Portuguese subset selected from hc_release_2026-10-14.
+# Deterministic ~10khr Portuguese subset selected from hc_release_2026-10-14.
 - dataset_name: chunk
   specs:
     - manifest_file: az://orngwus2cresco/data/speech/am_data/human_caption/hc_release_2026-10-14_pt_10000h/pt/file_set.json

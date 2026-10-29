@@ -4,7 +4,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - gen_base
-  - /data/train_data/hc_release_2026-10-14_en_10000h_verb_langhint@data.train_data
+  - /data/train_data/hc_release_2026-10-14_en_10khr_verb_langhint@data.train_data
   - _self_
 
 custom_reward_function: ${val_reward.reward_functions.openasr_ml}

@@ -1,4 +1,4 @@
-# Strict WER > 1% subset from the independent English ~10,000-hour run.
+# Strict WER > 1% subset from the independent English ~10khr run.
 # Keep rows satisfying 100 * n_err > n_ref; exactly 1% is excluded.
 - dataset_name: jsonl
   version: 2609

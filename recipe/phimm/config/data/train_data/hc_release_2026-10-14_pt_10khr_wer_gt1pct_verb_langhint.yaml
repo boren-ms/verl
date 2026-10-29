@@ -1,4 +1,4 @@
-# Strict WER > 1% subset from the independent Portuguese ~10,000-hour run.
+# Strict WER > 1% subset from the independent Portuguese ~10khr run.
 - dataset_name: jsonl
   version: 2609
   jsonl_paths:
