@@ -9,6 +9,8 @@
     prefix_prob: 0.0
     lang_hint: true
   post_process:
+    add_field:
+      fields: {data_source: hc_release_20261014_pt_10000h}
     verl_format:
       prompt_key: prompt
       extra_keys: [wer, n_err, n_ref, audio_duration_seconds]

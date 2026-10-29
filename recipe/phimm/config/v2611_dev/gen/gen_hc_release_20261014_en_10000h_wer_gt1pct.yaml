@@ -20,6 +20,7 @@ data:
   max_audio_dur: null
 
 trainer:
+  experiment_name: gen_hc_release_20261014_en_10000h_wer_gt1pct
   nnodes: 2
   n_gpus_per_node: 8
 
@@ -28,4 +29,6 @@ wer_filter:
   output_dir: az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/hc_release_20261014_en_10000h
   report_dir: outputs/hc_release_20261014_en_10000h_wer/report
   training_task: lang_asr_verb
+  training_language: English
+  training_data_source: hc_release_20261014_en_10000h
   training_lang_hint: true
