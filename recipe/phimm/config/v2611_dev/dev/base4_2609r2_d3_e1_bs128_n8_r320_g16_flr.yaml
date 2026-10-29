@@ -1,0 +1,54 @@
+# Base4: one epoch of Earnings WER >1% (4,957), RIR noisy LS (20,424),
+# and OpenML (13,169); 38,550 rows total.
+defaults:
+  - ../base@_here_
+  - /data/train_data/openml_verb_langhint_v0@_ml_train
+  - /data/train_data/earningscall-fy27-en-us-batches-wer-gt1pct-verb-langhint@_earning_train
+  - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/ls_kw_verb_langhint@_ls_val
+  - /data/val_data/urgent2024_delta@_urgent_delta
+  - _self_
+
+actor_rollout_ref:
+  model: {path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf, lora_rank: 320}
+  actor:
+    optim: {lr: 3.0e-6, warmup_style: constant, lr_warmup_steps: 0}
+  rollout: {n: 8}
+
+data:
+  train_data: ['${_ml_train}', '${_earning_train}', '${_noisy_ls_train}']
+  val_data: ['${_earning_val}', '${_ml_val}', '${_ls_val}', '${_urgent_delta.0}']
+  data_source: null
+  train_batch_size: 128
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earnings_fy27, sample: 4957, shuffle: true}
+        - {name: noisy_ls, sample: 20424, shuffle: true}
+        - {name: openml, sample: 13169, shuffle: true}
+
+trainer: {nnodes: 2, total_epochs: 1, total_training_steps: null}
+
+val_reward:
+  reward_function_by_data_source: {urgent2024_delta: openasr_en}
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source: {openml: librispeech, earnings_fy27: librispeech, noisy_ls: librispeech}
