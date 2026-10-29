@@ -1,0 +1,20 @@
+# Error-focused subset generated from the full English and Portuguese
+# 2026-10-14 Human Caption release (117,152,668 parent examples).
+# Filter: strict per-row WER > 1%, implemented as 100 * n_err > n_ref.
+# Rows with WER exactly 1% are excluded. Original references remain labels.
+dataset_name: jsonl
+version: 2609
+jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/hc_release_20261014_en_pt/wer_gt1pct/part-*.jsonl
+add_task_info:
+  task: lang_asr_verb
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  verl_format:
+    prompt_key: prompt
+    extra_keys:
+      - wer
+      - n_err
+      - n_ref
+      - audio_duration_seconds

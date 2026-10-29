@@ -1,0 +1,16 @@
+# Deterministic ~10,000-hour Portuguese subset selected from hc_release_2026-10-14.
+- dataset_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/human_caption/hc_release_2026-10-14_pt_10000h/pt/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/human_caption/hc_release_2026-10-14_pt_10000h/pt/chunks/
+  chunk_types: [audio, transcription]
+  num_proc: auto
+  add_task_info:
+    task: lang_asr_verb
+    language: Portuguese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields: {data_source: hc_release_20261014_pt_10000h}
+    verl_format: {prompt_key: prompt}

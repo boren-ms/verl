@@ -1,0 +1,31 @@
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - gen_base
+  - /data/train_data/hc_release_2026-10-14_en_10000h_verb_langhint@data.train_data
+  - _self_
+
+custom_reward_function: ${val_reward.reward_functions.openasr_ml}
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+
+data:
+  output_path: az://orngwus2cresco/data/boren/data/verl/gen_qwen/v2611/2609r2/hc_release_20261014_en_10000h
+  output_split_size: 20000
+  chunk_load_mode: sample
+  max_audio_dur: null
+
+trainer:
+  nnodes: 2
+  n_gpus_per_node: 8
+
+wer_filter:
+  expected_rows: 1415052
+  output_dir: az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/hc_release_20261014_en_10000h
+  report_dir: outputs/hc_release_20261014_en_10000h_wer/report
+  training_task: lang_asr_verb
+  training_lang_hint: true

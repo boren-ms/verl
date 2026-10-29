@@ -1,0 +1,43 @@
+# Full English and Portuguese Human Caption release from 2026-10-14.
+# English: 216,769 chunks, 108,384,868 examples, 766,042.38 hours.
+# Portuguese: 17,535 chunks, 8,767,800 examples, 61,489.43 hours.
+# Total: 117,152,668 examples. No training-time subsampling is applied.
+- dataset_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/human_caption/hc_release_2026-10-14/en/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/human_caption/hc_release_2026-10-14/en/chunks/
+  chunk_types:
+    - audio
+    - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_release_20261014_en
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: chunk
+  specs:
+    - manifest_file: az://orngwus2cresco/data/speech/am_data/human_caption/hc_release_2026-10-14/pt/file_set.json
+      chunk_path: az://orngwus2cresco/data/speech/am_data/human_caption/hc_release_2026-10-14/pt/chunks/
+  chunk_types:
+    - audio
+    - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr_verb
+    language: Portuguese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_release_20261014_pt
+    verl_format:
+      prompt_key: prompt
