@@ -1,0 +1,9 @@
+# ReMax entry for the Base3 single-stage, full-source mixture.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base3_2609r2_d3_e1_bs128_n8_r320_g16_flr
+  - _self_
