@@ -1,15 +1,16 @@
 ---
 name: verl-asr-run
-description: 'Execute and monitor one verl ASR Ray job on an authorized Brix pool: training, standalone evaluation, generation, or an explicitly requested checkpoint export. Use for a single job lifecycle. Use run-openasr-exp for a multi-stage train/checkpoint/OpenASR/report pipeline, and openasr-report for workbook-only requests.'
+description: 'Execute one verl ASR Ray job or recurrently monitor, minimally recover when explicitly authorized, and report an explicitly scoped set of verl ASR experiments on authorized Brix pools: training, standalone evaluation, generation, or an explicitly requested checkpoint export. Use run-openasr-exp for a multi-stage train/checkpoint/OpenASR/report pipeline, and openasr-report for workbook-only requests.'
 ---
 
 # verl ASR Run
 
 Own one training, evaluation, or generation Ray job—and an explicitly requested
-export—from preflight to a verified terminal state. Use `run-openasr-exp` for a
+export—from preflight to a verified terminal state, or monitor a user-identified
+set of experiments and recover them only when explicitly authorized. Use `run-openasr-exp` for a
 train/export/evaluate/report pipeline or checkpoint queue, `openasr-report` for
 workbook-only work, and `report-experiment` for requested run comparisons.
-When editing this skill, do not operate or schedule remote work.
+When editing this skill, do not operate remote work.
 
 ## Identity and authorization
 
@@ -101,6 +102,69 @@ checkpoint completeness/upload state. Finite metrics alone do not establish
 stability; evidence any non-finite values, divergence, starvation, stalls, or
 suspicious evaluation results.
 
+### Recurring monitoring and authorized recovery
+
+When the user requests periodic monitoring, use a chat-attached heartbeat so
+the run retains this conversation's scope and evidence. Default to every 30
+minutes when no cadence is given, and report on every scheduled pass, including
+when a tracked job has no material change. Define the tracked set when creating
+the heartbeat: include only jobs the user explicitly identified or asked this
+invocation to launch and monitor. Save each tracked job's exact
+experiment/config name, submission ID when known, pool, cluster, namespace,
+lineage, and requested end condition in the heartbeat prompt. Live discovery
+may relocate those tracked submissions but must never add other discovered or
+user-owned jobs to the report. Record whether monitoring is read-only or may
+recover failures and the recovery stopping condition. Before creating a
+heartbeat, inspect existing schedules and job ownership so two automations do
+not monitor or recover the same submission independently.
+
+Each run is read-only unless the user separately authorized a specific recovery
+action. Rediscover live Ray submissions rather than trusting an ID or state
+saved by an earlier run, while preserving lineage when a submission was
+replaced. Apply the normal monitoring evidence hierarchy and give one concise
+row or section for every tracked job on every pass:
+
+- experiment/config identity, live state and phase, pool, submission, and
+  participating pods;
+- completed optimizer step or evaluation progress, target, and delta since the
+  prior report; explicitly say `no progress change` when unchanged;
+- latest per-dataset validation and checkpoint state, distinguishing newly
+  observed evidence from repeated values;
+- current GPU/process health, abnormal metrics, changed risks, and any user
+  action required.
+
+Do not omit an unchanged tracked job or substitute a newly discovered job.
+Highlight meaningful progress, phase/state changes, new validation or
+checkpoints, failure, a stall supported by repeated observations, completion,
+or required user input. Do not infer a stall from one quiet interval or infer
+completion from an absent job. Stop the heartbeat after all tracked experiments
+reach verified terminal states and the final status has been reported, or when
+the user asks monitoring to stop. An explicit stop always overrides recovery
+or continued monitoring.
+
+When the user explicitly requests a scheduled monitor/fix/report loop, the
+heartbeat may diagnose and recover the scoped job under `Recover` below. A
+recovery pass must:
+
+1. Establish a real failure from live Ray state and the complete current
+   traceback, or establish a stall from repeated polls plus current
+   process/GPU evidence. One quiet interval is not a stall.
+2. Make only the smallest code or runtime-environment fix that preserves the
+   effective recipe, data, reward, priority, pool, topology, checkpoint, and
+   resume semantics. Never paper over a failure by silently changing them.
+3. Verify the focused fix, sync the exact revision, confirm no competing live
+   submission exists, and resubmit with a new submission ID while preserving
+   the original failure lineage.
+4. Attempt at most one repair/resubmission for a distinct root cause. If the
+   same failure recurs, the required fix is outside this scope, ownership is
+   ambiguous, or verification is unavailable, report the evidence and stop
+   automated recovery pending user direction.
+
+Continue monitoring a successfully recovered submission on the same cadence.
+Keep it in the original tracked lineage and report it on every pass. State the
+failure, fix, verification, old and new submission IDs, checkpoint/resume
+boundary, and whether progress after recovery is genuinely new.
+
 ## Recover
 
 Read the complete traceback and identify whether the failure is code, data,
@@ -131,8 +195,10 @@ and upload before reporting the export.
 
 ## Reporting
 
-Lead with experiment/config. For recurring updates, include only new rows, a
-concise trend, and changed risks:
+Lead with experiment/config. For recurring updates, include one concise row or
+section for every tracked job, its progress delta (including no change), the
+latest evidence, and changed risks. Never include an untracked job merely
+because live discovery found it:
 
 | Field | Required evidence |
 | --- | --- |
