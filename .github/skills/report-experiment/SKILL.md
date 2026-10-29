@@ -259,6 +259,27 @@ Return links to `report.pdf`, `report.md`, `evidence.json`, the data directory,
 the figure directory, and any updated research note/homepage. Lead with the
 best-supported validation findings.
 
+## In-chat presentation
+
+The report is also a Chat deliverable, not only a PDF artifact. After the
+figures and canonical tables have been generated and verified, show the key
+Validation figure(s) directly in the current Chat using Markdown image embeds
+with absolute local paths, for example:
+
+```markdown
+![Validation trajectories](/absolute/path/to/figures/validation.png)
+```
+
+Show the effective Config Difference in the Chat as a concise Markdown table
+using the verified `data/config_differences.csv` or JSON values. If the table
+is too wide to read reliably, render that same saved data as a dedicated
+config-difference image and embed it with an absolute local path. Do not
+recreate values by hand, use screenshots as the evidence source, or show a
+figure/table that is not backed by `evidence.json` and the saved `data/`
+artifacts. Include links to the underlying figure, table data, and full PDF
+after the inline presentation. The inline display is required even when the
+same content is already embedded in `report.pdf`.
+
 ### Generate and verify `report.pdf`
 
 Render the PDF only after `report.md`, `evidence.json`, figures, and canonical
@@ -291,6 +312,15 @@ and a contact sheet for visual inspection when tools are available. Cross-check
 all numeric tables, figure captions, findings, and caveats against
 `evidence.json`. If PDF rendering fails, retain the verified evidence package,
 report the exact failure, and do not claim that `report.pdf` exists.
+
+After PDF verification, perform the in-chat presentation before delivery:
+
+- embed the verified Validation trajectory figure (or the smallest readable
+  set of per-dataset Validation figures) directly in the Chat;
+- show the verified effective Config Difference table inline, or embed its
+  rendered image when width makes a Markdown table unreadable;
+- cross-check the inline values and image paths against `evidence.json` and
+  the saved figure/data files, and still return the normal artifact links.
 
 ## 5. Update the research note and daily homepage
 
