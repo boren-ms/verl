@@ -38,13 +38,13 @@ Ref: [Penny wiki: Transfers Orange <=> Green](~/code/Penny.wiki/Orange-wiki/Proj
 
 ### Auth setup
 
-**Microsoft corp tenant** supplies a read/list SAS for the exact source account and container. The refresh helper derives both values from the source URL, updates the cache without printing the token, and restores the Green login:
+**Microsoft corp tenant** supplies a read/list SAS for the exact source account and container. Run the helper before a transfer; it reuses a valid cached SAS and Green storage login when available. When it must refresh the SAS, it uses an isolated persistent Corp Azure CLI configuration, leaving the normal Green configuration in place:
 ```bash
 python .github/skills/transfer-to-orange/scripts/refresh_source_sas.py \
   --source-url "https://<source-account>.blob.core.windows.net/<container>/<relative_path>/"
 ```
 
-Run it in a terminal that can open and surface Azure CLI's normal browser authentication. **Never use `az login --use-device-code` or any other device-code flow.** If the browser cannot open, the callback expires, or browser authentication fails, stop and ask the user to complete a fresh browser-based `az login --tenant <tenant>`; do not fall back to device code. Never print the SAS or embed it in commentary/final responses.
+Run it in a terminal that can open and surface Azure CLI's normal browser authentication. It requests a browser login only when the relevant existing session cannot provide a storage token, and disables the interactive subscription picker. The first Corp login uses `AZURE_CONFIG_DIR=~/.azure-transfer-to-orange/corp`; later refreshes can reuse it. Green uses the invoking shell's normal Azure CLI configuration, the same one azcopy will use. If authentication needs user interaction, wait for the actual process to complete, then verify the active Green tenant and storage token; a browser confirmation alone does not establish that the CLI callback succeeded. **Never use `az login --use-device-code` or any other device-code flow.** If the browser cannot open, the callback expires, or browser authentication fails, stop and ask the user to complete a fresh browser-based login in the matching WSL environment and configuration. Never print the SAS or embed it in commentary/final responses.
 
 **Green tenant** (for `orngtransfer` and final Orange endpoints):
 ```bash
@@ -83,14 +83,14 @@ jq --arg key "https://<source-account>.blob.core.windows.net/<container>" \
   /home/boren/.sas/azure_blob_sas_cache.json
 ```
 
-If the entry is missing, expired, has less than 30 minutes remaining, or source listing fails with a SAS authentication error, run the refresh helper and retry the source listing once. Do not repeatedly refresh on path-not-found, authorization, or other non-expiry errors.
+Run the helper to check the cache and Green session. If the entry is missing, expired, or has less than 30 minutes remaining, it refreshes it. If source listing fails with a SAS authentication error despite a valid-looking cache entry, run the helper once with `--force` and retry the listing once. Do not repeatedly refresh on path-not-found, authorization, or other non-expiry errors.
 
 ```bash
 python .github/skills/transfer-to-orange/scripts/refresh_source_sas.py \
   --source-url "<full-source-URL>"
 ```
 
-The helper switches to the Microsoft corp tenant with browser authentication, generates a seven-day `rl` SAS for the exact source container, atomically updates `/home/boren/.sas/azure_blob_sas_cache.json` with mode `0600`, and restores the Green tenant with browser authentication. If browser login needs user interaction, surface the browser prompt and wait. If it fails or the account denies SAS generation, report that exact blocker and stop; never use device code or fall back to another account or credential.
+The helper reuses or obtains a Corp login in its isolated configuration, generates a seven-day `rl` SAS for the exact source container, atomically updates `/home/boren/.sas/azure_blob_sas_cache.json` with mode `0600`, and verifies or obtains a Green login in the normal configuration. If browser login needs user interaction, surface the browser prompt and wait. If it fails or the account denies SAS generation, report that exact blocker and stop; never use device code or fall back to another account or credential.
 
 Construct full URLs with SAS by appending `?<sas_value>` to the blob URL.
 
@@ -170,7 +170,7 @@ Compare file count and sizes against the source listing from Step 2.
 - **Always set `AZCOPY_AUTO_LOGIN_TYPE=AZCLI`** for `orngtransfer` and Orange endpoints (reuses `az login` session).
 - **Always add `--s2s-preserve-access-tier=false`** — the bridge and Orange storage accounts don't support blob access tiers.
 - **Only source blobs use SAS tokens** from `/home/boren/.sas/azure_blob_sas_cache.json`. `orngtransfer` and Orange endpoints use `az login` (green tenant).
-- **Refresh stale source SAS automatically** with the bundled helper, then retry source listing once. The helper must restore the Green tenant before transfer work continues.
+- **Refresh stale source SAS automatically** with the bundled helper, then retry source listing once. The helper must verify the Green tenant before transfer work continues; its isolated Corp configuration does not switch the Green session.
 - **Browser login only:** never run Azure CLI with `--use-device-code`. If normal browser authentication fails, stop and request a fresh browser login instead of changing authentication modes.
 - **Always test with 1 file** before doing the full recursive copy.
 - Source accounts and containers vary. Do not substitute `highperf01safn/data`; derive them from the supplied URL. A `data` container does not always have the `datablob1/` prefix, so verify the actual path with `azcopy list` first.
