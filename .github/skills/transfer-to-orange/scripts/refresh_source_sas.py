@@ -15,7 +15,9 @@ from pathlib import Path
 
 DEFAULT_CACHE = Path("~/.sas/azure_blob_sas_cache.json").expanduser()
 CORP_TENANT = "microsoft.com"
+CORP_TENANT_ID = "72f988bf-86f1-41af-91ab-2d7cd011db47"
 GREEN_TENANT = "8b9ebe14-d942-49e7-ace9-14496d0caff0"
+DEFAULT_CORP_CONFIG = Path("~/.azure-transfer-to-orange/corp").expanduser()
 
 
 def parse_container_url(source_url: str) -> tuple[str, str, str]:
@@ -72,21 +74,50 @@ def write_cache_atomic(path: Path, cache: dict[str, dict[str, str]]) -> None:
         raise
 
 
-def az_login(tenant: str) -> None:
+def az_login(tenant: str, env: dict[str, str]) -> None:
     """Authenticate with Azure CLI's browser flow; device code is forbidden."""
     result = subprocess.run(
         ["az", "login", "--tenant", tenant, "--allow-no-subscriptions", "--output", "none"],
+        env={**env, "AZURE_CORE_LOGIN_EXPERIENCE_V2": "off"},
         check=False,
     )
     if result.returncode:
+        config_dir = env.get("AZURE_CONFIG_DIR")
+        config_hint = f"AZURE_CONFIG_DIR={config_dir} " if config_dir else ""
         raise RuntimeError(
             f"Browser-based Azure CLI login failed for tenant {tenant}. "
-            f"Device-code fallback is disabled; complete `az login --tenant {tenant}` "
+            f"Device-code fallback is disabled; complete `{config_hint}az login --tenant {tenant}` "
             "in the browser and retry."
         )
 
 
-def generate_sas(account: str, container: str, expiry: datetime) -> str:
+def ensure_login(tenant: str, tenant_id: str, env: dict[str, str]) -> None:
+    """Reuse a current tenant session only if its storage token is obtainable."""
+    account = subprocess.run(
+        ["az", "account", "show", "--query", "tenantId", "--output", "tsv"],
+        env=env, capture_output=True, text=True, check=False,
+    )
+    if account.returncode == 0 and account.stdout.strip().lower() == tenant_id.lower():
+        token = subprocess.run(
+            ["az", "account", "get-access-token", "--resource", "https://storage.azure.com/",
+             "--query", "tenant", "--output", "tsv"],
+            env=env, capture_output=True, text=True, check=False,
+        )
+        if token.returncode == 0 and token.stdout.strip().lower() == tenant_id.lower():
+            print(f"Reusing valid Azure CLI session for tenant {tenant_id}", flush=True)
+            return
+    print(f"Browser sign-in required for tenant {tenant}; complete it in this session.", flush=True)
+    az_login(tenant, env)
+    token = subprocess.run(
+        ["az", "account", "get-access-token", "--resource", "https://storage.azure.com/",
+         "--query", "tenant", "--output", "tsv"],
+        env=env, capture_output=True, text=True, check=False,
+    )
+    if token.returncode != 0 or token.stdout.strip().lower() != tenant_id.lower():
+        raise RuntimeError(f"Azure CLI did not provide a storage token for tenant {tenant} after login")
+
+
+def generate_sas(account: str, container: str, expiry: datetime, env: dict[str, str]) -> str:
     result = subprocess.run(
         [
             "az", "storage", "container", "generate-sas",
@@ -98,6 +129,7 @@ def generate_sas(account: str, container: str, expiry: datetime) -> str:
             "--output", "tsv",
         ],
         check=False,
+        env=env,
         capture_output=True,
         text=True,
     )
@@ -116,6 +148,8 @@ def main() -> int:
     )
     parser.add_argument("--source-url", required=True, help="Source container or prefix URL")
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
+    parser.add_argument("--corp-config-dir", type=Path, default=DEFAULT_CORP_CONFIG,
+                        help="Separate Azure CLI configuration for the Corp tenant")
     parser.add_argument("--expiry-hours", type=int, default=168)
     parser.add_argument("--min-valid-minutes", type=int, default=30)
     parser.add_argument("--force", action="store_true")
@@ -128,37 +162,24 @@ def main() -> int:
     minimum_expiry = datetime.now(timezone.utc) + timedelta(minutes=args.min_valid_minutes)
     if not args.force and cached_sas and cached_expiry and cached_expiry >= minimum_expiry:
         print(f"Cached SAS remains usable for {container_url} until {cached_expiry.isoformat()}")
+        ensure_login(GREEN_TENANT, GREEN_TENANT, os.environ.copy())
         return 0
 
+    corp_config = args.corp_config_dir.expanduser()
+    corp_config.mkdir(parents=True, mode=0o700, exist_ok=True)
+    corp_env = {**os.environ, "AZURE_CONFIG_DIR": str(corp_config)}
     refresh_expiry = datetime.now(timezone.utc) + timedelta(hours=args.expiry_hours)
-    refresh_error: BaseException | None = None
-    try:
-        az_login(CORP_TENANT)
-        sas = generate_sas(account, container, refresh_expiry)
-        actual_expiry = parse_expiry(sas)
-        cache[container_url] = {
-            "sas": sas,
-            "updated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "expiry_utc": actual_expiry.strftime("%Y-%m-%dT%H:%M:%SZ") if actual_expiry else "",
-        }
-        write_cache_atomic(args.cache.expanduser(), cache)
-        print(
-            f"Refreshed SAS cache for {container_url}; "
-            f"expires {cache[container_url]['expiry_utc']}"
-        )
-    except BaseException as error:
-        refresh_error = error
-    finally:
-        try:
-            az_login(GREEN_TENANT)
-        except BaseException as restore_error:
-            if refresh_error is None:
-                refresh_error = restore_error
-            else:
-                print(f"WARNING: failed to restore Green tenant: {restore_error}")
-
-    if refresh_error is not None:
-        raise refresh_error
+    ensure_login(CORP_TENANT, CORP_TENANT_ID, corp_env)
+    sas = generate_sas(account, container, refresh_expiry, corp_env)
+    actual_expiry = parse_expiry(sas)
+    cache[container_url] = {
+        "sas": sas,
+        "updated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "expiry_utc": actual_expiry.strftime("%Y-%m-%dT%H:%M:%SZ") if actual_expiry else "",
+    }
+    write_cache_atomic(args.cache.expanduser(), cache)
+    print(f"Refreshed SAS cache for {container_url}; expires {cache[container_url]['expiry_utc']}")
+    ensure_login(GREEN_TENANT, GREEN_TENANT, os.environ.copy())
     return 0
 
 
