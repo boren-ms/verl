@@ -1,0 +1,19 @@
+# Base4 v1b with five times the learning rate: 1.5e-6 instead of 3e-7.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base4_2609r2_d3_e1_bs128_n8_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1.5e-6
+  rollout:
+    n: 8
+
+trainer:
+  total_epochs: 2
