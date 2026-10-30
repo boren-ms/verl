@@ -155,10 +155,14 @@ recovery pass must:
 3. Verify the focused fix, sync the exact revision, confirm no competing live
    submission exists, and resubmit with a new submission ID while preserving
    the original failure lineage.
-4. Attempt at most one repair/resubmission for a distinct root cause. If the
-   same failure recurs, the required fix is outside this scope, ownership is
-   ambiguous, or verification is unavailable, report the evidence and stop
-   automated recovery pending user direction.
+4. Do not impose a fixed retry-count limit on authorized recovery, either per
+   pass or across passes. A recurrence of the same failure does not by itself
+   require renewed user authorization or stopping automated recovery.
+   Re-establish the failure evidence and all
+   recovery preconditions before each attempt within the authorized scope.
+   If the required fix is outside this scope, ownership is ambiguous, or
+   verification is unavailable, report the evidence and stop automated recovery
+   pending user direction.
 
 Continue monitoring a successfully recovered submission on the same cadence.
 Keep it in the original tracked lineage and report it on every pass. State the
