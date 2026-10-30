@@ -1,4 +1,4 @@
-# Base4 n1c: n=16, two epochs, rollout temperature 1.5.
+# Base4 n1a_T15: n=16, two epochs, rollout temperature 1.5.
 hydra:
   searchpath: [file://recipe/phimm/config, file://verl/trainer/config]
 
