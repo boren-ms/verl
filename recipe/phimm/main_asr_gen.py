@@ -83,7 +83,8 @@ def _jsonl_num_rows(path: str) -> int:
     return count
 
 
-def _resume_state_from_output(output_dir: str, total_egs: int, batch_size: int, enabled: bool) -> tuple[int, int]:
+def _resume_state_from_output(output_dir: str, total_egs: int, batch_size: int, enabled: bool,
+                              allow_unaligned: bool = False) -> tuple[int, int]:
     if any(bf.glob(f"{output_dir}/part-*.parquet")):
         raise ValueError(
             f"Only JSONL output is supported; {output_dir} contains Parquet splits. Use a new output_path."
@@ -110,12 +111,47 @@ def _resume_state_from_output(output_dir: str, total_egs: int, batch_size: int, 
         existing_egs += _jsonl_num_rows(path)
     if existing_egs > total_egs:
         raise ValueError(f"Saved output has {existing_egs} examples, exceeding the current dataset size {total_egs}")
-    if existing_egs < total_egs and existing_egs % batch_size != 0:
+    if not allow_unaligned and existing_egs < total_egs and existing_egs % batch_size != 0:
         raise ValueError(
             f"Cannot resume from {existing_egs} saved examples because it is not aligned to batch_size={batch_size}"
         )
     print(f"Resuming generation from {existing_egs}/{total_egs} saved examples across {len(parts)} parts.")
     return existing_egs, len(parts)
+
+
+def _canonical_audio_pointer(pointer):
+    cache_root = os.getenv("VERL_AUDIO_CACHE_ROOT", os.path.expanduser("~/data")).rstrip("/") + "/"
+    if isinstance(pointer, str) and pointer.startswith(cache_root):
+        return "az://orngwus2cresco/data/" + pointer[len(cache_root):]
+    return pointer
+
+
+def _pending_audio_indices(output_dir, pointers, expected_saved):
+    """Resume by identity even when chunk loading changes the dataset order."""
+    saved = set()
+    for path in sorted(bf.glob(f"{output_dir}/part-*.jsonl")):
+        with bf.BlobFile(path, "r") as stream:
+            for line in stream:
+                row = json.loads(line)
+                pointer = _canonical_audio_pointer(row.get("audio_chunk") or row.get("audio_path"))
+                if not isinstance(pointer, str) or not pointer or pointer in saved:
+                    raise ValueError(f"Missing or duplicate saved audio pointer: {pointer}")
+                saved.add(pointer)
+    if len(saved) != expected_saved:
+        raise ValueError("Saved audio pointer count disagrees with saved rows")
+    seen = set()
+    pending = []
+    for index, pointer in enumerate(pointers):
+        pointer = _canonical_audio_pointer(pointer)
+        if not isinstance(pointer, str) or not pointer or pointer in seen:
+            raise ValueError(f"Missing or duplicate dataset audio pointer: {pointer}")
+        seen.add(pointer)
+        if pointer not in saved:
+            pending.append(index)
+    if not saved <= seen:
+        raise ValueError("Saved audio pointers are outside the current dataset")
+    print(f"Audio-pointer resume: {len(saved)} saved, {len(pending)} pending.")
+    return pending
 
 
 def get_env_vars():
@@ -220,7 +256,13 @@ def main_task(config):
     val_shuffle = config.data.get("validation_shuffle", False)
     if resume_from_output and val_shuffle:
         raise ValueError("data.resume_from_output requires data.validation_shuffle=False")
-    left_egs, split_idx = _resume_state_from_output(output_dir, total_egs, batch_size, resume_from_output)
+    pointer_resume = config.data.get("resume_by_audio_pointer", False)
+    left_egs, split_idx = _resume_state_from_output(
+        output_dir, total_egs, batch_size, resume_from_output, allow_unaligned=pointer_resume)
+    pending_indices = None
+    if pointer_resume and resume_from_output:
+        pointer_key = "audio_chunk" if "audio_chunk" in dataset.ds.column_names else "audio_path"
+        pending_indices = _pending_audio_indices(output_dir, dataset.ds[pointer_key], left_egs)
     start_batch_idx = left_egs // batch_size
     total_batches = math.ceil(total_egs / batch_size)
     if left_egs >= total_egs:
@@ -228,7 +270,7 @@ def main_task(config):
         print("All Done")
         return
     if left_egs > 0:
-        dataset = Subset(dataset, range(left_egs, total_egs))
+        dataset = Subset(dataset, pending_indices if pending_indices is not None else range(left_egs, total_egs))
 
     dataloader = StatefulDataLoader(
         dataset=dataset,
@@ -323,10 +365,8 @@ def main_task(config):
                      "audio_path": audio_paths[i], "audio_chunk": audio_chunks[i]}
                 if extras[i]:
                     r.update(extras[i])
-                cache_root = os.getenv("VERL_AUDIO_CACHE_ROOT", os.path.expanduser("~/data")).rstrip("/") + "/"
                 for key in ("audio_path", "audio_chunk"):
-                    if isinstance(r[key], str) and r[key].startswith(cache_root):
-                        r[key] = "az://orngwus2cresco/data/" + r[key][len(cache_root):]
+                    r[key] = _canonical_audio_pointer(r[key])
                 # Measure the waveform actually decoded, without reopening remote audio.
                 audios = batch_dict["multi_modal_data"][i]["audio"]
                 r["audio_duration_seconds"] = sum(len(waveform) / rate for waveform, rate in audios)

@@ -39,7 +39,7 @@ def generation_io():
         node
         for node in module.body
         if isinstance(node, ast.FunctionDef)
-        and node.name in {"_part_index", "_jsonl_num_rows", "_resume_state_from_output"}
+        and node.name in {"_part_index", "_jsonl_num_rows", "_resume_state_from_output", "_pending_audio_indices", "_canonical_audio_pointer"}
     ]
     namespace = {"bf": bf, "json": json, "os": os, "re": re}
     exec(compile(ast.Module(body=definitions, type_ignores=[]), str(path), "exec"), namespace)
@@ -144,7 +144,7 @@ def generation_pipeline(tmp_path):
                 "verl.trainer.ppo.reward",
             }
         )
-        or (isinstance(node, ast.FunctionDef) and node.name in {"_load_generation_scoring", "log_examples"})
+        or (isinstance(node, ast.FunctionDef) and node.name in {"_load_generation_scoring", "log_examples", "_canonical_audio_pointer"})
     ]
     main_task = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "main_task")
     start = next(
@@ -823,3 +823,36 @@ def test_generation_records_duration_and_portable_audio_pointer(generation_pipel
     assert saved['audio_duration_seconds'] == 1.5
     assert saved['response_tokens'] == 1
     assert saved['response_at_limit'] is False
+
+
+def test_pointer_resume_handles_reordered_chunks_and_partial_batch(generation_io, tmp_path):
+    (tmp_path / 'part-000.jsonl').write_text(
+        json.dumps({'audio_chunk': 'chunk-b:2:0'}) + '\n'
+        + json.dumps({'audio_chunk': 'chunk-a:2:0'}) + '\n')
+    assert generation_io._resume_state_from_output(str(tmp_path), 4, 512, True, allow_unaligned=True) == (2, 1)
+    pointers = ['chunk-a:2:0', 'chunk-a:2:1', 'chunk-b:2:0', 'chunk-b:2:1']
+    assert generation_io._pending_audio_indices(str(tmp_path), pointers, 2) == [1, 3]
+    with pytest.raises(ValueError, match='duplicate dataset'):
+        generation_io._pending_audio_indices(str(tmp_path), pointers + [pointers[0]], 2)
+    with pytest.raises(ValueError, match='outside the current dataset'):
+        generation_io._pending_audio_indices(str(tmp_path), pointers[:2], 2)
+
+
+def test_pointer_resume_rejects_duplicate_saved_rows(generation_io, tmp_path):
+    line = json.dumps({'audio_chunk': 'chunk-a:2:0'}) + '\n'
+    (tmp_path / 'part-000.jsonl').write_text(line * 2)
+    with pytest.raises(ValueError, match='duplicate saved'):
+        generation_io._pending_audio_indices(str(tmp_path), ['chunk-a:2:0'], 2)
+
+
+def test_pointer_resume_matches_cached_audio_to_saved_blob_uri(generation_io, tmp_path, monkeypatch):
+    monkeypatch.setenv('VERL_AUDIO_CACHE_ROOT', '/cached-audio')
+    uri = 'az://orngwus2cresco/data/speech/en/chunk.audio:501:0'
+    (tmp_path / 'part-000.jsonl').write_text(json.dumps({'audio_chunk': uri}) + '\n')
+    cached = '/cached-audio/speech/en/chunk.audio:501:0'
+    pending = '/cached-audio/speech/en/chunk.audio:501:1'
+    assert generation_io._pending_audio_indices(str(tmp_path), [pending, cached], 1) == [0]
+    with pytest.raises(ValueError, match='duplicate dataset'):
+        generation_io._pending_audio_indices(str(tmp_path), [cached, uri], 1)
+    with pytest.raises(ValueError, match='outside the current dataset'):
+        generation_io._pending_audio_indices(str(tmp_path), [cached.replace('/en/', '/pt/')], 1)

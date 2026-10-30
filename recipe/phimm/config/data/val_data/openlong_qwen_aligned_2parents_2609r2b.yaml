@@ -1,0 +1,45 @@
+# Qwen-generated segment candidates for the existing two-parent subsets.
+# Text is machine aligned; alignment_status/flags identify cases needing review.
+# 1,058 of 1,085 segments are flagged; six have empty candidate text.
+# These are not human-verified labels.
+# Omit parent_audio_path/audio_path from extra_info to score each segment alone.
+# Saved parent-level error counts can be inflated by normalization artifacts.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_qwen_aligned_2609r2b_step400_v1/two_parents/earnings21.jsonl
+  cache_name: auto_openlong_qwen_2parents_2609r2b_earnings21_v1
+  add_task_info: {task: lang_asr_verb, language: English, lang_hint: true}
+  post_process:
+    add_field: {fields: {data_source: earnings21}}
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["baseline_hypothesis", "baseline_n_err", "baseline_n_ref", "baseline_wer", "alignment_method", "alignment_status", "alignment_flags", "parent_baseline_n_err", "parent_baseline_n_ref", "parent_rank", "seg_index"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_qwen_aligned_2609r2b_step400_v1/two_parents/earnings22.jsonl
+  cache_name: auto_openlong_qwen_2parents_2609r2b_earnings22_v1
+  add_task_info: {task: lang_asr_verb, language: English, lang_hint: true}
+  post_process:
+    add_field: {fields: {data_source: earnings22}}
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["baseline_hypothesis", "baseline_n_err", "baseline_n_ref", "baseline_wer", "alignment_method", "alignment_status", "alignment_flags", "parent_baseline_n_err", "parent_baseline_n_ref", "parent_rank", "seg_index"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_qwen_aligned_2609r2b_step400_v1/two_parents/coraal.jsonl
+  cache_name: auto_openlong_qwen_2parents_2609r2b_coraal_v1
+  add_task_info: {task: lang_asr_verb, language: English, lang_hint: true}
+  post_process:
+    add_field: {fields: {data_source: coraal}}
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["baseline_hypothesis", "baseline_n_err", "baseline_n_ref", "baseline_wer", "alignment_method", "alignment_status", "alignment_flags", "parent_baseline_n_err", "parent_baseline_n_ref", "parent_rank", "seg_index"]
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_qwen_aligned_2609r2b_step400_v1/two_parents/earnings22_cleaned_aa.jsonl
+  cache_name: auto_openlong_qwen_2parents_2609r2b_earnings22_cleaned_aa_v1
+  add_task_info: {task: lang_asr_verb, language: English, lang_hint: true}
+  post_process:
+    add_field: {fields: {data_source: earnings22_cleaned_aa}}
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["baseline_hypothesis", "baseline_n_err", "baseline_n_ref", "baseline_wer", "alignment_method", "alignment_status", "alignment_flags", "parent_baseline_n_err", "parent_baseline_n_ref", "parent_rank", "seg_index"]

@@ -1,0 +1,27 @@
+# Highest-error-count Qwen-aligned diagnostic subsets.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/openlong_qwen_error_top100_2609r2b@_openlong
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2609_asr/remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs128_n8_r256_g16_ds1c_sfl_avg6_flr_rm0b_v0/global_step_400/qwen_hf/
+
+trainer:
+  experiment_name: v2609r2b_openlong_qwen_error_top100
+
+val_reward:
+  reward_function_by_data_source:
+    earnings21: openasr_en
+    earnings22: openasr_en
+    coraal: openasr_en
+    earnings22_cleaned_aa: openasr_en
+
+data:
+  val_data:
+    - ${_openlong}
