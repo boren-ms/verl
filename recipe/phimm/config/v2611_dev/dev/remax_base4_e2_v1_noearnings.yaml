@@ -1,0 +1,24 @@
+# Base4 V1 with only its original noisy LS and OpenML training data.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base4_2609r2_d3_e1_bs128_n8_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  rollout:
+    n: 8
+
+trainer:
+  total_epochs: 2
+
+data:
+  train_data: ['${_ml_train}', '${_noisy_ls_train}']
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: noisy_ls, sample: 20424, shuffle: true}
+        - {name: openml, sample: 13169, shuffle: true}
