@@ -1,0 +1,12 @@
+# Base4 n1c: n=16, two epochs, rollout temperature 1.5.
+hydra:
+  searchpath: [file://recipe/phimm/config, file://verl/trainer/config]
+
+defaults:
+  - base4_2609r2_d3_e1_bs128_n8_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  rollout: {n: 16, temperature: 1.5}
+
+trainer: {total_epochs: 2}
