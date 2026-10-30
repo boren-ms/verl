@@ -1,0 +1,28 @@
+# ReMax entry for Base3a. Reuse Base3 and override only the Earnings source
+# and one-epoch mixture count.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base3_2609r2_d3_e1_bs128_n8_r320_g16_flr
+  - /data/train_data/earningscall-fy27-en-us-batches-wer-gt1pct-verb-langhint@_base3a_earning_train
+  - _self_
+
+data:
+  train_data:
+    - ${_ml_train}
+    - ${_base3a_earning_train}
+    - ${_noisy_ls_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earnings_fy27, sample: 4957, shuffle: true}
+        - {name: noisy_ls, sample: 20424, shuffle: true}
+        - {name: openml, sample: 13169, shuffle: true}
+
+# Aggregation variant of remax_base3a_e1_v1.
+actor_rollout_ref:
+  actor:
+    loss_agg_mode: seq-mean-token-sum
