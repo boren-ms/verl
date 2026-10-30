@@ -1,0 +1,13 @@
+# PT Base0 with up to two epochs and a 400-step cap, using Base4 e2 v1 settings.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base0_pt_hc_10khr_s400@_here_
+  - _self_
+
+trainer:
+  experiment_name: remax_pt_base0_e2_s400_v1
+  total_epochs: 2

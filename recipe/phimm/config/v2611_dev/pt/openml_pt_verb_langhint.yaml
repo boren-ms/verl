@@ -1,0 +1,27 @@
+# Full Portuguese FLEURS and MLS from the standard OpenASR-ML validation suite.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_fleurs_pt_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Portuguese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_fleurs
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data_zip.jsonl
+  cache_name: auto_openasr_ml_verb_langhint_mls_pt_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Portuguese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: pt_mls
+    verl_format:
+      prompt_key: prompt
