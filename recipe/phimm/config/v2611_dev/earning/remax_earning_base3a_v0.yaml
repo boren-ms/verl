@@ -1,4 +1,4 @@
-# FY27 earnings training with inclusive WER >= 1% and model-selected
+# Unfiltered FY27 earnings training with model-selected
 # OpenLong top-100 diagnostic validation sets.
 hydra:
   searchpath:
@@ -7,7 +7,7 @@ hydra:
 
 defaults:
   - ../base@_here_
-  - /data/train_data/earningscall-fy27-en-us-batches-wer-ge1pct-verb-langhint@_earning_train
+  - /data/train_data/earningscall-fy27-en-us-batches-unfiltered-verb-langhint@_earning_train
   - /data/val_data/openlong_top100_error_2609r2b@_openlong
   - _self_
 
