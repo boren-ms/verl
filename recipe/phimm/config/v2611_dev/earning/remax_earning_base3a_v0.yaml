@@ -1,0 +1,66 @@
+# FY27 earnings training with inclusive WER >= 1% and model-selected
+# OpenLong top-100 diagnostic validation sets.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - ../base@_here_
+  - /data/train_data/earningscall-fy27-en-us-batches-wer-ge1pct-verb-langhint@_earning_train
+  - /data/val_data/openlong_top100_error_2609r2b@_openlong
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim:
+      lr: 3.0e-6
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+
+data:
+  data_source:
+    earnings_fy27: {num_epoch: 1, shuffle: true}
+  train_data:
+    - ${_earning_train}
+  val_data:
+    - ${_openlong}
+  train_batch_size: 128
+  shuffle: true
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 1.8}
+      measures:
+        word: {delta: abs, beta: 1.0, vote: delta}
+        word_del: {delta: abs, beta: 0.1, vote: delta}
+        word_ins: {delta: abs, beta: 0.1, vote: delta}
+        word_kw: {delta: abs, beta: 1.0, vote: delta}
+        lang: {delta: abs, beta: 0.2, vote: delta}
+        fmt: {delta: abs, beta: 0.2, vote: delta}
+
+reward_function_by_data_source:
+  earnings_fy27: librispeech
+
+val_reward:
+  reward_function_by_data_source:
+    earnings21: openasr_en
+    earnings22: openasr_en
+    coraal: openasr_en
+    earnings22_cleaned_aa: openasr_en
+
+trainer:
+  experiment_name: remax_earning_base3a_v0
+  nnodes: 2
+  # Allow 200 steps even if filtering leaves only one full batch per epoch.
+  total_epochs: 200
+  total_training_steps: 200

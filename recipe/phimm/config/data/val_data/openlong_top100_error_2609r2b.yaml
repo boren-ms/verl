@@ -1,0 +1,62 @@
+# Model-selected diagnostic subsets. Each reference was derived by aligning
+# the full parent transcript to this model's segment hypotheses; boundaries
+# are approximate and the results are not an unbiased OpenLong evaluation.
+# 31 Earnings22 clips have empty inferred references; these are alignment
+# outcomes, not confirmed silence. Review before treating them as labels.
+# No parent/audio grouping keys are passed in extra_info: each selected clip
+# must be scored independently against its segment reference.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_high_error_2609r2b_step400_v1/earnings21.jsonl
+  cache_name: auto_openlong_top100_error_2609r2b_earnings21_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings21
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_high_error_2609r2b_step400_v1/earnings22.jsonl
+  cache_name: auto_openlong_top100_error_2609r2b_earnings22_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_high_error_2609r2b_step400_v1/coraal.jsonl
+  cache_name: auto_openlong_top100_error_2609r2b_coraal_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_high_error_2609r2b_step400_v1/earnings22_cleaned_aa.jsonl
+  cache_name: auto_openlong_top100_error_2609r2b_earnings22_cleaned_aa_v1
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_cleaned_aa
+    verl_format:
+      prompt_key: prompt
