@@ -1,4 +1,4 @@
-# Reproduction control: original 2609r2 model; disable scaled rollout log-probs and linear-attention packing.
+# 2610 SFT-only LID step 120 initialization; disable scaled rollout log-probs and linear-attention packing.
 # Globally shuffle OpenML, earnings, and LibriSpeech bad cases at approximately a 4:1:2 sample ratio.
 # Shuffle within each source; sample 26338/6584/13168 and run three full epochs with a constant LR of 3e-6.
 # Apply rm0b rewards to all sources with a fixed average divisor of 5.
@@ -8,7 +8,7 @@ hydra:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
-  - base
+  - /v2609_asr/base@_global_
   - /data/train_data/openml_verb_langhint_v0@_ml_train
   - /data/train_data/earnings_tts_verb_langhint_v0@_earning_train
   - /data/train_data/ls_rare_bad_verb_langhint_v0@_ls_train
@@ -43,7 +43,7 @@ reward_function_by_data_source:
 actor_rollout_ref:
   model:
     use_linear_attention_packing: false
-    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    path: az://orngwus2cresco/data/speech/modelblob/projects/xiaojul/amlt-results/fast-llm-2610-qwen3-5-9b-s2-vi-vn-it-it-flashenc-s2init-sft-only-lid/120/qwen_hf
     lora_rank: 256
   actor:
     optim:
@@ -74,4 +74,4 @@ data:
 trainer:
   nnodes: 2
   total_epochs: 3
-  total_training_steps: null
+  total_training_steps: 400
