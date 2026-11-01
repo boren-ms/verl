@@ -4,7 +4,7 @@ import pytest
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
-from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
+from recipe.phimm.reward.asr_response import clean_text, get_asr_text, get_hyp_text, parse_task_output
 from recipe.phimm.reward.asr_vote import compute_score
 from recipe.phimm.utils.tn import text_norm
 
@@ -24,7 +24,7 @@ MALFORMED_SUFFIXES = [
 @pytest.mark.parametrize("version", [2609, "2609"])
 @pytest.mark.parametrize("prefix", ["<verbatim>hello world</verbatim>", "", "<TXT></TXT>", "<nonspeech>"])
 @pytest.mark.parametrize("suffix", MALFORMED_SUFFIXES)
-def test_hyp_text_preserves_malformed_suffix_without_accepting_its_header(version, prefix, suffix):
+def test_hyp_text_cleans_malformed_suffix_without_accepting_its_header(version, prefix, suffix):
     response = f"<src=English><tgt=English>\n{prefix}\n{suffix}"
     parsed = parse_task_output(response, version=version)
 
@@ -41,9 +41,10 @@ def test_hyp_text_preserves_malformed_suffix_without_accepting_its_header(versio
         assert "more words" in hyp
 
 
-def test_hyp_text_preserves_words_attached_to_a_malformed_header_after_empty_text():
+def test_hyp_text_keeps_word_attached_to_a_malformed_header_after_empty_text():
     response = "<src=Chinese><tgt=Chinese>\n<TXT></TXT>\n<src=Chinese><tgt=Chinese>凭空添加的文本"
 
+    assert parse_task_output(response, version=2609)[-1]["text"].endswith("凭空添加的文本")
     assert "凭空添加的文本" in get_hyp_text(response, version=2609)
 
 
@@ -63,11 +64,12 @@ def test_l2_reward_penalizes_hallucinations_after_malformed_headers(l2_reward_kw
     correct = "<src=English><tgt=English>\n<verbatim>hello world</verbatim>"
     baseline = compute_score(correct, reference, **l2_reward_kwargs)
     extra_info = {"language": "English", "greedy_reward": baseline}
-    plain = compute_score(correct + "\n" + HALLUCINATION, reference, extra_info=extra_info, **l2_reward_kwargs)
+    expected = HALLUCINATION
+    plain = compute_score(correct + "\n" + expected, reference, extra_info=extra_info, **l2_reward_kwargs)
     malformed = compute_score(correct + "\n" + suffix, reference, extra_info=extra_info, **l2_reward_kwargs)
 
     normalized = text_norm(get_hyp_text(correct + "\n" + suffix, version=2609), name="openasr_en")
-    assert HALLUCINATION in normalized
+    assert expected in normalized
     if "more words" in suffix:
         assert "more words" in normalized
     assert malformed["word"] <= plain["word"]
@@ -85,6 +87,23 @@ def test_hyp_text_preserves_valid_multilingual_segments():
     assert get_hyp_text(response, version=2609) == "hello 你好"
 
 
+def test_hyp_text_cleans_each_segment_independently():
+    response = (
+        "<src=English><tgt=English>\n<verbatim>hello</verbatim>\n"
+        "<src=English><tgt=English>\n<verb> world\n"
+        "<src=Chinese><tgt=Chinese>\n。"
+    )
+    assert get_hyp_text(response, version=2609) == "hello <verb> world"
+
+
+def test_hyp_text_cleans_each_legacy_segment_independently():
+    response = (
+        "Audio Language: English Chinese.\n<ASR><lang=English><TXT>hello</TXT>"
+        "<lang=Chinese><TXT><verb> 你好</TXT></ASR>"
+    )
+    assert get_hyp_text(response, version=2607) == "hello <verb> 你好"
+
+
 def test_hyp_text_keeps_valid_multilingual_prefix_clean_when_a_later_header_fails():
     response = (
         "<src=English><tgt=English>\n<verbatim>hello</verbatim>\n"
@@ -96,8 +115,48 @@ def test_hyp_text_keeps_valid_multilingual_prefix_clean_when_a_later_header_fail
     assert HALLUCINATION in get_hyp_text(response, version=2609)
 
 
-def test_hyp_text_keeps_fallback_for_an_entirely_invalid_response():
+def test_hyp_text_cleans_unparsed_2609_response_segment():
     response = "<VERBATIM>\n<TXT>hello world</TXT>"
 
     assert parse_task_output(response, version=2609) == [{"src": None, "tgt": None, "text": response}]
     assert get_hyp_text(response, version=2609) == "hello world"
+
+
+def test_hyp_text_ignores_invalid_legacy_response_without_parsed_text():
+    response = "<verbatim>hello world</verbatim>"
+    assert parse_task_output(response, version=2607) == [{"src": None, "tgt": None, "text": None}]
+    assert get_hyp_text(response, version=2607) == ""
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("<foreign_language>", ""),
+    ("before <foreign_language> after", "before  after"),
+    ("hello <foreign_language>bonjour</foreign_language> world", "hello bonjour world"),
+    ("<FOREIGN_LANGUAGE>hello</FOREIGN_LANGUAGE>", "hello"),
+])
+def test_hyp_text_removes_foreign_language_tags(text, expected):
+    response = f"<src=English><tgt=English>\n<VERBATIM>\n{text}"
+    assert clean_text(text) == expected
+    assert get_hyp_text(response, version=2609) == expected
+
+
+def test_hyp_text_removes_foreign_language_tags_from_malformed_suffix():
+    response = "<src=English><tgt=English>\nHello\n<src=\n<foreign_language>bonjour</foreign_language>"
+    assert get_hyp_text(response, version=2609) == "Hello src=\nbonjour"
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("<verb> hello", "<verb> hello"),
+    ("<verb hello", "verb hello"),
+    ("before <unknown> after", "before <unknown> after"),
+    ("before <verb> after", "before <verb> after"),
+    ("<soemthing>", "<soemthing>"),
+    ("soemthing>", "soemthing"),
+    ("<soemthing", "soemthing"),
+    ("verb>", "verb"),
+    ("verb》", "verb》"),
+    ("《verb", "《verb"),
+    ("《verb》", "《verb》"),
+])
+def test_clean_text_removes_only_incomplete_ascii_brackets(text, expected):
+    assert clean_text(text) == expected

@@ -741,15 +741,15 @@ def test_check_fmt_checks_unparsed_and_language_tagged_text_identically(text, ex
 
 
 @pytest.mark.parametrize(
-    ("output", "expected_fmt"),
+    ("output", "expected_fmt", "expected_word"),
     [
-        ("<src=English><tgt=English>\nhello world", 1.0),
-        ("<src=English><tgt=English>\n<TXT>hello world</TXT>", 1.0),
-        ("<src=English><tgt=English>\n<VERBATIM>\nhello world", 1.0),
-        ("<src=English><tgt=English>\n<VERBAT hello world", 0.0),
+        ("<src=English><tgt=English>\nhello world", 1.0, 1.0),
+        ("<src=English><tgt=English>\n<TXT>hello world</TXT>", 1.0, 1.0),
+        ("<src=English><tgt=English>\n<VERBATIM>\nhello world", 1.0, 1.0),
+        ("<src=English><tgt=English>\n<VERBAT hello world", 0.0, 0.5),
     ],
 )
-def test_parse_response_scores_2609_leading_tag_without_changing_word_score(output, expected_fmt):
+def test_parse_response_scores_2609_leading_tag(output, expected_fmt, expected_word):
     result = _parse_response(
         output,
         ground_truth="hello world",
@@ -759,7 +759,7 @@ def test_parse_response_scores_2609_leading_tag_without_changing_word_score(outp
     )
 
     assert result["fmt"] == expected_fmt
-    assert result["word"] == 1.0
+    assert result["word"] == expected_word
 
 
 @pytest.mark.parametrize("version", [2607, "2607", None, "unknown"])
@@ -857,18 +857,18 @@ def test_get_hyp_text_removes_model_markup():
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("<VERBAT hello world", "hello world"),
-        ("</VERBAT hello world", "hello world"),
-        ("  <unknown>\nhello world", "hello world"),
-        ("<TXT><VERBAT hello world</TXT>", "hello world"),
-        ("<VERBAT", ""),
-        ("</VERBAT .", ""),
-        ("<first <second hello", "<second hello"),
-        ("hello <VERBAT world", "hello <VERBAT world"),
+        ("<VERBAT hello world", "VERBAT hello world"),
+        ("</VERBAT hello world", "/VERBAT hello world"),
+        ("  <unknown>\nhello world", "<unknown>\nhello world"),
+        ("<TXT><VERBAT hello world</TXT>", "VERBAT hello world"),
+        ("<VERBAT", "VERBAT"),
+        ("</VERBAT .", "/VERBAT ."),
+        ("<first <second hello", "first second hello"),
+        ("hello <VERBAT world", "hello VERBAT world"),
         ("hello world", "hello world"),
     ],
 )
-def test_get_hyp_text_cleans_only_first_tag_like_word(text, expected):
+def test_get_hyp_text_removes_leftover_angle_brackets(text, expected):
     output = f"<src=English><tgt=English>\n{text}"
 
     assert get_hyp_text(output, version=2609) == expected
@@ -942,7 +942,7 @@ def test_nonspeech_language_score_depends_only_on_language_tags(output, version,
 
 @pytest.mark.parametrize("mode_tag", ["verbatim", "READABLE"])
 def test_get_hyp_text_removes_asr_mode_markup(mode_tag):
-    output = f"<{mode_tag}>Hello world</{mode_tag}>"
+    output = f"<ASR><lang=English><TXT><{mode_tag}>Hello world</{mode_tag}></TXT></ASR>"
 
     assert get_hyp_text(output, version=2607) == "Hello world"
 
@@ -1260,10 +1260,10 @@ def test_compute_score_cut_preserves_reward_above_threshold():
 
 def test_compute_score_does_not_gate_measure_without_cut():
     result = compute_score(
-        "<ASR><lang=English><TXT>hello world",
+        "<verb hello world",
         ground_truth="hello world",
         language="English",
-        version=2607,
+        version=2609,
         reduce="mean",
         measures={
             "word": {"beta": 1.0},
@@ -1337,8 +1337,9 @@ def test_compute_kw_score_without_keywords_preserves_evaluation_counts():
 
 def test_parse_response_reports_keyword_rewards():
     result = _parse_response(
-        "the quick blue fox",
+        "<src=English><tgt=English>\nthe quick blue fox",
         ground_truth="the quick brown fox",
+        version=2609,
         extra_info={"keywords": ["brown"]},
     )
 

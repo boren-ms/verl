@@ -1,0 +1,13 @@
+# 1,000 distinct training examples per language, with an English verbatim hint.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/foreign_language_1k_09e24427354c1064/train_1k.jsonl
+  mask_foreign_language: {}
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [source_language, source_corpus, source_split]

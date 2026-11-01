@@ -1766,6 +1766,76 @@ def add_field_ds(ds, **kwargs):
     return ds.map(map_fn, **pop_map_kwargs(kwargs))
 
 
+def mask_foreign_language(ds, *, task_info, **kwargs):
+    """Mask language-labelled foreign speech when verbatim and a hint are enabled.
+
+    Mixed-language rows require ordered, language-labelled components covering
+    the original text; the block never guesses language boundaries.
+    """
+    task = task_info.get("task", "asr")
+    if not task.startswith("lang_asr_verb") or not task_info.get("lang_hint", False):
+        return ds
+    hint = task_info.get("language")
+    if not hint:
+        raise ValueError("mask_foreign_language requires an explicit hint language")
+    hint = resolve_task_language(task, lang=hint)
+    if hint.casefold() == "unknown" or len(hint.split()) != 1:
+        raise ValueError("mask_foreign_language requires one known hint language")
+    marker = kwargs.get("marker", "<foreign_language>")
+    if not isinstance(marker, str) or not marker:
+        raise ValueError("mask_foreign_language marker must be a nonempty string")
+
+    def single_language(value):
+        language = resolve_task_language("lang_asr", value)
+        if language.casefold() == "unknown" or len(language.split()) != 1:
+            raise ValueError("mask_foreign_language requires one known component language")
+        return language
+
+    def transform(egs):
+        source = egs.get("language")
+        if not source or not isinstance(egs.get("text"), str):
+            raise ValueError("mask_foreign_language requires source language and transcription")
+        components = egs.get("components")
+        if components:
+            if any(not c.get("language") or not isinstance(c.get("text"), str) for c in components):
+                raise ValueError("each language component must have a language and string text")
+            languages = [single_language(c["language"]) for c in components]
+            original = egs["text"]
+            pieces = []
+            offset = 0
+            for component, language in zip(components, languages, strict=True):
+                text = component["text"].strip()
+                if not text:
+                    continue
+                start = original.find(text, offset)
+                if start < 0 or original[offset:start].strip():
+                    raise ValueError("component text must cover the original transcription in order")
+                pieces.append(original[offset:start])
+                pieces.append(text if language.casefold() == hint.casefold() else marker)
+                offset = start + len(text)
+            if original[offset:].strip():
+                raise ValueError("component text must cover the original transcription in order")
+            pieces.append(original[offset:])
+            # A wholly foreign utterance has one target marker even when it has
+            # several components. Mixed utterances retain their source spacing.
+            if (
+                len({lang.casefold() for lang in languages}) == 1
+                and languages[0].casefold() != hint.casefold()
+                and original.strip()
+            ):
+                text = marker
+            else:
+                text = "".join(pieces)
+            return {"text": text, "language": hint, "components": None}
+        if len(resolve_task_language("lang_asr", source).split()) != 1:
+            raise ValueError("mixed source language requires language-labelled components")
+        language = single_language(source)
+        return {"text": egs["text"] if not egs["text"].strip() or language.casefold() == hint.casefold() else marker,
+                "language": hint}
+
+    return ds.map(transform, **pop_map_kwargs(kwargs), desc="Masking foreign-language speech")
+
+
 def _strip_lone_surrogates(s):
     """Drop lone UTF-8 surrogate code points so pyarrow can serialize the string.
 
@@ -2016,6 +2086,10 @@ def augment(ds, **kwargs):
     map_kwargs = pop_map_kwargs(kwargs)
     if pre_process_kwargs := kwargs.get("pre_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, pre_process_kwargs))
+    if "mask_foreign_language" in kwargs:
+        mask_kwargs = kwargs.get("mask_foreign_language") or {}
+        ds = mask_foreign_language(ds, task_info=kwargs.get("add_task_info") or {},
+                                   **merge_kwargs(map_kwargs, mask_kwargs))
     if overlap_prefix_kwargs := kwargs.get("overlap_prefix", {}):
         ds = overlap_prefix(ds, **merge_kwargs(map_kwargs, overlap_prefix_kwargs))
     if context_prefix_kwargs := kwargs.get("context_prefix", {}):
