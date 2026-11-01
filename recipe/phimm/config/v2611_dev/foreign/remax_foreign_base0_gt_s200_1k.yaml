@@ -9,10 +9,6 @@ defaults:
   - /data/train_data/foreign_language/english_hint_1k@_foreign_train_1k
   - _self_
 
-trainer:
-  # Seven full batches per epoch: 29 epochs provide at least 200 updates.
-  total_epochs: 29
-  total_training_steps: 200
 data:
   train_data: ['${_foreign_train_1k}']
   mix:
