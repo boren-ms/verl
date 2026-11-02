@@ -12,7 +12,7 @@ def test_foreign_gt_uses_remote_training_and_both_heldout_validations():
     config = root / "recipe/phimm/config"
     searchpath = f"hydra.searchpath=[file://{config},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config / "v2611_dev/foreign"), version_base=None):
-        cfg = compose(config_name="remax_foreign_base0_gt_s200_remote", overrides=[searchpath])
+        cfg = compose(config_name="remax_foreign_base0_gt_s200_remote_v1", overrides=[searchpath])
 
     assert cfg.actor_rollout_ref.rollout.gt_rollout is True
     assert cfg.actor_rollout_ref.rollout.n == 8
@@ -27,7 +27,7 @@ def test_foreign_gt_uses_remote_training_and_both_heldout_validations():
     assert "foreign_language" not in cfg.reward_functions
     train = [item for group in cfg.data.train_data for item in group]
     val = [item for group in cfg.data.val_data for item in group]
-    assert len(train) == 3 and len(val) == 2
+    assert len(train) == 3 and len(val) == 3
     assert all(item.jsonl_paths.startswith("az://orngwus2cresco/") for item in train + val)
     assert val[0].jsonl_paths.endswith("/earnings22_parent4_segments.jsonl")
     assert val[0].val_batch_size == -1
@@ -36,11 +36,17 @@ def test_foreign_gt_uses_remote_training_and_both_heldout_validations():
     )
     assert cfg.val_reward.reward_manager == "long_audio_grouped"
     assert cfg.actor_rollout_ref.rollout.val_kwargs.n == 1
-    assert val[1].jsonl_paths.endswith("/english_hint_heldout.jsonl")
-    sources = ["earnings22_parent4"] + [
-        f"english_hint_{lang}" for lang in ("en", "de", "es", "fr", "it", "nl", "pl", "pt", "zh", "ja", "ko")
-    ]
-    assert all(cfg.val_reward.reward_function_by_data_source[source] == "openasr_en" for source in sources)
+    assert val[1].jsonl_paths.endswith("/english_hint_heldout_en_07abbf9009c5.jsonl")
+    assert val[2].jsonl_paths.endswith("/english_hint_heldout_noen_3e8509d3677e.jsonl")
+    routes = cfg.val_reward.reward_function_by_data_source
+    assert routes.earnings22_parent4 == routes.enhint_en == "openasr_en"
+    assert routes.enhint_noen == "foreign_language_eval"
+    assert cfg.val_reward.reward_functions.foreign_language_eval.name == "foreign_language_eval"
+    assert cfg.val_reward.reward_functions.foreign_language_eval.reward_kwargs.version == 2609
+    assert all("map_field_values" not in item.post_process for item in val[1:])
+    assert val[1].post_process.add_field.fields.data_source == "enhint_en"
+    assert val[2].post_process.add_field.fields.data_source == "enhint_noen"
+    assert all("extra_keys" not in item.post_process.verl_format for item in val[1:])
 
 
 def test_foreign_gt_1k_uses_remote_manifest_with_english_verbatim_hint():
@@ -48,7 +54,7 @@ def test_foreign_gt_1k_uses_remote_manifest_with_english_verbatim_hint():
     config = root / "recipe/phimm/config"
     searchpath = f"hydra.searchpath=[file://{config},file://{root / 'verl/trainer/config'}]"
     with initialize_config_dir(config_dir=str(config / "v2611_dev/foreign"), version_base=None):
-        cfg = compose(config_name="remax_foreign_base0_gt_s200_1k", overrides=[searchpath])
+        cfg = compose(config_name="remax_foreign_base0_gt_s200_1k_v1", overrides=[searchpath])
     item = cfg.data.train_data[0][0]
     assert item.jsonl_paths.startswith("az://orngwus2cresco/")
     assert item.jsonl_paths.endswith("/train_1k.jsonl")

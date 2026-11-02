@@ -1,4 +1,6 @@
-from recipe.phimm.reward.asr_response import get_hyp_text
+import re
+
+from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
 from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
     _HFEnglishTextNormalizer,
@@ -63,6 +65,18 @@ def non_speech_eval(solution_str, ground_truth, **kwargs):
         "score": 1.0 - n_err,
         "wer": float(n_err),
         "n_err": n_err,
+        "n_ref": 1,
+    }
+
+
+def foreign_language_eval(solution_str, ground_truth=None, **kwargs):
+    """Accept empty text or a foreign-language marker as a correct response."""
+    parsed_text = get_asr_text(parse_task_output(solution_str or "", version=kwargs.get("version")))
+    marker = re.compile(r"</?foreign_language>", re.IGNORECASE)
+    accuracy = int(not parsed_text.strip() or bool(marker.search(parsed_text)))
+    return {
+        "score": float(accuracy),
+        "n_err": 1 - accuracy,
         "n_ref": 1,
     }
 

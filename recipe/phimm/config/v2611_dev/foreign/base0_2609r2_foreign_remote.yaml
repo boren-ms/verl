@@ -23,16 +23,12 @@ data:
   train_batch_size: 128
   shuffle: false
 val_reward:
+  reward_functions:
+    foreign_language_eval:
+      path: recipe/phimm/reward/asr_eval.py
+      name: foreign_language_eval
+      reward_kwargs: {version: 2609}
   reward_function_by_data_source:
     earnings22_parent4: openasr_en
-    english_hint_en: openasr_en
-    english_hint_de: openasr_en
-    english_hint_es: openasr_en
-    english_hint_fr: openasr_en
-    english_hint_it: openasr_en
-    english_hint_nl: openasr_en
-    english_hint_pl: openasr_en
-    english_hint_pt: openasr_en
-    english_hint_zh: openasr_en
-    english_hint_ja: openasr_en
-    english_hint_ko: openasr_en
+    enhint_en: openasr_en
+    enhint_noen: foreign_language_eval

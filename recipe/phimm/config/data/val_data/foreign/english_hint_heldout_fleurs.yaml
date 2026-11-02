@@ -1,10 +1,20 @@
-# FLEURS test split; the raw language and transcript are retained as metadata.
+# FLEURS test split, separated by source language.
 # No parent grouping keys: each audio example is scored independently.
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/foreign_language_dataset_20261031T235227Z/manifests/english_hint_heldout.jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/foreign_language_dataset_20261031T235227Z/manifests/english_hint_heldout_en_07abbf9009c5.jsonl
   mask_foreign_language: {}
   add_task_info: {task: lang_asr_verb, language: English, prefix_prob: 0.0, lang_hint: true}
   post_process:
+    add_field:
+      fields: {data_source: enhint_en}
     verl_format:
       prompt_key: prompt
-      extra_keys: ["source_language", "source_text", "source_corpus", "source_split", "source_config", "source_filename"]
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/foreign_language_dataset_20261031T235227Z/manifests/english_hint_heldout_noen_3e8509d3677e.jsonl
+  mask_foreign_language: {}
+  add_task_info: {task: lang_asr_verb, language: English, prefix_prob: 0.0, lang_hint: true}
+  post_process:
+    add_field:
+      fields: {data_source: enhint_noen}
+    verl_format:
+      prompt_key: prompt
