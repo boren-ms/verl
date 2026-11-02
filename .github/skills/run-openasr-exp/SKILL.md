@@ -32,8 +32,12 @@ Inputs and defaults:
 - Training config is required only when launching training. Evaluation-only
   requests recover producer config, base model, rank/alpha, topology, and output
   root from checkpoint provenance.
-- Use the exact authorized Brix pool. Normalize abbreviations only when
-  unambiguous; never choose another pool silently.
+- Respect an explicitly requested Brix pool or resource restriction. Otherwise,
+  select suitable free capacity within the user's authorized cluster, namespace,
+  priority, quota, and topology; the user need not name a node or pool. Record
+  the selection and tell the user which pool is used. Resume a paused pool when
+  authorized by the request and its ownership and lack of conflicting plans
+  have been verified.
 - Default eval config is
   `recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml`.
 - An explicit checkpoint step/path wins. Otherwise select the numerically last
@@ -52,7 +56,8 @@ Never stop or change source training merely to evaluate a complete checkpoint.
 Store pipeline state under ignored
 `tmp/run_openasr_exp/<train-stem>/`. Record:
 
-- normalized train/eval configs, authorized pools/topology, experiment names,
+- normalized train/eval configs, user-specified resource restrictions, selected
+  pools/topology, experiment names,
   overrides, code revisions, output roots, and checkpoint policy;
 - producer base model, LoRA rank/alpha, world size, save cadence, and provenance;
 - training/export/eval submission IDs and states, W&B/Ray links, and replacement
@@ -71,11 +76,14 @@ same run.
 
 ## 1. Preflight and optional replacement
 
-Use `verl-asr-run`'s pool checks across every GPU pod. An occupied pool is a
-blocker unless replacement was authorized. If replacing a job, prove its exact
-Ray submission ID and pool/config identity, stop only that submission, wait for
-terminal state and resource release, and replace only its monitor. Never call a
-broad cleanup wrapper or manage unrelated pools.
+Use `verl-asr-run`'s pool checks across every GPU pod, including live jobs,
+reservations, processes, and other planned work. Idle GPU measurements alone do
+not establish that a pool is free. If no pool was specified, choose verified
+free compatible capacity and continue; if one was specified and is occupied,
+queue unless an alternative or replacement was authorized. If replacing a job,
+prove its exact Ray submission ID and pool/config identity, stop only that
+submission, wait for terminal state and resource release, and replace only its
+monitor. Never call a broad cleanup wrapper or manage unrelated pools.
 
 Compose the actual training and eval configs. Record effective topology,
 model/rank/alpha, steps/epochs, save frequency, resume policy, datasets, and
@@ -84,14 +92,14 @@ output roots. Preserve recipe semantics and surface conflicts.
 ## 2. Optional training handoff
 
 Skip this stage for an explicit/queued checkpoint evaluation. Otherwise invoke
-`verl-asr-run` once for the supplied training config and authorized pool.
+`verl-asr-run` once for the supplied training config and selected pool.
 Request training only; checkpoint selection and downstream stages remain owned
 here.
 
 After the job is verified running, start the audio-prefetch task described
 below. Continue monitoring training to its own terminal condition, but do not
 make training completion an evaluation gate when a requested checkpoint is
-already complete and authorized evaluation resources are available.
+already complete and compatible evaluation resources are available.
 
 ## 3. Resolve checkpoint readiness
 
