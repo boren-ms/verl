@@ -4,6 +4,7 @@ import json
 import unicodedata
 
 from hydra import compose, initialize_config_dir
+from omegaconf import OmegaConf
 import pytest
 
 
@@ -68,6 +69,22 @@ def test_foreign_gt_1k_uses_remote_manifest_with_english_verbatim_hint():
     assert cfg.actor_rollout_ref.rollout.gt_rollout is True
     assert cfg.trainer.total_training_steps == 200
     assert cfg.trainer.experiment_name is None
+
+
+def test_foreign_1k_v1_nogt_only_disables_gt_rollout():
+    root = Path(__file__).resolve().parents[3]
+    config = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config / "v2611_dev/foreign"), version_base=None):
+        gt = compose(config_name="remax_foreign_base0_gt_s200_1k_v1", overrides=[searchpath])
+        nogt = compose(config_name="remax_foreign_base0_s200_1k_v1_nogt", overrides=[searchpath])
+
+    assert gt.actor_rollout_ref.rollout.gt_rollout is True
+    assert nogt.actor_rollout_ref.rollout.gt_rollout is False
+    expected = OmegaConf.to_container(gt, resolve=False)
+    actual = OmegaConf.to_container(nogt, resolve=False)
+    expected["actor_rollout_ref"]["rollout"]["gt_rollout"] = False
+    assert actual == expected
 
 
 _DATA_1K = Path.home() / "data/foreign_language_data/foreign_1k_v1"
