@@ -29,6 +29,16 @@ class RemoteAudioCacheError(RuntimeError):
     """Raised when an Orange audio object cannot be cached locally."""
 
 
+def split_audio_sources(source: str) -> list[str]:
+    """Split a concatenated audio reference while preserving single paths."""
+    parts = source.split(";")
+    if len(parts) > 1:
+        parts = [part.strip() for part in parts]
+        if any(not part for part in parts):
+            raise ValueError(f"Empty audio path in concatenated source: {source!r}")
+    return parts
+
+
 def _split_audio_source(source: str) -> tuple[str, str]:
     """Separate the physical file from optional chunk and trailing time selectors."""
     suffix = ""
@@ -51,6 +61,8 @@ def _split_audio_source(source: str) -> tuple[str, str]:
 
 def local_audio_source(source: str) -> str:
     """Map an Orange audio reference to its persistent local equivalent."""
+    if ";" in source:
+        return ";".join(local_audio_source(part) for part in split_audio_sources(source))
     file_path, suffix = _split_audio_source(source)
     if not file_path.startswith(ORANGE_DATA_PREFIX):
         return source
@@ -60,6 +72,8 @@ def local_audio_source(source: str) -> str:
 
 def resolve_audio_source(source: str) -> str:
     """Prefer an existing local copy of an Orange audio reference."""
+    if ";" in source:
+        return ";".join(resolve_audio_source(part) for part in split_audio_sources(source))
     local_source = local_audio_source(source)
     local_file, _ = _split_audio_source(local_source)
     return local_source if local_source != source and Path(local_file).is_file() else source
@@ -128,6 +142,8 @@ def _ensure_cached_remote_file(remote_path: str, local_path: Path) -> None:
 
 def cache_audio_source(source: str) -> str:
     """Cache the physical Orange file under ``~/data``, preserving chunk and time selectors."""
+    if ";" in source:
+        return ";".join(cache_audio_source(part) for part in split_audio_sources(source))
     local_source = local_audio_source(source)
     if local_source == source:
         return source
@@ -138,6 +154,27 @@ def cache_audio_source(source: str) -> str:
     return local_source
 
 
+def _cache_sources(sources):
+    """Deduplicate physical files across concatenated references and selectors."""
+    files = {}
+    for source in sources:
+        if not isinstance(source, str) or not source:
+            continue
+        try:
+            parts = split_audio_sources(source)
+        except ValueError as exc:
+            logger.warning("Invalid audio source %s: %s", source, exc)
+            continue
+        for part in parts:
+            try:
+                physical_file, _ = _split_audio_source(part)
+            except ValueError as exc:
+                logger.warning("Invalid audio source %s: %s", part, exc)
+                continue
+            files[physical_file] = None
+    return tuple(files)
+
+
 def _audio_cache_server(request_queue) -> None:
     """Cache submitted source batches in a dedicated process."""
     from concurrent.futures import ThreadPoolExecutor
@@ -146,16 +183,10 @@ def _audio_cache_server(request_queue) -> None:
         request_type, payload, max_workers = request_queue.get()
         if request_type == "dataset":
             ds, fields = payload
-            sources = tuple(
-                dict.fromkeys(
-                    source
-                    for field in fields
-                    for source in ds[field]
-                    if isinstance(source, str) and source
-                )
-            )
+            sources = (source for field in fields for source in ds[field])
         else:
             sources = payload
+        sources = _cache_sources(sources)
         if not sources:
             continue
         with ThreadPoolExecutor(max_workers=min(max_workers, len(sources))) as executor:
@@ -209,6 +240,8 @@ def submit_audio_cache_dataset(ds, fields, max_workers: int = 16) -> None:
 
 def localize_audio_source(source: str) -> str:
     """Prefer or cache a local copy of an Orange audio reference."""
+    if ";" in source:
+        return ";".join(localize_audio_source(part) for part in split_audio_sources(source))
     resolved_source = resolve_audio_source(source)
     if resolved_source != source:
         return resolved_source
