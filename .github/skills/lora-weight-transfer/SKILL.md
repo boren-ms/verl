@@ -16,11 +16,18 @@ Prepare and download the actual trained LoRA adapter matrices:
 tensors. It is not a merged checkpoint, a changed-base-weight delta, or a PEFT
 directory.
 
-**Local first, MTP by default.** Always complete Phase 0 before listing blobs,
-selecting a remote node, syncing code, extracting shards, downloading files, or
-merging again. The default merged output retains all baseline MTP layers and is
-named `lora_merged_model_states_mtp.pt`, even when the user does not explicitly
-say "with MTP layers".
+**Local first, corp Blob for baseline downloads, MTP by default.** Always
+complete Phase 0 before listing blobs, selecting a remote node, syncing code,
+extracting shards, downloading files, or merging again. Reuse a verified local
+matching baseline. When a base/seed checkpoint or its original MTP checkpoint
+must be downloaded, fetch it directly from its verified **corp Azure Blob**
+source, never an Orange copy. This restriction is specific to the base/seed
+model; the requested trained actor shards may still reside on Orange. Both
+baseline checkpoints and LoRA artifacts must pass the source-to-copy MD5
+checks below before use or delivery. The default merged output retains all
+baseline MTP layers and is named
+`lora_merged_model_states_mtp.pt`, even when the user does not explicitly say
+"with MTP layers".
 
 ## Source of Truth
 
@@ -48,6 +55,7 @@ factorization cannot be uniquely recovered from that product.
 | `NODE` | Ready, in-region Brix node | choose only if remote extraction is needed |
 | `BASELINE` | Matching local LoRA-merged baseline used as the merge base | legacy default below; use the run's actual baseline |
 | `MTP_BASELINE` | Original full baseline checkpoint supplying unchanged `mtp.*` tensors if `BASELINE` was inference-pruned | inspect the matching local baseline directory first; not needed when `BASELINE` already retains all MTP layers |
+| `BASELINE_CORP` | Authoritative corp Azure Blob location of the matching base/seed checkpoint | required when the matching local baseline or MTP source must be downloaded; resolve and verify from provenance |
 | Merged output | Full checkpoint retaining baseline MTP layers | `DST/lora_merged_model_states_mtp.pt`; adjacent checksum `lora_merged_model_states_mtp.md5` |
 | `CORP_ROOT` | Corp destination derived from `DST` by `/copy-to-corp-blob` | `https://tsstd01safn.blob.core.windows.net/data/users/boren/data/<DST-relative-to-~/data>` |
 
@@ -96,13 +104,50 @@ original full baseline using the Phase 4 checks.
 | Adapters exist, but the MTP-preserving merged checkpoint is missing | Start at Phase 4; do not re-extract or download adapters or shards |
 | MTP-preserving merged checkpoint exists, but adapters are missing | Recover only the actual A/B artifact; keep the verified merged checkpoint and do not infer adapters from it |
 | Complete local actor shard set exists, but adapters are missing | Extract locally with the Phase 2 Python command, create `lora_weights.md5`, then Phase 4; no remote node or shard download is needed |
-| Required artifacts and a complete local shard set are absent | Proceed to Phases 1-3 for only the missing artifacts |
+| Required artifacts and a complete local shard set are absent | Resolve missing baseline files from corp Blob, then proceed to Phases 1-3 for only the missing adapters |
 
 Report corrupt, incomplete, or mismatched local artifacts explicitly; do not
-silently reuse or overwrite them. If a checksum sidecar is missing, perform
-the corresponding tensor/provenance checks before generating it. An existing
+silently reuse or overwrite them. A newly generated local checksum establishes
+a fingerprint, not agreement with the source. If a checksum sidecar is missing,
+verify against the exact source as described below, in addition to the required
+tensor/provenance checks. An existing
 untagged non-MTP checkpoint does not satisfy the default MTP output requirement;
 keep it separate and restore MTP from the original full baseline.
+
+## Phase 0a: Resolve and Download a Missing Baseline from Corp Blob
+
+Apply this phase whenever the matching local base/seed model, its original full
+MTP checkpoint, or its configuration is missing. Identify the exact corp
+storage account, container, checkpoint path, and step from the user's source,
+producer provenance, or a verified transfer manifest. A training config can
+point at an Orange mirror; that establishes model identity, not the corp
+account or container. Do not infer the container from a virtual path such as
+`/modelblob`, and do not substitute a similarly named checkpoint. If the corp
+source or access cannot be established, retain the evidence and ask for the
+exact source or access; never fall back to an Orange baseline.
+
+Download the required baseline files **directly from the verified corp Blob
+URI to the local matching baseline directory** using `bbb`, including
+`config.json`, the matching `lora_merged_model_states.pt`, and, when needed,
+the original `mp_rank_00_model_states.pt` containing MTP. Verify identity and
+complete file sizes, then compare the local MD5 of each baseline checkpoint
+against the MD5 of its exact corp source before use. Use an authoritative
+source-provided MD5 or a provenance-bound manifest. When neither exists, stream
+the exact corp blob independently to compute its MD5; pin its version or ETag
+and confirm the same version was used for both reads. Record the source URI,
+version/ETag, size, MD5 method, and result. A local sidecar, size match, or an
+Orange mirror checksum alone does not establish a corp source match. If the
+source MD5 cannot be established or differs, preserve evidence and stop before
+merge; do not label it verified. Inspect configured MTP depth and the full source's
+actual MTP keys; preserve the full original checkpoint for Phase 4.
+
+Use the corp tenant's existing authentication without changing the global
+Orange/Green Azure CLI context. If `bbb` otherwise chooses the wrong tenant,
+use an isolated corp Azure CLI configuration and the supported Azure Identity
+credential path, for example `AZURE_USE_IDENTITY=1 AZURE_CONFIG_DIR=<corp-cli>`.
+Protect credentials and do not print SAS tokens. This corp-only rule applies
+to baseline downloads; it does not change the actor-shard `SOURCE`, LoRA
+staging, or the `/copy-to-corp-blob` output destination.
 
 ## Phase 1: Locate All Model Shards
 
@@ -121,7 +166,10 @@ brix ssh <NODE> -- 'ls -lh '"$CHECKPOINT"'/actor/model_world_size_*_rank_*.pt'
 
 The source may instead be an `az://` actor directory or quoted wildcard.
 `prepare_remote.sh` discovers every matching file with `bbb ls` and downloads
-each with `bbb cp`. Do not substitute `extra_state_world_size_*` or
+each with `bbb cp`. When downloading actor shards for LoRA extraction, verify
+each downloaded shard's MD5 against its exact source using the same source MD5
+and version/ETag method as Phase 0a. If that cannot be established, stop before
+extraction. Do not substitute `extra_state_world_size_*` or
 `optim_world_size_*` files, and do not proceed with a partial rank set.
 
 ## Phase 2: Prepare and Upload on the Remote Node
@@ -152,16 +200,21 @@ python .github/skills/lora-weight-transfer/scripts/extract_lora_weights.py \
   model_world_size_*_rank_*.pt --output <lora_weights.pt>
 ```
 
-The extractor accepts only LoRA A/B tensor keys and rejects empty or incomplete
-pairs, mixed world sizes, missing ranks, and inconsistent shard keys before
-writing the output.
+Record the extracted LoRA artifact's source-side MD5 before transfer; retain
+the source identity and split checksums. The extractor accepts only LoRA A/B
+tensor keys and rejects empty or incomplete pairs, mixed world sizes, missing
+ranks, and inconsistent shard keys before writing the output.
 
 ## Phase 3: Download, Recover, and Verify Locally
 
 Run [download_recover.sh](./scripts/download_recover.sh). It downloads all
 files with `bbb cp`, verifies each split, concatenates numbered parts in version
 order followed by the final `.zip`, extracts `lora_weights.pt`, verifies its
-MD5, and checks every LoRA A tensor has a matching B tensor:
+MD5 against the extraction-side manifest, and checks every LoRA A tensor has a
+matching B tensor. When reusing an existing adapter, compare its local MD5 to a
+provenance-bound source MD5; do not treat a newly created local sidecar alone as
+source verification. If the values differ or the source cannot be verified,
+stop before merge:
 
 ```bash
 bash .github/skills/lora-weight-transfer/scripts/download_recover.sh \
@@ -302,14 +355,23 @@ corp:
   https://tsstd01safn.blob.core.windows.net/data/users/boren/data/ckp/<run>/<step>/lora_merged_model_states_mtp.pt
 ```
 
-Wait for each upload to complete, then use the verification step provided by
-`/copy-to-corp-blob` to compare exact remote and local byte sizes. Never expose
-the SAS token or a destination URL containing its query string.
+Wait for each upload to complete, then compare exact remote and local byte
+sizes. Verify each uploaded `.pt` against its local MD5 using a trustworthy
+server-computed content MD5, or independently read back the exact uploaded
+blob and hash its bytes. Pin its version/ETag or confirm it is unchanged across
+the read; verify the uploaded sidecar matches the local expected MD5 as well.
+A matching uploaded sidecar or size alone does not verify uploaded bytes.
+Record the source and destination MD5s and verification method; on a mismatch
+or unavailable byte verification, retain evidence and report the transfer as
+unverified rather than complete. Never expose the SAS token or a destination
+URL containing its query string.
 
 ## Safeguards
 
 - Check and verify local checkpoint files before any remote work; reuse valid
   local artifacts rather than extracting, downloading, or merging them again.
+- Download any missing base/seed or MTP baseline directly from its verified
+  corp Azure Blob source, not Orange; do not guess an account or container.
 - Preserve baseline MTP layers by default and use the MTP-tagged output and
   checksum filenames; never silently fall back to an inference-pruned output.
 - Accept only keys matching `*.lora_A[.<adapter>].weight` and
@@ -326,6 +388,8 @@ the SAS token or a destination URL containing its query string.
 - Use the run's actual `lora_alpha / lora_rank` (legacy default `640 / 320 = 2`);
   do not assume scaling 1.
 - Upload both `.pt` outputs and checksum sidecars through `/copy-to-corp-blob`.
-- Require exact remote/local byte-size matches after every corp upload.
+- Require matching source and local MD5s for every baseline and transferred
+  LoRA artifact, and matching local and remote byte sizes and content MD5s for
+  each uploaded checkpoint; record checksum provenance and version/ETag.
 - Never print or persist a SAS token outside the cache managed by the upload skill.
 - Do not use `ckpt_delta.py` or infer A/B matrices from merged model weights.
