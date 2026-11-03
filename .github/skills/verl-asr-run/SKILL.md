@@ -35,6 +35,11 @@ replacement of one exact job is authorized. Never pause, resume, stop, or clean
 unrelated work. Resume an authorized paused pool only after confirming no
 conflict, Brix readiness, and healthy Ray membership.
 
+When choosing among eligible pools without a specified pool or priority, prefer
+nodes in a `team-critical` pool. This preference does not override an explicit
+pool or priority, change an existing run's priority, or bypass ownership and
+occupancy checks.
+
 Useful checks:
 
 ```bash
