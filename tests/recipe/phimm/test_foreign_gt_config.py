@@ -114,6 +114,24 @@ def test_foreign_1k_mixed_gt_uses_both_sources_and_shared_reward():
     assert OmegaConf.to_container(cfg.data.val_data, resolve=True) == OmegaConf.to_container(base.data.val_data, resolve=True)
 
 
+def test_foreign_mixed_only_gt_excludes_original_data():
+    root = Path(__file__).resolve().parents[3]
+    config = root / "recipe/phimm/config"
+    searchpath = f"hydra.searchpath=[file://{config},file://{root / 'verl/trainer/config'}]"
+    with initialize_config_dir(config_dir=str(config / "v2611_dev/foreign"), version_base=None):
+        base = compose(config_name="remax_foreign_base0_gt_s200_1k_mixed_v1", overrides=[searchpath])
+        cfg = compose(config_name="remax_foreign_base0_gt_s200_mixed_only_1k_v1", overrides=[searchpath])
+    assert [(item.name, item.sample) for item in cfg.data.mix[0].datasource] == [("foreign_mixed_10k", 10000)]
+    train = [item for group in cfg.data.train_data for item in group]
+    assert len(train) == 1 and train[0].jsonl_paths.endswith("/mixed_noen_en_10k.jsonl")
+    assert dict(cfg.reward_function_by_data_source) == {"foreign_mixed_10k": "librispeech"}
+    assert cfg.actor_rollout_ref.rollout.gt_rollout is True
+    assert cfg.trainer.total_training_steps == 200 and cfg.trainer.experiment_name is None
+    for key in ("actor_rollout_ref", "trainer", "val_reward", "reward_functions"):
+        assert OmegaConf.to_container(cfg[key], resolve=False) == OmegaConf.to_container(base[key], resolve=False)
+    assert OmegaConf.to_container(cfg.data.val_data, resolve=True) == OmegaConf.to_container(base.data.val_data, resolve=True)
+
+
 _DATA_1K = Path.home() / "data/foreign_language_data/foreign_1k_v1"
 _HELDOUT = Path.home() / "data/foreign_language_data/data/english_hint_heldout/all.jsonl"
 
