@@ -6,7 +6,7 @@ hydra:
 
 defaults:
   - ../base@_here_
-  - /data/train_data/earningscall-quartr-fy27-batch1-first23events-cleaned-verb-langhint@_quartr_train
+  - /data/train_data/quartr_1st23@_quartr_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
   - /data/val_data/openlong_all_2parents_error_2609r2b@_openlong
   - _self_
@@ -25,7 +25,7 @@ actor_rollout_ref:
 
 data:
   data_source:
-    earnings_quartr_fy27_batch1_first23events: {num_epoch: 1, shuffle: true}
+    quartr_1st23: {num_epoch: 1, shuffle: true}
   train_data:
     - ${_quartr_train}
   val_data:
@@ -50,7 +50,7 @@ reward_functions:
         fmt: {delta: abs, beta: 0.2, vote: delta}
 
 reward_function_by_data_source:
-  earnings_quartr_fy27_batch1_first23events: librispeech
+  quartr_1st23: librispeech
 
 val_reward:
   reward_function_by_data_source:

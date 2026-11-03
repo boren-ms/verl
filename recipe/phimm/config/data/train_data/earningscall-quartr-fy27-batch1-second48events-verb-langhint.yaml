@@ -1,6 +1,6 @@
 # Reviewed/adjusted Quartr FY27 batch 1 second 48 events: 6,392 rows,
 # approximately 35.84 hours. Eight rows flag a transcript not adjusted after
-# audio trimming; retain their source status for audit without filtering.
+# audio trimming; the source JSONL retains their status for audit.
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl
   pre_process:
@@ -23,4 +23,3 @@
         data_source: earnings_quartr_fy27_batch1_second48events
     verl_format:
       prompt_key: prompt
-      extra_keys: [audio_duration_seconds, transcript_status, audio_adjustment]
