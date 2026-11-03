@@ -1,0 +1,39 @@
+# Base4 SMTS: 128 fresh prompts plus up to 128 worst-score replay prompts.
+# Temperature-scaled log probabilities and linear-attention packing enabled.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base4_2609r2_d3_e1_bs128_n8_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    loss_agg_mode: seq-mean-token-sum
+    optim:
+      lr: 6.0e-7
+  model:
+    use_linear_attention_packing: true
+  rollout:
+    n: 8
+    temperature_scaled_log_probs: true
+
+data:
+  train_batch_size: 256
+
+trainer:
+  total_epochs: 2
+  experiment_name: remax_base4_e2_v1b2_smts_bcr128_fresh128_scaled_pack
+
+algorithm:
+  bad_case_replay:
+    enable: true
+    capacity: 6400
+    replay_size: 128
+    sampling: worst
+    selection:
+      weights:
+        word: 1.0
+    seed: 42
