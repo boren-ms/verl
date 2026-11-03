@@ -1,0 +1,32 @@
+[
+  {
+    "id": "event_145380_seg0",
+    "audio_path": "audio/event_145380_seg0.wav",
+    "display_ne_tagged": "Greetings, and welcome to the <NE> Leatt Corporation </NE> Annual General Meeting. At this time, all participants are on a listen-only mode. A brief question and answer session will follow the formal presentation. If anyone should require operator assistance during the conference, please press * 0 on your telephone keypad. As a reminder, this conference is being recorded. It is now my pleasure to introduce your host, <PName> Michael Mason </PName> , Investor Relations Director. Thank you. Please go ahead.",
+    "language": "English",
+    "audio_duration_seconds": 27.0,
+    "original_audio_url": "https://txflowmediaprod01eus.blob.core.windows.net/earningscall-fy27q2/event_145380.wav",
+    "start_seconds": 0.08,
+    "end_seconds": 27.08,
+    "parent_audio": "../earningscall-quartr-earliest2-fy27q2_batch1_2026-10-30_segmented_review_adjusted/audio/event_145380_seg0.wav",
+    "part_start_seconds": 0.0,
+    "part_end_seconds": 27.0,
+    "audio_adjustment": "Retained original segment seconds 0 to 27",
+    "transcript_status": "Original human transcript; not adjusted after audio trimming"
+  },
+  {
+    "id": "event_145380_seg1_part0",
+    "audio_path": "audio/event_145380_seg1_part0.wav",
+    "display_ne_tagged": "Thanks, <PName> Donna </PName> . Hello, everyone, thank you for joining us today. My name is <PName> Michael Mason </PName> of the company's investor relations firm. Welcome to the 2023 annual meeting of the stockholders of <NE> Leatt Corporation </NE> . On or about April 11, 2023, the company notified its stockholders of this 2022 annual meeting and provided instructions on how to participate.",
+    "language": "English",
+    "audio_duration_seconds": 26.8855,
+    "original_audio_url": "https://txflowmediaprod01eus.blob.core.windows.net/earningscall-fy27q2/event_145380.wav",
+    "start_seconds": 28.188,
+    "end_seconds": 55.0735,
+    "parent_audio": "../earningscall-quartr-earliest2-fy27q2_batch1_2026-10-30_segmented_review_adjusted/audio/event_145380_seg1.wav",
+    "part_start_seconds": 0.0,
+    "part_end_seconds": 26.8855,
+    "audio_adjustment": "Unchanged",
+    "transcript_status": "Original human transcript"
+  }
+]
