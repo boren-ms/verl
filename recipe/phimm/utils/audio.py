@@ -6,7 +6,7 @@ import numpy as np
 from pathlib import Path
 import soundfile as sf
 from recipe.phimm.data.chunk import load_chunk_sample, load_chunk_example
-from verl.audio_cache import localize_audio_source
+from verl.audio_cache import localize_audio_source, split_audio_sources
 from verl.audio_zip import read_zip_audio, split_zip_audio_source
 
 logger = logging.getLogger(__name__)
@@ -213,6 +213,25 @@ def _load_chunk(spec):
     return result
 
 
+def _load_audio_source(source):
+    """Load one source, or concatenate semicolon-separated sources in order."""
+    sources = split_audio_sources(source)
+
+    audios = []
+    for path in sources:
+        if _is_chunk_spec(path) or _is_time_chunk_spec(path):
+            data, sr = _load_chunk(path)
+        else:
+            data, sr = sf_read(path)
+        audios.append((_to_mono(data, path), sr))
+
+    if len(audios) == 1:
+        return audios[0]
+    if len({sr for _, sr in audios}) > 1:
+        audios = [resample_audio(data, sr) for data, sr in audios]
+    return np.concatenate([data for data, _ in audios]), audios[0][1]
+
+
 def load_raw_audio(x):
     """Load audio data from the input dictionary."""
     audio = x.get("audio")
@@ -227,11 +246,7 @@ def load_raw_audio(x):
             return _to_mono(data, audio.get("path") or "embedded audio"), sr
     source = x.get("audio_path") or x.get("audio_file") or x.get("audio_chunk")
     if source:
-        if _is_chunk_spec(source) or _is_time_chunk_spec(source):
-            data, sr = _load_chunk(source)
-        else:
-            data, sr = sf_read(source)
-        return _to_mono(data, source), sr
+        return _load_audio_source(source)
     raise ValueError("No audio data found in the input dictionary.")
 
 
@@ -250,11 +265,7 @@ def load_raw_audios(x):  # x is batched
         source = audio_path or audio_chunk
         if not source:
             raise ValueError("No audio data found in the input dictionary.")
-        if _is_chunk_spec(source) or _is_time_chunk_spec(source):
-            data, sr = _load_chunk(source)
-        else:
-            data, sr = sf_read(source)
-        yield _to_mono(data, source), sr
+        yield _load_audio_source(source)
 
 
 def load_audios(x, max_dur=None, min_dur=0.16):  # x is batched

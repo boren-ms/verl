@@ -1,0 +1,34 @@
+# Independent foreign-language base with the No-Earnings model and optimizer.
+defaults:
+  - ../base@_here_
+  - /data/val_data/foreign/earnings22_parent4_segments@_earnings22_parent4
+  - /data/val_data/foreign/english_hint_heldout_fleurs@_fleurs_heldout
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim: {lr: 3.0e-6, warmup_style: constant, lr_warmup_steps: 0}
+  rollout: {n: 8, gt_rollout: true}
+
+trainer:
+  # 29 epochs cover the 200-step budget for the original 900-row mix.
+  total_epochs: 29
+  total_training_steps: 200
+
+data:
+  val_data: ['${_earnings22_parent4}', '${_fleurs_heldout}']
+  train_batch_size: 128
+  shuffle: false
+val_reward:
+  reward_functions:
+    foreign_language_eval:
+      path: recipe/phimm/reward/asr_eval.py
+      name: foreign_language_eval
+      reward_kwargs: {version: 2609}
+  reward_function_by_data_source:
+    earnings22_parent4: openasr_en
+    enhint_en: openasr_en
+    enhint_noen: foreign_language_eval

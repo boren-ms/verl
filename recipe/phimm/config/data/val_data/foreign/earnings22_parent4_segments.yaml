@@ -1,0 +1,18 @@
+# All 184 segments of Earnings22 test-00000-of-00028/audio/4.wav.
+# Every row carries the same canonical full-parent reference. Keep all segments
+# in one validation batch so long_audio_grouped scores the recording once.
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/earnings22_parent4_segments_070c38d5706289cd/earnings22_parent4_segments.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22_parent4
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [source_id, parent_audio_path, seg_index, seg_start, seg_end, n_segments]

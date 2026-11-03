@@ -1,0 +1,36 @@
+# GT rollout based on the 200-step No-Earnings foreign-language experiment.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base0_2609r2_foreign_remote
+  - /data/train_data/foreign_language/english_hint@_foreign_train
+  - _self_
+
+data:
+  train_data: ['${_foreign_train}']
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: noisy_ls, sample: 100, shuffle: true}
+        - {name: mls_foreign, sample: 700, shuffle: true}
+        - {name: cjk_foreign, sample: 100, shuffle: true}
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+reward_function_by_data_source: {noisy_ls: librispeech, mls_foreign: librispeech, cjk_foreign: librispeech}

@@ -27,6 +27,7 @@ from verl.audio_cache import (
     _split_audio_source,
     cache_audio_source,
     local_audio_source,
+    split_audio_sources,
 )
 
 logger = logging.getLogger(__name__)
@@ -90,13 +91,18 @@ def collect_audio_files(config_path: str, fields: tuple[str, ...] = AUDIO_FIELDS
                         if not isinstance(source, str):
                             raise ValueError(f"Expected string field {field!r} at {manifest}:{line_number}")
                         found = True
-                        physical_file, _ = _split_audio_source(source)
-                        physical_file = os.path.expanduser(physical_file)
-                        if "://" in physical_file and not physical_file.startswith(ORANGE_DATA_PREFIX):
-                            raise ValueError(f"Unsupported remote audio source at {manifest}:{line_number}: {source}")
-                        if "://" not in physical_file and not Path(physical_file).is_file():
-                            raise FileNotFoundError(f"Missing local audio at {manifest}:{line_number}: {physical_file}")
-                        sources[physical_file] = None
+                        try:
+                            parts = split_audio_sources(source)
+                        except ValueError as exc:
+                            raise ValueError(f"Invalid audio source at {manifest}:{line_number}: {exc}") from exc
+                        for part in parts:
+                            physical_file, _ = _split_audio_source(part)
+                            physical_file = os.path.expanduser(physical_file)
+                            if "://" in physical_file and not physical_file.startswith(ORANGE_DATA_PREFIX):
+                                raise ValueError(f"Unsupported remote audio source at {manifest}:{line_number}: {part}")
+                            if "://" not in physical_file and not Path(physical_file).is_file():
+                                raise FileNotFoundError(f"Missing local audio at {manifest}:{line_number}: {physical_file}")
+                            sources[physical_file] = None
                     if not found:
                         raise ValueError(f"No audio reference in fields {fields} at {manifest}:{line_number}")
             finally:

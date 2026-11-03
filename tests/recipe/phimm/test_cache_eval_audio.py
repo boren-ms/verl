@@ -88,6 +88,66 @@ def test_prefetch_uses_loader_cache_and_resumes(tmp_path, monkeypatch):
     assert (tmp_path / "samples.jsonl").read_bytes() == original_manifest
 
 
+def test_concatenated_sources_are_cached_individually_and_deduplicated(tmp_path, monkeypatch):
+    cache_root = tmp_path / "cache"
+    monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", cache_root)
+    monkeypatch.setattr(prefetch, "LOCAL_DATA_ROOT", cache_root)
+    monkeypatch.setattr(audio_cache, "LOCK_ROOT", tmp_path / "locks")
+    first = REMOTE + "a.wav#0:1"
+    second = REMOTE + "chunk.audio:20:1#0%:50%"
+    third = REMOTE + "packed.zip!100:20"
+    config = write_config(tmp_path, [
+        {"audio_path": f"{first}; {second};{third}"},
+        {"audio_path": REMOTE + "chunk.audio:20:2;" + REMOTE + "a.wav#1:2"},
+    ])
+    files = [REMOTE + "a.wav", REMOTE + "chunk.audio", REMOTE + "packed.zip"]
+    assert prefetch.collect_audio_files(str(config)) == files
+    assert audio_cache._cache_sources([f"{first};{second}", third, second]) == tuple(files)
+
+    copies = []
+    def transfer(source, destination):
+        copies.append(source)
+        destination.write_bytes(b"audio")
+
+    monkeypatch.setattr(audio_cache, "_run_bbb_transfer", transfer)
+    assert prefetch.cache_eval_audio(str(config), workers=2)["downloaded"] == 3
+    assert sorted(copies) == sorted(files)
+    combined = f"{first}; {second};{third}"
+    expected = ";".join([
+        str(cache_root / "Evaluation/a.wav") + "#0:1",
+        str(cache_root / "Evaluation/chunk.audio") + ":20:1#0%:50%",
+        str(cache_root / "Evaluation/packed.zip") + "!100:20",
+    ])
+    assert audio_cache.resolve_audio_source(combined) == expected
+    assert audio_cache.cache_audio_source(combined) == expected
+    assert audio_cache.localize_audio_source(combined) == expected
+    assert prefetch.cache_eval_audio(str(config))["downloaded"] == 0
+    assert len(copies) == 3
+
+
+def test_combined_resolution_handles_partial_cache(tmp_path, monkeypatch):
+    monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path / "cache")
+    monkeypatch.setattr(audio_cache, "LOCK_ROOT", tmp_path / "locks")
+    local = tmp_path / "cache/Evaluation/a.wav"
+    local.parent.mkdir(parents=True)
+    local.write_bytes(b"cached")
+    first, second = REMOTE + "a.wav#0:1", REMOTE + "b.wav#1:2"
+    assert audio_cache.resolve_audio_source(first + ";" + second) == f"{local}#0:1;{second}"
+    monkeypatch.setattr(audio_cache, "_run_bbb_transfer", lambda source, dest: dest.write_bytes(b"b"))
+    expected = f"{local}#0:1;{tmp_path / 'cache/Evaluation/b.wav'}#1:2"
+    assert audio_cache.localize_audio_source(first + ";" + second) == expected
+
+
+def test_prefetch_reports_invalid_part_of_concatenated_source(tmp_path):
+    config = write_config(tmp_path, [{"audio_path": REMOTE + "a.wav;"}])
+    with pytest.raises(ValueError, match=r"samples.jsonl:1.*Empty audio path"):
+        prefetch.collect_audio_files(str(config))
+    config = write_config(tmp_path, [{"audio_path": REMOTE + "a.wav;az://other/data/b.wav"}])
+    with pytest.raises(ValueError, match="Unsupported remote audio source"):
+        prefetch.collect_audio_files(str(config))
+    assert audio_cache._cache_sources([REMOTE + "broken.zip!bad:20", REMOTE + "a.wav"]) == (REMOTE + "a.wav",)
+
+
 def test_failed_download_is_logged_and_raises(tmp_path, monkeypatch, caplog):
     monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path / "cache")
     config = write_config(tmp_path, [{"audio_path": REMOTE + "missing.wav"}])

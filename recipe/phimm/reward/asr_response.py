@@ -23,8 +23,9 @@ def _segment(src=None, tgt=None, text=None) -> TaskOutputSegment:
 
 
 def clean_text(text: str) -> str:
-    """Remove model markup, a leading tag-like word, and empty punctuation."""
+    """Remove model markup, unmatched word-edge brackets, and empty punctuation."""
     cleanup_patterns = (
+        r"</?foreign_language>",
         r"<nonspeech>",
         r"</?lexical>",
         r"</?verbatim>",
@@ -39,7 +40,8 @@ def clean_text(text: str) -> str:
     for pattern in cleanup_patterns:
         cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE).strip()
 
-    cleaned = re.sub(r"^</?\S*", "", cleaned).strip()
+    cleaned = re.sub(r"(?<!\S)<([^\s<>]+)(?=\s|$)", r"\1", cleaned)
+    cleaned = re.sub(r"(?<!\S)([^\s<>]+)>(?=\s|$)", r"\1", cleaned).strip()
 
     if cleaned in (".", "。"):
         return ""
@@ -134,20 +136,7 @@ def _parse_task_output_2609(solution_str: str):
 
 
 def get_hyp_text(solution_str, version=None):
-    """Extract lexical text, retaining malformed suffixes after valid segments."""
+    """Extract and clean lexical text from each parsed segment."""
     task_output = parse_task_output(solution_str, version=version)
-    last_segment = task_output[-1]
-    if (
-        str(version) == "2609"
-        and len(task_output) > 1
-        and last_segment["src"] is None
-        and last_segment["tgt"] is None
-        and last_segment["text"] is not None
-    ):
-        # Keep raw unparsed text in its language-less segment. Neutralize its
-        # angle brackets only for lexical scoring so cleanup and normalizers
-        # cannot swallow words inside broken tags.
-        prefix = clean_text(get_asr_text(task_output[:-1]))
-        suffix = last_segment["text"].replace("<", " ").replace(">", " ").strip()
-        return " ".join(part for part in (prefix, suffix) if part)
-    return clean_text(get_asr_text(task_output) or str(solution_str or ""))
+    cleaned = (clean_text(segment["text"] or "") for segment in task_output)
+    return " ".join(filter(None, cleaned))
