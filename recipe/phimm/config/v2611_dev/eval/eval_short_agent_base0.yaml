@@ -1,0 +1,32 @@
+# Standalone Agent FY26Q1 evaluation for ReMax Short Base0 checkpoints.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - eval_base
+  - /data/val_data/inhouse_2605_agent_enus@_agent
+  - _self_
+
+data:
+  val_data: ['${_agent.0}']
+
+val_reward:
+  # Each Agent row is a complete utterance; pass the model response to DTER
+  # directly so it is parsed only once.
+  reward_manager: naive
+  reward_function_by_data_source:
+    agent_fy26q1_enus: inhouse_all
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 0
+  actor:
+    use_kl_loss: false
+
+trainer:
+  nnodes: 2
+  n_gpus_per_node: 8
+  resume_mode: disable
+  validation_resume: false

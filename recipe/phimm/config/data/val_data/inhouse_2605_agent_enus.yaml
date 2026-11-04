@@ -1,0 +1,25 @@
+# MOE Agent task: FY26Q1 English offline collection (1,564 source rows).
+# Keep DisplayTranscription's disfluency tags for the in-house DTER scorer.
+# Consumers should map agent_fy26q1_enus to val_reward's inhouse_all scorer.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/ruchaofan/Evaluation/InhouseASR_2605/Agent/Agent_DTEST_FY26Q1_en-US_DTEST_OfflineDataCollection/test.jsonl
+  pre_process:
+    path_map:
+      field: WavPath
+      src_part: /datablob1/
+      dst_part: az://orngwus2cresco/data/speech/
+    rename_fields:
+      mappings:
+        audio_path: WavPath
+        text: DisplayTranscription
+        id: UUID
+  add_task_info:
+    task: lang_asr
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: agent_fy26q1_enus
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [id, language, audio_path]
