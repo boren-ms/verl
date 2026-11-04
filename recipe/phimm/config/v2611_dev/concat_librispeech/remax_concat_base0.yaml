@@ -1,0 +1,48 @@
+# Verified 14,439 training records; no training has been launched.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - /v2611_dev/base@_global_
+  - /data/train_data/concat_librispeech/librispeech_1to30@_concat_train
+  - /data/val_data/concat_librispeech/librispeech_1to30@_concat_val
+  - _self_
+
+actor_rollout_ref:
+  model: {path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf, lora_rank: 320}
+  actor:
+    optim: {lr: 3.0e-6, warmup_style: constant, lr_warmup_steps: 0}
+  rollout: {n: 8}
+
+data:
+  train_data: ['${_concat_train}']
+  val_data: ['${_concat_val.0}', '${_concat_val.1}', '${_concat_val.2}', '${_concat_val.3}', '${_concat_val.4}', '${_concat_val.5}']
+  data_source: null
+  train_batch_size: 128
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: ls_concat_train, sample: 14439, shuffle: true}
+trainer: {nnodes: 2, total_epochs: 2, total_training_steps: null}
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source: {ls_concat_train: librispeech}
+val_reward:
+  reward_function_by_data_source: {ls_concat_clean_5s: openasr_en, ls_concat_clean_10s: openasr_en, ls_concat_clean_20s: openasr_en, ls_concat_other_5s: openasr_en, ls_concat_other_10s: openasr_en, ls_concat_other_20s: openasr_en}
