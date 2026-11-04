@@ -1,0 +1,34 @@
+# Base4 v1 with SMTS and bad-case replay: nominal 256 = 128 fresh + up to 128 replay.
+# Rank replay inputs by the greedy baseline's raw word score; lower is harder.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base4_2609r2_d3_e1_bs128_n8_r320_g16_flr
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    loss_agg_mode: seq-mean-token-sum
+  rollout:
+    n: 8
+
+data:
+  train_batch_size: 256
+
+trainer:
+  total_epochs: 2
+  experiment_name: remax_base4_e2_v1_smts_bcr128
+
+algorithm:
+  bad_case_replay:
+    enable: true
+    capacity: 6400
+    replay_size: 128
+    sampling: worst
+    selection:
+      weights:
+        word: 1.0
+    seed: 42
