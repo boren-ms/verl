@@ -16,6 +16,8 @@ Usage (on remote 8-GPU node):
 import json
 import multiprocess
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
+from itertools import zip_longest
 from pathlib import Path
 
 import blobfile as bf
@@ -28,6 +30,7 @@ multiprocess.set_start_method("spawn", force=True)
 
 # Per-process aligner instance (populated lazily in forked workers)
 _aligner = None
+_prefetch_pool = None
 
 
 def load_ds(source: str) -> Dataset:
@@ -61,7 +64,7 @@ def load_ds(source: str) -> Dataset:
     return ds
 
 
-_KEEP_COLS = {"id", "text", "word_timestamps", "n_words"}
+_KEEP_COLS = {"id", "text", "word_timestamps", "n_words", "alignment_error"}
 _KEEP_PREFIXES = ("id", "audio_")
 
 
@@ -116,7 +119,8 @@ def _get_aligner(model_path: str, n_gpus: int, rank: int):
     if _aligner is None:
         from qwen_asr import Qwen3ForcedAligner
 
-        gpu_id = rank % n_gpus
+        # datasets.map passes rank=None when it runs in the current process.
+        gpu_id = (rank or 0) % n_gpus
         _aligner = Qwen3ForcedAligner.from_pretrained(
             model_path, dtype=torch.bfloat16, device_map=f"cuda:{gpu_id}",
         )
@@ -124,40 +128,83 @@ def _get_aligner(model_path: str, n_gpus: int, rank: int):
     return _aligner
 
 
-def _align_batch(batch, rank, language, model_path, n_gpus):
+def _prefetch_batch(batch, io_threads):
+    """Overlap cache downloads within a batch; reuse the repository's file locks."""
+    global _prefetch_pool
+    if io_threads <= 1:
+        return
+    from verl.audio_cache import cache_audio_source
+
+    paths = batch.get("audio_path") or batch.get("audio_file") or []
+    chunks = batch.get("audio_chunk") or []
+    sources = [path or chunk for path, chunk in zip_longest(paths, chunks, fillvalue=None)]
+    remote = list(dict.fromkeys(
+        source for source in sources
+        if isinstance(source, str) and source.startswith("az://orngwus2cresco/data/")
+    ))
+    if not remote:
+        return
+    if _prefetch_pool is None:
+        _prefetch_pool = ThreadPoolExecutor(max_workers=io_threads)
+    # Consume results so transfer failures abort the batch instead of becoming
+    # apparently valid empty alignments.
+    list(_prefetch_pool.map(cache_audio_source, remote))
+
+
+def _align_batch(batch, rank, language, model_path, n_gpus, io_threads=1):
     from recipe.phimm.utils.audio import load_audios
 
     aligner = _get_aligner(model_path, n_gpus, rank)
+    _prefetch_batch(batch, io_threads)
     audio_inputs = load_audios(batch)
 
     texts = batch["text"]
     languages = [language] * len(texts)
 
+    # Keep a consistent Arrow string schema even when an entire worker has no
+    # failures and another worker reports one.
+    errors = [""] * len(texts)
     try:
         results = aligner.align(audio=audio_inputs, text=texts, language=languages)
+        if len(results) != len(texts):
+            raise ValueError(
+                f"alignment returned {len(results)} results for {len(texts)} inputs"
+            )
     except Exception as e:
         print(f"Batch error: {e}, falling back to one-by-one")
         results = []
-        for audio_in, text, lang in zip(audio_inputs, texts, languages):
+        for i, (audio_in, text, lang) in enumerate(zip(audio_inputs, texts, languages)):
             try:
                 r = aligner.align(audio=audio_in, text=text, language=lang)
+                if len(r) != 1:
+                    raise ValueError(f"expected one alignment result, got {len(r)}")
                 results.append(r[0])
-            except Exception:
+            except Exception as item_error:
+                errors[i] = f"{type(item_error).__name__}: {item_error}"
                 results.append([])
 
     word_timestamps = []
     n_words = []
-    for word_list in results:
+    for i, word_list in enumerate(results):
         ts = [{"text": w.text, "start": w.start_time, "end": w.end_time} for w in word_list]
+        if not ts and texts[i].strip() and not errors[i]:
+            errors[i] = "empty alignment for nonempty transcript"
         word_timestamps.append(json.dumps(ts, ensure_ascii=False))
         n_words.append(len(ts))
 
-    return {"word_timestamps": word_timestamps, "n_words": n_words}
+    return {"word_timestamps": word_timestamps, "n_words": n_words, "alignment_error": errors}
 
 
-def align_ds(ds: Dataset, language="English", batch_size=8, n_gpus=8, workers_per_gpu=2) -> Dataset:
+def align_ds(
+    ds: Dataset, language="English", batch_size=8, n_gpus=8,
+    workers_per_gpu=2, model_path=None, io_threads=1,
+) -> Dataset:
     """Forced-align a dataset across multiple GPUs using datasets.map."""
-    model_path = _ensure_model()
+    if not len(ds):
+        raise ValueError("cannot align an empty dataset")
+    if min(batch_size, n_gpus, workers_per_gpu, io_threads) < 1:
+        raise ValueError("batch size, GPU count, workers per GPU and I/O threads must be positive")
+    model_path = model_path or _ensure_model()
     ds = ds.map(
         _align_batch,
         batched=True,
@@ -168,6 +215,7 @@ def align_ds(ds: Dataset, language="English", batch_size=8, n_gpus=8, workers_pe
             "language": language,
             "model_path": model_path,
             "n_gpus": n_gpus,
+            "io_threads": io_threads,
         },
     )
     print(f"\n{len(ds)} utterances aligned")
