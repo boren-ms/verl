@@ -1,0 +1,94 @@
+# Base0 ReMax recipe for the verified LibriSpeech 1–100-word dataset.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - /v2611_dev/base@_global_
+  - /data/train_data/short/word_1to100/librispeech@_word100_train
+  - /data/val_data/short/word_1to100/test_clean_001_010@_ls_word100_clean_001_010
+  - /data/val_data/short/word_1to100/test_clean_011_020@_ls_word100_clean_011_020
+  - /data/val_data/short/word_1to100/test_clean_021_030@_ls_word100_clean_021_030
+  - /data/val_data/short/word_1to100/test_clean_031_040@_ls_word100_clean_031_040
+  - /data/val_data/short/word_1to100/test_clean_041_050@_ls_word100_clean_041_050
+  - /data/val_data/short/word_1to100/test_clean_051_060@_ls_word100_clean_051_060
+  - /data/val_data/short/word_1to100/test_clean_061_070@_ls_word100_clean_061_070
+  - /data/val_data/short/word_1to100/test_clean_071_080@_ls_word100_clean_071_080
+  - /data/val_data/short/word_1to100/test_clean_081_090@_ls_word100_clean_081_090
+  - /data/val_data/short/word_1to100/test_clean_091_100@_ls_word100_clean_091_100
+  - /data/val_data/short/word_1to100/test_other_001_010@_ls_word100_other_001_010
+  - /data/val_data/short/word_1to100/test_other_011_020@_ls_word100_other_011_020
+  - /data/val_data/short/word_1to100/test_other_021_030@_ls_word100_other_021_030
+  - /data/val_data/short/word_1to100/test_other_031_040@_ls_word100_other_031_040
+  - /data/val_data/short/word_1to100/test_other_041_050@_ls_word100_other_041_050
+  - /data/val_data/short/word_1to100/test_other_051_060@_ls_word100_other_051_060
+  - /data/val_data/short/word_1to100/test_other_061_070@_ls_word100_other_061_070
+  - /data/val_data/short/word_1to100/test_other_071_080@_ls_word100_other_071_080
+  - /data/val_data/short/word_1to100/test_other_081_090@_ls_word100_other_081_090
+  - /data/val_data/short/word_1to100/test_other_091_100@_ls_word100_other_091_100
+  - _self_
+
+actor_rollout_ref:
+  model: {path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf, lora_rank: 320}
+  actor:
+    optim: {lr: 3.0e-6, warmup_style: constant, lr_warmup_steps: 0}
+    ppo_micro_batch_size_per_gpu: 1
+    ppo_max_token_len_per_gpu: 4096
+  ref: {log_prob_max_token_len_per_gpu: 4096}
+  rollout: {n: 8, max_num_seqs: 8}
+
+data:
+  train_data: ['${_word100_train}']
+  val_data: ['${_ls_word100_clean_001_010}', '${_ls_word100_clean_011_020}', '${_ls_word100_clean_021_030}', '${_ls_word100_clean_031_040}', '${_ls_word100_clean_041_050}', '${_ls_word100_clean_051_060}', '${_ls_word100_clean_061_070}', '${_ls_word100_clean_071_080}', '${_ls_word100_clean_081_090}', '${_ls_word100_clean_091_100}', '${_ls_word100_other_001_010}', '${_ls_word100_other_011_020}', '${_ls_word100_other_021_030}', '${_ls_word100_other_031_040}', '${_ls_word100_other_041_050}', '${_ls_word100_other_051_060}', '${_ls_word100_other_061_070}', '${_ls_word100_other_071_080}', '${_ls_word100_other_081_090}', '${_ls_word100_other_091_100}']
+  data_source: null
+  train_batch_size: 64
+  val_batch_size: 16
+  max_audio_dur: 60
+  max_prompt_length: 2048
+  truncation: error
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: ls_word100_train, sample: 9982, shuffle: true}
+trainer: {experiment_name: remax_word100_base0_20261104, nnodes: 2, total_epochs: 2, total_training_steps: null}
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source: {ls_word100_train: librispeech}
+val_reward:
+  reward_function_by_data_source:
+    ls_word100_clean_001_010: openasr_en
+    ls_word100_clean_011_020: openasr_en
+    ls_word100_clean_021_030: openasr_en
+    ls_word100_clean_031_040: openasr_en
+    ls_word100_clean_041_050: openasr_en
+    ls_word100_clean_051_060: openasr_en
+    ls_word100_clean_061_070: openasr_en
+    ls_word100_clean_071_080: openasr_en
+    ls_word100_clean_081_090: openasr_en
+    ls_word100_clean_091_100: openasr_en
+    ls_word100_other_001_010: openasr_en
+    ls_word100_other_011_020: openasr_en
+    ls_word100_other_021_030: openasr_en
+    ls_word100_other_031_040: openasr_en
+    ls_word100_other_041_050: openasr_en
+    ls_word100_other_051_060: openasr_en
+    ls_word100_other_061_070: openasr_en
+    ls_word100_other_071_080: openasr_en
+    ls_word100_other_081_090: openasr_en
+    ls_word100_other_091_100: openasr_en
