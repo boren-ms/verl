@@ -5,8 +5,8 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - /v2611_dev/base@_global_
-  - /data/train_data/concat_librispeech/librispeech_1to30@_concat_train
-  - /data/val_data/concat_librispeech/librispeech_1to30@_concat_val
+  - /data/train_data/concat/librispeech_1to30@_concat_train
+  - /data/val_data/concat/librispeech_1to30@_concat_val
   - _self_
 
 actor_rollout_ref:

@@ -9,7 +9,7 @@ p=argparse.ArgumentParser();p.add_argument('--remote-root',required=True);p.add_
 root=Path(a.local_root);(root/'manifests').mkdir(parents=True,exist_ok=True);(root/'evidence').mkdir(parents=True,exist_ok=True);(root/'readback').mkdir(parents=True,exist_ok=True)
 def cp(src,dst):subprocess.run(['bbb','cp',src,str(dst)],check=True,stdout=subprocess.DEVNULL)
 remote=a.remote_root.rstrip('/');verification=root/'evidence'/'verification.json';cp(remote+'/verification.json',verification);v=json.loads(verification.read_text()); report={}
-repo=Path(a.repo_root);train=yaml.safe_load((repo/'recipe/phimm/config/data/train_data/concat_librispeech/librispeech_1to30.yaml').read_text());vals=yaml.safe_load((repo/'recipe/phimm/config/data/val_data/concat_librispeech/librispeech_1to30.yaml').read_text());configs={'train':train};configs.update({c['jsonl_paths'].split('/')[-2]:c for c in vals})
+repo=Path(a.repo_root);train=yaml.safe_load((repo/'recipe/phimm/config/data/train_data/concat/librispeech_1to30.yaml').read_text());vals=yaml.safe_load((repo/'recipe/phimm/config/data/val_data/concat/librispeech_1to30.yaml').read_text());configs={'train':train};configs.update({c['jsonl_paths'].split('/')[-2]:c for c in vals})
 for subset,cfg in configs.items():
  manifest=root/'manifests'/f'{subset}.jsonl';cp(f'{remote}/{subset}/data.jsonl',manifest);assert hashlib.sha256(manifest.read_bytes()).hexdigest()==v['subsets'][subset]['manifest_sha256']
  rows=[json.loads(line) for line in manifest.open()]; expected={x['audio_path'] for x in rows};assert len(expected)==len(rows)==v['subsets'][subset]['count']
