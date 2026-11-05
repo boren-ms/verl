@@ -1,0 +1,79 @@
+# 20,000 training examples and 20 independently verified validation groups.
+# Actual processor checks: longest training audio 28.16 s / 392 prompt tokens;
+# longest validation audio 44.64 s / 598 prompt tokens. No silent truncation.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - /v2611_dev/base@_global_
+  - /data/train_data/concat/librispeech_random_segments_1to30@_concat_train
+  - /data/val_data/concat/librispeech_word_1to100_verified@_word100_val
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim: {lr: 3.0e-6, warmup_style: constant, lr_warmup_steps: 0}
+    ppo_max_token_len_per_gpu: 4096
+  rollout: {n: 8}
+  ref:
+    log_prob_max_token_len_per_gpu: 4096
+
+data:
+  train_data: ['${_concat_train}']
+  val_data: ['${_word100_val.0}', '${_word100_val.1}', '${_word100_val.2}', '${_word100_val.3}', '${_word100_val.4}', '${_word100_val.5}', '${_word100_val.6}', '${_word100_val.7}', '${_word100_val.8}', '${_word100_val.9}', '${_word100_val.10}', '${_word100_val.11}', '${_word100_val.12}', '${_word100_val.13}', '${_word100_val.14}', '${_word100_val.15}', '${_word100_val.16}', '${_word100_val.17}', '${_word100_val.18}', '${_word100_val.19}']
+  max_audio_dur: 60
+  max_prompt_length: 2048
+  truncation: error
+  data_source: null
+  train_batch_size: 128
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: ls_random_segments, sample: 20000, shuffle: true}
+
+trainer: {nnodes: 2, total_epochs: 2, total_training_steps: null}
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+reward_function_by_data_source: {ls_random_segments: librispeech}
+val_reward:
+  reward_function_by_data_source:
+    ls_word100_clean_001_010: openasr_en
+    ls_word100_clean_011_020: openasr_en
+    ls_word100_clean_021_030: openasr_en
+    ls_word100_clean_031_040: openasr_en
+    ls_word100_clean_041_050: openasr_en
+    ls_word100_clean_051_060: openasr_en
+    ls_word100_clean_061_070: openasr_en
+    ls_word100_clean_071_080: openasr_en
+    ls_word100_clean_081_090: openasr_en
+    ls_word100_clean_091_100: openasr_en
+    ls_word100_other_001_010: openasr_en
+    ls_word100_other_011_020: openasr_en
+    ls_word100_other_021_030: openasr_en
+    ls_word100_other_031_040: openasr_en
+    ls_word100_other_041_050: openasr_en
+    ls_word100_other_051_060: openasr_en
+    ls_word100_other_061_070: openasr_en
+    ls_word100_other_071_080: openasr_en
+    ls_word100_other_081_090: openasr_en
+    ls_word100_other_091_100: openasr_en

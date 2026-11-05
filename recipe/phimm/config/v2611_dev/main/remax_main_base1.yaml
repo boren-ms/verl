@@ -1,0 +1,27 @@
+# Base4 v1b2 SMTS without temperature-scaled log probabilities or linear-attention packing.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base1_smts
+  - /data/train_data/openml_verb_langhint_v0@_ml_train
+  - /data/train_data/earningscall-fy27-en-us-batches-wer-gt1pct-verb-langhint@_earning_train
+  - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
+  - _self_
+
+# Per epoch: 4,957 Earnings, 20,424 noisy LS, and 13,169 OpenML rows.
+data:
+  train_data:
+    - ${_ml_train}
+    - ${_earning_train}
+    - ${_noisy_ls_train}
+  data_source: null
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earnings_fy27, sample: 4957, shuffle: true}
+        - {name: noisy_ls, sample: 20424, shuffle: true}
+        - {name: openml, sample: 13169, shuffle: true}
