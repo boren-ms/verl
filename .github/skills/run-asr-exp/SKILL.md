@@ -1,0 +1,121 @@
+---
+name: run-asr-exp
+description: Run, monitor, and recover scoped verl ASR jobs or orchestrate checkpoint export, OpenASR evaluation, and reporting on Brix. Use openasr-report alone for workbooks from existing metrics.
+---
+
+# Run ASR Exp
+
+Own the requested ASR job or pipeline: training, standalone evaluation,
+generation, checkpoint export, or an OpenASR train/export/evaluate/report
+workflow or checkpoint queue. Do only the stages the user requested. Use
+`openasr-report` for canonical workbooks and `report-experiment` for requested
+run comparisons. For a multi-stage workflow, checkpoint queue, export, or audio
+prefetch, read [references/openasr-pipeline.md](references/openasr-pipeline.md).
+For periodic monitoring or scoped recovery, read
+[references/monitor-recover.md](references/monitor-recover.md).
+
+Editing this skill alone never authorizes remote operations. A status request is
+read-only: do not resume pools, submit, stop, schedule, or advance work.
+
+## Identify the work
+
+Resolve the exact composed config, job type, cluster/namespace, resource
+restrictions, GPU-bearing Ray nodes and topology, experiment/project/output
+names, code revision, launch overrides, submission ID and W&B identity. Never
+substitute a similar config, experiment, checkpoint, pool, or old submission.
+Preserve recipe, data, reward, priority, topology, save cadence, resume policy,
+and model path unless a change is authorized. Explicit steps and paths win.
+
+Compose Hydra before submission and capture material effective values. For
+training include base model, LoRA rank/alpha, data mix, algorithm, steps/epochs,
+validation/save cadence, resume mode and local/blob roots. Count participating
+GPU Ray nodes rather than pool names; compare `trainer.nnodes` and
+`trainer.n_gpus_per_node` with live capacity and report mismatches rather than
+silently changing the recipe. For evaluation verify the exact checkpoint or HF
+export, provenance, completeness and loader compatibility. Source training
+state is provenance, not an evaluation readiness gate.
+
+## Discover and prepare capacity
+
+For an authorized execution, automatically discover Brix pools and compatible
+nodes; the user need not name one. The usual cluster is `prod-westus2-cw-6`,
+namespace `boren`, and remote repo `/root/code/verl`; verify live and respect
+any explicit cluster, namespace, pool, priority, quota or resource restriction.
+Within that scope, choose verified available capacity matching the effective
+topology; prefer `team-critical` when no pool or priority was specified and
+that choice does not change priority. Tell the user the selected pool.
+
+Inspect all participating GPU pods, Ray status and jobs, reservations, processes,
+each GPU, ownership and planned work. Missing or contradictory occupancy
+evidence means unavailable. Idle GPUs do not prove availability during startup,
+validation, checkpointing, recovery or reservations. Never disturb unrelated
+work. An explicitly requested occupied pool stays queued unless an alternative
+or replacement of the exact job is authorized.
+
+An instruction to run the experiment authorizes resuming a suitable paused pool
+within the permitted resource scope when needed. First verify ownership, absence
+of conflicting work or plans, and that resuming is allowed; then resume the
+selected pool and verify Brix readiness, Ray membership, all GPU pods and
+capacity before submission. If ownership, permissions, availability or intended
+use cannot be verified, do not resume; find another eligible pool or report the
+blocker. Do not pause or resume unrelated pools. Respect read-only or narrower
+user instructions.
+
+Typical checks, adapted to the actual live environment:
+
+```bash
+brix pools -a
+brix ssh -c prod-westus2-cw-6 -n boren <pool> -- \
+  'bash -l -c "python /root/code/verl/ray_job.py list; ray status"'
+brix ssh -c prod-westus2-cw-6 -n boren <pod> -- \
+  'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits'
+```
+
+## Submit and verify
+
+Sync the exact local revision to the selected pool. Prefer `quick_run.sh` for
+Hydra overrides because it prepares the Ray environment and forwards them:
+
+```bash
+bpush <pool>
+brix ssh -c prod-westus2-cw-6 -n boren <pool> -- \
+  'bash -l /root/code/verl/quick_run.sh <config.yaml> <hydra-overrides...>'
+```
+
+Capture the submission ID; verify its live entrypoint, config, experiment,
+resources, logs and GPU activity. Submission output alone is insufficient.
+Stop or replace a tracked job only for authorized scoped recovery or an
+explicit request, after matching its exact submission, pool and config; wait for
+terminal state and resource release. Never use broad cleanup.
+
+For standalone evaluation, use a unique experiment name and explicit verified
+node count; disable training resume and new LoRA adapters for a merged model.
+Leave source training untouched when evaluation uses other authorized capacity.
+
+## Observe and complete
+
+Live Ray state is the lifecycle authority; current pod/process/GPU and checkpoint
+evidence outrank helpers, W&B, old logs and reports. At each poll rediscover the
+submission and Ray status, identify the phase, inspect new logs and each
+participating pod/GPU, and verify newly observed checkpoint shards and completed
+writes/uploads. Count only completed optimizer steps for the current submission;
+initialization, validation, generation, saves, previous submissions and replayed
+rows are not new optimizer progress.
+
+Report core metrics when available (reward/score, loss, KL, entropy, gradient
+norm, learning rate), per-dataset `val-core/*/p_err/mean@1` and
+`val-aux/*/p_err/mean@1` at their real steps, checkpoint state, resource health,
+and non-finite values or other observed risks. Finite metrics alone do not
+prove stability; one quiet interval does not prove a stall.
+
+Training completes only when Ray reports `SUCCEEDED`, the intended target and
+requested final validation are satisfied, and required checkpoints have
+complete shards/uploads. State last completed optimizer, validation and complete
+checkpoint steps separately. Evaluation completes only with Ray `SUCCEEDED`,
+final metrics and detail artifacts for every requested dataset; give exact
+paths. A requested export requires producer-derived rank/alpha, complete shards,
+verified conversion/assets/readability and upload. Do not create a workbook
+unless requested. Report exact identities, pool/topology, relevant links,
+progress, validation, checkpoint state and material limitations.
+
+Use `remote-development` for generic Brix setup when needed.

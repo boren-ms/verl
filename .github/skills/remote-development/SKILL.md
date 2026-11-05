@@ -1,6 +1,6 @@
 ---
 name: remote-development
-description: Create, resume, connect to, or develop on a remote Brix GPU node. Use for Brix devbox lifecycle, remote setup, dependency installation, and remote development or testing; use verl-asr-run for a managed ASR Ray job.
+description: Create, resume, connect to, or develop on a remote Brix GPU node. Use for Brix devbox lifecycle, remote setup, dependency installation, and remote development or testing; use run-asr-exp for a managed ASR Ray job.
 ---
 
 # Remote Development
