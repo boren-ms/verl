@@ -182,6 +182,9 @@ trainer:
   total_training_steps: 500
   test_freq: 20
   save_freq: 10
+  # Rotate local actor/critic checkpoints after uploads; retain remote checkpoints.
+  max_actor_ckpt_to_keep: 2
+  max_critic_ckpt_to_keep: 2
   resume_mode: auto
   default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
   default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
