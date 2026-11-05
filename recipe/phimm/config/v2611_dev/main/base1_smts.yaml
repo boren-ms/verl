@@ -27,13 +27,14 @@ data:
     - ${_earning_val}
     - ${_ml_val}
     - ${_ls_val}
-    - ${_urgent_delta.0}
+    - ${_urgent_delta}
   train_batch_size: 128
 
 trainer:
   nnodes: 2
   total_epochs: 2
   total_training_steps: null
+  max_actor_ckpt_to_keep: 2
 
 val_reward:
   reward_function_by_data_source:
