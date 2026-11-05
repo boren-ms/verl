@@ -1,0 +1,27 @@
+# Full ZIP-backed OpenASR and OpenASR-ML evaluation of 2611 S2 step 45000.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - eval_base
+  - /data/val_data/openasr_verb_langhint_zip@_openasr
+  - /data/val_data/openasr_ml_verb_langhint_zip@_openml
+  - _self_
+
+actor_rollout_ref:
+  model:
+    # Convert the source checkpoint before running this evaluation.
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2/45000/qwen_hf
+    lora_rank: 0
+
+trainer:
+  experiment_name: eval_2611s2_45000_openall_zip
+  nnodes: 2
+  resume_mode: disable
+
+data:
+  val_data:
+    - ${_openasr}
+    - ${_openml}
