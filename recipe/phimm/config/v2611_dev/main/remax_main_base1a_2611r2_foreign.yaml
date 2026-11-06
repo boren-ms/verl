@@ -1,0 +1,70 @@
+# Base1a 2611r2 without BCR, adding the original foreign 1k/language + mixed 10k training data.
+# Keep every original training source, budget, reward, and validation definition.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base1_smts
+  - /data/train_data/openml_verb_langhint_v0@_ml_train
+  - /data/train_data/earningscall-fy27-en-us-batches-wer-gt1pct-verb-langhint@_earnings_filtered_train
+  - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - /data/val_data/openlong_all_2parents_error_2609r2b_u2@_openlong
+  - /data/train_data/foreign_language/english_hint_1k_mixed@_foreign_train_1k_mixed
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+
+data:
+  data_source: null
+  # Hydra replaces lists: repeat the six existing sources, then append foreign data.
+  train_data:
+    - ${_ml_train}
+    - ${_earnings_filtered_train}
+    - ${_noisy_ls_train}
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_foreign_train_1k_mixed}
+  val_data:
+    - ${_earning_val}
+    - ${_ml_val}
+    - ${_ls_val}
+    - ${_urgent_delta}
+    - ${_openlong}
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earnings_fy27, sample: 4957, shuffle: true}
+        - {name: noisy_ls, sample: 20424, shuffle: true}
+        - {name: openml, sample: 13169, shuffle: true}
+        - {name: earn_fy27, sample: 9568, shuffle: true}
+        - {name: quartr_1st23, sample: 3125, shuffle: true}
+        - {name: quartr_2nd48, sample: 6392, shuffle: true}
+        - {name: foreign_1k, sample: 11000, shuffle: true}
+        - {name: foreign_mixed_10k, sample: 10000, shuffle: true}
+
+# The donor's librispeech reward definition matches Base1a's exactly.
+reward_function_by_data_source:
+  earn_fy27: librispeech
+  quartr_1st23: librispeech
+  quartr_2nd48: librispeech
+  foreign_1k: librispeech
+  foreign_mixed_10k: librispeech
+
+val_reward:
+  reward_function_by_data_source:
+    earnings21_u2: openasr_en
+    earnings22_u2: openasr_en
+    coraal_u2: openasr_en
+    earnings22_cleaned_aa_u2: openasr_en
+
+trainer:
+  experiment_name: remax_main_base1a_2611r2_foreign
