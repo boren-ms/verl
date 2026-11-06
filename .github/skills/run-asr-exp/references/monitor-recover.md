@@ -13,7 +13,8 @@ to 30 minutes if no cadence was specified. Inspect existing schedules and
 ownership first to avoid competing monitors. For a pipeline use one monitor for
 all phases, not one per job. Its durable prompt identifies this skill, state
 path where applicable, tracked identities, queue policy, recovery/read-only
-boundary, target `T`, validation reporting cursor, end and stop conditions.
+boundary, target `T`, validation reporting cursor, exact resource pause targets
+and pause status/exceptions, end and stop conditions.
 Confirm the saved cadence, client time zone, chat destination and active state
 from the native tool result. Update it when phase or submission changes.
 Keep unchanged passes quiet unless the user asks for an update every pass. On a
@@ -22,8 +23,11 @@ delta (including `no progress change`), latest per-dataset validation and
 checkpoint evidence, GPU/process health, changed risks and required action.
 Highlight meaningful progress, new evidence, failures or completion; do not
 infer completion from absence or a stall from one quiet interval. Stop the
-heartbeat only after all requested outcomes, including the training target,
-are verified and the final status is reported, or on explicit user cancellation.
+heartbeat only after all requested outcomes, including the training target and
+completion pausing under SKILL.md, are verified and the final status is reported,
+or on explicit user cancellation. Resolve each resource as verified paused or
+an evidenced keep-running/shared-use exception; an unverified or failed pause
+remains pending and keeps the monitor active.
 A recovery blocker stops mutations requiring user direction; retain read-only
 tracking on the same cadence and report the blocker once or when it changes.
 
@@ -35,6 +39,9 @@ completed updates and checkpoint writes/uploads. Recheck outstanding blockers,
 apply authorized minimal recovery below when evidence warrants it, and verify
 any replacement submission before saving its identity. Advance only requested
 pipeline phases, preserving unfinished training in the tracked set.
+For completed work, apply SKILL.md's completion pause checks, reconcile pending
+pause operations against the Brix control plane, and report a verified pause
+or changed pause blocker. Never resume completed resources merely to poll them.
 
 Check for newly ready validation on every pass. Read final aggregate metrics
 for each completed dataset at its actual validation step; do not treat an

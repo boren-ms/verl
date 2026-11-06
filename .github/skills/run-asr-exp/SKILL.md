@@ -15,7 +15,7 @@ For training, periodic monitoring or scoped recovery, read
 [references/monitor-recover.md](references/monitor-recover.md).
 
 Editing this skill alone never authorizes remote operations. A status request is
-read-only: do not resume pools, submit, stop, schedule, or advance work.
+read-only: do not resume or pause pools, submit, stop, schedule, or advance work.
 
 ## Identify the work
 
@@ -149,5 +149,38 @@ paths. A requested export requires producer-derived rank/alpha, complete shards,
 verified conversion/assets/readability and upload. Do not create a workbook
 unless requested. Report exact identities, pool/topology, relevant links,
 progress, validation, checkpoint state and material limitations.
+
+## Pause completed resources
+
+For an authorized execution, pause the node or Brix pool used by this job as
+the default final resource action, unless the user explicitly requests keeping
+it running. This does not authorize pausing resources during an instruction-only
+edit or read-only monitoring. Record the exact cluster, namespace, pool and
+participating nodes so completion cleanup cannot target a similarly named pool.
+
+Pause only after the completion checks above pass and all requested work still
+needing those resources is finished: training target and final validation,
+checkpoint writes/uploads, export, evaluation and durable result collection as
+applicable. Preserve required logs, metrics and artifacts outside ephemeral
+node storage. Finish or stop only this pipeline's exact optional prefetch
+process. An intermediate report, idle GPUs, failed job or early `SUCCEEDED`
+below the target never triggers completion pausing.
+
+Immediately before pausing, rediscover the pool and check every GPU pod, Ray
+jobs, processes, reservations, ownership and planned/queued work. Verify the
+pause operation's scope: if it pauses an entire pool, every affected node must
+be eligible. Never pause source training for an evaluation-only request,
+unrelated work, shared active capacity, or a pool needed by the next requested
+stage or queued job. Missing or contradictory evidence defers the pause;
+record the reason and keep tracking without stopping other work.
+
+Use the supported Brix pause operation after checking its current CLI help;
+do not guess a node-versus-pool command or use deletion as a substitute. Verify
+the control plane reports the exact resource paused; command acceptance or SSH
+failure alone is insufficient. Persist completion evidence, pause time/status
+and any blocker or explicit keep-running/shared-use exception. If pausing fails,
+retain a pending pause and retry with fresh checks on the next monitoring pass
+or continue checking in this chat when no schedule exists. Report job success
+and resource pause separately; do not claim the resource paused until verified.
 
 Use `remote-development` for generic Brix setup when needed.

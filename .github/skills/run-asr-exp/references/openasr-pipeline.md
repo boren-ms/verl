@@ -22,7 +22,8 @@ submission IDs, links and replacement
 authorization; checkpoint fingerprints and shard readiness, export proof,
 evaluation detail paths, report inputs and verification; queue order and fresh
 readiness observations; prefetch inventory/hash, main pod, user/HOME/cache,
-process, logs and summary; and one shared monitor identity. Never store
+process, logs and summary; per-resource completion/pause evidence, pending
+pauses and exceptions; and one shared monitor identity. Never store
 credentials or signed URLs. Reconcile live jobs and artifacts before resuming;
 same names or old files alone do not prove identity.
 
@@ -118,3 +119,8 @@ default final-checkpoint report, resolve the last complete checkpoint after
 training completion rather than freezing an early checkpoint as the final one;
 report checkpoint step/URI, training and evaluation identities/links, report
 path, English and ML metrics, extra-suite results and provenance limitations.
+Apply SKILL.md's completion pause procedure to each resource once its requested
+work and dependent stages are finished. A completed evaluation must not pause
+unfinished training or capacity reserved for another queue entry. Include
+verified pause state or a specific pending/exception reason in the final report,
+and keep the shared monitor active for unresolved completion pausing.
