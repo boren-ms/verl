@@ -11,7 +11,7 @@ workflow or checkpoint queue. Do only the stages the user requested. Use
 `openasr-report` for canonical workbooks and `report-experiment` for requested
 run comparisons. For a multi-stage workflow, checkpoint queue, export, or audio
 prefetch, read [references/openasr-pipeline.md](references/openasr-pipeline.md).
-For periodic monitoring or scoped recovery, read
+For training, periodic monitoring or scoped recovery, read
 [references/monitor-recover.md](references/monitor-recover.md).
 
 Editing this skill alone never authorizes remote operations. A status request is
@@ -34,6 +34,33 @@ GPU Ray nodes rather than pool names; compare `trainer.nnodes` and
 silently changing the recipe. For evaluation verify the exact checkpoint or HF
 export, provenance, completeness and loader compatibility. Source training
 state is provenance, not an evaluation readiness gate.
+
+## Training target and continuity
+
+Before launch, resolve and persist the desired final optimizer step `T` from
+the user's explicit target, or the effective trainer config when none was given.
+Record whether it is an absolute final step or an explicitly requested number
+of additional updates; for additional updates, establish the verified starting
+step before deriving `T`. Keep this target fixed across submissions and recovery.
+
+Inspect the actual trainer's stopping logic and runtime dataloader length. In
+the current PPO trainer, `trainer.total_training_steps` overrides the derived
+step target, but the outer loop is still bounded by `trainer.total_epochs`.
+Verify the available batches/epochs, restored dataloader position and all exit
+flags can reach `T`; a training request must not run with `val_only` enabled.
+Resolve conflicting limits before launch. Align them with an explicit user step
+target only within the authorized recipe; surface any required semantic change
+rather than silently lowering the target, changing data, or extending an
+explicit epoch limit. Confirm the runtime prints the intended target.
+
+Own training until the verified target is reached, including monitoring and
+minimal recovery within the authorized boundary. A successful submission,
+intermediate checkpoint, completed evaluation/workbook, or Ray `SUCCEEDED`
+below `T` does not fulfill the training request. Keep unfinished training in the
+tracked set and diagnose early exits under the recovery reference. Continue in
+the current chat; use a heartbeat only when periodic scheduling was requested.
+If the user stops work or recovery requires a decision outside scope, report
+training as incomplete with the last verified step, remaining steps and blocker.
 
 ## Discover and prepare capacity
 
@@ -108,8 +135,9 @@ norm, learning rate), per-dataset `val-core/*/p_err/mean@1` and
 and non-finite values or other observed risks. Finite metrics alone do not
 prove stability; one quiet interval does not prove a stall.
 
-Training completes only when Ray reports `SUCCEEDED`, the intended target and
-requested final validation are satisfied, and required checkpoints have
+Training completes only when Ray reports `SUCCEEDED`, completed optimizer-step
+evidence reaches the persisted target `T`, requested final validation is
+satisfied, and required checkpoints have
 complete shards/uploads. State last completed optimizer, validation and complete
 checkpoint steps separately. Evaluation completes only with Ray `SUCCEEDED`,
 final metrics and detail artifacts for every requested dataset; give exact

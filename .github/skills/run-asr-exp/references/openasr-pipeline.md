@@ -16,7 +16,9 @@ stop or change source training to evaluate a complete checkpoint.
 Keep durable pipeline state under ignored `tmp/run_openasr_exp/<train-stem>/`:
 effective train/eval configs, restrictions and selected pools/topology, names,
 overrides, revisions, output roots, checkpoint policy and producer provenance
-(base, rank/alpha, world size, cadence); submission IDs, links and replacement
+(base, rank/alpha, world size, cadence), desired training target `T`, verified
+resume/current steps and independent completion status for each requested stage;
+submission IDs, links and replacement
 authorization; checkpoint fingerprints and shard readiness, export proof,
 evaluation detail paths, report inputs and verification; queue order and fresh
 readiness observations; prefetch inventory/hash, main pod, user/HOME/cache,
@@ -108,6 +110,11 @@ Resolve canonical identities from composed manifests; do not alias cleaned and
 uncleaned or short and long datasets by name. Use `openasr-report` for baseline
 values, rows, aggregation, formulas, formatting and quality gates. Reopen and
 verify the workbook and model/result metadata. Complete the requested pipeline
-only when its checkpoint, export, datasets, inputs and workbook are verified;
+only when every requested stage is verified, including training reaching `T`
+under the shared completion rule when training was requested. Evaluation and
+reporting may finish earlier for an explicit intermediate checkpoint, but keep
+training and the shared monitor active until its own target is verified. For a
+default final-checkpoint report, resolve the last complete checkpoint after
+training completion rather than freezing an early checkpoint as the final one;
 report checkpoint step/URI, training and evaluation identities/links, report
 path, English and ML metrics, extra-suite results and provenance limitations.

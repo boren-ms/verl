@@ -2,9 +2,10 @@
 
 Track only jobs explicitly identified by the user or launched for this request;
 never add other discovered jobs. Save exact experiment/config, cluster,
-namespace, pool, submission ID, lineage, target, resource restrictions, recovery
-boundary, and requested end condition. Rediscover current Ray submissions on
-each pass and update identity after a scoped replacement. A status-only or
+namespace, pool, submission ID, lineage, resource restrictions, recovery
+boundary, desired final optimizer step `T`, verified resume step, last completed
+optimizer step, remaining steps, and requested end condition. Rediscover current
+Ray submissions on each pass and update identity after a scoped replacement. A status-only or
 read-only request never authorizes recovery or other mutations.
 
 For requested periodic monitoring, use one chat-attached heartbeat, defaulting
@@ -33,6 +34,20 @@ semantics; changes to these need authorization. Sync the exact revision, verify
 no competing live submission, and resubmit with a new ID while recording the
 original failure lineage and checkpoint/resume boundary. Do not call recovered
 progress a continuation unless checkpoint loading proves it.
+
+For unfinished training, treat a terminal job below `T` as an early exit, even
+if Ray reports `SUCCEEDED`; inspect the complete exit logs and effective limits
+before deciding on recovery. Keep the original target and lineage. Resume only
+under the existing checkpoint/resume policy after verifying loadability and
+restoration of the model, optimizer and other required trainer/dataloader state.
+Do not silently restart from step zero or choose a different checkpoint policy
+when compatible resume state is unavailable. Report that boundary for direction.
+If an authorized recovery resumes step `S`, train toward the original absolute
+target `T`, not a new target of `S + T`. Verify the loaded step and first new
+completed update. Do not add step counters across submissions or count replayed
+updates as new progress; show the recovered step, current completed step and
+remaining `max(0, T - current_step)` separately. A report or queue finishing
+cannot remove still-unfinished requested training from the shared monitor.
 
 Do not impose a fixed retry count on authorized scoped recovery; re-establish
 the failure and all preconditions for each attempt. If ownership or verification
