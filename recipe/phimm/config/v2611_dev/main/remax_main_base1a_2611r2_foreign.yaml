@@ -14,7 +14,7 @@ defaults:
   - /data/train_data/quartr_1st23@_quartr_first23_train
   - /data/train_data/quartr_2nd48@_quartr_second48_train
   - /data/val_data/openlong_all_2parents_error_2609r2b_u2@_openlong
-  - /data/train_data/foreign_language/english_hint_1k_mixed@_foreign_train_1k_mixed
+  - /data/train_data/foreign_language/english_hint_foreign_11k_plus_mixed_10k@_foreign_train_1k_mixed
   - _self_
 
 actor_rollout_ref:

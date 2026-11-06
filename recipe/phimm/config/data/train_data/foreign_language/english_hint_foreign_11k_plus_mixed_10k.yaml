@@ -1,4 +1,4 @@
-# Original 11,000 English-hint examples plus 10,000 mixed-language pairs.
+# 11,000 English-hint foreign examples (1,000 per language) plus 10,000 mixed-language pairs.
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/boren/foreign_language_1k_09e24427354c1064/train_1k.jsonl
   mask_foreign_language: {}
