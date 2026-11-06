@@ -58,7 +58,11 @@ minimal recovery within the authorized boundary. A successful submission,
 intermediate checkpoint, completed evaluation/workbook, or Ray `SUCCEEDED`
 below `T` does not fulfill the training request. Keep unfinished training in the
 tracked set and diagnose early exits under the recovery reference. Continue in
-the current chat; use a heartbeat only when periodic scheduling was requested.
+the current chat; when periodic monitoring is requested, maintain one
+chat-attached 30-minute heartbeat that tracks progress, applies authorized
+minimal fixes and reports newly ready validation. Honor an explicit different
+cadence or read-only boundary. Follow the monitoring reference for persistence
+and stop conditions.
 If the user stops work or recovery requires a decision outside scope, report
 training as incomplete with the last verified step, remaining steps and blocker.
 

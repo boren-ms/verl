@@ -5,23 +5,59 @@ never add other discovered jobs. Save exact experiment/config, cluster,
 namespace, pool, submission ID, lineage, resource restrictions, recovery
 boundary, desired final optimizer step `T`, verified resume step, last completed
 optimizer step, remaining steps, and requested end condition. Rediscover current
-Ray submissions on each pass and update identity after a scoped replacement. A status-only or
-read-only request never authorizes recovery or other mutations.
+Ray submissions on each pass and update identity after a scoped replacement.
+A status-only or read-only request never authorizes recovery or other mutations.
 
 For requested periodic monitoring, use one chat-attached heartbeat, defaulting
 to 30 minutes if no cadence was specified. Inspect existing schedules and
 ownership first to avoid competing monitors. For a pipeline use one monitor for
 all phases, not one per job. Its durable prompt identifies this skill, state
 path where applicable, tracked identities, queue policy, recovery/read-only
-boundary, end and stop conditions. Update it when phase or submission changes.
+boundary, target `T`, validation reporting cursor, end and stop conditions.
+Confirm the saved cadence, client time zone, chat destination and active state
+from the native tool result. Update it when phase or submission changes.
 Keep unchanged passes quiet unless the user asks for an update every pass. On a
 report, include each tracked job and its phase, live identity/pods, progress and
 delta (including `no progress change`), latest per-dataset validation and
 checkpoint evidence, GPU/process health, changed risks and required action.
 Highlight meaningful progress, new evidence, failures or completion; do not
 infer completion from absence or a stall from one quiet interval. Stop the
-heartbeat after all requested outcomes are verified and reported, user
-cancellation, or a terminal blocker requiring user action.
+heartbeat only after all requested outcomes, including the training target,
+are verified and the final status is reported, or on explicit user cancellation.
+A recovery blocker stops mutations requiring user direction; retain read-only
+tracking on the same cadence and report the blocker once or when it changes.
+
+## Every 30-minute pass
+
+Perform the full pass even when no notification is warranted. Reconcile every
+tracked lineage against live Ray, new logs, participating pods/processes/GPUs,
+completed updates and checkpoint writes/uploads. Recheck outstanding blockers,
+apply authorized minimal recovery below when evidence warrants it, and verify
+any replacement submission before saving its identity. Advance only requested
+pipeline phases, preserving unfinished training in the tracked set.
+
+Check for newly ready validation on every pass. Read final aggregate metrics
+for each completed dataset at its actual validation step; do not treat an
+in-progress batch or partial metric line as completed validation. Report newly
+completed dataset results on the next pass, labeling any other requested
+datasets still pending. Include separate `val-core/*/p_err/mean@1` and
+`val-aux/*/p_err/mean@1` values where available, dataset coverage, current
+training step/target and delta, checkpoint completeness, resource health and
+recovery changes. Distinguish step-zero validation from optimizer progress.
+If several validations completed between passes, retain each new step's
+per-dataset results rather than silently replacing them with the latest one.
+
+Persist observed and reported validation separately, keyed by lineage,
+submission, validation step, dataset and metric namespace, with source/log
+cursor or artifact fingerprint. Mark results reported only after the report
+is delivered. On restart or recovery, reconcile these records so old or replayed
+metrics are not presented as new; changed results at the same step must be
+identified as reruns or corrections. Keep a compact durable record of every
+pass even when unchanged. Stay quiet if no new validation, meaningful progress,
+failure/recovery, changed blocker or verified completion is observed, unless
+the user explicitly requested a report every pass.
+
+## Automatic fixes within scope
 
 When recovery is within the user's requested scope, diagnose and minimally
 recover only tracked work without a separate approval. Respect explicit stop,
