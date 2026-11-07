@@ -10,8 +10,8 @@ The subsequent training request launched `remax_cv11_base0b_v0_e4` on the dedica
 
 The original YAML is unchanged: 730,071 retained training clips, batch128,
 rollout n16, rank320/alpha640, original 2609r2 step54000, four epochs, and URGENT
-validation. The expected absolute target is `floor(730071/128)*4 = 22812`
-optimizer updates; verify against the actual runtime dataloader. Output:
+validation. The runtime confirmed 730,071 training rows, 5,703 dataloader batches per epoch,
+and an absolute target of **22,812 optimizer updates** for four epochs. Output:
 `az://orngwus2cresco/data/boren/outputs/v2611/remax_cv11_base0b_v0_e4/`.
 The local and Blob checkpoint output roots were fresh before launch; automatic
 resume policy was preserved. Training is running and has not completed.
