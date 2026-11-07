@@ -13,7 +13,6 @@ import io
 import json
 import struct
 import zipfile
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import blobfile as bf
@@ -26,22 +25,21 @@ import soundfile as sf
 def publish(local, root):
     # Local uplink can take longer than blobfile's default 10s socket timeout.
     bf.configure(azure_write_chunk_size=1024 * 1024, connect_timeout=180, read_timeout=180, retry_limit=5)
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        for filename in ["audio.zip", "data_zip.jsonl", "provenance.json"]:
-            destination = root + "/" + filename
-            if bf.exists(destination):
-                stat = bf.stat(destination)
-                local_file = local / filename
-                md5 = hashlib.file_digest(local_file.open("rb"), "md5").hexdigest()
-                if stat.size != local_file.stat().st_size or stat.md5 != md5:
-                    raise FileExistsError(f"Refusing to overwrite a different artifact: {destination}")
-                print(f"Reusing verified {destination}", flush=True)
-                continue
-            print(f"Publishing {destination}", flush=True)
-            bf.copy(str(local / filename), destination, parallel=True, parallel_executor=executor)
+    for filename in ["audio.zip", "data_zip.jsonl", "provenance.json"]:
+        destination = root + "/" + filename
+        if bf.exists(destination):
+            stat = bf.stat(destination)
+            local_file = local / filename
+            md5 = hashlib.file_digest(local_file.open("rb"), "md5").hexdigest()
+            if stat.size != local_file.stat().st_size or stat.md5 != md5:
+                raise FileExistsError(f"Refusing to overwrite a different artifact: {destination}")
+            print(f"Reusing verified {destination}", flush=True)
+            continue
+        print(f"Publishing {destination}", flush=True)
+        bf.copy(str(local / filename), destination)
 
 
-def prepare(spec, output_root, local_root):
+def prepare(spec, output_root, local_root, prepare_only=False):
     name = spec["result_name"]
     local = Path(local_root) / name
     local.mkdir(parents=True, exist_ok=True)
@@ -134,7 +132,8 @@ def prepare(spec, output_root, local_root):
                   "manifest_sha256": hashlib.file_digest(manifest.open("rb"), "sha256").hexdigest(),
                   "segmenter": "verl Smart VAD max_len_sec=30 min_seg_sec=0.1" if long_form else None}
     (local / "provenance.json").write_text(json.dumps(provenance, indent=2))
-    publish(local, root)
+    if not prepare_only:
+        publish(local, root)
     print(json.dumps(provenance), flush=True)
     return provenance
 
@@ -146,6 +145,7 @@ def main():
     parser.add_argument("--local-root", required=True)
     parser.add_argument("--datasets", nargs="*")
     parser.add_argument("--publish-only", action="store_true", help="Publish previously completed local archives without rebuilding")
+    parser.add_argument("--prepare-only", action="store_true", help="Build completed local archives without uploading")
     args = parser.parse_args()
     specs = list(csv.DictReader(open(args.manifest), delimiter="\t"))
     for spec in specs:
@@ -159,7 +159,7 @@ def main():
                     raise ValueError(f"Local artifact fingerprint changed: {filename}")
             publish(local, args.output_root.rstrip("/") + "/" + spec["result_name"])
         else:
-            prepare(spec, args.output_root, args.local_root)
+            prepare(spec, args.output_root, args.local_root, args.prepare_only)
 
 
 if __name__ == "__main__":
