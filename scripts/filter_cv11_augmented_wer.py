@@ -44,11 +44,27 @@ def keep_row(row):
     return 100 * row["n_err"] >= row["n_ref"]
 
 
+def blob_lines(path, read_size=4 * 1024 * 1024):
+    """Read large Blob ranges while preserving exact JSONL bytes for hashing.
+
+    Default line buffering otherwise issues many small range requests when
+    blobfile's use_streaming_read setting is disabled.
+    """
+    pending = b""
+    with bf.BlobFile(path, "rb", streaming=True) as stream:
+        for block in iter(lambda: stream.read(read_size), b""):
+            lines = (pending + block).split(b"\n")
+            pending = lines.pop()
+            for line in lines:
+                yield line + b"\n"
+    if pending:
+        yield pending
+
+
 def generation_rows(paths):
     for path in paths:
-        with bf.BlobFile(path, "r", streaming=True) as stream:
-            for line in stream:
-                yield json.loads(line)
+        for line in blob_lines(path):
+            yield json.loads(line)
 
 
 def run(args):
@@ -67,8 +83,8 @@ def run(args):
     seen = set()
     source_digest = hashlib.sha256()
     source_words = filtered_words = 0
-    with bf.BlobFile(args.source_jsonl, "rb", streaming=True) as source_stream, output_path.open("wb") as output:
-        for source_line, generated in zip_longest(source_stream, generation_rows(paths)):
+    with output_path.open("wb") as output:
+        for source_line, generated in zip_longest(blob_lines(args.source_jsonl), generation_rows(paths)):
             if source_line is None or generated is None:
                 raise ValueError("Generation does not cover every source row exactly once")
             source_digest.update(source_line)

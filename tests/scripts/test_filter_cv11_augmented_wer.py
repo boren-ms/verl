@@ -2,7 +2,7 @@ import pytest
 import json
 from argparse import Namespace
 
-from scripts.filter_cv11_augmented_wer import join_row, keep_row, run
+from scripts.filter_cv11_augmented_wer import blob_lines, join_row, keep_row, run
 
 
 @pytest.mark.parametrize("errors,refs,expected", [(0, 10, False), (1, 100, True), (1, 101, False), (20, 10, True)])
@@ -56,3 +56,14 @@ def test_incomplete_generation_or_wrong_source_hash_does_not_publish(tmp_path, m
         run(args)
     assert not (published / "data.jsonl").exists()
     assert not (published / "COMPLETE.json").exists()
+
+
+@pytest.mark.parametrize("ending", [b"", b"\n"])
+def test_large_range_reader_preserves_utf8_jsonl_bytes_at_chunk_boundaries(tmp_path, ending):
+    rows = [{"text": "English, 中文, café", "value": i} for i in range(3)]
+    data = b"\n".join(json.dumps(row, ensure_ascii=False).encode() for row in rows) + ending
+    path = tmp_path / "utf8.jsonl"
+    path.write_bytes(data)
+    lines = list(blob_lines(str(path), read_size=17))
+    assert b"".join(lines) == data
+    assert [json.loads(line) for line in lines] == rows
