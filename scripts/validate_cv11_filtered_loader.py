@@ -21,7 +21,7 @@ def run(args):
     root = Path(args.work_dir)
     summary = json.loads((root / "summary.json").read_text())
     mode = summary.get("filter_mode", "wer_ge1pct")
-    expected_source = data_source(mode)
+    expected_source = summary.get("data_source", data_source(mode))
     count = summary["filtered"]["count"]
     indices = set(np.linspace(0, count - 1, min(count, args.samples), dtype=int).tolist())
     selected = []
@@ -37,6 +37,8 @@ def run(args):
     with bf.BlobFile(destination + "/training.yaml", "rb") as stream:
         yaml_bytes = stream.read()
     config = yaml.safe_load(yaml_bytes)
+    if config["post_process"]["add_field"]["fields"]["data_source"] != expected_source:
+        raise ValueError("Published training YAML reward source disagrees with summary")
     if config["jsonl_paths"] != destination + "/data.jsonl":
         raise ValueError("Published training YAML references a different manifest")
     config["jsonl_paths"] = str(sample_path)
@@ -78,6 +80,7 @@ def run(args):
     result = {
         "filtered_rows": count, "stratified_retained_samples": len(selected),
         "filter_mode": mode,
+        "data_source": expected_source,
         "audio_pointers_transcripts_prompts_and_reward_references_verified": True,
         "baseline_wer_recomputed_and_threshold_verified": True,
         "cached_original_wav_sha256_headers_and_signal_verified": True,

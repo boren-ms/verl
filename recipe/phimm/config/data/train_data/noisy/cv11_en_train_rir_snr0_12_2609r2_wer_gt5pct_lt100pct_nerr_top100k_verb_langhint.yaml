@@ -1,0 +1,18 @@
+# Top 100,000 CV11 English TRAIN candidates by original 2609r2 step54000 n_err.
+# Candidates satisfy strict 5% < WER < 100%; no new inference.
+# JSONL order: n_err descending, ties by original candidate row order.
+# Original transcripts, audio pointers, and speed/RIR/noise metadata preserved.
+dataset_name: jsonl
+version: 2609
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/cv11_en_train_speed_rir_noise_snr0_12_but_v1_wer_gt5pct_lt100pct_nerr_top100k/data.jsonl
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: noisy_cv11_en_train_2609r2_wer_gt5pct_lt100pct_nerr_top100k
+  verl_format:
+    prompt_key: prompt
