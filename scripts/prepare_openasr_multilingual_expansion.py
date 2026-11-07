@@ -112,10 +112,16 @@ def prepare(spec, output_root, local_root, prepare_only=False, uploader="blobfil
                     from recipe.phimm.utils.open_asr_normalizer.expansion_normalizer import MultilingualNormalizer
                     text = MultilingualNormalizer(remove_diacritics=False)(text, lang="fr")
                 audio_id = str(next((row[key] for key in ["file_name", "audio_id", "id"] if row.get(key) is not None), index))
+                # Keep short mono PCM16 WAV snapshots byte-for-byte. Other
+                # codecs and long recordings use float WAV after mono decoding.
+                source_info = sf.info(io.BytesIO(audio_info["bytes"]))
                 wav = io.BytesIO()
-                sf.write(wav, audio, sr, format="WAV", subtype="FLOAT")
+                if not long_form and source_info.format == "WAV" and source_info.channels == 1 and source_info.subtype == "PCM_16":
+                    payload = audio_info["bytes"]
+                else:
+                    sf.write(wav, audio, sr, format="WAV", subtype="FLOAT")
+                    payload = wav.getvalue()
                 member = f"{index:06d}.wav"
-                payload = wav.getvalue()
                 archive.writestr(member, payload)
                 info = archive.getinfo(member)
                 # ZIP_STORED members can be fetched by byte range, as in pack_audio_zip.
