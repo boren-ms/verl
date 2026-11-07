@@ -8,13 +8,11 @@ data:
   val_data:
     - ${_earning_val}
     - ${_ml_val}
-    - ${_ls_val}
     - ${_urgent_delta}
     - ${_openlong}
 
-val_reward:
-  reward_function_by_data_source:
-    earnings21_u2: openasr_en
-    earnings22_u2: openasr_en
-    coraal_u2: openasr_en
-    earnings22_cleaned_aa_u2: openasr_en
+_val_reward_sources:
+  earnings21_u2: openasr_en
+  earnings22_u2: openasr_en
+  coraal_u2: openasr_en
+  earnings22_cleaned_aa_u2: openasr_en

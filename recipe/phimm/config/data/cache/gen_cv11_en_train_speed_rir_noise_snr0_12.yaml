@@ -1,0 +1,22 @@
+# Full Common Voice 11.0 English TRAIN (948,736 original rows), one variant/row.
+# Pinned mirror of the original CV11 files; never substitute OpenASR's CV9 export.
+source_repo: akahana/common-voice-11-eng-sample
+source_revision: 4354744379973dd44a1b2273d7beb893810912f5
+source_upstream: mozilla-foundation/common_voice_11_0
+source_release: cv-corpus-11.0-2022-09-21
+source_split: train
+source_language: en
+expected_rows: 948736
+source_license: CC0-1.0
+output_dir: az://orngwus2cresco/data/boren/data/verl/gen_cached/cv11_en_train_speed_rir_noise_snr0_12_but_v1
+rir_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/resources/rirs.jsonl
+noise_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/resources/noises.jsonl
+resource_license: CC-BY-4.0
+sample_rate: 16000
+speed_range: [1.0, 2.0]
+snr_range: [0.0, 12.0]
+seed: 20261106
+rir_seed: 20261027
+workers: 32
+upload_concurrency: 64
+data_source: noisy_cv11_en_train

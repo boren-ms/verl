@@ -1,0 +1,26 @@
+# Full CV11 English TRAIN; speed -> BUT ReverbDB RIR -> BUT ReverbDB noise.
+# One cached variant per source row; speed U[1,2], SNR U[0,12] dB.
+# SNR is relative to reverberant speech; a common gain protects PCM16 precision.
+# Statistics computed from all rows in the complete published manifest:
+# Clips: 948,736 across 24 shards; missing/filtered rows: 0.
+# Audio hours: original 1,503.28; augmented 1,042.25.
+# Mean duration per clip (seconds): original 5.70; augmented 3.95.
+# Median duration per clip (seconds): original 5.58; augmented 3.76.
+# Duration range (seconds): original 1.01-49.93; augmented 0.58-39.86.
+# Transcripts are preserved; word statistics apply to both audio versions.
+# Total words: 9,722,696; mean words per clip: 10.25; median: 11.
+# Words per clip: p10/p90 6/14; min/max 1/40; empty transcripts: 0.
+# Word count uses whitespace-separated tokens, including numbers and punctuation.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/cv11_en_train_speed_rir_noise_snr0_12_but_v1/data.jsonl
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: noisy_cv11_en_train
+  verl_format:
+    prompt_key: prompt
