@@ -44,7 +44,7 @@ def run(args):
     from recipe.phimm.data.dataset import create_datasets
     from recipe.phimm.data.prompts import get_task_output
     from recipe.phimm.reward.asr_eval import openasr_en_eval
-    from verl.audio_cache import local_audio_source
+    from verl.audio_cache import localize_audio_source
 
     dataset = create_datasets(config)
     if len(dataset) != len(selected):
@@ -68,7 +68,7 @@ def run(args):
         score = openasr_en_eval(original["raw_response"], original["text"], version=2609)
         if score["n_err"] != original["n_err"] or score["n_ref"] != original["n_ref"]:
             raise ValueError("Recomputed baseline WER disagrees with retained measurements")
-        cached = Path(local_audio_source(original["audio_path"]))
+        cached = Path(localize_audio_source(original["audio_path"]))
         data = cached.read_bytes()
         if hashlib.sha256(data).hexdigest() != original["audio_sha256"] or len(data) != original["audio_num_bytes"]:
             raise ValueError("Cached source WAV checksum/size mismatch")
