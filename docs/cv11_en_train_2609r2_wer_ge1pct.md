@@ -1,5 +1,43 @@
 # Augmented CV11 English train filtered by 2609r2 WER >= 1%
 
+## Completed: 2026-11-06 (America/Los_Angeles)
+
+Inference completed successfully as Ray submission `raysubmit_idCe44XeuqbM5v4j`:
+**948,736 responses**, all **1,853 batches**, and **47** published JSONL parts.
+The full source/generation join verified every ID, original transcript, audio
+pointer, decoded duration, measurement, and the pinned source SHA256.
+
+The inclusive WER filter retains **730,071 clips (76.95197%)** and removes
+**218,665 clips**. Original labels and all augmentation metadata are preserved.
+
+| Statistic | Full augmented source | Retained WER >= 1% |
+| --- | ---: | ---: |
+| Clips | 948,736 | 730,071 |
+| Audio hours | 1,042.252720 | 771.917163 |
+| Original transcript words | 9,722,696 | 7,481,486 |
+| Mean words per clip | 10.248052 | 10.247614 |
+| Median words per clip | 11 | 11 |
+| Mean duration per clip | 3.954851 s | 3.806345 s |
+| Median duration per clip | 3.755000 s | 3.601500 s |
+| Corpus WER of the fixed 2609r2 baseline | 55.85919% | 72.54963% |
+
+The retained corpus WER describes selection of harder examples from the same
+baseline responses. All 5,519,678 word errors remain; normalized reference words
+decrease from 9,881,415 to 7,608,141. The 20 responses that hit the 768-token limit
+remain flagged in the manifest; no upper WER or length-based filtering is added.
+
+`validation_loader.json` records **192 evenly spaced retained samples** checked
+through the actual training loader. Audio paths, original labels, English prompts,
+empty prefixes, reward source, formatted references, re-computed baseline WER,
+inclusive threshold, and cached original WAV SHA256/header/signal checks passed.
+The full uploaded filtered manifest SHA256 was independently read back before
+publishing `COMPLETE.json`:
+`1a5679e97f622b8ce1e5d6d8eec73285aa79bf3fe3bf7c7f7a789be367c8e4aa`.
+
+The Blob root below contains the completed manifest, data/training YAMLs,
+summary, loader audit, README, and provenance. Completion cleanup is recorded
+in pipeline state after durable result collection and final resource checks.
+
 The inference/filtering stage uses the complete 948,736-row augmented CV11
 English training manifest. It retains original transcripts and audio pointers,
 including speed/RIR/noise provenance. The filtered count is established only

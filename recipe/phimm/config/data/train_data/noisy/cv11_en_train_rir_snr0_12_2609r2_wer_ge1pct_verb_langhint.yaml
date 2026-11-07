@@ -1,3 +1,7 @@
+# Filtered clips: 730,071; retention: 76.9520%.
+# Audio hours: 771.92; mean duration: 3.81 s.
+# Original transcript words: 7,481,486; mean words/clip: 10.25.
+# WER >= 1%, inclusive; original 2609r2 step 54000; English normalized compound-aware WER.
 # Augmented full CV11 English TRAIN, retained with original 2609r2 step-54000 WER >= 1%.
 # Inclusive integer threshold: 100 * n_err >= n_ref; no upper WER cap.
 # Original transcripts and speed/RIR/noise provenance are retained; audio is reused.
