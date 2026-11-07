@@ -50,6 +50,11 @@ python -m scripts.prepare_openasr_multilingual_expansion \
 The preparer verifies pinned test row counts, writes WAVs into ZIP_STORED
 archives, and publishes JSONL only after each archive upload finishes. It saves
 source-parquet, archive, and manifest SHA-256 values alongside provenance.
+Use `--prepare-only` to separate conversion from transfer. To resume publication
+of complete local artifacts, pass `--publish-only`; matching existing remote
+artifacts are reused after size and MD5 checks. On machines with `boostedblob`
+installed, `--uploader bbb` uses sixteen concurrent 1 MiB blocks to avoid large
+request resets on the local uplink and verifies every published file's MD5.
 
 The three `v2611_dev/eval/eval_*_multilingual_expansion.yaml` configs select:
 

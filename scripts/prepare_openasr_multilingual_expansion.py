@@ -7,6 +7,7 @@ root. French recordings use the shared 30-second Smart VAD and full references.
 from __future__ import annotations
 
 import argparse
+import asyncio
 import csv
 import hashlib
 import io
@@ -22,7 +23,31 @@ import requests
 import soundfile as sf
 
 
-def publish(local, root):
+def publish(local, root, uploader="blobfile"):
+    if uploader == "bbb":
+        import boostedblob as bbb
+        from boostedblob.globals import config
+
+        config.chunk_size = 1024 * 1024
+        config.connect_timeout = 60
+        config.read_timeout = 180
+
+        async def upload():
+            async with bbb.BoostExecutor(16) as executor:
+                for filename in ["audio.zip", "data_zip.jsonl", "provenance.json"]:
+                    source = local / filename
+                    destination = root + "/" + filename
+                    md5 = hashlib.file_digest(source.open("rb"), "md5").hexdigest()
+                    if not await bbb.exists(destination):
+                        print(f"Publishing {destination} ({source.stat().st_size} bytes)", flush=True)
+                        await bbb.copyfile(str(source), destination, executor, overwrite=False)
+                    stat = await bbb.stat(destination)
+                    if stat.size != source.stat().st_size or stat.md5 != md5:
+                        raise ValueError(f"Published artifact fingerprint mismatch: {destination}")
+                    print(f"Verified {destination}", flush=True)
+
+        asyncio.run(upload())
+        return
     # Local uplink can take longer than blobfile's default 10s socket timeout.
     bf.configure(azure_write_chunk_size=1024 * 1024, connect_timeout=180, read_timeout=180, retry_limit=5)
     for filename in ["audio.zip", "data_zip.jsonl", "provenance.json"]:
@@ -39,7 +64,7 @@ def publish(local, root):
         bf.copy(str(local / filename), destination)
 
 
-def prepare(spec, output_root, local_root, prepare_only=False):
+def prepare(spec, output_root, local_root, prepare_only=False, uploader="blobfile"):
     name = spec["result_name"]
     local = Path(local_root) / name
     local.mkdir(parents=True, exist_ok=True)
@@ -133,7 +158,7 @@ def prepare(spec, output_root, local_root, prepare_only=False):
                   "segmenter": "verl Smart VAD max_len_sec=30 min_seg_sec=0.1" if long_form else None}
     (local / "provenance.json").write_text(json.dumps(provenance, indent=2))
     if not prepare_only:
-        publish(local, root)
+        publish(local, root, uploader)
     print(json.dumps(provenance), flush=True)
     return provenance
 
@@ -146,6 +171,7 @@ def main():
     parser.add_argument("--datasets", nargs="*")
     parser.add_argument("--publish-only", action="store_true", help="Publish previously completed local archives without rebuilding")
     parser.add_argument("--prepare-only", action="store_true", help="Build completed local archives without uploading")
+    parser.add_argument("--uploader", choices=["blobfile", "bbb"], default="blobfile")
     args = parser.parse_args()
     specs = list(csv.DictReader(open(args.manifest), delimiter="\t"))
     for spec in specs:
@@ -157,9 +183,9 @@ def main():
             for filename, key in [("audio.zip", "zip_sha256"), ("data_zip.jsonl", "manifest_sha256")]:
                 if hashlib.file_digest((local / filename).open("rb"), "sha256").hexdigest() != proof[key]:
                     raise ValueError(f"Local artifact fingerprint changed: {filename}")
-            publish(local, args.output_root.rstrip("/") + "/" + spec["result_name"])
+            publish(local, args.output_root.rstrip("/") + "/" + spec["result_name"], args.uploader)
         else:
-            prepare(spec, args.output_root, args.local_root, args.prepare_only)
+            prepare(spec, args.output_root, args.local_root, args.prepare_only, args.uploader)
 
 
 if __name__ == "__main__":
