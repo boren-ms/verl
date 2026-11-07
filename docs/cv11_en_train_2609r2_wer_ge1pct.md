@@ -1,5 +1,26 @@
 # Augmented CV11 English train filtered by 2609r2 WER >= 1%
 
+## Training launched: 2026-11-06 20:45 (America/Los_Angeles)
+
+The subsequent training request launched `remax_cv11_base0b_v0_e4` on the dedicated
+`team-critical` pool `verl-new-n2-i3`, cluster `prod-westus2-cw-6`, namespace
+`boren`: two nodes with eight H100 GPUs each. Exact Ray submission:
+`raysubmit_hx3KNjWS2DJi7cVE`; launch source revision:
+`361e536ca66605bff7021338acaf0eeeee8129d1`.
+
+The original YAML is unchanged: 730,071 retained training clips, batch128,
+rollout n16, rank320/alpha640, original 2609r2 step54000, four epochs, and URGENT
+validation. The expected absolute target is `floor(730071/128)*4 = 22812`
+optimizer updates; verify against the actual runtime dataloader. Output:
+`az://orngwus2cresco/data/boren/outputs/v2611/remax_cv11_base0b_v0_e4/`.
+The local and Blob checkpoint output roots were fresh before launch; automatic
+resume policy was preserved. Training is running and has not completed.
+Current execution state is tracked separately under
+`tmp/run_openasr_exp/remax_cv11_base0b_v0_e4_20261107/`.
+
+A separate dataset and unlaunched recipe retain strict **5% < WER < 100%**;
+see [its statistics and configs](cv11_en_train_2609r2_wer_gt5pct_lt100pct.md).
+
 ## Completed: 2026-11-06 (America/Los_Angeles)
 
 Inference completed successfully as Ray submission `raysubmit_idCe44XeuqbM5v4j`:
@@ -103,5 +124,5 @@ python scripts/filter_cv11_augmented_wer.py \
 Execution state, exact Ray submission, effective configs and completion evidence
 are retained under `tmp/run_openasr_exp/cv11_2609r2_wer_ge1pct_20261106/`.
 The dedicated pool is `verl-new-n2-i3`, cluster `prod-westus2-cw-6`, namespace
-`boren`, two H100 nodes with eight GPUs each. The ReMax config is prepared for
-handoff; this request does not submit a training job.
+`boren`, two H100 nodes with eight GPUs each. The original inference/filtering request prepared the ReMax config without
+launching training. The subsequent launch is recorded above.

@@ -24,6 +24,8 @@ Root: `az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/cv11_e
 - `remax_training.yaml`: ReMax config matching the original URGENT E4 settings.
 - `summary.json`: full counts, distributions, generation paths and pinned source/model identity.
 - `COMPLETE.json`: full-source join and uploaded-manifest hash verification.
+- `validation_loader.json`: 192 evenly spaced retained samples passed the actual training loader, original label/prompt/reward-source checks, recomputed baseline WER and strict threshold, and original WAV SHA256/header/signal checks.
+- `provenance.json`: exact source/model/filter identities and config checksums.
 
 Filtered JSONL SHA256: `f83ee0828c524370686ddcab781033345aa4c30e6a0595fff048b7aded56e956`.
 
