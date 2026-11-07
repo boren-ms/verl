@@ -32,6 +32,7 @@ def publish(local, root, uploader="blobfile"):
         config.connect_timeout = 60
         config.read_timeout = 180
 
+        @bbb.ensure_session
         async def upload():
             async with bbb.BoostExecutor(16) as executor:
                 for filename in ["audio.zip", "data_zip.jsonl", "provenance.json"]:
