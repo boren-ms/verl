@@ -14,12 +14,14 @@ import soundfile as sf
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from scripts.filter_cv11_augmented_wer import DATA_SOURCE, MODEL_PATH, keep_row
+from scripts.filter_cv11_augmented_wer import MODEL_PATH, data_source, keep_row
 
 
 def run(args):
     root = Path(args.work_dir)
     summary = json.loads((root / "summary.json").read_text())
+    mode = summary.get("filter_mode", "wer_ge1pct")
+    expected_source = data_source(mode)
     count = summary["filtered"]["count"]
     indices = set(np.linspace(0, count - 1, min(count, args.samples), dtype=int).tolist())
     selected = []
@@ -48,9 +50,9 @@ def run(args):
     if len(dataset) != len(selected):
         raise ValueError("Training loader changed sample count")
     for original, loaded in zip(selected, dataset):
-        if not keep_row(original) or original["filter_model_path"] != MODEL_PATH:
+        if not keep_row(original, mode) or original["filter_model_path"] != MODEL_PATH:
             raise ValueError("Wrong retained threshold or baseline checkpoint")
-        if loaded["audio_path"] != original["audio_path"] or loaded["data_source"] != DATA_SOURCE:
+        if loaded["audio_path"] != original["audio_path"] or loaded["data_source"] != expected_source:
             raise ValueError("Training loader changed audio pointer or reward source")
         if loaded["reward_model"]["ground_truth"] != original["text"]:
             raise ValueError("Training loader changed original transcript")
@@ -75,6 +77,7 @@ def run(args):
             raise ValueError("Cached source WAV header/signal mismatch")
     result = {
         "filtered_rows": count, "stratified_retained_samples": len(selected),
+        "filter_mode": mode,
         "audio_pointers_transcripts_prompts_and_reward_references_verified": True,
         "baseline_wer_recomputed_and_threshold_verified": True,
         "cached_original_wav_sha256_headers_and_signal_verified": True,

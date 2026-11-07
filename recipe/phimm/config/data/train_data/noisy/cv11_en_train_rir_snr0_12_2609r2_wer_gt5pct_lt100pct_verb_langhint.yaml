@@ -1,0 +1,18 @@
+# Augmented full CV11 English TRAIN, filtered with original 2609r2 step 54000.
+# Strict boundaries: 5% < WER < 100%; 100*n_err > 5*n_ref and n_err < n_ref.
+# English normalized compound-aware WER, scoring version 2609.
+# Original transcripts and speed/RIR/noise metadata retained; reuse existing Blob WAVs.
+dataset_name: jsonl
+version: 2609
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_filtered/v2611/2609r2/cv11_en_train_speed_rir_noise_snr0_12_but_v1_wer_gt5pct_lt100pct/data.jsonl
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: noisy_cv11_en_train_2609r2_wer_gt5pct_lt100pct
+  verl_format:
+    prompt_key: prompt

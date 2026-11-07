@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Join complete CV11 ASR generation to its source and publish WER >= 1% rows.
+"""Join complete CV11 ASR generation to its source and publish a WER subset.
 
 Every source row must have exactly one matching generation row in manifest order.
 Publication waits for complete coverage and the pinned source manifest checksum.
@@ -23,9 +23,23 @@ from scripts.filter_asr_generation_wer import Stats, measurements
 SOURCE_SHA256 = "9243d564a8b1f97c52a22858fa95d6709a32b5cbb18c0c7d679ab2bb0a16767f"
 MODEL_PATH = "az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf"
 DATA_SOURCE = "noisy_cv11_en_train_2609r2_wer_ge1pct"
+FILTER_MODES = ("wer_ge1pct", "wer_gt5pct_lt100pct")
 
 
-def join_row(source, generated):
+def filter_description(mode):
+    if mode == "wer_ge1pct":
+        return "WER >= 1%; 100*n_err >= n_ref (inclusive)"
+    if mode == "wer_gt5pct_lt100pct":
+        return "5% < WER < 100%; 100*n_err > 5*n_ref and n_err < n_ref (strict)"
+    raise ValueError(f"Unsupported filter mode: {mode}")
+
+
+def data_source(mode):
+    filter_description(mode)
+    return "noisy_cv11_en_train_2609r2_" + mode
+
+
+def join_row(source, generated, mode="wer_ge1pct"):
     """Validate identity and measurements, retaining original training labels."""
     _, _, pointer, values = measurements(generated)
     if (source["id"] != generated.get("id") or source["text"] != generated["text"]
@@ -36,12 +50,20 @@ def join_row(source, generated):
     fields = {key: generated[key] for key in (
         "wer", "n_err", "n_ref", "response", "raw_response", "response_tokens", "response_at_limit")
         if key in generated}
-    fields.update(filter_model_path=MODEL_PATH, filter_wer_threshold_fraction=0.01)
-    return {**source, **fields, "data_source": DATA_SOURCE}, values
+    fields.update(filter_model_path=MODEL_PATH,
+                  filter_wer_threshold_fraction=0.01 if mode == "wer_ge1pct" else 0.05)
+    if mode == "wer_gt5pct_lt100pct":
+        fields.update(filter_wer_upper_threshold_fraction=1.0,
+                      filter_wer_lower_inclusive=False, filter_wer_upper_inclusive=False)
+    return {**source, **fields, "data_source": data_source(mode)}, values
 
 
-def keep_row(row):
-    return 100 * row["n_err"] >= row["n_ref"]
+def keep_row(row, mode="wer_ge1pct"):
+    filter_description(mode)
+    errors, refs = int(row["n_err"]), int(row["n_ref"])
+    if mode == "wer_gt5pct_lt100pct":
+        return 100 * errors > 5 * refs and errors < refs
+    return 100 * errors >= refs
 
 
 def blob_lines(path, read_size=4 * 1024 * 1024):
@@ -68,6 +90,8 @@ def generation_rows(paths):
 
 
 def run(args):
+    mode = getattr(args, "filter_mode", "wer_ge1pct")
+    description = filter_description(mode)
     destination = args.output_dir.rstrip("/")
     if bf.exists(destination + "/COMPLETE.json"):
         raise FileExistsError("Filtered dataset is already complete")
@@ -92,10 +116,10 @@ def run(args):
             if source["id"] in seen:
                 raise ValueError("Duplicate source ID")
             seen.add(source["id"])
-            joined, values = join_row(source, generated)
+            joined, values = join_row(source, generated, mode)
             original.add(generated, values)
             source_words += len(source["text"].split())
-            if keep_row(generated):
+            if keep_row(generated, mode):
                 filtered.add(generated, values)
                 filtered_words += len(source["text"].split())
                 output.write((json.dumps(joined, ensure_ascii=False, allow_nan=False) + "\n").encode())
@@ -113,7 +137,7 @@ def run(args):
         "source_manifest": args.source_jsonl, "source_manifest_sha256": SOURCE_SHA256,
         "generation_parts": paths, "model_path": MODEL_PATH,
         "scoring": "openasr_en_eval, version 2609; compound-aware HF English normalized WER, uncapped",
-        "filter": "WER >= 1%; 100*n_err >= n_ref (inclusive)",
+        "filter": description, "filter_mode": mode, "data_source": data_source(mode),
         "word_count_definition": "Whitespace-separated tokens in original preserved transcripts",
         "original": {**original_stats, "total_words": source_words},
         "filtered": {**filtered_stats, "total_words": filtered_words},
@@ -126,12 +150,14 @@ def run(args):
         f"# Filtered clips: {filtered_stats['count']:,}; retention: {filtered_stats['retention_rate']:.4%}.\n"
         f"# Audio hours: {filtered_stats['audio_hours']:.2f}; mean duration: {filtered_stats['audio_seconds']['mean']:.2f} s.\n"
         f"# Original transcript words: {filtered_words:,}; mean words/clip: {filtered_words / filtered_stats['count']:.2f}.\n"
-        "# WER >= 1%, inclusive; original 2609r2 step 54000; English normalized compound-aware WER.\n"
+        f"# {description}; original 2609r2 step 54000; English normalized compound-aware WER.\n"
     )
     training_text = Path(args.training_yaml).read_text()
     training_config = yaml.safe_load(training_text)
     if training_config["jsonl_paths"] != destination + "/data.jsonl":
         raise ValueError("Training YAML destination does not match filtered output")
+    if training_config["post_process"]["add_field"]["fields"]["data_source"] != data_source(mode):
+        raise ValueError("Training YAML reward source does not match filter mode")
     (root / "training.yaml").write_text(comments + training_text)
     (root / "remax_training.yaml").write_text(Path(args.remax_yaml).read_text())
     for name in ["summary.json", "training.yaml", "remax_training.yaml", "data.jsonl"]:
@@ -143,7 +169,8 @@ def run(args):
     if digest.hexdigest() != output_digest:
         raise ValueError("Uploaded filtered manifest checksum mismatch")
     complete = {"source_rows": args.expected_rows, "filtered_rows": filtered_stats["count"],
-                "filtered_manifest_sha256": output_digest, "remote_manifest_sha256_verified": True}
+                "filtered_manifest_sha256": output_digest, "remote_manifest_sha256_verified": True,
+                "filter_mode": mode, "filter": description}
     with bf.BlobFile(destination + "/COMPLETE.json", "w") as stream:
         json.dump(complete, stream, indent=2)
     (root / "COMPLETE.json").write_text(json.dumps(complete, indent=2) + "\n")
@@ -159,4 +186,5 @@ if __name__ == "__main__":
     parser.add_argument("--expected-rows", type=int, default=948736)
     parser.add_argument("--training-yaml", required=True)
     parser.add_argument("--remax-yaml", required=True)
+    parser.add_argument("--filter-mode", choices=FILTER_MODES, default="wer_ge1pct")
     run(parser.parse_args())
