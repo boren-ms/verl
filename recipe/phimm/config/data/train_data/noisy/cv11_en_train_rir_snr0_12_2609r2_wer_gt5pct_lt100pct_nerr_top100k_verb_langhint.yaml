@@ -1,3 +1,8 @@
+# Top baseline n_err: 100,000 clips from 438,730 candidates.
+# Sorted by n_err descending, ties by original source row order; cutoff n_err: 7.
+# Audio hours: 110.235445; mean duration: 3.968476 s.
+# Original transcript words: 1,207,376; mean words/clip: 12.073760.
+# Mean n_err: 10.003640; corpus baseline WER: 81.191325%.
 # Top 100,000 CV11 English TRAIN candidates by original 2609r2 step54000 n_err.
 # Candidates satisfy strict 5% < WER < 100%; no new inference.
 # JSONL order: n_err descending, ties by original candidate row order.
