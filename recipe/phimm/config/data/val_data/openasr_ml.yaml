@@ -180,3 +180,85 @@
         data_source: pt_mls
     verl_format:
       prompt_key: prompt
+
+# MOE 18143a6e supplementary coverage (excluded from headline averages).
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/fleurs_zh/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_fleurs_zh_openasr_ml
+  add_task_info:
+    task: lang_asr
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: zh_fleurs
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/aishell1_zh/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_aishell1_zh_openasr_ml
+  add_task_info:
+    task: lang_asr
+    language: Chinese
+  post_process:
+    add_field:
+      fields:
+        data_source: zh_aishell1
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/fleurs_vi/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_fleurs_vi_openasr_ml
+  add_task_info:
+    task: lang_asr
+    language: Vietnamese
+  post_process:
+    add_field:
+      fields:
+        data_source: vi_fleurs
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/mcv_vi/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_mcv_vi_openasr_ml
+  add_task_info:
+    task: lang_asr
+    language: Vietnamese
+  post_process:
+    add_field:
+      fields:
+        data_source: vi_mcv
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer

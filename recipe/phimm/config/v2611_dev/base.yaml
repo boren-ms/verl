@@ -10,6 +10,11 @@ val_reward:
   reward_kwargs:
     version: 2609
   reward_functions:
+    openasr_expansion:
+      path: recipe/phimm/reward/openasr_expansion.py
+      name: openasr_expansion_eval
+      reward_kwargs:
+        version: 2609
     inhouse_zh:
       path: recipe/phimm/reward/asr_inhouse_measure.py
       name: eval_score
