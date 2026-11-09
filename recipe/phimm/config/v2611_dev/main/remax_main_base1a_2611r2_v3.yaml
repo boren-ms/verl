@@ -1,0 +1,47 @@
+# Main Base1a with the 2611 v3.8.2.3 step-38000 pretrained checkpoint.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base1a_smts
+  - /data/train_data/openml_verb_langhint_v0@_ml_train
+  - /data/train_data/earningscall-fy27-en-us-batches-wer-gt1pct-verb-langhint@_earnings_filtered_train
+  - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3.8.2.3/38000/qwen_hf/
+
+data:
+  data_source: null
+  train_data:
+    - ${_ml_train}
+    - ${_earnings_filtered_train}
+    - ${_noisy_ls_train}
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earnings_fy27, sample: 4957, shuffle: true}
+        - {name: noisy_ls, sample: 20424, shuffle: true}
+        - {name: openml, sample: 13169, shuffle: true}
+        - {name: earn_fy27, sample: 9568, shuffle: true}
+        - {name: quartr_1st23, sample: 3125, shuffle: true}
+        - {name: quartr_2nd48, sample: 6392, shuffle: true}
+
+reward_function_by_data_source:
+  earn_fy27: librispeech
+  quartr_1st23: librispeech
+  quartr_2nd48: librispeech
+
+trainer:
+  experiment_name: remax_main_base1a_2611r2_v3
