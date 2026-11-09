@@ -1,0 +1,2480 @@
+{
+  "generated_utc": "2026-11-07T05:43:20.948672+00:00",
+  "models": {
+    "2609r2": {
+      "model_label": "2609r2",
+      "model_uri": "az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf",
+      "ray_id": "raysubmit_rdJfADWZV3VE23Jx",
+      "ray_status": "SUCCEEDED",
+      "entrypoint": "python3 -m recipe.phimm.main_asr_eval --config-dir recipe/phimm/config/v2611_dev/eval --config-name eval_2609r2_multilingual_expansion trainer.experiment_name=eval_2609r2_multilingual_expansion trainer.nnodes=2 trainer.experiment_name=eval_2609r2_multilingual_expansion_18143a6e_n2 +ray_kwargs.ray_init.runtime_env.env_vars.TORCHINDUCTOR_COMPILE_THREADS=\\\"1\\\"",
+      "pool": "eval2611r2-n2-critical",
+      "cluster": "prod-westus2-cw-6",
+      "namespace": "boren",
+      "topology": {
+        "nodes": 2,
+        "gpus_per_node": 8
+      },
+      "source_moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "code_revision": "db873221b3a7198821680e87be9739d0d814a2c3",
+      "datasets": {
+        "zh_fleurs": {
+          "metric": "CER",
+          "error_rate": 0.027601587163669013,
+          "rows": 945,
+          "scored_parents": 945,
+          "parents": 945,
+          "counts": {
+            "n_ref": 34527,
+            "n_err": 953,
+            "n_ins": 443,
+            "n_del": 209,
+            "n_sub": 301
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/zh_fleurs/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "zh_aishell1": {
+          "metric": "CER",
+          "error_rate": 0.017238581587362193,
+          "rows": 7176,
+          "scored_parents": 7176,
+          "parents": 7176,
+          "counts": {
+            "n_ref": 104765,
+            "n_err": 1806,
+            "n_ins": 221,
+            "n_del": 216,
+            "n_sub": 1369
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/zh_aishell1/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "vi_fleurs": {
+          "metric": "WER",
+          "error_rate": 0.046012740808964614,
+          "rows": 857,
+          "scored_parents": 857,
+          "parents": 857,
+          "counts": {
+            "n_ref": 26058,
+            "n_err": 1199,
+            "n_ins": 403,
+            "n_del": 238,
+            "n_sub": 558
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/vi_fleurs/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "vi_mcv": {
+          "metric": "WER",
+          "error_rate": 0.07512520868113523,
+          "rows": 1367,
+          "scored_parents": 1367,
+          "parents": 1367,
+          "counts": {
+            "n_ref": 10183,
+            "n_err": 765,
+            "n_ins": 51,
+            "n_del": 39,
+            "n_sub": 675
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/vi_mcv/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "eslo_telephony_fr": {
+          "metric": "WER",
+          "error_rate": 0.24611183663777753,
+          "rows": 238,
+          "scored_parents": 36,
+          "parents": 36,
+          "counts": {
+            "n_ref": 16846,
+            "n_err": 4146,
+            "n_ins": 253,
+            "n_del": 2993,
+            "n_sub": 900
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/eslo_telephony_fr/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "accueil_ubs_fr": {
+          "metric": "WER",
+          "error_rate": 0.28107831864060306,
+          "rows": 119,
+          "scored_parents": 41,
+          "parents": 41,
+          "counts": {
+            "n_ref": 7827,
+            "n_err": 2200,
+            "n_ins": 418,
+            "n_del": 1223,
+            "n_sub": 559
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/accueil_ubs_fr/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_atl": {
+          "metric": "WER",
+          "error_rate": 0.168441555691995,
+          "rows": 1199,
+          "scored_parents": 14,
+          "parents": 14,
+          "counts": {
+            "n_ref": 94466,
+            "n_err": 15912
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_atl/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dca": {
+          "metric": "WER",
+          "error_rate": 0.15901678834821925,
+          "rows": 4584,
+          "scored_parents": 74,
+          "parents": 74,
+          "counts": {
+            "n_ref": 323796,
+            "n_err": 51489
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dca/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dcb": {
+          "metric": "WER",
+          "error_rate": 0.11221532810100401,
+          "rows": 6260,
+          "scored_parents": 63,
+          "parents": 63,
+          "counts": {
+            "n_ref": 518316,
+            "n_err": 58163
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dcb/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dta": {
+          "metric": "WER",
+          "error_rate": 0.17663207693768668,
+          "rows": 3383,
+          "scored_parents": 40,
+          "parents": 40,
+          "counts": {
+            "n_ref": 231668,
+            "n_err": 40920
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dta/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_les": {
+          "metric": "WER",
+          "error_rate": 0.19044784857059224,
+          "rows": 1194,
+          "scored_parents": 15,
+          "parents": 15,
+          "counts": {
+            "n_ref": 102490,
+            "n_err": 19519
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_les/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_prv": {
+          "metric": "WER",
+          "error_rate": 0.22773486236096732,
+          "rows": 2030,
+          "scored_parents": 32,
+          "parents": 32,
+          "counts": {
+            "n_ref": 150684,
+            "n_err": 34316
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_prv/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_roc": {
+          "metric": "WER",
+          "error_rate": 0.09623195108907742,
+          "rows": 1863,
+          "scored_parents": 19,
+          "parents": 19,
+          "counts": {
+            "n_ref": 138374,
+            "n_err": 13316
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_roc/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_vld": {
+          "metric": "WER",
+          "error_rate": 0.11173438853804722,
+          "rows": 1528,
+          "scored_parents": 14,
+          "parents": 14,
+          "counts": {
+            "n_ref": 111953,
+            "n_err": 12509
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_vld/0.jsonl",
+          "include_in_headline_average": false
+        }
+      },
+      "coraal_manifest_inventory": {
+        "coraal_atl": {
+          "rows": 1199,
+          "parents": 14,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00000-of-00006/data_zip.jsonl",
+              "sha256": "f5131836f18df99435e5c60a9ab5c5d46c67c39323884061b7a14a18b202bbcb"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00001-of-00006/data_zip.jsonl",
+              "sha256": "121b0e83e69fb1563708e58048b4e5a256a456803e4737a216623f79d84275d5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00002-of-00006/data_zip.jsonl",
+              "sha256": "0d18c42f0767444ccfa1e58c2eb9852dbd39913fd0d491d982ada453335bea22"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00003-of-00006/data_zip.jsonl",
+              "sha256": "88e06ecbc5163671830ecc92c9a31c7cd1af5870b8e2e7b3079f9de058540cf7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00004-of-00006/data_zip.jsonl",
+              "sha256": "ec8e276548b37c043b690b4793cda8d9b729e35354745288ced860fffe7b0938"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00005-of-00006/data_zip.jsonl",
+              "sha256": "4512b678e1bfeb9d0347eec07178856bcd55483f1072dcb804d0e55ae7bb2da6"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dca": {
+          "rows": 4584,
+          "parents": 74,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00000-of-00022/data_zip.jsonl",
+              "sha256": "611e9bf110ac9fe56ceb78acd2ce1bd6d46ed49c243a1dfcde0e4bcc328142b1"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00001-of-00022/data_zip.jsonl",
+              "sha256": "ef7c958563dfde0e78e004fd54c4050130463b450d47b79a4da9611c3698a335"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00002-of-00022/data_zip.jsonl",
+              "sha256": "df174b4cd9bc19f697819235a4c0780fea665dffeb13e269f049bab7e1e303ec"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00003-of-00022/data_zip.jsonl",
+              "sha256": "9d871b0b4675db0cb9eeddb26c3df08e9a4ddaa22e3addbd7e41c54769a7259b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00004-of-00022/data_zip.jsonl",
+              "sha256": "ec8c7891b2d48d75f91ad5a68a521ec867695fd3bc0b057277b85a97d2715696"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00005-of-00022/data_zip.jsonl",
+              "sha256": "ba3d145b0061fa5afeece81e713877bcd91fb7f5f93929bb483070fec7735405"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00006-of-00022/data_zip.jsonl",
+              "sha256": "695c13d5e6a82532a995195a4776015d64ea9d6afb502ede7fe3b68bce139974"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00007-of-00022/data_zip.jsonl",
+              "sha256": "4cb09ad2743cc9b57807b833e711c8d6f131ffda53a2c2b7cb5f92e8c0a89d84"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00008-of-00022/data_zip.jsonl",
+              "sha256": "211462f1d40955010113a43114b590852508939edc065fe5b27178358b9d732d"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00009-of-00022/data_zip.jsonl",
+              "sha256": "612f14edafcaf5bb80b0121ee5045464a1dabc2d88016d167a34723d1c2c5728"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00010-of-00022/data_zip.jsonl",
+              "sha256": "31e1b45d5152765b0ba1c4ec9a02ddeead18e3f3b17cf155347adfecb036a03c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00011-of-00022/data_zip.jsonl",
+              "sha256": "30ccaa49dd8736ac308f58f80c168d020a8c89d9a98a25136835029eacafc777"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00012-of-00022/data_zip.jsonl",
+              "sha256": "20c5dccfbf2b1c046f2dd4539d40d93734ecc97d39068afaeaa802a7d99de57f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00013-of-00022/data_zip.jsonl",
+              "sha256": "7b199180ec19c29e096d0a57c009fa00312fb1a89b98300e40598d0bd855516e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00014-of-00022/data_zip.jsonl",
+              "sha256": "41275fe9ed9895e05f0da3376acd82837c75f3944be4363572848671cc910f7b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00015-of-00022/data_zip.jsonl",
+              "sha256": "57b452a76808743d2d83aaeed4659a265644c391c1e9903b43f7bf0e86addc28"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00016-of-00022/data_zip.jsonl",
+              "sha256": "3a9ef8edeb08b9cc30204e99a9557dc6021fc9011e1f96b43335bb1e8f7c8670"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00017-of-00022/data_zip.jsonl",
+              "sha256": "165e44fa893ca457d144ffb282696849c6d50b6585a189c4cb8dce73b1cf869f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00018-of-00022/data_zip.jsonl",
+              "sha256": "694ccdef9c8e850b716900e906d0b046cec888cd2635d53c1401c2f32d4d4b5f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00019-of-00022/data_zip.jsonl",
+              "sha256": "a674b2c0311c8fd194ffc54428f88d454fa72e4d08d5e73fa456985001cf0b48"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00020-of-00022/data_zip.jsonl",
+              "sha256": "91e966d2f97ef36c6a2160642201978145f1142b065c15c6f64b221624709893"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00021-of-00022/data_zip.jsonl",
+              "sha256": "3d937f4abcba2f136e5a77896e3ed4c400adc982fdd2690e21e1b57dc7f34b01"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dcb": {
+          "rows": 6260,
+          "parents": 63,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00000-of-00030/data_zip.jsonl",
+              "sha256": "4580f42dd244f347ed8822ae00cdf4197697558d2d202697b651f38a7b974496"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00001-of-00030/data_zip.jsonl",
+              "sha256": "9929fd5ecd4305e801443b41adc06765caf4b191edec5d1bc32d4f0dcf3e2002"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00002-of-00030/data_zip.jsonl",
+              "sha256": "2b7c3f3aef366e2fcaf8b67211b198e63a04a29b70c8495b88105f30773a0148"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00003-of-00030/data_zip.jsonl",
+              "sha256": "6af2ce1d0aaaff15de8d2855f6e6fb454a791f06fc21e26da9e064309574280c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00004-of-00030/data_zip.jsonl",
+              "sha256": "909eb726fe0246a3c5bd6e0bc2e6d77ca2a8bedcd318174b213a71d3ae9276de"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00005-of-00030/data_zip.jsonl",
+              "sha256": "2546f0050c124247660c670fe17fa38b8d7b6361efc8eeb6ee2b07c29c558639"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00006-of-00030/data_zip.jsonl",
+              "sha256": "fd506529de337cd8963d6b84e8285707e0a022f06ff92e3757732f26fc17130c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00007-of-00030/data_zip.jsonl",
+              "sha256": "d3082ec3821dce75e3cfbf8c3494481e4211d5e3643077f6de8a6385301937c5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00008-of-00030/data_zip.jsonl",
+              "sha256": "c5034229d16f42566b58dfea30abcb012c469aee0794c4d5235348b1e9a8ddc3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00009-of-00030/data_zip.jsonl",
+              "sha256": "2d1f67df7ded0c579aba0d4ff8fe838b737257c3a34c2639572f77462a0dbfa1"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00010-of-00030/data_zip.jsonl",
+              "sha256": "b8331795b1f4d044b746ec8501097a0dae2cb94143e0ecaa3319fee6fb2fe2e9"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00011-of-00030/data_zip.jsonl",
+              "sha256": "e09bd8e25eb8d3a3eb803ae8fb23e123e876bfc7d705dea338e958e167cdb56a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00012-of-00030/data_zip.jsonl",
+              "sha256": "8699dcaf1a53d6070377303f68cc53588b4f21653529622088c6acca567a740f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00013-of-00030/data_zip.jsonl",
+              "sha256": "ed4e8fd2259d7cb03d4213bed611be267f30baf8e13ba973b0d57b61fe1ef856"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00014-of-00030/data_zip.jsonl",
+              "sha256": "5f390d9b5e48a60399afd23756a9159f5d95a7ad0a9c81f982eca15cf31be24a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00015-of-00030/data_zip.jsonl",
+              "sha256": "79ab3b34caf348c44e5a484a556ad31848cb5d78816c1f6c341565663279533c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00016-of-00030/data_zip.jsonl",
+              "sha256": "ef252caaf26e4952a260a26de786d8b82894f59a2190da4dda16190e97754297"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00017-of-00030/data_zip.jsonl",
+              "sha256": "6147f2056b1ced5d9e5e726a7809865b157028a9068fd40ad8784af3293ac6c3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00018-of-00030/data_zip.jsonl",
+              "sha256": "a4f8c5b4b4233b1d4b9480d72de9ab1f290c353273698a9c4ae437d591871a62"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00019-of-00030/data_zip.jsonl",
+              "sha256": "19e61985faf4f7802bef8e1a6c32a42d08bf897635bfde7638be2cf92808248b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00020-of-00030/data_zip.jsonl",
+              "sha256": "a18109f9eddb90008885d1395f46c970bd07038e7ae60766a9eefc0a6b922e34"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00021-of-00030/data_zip.jsonl",
+              "sha256": "0c3888a90a476d8d3d1f02d687f1683a2f413bcfe6372eddda5375843aa4bbf0"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00022-of-00030/data_zip.jsonl",
+              "sha256": "e6ce6d3045ca8eb8e037c7c101d50631cf8754c13ad0b5ca58335097a5076953"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00023-of-00030/data_zip.jsonl",
+              "sha256": "e50cdc387f146a8b2d7a2ccb0fad0e74fb3df4fc8b3059574365150edd0148d5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00024-of-00030/data_zip.jsonl",
+              "sha256": "de44b510be09f0260fbd4711bd8b14d9b48b7ceecc0cb459198f0c7fdced0824"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00025-of-00030/data_zip.jsonl",
+              "sha256": "19a49b8ebe295b614b9022af8365c2a5222f183ea889aa8728c93422939ece8b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00026-of-00030/data_zip.jsonl",
+              "sha256": "cace035593c444116fe74e93ad09f0cbec3462523c73e4da79412c347e5896ee"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00027-of-00030/data_zip.jsonl",
+              "sha256": "021e3f270c6fddad829f43e0ad632735ca3e34498bd9b9ae98d523ecdfbfaafc"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00028-of-00030/data_zip.jsonl",
+              "sha256": "5bc3478507bdb12e973bc4201db537ca7c111cf315b8af66bc6e4d1d677b213b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00029-of-00030/data_zip.jsonl",
+              "sha256": "d876c616efa69bf890781916260de99345a17e35360932c4048134350b2b2213"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dta": {
+          "rows": 3383,
+          "parents": 40,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00000-of-00016/data_zip.jsonl",
+              "sha256": "025c64bc7dad56af161d0f8fee676b74fbca12111e96d35329da44a19140f841"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00001-of-00016/data_zip.jsonl",
+              "sha256": "44737e28ec7a1deae91514764b5e20f519ae8109c554bb2aa5571cd419789cc7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00002-of-00016/data_zip.jsonl",
+              "sha256": "ad2444c6bddb6d39f5160da8b3d997f2b185064500f6ce5a806ca0ba46c53b94"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00003-of-00016/data_zip.jsonl",
+              "sha256": "e2a5970dfde97464271bda287b7632f8be0843a9c2b721e7925cb05dcef56483"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00004-of-00016/data_zip.jsonl",
+              "sha256": "fa7ada339251d8c59aee07deeb22e6df17e871f0b75c404bb03dfce92cc899a8"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00005-of-00016/data_zip.jsonl",
+              "sha256": "597724e85373b413821f6ab7300c2fcbe5de2baa08a3a1229afa1a97603abfaf"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00006-of-00016/data_zip.jsonl",
+              "sha256": "8a3153aaf9d31c83a1310839d572e3ee5f214af2f818748ae45d024b3364b6db"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00007-of-00016/data_zip.jsonl",
+              "sha256": "63a1c237691121077d4fdc551b4edaa79e89f6337dbc7d9b5c030ab5698df6d2"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00008-of-00016/data_zip.jsonl",
+              "sha256": "a9ceb2989d6cd3dc65de3fe15a5cc9d395eb2a911019d68e7f5ca651abf9b962"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00009-of-00016/data_zip.jsonl",
+              "sha256": "e6c69f6377e97bc05430161a53d84dc40ed109b6e7b4a38a0aa71046856a15d0"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00010-of-00016/data_zip.jsonl",
+              "sha256": "e11b07a7cf8964c9448cdee38d51376cab8fcb3759a362b2f80ebe8c303a843b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00011-of-00016/data_zip.jsonl",
+              "sha256": "25d4cff4ccfbebf31cdfb7c9fe63c7f3e564cdfcfe4ea8e33919eb7411f28449"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00012-of-00016/data_zip.jsonl",
+              "sha256": "8bfe53ccf1a5b93829b367951fade5b993d6dd7cd09870db1d2e84728f8ab661"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00013-of-00016/data_zip.jsonl",
+              "sha256": "9113de7e7838e5c8c8a9fc40e0b353134de8b9efdce7d90aa2f76f54eac95482"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00014-of-00016/data_zip.jsonl",
+              "sha256": "61c574df8c4bf033f4618a14ce94ef37aa897775fd6eb107a98ccfbce834487e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00015-of-00016/data_zip.jsonl",
+              "sha256": "9d00eb461afa87909e3ce4041b2fda7efafe93bcfefe93b881fa9a51f78585c0"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_les": {
+          "rows": 1194,
+          "parents": 15,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00000-of-00006/data_zip.jsonl",
+              "sha256": "2a5edec360be352b5e8d66f12f4c5b006cac018de115e39da883a434aa33092a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00001-of-00006/data_zip.jsonl",
+              "sha256": "c22c3bde139593dae6a3c3fbaa1463813bc248eda3a14dbdabbb70e0817e167c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00002-of-00006/data_zip.jsonl",
+              "sha256": "da4946a8da8b64880c4988fd036fc3382d37cf31737869db401b795242ccc411"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00003-of-00006/data_zip.jsonl",
+              "sha256": "f4f73821c9866b50060eaf94134854600ef9ede978ae6094afda7a59180c0eaf"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00004-of-00006/data_zip.jsonl",
+              "sha256": "ab7a586a79c7a750226246387c2165418aa7ab445eae7ba4a9ec2894db4968d7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00005-of-00006/data_zip.jsonl",
+              "sha256": "320c9d0da23e0ab5df8d2c198b6ad6e9febc066743a6e26b3b2d5f6222bb67df"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_prv": {
+          "rows": 2030,
+          "parents": 32,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00000-of-00009/data_zip.jsonl",
+              "sha256": "0a023ac219cf3678c85b40062dfde54bc7f25b7274688a8be260525a69928562"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00001-of-00009/data_zip.jsonl",
+              "sha256": "107444bd5a1ddfd1506e8f9d1519e838b9e4c6b17559b2635c7657651888ad1c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00002-of-00009/data_zip.jsonl",
+              "sha256": "fe70d2748668d2c489c8fd3611109d2d0796dfa221faa6485c4522a6e8bb4f19"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00003-of-00009/data_zip.jsonl",
+              "sha256": "885cfb14b16bd9619a08953795a8c000f3433cd6f7f34d02212dc7eda4bee459"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00004-of-00009/data_zip.jsonl",
+              "sha256": "b64447f20717978419482466402a8fb5f9d78fd1e7b2f06a09553c7482124b90"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00005-of-00009/data_zip.jsonl",
+              "sha256": "f3fdcd88898a1426ab42862d84f00c801004fb0f66a6818fdf6e4d62b0c42e82"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00006-of-00009/data_zip.jsonl",
+              "sha256": "e47ec45c0437155a624db0991e4bb08efdf818149870fd1f44fc580ce8748a2e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00007-of-00009/data_zip.jsonl",
+              "sha256": "ca6a41d97ed2a2b98383002b7df23c2390e4a5894a44a1eb6665ff412a8deea9"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00008-of-00009/data_zip.jsonl",
+              "sha256": "29c7f7b7e108f66130d9be595eb2c5aeb27871a9bf8812895acbdf66b491ccf8"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_roc": {
+          "rows": 1863,
+          "parents": 19,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00000-of-00009/data_zip.jsonl",
+              "sha256": "f6619b94b60581aade26dc8785edfea1ba565cb030222f0a0f08f88fe1955d0c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00001-of-00009/data_zip.jsonl",
+              "sha256": "fa534b97a37d920b92351968f2702f747b6ce8220198e3c6a72874743c1c1875"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00002-of-00009/data_zip.jsonl",
+              "sha256": "16268bcddfeda0551ceff320740880adebfc1801cfc92ddcf845a42817ae911b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00003-of-00009/data_zip.jsonl",
+              "sha256": "45642f14f35114c27334df19c5dc7cc6b56eefba984ee96fdb26003cc9856d87"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00004-of-00009/data_zip.jsonl",
+              "sha256": "6377f0542f1e82c5f50a5250a5568b4de2d50c98a7211bf130a80bb9d81524dd"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00005-of-00009/data_zip.jsonl",
+              "sha256": "40266793172273484bae154965813ffce264a1d4ea0a8218ce5a297f635efbe3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00006-of-00009/data_zip.jsonl",
+              "sha256": "57ff0757d87a6d4deb7ce30a9c6cdd758214de15cc44b271441b5a4d0a10e288"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00007-of-00009/data_zip.jsonl",
+              "sha256": "74cff9e2c17dc53851eb465a4a708f9afe97b5e9e92ae202ab5e6a78cba2804f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00008-of-00009/data_zip.jsonl",
+              "sha256": "9773fb2b29f3a586c79ce52564aa7d8b86880fd8933beed1e4dd9799680f2205"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_vld": {
+          "rows": 1528,
+          "parents": 14,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00000-of-00008/data_zip.jsonl",
+              "sha256": "d743f4d38e930caeaca4c1ba513483b79e3eee80bf73c7527bdb3d4e4e190819"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00001-of-00008/data_zip.jsonl",
+              "sha256": "18d5fcf91c532130c72cfb1ddb1e46970265a6b20b411db8299865194c830eb5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00002-of-00008/data_zip.jsonl",
+              "sha256": "3c81f2c71a45158232ab1a0bafb4cf7d43c238d32f3d7582d0e128c7e72e748a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00003-of-00008/data_zip.jsonl",
+              "sha256": "ee37bb5d618886762303ea6d9f9821698140cf155c2000544ed6d5a04764ef03"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00004-of-00008/data_zip.jsonl",
+              "sha256": "5ef4dd90de7eb654170ed999a4c655fd90bdab4107e45d30f297467bb0f2b9d6"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00005-of-00008/data_zip.jsonl",
+              "sha256": "879f682fbb5932977b684d8ce815484860e9203fcf93d4107406d77fbb8dbc23"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00006-of-00008/data_zip.jsonl",
+              "sha256": "d8e32093c0a37b5ceea50245baa6ee337f3b3212734fa50b8db57bfdd85f1e8a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00007-of-00008/data_zip.jsonl",
+              "sha256": "ec26a1285ca285c937c1a6c243f52c2d26db1dc47ad8557db8a2206b63bffc1e"
+            }
+          ],
+          "complete_groups": true
+        }
+      },
+      "coraal_aggregate": {
+        "metric": "WER",
+        "error_rate": 0.14723759037701278,
+        "n_err": 246144,
+        "n_ref": 1671747,
+        "include_in_headline_average": true,
+        "policy": "Sum errors/reference counts across eight locations; one long-form headline component."
+      },
+      "final_metrics": {
+        "val-core/zh_fleurs/p_err/mean@1": 0.027601587163669013,
+        "val-core/zh_aishell1/p_err/mean@1": 0.017238581587362193,
+        "val-core/vi_fleurs/p_err/mean@1": 0.046012740808964614,
+        "val-core/vi_mcv/p_err/mean@1": 0.07512520868113522,
+        "val-core/eslo_telephony_fr/p_err/mean@1": 0.24611183663777753,
+        "val-core/accueil_ubs_fr/p_err/mean@1": 0.281078318640603,
+        "val-core/coraal_atl/p_err/mean@1": 0.168441555691995,
+        "val-core/coraal_dca/p_err/mean@1": 0.15901678834821925,
+        "val-core/coraal_dcb/p_err/mean@1": 0.11221532810100401,
+        "val-core/coraal_dta/p_err/mean@1": 0.1766320769376867,
+        "val-core/coraal_les/p_err/mean@1": 0.19044784857059224,
+        "val-core/coraal_prv/p_err/mean@1": 0.22773486236096732,
+        "val-core/coraal_roc/p_err/mean@1": 0.09623195108907744,
+        "val-core/coraal_vld/p_err/mean@1": 0.11173438853804722
+      },
+      "collected_utc": "2026-11-07T03:40:37.973707+00:00",
+      "wandb_url": "https://msaip.wandb.io/genai/v2611_eval/runs/04a7a127012e0817bb4819571d83fa4e"
+    },
+    "2609r2b": {
+      "model_label": "2609r2b",
+      "model_uri": "az://orngwus2cresco/data/boren/outputs/v2609_asr/remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs128_n8_r256_g16_ds1c_sfl_avg6_flr_rm0b_v0/global_step_400/qwen_hf",
+      "ray_id": "raysubmit_LEaHnjhiMuEsf9L3",
+      "ray_status": "SUCCEEDED",
+      "entrypoint": "python3 -m recipe.phimm.main_asr_eval --config-dir recipe/phimm/config/v2611_dev/eval --config-name eval_2609r2b_multilingual_expansion trainer.experiment_name=eval_2609r2b_multilingual_expansion trainer.nnodes=2 trainer.experiment_name=eval_2609r2b_multilingual_expansion_18143a6e_n2 +ray_kwargs.ray_init.runtime_env.env_vars.TORCHINDUCTOR_COMPILE_THREADS=\\\"1\\\"",
+      "pool": "eval2611r2-n2-critical",
+      "cluster": "prod-westus2-cw-6",
+      "namespace": "boren",
+      "topology": {
+        "nodes": 2,
+        "gpus_per_node": 8
+      },
+      "source_moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "code_revision": "db873221b3a7198821680e87be9739d0d814a2c3",
+      "datasets": {
+        "zh_fleurs": {
+          "metric": "CER",
+          "error_rate": 0.02120079937440264,
+          "rows": 945,
+          "scored_parents": 945,
+          "parents": 945,
+          "counts": {
+            "n_ref": 34527,
+            "n_err": 732,
+            "n_ins": 160,
+            "n_del": 229,
+            "n_sub": 343
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/zh_fleurs/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "zh_aishell1": {
+          "metric": "CER",
+          "error_rate": 0.01720040089724622,
+          "rows": 7176,
+          "scored_parents": 7176,
+          "parents": 7176,
+          "counts": {
+            "n_ref": 104765,
+            "n_err": 1802,
+            "n_ins": 206,
+            "n_del": 185,
+            "n_sub": 1411
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/zh_aishell1/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "vi_fleurs": {
+          "metric": "WER",
+          "error_rate": 0.04843228307172737,
+          "rows": 857,
+          "scored_parents": 857,
+          "parents": 857,
+          "counts": {
+            "n_ref": 26057,
+            "n_err": 1262,
+            "n_ins": 548,
+            "n_del": 109,
+            "n_sub": 605
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/vi_fleurs/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "vi_mcv": {
+          "metric": "WER",
+          "error_rate": 0.07345575959933222,
+          "rows": 1367,
+          "scored_parents": 1367,
+          "parents": 1367,
+          "counts": {
+            "n_ref": 10183,
+            "n_err": 748,
+            "n_ins": 29,
+            "n_del": 42,
+            "n_sub": 677
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/vi_mcv/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "eslo_telephony_fr": {
+          "metric": "WER",
+          "error_rate": 0.20984209901460288,
+          "rows": 238,
+          "scored_parents": 36,
+          "parents": 36,
+          "counts": {
+            "n_ref": 16846,
+            "n_err": 3535,
+            "n_ins": 232,
+            "n_del": 2444,
+            "n_sub": 859
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/eslo_telephony_fr/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "accueil_ubs_fr": {
+          "metric": "WER",
+          "error_rate": 0.25357873210633947,
+          "rows": 119,
+          "scored_parents": 41,
+          "parents": 41,
+          "counts": {
+            "n_ref": 7824,
+            "n_err": 1984,
+            "n_ins": 428,
+            "n_del": 1034,
+            "n_sub": 522
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/accueil_ubs_fr/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_atl": {
+          "metric": "WER",
+          "error_rate": 0.1703999322507569,
+          "rows": 1199,
+          "scored_parents": 14,
+          "parents": 14,
+          "counts": {
+            "n_ref": 94466,
+            "n_err": 16097
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_atl/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dca": {
+          "metric": "WER",
+          "error_rate": 0.1667685826878652,
+          "rows": 4584,
+          "scored_parents": 74,
+          "parents": 74,
+          "counts": {
+            "n_ref": 323796,
+            "n_err": 53999
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dca/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dcb": {
+          "metric": "WER",
+          "error_rate": 0.11073360652574878,
+          "rows": 6260,
+          "scored_parents": 63,
+          "parents": 63,
+          "counts": {
+            "n_ref": 518316,
+            "n_err": 57395
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dcb/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dta": {
+          "metric": "WER",
+          "error_rate": 0.19834849871367646,
+          "rows": 3383,
+          "scored_parents": 40,
+          "parents": 40,
+          "counts": {
+            "n_ref": 231668,
+            "n_err": 45951
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dta/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_les": {
+          "metric": "WER",
+          "error_rate": 0.21405015123426677,
+          "rows": 1194,
+          "scored_parents": 15,
+          "parents": 15,
+          "counts": {
+            "n_ref": 102490,
+            "n_err": 21938
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_les/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_prv": {
+          "metric": "WER",
+          "error_rate": 0.24410687266066736,
+          "rows": 2030,
+          "scored_parents": 32,
+          "parents": 32,
+          "counts": {
+            "n_ref": 150684,
+            "n_err": 36783
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_prv/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_roc": {
+          "metric": "WER",
+          "error_rate": 0.09857343142497868,
+          "rows": 1863,
+          "scored_parents": 19,
+          "parents": 19,
+          "counts": {
+            "n_ref": 138374,
+            "n_err": 13640
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_roc/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_vld": {
+          "metric": "WER",
+          "error_rate": 0.10849195644600859,
+          "rows": 1528,
+          "scored_parents": 14,
+          "parents": 14,
+          "counts": {
+            "n_ref": 111953,
+            "n_err": 12146
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2609r2b_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_vld/0.jsonl",
+          "include_in_headline_average": false
+        }
+      },
+      "coraal_manifest_inventory": {
+        "coraal_atl": {
+          "rows": 1199,
+          "parents": 14,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00000-of-00006/data_zip.jsonl",
+              "sha256": "f5131836f18df99435e5c60a9ab5c5d46c67c39323884061b7a14a18b202bbcb"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00001-of-00006/data_zip.jsonl",
+              "sha256": "121b0e83e69fb1563708e58048b4e5a256a456803e4737a216623f79d84275d5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00002-of-00006/data_zip.jsonl",
+              "sha256": "0d18c42f0767444ccfa1e58c2eb9852dbd39913fd0d491d982ada453335bea22"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00003-of-00006/data_zip.jsonl",
+              "sha256": "88e06ecbc5163671830ecc92c9a31c7cd1af5870b8e2e7b3079f9de058540cf7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00004-of-00006/data_zip.jsonl",
+              "sha256": "ec8e276548b37c043b690b4793cda8d9b729e35354745288ced860fffe7b0938"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00005-of-00006/data_zip.jsonl",
+              "sha256": "4512b678e1bfeb9d0347eec07178856bcd55483f1072dcb804d0e55ae7bb2da6"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dca": {
+          "rows": 4584,
+          "parents": 74,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00000-of-00022/data_zip.jsonl",
+              "sha256": "611e9bf110ac9fe56ceb78acd2ce1bd6d46ed49c243a1dfcde0e4bcc328142b1"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00001-of-00022/data_zip.jsonl",
+              "sha256": "ef7c958563dfde0e78e004fd54c4050130463b450d47b79a4da9611c3698a335"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00002-of-00022/data_zip.jsonl",
+              "sha256": "df174b4cd9bc19f697819235a4c0780fea665dffeb13e269f049bab7e1e303ec"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00003-of-00022/data_zip.jsonl",
+              "sha256": "9d871b0b4675db0cb9eeddb26c3df08e9a4ddaa22e3addbd7e41c54769a7259b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00004-of-00022/data_zip.jsonl",
+              "sha256": "ec8c7891b2d48d75f91ad5a68a521ec867695fd3bc0b057277b85a97d2715696"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00005-of-00022/data_zip.jsonl",
+              "sha256": "ba3d145b0061fa5afeece81e713877bcd91fb7f5f93929bb483070fec7735405"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00006-of-00022/data_zip.jsonl",
+              "sha256": "695c13d5e6a82532a995195a4776015d64ea9d6afb502ede7fe3b68bce139974"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00007-of-00022/data_zip.jsonl",
+              "sha256": "4cb09ad2743cc9b57807b833e711c8d6f131ffda53a2c2b7cb5f92e8c0a89d84"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00008-of-00022/data_zip.jsonl",
+              "sha256": "211462f1d40955010113a43114b590852508939edc065fe5b27178358b9d732d"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00009-of-00022/data_zip.jsonl",
+              "sha256": "612f14edafcaf5bb80b0121ee5045464a1dabc2d88016d167a34723d1c2c5728"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00010-of-00022/data_zip.jsonl",
+              "sha256": "31e1b45d5152765b0ba1c4ec9a02ddeead18e3f3b17cf155347adfecb036a03c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00011-of-00022/data_zip.jsonl",
+              "sha256": "30ccaa49dd8736ac308f58f80c168d020a8c89d9a98a25136835029eacafc777"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00012-of-00022/data_zip.jsonl",
+              "sha256": "20c5dccfbf2b1c046f2dd4539d40d93734ecc97d39068afaeaa802a7d99de57f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00013-of-00022/data_zip.jsonl",
+              "sha256": "7b199180ec19c29e096d0a57c009fa00312fb1a89b98300e40598d0bd855516e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00014-of-00022/data_zip.jsonl",
+              "sha256": "41275fe9ed9895e05f0da3376acd82837c75f3944be4363572848671cc910f7b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00015-of-00022/data_zip.jsonl",
+              "sha256": "57b452a76808743d2d83aaeed4659a265644c391c1e9903b43f7bf0e86addc28"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00016-of-00022/data_zip.jsonl",
+              "sha256": "3a9ef8edeb08b9cc30204e99a9557dc6021fc9011e1f96b43335bb1e8f7c8670"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00017-of-00022/data_zip.jsonl",
+              "sha256": "165e44fa893ca457d144ffb282696849c6d50b6585a189c4cb8dce73b1cf869f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00018-of-00022/data_zip.jsonl",
+              "sha256": "694ccdef9c8e850b716900e906d0b046cec888cd2635d53c1401c2f32d4d4b5f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00019-of-00022/data_zip.jsonl",
+              "sha256": "a674b2c0311c8fd194ffc54428f88d454fa72e4d08d5e73fa456985001cf0b48"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00020-of-00022/data_zip.jsonl",
+              "sha256": "91e966d2f97ef36c6a2160642201978145f1142b065c15c6f64b221624709893"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00021-of-00022/data_zip.jsonl",
+              "sha256": "3d937f4abcba2f136e5a77896e3ed4c400adc982fdd2690e21e1b57dc7f34b01"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dcb": {
+          "rows": 6260,
+          "parents": 63,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00000-of-00030/data_zip.jsonl",
+              "sha256": "4580f42dd244f347ed8822ae00cdf4197697558d2d202697b651f38a7b974496"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00001-of-00030/data_zip.jsonl",
+              "sha256": "9929fd5ecd4305e801443b41adc06765caf4b191edec5d1bc32d4f0dcf3e2002"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00002-of-00030/data_zip.jsonl",
+              "sha256": "2b7c3f3aef366e2fcaf8b67211b198e63a04a29b70c8495b88105f30773a0148"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00003-of-00030/data_zip.jsonl",
+              "sha256": "6af2ce1d0aaaff15de8d2855f6e6fb454a791f06fc21e26da9e064309574280c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00004-of-00030/data_zip.jsonl",
+              "sha256": "909eb726fe0246a3c5bd6e0bc2e6d77ca2a8bedcd318174b213a71d3ae9276de"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00005-of-00030/data_zip.jsonl",
+              "sha256": "2546f0050c124247660c670fe17fa38b8d7b6361efc8eeb6ee2b07c29c558639"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00006-of-00030/data_zip.jsonl",
+              "sha256": "fd506529de337cd8963d6b84e8285707e0a022f06ff92e3757732f26fc17130c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00007-of-00030/data_zip.jsonl",
+              "sha256": "d3082ec3821dce75e3cfbf8c3494481e4211d5e3643077f6de8a6385301937c5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00008-of-00030/data_zip.jsonl",
+              "sha256": "c5034229d16f42566b58dfea30abcb012c469aee0794c4d5235348b1e9a8ddc3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00009-of-00030/data_zip.jsonl",
+              "sha256": "2d1f67df7ded0c579aba0d4ff8fe838b737257c3a34c2639572f77462a0dbfa1"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00010-of-00030/data_zip.jsonl",
+              "sha256": "b8331795b1f4d044b746ec8501097a0dae2cb94143e0ecaa3319fee6fb2fe2e9"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00011-of-00030/data_zip.jsonl",
+              "sha256": "e09bd8e25eb8d3a3eb803ae8fb23e123e876bfc7d705dea338e958e167cdb56a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00012-of-00030/data_zip.jsonl",
+              "sha256": "8699dcaf1a53d6070377303f68cc53588b4f21653529622088c6acca567a740f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00013-of-00030/data_zip.jsonl",
+              "sha256": "ed4e8fd2259d7cb03d4213bed611be267f30baf8e13ba973b0d57b61fe1ef856"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00014-of-00030/data_zip.jsonl",
+              "sha256": "5f390d9b5e48a60399afd23756a9159f5d95a7ad0a9c81f982eca15cf31be24a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00015-of-00030/data_zip.jsonl",
+              "sha256": "79ab3b34caf348c44e5a484a556ad31848cb5d78816c1f6c341565663279533c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00016-of-00030/data_zip.jsonl",
+              "sha256": "ef252caaf26e4952a260a26de786d8b82894f59a2190da4dda16190e97754297"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00017-of-00030/data_zip.jsonl",
+              "sha256": "6147f2056b1ced5d9e5e726a7809865b157028a9068fd40ad8784af3293ac6c3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00018-of-00030/data_zip.jsonl",
+              "sha256": "a4f8c5b4b4233b1d4b9480d72de9ab1f290c353273698a9c4ae437d591871a62"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00019-of-00030/data_zip.jsonl",
+              "sha256": "19e61985faf4f7802bef8e1a6c32a42d08bf897635bfde7638be2cf92808248b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00020-of-00030/data_zip.jsonl",
+              "sha256": "a18109f9eddb90008885d1395f46c970bd07038e7ae60766a9eefc0a6b922e34"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00021-of-00030/data_zip.jsonl",
+              "sha256": "0c3888a90a476d8d3d1f02d687f1683a2f413bcfe6372eddda5375843aa4bbf0"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00022-of-00030/data_zip.jsonl",
+              "sha256": "e6ce6d3045ca8eb8e037c7c101d50631cf8754c13ad0b5ca58335097a5076953"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00023-of-00030/data_zip.jsonl",
+              "sha256": "e50cdc387f146a8b2d7a2ccb0fad0e74fb3df4fc8b3059574365150edd0148d5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00024-of-00030/data_zip.jsonl",
+              "sha256": "de44b510be09f0260fbd4711bd8b14d9b48b7ceecc0cb459198f0c7fdced0824"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00025-of-00030/data_zip.jsonl",
+              "sha256": "19a49b8ebe295b614b9022af8365c2a5222f183ea889aa8728c93422939ece8b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00026-of-00030/data_zip.jsonl",
+              "sha256": "cace035593c444116fe74e93ad09f0cbec3462523c73e4da79412c347e5896ee"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00027-of-00030/data_zip.jsonl",
+              "sha256": "021e3f270c6fddad829f43e0ad632735ca3e34498bd9b9ae98d523ecdfbfaafc"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00028-of-00030/data_zip.jsonl",
+              "sha256": "5bc3478507bdb12e973bc4201db537ca7c111cf315b8af66bc6e4d1d677b213b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00029-of-00030/data_zip.jsonl",
+              "sha256": "d876c616efa69bf890781916260de99345a17e35360932c4048134350b2b2213"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dta": {
+          "rows": 3383,
+          "parents": 40,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00000-of-00016/data_zip.jsonl",
+              "sha256": "025c64bc7dad56af161d0f8fee676b74fbca12111e96d35329da44a19140f841"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00001-of-00016/data_zip.jsonl",
+              "sha256": "44737e28ec7a1deae91514764b5e20f519ae8109c554bb2aa5571cd419789cc7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00002-of-00016/data_zip.jsonl",
+              "sha256": "ad2444c6bddb6d39f5160da8b3d997f2b185064500f6ce5a806ca0ba46c53b94"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00003-of-00016/data_zip.jsonl",
+              "sha256": "e2a5970dfde97464271bda287b7632f8be0843a9c2b721e7925cb05dcef56483"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00004-of-00016/data_zip.jsonl",
+              "sha256": "fa7ada339251d8c59aee07deeb22e6df17e871f0b75c404bb03dfce92cc899a8"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00005-of-00016/data_zip.jsonl",
+              "sha256": "597724e85373b413821f6ab7300c2fcbe5de2baa08a3a1229afa1a97603abfaf"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00006-of-00016/data_zip.jsonl",
+              "sha256": "8a3153aaf9d31c83a1310839d572e3ee5f214af2f818748ae45d024b3364b6db"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00007-of-00016/data_zip.jsonl",
+              "sha256": "63a1c237691121077d4fdc551b4edaa79e89f6337dbc7d9b5c030ab5698df6d2"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00008-of-00016/data_zip.jsonl",
+              "sha256": "a9ceb2989d6cd3dc65de3fe15a5cc9d395eb2a911019d68e7f5ca651abf9b962"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00009-of-00016/data_zip.jsonl",
+              "sha256": "e6c69f6377e97bc05430161a53d84dc40ed109b6e7b4a38a0aa71046856a15d0"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00010-of-00016/data_zip.jsonl",
+              "sha256": "e11b07a7cf8964c9448cdee38d51376cab8fcb3759a362b2f80ebe8c303a843b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00011-of-00016/data_zip.jsonl",
+              "sha256": "25d4cff4ccfbebf31cdfb7c9fe63c7f3e564cdfcfe4ea8e33919eb7411f28449"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00012-of-00016/data_zip.jsonl",
+              "sha256": "8bfe53ccf1a5b93829b367951fade5b993d6dd7cd09870db1d2e84728f8ab661"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00013-of-00016/data_zip.jsonl",
+              "sha256": "9113de7e7838e5c8c8a9fc40e0b353134de8b9efdce7d90aa2f76f54eac95482"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00014-of-00016/data_zip.jsonl",
+              "sha256": "61c574df8c4bf033f4618a14ce94ef37aa897775fd6eb107a98ccfbce834487e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00015-of-00016/data_zip.jsonl",
+              "sha256": "9d00eb461afa87909e3ce4041b2fda7efafe93bcfefe93b881fa9a51f78585c0"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_les": {
+          "rows": 1194,
+          "parents": 15,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00000-of-00006/data_zip.jsonl",
+              "sha256": "2a5edec360be352b5e8d66f12f4c5b006cac018de115e39da883a434aa33092a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00001-of-00006/data_zip.jsonl",
+              "sha256": "c22c3bde139593dae6a3c3fbaa1463813bc248eda3a14dbdabbb70e0817e167c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00002-of-00006/data_zip.jsonl",
+              "sha256": "da4946a8da8b64880c4988fd036fc3382d37cf31737869db401b795242ccc411"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00003-of-00006/data_zip.jsonl",
+              "sha256": "f4f73821c9866b50060eaf94134854600ef9ede978ae6094afda7a59180c0eaf"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00004-of-00006/data_zip.jsonl",
+              "sha256": "ab7a586a79c7a750226246387c2165418aa7ab445eae7ba4a9ec2894db4968d7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00005-of-00006/data_zip.jsonl",
+              "sha256": "320c9d0da23e0ab5df8d2c198b6ad6e9febc066743a6e26b3b2d5f6222bb67df"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_prv": {
+          "rows": 2030,
+          "parents": 32,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00000-of-00009/data_zip.jsonl",
+              "sha256": "0a023ac219cf3678c85b40062dfde54bc7f25b7274688a8be260525a69928562"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00001-of-00009/data_zip.jsonl",
+              "sha256": "107444bd5a1ddfd1506e8f9d1519e838b9e4c6b17559b2635c7657651888ad1c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00002-of-00009/data_zip.jsonl",
+              "sha256": "fe70d2748668d2c489c8fd3611109d2d0796dfa221faa6485c4522a6e8bb4f19"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00003-of-00009/data_zip.jsonl",
+              "sha256": "885cfb14b16bd9619a08953795a8c000f3433cd6f7f34d02212dc7eda4bee459"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00004-of-00009/data_zip.jsonl",
+              "sha256": "b64447f20717978419482466402a8fb5f9d78fd1e7b2f06a09553c7482124b90"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00005-of-00009/data_zip.jsonl",
+              "sha256": "f3fdcd88898a1426ab42862d84f00c801004fb0f66a6818fdf6e4d62b0c42e82"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00006-of-00009/data_zip.jsonl",
+              "sha256": "e47ec45c0437155a624db0991e4bb08efdf818149870fd1f44fc580ce8748a2e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00007-of-00009/data_zip.jsonl",
+              "sha256": "ca6a41d97ed2a2b98383002b7df23c2390e4a5894a44a1eb6665ff412a8deea9"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00008-of-00009/data_zip.jsonl",
+              "sha256": "29c7f7b7e108f66130d9be595eb2c5aeb27871a9bf8812895acbdf66b491ccf8"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_roc": {
+          "rows": 1863,
+          "parents": 19,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00000-of-00009/data_zip.jsonl",
+              "sha256": "f6619b94b60581aade26dc8785edfea1ba565cb030222f0a0f08f88fe1955d0c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00001-of-00009/data_zip.jsonl",
+              "sha256": "fa534b97a37d920b92351968f2702f747b6ce8220198e3c6a72874743c1c1875"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00002-of-00009/data_zip.jsonl",
+              "sha256": "16268bcddfeda0551ceff320740880adebfc1801cfc92ddcf845a42817ae911b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00003-of-00009/data_zip.jsonl",
+              "sha256": "45642f14f35114c27334df19c5dc7cc6b56eefba984ee96fdb26003cc9856d87"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00004-of-00009/data_zip.jsonl",
+              "sha256": "6377f0542f1e82c5f50a5250a5568b4de2d50c98a7211bf130a80bb9d81524dd"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00005-of-00009/data_zip.jsonl",
+              "sha256": "40266793172273484bae154965813ffce264a1d4ea0a8218ce5a297f635efbe3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00006-of-00009/data_zip.jsonl",
+              "sha256": "57ff0757d87a6d4deb7ce30a9c6cdd758214de15cc44b271441b5a4d0a10e288"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00007-of-00009/data_zip.jsonl",
+              "sha256": "74cff9e2c17dc53851eb465a4a708f9afe97b5e9e92ae202ab5e6a78cba2804f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00008-of-00009/data_zip.jsonl",
+              "sha256": "9773fb2b29f3a586c79ce52564aa7d8b86880fd8933beed1e4dd9799680f2205"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_vld": {
+          "rows": 1528,
+          "parents": 14,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00000-of-00008/data_zip.jsonl",
+              "sha256": "d743f4d38e930caeaca4c1ba513483b79e3eee80bf73c7527bdb3d4e4e190819"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00001-of-00008/data_zip.jsonl",
+              "sha256": "18d5fcf91c532130c72cfb1ddb1e46970265a6b20b411db8299865194c830eb5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00002-of-00008/data_zip.jsonl",
+              "sha256": "3c81f2c71a45158232ab1a0bafb4cf7d43c238d32f3d7582d0e128c7e72e748a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00003-of-00008/data_zip.jsonl",
+              "sha256": "ee37bb5d618886762303ea6d9f9821698140cf155c2000544ed6d5a04764ef03"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00004-of-00008/data_zip.jsonl",
+              "sha256": "5ef4dd90de7eb654170ed999a4c655fd90bdab4107e45d30f297467bb0f2b9d6"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00005-of-00008/data_zip.jsonl",
+              "sha256": "879f682fbb5932977b684d8ce815484860e9203fcf93d4107406d77fbb8dbc23"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00006-of-00008/data_zip.jsonl",
+              "sha256": "d8e32093c0a37b5ceea50245baa6ee337f3b3212734fa50b8db57bfdd85f1e8a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00007-of-00008/data_zip.jsonl",
+              "sha256": "ec26a1285ca285c937c1a6c243f52c2d26db1dc47ad8557db8a2206b63bffc1e"
+            }
+          ],
+          "complete_groups": true
+        }
+      },
+      "coraal_aggregate": {
+        "metric": "WER",
+        "error_rate": 0.15429906558827383,
+        "n_err": 257949,
+        "n_ref": 1671747,
+        "include_in_headline_average": true,
+        "policy": "Sum errors/reference counts across eight locations; one long-form headline component."
+      },
+      "final_metrics": {
+        "val-core/zh_fleurs/p_err/mean@1": 0.02120079937440264,
+        "val-core/zh_aishell1/p_err/mean@1": 0.01720040089724622,
+        "val-core/vi_fleurs/p_err/mean@1": 0.04843228307172737,
+        "val-core/vi_mcv/p_err/mean@1": 0.07345575959933222,
+        "val-core/eslo_telephony_fr/p_err/mean@1": 0.20984209901460285,
+        "val-core/accueil_ubs_fr/p_err/mean@1": 0.25357873210633947,
+        "val-core/coraal_atl/p_err/mean@1": 0.1703999322507569,
+        "val-core/coraal_dca/p_err/mean@1": 0.1667685826878652,
+        "val-core/coraal_dcb/p_err/mean@1": 0.11073360652574876,
+        "val-core/coraal_dta/p_err/mean@1": 0.1983484987136765,
+        "val-core/coraal_les/p_err/mean@1": 0.21405015123426674,
+        "val-core/coraal_prv/p_err/mean@1": 0.24410687266066736,
+        "val-core/coraal_roc/p_err/mean@1": 0.0985734314249787,
+        "val-core/coraal_vld/p_err/mean@1": 0.10849195644600859
+      },
+      "collected_utc": "2026-11-07T04:38:25.405585+00:00",
+      "wandb_url": "https://msaip.wandb.io/genai/v2611_eval/runs/771114fb86161dda05bf34a9dde3a003"
+    },
+    "2611r2": {
+      "model_label": "2611r2",
+      "model_uri": "az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf",
+      "ray_id": "raysubmit_qx5V9RNLKjRQ1jda",
+      "ray_status": "SUCCEEDED",
+      "entrypoint": "python3 -m recipe.phimm.main_asr_eval --config-dir recipe/phimm/config/v2611_dev/eval --config-name eval_2611r2_multilingual_expansion trainer.experiment_name=eval_2611r2_multilingual_expansion trainer.nnodes=2 trainer.experiment_name=eval_2611r2_multilingual_expansion_18143a6e_n2 +ray_kwargs.ray_init.runtime_env.env_vars.TORCHINDUCTOR_COMPILE_THREADS=\\\"1\\\" +ray_kwargs.ray_init.runtime_env.env_vars.VLLM_CUDART_SO_PATH=/root/.pyenv/versions/3.12.9/lib/python3.12/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+      "pool": "eval2611r2-n2-critical",
+      "cluster": "prod-westus2-cw-6",
+      "namespace": "boren",
+      "topology": {
+        "nodes": 2,
+        "gpus_per_node": 8
+      },
+      "source_moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "code_revision": "db873221b3a7198821680e87be9739d0d814a2c3",
+      "datasets": {
+        "zh_fleurs": {
+          "metric": "CER",
+          "error_rate": 0.02902076635676427,
+          "rows": 945,
+          "scored_parents": 945,
+          "parents": 945,
+          "counts": {
+            "n_ref": 34527,
+            "n_err": 1002,
+            "n_ins": 497,
+            "n_del": 186,
+            "n_sub": 319
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/zh_fleurs/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "zh_aishell1": {
+          "metric": "CER",
+          "error_rate": 0.08390206652985252,
+          "rows": 7176,
+          "scored_parents": 7176,
+          "parents": 7176,
+          "counts": {
+            "n_ref": 104765,
+            "n_err": 8790,
+            "n_ins": 4912,
+            "n_del": 225,
+            "n_sub": 3653
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/zh_aishell1/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "vi_fleurs": {
+          "metric": "WER",
+          "error_rate": 0.041370840848908165,
+          "rows": 857,
+          "scored_parents": 857,
+          "parents": 857,
+          "counts": {
+            "n_ref": 26057,
+            "n_err": 1078,
+            "n_ins": 391,
+            "n_del": 211,
+            "n_sub": 476
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/vi_fleurs/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "vi_mcv": {
+          "metric": "WER",
+          "error_rate": 0.08159057437407953,
+          "rows": 1367,
+          "scored_parents": 1367,
+          "parents": 1367,
+          "counts": {
+            "n_ref": 10185,
+            "n_err": 831,
+            "n_ins": 43,
+            "n_del": 45,
+            "n_sub": 743
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/vi_mcv/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "eslo_telephony_fr": {
+          "metric": "WER",
+          "error_rate": 0.28273774189718626,
+          "rows": 238,
+          "scored_parents": 36,
+          "parents": 36,
+          "counts": {
+            "n_ref": 16846,
+            "n_err": 4763,
+            "n_ins": 317,
+            "n_del": 3154,
+            "n_sub": 1292
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/eslo_telephony_fr/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "accueil_ubs_fr": {
+          "metric": "WER",
+          "error_rate": 0.28878098645540506,
+          "rows": 119,
+          "scored_parents": 41,
+          "parents": 41,
+          "counts": {
+            "n_ref": 7826,
+            "n_err": 2260,
+            "n_ins": 440,
+            "n_del": 1083,
+            "n_sub": 737
+          },
+          "component_counts_available": true,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/accueil_ubs_fr/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_atl": {
+          "metric": "WER",
+          "error_rate": 0.15603497554675758,
+          "rows": 1199,
+          "scored_parents": 14,
+          "parents": 14,
+          "counts": {
+            "n_ref": 94466,
+            "n_err": 14740
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_atl/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dca": {
+          "metric": "WER",
+          "error_rate": 0.1505670236815773,
+          "rows": 4584,
+          "scored_parents": 74,
+          "parents": 74,
+          "counts": {
+            "n_ref": 323796,
+            "n_err": 48753
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dca/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dcb": {
+          "metric": "WER",
+          "error_rate": 0.10635789749882311,
+          "rows": 6260,
+          "scored_parents": 63,
+          "parents": 63,
+          "counts": {
+            "n_ref": 518316,
+            "n_err": 55127
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dcb/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_dta": {
+          "metric": "WER",
+          "error_rate": 0.15508399951654955,
+          "rows": 3383,
+          "scored_parents": 40,
+          "parents": 40,
+          "counts": {
+            "n_ref": 231668,
+            "n_err": 35928
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_dta/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_les": {
+          "metric": "WER",
+          "error_rate": 0.1575568348131525,
+          "rows": 1194,
+          "scored_parents": 15,
+          "parents": 15,
+          "counts": {
+            "n_ref": 102490,
+            "n_err": 16148
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_les/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_prv": {
+          "metric": "WER",
+          "error_rate": 0.20278861723872474,
+          "rows": 2030,
+          "scored_parents": 32,
+          "parents": 32,
+          "counts": {
+            "n_ref": 150684,
+            "n_err": 30557
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_prv/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_roc": {
+          "metric": "WER",
+          "error_rate": 0.07561391590905805,
+          "rows": 1863,
+          "scored_parents": 19,
+          "parents": 19,
+          "counts": {
+            "n_ref": 138374,
+            "n_err": 10463
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_roc/0.jsonl",
+          "include_in_headline_average": false
+        },
+        "coraal_vld": {
+          "metric": "WER",
+          "error_rate": 0.10931372986878422,
+          "rows": 1528,
+          "scored_parents": 14,
+          "parents": 14,
+          "counts": {
+            "n_ref": 111953,
+            "n_err": 12238
+          },
+          "component_counts_available": false,
+          "detail_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_2611r2_multilingual_expansion_18143a6e_n2/val_data_gen/coraal_vld/0.jsonl",
+          "include_in_headline_average": false
+        }
+      },
+      "coraal_manifest_inventory": {
+        "coraal_atl": {
+          "rows": 1199,
+          "parents": 14,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00000-of-00006/data_zip.jsonl",
+              "sha256": "f5131836f18df99435e5c60a9ab5c5d46c67c39323884061b7a14a18b202bbcb"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00001-of-00006/data_zip.jsonl",
+              "sha256": "121b0e83e69fb1563708e58048b4e5a256a456803e4737a216623f79d84275d5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00002-of-00006/data_zip.jsonl",
+              "sha256": "0d18c42f0767444ccfa1e58c2eb9852dbd39913fd0d491d982ada453335bea22"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00003-of-00006/data_zip.jsonl",
+              "sha256": "88e06ecbc5163671830ecc92c9a31c7cd1af5870b8e2e7b3079f9de058540cf7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00004-of-00006/data_zip.jsonl",
+              "sha256": "ec8e276548b37c043b690b4793cda8d9b729e35354745288ced860fffe7b0938"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-00005-of-00006/data_zip.jsonl",
+              "sha256": "4512b678e1bfeb9d0347eec07178856bcd55483f1072dcb804d0e55ae7bb2da6"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dca": {
+          "rows": 4584,
+          "parents": 74,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00000-of-00022/data_zip.jsonl",
+              "sha256": "611e9bf110ac9fe56ceb78acd2ce1bd6d46ed49c243a1dfcde0e4bcc328142b1"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00001-of-00022/data_zip.jsonl",
+              "sha256": "ef7c958563dfde0e78e004fd54c4050130463b450d47b79a4da9611c3698a335"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00002-of-00022/data_zip.jsonl",
+              "sha256": "df174b4cd9bc19f697819235a4c0780fea665dffeb13e269f049bab7e1e303ec"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00003-of-00022/data_zip.jsonl",
+              "sha256": "9d871b0b4675db0cb9eeddb26c3df08e9a4ddaa22e3addbd7e41c54769a7259b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00004-of-00022/data_zip.jsonl",
+              "sha256": "ec8c7891b2d48d75f91ad5a68a521ec867695fd3bc0b057277b85a97d2715696"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00005-of-00022/data_zip.jsonl",
+              "sha256": "ba3d145b0061fa5afeece81e713877bcd91fb7f5f93929bb483070fec7735405"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00006-of-00022/data_zip.jsonl",
+              "sha256": "695c13d5e6a82532a995195a4776015d64ea9d6afb502ede7fe3b68bce139974"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00007-of-00022/data_zip.jsonl",
+              "sha256": "4cb09ad2743cc9b57807b833e711c8d6f131ffda53a2c2b7cb5f92e8c0a89d84"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00008-of-00022/data_zip.jsonl",
+              "sha256": "211462f1d40955010113a43114b590852508939edc065fe5b27178358b9d732d"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00009-of-00022/data_zip.jsonl",
+              "sha256": "612f14edafcaf5bb80b0121ee5045464a1dabc2d88016d167a34723d1c2c5728"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00010-of-00022/data_zip.jsonl",
+              "sha256": "31e1b45d5152765b0ba1c4ec9a02ddeead18e3f3b17cf155347adfecb036a03c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00011-of-00022/data_zip.jsonl",
+              "sha256": "30ccaa49dd8736ac308f58f80c168d020a8c89d9a98a25136835029eacafc777"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00012-of-00022/data_zip.jsonl",
+              "sha256": "20c5dccfbf2b1c046f2dd4539d40d93734ecc97d39068afaeaa802a7d99de57f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00013-of-00022/data_zip.jsonl",
+              "sha256": "7b199180ec19c29e096d0a57c009fa00312fb1a89b98300e40598d0bd855516e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00014-of-00022/data_zip.jsonl",
+              "sha256": "41275fe9ed9895e05f0da3376acd82837c75f3944be4363572848671cc910f7b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00015-of-00022/data_zip.jsonl",
+              "sha256": "57b452a76808743d2d83aaeed4659a265644c391c1e9903b43f7bf0e86addc28"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00016-of-00022/data_zip.jsonl",
+              "sha256": "3a9ef8edeb08b9cc30204e99a9557dc6021fc9011e1f96b43335bb1e8f7c8670"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00017-of-00022/data_zip.jsonl",
+              "sha256": "165e44fa893ca457d144ffb282696849c6d50b6585a189c4cb8dce73b1cf869f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00018-of-00022/data_zip.jsonl",
+              "sha256": "694ccdef9c8e850b716900e906d0b046cec888cd2635d53c1401c2f32d4d4b5f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00019-of-00022/data_zip.jsonl",
+              "sha256": "a674b2c0311c8fd194ffc54428f88d454fa72e4d08d5e73fa456985001cf0b48"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00020-of-00022/data_zip.jsonl",
+              "sha256": "91e966d2f97ef36c6a2160642201978145f1142b065c15c6f64b221624709893"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-00021-of-00022/data_zip.jsonl",
+              "sha256": "3d937f4abcba2f136e5a77896e3ed4c400adc982fdd2690e21e1b57dc7f34b01"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dcb": {
+          "rows": 6260,
+          "parents": 63,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00000-of-00030/data_zip.jsonl",
+              "sha256": "4580f42dd244f347ed8822ae00cdf4197697558d2d202697b651f38a7b974496"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00001-of-00030/data_zip.jsonl",
+              "sha256": "9929fd5ecd4305e801443b41adc06765caf4b191edec5d1bc32d4f0dcf3e2002"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00002-of-00030/data_zip.jsonl",
+              "sha256": "2b7c3f3aef366e2fcaf8b67211b198e63a04a29b70c8495b88105f30773a0148"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00003-of-00030/data_zip.jsonl",
+              "sha256": "6af2ce1d0aaaff15de8d2855f6e6fb454a791f06fc21e26da9e064309574280c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00004-of-00030/data_zip.jsonl",
+              "sha256": "909eb726fe0246a3c5bd6e0bc2e6d77ca2a8bedcd318174b213a71d3ae9276de"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00005-of-00030/data_zip.jsonl",
+              "sha256": "2546f0050c124247660c670fe17fa38b8d7b6361efc8eeb6ee2b07c29c558639"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00006-of-00030/data_zip.jsonl",
+              "sha256": "fd506529de337cd8963d6b84e8285707e0a022f06ff92e3757732f26fc17130c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00007-of-00030/data_zip.jsonl",
+              "sha256": "d3082ec3821dce75e3cfbf8c3494481e4211d5e3643077f6de8a6385301937c5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00008-of-00030/data_zip.jsonl",
+              "sha256": "c5034229d16f42566b58dfea30abcb012c469aee0794c4d5235348b1e9a8ddc3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00009-of-00030/data_zip.jsonl",
+              "sha256": "2d1f67df7ded0c579aba0d4ff8fe838b737257c3a34c2639572f77462a0dbfa1"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00010-of-00030/data_zip.jsonl",
+              "sha256": "b8331795b1f4d044b746ec8501097a0dae2cb94143e0ecaa3319fee6fb2fe2e9"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00011-of-00030/data_zip.jsonl",
+              "sha256": "e09bd8e25eb8d3a3eb803ae8fb23e123e876bfc7d705dea338e958e167cdb56a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00012-of-00030/data_zip.jsonl",
+              "sha256": "8699dcaf1a53d6070377303f68cc53588b4f21653529622088c6acca567a740f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00013-of-00030/data_zip.jsonl",
+              "sha256": "ed4e8fd2259d7cb03d4213bed611be267f30baf8e13ba973b0d57b61fe1ef856"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00014-of-00030/data_zip.jsonl",
+              "sha256": "5f390d9b5e48a60399afd23756a9159f5d95a7ad0a9c81f982eca15cf31be24a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00015-of-00030/data_zip.jsonl",
+              "sha256": "79ab3b34caf348c44e5a484a556ad31848cb5d78816c1f6c341565663279533c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00016-of-00030/data_zip.jsonl",
+              "sha256": "ef252caaf26e4952a260a26de786d8b82894f59a2190da4dda16190e97754297"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00017-of-00030/data_zip.jsonl",
+              "sha256": "6147f2056b1ced5d9e5e726a7809865b157028a9068fd40ad8784af3293ac6c3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00018-of-00030/data_zip.jsonl",
+              "sha256": "a4f8c5b4b4233b1d4b9480d72de9ab1f290c353273698a9c4ae437d591871a62"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00019-of-00030/data_zip.jsonl",
+              "sha256": "19e61985faf4f7802bef8e1a6c32a42d08bf897635bfde7638be2cf92808248b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00020-of-00030/data_zip.jsonl",
+              "sha256": "a18109f9eddb90008885d1395f46c970bd07038e7ae60766a9eefc0a6b922e34"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00021-of-00030/data_zip.jsonl",
+              "sha256": "0c3888a90a476d8d3d1f02d687f1683a2f413bcfe6372eddda5375843aa4bbf0"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00022-of-00030/data_zip.jsonl",
+              "sha256": "e6ce6d3045ca8eb8e037c7c101d50631cf8754c13ad0b5ca58335097a5076953"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00023-of-00030/data_zip.jsonl",
+              "sha256": "e50cdc387f146a8b2d7a2ccb0fad0e74fb3df4fc8b3059574365150edd0148d5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00024-of-00030/data_zip.jsonl",
+              "sha256": "de44b510be09f0260fbd4711bd8b14d9b48b7ceecc0cb459198f0c7fdced0824"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00025-of-00030/data_zip.jsonl",
+              "sha256": "19a49b8ebe295b614b9022af8365c2a5222f183ea889aa8728c93422939ece8b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00026-of-00030/data_zip.jsonl",
+              "sha256": "cace035593c444116fe74e93ad09f0cbec3462523c73e4da79412c347e5896ee"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00027-of-00030/data_zip.jsonl",
+              "sha256": "021e3f270c6fddad829f43e0ad632735ca3e34498bd9b9ae98d523ecdfbfaafc"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00028-of-00030/data_zip.jsonl",
+              "sha256": "5bc3478507bdb12e973bc4201db537ca7c111cf315b8af66bc6e4d1d677b213b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-00029-of-00030/data_zip.jsonl",
+              "sha256": "d876c616efa69bf890781916260de99345a17e35360932c4048134350b2b2213"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_dta": {
+          "rows": 3383,
+          "parents": 40,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00000-of-00016/data_zip.jsonl",
+              "sha256": "025c64bc7dad56af161d0f8fee676b74fbca12111e96d35329da44a19140f841"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00001-of-00016/data_zip.jsonl",
+              "sha256": "44737e28ec7a1deae91514764b5e20f519ae8109c554bb2aa5571cd419789cc7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00002-of-00016/data_zip.jsonl",
+              "sha256": "ad2444c6bddb6d39f5160da8b3d997f2b185064500f6ce5a806ca0ba46c53b94"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00003-of-00016/data_zip.jsonl",
+              "sha256": "e2a5970dfde97464271bda287b7632f8be0843a9c2b721e7925cb05dcef56483"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00004-of-00016/data_zip.jsonl",
+              "sha256": "fa7ada339251d8c59aee07deeb22e6df17e871f0b75c404bb03dfce92cc899a8"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00005-of-00016/data_zip.jsonl",
+              "sha256": "597724e85373b413821f6ab7300c2fcbe5de2baa08a3a1229afa1a97603abfaf"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00006-of-00016/data_zip.jsonl",
+              "sha256": "8a3153aaf9d31c83a1310839d572e3ee5f214af2f818748ae45d024b3364b6db"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00007-of-00016/data_zip.jsonl",
+              "sha256": "63a1c237691121077d4fdc551b4edaa79e89f6337dbc7d9b5c030ab5698df6d2"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00008-of-00016/data_zip.jsonl",
+              "sha256": "a9ceb2989d6cd3dc65de3fe15a5cc9d395eb2a911019d68e7f5ca651abf9b962"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00009-of-00016/data_zip.jsonl",
+              "sha256": "e6c69f6377e97bc05430161a53d84dc40ed109b6e7b4a38a0aa71046856a15d0"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00010-of-00016/data_zip.jsonl",
+              "sha256": "e11b07a7cf8964c9448cdee38d51376cab8fcb3759a362b2f80ebe8c303a843b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00011-of-00016/data_zip.jsonl",
+              "sha256": "25d4cff4ccfbebf31cdfb7c9fe63c7f3e564cdfcfe4ea8e33919eb7411f28449"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00012-of-00016/data_zip.jsonl",
+              "sha256": "8bfe53ccf1a5b93829b367951fade5b993d6dd7cd09870db1d2e84728f8ab661"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00013-of-00016/data_zip.jsonl",
+              "sha256": "9113de7e7838e5c8c8a9fc40e0b353134de8b9efdce7d90aa2f76f54eac95482"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00014-of-00016/data_zip.jsonl",
+              "sha256": "61c574df8c4bf033f4618a14ce94ef37aa897775fd6eb107a98ccfbce834487e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-00015-of-00016/data_zip.jsonl",
+              "sha256": "9d00eb461afa87909e3ce4041b2fda7efafe93bcfefe93b881fa9a51f78585c0"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_les": {
+          "rows": 1194,
+          "parents": 15,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00000-of-00006/data_zip.jsonl",
+              "sha256": "2a5edec360be352b5e8d66f12f4c5b006cac018de115e39da883a434aa33092a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00001-of-00006/data_zip.jsonl",
+              "sha256": "c22c3bde139593dae6a3c3fbaa1463813bc248eda3a14dbdabbb70e0817e167c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00002-of-00006/data_zip.jsonl",
+              "sha256": "da4946a8da8b64880c4988fd036fc3382d37cf31737869db401b795242ccc411"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00003-of-00006/data_zip.jsonl",
+              "sha256": "f4f73821c9866b50060eaf94134854600ef9ede978ae6094afda7a59180c0eaf"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00004-of-00006/data_zip.jsonl",
+              "sha256": "ab7a586a79c7a750226246387c2165418aa7ab445eae7ba4a9ec2894db4968d7"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-00005-of-00006/data_zip.jsonl",
+              "sha256": "320c9d0da23e0ab5df8d2c198b6ad6e9febc066743a6e26b3b2d5f6222bb67df"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_prv": {
+          "rows": 2030,
+          "parents": 32,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00000-of-00009/data_zip.jsonl",
+              "sha256": "0a023ac219cf3678c85b40062dfde54bc7f25b7274688a8be260525a69928562"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00001-of-00009/data_zip.jsonl",
+              "sha256": "107444bd5a1ddfd1506e8f9d1519e838b9e4c6b17559b2635c7657651888ad1c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00002-of-00009/data_zip.jsonl",
+              "sha256": "fe70d2748668d2c489c8fd3611109d2d0796dfa221faa6485c4522a6e8bb4f19"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00003-of-00009/data_zip.jsonl",
+              "sha256": "885cfb14b16bd9619a08953795a8c000f3433cd6f7f34d02212dc7eda4bee459"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00004-of-00009/data_zip.jsonl",
+              "sha256": "b64447f20717978419482466402a8fb5f9d78fd1e7b2f06a09553c7482124b90"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00005-of-00009/data_zip.jsonl",
+              "sha256": "f3fdcd88898a1426ab42862d84f00c801004fb0f66a6818fdf6e4d62b0c42e82"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00006-of-00009/data_zip.jsonl",
+              "sha256": "e47ec45c0437155a624db0991e4bb08efdf818149870fd1f44fc580ce8748a2e"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00007-of-00009/data_zip.jsonl",
+              "sha256": "ca6a41d97ed2a2b98383002b7df23c2390e4a5894a44a1eb6665ff412a8deea9"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-00008-of-00009/data_zip.jsonl",
+              "sha256": "29c7f7b7e108f66130d9be595eb2c5aeb27871a9bf8812895acbdf66b491ccf8"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_roc": {
+          "rows": 1863,
+          "parents": 19,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00000-of-00009/data_zip.jsonl",
+              "sha256": "f6619b94b60581aade26dc8785edfea1ba565cb030222f0a0f08f88fe1955d0c"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00001-of-00009/data_zip.jsonl",
+              "sha256": "fa534b97a37d920b92351968f2702f747b6ce8220198e3c6a72874743c1c1875"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00002-of-00009/data_zip.jsonl",
+              "sha256": "16268bcddfeda0551ceff320740880adebfc1801cfc92ddcf845a42817ae911b"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00003-of-00009/data_zip.jsonl",
+              "sha256": "45642f14f35114c27334df19c5dc7cc6b56eefba984ee96fdb26003cc9856d87"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00004-of-00009/data_zip.jsonl",
+              "sha256": "6377f0542f1e82c5f50a5250a5568b4de2d50c98a7211bf130a80bb9d81524dd"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00005-of-00009/data_zip.jsonl",
+              "sha256": "40266793172273484bae154965813ffce264a1d4ea0a8218ce5a297f635efbe3"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00006-of-00009/data_zip.jsonl",
+              "sha256": "57ff0757d87a6d4deb7ce30a9c6cdd758214de15cc44b271441b5a4d0a10e288"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00007-of-00009/data_zip.jsonl",
+              "sha256": "74cff9e2c17dc53851eb465a4a708f9afe97b5e9e92ae202ab5e6a78cba2804f"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-00008-of-00009/data_zip.jsonl",
+              "sha256": "9773fb2b29f3a586c79ce52564aa7d8b86880fd8933beed1e4dd9799680f2205"
+            }
+          ],
+          "complete_groups": true
+        },
+        "coraal_vld": {
+          "rows": 1528,
+          "parents": 14,
+          "files": [
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00000-of-00008/data_zip.jsonl",
+              "sha256": "d743f4d38e930caeaca4c1ba513483b79e3eee80bf73c7527bdb3d4e4e190819"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00001-of-00008/data_zip.jsonl",
+              "sha256": "18d5fcf91c532130c72cfb1ddb1e46970265a6b20b411db8299865194c830eb5"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00002-of-00008/data_zip.jsonl",
+              "sha256": "3c81f2c71a45158232ab1a0bafb4cf7d43c238d32f3d7582d0e128c7e72e748a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00003-of-00008/data_zip.jsonl",
+              "sha256": "ee37bb5d618886762303ea6d9f9821698140cf155c2000544ed6d5a04764ef03"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00004-of-00008/data_zip.jsonl",
+              "sha256": "5ef4dd90de7eb654170ed999a4c655fd90bdab4107e45d30f297467bb0f2b9d6"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00005-of-00008/data_zip.jsonl",
+              "sha256": "879f682fbb5932977b684d8ce815484860e9203fcf93d4107406d77fbb8dbc23"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00006-of-00008/data_zip.jsonl",
+              "sha256": "d8e32093c0a37b5ceea50245baa6ee337f3b3212734fa50b8db57bfdd85f1e8a"
+            },
+            {
+              "path": "az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-00007-of-00008/data_zip.jsonl",
+              "sha256": "ec26a1285ca285c937c1a6c243f52c2d26db1dc47ad8557db8a2206b63bffc1e"
+            }
+          ],
+          "complete_groups": true
+        }
+      },
+      "coraal_aggregate": {
+        "metric": "WER",
+        "error_rate": 0.13396405078041115,
+        "n_err": 223954,
+        "n_ref": 1671747,
+        "include_in_headline_average": true,
+        "policy": "Sum errors/reference counts across eight locations; one long-form headline component."
+      },
+      "final_metrics": {
+        "val-core/zh_fleurs/p_err/mean@1": 0.02902076635676427,
+        "val-core/zh_aishell1/p_err/mean@1": 0.08390206652985252,
+        "val-core/vi_fleurs/p_err/mean@1": 0.04137084084890816,
+        "val-core/vi_mcv/p_err/mean@1": 0.08159057437407953,
+        "val-core/eslo_telephony_fr/p_err/mean@1": 0.28273774189718626,
+        "val-core/accueil_ubs_fr/p_err/mean@1": 0.28878098645540506,
+        "val-core/coraal_atl/p_err/mean@1": 0.15603497554675758,
+        "val-core/coraal_dca/p_err/mean@1": 0.1505670236815773,
+        "val-core/coraal_dcb/p_err/mean@1": 0.10635789749882311,
+        "val-core/coraal_dta/p_err/mean@1": 0.15508399951654955,
+        "val-core/coraal_les/p_err/mean@1": 0.1575568348131525,
+        "val-core/coraal_prv/p_err/mean@1": 0.20278861723872474,
+        "val-core/coraal_roc/p_err/mean@1": 0.07561391590905807,
+        "val-core/coraal_vld/p_err/mean@1": 0.10931372986878422
+      },
+      "collected_utc": "2026-11-07T05:43:20.379344+00:00",
+      "wandb_url": "https://msaip.wandb.io/genai/v2611_eval/runs/965449f251843c3cc6869c17f451e9ff"
+    }
+  },
+  "headline_policy": "Six supplementary rows excluded; eight CORAAL locations summed into one CORAAL component. Established headline averages are not recomputed from this supplementary-only evaluation.",
+  "dataset_provenance": {
+    "mcv_vi": {
+      "result_name": "mcv_vi",
+      "storage_path": "users/ruchaofan/Evaluation/OpenASR/zohuyhieuzo03/open-asr-leaderboard-vietnamese",
+      "config": "mcv_vi",
+      "language": "vi",
+      "metric": "wer",
+      "task": "openasr_ml",
+      "source_revision": "c61c0927f63e14b2a4406db505109926438d838e",
+      "examples": "1367",
+      "license": "CC0-1.0",
+      "include_in_average_wer": "false",
+      "hf_repo": "zohuyhieuzo03/open-asr-leaderboard-vietnamese",
+      "parquet_file": "mcv_vi/vi_test.parquet",
+      "moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "parents": 1367,
+      "rows": 1367,
+      "source_parquet_sha256": "528768025e3dd3b15987ec93b6e4b92fd526e12203eaca1921dfcbaa7a350495",
+      "zip_sha256": "9975c3d316940423f1802059f57b5c012c2fd6e1306b74d299f7f2b577120475",
+      "manifest_sha256": "0474f45599308585e1ea9ba83ca7af734f85cefd69dd6011637530315692dab2",
+      "segmenter": null
+    },
+    "eslo_telephony_fr": {
+      "result_name": "eslo_telephony_fr",
+      "storage_path": "users/ruchaofan/Evaluation/OpenASR/BrunoHays/eslo-telephony-fr",
+      "config": "-",
+      "language": "fr",
+      "metric": "wer",
+      "task": "openasr_long",
+      "source_revision": "7ce7b7e4573abf85ca3c5b099839ab550e727ae5",
+      "examples": "36",
+      "license": "CC-BY-NC-SA-4.0",
+      "include_in_average_wer": "false",
+      "hf_repo": "BrunoHays/eslo-telephony-fr",
+      "parquet_file": "data/test-00000-of-00001.parquet",
+      "moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "parents": 36,
+      "rows": 238,
+      "source_parquet_sha256": "12810d15ba456b150939b7bb89689d6e861ff94aa3346d6c44330e6ba7cd798b",
+      "zip_sha256": "30afe345bc95e75b93346accc4a22f7daf8d48387b0a309523c7a5f171085271",
+      "manifest_sha256": "53bb4600c4829cf792fa5dc7120fa249d15a78f919e78ff16942b3e4e467202e",
+      "segmenter": "verl Smart VAD max_len_sec=30 min_seg_sec=0.1"
+    },
+    "fleurs_zh": {
+      "result_name": "fleurs_zh",
+      "storage_path": "users/ruchaofan/Evaluation/OpenASR/hf-audio/open-asr-leaderboard-multilingual-datasets",
+      "config": "fleurs_zh",
+      "language": "zh",
+      "metric": "cer",
+      "task": "openasr_ml",
+      "source_revision": "2a6022fd57eea78ca23a54ec4325644fe248edd6",
+      "examples": "945",
+      "license": "CC-BY-4.0",
+      "include_in_average_wer": "false",
+      "hf_repo": "hf-audio/open-asr-leaderboard-multilingual-datasets",
+      "parquet_file": "data/fleurs/zh_test.parquet",
+      "moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "parents": 945,
+      "rows": 945,
+      "source_parquet_sha256": "6e45dbffc37d46dcba86aa68d3b9b4490b6917de2430834f970f37f1e2f8910c",
+      "zip_sha256": "10a2c880d7f16667cd51d5fd70a27931d6598fb74841d90a39c97ef6d67cab5b",
+      "manifest_sha256": "d884c3335eead0c82c56fc8b568f8020ec3a3b07ba9cb182d3b219c927f7b145",
+      "segmenter": null
+    },
+    "aishell1_zh": {
+      "result_name": "aishell1_zh",
+      "storage_path": "users/ruchaofan/Evaluation/OpenASR/hf-audio/open-asr-leaderboard-multilingual-datasets",
+      "config": "aishell1_zh",
+      "language": "zh",
+      "metric": "cer",
+      "task": "openasr_ml",
+      "source_revision": "2a6022fd57eea78ca23a54ec4325644fe248edd6",
+      "examples": "7176",
+      "license": "Apache-2.0",
+      "include_in_average_wer": "false",
+      "hf_repo": "hf-audio/open-asr-leaderboard-multilingual-datasets",
+      "parquet_file": "data/aishell1/zh_test.parquet",
+      "moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "parents": 7176,
+      "rows": 7176,
+      "source_parquet_sha256": "8ea99d4855129d8f813e8a309552aebcb0c57f36380053d20493957c3824ddd6",
+      "zip_sha256": "5ede6edec31d0e9561b6699eac6ec060d6a1a857a2af77e650ab5736c2b26ab5",
+      "manifest_sha256": "919deb70591e8117792a60a57c4aa8fe62d79cb09ed7beb95be9b4f77e96306a",
+      "segmenter": null
+    },
+    "fleurs_vi": {
+      "result_name": "fleurs_vi",
+      "storage_path": "users/ruchaofan/Evaluation/OpenASR/zohuyhieuzo03/open-asr-leaderboard-vietnamese",
+      "config": "fleurs_vi",
+      "language": "vi",
+      "metric": "wer",
+      "task": "openasr_ml",
+      "source_revision": "c61c0927f63e14b2a4406db505109926438d838e",
+      "examples": "857",
+      "license": "CC-BY-4.0",
+      "include_in_average_wer": "false",
+      "hf_repo": "zohuyhieuzo03/open-asr-leaderboard-vietnamese",
+      "parquet_file": "fleurs_vi/vi_test.parquet",
+      "moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "parents": 857,
+      "rows": 857,
+      "source_parquet_sha256": "29c092581860c75f0000daaf04cfe1c74186cd4147176aa41b3a041e6cfb9a42",
+      "zip_sha256": "79befde7987c53443185610a5b914d36df966b05bcb783c2243e9e16cffde673",
+      "manifest_sha256": "19a5ff4f93ef0787e10228f9905ba3b7ceef4283896ba262d0b03c6aed5466ac",
+      "segmenter": null
+    },
+    "accueil_ubs_fr": {
+      "result_name": "accueil_ubs_fr",
+      "storage_path": "users/ruchaofan/Evaluation/OpenASR/BrunoHays/accueil-ubs-fr",
+      "config": "-",
+      "language": "fr",
+      "metric": "wer",
+      "task": "openasr_long",
+      "source_revision": "4ff2b1e95b0c968ddca586f716305360fe25dad7",
+      "examples": "41",
+      "license": "CC-BY-4.0",
+      "include_in_average_wer": "false",
+      "hf_repo": "BrunoHays/accueil-ubs-fr",
+      "parquet_file": "data/test-00000-of-00001.parquet",
+      "moe_commit": "18143a6e4d3393a8ef90761bb4b4fba7c379d1ea",
+      "parents": 41,
+      "rows": 119,
+      "source_parquet_sha256": "9b897157195c92d744921a960ad511472b9e31b7fa1339461c9efa4e612dbf91",
+      "zip_sha256": "e2a11a7bf3c8f6eaeb478e8afd446b8436e7ad7b1ff1c2d79fdca029f71aef7d",
+      "manifest_sha256": "85e14f0589f1b1cda7ec975eeb86d16e2f00798d1a2902f828f917f5488aa6ec",
+      "segmenter": "verl Smart VAD max_len_sec=30 min_seg_sec=0.1"
+    }
+  },
+  "dataset_audit": {
+    "accueil_ubs_fr": {
+      "parents": 41,
+      "rows": 119,
+      "metric": "wer",
+      "waveform_samples_checked": [
+        0,
+        20,
+        40
+      ],
+      "waveforms_exact": true,
+      "max_segment_seconds": 29.990000000000002
+    },
+    "aishell1_zh": {
+      "parents": 7176,
+      "rows": 7176,
+      "metric": "cer",
+      "waveform_samples_checked": [
+        0,
+        3588,
+        7175
+      ],
+      "waveforms_exact": true,
+      "max_segment_seconds": null
+    },
+    "eslo_telephony_fr": {
+      "parents": 36,
+      "rows": 238,
+      "metric": "wer",
+      "waveform_samples_checked": [
+        0,
+        18,
+        35
+      ],
+      "waveforms_exact": true,
+      "max_segment_seconds": 29.99000000000001
+    },
+    "fleurs_vi": {
+      "parents": 857,
+      "rows": 857,
+      "metric": "wer",
+      "waveform_samples_checked": [
+        0,
+        428,
+        856
+      ],
+      "waveforms_exact": true,
+      "max_segment_seconds": null
+    },
+    "fleurs_zh": {
+      "parents": 945,
+      "rows": 945,
+      "metric": "cer",
+      "waveform_samples_checked": [
+        0,
+        472,
+        944
+      ],
+      "waveforms_exact": true,
+      "max_segment_seconds": null
+    },
+    "mcv_vi": {
+      "parents": 1367,
+      "rows": 1367,
+      "metric": "wer",
+      "waveform_samples_checked": [
+        0,
+        683,
+        1366
+      ],
+      "waveforms_exact": true,
+      "max_segment_seconds": null
+    }
+  },
+  "validation": "24 tests passed (9 scoring/preparation; 15 grouped scoring/validation resume); 14 rows per candidate composed",
+  "recoveries": [
+    {
+      "model": "2611r2",
+      "failed_submission": "raysubmit_4S4QH7WWmWMDnctv",
+      "failed_queue": "openasr_multilingual_expansion_18143a6e_n2_queue_20261106_a3",
+      "reason": "vLLM selected TileLang libcudart_stub.so missing cudaDeviceReset during initialization",
+      "completed_datasets": 0,
+      "fix": {
+        "VLLM_CUDART_SO_PATH": "/root/.pyenv/versions/3.12.9/lib/python3.12/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12"
+      },
+      "runtime_verification": [
+        {
+          "pod": "eval2611r2-n2-critical-0",
+          "path": "/root/.pyenv/versions/3.12.9/lib/python3.12/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+          "sha256": "8774224f5b11a73b15d074a3fcce7327322c5c4cfdfd924d6a826779eec968fe",
+          "version": 12040,
+          "symbols": [
+            "cudaSetDevice",
+            "cudaDeviceSynchronize",
+            "cudaDeviceReset",
+            "cudaGetErrorString",
+            "cudaMalloc",
+            "cudaFree",
+            "cudaMemset",
+            "cudaMemcpy",
+            "cudaIpcGetMemHandle",
+            "cudaIpcOpenMemHandle"
+          ]
+        },
+        {
+          "pod": "eval2611r2-n2-critical-1",
+          "path": "/root/.pyenv/versions/3.12.9/lib/python3.12/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+          "sha256": "8774224f5b11a73b15d074a3fcce7327322c5c4cfdfd924d6a826779eec968fe",
+          "version": 12040,
+          "symbols": [
+            "cudaSetDevice",
+            "cudaDeviceSynchronize",
+            "cudaDeviceReset",
+            "cudaGetErrorString",
+            "cudaMalloc",
+            "cudaFree",
+            "cudaMemset",
+            "cudaMemcpy",
+            "cudaIpcGetMemHandle",
+            "cudaIpcOpenMemHandle"
+          ]
+        }
+      ],
+      "utc": "2026-11-07T04:45:18.356739+00:00"
+    }
+  ]
+}

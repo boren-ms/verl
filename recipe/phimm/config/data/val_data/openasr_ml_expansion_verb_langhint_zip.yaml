@@ -1,0 +1,140 @@
+# Pinned MOE 18143a6e supplementary rows. Mandarin CER; Vietnamese/French WER.
+# All excluded from established headline averages; long-form rows retain full parents.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/fleurs_zh/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_fleurs_zh_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Chinese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: zh_fleurs
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/aishell1_zh/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_aishell1_zh_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Chinese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: zh_aishell1
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/fleurs_vi/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_fleurs_vi_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Vietnamese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: vi_fleurs
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/mcv_vi/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_mcv_vi_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: Vietnamese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: vi_mcv
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/eslo_telephony_fr/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_eslo_telephony_fr_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: eslo_telephony_fr
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+  val_batch_size: -1
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/accueil_ubs_fr/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_accueil_ubs_fr_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: accueil_ubs_fr
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+  val_batch_size: -1

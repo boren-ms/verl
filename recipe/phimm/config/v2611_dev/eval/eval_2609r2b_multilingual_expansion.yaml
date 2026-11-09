@@ -1,0 +1,24 @@
+# New multilingual coverage + all eight CORAAL locations.
+hydra:
+  searchpath:
+  - file://recipe/phimm/config
+  - file://verl/trainer/config
+defaults:
+- eval_base
+- /data/val_data/openasr_ml_expansion_verb_langhint_zip@_expansion
+- /data/val_data/openasr_coraal_locations_verb_langhint_zip@_coraal
+- _self_
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2609_asr/remax_2609r2_earning_ml0_ls_bad_verb_hint_e3_bs128_n8_r256_g16_ds1c_sfl_avg6_flr_rm0b_v0/global_step_400/qwen_hf
+    lora_rank: 0
+trainer:
+  nnodes: 2
+  n_gpus_per_node: 8
+  experiment_name: eval_2609r2b_multilingual_expansion_18143a6e
+  resume_mode: disable
+data:
+  dataloader_num_workers: 0
+  val_data:
+  - ${_expansion}
+  - ${_coraal}

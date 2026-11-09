@@ -87,6 +87,16 @@ def openasr_eval(solution_str, ground_truth, **kwargs):
 
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
+    # The pinned supplementary snapshots use their own MOE-compatible scorer.
+    # Keep established rows on the existing normalization path.
+    if extra_info.get("source_revision") in {
+        "2a6022fd57eea78ca23a54ec4325644fe248edd6",
+        "c61c0927f63e14b2a4406db505109926438d838e",
+        "7ce7b7e4573abf85ca3c5b099839ab550e727ae5",
+        "4ff2b1e95b0c968ddca586f716305360fe25dad7",
+    }:
+        from recipe.phimm.reward.openasr_expansion import openasr_expansion_eval
+        return openasr_expansion_eval(solution_str, ground_truth, **kwargs)
     hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
     result = measure_wer(
         hyp_text,
