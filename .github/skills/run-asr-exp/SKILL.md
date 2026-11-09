@@ -1,15 +1,19 @@
 ---
 name: run-asr-exp
-description: Run, monitor, and recover scoped verl ASR jobs or orchestrate checkpoint export, OpenASR evaluation, and reporting on Brix. Use openasr-report alone for workbooks from existing metrics.
+description: Run, monitor, and recover scoped verl ASR jobs or orchestrate checkpoint export and OpenASR evaluation on Brix, with 30-minute monitoring and report-experiment updates when new validation is ready.
 ---
 
 # Run ASR Exp
 
 Own the requested ASR job or pipeline: training, standalone evaluation,
 generation, checkpoint export, or an OpenASR train/export/evaluate/report
-workflow or checkpoint queue. Do only the stages the user requested. Use
-`openasr-report` for canonical workbooks and `report-experiment` for requested
-run comparisons. For a multi-stage workflow, checkpoint queue, export, or audio
+workflow or checkpoint queue. Do only the stages the user requested. During
+authorized execution, monitor tracked work every 30 minutes and invoke
+[report-experiment](../report-experiment/SKILL.md) when new or corrected
+completed validation is ready, rather than on every monitor pass. Honor an
+explicit different monitoring cadence, report opt-out or status-only boundary.
+Use only identified comparison runs; never invent a baseline.
+For a multi-stage workflow, checkpoint queue, export, or audio
 prefetch, read [references/openasr-pipeline.md](references/openasr-pipeline.md).
 For training, periodic monitoring or scoped recovery, read
 [references/monitor-recover.md](references/monitor-recover.md).
@@ -55,13 +59,14 @@ explicit epoch limit. Confirm the runtime prints the intended target.
 
 Own training until the verified target is reached, including monitoring and
 minimal recovery within the authorized boundary. A successful submission,
-intermediate checkpoint, completed evaluation/workbook, or Ray `SUCCEEDED`
+intermediate checkpoint, completed evaluation/report, or Ray `SUCCEEDED`
 below `T` does not fulfill the training request. Keep unfinished training in the
 tracked set and diagnose early exits under the recovery reference. Continue in
-the current chat; when periodic monitoring is requested, maintain one
-chat-attached 30-minute heartbeat that tracks progress, applies authorized
-minimal fixes and reports newly ready validation. Honor an explicit different
-cadence or read-only boundary. Follow the monitoring reference for persistence
+the current chat with one 30-minute monitor that tracks progress, applies
+authorized minimal fixes, and invokes `report-experiment` when new or corrected
+completed validation is ready. Keep monitoring and recovery
+active if reporting fails. Honor an explicit different cadence or read-only
+boundary. Follow the monitoring reference for persistence, report refreshes,
 and stop conditions.
 If the user stops work or recovery requires a decision outside scope, report
 training as incomplete with the last verified step, remaining steps and blocker.
@@ -146,8 +151,8 @@ complete shards/uploads. State last completed optimizer, validation and complete
 checkpoint steps separately. Evaluation completes only with Ray `SUCCEEDED`,
 final metrics and detail artifacts for every requested dataset; give exact
 paths. A requested export requires producer-derived rank/alpha, complete shards,
-verified conversion/assets/readability and upload. Do not create a workbook
-unless requested. Report exact identities, pool/topology, relevant links,
+verified conversion/assets/readability and upload. Use `report-experiment` for
+report packages. Report exact identities, pool/topology, relevant links,
 progress, validation, checkpoint state and material limitations.
 
 ## Pause completed resources

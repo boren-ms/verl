@@ -44,6 +44,43 @@ Use full unsampled histories rather than summary values or chart screenshots.
 Read [evidence and metric semantics](references/evidence-and-metrics.md) before
 collecting W&B histories or interpreting steps and `reward-core` values.
 
+## Refreshes from a running-experiment monitor
+
+When invoked by [run-asr-exp](../run-asr-exp/SKILL.md), refresh reports when any
+new or corrected completed validation is ready, using that skill's existing
+monitor and durable validation cursor. The monitor checks health every 30
+minutes by default; it does not invoke this skill on every pass. A newly ready
+dataset is sufficient, even if other datasets or runs are pending; batch new
+results from one pass while retaining every observed step. Do not create a
+second monitor or schedule. `run-asr-exp` owns live job
+checks, automatic fixes, target continuity and resource cleanup; this skill
+keeps experiment access read-only.
+
+Reuse the exact comparison identities, reference, experiment order/colors and
+existing note/homepage identity. Active runs are valid inputs: label each
+refresh interim, record the collection time and observed step coverage, and
+preserve incomplete datasets as pending. If fewer than two runs are identified,
+return the missing input to the monitor without choosing an unrelated baseline.
+
+Refresh the full verified report package for validation not yet covered by the
+last delivered report, including latest reward/config evidence, using timestamped
+directories within the stable comparison root. Reward-only history, config
+changes, progress or completion alone do not trigger a monitor-driven refresh.
+Retain the last verified package until its replacement passes the normal PDF,
+numeric and figure checks. If validation coverage is unchanged, return a recorded no-change
+result and the existing verified paths without repeating successful rendering,
+vault edits or chat presentation; retry incomplete stages even if inputs have
+not changed. A newly delivered package still requires the inline
+Validation/config presentation and the normal Obsidian handoff unless opted out;
+refresh the same note rather than creating one per pass.
+
+Return the input fingerprint, evidence coverage, artifact paths, verification,
+delivery and vault status to the monitor. Preserve partial failures for retry;
+they do not authorize stopping monitoring or changing experiments. At completion,
+refresh only if final validation is new or corrected, or retry incomplete stages;
+otherwise reuse the last verified package. Explicit standalone report requests
+remain valid regardless of this monitor-specific trigger.
+
 ## Comparison contract
 
 Use the user's control/reference experiment when specified. Otherwise use the

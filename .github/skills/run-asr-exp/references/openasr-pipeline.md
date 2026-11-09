@@ -3,12 +3,13 @@
 Apply the shared job, resource, authorization, monitoring and completion rules
 in [SKILL.md](../SKILL.md). Execute only requested stages:
 
-`optional training -> requested or last complete checkpoint -> verified HF export -> standalone evaluation -> requested workbook`.
+`optional training -> requested or last complete checkpoint -> verified HF export -> standalone evaluation -> report-experiment report package`.
 
 For an evaluation-only request recover producer config, base model, rank/alpha,
 topology and output root from checkpoint provenance. Default eval config is
 `recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml`; default
-workbook path is `tmp/openasr_report/<train-stem>_step<step>.xlsx`. Never
+report root is `tmp/experiment_reports/<train-stem>_step<step>/`, with timestamped
+refresh directories. Never
 stop or change source training to evaluate a complete checkpoint.
 
 ## State and checkpoint selection
@@ -101,16 +102,28 @@ await prefetch. Verify runtime topology and require final `p_err` metrics and
 exact detail artifacts for every configured dataset, with Ray `SUCCEEDED`.
 Preserve explicitly requested extra datasets separately from canonical rows.
 
-For a requested workbook, create these state-directory inputs:
+For reporting, preserve these state-directory inputs:
 
 - `metrics.json`: candidate `val-aux/<source>/p_err/mean@1` fractions.
 - `model_info.json`: export URI, eval config, pool, Ray ID, W&B URL and revision.
 - `dataset_results.json`: canonical dataset key to exact detail-result file.
+- Effective producer/evaluation configs, exact comparison/reference run
+  identities, full validation and `reward-core` histories, and collection time.
 
 Resolve canonical identities from composed manifests; do not alias cleaned and
-uncleaned or short and long datasets by name. Use `openasr-report` for baseline
-values, rows, aggregation, formulas, formatting and quality gates. Reopen and
-verify the workbook and model/result metadata. Complete the requested pipeline
+uncleaned or short and long datasets by name. Use
+[report-experiment](../../report-experiment/SKILL.md) for the verified PDF,
+Markdown, evidence, figures and data package, inline validation/config
+presentation, and Obsidian handoff unless opted out. Use only identified
+comparison/reference runs; if the comparison input is missing, record it as
+pending and continue monitoring rather than inventing a baseline. Preserve
+standalone evaluation metrics and details even when comparison is pending.
+Invoke reporting when any new or corrected completed validation is ready under
+[monitor-recover.md](monitor-recover.md), rather than on every 30-minute health
+check. Before completion, ensure final validation is covered by the delivered
+report; reuse it if coverage is already current. Verify report artifacts and
+model/result metadata.
+Complete the requested pipeline
 only when every requested stage is verified, including training reaching `T`
 under the shared completion rule when training was requested. Evaluation and
 reporting may finish earlier for an explicit intermediate checkpoint, but keep
