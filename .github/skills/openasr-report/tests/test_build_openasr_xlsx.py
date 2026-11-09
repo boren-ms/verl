@@ -15,7 +15,7 @@ SUPPLIED = {
     "librispeech-clean": (1.26, 1.27),
     "librispeech-other": (2.74, 2.88),
     "monsoon_en_in": (3.39, 3.41),
-    "spgispeech": (2.15, 2.13),
+    "spgispeech_clean": (2.15, 2.13),
     "voxpopuli-cleaned-aa": (1.63, 1.69),
     "urgent2024": (9.57, 9.00),
     "urgent2024_clean": (4.51, 4.00),
@@ -39,6 +39,55 @@ def report():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+@pytest.mark.parametrize("source", ["json", "core_text", "aux_text", "ray"])
+def test_canonical_english_names_populate_rows(report, tmp_path, monkeypatch, source):
+    values = {"ami_clean": 0.06745362563237774, "gigaspeech_clean": 0.07368434305282773,
+              "spgispeech_clean": 0.021066400716908046}
+    metrics = tmp_path / "metrics.json"
+    metrics.write_text(json.dumps(values))
+    namespace = "aux" if source == "aux_text" else "core"
+    text = "\n".join(f"val-{namespace}/{name}/p_err/mean@1:{value}" for name, value in values.items())
+    logs = tmp_path / "driver.log"
+    logs.write_text(text)
+    paths = {name: f"az://account/container/results/{name}/0.jsonl" for name in values}
+    result_file = tmp_path / "results.json"
+    result_file.write_text(json.dumps(paths))
+    output = tmp_path / "report.xlsx"
+    if source == "json":
+        inputs = ["--metrics", str(metrics)]
+    elif source == "ray":
+        monkeypatch.setattr(report, "fetch_ray_logs", lambda node, sid: text)
+        inputs = ["--from-ray", "scoped-node", "exact-submission"]
+    else:
+        inputs = ["--from-text", str(logs)]
+    monkeypatch.setattr(sys, "argv", [str(SCRIPT), "candidate", *inputs,
+                        "--dataset-results", str(result_file), "--out", str(output)])
+    assert report.main() == 0
+    workbook = load_workbook(output)
+    sheet = workbook["openasr"]
+    for row, name in [(4, "ami_clean"), (6, "gigaspeech_clean"), (10, "spgispeech_clean")]:
+        assert sheet.cell(row, 1).value == name
+        assert sheet.cell(row, 3).value == pytest.approx(values[name])
+        assert sheet.cell(row, 4).value == f"=1-C{row}/B{row}"
+    assert sheet["C14"].value == pytest.approx(sum(values.values()) / len(values))
+    _, results = report.read_existing_metadata(output)
+    assert results["candidate"] == paths
+    workbook.close()
+
+
+def test_core_p_err_wins_over_aux_regardless_of_line_order(report):
+    core = "val-core/ami_clean/p_err/mean@1:0.067"
+    aux = "val-aux/ami_clean/p_err/mean@1:0.08"
+    for text in [core + "\n" + aux, aux + "\n" + core]:
+        assert report.parse_wer_lines(text) == {"ami_clean": 0.067}
+
+
+@pytest.mark.parametrize("name", ["ami", "gigaspeech", "spgispeech"])
+def test_english_names_are_not_aliased(report, name):
+    assert report.dataset_key(name) == name
+    assert report.parse_wer_lines(f"val-core/{name}/p_err/mean@1:0.07") == {name: 0.07}
 
 
 def test_baseline_and_full_report(report, tmp_path, monkeypatch):
@@ -150,7 +199,7 @@ def test_rejects_old_dataset_layout(report, tmp_path):
 
 
 def test_partial_coverage_deltas_use_matched_datasets(report, tmp_path):
-    baseline = {"ami_clean": 0.10, "spgispeech": 0.40, "de_fleurs": 0.10, "de_mcv": 0.30}
+    baseline = {"ami_clean": 0.10, "spgispeech_clean": 0.40, "de_fleurs": 0.10, "de_mcv": 0.30}
     candidate = {"ami_clean": 0.05, "de_fleurs": 0.20}
     output = tmp_path / "partial.xlsx"
     report.build_workbook([("baseline", baseline), ("candidate", candidate)], output)
@@ -177,8 +226,8 @@ def test_partial_coverage_deltas_use_matched_datasets(report, tmp_path):
 def test_zero_baseline_and_zero_candidate(report, tmp_path):
     output = tmp_path / "zeros.xlsx"
     report.build_workbook([
-        ("baseline", {"ami_clean": 0.0, "spgispeech": 0.10, "de_fleurs": 0.0}),
-        ("candidate", {"ami_clean": 0.05, "spgispeech": 0.0, "de_fleurs": 0.0}),
+        ("baseline", {"ami_clean": 0.0, "spgispeech_clean": 0.10, "de_fleurs": 0.0}),
+        ("candidate", {"ami_clean": 0.05, "spgispeech_clean": 0.0, "de_fleurs": 0.0}),
     ], output)
     workbook = load_workbook(output)
     sheet = workbook["openasr"]

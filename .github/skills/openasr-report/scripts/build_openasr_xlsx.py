@@ -50,7 +50,7 @@ OPENASR_DATASETS: List[str] = [
     "librispeech-clean",
     "librispeech-other",
     "monsoon_en_in",
-    "spgispeech",
+    "spgispeech_clean",
     "voxpopuli-cleaned-aa",
     "urgent2024",
     "urgent2024_clean",
@@ -85,7 +85,7 @@ BASELINE_METRICS: Dict[str, float] = {
     "librispeech-clean": 0.0126,
     "librispeech-other": 0.0274,
     "monsoon_en_in": 0.0339,
-    "spgispeech": 0.0215,
+    "spgispeech_clean": 0.0215,
     "voxpopuli-cleaned-aa": 0.0163,
     "urgent2024": 0.0957,
     "urgent2024_clean": 0.0451,
@@ -115,7 +115,7 @@ BASELINE_METRICS: Dict[str, float] = {
 }
 
 WER_LINE_RE = re.compile(
-    r"val-aux/(?P<dataset>[a-zA-Z0-9_-]+)/p_err/mean@1[:=]\s*(?P<value>[0-9.eE+-]+)"
+    r"val-(?P<namespace>core|aux)/(?P<dataset>[a-zA-Z0-9_-]+)/p_err/mean@1\s*[:=]\s*(?P<value>[0-9.eE+-]+)"
 )
 
 ML_ALIASES = {
@@ -131,12 +131,29 @@ def dataset_key(name: str) -> str:
     return ML_ALIASES.get(name, name)
 
 
+def canonical_mapping(data: dict) -> dict:
+    """Normalize report names without silently discarding conflicting inputs."""
+    result = {}
+    for name, value in data.items():
+        key = dataset_key(name)
+        if key in result and result[key] != value:
+            raise ValueError(f"Conflicting inputs for canonical dataset {key!r}")
+        result[key] = value
+    return result
+
+
 def parse_wer_lines(text: str) -> Dict[str, float]:
-    """Extract the latest ``val-aux/<ds>/p_err/mean@1`` value per dataset."""
+    """Extract p_err, preferring core aggregates when both namespaces exist."""
     out: Dict[str, float] = {}
+    core_keys = set()
     for m in WER_LINE_RE.finditer(text):
         try:
-            out[dataset_key(m.group("dataset"))] = float(m.group("value"))
+            key = dataset_key(m.group("dataset"))
+            if m.group("namespace") == "aux" and key in core_keys:
+                continue
+            out[key] = float(m.group("value"))
+            if m.group("namespace") == "core":
+                core_keys.add(key)
         except ValueError:
             continue
     return out
@@ -161,7 +178,7 @@ def load_metrics(args: argparse.Namespace) -> Dict[str, float]:
     metrics: Dict[str, float] = {}
     if args.metrics:
         data = json.loads(Path(args.metrics).read_text())
-        metrics.update({dataset_key(k): float(v) for k, v in data.items()})
+        metrics.update(canonical_mapping({k: float(v) for k, v in data.items()}))
     if args.from_text:
         for text_path in args.from_text:
             metrics.update(parse_wer_lines(Path(text_path).read_text()))
@@ -585,19 +602,18 @@ def main() -> int:
     if not columns:
         baseline_metrics = BASELINE_METRICS
         if args.baseline:
-            baseline_metrics = {
-                dataset_key(k): float(v)
-                for k, v in json.loads(Path(args.baseline).read_text()).items()
-            }
+            baseline_metrics = canonical_mapping({
+                k: float(v) for k, v in json.loads(Path(args.baseline).read_text()).items()
+            })
         columns = [(args.baseline_label, baseline_metrics)]
 
     columns.append((args.label, new_metrics))
     if args.model_info:
         model_info[args.label] = _load_string_mapping(Path(args.model_info))
     if args.dataset_results:
-        dataset_results[args.label] = {
-            dataset_key(key): value for key, value in _load_string_mapping(Path(args.dataset_results)).items()
-        }
+        dataset_results[args.label] = canonical_mapping(
+            _load_string_mapping(Path(args.dataset_results))
+        )
 
     out_path = Path(
         args.out

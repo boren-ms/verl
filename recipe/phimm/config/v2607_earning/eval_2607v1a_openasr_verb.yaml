@@ -12,7 +12,9 @@ val_reward:
     ls_clean: openasr_en
     ls_other: openasr_en
     spgispeech: openasr_en
+    spgispeech_clean: openasr_en
     ami: openasr_en
+    ami_clean: openasr_en
     gigaspeech: openasr_en
     voxpopuli_cleaned_aa: openasr_en
     earnings22_cleaned_aa_chunked: openasr_en

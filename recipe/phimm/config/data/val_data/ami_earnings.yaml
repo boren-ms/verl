@@ -11,7 +11,7 @@
   post_process:
     add_field:
       fields:
-        data_source: ami
+        data_source: ami_clean
     verl_format:
       prompt_key: prompt
 

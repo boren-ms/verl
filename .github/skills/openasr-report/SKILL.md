@@ -22,7 +22,7 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
 
 - **Row 2** `Header`: `<baseline-label>`, `<model-label-1>`, `<model-label-2>`, ..., `WERR` (one WERR header per non-baseline model column).
 - **Row 3** `OpenEN`: `A`, `B`, `C`, ..., `A->B`, `A->C`, ...
-- **Rows 4–13**: OpenASR datasets — `ami_clean`, `earnings22-cleaned-aa-chunked`, `gigaspeech_clean`, `librispeech-clean`, `librispeech-other`, `monsoon_en_in`, `spgispeech`, `voxpopuli-cleaned-aa`, `urgent2024`, `urgent2024_clean`.
+- **Rows 4–13**: OpenASR datasets — `ami_clean`, `earnings22-cleaned-aa-chunked`, `gigaspeech_clean`, `librispeech-clean`, `librispeech-other`, `monsoon_en_in`, `spgispeech_clean`, `voxpopuli-cleaned-aa`, `urgent2024`, `urgent2024_clean`.
 - **Row 14** `avg`: numeric mean across the 10 OpenASR datasets per column.
 - **Row 15** `OpenML`: repeated column identifiers for the ML section.
 - **Rows 16–39**: ML datasets grouped by language with per-language `<lang> avg` rows interleaved:
@@ -60,8 +60,8 @@ Formatting:
 
 1. Determine the model label (e.g. `remax_qwen_bad_bracket_e1a@step80`).
 2. Collect per-dataset metrics from one of:
-   - **Ray job(s)**: `--from-ray <node> <job-id>`. Repeat for separate openasr / openasr_ml jobs. The script runs `brix ssh <node> -- ray job logs <id>` and parses `val-aux/<dataset>/p_err/mean@1:<float>`.
-   - **Text dump**: `--from-text <path>` containing lines like `val-aux/ami_clean/p_err/mean@1:0.0705`.
+   - **Ray job(s)**: `--from-ray <node> <job-id>`. Repeat for separate openasr / openasr_ml jobs. The script runs `brix ssh <node> -- ray job logs <id>` and parses `val-core/<dataset>/p_err/mean@1:<float>` or `val-aux/<dataset>/p_err/mean@1:<float>`. Prefer core when both namespaces occur for a dataset; do not substitute `val-aux/*/wer` for `p_err`.
+   - **Text dump**: `--from-text <path>` containing lines like `val-core/ami_clean/p_err/mean@1:0.0705`.
    - **JSON**: `--metrics <path>` with `{"ami_clean": 0.0705, ...}` (fractions, not percent). ML names in either order (`fleurs_de` / `de_fleurs`) are accepted for logs and JSON, including baseline overrides.
 3. Optionally pass `--extend-xlsx <prior.xlsx>` to append the new model as the next column after the existing baseline/model columns. Reports with the current English/ML layout but no OpenLong section can be extended: new OpenLong rows are added while existing baseline/model values remain unchanged, including missing OpenLong baselines. Rebuild from original candidate metrics to adopt the new baseline defaults. Other incompatible dataset layouts are rejected rather than misreading rows. Do not alias uncleaned English datasets to cleaned versions.
    Collect the new model's metadata and pass `--model-info <model.json>` and `--dataset-results <results.json>`:
@@ -81,6 +81,20 @@ Formatting:
    ```
 4. Run [scripts/build_openasr_xlsx.py](./scripts/build_openasr_xlsx.py). Output defaults to `tmp/openasr_report/<label>.xlsx`.
 5. Reopen the workbook and verify every eligible dataset has a WERR formula and every eligible average has a numeric WERR. Verify all three sheets, the model identity/path, and each supplied dataset result filepath; when extending, verify the earlier models' metadata is unchanged. Do not post-process delta cells into blanks. Refresh an existing report if its deltas were previously withheld.
+
+### English dataset names
+
+Collect English metrics and dataset-result keys under their exact canonical
+names, including `ami_clean`, `gigaspeech_clean`, and `spgispeech_clean`.
+The builder does not rename English sources or maintain legacy English aliases.
+Keep the exact detailed-result filepath unchanged, independently of the metric
+key. Verify the input names against the effective evaluation YAML before building
+so a naming mismatch is resolved rather than reported as missing evaluation.
+
+Before delivery, inspect rows4 (`ami_clean`),6 (`gigaspeech_clean`), and10
+(`spgispeech_clean`) in every evaluated model column: completed values,
+eligible WERR formulas and result paths must be present. Include all ten
+completed English datasets in the English average.
 
 ### Required delta handling
 
@@ -137,7 +151,7 @@ appropriate baseline, override with `--baseline <json>` and
 | librispeech-clean | 1.26% |
 | librispeech-other | 2.74% |
 | monsoon_en_in | 3.39% |
-| spgispeech | 2.15% |
+| spgispeech_clean | 2.15% |
 | voxpopuli-cleaned-aa | 1.63% |
 | urgent2024 | 9.57% |
 | urgent2024_clean | 4.51% |
