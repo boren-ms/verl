@@ -67,3 +67,9 @@ locations, with 2 nodes × 8 GPUs, merged-model LoRA disabled, and training resu
 disabled. Saved effective configs and job state belong under
 `tmp/run_openasr_exp/multilingual_expansion_20261106/`. Dataset metrics must retain
 their CER/WER labels and individual model/checkpoint identities.
+
+Completed three-model results, the Excel workbook, and regeneration instructions
+are checked in under
+[`reports/openasr_multilingual_expansion_20261107`](../reports/openasr_multilingual_expansion_20261107/README.md).
+The workbook opens on the supplementary comparison, preserving the preceding
+canonical metrics and headline averages.
