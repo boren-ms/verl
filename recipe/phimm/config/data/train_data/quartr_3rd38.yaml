@@ -1,0 +1,26 @@
+# Cleaned Quartr Final38 delivery: 6,155 rows from 35 observed event IDs,
+# approximately 34.21 hours. Eleven rows are marked pending foreign-language
+# review; fifteen rows record audio adjustments. Source metadata is retained
+# in the JSONL, including the original timing for adjusted clips.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38
+    verl_format:
+      prompt_key: prompt
