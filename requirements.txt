@@ -6,6 +6,8 @@ dill
 flash-attn
 hydra-core
 kaldialign
+opencc-python-reimplemented==0.1.7
+wetext==0.2.1
 voi-oiwer==0.1.4
 liger-kernel
 numpy<2.0.0

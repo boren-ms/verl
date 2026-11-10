@@ -1,0 +1,28 @@
+# Diagnostic test subset ranked by previous 2611r2 absolute Mandarin CER errors.
+# Reuses the existing Orange ZIP; this is not an unbiased benchmark.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/validation_top200.jsonl
+  cache_name: aishell1_refine_20261110_validation_top200
+  add_task_info:
+    task: lang_asr_verb
+    language: Chinese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: zh_aishell1_top200_2611r2
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - source_row
+      - source_split
+      - selection_rank
+      - selection_n_err
+      - selection_n_ref
+      - source_manifest_sha256
+      - source_chunk
+      - source_chunk_index
+      - source_filename
+      - diagnostic_subset

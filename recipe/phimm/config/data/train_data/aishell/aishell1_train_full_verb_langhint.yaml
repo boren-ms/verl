@@ -1,0 +1,27 @@
+# Original AISHELL-1 human targets; audio uses Orange chunk references.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_full.jsonl
+  cache_name: aishell1_refine_20261110_train_full
+  add_task_info:
+    task: lang_asr_verb
+    language: Chinese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: aishell1_train_full
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - source_row
+      - source_split
+      - selection_rank
+      - selection_n_err
+      - selection_n_ref
+      - source_manifest_sha256
+      - source_chunk
+      - source_chunk_index
+      - source_filename
+      - diagnostic_subset

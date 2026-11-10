@@ -68,6 +68,8 @@ more-itertools
 whisper_normalizer
 jiwer>=4.0.0
 kaldialign
+opencc-python-reimplemented==0.1.7
+wetext==0.2.1
 voi-oiwer==0.1.4
 editdistance
 num2words

@@ -1,0 +1,38 @@
+# Decode all 120,098 AISHELL-1 training utterances; rank later by absolute n_err.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - gen_base
+  - /data/train_data/aishell/aishell1_train_full_verb_langhint@data.train_data
+  - _self_
+
+custom_reward_function: ${val_reward.reward_functions.openasr_expansion}
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+
+model:
+  lora_rank: 0
+
+data:
+  output_path: az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/generation
+  output_split_size: 20000
+  chunk_load_mode: sample
+  max_audio_dur: null
+  # Full source order must match the preparation manifest and resume prefix.
+  validation_shuffle: false
+
+rollout:
+  dtype: bfloat16
+  engine_kwargs:
+    vllm:
+      quantization: null
+
+trainer:
+  experiment_name: gen_aishell1_train_2611r2
+  nnodes: 2
+  n_gpus_per_node: 8
