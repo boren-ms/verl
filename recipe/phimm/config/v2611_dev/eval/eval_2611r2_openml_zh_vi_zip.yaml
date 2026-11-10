@@ -1,0 +1,28 @@
+# OpenASR ML Mandarin (CER) and Vietnamese (WER), full evaluation sets.
+hydra:
+  searchpath:
+  - file://recipe/phimm/config
+  - file://verl/trainer/config
+defaults:
+- eval_base
+- /data/val_data/openasr_ml_expansion_verb_langhint_zip@_expansion
+- _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf
+    lora_rank: 0
+
+trainer:
+  nnodes: 2
+  n_gpus_per_node: 8
+  experiment_name: eval_2611r2_openml_zh_vi_18143a6e
+  resume_mode: disable
+
+data:
+  dataloader_num_workers: 0
+  val_data:
+  - ${_expansion.0}  # zh_fleurs
+  - ${_expansion.1}  # zh_aishell1
+  - ${_expansion.2}  # vi_fleurs
+  - ${_expansion.3}  # vi_mcv
