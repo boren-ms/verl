@@ -1,0 +1,32 @@
+# Rank by absolute n_err from the pinned 2611r2 full-test evaluation.
+# AISHELL-1: Top500/7176. FLEURS zh: Top500/945.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_zh_hard_2611r2_20261110/aishell1_test_top500_2611r2.jsonl
+  cache_name: aishell1_test_top500_2611r2_20261110
+  add_task_info:
+    task: lang_asr_verb
+    language: Chinese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: zh_aishell1_top500_2611r2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [id, language, source_row, source_split, source_revision, selection_rank, selection_n_err, selection_n_ref, source_manifest_sha256, diagnostic_subset]
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_zh_hard_2611r2_20261110/fleurs_zh_test_top500_2611r2.jsonl
+  cache_name: fleurs_zh_test_top500_2611r2_20261110
+  add_task_info:
+    task: lang_asr_verb
+    language: Chinese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: zh_fleurs_top500_2611r2
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [id, language, source_row, source_split, source_revision, selection_rank, selection_n_err, selection_n_ref, source_manifest_sha256, diagnostic_subset]
