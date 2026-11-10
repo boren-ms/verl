@@ -1,4 +1,4 @@
-# Full OpenALL (27 sources) + parent-grouped OpenLong (4 full corpora).
+# OpenEN (9 sources) + OpenML (17 headline + 6 supplementary) + OpenLong (3 corpora).
 # Evaluates the SFT step-120 checkpoint used to initialize 2611v1a.
 hydra:
   searchpath:
@@ -30,7 +30,6 @@ val_reward:
     earnings21: openasr_en
     earnings22: openasr_en
     coraal: openasr_en
-    earnings22_cleaned_aa: openasr_en
 
 trainer:
   experiment_name: eval_2611v1a_sft120_openfull_zip

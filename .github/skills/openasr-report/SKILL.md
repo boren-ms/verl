@@ -5,7 +5,7 @@ description: Build or extend the canonical OpenASR + OpenASR_ML Excel comparison
 
 # OpenASR Comparison Report (xlsx)
 
-Generate an Excel report (`.xlsx`) that compares a new model column against the `2609r2` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, URGENT2024 noisy/clean, Dutch, and a separate grouped OpenLong section.
+Generate an Excel report (`.xlsx`) that compares a new model column against the `r2611v1` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, URGENT2024, Dutch, and a separate grouped OpenLong section.
 
 This skill is report-only. It consumes completed evaluation evidence and writes
 an `.xlsx`; it does not launch jobs or publish results to another repository.
@@ -22,10 +22,10 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
 
 - **Row 2** `Header`: `<baseline-label>`, `<model-label-1>`, `<model-label-2>`, ..., `WERR` (one WERR header per non-baseline model column).
 - **Row 3** `OpenEN`: `A`, `B`, `C`, ..., `A->B`, `A->C`, ...
-- **Rows 4–13**: OpenASR datasets — `ami_clean`, `earnings22-cleaned-aa-chunked`, `gigaspeech_clean`, `librispeech-clean`, `librispeech-other`, `monsoon_en_in`, `spgispeech_clean`, `voxpopuli-cleaned-aa`, `urgent2024`, `urgent2024_clean`.
-- **Row 14** `avg`: numeric mean across the 10 OpenASR datasets per column.
-- **Row 15** `OpenML`: repeated column identifiers for the ML section.
-- **Rows 16–39**: ML datasets grouped by language with per-language `<lang> avg` rows interleaved:
+- **Rows 4–12**: OpenASR datasets — `ami_clean`, `earnings22-cleaned-aa-chunked`, `gigaspeech_clean`, `librispeech-clean`, `librispeech-other`, `monsoon_en_in`, `spgispeech_clean`, `voxpopuli-cleaned-aa`, `urgent2024`.
+- **Row 13** `avg`: numeric mean across the nine OpenASR datasets per column.
+- **Row 14** `OpenML`: repeated column identifiers for the ML section.
+- **Rows 15–38**: ML datasets grouped by language with per-language `<lang> avg` rows interleaved:
   - de: `de_fleurs`, `de_mcv`
   - es: `es_fleurs`, `es_mcv`, `es_mls`
   - fr: `fr_fleurs`, `fr_mcv`, `fr_mls`
@@ -33,18 +33,17 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
   - it: `it_fleurs`, `it_mcv`, `it_mls`
   - nl: `nl_fleurs`, `nl_mcv`, `nl_mls`
   - pt: `pt_fleurs`, `pt_mls`
-- **Row 40** `avg` (ML): numeric unweighted mean of the seven unrounded language means per column. With partial coverage, include only languages with available datasets.
-- **Row 41** `OpenLong`: repeated column identifiers for the long-audio section.
-- **Rows 42–45**: `earnings21`, `earnings22`, `coraal`, `earnings22_cleaned_aa`.
-- **Row 46** `avg` (OpenLong): numeric unweighted mean across all four OpenLong datasets per column. With partial coverage, average only available datasets; never fill missing candidate metrics from the baseline. Its numeric WERR uses matched dataset coverage, independently of the English and ML averages.
-- **Row 47** `avg0` (OpenLong): numeric unweighted mean of `earnings21`, `earnings22`, and `coraal`, excluding `earnings22_cleaned_aa`. Use available datasets for displayed means and matched coverage for numeric WERR; leave empty when none are available. Extending a report without this row adds it while preserving existing metrics and metadata.
+- **Row 39** `avg` (ML): numeric unweighted mean of the seven unrounded language means per column. With partial coverage, include only languages with available datasets.
+- **Row 40** `OpenLong`: repeated column identifiers for the long-audio section.
+- **Rows 41–43**: `earnings21`, `earnings22`, `coraal`.
+- **Row 44** `avg` (OpenLong): numeric unweighted mean across all three OpenLong datasets per column. With partial coverage, average only available datasets; never fill missing candidate metrics from the baseline. Its numeric WERR uses matched dataset coverage, independently of the English and ML averages.
 - **WERR columns**: compute `1 - model / baseline` for every available pair with a positive baseline. Per-dataset cells use Excel formulas; average rows store numeric WERR. Positive values mean improvement; negative values mean regression. Do not remove deltas because baseline checkpoint/scoring provenance is incomplete.
 
 Formatting:
 - All data columns (everything except column A) center-aligned.
 - Header / section header rows (`OpenEN`, `OpenML`, `OpenLong`): light blue.
 - Per-language `<lang> avg` rows: light yellow.
-- `avg` (English, ML, and OpenLong) and `avg0` rows: light green.
+- `avg` rows (English, ML, and OpenLong): light green.
 - WERR columns carry a 3-color scale rule (red ← 0 → green) with midpoint fixed at 0.
 - Numeric cells formatted as `0.00%`.
 - Keep `openasr` limited to the canonical table. Do not add notes, disclaimers, cell comments, coverage banners, or footers. Put the requested structured model information and result paths in the two metadata sheets instead.
@@ -86,19 +85,22 @@ Formatting:
 
 Collect English metrics and dataset-result keys under their exact canonical
 names, including `ami_clean`, `gigaspeech_clean`, and `spgispeech_clean`.
-The builder does not rename English sources or maintain legacy English aliases.
+The builder maps the evaluation sources `ls_clean` and `ls_other` to the report
+rows `librispeech-clean` and `librispeech-other`. Preserve those original source
+names in evaluation configs. The user-confirmed alias `earnings22-cleaned-aa`
+maps to `earnings22-cleaned-aa-chunked`. Other English names retain their exact identities.
 Keep the exact detailed-result filepath unchanged, independently of the metric
 key. Verify the input names against the effective evaluation YAML before building
 so a naming mismatch is resolved rather than reported as missing evaluation.
 
 Before delivery, inspect rows4 (`ami_clean`),6 (`gigaspeech_clean`), and10
 (`spgispeech_clean`) in every evaluated model column: completed values,
-eligible WERR formulas and result paths must be present. Include all ten
-completed English datasets in the English average.
+eligible WERR formulas and result paths must be present. Include all completed English datasets in the English average; missing baseline
+scores remain blank and average WERR uses matched coverage.
 
 ### Required delta handling
 
-- Use the supplied `2609r2` baseline by default. Missing checkpoint or scoring metadata must not suppress WERR or cause notes or comments to be added.
+- Use the supplied `r2611v1` baseline by default. Missing checkpoint or scoring metadata must not suppress WERR or cause notes or comments to be added.
 - Never fill missing candidate metrics from the baseline. A dataset WERR is unavailable only when either value is missing or the baseline is zero; leave that delta blank without a note or comment. A zero candidate against a positive baseline is a valid 100% WERR.
 - For English and language average deltas, use the same intersection of available datasets for baseline and candidate: `1 - mean(candidate_common) / mean(baseline_common)`. For overall ML WERR, first compute each language mean over its matched datasets, then average those unrounded means with equal language weights on both sides. Do not average individual WERR values or compare means with different coverage. Displayed means summarize each column's available datasets with the same aggregation rules.
 - Verify both positive and negative deltas, all model columns when extending a workbook, missing/zero-baseline handling, and matched-coverage averages. Preserve percentage formatting and the zero-centered WERR color scale.
@@ -131,87 +133,87 @@ Extend an existing xlsx with another model column:
 
 ## Baseline
 
-Column `A` uses the user-supplied 2609r2 dataset percentages dated 2026-10-07, divided by 100.
-These latest values replace the 2026-10-01 defaults. Continue to collect each
-new candidate's actual metrics; never fill candidate values from the baseline.
-The user identified the
-supplied numbers as 2609r2; no checkpoint path was supplied. Do not attribute these
-values to the historical 2607 FP8 checkpoint or to 2609v1.
-Check dataset identities. Use these supplied
-values to compute WERR even when full baseline provenance is unavailable; do not
-claim independently verified scoring equivalence. If the user supplies a more
-appropriate baseline, override with `--baseline <json>` and
-`--baseline-label <name>`. Never silently alias genuinely different datasets.
+Column `A` defaults to **r2611v1**, using the user-supplied table headed
+“2611 s2 / shadow” on 2026-11-09. Values below are percentages; the builder
+stores fractions. This replaces the 2609r2 defaults for newly built reports.
+No checkpoint path, scoring configuration, or detailed-result paths were supplied;
+leave those metadata fields blank. Do not infer a checkpoint step or claim
+independently verified scoring equivalence.
 
-| Dataset / summary | Column A |
+| Dataset | WER |
 | --- | --- |
-| ami_clean | 6.72% |
-| earnings22-cleaned-aa-chunked | 5.02% |
-| gigaspeech_clean | 7.58% |
-| librispeech-clean | 1.26% |
-| librispeech-other | 2.74% |
-| monsoon_en_in | 3.39% |
-| spgispeech_clean | 2.15% |
-| voxpopuli-cleaned-aa | 1.63% |
-| urgent2024 | 9.57% |
-| urgent2024_clean | 4.51% |
-| avg | 4.46% |
-| de_fleurs | 2.32% |
-| de_mcv | 1.90% |
-| de avg | 2.11% |
-| es_fleurs | 2.71% |
-| es_mcv | 2.20% |
-| es_mls | 2.58% |
-| es avg | 2.50% |
-| fr_fleurs | 2.86% |
-| fr_mcv | 4.17% |
+| ami_clean | 6.68% |
+| earnings22-cleaned-aa-chunked | 5.26% |
+| gigaspeech_clean | 7.36% |
+| librispeech-clean | 1.18% |
+| librispeech-other | 2.70% |
+| monsoon_en_in | 3.03% |
+| spgispeech_clean | 2.10% |
+| voxpopuli-cleaned-aa | 1.49% |
+| urgent2024 | 9.85% |
+| de_fleurs | 2.57% |
+| de_mcv | 1.92% |
+| es_fleurs | 2.60% |
+| es_mcv | 2.19% |
+| es_mls | 2.64% |
+| fr_fleurs | 3.43% |
+| fr_mcv | 4.19% |
 | fr_mls | 2.37% |
-| fr avg | 3.13% |
-| monsoon_hi_in | 8.78% |
-| hi avg | 8.78% |
-| it_fleurs | 1.30% |
-| it_mcv | 1.78% |
-| it_mls | 3.99% |
-| it avg | 2.36% |
-| nl_fleurs | 3.88% |
-| nl_mcv | 1.64% |
-| nl_mls | 4.53% |
-| nl avg | 3.35% |
-| pt_fleurs | 3.10% |
-| pt_mls | 3.36% |
-| pt avg | 3.23% |
-| avg | 3.64% |
-| earnings21 | 9.0999% |
-| earnings22 | 9.8599% |
-| coraal | 14.7193% |
-| earnings22_cleaned_aa | 4.8003% |
-| avg | 9.61985% |
-| avg0 | 11.2263666667% |
+| hy_fleurs (supplementary) | 6.38% |
+| hy_mcv (supplementary) | 11.90% |
+| monsoon_hi_in | 8.61% |
+| it_fleurs | 1.46% |
+| it_mcv | 1.82% |
+| it_mls | 4.04% |
+| nl_fleurs | 4.01% |
+| nl_mcv | 1.68% |
+| nl_mls | 3.82% |
+| pt_fleurs | 3.18% |
+| pt_mls | 5.75% |
+| earnings21 | 9.21% |
+| earnings22 | 10.05% |
+| coraal (supplied as coraal_avg) | 13.02% |
 
-The four OpenLong baselines were supplied on 2026-10-16 for
-[openlong_seg_verb_langhint_zip.yaml](../../../recipe/phimm/config/data/val_data/openlong_seg_verb_langhint_zip.yaml).
-Use the exact `data_source` keys above in metrics and dataset-result JSONs;
-logs already use these keys. These are grouped long-audio scores with verbatim
-and known-language prompts, not short-audio or differently prompted scores.
-In particular, `earnings22_cleaned_aa` must not alias to
-`earnings22-cleaned-aa-chunked`. Include all four rows and their exact supplied
-result paths in `dataset_results`; unavailable paths and metrics remain blank.
-OpenLong does not contribute to the English or ML averages.
-Keep both OpenLong summary rows: `avg` includes all four datasets;
-`avg0` excludes only `earnings22_cleaned_aa`. Do not prefix these Excel row
-labels with `openlong`; their section identifies the scope.
+ML corpus-first input names (`fleurs_de`, `mcv_de`, etc.) map to the
+language-first names above. The supplied `coraal_avg` identifies the grouped
+`coraal` baseline row; it does not identify any single CORAAL location.
+The user explicitly confirmed that the supplied `spgispeech` score belongs
+to `spgispeech_clean`; this confirmation applies to this baseline and does not
+introduce a general English dataset alias. The Armenian scores are preserved
+in `BASELINE_SUPPLEMENTARY_METRICS`; the current workbook keeps its
+seven-language layout (de/es/fr/hi/it/nl/pt) and has no Armenian rows.
 
-Recompute averages from the dataset values with full precision, displaying
-two decimal places. English averages the ten datasets (`4.457%`).
-ML averages the seven unrounded language means (`3.636666...%`), not all
-17 datasets (`3.145294...%`). Apply this language-macro rule to candidates
-and matched-coverage ML WERR too. Summary rows are not dataset metrics.
+`urgent2024_clean` is excluded from the report, including result-path metadata
+and averages, even when supplied as input. Extending an older report with that
+row removes it while preserving the other dataset metrics and metadata.
+The user confirmed that `earnings22-cleaned-aa-chunked` and
+`earnings22-cleaned-aa` identify the same cleaned Earnings22 dataset, including
+the former `earnings22_cleaned_aa` row. Keep the supplied **5.26%** baseline
+only in the English section under `earnings22-cleaned-aa-chunked`. Exclude
+`earnings22_cleaned_aa` from OpenLong, result-path metadata, and averages,
+including when extending an older report. Preserve the remaining dataset
+metrics and exact result paths.
 
-When extending a workbook, preserve its existing baseline dataset values
-and metadata; recompute average rows and WERR with the current aggregation
-rules. To replace an older baseline with these latest defaults, rebuild
-the report from the original candidate metrics rather than silently changing
-the baseline of an existing comparison.
+The user supplied summary percentages of **4.41% English**, **3.92% ML**,
+**3.48% ML without Armenian**, and **10.76% OpenLong**. Preserve these as
+source summaries, not extra dataset metrics or hard-coded workbook averages.
+Recompute displayed averages from available dataset scores at full precision.
+The canonical ML average continues to average the seven unrounded language
+means, giving **3.82%** for r2611v1; the supplied ML summaries use a different
+aggregation and must not replace this calculation. OpenLong `avg` gives
+**10.76%** across `earnings21`, `earnings22`, and `coraal`. OpenLong has one
+summary row, `avg`; extending older workbooks drops the redundant `avg0` row. English
+averages its nine available canonical datasets, giving **4.41%**.
+Use matched coverage for all average WERR calculations as described above.
+
+Use these supplied scores for WERR even when full baseline provenance is
+unavailable. To use another baseline, pass `--baseline <json>` and
+`--baseline-label <name>`.
+
+When extending a workbook, preserve its existing baseline identity, dataset
+values, and metadata; recompute summaries and WERR with the current aggregation
+rules. Rebuild from the original candidate metrics to replace a historical
+baseline with r2611v1. Existing reports are not rewritten by this default update.
 
 ## Python Environment
 

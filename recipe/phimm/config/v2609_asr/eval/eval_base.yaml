@@ -15,6 +15,10 @@ val_reward:
     monsoon_hi_in: openasr_hi_in
     mixlang_fy26q2: inhouse_zh
     name_val: openasr_en
+    # Canonical OpenEN report names used by openasr_verb_langhint_zip.
+    gigaspeech_clean: openasr_en
+    voxpopuli-cleaned-aa: openasr_en
+    earnings22-cleaned-aa-chunked: openasr_en
     ls_clean: openasr_en
     ls_other: openasr_en
     spgispeech: openasr_en

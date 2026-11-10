@@ -358,8 +358,8 @@ def test_r2_all_datasets_use_zip_manifests_and_fresh_caches():
     with initialize_config_dir(config_dir=str(EVAL_CONFIG_DIR), version_base=None):
         config = compose(config_name="eval_2609r2_openall_mix_zip")
     entries = [row for group in config.data.val_data for row in group]
-    assert len(entries) == 26
-    assert len({row.cache_name for row in entries}) == 26
+    assert len(entries) == 33
+    assert len({row.cache_name for row in entries}) == 33
     for row in entries:
         assert row.dataset_name == "jsonl"
         assert row.jsonl_paths.endswith("_zip.jsonl")
@@ -368,7 +368,7 @@ def test_r2_all_datasets_use_zip_manifests_and_fresh_caches():
     by_source = {row.post_process.add_field.fields.data_source: row for row in entries}
     assert by_source["mixlang_fy26q2"].pre_process.rename_fields.mappings.audio_path == "WavPath"
     assert "parent_audio_path" in by_source["mixlang_fy26q2"].post_process.verl_format.extra_keys
-    for source in ("voxpopuli_cleaned_aa", "earnings22_cleaned_aa_chunked"):
+    for source in ("voxpopuli-cleaned-aa", "earnings22-cleaned-aa-chunked"):
         assert by_source[source].pre_process.rename_fields.mappings.audio_path == "url"
         assert "parent_audio_path" in by_source[source].post_process.verl_format.extra_keys
     assert "lattice" in by_source["monsoon_hi_in"].post_process.verl_format.extra_keys
@@ -381,11 +381,21 @@ def test_zip_eval_preserves_original_settings_and_dataset_behavior(config_name):
         packed = compose(config_name=f"{config_name}_zip")
     original_entries = [row for group in original.data.val_data for row in group]
     packed_entries = [row for group in packed.data.val_data for row in group]
-    assert len(original_entries) == len(packed_entries) == 26
-    for old, new in zip(original_entries, packed_entries, strict=True):
+    aliases = {"gigaspeech": "gigaspeech_clean", "voxpopuli_cleaned_aa": "voxpopuli-cleaned-aa",
+               "earnings22_cleaned_aa_chunked": "earnings22-cleaned-aa-chunked"}
+    def source(row):
+        name = row.post_process.add_field.fields.data_source
+        return aliases.get(name, name)
+    old_by_source = {source(row): row for row in original_entries}
+    new_by_source = {source(row): row for row in packed_entries}
+    assert set(new_by_source) - set(old_by_source) == {"urgent2024", "eslo_telephony_fr", "accueil_ubs_fr"}
+    assert set(old_by_source) <= set(new_by_source)
+    for name, old in old_by_source.items():
+        new = new_by_source[name]
         old = OmegaConf.to_container(old, resolve=True)
         new = OmegaConf.to_container(new, resolve=True)
-        assert "_zip.jsonl" not in old.get("jsonl_paths", "")
+        if "_zip.jsonl" in old.get("jsonl_paths", ""):
+            assert old["jsonl_paths"] == new["jsonl_paths"]
         old.pop("cache_name", None)
         new.pop("cache_name")
         old.pop("jsonl_paths", None)
@@ -398,6 +408,7 @@ def test_zip_eval_preserves_original_settings_and_dataset_behavior(config_name):
         pre_process.pop("path_map", None)
         if not pre_process:
             old.pop("pre_process", None)
+        old["post_process"]["add_field"]["fields"]["data_source"] = name
         assert old == new
     for group in ("_mixlang", "_openasr", "_openml"):
         packed[group] = original[group]

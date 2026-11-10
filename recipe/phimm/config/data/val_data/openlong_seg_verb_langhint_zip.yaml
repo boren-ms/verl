@@ -3,12 +3,8 @@
 # Audio fields use Bitbank audio.zip!offset:length#start:end references.
 # Full parent references and grouping metadata are unchanged; val_batch_size=-1
 # keeps each corpus's parent groups complete for grouped long-audio scoring.
-# User-supplied OpenLong baseline p_err (2026-10-16), keyed by data_source:
-#   earnings21: 7.9156% (0.079156)
-#   earnings22: 10.1216% (0.101216)
-#   coraal: 15.4380% (0.154380)
-#   earnings22_cleaned_aa: 4.3131% (0.043131)
-# These grouped long-audio baselines are distinct from short-audio OpenASR.
+# Three corpora match the canonical OpenLong report; cleaned Earnings22 is
+# evaluated only in the OpenEN suite. Baseline scores live in openasr-report.
 
 - dataset_name: jsonl
   val_batch_size: -1
@@ -54,27 +50,6 @@
     add_field:
       fields:
         data_source: coraal
-    verl_format:
-      prompt_key: prompt
-      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
-
-- dataset_name: jsonl
-  val_batch_size: -1
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA/earnings22_cleaned_aa_v1_zip.jsonl
-  cache_name: auto_openlong_earnings22_cleaned_aa_seg_verb_langhint_zip
-  pre_process:
-    rename_fields:
-      mappings:
-        audio_path: url
-        text: transcript
-  add_task_info:
-    task: lang_asr_verb
-    language: English
-    lang_hint: true
-  post_process:
-    add_field:
-      fields:
-        data_source: earnings22_cleaned_aa
     verl_format:
       prompt_key: prompt
       extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
