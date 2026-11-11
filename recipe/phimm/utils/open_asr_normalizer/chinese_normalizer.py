@@ -4,10 +4,10 @@ import unicodedata
 import regex
 
 from .expansion_normalizer import remove_symbols_keep_marks
+from .normalizer import remove_non_speech_annotations
 
 
 VULGAR_FRACTION_RE = re.compile(r"(\d?)([¼-¾⅐-⅞])")
-BRACKETS_RE = re.compile(r"[<\[][^>\]]*[>\]]")
 SPACE_NEXT_TO_HAN_RE = regex.compile(
     r"(?<=\p{Han})\s+|\s+(?=\p{Han})"
 )
@@ -50,7 +50,7 @@ class ChineseTextNormalizer:
         text = unicodedata.normalize("NFKC", text)
         text = self._t2s.convert(text)
         text = text.lower()
-        text = BRACKETS_RE.sub("", text)
+        text = remove_non_speech_annotations(text)
         text = re.sub(r"[()]", " ", text)
         text = SPACE_NEXT_TO_HAN_RE.sub("", text)
         text = self._number_normalizer.normalize(text)

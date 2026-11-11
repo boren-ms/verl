@@ -1,6 +1,6 @@
 import re
 
-from .normalizer import EnglishTextNormalizer, remove_symbols_and_diacritics
+from .normalizer import EnglishTextNormalizer, remove_non_speech_annotations, remove_symbols_and_diacritics
 
 
 _HF_ENGLISH_COMPOUNDS = {
@@ -57,8 +57,7 @@ class _HFEnglishTextNormalizer(EnglishTextNormalizer):
 
     def __call__(self, text):
         text = text.lower()
-        text = re.sub(r"[<\[][^>\]]*[>\]]", "", text)
-        text = re.sub(r"\(([^)]+?)\)", "", text)
+        text = remove_non_speech_annotations(text)
         text = re.sub(self.ignore_patterns, "", text)
         text = re.sub(r"\s+'", "'", text)
         for pattern, replacement in self.replacers.items():
