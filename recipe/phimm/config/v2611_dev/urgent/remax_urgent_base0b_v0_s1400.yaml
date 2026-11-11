@@ -1,6 +1,9 @@
 # Original Noisy LS + RIR recipe with an absolute optimizer target of 1400.
 # 20,424 rows / batch128 = 159 batches per epoch; nine epochs allow 1431
 # batches, while total_training_steps stops training at 1400.
+# Continue the original four-epoch run with full optimizer and dataloader state.
+# Explicit resume_path preserves the saved step; auto + an external fallback
+# path would treat that checkpoint as initialization at step zero.
 hydra:
   searchpath:
     - file://recipe/phimm/config
@@ -34,3 +37,5 @@ trainer:
   experiment_name: remax_urgent_base0b_v0_s1400
   total_epochs: 9
   total_training_steps: 1400
+  resume_mode: resume_path
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/v2611/remax_urgent_base0b_v0_e4/global_step_636
