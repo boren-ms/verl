@@ -1,0 +1,42 @@
+# AISHELL ReMax settings, independent of the main/ experiment configs.
+# Reuse the shared v2611 runtime and pin the original Base1a training settings.
+defaults:
+  - ../base@_here_
+  - /data/val_data/aishell/aishell1_test_top200_2611r2_verb_langhint_zip@_aishell_val
+  - _self_
+
+actor_rollout_ref:
+  model:
+    lora_rank: 320
+    use_linear_attention_packing: false
+  actor:
+    loss_agg_mode: seq-mean-token-sum
+    optim:
+      lr: 6.0e-7
+      warmup_style: constant
+      lr_warmup_steps: 0
+  rollout:
+    n: 8
+    temperature_scaled_log_probs: false
+
+data:
+  data_source: null
+  train_data: ${_aishell_train}
+  val_data: ${_aishell_val}
+  # Clear the inherited six-source fixed-size mix.
+  mix: null
+  shuffle: true
+  chunk_load_mode: sample
+  train_batch_size: 128
+
+trainer:
+  nnodes: 2
+  total_epochs: 2
+  total_training_steps: null
+  max_actor_ckpt_to_keep: 2
+
+_aishell_val_reward_sources:
+  zh_aishell1_top200_2611r2: openasr_expansion
+
+val_reward:
+  reward_function_by_data_source: ${_aishell_val_reward_sources}

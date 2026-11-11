@@ -54,6 +54,8 @@ required_versions = {
     "bitsandbytes": "0.50.2",
     "bitbank": "0.2.0",
     "voi-oiwer": "0.1.4",
+    "opencc-python-reimplemented": "0.1.7",
+    "wetext": "0.2.1",
     "protobuf": "5.29.5",
     "nvidia-cuda-runtime": "13.3.29",
     "nvidia-cuda-nvcc": "13.3.73",
