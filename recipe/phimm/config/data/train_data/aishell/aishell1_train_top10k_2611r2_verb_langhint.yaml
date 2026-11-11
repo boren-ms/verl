@@ -1,0 +1,29 @@
+# First 10,000 rows of the verified absolute-n_err-ranked Top20k manifest.
+# Limit the ranked prefix before training shuffle; original human targets retained.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl
+  cache_name: aishell1_refine_20261110_train_top10000
+  add_task_info:
+    task: lang_asr_verb
+    language: Chinese
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    input_egs_limit: 10000
+    add_field:
+      fields:
+        data_source: aishell1_train_top10k
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - source_row
+      - source_split
+      - selection_rank
+      - selection_n_err
+      - selection_n_ref
+      - source_manifest_sha256
+      - source_chunk
+      - source_chunk_index
+      - source_filename
+      - diagnostic_subset
