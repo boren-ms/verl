@@ -1,0 +1,90 @@
+# Copy into the case report directory. Fill with verified identities and evidence.
+case_id: null
+objective: null
+success_criteria: null
+iteration: 1
+parent_case: null
+stop_conditions: []
+authorized_budget: null
+requested_stages: []
+authorization_scope: null
+worktree: null
+code_revision: null
+models:
+  selection: null
+  initialization: null
+  original_experiment: null
+  refined: null
+scoring:
+  metric: null
+  parser: null
+  normalizer: null
+  scorer_revision: null
+  dependencies: {}
+  prompt: null
+  decode: {}
+patterns:
+  definition_file: null
+  version: null
+  positive_examples: []
+  negative_examples: []
+  normalization: null
+  evidence_type: null
+sources: [] # URI, parent lineage, split, label provenance, count, duration, hash
+selection:
+  declared_universe: null
+  expected_count: null
+  decoded_count: null
+  strategy: null
+  rank_field: null
+  tie_break: null
+  seed: null
+  quotas: {}
+  exclusions: {}
+  truncation_policy: null
+data:
+  train: null
+  subtraining_or_mixture: null
+  fixed_diagnostic: null
+  representative_validation: null
+  summary_validation_components: []
+  final_test: null
+  guards: []
+  membership_hashes: {}
+  leakage_checks: {}
+  unchecked_overlap: []
+training:
+  parent_config: null
+  resolved_config: null
+  effective_diff: null
+  reward_checks: null
+  loader_checks: null
+  absolute_optimizer_target: null
+  epoch_bound: null
+  resume: null
+  topology: null
+  priority: null
+  authorized_resources: null
+  submission_lineage: []
+  monitor_handoff: null
+comparison:
+  frozen_sets: []
+  checkpoint_steps: {}
+  comparable_budget: null
+  confounds: []
+  requested_but_missing_suites: []
+stages:
+  analysis: {status: pending, evidence: null}
+  retrieval: {status: pending, evidence: null}
+  selection: {status: pending, evidence: null}
+  recipe: {status: pending, evidence: null}
+  training: {status: pending, evidence: null}
+  evaluation: {status: pending, evidence: null}
+  report: {status: pending, evidence: null}
+result:
+  optimizer_evidence: null
+  validation_evidence: null
+  checkpoint_integrity: null
+  report_paths: []
+  fix_conclusion: null
+  authorized_pause_evidence: null
