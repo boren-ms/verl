@@ -1,0 +1,39 @@
+# Full four-source mining with original 2611r2 shadow step38000; deterministic WER > 0 selection follows generation.
+hydra:
+  searchpath:
+  - file://recipe/phimm/config
+  - file://verl/trainer/config
+defaults:
+- gen_base
+- /data/train_data/earn_fy27@_earn_fy27
+- /data/train_data/quartr_1st23@_quartr_1st23
+- /data/train_data/quartr_2nd48@_quartr_2nd48
+- /data/train_data/quartr_3rd38@_quartr_3rd38
+- _self_
+custom_reward_function: ${val_reward.reward_functions.openasr_en}
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+model:
+  lora_rank: 0
+data:
+  gen_data:
+  - ${_earn_fy27}
+  - ${_quartr_1st23}
+  - ${_quartr_2nd48}
+  - ${_quartr_3rd38}
+  output_path: az://orngwus2cresco/data/boren/data/quartr_2611r2_errors_20261111/generation
+  output_split_size: 1024
+  batch_size: 512
+  chunk_load_mode: sample
+  max_audio_dur: null
+  validation_shuffle: false
+rollout:
+  dtype: bfloat16
+  engine_kwargs:
+    vllm:
+      quantization: null
+trainer:
+  experiment_name: gen_quartr_2611r2_errors
+  nnodes: 2
+  n_gpus_per_node: 8
