@@ -214,7 +214,7 @@ def test_partial_coverage_deltas_use_matched_datasets(report, tmp_path):
     for row in (5, 10, 12, 16):
         assert sheet.cell(row, 4).value is None
         assert sheet.cell(row, 4).comment is None
-    assert sheet.max_row == 44
+    assert sheet.max_row == 52
     assert all(cell.comment is None for row in sheet for cell in row)
     assert all(cell.value is None for cell in sheet[1])
     workbook.close()
@@ -349,9 +349,9 @@ def test_metadata_round_trip_and_extension(report, tmp_path, monkeypatch):
     assert results == {"first": first_results, "second": second_results}
     workbook = load_workbook(output)
     assert workbook.sheetnames == ["openasr", "model_info", "dataset_results"]
-    assert workbook["openasr"].max_row == 44
+    assert workbook["openasr"].max_row == 52
     assert workbook["model_info"].max_row == 4
-    assert workbook["dataset_results"].max_row == 88
+    assert workbook["dataset_results"].max_row == 100
     assert all(cell.comment is None for sheet in workbook for row in sheet for cell in row)
     workbook.close()
 
@@ -427,7 +427,7 @@ def test_openlong_logs_metadata_and_extension(report, tmp_path, monkeypatch):
     assert sheet["C13"].value is None
     assert sheet["C39"].value is None
     for key in sheet.conditional_formatting:
-        assert str(key.sqref).endswith("44")
+        assert str(key.sqref).endswith("52")
         assert sheet.conditional_formatting[key][0].colorScale.cfvo[1].val == 0
     workbook.close()
 
@@ -463,7 +463,7 @@ def test_extend_pre_openlong_report_preserves_existing_values(report, tmp_path, 
     columns = [("baseline", {"ami_clean": 0.1}), ("first", {"ami_clean": 0.05})]
     report.build_workbook(columns, prior)
     workbook = load_workbook(prior)
-    workbook["openasr"].delete_rows(40, 7)
+    workbook["openasr"].delete_rows(40, 16)
     workbook.save(prior)
     workbook.close()
     assert report.read_existing_xlsx(prior) == columns
@@ -535,7 +535,7 @@ def test_extend_drops_redundant_avg0_and_preserves_metrics_and_metadata(report, 
     assert report.read_existing_xlsx(output) == columns
     assert report.read_existing_metadata(output) == (info, results)
     workbook = load_workbook(output)
-    assert workbook["openasr"].max_row == 44
+    assert workbook["openasr"].max_row == 52
     assert "avg0" not in [row[0].value for row in workbook["openasr"]]
     assert workbook["openasr"]["C44"].value == pytest.approx(0.05)
     workbook.close()
@@ -620,7 +620,7 @@ def test_retired_urgent_clean_is_removed_from_new_and_extended_reports(report, t
                              "candidate": {"urgent2024": "/candidate/urgent/0.jsonl"}}
     workbook = load_workbook(output)
     sheet = workbook["openasr"]
-    assert sheet.max_row == 44
+    assert sheet.max_row == 52
     assert sheet["A13"].value == "avg"
     assert sheet["B13"].value == pytest.approx(0.10)
     assert sheet["C13"].value == pytest.approx(0.05)
@@ -665,7 +665,7 @@ def test_extend_removes_cleaned_earnings22_from_openlong(report, tmp_path, monke
     assert report.main() == 0
     workbook = load_workbook(output)
     sheet = workbook["openasr"]
-    assert sheet.max_row == 44
+    assert sheet.max_row == 52
     assert sheet["B5"].value == pytest.approx(0.0526)
     assert sheet["C5"].value == pytest.approx(0.05)
     assert [sheet.cell(row, 1).value for row in (41, 42, 43)] == ["earnings21", "earnings22", "coraal"]
@@ -704,4 +704,105 @@ def test_librispeech_original_sources_populate_report_and_metadata(report, tmp_p
     assert sheet["C13"].value == pytest.approx(0.015)
     assert report.read_existing_metadata(output)[1]["candidate"] == {
         report.dataset_key(name): path for name, path in paths.items()}
+    workbook.close()
+
+
+@pytest.mark.parametrize("source", ["json", "logs"])
+def test_openext_inputs_baseline_averages_and_metadata(report, tmp_path, monkeypatch, source):
+    # Unequal coverage distinguishes language-weighted from dataset-weighted means.
+    values = {"fleurs_zh": 0.01, "fleurs_vi": 0.02, "mcv_vi": 0.04,
+              "eslo_telephony_fr": 0.20, "accueil_ubs_fr": 0.40}
+    metrics = tmp_path / "metrics.json"
+    metrics.write_text(json.dumps(values))
+    logs = tmp_path / "eval.log"
+    logs.write_text("\n".join(f"val-core/{ds}/p_err/mean@1:{v}" for ds, v in values.items()))
+    paths = {ds: f"/results/{ds}/0.jsonl" for ds in values}
+    results = tmp_path / "results.json"
+    results.write_text(json.dumps(paths))
+    output = tmp_path / "openext.xlsx"
+    inputs = ["--metrics", str(metrics)] if source == "json" else ["--from-text", str(logs)]
+    monkeypatch.setattr(sys, "argv", [str(SCRIPT), "candidate", *inputs,
+                                    "--dataset-results", str(results), "--out", str(output)])
+    assert report.main() == 0
+    workbook = load_workbook(output)
+    sheet = workbook["openasr"]
+    assert [sheet.cell(r, 1).value for r in range(45, 53)] == [
+        "OpenExt", "zh_fleurs", "zh_aishell1", "zh avg", "vi_fleurs", "vi_mcv",
+        "vi avg", "avg"]
+    for row, expected in {46: 0.0297, 47: 0.0845, 48: 0.0571,
+                          49: 0.0419, 50: 0.0812, 51: 0.06155, 52: 0.059325}.items():
+        assert sheet.cell(row, 2).value == pytest.approx(expected)
+    assert sheet["C52"].value == pytest.approx((0.01 + 0.03) / 2)
+    assert sheet["D52"].value == pytest.approx(1 - 0.02 / ((0.0297 + 0.06155) / 2))
+    assert sheet["D48"].value == pytest.approx(1 - 0.01 / 0.0297)
+    for row in (46, 49, 50):
+        assert sheet.cell(row, 4).value == f"=1-C{row}/B{row}"
+    assert sheet["C47"].value is None
+    assert sheet["D47"].value is None
+    assert sheet.max_row == 52
+    assert "eslo_telephony_fr" not in [row[0].value for row in sheet]
+    assert "accueil_ubs_fr" not in [row[0].value for row in sheet]
+    for row in range(46, 53):
+        for col in range(2, 5):
+            cell = sheet.cell(row, col)
+            assert cell.number_format == "0.00%"
+            assert cell.alignment.horizontal == "center"
+    assert sheet["A45"].fill == report.HEADER_FILL
+    assert sheet["A48"].fill == report.LANG_AVG_FILL
+    assert sheet["A52"].fill == report.OVERALL_AVG_FILL
+    workbook.close()
+    assert report.read_existing_metadata(output)[1] == {
+        "candidate": {k: v for k, v in report.canonical_mapping(paths).items()
+                      if k not in {"eslo_telephony_fr", "accueil_ubs_fr"}}}
+    assert report.read_existing_xlsx(output)[1] == ("candidate", {k: v for k, v in report.canonical_mapping(values).items()
+                       if k not in {"eslo_telephony_fr", "accueil_ubs_fr"}})
+
+
+@pytest.mark.parametrize("baseline, candidate, expected", [
+    ({"zh_fleurs": 0.10}, {"zh_fleurs": 0.0}, 1.0),
+    ({"zh_fleurs": 0.10}, {"zh_fleurs": 0.20}, -1.0),
+    ({"zh_fleurs": 0.0}, {"zh_fleurs": 0.10}, None),
+    ({"zh_fleurs": 0.10}, {"vi_fleurs": 0.10}, None),
+])
+def test_openext_missing_zero_and_negative_werr(report, tmp_path, baseline, candidate, expected):
+    output = tmp_path / "edge.xlsx"
+    report.build_workbook([("baseline", baseline), ("candidate", candidate)], output)
+    workbook = load_workbook(output)
+    value = workbook["openasr"]["D52"].value
+    assert value is None if expected is None else value == pytest.approx(expected)
+    workbook.close()
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_openext_extension_preserves_metrics_metadata_and_missing_baseline(report, tmp_path, monkeypatch, legacy):
+    prior = tmp_path / "prior.xlsx"
+    baseline = {"ami_clean": 0.1}
+    first = {"ami_clean": 0.05} if legacy else {"zh_fleurs": 0.02}
+    info = {"first": {"model_path": "/models/first"}}
+    results = {"first": {next(iter(first)): "/results/first/0.jsonl"}}
+    report.build_workbook([("historical", baseline), ("first", first)], prior,
+                          model_info=info, dataset_results=results)
+    if legacy:
+        workbook = load_workbook(prior)
+        workbook["openasr"].delete_rows(45, 11)
+        workbook.save(prior)
+        workbook.close()
+    metrics = tmp_path / "candidate.json"
+    metrics.write_text(json.dumps({"zh_fleurs": 0.01, "vi_mcv": 0.03}))
+    output = tmp_path / "extended.xlsx"
+    monkeypatch.setattr(sys, "argv", [str(SCRIPT), "next", "--metrics", str(metrics),
+                                    "--extend-xlsx", str(prior), "--out", str(output)])
+    assert report.main() == 0
+    assert report.read_existing_xlsx(output) == [
+        ("historical", baseline), ("first", first), ("next", {"zh_fleurs": 0.01, "vi_mcv": 0.03})]
+    loaded_info, loaded_results = report.read_existing_metadata(output)
+    assert loaded_info["first"] == info["first"]
+    assert loaded_results == results
+    workbook = load_workbook(output)
+    sheet = workbook["openasr"]
+    assert sheet["B46"].value is None
+    assert sheet["B52"].value is None
+    assert sheet["E52"].value is None
+    assert sheet["F52"].value is None
+    assert sheet["D52"].value == pytest.approx(0.02)
     workbook.close()

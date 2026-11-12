@@ -1,11 +1,11 @@
 ---
 name: openasr-report
-description: Build or extend the canonical OpenASR + OpenASR_ML Excel comparison workbook from completed evaluation metrics, metadata, and exact result paths. Use for baseline-aware WER/WERR reporting; do not use it to launch evaluations, analyze utterance-level errors, or update an Obsidian vault.
+description: Build or extend the canonical OpenASR + OpenASR_ML + OpenExt Excel comparison workbook from completed evaluation metrics, metadata, and exact result paths. Use for baseline-aware WER/WERR reporting; do not use it to launch evaluations, analyze utterance-level errors, or update an Obsidian vault.
 ---
 
 # OpenASR Comparison Report (xlsx)
 
-Generate an Excel report (`.xlsx`) that compares a new model column against the `r2611v1` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, URGENT2024, Dutch, and a separate grouped OpenLong section.
+Generate an Excel report (`.xlsx`) that compares a new model column against the `r2611v1` baseline (and any other model columns already present in a prior report). The updated layout includes cleaned English datasets, Monsoon English/Hindi, URGENT2024, Dutch, a separate grouped OpenLong section, and OpenExt expansion datasets.
 
 This skill is report-only. It consumes completed evaluation evidence and writes
 an `.xlsx`; it does not launch jobs or publish results to another repository.
@@ -18,7 +18,7 @@ an `.xlsx`; it does not launch jobs or publish results to another repository.
 
 ## Layout
 
-Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metrics layout remains:
+Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metrics layout is:
 
 - **Row 2** `Header`: `<baseline-label>`, `<model-label-1>`, `<model-label-2>`, ..., `WERR` (one WERR header per non-baseline model column).
 - **Row 3** `OpenEN`: `A`, `B`, `C`, ..., `A->B`, `A->C`, ...
@@ -37,13 +37,18 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
 - **Row 40** `OpenLong`: repeated column identifiers for the long-audio section.
 - **Rows 41–43**: `earnings21`, `earnings22`, `coraal`.
 - **Row 44** `avg` (OpenLong): numeric unweighted mean across all three OpenLong datasets per column. With partial coverage, average only available datasets; never fill missing candidate metrics from the baseline. Its numeric WERR uses matched dataset coverage, independently of the English and ML averages.
+- **Row 45** `OpenExt`: repeated column identifiers for the expansion section from [openasr_ml_expansion_verb_langhint_zip.yaml](../../../recipe/phimm/config/data/val_data/openasr_ml_expansion_verb_langhint_zip.yaml).
+- **Rows 46–51**: expansion datasets grouped by language, with a `<lang> avg` after each group:
+  - zh: `zh_fleurs`, `zh_aishell1`, then `zh avg` (row 48)
+  - vi: `vi_fleurs`, `vi_mcv`, then `vi avg` (row 51)
+- **Row 52** `avg` (OpenExt): unweighted mean of the unrounded available language means, using the same partial-coverage and matched-coverage WERR rules as OpenML. OpenExt is independent of OpenEN, OpenML, and OpenLong averages. Chinese scores are CER; Vietnamese scores are WER, so this section summarizes the configured error rates.
 - **WERR columns**: compute `1 - model / baseline` for every available pair with a positive baseline. Per-dataset cells use Excel formulas; average rows store numeric WERR. Positive values mean improvement; negative values mean regression. Do not remove deltas because baseline checkpoint/scoring provenance is incomplete.
 
 Formatting:
 - All data columns (everything except column A) center-aligned.
-- Header / section header rows (`OpenEN`, `OpenML`, `OpenLong`): light blue.
+- Header / section header rows (`OpenEN`, `OpenML`, `OpenLong`, `OpenExt`): light blue.
 - Per-language `<lang> avg` rows: light yellow.
-- `avg` rows (English, ML, and OpenLong): light green.
+- `avg` rows (English, ML, OpenLong, and OpenExt): light green.
 - WERR columns carry a 3-color scale rule (red ← 0 → green) with midpoint fixed at 0.
 - Numeric cells formatted as `0.00%`.
 - Keep `openasr` limited to the canonical table. Do not add notes, disclaimers, cell comments, coverage banners, or footers. Put the requested structured model information and result paths in the two metadata sheets instead.
@@ -61,8 +66,8 @@ Formatting:
 2. Collect per-dataset metrics from one of:
    - **Ray job(s)**: `--from-ray <node> <job-id>`. Repeat for separate openasr / openasr_ml jobs. The script runs `brix ssh <node> -- ray job logs <id>` and parses `val-core/<dataset>/p_err/mean@1:<float>` or `val-aux/<dataset>/p_err/mean@1:<float>`. Prefer core when both namespaces occur for a dataset; do not substitute `val-aux/*/wer` for `p_err`.
    - **Text dump**: `--from-text <path>` containing lines like `val-core/ami_clean/p_err/mean@1:0.0705`.
-   - **JSON**: `--metrics <path>` with `{"ami_clean": 0.0705, ...}` (fractions, not percent). ML names in either order (`fleurs_de` / `de_fleurs`) are accepted for logs and JSON, including baseline overrides.
-3. Optionally pass `--extend-xlsx <prior.xlsx>` to append the new model as the next column after the existing baseline/model columns. Reports with the current English/ML layout but no OpenLong section can be extended: new OpenLong rows are added while existing baseline/model values remain unchanged, including missing OpenLong baselines. Rebuild from original candidate metrics to adopt the new baseline defaults. Other incompatible dataset layouts are rejected rather than misreading rows. Do not alias uncleaned English datasets to cleaned versions.
+   - **JSON**: `--metrics <path>` with `{"ami_clean": 0.0705, ...}` (fractions, not percent). ML/OpenExt language-first names in either order (`fleurs_de` / `de_fleurs`, `fleurs_zh` / `zh_fleurs`, `aishell1_zh` / `zh_aishell1`) are accepted for logs and JSON, including baseline overrides.
+3. Optionally pass `--extend-xlsx <prior.xlsx>` to append the new model as the next column after the existing baseline/model columns. Reports with the current English/ML layout but no OpenLong or OpenExt section can be extended: the missing sections are added while existing baseline/model values remain unchanged, including missing OpenLong/OpenExt baselines. Do not backfill the new default OpenExt baseline into an existing workbook. Rebuild from original candidate metrics to adopt the new baseline defaults. Other incompatible dataset layouts are rejected rather than misreading rows. Do not alias uncleaned English datasets to cleaned versions.
    Collect the new model's metadata and pass `--model-info <model.json>` and `--dataset-results <results.json>`:
    ```json
    {
@@ -102,7 +107,7 @@ scores remain blank and average WERR uses matched coverage.
 
 - Use the supplied `r2611v1` baseline by default. Missing checkpoint or scoring metadata must not suppress WERR or cause notes or comments to be added.
 - Never fill missing candidate metrics from the baseline. A dataset WERR is unavailable only when either value is missing or the baseline is zero; leave that delta blank without a note or comment. A zero candidate against a positive baseline is a valid 100% WERR.
-- For English and language average deltas, use the same intersection of available datasets for baseline and candidate: `1 - mean(candidate_common) / mean(baseline_common)`. For overall ML WERR, first compute each language mean over its matched datasets, then average those unrounded means with equal language weights on both sides. Do not average individual WERR values or compare means with different coverage. Displayed means summarize each column's available datasets with the same aggregation rules.
+- For English and language average deltas, use the same intersection of available datasets for baseline and candidate: `1 - mean(candidate_common) / mean(baseline_common)`. For overall ML and OpenExt WERR, first compute each language mean over its matched datasets, then average those unrounded means with equal language weights on both sides. Do not average individual WERR values or compare means with different coverage. Displayed means summarize each column's available datasets with the same aggregation rules.
 - Verify both positive and negative deltas, all model columns when extending a workbook, missing/zero-baseline handling, and matched-coverage averages. Preserve percentage formatting and the zero-centered WERR color scale.
 
 ## Examples
@@ -173,6 +178,21 @@ independently verified scoring equivalence.
 | earnings21 | 9.21% |
 | earnings22 | 10.05% |
 | coraal (supplied as coraal_avg) | 13.02% |
+| zh_fleurs | 2.97% |
+| zh_aishell1 | 8.45% |
+| vi_fleurs | 4.19% |
+| vi_mcv | 8.12% |
+
+The four OpenExt baseline scores were supplied on 2026-11-12. OpenExt includes
+only Chinese and Vietnamese. Exclude `eslo_telephony_fr` and `accueil_ubs_fr`
+from the workbook, result-path metadata, and averages, including when extending
+a workbook that previously included these French expansion rows.
+OpenExt baseline means are **5.71% zh**, **6.155% vi**, and **5.9325% overall**
+(displayed as **5.71%**, **6.16%**, and **5.93%**). Compute these from the
+unrounded dataset scores rather than hard-coding summaries. Overall WERR
+includes only languages and datasets shared with the baseline. The YAML's exclusion from
+established headline averages does not exclude these datasets from their own
+OpenExt summary.
 
 ML corpus-first input names (`fleurs_de`, `mcv_de`, etc.) map to the
 language-first names above. The supplied `coraal_avg` identifies the grouped

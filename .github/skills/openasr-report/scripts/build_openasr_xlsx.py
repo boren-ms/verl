@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build an OpenASR + OpenASR_ML xlsx report matching ~/code/MoE/results/template.xlsx.
+"""Build an OpenASR + OpenASR_ML + OpenExt xlsx comparison report.
 
 Metrics layout (`openasr` sheet):
   Row 2  : Header | Baseline | <model-label-1> | <model-label-2> | ... | WERR(s)
@@ -12,6 +12,9 @@ Metrics layout (`openasr` sheet):
   Row 40 : OpenLong column header
   Row 41-43 : grouped OpenLong datasets (earnings21, earnings22, coraal)
   Row 44 : avg (OpenLong numeric dataset mean, separate from English/ML)
+  Row 45 : OpenExt column header
+  Row 46-51 : expansion datasets with per-language avg rows (zh, vi)
+  Row 52 : avg (OpenExt numeric mean of available language means)
   Column(s) after the last model column: WERR = 1 - <model>/Baseline for each model column.
 Additional sheets: `model_info` and `dataset_results`.
 """
@@ -71,6 +74,12 @@ OPENASR_ML_GROUPS: List[Tuple[str, List[str]]] = [
     ("pt", ["pt_fleurs", "pt_mls"]),
 ]
 
+# Chinese/Vietnamese sources in openasr_ml_expansion_verb_langhint_zip.yaml; zh uses CER.
+OPENEXT_GROUPS: List[Tuple[str, List[str]]] = [
+    ("zh", ["zh_fleurs", "zh_aishell1"]),
+    ("vi", ["vi_fleurs", "vi_mcv"]),
+]
+
 BASELINE_LABEL = "r2611v1"
 # User-supplied "2611 s2 / shadow" percentages (2026-11-09), as fractions.
 # Missing r2611v1 scores stay absent; do not inherit older baseline values.
@@ -107,6 +116,11 @@ BASELINE_METRICS: Dict[str, float] = {
     "earnings21": 0.0921,
     "earnings22": 0.1005,
     "coraal": 0.1302,
+    # OpenExt: user-supplied percentages (2026-11-12). French expansion rows are excluded.
+    "zh_fleurs": 0.0297,
+    "zh_aishell1": 0.0845,
+    "vi_fleurs": 0.0419,
+    "vi_mcv": 0.0812,
 }
 
 # Supplied scores outside the current canonical workbook dataset schema.
@@ -122,7 +136,7 @@ WER_LINE_RE = re.compile(
 
 ML_ALIASES = {
     f"{corpus}_{lang}": dataset
-    for lang, datasets in OPENASR_ML_GROUPS
+    for lang, datasets in OPENASR_ML_GROUPS + OPENEXT_GROUPS
     for dataset in datasets
     for prefix, separator, corpus in [dataset.partition("_")]
     if separator and prefix == lang
@@ -206,6 +220,9 @@ ML_START = ML_HEADER + 1  # 15
 OPENLONG_HEADER = ML_START + sum(len(datasets) + 1 for _, datasets in OPENASR_ML_GROUPS) + 1
 OPENLONG_START = OPENLONG_HEADER + 1
 OPENLONG_AVG = OPENLONG_START + len(OPENLONG_DATASETS)
+OPENEXT_HEADER = OPENLONG_AVG + 1
+OPENEXT_START = OPENEXT_HEADER + 1
+OPENEXT_AVG = OPENEXT_START + sum(len(datasets) + 1 for _, datasets in OPENEXT_GROUPS)
 
 MODEL_INFO_FIELDS = [
     ("model_path", "Model path"),
@@ -234,7 +251,8 @@ def _write_metadata_sheets(wb, columns, model_info, dataset_results) -> None:
     results_sheet = wb.create_sheet("dataset_results")
     info_sheet.append(MODEL_INFO_HEADER)
     results_sheet.append(DATASET_RESULTS_HEADER)
-    datasets = OPENASR_DATASETS + [ds for _, group in OPENASR_ML_GROUPS for ds in group] + OPENLONG_DATASETS
+    datasets = (OPENASR_DATASETS + [ds for _, group in OPENASR_ML_GROUPS for ds in group]
+                + OPENLONG_DATASETS + [ds for _, group in OPENEXT_GROUPS for ds in group])
     for label, _ in columns:
         info = model_info.get(label, {})
         unknown = set(info) - {key for key, _ in MODEL_INFO_FIELDS}
@@ -337,10 +355,10 @@ def build_workbook(
 
     # Retired dataset rows are excluded from report metrics and result-path metadata.
     columns = [(label, {ds: value for ds, value in metrics.items()
-                        if ds not in {"urgent2024_clean", "earnings22_cleaned_aa"}}) for label, metrics in columns]
+                        if ds not in {"urgent2024_clean", "earnings22_cleaned_aa", "eslo_telephony_fr", "accueil_ubs_fr"}}) for label, metrics in columns]
     if dataset_results is not None:
         dataset_results = {label: {ds: value for ds, value in results.items()
-                                   if ds not in {"urgent2024_clean", "earnings22_cleaned_aa"}}
+                                   if ds not in {"urgent2024_clean", "earnings22_cleaned_aa", "eslo_telephony_fr", "accueil_ubs_fr"}}
                            for label, results in dataset_results.items()}
 
     labels = [label for label, _ in columns]
@@ -474,23 +492,57 @@ def build_workbook(
             ws.cell(OPENLONG_AVG, wc), [OPENLONG_DATASETS], columns[0][1], columns[1 + j][1]
         )
 
+    ws.cell(OPENEXT_HEADER, 1, "OpenExt").font = bold
+    for c in model_cols + werr_cols:
+        ws.cell(OPENEXT_HEADER, c, ws.cell(3, c).value).font = bold
+    ext_lang_avg_rows = []
+    r = OPENEXT_START
+    for lang, datasets in OPENEXT_GROUPS:
+        for ds in datasets:
+            ws.cell(r, 1, ds)
+            for i, (_, metrics) in enumerate(columns):
+                if ds in metrics:
+                    ws.cell(r, model_cols[i], float(metrics[ds]))
+            for j, wc in enumerate(werr_cols):
+                _write_dataset_werr(ws, r, wc, model_cols[0], model_cols[1 + j])
+            r += 1
+        ext_lang_avg_rows.append(r)
+        ws.cell(r, 1, f"{lang} avg").font = bold
+        for i, (_, metrics) in enumerate(columns):
+            avg = _mean_error(metrics, [datasets])
+            if avg is not None:
+                ws.cell(r, model_cols[i], avg).font = bold
+        for j, wc in enumerate(werr_cols):
+            _write_average_werr(ws.cell(r, wc), [datasets], columns[0][1], columns[1 + j][1])
+        r += 1
+    ws.cell(OPENEXT_AVG, 1, "avg").font = bold
+    ext_groups = [datasets for _, datasets in OPENEXT_GROUPS]
+    for i, (_, metrics) in enumerate(columns):
+        avg = _mean_error(metrics, ext_groups)
+        if avg is not None:
+            ws.cell(OPENEXT_AVG, model_cols[i], avg).font = bold
+    for j, wc in enumerate(werr_cols):
+        _write_average_werr(ws.cell(OPENEXT_AVG, wc), ext_groups, columns[0][1], columns[1 + j][1])
+
     # Cell formatting: percentages for numeric data, column widths.
     pct_fmt = "0.00%"
     for r in (
         list(range(OPENASR_START, OPENASR_AVG + 1))
         + list(range(ML_START, ml_avg_row + 1))
         + list(range(OPENLONG_START, OPENLONG_AVG + 1))
+        + list(range(OPENEXT_START, OPENEXT_AVG + 1))
     ):
         for mc in model_cols + werr_cols:
             ws.cell(row=r, column=mc).number_format = pct_fmt
 
     # Row highlights.
     all_cols = [1] + model_cols + werr_cols
-    header_rows = [2, 3, ML_HEADER, OPENLONG_HEADER]
+    header_rows = [2, 3, ML_HEADER, OPENLONG_HEADER, OPENEXT_HEADER]
     lang_avg_rows = [
         ML_START + offset for offset, (kind, _) in enumerate(layout) if kind == "lang_avg"
     ]
-    overall_avg_rows = [OPENASR_AVG, ml_avg_row, OPENLONG_AVG]
+    lang_avg_rows += ext_lang_avg_rows
+    overall_avg_rows = [OPENASR_AVG, ml_avg_row, OPENLONG_AVG, OPENEXT_AVG]
     for r in header_rows:
         for c in all_cols:
             ws.cell(row=r, column=c).fill = HEADER_FILL
@@ -507,7 +559,7 @@ def build_workbook(
 
     # Center-align every cell except column A across the whole used range.
     center = Alignment(horizontal="center", vertical="center")
-    for r in range(2, OPENLONG_AVG + 1):
+    for r in range(2, OPENEXT_AVG + 1):
         for c in model_cols + werr_cols:
             ws.cell(row=r, column=c).alignment = center
 
@@ -515,7 +567,7 @@ def build_workbook(
     # white at 0, green for positive (WER reduction). Midpoint fixed at 0.
     for wc in werr_cols:
         col_letter = get_column_letter(wc)
-        rng = f"{col_letter}{OPENASR_START}:{col_letter}{OPENLONG_AVG}"
+        rng = f"{col_letter}{OPENASR_START}:{col_letter}{OPENEXT_AVG}"
         rule = ColorScaleRule(
             start_type="num", start_value=-1, start_color="FFF8696B",  # red
             mid_type="num", mid_value=0, mid_color="FFFFFFFF",          # white
@@ -582,6 +634,17 @@ def read_existing_xlsx(path: Path) -> List[Tuple[str, Dict[str, float]]]:
         if ws.cell(OPENLONG_HEADER + legacy_offset, 1).value != "OpenLong":
             raise ValueError(f"{path}: incompatible OpenLong section header; rebuild with the current schema.")
         rows.extend(enumerate(OPENLONG_DATASETS, start=OPENLONG_START + legacy_offset))
+    # Older reports lack OpenExt. Locate it by header to also accept retired
+    # English/OpenLong rows and redundant avg0 rows before the new section.
+    ext_headers = [r for r in range(OPENLONG_AVG + legacy_offset + 1, ws.max_row + 1)
+                   if ws.cell(r, 1).value == "OpenExt"]
+    if len(ext_headers) > 1:
+        raise ValueError(f"{path}: duplicate OpenExt section headers")
+    if ext_headers:
+        r = ext_headers[0] + 1
+        for _, datasets in OPENEXT_GROUPS:
+            rows.extend(enumerate(datasets, start=r))
+            r += len(datasets) + 1
     for r, ds in rows:
         if ws.cell(row=r, column=1).value != ds:
             raise ValueError(
