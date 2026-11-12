@@ -1,12 +1,12 @@
 # Original recordings are split with 30-second SVAD, then scored per parent.
-# Prepare the missing manifests as documented in data/val_data/openlong.yaml.
+# Prepare the missing manifests as documented in data/val_data/openasr/openlong.yaml.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
   - eval_base
-  - /data/val_data/openlong@_openlong
+  - /data/val_data/openasr/openlong@_openlong
   - _self_
 
 actor_rollout_ref:

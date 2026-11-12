@@ -6,7 +6,7 @@ hydra:
 defaults:
   - dapo_asr
   - data/train_data/qwen_no_repeat_bracket_suffix_all
-  - data/val_data/openasr_all_bad
+  - data/val_data/openasr/openasr_all_bad
   - _self_
 
 custom_reward_function:

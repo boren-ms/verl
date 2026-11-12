@@ -8,7 +8,7 @@ defaults:
   - ../base@_here_
   - /data/train_data/earn_fy27@_earning_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
-  - /data/val_data/openlong_all_2parents_error_2609r2b@_openlong
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b@_openlong
   - _self_
 
 actor_rollout_ref:

@@ -6,7 +6,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/cv15_n1k_trm
-  # - data/val_data/open_ls_rc5
+  # - data/val_data/openasr/open_ls_rc5
   - data/val_data/short_wrong_ls_h100
   - _self_
 

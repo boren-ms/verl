@@ -5,7 +5,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - eval_asr_2607
-  - data/val_data/openasr_no_repeat
+  - data/val_data/openasr/openasr_no_repeat
   - _self_
 
 actor_rollout_ref:

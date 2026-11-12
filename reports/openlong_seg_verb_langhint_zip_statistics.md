@@ -2,7 +2,7 @@
 
 Audit completed: 2026-10-16 18:56:01 UTC.
 
-Configuration: [openlong_seg_verb_langhint_zip.yaml](../recipe/phimm/config/data/val_data/openlong_seg_verb_langhint_zip.yaml).
+Configuration: [openlong_seg_verb_langhint_zip.yaml](../recipe/phimm/config/data/val_data/openasr/openlong_seg_verb_langhint_zip.yaml).
 
 The audit covers every configured manifest, parent recording, and segment:
 **145 manifests, 446 parent recordings/audio files, and 44,965 segments**.

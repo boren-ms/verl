@@ -36,7 +36,7 @@ Run every required config with the candidate model path as a Hydra override. Eac
 The reference checkpoint and candidate must use the same config, data, locale, scoring backend, and segment settings. In particular, do not compare MixLang's zh-CN TER to an unrelated DTER result.
 
 The required `openasr_ml` sheet covers all **17 OpenML datasets** across seven
-languages, matching `data/val_data/openasr_ml_verb.yaml`:
+languages, matching `data/val_data/openasr/openasr_ml_verb.yaml`:
 
 | Language | Dataset keys |
 |---|---|

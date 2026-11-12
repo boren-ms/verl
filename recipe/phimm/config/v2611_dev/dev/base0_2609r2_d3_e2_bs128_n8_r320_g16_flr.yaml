@@ -7,7 +7,7 @@ defaults:
   - /data/train_data/earnings_tts_verb_langhint_v0@_earning_train
   - /data/train_data/ls_rare_bad_verb_langhint_v0@_ls_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
-  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
   - /data/val_data/ls_kw_verb_langhint@_ls_val
   - _self_
 

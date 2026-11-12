@@ -1,12 +1,12 @@
 # ZIP-backed offline SVAD segments with verbatim and known-language prompts.
-# Prepare ZIP manifests as documented in data/val_data/openlong_seg_zip.yaml.
+# Prepare ZIP manifests as documented in data/val_data/openasr/openlong_seg_zip.yaml.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
   - eval_base
-  - /data/val_data/openlong_seg_verb_langhint_zip@_openlong
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_openlong
   - _self_
 
 actor_rollout_ref:

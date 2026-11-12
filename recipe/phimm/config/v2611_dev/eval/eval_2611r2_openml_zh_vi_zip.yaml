@@ -5,7 +5,7 @@ hydra:
   - file://verl/trainer/config
 defaults:
 - eval_base
-- /data/val_data/openasr_ml_expansion_verb_langhint_zip@_expansion
+- /data/val_data/openasr/openasr_ml_expansion_verb_langhint_zip@_expansion
 - _self_
 
 actor_rollout_ref:

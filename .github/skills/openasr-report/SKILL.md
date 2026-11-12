@@ -37,7 +37,7 @@ Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metr
 - **Row 40** `OpenLong`: repeated column identifiers for the long-audio section.
 - **Rows 41–43**: `earnings21`, `earnings22`, `coraal`.
 - **Row 44** `avg` (OpenLong): numeric unweighted mean across all three OpenLong datasets per column. With partial coverage, average only available datasets; never fill missing candidate metrics from the baseline. Its numeric WERR uses matched dataset coverage, independently of the English and ML averages.
-- **Row 45** `OpenExt`: repeated column identifiers for the expansion section from [openasr_ml_expansion_verb_langhint_zip.yaml](../../../recipe/phimm/config/data/val_data/openasr_ml_expansion_verb_langhint_zip.yaml).
+- **Row 45** `OpenExt`: repeated column identifiers for the expansion section from [openasr_ml_expansion_verb_langhint_zip.yaml](../../../recipe/phimm/config/data/val_data/openasr/openasr_ml_expansion_verb_langhint_zip.yaml).
 - **Rows 46–51**: expansion datasets grouped by language, with a `<lang> avg` after each group:
   - zh: `zh_fleurs`, `zh_aishell1`, then `zh avg` (row 48)
   - vi: `vi_fleurs`, `vi_mcv`, then `vi avg` (row 51)

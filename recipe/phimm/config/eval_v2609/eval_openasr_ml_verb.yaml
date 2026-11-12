@@ -7,7 +7,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - /eval_asr
-  - /data/val_data/openasr_ml_verb
+  - /data/val_data/openasr/openasr_ml_verb
   - _self_
 
 actor_rollout_ref:

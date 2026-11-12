@@ -6,7 +6,7 @@ hydra:
     - file://verl/trainer/config
 defaults:
   - base
-  - /data/train_data/name_env37k
+  - /data/train_data/pname/name_env37k
   - _self_
 
 reward_functions:

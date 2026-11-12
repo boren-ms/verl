@@ -6,7 +6,7 @@ hydra:
 defaults:
   - dapo_asr
   - data/train_data/gen_bad_oss_noen_wer05_30
-  - data/val_data/openasr_all_bad
+  - data/val_data/openasr/openasr_all_bad
   - _self_
 
 custom_reward_function:

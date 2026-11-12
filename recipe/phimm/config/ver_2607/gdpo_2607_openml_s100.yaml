@@ -6,7 +6,7 @@ hydra:
 defaults:
   - grpo_asr
   - data/train_data/qwen_bad_repeat_bracket_all
-  - data/val_data/openasr_all_bad
+  - data/val_data/openasr/openasr_all_bad
   - _self_
 
 custom_reward_function:

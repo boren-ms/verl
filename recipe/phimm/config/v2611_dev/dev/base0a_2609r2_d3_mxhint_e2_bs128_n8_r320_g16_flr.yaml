@@ -10,10 +10,10 @@ defaults:
   - /data/train_data/earnings_tts_no_langhint_v0@_earning_nohint_train
   - /data/train_data/ls_rare_bad_no_langhint_v0@_ls_nohint_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
-  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
   - /data/val_data/ls_kw_verb_langhint@_ls_val
   - /data/val_data/earnings22_no_langhint@_earning_nohint_val
-  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_no_langhint@_ml_nohint_val
+  - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_no_langhint@_ml_nohint_val
   - /data/val_data/ls_kw_no_langhint@_ls_nohint_val
   - _self_
 

@@ -3,7 +3,7 @@
 defaults:
   - ../base@_here_
   - /data/train_data/indian/indic_bad@_indic_train
-  - /data/val_data/openasr_ml_hi_in_langhint@_hi_val
+  - /data/val_data/openasr/openasr_ml_hi_in_langhint@_hi_val
   - _self_
 
 actor_rollout_ref:

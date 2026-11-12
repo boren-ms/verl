@@ -38,7 +38,7 @@ def test_hindi_recipe_preserves_base0_training_settings_and_routes_datasets():
 
     val_data = OmegaConf.to_container(config.data.val_data, resolve=True)
     assert len(val_data) == 1
-    assert val_data[0] == OmegaConf.load(config_root / "data/val_data/openasr_ml_hi_in_langhint.yaml")
+    assert val_data[0] == OmegaConf.load(config_root / "data/val_data/openasr/openasr_ml_hi_in_langhint.yaml")
     assert len(val_data[0]) == 1
     val = val_data[0][0]
     assert val["jsonl_paths"].endswith("/openasr_ml_jsonl/monsoon/hi_in/data.jsonl")

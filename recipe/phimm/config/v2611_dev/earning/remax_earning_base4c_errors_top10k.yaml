@@ -12,7 +12,7 @@ defaults:
   - /data/train_data/quartr_2nd48_2611r2_errors_top10k@_quartr_second48_train
   - /data/train_data/quartr_3rd38_2611r2_errors_top10k@_quartr_third38_train
   - /data/val_data/earnings22_verb_langhint@_earning_val
-  - /data/val_data/openlong_all_2parents_error_2609r2b@_openlong
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b@_openlong
   - _self_
 
 actor_rollout_ref:

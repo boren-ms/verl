@@ -31,7 +31,7 @@ defaults:
   - /data/val_data/indian/ta_in@_ta_val
   - /data/val_data/indian/te_in@_te_val
   - /data/val_data/indian/ur_in@_ur_val
-  - /data/val_data/openasr_ml_hi_in_langhint@_openasr_hi_val
+  - /data/val_data/openasr/openasr_ml_hi_in_langhint@_openasr_hi_val
   - _self_
 
 reward_functions:

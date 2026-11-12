@@ -988,7 +988,7 @@ def test_name_env37k_rw1a_recipe_preserves_ls_settings_and_routes_name_data():
         source = compose(config_name="remax_2609r2_ls_bad_e1_g16_n4_rw0a", overrides=[searchpath])
         variant = compose(config_name="remax_2609r2_name_env37k_e1_g16_n4_rw1a", overrides=[searchpath])
 
-    name_data = OmegaConf.load(config_root / "data/train_data/name_env37k.yaml")
+    name_data = OmegaConf.load(config_root / "data/train_data/pname/name_env37k.yaml")
     assert variant._name_train == name_data
     assert len(variant.data.train_data) == 1
     assert variant.data.train_data[0] == name_data
@@ -1004,7 +1004,7 @@ def test_name_env37k_rw1a_recipe_preserves_ls_settings_and_routes_name_data():
         "lang": {"beta": 0.2},
     }
     assert variant.reward_functions.asr_measure == expected_reward
-    name_val = OmegaConf.load(config_root / "data/val_data/name_1k.yaml")
+    name_val = OmegaConf.load(config_root / "data/val_data/pname/name_1k.yaml")
     assert variant._name_val == name_val
     assert len(variant.data.val_data) == 1
     assert variant.data.val_data[0] == name_val

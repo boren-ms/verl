@@ -7,7 +7,7 @@ defaults:
   - /data/train_data/earningscall-fy27-en-us-batches-tts-clean@_earning_train
   - /data/train_data/openml_verb_noreps_langhint@_ml_train
   - /data/val_data/earnings_aa_chunked@_earning_val
-  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
   - _self_
 
 reward_functions:

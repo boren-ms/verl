@@ -19,7 +19,7 @@ defaults:
 - /data/train_data/earnings_tts_verb_langhint_v0@_earning_train
 - /data/train_data/ls_entity/expanded_entity_train_v2@_ls_train
 - /data/val_data/earnings22_verb_langhint@_earning_val
-- /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+- /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
 - /data/val_data/ls_entity_val@_ls_val
 - _self_
 actor_rollout_ref:

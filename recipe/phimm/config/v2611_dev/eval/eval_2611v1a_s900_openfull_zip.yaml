@@ -7,9 +7,9 @@ hydra:
 
 defaults:
   - eval_base
-  - /data/val_data/openasr_verb_langhint_zip@_openen
-  - /data/val_data/openasr_ml_verb_langhint_zip@_openml
-  - /data/val_data/openlong_seg_verb_langhint_zip@_openlong
+  - /data/val_data/openasr/openasr_verb_langhint_zip@_openen
+  - /data/val_data/openasr/openasr_ml_verb_langhint_zip@_openml
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_openlong
   - _self_
 
 actor_rollout_ref:

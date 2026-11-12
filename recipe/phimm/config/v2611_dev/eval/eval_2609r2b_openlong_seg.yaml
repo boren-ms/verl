@@ -1,12 +1,12 @@
 # Offline 30-second SVAD segments are concatenated and scored per parent.
-# Prepare the missing manifests as documented in data/val_data/openlong_seg.yaml.
+# Prepare the missing manifests as documented in data/val_data/openasr/openlong_seg.yaml.
 hydra:
   searchpath:
     - file://recipe/phimm/config
     - file://verl/trainer/config
 defaults:
   - eval_base
-  - /data/val_data/openlong_seg@_openlong
+  - /data/val_data/openasr/openlong_seg@_openlong
   - _self_
 
 actor_rollout_ref:

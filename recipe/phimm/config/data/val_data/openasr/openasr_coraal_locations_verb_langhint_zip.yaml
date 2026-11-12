@@ -1,0 +1,186 @@
+# @package data.val_data
+# Eight CORAAL locations. Aggregate corpus WER uses summed errors/reference counts.
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ATL/test-*/data_zip.jsonl
+  cache_name: openasr_coraal_ATL_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal_atl
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCA/test-*/data_zip.jsonl
+  cache_name: openasr_coraal_DCA_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal_dca
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DCB/test-*/data_zip.jsonl
+  cache_name: openasr_coraal_DCB_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal_dcb
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/DTA/test-*/data_zip.jsonl
+  cache_name: openasr_coraal_DTA_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal_dta
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/LES/test-*/data_zip.jsonl
+  cache_name: openasr_coraal_LES_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal_les
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/PRV/test-*/data_zip.jsonl
+  cache_name: openasr_coraal_PRV_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal_prv
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/ROC/test-*/data_zip.jsonl
+  cache_name: openasr_coraal_ROC_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal_roc
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/VLD/test-*/data_zip.jsonl
+  cache_name: openasr_coraal_VLD_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal_vld
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end

@@ -36,7 +36,7 @@ def test_build_ranks_independent_segments_and_checks_parent_score(tmp_path, monk
 
 
 def test_config_does_not_group_selected_clips_by_parent():
-    path = "recipe/phimm/config/data/val_data/openlong_top100_error_2609r2b.yaml"
+    path = "recipe/phimm/config/data/val_data/openasr/openlong_top100_error_2609r2b.yaml"
     config = yaml.safe_load(open(path, encoding="utf-8"))
     assert len(config) == 4
     assert all(not row["post_process"]["verl_format"].get("extra_keys") for row in config)

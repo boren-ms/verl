@@ -5,7 +5,7 @@ hydra:
 defaults:
   - base
   - /data/train_data/openml_verb_noreps_langhint
-  - /data/val_data/openasr_ml_bad_fmt_lang_bracket_langhint
+  - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint
   - _self_
 
 reward_functions:
