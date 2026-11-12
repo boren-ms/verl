@@ -1,0 +1,40 @@
+# Decode the complete 8,930-row Rover v1 valid set; retain nb_err > 0 afterwards.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+defaults:
+  - gen_base
+  - /data/val_data/pname/name_10k_rover_v1_valid@data.gen_data
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+model:
+  lora_rank: 0
+
+custom_reward_function:
+  path: recipe/phimm/reward/asr_eval.py
+  name: openasr_en_eval
+  reward_kwargs:
+    version: 2609
+
+data:
+  output_path: az://orngwus2cresco/data/speech/users/boren/data/pname/rover_v1_kwerr_2611r2_20261112/generation
+  max_audio_dur: null
+  validation_shuffle: false
+  output_split_size: 2000
+  num_workers: 4
+  prefetch_factor: 2
+
+rollout:
+  dtype: bfloat16
+  engine_kwargs:
+    vllm:
+      quantization: null
+
+trainer:
+  experiment_name: gen_pname_rover_v1_kwerr_2611r2
+  nnodes: 1
+  n_gpus_per_node: 8
