@@ -44,13 +44,8 @@ def _offsets(path, count, kind, identity):
     return tuple(offsets)
 
 
-def load_chunk_sample_indexed(spec):
-    """Return the same record as load_chunk_sample using a cached byte index."""
-    path, count, index = resolve_path(spec).rsplit(":", 2)
+def _chunk_offsets(path, count):
     path = localize_audio_source(path)
-    count, index = int(count), int(index)
-    if not 0 <= index < count:
-        raise ValueError(f"Chunk index out of range: {spec}")
     kind = path.rsplit(".", 1)[-1]
     if "://" in path:
         stat = bf.stat(path)
@@ -58,7 +53,35 @@ def load_chunk_sample_indexed(spec):
     else:
         stat = os.stat(path)
         identity = (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
-    entries = _offsets(path, count, kind, identity)[index]
+    return path, kind, _offsets(path, count, kind, identity)
+
+
+def chunk_audio_byte_references(path, count):
+    """Index a chunk once and return sample-level byte locators for metadata."""
+    source = resolve_path(path)
+    _, kind, offsets = _chunk_offsets(source, int(count))
+    if kind.lower() not in ("audio", "audios"):
+        raise ValueError(f"Not an audio chunk: {path}")
+    references = []
+    for entries in offsets:
+        # Native load_raw_audio uses the first audio of an audios record.
+        if not entries:
+            raise ValueError(f"Empty audio record in chunk: {path}")
+        offset, size = entries[0]
+        if size <= 0:
+            raise ValueError(f"Empty audio payload in chunk: {path}")
+        references.append(f"{source}!{offset}:{size}")
+    return references
+
+
+def load_chunk_sample_indexed(spec):
+    """Return the same record as load_chunk_sample using a cached byte index."""
+    path, count, index = resolve_path(spec).rsplit(":", 2)
+    count, index = int(count), int(index)
+    if not 0 <= index < count:
+        raise ValueError(f"Chunk index out of range: {spec}")
+    path, kind, offsets = _chunk_offsets(path, count)
+    entries = offsets[index]
     values = []
     with bf.BlobFile(path, "rb") as stream:
         for offset, size in entries:

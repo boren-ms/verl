@@ -10,6 +10,7 @@ import threading
 import uuid
 
 from verl.audio_zip import split_zip_audio_source
+from verl.audio_chunk import split_chunk_audio_source
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +49,9 @@ def _split_audio_source(source: str) -> tuple[str, str]:
             source = file_path
             suffix = f"{separator}{time_range}"
 
-    zip_reference = split_zip_audio_source(source)
-    if zip_reference is not None:
-        archive, offset, size = zip_reference
+    byte_reference = split_chunk_audio_source(source) or split_zip_audio_source(source)
+    if byte_reference is not None:
+        archive, offset, size = byte_reference
         return archive, f"!{offset}:{size}{suffix}"
 
     parts = source.rsplit(":", 2)

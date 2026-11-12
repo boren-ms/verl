@@ -1,4 +1,7 @@
 import io
+import json
+import ast
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -8,6 +11,9 @@ from recipe.phimm.utils import audio as audio_module
 from recipe.phimm.data.chunk import load_chunk_sample
 from recipe.phimm.data import indexed_chunk
 from recipe.phimm.data.indexed_chunk import _offsets, load_chunk_sample_indexed
+from recipe.phimm.data.chunk import create_chunk_datasets, load_examples_from_chunks
+from verl.audio_chunk import read_chunk_audio, split_chunk_audio_source
+from verl import audio_cache
 
 
 def _audio(index):
@@ -114,3 +120,138 @@ def test_index_cache_is_bounded(tmp_path):
         _write(path, "audio", 1)
         load_chunk_sample_indexed(f"{path}:1:0")
     assert _offsets.cache_info().currsize == 32
+
+
+@pytest.mark.parametrize("kind", ["audio", "audios"])
+def test_manifest_expansion_materializes_byte_paths_and_preserves_labels(tmp_path, monkeypatch, kind):
+    audio = tmp_path / f"chunk.{kind}"
+    _write(audio, kind, 3)
+    text = tmp_path / "chunk.transcription"
+    with text.open("wb") as stream:
+        stream.write(b"transcription" + (1).to_bytes(4, "little"))
+        for index, value in enumerate(["first", "second", "third"]):
+            data = value.encode()
+            stream.write(index.to_bytes(4, "little") + len(data).to_bytes(4, "little") + data)
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"fileInfo": [{"name": "chunk", "count": 3}]}))
+    ds = create_chunk_datasets(
+        specs=[{"manifest_file": str(manifest), "chunk_path": str(tmp_path), "language": "en"}],
+        chunk_types=[kind, "transcription"],
+        chunk_shuffle=False,
+        num_proc=1,
+        index_audio=True,
+    )
+    assert list(ds["audio_chunk"]) == [f"{audio}:3:{i}" for i in range(3)]
+    assert list(ds["transcription"]) == ["first", "second", "third"]
+    assert all(split_chunk_audio_source(row["audio_path"]) is not None for row in ds)
+    from recipe.phimm.data.dataset import verl_format_ds
+
+    formatted = verl_format_ds(ds.rename_column("transcription", "text").add_column("prompt", ["Transcribe"] * 3))
+    output = tmp_path / "indexed.jsonl"
+    formatted.to_json(str(output), force_ascii=False)
+    saved = [json.loads(line) for line in output.read_text().splitlines()]
+    assert [row["reward_model"]["ground_truth"] for row in saved] == ["first", "second", "third"]
+    assert [row["audio_chunk"] for row in saved] == list(ds["audio_chunk"])
+    assert [row["audio_path"] for row in saved] == list(ds["audio_path"])
+
+    def unexpected_scan(*args, **kwargs):
+        pytest.fail("Byte-indexed rows must not build or scan an ordinal index during audio reads")
+
+    monkeypatch.setattr(indexed_chunk, "_offsets", unexpected_scan)
+    for index, row in enumerate(saved):
+        actual, rate = audio_module.load_raw_audio(row)
+        expected, expected_rate = sf.read(io.BytesIO(_audio(index)))
+        assert rate == expected_rate
+        np.testing.assert_array_equal(actual, expected)
+    # Time slicing still applies to the decoded payload, not the chunk file.
+    row = ds[1]
+    row["audio_path"] += "#0%:50%"
+    actual, _ = audio_module.load_raw_audio(row)
+    assert len(actual) == 161 // 2
+
+
+def test_indexed_manifest_missing_chunk_preserves_empty_schema(tmp_path):
+    result = load_examples_from_chunks(
+        {"name": ["missing"], "count": [2], "chunk_path": [str(tmp_path)]},
+        ["audio", "transcription"],
+        index_audio=True,
+    )
+    assert result == {"audio_chunk": [], "audio_path": [], "transcription": [], "language": []}
+
+
+def test_manifest_expansion_defaults_to_metadata_only(tmp_path):
+    # Invalid audio bytes prove default expansion does not open/index audio.
+    audio = tmp_path / "chunk.audio"
+    audio.write_bytes(b"not an audio chunk")
+    payload = b"original reference"
+    (tmp_path / "chunk.transcription").write_bytes(
+        b"transcription"
+        + (1).to_bytes(4, "little")
+        + (0).to_bytes(4, "little")
+        + len(payload).to_bytes(4, "little")
+        + payload
+    )
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"fileInfo": [{"name": "chunk", "count": 1}]}))
+    ds = create_chunk_datasets(
+        specs=[{"manifest_file": str(manifest), "chunk_path": str(tmp_path)}],
+        chunk_shuffle=False,
+        num_proc=1,
+    )
+    assert len(ds) == 1
+    assert ds[0]["audio_chunk"] == f"{audio}:1:0"
+    assert ds[0]["transcription"] == "original reference"
+    assert "audio_path" not in ds.column_names
+
+
+def test_byte_reference_cache_maps_the_physical_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(audio_cache, "LOCAL_DATA_ROOT", tmp_path)
+    source = "az://orngwus2cresco/data/test/chunk.audios!27:123#0.1:0.2"
+    assert audio_cache._split_audio_source(source) == (
+        "az://orngwus2cresco/data/test/chunk.audios",
+        "!27:123#0.1:0.2",
+    )
+    assert audio_cache.local_audio_source(source) == str(tmp_path / "test/chunk.audios") + "!27:123#0.1:0.2"
+
+
+@pytest.mark.parametrize("source", ["chunk.audio!-1:20", "chunk.audio!0:0", "chunk.audios!x:20"])
+def test_invalid_byte_reference_rejected(source):
+    with pytest.raises(ValueError, match="Invalid chunk byte reference"):
+        split_chunk_audio_source(source)
+
+
+def test_byte_payload_truncation_rejected(tmp_path):
+    path = tmp_path / "chunk.audio"
+    path.write_bytes(b"abc")
+    with pytest.raises(EOFError, match="Truncated chunk payload"):
+        read_chunk_audio(f"{path}!1:10")
+
+
+def test_generic_audio_reader_supports_materialized_byte_reference(tmp_path):
+    # Isolate the actual audio functions from unrelated torchvision imports.
+    from cachetools import FIFOCache, cached
+    import blobfile as bf
+
+    path = Path(__file__).parents[4] / "verl/utils/dataset/vision_utils.py"
+    functions = [
+        node
+        for node in ast.parse(path.read_text()).body
+        if isinstance(node, ast.FunctionDef) and node.name in ("sf_read", "process_audio")
+    ]
+    namespace = {
+        "cached": cached,
+        "FIFOCache": FIFOCache,
+        "BytesIO": io.BytesIO,
+        "sf": sf,
+        "bf": bf,
+        "split_chunk_audio_source": split_chunk_audio_source,
+        "read_chunk_audio": read_chunk_audio,
+    }
+    exec(compile(ast.Module(body=functions, type_ignores=[]), str(path), "exec"), namespace)
+    audio = tmp_path / "chunk.audio"
+    _write(audio, "audio", 2)
+    reference = indexed_chunk.chunk_audio_byte_references(str(audio), 2)[1]
+    actual, rate = namespace["process_audio"](reference)
+    expected, expected_rate = sf.read(io.BytesIO(_audio(1)))
+    assert rate == expected_rate
+    np.testing.assert_array_equal(actual, expected)

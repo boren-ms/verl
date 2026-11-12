@@ -118,7 +118,7 @@ def to_records(d):
     return [dict(zip(d.keys(), to_list(vs))) for vs in zip(*d.values())]
 
 
-def load_examples(chunk, fields):
+def load_examples(chunk, fields, index_audio=False):
     examples = {}
     count = chunk["count"]
     for field in fields:
@@ -132,6 +132,10 @@ def load_examples(chunk, fields):
             return {}
         if field in ("audio", "audios"):
             examples["audio_chunk"] = [f"{chunk_file}:{count}:{i}" for i in range(count)]
+            if index_audio:
+                from recipe.phimm.data.indexed_chunk import chunk_audio_byte_references
+
+                examples["audio_path"] = chunk_audio_byte_references(chunk_file, count)
         else:
             data_list = load_data_from_chunk(chunk_file, chunk_type, count)
             if sub_field := ".".join(parts[1:]):
@@ -146,12 +150,14 @@ def load_examples(chunk, fields):
     return examples
 
 
-def load_examples_from_chunks(chunks, types):
+def load_examples_from_chunks(chunks, types, index_audio=False):
     # Determine expected keys from types so empty batches still return a valid schema
     expected_keys = []
     for field in types:
         if field in ("audio", "audios"):
             expected_keys.append("audio_chunk")
+            if index_audio:
+                expected_keys.append("audio_path")
         else:
             expected_keys.append(field)
     expected_keys.append("language")
@@ -159,7 +165,7 @@ def load_examples_from_chunks(chunks, types):
     all_examples = {k: [] for k in expected_keys}
     chunks = to_records(chunks)
     for chunk in chunks:
-        examples = load_examples(chunk, types)
+        examples = load_examples(chunk, types, index_audio=index_audio)
         for key, value in examples.items():
             all_examples[key].extend(value)
     return all_examples
@@ -280,7 +286,7 @@ def limit_chunks(chunks, max_egs=None, max_chunks=None):
     return chunks
 
 
-def generate_examples(specs, chunk_types=None, chunk_shuffle=True, max_chunks=None, max_egs=None):
+def generate_examples(specs, chunk_types=None, chunk_shuffle=True, max_chunks=None, max_egs=None, index_audio=False):
     """Generate examples from the chunk dataset based on the specification files."""
     chunks_per_spec = ceil(max_chunks / len(specs)) if max_chunks else None
     chunks = load_chunks(specs, chunks_per_spec)
@@ -290,11 +296,11 @@ def generate_examples(specs, chunk_types=None, chunk_shuffle=True, max_chunks=No
         random.shuffle(chunks)
     types = to_list(chunk_types or ["audio", "transcription"])
     for chunk in tqdm(chunks, desc="Loading Chunks"):
-        examples = load_examples(chunk, types)
+        examples = load_examples(chunk, types, index_audio=index_audio)
         yield from to_records(examples)
 
 
-def chunks2dataset(chunks, chunk_types=None, num_proc=None, streaming=False):
+def chunks2dataset(chunks, chunk_types=None, num_proc=None, streaming=False, index_audio=False):
     """Convert a list of chunks to a Dataset object."""
     types = to_list(chunk_types or ["audio", "transcription"])
     ds = Dataset.from_list(chunks)
@@ -309,7 +315,7 @@ def chunks2dataset(chunks, chunk_types=None, num_proc=None, streaming=False):
         map_kwargs.pop("num_proc", None)
 
     ds = ds.map(
-        partial(load_examples_from_chunks, types=types),
+        partial(load_examples_from_chunks, types=types, index_audio=index_audio),
         **map_kwargs,
     )
     return ds
@@ -323,6 +329,7 @@ def create_chunk_datasets(
     max_egs=None,
     streaming=False,
     num_proc=None,
+    index_audio=False,
     **kwargs,
 ):
     chunks_per_spec = ceil(max_chunks / len(specs)) if max_chunks else None
@@ -331,7 +338,7 @@ def create_chunk_datasets(
     if chunk_shuffle:
         random.shuffle(chunks)
     chunk_types = to_list(chunk_types or ["audio", "transcription"])
-    return chunks2dataset(chunks, chunk_types, num_proc, streaming)
+    return chunks2dataset(chunks, chunk_types, num_proc, streaming, index_audio=index_audio)
 
 
 @cached(FIFOCache(maxsize=5))
