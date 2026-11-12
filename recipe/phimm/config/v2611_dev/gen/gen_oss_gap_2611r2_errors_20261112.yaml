@@ -18,11 +18,17 @@ model:
   lora_rank: 0
 data:
   output_path: az://orngwus2cresco/data/boren/data/oss_gap_2611r2_errors_20261112/generation
-  chunk_load_mode: sample
+  chunk_load_mode: indexed
   max_audio_dur: null
   validation_shuffle: false
   output_split_size: 20000
-  num_workers: 4
+  num_workers: 16
+  prefetch_factor: 2
+  distributed_loading:
+    enabled: true
+    workers_per_node: 8
+    prefetch_batches: 2
+    timeout_s: 300
 rollout:
   dtype: bfloat16
   engine_kwargs:
@@ -35,5 +41,5 @@ ray_kwargs:
         VERL_AUDIO_CACHE_ROOT: /root/data/oss_gap_2611r2_errors_20261112_cache
 trainer:
   experiment_name: gen_oss_gap_2611r2_errors_20261112
-  nnodes: 4
+  nnodes: 2
   n_gpus_per_node: 8
