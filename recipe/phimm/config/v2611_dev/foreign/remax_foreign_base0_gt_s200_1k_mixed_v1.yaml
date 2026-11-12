@@ -6,11 +6,14 @@ hydra:
 
 defaults:
   - base0_2609r2_foreign_remote
-  - /data/train_data/foreign_language/english_hint_foreign_11k_plus_mixed_10k@_foreign_train_1k_mixed
+  - /data/train_data/foreign_language/english_hint_1k@_foreign_train_1k
+  - /data/train_data/foreign_language/english_hint_mixed_1k@_foreign_train_mixed
   - _self_
 
 data:
-  train_data: ['${_foreign_train_1k_mixed}']
+  train_data:
+    - ${_foreign_train_1k}
+    - ${_foreign_train_mixed}
   mix:
     - shuffle: true
       datasource:

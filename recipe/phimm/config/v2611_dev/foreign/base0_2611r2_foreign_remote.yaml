@@ -1,0 +1,48 @@
+# Foreign-language Base0 with the 2611r2 shadow step-38000 SFT seed and no GT rollout.
+# General model, optimizer, and rollout settings match Main Base3b.
+defaults:
+  - ../base@_here_
+  - /data/val_data/foreign/earnings22_parent4_segments@_earnings22_parent4
+  - /data/val_data/foreign/english_hint_heldout_fleurs@_fleurs_heldout
+  - /data/val_data/openlong_all_2parents_error_2609r2b_u2@_openlong
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+    lora_rank: 320
+    use_linear_attention_packing: false
+  actor:
+    loss_agg_mode: seq-mean-token-sum
+    optim: {lr: 6.0e-7, warmup_style: constant, lr_warmup_steps: 0}
+  rollout:
+    n: 8
+    gt_rollout: false
+    temperature_scaled_log_probs: false
+
+trainer:
+  # Derive the optimizer-step target from two complete training epochs.
+  total_epochs: 2
+  total_training_steps: null
+
+data:
+  val_data:
+    - ${_earnings22_parent4}
+    - ${_fleurs_heldout}
+    - ${_openlong}
+  train_batch_size: 128
+  shuffle: false
+val_reward:
+  reward_functions:
+    foreign_language_eval:
+      path: recipe/phimm/reward/asr_eval.py
+      name: foreign_language_eval
+      reward_kwargs: {version: 2609}
+  reward_function_by_data_source:
+    earnings22_parent4: openasr_en
+    enhint_en: openasr_en
+    enhint_noen: foreign_language_eval
+    earnings21_u2: openasr_en
+    earnings22_u2: openasr_en
+    coraal_u2: openasr_en
+    earnings22_cleaned_aa_u2: openasr_en
