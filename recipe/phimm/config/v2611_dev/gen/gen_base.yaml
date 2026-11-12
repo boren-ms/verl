@@ -17,7 +17,7 @@ data:
   prefetch_factor: 4
   persistent_workers: false
   prefetch_depth: 3
-  chunk_load_mode: cached
+  chunk_load_mode: indexed
 
 model:
   path: ${actor_rollout_ref.model.path}

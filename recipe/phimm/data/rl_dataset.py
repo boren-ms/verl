@@ -325,8 +325,7 @@ class RLHFDataset(Dataset):
         self.max_prompt_length = config.get("max_prompt_length", 1024)
         self.max_audio_dur = config.get("max_audio_dur", 40)
         self.max_audio_load_retries = max(0, int(config.get("max_audio_load_retries", 8)))
-        if chunk_load_mode := config.get("chunk_load_mode", None):
-            set_chunk_load_mode(chunk_load_mode)
+        set_chunk_load_mode(config.get("chunk_load_mode") or "indexed")
         self.prompt_key = config.get("prompt_key", "prompt")
         self.return_raw_chat = config.get("return_raw_chat", False)
         self.return_full_prompt = config.get("return_full_prompt", False)

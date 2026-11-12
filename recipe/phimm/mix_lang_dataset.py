@@ -191,7 +191,7 @@ def run_mix(cfg: dict[str, Any]) -> None:
     seed = int(cfg.get("seed", 1234))
     random.seed(seed)
     np.random.seed(seed)
-    set_chunk_load_mode(str(cfg.get("chunk_load_mode", "sample")))
+    set_chunk_load_mode(str(cfg.get("chunk_load_mode") or "indexed"))
 
     num_per_type = int(cfg.get("num_per_type", 100))
     specs = cfg.get("specs") or {}

@@ -454,6 +454,28 @@ def dataset_namespace():
         random.setstate(random_state)
 
 
+@pytest.mark.parametrize(
+    "configured, expected",
+    [(None, "indexed"), ("indexed", "indexed"), ("sample", "sample"), ("cached", "cached")],
+)
+def test_dataset_chunk_mode_resets_to_default_or_explicit_choice(
+    dataset_class, dataset_namespace, monkeypatch, configured, expected
+):
+    modes = []
+    monkeypatch.setitem(dataset_namespace, "set_chunk_load_mode", modes.append)
+    monkeypatch.setitem(
+        dataset_namespace, "create_audio_dataset",
+        lambda **kwargs: datasets.Dataset.from_dict({"id": [0], "data_source": ["test"]}),
+    )
+    sources = OmegaConf.create([{"dataset_name": "jsonl"}])
+    dataset_class(sources, None, OmegaConf.create({"num_proc": None, "chunk_load_mode": "cached"}))
+    options = {"num_proc": None}
+    if configured is not None:
+        options["chunk_load_mode"] = configured
+    dataset_class(sources, None, OmegaConf.create(options))
+    assert modes == ["cached", expected]
+
+
 @pytest.fixture
 def dataset_class(dataset_namespace):
     return dataset_namespace["RLHFDataset"]

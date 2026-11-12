@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 TARGET_SAMPLE_RATE = 16000
 MIN_AUDIO_DURATION = 0.16
 
-# Module-level chunk load mode: "cached" (default) or "sample"
-_chunk_load_mode = "cached"
+# Default to indexed sample reads without retaining whole decoded chunks.
+_chunk_load_mode = "indexed"
 
 
 def _localize_remote_audio(file_path):
@@ -29,10 +29,11 @@ def set_chunk_load_mode(mode: str):
     Args:
         mode: "cached" to use load_chunk_example (ChunkManager, full chunk in memory),
               "sample" to use load_chunk_sample (seek-based, one connection per sample).
+              "indexed" to cache byte offsets and read only the requested sample.
     """
     global _chunk_load_mode
-    if mode not in ("cached", "sample"):
-        raise ValueError(f"Invalid chunk_load_mode: {mode!r}. Must be 'cached' or 'sample'.")
+    if mode not in ("cached", "sample", "indexed"):
+        raise ValueError(f"Invalid chunk_load_mode: {mode!r}. Must be 'cached', 'sample' or 'indexed'.")
     _chunk_load_mode = mode
     logger.info("Chunk load mode set to: %s", mode)
 
@@ -204,7 +205,11 @@ def _load_time_chunk(spec):
 def _load_chunk(spec):
     if _is_time_chunk_spec(spec):
         return _load_time_chunk(spec)
-    if _chunk_load_mode == "sample":
+    if _chunk_load_mode == "indexed":
+        from recipe.phimm.data.indexed_chunk import load_chunk_sample_indexed
+
+        result = load_chunk_sample_indexed(spec)
+    elif _chunk_load_mode == "sample":
         result = load_chunk_sample(spec)
     else:
         result = load_chunk_example(spec)

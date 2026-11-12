@@ -165,7 +165,7 @@ data:
   pin_memory: false
   train_batch_size: 64
   max_audio_dur: 40
-  chunk_load_mode: sample
+  chunk_load_mode: indexed
   gen_batch_size: ${data.train_batch_size}
   val_batch_size: 256
   custom_cls:
