@@ -3,7 +3,7 @@ import re
 import unicodedata
 import regex
 import num2words
-from .normalizer import remove_symbols_and_diacritics
+from .normalizer import remove_non_speech_annotations, remove_symbols_and_diacritics
 
 FILLER_WORDS = {}
 
@@ -18,8 +18,7 @@ class BasicMultilingualTextNormalizer:
 
     def __call__(self, s: str):
         s = s.lower()
-        s = re.sub(r"[<\[][^>\]]*[>\]]", "", s)  # remove words between brackets
-        s = re.sub(r"\(([^)]+?)\)", "", s)  # remove words between parenthesis
+        s = remove_non_speech_annotations(s)
         s = self.clean(s).lower()
 
         # Remove punctuation and extra spaces.
