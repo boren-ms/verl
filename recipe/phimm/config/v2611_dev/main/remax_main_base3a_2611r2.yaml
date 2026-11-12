@@ -1,0 +1,62 @@
+# Main Base3a: Base2c 2611r2 without OpenML training data.
+# Preserve remaining source order/budgets and all Base2c validation settings.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base2a_smts@_here_
+  - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - /data/train_data/quartr_3rd38@_quartr_third38_train
+  - /data/train_data/aishell/aishell1_train_top10k_2611r2_verb_langhint@_aishell_train
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+
+data:
+  data_source: null
+  train_data:
+    - ${_noisy_ls_train}
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_quartr_third38_train}
+    - ${_aishell_train}
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: noisy_ls, sample: 20424, shuffle: true}
+        - {name: earn_fy27, sample: 9568, shuffle: true}
+        - {name: quartr_1st23, sample: 3125, shuffle: true}
+        - {name: quartr_2nd48, sample: 6392, shuffle: true}
+        - {name: quartr_3rd38, sample: 6155, shuffle: true}
+        - {name: aishell1_train_top10k, sample: 10000, shuffle: true}
+
+reward_function_by_data_source:
+  earn_fy27: librispeech
+  quartr_1st23: librispeech
+  quartr_2nd48: librispeech
+  quartr_3rd38: librispeech
+  aishell1_train_top10k: aishell1_char
+
+reward_functions:
+  aishell1_char:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 1}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2
