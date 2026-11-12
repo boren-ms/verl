@@ -1,0 +1,18 @@
+# Low-SNR derivative of gen_ls_raw_rp_edge_nodigits_aug_audio_rir.yaml.
+# Same retained dry speech, speed, BUT ReverbDB RIRs and noise slots.
+# Uniform [-5, 5] dB covers the URGENT interval with the largest paired error gap.
+source_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio/data.jsonl
+noise_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/resources/original_noise_paths.jsonl
+original_noise_manifest: az://orngwus2cresco/data/boren/datat/noise/aed_data/unlabeled_data_proc/temp_1/Partition0/AED/data.jsonl
+output_dir: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_snr_m5_5_v1
+rir_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/resources/rirs.jsonl
+replacement_noise_manifest: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/resources/noises.jsonl
+resource_license: CC-BY-4.0
+original_seed: 0
+rir_seed: 20261027
+rir_prob: 1.0
+speed_range: [1.0, 2.0]
+# Old range verifies source provenance; target range drives actual mixing.
+original_snr_range: [10.0, 12.0]
+snr_range: [-5.0, 5.0]
+workers: 24

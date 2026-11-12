@@ -1,0 +1,21 @@
+# Verified 2,094/3,125 source rows retained; original labels/metadata and absolute audio paths.
+# JSONL SHA256: 2807f728ce1bdda72e11b96222b75c731b36ec01a0c53e47b1dec723b3473ea8
+# Keep canonical English compound-aware n_err > 0; no upper WER cap.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/quartr_2611r2_errors_20261111/filtered/quartr_1st23.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23
+    verl_format:
+      prompt_key: prompt

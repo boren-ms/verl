@@ -1,0 +1,43 @@
+# Match URGENT Base0b E4, replacing its LS training data with top 20,000 CV11 candidates by n_err, within strict 5% < WER < 100%.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base0b_2609r2_noisy_ls_e1_bs128_n16_r320_g16
+  - /data/train_data/noisy/cv11_en_train_rir_snr0_12_2609r2_wer_gt5pct_lt100pct_nerr_top20k_verb_langhint@_cv11_train
+  - _self_
+
+_cv11_data_sources:
+  noisy_cv11_en_train_2609r2_wer_gt5pct_lt100pct_nerr_top20k: {num_epoch: 1, shuffle: true}
+
+_cv11_reward_sources:
+  noisy_cv11_en_train_2609r2_wer_gt5pct_lt100pct_nerr_top20k: librispeech
+
+data:
+  data_source: ${_cv11_data_sources}
+  train_data:
+    - ${_cv11_train}
+
+reward_function_by_data_source: ${_cv11_reward_sources}
+
+reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 1}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.5, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+trainer:
+  experiment_name: remax_cv11_nerr_top20k_base0b_v0_e4
+  total_epochs: 4

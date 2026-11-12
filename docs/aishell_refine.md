@@ -173,3 +173,35 @@ and verified audio/token alignment including the longest training sample
 (14.53125 seconds, 182 audio tokens). The training config is ready; no training
 job was submitted. Final job lineage, publication and resource state are saved
 in the report summary and the artifact root's `provenance/` directory.
+
+## One-epoch ranked subset variants
+
+The four `aishell/remax_aishell_top{1,2,5,10}k_2611v1a_e1.yaml` recipes use the
+same actual 2611r2 Base1a step900 HF seed as the Top20k `2611v1a` variant.
+Each corresponding training-data YAML reads the verified `train_top20000.jsonl`
+and applies `post_process.input_egs_limit` before training shuffle. Thus the
+subsets are nested prefixes of the fixed descending-absolute-error ranking,
+with original human transcripts retained. Each subset has a separate cache
+name and data-source reward route to avoid reusing the full Top20k cache.
+No new manifests or audio copies are needed.
+
+| Recipe suffix | Selected rows | Epochs | Expected optimizer steps | Dropped final-batch rows |
+| --- | ---: | ---: | ---: | ---: |
+| `top1k_2611v1a_e1` | 1,000 | 1 | 7 | 104 |
+| `top2k_2611v1a_e1` | 2,000 | 1 | 15 | 80 |
+| `top5k_2611v1a_e1` | 5,000 | 1 | 39 | 8 |
+| `top10k_2611v1a_e1` | 10,000 | 1 | 78 | 16 |
+
+`trainer.total_epochs=1` and `trainer.total_training_steps=null` derive the
+budget from the runtime dataloader. The expected counts above follow the
+inherited batch size128 and `drop_last=True`; confirm the runtime target
+before accepting training progress. All other model/LoRA, optimizer, rollout,
+character/language/format reward, and fixed Top200 diagnostic validation
+settings match the Top20k recipe. Each recipe uses two nodes with eight GPUs
+per node and a distinct experiment/output name.
+
+Validation: all four Hydra configs compose and resolve; their model/actor,
+reward definitions and validation data match the Top20k parent settings. The
+source manifest SHA-256 matches the published digest above; all20,000 ranks
+are consecutive and edit counts descend. The actual loader's `limit_ds`
+function preserves each requested prefix's IDs and human references.

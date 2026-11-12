@@ -1,0 +1,21 @@
+# Verified 4,653/9,568 source rows retained; original labels/metadata and absolute audio paths.
+# JSONL SHA256: b21682ac35c09951eeb49ba973e03941edf61a1ef91c700ba604ec0c36af17ca
+# Keep canonical English compound-aware n_err > 0; no upper WER cap.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/quartr_2611r2_errors_20261111/filtered/earn_fy27.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        text: display
+    clean_tagged_text: {}
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt

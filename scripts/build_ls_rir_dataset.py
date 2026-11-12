@@ -62,11 +62,17 @@ def original_draws(row, noise_paths, cfg):
     speed = rng.uniform(*cfg["speed_range"])
     rng.random()  # noise probability
     noise_path = rng.choice(noise_paths)
-    snr = rng.uniform(*cfg["snr_range"])
+    # Validate the cache, then replay its SNR quantile in the target range.
+    # A separate RNG preserves the original noise-crop random stream.
+    snr_state = rng.getstate()
+    original_snr = rng.uniform(*cfg.get("original_snr_range", cfg["snr_range"]))
     if not np.isclose(speed, row["speed_factor"], atol=1e-8, rtol=0):
         raise ValueError(f"Original speed mismatch for {row['id']}")
-    if noise_path != row["noise_path"] or not np.isclose(snr, row["snr_db"], atol=1e-8, rtol=0):
+    if noise_path != row["noise_path"] or not np.isclose(original_snr, row["snr_db"], atol=1e-8, rtol=0):
         raise ValueError(f"Original noise/SNR mismatch for {row['id']}")
+    target_rng = random.Random()
+    target_rng.setstate(snr_state)
+    snr = target_rng.uniform(*cfg["snr_range"])
     return index, speed, snr, rng
 
 
@@ -118,6 +124,7 @@ def generate_row(row, noise_paths, rirs, cfg, work_dir, fingerprint, local_rir_d
             "audio_path": path,
             "parent_cached_audio_path": row["audio_path"],
             "parent_noise_path": row["noise_path"],
+            "parent_snr_db": row["snr_db"],
             "noise_path": noise_path,
             "noise_sha256": noise_record.get("sha256") if noise_record else None,
             "noise_license": noise_record.get("license") if noise_record else None,

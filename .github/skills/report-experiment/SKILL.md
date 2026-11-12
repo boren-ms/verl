@@ -95,6 +95,11 @@ Comparative evidence must place experiments together:
 - express validation delta as target minus reference percentage points;
 - express reward delta in the component's native unit with its direction stated.
 
+For standalone evaluation of different checkpoint endpoints, label each source
+checkpoint/optimizer budget explicitly. Descriptive endpoint WERR may be shown
+under the evaluation-table requirements below; it is not an exact-shared-step
+training delta or a causal estimate.
+
 Separate single-experiment charts do not satisfy the comparison unless a run is
 incompatible and appears only in a clearly labeled coverage/provenance panel.
 
@@ -189,6 +194,17 @@ percentage points, where negative is better. Dataset-specific best points can
 occur at different steps and do not identify one checkpoint that is best on all
 datasets.
 
+### Full evaluation: default Excel comparison and table image
+
+When a report includes completed OpenASR/full evaluation results, generate the
+comparison workbook and its full table image by default, without waiting for a
+separate request. Use [openasr-report](../openasr-report/SKILL.md) with the exact
+reference chosen for this comparison, and follow
+[evaluation comparison tables](references/evaluation-comparison-table.md) for
+rendering, verification and delivery. Keep training trajectories and exact-step
+tables separate from checkpoint-endpoint evaluation tables. A training-only
+report does not require an evaluation workbook or a new evaluation run.
+
 ## 3. Plot `reward-core` over optimizer steps
 
 Discover every logged `reward-core/<component>/mean` key for each run. Build a
@@ -260,12 +276,20 @@ Write a unique report directory, defaulting to
 - `data/`: plotted CSV/JSON data and canonical numeric tables so every figure
   and value is reproducible.
 
+For completed OpenASR/full evaluation comparisons, also deliver
+`comparison.xlsx` and `figures/evaluation_comparison_table.png`, with the
+workbook-derived rendering data saved under `data/`. The table image is a
+default report visual, not an optional attachment or a replacement for the
+workbook.
+
 The default compact PDF must include these key visuals when evidence exists:
 
 - one validation trajectory figure per comparable dataset, or a readable set
   of dataset panels, with all comparable runs overlaid;
 - a validation exact-shared-step comparison figure or table when aligned points
   exist;
+- the full Excel comparison table image for completed OpenASR/full evaluations,
+  split into readable sections/pages when needed;
 - reward-core trajectory figures grouped by compatible units and direction,
   without duplicate panels that communicate the same comparison;
 - a compact reward shared-window table when a common window exists;
@@ -283,7 +307,9 @@ shared-step validation, and one for reward shared-window summaries. Keep run
 coverage and provenance in the evidence package unless a missing-coverage fact
 must appear as a compact caveat beside the affected figure. Omit any table whose
 content is already fully represented elsewhere and adds no new
-decision-relevant information.
+decision-relevant information. For full evaluations, retain the required Excel
+table view and omit redundant endpoint tables or bars instead; training
+trajectories and exact-shared-step tables serve a different purpose.
 
 Every figure must be generated from a saved file under `data/`, and every table
 cell must trace to `evidence.json` or be marked `Unknown`/`N/A` with a reason.
@@ -293,8 +319,9 @@ the gap as `null` with a reason and use a compact coverage table instead of an
 empty or fabricated figure.
 
 Return links to `report.pdf`, `report.md`, `evidence.json`, the data directory,
-the figure directory, and any updated research note/homepage. Lead with the
-best-supported validation findings.
+the figure directory, the evaluation workbook/table image when applicable, and
+any updated research note/homepage. Lead with the best-supported validation
+findings.
 
 ## In-chat presentation
 
@@ -316,6 +343,12 @@ figure/table that is not backed by `evidence.json` and the saved `data/`
 artifacts. Include links to the underlying figure, table data, and full PDF
 after the inline presentation. The inline display is required even when the
 same content is already embedded in `report.pdf`.
+
+For completed OpenASR/full evaluation comparisons, also embed the verified full
+Excel table image directly in Chat and link the `.xlsx`. A summary of averages,
+selected rows, bar charts or a workbook link alone does not satisfy this table
+presentation. Split long/wide tables into readable images while retaining every
+canonical dataset and summary row.
 
 ### Generate and verify `report.pdf`
 
@@ -356,6 +389,8 @@ After PDF verification, perform the in-chat presentation before delivery:
   set of per-dataset Validation figures) directly in the Chat;
 - show the verified effective Config Difference table inline, or embed its
   rendered image when width makes a Markdown table unreadable;
+- for completed OpenASR/full evaluations, embed the verified full Excel
+  comparison table image(s) and link the workbook;
 - cross-check the inline values and image paths against `evidence.json` and
   the saved figure/data files, and still return the normal artifact links.
 
@@ -373,6 +408,9 @@ here. Supply:
   material provenance or coverage limits;
 - `report.pdf`, `report.md`, `evidence.json`, reusable key figures, plotted data,
   and any local dependencies needed to open the copied report;
+- the evaluation comparison workbook and table image(s) when applicable, for
+  linking and embedding in the detailed comparison note; the daily homepage
+  may use a compact selection under the note skill's rules;
 - an existing comparison-note/daily-entry identity when known, so a refresh
   updates the same report rather than creating duplicate notes.
 

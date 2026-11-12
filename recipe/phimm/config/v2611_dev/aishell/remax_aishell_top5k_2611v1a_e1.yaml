@@ -1,0 +1,38 @@
+# One-epoch AISHELL Top5k refinement from the actual 2611r2 Base1a step900 seed.
+# Use the ranked Top5k prefix of the verified Top20k manifest and fixed Top200 validation.
+# Preserves Base1a's ReMax, optimizer and ASR-vote mechanics. Mandarin training
+# uses character + language/format terms, avoiding whitespace word-segmentation bias.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - base_aishell
+  - /data/train_data/aishell/aishell1_train_top5k_2611r2_verb_langhint@_aishell_train
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2611_eval/main2611_r2_finalbest_20261109/exports/main_base1a_2611r2_s900/qwen_hf
+
+reward_function_by_data_source:
+  aishell1_train_top5k: aishell1_char
+
+reward_functions:
+  aishell1_char:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      # One primary lexical measure, retaining the original auxiliary weights.
+      reduce: {mode: average, total: 1}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+trainer:
+  experiment_name: remax_aishell_top5k_2611v1a_e1
+  total_epochs: 1
+  total_training_steps: null

@@ -1,0 +1,20 @@
+# Global top 10,000 by absolute n_err; 2,732 rows from quartr_3rd38.
+# SHA256: 91554a4960d705c3072ac13816d28618b196faedfb3c6fa955d8eb4225a02a88; original references and audio selectors preserved.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/quartr_2611r2_errors_20261111/top10k/filtered/quartr_3rd38.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38
+    verl_format:
+      prompt_key: prompt

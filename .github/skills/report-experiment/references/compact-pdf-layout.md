@@ -18,6 +18,11 @@ The PDF contains only these sections, in this order:
    - Overlaid observed `p_err` trajectories using actual optimizer/validation
      steps and stable run colors.
    - Exact shared-step table when aligned points exist.
+   - For completed OpenASR/full evaluations, the required full Excel comparison
+     table view from [evaluation comparison tables](evaluation-comparison-table.md).
+     Place it within Validation, split by dataset group/page with repeated
+     headers; do not shrink a tall Chat image onto one unreadable page.
+     Prefer this canonical table over redundant endpoint tables or bar charts.
    - A compact progression or latest/best table only when it adds information
      not already readable from the figure.
    - Put unequal-budget, provisional-run, or provenance caveats beside the

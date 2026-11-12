@@ -1,7 +1,7 @@
-# Top10k preserves selection ranks1..10000 from the same SFT38000 absolute-error ranking.
-# Original AISHELL-1 human targets; audio uses Orange chunk references.
+# First 10,000 rows of the verified absolute-n_err-ranked Top20k manifest.
+# Limit the ranked prefix before training shuffle; original human targets retained.
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top10000.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl
   cache_name: aishell1_refine_20261110_train_top10000
   add_task_info:
     task: lang_asr_verb
@@ -9,6 +9,7 @@
     prefix_prob: 0.0
     lang_hint: true
   post_process:
+    input_egs_limit: 10000
     add_field:
       fields:
         data_source: aishell1_train_top10k

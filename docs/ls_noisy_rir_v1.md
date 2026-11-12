@@ -1,5 +1,76 @@
 # LibriSpeech noisy + RIR v1
 
+## 低 SNR 派生版：−5～5 dB
+
+生成配置：`recipe/phimm/config/data/cache/gen_ls_raw_rp_edge_nodigits_aug_audio_rir_snr_m5_5.yaml`。
+训练数据配置：`recipe/phimm/config/data/train_data/noisy/ls_rir_snr_m5_5_verb_langhint.yaml`。
+
+该版本将目标 SNR 从 10～12 dB 改为均匀采样的 **−5～5 dB**，覆盖本次
+2609R2B URGENT noisy/clean 配对分析中贡献 79.9% 净新增词错的 SNR<5 dB 区间。
+这只对齐 SNR 区间，不代表复现 URGENT 的噪声类型、RIR 或所有失真条件。
+样本集合、1～2 倍变速、BUT ReverbDB RIR/噪声池、随机种子和 prompt 配置沿用 RIR 版。
+
+`original_snr_range: [10.0, 12.0]` 仅用于校验旧缓存的记录；
+`snr_range: [-5.0, 5.0]` 才用于新音频混合。两者使用同一原始随机分位数，
+即新 SNR = −5 + 5 × (旧 SNR − 10)，并保留后续噪声裁剪随机流。
+新 manifest 的 `parent_snr_db` 保存旧 SNR，`snr_db` 保存新目标 SNR。
+
+独立输出目录：
+`az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_snr_m5_5_v1/`。
+2026-11-11 已在远程专属 CPU 节点生成并验证全量 `data.jsonl`：
+20,424 条，46.4057 小时，5,346,835,272 字节 PCM16 WAV。
+全部上传路径/大小核对通过，32 条随机音频回读 SHA256 和信号检查通过。
+实际 SNR 范围 `[-4.999775, 4.999151]` dB，均值 `0.011770` dB，
+量化前最大 SNR 误差 `5.45e-7` dB；10,177 条低于 0 dB。
+Manifest SHA256：`0e87ef4ef88085308eb32c1cc9b4d1d25e6f05c4cedb2d851efc44452d56183a`。
+该输出根目录中的 `summary.json`、`validation.json` 和 `build.log` 保存生成与核验依据。
+
+```bash
+python scripts/build_ls_rir_dataset.py \
+  --config recipe/phimm/config/data/cache/gen_ls_raw_rp_edge_nodigits_aug_audio_rir_snr_m5_5.yaml \
+  --work-dir /path/to/ls_rir_snr_m5_5_build
+```
+
+使用 `--max-examples 8` 可做少量生成检查；检查模式仍会写出少量音频，
+但不会发布最终训练 manifest。
+
+发布后运行独立检查，核对全部源样本、随机参数及上传 WAV 的路径/大小，
+并随机回读 32 条音频验证 SHA256、PCM16 和信号：
+
+```bash
+python scripts/validate_ls_rir_dataset.py \
+  --config recipe/phimm/config/data/cache/gen_ls_raw_rp_edge_nodigits_aug_audio_rir_snr_m5_5.yaml \
+  --output /path/to/ls_rir_snr_m5_5_build/validation.json
+```
+
+ReMax recipe：`recipe/phimm/config/v2611_dev/urgent/remax_urgent_base0b_rir_snr_m5_5_v0_e4.yaml`。
+Baseline 为 `remax_urgent_base0b_v0_e4.yaml`；新训练配置沿用其模型、reward、
+LoRA、batch、rollout 和 URGENT validation，仅替换训练数据，并显式固定目标为
+636 个 optimizer update（20,424 条、batch 128、每 epoch 159 个完整 batch、4 epoch）。
+训练期间验证集沿用 `urgent2024_delta` 的 283 条 noisy 音频。
+两组最终 checkpoint 的内部 optimizer 状态均确认实际完成 **636 次更新**；
+末条 optimizer 指标日志为 635，不应据此把实际更新数记为 635。
+
+最终 step 636 已按 producer base、LoRA rank 320 / alpha 640 导出合并 HF 模型，
+并用 `recipe/phimm/config/v2611_dev/eval/eval_urgent24_full_rir_snr_m5_5_e4_final.yaml`
+独立评测完整 `urgent2024` noisy 和 `urgent2024_clean`，各 1,000 条、18,544 个参考词。
+两组 ID/reference、English normalizer 与 greedy 解码参数一致；baseline 用当前 parser
+重算后错误数无变化。
+
+| 验证集 | 原始 RIR E4 | 低 SNR RIR E4 | 低 SNR − baseline |
+|---|---|---|---|
+| URGENT full noisy | 1616/18544 = 8.7144% | 1606/18544 = 8.6605% | −10 errors / −0.0539 pp |
+| URGENT clean | 793/18544 = 4.2763% | 819/18544 = 4.4165% | +26 errors / +0.1402 pp |
+| URGENT delta | 1141/5617 = 20.3133% | 1162/5617 = 20.6872% | +21 errors / +0.3739 pp |
+
+Noisy 小幅改善、clean 退化；历史恢复与代码版本不同，仅作描述性比较。
+训练和最终评测均 Ray SUCCEEDED；checkpoint 分片、HF 权重及上传已核验，
+专属 simulation/GPU 池已暂停，30 分钟追踪任务已删除。
+完整评测逐句结果保存在
+`az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_urgent24_full_rir_snr_m5_5_e4_final/val_data_gen/{urgent2024,urgent2024_clean}/0.jsonl`。
+
+## 原版：10～12 dB
+
 生成配置：`recipe/phimm/config/data/cache/gen_ls_raw_rp_edge_nodigits_aug_audio_rir.yaml`。
 训练配置：`recipe/phimm/config/data/train_data/noisy/ls_rir_verb_langhint.yaml`。
 

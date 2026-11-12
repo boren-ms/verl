@@ -143,3 +143,49 @@ quality, or validation metrics.
 
 Detailed build logs, pod identities, and runtime receipts are retained under
 ignored `tmp/remax-image/`; private launch configuration is not committed.
+
+## Devbox skill lifecycle check — 2026-11-11 UTC
+
+On 2026-11-10 PST (2026-11-11 00:07–00:14 UTC), created and deleted a temporary
+devbox using the `remote-development` skill's ordinary launch and connection
+path. No image rebuild or candidate dependency repair was needed.
+
+- Image: build 2201665, immutable digest
+  `sha256:d3624316721afeb2cf072b803cecac5a01e45f691b84e58e2cb43fc70d565b4e`.
+- Pool: `verl-n1-i1`, UID `5268c354-5639-40e9-a623-9348c7bcdce8`, cluster
+  `prod-westus2-cw-6`, namespace `boren`, priority `team-critical`, team
+  `team-moonfire-speech`.
+- Pod: `verl-n1-i1-0`, UID `7a480f54-8022-409d-8647-9ea05acca589`, host
+  `dh115-r292-node-01`, eight NVIDIA H100 80GB GPUs. Actual `main` imageID
+  matched the requested digest; the same pod remained Ready with zero restarts
+  through the end of validation.
+- Launch used `VERL_DOCKER_IMAGE`, `skip_rcall_user_config=true`, and the current
+  `docker/remax/image.rcall.py`. Startup registered TorchFlow with `--no-deps`
+  and logged `Skipping setup` for the broad TorchFlow installer.
+- Scoped `bpush` and login-shell `brix ssh` worked. Remote snapshot commit
+  `a3e9514d67643503081031ec96a04d36c15970b1` matched the sync result. This snapshot
+  includes local dirty changes and is distinct from the checkout's source HEAD
+  `0e222393db8b51682bf1e5869b18652ce18b10fe`.
+- Before setup, `verify.py` passed with `verl_path=/opt/verl-source/verl/__init__.py`:
+  all-GPU backward, causal-conv1d backward, FlashAttention backward, FlashInfer
+  RMSNorm, FLA backward, ReMax import, and a managed Ray worker. Eight-rank NCCL
+  all-reduce passed separately with sum 36.0.
+- Normal `bash quick_install.sh` logged `Environment already installed, skipping
+  installation`, rebound the two editable project packages, and passed its GPU
+  kernel checks. The full verifier passed again with
+  `verl_path=/root/code/verl/verl/__init__.py`. All recorded package and worker
+  versions were identical before and after setup, including Torch 2.11.0+cu130,
+  Ray 2.54.0, and protobuf 5.29.5.
+- Startup also reported a nonfatal Beacon initialization failure: no managed
+  storage container mapping for `az://oaidsm2/beacon/config.json`. The pod and
+  managed Ray became Ready and all checks above passed; Beacon functionality
+  was not validated. No shared configuration was changed to suppress it.
+- After saving evidence and rechecking the Pool UID, deleted only `verl-n1-i1`
+  with `brix delete`. At 00:14:00 UTC, the Pool was absent and no pods matching
+  its name or owner UID remained. Existing pools were left untouched.
+
+Raw logs, pod snapshots, JSON reports, and cleanup confirmation are in ignored
+`tmp/remote-devbox-verify/`. The two JSON verifier reports are also saved at
+`az://orngwus2cresco/data/boren/data/verl/devbox-verification/20261111T0007-verl-n1-i1/`
+as `image.json` and `checkout.json`. This validates the devbox environment and
+development setup path, not a ReMax optimizer step or model evaluation.
