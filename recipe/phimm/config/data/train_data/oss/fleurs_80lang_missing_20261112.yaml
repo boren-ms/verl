@@ -1,0 +1,1842 @@
+# @package data.train_data
+# Source gap only: 212,177 samples; existing source chunks excluded.
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ast.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ast_es/ChunkFiles
+    language: Asturian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ast
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_be.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/be_by/ChunkFiles
+    language: Belarusian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: be
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ceb.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ceb_ph/ChunkFiles
+    language: Cebuano
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ceb
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ckb.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ckb_iq/ChunkFiles
+    language: Central Kurdish
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ckb
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ff.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ff_sn/ChunkFiles
+    language: Fula
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ff
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_gl.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/gl_es/ChunkFiles
+    language: Galician
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: gl
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_is.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/is_is/ChunkFiles
+    language: Icelandic
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: is
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_kam.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/kam_ke/ChunkFiles
+    language: Kamba
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: kam
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_kea.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/kea_cv/ChunkFiles
+    language: Kabuverdianu
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: kea
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_kk.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/kk_kz/ChunkFiles
+    language: Kazakh
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: kk
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_lb.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/lb_lu/ChunkFiles
+    language: Luxembourgish
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: lb
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_lg.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/lg_ug/ChunkFiles
+    language: Ganda
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: lg
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ln.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ln_cd/ChunkFiles
+    language: Lingala
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ln
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_luo.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/luo_ke/ChunkFiles
+    language: Luo (Kenya and Tanzania)
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: luo
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_mi.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/mi_nz/ChunkFiles
+    language: Māori
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: mi
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_mt.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/mt_mt/ChunkFiles
+    language: Maltese
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: mt
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_nso.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/nso_za/ChunkFiles
+    language: Northern Sotho
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: nso
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_oc.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/oc_fr/ChunkFiles
+    language: Occitan
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: oc
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_om.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/om_et/ChunkFiles
+    language: Oromo
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: om
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_sd.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/sd_in/ChunkFiles
+    language: Sindhi
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: sd
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_sn.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/sn_zw/ChunkFiles
+    language: Shona
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: sn
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_sr.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/sr_rs/ChunkFiles
+    language: Serbian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: sr
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_umb.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/umb_ao/ChunkFiles
+    language: Umbundu
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: umb
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_wo.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/wo_sn/ChunkFiles
+    language: Wolof
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: wo
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_xh.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/xh_za/ChunkFiles
+    language: Xhosa
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: xh
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_af.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/af_za/ChunkFiles
+    language: Afrikaans
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: af
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_am.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/am_et/ChunkFiles
+    language: Amharic
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: am
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_as.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/as_in/ChunkFiles
+    language: Assamese
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: as
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_az.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/az_az/ChunkFiles
+    language: Azerbaijani
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: az
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_bg.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/bg_bg/ChunkFiles
+    language: Bulgarian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: bg
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_bn.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/bn_in/ChunkFiles
+    language: Bangla
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: bn
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_bs.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/bs_ba/ChunkFiles
+    language: Bosnian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: bs
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ca.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ca_es/ChunkFiles
+    language: Catalan
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ca
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_cy.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/cy_gb/ChunkFiles
+    language: Welsh
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: cy
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_el.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/el_gr/ChunkFiles
+    language: Greek
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: el
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_et.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/et_ee/ChunkFiles
+    language: Estonian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: et
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_fa.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/fa_ir/ChunkFiles
+    language: Persian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: fa
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_fil.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/fil_ph/ChunkFiles
+    language: Filipino
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: fil
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ga.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ga_ie/ChunkFiles
+    language: Irish
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ga
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_gu.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/gu_in/ChunkFiles
+    language: Gujarati
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: gu
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ha.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ha_ng/ChunkFiles
+    language: Hausa
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ha
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_hr.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/hr_hr/ChunkFiles
+    language: Croatian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: hr
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_hy.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/hy_am/ChunkFiles
+    language: Armenian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: hy
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_id.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/id_id/ChunkFiles
+    language: Indonesian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: id
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ig.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ig_ng/ChunkFiles
+    language: Igbo
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ig
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_jv.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/jv_id/ChunkFiles
+    language: Javanese
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: jv
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ka.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ka_ge/ChunkFiles
+    language: Georgian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ka
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_km.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/km_kh/ChunkFiles
+    language: Khmer
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: km
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_kn.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/kn_in/ChunkFiles
+    language: Kannada
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: kn
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ky.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ky_kg/ChunkFiles
+    language: Kyrgyz
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ky
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_lo.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/lo_la/ChunkFiles
+    language: Lao
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: lo
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_lt.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/lt_lt/ChunkFiles
+    language: Lithuanian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: lt
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_lv.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/lv_lv/ChunkFiles
+    language: Latvian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: lv
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_mk.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/mk_mk/ChunkFiles
+    language: Macedonian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: mk
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ml.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ml_in/ChunkFiles
+    language: Malayalam
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ml
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_mn.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/mn_mn/ChunkFiles
+    language: Mongolian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: mn
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_mr.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/mr_in/ChunkFiles
+    language: Marathi
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: mr
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ms.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ms_my/ChunkFiles
+    language: Malay
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ms
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_my.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/my_mm/ChunkFiles
+    language: Burmese
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: my
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_nb.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/nb_no/ChunkFiles
+    language: Norwegian Bokmål
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: nb
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ne.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ne_np/ChunkFiles
+    language: Nepali
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ne
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ny.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ny_mw/ChunkFiles
+    language: Nyanja
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ny
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_or.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/or_in/ChunkFiles
+    language: Odia
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: or
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_pa.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/pa_in/ChunkFiles
+    language: Punjabi
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: pa
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ps.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ps_af/ChunkFiles
+    language: Pashto
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ps
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ro.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ro_ro/ChunkFiles
+    language: Romanian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ro
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_sk.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/sk_sk/ChunkFiles
+    language: Slovak
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: sk
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_sl.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/sl_si/ChunkFiles
+    language: Slovenian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: sl
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_so.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/so_so/ChunkFiles
+    language: Somali
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: so
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_sw.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/sw_ke/ChunkFiles
+    language: Swahili
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: sw
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ta.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ta_in/ChunkFiles
+    language: Tamil
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ta
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_te.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/te_in/ChunkFiles
+    language: Telugu
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: te
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_tg.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/tg_tj/ChunkFiles
+    language: Tajik
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: tg
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_uk.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/uk_ua/ChunkFiles
+    language: Ukrainian
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: uk
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_ur.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/ur_pk/ChunkFiles
+    language: Urdu
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: ur
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_uz.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/uz_uz/ChunkFiles
+    language: Uzbek
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: uz
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_vi.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/vi_vn/ChunkFiles
+    language: Vietnamese
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: vi
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_yo.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/yo_ng/ChunkFiles
+    language: Yoruba
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: yo
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_yue.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/yue_hant_hk/ChunkFiles
+    language: Cantonese
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: yue
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/fleurs_80lang_missing_zu.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/HuggingFace/fleurs_multilingual_s2t/Chunk/Train/zu_za/ChunkFiles
+    language: Zulu
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: FLEURS
+        source_language: zu
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language

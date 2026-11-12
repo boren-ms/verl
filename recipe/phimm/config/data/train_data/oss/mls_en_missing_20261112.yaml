@@ -1,0 +1,26 @@
+# @package data.train_data
+# Source gap only: 10,324,037 samples; existing source chunks excluded.
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/mls_en_missing_en.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_english/train/Chunkfiles
+    language: English
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_english/train/Chunkfiles
+  chunk_types:
+  - audio
+  - transcription
+  num_proc: auto
+  add_task_info:
+    task: lang_asr
+    prefix_prob: 0.0
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: MLS
+        source_language: en
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language

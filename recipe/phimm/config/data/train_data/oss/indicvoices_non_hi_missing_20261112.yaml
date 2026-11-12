@@ -1,0 +1,292 @@
+# @package data.train_data
+# Source gap only: 3,354,993 samples; existing source chunks excluded.
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_as.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/as_verbatim_c96f9088/chunks
+    language: Assamese
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/as_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: as
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_bn.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/bn_verbatim_c96f9088/chunks
+    language: Bangla
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/bn_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: bn
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_gu.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/gu_verbatim_c96f9088/chunks
+    language: Gujarati
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/gu_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: gu
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_kn.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/kn_verbatim_c96f9088/chunks
+    language: Kannada
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/kn_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: kn
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_ml.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/ml_verbatim_c96f9088/chunks
+    language: Malayalam
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/ml_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: ml
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_mr.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/mr_verbatim_c96f9088/chunks
+    language: Marathi
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/mr_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: mr
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_or.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/or_verbatim_c96f9088/chunks
+    language: Odia
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/or_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: or
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_pa.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/pa_verbatim_c96f9088/chunks
+    language: Punjabi
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/pa_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: pa
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_ta.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/ta_verbatim_c96f9088/chunks
+    language: Tamil
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/ta_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: ta
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_missing_from_moe_20261112/manifests/indicvoices_non_hi_missing_te.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/te_verbatim_c96f9088/chunks
+    language: Telugu
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/IndicVoices/te_verbatim_c96f9088/chunks
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  num_proc: auto
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: asr
+        source_family: IndicVoices
+        source_language: te
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_language
