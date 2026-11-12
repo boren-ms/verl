@@ -1,0 +1,2772 @@
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/000_MLS_en_6457af58c4f2.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_english/train/Chunkfiles
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_english/train/Chunkfiles
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: MLS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/001_MLS_de_6ca44169ae8a.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_german/train/Chunk_feature
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_german/train/Chunk_feature
+    language: de
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: MLS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/002_MLS_es_602ac53dd2c5.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_spanish/train/Chunk_feature
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_spanish/train/Chunk_feature
+    language: es
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: MLS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/003_MLS_fr_6779aa989904.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_french/train/Chunk_feature
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_french/train/Chunk_feature
+    language: fr
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: MLS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/004_MLS_it_d8ced9f0482f.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_italian/train/Chunk_feature
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_italian/train/Chunk_feature
+    language: it
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: MLS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/005_MLS_pt_437975480590.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_portuguese/train/Chunk_feature
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_portuguese/train/Chunk_feature
+    language: pt
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: MLS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/006_MLS_pl_d9f084558531.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_polish/train/Chunk_feature
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_polish/train/Chunk_feature
+    language: pl
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: MLS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/007_MLS_nl_7f041958863f.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_dutch/train/Chunk_feature
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/SLR94_Multilingual_LibriSpeech_2015/mls_dutch/train/Chunk_feature
+    language: nl
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: MLS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/008_WenetSpeech_zh_94f29af5d585.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/WenetSpeech/Chunk/train/Chunkfiles
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/WenetSpeech/Chunk/train/Chunkfiles
+    language: zh
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: WenetSpeech
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/009_GigaSpeech_en_dcc1c9c4d3de.json
+    chunk_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/GigaSpeech/train_data/feature_extraction
+    trans_path: az://orngwus2cresco/data/speech/am_data/publicdataset_process/GigaSpeech/train_data/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: GigaSpeech
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/010_CommonVoice15_en_3f639cbf027d.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/en
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/en_pt_transcribe
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/011_CommonVoice15_de_052006c2e6e4.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/de
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/de_pt_transcribe
+    language: de
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/012_CommonVoice15_es_d480cad98460.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/es
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/es_pt_transcribe
+    language: es
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/013_CommonVoice15_fr_a11cf5dcea43.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/fr
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/fr_pt_transcribe
+    language: fr
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/014_CommonVoice15_it_4c8120f09857.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/it
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/it_pt_transcribe
+    language: it
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/015_CommonVoice15_ja_84247381bc6c.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/ja
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/ja_pt_transcribe
+    language: ja
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/016_CommonVoice15_pt_bdcdfd438040.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/pt
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/pt_pt_transcribe
+    language: pt
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/017_CommonVoice15_zh_9d73557b8d98.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/zh-CN
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/zh-CN_pt_transcribe
+    language: zh
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/018_CommonVoice15_ar_1761dbf90aa9.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/ar
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/ar
+    language: ar
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/019_CommonVoice15_cs_b5a1d57518c0.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/cs
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/cs
+    language: cs
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/020_CommonVoice15_da_5bf25b371783.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/da
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/da
+    language: da
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/021_CommonVoice15_fi_065f5b1dc205.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/fi
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/fi
+    language: fi
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/022_CommonVoice15_he_2e6bf41b2ed8.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/he
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/he
+    language: he
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/023_CommonVoice15_hi_733636ac8074.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/hi
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/hi
+    language: hi
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/024_CommonVoice15_hu_17ca2a65f692.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/hu
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/hu
+    language: hu
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/025_CommonVoice15_ko_75675a2a5152.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/ko
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/ko
+    language: ko
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/026_CommonVoice15_nl_c4756979650f.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/nl
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/nl
+    language: nl
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/027_CommonVoice15_pl_4f94413bafa2.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/pl
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/pl
+    language: pl
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/028_CommonVoice15_ru_485355d6eeaf.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/ru
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/ru
+    language: ru
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/029_CommonVoice15_sv_1797a6c00e08.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/sv-SE
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/sv-SE
+    language: sv
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/030_CommonVoice15_th_6132fd9f5747.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/th
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/th
+    language: th
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/031_CommonVoice15_tr_6ccb91eeaa45.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/tr
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/CommonVoice/cv-corpus-15.0/chunk_data/tr
+    language: tr
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: CommonVoice15
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/032_VoxPopuli_en_5a6f6949a4f8.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/en
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/en
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/033_VoxPopuli_de_ced64309d66f.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/de
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/de
+    language: de
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/034_VoxPopuli_es_e9ac66ae0143.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/es
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/es
+    language: es
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/035_VoxPopuli_fr_81130a68e67e.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/fr
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/fr
+    language: fr
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/036_VoxPopuli_it_ef29a29bc37d.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/it
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/it
+    language: it
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/037_VoxPopuli_pl_473f67cc46c4.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/pl
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/pl
+    language: pl
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/038_VoxPopuli_hu_98c359da744b.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/hu
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/hu
+    language: hu
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/039_VoxPopuli_cs_360ea2bf9094.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/cs
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/cs
+    language: cs
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/040_VoxPopuli_nl_7786f6720743.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/nl
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/nl
+    language: nl
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/041_VoxPopuli_fi_98170c6b4481.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/fi
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/VoxPopuli/chunk_data/fi
+    language: fi
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VoxPopuli
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/042_FLEURS_en_df02bcbcd975.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/EN/EN
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/EN/EN
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/043_FLEURS_de_dd729303c00e.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/DE/DE
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/DE/DE
+    language: de
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/044_FLEURS_es_f6ce1d87ff3d.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ES/ES
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ES/ES
+    language: es
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/045_FLEURS_fr_77a727443f7d.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/FR/FR
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/FR/FR
+    language: fr
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/046_FLEURS_it_8e62a4520fb6.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/IT/IT
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/IT/IT
+    language: it
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/047_FLEURS_ja_3d4ed3abef1d.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/JA/JA
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/JA/JA
+    language: ja
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/048_FLEURS_pt_17b10fa0f147.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/PT/PT
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/PT/PT
+    language: pt
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/049_FLEURS_zh_42d01382d74c.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ZH/ZH
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ZH/ZH
+    language: zh
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/050_FLEURS_ko_9f5c6ec65b03.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/KO/KO
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/KO/KO
+    language: ko
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/051_FLEURS_en_4f746783c72f.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/EN/EN_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/EN/EN_random_pt
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/052_FLEURS_de_5865f2624423.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/DE/DE_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/DE/DE_random_pt
+    language: de
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/053_FLEURS_es_1bfdbdb34490.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ES/ES_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ES/ES_random_pt
+    language: es
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/054_FLEURS_fr_ba34c61a2782.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/FR/FR_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/FR/FR_random_pt
+    language: fr
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/055_FLEURS_it_962f23779429.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/IT/IT_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/IT/IT_random_pt
+    language: it
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/056_FLEURS_ja_755887a5b05e.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/JA/JA_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/JA/JA_random_pt
+    language: ja
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/057_FLEURS_pt_16d8073fd782.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/PT/PT_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/PT/PT_random_pt
+    language: pt
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/058_FLEURS_zh_f217afbb99e5.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ZH/ZH_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ZH/ZH_random_pt
+    language: zh
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/059_FLEURS_ko_a674e6f04b56.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/KO/KO_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/KO/KO_random_pt
+    language: ko
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/060_FLEURS_nl_e2ec8f8a6572.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/nl_nl/nl_nl
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/nl_nl/nl_nl
+    language: nl
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/061_FLEURS_sv_dd3d09a1c2ae.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/sv_se/sv_se
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/sv_se/sv_se
+    language: sv
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/062_FLEURS_da_743a0e6491a3.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/da_dk/da_dk
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/da_dk/da_dk
+    language: da
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/063_FLEURS_fi_932298fd17e1.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/fi_fi/fi_fi
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/fi_fi/fi_fi
+    language: fi
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/064_FLEURS_ru_5018fcb05e7a.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ru_ru/ru_ru
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ru_ru/ru_ru
+    language: ru
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/065_FLEURS_pl_4c671d1b2711.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/pl_pl/pl_pl
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/pl_pl/pl_pl
+    language: pl
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/066_FLEURS_tr_834e0039eb73.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/tr_tr/tr_tr
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/tr_tr/tr_tr
+    language: tr
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/067_FLEURS_ar_917b9431aa1d.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ar_eg/ar_eg
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ar_eg/ar_eg
+    language: ar
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/068_FLEURS_he_46b32ed2dd9e.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/he_il/he_il
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/he_il/he_il
+    language: he
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/069_FLEURS_cs_6a6e26770d55.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/cs_cz/cs_cz
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/cs_cz/cs_cz
+    language: cs
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/070_FLEURS_hu_d64c8bd1122f.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/hu_hu/hu_hu
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/hu_hu/hu_hu
+    language: hu
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/071_FLEURS_th_f35944b06f7a.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/th_th/th_th
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/th_th/th_th
+    language: th
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/072_FLEURS_hi_b3a3e56de6fe.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/hi_in/hi_in
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/hi_in/hi_in
+    language: hi
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/073_FLEURS_nl_bd91cbf69929.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/nl_nl/nl_nl_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/nl_nl/nl_nl_random_pt
+    language: nl
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/074_FLEURS_sv_bd4fe503d4c7.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/sv_se/sv_se_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/sv_se/sv_se_random_pt
+    language: sv
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/075_FLEURS_da_96c7e75fec98.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/da_dk/da_dk_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/da_dk/da_dk_random_pt
+    language: da
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/076_FLEURS_fi_12339ed0d320.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/fi_fi/fi_fi_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/fi_fi/fi_fi_random_pt
+    language: fi
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/077_FLEURS_ru_870634c4be97.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ru_ru/ru_ru_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ru_ru/ru_ru_random_pt
+    language: ru
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/078_FLEURS_pl_c9f0affb5e9c.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/pl_pl/pl_pl_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/pl_pl/pl_pl_random_pt
+    language: pl
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/079_FLEURS_tr_ffcce9a562ea.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/tr_tr/tr_tr_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/tr_tr/tr_tr_random_pt
+    language: tr
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/080_FLEURS_ar_b459f38de5c7.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ar_eg/ar_eg_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/ar_eg/ar_eg_random_pt
+    language: ar
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/081_FLEURS_he_fe1fc835e996.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/he_il/he_il_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/he_il/he_il_random_pt
+    language: he
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/082_FLEURS_cs_944cde78e9bc.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/cs_cz/cs_cz_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/cs_cz/cs_cz_random_pt
+    language: cs
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/083_FLEURS_hu_8f911bfb5271.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/hu_hu/hu_hu_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/hu_hu/hu_hu_random_pt
+    language: hu
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/084_FLEURS_th_e814a0e43860.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/th_th/th_th_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/th_th/th_th_random_pt
+    language: th
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/085_FLEURS_hi_c769dc90d096.json
+    chunk_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/hi_in/hi_in_random_pt
+    trans_path: az://orngwus2cresco/data/speech/users/junkunchen/data/phi3mm/speech_translation/fleurs/chunk_data/hi_in/hi_in_random_pt
+    language: hi
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: FLEURS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/086_AMI_en_ea0b40b9fbee.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/OpenASR/chunk_data/ami
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/OpenASR/chunk_data/ami
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: AMI
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/087_Earnings22_en_5c9d469a15e6.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/OpenASR/chunk_data/earnings22
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/phi3_asr_data/OpenASR/chunk_data/earnings22
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: Earnings22
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/088_WavLLM_en_26ba8aaf2b0a.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/wavllm_data/wavllm/chunk_data/asr_train
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/wavllm_data/wavllm/chunk_data/asr_train
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: WavLLM
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/089_WavLLM_en_287436947dac.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/wavllm_data/wavllm/chunk_data/asr_train_transcribe
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/wavllm_data/wavllm/chunk_data/asr_train_transcribe
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: WavLLM
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/090_WavLLM_en_78f767f4566b.json
+    chunk_path: az://orngwus2cresco/data/speech/users/ruchaofan/wavllm_data/wavllm/chunk_data/libriheavy_train_medium_postprocess
+    trans_path: az://orngwus2cresco/data/speech/users/ruchaofan/wavllm_data/wavllm/chunk_data/libriheavy_train_medium_postprocess
+    language: en
+  chunk_types:
+  - audios
+  - sft.0.messages.1.content
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: WavLLM
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+  pre_process:
+    rename_fields:
+      mappings:
+        text: sft.0.messages.1.content
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/091_VOiCES_en_5a61d6640c0e.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_Box_unzip/feature_extraction
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_Box_unzip/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VOiCES
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/092_VOiCES_en_a120ac49625b.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_devkit/feature_extraction
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_devkit/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VOiCES
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/093_VOiCES_en_cc79b14599aa.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_rebuilt/feature_extraction
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VOiCES/VOiCES_rebuilt/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VOiCES
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/094_VCTK_en_e737a6a972ec.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VCTK/clean
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VCTK/clean
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VCTK
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/095_VCTK_en_cccfe09abbe2.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VCTK/simu/feature_extraction_fix
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/VCTK/clean
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: VCTK
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/096_LibriTTS_en_31345325380e.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-100/clean/feature_extraction
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-100/clean/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: LibriTTS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/097_LibriTTS_en_ece83ecb1a1b.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-360/clean/feature_extraction
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-360/clean/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: LibriTTS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/098_LibriTTS_en_bf26f2d34700.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-500/clean/feature_extraction
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-500/clean/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: LibriTTS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/099_LibriTTS_en_fc581dc9a160.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-100/simu/feature_extraction_fix
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-100/clean/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: LibriTTS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/100_LibriTTS_en_0b0cb7c7bb2b.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-360/simu/feature_extraction_fix
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-360/clean/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: LibriTTS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+- dataset_name: chunk
+  specs:
+  - manifest_file: az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/source_manifests/101_LibriTTS_en_014a0fa22c20.json
+    chunk_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-500/simu/feature_extraction_fix
+    trans_path: az://orngwus2cresco/data/speech/users/v-wanhu/TaskForRuchao/Data/OpenSource/Chunk/LibriTTS/train-other-500/clean/feature_extraction
+    language: en
+  chunk_types:
+  - audio
+  - transcription
+  chunk_shuffle: false
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+        source_family: LibriTTS
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family

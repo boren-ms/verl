@@ -390,16 +390,25 @@ def main_task(config):
             split_idx += 1
 
     def generate():
+        import time
+
         while not stopped.is_set():
+            waiting_at = time.monotonic()
             item = get_item(prep_queue)
+            input_wait_s = time.monotonic() - waiting_at
             if item is _SENTINEL:
                 break
             global_batch_idx, n_egs, data_padded, pad_size, results, extras = item
             print(f"\n(Batch {global_batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
+            generating_at = time.monotonic()
             output_padded = wg.generate_sequences(data_padded)
             output = unpad_dataproto(output_padded, pad_size=pad_size)
+            dispatch_decode_s = time.monotonic() - generating_at
+            posting_at = time.monotonic()
             if not put_item(post_queue, (output, results, extras)):
                 return
+            print(f"Generation timing batch={global_batch_idx + 1} input_wait_s={input_wait_s:.3f} "
+                  f"dispatch_decode_s={dispatch_decode_s:.3f} output_queue_wait_s={time.monotonic() - posting_at:.3f}")
             pbar.update(1)
         put_item(post_queue, _SENTINEL)
 
