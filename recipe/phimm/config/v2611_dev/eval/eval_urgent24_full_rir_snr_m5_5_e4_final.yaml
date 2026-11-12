@@ -1,0 +1,28 @@
+# Run after the low-SNR RIR E4 job completes 636 actual optimizer updates.
+# Export the verified final checkpoint to this merged HF directory first.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - eval_base
+  - /data/val_data/urgent_zip@_urgent
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2611/remax_urgent_base0b_rir_snr_m5_5_v0_e4/global_step_636/qwen_hf
+    lora_rank: 0
+
+data:
+  val_data:
+    - ${_urgent}
+
+trainer:
+  experiment_name: eval_urgent24_full_rir_snr_m5_5_e4_final
+  nnodes: 2
+  n_gpus_per_node: 8
+  resume_mode: disable
+  resume_from_path: null
+  val_only: true
