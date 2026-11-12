@@ -1,0 +1,39 @@
+hydra:
+  searchpath:
+  - file://recipe/phimm/config
+  - file://verl/trainer/config
+defaults:
+- gen_base
+- /data/train_data/oss/oss_gap_2611r2_errors_20261112_raw@data.gen_data
+- _self_
+custom_reward_function:
+  path: recipe/phimm/reward/oss_gap_error_mining.py
+  name: compute_score
+  reward_kwargs:
+    version: 2609
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+model:
+  lora_rank: 0
+data:
+  output_path: az://orngwus2cresco/data/boren/data/oss_gap_2611r2_errors_20261112/generation
+  chunk_load_mode: sample
+  max_audio_dur: null
+  validation_shuffle: false
+  output_split_size: 20000
+  num_workers: 4
+rollout:
+  dtype: bfloat16
+  engine_kwargs:
+    vllm:
+      quantization: null
+ray_kwargs:
+  ray_init:
+    runtime_env:
+      env_vars:
+        VERL_AUDIO_CACHE_ROOT: /root/data/oss_gap_2611r2_errors_20261112_cache
+trainer:
+  experiment_name: gen_oss_gap_2611r2_errors_20261112
+  nnodes: 4
+  n_gpus_per_node: 8
