@@ -25,12 +25,6 @@ data:
     - ${_openml}
     - ${_openlong}
 
-val_reward:
-  reward_function_by_data_source:
-    earnings21: openasr_en
-    earnings22: openasr_en
-    coraal: openasr_en
-
 trainer:
   experiment_name: eval_2611v1a_sft120_openfull_zip
   nnodes: 2

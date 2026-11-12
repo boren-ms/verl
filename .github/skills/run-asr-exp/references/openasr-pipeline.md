@@ -1,13 +1,20 @@
 # OpenASR pipeline, checkpoint export and prefetch
 
 Apply the shared job, resource, authorization, monitoring and completion rules
-in [SKILL.md](../SKILL.md). Execute only requested stages:
+in [SKILL.md](../SKILL.md). Training includes final export, full evaluation and
+Excel comparison by default unless explicitly disabled; other requests retain
+their stated stages:
 
-`optional training -> requested or last complete checkpoint -> verified HF export -> standalone evaluation -> report-experiment report package`.
+`optional training -> requested or final complete checkpoint -> verified HF export -> full evaluation -> Excel comparison/table image -> report-experiment report package`.
 
 For an evaluation-only request recover producer config, base model, rank/alpha,
 topology and output root from checkpoint provenance. Default eval config is
-`recipe/phimm/config/v2611_dev/eval/eval_2609r2_openall_zip.yaml`; default
+`recipe/phimm/config/v2611_dev/eval/eval_openfull_zip.yaml`, covering OpenEN,
+OpenML, OpenLong and Chinese/Vietnamese OpenExt. Set its required model path to
+the verified export, experiment name to a unique candidate identity and topology
+to the producer's verified node/GPU counts. Preserve explicitly narrower suites;
+do not treat the English/ML-only `eval_2609r2_openall_zip.yaml` as full coverage.
+Default
 report root is `tmp/experiment_reports/<train-stem>_step<step>/`, with timestamped
 refresh directories. Never
 stop or change source training to evaluate a complete checkpoint.
@@ -32,7 +39,10 @@ Enumerate the producer's `global_step_<N>` directories numerically. A
 checkpoint is ready only when provenance matches, all expected nonempty
 `model_world_size_<W>_rank_<R>.pt` shards for `R=0..W-1` exist and writes/uploads
 are complete. For an explicit step/path never substitute. Otherwise select the
-largest complete step, even if a newer directory is incomplete. A verified HF
+largest complete step for a last-available-checkpoint request, even if a newer
+directory is incomplete. For the default final evaluation, wait for training to
+reach `T` and require its final checkpoint at `T`; an earlier complete checkpoint
+does not satisfy final evaluation. A verified HF
 export for that exact checkpoint can be reused; missing HF weights with complete
 actor shards means export is needed.
 
@@ -112,6 +122,15 @@ For reporting, preserve these state-directory inputs:
 
 Resolve canonical identities from composed manifests; do not alias cleaned and
 uncleaned or short and long datasets by name. Use
+[openasr-report](../../openasr-report/SKILL.md) for the canonical Excel workbook
+and verified full table image, with the user's reference or its documented
+supplied baseline when none was identified. Preserve missing reference values
+and provenance limits; candidate coverage must still be complete. Deliver the
+workbook, include the full table figure in the final report PDF and embed it in
+the final chat response beside the `.xlsx` link and verified validation trajectory
+figures, including all canonical dataset and summary rows. Display both the
+Excel table and validation figures inline. Split the table across readable
+images/pages when necessary. Use
 [report-experiment](../../report-experiment/SKILL.md) for the verified PDF,
 Markdown, evidence, figures and data package, inline validation/config
 presentation, and Obsidian handoff unless opted out. Use only identified

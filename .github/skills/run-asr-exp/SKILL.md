@@ -1,19 +1,24 @@
 ---
 name: run-asr-exp
-description: Run, monitor, and recover scoped verl ASR jobs or orchestrate checkpoint export and OpenASR evaluation on Brix, with 30-minute monitoring and report-experiment updates when new validation is ready.
+description: Run, monitor, and recover scoped verl ASR jobs on Brix. Training defaults to final-checkpoint export, full OpenASR evaluation and an Excel comparison unless explicitly disabled, with 30-minute monitoring and validation-triggered reports.
 ---
 
 # Run ASR Exp
 
 Own the requested ASR job or pipeline: training, standalone evaluation,
 generation, checkpoint export, or an OpenASR train/export/evaluate/report
-workflow or checkpoint queue. Do only the stages the user requested. During
+workflow or checkpoint queue. For training requests, include final-checkpoint
+export, full OpenASR evaluation and an Excel comparison by default unless the
+user explicitly disables them (including a training-only request). State this
+pipeline at launch. This default does not expand status-only, generation-only,
+export-only or standalone evaluation requests. During
 authorized execution, monitor tracked work every 30 minutes and invoke
 [report-experiment](../report-experiment/SKILL.md) when new or corrected
 completed validation is ready, rather than on every monitor pass. Honor an
 explicit different monitoring cadence, report opt-out or status-only boundary.
 Use only identified comparison runs; never invent a baseline.
-For a multi-stage workflow, checkpoint queue, export, or audio
+For training with the default final evaluation, a multi-stage workflow,
+checkpoint queue, export, or audio
 prefetch, read [references/openasr-pipeline.md](references/openasr-pipeline.md).
 For training, periodic monitoring or scoped recovery, read
 [references/monitor-recover.md](references/monitor-recover.md).
@@ -189,3 +194,29 @@ or continue checking in this chat when no schedule exists. Report job success
 and resource pause separately; do not claim the resource paused until verified.
 
 Use `remote-development` for generic Brix setup when needed.
+
+## Default final-checkpoint evaluation
+
+After training reaches its persisted target `T` and final checkpoint writes and
+uploads complete, export that exact final checkpoint and evaluate the full
+OpenEN, OpenML, OpenLong and OpenExt (Chinese/Vietnamese) suites. Follow
+[references/openasr-pipeline.md](references/openasr-pipeline.md), preserving
+explicit dataset, resource and reference choices. Never substitute an earlier
+checkpoint for the final one or change training to obtain evaluation evidence.
+
+Use [openasr-report](../openasr-report/SKILL.md) to create the canonical Excel
+comparison, including WER/CER, matched-coverage WERR, model provenance and exact
+dataset result paths. Include the verified full Excel table figure in the final
+report PDF and embed it inline in the final chat response beside the `.xlsx`
+link, together with the verified validation trajectory figures from
+`report-experiment`. Show both kinds of figures directly in chat, rather than
+only linking their files. Split long/wide tables into readable images/pages while
+retaining every canonical dataset and summary row; a workbook link or selected-row summary alone
+does not satisfy final delivery. Use the
+user's identified reference when supplied; otherwise use openasr-report's
+documented supplied baseline and disclose its provenance limits. This supplied
+baseline is not an invented comparison run. Reuse verified reference results;
+record missing reference evidence rather than inventing scores or launching
+unrequested reference training. Complete the report-experiment handoff and
+resource pause checks only after all enabled stages finish. Persist explicit
+opt-outs and the end condition in pipeline state.

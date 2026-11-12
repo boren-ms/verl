@@ -6,6 +6,9 @@ val_reward:
   # The mixed TER30 suite uses the multilingual scorer for the AA datasets.
   aa_reward_function: openasr_en
   reward_function_by_data_source:
+    earnings21: openasr_en
+    earnings22: openasr_en
+    coraal: openasr_en
     zh_fleurs: openasr_expansion
     zh_aishell1: openasr_expansion
     vi_fleurs: openasr_expansion

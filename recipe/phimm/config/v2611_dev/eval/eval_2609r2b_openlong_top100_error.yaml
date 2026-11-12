@@ -17,9 +17,6 @@ trainer:
 
 val_reward:
   reward_function_by_data_source:
-    earnings21: openasr_en
-    earnings22: openasr_en
-    coraal: openasr_en
     earnings22_cleaned_aa: openasr_en
 
 data:

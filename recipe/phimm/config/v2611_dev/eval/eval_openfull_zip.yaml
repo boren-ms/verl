@@ -1,0 +1,32 @@
+# Full final-checkpoint evaluation: OpenEN, OpenML, OpenLong and zh/vi OpenExt.
+# Supply the verified HF export path and a unique experiment name at launch.
+hydra:
+  searchpath:
+    - file://recipe/phimm/config
+    - file://verl/trainer/config
+
+defaults:
+  - eval_base
+  - /data/val_data/openasr_verb_langhint_zip@_openen
+  - /data/val_data/openasr_ml_verb_langhint_zip@_openml
+  - /data/val_data/openlong_seg_verb_langhint_zip@_openlong
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: ???
+    lora_rank: 0
+
+data:
+  # Keep complete long-audio parent groups out of DataLoader IPC.
+  dataloader_num_workers: 0
+  val_data:
+    - ${_openen}
+    - ${_openml}
+    - ${_openlong}
+
+trainer:
+  experiment_name: ???
+  nnodes: 2
+  n_gpus_per_node: 8
+  resume_mode: disable

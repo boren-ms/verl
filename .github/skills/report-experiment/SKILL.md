@@ -325,9 +325,17 @@ findings.
 
 ## In-chat presentation
 
-The report is also a Chat deliverable, not only a PDF artifact. After the
-figures and canonical tables have been generated and verified, show the key
-Validation figure(s) directly in the current Chat using Markdown image embeds
+The report is also a Chat deliverable, not only a PDF artifact. In every report
+delivery, including the final response and interim refreshes, embed the verified
+validation figures and Excel comparison table figure together in the current
+Chat whenever each is available. Apply this independently: show validation
+figures for training-only reports, and show the Excel table figure for evaluation
+reports even when validation trajectories are unavailable. Do not launch an
+evaluation merely to fill a missing figure. State any unavailable evidence
+briefly rather than fabricating a visual or claiming it was displayed.
+
+After the figures and canonical tables have been generated and verified, show
+the key validation figure(s) directly in the current Chat using Markdown image embeds
 with absolute local paths, for example:
 
 ```markdown
@@ -344,8 +352,10 @@ artifacts. Include links to the underlying figure, table data, and full PDF
 after the inline presentation. The inline display is required even when the
 same content is already embedded in `report.pdf`.
 
-For completed OpenASR/full evaluation comparisons, also embed the verified full
-Excel table image directly in Chat and link the `.xlsx`. A summary of averages,
+Whenever a verified Excel comparison table figure is available, embed the full
+table image directly in the report's Chat delivery alongside available validation
+figures, and link the `.xlsx`. This is required for completed OpenASR/full
+evaluation comparisons. A summary of averages,
 selected rows, bar charts or a workbook link alone does not satisfy this table
 presentation. Split long/wide tables into readable images while retaining every
 canonical dataset and summary row.
