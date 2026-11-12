@@ -159,6 +159,12 @@ data:
   max_prompt_length: 1024
   max_response_length: 768
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
+  # Index sampling/checkpointing stays local; ASR preprocessing runs on rollout nodes.
+  distributed_training_loading:
+    enabled: false
+    workers_per_node: 4
+    prefetch_batches: 2
+    timeout_s: 300
   dataloader_num_workers: 1
   prefetch_factor: 2
   persistent_workers: true

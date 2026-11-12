@@ -227,10 +227,14 @@ def main_task(config):
         print(f"All {total_egs} samples already exist in {output_dir}; nothing to do.")
         print("All Done")
         return
-    if left_egs > 0:
+    distributed_loading = config.data.get("distributed_loading", {})
+    use_distributed_loading = distributed_loading.get("enabled", False)
+    if use_distributed_loading and val_shuffle:
+        raise ValueError("Distributed generation loading requires data.validation_shuffle=False")
+    if left_egs > 0 and not use_distributed_loading:
         dataset = Subset(dataset, range(left_egs, total_egs))
 
-    dataloader = StatefulDataLoader(
+    dataloader = None if use_distributed_loading else StatefulDataLoader(
         dataset=dataset,
         batch_size=batch_size,
         num_workers=config.data.get("num_workers", 0),
@@ -253,6 +257,16 @@ def main_task(config):
     )
     wg = wg_dict.spawn(prefix_set=["rollout"])["rollout"]
     wg.init_model()
+    if use_distributed_loading:
+        from recipe.phimm.data.generation_loader import DistributedGenerationLoader, rollout_node_ids
+
+        dataloader = DistributedGenerationLoader(
+            dataset, batch_size, rollout_node_ids(resource_pool), default_collate_fn,
+            start_index=left_egs,
+            workers_per_node=distributed_loading.get("workers_per_node", 4),
+            prefetch_batches=distributed_loading.get("prefetch_batches", 2),
+            timeout_s=distributed_loading.get("timeout_s", 300),
+        )
 
     tn_err = 0
     tn_ref = 0
@@ -390,16 +404,25 @@ def main_task(config):
             split_idx += 1
 
     def generate():
+        import time
+
         while not stopped.is_set():
+            waiting_at = time.monotonic()
             item = get_item(prep_queue)
+            input_wait_s = time.monotonic() - waiting_at
             if item is _SENTINEL:
                 break
             global_batch_idx, n_egs, data_padded, pad_size, results, extras = item
             print(f"\n(Batch {global_batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
+            generating_at = time.monotonic()
             output_padded = wg.generate_sequences(data_padded)
             output = unpad_dataproto(output_padded, pad_size=pad_size)
+            dispatch_decode_s = time.monotonic() - generating_at
+            posting_at = time.monotonic()
             if not put_item(post_queue, (output, results, extras)):
                 return
+            print(f"Generation timing batch={global_batch_idx + 1} input_wait_s={input_wait_s:.3f} "
+                  f"dispatch_decode_s={dispatch_decode_s:.3f} output_queue_wait_s={time.monotonic() - posting_at:.3f}")
             pbar.update(1)
         put_item(post_queue, _SENTINEL)
 
@@ -416,6 +439,9 @@ def main_task(config):
         stopped.set()
         raise
     finally:
+        # Killing CPU actors also unblocks a producer waiting on a failed/slow load.
+        if hasattr(dataloader, "close"):
+            dataloader.close()
         for thread in threads:
             if thread.ident is not None:
                 thread.join()

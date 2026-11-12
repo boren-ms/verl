@@ -18,6 +18,12 @@ data:
   persistent_workers: false
   prefetch_depth: 3
   chunk_load_mode: indexed
+  # Opt in with data.distributed_loading.enabled=true. Replaces local num_workers.
+  distributed_loading:
+    enabled: false
+    workers_per_node: 4
+    prefetch_batches: 2
+    timeout_s: 300
 
 model:
   path: ${actor_rollout_ref.model.path}

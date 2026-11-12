@@ -527,17 +527,33 @@ class RayPPOTrainer:
             prefetch_factor = None
         persistent_workers = self.config.data.get("persistent_workers", num_workers > 0) and num_workers > 0
         pin_memory = self.config.data.get("pin_memory", False)
-        self.train_dataloader = StatefulDataLoader(
-            dataset=self.train_dataset,
-            batch_size=self.bad_case_replay.fresh_batch_size,
-            num_workers=num_workers,
-            drop_last=True,
-            collate_fn=get_collate_fn(self.train_dataset, collate_fn),
-            sampler=train_sampler,
-            prefetch_factor=prefetch_factor,
-            persistent_workers=persistent_workers,
-            pin_memory=pin_memory,
-        )
+        distributed_loading = self.config.data.get("distributed_training_loading", {})
+        if distributed_loading.get("enabled", False):
+            from recipe.phimm.data.generation_loader import rollout_node_ids
+            from recipe.phimm.data.training_loader import DistributedTrainingLoader
+
+            self.train_dataloader = DistributedTrainingLoader(
+                self.train_dataset, self.bad_case_replay.fresh_batch_size, train_sampler,
+                get_collate_fn(self.train_dataset, collate_fn),
+                node_ids=lambda: rollout_node_ids(self.resource_pool_manager.get_resource_pool(Role.ActorRollout)),
+                workers_per_node=distributed_loading.get("workers_per_node", 4),
+                prefetch_batches=distributed_loading.get("prefetch_batches", 2),
+                timeout_s=distributed_loading.get("timeout_s", 300),
+                num_workers=num_workers, prefetch_factor=prefetch_factor,
+                persistent_workers=persistent_workers, pin_memory=pin_memory, drop_last=True,
+            )
+        else:
+            self.train_dataloader = StatefulDataLoader(
+                dataset=self.train_dataset,
+                batch_size=self.bad_case_replay.fresh_batch_size,
+                num_workers=num_workers,
+                drop_last=True,
+                collate_fn=get_collate_fn(self.train_dataset, collate_fn),
+                sampler=train_sampler,
+                prefetch_factor=prefetch_factor,
+                persistent_workers=persistent_workers,
+                pin_memory=pin_memory,
+            )
 
         self.val_dataloaders = []
         for dataset, val_batch_size in zip(val_datasets, val_batch_sizes, strict=True):
@@ -1131,7 +1147,12 @@ class RayPPOTrainer:
             if not os.path.exists(loader_path):
                 continue
             dataloader_state_dict = torch.load(loader_path, weights_only=False)
-            self.train_dataloader.load_state_dict(dataloader_state_dict)
+            if "_asr_training_sampler_epoch_generator" in dataloader_state_dict:
+                from recipe.phimm.data.training_loader import restore_training_loader_state
+
+                restore_training_loader_state(self.train_dataloader, dataloader_state_dict)
+            else:
+                self.train_dataloader.load_state_dict(dataloader_state_dict)
             print(f"loaded dataloader state from {loader_path}")
             break
 
@@ -1231,6 +1252,8 @@ class RayPPOTrainer:
             for batch_dict in self.train_dataloader:
                 metrics = {}
                 timing_raw = {}
+                if hasattr(getattr(self, "train_dataloader", None), "last_input_wait_s"):
+                    timing_raw["data_loading"] = self.train_dataloader.last_input_wait_s
 
                 with marked_timer("start_profile", timing_raw):
                     self._start_profiling(

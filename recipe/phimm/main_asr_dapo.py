@@ -231,8 +231,13 @@ class TaskRunner:
             val_reward_fn=val_reward_fn,
             dump_fn=lambda t: get_hyp_text(t, version=val_reward_kwargs.get("version")),
         )
-        trainer.init_workers()
-        trainer.fit()
+        try:
+            trainer.init_workers()
+            trainer.fit()
+        finally:
+            # Release CPU loading actors on success, failure and early return.
+            if hasattr(trainer.train_dataloader, "close"):
+                trainer.train_dataloader.close()
 
 
 if __name__ == "__main__":

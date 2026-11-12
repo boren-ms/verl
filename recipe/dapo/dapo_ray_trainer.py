@@ -153,6 +153,8 @@ class RayDAPOTrainer(RayPPOTrainer):
         for epoch in range(self.config.trainer.total_epochs):
             for batch_dict in self.train_dataloader:
                 metrics = {}
+                if hasattr(getattr(self, "train_dataloader", None), "last_input_wait_s"):
+                    timing_raw["data_loading"] += self.train_dataloader.last_input_wait_s
 
                 with marked_timer("start_profile", timing_raw):
                     self._start_profiling(
