@@ -57,7 +57,7 @@ Read [references/experiment-loop.md](references/experiment-loop.md) for recipe c
 
 ## 5. Run authorized stages and compare
 
-For remote submission, use the installed `run-asr-exp` skill and its current capacity, ownership, monitoring, recovery and completion requirements. Do not copy historical node or submission commands from an example. Wait for requested topology when capacity is unavailable; do not alter unrelated jobs. Record exact submission IDs and keep recovery within existing authorization.
+For remote submission, use the installed `run-asr-exp` skill and its current capacity, ownership, monitoring, recovery and completion requirements. Do not copy historical node or submission commands from an example. Request the authorized topology and priority through the native scheduler and let it wait for admission when capacity is unavailable. Scheduler-managed preemption under existing policy is allowed unless the user explicitly requests otherwise; do not impose an independent no-preemption or cross-namespace inventory gate. Do not manually alter unrelated jobs or shared scheduling policy. Record exact submission IDs and keep recovery within existing authorization.
 
 Evaluate the original experiment and refined checkpoint with the same frozen datasets, parser, normalization, prompt and decoding settings. If initialization differs from the original baseline, include its own pre-refinement evaluation so those effects are visible. Compare matching optimizer steps or disclose unequal budgets; use N/A for unsupported deltas. Include actual validation trajectories when available. Name requested suites that did not run.
 
